@@ -35,13 +35,13 @@ Exercise _author(Exercise exercise) {
   final hasGaps = exercise.hasArrangeGaps || exercise.hasSelectGaps;
   String valueOf(String id) =>
       exercise.interaction.items.singleWhere((item) => item.id == id).value;
-  final gapLayout = exercise.arrangeLayout
+  final gapLayout = exercise.interaction.layout
       .map((part) {
         if (part.type != 'gap') return part.text;
-        return '{${valueOf(exercise.arrangeGapAssignments[part.text]!)}}';
+        return '{${valueOf(exercise.targetAssignments[part.text]!)}}';
       })
       .join(' ');
-  final used = exercise.arrangeGapAssignments.values.toSet();
+  final used = exercise.targetAssignments.values.toSet();
   final correctNumbers = exercise.evaluation.correctItemIds
       .map(
         (id) =>
@@ -129,10 +129,10 @@ Map<String, Object?> _semantics(Exercise exercise) {
     'missing': exercise.missingWords,
     'minimum': exercise.interaction.minSelections,
     'maximum': exercise.interaction.maxSelections,
-    'layout': exercise.arrangeLayout
+    'layout': exercise.interaction.layout
         .map((part) => '${part.type}:${part.text}')
         .toList(),
-    'gaps': exercise.arrangeGapAssignments.map(
+    'gaps': exercise.targetAssignments.map(
       (gap, id) => MapEntry(gap, valueOf(id)),
     ),
     'dialogue': exercise.dialogueTurns
@@ -240,10 +240,10 @@ Future<void> _answer(
     return;
   }
   if (exercise.hasSelectGaps || exercise.hasArrangeGaps) {
-    for (final gap in exercise.arrangeLayout.where(
+    for (final gap in exercise.interaction.layout.where(
       (part) => part.type == 'gap',
     )) {
-      final id = exercise.arrangeGapAssignments[gap.text]!;
+      final id = exercise.targetAssignments[gap.text]!;
       await _tap(
         tester,
         find.byKey(

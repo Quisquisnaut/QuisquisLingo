@@ -31,7 +31,7 @@ only in preset or editor metadata are semantically equal.
 | Session | Delivered |
 | --- | --- |
 | 1 (Revision 0) | The canonical definitions below: nine primitives, typed options, evaluation modes, the capability registry with rules and the runtime-support table, the content-flow model with structural checks. No Course JSON or learner behavior changed; `ExercisePreset.primitive` replaced the five-value `CanonicalExerciseModel`. |
-| 2 (Revision 1) | Planned: Course Model v12 serialization, converter and tool, storage cut, semantic equality. |
+| 2 (Revision 1) | Done: Course Model v12 serialization (the "Course Model v12 JSON" section below), converter and tools, storage cut, semantic equality. The runtime, Audit and editor still read v11-shaped views until Sessions 3–4. |
 | 3 (Revision 2) | Planned: learner runtime and Course Audit on canonical data; Rounds as flows; capability-based Duel. |
 | 4 (Revision 3) | Planned: presets as recipes, exact recognition, Generic Primitive Editor, Help. |
 | 5 (Revision 4) | Planned: interoperability, the four support states, conditional transitions, capability JSON. |
@@ -245,6 +245,142 @@ build will play first: valid, no branching, every node visited once along
 and 3; conditional evaluation and the stand-alone flow engine in Sessions 5
 and 6.
 
+## Course Model v12 JSON (Session 2)
+
+The Course root, Lessons, GuideBooks, media, provenance and every other
+field keep their v11 shape; only `formatVersion` (12), Rounds, Content and
+exercises change.
+
+### Round
+
+Unchanged fields plus an optional `flow`:
+
+```json
+"flow": {
+  "start": "node_1",
+  "nodes": [
+    {"id": "node_1", "kind": "content", "contentId": "dialogue_1",
+     "transitions": [{"trigger": "next", "target": "node_2"}]},
+    {"id": "node_2", "kind": "exercise", "contentId": "question_1",
+     "transitions": [
+       {"trigger": "onCorrect", "target": "node_3"},
+       {"trigger": "onIncorrect", "target": "node_hint"},
+       {"trigger": "onChoice", "target": "node_a", "choiceItemId": "item_a"},
+       {"trigger": "conditional", "target": "node_b",
+        "condition": {"kind": "answeredCorrectly", "nodeId": "node_2"}}]}
+  ]
+}
+```
+
+A Round without `flow` is today's practice Round (lesson_intro first, then
+shuffled exercises, then the mistake review). `visualType` stays a visual
+hint and does not decide delivery.
+
+### Content
+
+`id`, `publicationState`, `kind`, `required`, `role`, `sourceRefs` and
+`text` are unchanged for textual kinds (explanation, example, vocabulary,
+text, image, audio, dialogue). Every exercise, Presentation included, is
+`kind: exercise` with an `exercise` object; v11's `kind: presentation` with
+a `presentation` object is converted into a `presentation`-primitive
+exercise. `editorTemplate` becomes `authoringMetadata`, an optional object
+whose `presetId` names the preset that authored the exercise; other keys
+are preserved verbatim and never read.
+
+### Exercise
+
+```json
+{
+  "updatedAt": "2026-09-27T00:00:00.000Z",
+  "primitive": "select",
+  "options": {"selectionMode": "multiple", "minimumSelections": 2,
+              "maximumSelections": 3, "evaluationTiming": "explicit"},
+  "prompt": [{"role": "primary", "type": "text", "text": "…"}],
+  "items": [{"id": "item_0", "content": [{"role": "primary", "type": "text", "text": "…"}]}],
+  "targets": [{"id": "gap_1", "reveal": "firstGrapheme"}],
+  "layout": [{"type": "text", "text": "I "}, {"type": "target", "targetId": "gap_1"}],
+  "evaluation": {"mode": "exactSet", "correctItemIds": ["item_0", "item_2"]},
+  "feedback": {"showAlternatives": "ranked"},
+  "hint": "…"
+}
+```
+
+- `options` holds explicitly set values only; an omitted option means the
+  registry default, and semantic equality compares effective options.
+- Elements (prompt and item content) keep `role`, `type` (text, audio,
+  image), `text`, `asset`, `speaker` and `sharedImageSource`, and gain
+  `language` (`source` | `target`, text), `playback` (`automatic` | `manual`,
+  audio, default manual) and `required` (boolean, audio, default true).
+  Defaults are omitted.
+- `items` carry `id`, `content` and, for Match, `side` (`left` | `right`).
+- `targets` carry `id` and optional `reveal` (`firstGrapheme`) or `region`
+  (`{x, y, width, height}`, fractions of the exercise's image).
+- `layout` is the neutral inline sequence of text runs and targets, present
+  only for inline layouts (Select inline, Input inlineGaps, Arrange
+  inlineGaps, Assign gaps).
+- `evaluation.mode` is required; the other keys depend on the mode:
+  `correctItemIds` (Select item modes), `assignments` `[{targetId,
+  itemIds}]` (Select inline, Arrange gapAssignments, Assign),
+  `answers` and `literalAnswers` (Input, one field), `targetAnswers`
+  `[{targetId, answers, literalAnswers}]` (Input inline gaps), `numeric`
+  `{value, minimum, maximum, tolerance}` and `pattern` (Input numeric and
+  regex modes), `correctOrders` `[{text, itemIds}]` (Arrange order modes),
+  `relations` `[[leftId, rightId]]` (Match), `acceptedTargets` `[{itemId,
+  targetIds}]` (Assign). Speak, Ink and Submit carry `mode` and optional
+  `answers` until Session 5 defines more. Unknown evaluation keys are a
+  format error. The v11 `normalization` map is gone: the Input options
+  `caseHandling`, `punctuationHandling`, `whitespaceHandling` and
+  `accentHandling` replace it; Arrange text comparison keeps the answer
+  engine's defaults.
+- `feedback` has optional `correct`, `incorrect` and `showAlternatives`
+  (`none` | `ranked` | `all`); it is omitted when empty.
+
+### Semantic equality
+
+Two exercises are semantically equal when their canonical JSON is equal
+after filling in every default option and dropping `authoringMetadata`,
+`updatedAt` and `publicationState`. IDs and item order count.
+
+### v11 → v12 conversion rules
+
+The converter (`lib/services/course_model_v12_converter.dart`, no Flutter
+imports) and the in-memory `Exercise.v2(...)` constructor share one
+mapping, keyed by the preset (`editorTemplate`) with the interaction kind
+as fallback:
+
+- **Select:** `selectionMode` from `maxSelections`; multiple → explicit
+  timing, explicit limits, `exactSet`; gap layouts → `layout: inline`,
+  targets from the gap elements, `itemReuse: unlimited`, `exactItem` with
+  `assignments`. Prompt audio of What do you hear, Listen and choose and the
+  context audio of Contextual comprehension → `playback: automatic`. Pick the
+  translation (to target): question text `language: source`, items
+  `target`; (to source): question `target`, items `source`.
+- **Input:** options from the normalization map (`preserve` → `exact`;
+  accents `preserve` → `missingAccentsAccepted`, `ignore` → `ignore`; absent
+  → defaults); mode `expression`; `literalAnswers` = the spoken prompt text
+  for Type a missing word, Type what you hear and Type the translation;
+  `typoTolerance: conservative` for Type the translation and Type the
+  missing word; Type the translation: prompt text `language: source`,
+  `showAlternatives: ranked`; Type the missing word: `inlineGaps`, one
+  target with `reveal: firstGrapheme`, the sentence split at its `___`;
+  Listen for missing words: `cardinality: multiple`, `inlineGaps`, the
+  transcript split at the first case-insensitive occurrence of each missing
+  word, one `targetAnswers` entry per gap, audio `playback: automatic`; Type
+  what you hear: audio `playback: automatic`. `___` in Fill in the blank
+  and Type a missing word stays text.
+- **Arrange:** one order → `exactOrder`, several → `acceptedOrders`;
+  Image-prompt ordering: `joiner: none`, `unusedItems: forbidden`; gap
+  layouts → `inlineGaps`, `layout: inline`, targets, `gapAssignments` with
+  `assignments`; Build the translation: prompt text `language: source`,
+  `showAlternatives: all`.
+- **Match:** `side` from pair position (first = left); `relations` = pairs.
+- **Presentation:** the presentation elements become the prompt;
+  `completionMode: understoodReview` (actions understood/review_later);
+  evaluation `none`.
+- The v11 `feedback` map keeps `correct` and `incorrect`; any other key is
+  reported and dropped. Everything the converter cannot map exactly is
+  listed in its notes.
+
 ## Final names for the plan's A.4 fields
 
 Decided in Session 1; serialized in Session 2.
@@ -265,7 +401,7 @@ Decided in Session 1; serialized in Session 2.
 | Select layouts | `list` \| `grid` \| `inline` (plus `overlay` for regions) |
 | Regions | target attribute `region`: `{x, y, width, height}` normalized to 0–1 on the exercise's image |
 
-## Behaviors that do not map cleanly yet (for Session 2's converter)
+## Behaviors that did not map cleanly (resolved by the Session 2 converter)
 
 1. **Listen for missing words** blanks the first case-insensitive occurrence
    of each missing word at runtime and duplicates the answers in
@@ -282,6 +418,9 @@ Decided in Session 1; serialized in Session 2.
 5. **Whole-sentence Arrange** grades joined text; inline-gap Arrange grades
    block IDs today and block content from Session 3 (plan A.11).
 6. **Match sides** come from pair order; v12 states `side` on each item.
+
+Session 2 resolved all six in the conversion rules above; item 5's grading
+change (block content instead of block IDs) is Session 3's, plan §A.11.
 7. **Select the image** items carry a legacy icon key in a text element with
    role `icon`, drawn through a fixed Material icon table; v12 keeps the
    element and the table until a media form replaces it.

@@ -890,15 +890,9 @@ Course _mixedCourse() {
     'title': 'Second round',
     'content': firstRound.content
         .map(
-          (item) => {
-            ...item.toJson(),
-            'id': '${item.id}_round_b',
-            if (item.exercise != null)
-              'exercise': {
-                ...item.exercise!.toJson(),
-                'id': '${item.exercise!.id}_round_b',
-              },
-          },
+          // Course Model v12: the Content ID is the exercise ID, so the
+          // exercise object carries none of its own.
+          (item) => {...item.toJson(), 'id': '${item.id}_round_b'},
         )
         .toList(),
   });

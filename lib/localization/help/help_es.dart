@@ -44,7 +44,7 @@ const Map<String, String> helpEs = {
   'editorHelp.localCourseEditsAndBackups.title':
       'Cambios locales y backups del curso',
   'editorHelp.localCourseEditsAndBackups.body':
-      'Antes de confirmar un cambio en un Custom Course existente, QQL archiva la versión completa en {folderBackups}/Courses, en una carpeta por curso con su par de idiomas y su ID. En Android 7–10, QQL pide una vez permiso para usar esa carpeta; en Android, Version History muestra solo los backups que hizo esta instalación de QQL. El manifiesto incluye Course Model v11, Maintainer, Assigned Team, origen, versiones, autores, fecha UTC, notas opcionales, checksum y audios referenciados. Los backups no se eliminan automáticamente. Version History muestra la versión actual y los backups verificados del más nuevo al más antiguo, con Open backup folder y Export JSON. Solo el historial custom permite Restore into working copy; también requiere la confirmación final para guardar. El historial oficial conserva solo los orígenes del editor.',
+      'Antes de confirmar un cambio en un Custom Course existente, QQL archiva la versión completa en {folderBackups}/Courses, en una carpeta por curso con su par de idiomas y su ID. En Android 7–10, QQL pide una vez permiso para usar esa carpeta; en Android, Version History muestra solo los backups que hizo esta instalación de QQL. El manifiesto incluye Course Model v12, Maintainer, Assigned Team, origen, versiones, autores, fecha UTC, notas opcionales, checksum y audios referenciados. Los backups no se eliminan automáticamente. Version History muestra la versión actual y los backups verificados del más nuevo al más antiguo, con Open backup folder y Export JSON. Solo el historial custom permite Restore into working copy; también requiere la confirmación final para guardar. El historial oficial conserva solo los orígenes del editor.',
   'editorHelp.androidDeviceBackupTechnical.title':
       'Backup del dispositivo Android (técnico)',
   'editorHelp.androidDeviceBackupTechnical.body':
@@ -60,13 +60,13 @@ const Map<String, String> helpEs = {
   'editorHelp.courseResponsibilityPermissionsAndTeams.title':
       'Responsabilidad, permisos y Teams',
   'editorHelp.courseResponsibilityPermissionsAndTeams.body':
-      'Original Course Creator, Course Maintainer, Assigned Team, Authors / Contributors, Rights Holder, License y el origen de Fork o Merge son datos separados. Todo Custom Course v11 tiene un creador original inmutable y un Maintainer individual. Solo ese Maintainer puede transferir el cargo o asignar y revocar un Team. Él y los miembros actuales de Assigned Team pueden administrar el contenido; los Team Leader gestionan miembros y roles del Team. Estos permisos solo rigen dentro de QQL: los créditos, derechos y origen no conceden acceso ni definen derechos de autor. Un usuario externo no puede modificar ni usar Copy as New Course; Fork depende de la licencia. Los cursos incluidos se consultan en el mismo Editor en solo lectura.',
+      'Original Course Creator, Course Maintainer, Assigned Team, Authors / Contributors, Rights Holder, License y el origen de Fork o Merge son datos separados. Todo Custom Course v12 tiene un creador original inmutable y un Maintainer individual. Solo ese Maintainer puede transferir el cargo o asignar y revocar un Team. Él y los miembros actuales de Assigned Team pueden administrar el contenido; los Team Leader gestionan miembros y roles del Team. Estos permisos solo rigen dentro de QQL: los créditos, derechos y origen no conceden acceso ni definen derechos de autor. Un usuario externo no puede modificar ni usar Copy as New Course; Fork depende de la licencia. Los cursos incluidos se consultan en el mismo Editor en solo lectura.',
   'editorHelp.importCustomCourse.title': 'Importar un curso personalizado',
   'editorHelp.importCustomCourse.body':
-      'Copia un Course ZIP compatible en {folderCourseImports}/import.zip o, si no tiene medios, un Course Model v11 JSON en import.json. Deja solo uno. El ZIP suele contener course.json, qql-course-package.json y media/ en la raíz; también acepta una carpeta única con el mismo nombre que el ZIP sin .zip, con un aviso. En Course Studio, abre Course Import y elige Quick Import. QQL comprueba todo el paquete y Course Audit antes de instalar. Los Error bloquean; los Warning se muestran. Las imágenes de Shared Image Library viajan con el curso, sin añadirse a la biblioteca del dispositivo receptor. Un Publisher Course requiere firma aprobada. El archivo original permanece en {folderCourseImports}. JSON debe ser UTF-8 y de hasta 10 MB; el ZIP, de hasta 300 MB comprimido y expandido. No se migran formatos anteriores.',
+      'Copia un Course ZIP compatible en {folderCourseImports}/import.zip o, si no tiene medios, un Course Model v12 JSON en import.json. Deja solo uno. El ZIP suele contener course.json, qql-course-package.json y media/ en la raíz; también acepta una carpeta única con el mismo nombre que el ZIP sin .zip, con un aviso. En Course Studio, abre Course Import y elige Quick Import. QQL comprueba todo el paquete y Course Audit antes de instalar. Los Error bloquean; los Warning se muestran. Las imágenes de Shared Image Library viajan con el curso, sin añadirse a la biblioteca del dispositivo receptor. Un Publisher Course requiere firma aprobada. El archivo original permanece en {folderCourseImports}. JSON debe ser UTF-8 y de hasta 10 MB; el ZIP, de hasta 300 MB comprimido y expandido. No se migran formatos anteriores.',
   'editorHelp.exportCustomCourse.title': 'Exportar un curso personalizado',
   'editorHelp.exportCustomCourse.body':
-      'Quick Export en Export Course guarda el JSON completo de Course Model v11 y las imágenes y grabaciones propias referenciadas en un ZIP en {folderCourseExports}. Los medios incluidos con la app siguen viniendo de QQL. Las imágenes de Shared Image Library usadas por el curso viajan como medios del curso con su ID, etiqueta, categoría, tags, origen y atribución disponible; importar el ZIP no las añade a la biblioteca compartida del destino. El JSON conserva creador, Maintainer, Team, autores, derechos, License, origen, estados Draft/Published y versión. Fork conserva la línea de origen; Copy as New Course crea otra. Save as… puede guardar el mismo ZIP mediante el diálogo del sistema.',
+      'Quick Export en Export Course guarda el JSON completo de Course Model v12 y las imágenes y grabaciones propias referenciadas en un ZIP en {folderCourseExports}. Los medios incluidos con la app siguen viniendo de QQL. Las imágenes de Shared Image Library usadas por el curso viajan como medios del curso con su ID, etiqueta, categoría, tags, origen y atribución disponible; importar el ZIP no las añade a la biblioteca compartida del destino. El JSON conserva creador, Maintainer, Team, autores, derechos, License, origen, estados Draft/Published y versión. Fork conserva la línea de origen; Copy as New Course crea otra. Save as… puede guardar el mismo ZIP mediante el diálogo del sistema.',
   'editorHelp.importCustomFlag.title': 'Importar una bandera personalizada',
   'editorHelp.importCustomFlag.body':
       'Copia un PNG o JPEG válido en {folderCourseFlagImports} como flag.png, flag.jpg o flag.jpeg y pulsa Upload custom flag. Si hay varios, QQL usa el primero en ese orden. Límite: 2 MB; dimensiones entre 64 × 40 y 4096 píxeles por lado. QQL verifica el formato y reduce proporcionalmente las imágenes de más de 256 píxeles en su lado mayor. No agranda las pequeñas, no recorta ni añade fondo cuadrado. Conserva la transparencia PNG y convierte el primer fotograma a PNG. Los datos quedan en el Course y sobreviven al exportar, importar o duplicar el JSON. El archivo original permanece. Si falta, está dañado, supera los límites o falla la conversión, la importación se detiene.',
@@ -128,7 +128,7 @@ const Map<String, String> helpEs = {
       'Course Audit revisa estructura y autoría: campos inválidos, IDs repetidos, Word Block, audio sin correspondencia y errores de Missing Word. Un texto de Reading vacío es Error; con una o dos palabras léxicas aparece READING_PASSAGE_TOO_SHORT, y con tres o más no. HINT_REPEATS_PROMPT es Warning; revelar una respuesta correcta es Error. Audit no certifica gramática, traducción ni calidad pedagógica.',
   'editorHelp.createNewCourse.title': 'Crear un curso nuevo',
   'editorHelp.createNewCourse.body':
-      'Course Studio crea un proyecto Course Model v11 independiente y lo abre en Course Editor. New Course ofrece License / Rights, Authors / Contributors, variante de lengua, niveles, descripción y datos de apoyo como Course Info Editor. El perfil activo es el Original Course Creator inmutable y, por defecto, Course Maintainer; puedes elegir a otra persona local como Maintainer. Assigned Team no se elige al crear. Number of Lessons empieza en 3 (1–100) y Rounds per Lesson en 1 (1–20). Los valores inválidos muestran un error y desactivan Create. La jerarquía inicial se crea de una vez con IDs nuevos y Rounds sin título, cada uno con un Exercise Draft de Pick the translation (to target). Revisa y guarda el contenido antes de publicar. El Course Not published solo existe en la copia de trabajo hasta que Confirm course changes crea la versión 1. Cancelar no guarda nada. Los cursos v11 importados deben declarar origen, Maintainer, estado Draft/Published y fechas UTC; no se convierten formatos anteriores.',
+      'Course Studio crea un proyecto Course Model v12 independiente y lo abre en Course Editor. New Course ofrece License / Rights, Authors / Contributors, variante de lengua, niveles, descripción y datos de apoyo como Course Info Editor. El perfil activo es el Original Course Creator inmutable y, por defecto, Course Maintainer; puedes elegir a otra persona local como Maintainer. Assigned Team no se elige al crear. Number of Lessons empieza en 3 (1–100) y Rounds per Lesson en 1 (1–20). Los valores inválidos muestran un error y desactivan Create. La jerarquía inicial se crea de una vez con IDs nuevos y Rounds sin título, cada uno con un Exercise Draft de Pick the translation (to target). Revisa y guarda el contenido antes de publicar. El Course Not published solo existe en la copia de trabajo hasta que Confirm course changes crea la versión 1. Cancelar no guarda nada. Los cursos v11 importados deben declarar origen, Maintainer, estado Draft/Published y fechas UTC; no se convierten formatos anteriores.',
   'courseStudioHelp.findingCourses.title': 'Encontrar cursos',
   'courseStudioHelp.findingCourses.body':
       'Search filtra títulos y lenguas de origen o estudio en Course Studio, incluso en Favorites. Favorites muestra accesos rápidos a cursos de la biblioteca personal del estudiante activo; cada curso sigue en su sección normal. Sort by y Show unavailable se aplican a Favorites y a las demás secciones. Cada sección tiene su propio Expanded / Compact / Minimal, que QQL recuerda para cada estudiante, por separado en cada pestaña. Estos controles solo cambian la vista.',
@@ -139,7 +139,7 @@ const Map<String, String> helpEs = {
   'courseStudioHelp.title': 'Ayuda de Course Studio',
   'editorHelp.technicalReference.title': 'Referencia técnica',
   'editorHelp.technicalReference.body':
-      'En desarrollo. Estas páginas describen la implementación actual de Course Model v11, aparte de las instrucciones prácticas de Course Editor.',
+      'En desarrollo. Estas páginas describen la implementación actual de Course Model v12, aparte de las instrucciones prácticas de Course Editor.',
   'courseStudioHelp.courseTypes.title': 'Tipos de curso',
   'courseStudioHelp.courseTypes.intro': 'En QQL hay tres tipos de curso:',
   'courseStudioHelp.courseTypes.type1':
@@ -407,10 +407,10 @@ const Map<String, String> helpEs = {
       'Quitar un Publisher Course del dispositivo',
   'allCoursesHelp.removingPublisherCourse.body':
       'Solo un Admin puede usar Remove Publisher Course from device desde el menú de Course Studio. Se bloquea si otro perfil incluye ese curso en su biblioteca. La eliminación física conserva progreso y backups de versión para una futura reinstalación.',
-  'technical.courseModel.title': 'QuisquisLingo Course Model v11',
+  'technical.courseModel.title': 'QuisquisLingo Course Model v12',
   'technical.courseModel.status.title': 'Estado',
   'technical.courseModel.status.body':
-      'En desarrollo. QuisquisLingo usa formatVersion 11 como único Course Model nativo. Los formatos anteriores se rechazan sin migrarlos ni borrarlos. Cada Custom Course necesita un Original Course Creator inmutable y un Course Maintainer individual; Assigned Team es opcional y distinto.',
+      'En desarrollo. QuisquisLingo usa formatVersion 12 como único Course Model nativo. Los formatos anteriores se rechazan sin migrarlos ni borrarlos. Cada Custom Course necesita un Original Course Creator inmutable y un Course Maintainer individual; Assigned Team es opcional y distinto.',
   'technical.courseModel.hierarchy.title': 'Jerarquía',
   'technical.courseModel.hierarchy.body':
       'Course > Lesson > GuideBook + Round > Content. Cada Lesson tiene su GuideBook y Duel. Exercise es un tipo de Content, pero no el único permitido en un Round.',
@@ -434,7 +434,7 @@ const Map<String, String> helpEs = {
   'technical.exercisePrimitives.title': 'Primitivas de Exercise',
   'technical.exercisePrimitives.status.title': 'Estado',
   'technical.exercisePrimitives.status.body':
-      'En desarrollo. El conjunto actual de primitivas es la base implementada en Course Model v11.',
+      'En desarrollo. El conjunto actual de primitivas es la base implementada en Course Model v12.',
   'technical.exercisePrimitives.exerciseAnatomy.title': 'Anatomía de Exercise',
   'technical.exercisePrimitives.exerciseAnatomy.body':
       'Exercise = Prompt[] + Interaction + Evaluation, con hint y feedback opcionales.',
@@ -459,10 +459,10 @@ const Map<String, String> helpEs = {
   'technical.jsonStructure.title': 'Estructura de datos JSON',
   'technical.jsonStructure.status.title': 'Estado',
   'technical.jsonStructure.status.body':
-      'En desarrollo. QuisquisLingo escribe formatVersion: 11.',
+      'En desarrollo. QuisquisLingo escribe formatVersion: 12.',
   'technical.jsonStructure.root.title': 'Raíz',
   'technical.jsonStructure.root.body':
-      'La raíz contiene formatVersion, metadatos de Course y lessons[]. Los cursos incluidos y custom usan el modelo nativo v11; uno fusionado también lleva mergeProvenance. Un custom exige originalCourseCreator inmutable y un maintainer individual. assignedTeamId es opcional; la lista de miembros del Team vive fuera del Course JSON. No se leen ni migran modelos anteriores.',
+      'La raíz contiene formatVersion, metadatos de Course y lessons[]. Los cursos incluidos y custom usan el modelo nativo v12; uno fusionado también lleva mergeProvenance. Un custom exige originalCourseCreator inmutable y un maintainer individual. assignedTeamId es opcional; la lista de miembros del Team vive fuera del Course JSON. No se leen ni migran modelos anteriores.',
   'technical.jsonStructure.guidebook.title': 'GuideBook',
   'technical.jsonStructure.guidebook.body':
       'Cada Lesson contiene un guidebook con publicationState opcional y guidebook.content[] estructurado. Sin publicationState se considera Published; Draft lo excluye de la entrega al estudiante. Su Internal ID visible deriva de lessonId con el sufijo _guidebook; no se guarda otro ID. El Content del GuideBook conserva sus propios IDs. useGuidebook cambia el acceso del estudiante y el aviso por GuideBook vacío, nunca el contenido guardado.',
@@ -477,7 +477,7 @@ const Map<String, String> helpEs = {
       'La Lesson guarda un ID y título estables de Duel. Su disponibilidad se calcula al ejecutar según Exercises aptos y distintos, no se serializa ni depende de la cantidad de Rounds. createDuels y useGuidebook empiezan en true y solo se escriben si son false. sectionNames conserva nombres no vacíos; worldFlagId referencia el SVG oficial incluido y se omite si está vacío.',
   'technical.jsonStructure.compatibility.title': 'Compatibilidad',
   'technical.jsonStructure.compatibility.body':
-      'Los cursos incluidos y custom usan Course Model v11. Los formatos anteriores no se leen, migran, convierten ni borran. Créditos, origen y Rights Holder nunca conceden permisos ni implican Assigned Team.',
+      'Los cursos incluidos y custom usan Course Model v12. Los formatos anteriores no se leen, migran, convierten ni borran. Créditos, origen y Rights Holder nunca conceden permisos ni implican Assigned Team.',
   'deviceAdminHelp.title': 'Ayuda de Advanced (Admin)',
   'deviceAdminHelp.whatThisPageIs.title': 'Qué es esta página',
   'deviceAdminHelp.whatThisPageIs.paragraph1':
@@ -592,7 +592,7 @@ const Map<String, String> helpEs = {
 
 La aprobación es un proceso manual del propietario de QQL. Este mantiene las claves públicas en lib/services/trusted_publishers.dart y distribuye los cambios con una actualización. No hay portal de aprobación ni botón de firma en la app. La firma se hace fuera de QQL con una herramienta de desarrollo y OpenSSL.
 
-Course Model usa v11; los Publisher Courses v9/v10 requieren tools/convert_course_to_v11.dart y una firma nueva. El protocolo es qql-ed25519-v1.''',
+Course Model usa v12; los Publisher Courses v11 requieren tools/convert_course_to_v12.dart y una firma nueva. El protocolo es qql-ed25519-v1.''',
   'publisherSigningHelp.rolesAndTools.title': '1. Funciones y herramientas',
   'publisherSigningHelp.rolesAndTools.body':
       r'''El editor crea y protege su par de claves Ed25519, pide aprobación y firma sus versiones. El propietario de QQL no recibe la clave privada ni firma cada curso. Comprueba por separado la identidad del editor y la posesión de la clave, asigna publisherId y registra la clave pública en la app.
@@ -656,7 +656,7 @@ Añade TrustedPublisherKey a TrustedPublishers.application() en lib/services/tru
   'publisherSigningHelp.signAndDistribute.title':
       '7. Editor: firmar y distribuir un curso',
   'publisherSigningHelp.signAndDistribute.body':
-      r'''Prepara un externalOfficial JSON válido de Course Model v11 con publisherId y publisherName aprobados, origen, courseId estable y datos de versión. Para actualizar, conserva ID y origen y aumenta officialCourseVersion. Resuelve errores de Course Audit y revisa licencias. La herramienta no convierte cursos custom ni inventa datos del editor.
+      r'''Prepara un externalOfficial JSON válido de Course Model v12 con publisherId y publisherName aprobados, origen, courseId estable y datos de versión. Para actualizar, conserva ID y origen y aumenta officialCourseVersion. Resuelve errores de Course Audit y revisa licencias. La herramienta no convierte cursos custom ni inventa datos del editor.
 
 Desde el repositorio QQL, sustituye dummy-1 por tu keyId y usa tus rutas:
 

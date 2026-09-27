@@ -111,11 +111,14 @@ void main() {
 
       final manifest =
           jsonDecode(await record.manifestFile.readAsString()) as Map;
-      expect(manifest['format'], 'QuisquisLingo Course Backup v11');
+      expect(manifest['format'], 'QuisquisLingo Course Backup v12');
       expect(manifest, isNot(contains('authorProfileId')));
       expect(manifest, isNot(contains('authorUsername')));
       expect(manifest, isNot(contains('versionCreatedAtUtc')));
-      expect((manifest['course'] as Map)['formatVersion'], 11);
+      expect(
+        (manifest['course'] as Map)['formatVersion'],
+        Course.currentFormatVersion,
+      );
 
       final history = await backups.listBackups(course.courseId);
       expect(history, hasLength(1));

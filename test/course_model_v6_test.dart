@@ -14,11 +14,11 @@ void main() {
       () async {
         final raw = await rootBundle.loadString('assets/courses/$file');
         final json = jsonDecode(raw) as Map<String, dynamic>;
-        expect(json['formatVersion'], 11);
+        expect(json['formatVersion'], 12);
         expect(json.containsKey('topics'), isFalse);
         expect(json.containsKey('chapters'), isFalse);
         final course = Course.fromJson(json);
-        expect(course.formatVersion, 11);
+        expect(course.formatVersion, Course.currentFormatVersion);
         expect(course.lessons, hasLength(9));
         expect(
           course.lessons.map((lesson) => lesson.lessonId).toSet(),
@@ -39,7 +39,7 @@ void main() {
           expect(lesson.duel.id.trim(), isNotEmpty);
         }
         final encoded = course.toJson();
-        expect(encoded['formatVersion'], 11);
+        expect(encoded['formatVersion'], 12);
         expect(encoded.containsKey('chapters'), isFalse);
         expect(
           (encoded['lessons'] as List).map(
@@ -88,7 +88,7 @@ void main() {
     expect(
       () => Course.fromJson({
         ...base,
-        'formatVersion': 11,
+        'formatVersion': 12,
         'chapters': <Object>[],
       }),
       throwsFormatException,
@@ -500,7 +500,9 @@ void main() {
       icons: const [],
     );
     final content = LearningContent.fromExercise(ex);
-    expect(content.kind, 'presentation');
+    // Course Model v12: a Flashcard is a presentation-primitive exercise.
+    expect(content.kind, 'exercise');
+    expect(content.exercise!.primitive, ExercisePrimitive.presentation);
     expect(
       content.presentation?.actions,
       containsAll(['understood', 'review_later']),

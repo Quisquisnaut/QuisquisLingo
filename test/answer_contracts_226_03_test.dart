@@ -250,7 +250,7 @@ void main() {
             normalization: const {'case': 'preserve', 'accents': 'preserve'},
           ),
           hint: 'A drink',
-          feedback: const {'correct': 'Custom feedback'},
+          feedback: const ExerciseFeedback(correct: 'Custom feedback'),
         );
         final json =
             jsonDecode(jsonEncode(exercise.toV2Json())) as Map<String, dynamic>;
@@ -265,7 +265,8 @@ void main() {
         expect(reloaded.publicationState, PublicationState.draft);
         expect(reloaded.updatedAt, timestamp);
         expect(reloaded.accepted, ['Coffee', 'Cappuccino']);
-        expect(reloaded.feedback, {'correct': 'Custom feedback'});
+        expect(reloaded.feedback, exercise.feedback);
+        expect(reloaded.feedback.correct, 'Custom feedback');
         expect(reloaded.evaluation.normalization['case'], 'preserve');
         final legacy = Map<String, dynamic>.from(json['evaluation'] as Map)
           ..remove('acceptedAnswers')

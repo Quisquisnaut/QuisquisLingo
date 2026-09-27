@@ -26,7 +26,7 @@ void main() {
     'Piedmontese demo is an independent published v11 bundled identity',
     () async {
       final course = await loadCourse();
-      expect(course.formatVersion, 11);
+      expect(course.formatVersion, 12);
       expect(course.courseId, 'course_e5f5585a-7762-43a0-a6b2-62754e02d17b');
       expect(course.originType, CourseOriginType.bundledOfficial);
       // Build 255 Revision 6 renamed it from Piedmontais, keeping its ID.

@@ -126,8 +126,7 @@ void main() {
     final rounds = (lessons.first as Map)['rounds'] as List;
     final content = (rounds.first as Map)['content'] as List;
     final bundledExercise = (content.first as Map)['exercise'] as Map;
-    final interaction = bundledExercise['interaction'] as Map;
-    final items = interaction['items'] as List;
+    final items = bundledExercise['items'] as List;
     final choiceContent = (items.first as Map)['content'] as List;
     choiceContent.add({
       'role': 'clue',

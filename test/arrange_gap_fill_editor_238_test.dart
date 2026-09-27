@@ -159,18 +159,21 @@ void main() {
       expect(saved, isNotNull);
       final exercise = saved!;
       expect(exercise.hasArrangeGaps, isTrue);
-      expect(exercise.arrangeLayout.map((e) => (e.type, e.text)).toList(), [
-        ('text', 'I'),
-        ('gap', 'gap_1'),
-        ('gap', 'gap_2'),
-        ('text', 'school.'),
-      ]);
+      expect(
+        exercise.interaction.layout.map((e) => (e.type, e.text)).toList(),
+        [
+          ('text', 'I'),
+          ('gap', 'gap_1'),
+          ('gap', 'gap_2'),
+          ('text', 'school.'),
+        ],
+      );
       expect(exercise.tokens.toSet(), {'go', 'to', 'goes', 'from'});
       final assignedGo = exercise.interaction.items
-          .firstWhere((i) => i.id == exercise.arrangeGapAssignments['gap_1'])
+          .firstWhere((i) => i.id == exercise.targetAssignments['gap_1'])
           .value;
       final assignedTo = exercise.interaction.items
-          .firstWhere((i) => i.id == exercise.arrangeGapAssignments['gap_2'])
+          .firstWhere((i) => i.id == exercise.targetAssignments['gap_2'])
           .value;
       expect(assignedGo, 'go');
       expect(assignedTo, 'to');
@@ -357,7 +360,7 @@ void main() {
       expect(saved, isNotNull);
       final exercise = saved!;
       expect(exercise.hasArrangeGaps, isTrue);
-      expect(exercise.arrangeGapAssignments.length, 1);
+      expect(exercise.targetAssignments.length, 1);
       expect(tester.takeException(), isNull);
     },
   );
@@ -374,14 +377,14 @@ void main() {
       expect(copy.id, isNot(source.id));
       expect(copy.hasArrangeGaps, isTrue);
       expect(
-        copy.arrangeLayout.map((e) => (e.type, e.text)).toList(),
-        source.arrangeLayout.map((e) => (e.type, e.text)).toList(),
+        copy.interaction.layout.map((e) => (e.type, e.text)).toList(),
+        source.interaction.layout.map((e) => (e.type, e.text)).toList(),
       );
       // Gap IDs are unchanged (they are not owned identities); assigned
       // item IDs are remapped to the copy's own item identities.
-      expect(copy.arrangeGapAssignments.keys.toSet(), {'gap_1', 'gap_2'});
-      for (final gapId in copy.arrangeGapAssignments.keys) {
-        final copiedItemId = copy.arrangeGapAssignments[gapId]!;
+      expect(copy.targetAssignments.keys.toSet(), {'gap_1', 'gap_2'});
+      for (final gapId in copy.targetAssignments.keys) {
+        final copiedItemId = copy.targetAssignments[gapId]!;
         expect(
           copy.interaction.items.any((item) => item.id == copiedItemId),
           isTrue,
@@ -390,10 +393,10 @@ void main() {
       }
       // The underlying answer text is preserved through the remap.
       final sourceGo = source.interaction.items
-          .firstWhere((i) => i.id == source.arrangeGapAssignments['gap_1'])
+          .firstWhere((i) => i.id == source.targetAssignments['gap_1'])
           .value;
       final copyGo = copy.interaction.items
-          .firstWhere((i) => i.id == copy.arrangeGapAssignments['gap_1'])
+          .firstWhere((i) => i.id == copy.targetAssignments['gap_1'])
           .value;
       expect(copyGo, sourceGo);
     },

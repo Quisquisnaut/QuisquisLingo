@@ -61,9 +61,12 @@ class CourseBackupService {
 
   final PublisherVerificationService _publisherVerification;
 
-  // v11 clean cut: `Course Backups v9` holds v9/v10 Courses and is left
-  // untouched and unread, so an old backup cannot block Version History.
-  static const backupFormat = 'QuisquisLingo Course Backup v11';
+  // Course Model clean cuts: `Course Backups v9` holds v9/v10 Courses and
+  // Build 255's manifests in the same Backups folder hold v11 Courses. Both
+  // stay untouched and unread; Version History names a v11 manifest as
+  // unreadable (Build 256 Revision 1), so an old backup cannot block it.
+  static const backupFormat = 'QuisquisLingo Course Backup v12';
+  static const earlierBackupFormat = 'QuisquisLingo Course Backup v11';
 
   /// Build 255 Revision 5 moved the backups here from QQL's private storage
   /// (`QQL_CourseBackups`, and `qql_course_backups_v11` before Revision 4),
@@ -151,9 +154,7 @@ class CourseBackupService {
       );
       final current = existing.uri.pathSegments.lastWhere((s) => s.isNotEmpty);
       if (current == wanted) return;
-      final target = Directory(
-        '${root.path}${Platform.pathSeparator}$wanted',
-      );
+      final target = Directory('${root.path}${Platform.pathSeparator}$wanted');
       if (await target.exists()) return;
       await existing.rename(target.path);
     } catch (_) {
@@ -314,6 +315,13 @@ class CourseBackupService {
       throw const FormatException('The selected course backup is missing.');
     }
     final decoded = jsonDecode(await manifestFile.readAsString());
+    if (decoded is Map && decoded['format'] == earlierBackupFormat) {
+      // Build 256 Revision 1: Build 255's v11 backups stay in the same
+      // folder, unread; Version History names them as unreadable.
+      throw const FormatException(
+        'This is a Course Backup of Course Model v11 (format 11), which this version of QuisquisLingo cannot read. The file was preserved; convert it with tools/convert_course_to_v12.dart if you need it.',
+      );
+    }
     if (decoded is! Map || decoded['format'] != backupFormat) {
       throw const FormatException(
         'The selected file is not a supported course backup.',

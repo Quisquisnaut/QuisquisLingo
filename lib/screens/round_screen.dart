@@ -431,13 +431,13 @@ class _RoundScreenState extends State<RoundScreen> {
         ? _shuffledItemIds(ex.interaction.items)
         : const [];
     if (ex.hasArrangeGaps) {
-      for (final element in ex.arrangeLayout) {
-        if (element.type == 'gap') _gapFill[element.text] = null;
+      for (final element in ex.layout) {
+        if (element.isTarget) _gapFill[element.targetId] = null;
       }
     }
     if (ex.hasSelectGaps) {
-      for (final element in ex.arrangeLayout) {
-        if (element.type == 'gap') _selectGapFill[element.text] = null;
+      for (final element in ex.layout) {
+        if (element.isTarget) _selectGapFill[element.targetId] = null;
       }
     }
 
@@ -785,7 +785,7 @@ class _RoundScreenState extends State<RoundScreen> {
   }
 
   String _arrangeGapAnswerText(Exercise ex) {
-    final assignments = ex.arrangeGapAssignments;
+    final assignments = ex.targetAssignments;
     if (assignments.isEmpty) return 'See the course answer.';
     return assignments.entries
         .map((entry) => _itemValue(ex, entry.value))
@@ -1379,12 +1379,12 @@ class _RoundScreenState extends State<RoundScreen> {
         _selectArmedGapId = null;
         return;
       }
-      final target = ex.arrangeLayout
+      final target = ex.layout
           .where(
             (segment) =>
-                segment.type == 'gap' && _selectGapFill[segment.text] == null,
+                segment.isTarget && _selectGapFill[segment.targetId] == null,
           )
-          .map((segment) => segment.text)
+          .map((segment) => segment.targetId)
           .firstOrNull;
       if (target == null) return;
       _selectGapFill[target] = itemId;
@@ -1429,7 +1429,7 @@ class _RoundScreenState extends State<RoundScreen> {
   }
 
   void _submitSelectGaps(Exercise ex) {
-    final assignments = ex.arrangeGapAssignments;
+    final assignments = ex.targetAssignments;
     if (assignments.isEmpty || _selectGapFill.values.any((v) => v == null)) {
       _mark(false);
       return;
@@ -1468,17 +1468,17 @@ class _RoundScreenState extends State<RoundScreen> {
             spacing: 6,
             runSpacing: 8,
             children: [
-              for (final segment in ex.arrangeLayout)
-                if (segment.type == 'text')
+              for (final segment in ex.layout)
+                if (segment.isText)
                   Text(
                     segment.text,
                     style: Theme.of(context).textTheme.titleMedium,
                   )
                 else
                   _selectGapSlot(
-                    gapId: segment.text,
-                    label: itemById[_selectGapFill[segment.text]]?.value,
-                    armed: _selectArmedGapId == segment.text,
+                    gapId: segment.targetId,
+                    label: itemById[_selectGapFill[segment.targetId]]?.value,
+                    armed: _selectArmedGapId == segment.targetId,
                   ),
             ],
           ),
@@ -1777,7 +1777,7 @@ class _RoundScreenState extends State<RoundScreen> {
   }
 
   void _submitArrangeGaps() {
-    final assignments = _exercise.arrangeGapAssignments;
+    final assignments = _exercise.targetAssignments;
     if (assignments.isEmpty || _gapFill.values.any((v) => v == null)) {
       _mark(false);
       return;
@@ -1818,17 +1818,17 @@ class _RoundScreenState extends State<RoundScreen> {
             spacing: 6,
             runSpacing: 8,
             children: [
-              for (final segment in ex.arrangeLayout)
-                if (segment.type == 'text')
+              for (final segment in ex.layout)
+                if (segment.isText)
                   Text(
                     segment.text,
                     style: Theme.of(context).textTheme.titleMedium,
                   )
                 else
                   _gapSlot(
-                    gapId: segment.text,
-                    label: itemById[_gapFill[segment.text]]?.value,
-                    armed: _armedGapId == segment.text,
+                    gapId: segment.targetId,
+                    label: itemById[_gapFill[segment.targetId]]?.value,
+                    armed: _armedGapId == segment.targetId,
                   ),
             ],
           ),

@@ -231,8 +231,7 @@ void main() {
         redImage,
       );
       final json = source.toJson();
-      final items =
-          (json['interaction'] as Map<String, dynamic>)['items'] as List;
+      final items = json['items'] as List;
       ((items.first as Map)['content'] as List).add({
         'type': 'text',
         'text': 'unexpected label',
@@ -737,7 +736,7 @@ Exercise _exercise(
     normalization: {'caseSensitive': true},
   ),
   hint: 'Look at the shape.',
-  feedback: const {'custom': 'Preserved author feedback'},
+  feedback: const ExerciseFeedback(incorrect: 'Preserved author feedback'),
   missingWords: const ['preserved metadata'],
 );
 

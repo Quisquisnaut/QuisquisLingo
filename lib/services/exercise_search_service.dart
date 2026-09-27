@@ -158,10 +158,15 @@ abstract final class ExerciseSearchRegistry {
     final values = <ExerciseSearchText>[];
     for (final field in definition.fields) {
       final candidates = switch (field) {
-        ExerciseSearchField.promptText =>
-          exercise.promptElements
+        // Course Model v12: an inline layout carries the exercise's sentence
+        // (Type the missing word, Listen for missing words), so it is
+        // searchable prompt text too.
+        ExerciseSearchField.promptText => [
+          ...exercise.promptElements
               .where((element) => element.type == 'text')
               .map((element) => element.text),
+          if (exercise.layout.isNotEmpty) exercise.inlineSentence,
+        ],
         ExerciseSearchField.promptAudio =>
           exercise.promptElements
               .where((element) => element.type == 'audio')

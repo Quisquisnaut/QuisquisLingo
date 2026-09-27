@@ -80,6 +80,27 @@ enum FlowConditionKind {
   }
 }
 
+String _requiredFlowString(Map<String, dynamic> j, String key, String where) {
+  final v = j[key];
+  if (v is! String || v.trim().isEmpty) {
+    throw FormatException('Missing or invalid $where.$key');
+  }
+  return v.trim();
+}
+
+void _refuseUnknownFlowKeys(
+  Map<String, dynamic> j,
+  Set<String> known,
+  String where,
+) {
+  final unknown = j.keys.where((key) => !known.contains(key)).toList();
+  if (unknown.isNotEmpty) {
+    throw FormatException(
+      '$where contains unsupported fields: ${unknown.join(', ')}.',
+    );
+  }
+}
+
 final class FlowCondition {
   const FlowCondition({required this.kind, required this.nodeId, this.itemId});
 
@@ -90,6 +111,29 @@ final class FlowCondition {
 
   /// For [FlowConditionKind.chose]: the item the learner must have chosen.
   final String? itemId;
+
+  Map<String, dynamic> toJson() => {
+    'kind': kind.serialized,
+    'nodeId': nodeId,
+    if (itemId != null) 'itemId': itemId,
+  };
+
+  factory FlowCondition.fromJson(Map<String, dynamic> j) {
+    _refuseUnknownFlowKeys(j, const {'kind', 'nodeId', 'itemId'}, 'condition');
+    final kind = FlowConditionKind.tryParse(j['kind']);
+    if (kind == null) {
+      throw FormatException('condition.kind “${j['kind']}” is not supported.');
+    }
+    final itemId = j['itemId'];
+    if (j.containsKey('itemId') && itemId is! String) {
+      throw const FormatException('condition.itemId must be a string.');
+    }
+    return FlowCondition(
+      kind: kind,
+      nodeId: _requiredFlowString(j, 'nodeId', 'condition'),
+      itemId: itemId as String?,
+    );
+  }
 
   @override
   bool operator ==(Object other) =>
@@ -122,6 +166,44 @@ final class FlowTransition {
   /// For [FlowTrigger.conditional].
   final FlowCondition? condition;
 
+  Map<String, dynamic> toJson() => {
+    'trigger': trigger.serialized,
+    'target': targetNodeId,
+    if (choiceItemId != null) 'choiceItemId': choiceItemId,
+    if (condition != null) 'condition': condition!.toJson(),
+  };
+
+  factory FlowTransition.fromJson(Map<String, dynamic> j) {
+    _refuseUnknownFlowKeys(j, const {
+      'trigger',
+      'target',
+      'choiceItemId',
+      'condition',
+    }, 'transition');
+    final trigger = FlowTrigger.tryParse(j['trigger']);
+    if (trigger == null) {
+      throw FormatException(
+        'transition.trigger “${j['trigger']}” must be next, onCorrect, onIncorrect, onChoice or conditional.',
+      );
+    }
+    final choiceItemId = j['choiceItemId'];
+    if (j.containsKey('choiceItemId') && choiceItemId is! String) {
+      throw const FormatException('transition.choiceItemId must be a string.');
+    }
+    final condition = j['condition'];
+    if (j.containsKey('condition') && condition is! Map) {
+      throw const FormatException('transition.condition must be an object.');
+    }
+    return FlowTransition(
+      trigger: trigger,
+      targetNodeId: _requiredFlowString(j, 'target', 'transition'),
+      choiceItemId: choiceItemId as String?,
+      condition: condition is Map
+          ? FlowCondition.fromJson(Map<String, dynamic>.from(condition))
+          : null,
+    );
+  }
+
   @override
   bool operator ==(Object other) =>
       other is FlowTransition &&
@@ -149,6 +231,48 @@ final class FlowNode {
   /// The Round Content entry this node shows or runs.
   final String contentId;
   final List<FlowTransition> transitions;
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'kind': kind.serialized,
+    'contentId': contentId,
+    if (transitions.isNotEmpty)
+      'transitions': transitions.map((t) => t.toJson()).toList(),
+  };
+
+  factory FlowNode.fromJson(Map<String, dynamic> j) {
+    _refuseUnknownFlowKeys(j, const {
+      'id',
+      'kind',
+      'contentId',
+      'transitions',
+    }, 'flow node');
+    final kind = FlowNodeKind.tryParse(j['kind']);
+    if (kind == null) {
+      throw FormatException(
+        'flow node kind “${j['kind']}” must be content or exercise.',
+      );
+    }
+    final rawTransitions = j['transitions'];
+    if (j.containsKey('transitions') && rawTransitions is! List) {
+      throw const FormatException('flow node transitions must be a list.');
+    }
+    return FlowNode(
+      id: _requiredFlowString(j, 'id', 'flow node'),
+      kind: kind,
+      contentId: _requiredFlowString(j, 'contentId', 'flow node'),
+      transitions: [
+        if (rawTransitions is List)
+          for (final transition in rawTransitions)
+            if (transition is Map)
+              FlowTransition.fromJson(Map<String, dynamic>.from(transition))
+            else
+              throw const FormatException(
+                'flow node transitions must contain objects.',
+              ),
+      ],
+    );
+  }
 
   FlowNode copyWith({List<FlowTransition>? transitions}) => FlowNode(
     id: id,
@@ -224,6 +348,31 @@ final class ContentFlow {
 
   final String startNodeId;
   final List<FlowNode> nodes;
+
+  Map<String, dynamic> toJson() => {
+    'start': startNodeId,
+    'nodes': nodes.map((node) => node.toJson()).toList(),
+  };
+
+  /// Parses the structure only; [check] reports semantic problems such as
+  /// unknown targets so a Course stays readable and the Audit can name them.
+  factory ContentFlow.fromJson(Map<String, dynamic> j) {
+    _refuseUnknownFlowKeys(j, const {'start', 'nodes'}, 'flow');
+    final rawNodes = j['nodes'];
+    if (rawNodes is! List) {
+      throw const FormatException('flow.nodes must be a list.');
+    }
+    return ContentFlow(
+      startNodeId: _requiredFlowString(j, 'start', 'flow'),
+      nodes: [
+        for (final node in rawNodes)
+          if (node is Map)
+            FlowNode.fromJson(Map<String, dynamic>.from(node))
+          else
+            throw const FormatException('flow.nodes must contain objects.'),
+      ],
+    );
+  }
 
   FlowNode? nodeById(String id) {
     for (final node in nodes) {

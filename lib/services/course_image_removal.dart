@@ -24,7 +24,9 @@ class CourseImageRemovalResult {
 }
 
 /// Removes images from a Course: every use that [CourseImageUsage] would
-/// report, in exercises, presentations, GuideBooks and the cover.
+/// report, in exercises (presentations included), GuideBooks and the cover.
+/// Course Model v12 keeps images in an exercise's `prompt` and `items`
+/// content; the inline `layout` holds text and targets only.
 ///
 /// Only the Course changes. A Shared Image Library original or a bundled QQL
 /// image stays where it is; a Course-stored file leaves the Course folder
@@ -60,20 +62,14 @@ abstract final class CourseImageRemoval {
       final exercise = content['exercise'];
       if (exercise is Map) {
         removed += strip(exercise['prompt']);
-        final interaction = exercise['interaction'];
-        if (interaction is Map) {
-          final items = interaction['items'];
-          if (items is List) {
-            for (final item in items) {
-              if (item is Map) removed += strip(item['content']);
-            }
+        final items = exercise['items'];
+        if (items is List) {
+          for (final item in items) {
+            if (item is Map) removed += strip(item['content']);
           }
-          removed += strip(interaction['layout']);
         }
         if (removed > 0) exercise['updatedAt'] = stamp;
       }
-      final presentation = content['presentation'];
-      if (presentation is Map) removed += strip(presentation['content']);
       cleared += removed;
       if (removed > 0) touched.add(content);
       return removed > 0;

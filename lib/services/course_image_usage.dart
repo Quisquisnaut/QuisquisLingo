@@ -101,15 +101,14 @@ abstract final class CourseImageUsage {
       }
     }
 
+    // A Presentation is an exercise too since Course Model v12; its images
+    // are prompt elements. Layouts hold text runs and targets, never images.
     final exercise = content.exercise;
     if (exercise != null) {
       add(exercise.promptElements);
-      for (final item in exercise.interaction.items) {
+      for (final item in exercise.items) {
         add(item.content);
       }
-      add(exercise.interaction.layout);
     }
-    final presentation = content.presentation;
-    if (presentation != null) add(presentation.content);
   }
 }

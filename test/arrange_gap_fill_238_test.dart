@@ -85,18 +85,18 @@ void main() {
       );
       expect(restored.hasArrangeGaps, isTrue);
       expect(
-        restored.arrangeLayout.map((e) => '${e.type}:${e.text}'),
-        exercise.arrangeLayout.map((e) => '${e.type}:${e.text}'),
+        restored.interaction.layout.map((e) => '${e.type}:${e.text}'),
+        exercise.interaction.layout.map((e) => '${e.type}:${e.text}'),
       );
-      expect(restored.arrangeGapAssignments, exercise.arrangeGapAssignments);
+      expect(restored.targetAssignments, exercise.targetAssignments);
       expect(restored.tts, 'I go to school.');
     });
 
     test('legacy whole-sentence Arrange exercises have no gaps', () {
       final exercise = _legacyWordOrderExercise();
       expect(exercise.hasArrangeGaps, isFalse);
-      expect(exercise.arrangeLayout, isEmpty);
-      expect(exercise.arrangeGapAssignments, isEmpty);
+      expect(exercise.interaction.layout, isEmpty);
+      expect(exercise.targetAssignments, isEmpty);
       // Existing whole-sentence evaluation is untouched.
       expect(exercise.orderAnswer, ['Io', 'studio']);
     });

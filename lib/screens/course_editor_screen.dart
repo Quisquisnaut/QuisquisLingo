@@ -386,22 +386,14 @@ Future<bool> _confirmMoveToDraft(BuildContext context, String entity) async =>
     ) ??
     false;
 
+/// The same canonical exercise with another publication state. Course Model
+/// v12: copied canonically, never rebuilt through the v11 views, which would
+/// lose an inline layout.
 Exercise _withExercisePublication(
   Exercise source,
   PublicationState state, {
   DateTime? updatedAt,
-}) => Exercise.v2(
-  id: source.id,
-  publicationState: state,
-  updatedAt: updatedAt ?? source.updatedAt,
-  editorTemplate: source.editorTemplate,
-  promptElements: source.promptElements,
-  interaction: source.interaction,
-  evaluation: source.evaluation,
-  hint: source.hint,
-  feedback: source.feedback,
-  missingWords: source.missingWords,
-);
+}) => source.withPublicationState(state, updatedAt: updatedAt);
 
 Future<Course?> _openSearchResult(
   BuildContext context, {
@@ -858,1171 +850,1128 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
       child: Text(value.trim().isEmpty ? 'Not specified' : value),
     );
     final result = await showDialog<CourseInfoChange>(
-          context: context,
-          builder: (ctx) => StatefulBuilder(
-            builder: (ctx, setLocalState) => AlertDialog(
-              title: const Text('Course Info Editor'),
-              content: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 620),
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      const Text(
-                        'Course identity',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 8),
-                      TextField(
-                        key: const Key('course-info-title'),
-                        controller: courseTitle,
-                        maxLength: 120,
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          labelText: 'Course name',
-                          helper: Text('Renaming keeps the same Course ID.'),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      ValueListenableBuilder<bool>(
-                        valueListenable:
-                            EditorDisplayPreferences.showInternalIds,
-                        builder: (context, showInternalIds, _) =>
-                            showInternalIds
-                            ? Column(
-                                children: [
-                                  readOnlyField('Course ID', _course.courseId),
-                                  const SizedBox(height: 8),
-                                ],
-                              )
-                            : const SizedBox.shrink(),
-                      ),
-                      readOnlyField('Course origin', _course.originType.name),
-                      const SizedBox(height: 8),
-                      readOnlyField(
-                        'Original Course Creator',
-                        resolvedGovernance.originalCreatorLabel,
-                        helperText:
-                            'The person who originally created this Course. This does not change when maintainership changes or the Course is forked.',
-                      ),
-                      EditorInternalIdText(
-                        label: 'User',
-                        id: _course.originalCourseCreator.id,
-                        padding: const EdgeInsets.only(top: 6),
-                      ),
-                      const SizedBox(height: 8),
-                      if (canGovern)
-                        DropdownButtonFormField<String>(
-                          key: const Key('course-info-owner'),
-                          initialValue: selectedMaintainerId,
-                          isExpanded: true,
-                          decoration: const InputDecoration(
-                            border: OutlineInputBorder(),
-                            labelText: 'Course Maintainer',
-                            helper: Text(
-                              'The person currently responsible for maintaining this Course.',
-                            ),
-                          ),
-                          items: [
-                            for (final profile in profiles)
-                              DropdownMenuItem(
-                                value: profile.learnerProfileId,
-                                child: Tooltip(
-                                  message: profile.presentationName,
-                                  child: Text(
-                                    profile.presentationName,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              ),
-                          ],
-                          onChanged: (value) => setLocalState(
-                            () => selectedMaintainerId =
-                                value ?? selectedMaintainerId,
-                          ),
-                        )
-                      else
-                        readOnlyField(
-                          'Course Maintainer',
-                          resolvedGovernance.maintainerLabel,
-                          helperText: _editorMode == CourseEditorMode.edit
-                              ? 'Only the current Course Maintainer may change this field.'
-                              : 'Read-only outside Edit mode',
-                        ),
-                      EditorInternalIdText(
-                        label: 'User',
-                        id: selectedMaintainerId,
-                        padding: const EdgeInsets.only(top: 6),
-                      ),
-                      const SizedBox(height: 8),
-                      if (canGovern)
-                        KeyedSubtree(
-                          key: const Key('course-info-assigned-team'),
-                          child: DropdownButtonFormField<String?>(
-                            key: assignedTeamFieldKey,
-                            initialValue: selectedAssignedTeamId,
-                            isExpanded: true,
-                            decoration: const InputDecoration(
-                              border: OutlineInputBorder(),
-                              labelText: 'Assigned Team',
-                              helper: Text(
-                                'Grants Team management access; the Course Maintainer and Original Course Creator stay unchanged.',
-                              ),
-                            ),
-                            items: [
-                              const DropdownMenuItem<String?>(
-                                value: null,
-                                child: Text('No assigned Team'),
-                              ),
-                              for (final team in teams)
-                                DropdownMenuItem<String?>(
-                                  value: team.teamId,
-                                  child: Tooltip(
-                                    message: team.displayName,
-                                    child: Text(
-                                      team.displayName,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ),
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setLocalState) => AlertDialog(
+          title: const Text('Course Info Editor'),
+          content: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 620),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const Text(
+                    'Course identity',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    key: const Key('course-info-title'),
+                    controller: courseTitle,
+                    maxLength: 120,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: 'Course name',
+                      helper: Text('Renaming keeps the same Course ID.'),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  ValueListenableBuilder<bool>(
+                    valueListenable: EditorDisplayPreferences.showInternalIds,
+                    builder: (context, showInternalIds, _) => showInternalIds
+                        ? Column(
+                            children: [
+                              readOnlyField('Course ID', _course.courseId),
+                              const SizedBox(height: 8),
                             ],
-                            onChanged: (value) async {
-                              if (value == selectedAssignedTeamId) return;
-                              if (value != null) {
-                                final confirmed =
-                                    await showDialog<bool>(
-                                      context: ctx,
-                                      builder: (warningContext) => AlertDialog(
-                                        key: const Key(
-                                          'team-assignment-warning',
-                                        ),
-                                        title: const Text(
-                                          'Assign Course to Team?',
-                                        ),
-                                        content: const Text(
-                                          CourseGovernanceService
-                                              .teamAssignmentWarning,
-                                        ),
-                                        actions: [
-                                          TextButton(
-                                            key: const Key(
-                                              'team-assignment-cancel',
-                                            ),
-                                            onPressed: () => Navigator.pop(
-                                              warningContext,
-                                              false,
-                                            ),
-                                            child: const Text('Cancel'),
-                                          ),
-                                          FilledButton(
-                                            key: const Key(
-                                              'team-assignment-confirm',
-                                            ),
-                                            onPressed: () => Navigator.pop(
-                                              warningContext,
-                                              true,
-                                            ),
-                                            child: const Text(
-                                              'Confirm assignment',
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ) ??
-                                    false;
-                                if (!confirmed) {
-                                  assignedTeamFieldKey.currentState?.didChange(
-                                    selectedAssignedTeamId,
-                                  );
-                                  return;
-                                }
-                              }
-                              setLocalState(
-                                () => selectedAssignedTeamId = value,
-                              );
-                            },
-                          ),
-                        )
-                      else ...[
-                        readOnlyField(
-                          'Assigned Team',
-                          resolvedGovernance.assignedTeamLabel ?? 'None',
-                          helperText:
-                              'Only the current Course Maintainer may assign or revoke a Team.',
+                          )
+                        : const SizedBox.shrink(),
+                  ),
+                  readOnlyField('Course origin', _course.originType.name),
+                  const SizedBox(height: 8),
+                  readOnlyField(
+                    'Original Course Creator',
+                    resolvedGovernance.originalCreatorLabel,
+                    helperText:
+                        'The person who originally created this Course. This does not change when maintainership changes or the Course is forked.',
+                  ),
+                  EditorInternalIdText(
+                    label: 'User',
+                    id: _course.originalCourseCreator.id,
+                    padding: const EdgeInsets.only(top: 6),
+                  ),
+                  const SizedBox(height: 8),
+                  if (canGovern)
+                    DropdownButtonFormField<String>(
+                      key: const Key('course-info-owner'),
+                      initialValue: selectedMaintainerId,
+                      isExpanded: true,
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        labelText: 'Course Maintainer',
+                        helper: Text(
+                          'The person currently responsible for maintaining this Course.',
                         ),
+                      ),
+                      items: [
+                        for (final profile in profiles)
+                          DropdownMenuItem(
+                            value: profile.learnerProfileId,
+                            child: Tooltip(
+                              message: profile.presentationName,
+                              child: Text(
+                                profile.presentationName,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ),
                       ],
-                      if (selectedAssignedTeamId != null)
-                        EditorInternalIdText(
-                          label: 'Team',
-                          id: selectedAssignedTeamId!,
-                          padding: const EdgeInsets.only(top: 6),
-                        ),
-                      ValueListenableBuilder<bool>(
-                        valueListenable:
-                            EditorDisplayPreferences.showInternalIds,
-                        builder: (context, showInternalIds, _) =>
-                            showInternalIds
-                            ? Padding(
-                                padding: const EdgeInsets.only(top: 6),
-                                child: SelectableText(
-                                  'Course Model: v${_course.formatVersion}',
-                                  key: const Key('course-info-model-version'),
-                                  maxLines: 1,
-                                  style: Theme.of(ctx).textTheme.bodySmall
-                                      ?.copyWith(fontFamily: 'monospace'),
-                                ),
-                              )
-                            : const SizedBox.shrink(),
+                      onChanged: (value) => setLocalState(
+                        () => selectedMaintainerId =
+                            value ?? selectedMaintainerId,
                       ),
-                      if (_course.forkProvenance != null)
-                        CourseForkProvenanceCard(
-                          provenance: _course.forkProvenance!,
-                        ),
-                      ...[
-                        const SizedBox(height: 8),
-                        readOnlyField(
-                          'Original Course Created',
-                          _localCourseDateTime(
-                            ctx,
-                            _course.originalCreatedAtUtc,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        readOnlyField(
-                          'Last Version Editor',
-                          _course.lastVersionEditorDisplayName,
-                        ),
-                        const SizedBox(height: 8),
-                        readOnlyField(
-                          'Modified',
-                          _localCourseDateTime(ctx, _course.modifiedAtUtc),
-                        ),
-                        if (_course.versionNotes.isNotEmpty) ...[
-                          const SizedBox(height: 8),
-                          readOnlyField('Version notes', _course.versionNotes),
-                        ],
-                      ],
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: TextButton.icon(
-                          onPressed: () {
-                            Navigator.pop(ctx);
-                            _openVersionHistory();
-                          },
-                          icon: const Icon(Icons.history_outlined),
-                          label: const Text('Version history'),
-                        ),
-                      ),
-                      const SizedBox(height: 14),
-                      const Text(
-                        'Languages',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 8),
-                      if (narrowCourseInfo) ...[
-                        readOnlyField(
-                          'Base language',
-                          baseLanguage.displayLabel,
-                        ),
-                        const SizedBox(height: 8),
-                        readOnlyField(
-                          'Learning language',
-                          learningLanguage.displayLabel,
-                        ),
-                      ] else
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(
-                              child: readOnlyField(
-                                'Base language',
-                                baseLanguage.displayLabel,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: readOnlyField(
-                                'Learning language',
-                                learningLanguage.displayLabel,
-                              ),
-                            ),
-                          ],
-                        ),
-                      const SizedBox(height: 14),
-                      const Text(
-                        'Course flag',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 8),
-                      CourseFlagSelector(
-                        key: const Key('course-info-flag-selector'),
-                        selection: flagSelection,
-                        languageName: learningLanguage.displayLabel,
-                        languageTag: learningLanguage.code,
-                        onChanged: (selection) =>
-                            setLocalState(() => flagSelection = selection),
-                      ),
-                      const SizedBox(height: 14),
-                      CourseCoverField(
-                        key: const Key('course-info-cover'),
-                        courseId: _course.courseId,
-                        course: _course,
-                        cover: coverImage,
-                        onChanged: (choice) => setLocalState(() {
-                          coverImage = choice.cover;
-                          creditCover(choice.credit);
-                          mediaCreditError = null;
-                        }),
-                      ),
-                      const SizedBox(height: 14),
-                      const Text(
-                        'Authors',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 4),
-                      const Text(
-                        'Roles describe what each person did; they are not a hierarchy. More than one role may be selected.',
-                      ),
-                      const SizedBox(height: 8),
-                      for (var i = 0; i < names.length; i++)
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
-                          child: Card(
-                            child: Padding(
-                              padding: const EdgeInsets.all(10),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  Row(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Expanded(
-                                        child: TextField(
-                                          controller: names[i],
-                                          maxLength: 120,
-                                          decoration: const InputDecoration(
-                                            border: OutlineInputBorder(),
-                                            labelText: 'Name',
-                                          ),
-                                        ),
-                                      ),
-                                      IconButton(
-                                        tooltip: 'Remove author',
-                                        onPressed: names.length == 1
-                                            ? null
-                                            : () {
-                                                setLocalState(() {
-                                                  names.removeAt(i).dispose();
-                                                  selectedRoles.removeAt(i);
-                                                  customRoles
-                                                      .removeAt(i)
-                                                      .dispose();
-                                                });
-                                              },
-                                        icon: const Icon(
-                                          Icons.remove_circle_outline,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Wrap(
-                                    spacing: 6,
-                                    runSpacing: 6,
-                                    children: [
-                                      for (final role in standardRoles)
-                                        Tooltip(
-                                          message: role == 'Team Leader'
-                                              ? 'This is descriptive information only. To assign or change Team Leader roles in QQL, use Team Manager.'
-                                              : roleDescriptions[role] ?? role,
-                                          child: FilterChip(
-                                            label: Text(role),
-                                            selected: selectedRoles[i].contains(
-                                              role,
-                                            ),
-                                            onSelected: (on) => setLocalState(
-                                              () {
-                                                if (on) {
-                                                  selectedRoles[i].add(role);
-                                                } else {
-                                                  selectedRoles[i].remove(role);
-                                                }
-                                              },
-                                            ),
-                                          ),
-                                        ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 6),
-                                  for (final role in standardRoles.where(
-                                    (r) => selectedRoles[i].contains(r),
-                                  ))
-                                    Padding(
-                                      padding: const EdgeInsets.only(bottom: 3),
-                                      child: Text(
-                                        '$role: ${roleDescriptions[role]}',
-                                        style: Theme.of(
-                                          ctx,
-                                        ).textTheme.bodySmall,
-                                      ),
-                                    ),
-                                  const SizedBox(height: 6),
-                                  TextField(
-                                    controller: customRoles[i],
-                                    maxLength: 240,
-                                    decoration: const InputDecoration(
-                                      border: OutlineInputBorder(),
-                                      labelText: 'Custom role(s)',
-                                      helper: Text(
-                                        'Optional; separate roles with commas.',
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: TextButton.icon(
-                          onPressed: () {
-                            setLocalState(() {
-                              names.add(TextEditingController());
-                              selectedRoles.add({'Contributor'});
-                              customRoles.add(TextEditingController());
-                            });
-                          },
-                          icon: const Icon(Icons.add),
-                          label: const Text('Add author'),
-                        ),
-                      ),
-                      const Divider(),
-                      TextField(
-                        controller: variant,
-                        maxLength: 120,
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          labelText: 'Language variant',
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      if (narrowCourseInfo) ...[
-                        TextField(
-                          controller: startLevel,
-                          maxLength: 40,
-                          decoration: const InputDecoration(
-                            border: OutlineInputBorder(),
-                            labelText: 'Starting level',
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        TextField(
-                          controller: targetLevel,
-                          maxLength: 40,
-                          decoration: const InputDecoration(
-                            border: OutlineInputBorder(),
-                            labelText: 'Target level',
-                          ),
-                        ),
-                      ] else
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(
-                              child: TextField(
-                                controller: startLevel,
-                                maxLength: 40,
-                                decoration: const InputDecoration(
-                                  border: OutlineInputBorder(),
-                                  labelText: 'Starting level',
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: TextField(
-                                controller: targetLevel,
-                                maxLength: 40,
-                                decoration: const InputDecoration(
-                                  border: OutlineInputBorder(),
-                                  labelText: 'Target level',
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      const SizedBox(height: 8),
-                      readOnlyField(
-                        'Course version',
-                        _course.courseVersion.isEmpty
-                            ? 'Not confirmed yet'
-                            : _course.courseVersion,
-                      ),
-                      const SizedBox(height: 8),
-                      TextField(
-                        controller: description,
-                        minLines: 2,
-                        maxLines: 5,
-                        maxLength: 5000,
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          labelText: 'Course description / information',
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      TextField(
-                        controller: buyACoffeeUrl,
-                        maxLength: 2000,
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          labelText: 'Buy a Coffee URL (optional)',
-                          helper: Text('HTTPS only; shown in Course Info.'),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: TextField(
-                              key: const Key('course-info-estimated-hours'),
-                              controller: estimatedHours,
-                              keyboardType: TextInputType.number,
-                              decoration: const InputDecoration(
-                                border: OutlineInputBorder(),
-                                labelText: 'Estimated study hours (optional)',
-                                helper: Text('Whole number, 1–1000.'),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: DropdownButtonFormField<int?>(
-                              key: const Key('course-info-minimum-age'),
-                              initialValue: minimumAge,
-                              isExpanded: true,
-                              decoration: const InputDecoration(
-                                border: OutlineInputBorder(),
-                                labelText: 'Minimum age',
-                                helper: Text('App Store age classes.'),
-                              ),
-                              items: [
-                                const DropdownMenuItem<int?>(
-                                  value: null,
-                                  child: Text('Not specified'),
-                                ),
-                                for (final age in Course.minimumAgeClasses)
-                                  DropdownMenuItem<int?>(
-                                    value: age,
-                                    child: Text('$age+'),
-                                  ),
-                              ],
-                              onChanged: (value) =>
-                                  setLocalState(() => minimumAge = value),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      TextField(
-                        key: const Key('course-info-keywords'),
-                        controller: keywords,
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          labelText: 'Keywords (optional)',
-                          helper: Text(
-                            'Separate with commas. Up to 20 keywords of up to 32 characters each.',
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      TextField(
-                        key: const Key('course-info-contact-website'),
-                        controller: contactWebsite,
-                        maxLength: 500,
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          labelText: 'Publisher website (optional)',
-                          helper: Text(
-                            'HTTPS only; shown as plain text in Course Info.',
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      TextField(
-                        key: const Key('course-info-contact-email'),
-                        controller: contactEmail,
-                        maxLength: 254,
-                        keyboardType: TextInputType.emailAddress,
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          labelText: 'Publisher email (optional)',
-                          helper: Text('Shown as plain text in Course Info.'),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      TextField(
-                        key: const Key('course-info-minimum-app-build'),
-                        controller: minimumAppBuild,
-                        keyboardType: TextInputType.number,
-                        decoration: InputDecoration(
-                          border: const OutlineInputBorder(),
-                          labelText: 'Minimum QuisquisLingo build (optional)',
-                          helper: Text(
-                            'Older builds refuse this Course. Leave empty unless it needs a recent feature. This is build ${Course.appBuildNumber}.',
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 14),
-                      const Text(
-                        'License / Rights',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 8),
-                      DropdownButtonFormField<String>(
-                        initialValue: selected,
+                    )
+                  else
+                    readOnlyField(
+                      'Course Maintainer',
+                      resolvedGovernance.maintainerLabel,
+                      helperText: _editorMode == CourseEditorMode.edit
+                          ? 'Only the current Course Maintainer may change this field.'
+                          : 'Read-only outside Edit mode',
+                    ),
+                  EditorInternalIdText(
+                    label: 'User',
+                    id: selectedMaintainerId,
+                    padding: const EdgeInsets.only(top: 6),
+                  ),
+                  const SizedBox(height: 8),
+                  if (canGovern)
+                    KeyedSubtree(
+                      key: const Key('course-info-assigned-team'),
+                      child: DropdownButtonFormField<String?>(
+                        key: assignedTeamFieldKey,
+                        initialValue: selectedAssignedTeamId,
                         isExpanded: true,
                         decoration: const InputDecoration(
                           border: OutlineInputBorder(),
-                          labelText: 'Course content license',
+                          labelText: 'Assigned Team',
+                          helper: Text(
+                            'Grants Team management access; the Course Maintainer and Original Course Creator stay unchanged.',
+                          ),
                         ),
                         items: [
-                          for (final v in standardLicenses)
-                            DropdownMenuItem(
-                              value: v,
-                              child: Text(v, overflow: TextOverflow.ellipsis),
+                          const DropdownMenuItem<String?>(
+                            value: null,
+                            child: Text('No assigned Team'),
+                          ),
+                          for (final team in teams)
+                            DropdownMenuItem<String?>(
+                              value: team.teamId,
+                              child: Tooltip(
+                                message: team.displayName,
+                                child: Text(
+                                  team.displayName,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
                             ),
                         ],
-                        onChanged: (v) => setLocalState(() {
-                          selected = v ?? selected;
-                          final inferred =
-                              CourseMetadataOptions.derivativePolicyForLicense(
-                                selected,
+                        onChanged: (value) async {
+                          if (value == selectedAssignedTeamId) return;
+                          if (value != null) {
+                            final confirmed =
+                                await showDialog<bool>(
+                                  context: ctx,
+                                  builder: (warningContext) => AlertDialog(
+                                    key: const Key('team-assignment-warning'),
+                                    title: const Text('Assign Course to Team?'),
+                                    content: const Text(
+                                      CourseGovernanceService
+                                          .teamAssignmentWarning,
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        key: const Key(
+                                          'team-assignment-cancel',
+                                        ),
+                                        onPressed: () => Navigator.pop(
+                                          warningContext,
+                                          false,
+                                        ),
+                                        child: const Text('Cancel'),
+                                      ),
+                                      FilledButton(
+                                        key: const Key(
+                                          'team-assignment-confirm',
+                                        ),
+                                        onPressed: () =>
+                                            Navigator.pop(warningContext, true),
+                                        child: const Text('Confirm assignment'),
+                                      ),
+                                    ],
+                                  ),
+                                ) ??
+                                false;
+                            if (!confirmed) {
+                              assignedTeamFieldKey.currentState?.didChange(
+                                selectedAssignedTeamId,
                               );
-                          if (inferred != DerivativeWorksPolicy.unspecified) {
-                            derivativePolicy = inferred;
+                              return;
+                            }
                           }
-                        }),
+                          setLocalState(() => selectedAssignedTeamId = value);
+                        },
                       ),
-                      if (selected == 'Other / Custom license') ...[
-                        const SizedBox(height: 12),
-                        TextField(
-                          controller: customLicense,
-                          minLines: 2,
-                          maxLines: 5,
-                          maxLength: 2000,
-                          decoration: const InputDecoration(
-                            border: OutlineInputBorder(),
-                            labelText: 'Custom license',
+                    )
+                  else ...[
+                    readOnlyField(
+                      'Assigned Team',
+                      resolvedGovernance.assignedTeamLabel ?? 'None',
+                      helperText:
+                          'Only the current Course Maintainer may assign or revoke a Team.',
+                    ),
+                  ],
+                  if (selectedAssignedTeamId != null)
+                    EditorInternalIdText(
+                      label: 'Team',
+                      id: selectedAssignedTeamId!,
+                      padding: const EdgeInsets.only(top: 6),
+                    ),
+                  ValueListenableBuilder<bool>(
+                    valueListenable: EditorDisplayPreferences.showInternalIds,
+                    builder: (context, showInternalIds, _) => showInternalIds
+                        ? Padding(
+                            padding: const EdgeInsets.only(top: 6),
+                            child: SelectableText(
+                              'Course Model: v${_course.formatVersion}',
+                              key: const Key('course-info-model-version'),
+                              maxLines: 1,
+                              style: Theme.of(ctx).textTheme.bodySmall
+                                  ?.copyWith(fontFamily: 'monospace'),
+                            ),
+                          )
+                        : const SizedBox.shrink(),
+                  ),
+                  if (_course.forkProvenance != null)
+                    CourseForkProvenanceCard(
+                      provenance: _course.forkProvenance!,
+                    ),
+                  ...[
+                    const SizedBox(height: 8),
+                    readOnlyField(
+                      'Original Course Created',
+                      _localCourseDateTime(ctx, _course.originalCreatedAtUtc),
+                    ),
+                    const SizedBox(height: 8),
+                    readOnlyField(
+                      'Last Version Editor',
+                      _course.lastVersionEditorDisplayName,
+                    ),
+                    const SizedBox(height: 8),
+                    readOnlyField(
+                      'Modified',
+                      _localCourseDateTime(ctx, _course.modifiedAtUtc),
+                    ),
+                    if (_course.versionNotes.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      readOnlyField('Version notes', _course.versionNotes),
+                    ],
+                  ],
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: TextButton.icon(
+                      onPressed: () {
+                        Navigator.pop(ctx);
+                        _openVersionHistory();
+                      },
+                      icon: const Icon(Icons.history_outlined),
+                      label: const Text('Version history'),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  const Text(
+                    'Languages',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  if (narrowCourseInfo) ...[
+                    readOnlyField('Base language', baseLanguage.displayLabel),
+                    const SizedBox(height: 8),
+                    readOnlyField(
+                      'Learning language',
+                      learningLanguage.displayLabel,
+                    ),
+                  ] else
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: readOnlyField(
+                            'Base language',
+                            baseLanguage.displayLabel,
                           ),
                         ),
-                        const SizedBox(height: 8),
-                        DropdownButtonFormField<DerivativeWorksPolicy>(
-                          initialValue: derivativePolicy,
-                          isExpanded: true,
-                          decoration: const InputDecoration(
-                            border: OutlineInputBorder(),
-                            labelText: 'Derivative works for other users',
-                          ),
-                          items: const [
-                            DropdownMenuItem(
-                              value: DerivativeWorksPolicy.allowed,
-                              child: Text(
-                                'Allowed',
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            DropdownMenuItem(
-                              value: DerivativeWorksPolicy.forbidden,
-                              child: Text(
-                                'Forbidden',
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            DropdownMenuItem(
-                              value: DerivativeWorksPolicy.unspecified,
-                              child: Text(
-                                'Not specified',
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                          onChanged: (value) => setLocalState(
-                            () => derivativePolicy = value ?? derivativePolicy,
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: readOnlyField(
+                            'Learning language',
+                            learningLanguage.displayLabel,
                           ),
                         ),
                       ],
-                      const SizedBox(height: 12),
-                      const Text(
-                        'Rights Holder records rights ownership information. It does not control QQL permissions.',
-                      ),
-                      const SizedBox(height: 8),
-                      for (
-                        var rightsIndex = 0;
-                        rightsIndex < rightsHolderNames.length;
-                        rightsIndex++
-                      )
-                        Card(
-                          child: Padding(
-                            padding: const EdgeInsets.all(10),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: Text(
-                                        'Rights Holder ${rightsIndex + 1}',
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.w600,
+                    ),
+                  const SizedBox(height: 14),
+                  const Text(
+                    'Course flag',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  CourseFlagSelector(
+                    key: const Key('course-info-flag-selector'),
+                    selection: flagSelection,
+                    languageName: learningLanguage.displayLabel,
+                    languageTag: learningLanguage.code,
+                    onChanged: (selection) =>
+                        setLocalState(() => flagSelection = selection),
+                  ),
+                  const SizedBox(height: 14),
+                  CourseCoverField(
+                    key: const Key('course-info-cover'),
+                    courseId: _course.courseId,
+                    course: _course,
+                    cover: coverImage,
+                    onChanged: (choice) => setLocalState(() {
+                      coverImage = choice.cover;
+                      creditCover(choice.credit);
+                      mediaCreditError = null;
+                    }),
+                  ),
+                  const SizedBox(height: 14),
+                  const Text(
+                    'Authors',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 4),
+                  const Text(
+                    'Roles describe what each person did; they are not a hierarchy. More than one role may be selected.',
+                  ),
+                  const SizedBox(height: 8),
+                  for (var i = 0; i < names.length; i++)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: Card(
+                        child: Padding(
+                          padding: const EdgeInsets.all(10),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Expanded(
+                                    child: TextField(
+                                      controller: names[i],
+                                      maxLength: 120,
+                                      decoration: const InputDecoration(
+                                        border: OutlineInputBorder(),
+                                        labelText: 'Name',
+                                      ),
+                                    ),
+                                  ),
+                                  IconButton(
+                                    tooltip: 'Remove author',
+                                    onPressed: names.length == 1
+                                        ? null
+                                        : () {
+                                            setLocalState(() {
+                                              names.removeAt(i).dispose();
+                                              selectedRoles.removeAt(i);
+                                              customRoles.removeAt(i).dispose();
+                                            });
+                                          },
+                                    icon: const Icon(
+                                      Icons.remove_circle_outline,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 4),
+                              Wrap(
+                                spacing: 6,
+                                runSpacing: 6,
+                                children: [
+                                  for (final role in standardRoles)
+                                    Tooltip(
+                                      message: role == 'Team Leader'
+                                          ? 'This is descriptive information only. To assign or change Team Leader roles in QQL, use Team Manager.'
+                                          : roleDescriptions[role] ?? role,
+                                      child: FilterChip(
+                                        label: Text(role),
+                                        selected: selectedRoles[i].contains(
+                                          role,
                                         ),
+                                        onSelected: (on) => setLocalState(() {
+                                          if (on) {
+                                            selectedRoles[i].add(role);
+                                          } else {
+                                            selectedRoles[i].remove(role);
+                                          }
+                                        }),
                                       ),
                                     ),
-                                    IconButton(
-                                      tooltip: 'Remove Rights Holder',
-                                      onPressed: rightsHolderNames.length == 1
-                                          ? null
-                                          : () => setLocalState(() {
-                                              rightsHolderNames
-                                                  .removeAt(rightsIndex)
-                                                  .dispose();
-                                              rightsHolderTypes.removeAt(
-                                                rightsIndex,
-                                              );
-                                            }),
-                                      icon: const Icon(
-                                        Icons.remove_circle_outline,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                DropdownButtonFormField<CourseRightsHolderType>(
-                                  key: ValueKey(
-                                    'course-info-rights-holder-type-$rightsIndex',
-                                  ),
-                                  initialValue: rightsHolderTypes[rightsIndex],
-                                  isExpanded: true,
-                                  decoration: const InputDecoration(
-                                    border: OutlineInputBorder(),
-                                    labelText: 'Rights Holder type',
-                                  ),
-                                  items: const [
-                                    DropdownMenuItem(
-                                      value: CourseRightsHolderType.person,
-                                      child: Text('Person'),
-                                    ),
-                                    DropdownMenuItem(
-                                      value:
-                                          CourseRightsHolderType.organization,
-                                      child: Text('Organization'),
-                                    ),
-                                  ],
-                                  onChanged: (value) => setLocalState(() {
-                                    rightsHolderTypes[rightsIndex] =
-                                        value ?? rightsHolderTypes[rightsIndex];
-                                  }),
-                                ),
-                                const SizedBox(height: 8),
-                                TextField(
-                                  key: ValueKey(
-                                    'course-info-rights-holder-name-$rightsIndex',
-                                  ),
-                                  controller: rightsHolderNames[rightsIndex],
-                                  maxLength: 240,
-                                  decoration: const InputDecoration(
-                                    border: OutlineInputBorder(),
-                                    labelText: 'Rights Holder',
-                                    helper: Text(
-                                      'A person or organization; descriptive only.',
-                                    ),
+                                ],
+                              ),
+                              const SizedBox(height: 6),
+                              for (final role in standardRoles.where(
+                                (r) => selectedRoles[i].contains(r),
+                              ))
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 3),
+                                  child: Text(
+                                    '$role: ${roleDescriptions[role]}',
+                                    style: Theme.of(ctx).textTheme.bodySmall,
                                   ),
                                 ),
-                              ],
+                              const SizedBox(height: 6),
+                              TextField(
+                                controller: customRoles[i],
+                                maxLength: 240,
+                                decoration: const InputDecoration(
+                                  border: OutlineInputBorder(),
+                                  labelText: 'Custom role(s)',
+                                  helper: Text(
+                                    'Optional; separate roles with commas.',
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: TextButton.icon(
+                      onPressed: () {
+                        setLocalState(() {
+                          names.add(TextEditingController());
+                          selectedRoles.add({'Contributor'});
+                          customRoles.add(TextEditingController());
+                        });
+                      },
+                      icon: const Icon(Icons.add),
+                      label: const Text('Add author'),
+                    ),
+                  ),
+                  const Divider(),
+                  TextField(
+                    controller: variant,
+                    maxLength: 120,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: 'Language variant',
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  if (narrowCourseInfo) ...[
+                    TextField(
+                      controller: startLevel,
+                      maxLength: 40,
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        labelText: 'Starting level',
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: targetLevel,
+                      maxLength: 40,
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        labelText: 'Target level',
+                      ),
+                    ),
+                  ] else
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: startLevel,
+                            maxLength: 40,
+                            decoration: const InputDecoration(
+                              border: OutlineInputBorder(),
+                              labelText: 'Starting level',
                             ),
                           ),
                         ),
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: TextButton.icon(
-                          key: const Key('course-info-add-rights-holder'),
-                          onPressed: () => setLocalState(() {
-                            rightsHolderNames.add(TextEditingController());
-                            rightsHolderTypes.add(
-                              CourseRightsHolderType.person,
-                            );
-                          }),
-                          icon: const Icon(Icons.add),
-                          label: const Text('Add Rights Holder'),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      const Text(
-                        'Media credits',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        'Credit images and recordings made by someone else: an imported picture, a recording another person performed, a custom Lesson icon or course flag. Media that came with QuisquisLingo is already credited in App Info and needs no entry here. These credits travel inside the Course file even when the media files themselves do not. They are descriptive only and do not control QQL permissions.',
-                      ),
-                      const SizedBox(height: 8),
-                      for (
-                        var creditIndex = 0;
-                        creditIndex < mediaAuthors.length;
-                        creditIndex++
-                      )
-                        Card(
-                          child: Padding(
-                            padding: const EdgeInsets.all(10),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: Text(
-                                        'Media credit ${creditIndex + 1}',
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                    ),
-                                    IconButton(
-                                      tooltip: 'Remove media credit',
-                                      onPressed: mediaAuthors.length == 1
-                                          ? null
-                                          : () => setLocalState(() {
-                                              mediaAuthors
-                                                  .removeAt(creditIndex)
-                                                  .dispose();
-                                              mediaLicenses
-                                                  .removeAt(creditIndex)
-                                                  .dispose();
-                                              mediaTitles
-                                                  .removeAt(creditIndex)
-                                                  .dispose();
-                                              mediaSources
-                                                  .removeAt(creditIndex)
-                                                  .dispose();
-                                              mediaAppliesTo
-                                                  .removeAt(creditIndex)
-                                                  .dispose();
-                                              mediaCreditError = null;
-                                            }),
-                                      icon: const Icon(
-                                        Icons.remove_circle_outline,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                TextField(
-                                  key: ValueKey(
-                                    'course-info-media-author-$creditIndex',
-                                  ),
-                                  controller: mediaAuthors[creditIndex],
-                                  maxLength: 200,
-                                  decoration: const InputDecoration(
-                                    border: OutlineInputBorder(),
-                                    labelText: 'Author',
-                                    helper: Text('Who must be credited.'),
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                TextField(
-                                  key: ValueKey(
-                                    'course-info-media-license-$creditIndex',
-                                  ),
-                                  controller: mediaLicenses[creditIndex],
-                                  maxLength: 200,
-                                  decoration: const InputDecoration(
-                                    border: OutlineInputBorder(),
-                                    labelText: 'Licence',
-                                    helper: Text(
-                                      'As the creator states it, for example CC BY-SA 4.0.',
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                TextField(
-                                  key: ValueKey(
-                                    'course-info-media-title-$creditIndex',
-                                  ),
-                                  controller: mediaTitles[creditIndex],
-                                  maxLength: 200,
-                                  decoration: const InputDecoration(
-                                    border: OutlineInputBorder(),
-                                    labelText: 'Title (optional)',
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                TextField(
-                                  key: ValueKey(
-                                    'course-info-media-source-$creditIndex',
-                                  ),
-                                  controller: mediaSources[creditIndex],
-                                  maxLength: 500,
-                                  decoration: const InputDecoration(
-                                    border: OutlineInputBorder(),
-                                    labelText: 'Source (optional)',
-                                    helper: Text(
-                                      'A page reference or address. Shown as plain text, never opened.',
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                TextField(
-                                  key: ValueKey(
-                                    'course-info-media-applies-to-$creditIndex',
-                                  ),
-                                  controller: mediaAppliesTo[creditIndex],
-                                  maxLength: 200,
-                                  decoration: const InputDecoration(
-                                    border: OutlineInputBorder(),
-                                    labelText: 'Applies to (optional)',
-                                    helper: Text(
-                                      'Which media in this course it covers.',
-                                    ),
-                                  ),
-                                ),
-                              ],
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: TextField(
+                            controller: targetLevel,
+                            maxLength: 40,
+                            decoration: const InputDecoration(
+                              border: OutlineInputBorder(),
+                              labelText: 'Target level',
                             ),
                           ),
                         ),
-                      if (mediaCreditError != null)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 4, bottom: 4),
-                          child: Text(
-                            mediaCreditError!,
-                            key: const Key('course-info-media-credit-error'),
-                            style: TextStyle(
-                              color: Theme.of(ctx).colorScheme.error,
-                            ),
+                      ],
+                    ),
+                  const SizedBox(height: 8),
+                  readOnlyField(
+                    'Course version',
+                    _course.courseVersion.isEmpty
+                        ? 'Not confirmed yet'
+                        : _course.courseVersion,
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: description,
+                    minLines: 2,
+                    maxLines: 5,
+                    maxLength: 5000,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: 'Course description / information',
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: buyACoffeeUrl,
+                    maxLength: 2000,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: 'Buy a Coffee URL (optional)',
+                      helper: Text('HTTPS only; shown in Course Info.'),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          key: const Key('course-info-estimated-hours'),
+                          controller: estimatedHours,
+                          keyboardType: TextInputType.number,
+                          decoration: const InputDecoration(
+                            border: OutlineInputBorder(),
+                            labelText: 'Estimated study hours (optional)',
+                            helper: Text('Whole number, 1–1000.'),
                           ),
                         ),
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: TextButton.icon(
-                          key: const Key('course-info-add-media-credit'),
-                          onPressed: () =>
-                              setLocalState(() => addMediaCreditRow()),
-                          icon: const Icon(Icons.add),
-                          label: const Text('Add media credit'),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: DropdownButtonFormField<int?>(
+                          key: const Key('course-info-minimum-age'),
+                          initialValue: minimumAge,
+                          isExpanded: true,
+                          decoration: const InputDecoration(
+                            border: OutlineInputBorder(),
+                            labelText: 'Minimum age',
+                            helper: Text('App Store age classes.'),
+                          ),
+                          items: [
+                            const DropdownMenuItem<int?>(
+                              value: null,
+                              child: Text('Not specified'),
+                            ),
+                            for (final age in Course.minimumAgeClasses)
+                              DropdownMenuItem<int?>(
+                                value: age,
+                                child: Text('$age+'),
+                              ),
+                          ],
+                          onChanged: (value) =>
+                              setLocalState(() => minimumAge = value),
                         ),
                       ),
                     ],
                   ),
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(ctx),
-                  child: const Text('Cancel'),
-                ),
-                FilledButton(
-                  key: const Key('course-info-save'),
-                  onPressed: () async {
-                    String title;
-                    try {
-                      title = FormalNamePolicy.validatePresentationLabel(
-                        courseTitle.text,
-                        parameterName: 'courseName',
-                      );
-                    } on ArgumentError catch (error) {
-                      ScaffoldMessenger.of(ctx).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            error.message?.toString() ??
-                                'Check the Course name.',
+                  const SizedBox(height: 8),
+                  TextField(
+                    key: const Key('course-info-keywords'),
+                    controller: keywords,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: 'Keywords (optional)',
+                      helper: Text(
+                        'Separate with commas. Up to 20 keywords of up to 32 characters each.',
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    key: const Key('course-info-contact-website'),
+                    controller: contactWebsite,
+                    maxLength: 500,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: 'Publisher website (optional)',
+                      helper: Text(
+                        'HTTPS only; shown as plain text in Course Info.',
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    key: const Key('course-info-contact-email'),
+                    controller: contactEmail,
+                    maxLength: 254,
+                    keyboardType: TextInputType.emailAddress,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: 'Publisher email (optional)',
+                      helper: Text('Shown as plain text in Course Info.'),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    key: const Key('course-info-minimum-app-build'),
+                    controller: minimumAppBuild,
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      border: const OutlineInputBorder(),
+                      labelText: 'Minimum QuisquisLingo build (optional)',
+                      helper: Text(
+                        'Older builds refuse this Course. Leave empty unless it needs a recent feature. This is build ${Course.appBuildNumber}.',
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  const Text(
+                    'License / Rights',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  DropdownButtonFormField<String>(
+                    initialValue: selected,
+                    isExpanded: true,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: 'Course content license',
+                    ),
+                    items: [
+                      for (final v in standardLicenses)
+                        DropdownMenuItem(
+                          value: v,
+                          child: Text(v, overflow: TextOverflow.ellipsis),
+                        ),
+                    ],
+                    onChanged: (v) => setLocalState(() {
+                      selected = v ?? selected;
+                      final inferred =
+                          CourseMetadataOptions.derivativePolicyForLicense(
+                            selected,
+                          );
+                      if (inferred != DerivativeWorksPolicy.unspecified) {
+                        derivativePolicy = inferred;
+                      }
+                    }),
+                  ),
+                  if (selected == 'Other / Custom license') ...[
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: customLicense,
+                      minLines: 2,
+                      maxLines: 5,
+                      maxLength: 2000,
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        labelText: 'Custom license',
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    DropdownButtonFormField<DerivativeWorksPolicy>(
+                      initialValue: derivativePolicy,
+                      isExpanded: true,
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        labelText: 'Derivative works for other users',
+                      ),
+                      items: const [
+                        DropdownMenuItem(
+                          value: DerivativeWorksPolicy.allowed,
+                          child: Text(
+                            'Allowed',
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                      );
-                      return;
-                    }
-                    final duplicate = (await _service.listUserCourses()).any(
-                      (course) =>
-                          course.courseId != _course.courseId &&
-                          FormalNamePolicy.comparisonKey(course.title) ==
-                              FormalNamePolicy.comparisonKey(title),
-                    );
-                    if (duplicate) {
-                      if (!ctx.mounted) return;
-                      final continueAnyway = await showDialog<bool>(
-                        context: ctx,
-                        builder: (warningContext) => AlertDialog(
-                          title: const Text('Course name already exists'),
-                          content: const Text(
-                            'A Course with this name already exists.',
+                        DropdownMenuItem(
+                          value: DerivativeWorksPolicy.forbidden,
+                          child: Text(
+                            'Forbidden',
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          actions: [
-                            TextButton(
-                              onPressed: () =>
-                                  Navigator.pop(warningContext, false),
-                              child: const Text('Edit name'),
+                        ),
+                        DropdownMenuItem(
+                          value: DerivativeWorksPolicy.unspecified,
+                          child: Text(
+                            'Not specified',
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                      onChanged: (value) => setLocalState(
+                        () => derivativePolicy = value ?? derivativePolicy,
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 12),
+                  const Text(
+                    'Rights Holder records rights ownership information. It does not control QQL permissions.',
+                  ),
+                  const SizedBox(height: 8),
+                  for (
+                    var rightsIndex = 0;
+                    rightsIndex < rightsHolderNames.length;
+                    rightsIndex++
+                  )
+                    Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(10),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    'Rights Holder ${rightsIndex + 1}',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                                IconButton(
+                                  tooltip: 'Remove Rights Holder',
+                                  onPressed: rightsHolderNames.length == 1
+                                      ? null
+                                      : () => setLocalState(() {
+                                          rightsHolderNames
+                                              .removeAt(rightsIndex)
+                                              .dispose();
+                                          rightsHolderTypes.removeAt(
+                                            rightsIndex,
+                                          );
+                                        }),
+                                  icon: const Icon(Icons.remove_circle_outline),
+                                ),
+                              ],
                             ),
-                            FilledButton(
-                              onPressed: () =>
-                                  Navigator.pop(warningContext, true),
-                              child: const Text('Continue anyway'),
+                            DropdownButtonFormField<CourseRightsHolderType>(
+                              key: ValueKey(
+                                'course-info-rights-holder-type-$rightsIndex',
+                              ),
+                              initialValue: rightsHolderTypes[rightsIndex],
+                              isExpanded: true,
+                              decoration: const InputDecoration(
+                                border: OutlineInputBorder(),
+                                labelText: 'Rights Holder type',
+                              ),
+                              items: const [
+                                DropdownMenuItem(
+                                  value: CourseRightsHolderType.person,
+                                  child: Text('Person'),
+                                ),
+                                DropdownMenuItem(
+                                  value: CourseRightsHolderType.organization,
+                                  child: Text('Organization'),
+                                ),
+                              ],
+                              onChanged: (value) => setLocalState(() {
+                                rightsHolderTypes[rightsIndex] =
+                                    value ?? rightsHolderTypes[rightsIndex];
+                              }),
+                            ),
+                            const SizedBox(height: 8),
+                            TextField(
+                              key: ValueKey(
+                                'course-info-rights-holder-name-$rightsIndex',
+                              ),
+                              controller: rightsHolderNames[rightsIndex],
+                              maxLength: 240,
+                              decoration: const InputDecoration(
+                                border: OutlineInputBorder(),
+                                labelText: 'Rights Holder',
+                                helper: Text(
+                                  'A person or organization; descriptive only.',
+                                ),
+                              ),
                             ),
                           ],
                         ),
-                      );
-                      if (continueAnyway != true || !ctx.mounted) return;
-                    }
-                    final license = selected == 'Other / Custom license'
-                        ? customLicense.text.trim()
-                        : selected;
-                    if (license.isEmpty) return;
-                    String normalizedBuyACoffeeUrl;
-                    int? parsedHours;
-                    int? parsedMinimumBuild;
-                    List<String> parsedKeywords;
-                    CoursePublisherContact? parsedContact;
-                    try {
-                      normalizedBuyACoffeeUrl = Course.normalizeBuyACoffeeUrl(
-                        buyACoffeeUrl.text,
-                      );
-                      int? wholeNumber(String text, String label) {
-                        final value = text.trim();
-                        if (value.isEmpty) return null;
-                        final parsed = int.tryParse(value);
-                        if (parsed == null) {
-                          throw FormatException(
-                            '$label must be a whole number.',
-                          );
-                        }
-                        return parsed;
-                      }
-
-                      parsedHours = wholeNumber(
-                        estimatedHours.text,
-                        'Estimated study hours',
-                      );
-                      parsedMinimumBuild = wholeNumber(
-                        minimumAppBuild.text,
-                        'Minimum QuisquisLingo build',
-                      );
-                      parsedKeywords = Course.normalizeKeywords(
-                        keywords.text.split(','),
-                      );
-                      parsedContact = CoursePublisherContact.fromFields(
-                        contactWebsite.text,
-                        contactEmail.text,
-                      );
-                      // The model is the one authority on the limits.
-                      Course.validateDescriptiveMetadata(
-                        minimumAppBuild: parsedMinimumBuild,
-                        estimatedStudyHours: parsedHours,
-                        minimumAge: minimumAge,
-                        keywords: parsedKeywords,
-                      );
-                    } on FormatException catch (error) {
-                      if (!ctx.mounted) return;
-                      ScaffoldMessenger.of(
-                        ctx,
-                      ).showSnackBar(SnackBar(content: Text(error.message)));
-                      return;
-                    }
-                    final aa = <CourseAuthor>[];
-                    for (var i = 0; i < names.length; i++) {
-                      final n = names[i].text.trim();
-                      if (n.isEmpty) continue;
-                      final rr = <String>[
-                        ...standardRoles.where(selectedRoles[i].contains),
-                      ];
-                      for (final part in customRoles[i].text.split(',')) {
-                        final value = part.trim();
-                        if (value.isNotEmpty && !rr.contains(value)) {
-                          rr.add(value);
-                        }
-                      }
-                      if (rr.isEmpty) rr.add('Contributor');
-                      aa.add(CourseAuthor(name: n, roles: rr));
-                    }
-                    final rightsHolders = <CourseRightsHolder>[];
-                    for (var i = 0; i < rightsHolderNames.length; i++) {
-                      final name = rightsHolderNames[i].text.trim();
-                      if (name.isEmpty) continue;
-                      rightsHolders.add(
-                        CourseRightsHolder(
-                          type: rightsHolderTypes[i],
-                          name: name,
-                        ),
-                      );
-                    }
-                    final mediaAttributions = <CourseMediaAttribution>[];
-                    for (var i = 0; i < mediaAuthors.length; i++) {
-                      final author = mediaAuthors[i].text.trim();
-                      final license = mediaLicenses[i].text.trim();
-                      // Both identifying fields are required; a row with
-                      // neither is an untouched blank and is simply dropped.
-                      if (author.isEmpty && license.isEmpty) continue;
-                      if (author.isEmpty || license.isEmpty) {
-                        setLocalState(
-                          () => mediaCreditError =
-                              'Each media credit needs both an author and a licence. '
-                              'Complete row ${i + 1} or clear it.',
-                        );
-                        return;
-                      }
-                      final candidate = CourseMediaAttribution(
-                        author: author,
-                        license: license,
-                        title: mediaTitles[i].text.trim(),
-                        source: mediaSources[i].text.trim(),
-                        appliesTo: mediaAppliesTo[i].text.trim(),
-                      );
-                      if (mediaAttributions.contains(candidate)) {
-                        setLocalState(
-                          () => mediaCreditError =
-                              'Row ${i + 1} repeats an identical media credit.',
-                        );
-                        return;
-                      }
-                      mediaAttributions.add(candidate);
-                    }
-                    if (!ctx.mounted) return;
-                    Navigator.pop(ctx, (
-                      title: title,
-                      authors: aa,
-                      rightsHolders: rightsHolders,
-                      mediaAttributions: mediaAttributions,
-                      license: license,
-                      derivativePolicy: selected == 'Other / Custom license'
-                          ? derivativePolicy
-                          : license == _course.license
-                          ? _course.derivativeWorksPolicy
-                          : CourseMetadataOptions.derivativePolicyForLicense(
-                              selected,
+                      ),
+                    ),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: TextButton.icon(
+                      key: const Key('course-info-add-rights-holder'),
+                      onPressed: () => setLocalState(() {
+                        rightsHolderNames.add(TextEditingController());
+                        rightsHolderTypes.add(CourseRightsHolderType.person);
+                      }),
+                      icon: const Icon(Icons.add),
+                      label: const Text('Add Rights Holder'),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'Media credits',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Credit images and recordings made by someone else: an imported picture, a recording another person performed, a custom Lesson icon or course flag. Media that came with QuisquisLingo is already credited in App Info and needs no entry here. These credits travel inside the Course file even when the media files themselves do not. They are descriptive only and do not control QQL permissions.',
+                  ),
+                  const SizedBox(height: 8),
+                  for (
+                    var creditIndex = 0;
+                    creditIndex < mediaAuthors.length;
+                    creditIndex++
+                  )
+                    Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(10),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    'Media credit ${creditIndex + 1}',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                                IconButton(
+                                  tooltip: 'Remove media credit',
+                                  onPressed: mediaAuthors.length == 1
+                                      ? null
+                                      : () => setLocalState(() {
+                                          mediaAuthors
+                                              .removeAt(creditIndex)
+                                              .dispose();
+                                          mediaLicenses
+                                              .removeAt(creditIndex)
+                                              .dispose();
+                                          mediaTitles
+                                              .removeAt(creditIndex)
+                                              .dispose();
+                                          mediaSources
+                                              .removeAt(creditIndex)
+                                              .dispose();
+                                          mediaAppliesTo
+                                              .removeAt(creditIndex)
+                                              .dispose();
+                                          mediaCreditError = null;
+                                        }),
+                                  icon: const Icon(Icons.remove_circle_outline),
+                                ),
+                              ],
                             ),
-                      variant: variant.text.trim(),
-                      startLevel: startLevel.text.trim(),
-                      targetLevel: targetLevel.text.trim(),
-                      description: description.text.trim(),
-                      buyACoffeeUrl: normalizedBuyACoffeeUrl,
-                      estimatedStudyHours: parsedHours,
-                      minimumAge: minimumAge,
-                      keywords: parsedKeywords,
-                      publisherContact: parsedContact,
-                      minimumAppBuild: parsedMinimumBuild,
-                      flagCode: flagSelection.flagCode,
-                      flagImageBase64: flagSelection.flagImageBase64,
-                      worldFlagId: flagSelection.selectedWorldFlagId,
-                      coverImage: coverImage,
-                      maintainerProfileId: selectedMaintainerId,
-                      assignedTeamId: selectedAssignedTeamId,
-                    ));
-                  },
-                  child: const Text('Save'),
-                ),
-              ],
+                            TextField(
+                              key: ValueKey(
+                                'course-info-media-author-$creditIndex',
+                              ),
+                              controller: mediaAuthors[creditIndex],
+                              maxLength: 200,
+                              decoration: const InputDecoration(
+                                border: OutlineInputBorder(),
+                                labelText: 'Author',
+                                helper: Text('Who must be credited.'),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            TextField(
+                              key: ValueKey(
+                                'course-info-media-license-$creditIndex',
+                              ),
+                              controller: mediaLicenses[creditIndex],
+                              maxLength: 200,
+                              decoration: const InputDecoration(
+                                border: OutlineInputBorder(),
+                                labelText: 'Licence',
+                                helper: Text(
+                                  'As the creator states it, for example CC BY-SA 4.0.',
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            TextField(
+                              key: ValueKey(
+                                'course-info-media-title-$creditIndex',
+                              ),
+                              controller: mediaTitles[creditIndex],
+                              maxLength: 200,
+                              decoration: const InputDecoration(
+                                border: OutlineInputBorder(),
+                                labelText: 'Title (optional)',
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            TextField(
+                              key: ValueKey(
+                                'course-info-media-source-$creditIndex',
+                              ),
+                              controller: mediaSources[creditIndex],
+                              maxLength: 500,
+                              decoration: const InputDecoration(
+                                border: OutlineInputBorder(),
+                                labelText: 'Source (optional)',
+                                helper: Text(
+                                  'A page reference or address. Shown as plain text, never opened.',
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            TextField(
+                              key: ValueKey(
+                                'course-info-media-applies-to-$creditIndex',
+                              ),
+                              controller: mediaAppliesTo[creditIndex],
+                              maxLength: 200,
+                              decoration: const InputDecoration(
+                                border: OutlineInputBorder(),
+                                labelText: 'Applies to (optional)',
+                                helper: Text(
+                                  'Which media in this course it covers.',
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  if (mediaCreditError != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4, bottom: 4),
+                      child: Text(
+                        mediaCreditError!,
+                        key: const Key('course-info-media-credit-error'),
+                        style: TextStyle(
+                          color: Theme.of(ctx).colorScheme.error,
+                        ),
+                      ),
+                    ),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: TextButton.icon(
+                      key: const Key('course-info-add-media-credit'),
+                      onPressed: () => setLocalState(() => addMediaCreditRow()),
+                      icon: const Icon(Icons.add),
+                      label: const Text('Add media credit'),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-        );
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              key: const Key('course-info-save'),
+              onPressed: () async {
+                String title;
+                try {
+                  title = FormalNamePolicy.validatePresentationLabel(
+                    courseTitle.text,
+                    parameterName: 'courseName',
+                  );
+                } on ArgumentError catch (error) {
+                  ScaffoldMessenger.of(ctx).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        error.message?.toString() ?? 'Check the Course name.',
+                      ),
+                    ),
+                  );
+                  return;
+                }
+                final duplicate = (await _service.listUserCourses()).any(
+                  (course) =>
+                      course.courseId != _course.courseId &&
+                      FormalNamePolicy.comparisonKey(course.title) ==
+                          FormalNamePolicy.comparisonKey(title),
+                );
+                if (duplicate) {
+                  if (!ctx.mounted) return;
+                  final continueAnyway = await showDialog<bool>(
+                    context: ctx,
+                    builder: (warningContext) => AlertDialog(
+                      title: const Text('Course name already exists'),
+                      content: const Text(
+                        'A Course with this name already exists.',
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(warningContext, false),
+                          child: const Text('Edit name'),
+                        ),
+                        FilledButton(
+                          onPressed: () => Navigator.pop(warningContext, true),
+                          child: const Text('Continue anyway'),
+                        ),
+                      ],
+                    ),
+                  );
+                  if (continueAnyway != true || !ctx.mounted) return;
+                }
+                final license = selected == 'Other / Custom license'
+                    ? customLicense.text.trim()
+                    : selected;
+                if (license.isEmpty) return;
+                String normalizedBuyACoffeeUrl;
+                int? parsedHours;
+                int? parsedMinimumBuild;
+                List<String> parsedKeywords;
+                CoursePublisherContact? parsedContact;
+                try {
+                  normalizedBuyACoffeeUrl = Course.normalizeBuyACoffeeUrl(
+                    buyACoffeeUrl.text,
+                  );
+                  int? wholeNumber(String text, String label) {
+                    final value = text.trim();
+                    if (value.isEmpty) return null;
+                    final parsed = int.tryParse(value);
+                    if (parsed == null) {
+                      throw FormatException('$label must be a whole number.');
+                    }
+                    return parsed;
+                  }
+
+                  parsedHours = wholeNumber(
+                    estimatedHours.text,
+                    'Estimated study hours',
+                  );
+                  parsedMinimumBuild = wholeNumber(
+                    minimumAppBuild.text,
+                    'Minimum QuisquisLingo build',
+                  );
+                  parsedKeywords = Course.normalizeKeywords(
+                    keywords.text.split(','),
+                  );
+                  parsedContact = CoursePublisherContact.fromFields(
+                    contactWebsite.text,
+                    contactEmail.text,
+                  );
+                  // The model is the one authority on the limits.
+                  Course.validateDescriptiveMetadata(
+                    minimumAppBuild: parsedMinimumBuild,
+                    estimatedStudyHours: parsedHours,
+                    minimumAge: minimumAge,
+                    keywords: parsedKeywords,
+                  );
+                } on FormatException catch (error) {
+                  if (!ctx.mounted) return;
+                  ScaffoldMessenger.of(
+                    ctx,
+                  ).showSnackBar(SnackBar(content: Text(error.message)));
+                  return;
+                }
+                final aa = <CourseAuthor>[];
+                for (var i = 0; i < names.length; i++) {
+                  final n = names[i].text.trim();
+                  if (n.isEmpty) continue;
+                  final rr = <String>[
+                    ...standardRoles.where(selectedRoles[i].contains),
+                  ];
+                  for (final part in customRoles[i].text.split(',')) {
+                    final value = part.trim();
+                    if (value.isNotEmpty && !rr.contains(value)) {
+                      rr.add(value);
+                    }
+                  }
+                  if (rr.isEmpty) rr.add('Contributor');
+                  aa.add(CourseAuthor(name: n, roles: rr));
+                }
+                final rightsHolders = <CourseRightsHolder>[];
+                for (var i = 0; i < rightsHolderNames.length; i++) {
+                  final name = rightsHolderNames[i].text.trim();
+                  if (name.isEmpty) continue;
+                  rightsHolders.add(
+                    CourseRightsHolder(type: rightsHolderTypes[i], name: name),
+                  );
+                }
+                final mediaAttributions = <CourseMediaAttribution>[];
+                for (var i = 0; i < mediaAuthors.length; i++) {
+                  final author = mediaAuthors[i].text.trim();
+                  final license = mediaLicenses[i].text.trim();
+                  // Both identifying fields are required; a row with
+                  // neither is an untouched blank and is simply dropped.
+                  if (author.isEmpty && license.isEmpty) continue;
+                  if (author.isEmpty || license.isEmpty) {
+                    setLocalState(
+                      () => mediaCreditError =
+                          'Each media credit needs both an author and a licence. '
+                          'Complete row ${i + 1} or clear it.',
+                    );
+                    return;
+                  }
+                  final candidate = CourseMediaAttribution(
+                    author: author,
+                    license: license,
+                    title: mediaTitles[i].text.trim(),
+                    source: mediaSources[i].text.trim(),
+                    appliesTo: mediaAppliesTo[i].text.trim(),
+                  );
+                  if (mediaAttributions.contains(candidate)) {
+                    setLocalState(
+                      () => mediaCreditError =
+                          'Row ${i + 1} repeats an identical media credit.',
+                    );
+                    return;
+                  }
+                  mediaAttributions.add(candidate);
+                }
+                if (!ctx.mounted) return;
+                Navigator.pop(ctx, (
+                  title: title,
+                  authors: aa,
+                  rightsHolders: rightsHolders,
+                  mediaAttributions: mediaAttributions,
+                  license: license,
+                  derivativePolicy: selected == 'Other / Custom license'
+                      ? derivativePolicy
+                      : license == _course.license
+                      ? _course.derivativeWorksPolicy
+                      : CourseMetadataOptions.derivativePolicyForLicense(
+                          selected,
+                        ),
+                  variant: variant.text.trim(),
+                  startLevel: startLevel.text.trim(),
+                  targetLevel: targetLevel.text.trim(),
+                  description: description.text.trim(),
+                  buyACoffeeUrl: normalizedBuyACoffeeUrl,
+                  estimatedStudyHours: parsedHours,
+                  minimumAge: minimumAge,
+                  keywords: parsedKeywords,
+                  publisherContact: parsedContact,
+                  minimumAppBuild: parsedMinimumBuild,
+                  flagCode: flagSelection.flagCode,
+                  flagImageBase64: flagSelection.flagImageBase64,
+                  worldFlagId: flagSelection.selectedWorldFlagId,
+                  coverImage: coverImage,
+                  maintainerProfileId: selectedMaintainerId,
+                  assignedTeamId: selectedAssignedTeamId,
+                ));
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        ),
+      ),
+    );
     Future<void>.delayed(const Duration(milliseconds: 300), () {
       for (final c in names) {
         c.dispose();
@@ -2215,10 +2164,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
       return true;
     }
     try {
-      await _session.confirm(
-        languageCode: _code,
-        versionNotes: versionNotes,
-      );
+      await _session.confirm(languageCode: _code, versionNotes: versionNotes);
       if (!mounted) return false;
       setState(() {});
       return true;
@@ -2309,7 +2255,10 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
             value: LessonNumberingMode.lesson,
             child: Text('Lesson + number'),
           ),
-          DropdownMenuItem(value: LessonNumberingMode.unit, child: Text('Unit')),
+          DropdownMenuItem(
+            value: LessonNumberingMode.unit,
+            child: Text('Unit'),
+          ),
           DropdownMenuItem(
             value: LessonNumberingMode.topic,
             child: Text('Topic'),
@@ -2330,8 +2279,14 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
             value: LessonNumberingMode.stage,
             child: Text('Stage'),
           ),
-          DropdownMenuItem(value: LessonNumberingMode.step, child: Text('Step')),
-          DropdownMenuItem(value: LessonNumberingMode.part, child: Text('Part')),
+          DropdownMenuItem(
+            value: LessonNumberingMode.step,
+            child: Text('Step'),
+          ),
+          DropdownMenuItem(
+            value: LessonNumberingMode.part,
+            child: Text('Part'),
+          ),
           DropdownMenuItem(
             value: LessonNumberingMode.other,
             child: Text('Other...'),
@@ -2565,7 +2520,11 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                           if (!mounted) return;
                           setState(() {
                             _session.applyHierarchyUpdate(
-                              UpsertExercise(lesson.lessonId, round.id, exercise),
+                              UpsertExercise(
+                                lesson.lessonId,
+                                round.id,
+                                exercise,
+                              ),
                             );
                           });
                         },
@@ -2966,7 +2925,8 @@ class _LessonManagementScreenState extends State<LessonManagementScreen> {
 
   void _adoptCourse(Course course) {
     if (!mounted) return;
-    course = widget.adoptCourse?.call(course, previous: _course) ??
+    course =
+        widget.adoptCourse?.call(course, previous: _course) ??
         const ProvisionalPublicationService().reconcile(
           course,
           updatedAt: _clock(),
@@ -3926,10 +3886,7 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
 
   Course get _courseWithIcons => _hierarchyUpdates.apply(
     _course,
-    OverlayLessonDraft(
-      _lesson,
-      lessonIconAssets: _lessonIconAssets,
-    ),
+    OverlayLessonDraft(_lesson, lessonIconAssets: _lessonIconAssets),
   );
 
   int get _lessonNumber {
@@ -3951,7 +3908,8 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
 
   void _adoptCourse(Course course) {
     if (!mounted) return;
-    course = widget.adoptCourse?.call(course, previous: _course) ??
+    course =
+        widget.adoptCourse?.call(course, previous: _course) ??
         const ProvisionalPublicationService().reconcile(
           course,
           updatedAt: _clock(),
@@ -5470,7 +5428,8 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
 
   void _adoptCourse(Course course) {
     if (!mounted) return;
-    course = widget.adoptCourse?.call(course, previous: _course) ??
+    course =
+        widget.adoptCourse?.call(course, previous: _course) ??
         const ProvisionalPublicationService().reconcile(
           course,
           updatedAt: _clock(),
@@ -6206,7 +6165,8 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
     final before = _workingCourse;
     mutation();
     final candidate = _workingCourse;
-    final course = widget.adoptCourse?.call(candidate, previous: before) ??
+    final course =
+        widget.adoptCourse?.call(candidate, previous: before) ??
         const ProvisionalPublicationService().reconcile(
           candidate,
           updatedAt: _clock(),
@@ -6370,7 +6330,8 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
               destinationLessonId: destination.lessonId,
               destinationRoundId: destination.roundId!,
             );
-      final updated = widget.adoptCourse?.call(
+      final updated =
+          widget.adoptCourse?.call(
             transferred,
             previous: course,
             usePrevious: false,
@@ -6875,11 +6836,8 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
       clock: _clock,
     );
     if (changed == null || !mounted) return;
-    final course = widget.adoptCourse?.call(
-          changed,
-          previous: _workingCourse,
-        ) ??
-        changed;
+    final course =
+        widget.adoptCourse?.call(changed, previous: _workingCourse) ?? changed;
     final adoptedLesson = course.lessons.firstWhere(
       (candidate) => candidate.lessonId == _lesson.lessonId,
     );
@@ -8096,10 +8054,10 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     final valueById = {
       for (final item in e.interaction.items) item.id: item.value,
     };
-    return e.arrangeLayout
+    return e.layout
         .map(
-          (el) => el.type == 'gap'
-              ? '{${valueById[e.arrangeGapAssignments[el.text]] ?? ''}}'
+          (el) => el.isTarget
+              ? '{${valueById[e.targetAssignments[el.targetId]] ?? ''}}'
               : el.text,
         )
         .join(' ');
@@ -8120,7 +8078,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
   /// The blocks that are not used to fill any gap (optional distractors),
   /// for display in the "Extra distractor blocks" field.
   List<String> _distractorTexts(Exercise e) {
-    final assignedIds = e.arrangeGapAssignments.values.toSet();
+    final assignedIds = e.targetAssignments.values.toSet();
     return [
       for (final item in e.interaction.items)
         if (!assignedIds.contains(item.id)) item.value,
@@ -10003,22 +9961,24 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
           'On-Device TTS: this device reads the Course text aloud with its own text-to-speech voice. No MP3 files are needed. Choose Recorded MP3 only or Hybrid to manage Course recordings.',
       }),
       const SizedBox(height: 8),
-      if (_course.audioMode != 'tts') Card(
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Text(
-            'Import MP3: copy the MP3 files you want to import to ${QqlStorageLayout.current.folderLabel(QqlStorageRole.audioImports)}, then press Import MP3. All MP3 files in that folder are imported. Source files are left in place, so move or remove them after a successful import to avoid importing them again.',
+      if (_course.audioMode != 'tts')
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Text(
+              'Import MP3: copy the MP3 files you want to import to ${QqlStorageLayout.current.folderLabel(QqlStorageRole.audioImports)}, then press Import MP3. All MP3 files in that folder are imported. Source files are left in place, so move or remove them after a successful import to avoid importing them again.',
+            ),
           ),
         ),
-      ),
-      if (_course.audioMode != 'tts') ListTile(
-        title: const Text('Check unused MP3 files'),
-        subtitle: const Text(
-          'Find recordings not associated with any course text.',
+      if (_course.audioMode != 'tts')
+        ListTile(
+          title: const Text('Check unused MP3 files'),
+          subtitle: const Text(
+            'Find recordings not associated with any course text.',
+          ),
+          trailing: const Icon(Icons.cleaning_services_outlined),
+          onTap: _orphans,
         ),
-        trailing: const Icon(Icons.cleaning_services_outlined),
-        onTap: _orphans,
-      ),
       if (letters.isNotEmpty)
         SizedBox(
           height: 46,
@@ -10105,27 +10065,29 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
         if (!didPop) _leave();
       },
       child: Scaffold(
-      appBar: AppBar(
-        title: const Text('Audio Library'),
-        actions: [
-          if (_course.audioMode != 'tts' && _audio.fileDialogsAvailable)
-            IconButton(
-              key: const Key('open-mp3-from'),
-              tooltip: 'Open MP3 from…',
-              onPressed: _importFromDialog,
-              icon: const Icon(Icons.folder_open_outlined),
-            ),
-        ],
-      ),
-      floatingActionButton: _course.audioMode == 'tts' ? null : FloatingActionButton.extended(
-        onPressed: _import,
-        icon: const Icon(Icons.library_music_outlined),
-        label: const Text('Import MP3'),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(12, 12, 12, 90),
-        children: children,
-      ),
+        appBar: AppBar(
+          title: const Text('Audio Library'),
+          actions: [
+            if (_course.audioMode != 'tts' && _audio.fileDialogsAvailable)
+              IconButton(
+                key: const Key('open-mp3-from'),
+                tooltip: 'Open MP3 from…',
+                onPressed: _importFromDialog,
+                icon: const Icon(Icons.folder_open_outlined),
+              ),
+          ],
+        ),
+        floatingActionButton: _course.audioMode == 'tts'
+            ? null
+            : FloatingActionButton.extended(
+                onPressed: _import,
+                icon: const Icon(Icons.library_music_outlined),
+                label: const Text('Import MP3'),
+              ),
+        body: ListView(
+          padding: const EdgeInsets.fromLTRB(12, 12, 12, 90),
+          children: children,
+        ),
       ),
     );
   }

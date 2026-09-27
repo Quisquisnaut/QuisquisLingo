@@ -180,71 +180,81 @@ void main() {
       },
     };
 
-    test('a stored file is renamed in place when the languages change', () async {
-      final store = CourseFileStore(supportDirectory: () async => support);
-      await store.write(
-        CourseStoreKind.custom,
-        'course_ab',
-        custom('English', 'en'),
-      );
-      await store.write(
-        CourseStoreKind.externalOfficial,
-        'pub.one',
-        const {
+    test(
+      'a stored file is renamed in place when the languages change',
+      () async {
+        final store = CourseFileStore(supportDirectory: () async => support);
+        await store.write(
+          CourseStoreKind.custom,
+          'course_ab',
+          custom('English', 'en'),
+        );
+        await store.write(CourseStoreKind.externalOfficial, 'pub.one', const {
           'source': {'sourceLanguage': 'English', 'targetLanguage': 'Welsh'},
-        },
-      );
-      final customFolder = (await store.directoryFor(
-        CourseStoreKind.custom,
-      )).path;
-      expect(names(customFolder), ['QQL_IT_EN_ab.json']);
-      expect(
-        names((await store.directoryFor(CourseStoreKind.externalOfficial)).path),
-        ['QQL_EN_CY_pub.one.json'],
-      );
+        });
+        final customFolder = (await store.directoryFor(
+          CourseStoreKind.custom,
+        )).path;
+        expect(names(customFolder), ['QQL_IT_EN_ab.json']);
+        expect(
+          names(
+            (await store.directoryFor(CourseStoreKind.externalOfficial)).path,
+          ),
+          ['QQL_EN_CY_pub.one.json'],
+        );
 
-      final stored = await store.snapshot(CourseStoreKind.custom, 'course_ab');
-      await store.replaceIfUnchanged(
-        CourseStoreKind.custom,
-        'course_ab',
-        custom('Neapolitan', 'nap'),
-        expectedToken: stored!.token,
-      );
-      expect(names(customFolder), ['QQL_IT_NAP_ab.json']);
-      await store.write(
-        CourseStoreKind.custom,
-        'course_ab',
-        custom('Sicilian', ''),
-      );
-      expect(names(customFolder), ['QQL_IT_SCN_ab.json']);
-      expect(
-        (await store.readAll(CourseStoreKind.custom))['course_ab'],
-        custom('Sicilian', ''),
-      );
-      expect(await store.contains(CourseStoreKind.custom, 'course_ab'), isTrue);
-    });
+        final stored = await store.snapshot(
+          CourseStoreKind.custom,
+          'course_ab',
+        );
+        await store.replaceIfUnchanged(
+          CourseStoreKind.custom,
+          'course_ab',
+          custom('Neapolitan', 'nap'),
+          expectedToken: stored!.token,
+        );
+        expect(names(customFolder), ['QQL_IT_NAP_ab.json']);
+        await store.write(
+          CourseStoreKind.custom,
+          'course_ab',
+          custom('Sicilian', ''),
+        );
+        expect(names(customFolder), ['QQL_IT_SCN_ab.json']);
+        expect(
+          (await store.readAll(CourseStoreKind.custom))['course_ab'],
+          custom('Sicilian', ''),
+        );
+        expect(
+          await store.contains(CourseStoreKind.custom, 'course_ab'),
+          isTrue,
+        );
+      },
+    );
 
-    test('a file is found by the ID inside it, whatever its name says', () async {
-      final store = CourseFileStore(supportDirectory: () async => support);
-      await store.write(
-        CourseStoreKind.custom,
-        'course_ab',
-        custom('English', 'en'),
-      );
-      final folder = (await store.directoryFor(CourseStoreKind.custom)).path;
-      await File(
-        '$folder${sep}QQL_IT_EN_ab.json',
-      ).rename('$folder${sep}QQL_XX_YY_ab.json');
+    test(
+      'a file is found by the ID inside it, whatever its name says',
+      () async {
+        final store = CourseFileStore(supportDirectory: () async => support);
+        await store.write(
+          CourseStoreKind.custom,
+          'course_ab',
+          custom('English', 'en'),
+        );
+        final folder = (await store.directoryFor(CourseStoreKind.custom)).path;
+        await File(
+          '$folder${sep}QQL_IT_EN_ab.json',
+        ).rename('$folder${sep}QQL_XX_YY_ab.json');
 
-      final found = await store.snapshot(CourseStoreKind.custom, 'course_ab');
-      expect(found, isNotNull);
-      await store.write(
-        CourseStoreKind.custom,
-        'course_ab',
-        custom('English', 'en'),
-      );
-      expect(names(folder), ['QQL_IT_EN_ab.json']);
-    });
+        final found = await store.snapshot(CourseStoreKind.custom, 'course_ab');
+        expect(found, isNotNull);
+        await store.write(
+          CourseStoreKind.custom,
+          'course_ab',
+          custom('English', 'en'),
+        );
+        expect(names(folder), ['QQL_IT_EN_ab.json']);
+      },
+    );
 
     test('a file named for the Course but holding another is kept', () async {
       final store = CourseFileStore(supportDirectory: () async => support);
@@ -304,7 +314,7 @@ void main() {
 
       final course = _course(id, reference);
       await service.saveUserCourse(course);
-      expect(names('${support.path}${sep}QQL_Courses${sep}Custom'), [
+      expect(names('${support.path}${sep}QQL_Courses_v12${sep}Custom'), [
         'QQL_EN_IT_1234abcd.json',
       ]);
       expect(names('${support.path}${sep}QQL_CourseMedia'), [
@@ -324,17 +334,20 @@ void main() {
         versionNotes: 'Now Neapolitan',
       );
 
-      expect(names('${support.path}${sep}QQL_Courses${sep}Custom'), [
+      expect(names('${support.path}${sep}QQL_Courses_v12${sep}Custom'), [
         'QQL_EN_NAP_1234abcd.json',
       ]);
       expect(names('${support.path}${sep}QQL_CourseMedia'), [
         'QQL_EN_NAP_$hash',
       ]);
-      expect(names('${support.path}${sep}QuisquisLingo${sep}Backups${sep}Courses'), [
-        'QQL_bkp_EN_NAP_1234abcd',
-      ]);
-      expect((await service.listUserCourses()).single.targetLanguage,
-          'Neapolitan');
+      expect(
+        names('${support.path}${sep}QuisquisLingo${sep}Backups${sep}Courses'),
+        ['QQL_bkp_EN_NAP_1234abcd'],
+      );
+      expect(
+        (await service.listUserCourses()).single.targetLanguage,
+        'Neapolitan',
+      );
       expect(await media.existingFile(id, reference), isNotNull);
       // The version saved before the change keeps the languages it had.
       final history = await backups.listBackups(id);
@@ -382,9 +395,11 @@ void main() {
         'kept',
       );
       expect(
-        await QqlEarlierPrivateFolders.presentIn(support, const [
-          'qql_logs',
-        ], current: const ['QQL_Logs']),
+        await QqlEarlierPrivateFolders.presentIn(
+          support,
+          const ['qql_logs'],
+          current: const ['QQL_Logs'],
+        ),
         caseIgnored ? isEmpty : ['qql_logs'],
       );
     });
@@ -423,12 +438,13 @@ void main() {
       Directory('${support.path}${sep}QQL_Courses').createSync();
       File('${support.path}${sep}qql_import_staging').writeAsStringSync('x');
 
+      // Build 256 Revision 1: Build 255's QQL_Courses is an earlier folder too.
       expect(
         await QqlEarlierPrivateFolders.presentIn(
           support,
           QqlEarlierPrivateFolders.retired,
         ),
-        ['qql_courses_v2'],
+        ['qql_courses_v2', 'QQL_Courses'],
       );
     });
   });

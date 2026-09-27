@@ -55,11 +55,14 @@ class CourseFileStore {
   }) : _supportDirectory = supportDirectory ?? getApplicationSupportDirectory,
        _fileWriter = fileWriter;
 
-  /// Build 255 Revision 4 renamed the store and its files (a clean cut). The
-  /// earlier `qql_courses_v2` tree (Course Model v11) and `qql_courses_v1`
-  /// tree (v9/v10) are left on disk untouched and are never read; a one-off
-  /// tool moves the owner's earlier Courses.
-  static const rootDirectoryName = 'QQL_Courses';
+  /// Build 256 Revision 1 (Course Model v12) is a clean cut: the store moved
+  /// to `QQL_Courses_v12`. Build 255's `QQL_Courses` tree (v11), the earlier
+  /// `qql_courses_v2` tree (v11) and `qql_courses_v1` (v9/v10) are left on
+  /// disk untouched and are never read; the one-off tools
+  /// `tools/convert_stored_courses_256.dart` and
+  /// `tools/move_private_storage_255.dart` carry the owner's earlier Courses
+  /// forward.
+  static const rootDirectoryName = 'QQL_Courses_v12';
 
   /// Per Course, replacing the old 8 MB cap on all courses combined. It matches
   /// the import limit, so anything importable is storable.

@@ -205,37 +205,16 @@ void main() {
 
   test('fork detaches nested JSON metadata from its official source', () async {
     final source = _official();
-    source
-        .lessons
-        .single
-        .rounds
-        .single
-        .content
-        .single
-        .exercise!
-        .evaluation
-        .normalization['metadata'] = {
-      'notes': ['source'],
-    };
     final official = Course.fromJson({
       ...source.toJson(),
       'officialChecksum': CourseBackupService.officialContentChecksum(source),
     });
     final before = jsonEncode(official.toJson());
     final fork = await service.forkOfficialCourse(official);
-    final metadata =
-        fork
-                .lessons
-                .single
-                .rounds
-                .single
-                .content
-                .single
-                .exercise!
-                .evaluation
-                .normalization['metadata']
-            as Map;
-    (metadata['notes'] as List).add('fork only');
+    // Course Model v12 has no nested evaluation metadata; the fork's own
+    // element list is the deepest mutable state a copy can share.
+    fork.lessons.single.rounds.single.content.single.exercise!.promptElements
+        .add(const PromptElement(type: 'text', text: 'fork only'));
     expect(jsonEncode(official.toJson()), before);
     expect(
       CourseBackupService.officialContentChecksum(official),

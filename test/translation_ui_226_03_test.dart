@@ -536,8 +536,8 @@ Exercise _exercise(
     },
   ),
   feedback: metadata
-      ? const {'correct': 'Preserved custom feedback'}
-      : const {},
+      ? const ExerciseFeedback(correct: 'Preserved custom feedback')
+      : ExerciseFeedback.empty,
 );
 
 Course _course(Exercise exercise) => Course(

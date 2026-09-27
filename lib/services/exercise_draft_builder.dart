@@ -836,14 +836,13 @@ abstract final class ExerciseDraftBuilder {
     );
   }
 
+  /// Course Model v12: a canonical copy with the image's provenance replaced,
+  /// never a rebuild through the v11 views (which would drop an inline
+  /// layout). A null selection clears the provenance on purpose.
   static Exercise _withSelectedSharedSource(
     Exercise exercise,
     ExerciseDraftValues draft,
-  ) => Exercise.v2(
-    id: exercise.id,
-    publicationState: exercise.publicationState,
-    updatedAt: exercise.updatedAt,
-    editorTemplate: exercise.editorTemplate,
+  ) => exercise.copyWith(
     promptElements: [
       for (final element in exercise.promptElements)
         if (element.type == 'image' && element.asset == draft.imageAsset)
@@ -854,14 +853,12 @@ abstract final class ExerciseDraftBuilder {
             asset: element.asset,
             speaker: element.speaker,
             sharedImageSource: draft.selectedSharedSource,
+            language: element.language,
+            playback: element.playback,
+            required: element.required,
           )
         else
           element,
     ],
-    interaction: exercise.interaction,
-    evaluation: exercise.evaluation,
-    hint: exercise.hint,
-    feedback: exercise.feedback,
-    missingWords: exercise.missingWords,
   );
 }

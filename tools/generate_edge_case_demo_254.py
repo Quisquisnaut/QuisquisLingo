@@ -10,7 +10,11 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from qql_course_v12 import convert_course_v11_to_v12  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 OUTPUT = ROOT / "assets/courses/edge_case_it_en.json"
@@ -306,6 +310,7 @@ def build_course() -> dict:
         ],
         "lessons": [l1, l2, l3, l4, l5],
     }
+    course = convert_course_v11_to_v12(course)
     canonical = {key: value for key, value in course.items()
                  if key not in {"officialChecksum", "publisherVerificationStatus", "publisherSignature"}}
     course["officialChecksum"] = hashlib.sha256(json.dumps(

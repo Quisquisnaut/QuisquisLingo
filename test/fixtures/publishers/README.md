@@ -13,3 +13,8 @@ every MP3. It is test data, not a lesson recording. To regenerate: remove
 `publisherSignature`, then `tools/sign_course.dart prepare`, sign the payload
 with `openssl pkeyutl -sign -inkey dummy-private.pem -rawin`, `attach`, and
 `package`.
+
+Build 256 Revision 1: every fixture here is Course Model v12. The v11
+files were converted with `tools/convert_course_to_v12.dart` and the
+signed ones were signed again with the same procedure and the same test
+key; their `publisherVerificationStatus` stays `unverified`.

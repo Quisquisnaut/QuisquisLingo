@@ -1,5 +1,5 @@
 {
-  "formatVersion": 11,
+  "formatVersion": 12,
   "publicationState": "published",
   "lessonNumberingMode": "lesson",
   "defaultLessonIconStyle": "monochrome",
@@ -157,9 +157,12 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "choice",
+              "authoringMetadata": {
+                "presetId": "choice"
+              },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "select",
                 "prompt": [
                   {
                     "role": "question",
@@ -167,35 +170,30 @@
                     "text": "Traduci «sì» in inglese."
                   }
                 ],
-                "interaction": {
-                  "kind": "select",
-                  "minSelections": 1,
-                  "maxSelections": 1,
-                  "items": [
-                    {
-                      "id": "qql_edge_254_e01_min_i1",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "yes"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_edge_254_e01_min_i2",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "no"
-                        }
-                      ]
-                    }
-                  ]
-                },
+                "items": [
+                  {
+                    "id": "qql_edge_254_e01_min_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "yes"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e01_min_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "no"
+                      }
+                    ]
+                  }
+                ],
                 "evaluation": {
-                  "kind": "selected_items",
+                  "mode": "exactItem",
                   "correctItemIds": [
                     "qql_edge_254_e01_min_i1"
                   ]
@@ -207,75 +205,79 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "translation_choice_to_target",
+              "authoringMetadata": {
+                "presetId": "translation_choice_to_target"
+              },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "select",
                 "prompt": [
                   {
                     "role": "question",
                     "type": "text",
-                    "text": "una finestra"
+                    "text": "una finestra",
+                    "language": "source"
                   }
                 ],
-                "interaction": {
-                  "kind": "select",
-                  "minSelections": 1,
-                  "maxSelections": 1,
-                  "items": [
-                    {
-                      "id": "qql_edge_254_e02_max_translation_i1",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "a window"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_edge_254_e02_max_translation_i2",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "a door"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_edge_254_e02_max_translation_i3",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "a roof"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_edge_254_e02_max_translation_i4",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "a wall"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_edge_254_e02_max_translation_i5",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "a floor"
-                        }
-                      ]
-                    }
-                  ]
-                },
+                "items": [
+                  {
+                    "id": "qql_edge_254_e02_max_translation_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "a window",
+                        "language": "target"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e02_max_translation_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "a door",
+                        "language": "target"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e02_max_translation_i3",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "a roof",
+                        "language": "target"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e02_max_translation_i4",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "a wall",
+                        "language": "target"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e02_max_translation_i5",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "a floor",
+                        "language": "target"
+                      }
+                    ]
+                  }
+                ],
                 "evaluation": {
-                  "kind": "selected_items",
+                  "mode": "exactItem",
                   "correctItemIds": [
                     "qql_edge_254_e02_max_translation_i1"
                   ]
@@ -287,9 +289,12 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "choice",
+              "authoringMetadata": {
+                "presetId": "choice"
+              },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "select",
                 "prompt": [
                   {
                     "role": "question",
@@ -297,135 +302,130 @@
                     "text": "Quale numero inglese corrisponde a «dodici»?"
                   }
                 ],
-                "interaction": {
-                  "kind": "select",
-                  "minSelections": 1,
-                  "maxSelections": 1,
-                  "items": [
-                    {
-                      "id": "qql_edge_254_e03_many_i1",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "one"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_edge_254_e03_many_i2",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "two"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_edge_254_e03_many_i3",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "three"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_edge_254_e03_many_i4",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "four"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_edge_254_e03_many_i5",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "five"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_edge_254_e03_many_i6",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "six"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_edge_254_e03_many_i7",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "seven"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_edge_254_e03_many_i8",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "eight"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_edge_254_e03_many_i9",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "nine"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_edge_254_e03_many_i10",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "ten"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_edge_254_e03_many_i11",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "eleven"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_edge_254_e03_many_i12",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "twelve"
-                        }
-                      ]
-                    }
-                  ]
-                },
+                "items": [
+                  {
+                    "id": "qql_edge_254_e03_many_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "one"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e03_many_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "two"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e03_many_i3",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "three"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e03_many_i4",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "four"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e03_many_i5",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "five"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e03_many_i6",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "six"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e03_many_i7",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "seven"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e03_many_i8",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "eight"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e03_many_i9",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "nine"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e03_many_i10",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "ten"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e03_many_i11",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "eleven"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e03_many_i12",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "twelve"
+                      }
+                    ]
+                  }
+                ],
                 "evaluation": {
-                  "kind": "selected_items",
+                  "mode": "exactItem",
                   "correctItemIds": [
                     "qql_edge_254_e03_many_i12"
                   ]
@@ -437,9 +437,12 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "choice",
+              "authoringMetadata": {
+                "presetId": "choice"
+              },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "select",
                 "prompt": [
                   {
                     "role": "question",
@@ -447,45 +450,40 @@
                     "text": "Quale colore inglese corrisponde a «rosso»? Le due opzioni blue sono intenzionali."
                   }
                 ],
-                "interaction": {
-                  "kind": "select",
-                  "minSelections": 1,
-                  "maxSelections": 1,
-                  "items": [
-                    {
-                      "id": "qql_edge_254_e04_duplicate_i1",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "red"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_edge_254_e04_duplicate_i2",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "blue"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_edge_254_e04_duplicate_i3",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "blue"
-                        }
-                      ]
-                    }
-                  ]
-                },
+                "items": [
+                  {
+                    "id": "qql_edge_254_e04_duplicate_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "red"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e04_duplicate_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "blue"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e04_duplicate_i3",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "blue"
+                      }
+                    ]
+                  }
+                ],
                 "evaluation": {
-                  "kind": "selected_items",
+                  "mode": "exactItem",
                   "correctItemIds": [
                     "qql_edge_254_e04_duplicate_i1"
                   ]
@@ -497,9 +495,15 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "choice",
+              "authoringMetadata": {
+                "presetId": "choice"
+              },
+              "sourceRefs": [
+                "qql_edge_254_v_caffè_日本語"
+              ],
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "select",
                 "prompt": [
                   {
                     "role": "question",
@@ -507,52 +511,53 @@
                     "text": "Nella nota «café / café — 東京・서울・Αθήνα・القاهرة 🙂», traduci «ciao»."
                   }
                 ],
-                "interaction": {
-                  "kind": "select",
-                  "minSelections": 1,
-                  "maxSelections": 1,
-                  "items": [
-                    {
-                      "id": "qql_edge_254_e05_unicode_i1",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "hello"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_edge_254_e05_unicode_i2",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "goodbye"
-                        }
-                      ]
-                    }
-                  ]
-                },
+                "items": [
+                  {
+                    "id": "qql_edge_254_e05_unicode_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "hello"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e05_unicode_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "goodbye"
+                      }
+                    ]
+                  }
+                ],
                 "evaluation": {
-                  "kind": "selected_items",
+                  "mode": "exactItem",
                   "correctItemIds": [
                     "qql_edge_254_e05_unicode_i1"
                   ]
                 }
-              },
-              "sourceRefs": [
-                "qql_edge_254_v_caffè_日本語"
-              ]
+              }
             },
             {
               "id": "qql_edge_254_e06_multi",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "choice",
+              "authoringMetadata": {
+                "presetId": "choice"
+              },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "select",
+                "options": {
+                  "selectionMode": "multiple",
+                  "minimumSelections": 2,
+                  "maximumSelections": 2,
+                  "evaluationTiming": "explicit"
+                },
                 "prompt": [
                   {
                     "role": "question",
@@ -560,55 +565,50 @@
                     "text": "Seleziona entrambi i nomi di animali in inglese."
                   }
                 ],
-                "interaction": {
-                  "kind": "select",
-                  "minSelections": 2,
-                  "maxSelections": 2,
-                  "items": [
-                    {
-                      "id": "qql_edge_254_e06_multi_i1",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "cat"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_edge_254_e06_multi_i2",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "chair"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_edge_254_e06_multi_i3",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "dog"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_edge_254_e06_multi_i4",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "window"
-                        }
-                      ]
-                    }
-                  ]
-                },
+                "items": [
+                  {
+                    "id": "qql_edge_254_e06_multi_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "cat"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e06_multi_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "chair"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e06_multi_i3",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "dog"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e06_multi_i4",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "window"
+                      }
+                    ]
+                  }
+                ],
                 "evaluation": {
-                  "kind": "selected_items",
+                  "mode": "exactSet",
                   "correctItemIds": [
                     "qql_edge_254_e06_multi_i1",
                     "qql_edge_254_e06_multi_i3"
@@ -630,9 +630,12 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "reading_comprehension",
+              "authoringMetadata": {
+                "presetId": "reading_comprehension"
+              },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "select",
                 "prompt": [
                   {
                     "role": "passage",
@@ -645,45 +648,40 @@
                     "text": "Di che colore è il quaderno?"
                   }
                 ],
-                "interaction": {
-                  "kind": "select",
-                  "minSelections": 1,
-                  "maxSelections": 1,
-                  "items": [
-                    {
-                      "id": "qql_edge_254_e07_long_i1",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "blue"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_edge_254_e07_long_i2",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "red"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_edge_254_e07_long_i3",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "green"
-                        }
-                      ]
-                    }
-                  ]
-                },
+                "items": [
+                  {
+                    "id": "qql_edge_254_e07_long_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "blue"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e07_long_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "red"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e07_long_i3",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "green"
+                      }
+                    ]
+                  }
+                ],
                 "evaluation": {
-                  "kind": "selected_items",
+                  "mode": "exactItem",
                   "correctItemIds": [
                     "qql_edge_254_e07_long_i1"
                   ]
@@ -695,25 +693,31 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "type_translation",
+              "authoringMetadata": {
+                "presetId": "type_translation"
+              },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "input",
+                "options": {
+                  "typoTolerance": "conservative"
+                },
                 "prompt": [
                   {
                     "role": "primary",
                     "type": "text",
-                    "text": "Traduci: Oggi scrivo un messaggio accurato al mio amico perché il treno è in ritardo, la stazione è affollata e vorrei spiegare che arriverò dopo cena con una piccola valigia blu e un libro sulla storia della nostra città."
+                    "text": "Traduci: Oggi scrivo un messaggio accurato al mio amico perché il treno è in ritardo, la stazione è affollata e vorrei spiegare che arriverò dopo cena con una piccola valigia blu e un libro sulla storia della nostra città.",
+                    "language": "source"
                   }
                 ],
-                "interaction": {
-                  "kind": "input",
-                  "inputType": "text"
-                },
                 "evaluation": {
-                  "kind": "text_match",
-                  "acceptedAnswers": [
+                  "mode": "expression",
+                  "answers": [
                     "Today I am writing a careful message to my friend because the train is late, the station is crowded, and I would like to explain that I will arrive after dinner with a small blue suitcase and a book about the history of our town."
                   ]
+                },
+                "feedback": {
+                  "showAlternatives": "ranked"
                 }
               }
             },
@@ -722,40 +726,49 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "type_translation",
+              "authoringMetadata": {
+                "presetId": "type_translation"
+              },
+              "sourceRefs": [
+                "qql_edge_254_v_caffè_日本語"
+              ],
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "input",
+                "options": {
+                  "typoTolerance": "conservative"
+                },
                 "prompt": [
                   {
                     "role": "primary",
                     "type": "text",
-                    "text": "Scrivi il prestito inglese per un piccolo locale dove bere un caffè: café. Sono accettate le forme Unicode composta e decomposta."
+                    "text": "Scrivi il prestito inglese per un piccolo locale dove bere un caffè: café. Sono accettate le forme Unicode composta e decomposta.",
+                    "language": "source"
                   }
                 ],
-                "interaction": {
-                  "kind": "input",
-                  "inputType": "text"
-                },
                 "evaluation": {
-                  "kind": "text_match",
-                  "acceptedAnswers": [
+                  "mode": "expression",
+                  "answers": [
                     "café",
                     "café"
                   ]
+                },
+                "feedback": {
+                  "showAlternatives": "ranked"
                 }
-              },
-              "sourceRefs": [
-                "qql_edge_254_v_caffè_日本語"
-              ]
+              }
             },
             {
               "id": "qql_edge_254_e10_names",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "fill_blank",
+              "authoringMetadata": {
+                "presetId": "fill_blank"
+              },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "input",
                 "prompt": [
                   {
                     "role": "primary",
@@ -763,13 +776,9 @@
                     "text": "Copia esattamente questa citazione con nomi internazionali: 東京 서울 Αθήνα القاهرة"
                   }
                 ],
-                "interaction": {
-                  "kind": "input",
-                  "inputType": "text"
-                },
                 "evaluation": {
-                  "kind": "text_match",
-                  "acceptedAnswers": [
+                  "mode": "expression",
+                  "answers": [
                     "東京 서울 Αθήνα القاهرة"
                   ]
                 }
@@ -789,9 +798,12 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "word_order",
+              "authoringMetadata": {
+                "presetId": "word_order"
+              },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "arrange",
                 "prompt": [
                   {
                     "role": "clue",
@@ -799,73 +811,70 @@
                     "text": "Ricostruisci: Mi piace molto, molto questo libro."
                   }
                 ],
-                "interaction": {
-                  "kind": "arrange",
-                  "items": [
-                    {
-                      "id": "qql_edge_254_e11_repeat_i1",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "I"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_edge_254_e11_repeat_i2",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "really"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_edge_254_e11_repeat_i3",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "really"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_edge_254_e11_repeat_i4",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "like"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_edge_254_e11_repeat_i5",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "this"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_edge_254_e11_repeat_i6",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "book"
-                        }
-                      ]
-                    }
-                  ]
-                },
+                "items": [
+                  {
+                    "id": "qql_edge_254_e11_repeat_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "I"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e11_repeat_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "really"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e11_repeat_i3",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "really"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e11_repeat_i4",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "like"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e11_repeat_i5",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "this"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e11_repeat_i6",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "book"
+                      }
+                    ]
+                  }
+                ],
                 "evaluation": {
-                  "kind": "ordered_items",
+                  "mode": "exactOrder",
                   "correctOrders": [
                     {
                       "text": "I really really like this book",
@@ -887,9 +896,12 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "build_translation",
+              "authoringMetadata": {
+                "presetId": "build_translation"
+              },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "arrange",
                 "prompt": [
                   {
                     "role": "clue",
@@ -897,63 +909,60 @@
                     "text": "Traduci: Oggi studio a casa."
                   }
                 ],
-                "interaction": {
-                  "kind": "arrange",
-                  "items": [
-                    {
-                      "id": "qql_edge_254_e12_alternatives_i1",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "I"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_edge_254_e12_alternatives_i2",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "study"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_edge_254_e12_alternatives_i3",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "at"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_edge_254_e12_alternatives_i4",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "home"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_edge_254_e12_alternatives_i5",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "today"
-                        }
-                      ]
-                    }
-                  ]
-                },
+                "items": [
+                  {
+                    "id": "qql_edge_254_e12_alternatives_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "I"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e12_alternatives_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "study"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e12_alternatives_i3",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "at"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e12_alternatives_i4",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "home"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e12_alternatives_i5",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "today"
+                      }
+                    ]
+                  }
+                ],
                 "evaluation": {
-                  "kind": "ordered_items",
+                  "mode": "acceptedOrders",
                   "correctOrders": [
                     {
                       "text": "I study at home today",
@@ -976,6 +985,9 @@
                       ]
                     }
                   ]
+                },
+                "feedback": {
+                  "showAlternatives": "all"
                 }
               }
             },
@@ -984,9 +996,12 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "word_order",
+              "authoringMetadata": {
+                "presetId": "word_order"
+              },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "arrange",
                 "prompt": [
                   {
                     "role": "clue",
@@ -994,203 +1009,200 @@
                     "text": "Ricostruisci la frase inglese: Il piccolo gatto nero dorme sempre tranquillamente vicino alla finestra aperta della nostra calda cucina ogni pomeriggio."
                   }
                 ],
-                "interaction": {
-                  "kind": "arrange",
-                  "items": [
-                    {
-                      "id": "qql_edge_254_e13_many_blocks_i1",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "the"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_edge_254_e13_many_blocks_i2",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "small"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_edge_254_e13_many_blocks_i3",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "black"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_edge_254_e13_many_blocks_i4",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "cat"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_edge_254_e13_many_blocks_i5",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "always"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_edge_254_e13_many_blocks_i6",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "sleeps"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_edge_254_e13_many_blocks_i7",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "quietly"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_edge_254_e13_many_blocks_i8",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "beside"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_edge_254_e13_many_blocks_i9",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "the"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_edge_254_e13_many_blocks_i10",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "open"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_edge_254_e13_many_blocks_i11",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "window"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_edge_254_e13_many_blocks_i12",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "in"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_edge_254_e13_many_blocks_i13",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "our"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_edge_254_e13_many_blocks_i14",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "warm"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_edge_254_e13_many_blocks_i15",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "kitchen"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_edge_254_e13_many_blocks_i16",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "every"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_edge_254_e13_many_blocks_i17",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "afternoon"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_edge_254_e13_many_blocks_i18",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "outside"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_edge_254_e13_many_blocks_i19",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "never"
-                        }
-                      ]
-                    }
-                  ]
-                },
+                "items": [
+                  {
+                    "id": "qql_edge_254_e13_many_blocks_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "the"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e13_many_blocks_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "small"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e13_many_blocks_i3",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "black"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e13_many_blocks_i4",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "cat"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e13_many_blocks_i5",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "always"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e13_many_blocks_i6",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "sleeps"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e13_many_blocks_i7",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "quietly"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e13_many_blocks_i8",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "beside"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e13_many_blocks_i9",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "the"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e13_many_blocks_i10",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "open"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e13_many_blocks_i11",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "window"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e13_many_blocks_i12",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "in"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e13_many_blocks_i13",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "our"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e13_many_blocks_i14",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "warm"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e13_many_blocks_i15",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "kitchen"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e13_many_blocks_i16",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "every"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e13_many_blocks_i17",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "afternoon"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e13_many_blocks_i18",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "outside"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e13_many_blocks_i19",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "never"
+                      }
+                    ]
+                  }
+                ],
                 "evaluation": {
-                  "kind": "ordered_items",
+                  "mode": "exactOrder",
                   "correctOrders": [
                     {
                       "text": "the small black cat always sleeps quietly beside the open window in our warm kitchen every afternoon",
@@ -1299,9 +1311,16 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "word_order",
+              "authoringMetadata": {
+                "presetId": "word_order"
+              },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "arrange",
+                "options": {
+                  "layout": "inline",
+                  "placementMode": "inlineGaps"
+                },
                 "prompt": [
                   {
                     "role": "clue",
@@ -1309,43 +1328,47 @@
                     "text": "Completa la frase inglese con l’unico blocco."
                   }
                 ],
-                "interaction": {
-                  "kind": "arrange",
-                  "items": [
+                "items": [
+                  {
+                    "id": "qql_edge_254_e14_arrange_min_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "tea"
+                      }
+                    ]
+                  }
+                ],
+                "targets": [
+                  {
+                    "id": "qql_edge_254_e14_arrange_min_g1"
+                  }
+                ],
+                "layout": [
+                  {
+                    "type": "text",
+                    "text": "I drink"
+                  },
+                  {
+                    "type": "target",
+                    "targetId": "qql_edge_254_e14_arrange_min_g1"
+                  },
+                  {
+                    "type": "text",
+                    "text": "."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "gapAssignments",
+                  "assignments": [
                     {
-                      "id": "qql_edge_254_e14_arrange_min_i1",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "tea"
-                        }
+                      "targetId": "qql_edge_254_e14_arrange_min_g1",
+                      "itemIds": [
+                        "qql_edge_254_e14_arrange_min_i1"
                       ]
                     }
-                  ],
-                  "layout": [
-                    {
-                      "role": "primary",
-                      "type": "text",
-                      "text": "I drink"
-                    },
-                    {
-                      "role": "primary",
-                      "type": "gap",
-                      "text": "qql_edge_254_e14_arrange_min_g1"
-                    },
-                    {
-                      "role": "primary",
-                      "type": "text",
-                      "text": "."
-                    }
                   ]
-                },
-                "evaluation": {
-                  "kind": "gap_items",
-                  "gapAssignments": {
-                    "qql_edge_254_e14_arrange_min_g1": "qql_edge_254_e14_arrange_min_i1"
-                  }
                 }
               }
             },
@@ -1354,9 +1377,16 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "word_order",
+              "authoringMetadata": {
+                "presetId": "word_order"
+              },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "arrange",
+                "options": {
+                  "layout": "inline",
+                  "placementMode": "inlineGaps"
+                },
                 "prompt": [
                   {
                     "role": "clue",
@@ -1364,74 +1394,84 @@
                     "text": "Completa con due occorrenze distinte di very."
                   }
                 ],
-                "interaction": {
-                  "kind": "arrange",
-                  "items": [
+                "items": [
+                  {
+                    "id": "qql_edge_254_e15_arrange_repeat_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "very"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e15_arrange_repeat_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "very"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e15_arrange_repeat_i3",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "never"
+                      }
+                    ]
+                  }
+                ],
+                "targets": [
+                  {
+                    "id": "qql_edge_254_e15_arrange_repeat_g1"
+                  },
+                  {
+                    "id": "qql_edge_254_e15_arrange_repeat_g2"
+                  }
+                ],
+                "layout": [
+                  {
+                    "type": "text",
+                    "text": "It is"
+                  },
+                  {
+                    "type": "target",
+                    "targetId": "qql_edge_254_e15_arrange_repeat_g1"
+                  },
+                  {
+                    "type": "text",
+                    "text": ","
+                  },
+                  {
+                    "type": "target",
+                    "targetId": "qql_edge_254_e15_arrange_repeat_g2"
+                  },
+                  {
+                    "type": "text",
+                    "text": "cold."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "gapAssignments",
+                  "assignments": [
                     {
-                      "id": "qql_edge_254_e15_arrange_repeat_i1",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "very"
-                        }
+                      "targetId": "qql_edge_254_e15_arrange_repeat_g1",
+                      "itemIds": [
+                        "qql_edge_254_e15_arrange_repeat_i1"
                       ]
                     },
                     {
-                      "id": "qql_edge_254_e15_arrange_repeat_i2",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "very"
-                        }
+                      "targetId": "qql_edge_254_e15_arrange_repeat_g2",
+                      "itemIds": [
+                        "qql_edge_254_e15_arrange_repeat_i2"
                       ]
-                    },
-                    {
-                      "id": "qql_edge_254_e15_arrange_repeat_i3",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "never"
-                        }
-                      ]
-                    }
-                  ],
-                  "layout": [
-                    {
-                      "role": "primary",
-                      "type": "text",
-                      "text": "It is"
-                    },
-                    {
-                      "role": "primary",
-                      "type": "gap",
-                      "text": "qql_edge_254_e15_arrange_repeat_g1"
-                    },
-                    {
-                      "role": "primary",
-                      "type": "text",
-                      "text": ","
-                    },
-                    {
-                      "role": "primary",
-                      "type": "gap",
-                      "text": "qql_edge_254_e15_arrange_repeat_g2"
-                    },
-                    {
-                      "role": "primary",
-                      "type": "text",
-                      "text": "cold."
                     }
                   ]
-                },
-                "evaluation": {
-                  "kind": "gap_items",
-                  "gapAssignments": {
-                    "qql_edge_254_e15_arrange_repeat_g1": "qql_edge_254_e15_arrange_repeat_i1",
-                    "qql_edge_254_e15_arrange_repeat_g2": "qql_edge_254_e15_arrange_repeat_i2"
-                  }
                 }
               }
             },
@@ -1440,9 +1480,16 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "word_order",
+              "authoringMetadata": {
+                "presetId": "word_order"
+              },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "arrange",
+                "options": {
+                  "layout": "inline",
+                  "placementMode": "inlineGaps"
+                },
                 "prompt": [
                   {
                     "role": "clue",
@@ -1450,79 +1497,90 @@
                     "text": "Inserisci le espressioni nei due gap."
                   }
                 ],
-                "interaction": {
-                  "kind": "arrange",
-                  "items": [
+                "items": [
+                  {
+                    "id": "qql_edge_254_e16_arrange_phrases_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "would like"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e16_arrange_phrases_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "a cup of tea"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e16_arrange_phrases_i3",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "has been"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e16_arrange_phrases_i4",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "a glass of milk"
+                      }
+                    ]
+                  }
+                ],
+                "targets": [
+                  {
+                    "id": "qql_edge_254_e16_arrange_phrases_g1"
+                  },
+                  {
+                    "id": "qql_edge_254_e16_arrange_phrases_g2"
+                  }
+                ],
+                "layout": [
+                  {
+                    "type": "text",
+                    "text": "I"
+                  },
+                  {
+                    "type": "target",
+                    "targetId": "qql_edge_254_e16_arrange_phrases_g1"
+                  },
+                  {
+                    "type": "target",
+                    "targetId": "qql_edge_254_e16_arrange_phrases_g2"
+                  },
+                  {
+                    "type": "text",
+                    "text": ", please."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "gapAssignments",
+                  "assignments": [
                     {
-                      "id": "qql_edge_254_e16_arrange_phrases_i1",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "would like"
-                        }
+                      "targetId": "qql_edge_254_e16_arrange_phrases_g1",
+                      "itemIds": [
+                        "qql_edge_254_e16_arrange_phrases_i1"
                       ]
                     },
                     {
-                      "id": "qql_edge_254_e16_arrange_phrases_i2",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "a cup of tea"
-                        }
+                      "targetId": "qql_edge_254_e16_arrange_phrases_g2",
+                      "itemIds": [
+                        "qql_edge_254_e16_arrange_phrases_i2"
                       ]
-                    },
-                    {
-                      "id": "qql_edge_254_e16_arrange_phrases_i3",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "has been"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_edge_254_e16_arrange_phrases_i4",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "a glass of milk"
-                        }
-                      ]
-                    }
-                  ],
-                  "layout": [
-                    {
-                      "role": "primary",
-                      "type": "text",
-                      "text": "I"
-                    },
-                    {
-                      "role": "primary",
-                      "type": "gap",
-                      "text": "qql_edge_254_e16_arrange_phrases_g1"
-                    },
-                    {
-                      "role": "primary",
-                      "type": "gap",
-                      "text": "qql_edge_254_e16_arrange_phrases_g2"
-                    },
-                    {
-                      "role": "primary",
-                      "type": "text",
-                      "text": ", please."
                     }
                   ]
-                },
-                "evaluation": {
-                  "kind": "gap_items",
-                  "gapAssignments": {
-                    "qql_edge_254_e16_arrange_phrases_g1": "qql_edge_254_e16_arrange_phrases_i1",
-                    "qql_edge_254_e16_arrange_phrases_g2": "qql_edge_254_e16_arrange_phrases_i2"
-                  }
                 }
               }
             }
@@ -1540,9 +1598,17 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "choice",
+              "authoringMetadata": {
+                "presetId": "choice"
+              },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "select",
+                "options": {
+                  "itemReuse": "unlimited",
+                  "layout": "inline",
+                  "evaluationTiming": "explicit"
+                },
                 "prompt": [
                   {
                     "role": "primary",
@@ -1550,40 +1616,43 @@
                     "text": "Completa: un gatto."
                   }
                 ],
-                "interaction": {
-                  "kind": "select",
-                  "items": [
+                "items": [
+                  {
+                    "id": "qql_edge_254_e17_select_min_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "cat"
+                      }
+                    ]
+                  }
+                ],
+                "targets": [
+                  {
+                    "id": "qql_edge_254_e17_select_min_g1"
+                  }
+                ],
+                "layout": [
+                  {
+                    "type": "text",
+                    "text": "a"
+                  },
+                  {
+                    "type": "target",
+                    "targetId": "qql_edge_254_e17_select_min_g1"
+                  }
+                ],
+                "evaluation": {
+                  "mode": "exactItem",
+                  "assignments": [
                     {
-                      "id": "qql_edge_254_e17_select_min_i1",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "cat"
-                        }
+                      "targetId": "qql_edge_254_e17_select_min_g1",
+                      "itemIds": [
+                        "qql_edge_254_e17_select_min_i1"
                       ]
                     }
-                  ],
-                  "layout": [
-                    {
-                      "role": "primary",
-                      "type": "text",
-                      "text": "a"
-                    },
-                    {
-                      "role": "primary",
-                      "type": "gap",
-                      "text": "qql_edge_254_e17_select_min_g1"
-                    }
-                  ],
-                  "minSelections": 1,
-                  "maxSelections": 1
-                },
-                "evaluation": {
-                  "kind": "selected_items",
-                  "gapAssignments": {
-                    "qql_edge_254_e17_select_min_g1": "qql_edge_254_e17_select_min_i1"
-                  }
+                  ]
                 }
               }
             },
@@ -1592,9 +1661,17 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "choice",
+              "authoringMetadata": {
+                "presetId": "choice"
+              },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "select",
+                "options": {
+                  "itemReuse": "unlimited",
+                  "layout": "inline",
+                  "evaluationTiming": "explicit"
+                },
                 "prompt": [
                   {
                     "role": "primary",
@@ -1602,71 +1679,80 @@
                     "text": "Completa entrambe le domande riutilizzando la stessa opzione."
                   }
                 ],
-                "interaction": {
-                  "kind": "select",
-                  "items": [
-                    {
-                      "id": "qql_edge_254_e18_select_linked_i1",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "Was"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_edge_254_e18_select_linked_i2",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "Were"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_edge_254_e18_select_linked_i3",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "Are"
-                        }
-                      ]
-                    }
-                  ],
-                  "layout": [
-                    {
-                      "role": "primary",
-                      "type": "gap",
-                      "text": "qql_edge_254_e18_select_linked_g1"
-                    },
-                    {
-                      "role": "primary",
-                      "type": "text",
-                      "text": "she happy?"
-                    },
-                    {
-                      "role": "primary",
-                      "type": "gap",
-                      "text": "qql_edge_254_e18_select_linked_g2"
-                    },
-                    {
-                      "role": "primary",
-                      "type": "text",
-                      "text": "he late?"
-                    }
-                  ],
-                  "minSelections": 1,
-                  "maxSelections": 1
-                },
-                "evaluation": {
-                  "kind": "selected_items",
-                  "gapAssignments": {
-                    "qql_edge_254_e18_select_linked_g1": "qql_edge_254_e18_select_linked_i1",
-                    "qql_edge_254_e18_select_linked_g2": "qql_edge_254_e18_select_linked_i1"
+                "items": [
+                  {
+                    "id": "qql_edge_254_e18_select_linked_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "Was"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e18_select_linked_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "Were"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e18_select_linked_i3",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "Are"
+                      }
+                    ]
                   }
+                ],
+                "targets": [
+                  {
+                    "id": "qql_edge_254_e18_select_linked_g1"
+                  },
+                  {
+                    "id": "qql_edge_254_e18_select_linked_g2"
+                  }
+                ],
+                "layout": [
+                  {
+                    "type": "target",
+                    "targetId": "qql_edge_254_e18_select_linked_g1"
+                  },
+                  {
+                    "type": "text",
+                    "text": "she happy?"
+                  },
+                  {
+                    "type": "target",
+                    "targetId": "qql_edge_254_e18_select_linked_g2"
+                  },
+                  {
+                    "type": "text",
+                    "text": "he late?"
+                  }
+                ],
+                "evaluation": {
+                  "mode": "exactItem",
+                  "assignments": [
+                    {
+                      "targetId": "qql_edge_254_e18_select_linked_g1",
+                      "itemIds": [
+                        "qql_edge_254_e18_select_linked_i1"
+                      ]
+                    },
+                    {
+                      "targetId": "qql_edge_254_e18_select_linked_g2",
+                      "itemIds": [
+                        "qql_edge_254_e18_select_linked_i1"
+                      ]
+                    }
+                  ]
                 }
               }
             },
@@ -1675,9 +1761,17 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "choice",
+              "authoringMetadata": {
+                "presetId": "choice"
+              },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "select",
+                "options": {
+                  "itemReuse": "unlimited",
+                  "layout": "inline",
+                  "evaluationTiming": "explicit"
+                },
                 "prompt": [
                   {
                     "role": "primary",
@@ -1685,86 +1779,94 @@
                     "text": "Completa con due opzioni diverse."
                   }
                 ],
-                "interaction": {
-                  "kind": "select",
-                  "items": [
-                    {
-                      "id": "qql_edge_254_e19_select_distinct_i1",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "am"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_edge_254_e19_select_distinct_i2",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "to"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_edge_254_e19_select_distinct_i3",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "is"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_edge_254_e19_select_distinct_i4",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "from"
-                        }
-                      ]
-                    }
-                  ],
-                  "layout": [
-                    {
-                      "role": "primary",
-                      "type": "text",
-                      "text": "I"
-                    },
-                    {
-                      "role": "primary",
-                      "type": "gap",
-                      "text": "qql_edge_254_e19_select_distinct_g1"
-                    },
-                    {
-                      "role": "primary",
-                      "type": "text",
-                      "text": "going"
-                    },
-                    {
-                      "role": "primary",
-                      "type": "gap",
-                      "text": "qql_edge_254_e19_select_distinct_g2"
-                    },
-                    {
-                      "role": "primary",
-                      "type": "text",
-                      "text": "London."
-                    }
-                  ],
-                  "minSelections": 1,
-                  "maxSelections": 1
-                },
-                "evaluation": {
-                  "kind": "selected_items",
-                  "gapAssignments": {
-                    "qql_edge_254_e19_select_distinct_g1": "qql_edge_254_e19_select_distinct_i1",
-                    "qql_edge_254_e19_select_distinct_g2": "qql_edge_254_e19_select_distinct_i2"
+                "items": [
+                  {
+                    "id": "qql_edge_254_e19_select_distinct_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "am"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e19_select_distinct_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "to"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e19_select_distinct_i3",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "is"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e19_select_distinct_i4",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "from"
+                      }
+                    ]
                   }
+                ],
+                "targets": [
+                  {
+                    "id": "qql_edge_254_e19_select_distinct_g1"
+                  },
+                  {
+                    "id": "qql_edge_254_e19_select_distinct_g2"
+                  }
+                ],
+                "layout": [
+                  {
+                    "type": "text",
+                    "text": "I"
+                  },
+                  {
+                    "type": "target",
+                    "targetId": "qql_edge_254_e19_select_distinct_g1"
+                  },
+                  {
+                    "type": "text",
+                    "text": "going"
+                  },
+                  {
+                    "type": "target",
+                    "targetId": "qql_edge_254_e19_select_distinct_g2"
+                  },
+                  {
+                    "type": "text",
+                    "text": "London."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "exactItem",
+                  "assignments": [
+                    {
+                      "targetId": "qql_edge_254_e19_select_distinct_g1",
+                      "itemIds": [
+                        "qql_edge_254_e19_select_distinct_i1"
+                      ]
+                    },
+                    {
+                      "targetId": "qql_edge_254_e19_select_distinct_g2",
+                      "itemIds": [
+                        "qql_edge_254_e19_select_distinct_i2"
+                      ]
+                    }
+                  ]
                 }
               }
             }
@@ -1847,9 +1949,16 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "image_word",
+              "authoringMetadata": {
+                "presetId": "image_word"
+              },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "arrange",
+                "options": {
+                  "unusedItems": "forbidden",
+                  "joiner": "none"
+                },
                 "prompt": [
                   {
                     "role": "clue",
@@ -1863,43 +1972,40 @@
                     "asset": "assets/exercise_images/cat.webp"
                   }
                 ],
-                "interaction": {
-                  "kind": "arrange",
-                  "items": [
-                    {
-                      "id": "qql_edge_254_e20_image_letters_i1",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "c"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_edge_254_e20_image_letters_i2",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "a"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_edge_254_e20_image_letters_i3",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "t"
-                        }
-                      ]
-                    }
-                  ]
-                },
+                "items": [
+                  {
+                    "id": "qql_edge_254_e20_image_letters_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "c"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e20_image_letters_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "a"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e20_image_letters_i3",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "t"
+                      }
+                    ]
+                  }
+                ],
                 "evaluation": {
-                  "kind": "ordered_items",
+                  "mode": "exactOrder",
                   "correctOrders": [
                     {
                       "text": "cat",
@@ -1918,9 +2024,12 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "choice",
+              "authoringMetadata": {
+                "presetId": "choice"
+              },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "select",
                 "prompt": [
                   {
                     "role": "clue",
@@ -1934,45 +2043,40 @@
                     "text": "Come si chiama in inglese il cibo raffigurato?"
                   }
                 ],
-                "interaction": {
-                  "kind": "select",
-                  "minSelections": 1,
-                  "maxSelections": 1,
-                  "items": [
-                    {
-                      "id": "qql_edge_254_e21_image_i1",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "ice cream"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_edge_254_e21_image_i2",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "bread"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_edge_254_e21_image_i3",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "rice"
-                        }
-                      ]
-                    }
-                  ]
-                },
+                "items": [
+                  {
+                    "id": "qql_edge_254_e21_image_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "ice cream"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e21_image_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "bread"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e21_image_i3",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "rice"
+                      }
+                    ]
+                  }
+                ],
                 "evaluation": {
-                  "kind": "selected_items",
+                  "mode": "exactItem",
                   "correctItemIds": [
                     "qql_edge_254_e21_image_i1"
                   ]
@@ -1984,9 +2088,12 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "choice",
+              "authoringMetadata": {
+                "presetId": "choice"
+              },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "select",
                 "prompt": [
                   {
                     "role": "question",
@@ -1994,45 +2101,40 @@
                     "text": "Traduci «gelato» senza un’immagine di supporto."
                   }
                 ],
-                "interaction": {
-                  "kind": "select",
-                  "minSelections": 1,
-                  "maxSelections": 1,
-                  "items": [
-                    {
-                      "id": "qql_edge_254_e22_no_image_i1",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "ice cream"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_edge_254_e22_no_image_i2",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "bread"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_edge_254_e22_no_image_i3",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "rice"
-                        }
-                      ]
-                    }
-                  ]
-                },
+                "items": [
+                  {
+                    "id": "qql_edge_254_e22_no_image_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "ice cream"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e22_no_image_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "bread"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e22_no_image_i3",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "rice"
+                      }
+                    ]
+                  }
+                ],
                 "evaluation": {
-                  "kind": "selected_items",
+                  "mode": "exactItem",
                   "correctItemIds": [
                     "qql_edge_254_e22_no_image_i1"
                   ]
@@ -2044,9 +2146,12 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "choice",
+              "authoringMetadata": {
+                "presetId": "choice"
+              },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "select",
                 "prompt": [
                   {
                     "role": "clue",
@@ -2066,45 +2171,40 @@
                     "text": "Quale coppia inglese descrive le due immagini nell’ordine mostrato?"
                   }
                 ],
-                "interaction": {
-                  "kind": "select",
-                  "minSelections": 1,
-                  "maxSelections": 1,
-                  "items": [
-                    {
-                      "id": "qql_edge_254_e23_two_images_i1",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "cat and dog"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_edge_254_e23_two_images_i2",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "dog and cat"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_edge_254_e23_two_images_i3",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "cat and bird"
-                        }
-                      ]
-                    }
-                  ]
-                },
+                "items": [
+                  {
+                    "id": "qql_edge_254_e23_two_images_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "cat and dog"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e23_two_images_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "dog and cat"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e23_two_images_i3",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "cat and bird"
+                      }
+                    ]
+                  }
+                ],
                 "evaluation": {
-                  "kind": "selected_items",
+                  "mode": "exactItem",
                   "correctItemIds": [
                     "qql_edge_254_e23_two_images_i1"
                   ]
@@ -2125,14 +2225,18 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "listening_choice",
+              "authoringMetadata": {
+                "presetId": "listening_choice"
+              },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "select",
                 "prompt": [
                   {
                     "role": "primary",
                     "type": "audio",
-                    "text": "recorded sample one"
+                    "text": "recorded sample one",
+                    "playback": "automatic"
                   },
                   {
                     "role": "question",
@@ -2140,35 +2244,30 @@
                     "text": "Collaudo MP3 1: se senti il campione, scegli «audio riprodotto». Il campione preinstallato non ha una trascrizione verificata; questa è una prova di riproduzione."
                   }
                 ],
-                "interaction": {
-                  "kind": "select",
-                  "minSelections": 1,
-                  "maxSelections": 1,
-                  "items": [
-                    {
-                      "id": "qql_edge_254_e24_mp3_i1",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "audio riprodotto"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_edge_254_e24_mp3_i2",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "nessun audio"
-                        }
-                      ]
-                    }
-                  ]
-                },
+                "items": [
+                  {
+                    "id": "qql_edge_254_e24_mp3_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "audio riprodotto"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e24_mp3_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "nessun audio"
+                      }
+                    ]
+                  }
+                ],
                 "evaluation": {
-                  "kind": "selected_items",
+                  "mode": "exactItem",
                   "correctItemIds": [
                     "qql_edge_254_e24_mp3_i1"
                   ]
@@ -2180,14 +2279,18 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "listening_choice",
+              "authoringMetadata": {
+                "presetId": "listening_choice"
+              },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "select",
                 "prompt": [
                   {
                     "role": "primary",
                     "type": "audio",
-                    "text": "recorded sample one recorded sample two"
+                    "text": "recorded sample one recorded sample two",
+                    "playback": "automatic"
                   },
                   {
                     "role": "question",
@@ -2195,35 +2298,30 @@
                     "text": "Collaudo MP3 1 + 2: verifica che si sentano due campioni in sequenza. Le etichette audio sono identificatori di collaudo, non trascrizioni."
                   }
                 ],
-                "interaction": {
-                  "kind": "select",
-                  "minSelections": 1,
-                  "maxSelections": 1,
-                  "items": [
-                    {
-                      "id": "qql_edge_254_e25_mp3_sequence_i1",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "due campioni riprodotti"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_edge_254_e25_mp3_sequence_i2",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "riproduzione incompleta"
-                        }
-                      ]
-                    }
-                  ]
-                },
+                "items": [
+                  {
+                    "id": "qql_edge_254_e25_mp3_sequence_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "due campioni riprodotti"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e25_mp3_sequence_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "riproduzione incompleta"
+                      }
+                    ]
+                  }
+                ],
                 "evaluation": {
-                  "kind": "selected_items",
+                  "mode": "exactItem",
                   "correctItemIds": [
                     "qql_edge_254_e25_mp3_sequence_i1"
                   ]
@@ -2235,14 +2333,18 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "listening_comprehension",
+              "authoringMetadata": {
+                "presetId": "listening_comprehension"
+              },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "select",
                 "prompt": [
                   {
                     "role": "passage",
                     "type": "audio",
-                    "text": "The little cat is sitting beside the open window."
+                    "text": "The little cat is sitting beside the open window.",
+                    "playback": "automatic"
                   },
                   {
                     "role": "question",
@@ -2250,45 +2352,40 @@
                     "text": "Quale animale è vicino alla finestra nel testo pronunciato?"
                   }
                 ],
-                "interaction": {
-                  "kind": "select",
-                  "minSelections": 1,
-                  "maxSelections": 1,
-                  "items": [
-                    {
-                      "id": "qql_edge_254_e26_tts_i1",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "cat"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_edge_254_e26_tts_i2",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "dog"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_edge_254_e26_tts_i3",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "bird"
-                        }
-                      ]
-                    }
-                  ]
-                },
+                "items": [
+                  {
+                    "id": "qql_edge_254_e26_tts_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "cat"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e26_tts_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "dog"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e26_tts_i3",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "bird"
+                      }
+                    ]
+                  }
+                ],
                 "evaluation": {
-                  "kind": "selected_items",
+                  "mode": "exactItem",
                   "correctItemIds": [
                     "qql_edge_254_e26_tts_i1"
                   ]
@@ -2300,9 +2397,12 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "listening_spelling",
+              "authoringMetadata": {
+                "presetId": "listening_spelling"
+              },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "input",
                 "prompt": [
                   {
                     "role": "primary",
@@ -2312,16 +2412,13 @@
                   {
                     "role": "primary",
                     "type": "audio",
-                    "text": "We are ready to leave."
+                    "text": "We are ready to leave.",
+                    "playback": "automatic"
                   }
                 ],
-                "interaction": {
-                  "kind": "input",
-                  "inputType": "text"
-                },
                 "evaluation": {
-                  "kind": "text_match",
-                  "acceptedAnswers": [
+                  "mode": "expression",
+                  "answers": [
                     "We are ready to leave."
                   ]
                 }
@@ -2400,9 +2497,12 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "choice",
+              "authoringMetadata": {
+                "presetId": "choice"
+              },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "select",
                 "prompt": [
                   {
                     "role": "question",
@@ -2410,35 +2510,30 @@
                     "text": "Traduci «pronto» in inglese."
                   }
                 ],
-                "interaction": {
-                  "kind": "select",
-                  "minSelections": 1,
-                  "maxSelections": 1,
-                  "items": [
-                    {
-                      "id": "qql_edge_254_e28_published_i1",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "ready"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_edge_254_e28_published_i2",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "late"
-                        }
-                      ]
-                    }
-                  ]
-                },
+                "items": [
+                  {
+                    "id": "qql_edge_254_e28_published_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "ready"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e28_published_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "late"
+                      }
+                    ]
+                  }
+                ],
                 "evaluation": {
-                  "kind": "selected_items",
+                  "mode": "exactItem",
                   "correctItemIds": [
                     "qql_edge_254_e28_published_i1"
                   ]
@@ -2450,9 +2545,12 @@
               "publicationState": "draft",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "choice",
+              "authoringMetadata": {
+                "presetId": "choice"
+              },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "select",
                 "prompt": [
                   {
                     "role": "question",
@@ -2460,35 +2558,30 @@
                     "text": "Caso Draft valido: traduci «tardi» in inglese."
                   }
                 ],
-                "interaction": {
-                  "kind": "select",
-                  "minSelections": 1,
-                  "maxSelections": 1,
-                  "items": [
-                    {
-                      "id": "qql_edge_254_e29_draft_exercise_i1",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "late"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_edge_254_e29_draft_exercise_i2",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "ready"
-                        }
-                      ]
-                    }
-                  ]
-                },
+                "items": [
+                  {
+                    "id": "qql_edge_254_e29_draft_exercise_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "late"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e29_draft_exercise_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "ready"
+                      }
+                    ]
+                  }
+                ],
                 "evaluation": {
-                  "kind": "selected_items",
+                  "mode": "exactItem",
                   "correctItemIds": [
                     "qql_edge_254_e29_draft_exercise_i1"
                   ]
@@ -2508,9 +2601,12 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "choice",
+              "authoringMetadata": {
+                "presetId": "choice"
+              },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "select",
                 "prompt": [
                   {
                     "role": "question",
@@ -2518,35 +2614,30 @@
                     "text": "Contenuto Published sotto Round Draft: traduci «presto»."
                   }
                 ],
-                "interaction": {
-                  "kind": "select",
-                  "minSelections": 1,
-                  "maxSelections": 1,
-                  "items": [
-                    {
-                      "id": "qql_edge_254_e30_under_draft_round_i1",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "early"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_edge_254_e30_under_draft_round_i2",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "late"
-                        }
-                      ]
-                    }
-                  ]
-                },
+                "items": [
+                  {
+                    "id": "qql_edge_254_e30_under_draft_round_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "early"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e30_under_draft_round_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "late"
+                      }
+                    ]
+                  }
+                ],
                 "evaluation": {
-                  "kind": "selected_items",
+                  "mode": "exactItem",
                   "correctItemIds": [
                     "qql_edge_254_e30_under_draft_round_i1"
                   ]
@@ -2608,9 +2699,12 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "choice",
+              "authoringMetadata": {
+                "presetId": "choice"
+              },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "select",
                 "prompt": [
                   {
                     "role": "question",
@@ -2618,35 +2712,30 @@
                     "text": "Traduci «una copia» in inglese."
                   }
                 ],
-                "interaction": {
-                  "kind": "select",
-                  "minSelections": 1,
-                  "maxSelections": 1,
-                  "items": [
-                    {
-                      "id": "qql_edge_254_e31_under_draft_lesson_i1",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "a copy"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_edge_254_e31_under_draft_lesson_i2",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "a window"
-                        }
-                      ]
-                    }
-                  ]
-                },
+                "items": [
+                  {
+                    "id": "qql_edge_254_e31_under_draft_lesson_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "a copy"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e31_under_draft_lesson_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "a window"
+                      }
+                    ]
+                  }
+                ],
                 "evaluation": {
-                  "kind": "selected_items",
+                  "mode": "exactItem",
                   "correctItemIds": [
                     "qql_edge_254_e31_under_draft_lesson_i1"
                   ]
@@ -2663,5 +2752,5 @@
       }
     }
   ],
-  "officialChecksum": "b2d5427631ad419007c85d6a1e9328aeb1c7ca0258dc451b6ff6417992b2e96a"
+  "officialChecksum": "8e5dae5e9f48bc97a3a31a666de0e4d40b5ddaa697f8f378f0bcdba788bb2fe5"
 }

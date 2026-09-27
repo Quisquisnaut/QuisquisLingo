@@ -75,8 +75,10 @@ void _expectForkContent(Course source, Course fork) {
   final identityMap = <String, String>{};
   for (var index = 0; index < before.length; index++) {
     identityMap[before[index].id] = after[index].id;
-    final sourceItems = before[index].exercise?.interaction.items ?? [];
-    final forkItems = after[index].exercise?.interaction.items ?? [];
+    // Canonical items only: the v11 `interaction` view gives a Presentation
+    // usage lines as legacy items, which a fork does not renumber.
+    final sourceItems = before[index].exercise?.items ?? [];
+    final forkItems = after[index].exercise?.items ?? [];
     expect(forkItems, hasLength(sourceItems.length), reason: before[index].id);
     for (var item = 0; item < sourceItems.length; item++) {
       identityMap[sourceItems[item].id] = forkItems[item].id;
@@ -104,9 +106,10 @@ void _expectForkContent(Course source, Course fork) {
 }
 
 void _expectFlashcardUsage(Course course) {
-  final cards = _contents(
-    course,
-  ).where((content) => content.kind == 'presentation');
+  // Course Model v12: a Flashcard is a presentation-primitive exercise.
+  final cards = _contents(course).where(
+    (content) => content.exercise?.primitive == ExercisePrimitive.presentation,
+  );
   expect(cards, isNotEmpty);
   for (final card in cards) {
     final fields = {

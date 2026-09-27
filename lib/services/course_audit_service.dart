@@ -1,5 +1,4 @@
 import '../models/course_models.dart';
-import '../models/canonical/exercise_primitive.dart';
 import '../models/exercise_authoring.dart';
 import 'answer_engine.dart';
 import 'first_letter_answer_service.dart';
@@ -1073,16 +1072,16 @@ class CourseAuditService {
     void Function(AuditCode, String) add,
   ) {
     final gapIds = <String>[];
-    for (final element in ex.arrangeLayout) {
-      if (element.type != 'gap') continue;
-      if (element.text.trim().isEmpty) {
+    for (final element in ex.layout) {
+      if (!element.isTarget) continue;
+      if (element.targetId.trim().isEmpty) {
         add(
           AuditCode.wordBlockDataRequired,
           'A gap in the Arrange layout has no gap ID.',
         );
         continue;
       }
-      gapIds.add(element.text);
+      gapIds.add(element.targetId);
     }
     if (gapIds.isEmpty || gapIds.toSet().length != gapIds.length) {
       add(
@@ -1090,7 +1089,7 @@ class CourseAuditService {
         'Gap-fill Arrange exercise needs one or more uniquely identified gaps in its layout.',
       );
     }
-    final assignments = ex.arrangeGapAssignments;
+    final assignments = ex.targetAssignments;
     final assignedGapIds = assignments.keys.toSet();
     if (assignedGapIds.length != gapIds.toSet().length ||
         !assignedGapIds.containsAll(gapIds)) {
@@ -1126,16 +1125,16 @@ class CourseAuditService {
     void Function(AuditCode, String) add,
   ) {
     final gapIds = <String>[];
-    for (final element in ex.arrangeLayout) {
-      if (element.type != 'gap') continue;
-      if (element.text.trim().isEmpty) {
+    for (final element in ex.layout) {
+      if (!element.isTarget) continue;
+      if (element.targetId.trim().isEmpty) {
         add(
           AuditCode.wordBlockDataRequired,
           'A gap in the Select layout has no gap ID.',
         );
         continue;
       }
-      gapIds.add(element.text);
+      gapIds.add(element.targetId);
     }
     if (gapIds.isEmpty || gapIds.toSet().length != gapIds.length) {
       add(
@@ -1143,7 +1142,7 @@ class CourseAuditService {
         'Gap-fill Select exercise needs one or more uniquely identified gaps in its layout.',
       );
     }
-    final assignments = ex.arrangeGapAssignments;
+    final assignments = ex.targetAssignments;
     final assignedGapIds = assignments.keys.toSet();
     if (assignedGapIds.length != gapIds.toSet().length ||
         !assignedGapIds.containsAll(gapIds)) {

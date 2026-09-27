@@ -80,7 +80,9 @@ void main() {
                 originalItem.presentation?.toJson(),
               );
               expect(transferred.sourceRefs, originalItem.sourceRefs);
-              if (transferred.exercise case final exercise?) {
+              // A Presentation is an unscored exercise since Course Model v12.
+              if (transferred.exercise case final exercise?
+                  when exercise.primitive != ExercisePrimitive.presentation) {
                 expect(
                   exercise.interaction.items
                       .map((i) => i.id)
@@ -746,6 +748,6 @@ LearningContent _exerciseContent(
       correctItemIds: [invalid ? 'missing-item' : '${id}_a'],
     ),
     hint: 'A clue',
-    feedback: const {'correct': 'Authored feedback'},
+    feedback: const ExerciseFeedback(correct: 'Authored feedback'),
   ),
 );

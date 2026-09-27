@@ -20,10 +20,14 @@ Map<String, dynamic> _image(String asset) => {
 Map<String, dynamic> _presentation(String id, String asset) => {
   'id': id,
   'publicationState': 'published',
-  'kind': 'presentation',
+  'kind': 'exercise',
   'required': false,
-  'presentation': {
-    'content': [_image(asset)],
+  'exercise': {
+    'updatedAt': '2026-09-21T12:00:00.000Z',
+    'primitive': 'presentation',
+    'options': {'completionMode': 'understoodReview'},
+    'prompt': [_image(asset)],
+    'evaluation': {'mode': 'none'},
   },
 };
 

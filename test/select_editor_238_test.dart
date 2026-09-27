@@ -291,8 +291,8 @@ void main() {
       expect(saved, isNotNull);
       final exercise = saved!;
       expect(exercise.hasSelectGaps, isTrue);
-      expect(exercise.arrangeGapAssignments.length, 2);
-      expect(exercise.arrangeGapAssignments.values.toSet(), hasLength(1));
+      expect(exercise.targetAssignments.length, 2);
+      expect(exercise.targetAssignments.values.toSet(), hasLength(1));
       expect(exercise.interaction.items.length, 2);
       expect(tester.takeException(), isNull);
     },
@@ -388,10 +388,10 @@ void main() {
       final copy = service.duplicateExercise(source);
 
       expect(copy.hasSelectGaps, isTrue);
-      expect(copy.arrangeGapAssignments.keys.toSet(), {'gap_1', 'gap_2'});
-      expect(copy.arrangeGapAssignments.values.toSet(), hasLength(1));
-      for (final gapId in copy.arrangeGapAssignments.keys) {
-        final copiedItemId = copy.arrangeGapAssignments[gapId]!;
+      expect(copy.targetAssignments.keys.toSet(), {'gap_1', 'gap_2'});
+      expect(copy.targetAssignments.values.toSet(), hasLength(1));
+      for (final gapId in copy.targetAssignments.keys) {
+        final copiedItemId = copy.targetAssignments[gapId]!;
         expect(
           copy.interaction.items.any((item) => item.id == copiedItemId),
           isTrue,

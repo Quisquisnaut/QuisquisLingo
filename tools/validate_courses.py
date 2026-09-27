@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
-"""Offline structural validation for bundled Course Model v11 JSON."""
+"""Offline structural validation for bundled Course Model v12 JSON.
+
+The exercise vocabularies (primitives, options, evaluation modes) come from
+tools/qql_course_v12.py, the Python mirror of the registry in
+lib/models/canonical/; Session 5 of Build 256 replaces them with the
+generated capability description.
+"""
 from __future__ import annotations
 
 import base64
@@ -11,6 +17,9 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from qql_course_v12 import CONTENT_KINDS, EVALUATION_MODES, OPTIONS, PRIMITIVES  # noqa: E402
+
 ROOT = Path(__file__).resolve().parents[1]
 COURSES = ROOT / "assets" / "courses"
 EXPECTED_TTS = {
@@ -19,9 +28,7 @@ EXPECTED_TTS = {
     "korean_en.json": "ko-KR",
     "piedmontais_en.json": "pms-IT",
 }
-INTERACTIONS = {"select", "input", "arrange", "match"}
-EVALUATIONS = {"selected_items", "text_match", "ordered_items", "matched_items", "gap_items"}
-CONTENT_KINDS = {"exercise", "presentation", "explanation", "example", "vocabulary", "text", "image", "audio", "dialogue"}
+TEXT_MODES = {"exactText", "acceptedTexts", "expression"}
 ROUND_VISUAL_TYPES = {"listening", "story", "generic", "test"}
 PUBLICATION_STATES = {"draft", "published"}
 LESSON_NUMBERING_MODES = {"lesson", "unit", "topic", "module", "skill", "chapter", "stage", "step", "part", "other", "numberOnly", "none"}
@@ -106,8 +113,8 @@ def validate(path: Path, global_ids: dict[str, str]) -> list[str]:
         else:
             global_ids[value] = path.name
 
-    if data.get("formatVersion") != 11:
-        issues.append("root: formatVersion must be 11; legacy formats are unsupported")
+    if data.get("formatVersion") != 12:
+        issues.append("root: formatVersion must be 12; legacy formats are unsupported")
     if data.get("publicationState") not in PUBLICATION_STATES:
         issues.append("root: invalid publicationState")
     if data.get("lessonNumberingMode") not in LESSON_NUMBERING_MODES:
@@ -238,7 +245,10 @@ def validate(path: Path, global_ids: dict[str, str]) -> list[str]:
                 return
             _timestamp(exercise.get("updatedAt"), f"{where} exercise", issues)
             prompt = exercise.get("prompt")
-            if not isinstance(prompt, list) or not prompt:
+            # An inline layout carries the exercise's text, so a prompt may be
+            # empty when the layout is not (Type the missing word, Listen for
+            # missing words).
+            if not isinstance(prompt, list) or (not prompt and not exercise.get("layout")):
                 issues.append(f"{where}: exercise prompt must be a non-empty list")
                 prompt = []
             for prompt_index, element in enumerate(prompt, 1):
@@ -266,20 +276,37 @@ def validate(path: Path, global_ids: dict[str, str]) -> list[str]:
                         issues.append(
                             f"{where}: prompt image {prompt_index} needs a text alternative"
                         )
-            interaction = exercise.get("interaction")
-            evaluation = exercise.get("evaluation")
-            if not isinstance(interaction, dict) or interaction.get("kind") not in INTERACTIONS:
-                issues.append(f"{where}: invalid interaction")
-                interaction = {}
-            if not isinstance(evaluation, dict) or evaluation.get("kind") not in EVALUATIONS:
-                issues.append(f"{where}: invalid evaluation")
-                evaluation = {}
-            for old in ("accepted", "correctOrder", "caseSensitive", "ignorePunctuation", "ignoreAccents"):
-                if old in evaluation:
-                    issues.append(f"{where}: legacy evaluation field {old} is unsupported")
-            items = interaction.get("items", [])
+            primitive = exercise.get("primitive")
+            if primitive not in PRIMITIVES:
+                issues.append(f"{where}: unknown primitive {primitive!r}")
+                return
+            for legacy in ("interaction", "editorTemplate"):
+                if legacy in exercise:
+                    issues.append(f"{where}: legacy field {legacy} is unsupported in v12")
+            options = exercise.get("options", {})
+            if not isinstance(options, dict):
+                issues.append(f"{where}: options must be an object")
+                options = {}
+            specs = OPTIONS[primitive]
+            for key, value in options.items():
+                spec = specs.get(key)
+                if spec is None:
+                    issues.append(f"{where}: option {key} does not apply to {primitive}")
+                elif spec is int:
+                    if not isinstance(value, int) or isinstance(value, bool):
+                        issues.append(f"{where}: option {key} must be a whole number")
+                elif spec is bool:
+                    if not isinstance(value, bool):
+                        issues.append(f"{where}: option {key} must be true or false")
+                elif spec == "language":
+                    if not isinstance(value, str) or not value.strip():
+                        issues.append(f"{where}: option {key} must be a language tag")
+                elif value not in spec:
+                    issues.append(f"{where}: option {key} value {value!r} is not one of {spec}")
+            joiner = "" if options.get("joiner") == "none" else " "
+            items = exercise.get("items", [])
             if not isinstance(items, list):
-                issues.append(f"{where}: interaction.items must be a list")
+                issues.append(f"{where}: items must be a list")
                 items = []
             item_ids: list[str] = []
             item_values: dict[str, str] = {}
@@ -295,41 +322,104 @@ def validate(path: Path, global_ids: dict[str, str]) -> list[str]:
                 parts = item.get("content", [])
                 if isinstance(parts, list):
                     item_values[item_id] = next((str(part.get("text", "")) for part in parts if isinstance(part, dict) and part.get("type") == "text"), "")
+                side = item.get("side")
+                if primitive == "match" and side not in {"left", "right"}:
+                    issues.append(f"{where}: Match Item {item_index} needs a side")
+                elif primitive != "match" and side is not None:
+                    issues.append(f"{where}: only Match Items carry a side")
+            targets = exercise.get("targets", [])
+            if not isinstance(targets, list):
+                issues.append(f"{where}: targets must be a list")
+                targets = []
+            target_ids: list[str] = []
+            for target_index, target in enumerate(targets, 1):
+                if not isinstance(target, dict) or not isinstance(target.get("id"), str) or not target["id"].strip():
+                    issues.append(f"{where}: target {target_index} needs an id")
+                    continue
+                target_ids.append(target["id"])
+                if "reveal" in target and target["reveal"] != "firstGrapheme":
+                    issues.append(f"{where}: target {target_index} has an unknown reveal")
+                if "region" in target:
+                    region = target["region"]
+                    if not isinstance(region, dict) or any(not isinstance(region.get(k), (int, float)) for k in ("x", "y", "width", "height")):
+                        issues.append(f"{where}: target {target_index} region needs numeric x, y, width and height")
+            if len(set(target_ids)) != len(target_ids):
+                issues.append(f"{where}: target IDs must be unique")
+            layout = exercise.get("layout", [])
+            if not isinstance(layout, list):
+                issues.append(f"{where}: layout must be a list")
+                layout = []
+            layout_targets: list[str] = []
+            for element_index, element in enumerate(layout, 1):
+                if not isinstance(element, dict):
+                    issues.append(f"{where}: layout element {element_index} must be an object")
+                elif element.get("type") == "target":
+                    layout_targets.append(str(element.get("targetId", "")))
+                elif element.get("type") != "text" or not isinstance(element.get("text"), str):
+                    issues.append(f"{where}: layout element {element_index} must be text or target")
+            if any(target not in target_ids for target in layout_targets):
+                issues.append(f"{where}: layout refers to an unknown target")
+            if layout and set(layout_targets) != set(target_ids):
+                issues.append(f"{where}: every target must appear in the layout")
+            evaluation = exercise.get("evaluation")
+            if not isinstance(evaluation, dict):
+                issues.append(f"{where}: evaluation must be an object")
+                evaluation = {}
+            mode = evaluation.get("mode")
+            if mode not in EVALUATION_MODES[primitive]:
+                issues.append(f"{where}: evaluation mode {mode!r} is not legal for {primitive}")
+            known_keys = {"mode", "correctItemIds", "assignments", "answers", "literalAnswers", "targetAnswers", "numeric", "pattern", "correctOrders", "relations", "acceptedTargets"}
+            for key in evaluation:
+                if key not in known_keys:
+                    issues.append(f"{where}: unknown evaluation field {key}")
             correct_ids = evaluation.get("correctItemIds", [])
             if not isinstance(correct_ids, list):
                 issues.append(f"{where}: correctItemIds must be a list")
             elif any(item_id not in item_ids for item_id in correct_ids):
                 issues.append(f"{where}: correctItemIds references a missing Item")
-            pairs = evaluation.get("pairs", [])
-            if not isinstance(pairs, list):
-                issues.append(f"{where}: pairs must be a list")
-            elif any(not isinstance(pair, list) or len(pair) != 2 or any(value not in item_ids for value in pair) for pair in pairs):
-                issues.append(f"{where}: invalid matched_items pair")
-            if evaluation.get("kind") == "text_match":
-                accepted = exercise.get("missingWords") if content.get("editorTemplate") == "missing_word" else evaluation.get("acceptedAnswers")
-                if not isinstance(accepted, list) or not any(isinstance(value, str) and value.strip() for value in accepted):
-                    issues.append(f"{where}: text_match requires non-empty acceptedAnswers (missingWords for missing_word)")
-            if interaction.get("kind") == "input" and evaluation.get("kind") != "text_match":
-                issues.append(f"{where}: input interaction must use text_match evaluation")
-            layout = interaction.get("layout", [])
-            gap_ids = [part.get("text") for part in layout if isinstance(part, dict) and part.get("type") == "gap"] if isinstance(layout, list) else []
-            if gap_ids:
-                assignments = evaluation.get("gapAssignments", {})
-                if any(not isinstance(gap, str) or not gap.strip() for gap in gap_ids) or len(set(gap_ids)) != len(gap_ids):
-                    issues.append(f"{where}: layout needs nonempty unique gap IDs")
-                if not isinstance(assignments, dict) or set(assignments) != set(gap_ids):
-                    issues.append(f"{where}: every gap needs exactly one assignment")
-                elif any(value not in item_ids for value in assignments.values()):
-                    issues.append(f"{where}: gap assignment references a missing Item")
-                elif len(set(item_ids) - set(assignments.values())) > 2:
+            assignments = evaluation.get("assignments", [])
+            assigned_items: list[str] = []
+            if not isinstance(assignments, list):
+                issues.append(f"{where}: assignments must be a list")
+                assignments = []
+            for assignment in assignments:
+                if not isinstance(assignment, dict) or assignment.get("targetId") not in target_ids:
+                    issues.append(f"{where}: assignment refers to an unknown target")
+                    continue
+                assigned = assignment.get("itemIds", [])
+                if not isinstance(assigned, list) or not assigned or any(i not in item_ids for i in assigned):
+                    issues.append(f"{where}: assignment refers to a missing Item")
+                else:
+                    assigned_items.extend(assigned)
+            if mode in {"exactItem", "gapAssignments", "exactAssignments"} and target_ids:
+                if {a.get("targetId") for a in assignments if isinstance(a, dict)} != set(target_ids):
+                    issues.append(f"{where}: every target needs exactly one assignment")
+                elif primitive in {"select", "arrange"} and len(set(item_ids) - set(assigned_items)) > 2:
                     issues.append(f"{where}: gap exercise has more than two distractors")
-                if interaction.get("kind") not in {"select", "arrange"}:
-                    issues.append(f"{where}: inline gaps require Select or Arrange")
-            if interaction.get("kind") == "arrange" and not gap_ids:
+            relations = evaluation.get("relations", [])
+            if not isinstance(relations, list):
+                issues.append(f"{where}: relations must be a list")
+            elif any(not isinstance(pair, list) or len(pair) != 2 or any(value not in item_ids for value in pair) for pair in relations):
+                issues.append(f"{where}: invalid Match relation")
+            if primitive == "match" and not relations:
+                issues.append(f"{where}: Match needs relations")
+            if primitive == "input" and mode in TEXT_MODES:
+                answers = evaluation.get("answers", [])
+                target_answers = evaluation.get("targetAnswers", [])
+                if target_ids:
+                    if not isinstance(target_answers, list) or {t.get("targetId") for t in target_answers if isinstance(t, dict)} != set(target_ids):
+                        issues.append(f"{where}: every Input target needs targetAnswers")
+                    elif any(not isinstance(t.get("answers"), list) or not any(isinstance(a, str) and a.strip() for a in t["answers"]) for t in target_answers):
+                        issues.append(f"{where}: every Input target needs a non-empty answer")
+                elif not isinstance(answers, list) or not any(isinstance(a, str) and a.strip() for a in answers):
+                    issues.append(f"{where}: Input needs non-empty answers")
+            if primitive == "arrange" and mode in {"exactOrder", "acceptedOrders"}:
                 orders = evaluation.get("correctOrders")
                 if not isinstance(orders, list) or not orders:
                     issues.append(f"{where}: arrange requires non-empty correctOrders")
                 else:
+                    if (mode == "exactOrder") != (len(orders) == 1):
+                        issues.append(f"{where}: exactOrder means one order, acceptedOrders several")
                     normalized: set[str] = set()
                     for order_index, order in enumerate(orders, 1):
                         if not isinstance(order, dict):
@@ -352,16 +442,13 @@ def validate(path: Path, global_ids: dict[str, str]) -> list[str]:
                         if any(item_id not in item_ids for item_id in sequence):
                             issues.append(f"{where}: correctOrders {order_index} references a missing Item")
                             continue
-                        separator = "" if content.get("editorTemplate") == "image_word" else " "
-                        if _ordered_text(separator.join(item_values.get(item_id, "") for item_id in sequence)) != key:
+                        if _ordered_text(joiner.join(item_values.get(item_id, "") for item_id in sequence)) != key:
                             issues.append(f"{where}: correctOrders {order_index} is not constructible")
-        if kind == "presentation":
-            presentation = content.get("presentation")
-            completion = presentation.get("completion") if isinstance(presentation, dict) else None
-            actions = completion.get("actions", []) if isinstance(completion, dict) else []
-            if not {"understood", "review_later"}.issubset(set(actions)):
-                issues.append(f"{where}: presentation must support understood and review_later")
-
+            if primitive == "presentation":
+                if mode != "none":
+                    issues.append(f"{where}: a Presentation is never scored")
+                if not prompt:
+                    issues.append(f"{where}: a Presentation needs content")
     lessons = data.get("lessons")
     if not isinstance(lessons, list):
         return issues + ["root: lessons must be a list"]
@@ -469,7 +556,7 @@ def main() -> int:
         print(f"{path.name}: {'OK' if not issues else f'{len(issues)} issue(s)'}")
         for issue in issues:
             print(f"  - {issue}")
-    print(f"Validated {len(files)} bundled Course Model v11 files.")
+    print(f"Validated {len(files)} bundled Course Model v12 files.")
     return 1 if total else 0
 
 

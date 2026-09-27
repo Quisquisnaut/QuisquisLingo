@@ -494,8 +494,7 @@ class InventoryService {
             title: title,
             description: description,
             directory: Directory('${documentsRoot.path}$sep${top.folderName}'),
-            describe:
-                top == QqlTopFolder.export || top == QqlTopFolder.backups
+            describe: top == QqlTopFolder.export || top == QqlTopFolder.backups
                 ? describeBackupOrExport
                 : (file, root) => plain(file, root, note: note),
           ),
@@ -559,7 +558,11 @@ class InventoryService {
       ),
     );
     const earlierPrivateNotes = <String, String>{
-      QqlEarlierPrivateFolders.courses: 'Stored course from an earlier version.',
+      QqlEarlierPrivateFolders.courses:
+          'Stored course from an earlier version.',
+      QqlEarlierPrivateFolders.coursesV11:
+          'Stored Course Model v11 course from Build 255; convert it with '
+          'tools/convert_stored_courses_256.dart.',
       QqlEarlierPrivateFolders.courseMedia:
           'Course media from an earlier version.',
       QqlEarlierPrivateFolders.courseBackups:

@@ -1,3 +1,57 @@
+# 2.0.56 (Build 256, Revision 1) - Course Model v12 - 2026-09-27
+
+Session 2 of the exercise architecture redesign
+(`docs/256_EXERCISE_ARCHITECTURE_PLAN.md`): the canonical exercise
+definitions of Revision 0 get their JSON form, and Course Model v12 becomes
+the only format QQL reads and writes.
+
+- **Course Model v12** (`formatVersion: 12`): every exercise is stored as
+  `primitive`, `options` (explicitly set values only), `prompt`, `items`,
+  `targets`, a neutral inline `layout`, `evaluation` (`mode` plus the keys
+  that mode needs) and optional `feedback`; text elements may say which
+  `language` they are in, audio elements whether their `playback` is
+  automatic and whether they are `required`; Match items carry a `side`;
+  Input's normalization map becomes Input options. `editorTemplate` becomes
+  `authoringMetadata.presetId` (other keys are preserved, never read); a
+  Flashcard is an ordinary exercise with the `presentation` primitive; a
+  Round may carry a `flow`. The Course root, Lessons, GuideBooks, media
+  references, provenance, rights and every other field keep their v11
+  shape (`docs/COURSE_JSON_FORMAT.md`, `docs/EXERCISE_ARCHITECTURE_V12.md`).
+- **Clean cut:** the app reads v12 only. A v11 file is refused with a
+  message naming `tools/convert_course_to_v12.dart` (Course JSON or Course
+  ZIP; media kept, package manifest regenerated, anything not mapped
+  exactly listed, Publisher signatures stripped). Stored Courses live in
+  the new private folder `QQL_Courses_v12/Custom|Publisher`; Build 255's
+  `QQL_Courses` is never read, is listed by the Inventory among the earlier
+  private folders and is removed by Wipe everything. Course Backups keep
+  the `Backups/Courses` folder with manifest format v12; Version History
+  names v11 backups as unreadable. `tools/convert_stored_courses_256.dart`
+  converts a device's stored custom Courses once, never overwriting or
+  deleting (a Publisher Course is re-imported from its signed package). A
+  Course kept outside QQL travels by exporting it from Build 255,
+  converting the file and Quick Importing it here.
+- **Bundled Courses** (Exercise Laboratory, Edge Case Course, Korean,
+  Piedmontese), the demo package and the Publisher test fixtures
+  (re-signed) are v12; the three generators, `tools/validate_courses.py`
+  and the new Python mirror of the mapping (`tools/qql_course_v12.py`) emit
+  and check v12, and a parity test compares the Python and Dart converters
+  on every bundled Course. `tools/convert_course_to_v11.dart` is retired;
+  the v11 originals are kept in `test/fixtures/v11/`.
+- **Semantic equality** (`Exercise.semanticallyEquals`): canonical JSON
+  with every default option filled in, without authoring metadata,
+  timestamp and publication state; IDs and item order count.
+- **Editor fix found by the conversion:** saving a converted Type the
+  missing word exercise as Published rebuilt it through the old view and
+  failed with "Use exactly one ___ gap"; publication and shared-image
+  changes now copy the canonical exercise. Course Editor Search finds the
+  sentence of an inline-gap exercise.
+- **Unchanged:** what learners see, scoring, Duel availability, Audit
+  findings, package format 1, rights and learner data. The runtime, Audit
+  and editor still read the canonical exercise through v11-shaped views
+  until Revisions 2 and 3 move them to the canonical fields.
+- **Beta expiry:** 27 October 2026, 23:59:59 local time (30 days from this
+  release date).
+
 # 2.0.56 (Build 256, Revision 0) - Canonical exercise definitions - 2026-09-27
 
 Session 1 of the exercise architecture redesign

@@ -574,23 +574,25 @@ void main() {
       final content = round['content'] as List;
       final exercise = (content.first as Map)['exercise'] as Map;
       (exercise['prompt'] as List)[1] = image(30, 'clue');
-      final interaction = exercise['interaction'] as Map;
-      ((interaction['items'] as List).first['content'] as List).add(image(31));
-      interaction['layout'] = [image(32)];
+      final items = exercise['items'] as List;
+      (items.first['content'] as List).add(image(31));
+      // Course Model v12 layouts hold no images; a second answer item does.
+      (items.last['content'] as List).add(image(32));
       Map<String, dynamic> flashcard(String id, int seed) => {
         'id': id,
         'publicationState': 'published',
-        'kind': 'presentation',
+        'kind': 'exercise',
         'required': true,
-        'editorTemplate': 'flashcard',
-        'presentation': {
-          'content': [
+        'authoringMetadata': {'presetId': 'flashcard'},
+        'exercise': {
+          'updatedAt': '2026-09-24T10:00:00.000Z',
+          'primitive': 'presentation',
+          'options': {'completionMode': 'understoodReview'},
+          'prompt': [
             {'role': 'term', 'type': 'text', 'text': 'Gatto'},
             image(seed, 'image'),
           ],
-          'completion': {
-            'actions': ['understood', 'review_later'],
-          },
+          'evaluation': {'mode': 'none'},
         },
       };
       content.add(flashcard('manifest-round-flashcard', 33));
@@ -633,9 +635,10 @@ void main() {
         for (final entry in manifest['sharedImageSources'] as List)
           (entry as Map)['media'],
       };
-      // Only the prompt image is listed. Answer item, layout, presentation,
+      // Only the prompt images of the Round's exercises are listed, and a
+      // Presentation is one of them since Course Model v12. Answer item,
       // GuideBook and Course image library provenance is absent here.
-      expect(listed, {refs[30]});
+      expect(listed, {refs[30], refs[33]});
 
       // Nothing is lost: course.json carries every source, and the package
       // still imports because export and import build the list the same way.

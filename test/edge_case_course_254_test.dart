@@ -457,7 +457,9 @@ void main() {
       final imageRound = ((lessons[2] as Map)['rounds'] as List).first as Map;
       final imageExercise =
           ((imageRound['content'] as List).whereType<Map>().singleWhere(
-                (content) => content['editorTemplate'] == 'image_word',
+                (content) =>
+                    (content['authoringMetadata'] as Map?)?['presetId'] ==
+                    'image_word',
               ))['exercise']
               as Map;
       final imagePrompt = (imageExercise['prompt'] as List)

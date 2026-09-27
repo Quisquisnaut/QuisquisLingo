@@ -60,20 +60,25 @@ Course _everywhere() {
   final content = round['content'] as List;
   final exercise = (content.first as Map)['exercise'] as Map;
   (exercise['prompt'] as List).add(_image(_media('a')));
-  final interaction = exercise['interaction'] as Map;
-  ((interaction['items'] as List).first as Map)['content'].add(
+  ((exercise['items'] as List).first as Map)['content'].add(
     _image(_media('b')),
   );
-  (interaction['layout'] ??= <dynamic>[]).add(_image(_media('c')));
+  // Course Model v12 layouts hold text runs and targets, never images, so
+  // the third image goes into the last answer item instead.
+  ((exercise['items'] as List).last as Map)['content'].add(_image(_media('c')));
+  // A Presentation is a presentation-primitive exercise since v12.
   Map<String, dynamic> presentation(String id, String asset, {String? role}) =>
       {
         'id': id,
         'publicationState': 'published',
-        'kind': 'presentation',
+        'kind': 'exercise',
         'required': false,
         if (role != null) 'role': role,
-        'presentation': {
-          'content': [_image(asset)],
+        'exercise': {
+          'updatedAt': '2026-09-01T00:00:00.000Z',
+          'primitive': 'presentation',
+          'prompt': [_image(asset)],
+          'evaluation': {'mode': 'none'},
         },
       };
   content.add(presentation('usage_pres', _media('d')));
@@ -143,12 +148,15 @@ void main() {
     (guidebook['content'] ??= <dynamic>[]).add({
       'id': 'gb_source',
       'publicationState': 'published',
-      'kind': 'presentation',
+      'kind': 'exercise',
       'required': false,
-      'presentation': {
-        'content': [
+      'exercise': {
+        'updatedAt': '2026-09-01T00:00:00.000Z',
+        'primitive': 'presentation',
+        'prompt': [
           {..._image(_media('9')), 'sharedImageSource': source.toJson()},
         ],
+        'evaluation': {'mode': 'none'},
       },
     });
     final course = Course.fromJson(json);

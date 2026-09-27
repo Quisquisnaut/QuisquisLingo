@@ -5,15 +5,19 @@ import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/services/course_audit_service.dart';
 import 'package:quisquislingo_app/services/exercise_draft_builder.dart';
 
+// Course Model v12: a Flashcard is a presentation-primitive exercise.
 LearningContent _storedFlashcard({bool includeTranslation = true}) =>
     LearningContent.fromJson({
       'id': 'stable-flashcard',
       'publicationState': 'published',
-      'kind': 'presentation',
+      'kind': 'exercise',
       'required': true,
-      'editorTemplate': 'flashcard',
-      'presentation': {
-        'content': [
+      'authoringMetadata': {'presetId': 'flashcard'},
+      'exercise': {
+        'updatedAt': '2026-09-25T00:00:00.000Z',
+        'primitive': 'presentation',
+        'options': {'completionMode': 'understoodReview'},
+        'prompt': [
           {'role': 'term', 'type': 'text', 'text': 'lìber'},
           {'role': 'audio', 'type': 'audio', 'text': 'lìber'},
           {'role': 'meaning', 'type': 'text', 'text': 'book'},
@@ -25,9 +29,7 @@ LearningContent _storedFlashcard({bool includeTranslation = true}) =>
               'text': 'I have a book.',
             },
         ],
-        'completion': {
-          'actions': ['understood', 'review_later'],
-        },
+        'evaluation': {'mode': 'none'},
       },
     });
 
@@ -84,7 +86,9 @@ void main() {
         expect(candidate.publicationState, state);
         expect(candidate.answers, ['pan e eva', 'bread and water']);
         final content = LearningContent.fromExercise(candidate);
-        expect(content.kind, 'presentation');
+        // Course Model v12: a Flashcard is a presentation-primitive exercise.
+        expect(content.kind, 'exercise');
+        expect(content.exercise!.primitive, ExercisePrimitive.presentation);
         expect(content.presentation!.actions, ['understood', 'review_later']);
         expect(
           {

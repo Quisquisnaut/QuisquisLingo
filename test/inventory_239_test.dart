@@ -98,7 +98,7 @@ void main() {
       expect(item.sizeBytes, file.lengthSync());
       expect(item.modified, file.statSync().modified);
       expect(courses.totalBytes, file.lengthSync());
-      expect(courses.location, endsWith('QQL_Courses'));
+      expect(courses.location, endsWith('QQL_Courses_v12'));
       // Revision 4: QQL_<pair>_<ID>.json, the ID without its course_ prefix.
       expect(file.uri.pathSegments.last, startsWith('QQL_EN_IT_'));
       expect(courses.items.single.owner, isNotNull);
@@ -139,7 +139,7 @@ void main() {
     'inventory lists unreadable course files without altering them',
     () async {
       final file = touch(
-        '${support.path}${sep}QQL_Courses${sep}Custom${sep}broken.json',
+        '${support.path}${sep}QQL_Courses_v12${sep}Custom${sep}broken.json',
         'broken-json',
       );
       final actual = InventoryService(
@@ -191,7 +191,9 @@ void main() {
       touch('${support.path}${sep}exercise_images${sep}a.png');
       touch('${support.path}${sep}QQL_SharedImages${sep}b.png');
       touch('${support.path}${sep}image_banks${sep}bank_1${sep}manifest.json');
-      touch('${support.path}${sep}QQL_ImageBanks${sep}bank_2${sep}manifest.json');
+      touch(
+        '${support.path}${sep}QQL_ImageBanks${sep}bank_2${sep}manifest.json',
+      );
       final folder = CourseStorageNames.mediaFolderName(
         _course.courseId,
         pair: CourseStorageNames.pairOfCourse(_course),
@@ -203,9 +205,7 @@ void main() {
         '${support.path}${sep}QQL_CourseMedia${sep}course_unknown$sep${'b' * 64}.png',
       );
       // Private folders from before Revision 4, which QQL no longer reads.
-      touch(
-        '${support.path}${sep}qql_courses_v2${sep}custom${sep}old.json',
-      );
+      touch('${support.path}${sep}qql_courses_v2${sep}custom${sep}old.json');
       touch(
         '${support.path}${sep}quisquislingo_course_media${sep}course_old$sep${'c' * 64}.png',
       );
@@ -347,9 +347,7 @@ void main() {
     expect(find.text('Nothing found.'), findsWidgets);
   });
 
-  testWidgets('Advanced (Admin) shows Inventory before Reset', (
-    tester,
-  ) async {
+  testWidgets('Advanced (Admin) shows Inventory before Reset', (tester) async {
     await profiles.setActiveProfileById(adminId);
     tester.view.physicalSize = const Size(800, 3600);
     tester.view.devicePixelRatio = 1;

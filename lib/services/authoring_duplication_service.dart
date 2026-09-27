@@ -354,7 +354,7 @@ class AuthoringDuplicationService {
   }
 
   void _allocateExerciseItems(Exercise exercise, Map<String, String> remap) {
-    for (final item in exercise.interaction.items) {
+    for (final item in exercise.items) {
       remap.putIfAbsent(item.id, () => _ids.next('item'));
     }
   }
@@ -401,15 +401,6 @@ class AuthoringDuplicationService {
             remap,
             preservePublicationState: preservePublicationState,
           ),
-    presentation: source.presentation == null
-        ? null
-        : Presentation(
-            content: [
-              for (final element in source.presentation!.content)
-                _copyPrompt(element),
-            ],
-            actions: [...source.presentation!.actions],
-          ),
     text: source.text,
     sourceRefs: [
       for (final reference in source.sourceRefs) remap[reference] ?? reference,
@@ -422,69 +413,74 @@ class AuthoringDuplicationService {
     bool preservePublicationState = false,
   }) {
     String mapped(String id) => remap[id] ?? id;
-    return Exercise.v2(
+    final evaluation = source.canonicalEvaluation;
+    // Course Model v12: items get fresh IDs and every evaluation reference
+    // follows them; targets are exercise-local and keep their IDs.
+    return Exercise.canonical(
       id: mapped(source.id),
       publicationState: preservePublicationState
           ? source.publicationState
           : PublicationState.draft,
       updatedAt: source.updatedAt,
-      editorTemplate: source.editorTemplate,
+      primitive: source.primitive,
+      options: source.options,
       promptElements: [
         for (final element in source.promptElements) _copyPrompt(element),
       ],
-      interaction: ExerciseInteraction(
-        kind: source.interaction.kind,
-        inputType: source.interaction.inputType,
-        minSelections: source.interaction.minSelections,
-        maxSelections: source.interaction.maxSelections,
-        items: [
-          for (final item in source.interaction.items)
-            ExerciseItem(
-              id: mapped(item.id),
-              content: [
-                for (final element in item.content) _copyPrompt(element),
-              ],
+      items: [
+        for (final item in source.items)
+          item.copyWith(
+            id: mapped(item.id),
+            content: [for (final element in item.content) _copyPrompt(element)],
+          ),
+      ],
+      targets: source.targets,
+      layout: source.layout,
+      canonicalEvaluation: evaluation.copyWith(
+        correctItemIds: evaluation.correctItemIds.map(mapped).toList(),
+        answers: [...evaluation.answers],
+        literalAnswers: [...evaluation.literalAnswers],
+        targetAnswers: [
+          for (final answers in evaluation.targetAnswers)
+            TargetAnswers(
+              targetId: answers.targetId,
+              answers: [...answers.answers],
+              literalAnswers: [...answers.literalAnswers],
             ),
         ],
-        layout: [
-          for (final element in source.interaction.layout) _copyPrompt(element),
+        assignments: [
+          for (final assignment in evaluation.assignments)
+            TargetAssignment(
+              targetId: assignment.targetId,
+              itemIds: assignment.itemIds.map(mapped).toList(),
+            ),
         ],
-      ),
-      evaluation: ExerciseEvaluation(
-        kind: source.evaluation.kind,
-        correctItemIds: source.evaluation.correctItemIds.map(mapped).toList(),
-        accepted: [...source.evaluation.accepted],
         correctOrders: [
-          for (final answer in source.evaluation.correctOrders)
+          for (final answer in evaluation.correctOrders)
             OrderedAnswer(
               text: answer.text,
               itemIds: answer.itemIds.map(mapped).toList(),
             ),
         ],
-        pairs: [
-          for (final pair in source.evaluation.pairs)
+        relations: [
+          for (final pair in evaluation.relations)
             [for (final id in pair) mapped(id)],
         ],
-        normalization: Map<String, dynamic>.from(
-          jsonDecode(jsonEncode(source.evaluation.normalization)) as Map,
-        ),
-        gapAssignments: {
-          for (final entry in source.evaluation.gapAssignments.entries)
-            entry.key: mapped(entry.value),
-        },
+        acceptedTargets: [
+          for (final accepted in evaluation.acceptedTargets)
+            AcceptedTarget(
+              itemId: mapped(accepted.itemId),
+              targetIds: accepted.targetIds,
+            ),
+        ],
       ),
+      feedback: source.feedback,
       hint: source.hint,
-      feedback: {...source.feedback},
-      missingWords: [...source.missingWords],
+      authoringMetadata: source.authoringMetadata,
     );
   }
 
-  PromptElement _copyPrompt(PromptElement source) => PromptElement(
-    role: source.role,
-    type: source.type,
-    text: source.text,
-    asset: source.asset,
-    speaker: source.speaker,
-    sharedImageSource: source.sharedImageSource,
-  );
+  /// A fresh element with every attribute, including the Course Model v12
+  /// language, playback and required attributes.
+  PromptElement _copyPrompt(PromptElement source) => source.copyWith();
 }

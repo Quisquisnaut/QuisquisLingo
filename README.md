@@ -1,6 +1,6 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.56+256000 · Build 256, Revision 0 · Course Model v11 (`formatVersion: 11`; v12 arrives with Build 256 Revision 1).**
+**Current source version: 2.0.56+256001 · Build 256, Revision 1 · Course Model v12 (`formatVersion: 12`).**
 
 **QuisquisLingo 2.0.56 Beta — QQL 256 exercise architecture (Course Model v12)**
 
@@ -13,9 +13,13 @@ items or targets, a neutral **layout** and an **evaluation** mode; editor
 flows** so Stories and branching lessons can be imported without a Story
 exercise type. Revision 0 adds the canonical definitions and the capability
 registry that the Audit, the editor, import and the learner runtime will all
-read ([reference](docs/EXERCISE_ARCHITECTURE_V12.md)); nothing learners or
-authors see changes yet, and Course files stay v11 until Revision 1's clean
-cut to v12. The Beta expiry is 27 October 2026, 23:59:59 local time.
+read ([reference](docs/EXERCISE_ARCHITECTURE_V12.md)). Revision 1 is the
+clean cut to **Course Model v12**: exercises are stored in that canonical
+form, the app reads v12 only, stored Courses move to `QQL_Courses_v12`, and
+`tools/convert_course_to_v12.dart` converts a Build 255 export (JSON or
+Course ZIP) for Quick Import ([format](docs/COURSE_JSON_FORMAT.md)). What
+learners see, scoring, Audit findings and learner data are unchanged. The
+Beta expiry is 27 October 2026, 23:59:59 local time.
 
 **QuisquisLingo 2.0.55 Beta — QQL 255 logical storage and Quick folders**
 
@@ -328,7 +332,7 @@ The MPL-2.0 covers the QuisquisLingo software source. Courses, the Image Bank an
 
 ## Beta lifecycle
 
-Version 2.0.55, Build 255, Revision 7 is a time-limited Beta with an expiry of **2026-10-27 23:59:59 local time** (30 days after the 27 September 2026 release date). In its last seven days it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
+Version 2.0.56, Build 256, Revision 1 is a time-limited Beta with an expiry of **2026-10-27 23:59:59 local time** (30 days after the 27 September 2026 release date). In its last seven days it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
 
 ## Core logic
 
@@ -574,7 +578,7 @@ external publishers yet. Dummy is trusted only with the explicit compile-time
 `QQL_ENABLE_DUMMY_PUBLISHER=true` flag and a TEST ONLY banner; this is also
 available for release-mode **test** builds. Never distribute that configuration
 as a public production release. Bundled courses and unsigned custom courses
-retain their distinct trust rules. Course Model is v11; v9/v10 Publisher Courses must be converted and signed again.
+retain their distinct trust rules. Course Model is v12; v11 Publisher Courses must be converted with `tools/convert_course_to_v12.dart` and signed again.
 
 Final Build 241 Revision 2 validation passed; see the report for full-suite and final focused evidence. Build 242 evidence is in [242 validation](docs/242_VALIDATION.md); Build 243 evidence is in [243 validation](docs/243_VALIDATION.md); Build 244 evidence is in [244 validation](docs/244_VALIDATION.md).
 

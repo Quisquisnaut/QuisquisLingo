@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Generate the original, deterministic Exercise Laboratory Course Model v11.
+"""Generate the original, deterministic Exercise Laboratory Course (Model v12).
+
+The examples are authored in the v11 shape the presets describe and pass
+through tools/qql_course_v12.py, the Python mirror of the Dart mapping, so
+the committed file is Course Model v12 (Build 256 Revision 1).
 
 Only this course and its coverage document are written. Existing courses and
 media are inputs, never rewritten. --check verifies the committed outputs.
@@ -11,8 +15,12 @@ import base64
 import hashlib
 import json
 import struct
+import sys
 import zlib
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from qql_course_v12 import convert_course_v11_to_v12  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 ASSET = ROOT / "assets/courses/exercise_laboratory_en_it.json"
@@ -404,6 +412,7 @@ def course(lab: Laboratory) -> dict:
         "keywords": ["exercise laboratory", "authoring", "Italian", "examples"],
         "lessons": lab.lessons,
     }
+    value = convert_course_v11_to_v12(value)
     # The checksum excludes the local verification status.
     checksum_value = dict(value)
     checksum_value.pop("publisherVerificationStatus")
