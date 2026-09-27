@@ -7,32 +7,23 @@ condensed specification). Working rules: Part A.1 of the plan. Reference:
 the Session 2 design). Summary: `docs/256_CHANGE_SUMMARY.md`. Evidence:
 `docs/256_VALIDATION.md`.
 
-## State (27 September 2026, 09:43)
+## State (27 September 2026, 10:09)
 
 - Branch `claude/256-exercise-architecture`, created from `main` at
   `611a1a1` (Build 255 handoff; version `2.0.55+255007`).
 - Commits: `507be89` Build 256 Revision 0 (canonical definitions;
-  `2.0.56+256000`); `4e19353` handoff; `e850cc2` Build 256 Revision 1
-  (Course Model v12; `2.0.56+256001`; suite 2,829 passed, 1 skipped);
-  `b480e15`, `af15ff0` handoffs.
-- **Session 3 (Revision 2, `2.0.56+256002`) is complete in the working
-  tree, uncommitted, with the complete suite running for the second time**
-  through the keep-awake wrapper (log: scratchpad `full_rev2b.log`,
-  UTF-16). The first run (09:14–09:36) gave 2,837 passed, 1 skipped, 3
-  failed, all fixed since: `IMAGE_WORD_IMAGE_REQUIRED` is an Error again
-  (the picture is the prompt of a word-building Arrange: a solvability
-  rule, now emitted by kind), `imported_course_v6_regression_test` checks
-  the canonical dispatch of the listening-spelling renderer, and
-  `authoring_transfer_ui_226_02_test` expects a green destination Round
-  (a hint on a Choose is no longer the retired "unexpected field"
-  warning). Analyzer clean; the affected files pass (216 tests). When the suite passes:
-  write the Revision 2 section of `docs/256_VALIDATION.md`, commit
-  everything except the owner's untracked `devtools_options.yaml` and
-  `tools/cloud_setup.sh` as "Build 256 Revision 2: runtime and Audit on
-  canonical data", write this handoff again and commit it, then start
-  Session 4 at once (plan Part B, Session 4; A.12, A.13). If the suite
-  fails: rerun the failing file alone; any fix means rerunning that file
-  and the complete suite before the commit (plan A.1).
+  `2.0.56+256000`); `e850cc2` Revision 1 (Course Model v12;
+  `2.0.56+256001`); `41dd91a` **Build 256 Revision 2: runtime and Audit
+  on canonical data** (`2.0.56+256002`; complete suite 2,840 passed, 1
+  skipped, 0 failed; evidence in `docs/256_VALIDATION.md`); handoff
+  commits between them.
+- **Session 4 (Revision 3, `2.0.56+256003`) starts now** with the design
+  below. Nothing of it is in the working tree yet.
+- The owner asked (10:00) where to build a test release: from
+  `C:\QQL\QuisquisLingo`, `tools\package_windows_release.ps1
+  -RebuildFlutterApplication` writes
+  `build\packages\quisquislingo_windows_beta_<buildnumber>.zip`; never
+  while a `flutter test` run is going. No package was built by the agent.
 - Untracked files that are the owner's and stay untouched:
   `devtools_options.yaml`, `tools/cloud_setup.sh` (commit with
   `git add -A -- . ':!devtools_options.yaml' ':!tools/cloud_setup.sh'`).
@@ -41,7 +32,7 @@ the Session 2 design). Summary: `docs/256_CHANGE_SUMMARY.md`. Evidence:
   expires after 7 days or all six sessions are committed (then delete it with
   `CronDelete`). It cannot survive the desktop app closing.
 
-## Session 3 (done in the working tree)
+## Session 3 (done, `41dd91a`)
 
 What the design below asked for is implemented (see `CHANGELOG.md` and
 `docs/256_CHANGE_SUMMARY.md`, Revision 2): `ExerciseFeatures` and
@@ -87,7 +78,7 @@ Session 4 starting points (plan Part B Session 4; A.12, A.13):
   six-part report and the commit "Build 256 Revision 3: presets as recipes
   and the Generic Primitive Editor".
 
-## Session 3 design (Revision 2, `2.0.56+256002`): runtime and Audit on canonical data
+## Session 3 design (Revision 2, `2.0.56+256002`): runtime and Audit on canonical data — delivered, kept for reference
 
 Goal (plan A.3): nothing learners see reads a preset ID. Sizing on 27
 September: `round_screen.dart` has 56 preset-dependent reads, the Audit
@@ -205,8 +196,8 @@ Order of work:
 | --- | --- | --- | --- |
 | 1 Canonical definitions | 0 | 2.0.56+256000 | committed `507be89` |
 | 2 Course Model v12 | 1 | 2.0.56+256001 | committed `e850cc2` |
-| 3 Runtime and Audit | 2 | 2.0.56+256002 | complete in the working tree; suite running |
-| 4 Presets and Generic Primitive Editor | 3 | 2.0.56+256003 | not started |
+| 3 Runtime and Audit | 2 | 2.0.56+256002 | committed `41dd91a` |
+| 4 Presets and Generic Primitive Editor | 3 | 2.0.56+256003 | in progress |
 | 5 Interoperability | 4 | 2.0.56+256004 | not started |
 | 6 Laboratory, Assign, final verification | 5 | 2.0.56+256005 | not started |
 
