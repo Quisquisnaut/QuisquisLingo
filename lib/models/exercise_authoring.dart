@@ -1,3 +1,5 @@
+import 'canonical/exercise_primitive.dart';
+
 enum ExerciseCategory {
   multipleChoice('Multiple choice'),
   translation('Translation'),
@@ -10,22 +12,25 @@ enum ExerciseCategory {
   final String label;
 }
 
-enum CanonicalExerciseModel { select, input, arrange, match, presentation }
-
+/// An authoring recipe over one canonical primitive. A preset never adds a
+/// primitive or hidden runtime semantics: everything it sets up is ordinary
+/// canonical exercise data (Build 256).
 class ExercisePreset {
   const ExercisePreset({
     required this.id,
     required this.name,
     required this.description,
     required this.category,
-    required this.model,
+    required this.primitive,
   });
 
   final String id;
   final String name;
   final String description;
   final ExerciseCategory category;
-  final CanonicalExerciseModel model;
+
+  /// The primitive this recipe configures.
+  final ExercisePrimitive primitive;
 }
 
 /// The single authoring registry used by the picker, Help and validation.
@@ -39,21 +44,21 @@ abstract final class ExercisePresetRegistry {
       name: 'Choose',
       description: 'Learner chooses the correct translation from alternatives.',
       category: ExerciseCategory.multipleChoice,
-      model: CanonicalExerciseModel.select,
+      primitive: ExercisePrimitive.select,
     ),
     ExercisePreset(
       id: 'gap_choice',
       name: 'Fill in the blank',
       description: 'Learner selects the missing word or expression.',
       category: ExerciseCategory.multipleChoice,
-      model: CanonicalExerciseModel.select,
+      primitive: ExercisePrimitive.select,
     ),
     ExercisePreset(
       id: 'icon_choice',
       name: 'Select the image',
       description: 'Learner chooses the image corresponding to the prompt.',
       category: ExerciseCategory.multipleChoice,
-      model: CanonicalExerciseModel.select,
+      primitive: ExercisePrimitive.select,
     ),
     ExercisePreset(
       id: 'script_recognition',
@@ -61,14 +66,14 @@ abstract final class ExercisePresetRegistry {
       description:
           'Recognize printed or handwritten characters: Image to text or Text to image.',
       category: ExerciseCategory.multipleChoice,
-      model: CanonicalExerciseModel.select,
+      primitive: ExercisePrimitive.select,
     ),
     ExercisePreset(
       id: 'listening_choice',
       name: 'What do you hear',
       description: 'Learner listens and chooses the matching written answer.',
       category: ExerciseCategory.multipleChoice,
-      model: CanonicalExerciseModel.select,
+      primitive: ExercisePrimitive.select,
     ),
     ExercisePreset(
       id: 'listening_comprehension',
@@ -76,21 +81,21 @@ abstract final class ExercisePresetRegistry {
       description:
           'Learner listens to a passage and selects the correct answer.',
       category: ExerciseCategory.multipleChoice,
-      model: CanonicalExerciseModel.select,
+      primitive: ExercisePrimitive.select,
     ),
     ExercisePreset(
       id: 'reading_comprehension',
       name: 'Reading comprehension',
       description: 'Learner reads a passage and selects the correct answer.',
       category: ExerciseCategory.multipleChoice,
-      model: CanonicalExerciseModel.select,
+      primitive: ExercisePrimitive.select,
     ),
     ExercisePreset(
       id: 'dialogue_response',
       name: 'Dialogue response',
       description: 'Learner reads a situation and selects the best response.',
       category: ExerciseCategory.multipleChoice,
-      model: CanonicalExerciseModel.select,
+      primitive: ExercisePrimitive.select,
     ),
     ExercisePreset(
       id: 'contextual_comprehension',
@@ -98,14 +103,14 @@ abstract final class ExercisePresetRegistry {
       description:
           'Learner reads and/or listens to context and answers a separate question.',
       category: ExerciseCategory.multipleChoice,
-      model: CanonicalExerciseModel.select,
+      primitive: ExercisePrimitive.select,
     ),
     ExercisePreset(
       id: 'type_translation',
       name: 'Type the translation',
       description: 'Learner types a translation in the target language.',
       category: ExerciseCategory.translation,
-      model: CanonicalExerciseModel.input,
+      primitive: ExercisePrimitive.input,
     ),
     ExercisePreset(
       id: 'build_translation',
@@ -113,7 +118,7 @@ abstract final class ExercisePresetRegistry {
       description:
           'Learner constructs a translation using provided word blocks.',
       category: ExerciseCategory.translation,
-      model: CanonicalExerciseModel.arrange,
+      primitive: ExercisePrimitive.arrange,
     ),
     ExercisePreset(
       id: 'translation_choice_to_target',
@@ -121,7 +126,7 @@ abstract final class ExercisePresetRegistry {
       description:
           'Select: learner sees source-language text and picks its target-language translation.',
       category: ExerciseCategory.translation,
-      model: CanonicalExerciseModel.select,
+      primitive: ExercisePrimitive.select,
     ),
     ExercisePreset(
       id: 'translation_choice_to_source',
@@ -129,14 +134,14 @@ abstract final class ExercisePresetRegistry {
       description:
           'Select: learner sees target-language text and picks its source-language translation.',
       category: ExerciseCategory.translation,
-      model: CanonicalExerciseModel.select,
+      primitive: ExercisePrimitive.select,
     ),
     ExercisePreset(
       id: 'fill_blank',
       name: 'Type a missing word',
       description: 'Learner types the text missing from a word or phrase.',
       category: ExerciseCategory.textInput,
-      model: CanonicalExerciseModel.input,
+      primitive: ExercisePrimitive.input,
     ),
     ExercisePreset(
       id: 'type_missing_word',
@@ -144,14 +149,14 @@ abstract final class ExercisePresetRegistry {
       description:
           'Complete a missing word after its first letter is provided.',
       category: ExerciseCategory.textInput,
-      model: CanonicalExerciseModel.input,
+      primitive: ExercisePrimitive.input,
     ),
     ExercisePreset(
       id: 'listening_spelling',
       name: 'Type what you hear',
       description: 'Learner listens and types the heard word or passage.',
       category: ExerciseCategory.textInput,
-      model: CanonicalExerciseModel.input,
+      primitive: ExercisePrimitive.input,
     ),
     ExercisePreset(
       id: 'missing_word',
@@ -159,35 +164,35 @@ abstract final class ExercisePresetRegistry {
       description:
           'Learner listens and completes one or more gaps in a transcript.',
       category: ExerciseCategory.textInput,
-      model: CanonicalExerciseModel.input,
+      primitive: ExercisePrimitive.input,
     ),
     ExercisePreset(
       id: 'matching',
       name: 'Match the pairs',
       description: 'Learner matches corresponding textual items.',
       category: ExerciseCategory.matching,
-      model: CanonicalExerciseModel.match,
+      primitive: ExercisePrimitive.match,
     ),
     ExercisePreset(
       id: 'word_match',
       name: 'Match the words',
       description: 'Learner matches words with their translations.',
       category: ExerciseCategory.matching,
-      model: CanonicalExerciseModel.match,
+      primitive: ExercisePrimitive.match,
     ),
     ExercisePreset(
       id: 'super_match',
       name: 'Match related words',
       description: 'Learner matches related target-language items.',
       category: ExerciseCategory.matching,
-      model: CanonicalExerciseModel.match,
+      primitive: ExercisePrimitive.match,
     ),
     ExercisePreset(
       id: 'audio_match',
       name: 'Listen and match',
       description: 'Learner matches audio with the corresponding item.',
       category: ExerciseCategory.matching,
-      model: CanonicalExerciseModel.match,
+      primitive: ExercisePrimitive.match,
     ),
     ExercisePreset(
       id: 'word_order',
@@ -195,14 +200,14 @@ abstract final class ExercisePresetRegistry {
       description:
           'Learner restores target-language blocks to the correct order.',
       category: ExerciseCategory.ordering,
-      model: CanonicalExerciseModel.arrange,
+      primitive: ExercisePrimitive.arrange,
     ),
     ExercisePreset(
       id: 'image_word',
       name: 'Image-prompt ordering',
       description: 'Learner builds the word represented by an image.',
       category: ExerciseCategory.ordering,
-      model: CanonicalExerciseModel.arrange,
+      primitive: ExercisePrimitive.arrange,
     ),
     ExercisePreset(
       id: 'flashcard',
@@ -210,7 +215,7 @@ abstract final class ExercisePresetRegistry {
       description:
           'Presents learning material without an ordinary scored answer.',
       category: ExerciseCategory.presentation,
-      model: CanonicalExerciseModel.presentation,
+      primitive: ExercisePrimitive.presentation,
     ),
   ];
 

@@ -1,0 +1,413 @@
+/// Content flows: how the content and exercise nodes of a Round, Story or
+/// other learning activity are ordered or branched (Course Model v12).
+///
+/// A Story is not a primitive. It is a flow whose nodes point at the Round's
+/// Content entries: content nodes show material (dialogue, narration, a
+/// Presentation exercise) and exercise nodes run a scored primitive. Linear
+/// flows chain nodes with `next`; branching uses `onCorrect`, `onIncorrect`,
+/// `onChoice` and `conditional` transitions, which this model represents and
+/// checks structurally so later builds can play them without changing the
+/// serialized shape. A node with no applicable transition ends the flow.
+library;
+
+/// What a node does when the flow reaches it.
+enum FlowNodeKind {
+  /// Shows the referenced Content (textual material or a Presentation).
+  content('content'),
+
+  /// Runs the referenced Content's exercise and records its outcome.
+  exercise('exercise');
+
+  const FlowNodeKind(this.serialized);
+  final String serialized;
+
+  static FlowNodeKind? tryParse(Object? value) {
+    if (value is! String) return null;
+    for (final kind in values) {
+      if (kind.serialized == value) return kind;
+    }
+    return null;
+  }
+}
+
+/// When a transition is taken.
+enum FlowTrigger {
+  /// Unconditionally, after the node completes. At most one per node.
+  next('next'),
+
+  /// After an exercise node whose answer was correct.
+  onCorrect('onCorrect'),
+
+  /// After an exercise node whose answer was incorrect.
+  onIncorrect('onIncorrect'),
+
+  /// After an exercise node in which the learner chose [FlowTransition.choiceItemId].
+  onChoice('onChoice'),
+
+  /// When [FlowTransition.condition] holds.
+  conditional('conditional');
+
+  const FlowTrigger(this.serialized);
+  final String serialized;
+
+  static FlowTrigger? tryParse(Object? value) {
+    if (value is! String) return null;
+    for (final trigger in values) {
+      if (trigger.serialized == value) return trigger;
+    }
+    return null;
+  }
+}
+
+/// What a conditional transition tests. Every kind refers to an earlier
+/// node's recorded outcome, so a condition never needs learner state outside
+/// the flow.
+enum FlowConditionKind {
+  answeredCorrectly('answeredCorrectly'),
+  answeredIncorrectly('answeredIncorrectly'),
+  chose('chose'),
+  visited('visited');
+
+  const FlowConditionKind(this.serialized);
+  final String serialized;
+
+  static FlowConditionKind? tryParse(Object? value) {
+    if (value is! String) return null;
+    for (final kind in values) {
+      if (kind.serialized == value) return kind;
+    }
+    return null;
+  }
+}
+
+final class FlowCondition {
+  const FlowCondition({required this.kind, required this.nodeId, this.itemId});
+
+  final FlowConditionKind kind;
+
+  /// The node whose outcome is tested.
+  final String nodeId;
+
+  /// For [FlowConditionKind.chose]: the item the learner must have chosen.
+  final String? itemId;
+
+  @override
+  bool operator ==(Object other) =>
+      other is FlowCondition &&
+      other.kind == kind &&
+      other.nodeId == nodeId &&
+      other.itemId == itemId;
+
+  @override
+  int get hashCode => Object.hash(kind, nodeId, itemId);
+}
+
+final class FlowTransition {
+  const FlowTransition({
+    required this.trigger,
+    required this.targetNodeId,
+    this.choiceItemId,
+    this.condition,
+  });
+
+  const FlowTransition.next(String targetNodeId)
+    : this(trigger: FlowTrigger.next, targetNodeId: targetNodeId);
+
+  final FlowTrigger trigger;
+  final String targetNodeId;
+
+  /// For [FlowTrigger.onChoice]: the chosen item that takes this transition.
+  final String? choiceItemId;
+
+  /// For [FlowTrigger.conditional].
+  final FlowCondition? condition;
+
+  @override
+  bool operator ==(Object other) =>
+      other is FlowTransition &&
+      other.trigger == trigger &&
+      other.targetNodeId == targetNodeId &&
+      other.choiceItemId == choiceItemId &&
+      other.condition == condition;
+
+  @override
+  int get hashCode =>
+      Object.hash(trigger, targetNodeId, choiceItemId, condition);
+}
+
+final class FlowNode {
+  const FlowNode({
+    required this.id,
+    required this.kind,
+    required this.contentId,
+    this.transitions = const [],
+  });
+
+  final String id;
+  final FlowNodeKind kind;
+
+  /// The Round Content entry this node shows or runs.
+  final String contentId;
+  final List<FlowTransition> transitions;
+
+  FlowNode copyWith({List<FlowTransition>? transitions}) => FlowNode(
+    id: id,
+    kind: kind,
+    contentId: contentId,
+    transitions: transitions ?? this.transitions,
+  );
+
+  /// The unconditional successor, if any.
+  String? get nextNodeId => transitions
+      .where((transition) => transition.trigger == FlowTrigger.next)
+      .map((transition) => transition.targetNodeId)
+      .firstOrNull;
+
+  bool get hasBranching =>
+      transitions.any((transition) => transition.trigger != FlowTrigger.next);
+}
+
+enum FlowStructureIssueCode {
+  emptyFlow,
+  blankNodeId,
+  duplicateNodeId,
+  blankContentId,
+  startNodeMissing,
+  targetNodeUnknown,
+  duplicateNext,
+  contentNodeBranches,
+  choiceWithoutItem,
+  choiceItemOnOtherTrigger,
+  conditionalWithoutCondition,
+  conditionOnOtherTrigger,
+  conditionNodeUnknown,
+  nextSelfLoop,
+  unreachableNode,
+}
+
+final class FlowStructureIssue {
+  const FlowStructureIssue({
+    required this.code,
+    required this.message,
+    this.nodeId,
+  });
+
+  final FlowStructureIssueCode code;
+  final String? nodeId;
+  final String message;
+
+  @override
+  String toString() =>
+      'FlowStructureIssue(${code.name}${nodeId == null ? '' : ', $nodeId'}: $message)';
+}
+
+final class ContentFlow {
+  ContentFlow({required this.startNodeId, required List<FlowNode> nodes})
+    : nodes = List.unmodifiable(nodes);
+
+  /// A flow that visits [nodes] in order with `next` transitions. Nodes are
+  /// given without transitions; the last one ends the flow.
+  factory ContentFlow.linear(List<FlowNode> nodes) {
+    if (nodes.isEmpty) return ContentFlow(startNodeId: '', nodes: const []);
+    return ContentFlow(
+      startNodeId: nodes.first.id,
+      nodes: [
+        for (var i = 0; i < nodes.length; i++)
+          nodes[i].copyWith(
+            transitions: i + 1 < nodes.length
+                ? [FlowTransition.next(nodes[i + 1].id)]
+                : const [],
+          ),
+      ],
+    );
+  }
+
+  final String startNodeId;
+  final List<FlowNode> nodes;
+
+  FlowNode? nodeById(String id) {
+    for (final node in nodes) {
+      if (node.id == id) return node;
+    }
+    return null;
+  }
+
+  /// The IDs reachable from the start by following any transition.
+  Set<String> reachableNodeIds() {
+    final reachable = <String>{};
+    final pending = <String>[startNodeId];
+    while (pending.isNotEmpty) {
+      final id = pending.removeLast();
+      if (!reachable.add(id)) continue;
+      final node = nodeById(id);
+      if (node == null) continue;
+      for (final transition in node.transitions) {
+        pending.add(transition.targetNodeId);
+      }
+    }
+    return reachable;
+  }
+
+  /// Structural problems, independent of what the referenced Content holds.
+  List<FlowStructureIssue> check() {
+    final issues = <FlowStructureIssue>[];
+    void add(FlowStructureIssueCode code, String message, [String? nodeId]) =>
+        issues.add(
+          FlowStructureIssue(code: code, message: message, nodeId: nodeId),
+        );
+
+    if (nodes.isEmpty) {
+      add(FlowStructureIssueCode.emptyFlow, 'The flow has no nodes.');
+      return issues;
+    }
+    final ids = <String>{};
+    for (final node in nodes) {
+      if (node.id.trim().isEmpty) {
+        add(FlowStructureIssueCode.blankNodeId, 'A node has no ID.');
+      } else if (!ids.add(node.id)) {
+        add(
+          FlowStructureIssueCode.duplicateNodeId,
+          'Node ID “${node.id}” is used more than once.',
+          node.id,
+        );
+      }
+      if (node.contentId.trim().isEmpty) {
+        add(
+          FlowStructureIssueCode.blankContentId,
+          'Node “${node.id}” names no Content.',
+          node.id,
+        );
+      }
+    }
+    if (!ids.contains(startNodeId)) {
+      add(
+        FlowStructureIssueCode.startNodeMissing,
+        'The start node “$startNodeId” does not exist.',
+      );
+    }
+    for (final node in nodes) {
+      var nextCount = 0;
+      for (final transition in node.transitions) {
+        if (!ids.contains(transition.targetNodeId)) {
+          add(
+            FlowStructureIssueCode.targetNodeUnknown,
+            'Node “${node.id}” leads to the unknown node “${transition.targetNodeId}”.',
+            node.id,
+          );
+        }
+        switch (transition.trigger) {
+          case FlowTrigger.next:
+            nextCount++;
+            if (transition.targetNodeId == node.id) {
+              add(
+                FlowStructureIssueCode.nextSelfLoop,
+                'Node “${node.id}” leads unconditionally to itself.',
+                node.id,
+              );
+            }
+          case FlowTrigger.onCorrect:
+          case FlowTrigger.onIncorrect:
+            if (node.kind != FlowNodeKind.exercise) {
+              add(
+                FlowStructureIssueCode.contentNodeBranches,
+                'Content node “${node.id}” cannot branch on ${transition.trigger.serialized}; only an exercise node has an answer.',
+                node.id,
+              );
+            }
+          case FlowTrigger.onChoice:
+            if (node.kind != FlowNodeKind.exercise) {
+              add(
+                FlowStructureIssueCode.contentNodeBranches,
+                'Content node “${node.id}” cannot branch on a choice; only an exercise node has one.',
+                node.id,
+              );
+            }
+            if ((transition.choiceItemId ?? '').trim().isEmpty) {
+              add(
+                FlowStructureIssueCode.choiceWithoutItem,
+                'An onChoice transition of node “${node.id}” names no chosen item.',
+                node.id,
+              );
+            }
+          case FlowTrigger.conditional:
+            final condition = transition.condition;
+            if (condition == null) {
+              add(
+                FlowStructureIssueCode.conditionalWithoutCondition,
+                'A conditional transition of node “${node.id}” has no condition.',
+                node.id,
+              );
+            } else if (!ids.contains(condition.nodeId)) {
+              add(
+                FlowStructureIssueCode.conditionNodeUnknown,
+                'A condition of node “${node.id}” refers to the unknown node “${condition.nodeId}”.',
+                node.id,
+              );
+            }
+        }
+        if (transition.trigger != FlowTrigger.onChoice &&
+            transition.choiceItemId != null) {
+          add(
+            FlowStructureIssueCode.choiceItemOnOtherTrigger,
+            'A ${transition.trigger.serialized} transition of node “${node.id}” names a chosen item, which only onChoice uses.',
+            node.id,
+          );
+        }
+        if (transition.trigger != FlowTrigger.conditional &&
+            transition.condition != null) {
+          add(
+            FlowStructureIssueCode.conditionOnOtherTrigger,
+            'A ${transition.trigger.serialized} transition of node “${node.id}” carries a condition, which only conditional uses.',
+            node.id,
+          );
+        }
+      }
+      if (nextCount > 1) {
+        add(
+          FlowStructureIssueCode.duplicateNext,
+          'Node “${node.id}” has ${nextCount.toString()} unconditional next transitions; at most one is allowed.',
+          node.id,
+        );
+      }
+    }
+    if (ids.contains(startNodeId)) {
+      final reachable = reachableNodeIds();
+      for (final node in nodes) {
+        if (!reachable.contains(node.id)) {
+          add(
+            FlowStructureIssueCode.unreachableNode,
+            'Node “${node.id}” cannot be reached from the start.',
+            node.id,
+          );
+        }
+      }
+    }
+    return issues;
+  }
+
+  bool get isValid => check().isEmpty;
+
+  /// True when any node has a transition other than `next`.
+  bool get hasBranching => nodes.any((node) => node.hasBranching);
+
+  /// A valid flow that visits every node exactly once along `next`
+  /// transitions from the start and ends at a node without transitions.
+  bool get isLinear => linearNodeIds() != null;
+
+  /// The visiting order of a linear flow, or null when the flow is not linear
+  /// (branching, cycles, several transitions on a node, structural issues).
+  List<String>? linearNodeIds() {
+    if (!isValid || hasBranching) return null;
+    final order = <String>[];
+    final seen = <String>{};
+    var current = nodeById(startNodeId);
+    while (current != null) {
+      if (!seen.add(current.id)) return null;
+      order.add(current.id);
+      if (current.transitions.length > 1) return null;
+      final next = current.nextNodeId;
+      current = next == null ? null : nodeById(next);
+    }
+    return order.length == nodes.length ? order : null;
+  }
+}

@@ -1,0 +1,309 @@
+# Exercise architecture, Course Model v12 (Build 256)
+
+This is the engineering reference for the exercise architecture QQL adopts
+in Build 256. It replaces `EXERCISE_ARCHITECTURE_224.md`, which stays as the
+historical record of the Build 224 design (five canonical models, presets as
+the unit of behavior). The plan and the owner's decisions are in
+`256_EXERCISE_ARCHITECTURE_PLAN.md`; this document is updated by every
+Build 256 session and states, at each point, what is implemented and what is
+still planned.
+
+## The four layers
+
+QQL keeps four concepts apart and never conflates them:
+
+| Layer | Question it answers | Where it lives |
+| --- | --- | --- |
+| **Primitive** | What fundamental action does the learner perform? | `ExercisePrimitive` (`lib/models/canonical/exercise_primitive.dart`) |
+| **Options** | How does that primitive behave? | `PrimitiveOptions` and the registry (`primitive_options.dart`, `primitive_capability_registry.dart`) |
+| **Preset** | Which common canonical configuration does the Course Editor make easy to author? | `ExercisePresetRegistry` (`lib/models/exercise_authoring.dart`), authoring metadata only |
+| **Content flow** | How are content and exercises ordered or branched? | `ContentFlow` (`content_flow.dart`) |
+
+An exercise is fully described by: primitive, options, prompt/content/media,
+items and/or targets, layout, evaluation, feedback. A preset may be recorded
+as authoring metadata, but nothing that learners see, and nothing that grades,
+validates, imports or exports, reads it. Removing the preset metadata changes
+nothing; unknown preset metadata invalidates nothing; two exercises that differ
+only in preset or editor metadata are semantically equal.
+
+## Status by session
+
+| Session | Delivered |
+| --- | --- |
+| 1 (Revision 0) | The canonical definitions below: nine primitives, typed options, evaluation modes, the capability registry with rules and the runtime-support table, the content-flow model with structural checks. No Course JSON or learner behavior changed; `ExercisePreset.primitive` replaced the five-value `CanonicalExerciseModel`. |
+| 2 (Revision 1) | Planned: Course Model v12 serialization, converter and tool, storage cut, semantic equality. |
+| 3 (Revision 2) | Planned: learner runtime and Course Audit on canonical data; Rounds as flows; capability-based Duel. |
+| 4 (Revision 3) | Planned: presets as recipes, exact recognition, Generic Primitive Editor, Help. |
+| 5 (Revision 4) | Planned: interoperability, the four support states, conditional transitions, capability JSON. |
+| 6 (Revision 5) | Planned: Laboratory by primitive and options, Assign runtime, Story tests, final verification. |
+
+## The nine primitives
+
+Serialized identifiers are lowercase and parsed strictly (`Select` is not
+`select`; an unknown value is a `FormatException`, never a default).
+
+| Primitive | Learner action | Items | Targets | Runtime today |
+| --- | --- | --- | --- | --- |
+| `select` | Selects one or more selectable entities. | yes | inline gaps, regions, cells | yes |
+| `input` | Enters textual, symbolic or numeric information. | no | inline gaps become fields | yes |
+| `arrange` | Orders or places item occurrences into an ordered result. | yes (occurrences) | inline gaps | yes |
+| `match` | Establishes relationships between peer items. | yes (with a side) | no | yes |
+| `assign` | Places items into explicit targets, categories, gaps, regions or cells. | yes | always | Session 6 |
+| `speak` | Produces speech. | no | no | no |
+| `ink` | Produces spatial strokes. | no | no | no |
+| `submit` | Supplies an artifact QQL does not necessarily interpret. | no | no | no |
+| `presentation` | Consumes instructional material without a scored response. | no | no | yes |
+
+Not primitives: translation, cloze, multiple choice, true/false, reading and
+listening comprehension, hotspot, word search, crossword, dialogue, Story,
+interactive video, branching scenario. Each is a primitive plus options,
+media, layout, evaluation or a content flow.
+
+## Options
+
+Every option is an `OptionKey` with a stable JSON name and a value kind
+(enumeration, boolean, integer, language tag). Enumerated values come from
+closed Dart enums that implement `OptionEnumValue`; the JSON value is the
+enum's `serialized` string. `OptionValue.parse` never coerces: `"true"` is
+not a boolean, `2.0` is not an integer, `"Single"` is not `single`, and a
+value outside the vocabulary is dropped and reported rather than defaulted.
+
+`PrimitiveOptions` is the immutable, order-independent map an exercise
+carries. It stores only what was given; the registry resolves an omitted
+option to the primitive's default (`effectiveOptions`).
+
+### Per primitive (legal values · default; **required** where marked)
+
+**Select** — `selectionMode` single|multiple · single; `selectionTarget`
+items|textSpans|regions|cells · items; `minimumSelections` integer ≥ 1 · 1;
+`maximumSelections` integer ≥ 1 · absent (all items); `itemReuse`
+forbidden|allowed|unlimited · forbidden; `layout` list|grid|inline|overlay ·
+list; `evaluationTiming` immediate|explicit|onCompletion · immediate;
+`shuffleItems` boolean · true.
+
+**Input** — `inputMode` text|number|date|formula|code · text; `cardinality`
+single|multiple · single; `layout` field|inlineGaps|grid|multiline · field;
+`caseHandling` exact|ignore · ignore; `punctuationHandling` exact|ignore ·
+ignore; `whitespaceHandling` exact|normalize · normalize; `accentHandling`
+exact|missingAccentsAccepted|ignore · missingAccentsAccepted; `typoTolerance`
+none|conservative · none; `evaluationTiming` explicit|onCompletion · explicit.
+
+**Arrange** — `placementMode` sequence|inlineGaps|grid · sequence; `itemReuse`
+forbidden · forbidden (Arrange consumes occurrences; a word used twice needs
+two blocks); `unusedItems` forbidden|allowed · allowed; `layout`
+horizontal|vertical|wrapped|inline|grid · wrapped; `shuffleItems` boolean ·
+true; `joiner` space|none · space; `evaluationTiming` explicit|onCompletion ·
+explicit.
+
+**Match** — `relationship` oneToOne|oneToMany|manyToOne|manyToMany ·
+oneToOne; `interactionStyle` pair|dropdown|connect|memory · dropdown;
+`itemReuse` forbidden|allowed · forbidden; `layout` columns|cards|free ·
+columns; `shuffleLeft` boolean · true; `shuffleRight` boolean · true;
+`evaluationTiming` explicit|onCompletion · explicit.
+
+**Assign** — **`targetMode`** categories|slots|gaps|regions|cells (required);
+`targetCapacity` single|multiple|unlimited · single; `itemReuse`
+forbidden|allowed|unlimited · forbidden; `placementMode`
+drag|selectTarget|tapTarget · tapTarget; `layout`
+inline|columns|overlay|grid|free · columns; `shuffleItems` boolean · true;
+`evaluationTiming` explicit|onCompletion · explicit.
+
+**Speak** — `speechMode` repeat|readAloud|freeResponse · repeat;
+`captureMode` microphone · microphone; `language` language tag · absent (the
+Course target language); `transcription` none|optional|required · optional;
+`playback` none|allowed|requiredBeforeSubmit · allowed; `evaluationTiming`
+explicit|onCompletion · explicit; `maxDurationSeconds` integer ≥ 1 · absent
+(no limit).
+
+**Ink** — `inkMode` freehand|trace|character|diagram · freehand;
+`inputDevice` pointer|touch|stylus|any · any; `strokeOrder` ignored|checked ·
+ignored; `templateVisible` boolean · false; `eraseAllowed` boolean · true;
+`evaluationTiming` explicit|onCompletion · explicit.
+
+**Submit** — **`submissionType`** audio|video|image|file|textDocument
+(required); `cardinality` single|multiple · single; `captureSource`
+device|file|either · either; `reviewMode` self|manual|external · self;
+`evaluationTiming` none|onCompletion · onCompletion.
+
+**Presentation** — `completionMode` continue|acknowledge|understoodReview|
+automatic · continue; `navigation` singlePage|paged · singlePage;
+`mediaPlayback` manual|automatic|none · manual; `scoring` none · none;
+`evaluationTiming` none · none.
+
+`layout` and `placementMode` are shared keys whose vocabulary is the union
+over primitives; the registry allows each primitive its own subset. The
+`overlay` layout (Select regions, Assign regions) and the Arrange `grid`
+layout are additions to the plan's A.4 list, needed so that every legal
+`selectionTarget`/`placementMode` has a layout to live in.
+
+## Evaluation modes
+
+| Primitive | Modes (default first) |
+| --- | --- |
+| Select | exactItem, exactSet, subset, orderedSelections, perSelection |
+| Input | expression, exactText, acceptedTexts, numericExact, numericRange, numericTolerance, regex, manual |
+| Arrange | exactOrder, acceptedOrders, gapAssignments |
+| Match | exactRelations, requiredRelations, partialRelations |
+| Assign | exactAssignments, acceptedTargets, categoryMembership, partialAssignments |
+| Speak | transcriptionMatch, acceptedTranscriptions, pronunciation, combined, manual, none |
+| Ink | recognition, strokeMatch, shapeSimilarity, manual, none |
+| Submit | presence, manual, none |
+| Presentation | none |
+
+`expression` is QQL's answer-expression capability (`{optional}`, `[a|b]`,
+`[*:a|b]`, `<>` reorders, 128 variants) applied to text; `exactText` and
+`acceptedTexts` are literal. Every mode a primitive may use is registered
+here and nowhere else; the Audit, editor and import ask the registry.
+
+## Rules (illegal combinations and evaluation implications)
+
+Each rule has a stable id, a description and a coded violation. The registry
+checks them on the effective options (defaults filled in, illegal values
+dropped). Violation codes: `unknownPrimitive`, `unknownOption`,
+`optionNotApplicable`, `illegalOptionValue`, `missingRequiredOption`,
+`illegalCombination`, `missingEvaluationMode`, `illegalEvaluationMode`,
+`evaluationRequiresOption`, `selectionLimitsImpossible`.
+
+- Select: `select.single.minimum`, `select.single.maximum` (a single
+  selection allows limits of 1 only); `select.limits.order` (minimum ≤
+  maximum); `select.items.layout` (items → list|grid|inline),
+  `select.textSpans.layout` (→ inline), `select.regions.layout` (→ overlay),
+  `select.cells.layout` (→ grid); `select.reuse.inline` and
+  `select.reuse.items` (reuse only for items in inline gaps);
+  `select.exactItem.single`; `select.set.multiple` (exactSet, subset,
+  orderedSelections, perSelection need multiple); `select.set.timing` (set
+  grading is explicit or onCompletion); `select.perSelection.timing`
+  (immediate). With the items known, `checkSelectionLimits` enforces exactSet:
+  minimumSelections ≤ correctCount ≤ maximumSelections ≤ itemCount, one
+  correct item for exactItem, and never more required selections than items.
+- Input: `input.multiple.layout` (several answers → inlineGaps|grid);
+  `input.grid.multiple`; `input.typo.text`; `input.numeric.mode` (numeric*
+  → number); `input.expression.text`; `input.regex.mode` (text|code);
+  `input.texts.mode` (exactText, acceptedTexts → text|date|formula|code).
+- Arrange: `arrange.inlineGaps.layout` (→ inline), `arrange.grid.layout`
+  (→ grid), `arrange.sequence.layout` (→ horizontal|vertical|wrapped);
+  `arrange.gapAssignments.placement` (→ inlineGaps);
+  `arrange.order.placement` (exactOrder, acceptedOrders → sequence|grid).
+- Match: `match.memory.layout` (→ cards), `match.dropdown.layout` (→
+  columns), `match.pair.layout` (→ columns|cards), `match.connect.layout` (→
+  columns|free); `match.oneToOne.reuse` (→ forbidden), `match.many.reuse`
+  (→ allowed).
+- Assign: `assign.gaps.layout` (→ inline), `assign.regions.layout` (→
+  overlay), `assign.cells.layout` (→ grid), `assign.categories.layout` (→
+  columns|free), `assign.slots.layout` (never overlay);
+  `assign.gaps.capacity` (a gap holds one item);
+  `assign.categoryMembership.mode` (→ categories).
+- Speak: `speak.transcription.needed` (transcriptionMatch,
+  acceptedTranscriptions, combined need a transcription);
+  `speak.freeResponse.evaluation` (manual or none only).
+- Ink: `ink.strokeOrder.mode` (checked → trace|character);
+  `ink.strokeMatch.mode`; `ink.recognition.mode` (not diagram).
+- Submit: `submit.noTiming.evaluation` (timing none → evaluation none);
+  `submit.evaluated.timing` (presence, manual → onCompletion);
+  `submit.device.type` (a device captures no `file`).
+- Presentation: everything is enforced by the single-value vocabularies.
+
+## Runtime-support table
+
+Executability is computed per exercise from primitive, options and
+evaluation mode; it is never stored in Course data. A legal configuration
+that no entry covers is `readableButNotExecutable`: kept, editable and
+exported unchanged. A configuration with violations is `invalid`. (The fourth
+state, `unsupportedModelVersion`, is a Course-level state for a file whose
+`formatVersion` is not 12.) Every entry lists every enumeration option of its
+primitive, so a value the runtime does not handle can never be executable by
+omission (a test enforces this).
+
+| Primitive | Executable today (Part A.2 of the plan) |
+| --- | --- |
+| Select | single · items · list|grid · reuse forbidden · immediate · exactItem; multiple · items · list|grid · forbidden · explicit · exactSet; single · items · inline · any reuse · explicit · exactItem (one item per gap) |
+| Input | text · single · field|inlineGaps · any handling · explicit · exactText|acceptedTexts|expression; text · multiple · inlineGaps · explicit · the same modes |
+| Arrange | sequence · wrapped · any unusedItems · any joiner · explicit · exactOrder|acceptedOrders; inlineGaps · inline · explicit · gapAssignments |
+| Match | oneToOne · dropdown · forbidden · columns · explicit · exactRelations |
+| Presentation | continue|acknowledge|understoodReview · singlePage · any mediaPlayback · none |
+| Assign, Speak, Ink, Submit | none yet (Assign joins in Session 6) |
+
+## Content flow
+
+`ContentFlow` holds a `startNodeId` and `FlowNode`s. A node is `content`
+(shows the referenced Round Content: dialogue, narration, a Presentation) or
+`exercise` (runs the referenced Content's exercise) and carries
+`FlowTransition`s with a trigger: `next` (at most one per node), `onCorrect`,
+`onIncorrect`, `onChoice` (with `choiceItemId`) or `conditional` (with a
+`FlowCondition` of kind answeredCorrectly, answeredIncorrectly, chose or
+visited, referring to another node). A node with no applicable transition
+ends the flow. `ContentFlow.linear(nodes)` chains nodes with `next`.
+
+Structural checks (`check()`): empty flow, blank or duplicate node IDs,
+blank content reference, missing start node, unknown target, more than one
+`next`, a content node that branches, `onChoice` without an item,
+`conditional` without a condition, a condition naming an unknown node, a
+`next` self-loop, a chosen item or a condition on the wrong trigger, and
+unreachable nodes. `isLinear` and `linearNodeIds()` recognize the flows this
+build will play first: valid, no branching, every node visited once along
+`next`. Serialization, Round integration and playback follow in Sessions 2
+and 3; conditional evaluation and the stand-alone flow engine in Sessions 5
+and 6.
+
+## Final names for the plan's A.4 fields
+
+Decided in Session 1; serialized in Session 2.
+
+| Need | Final form |
+| --- | --- |
+| Automatic vs manual audio | media element attribute `playback`: `automatic` \| `manual` (default manual) |
+| Audio the exercise cannot do without | media element attribute `required`: boolean (default true for audio; Pick the translation converts with false) |
+| Which language a text is in | text element attribute `language`: `source` \| `target` (absent means unspecified, treated as target) |
+| Accent handling | Input option `accentHandling`: `exact` \| `missingAccentsAccepted` \| `ignore` |
+| Extra literal answers | Input evaluation field `literalAnswers` (never parsed as expressions) |
+| First-grapheme reveal | target attribute `reveal`: `firstGrapheme` (Input, inline gaps) |
+| Typo tolerance | Input option `typoTolerance`: `none` \| `conservative` |
+| Ranked alternatives, all accepted answers | `feedback.showAlternatives`: `none` \| `ranked` (3 when wrong, 2 when right) \| `all` |
+| Completed-sentence display | implied by an inline layout: after checking, gaps show their correct values |
+| Joining blocks | Arrange option `joiner`: `space` \| `none`; order modes compare content sequences |
+| Match item side | item attribute `side`: `left` \| `right` |
+| Select layouts | `list` \| `grid` \| `inline` (plus `overlay` for regions) |
+| Regions | target attribute `region`: `{x, y, width, height}` normalized to 0–1 on the exercise's image |
+
+## Behaviors that do not map cleanly yet (for Session 2's converter)
+
+1. **Listen for missing words** blanks the first case-insensitive occurrence
+   of each missing word at runtime and duplicates the answers in
+   `missingWords`; v12 needs an explicit inline layout with one target and
+   one answer list per gap.
+2. **`___` in text** is display text in Fill in the blank and Type a missing
+   word (no target), but the gap of Type the missing word becomes a target
+   with `reveal: firstGrapheme`.
+3. **Spoken prompt text accepted literally** (Type a missing word, Type what
+   you hear, Type the translation) becomes `literalAnswers`.
+4. A `text_match` without a normalization map (four in the Edge Case Course)
+   means ignore/ignore/normalize/missingAccentsAccepted, which are the v12
+   defaults.
+5. **Whole-sentence Arrange** grades joined text; inline-gap Arrange grades
+   block IDs today and block content from Session 3 (plan A.11).
+6. **Match sides** come from pair order; v12 states `side` on each item.
+7. **Select the image** items carry a legacy icon key in a text element with
+   role `icon`, drawn through a fixed Material icon table; v12 keeps the
+   element and the table until a media form replaces it.
+8. **Flashcards** are Presentations with content roles term, meaning, usage,
+   usage_translation and audio and the actions understood/review_later; v12
+   is `completionMode: understoodReview`.
+9. **Textual Round Content** (explanation, example, vocabulary, text, image,
+   audio, dialogue with roles lesson_intro and round_note, and GuideBook
+   material) stays Content and is shown by content nodes; the projection of
+   such Content into flashcard-shaped exercises goes in Session 3.
+10. **Pick the translation** derives its direction, instruction and
+    after-answer audio from the preset; v12 derives them from `language` on
+    the text and items and `required: false` on audio.
+11. **Context mode** (text, audio, textAndAudio) and dialogue turns with a
+    speaker are derived from context elements, as today.
+12. **Hints** are shown differently by preset (Fill in the blank shows
+    `Hint:` above the options; Input shows a box); Session 3 adopts one rule.
+13. **Duel eligibility** is a preset list; Session 3 makes it every
+    single-answer Select with items as choices and exactItem.
+14. **Learner headings and instructions** (`ExerciseCopyService`, eight
+    languages) are keyed by preset; Session 3 derives them from features.
+15. An unknown v11 interaction kind silently became `choice`; v12 refuses
+    unknown primitives.
+16. **Recognize characters** (image to text, text to image) is Select with
+    image items or an image prompt; nothing special remains.

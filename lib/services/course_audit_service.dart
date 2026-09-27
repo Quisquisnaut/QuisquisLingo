@@ -1,4 +1,5 @@
 import '../models/course_models.dart';
+import '../models/canonical/exercise_primitive.dart';
 import '../models/exercise_authoring.dart';
 import 'answer_engine.dart';
 import 'first_letter_answer_service.dart';
@@ -1233,14 +1234,10 @@ class CourseAuditService {
         AuditCode.exercisePresetUnknown,
         'Exercise preset “${ex.editorTemplate}” is not available.',
       );
-    } else if (preset.model != CanonicalExerciseModel.presentation) {
-      final expectedInteraction = switch (preset.model) {
-        CanonicalExerciseModel.select => 'select',
-        CanonicalExerciseModel.input => 'input',
-        CanonicalExerciseModel.arrange => 'arrange',
-        CanonicalExerciseModel.match => 'match',
-        CanonicalExerciseModel.presentation => '',
-      };
+    } else if (preset.primitive != ExercisePrimitive.presentation) {
+      // The v11 interaction kinds are the serialized identifiers of the four
+      // evaluated primitives presets configure (Build 256 Session 1).
+      final expectedInteraction = preset.primitive.serialized;
       if (ex.interaction.kind != expectedInteraction) {
         add(
           AuditCode.presetCanonicalMismatch,

@@ -19,11 +19,11 @@ void main() {
       sortMode: AuditSortMode.lesson,
     );
 
-    expect(report, contains('Version: 2.0.55'));
-    expect(report, contains('Build 255, Revision 7'));
+    expect(report, contains('Version: 2.0.56'));
+    expect(report, contains('Build 256, Revision 0'));
     expect(report, isNot(contains('Phase:')));
     expect(report, isNot(contains('revision')));
-    expect(report, contains('Technical version: 2.0.55+255007'));
+    expect(report, contains('Technical version: 2.0.56+256000'));
     expect(report, contains('Generated: 2026-09-03T20:15:30.000'));
     expect(report, contains('Course name: Italian test'));
     expect(report, contains('Course ID: stable_course_id'));
@@ -64,31 +64,34 @@ void main() {
     expect(copied, contains('Review finding'));
   });
 
-  test('export writes the same complete report to the QQL export seam', () async {
-    final directory = await Directory.systemTemp.createTemp('qql_audit_225_');
-    addTearDown(() => directory.delete(recursive: true));
-    final service = CourseAuditReportService(
-      exportDirectory: () async => directory,
-      clock: () => DateTime(2026, 9, 3, 20, 15, 30, 123),
-    );
+  test(
+    'export writes the same complete report to the QQL export seam',
+    () async {
+      final directory = await Directory.systemTemp.createTemp('qql_audit_225_');
+      addTearDown(() => directory.delete(recursive: true));
+      final service = CourseAuditReportService(
+        exportDirectory: () async => directory,
+        clock: () => DateTime(2026, 9, 3, 20, 15, 30, 123),
+      );
 
-    final path = await service.exportReport(
-      course: _course(),
-      result: _result(),
-      scope: 'Course Audit',
-      sortMode: AuditSortMode.lesson,
-    );
+      final path = await service.exportReport(
+        course: _course(),
+        result: _result(),
+        scope: 'Course Audit',
+        sortMode: AuditSortMode.lesson,
+      );
 
-    expect(
-      path,
-      endsWith(
-        'QQL_audit_italian_test_stable_course_id_20260903201530123.txt',
-      ),
-    );
-    final contents = await File(path).readAsString();
-    expect(contents, contains('Blocking finding'));
-    expect(contents, contains('Review finding'));
-  });
+      expect(
+        path,
+        endsWith(
+          'QQL_audit_italian_test_stable_course_id_20260903201530123.txt',
+        ),
+      );
+      final contents = await File(path).readAsString();
+      expect(contents, contains('Blocking finding'));
+      expect(contents, contains('Review finding'));
+    },
+  );
 
   test('export propagates storage failure without returning a path', () async {
     final service = CourseAuditReportService(

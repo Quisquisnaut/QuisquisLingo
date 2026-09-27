@@ -4,6 +4,7 @@ import 'support/test_directories.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:quisquislingo_app/models/canonical/exercise_primitive.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/models/exercise_authoring.dart';
 import 'package:quisquislingo_app/screens/course_editor_screen.dart';
@@ -270,7 +271,7 @@ void main() {
     test('both presets resolve to the existing Select primitive', () {
       for (final id in [_toTarget, _toSource]) {
         final preset = ExercisePresetRegistry.byId(id)!;
-        expect(preset.model, CanonicalExerciseModel.select);
+        expect(preset.primitive, ExercisePrimitive.select);
         expect(preset.description, startsWith('Select:'));
         expect(ExercisePresetRegistry.helpByPreset[id], startsWith('Select'));
         final exercise = _translationChoice(type: id);

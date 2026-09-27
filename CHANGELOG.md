@@ -1,3 +1,43 @@
+# 2.0.56 (Build 256, Revision 0) - Canonical exercise definitions - 2026-09-27
+
+Session 1 of the exercise architecture redesign
+(`docs/256_EXERCISE_ARCHITECTURE_PLAN.md`). Nothing learners or authors see
+changes in this revision, and Course files stay Course Model v11; Revision 1
+introduces v12.
+
+- **Nine canonical primitives** (`lib/models/canonical/`): `select`,
+  `input`, `arrange`, `match`, `assign`, `speak`, `ink`, `submit` and
+  `presentation`, each naming one learner action. Identifiers are lowercase,
+  stable and parsed strictly; nothing else is a primitive.
+- **Typed options and evaluation modes:** every option has a stable JSON
+  name, a value kind and a closed vocabulary; an unknown or misspelt value is
+  reported and dropped, never turned into a default. The evaluation modes of
+  all nine primitives are one enum, and the registry says which each
+  primitive may use.
+- **Capability registry:** for each primitive, its options with legal
+  values, defaults and required ones; its evaluation modes; coded rules for
+  illegal combinations (a single selection with a maximum of 3, text spans
+  in a list layout, a memory game in columns, and so on) and for what an
+  evaluation mode implies (exactSet needs multiple selections, numeric
+  grading needs a number, gap grading needs inline gaps); the
+  selection-limit invariant minimumSelections <= correct <=
+  maximumSelections <= items; and a runtime-support table listing exactly
+  today's playable configurations, so executability is computed per
+  exercise and never stored.
+- **Content flow model:** content and exercise nodes with `next`,
+  `onCorrect`, `onIncorrect`, `onChoice` and `conditional` transitions,
+  structural checks (missing start, unknown targets, branching content
+  nodes, unreachable nodes) and recognition of linear flows.
+- **Presets name a primitive:** `ExercisePreset.primitive` replaces the
+  five-value `CanonicalExerciseModel`; the Audit's preset-versus-response
+  check reads it.
+- **Docs:** `docs/EXERCISE_ARCHITECTURE_V12.md` (the new reference, with
+  the final names of the extra canonical fields and the list of today's
+  behaviors the converter must map); `docs/EXERCISE_ARCHITECTURE_224.md` is
+  marked historical.
+- **Beta expiry:** 27 October 2026, 23:59:59 local time (30 days from this
+  release date, the same day as Build 255 Revision 7).
+
 # 2.0.55 (Build 255, Revision 7) - Welcome Wizard, cover crop and credits - 2026-09-27
 
 Owner-requested corrections to Revision 6 and a renewed first launch.

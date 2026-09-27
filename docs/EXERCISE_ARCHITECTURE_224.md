@@ -1,5 +1,7 @@
 # Exercise architecture and interoperability (2.0.24+224)
 
+> **Historical.** This describes the Build 224 design (five canonical models, presets as the unit of behavior) as it stood through Build 255. Build 256 replaces it with the nine-primitive architecture of Course Model v12; the current reference is `EXERCISE_ARCHITECTURE_V12.md`. Nothing below is updated any more.
+
 This is the engineering reference for the build-224 exercise inventory, canonical models, import-normalization boundary, deterministic text-answer engine, recursive authoring duplication, Creation Wizard, and GuideBook Round Generator. The Course Editor's in-app Exercise Help and `COURSE_EDITOR.md` are the author-facing references.
 
 ## Final active inventory

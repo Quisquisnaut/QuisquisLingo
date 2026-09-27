@@ -422,7 +422,9 @@ void main() {
           for (final exercise in round.exercises) {
             expect(exercise.publicationState, PublicationState.published);
             expect(
-              ExercisePresetRegistry.byId(exercise.editorTemplate)!.model.name,
+              ExercisePresetRegistry.byId(
+                exercise.editorTemplate,
+              )!.primitive.name,
               lesson.title.toLowerCase(),
             );
           }

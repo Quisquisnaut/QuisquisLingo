@@ -1,6 +1,21 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.55+255007 · Build 255, Revision 7 · Course Model v11 (`formatVersion: 11`).**
+**Current source version: 2.0.56+256000 · Build 256, Revision 0 · Course Model v11 (`formatVersion: 11`; v12 arrives with Build 256 Revision 1).**
+
+**QuisquisLingo 2.0.56 Beta — QQL 256 exercise architecture (Course Model v12)**
+
+Build 256 redesigns how QQL describes exercises, in six sessions that are its
+Revisions 0 to 5 ([plan](docs/256_EXERCISE_ARCHITECTURE_PLAN.md)). Every
+exercise becomes one of nine **primitives** (Select, Input, Arrange, Match,
+Assign, Speak, Ink, Submit, Presentation) with typed **options**, media,
+items or targets, a neutral **layout** and an **evaluation** mode; editor
+**presets** become optional authoring recipes, and Rounds gain **content
+flows** so Stories and branching lessons can be imported without a Story
+exercise type. Revision 0 adds the canonical definitions and the capability
+registry that the Audit, the editor, import and the learner runtime will all
+read ([reference](docs/EXERCISE_ARCHITECTURE_V12.md)); nothing learners or
+authors see changes yet, and Course files stay v11 until Revision 1's clean
+cut to v12. The Beta expiry is 27 October 2026, 23:59:59 local time.
 
 **QuisquisLingo 2.0.55 Beta — QQL 255 logical storage and Quick folders**
 

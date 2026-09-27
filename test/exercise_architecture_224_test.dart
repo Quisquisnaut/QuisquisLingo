@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:quisquislingo_app/models/canonical/exercise_primitive.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/models/exercise_authoring.dart';
 import 'package:quisquislingo_app/models/exercise_interoperability.dart';
@@ -11,19 +12,21 @@ void main() {
       ExercisePresetRegistry.presets.map((preset) => preset.id).toSet(),
       CourseAuditService.supportedTypes,
     );
+    // Build 256: presets configure the five primitives QQL plays today; the
+    // other four (Assign, Speak, Ink, Submit) exist without a preset.
     expect(
-      ExercisePresetRegistry.presets.map((preset) => preset.model).toSet(),
-      CanonicalExerciseModel.values.toSet(),
+      ExercisePresetRegistry.presets.map((preset) => preset.primitive).toSet(),
+      ExercisePrimitive.executableToday.toSet(),
     );
     expect(
       ExercisePresetRegistry.presets
-          .where((preset) => preset.model == CanonicalExerciseModel.select)
+          .where((preset) => preset.primitive == ExercisePrimitive.select)
           .length,
       greaterThan(1),
     );
     expect(
       ExercisePresetRegistry.presets
-          .where((preset) => preset.model == CanonicalExerciseModel.arrange)
+          .where((preset) => preset.primitive == ExercisePrimitive.arrange)
           .map((preset) => preset.id),
       containsAll(['word_order', 'build_translation', 'image_word']),
     );
@@ -34,7 +37,7 @@ void main() {
     () {
       expect(ExerciseCategory.values, hasLength(6));
       for (final preset in ExercisePresetRegistry.presets) {
-        expect(preset.name.toLowerCase(), isNot(preset.model.name));
+        expect(preset.name.toLowerCase(), isNot(preset.primitive.name));
         expect(preset.description.trim(), isNotEmpty);
       }
     },
