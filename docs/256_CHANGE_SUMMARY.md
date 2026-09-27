@@ -68,6 +68,24 @@ authoring, and the creator-side code reads canonical data.
   canonical; Revision 4 rewrites the recipes with the new catalogue.
 - Defect found and fixed: Rounds lost their `flow` on every rebuild.
 
+### Follow-up in the same version (27 September 2026, afternoon)
+
+The owner's review of the Windows build: `lib/models/canonical/content_flow.dart`
+(`FlowPresentation`, `flow.presentation`), `lib/services/round_flow_authoring.dart`
+(`linearFor(presentation:)`, `withPresentation`, kept through `forContent` and
+`remapped`), `lib/screens/round_screen.dart` (scrolling Story: `_storyLog`,
+`story-entry-N`, auto-scroll), `lib/screens/course_editor_screen.dart`
+(`round-story-presentation`, the two New exercise buttons,
+`round-draft-exercises-notice`, `_formSnapshot` change detection, the
+intro hook), `lib/screens/primitive_editor_screen.dart` (`_hasUnsavedChanges`
+by semantic comparison, the intro hook), `lib/services/canonical_exercise_draft.dart`
+(`requiredOptionDefaults`), `lib/widgets/exercise_editor_intro.dart` (new),
+`test/flutter_test_config.dart` (intro off in tests), the Help catalogs
+(wizard names, the two buttons, presets versus canonical, scrolling
+Stories), `windows/runner/win32_window.cpp` (window inside the work area),
+`docs/256_PRESET_CATALOGUE_PLAN.md` (direction decisions). Tests:
+`test/revision3_followup_256_test.dart`.
+
 ### Known limitations and deferrals
 
 - The canonical editor edits image assets by reference or from the Image

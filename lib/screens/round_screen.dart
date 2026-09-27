@@ -60,6 +60,23 @@ class RoundScreen extends StatefulWidget {
   State<RoundScreen> createState() => _RoundScreenState();
 }
 
+/// One finished item of a scrolling Story, kept on the page.
+class _StoryEntry {
+  const _StoryEntry({
+    required this.heading,
+    required this.prompt,
+    required this.answer,
+    required this.correct,
+    required this.evaluable,
+  });
+
+  final String heading;
+  final String prompt;
+  final String? answer;
+  final bool correct;
+  final bool evaluable;
+}
+
 class _ChoiceOption {
   final String text;
   final bool correct;
@@ -149,6 +166,12 @@ class _RoundScreenState extends State<RoundScreen> {
   final TextEditingController _textController = TextEditingController();
   final FocusNode _textFocusNode = FocusNode();
   final List<String> _builtOrder = [];
+
+  /// A scrolling Story (`flow.presentation: scroll`): finished items stay on
+  /// the page above the active one, which the page scrolls to.
+  bool _storyScrolls = false;
+  final List<_StoryEntry> _storyLog = [];
+  final ScrollController _storyScroll = ScrollController();
   final List<TextEditingController> _missingWordControllers = [];
   final Map<String, String> _matchingSelections = {};
   List<_ChoiceOption> _choiceOptions = [];
@@ -325,6 +348,9 @@ class _RoundScreenState extends State<RoundScreen> {
       );
       final flowOrder = _flowOrder;
       _isStory = flowOrder != null;
+      _storyScrolls =
+          _isStory &&
+          widget.round.flow?.presentation == FlowPresentation.scroll;
       if (flowOrder != null) {
         // A Story plays its nodes in authored order and is never shuffled
         // (Build 256, plan A.7).
@@ -386,6 +412,7 @@ class _RoundScreenState extends State<RoundScreen> {
       unawaited(diagnostic.dispose(outcome: 'round_disposed'));
     }
     _textController.dispose();
+    _storyScroll.dispose();
     _textFocusNode.dispose();
     for (final c in _missingWordControllers) {
       c.dispose();
@@ -1036,11 +1063,111 @@ class _RoundScreenState extends State<RoundScreen> {
     _mark(true);
   }
 
+  /// What the learner answered, for the finished-item card of a scrolling
+  /// Story; null when the exercise kind keeps no single answer text.
+  String? _learnerAnswerText() {
+    final selected = _selected;
+    if (selected != null && selected < _choiceOptions.length) {
+      return _choiceOptions[selected].text;
+    }
+    if (_builtOrder.isNotEmpty) {
+      return _builtOrder.join(_features.joinsWithoutSpaces ? '' : ' ');
+    }
+    final typed = _textController.text.trim();
+    return typed.isEmpty ? null : typed;
+  }
+
+  void _logStoryItem() {
+    if (!_storyScrolls) return;
+    final ex = _exercise;
+    _storyLog.add(
+      _StoryEntry(
+        heading: _features.isTranslationChoice
+            ? TranslationChoice.instructionFor(
+                widget.course,
+                _features.itemLanguage!,
+              )
+            : ExerciseCopyService.typeLabel(widget.course, _features.kind),
+        prompt: _displayedPrompt.isNotEmpty
+            ? ExerciseCopyService.displayPrompt(widget.course, _displayedPrompt)
+            : (_features.questionText.isNotEmpty
+                  ? _features.questionText
+                  : _features.inlineSentence),
+        answer: _learnerAnswerText(),
+        correct: _lastAnswerCorrect,
+        evaluable: ex.primitive != ExercisePrimitive.presentation,
+      ),
+    );
+  }
+
+  void _scrollStoryToEnd() {
+    if (!_storyScrolls) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_storyScroll.hasClients) return;
+      _storyScroll.animateTo(
+        _storyScroll.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 350),
+        curve: Curves.easeOut,
+      );
+    });
+  }
+
+  Widget _storyEntryCard(_StoryEntry entry, int number) => Container(
+    key: ValueKey('story-entry-$number'),
+    margin: const EdgeInsets.only(bottom: 12),
+    padding: const EdgeInsets.all(14),
+    decoration: BoxDecoration(
+      color: _exercisePanelColor.withValues(alpha: .6),
+      borderRadius: BorderRadius.circular(14),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                entry.heading,
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: .7,
+                ),
+              ),
+            ),
+            if (entry.evaluable)
+              Icon(
+                entry.correct ? Icons.check_circle : Icons.cancel,
+                color: entry.correct
+                    ? Colors.green.shade700
+                    : Colors.red.shade700,
+                size: 20,
+              ),
+          ],
+        ),
+        if (entry.prompt.isNotEmpty) ...[
+          const SizedBox(height: 6),
+          Text(entry.prompt, style: Theme.of(context).textTheme.bodyLarge),
+        ],
+        if (entry.answer != null) ...[
+          const SizedBox(height: 6),
+          Text(
+            entry.answer!,
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
+          ),
+        ],
+      ],
+    ),
+  );
+
   Future<void> _next() async {
     if (_finishing) return;
+    _logStoryItem();
     if (_position + 1 < _queue.length) {
       setState(() => _position++);
       _prepareExercise(trigger: 'exercise_advanced');
+      _scrollStoryToEnd();
       return;
     }
 
@@ -2705,8 +2832,13 @@ class _RoundScreenState extends State<RoundScreen> {
       ),
       body: SafeArea(
         child: ListView(
+          key: _storyScrolls ? const Key('story-scroll') : null,
+          controller: _storyScrolls ? _storyScroll : null,
           padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
           children: [
+            if (_storyScrolls)
+              for (var i = 0; i < _storyLog.length; i++)
+                _storyEntryCard(_storyLog[i], i),
             if (_reviewPhase)
               Padding(
                 padding: const EdgeInsets.only(bottom: 10),

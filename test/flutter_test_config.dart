@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/services/beta_lifecycle_service.dart';
+import 'package:quisquislingo_app/widgets/exercise_editor_intro.dart';
 import 'support/test_directories.dart';
 
 /// Runs once per test file, before its `main()`.
@@ -29,6 +30,9 @@ Future<void> testExecutable(FutureOr<void> Function() testMain) async {
   // Give every test its own real filesystem, including callers created by UI.
   // Individual tests can still override the channel for their own fixtures.
   TestWidgetsFlutterBinding.ensureInitialized();
+  // The first-time Exercise Editor introduction is a modal dialog; it would
+  // block every editor test on its first open. Its own test turns it on.
+  ExerciseEditorIntro.enabled = false;
   const pathProvider = MethodChannel('plugins.flutter.io/path_provider');
   late Directory root;
   var installedHandler = false;

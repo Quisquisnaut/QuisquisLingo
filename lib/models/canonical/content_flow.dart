@@ -325,16 +325,49 @@ final class FlowStructureIssue {
       'FlowStructureIssue(${code.name}${nodeId == null ? '' : ', $nodeId'}: $message)';
 }
 
+/// How a Story is shown to the learner (Build 256 Revision 3 follow-up).
+enum FlowPresentation {
+  /// One item per page, as a practice Round shows its exercises.
+  step('step'),
+
+  /// Finished items stay on the page, the next one appears below and the
+  /// page scrolls to it; one item is active at a time.
+  scroll('scroll');
+
+  const FlowPresentation(this.serialized);
+  final String serialized;
+
+  static FlowPresentation? tryParse(Object? value) {
+    for (final presentation in values) {
+      if (presentation.serialized == value) return presentation;
+    }
+    return null;
+  }
+}
+
 final class ContentFlow {
-  ContentFlow({required this.startNodeId, required List<FlowNode> nodes})
-    : nodes = List.unmodifiable(nodes);
+  ContentFlow({
+    required this.startNodeId,
+    required List<FlowNode> nodes,
+    this.presentation = FlowPresentation.step,
+  }) : nodes = List.unmodifiable(nodes);
 
   /// A flow that visits [nodes] in order with `next` transitions. Nodes are
   /// given without transitions; the last one ends the flow.
-  factory ContentFlow.linear(List<FlowNode> nodes) {
-    if (nodes.isEmpty) return ContentFlow(startNodeId: '', nodes: const []);
+  factory ContentFlow.linear(
+    List<FlowNode> nodes, {
+    FlowPresentation presentation = FlowPresentation.step,
+  }) {
+    if (nodes.isEmpty) {
+      return ContentFlow(
+        startNodeId: '',
+        nodes: const [],
+        presentation: presentation,
+      );
+    }
     return ContentFlow(
       startNodeId: nodes.first.id,
+      presentation: presentation,
       nodes: [
         for (var i = 0; i < nodes.length; i++)
           nodes[i].copyWith(
@@ -349,21 +382,35 @@ final class ContentFlow {
   final String startNodeId;
   final List<FlowNode> nodes;
 
+  /// Omitted in JSON when it is the default, [FlowPresentation.step].
+  final FlowPresentation presentation;
+
   Map<String, dynamic> toJson() => {
     'start': startNodeId,
     'nodes': nodes.map((node) => node.toJson()).toList(),
+    if (presentation != FlowPresentation.step)
+      'presentation': presentation.serialized,
   };
 
   /// Parses the structure only; [check] reports semantic problems such as
   /// unknown targets so a Course stays readable and the Audit can name them.
   factory ContentFlow.fromJson(Map<String, dynamic> j) {
-    _refuseUnknownFlowKeys(j, const {'start', 'nodes'}, 'flow');
+    _refuseUnknownFlowKeys(j, const {'start', 'nodes', 'presentation'}, 'flow');
     final rawNodes = j['nodes'];
     if (rawNodes is! List) {
       throw const FormatException('flow.nodes must be a list.');
     }
+    final presentation = j.containsKey('presentation')
+        ? FlowPresentation.tryParse(j['presentation'])
+        : FlowPresentation.step;
+    if (presentation == null) {
+      throw FormatException(
+        'flow.presentation “${j['presentation']}” must be step or scroll.',
+      );
+    }
     return ContentFlow(
       startNodeId: _requiredFlowString(j, 'start', 'flow'),
+      presentation: presentation,
       nodes: [
         for (final node in rawNodes)
           if (node is Map)

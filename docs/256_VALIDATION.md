@@ -57,6 +57,42 @@ held for the run and cleared afterwards).
   passed, 1 skipped, 0 failed** (`All tests passed!` after 21 minutes
   2 seconds).
 
+## Revision 3 follow-up (same version), 27 September 2026, afternoon
+
+- Reproduction first: a widget test at 1280×800, 900×600 and 700×480 found
+  both wizard buttons on screen (the owner's "missing wizards" were the
+  editors' bottom bar under the Windows taskbar on a window taller than the
+  work area; the runner now clamps the window), and neither discard prompt
+  reproduced with the Laboratory exercises (the editors now decide by
+  comparison, which removes the prompt whatever raised the flag).
+- `test/revision3_followup_256_test.dart` (new): flow presentation JSON
+  (scroll stored, step omitted, unknown value refused) and its survival
+  through `forContent`, `remapped` and `withPresentation`; blank Assign,
+  Submit, Speak and Ink drafts legal from the start and `changePrimitive`
+  filling required options; the canonical editor not asking after a
+  re-selected mode and asking after a primitive change, and Assign/Submit
+  without a registry refusal; the Match the pairs form not asking after a
+  focused field and asking after typing; the Round editor's two buttons,
+  the Draft Exercises message on Save, and the Story control writing
+  `presentation: scroll`; a scrolling Story keeping the first item, its
+  answer and the second question on one page through Next and Finish
+  round; the first-time introduction shown once and remembered; the Help
+  catalogs naming the wizards, the two buttons and Scrolling in EN/IT/ES.
+- Focused batch (the new file with every Round editor, exercise editor,
+  Round screen, flow, Help and localization test): **703 passed, 2
+  failed**, both corrected and rerun green: the Draft Exercises message
+  now appears only when the Audit refuses the save, so a Round with a
+  Published Exercise and a Draft duplicate still saves
+  (`authoring_context_menu_224_test`); the Match the pairs test targets
+  the `exercise-field-pairs` key and the editors are pushed above a home
+  page, so Back pops to it (`revision3_followup_256_test`: 11 passed).
+- `dart format` on the changed files (4 reformatted); `flutter analyze
+  --no-pub`: **No issues found**.
+- Complete suite on the final working tree (`flutter test --no-pub
+  --concurrency=1` under the keep-awake wrapper, 14:28–14:52): **2,948
+  passed, 1 skipped, 0 failed** (`All tests passed!` after 24 minutes
+  11 seconds).
+
 ## Revision 2 (2.0.56+256002): runtime and Audit on canonical data, 27 September 2026
 
 - Baseline first: `exercise_laboratory_254_test` records what the Round

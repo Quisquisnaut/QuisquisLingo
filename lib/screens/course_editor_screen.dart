@@ -54,6 +54,7 @@ import '../services/translation_choice_service.dart';
 import '../services/exercise_field_help.dart';
 import '../widgets/editor_breadcrumbs.dart';
 import '../widgets/editor_dialogs.dart';
+import '../widgets/exercise_editor_intro.dart';
 import '../widgets/authoring_destination_dialog.dart';
 import '../widgets/editor_app_bar_actions.dart';
 import '../services/custom_course_transfer_service.dart';
@@ -6069,7 +6070,9 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
       return 'Off: a practice Round with an introduction, shuffled exercises and a mistake review.';
     }
     if (flow.isLinear) {
-      return 'On: the exercises play in this order, unshuffled, without a mistake review.';
+      return flow.presentation == FlowPresentation.scroll
+          ? 'On, scrolling: finished items stay on the page, the next one appears below and the page scrolls to it. No shuffle, no mistake review.'
+          : 'On, step by step: the exercises play in this order, one per page, unshuffled, without a mistake review.';
     }
     return 'On: a branching Story authored outside QQL. Edits here keep its flow as it is; the Audit reports what it no longer finds.';
   }
@@ -6122,6 +6125,39 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
           .length;
       if (errors > 0) {
         if (!mounted) return;
+        // A Round saved as normal content shows learners only its Published
+        // Exercises. When Draft ones are the reason it cannot be saved, say
+        // so and name them instead of counting blocking errors.
+        final drafts = _exercises
+            .where((exercise) => !exercise.publicationState.isPublished)
+            .toList();
+        if (drafts.isNotEmpty) {
+          final titles = drafts
+              .take(3)
+              .map((exercise) => '“${_exerciseSummary(exercise)}”')
+              .join(', ');
+          final more = drafts.length > 3
+              ? ' and ${drafts.length - 3} more'
+              : '';
+          await showDialog<void>(
+            context: context,
+            builder: (context) => AlertDialog(
+              key: const Key('round-draft-exercises-notice'),
+              title: const Text('Save the Draft Exercises first'),
+              content: Text(
+                '${drafts.length == 1 ? 'One Exercise is' : '${drafts.length} Exercises are'} still Draft: $titles$more. '
+                'A Round saved as normal content shows only its Published Exercises, so open each Draft Exercise and press Save, or save the Round as draft.',
+              ),
+              actions: [
+                FilledButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('OK'),
+                ),
+              ],
+            ),
+          );
+          return;
+        }
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -6990,13 +7026,13 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
                     key: const Key('new-exercise'),
                     onPressed: _insert,
                     icon: const Icon(Icons.add),
-                    label: const Text('New exercise'),
+                    label: const Text('New exercise (presets)'),
                   ),
                   OutlinedButton.icon(
                     key: const Key('new-canonical-exercise'),
                     onPressed: _insertCanonical,
                     icon: const Icon(Icons.tune),
-                    label: const Text('Canonical editor'),
+                    label: const Text('New exercise (canonical)'),
                   ),
                   FilledButton.icon(
                     key: const Key('exercise-creation-wizard'),
@@ -7033,6 +7069,34 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
                 value: _flow != null,
                 onChanged: widget.readOnly ? null : _setStory,
               ),
+              if (_flow != null && _flow!.isLinear)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                  child: SegmentedButton<FlowPresentation>(
+                    key: const Key('round-story-presentation'),
+                    segments: const [
+                      ButtonSegment(
+                        value: FlowPresentation.step,
+                        label: Text('Step by step'),
+                        icon: Icon(Icons.view_agenda_outlined),
+                      ),
+                      ButtonSegment(
+                        value: FlowPresentation.scroll,
+                        label: Text('Scrolling'),
+                        icon: Icon(Icons.swipe_vertical_outlined),
+                      ),
+                    ],
+                    selected: {_flow!.presentation},
+                    onSelectionChanged: widget.readOnly
+                        ? null
+                        : (values) => _mutateRound(
+                            () => _flow = RoundFlowAuthoring.withPresentation(
+                              _flow!,
+                              values.first,
+                            ),
+                          ),
+                  ),
+                ),
             ],
           ),
           padding: const EdgeInsets.fromLTRB(10, 10, 10, 20),
@@ -7982,12 +8046,27 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     ]) {
       _watchText(controller);
     }
+    _openedSnapshot = _formSnapshot();
+    // The first time the Exercise Editor opens in a Course, a short
+    // introduction explains presets and the canonical editor.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        ExerciseEditorIntro.showIfNeeded(
+          context,
+          courseId: widget.course?.courseId,
+        );
+      }
+    });
   }
 
   void _loadScriptController() {
     _scriptController?.dispose();
+    _scriptDirty = false;
     _scriptController = ScriptRecognitionController(_exercise)
-      ..addListener(_markDirty);
+      ..addListener(() {
+        _scriptDirty = true;
+        _markDirty();
+      });
   }
 
   void _watchText(TextEditingController controller) {
@@ -9334,6 +9413,8 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     setState(() {
       _exercise = exercise;
       _dirty = false;
+      _scriptDirty = false;
+      _openedSnapshot = _formSnapshot();
       _routeMayPop = close;
     });
     if (!close) return;
@@ -9420,8 +9501,51 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
       ? -1
       : _navigationExercises.indexWhere((item) => item.id == _exercise.id);
 
+  /// The form's fields as one comparable string: what the creator can
+  /// change in this preset form, in the state it was opened or last saved.
+  String _formSnapshot() => [
+    _type,
+    _contextMode,
+    _useMultiSelect,
+    _useInlineGaps,
+    _imageAsset,
+    _selectedSharedSource?.id ?? '',
+    for (final controller in [
+      _prompt,
+      _question,
+      _tts,
+      _hint,
+      _answers,
+      _correct,
+      _accepted,
+      _tokens,
+      _order,
+      _gapLayout,
+      _pairs,
+      _icons,
+      _missingWords,
+      _context,
+      _dialogue,
+      _requiredSelections,
+    ])
+      controller.text,
+    for (final controller in _correctTranslations) controller.text,
+  ].join('\u0001');
+
+  String _openedSnapshot = '';
+
+  /// True when the form differs from what it opened with (or last saved).
+  /// The dirty flag alone is not enough: a control touched without a change
+  /// must not ask the creator to discard anything.
+  bool get _hasUnsavedChanges =>
+      _dirty &&
+      (_formSnapshot() != _openedSnapshot ||
+          (_type == 'script_recognition' && _scriptDirty));
+
+  bool _scriptDirty = false;
+
   Future<bool> _resolveUnsavedChanges() async {
-    if (!_dirty) return true;
+    if (!_hasUnsavedChanges) return true;
     final action = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
@@ -9523,6 +9647,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         _correctTranslationErrorIndexes = const {};
         _dirty = false;
         _inspection = widget.initiallyInspecting;
+        _openedSnapshot = _formSnapshot();
       });
     } finally {
       _navigationBusy = false;

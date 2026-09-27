@@ -12,6 +12,7 @@ import '../services/portable_exercise_image.dart';
 import '../widgets/editor_app_bar_actions.dart';
 import '../widgets/editor_breadcrumbs.dart';
 import '../widgets/editor_dialogs.dart';
+import '../widgets/exercise_editor_intro.dart';
 import '../widgets/image_credit_reminder.dart';
 import 'flat_image_library_screen.dart';
 import 'round_screen.dart';
@@ -80,6 +81,14 @@ class _PrimitiveEditorScreenState extends State<PrimitiveEditorScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        ExerciseEditorIntro.showIfNeeded(
+          context,
+          courseId: widget.course?.courseId,
+        );
+      }
+    });
     _draft = CanonicalExerciseDraft.fromExercise(widget.exercise);
     _prompt.addAll(_draft.prompt.map(_Slot.new));
     _items.addAll(_draft.items.map(_Slot.new));
@@ -351,8 +360,20 @@ class _PrimitiveEditorScreenState extends State<PrimitiveEditorScreen> {
     return true;
   }
 
+  /// Whether the form now describes another exercise than the one it opened
+  /// with. Decided by comparing, not by the dirty flag, so touching a control
+  /// without changing anything never asks to discard.
+  bool get _hasUnsavedChanges {
+    if (!_dirty) return false;
+    final built = _draft.toExercise(
+      publicationState: widget.exercise.publicationState,
+      updatedAt: widget.exercise.updatedAt,
+    );
+    return !built.semanticallyEquals(widget.exercise);
+  }
+
   Future<void> _leave() async {
-    if (_dirty && !_locked) {
+    if (_hasUnsavedChanges && !_locked) {
       final discard = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(

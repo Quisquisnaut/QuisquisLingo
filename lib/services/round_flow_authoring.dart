@@ -11,28 +11,43 @@ import '../models/course_models.dart';
 abstract final class RoundFlowAuthoring {
   /// The linear flow that plays [content] in authored order. Node IDs are
   /// the content IDs, which are unique within a Round.
-  static ContentFlow linearFor(List<LearningContent> content) =>
-      ContentFlow.linear([
-        for (final entry in content)
-          FlowNode(
-            id: entry.id,
-            kind: entry.exercise != null
-                ? FlowNodeKind.exercise
-                : FlowNodeKind.content,
-            contentId: entry.id,
-          ),
-      ]);
+  static ContentFlow linearFor(
+    List<LearningContent> content, {
+    FlowPresentation presentation = FlowPresentation.step,
+  }) => ContentFlow.linear([
+    for (final entry in content)
+      FlowNode(
+        id: entry.id,
+        kind: entry.exercise != null
+            ? FlowNodeKind.exercise
+            : FlowNodeKind.content,
+        contentId: entry.id,
+      ),
+  ], presentation: presentation);
 
   /// The flow a Round keeps after its content became [content]: none stays
-  /// none, a linear flow follows the new order, a branching flow is kept.
+  /// none, a linear flow follows the new order (keeping its presentation),
+  /// a branching flow is kept.
   static ContentFlow? forContent(
     ContentFlow? previous,
     List<LearningContent> content,
   ) {
     if (previous == null) return null;
-    if (previous.isLinear) return linearFor(content);
+    if (previous.isLinear) {
+      return linearFor(content, presentation: previous.presentation);
+    }
     return previous;
   }
+
+  /// The same flow shown the other way (step by step or scrolling).
+  static ContentFlow withPresentation(
+    ContentFlow flow,
+    FlowPresentation presentation,
+  ) => ContentFlow(
+    startNodeId: flow.startNodeId,
+    nodes: flow.nodes,
+    presentation: presentation,
+  );
 
   /// The same flow with every content reference (and the node IDs that
   /// equal a content ID) renamed through [remap], for copies that give the
@@ -43,6 +58,7 @@ abstract final class RoundFlowAuthoring {
     String node(String id) => remap[id] ?? id;
     return ContentFlow(
       startNodeId: node(flow.startNodeId),
+      presentation: flow.presentation,
       nodes: [
         for (final entry in flow.nodes)
           FlowNode(

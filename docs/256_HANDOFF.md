@@ -61,6 +61,51 @@ the Session 2 design). Summary: `docs/256_CHANGE_SUMMARY.md`. Evidence:
   content, save guard), Stage 3 (new presets and runtime additions), Stage
   4 (bundled Courses), version `2.0.56+256004` (see the version-pin list
   above), docs, suite, commit, APK, sound.
+- **Revision 3 follow-up in progress (owner's ten points, same version,
+  one commit "Build 256 Revision 3 follow-up: …"; Revision 4 Stage 1 is
+  in `git stash` (stash@{0}) and resumes only after the owner approves).**
+  Applied, analyzer clean, tests not yet written: `FlowPresentation`
+  (`flow.presentation`: step | scroll, omitted when step) on `ContentFlow`
+  and `RoundFlowAuthoring` (`linearFor(presentation:)`, `forContent` keeps
+  it, `withPresentation`, `remapped` keeps it); the Round editor's
+  `round-story-presentation` control (Step by step / Scrolling) under the
+  Story switch; `RoundScreen` scrolling Story (`_storyScrolls`, `_storyLog`,
+  `story-entry-N` cards with heading, prompt, the learner's answer and a
+  tick/cross, auto-scroll to the active item); the canonical editor decides
+  unsaved changes by semantic comparison (`_hasUnsavedChanges`) and required
+  options get defaults (`CanonicalExerciseDraft.requiredOptionDefaults`, used
+  by `blank`, `blankExercise`, `changePrimitive`: Assign/Submit no longer
+  show a registry refusal); the preset form decides unsaved changes by
+  comparing a form snapshot (`_formSnapshot`, `_openedSnapshot`,
+  `_scriptDirty`); Round editor buttons **New exercise (presets)** /
+  **New exercise (canonical)**; a published Round save with Draft
+  Exercises shows `round-draft-exercises-notice` naming them; the
+  first-time intro `ExerciseEditorIntro` (`lib/widgets/exercise_editor_intro.dart`,
+  one-time notice `exercise_editor_intro_<courseId>`, test seam
+  `enabled` turned off in `test/flutter_test_config.dart`) shown by both
+  editors; Help EN/IT/ES: Round Wizard / Exercise Wizard names, the two
+  buttons, presets versus canonical, scrolling Stories; the Windows runner
+  clamps the initial window to the monitor's work area
+  (`win32_window.cpp`; the owner's "missing wizards" were the bottom bar
+  under the taskbar). Owner decisions recorded in the catalogue plan:
+  pairs only where meaningful, bracket only on twins. 14:35:
+  `test/revision3_followup_256_test.dart` written; CHANGELOG, AGENTS,
+  change summary, validation (placeholders `<<BATCH>>`, `<<SUITE>>`) and
+  the V12 status row carry the follow-up; commit message in
+  `scratchpad/commit_rev3_followup.txt`. First focused batch
+  (`s6_batch1.log`) showed two corrections, both applied: the Draft
+  Exercises message now appears only when the Audit refuses the save (a
+  Round with a Published Exercise and a Draft duplicate still saves, as
+  `authoring_context_menu_224_test` expects), and the Match the pairs test
+  targets `exercise-field-pairs` and pushes the editors above a home page.
+  14:30: the corrected files are green (follow-up file 11 passed, context
+  menu 4 passed), analyzer clean. 14:52: **complete suite 2,948 passed, 1
+  skipped, 0 failed** (24 minutes). Committed as the Revision 3 follow-up
+  (same version `2.0.56+256003`), then the Android debug APK and the sound.
+  **Revision 4 waits for the owner's approval**: then `git stash pop`
+  restores Stage 1 (stash@{0}) and Session 5 continues from "Session 5
+  starting points" below, with the direction decisions (pairs only where
+  meaningful, bracket only on the twins).
 - Untracked files that are the owner's and stay untouched:
   `devtools_options.yaml`, `tools/cloud_setup.sh` (commit with
   `git add -A -- . ':!devtools_options.yaml' ':!tools/cloud_setup.sh'`).

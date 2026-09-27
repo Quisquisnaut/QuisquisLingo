@@ -46,14 +46,14 @@ class CanonicalExerciseDraft {
       );
 
   /// A new exercise of [primitive] with the registry's default evaluation
-  /// mode and no content.
+  /// mode, its required options set and no content.
   factory CanonicalExerciseDraft.blank(
     ExercisePrimitive primitive, {
     required String id,
   }) => CanonicalExerciseDraft._(
     id: id,
     primitive: primitive,
-    options: const {},
+    options: requiredOptionDefaults(primitive),
     prompt: const [],
     items: const [],
     targets: const [],
@@ -69,9 +69,31 @@ class CanonicalExerciseDraft {
     original: null,
   );
 
+  /// The options a new exercise of [primitive] must carry to be legal: every
+  /// required option at its default, else at its first legal value (Assign
+  /// needs `targetMode`, Submit `submissionType`). Without them the registry
+  /// refuses the empty draft before the creator has touched anything.
+  static Map<OptionKey, OptionValue> requiredOptionDefaults(
+    ExercisePrimitive primitive,
+  ) {
+    final values = <OptionKey, OptionValue>{};
+    for (final definition in PrimitiveCapabilityRegistry.capabilityOf(
+      primitive,
+    ).options) {
+      if (!definition.required) continue;
+      final value =
+          definition.defaultValue ??
+          (definition.legalValues.isEmpty
+              ? null
+              : EnumOptionValue(definition.legalValues.first));
+      if (value != null) values[definition.key] = value;
+    }
+    return values;
+  }
+
   /// A new, empty exercise of [primitive] as the Generic Primitive Editor
-  /// opens it: no content, the registry's default evaluation mode, no
-  /// preset and no other authoring metadata.
+  /// opens it: no content, the registry's default evaluation mode and
+  /// required options, no preset and no other authoring metadata.
   static Exercise blankExercise(
     ExercisePrimitive primitive, {
     required String id,
@@ -81,7 +103,7 @@ class CanonicalExerciseDraft {
     publicationState: PublicationState.draft,
     updatedAt: updatedAt,
     primitive: primitive,
-    options: PrimitiveOptions.empty,
+    options: PrimitiveOptions(requiredOptionDefaults(primitive)),
     promptElements: const [],
     items: const [],
     targets: const [],
@@ -128,6 +150,9 @@ class CanonicalExerciseDraft {
     if (next == primitive) return;
     primitive = next;
     options.removeWhere((key, _) => capability.optionDefinition(key) == null);
+    for (final entry in requiredOptionDefaults(next).entries) {
+      options.putIfAbsent(entry.key, () => entry.value);
+    }
     evaluation = CanonicalEvaluation(mode: capability.defaultEvaluationMode);
     if (!capability.usesItems) items.clear();
     if (!capability.usesTargets) {

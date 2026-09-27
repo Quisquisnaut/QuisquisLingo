@@ -5,6 +5,41 @@ Session 4 of the exercise architecture redesign
 canonical data, every canonical field can be edited, and Stories survive
 authoring.
 
+**Follow-up in the same version (27 September 2026, afternoon; owner's
+review of the Windows build):**
+
+- **Scrolling Stories:** a Story's flow carries `presentation: step`
+  (default, omitted) or `scroll`. The Round editor offers **Step by step /
+  Scrolling** under the Play as a Story switch; a scrolling Story keeps the
+  finished items on the page (heading, prompt, the learner's answer, a tick
+  or a cross), shows the next item below and scrolls to it. One item is
+  active at a time; XP, completion and Review are unchanged.
+- **Discard prompts only for real changes:** the canonical editor compares
+  the form with the opened exercise before asking, and the preset form
+  compares a snapshot of its fields, so touching a control (or the Match the
+  pairs field) without changing anything never asks to discard.
+- **Assign and Submit in the canonical editor:** required options
+  (`targetMode`, `submissionType`) get their first legal value when a draft
+  is created or its primitive changes, so the registry no longer refuses an
+  untouched draft.
+- **Round editor buttons:** *New exercise (presets)* and *New exercise
+  (canonical)*.
+- **Draft Exercises:** saving a Round as normal content while some of its
+  Exercises are still Draft explains it and names them, instead of the
+  Audit's count of blocking errors.
+- **First-time introduction:** the first time the Exercise Editor (either
+  form) opens in a Course, a dialog explains presets versus the canonical
+  editor; it is a one-time notice, brought back by Show one-time notices
+  again. Exercise Help says the same.
+- **Help names:** the Lesson editor's Round Wizard and the Round editor's
+  Exercise Wizard are named as on screen (they were still "Generate Rounds
+  from GuideBook" and "Exercise Creation Wizard"); the Windows runner now
+  keeps the initial window inside the monitor's work area, because on a
+  small or scaled screen the editors' bottom bar sat under the taskbar and
+  the wizard buttons looked missing.
+- Owner decisions on preset directions recorded for Revision 4 (pairs only
+  where meaningful, bracket only on the twins).
+
 - **Presets as recipes (plan A.13):** `PresetRecipes`
   (`lib/services/preset_recipes.dart`) decomposes an exercise into a preset
   form's fields, rebuilds it and compares the result semantically, so a

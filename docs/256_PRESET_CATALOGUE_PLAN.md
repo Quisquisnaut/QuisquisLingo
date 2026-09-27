@@ -42,6 +42,16 @@ revision right after it. The later sessions shift by one (see the handoff).
 - Renames approved: Image-prompt ordering → Spell the word in the picture,
   Fill in the blank (choose) → Pick the missing word, Match related words →
   Match by meaning, Listen for missing words → Listen and fill the gaps.
+- Directions (owner, 27 September 2026, afternoon): a preset that has a
+  meaningful other direction exists in **both** directions, always as a
+  pair, and the pair's titles carry the bracket **(to target)** /
+  **(to source)**: Pick, Type and Build the translation, Choose the answer,
+  True or false, Read and answer, Listen and answer. Presets whose "to
+  source" twin would only exercise the learner's own language (spelling,
+  characters, gaps, word and sentence order, synonyms, listening gaps) stay
+  target-only, show "To target" on the tile and in the filter, and carry
+  no bracket in the title. Presets with no language side (Match the words,
+  picture answers, cards and notes) carry neither.
 
 ## 2. Rules the catalogue follows
 
