@@ -10,10 +10,10 @@ Evidence: `docs/256_VALIDATION.md`.
 
 - Branch `claude/256-exercise-architecture`, created from `main` at
   `611a1a1` (Build 255 handoff; version `2.0.55+255007`).
-- Last commit on the branch: none yet. Session 1 (Revision 0,
-  `2.0.56+256000`) is implemented in the working tree; the analyzer is clean
-  and the focused tests pass; the complete suite is the next step, then the
-  session report, this handoff and the Revision 0 commit.
+- Last commit on the branch: `507be89` Build 256 Revision 0: canonical
+  exercise definitions (`2.0.56+256000`; analyzer clean; complete suite
+  2,813 passed, 1 skipped, 0 failed). Session 2 (Revision 1,
+  `2.0.56+256001`) is in progress in the working tree.
 - Untracked files that are the owner's and stay untouched:
   `devtools_options.yaml`, `tools/cloud_setup.sh`.
 - Auto-resume: an in-session hourly cron (`CronCreate` job `6dfcb607`, at
@@ -25,8 +25,8 @@ Evidence: `docs/256_VALIDATION.md`.
 
 | Session | Revision | Version | State |
 | --- | --- | --- | --- |
-| 1 Canonical definitions | 0 | 2.0.56+256000 | implemented; full suite and commit pending |
-| 2 Course Model v12 | 1 | 2.0.56+256001 | not started |
+| 1 Canonical definitions | 0 | 2.0.56+256000 | committed `507be89` |
+| 2 Course Model v12 | 1 | 2.0.56+256001 | in progress |
 | 3 Runtime and Audit | 2 | 2.0.56+256002 | not started |
 | 4 Presets and Generic Primitive Editor | 3 | 2.0.56+256003 | not started |
 | 5 Interoperability | 4 | 2.0.56+256004 | not started |
@@ -48,7 +48,11 @@ Evidence: `docs/256_VALIDATION.md`.
   they also pin `AppMetadata.build`, which is the development phase), AGENTS.md
   release-boundary entry, `EXERCISE_ARCHITECTURE_224.md` historical note.
 
-## Session 2 starting points (next)
+## Session 2 starting points
+
+Design notes are in the scratchpad file `session2_design.md` of this
+session and go into `docs/EXERCISE_ARCHITECTURE_V12.md` ("Course Model v12
+JSON") as the first Session 2 step.
 
 - Serialization design is fixed by `EXERCISE_ARCHITECTURE_V12.md` (options as
   a JSON object keyed by `OptionKey.serialized`; `authoringMetadata.presetId`
