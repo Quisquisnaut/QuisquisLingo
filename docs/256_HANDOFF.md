@@ -7,8 +7,24 @@ condensed specification). Working rules: Part A.1 of the plan. Reference:
 the Session 2 design). Summary: `docs/256_CHANGE_SUMMARY.md`. Evidence:
 `docs/256_VALIDATION.md`.
 
-## State (27 September 2026, 20:04; the 19:05–21:05 stamps below were estimates, the real clock is used from 19:29 on)
+## State (28 September 2026, 01:54; the 19:05–21:05 stamps below were estimates, the real clock is used from 19:29 on)
 
+- **WAITING FOR THE OWNER'S APPROVAL BEFORE REVISION 5. Do not start
+  Revision 5 (interoperability) or Revision 6 (Laboratory / Assign) until
+  the owner says so** (owner, 27 September 20:04: "At the end of task,
+  commit, handoff, and push. Then pause and wait for my approval before
+  going on with next revision"). **Revision 4 (the preset catalogue) is
+  committed: `eca0cd0` Build 256 Revision 4** (`2.0.56+256004`, 86 files;
+  complete suite on the final tree 3053 passed, 1 skipped, 0 failed;
+  evidence `docs/256_VALIDATION.md`, summary `docs/256_CHANGE_SUMMARY.md`,
+  CHANGELOG and AGENTS boundary entries), pushed to
+  `origin/claude/256-exercise-architecture` together with this handoff
+  commit at the owner's request. No APK (owner: "Do not build the apk,
+  unless you already did"). Not implemented in Revision 4: the save guard on
+  example content (catalogue plan). The revision's date and Beta expiry stay
+  27 September / `2026-10-27` although the commit landed at 01:53 on 28
+  September (same policy as Revisions 0–3, all dated 27 September); the
+  owner may ask for a same-version follow-up moving the expiry to 10-28.
 - **Revision 4 close-out in progress (20:04), everything applied in the
   working tree, uncommitted.** Batch 10 (`scratchpad/focused_s20.log`)
   ran 657 passed, 11 failed; `s38_fixes.py` closed four gaps (converter
@@ -220,6 +236,10 @@ the Session 2 design). Summary: `docs/256_CHANGE_SUMMARY.md`. Evidence:
   on canonical data** (`2.0.56+256002`; complete suite 2,840 passed, 1
   skipped, 0 failed; evidence in `docs/256_VALIDATION.md`); handoff
   commits between them.
+  `974f700` Revision 3 (presets as recipes and the Generic Primitive Editor;
+  `2.0.56+256003`) with its follow-ups; `eca0cd0` **Build 256 Revision 4:
+  the preset catalogue** (`2.0.56+256004`; complete suite 3053 passed, 1
+  skipped, 0 failed).
 - **Session 4 is done: `974f700` Build 256 Revision 3: presets as recipes
   and the Generic Primitive Editor** (`2.0.56+256003`; complete suite
   12:05–12:26 **2,937 passed, 1 skipped, 0 failed**; evidence in
