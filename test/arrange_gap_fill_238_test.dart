@@ -235,7 +235,7 @@ void main() {
       for (var frame = 0; frame < 80; frame++) {
         await tester.pump(const Duration(milliseconds: 25));
         if (find
-            .byKey(const Key('exercise-renderer-word_order'))
+            .byKey(const Key('exercise-renderer-arrange'))
             .evaluate()
             .isNotEmpty) {
           break;

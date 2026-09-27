@@ -1,4 +1,5 @@
 import '../models/course_models.dart';
+import '../models/exercise_features.dart';
 import '../models/exercise_authoring.dart';
 import 'answer_engine.dart';
 import 'first_letter_answer_service.dart';
@@ -170,44 +171,35 @@ class NumberedAuditIssue {
 /// few high-confidence consistency rules. It intentionally does not claim to
 /// certify grammar, translation quality or pedagogy.
 class CourseAuditService {
-  static const supportedTypes = {
-    'type_missing_word',
-    'script_recognition',
-    'choice',
-    'gap_choice',
-    'flashcard',
-    'icon_choice',
-    'fill_blank',
-    'word_order',
-    'matching',
-    'listening_choice',
-    'listening_comprehension',
-    'reading_comprehension',
-    'audio_match',
-    'missing_word',
-    'listening_spelling',
-    'image_word',
-    'dialogue_response',
-    'word_match',
-    'super_match',
-    'type_translation',
-    'build_translation',
-    'contextual_comprehension',
-    'translation_choice_to_target',
-    'translation_choice_to_source',
-  };
-  static const choiceTypes = {
-    'script_recognition',
-    'choice',
-    'gap_choice',
-    'icon_choice',
-    'listening_choice',
-    'listening_comprehension',
-    'reading_comprehension',
-    'dialogue_response',
-    'contextual_comprehension',
-    'translation_choice_to_target',
-    'translation_choice_to_source',
+  /// The learner kind each preset's recipe produces. An exercise whose
+  /// derived kind differs from its preset's gets a non-blocking
+  /// PRESET_CANONICAL_MISMATCH: the preset is authoring metadata and never
+  /// changes what plays (Build 256, plan A.3 and A.5).
+  static const presetKinds = <String, LearnerExerciseKind>{
+    'choice': LearnerExerciseKind.select,
+    'gap_choice': LearnerExerciseKind.selectComplete,
+    'icon_choice': LearnerExerciseKind.selectImage,
+    'script_recognition': LearnerExerciseKind.selectCharacter,
+    'listening_choice': LearnerExerciseKind.selectListen,
+    'listening_comprehension': LearnerExerciseKind.selectListenPassage,
+    'reading_comprehension': LearnerExerciseKind.selectRead,
+    'dialogue_response': LearnerExerciseKind.selectDialogue,
+    'contextual_comprehension': LearnerExerciseKind.selectContext,
+    'translation_choice_to_target': LearnerExerciseKind.selectTranslation,
+    'translation_choice_to_source': LearnerExerciseKind.selectTranslation,
+    'fill_blank': LearnerExerciseKind.inputComplete,
+    'type_translation': LearnerExerciseKind.inputTranslation,
+    'listening_spelling': LearnerExerciseKind.inputListenWrite,
+    'missing_word': LearnerExerciseKind.inputListenGaps,
+    'type_missing_word': LearnerExerciseKind.inputMissingWord,
+    'word_order': LearnerExerciseKind.arrangeSentence,
+    'build_translation': LearnerExerciseKind.arrangeTranslation,
+    'image_word': LearnerExerciseKind.arrangeWord,
+    'matching': LearnerExerciseKind.matchTranslation,
+    'word_match': LearnerExerciseKind.matchTranslation,
+    'super_match': LearnerExerciseKind.match,
+    'audio_match': LearnerExerciseKind.matchAudio,
+    'flashcard': LearnerExerciseKind.presentation,
   };
 
   String _courseSourceCode(Course course) {
@@ -629,7 +621,10 @@ class CourseAuditService {
         for (var ei = 0; ei < r.exercises.length; ei++) {
           final ex = r.exercises[ei];
           final el = '$rl · Exercise ${ei + 1}';
-          final instructionLanguage = _legacyInstructionLanguage(ex.prompt);
+          final features = ExerciseFeatures(ex);
+          final instructionLanguage = _legacyInstructionLanguage(
+            features.primaryText,
+          );
           if (instructionLanguage != null &&
               instructionLanguage != _courseSourceCode(course)) {
             issues.add(
@@ -644,9 +639,15 @@ class CourseAuditService {
             );
           }
           issues.addAll(auditExercise(ex, location: el, roundId: r.id));
-          final prompt = ex.prompt.trim();
+          final prompt = [
+            features.primaryText,
+            features.clueText,
+            features.passageText,
+            features.situationText,
+            features.contextText,
+          ].where((text) => text.trim().isNotEmpty).join(' ').trim();
           final isOpposite =
-              (ex.type == 'super_match' &&
+              (features.kind == LearnerExerciseKind.match &&
                   prompt.toLowerCase().contains('opposit')) ||
               prompt.toLowerCase().contains('contrar') ||
               prompt.toLowerCase().contains('gegenteil') ||
@@ -665,8 +666,8 @@ class CourseAuditService {
           }
           final isolated = [
             prompt,
-            ex.question.trim(),
-            ...ex.answers,
+            features.questionText.trim(),
+            for (final item in ex.items) item.value,
           ].where((v) => v.isNotEmpty && !v.contains(RegExp(r'\s')));
           if (_courseTargetCode(course) != 'DE' &&
               isolated.any(
@@ -683,8 +684,15 @@ class CourseAuditService {
               ),
             );
           }
-          final key =
-              '${ex.type}|${ex.prompt.trim().toLowerCase()}|${ex.question.trim().toLowerCase()}';
+          final key = [
+            features.kind.name,
+            prompt,
+            features.questionText,
+            features.textOf('term'),
+            features.textOf('meaning'),
+            features.inlineSentence,
+            features.primaryAudioText ?? '',
+          ].map((text) => text.trim().toLowerCase()).join('|');
           if (!duplicatePrompts.add(key)) {
             issues.add(
               CourseAuditIssue.fromCode(
@@ -1066,18 +1074,23 @@ class CourseAuditService {
   /// at least one gap, every declared gap must have exactly one assignment
   /// referencing an available block, and the same 0-2 distractor allowance
   /// as the whole-sentence Arrange exercises applies to unused blocks.
-  void _auditArrangeGapFill(
-    Exercise ex,
+  /// Every inline-gap Select or Arrange: each gap in the layout needs
+  /// exactly one required item that exists, and the items no gap needs are
+  /// the 0–2 distractors the content rules allow. Unlike Arrange, the same
+  /// option may be the required item of several Select gaps.
+  void _auditGapFill(
+    ExerciseFeatures f,
     Set<String> itemIdSet,
     void Function(AuditCode, String) add,
   ) {
+    final noun = f.primitive == ExercisePrimitive.select ? 'option' : 'block';
     final gapIds = <String>[];
-    for (final element in ex.layout) {
+    for (final element in f.exercise.layout) {
       if (!element.isTarget) continue;
       if (element.targetId.trim().isEmpty) {
         add(
           AuditCode.wordBlockDataRequired,
-          'A gap in the Arrange layout has no gap ID.',
+          'A gap in the ${f.primitive.label} layout has no gap ID.',
         );
         continue;
       }
@@ -1086,105 +1099,61 @@ class CourseAuditService {
     if (gapIds.isEmpty || gapIds.toSet().length != gapIds.length) {
       add(
         AuditCode.wordBlockDataRequired,
-        'Gap-fill Arrange exercise needs one or more uniquely identified gaps in its layout.',
+        'Gap-fill ${f.primitive.label} exercise needs one or more uniquely identified gaps in its layout.',
       );
     }
-    final assignments = ex.targetAssignments;
+    final assignments = f.targetAssignments;
     final assignedGapIds = assignments.keys.toSet();
     if (assignedGapIds.length != gapIds.toSet().length ||
         !assignedGapIds.containsAll(gapIds)) {
       add(
         AuditCode.buildTranslationInvalidSequence,
-        'Every gap in the layout needs exactly one required block assignment.',
+        'Every gap in the layout needs exactly one required $noun assignment.',
       );
     }
     if (assignments.values.any((id) => !itemIdSet.contains(id))) {
       add(
         AuditCode.buildTranslationInvalidSequence,
-        'A gap assignment refers to a block that is not available on this exercise.',
+        'A gap assignment refers to a $noun that is not available on this exercise.',
       );
     }
     final extraCount = itemIdSet.difference(assignments.values.toSet()).length;
     if (extraCount < 0 || extraCount > 2) {
       add(
         AuditCode.wordBlockDistractorCount,
-        'Gap-fill Arrange exercise may contain 0, 1 or 2 extra distractor blocks; found $extraCount.',
+        'Gap-fill ${f.primitive.label} exercise may contain 0, 1 or 2 extra distractor ${noun}s; found $extraCount.',
       );
     }
   }
 
-  /// Validates a linked-gap Select exercise: its inline layout must declare
-  /// at least one gap, every declared gap must have exactly one assignment
-  /// referencing an available option, and the same 0-2 distractor allowance
-  /// as gap-based Arrange applies to options not required by any gap. Unlike
-  /// Arrange, the same option may be the required assignment for more than
-  /// one gap (selecting it fills every linked gap at once).
-  void _auditSelectGapFill(
-    Exercise ex,
-    Set<String> itemIdSet,
-    void Function(AuditCode, String) add,
-  ) {
-    final gapIds = <String>[];
-    for (final element in ex.layout) {
-      if (!element.isTarget) continue;
-      if (element.targetId.trim().isEmpty) {
-        add(
-          AuditCode.wordBlockDataRequired,
-          'A gap in the Select layout has no gap ID.',
-        );
-        continue;
-      }
-      gapIds.add(element.targetId);
-    }
-    if (gapIds.isEmpty || gapIds.toSet().length != gapIds.length) {
-      add(
-        AuditCode.wordBlockDataRequired,
-        'Gap-fill Select exercise needs one or more uniquely identified gaps in its layout.',
-      );
-    }
-    final assignments = ex.targetAssignments;
-    final assignedGapIds = assignments.keys.toSet();
-    if (assignedGapIds.length != gapIds.toSet().length ||
-        !assignedGapIds.containsAll(gapIds)) {
-      add(
-        AuditCode.buildTranslationInvalidSequence,
-        'Every gap in the layout needs exactly one required option assignment.',
-      );
-    }
-    if (assignments.values.any((id) => !itemIdSet.contains(id))) {
-      add(
-        AuditCode.buildTranslationInvalidSequence,
-        'A gap assignment refers to an option that is not available on this exercise.',
-      );
-    }
-    final extraCount = itemIdSet.difference(assignments.values.toSet()).length;
-    if (extraCount < 0 || extraCount > 2) {
-      add(
-        AuditCode.wordBlockDistractorCount,
-        'Gap-fill Select exercise may contain 0, 1 or 2 extra distractor options; found $extraCount.',
-      );
-    }
-  }
-
-  /// High-confidence Word Block language check. It deliberately reports only
-  /// cases where both the answer and the distractor contain unambiguous common
-  /// words from different supported languages; ambiguous vocabulary is left to
-  /// human review rather than guessed.
+  /// High-confidence word-block language check for sentence building. It
+  /// deliberately reports only cases where both the answer and the
+  /// distractor contain unambiguous common words from different supported
+  /// languages; ambiguous vocabulary is left to human review rather than
+  /// guessed.
   void _auditWordBlockLanguage(
-    Exercise ex,
+    ExerciseFeatures f,
     void Function(AuditCode, String) add,
   ) {
-    if (ex.type != 'word_order') return;
+    final orders = f.evaluation.correctOrders;
+    if (orders.isEmpty) return;
+    final valueById = {for (final item in f.items) item.id: item.value};
+    final answerValues = orders.first.itemIds
+        .map((id) => valueById[id])
+        .whereType<String>()
+        .toList();
     final counts = <String, int>{};
-    for (final t in ex.tokens) {
-      counts[t] = (counts[t] ?? 0) + 1;
+    for (final item in f.items) {
+      if (item.value.isNotEmpty) {
+        counts[item.value] = (counts[item.value] ?? 0) + 1;
+      }
     }
-    for (final t in ex.orderAnswer) {
-      counts[t] = (counts[t] ?? 0) - 1;
+    for (final value in answerValues) {
+      counts[value] = (counts[value] ?? 0) - 1;
     }
     final extras = counts.entries.where((e) => e.value > 0).toList();
     if (extras.isEmpty) return;
-    final answerLanguages = ex.orderAnswer
+    final answerLanguages = answerValues
         .map(_languageHint)
         .whereType<String>()
         .toSet();
@@ -1201,6 +1170,50 @@ class CourseAuditService {
       }
     }
   }
+
+  static AuditCode _violationCode(CapabilityViolation violation) =>
+      switch (violation.code) {
+        CapabilityViolationCode.unknownPrimitive ||
+        CapabilityViolationCode.unknownOption ||
+        CapabilityViolationCode.optionNotApplicable ||
+        CapabilityViolationCode.illegalOptionValue ||
+        CapabilityViolationCode.missingRequiredOption =>
+          AuditCode.exerciseOptionInvalid,
+        CapabilityViolationCode.illegalCombination =>
+          AuditCode.exerciseCombinationIllegal,
+        CapabilityViolationCode.missingEvaluationMode ||
+        CapabilityViolationCode.illegalEvaluationMode ||
+        CapabilityViolationCode.evaluationRequiresOption =>
+          AuditCode.exerciseEvaluationModeInvalid,
+        CapabilityViolationCode.selectionLimitsImpossible =>
+          AuditCode.exerciseSelectionLimits,
+      };
+
+  static String _kindLabel(LearnerExerciseKind kind) => switch (kind) {
+    LearnerExerciseKind.select => 'a plain Choose',
+    LearnerExerciseKind.selectComplete => 'Fill in the blank',
+    LearnerExerciseKind.selectImage => 'Select the image',
+    LearnerExerciseKind.selectCharacter => 'Recognize characters',
+    LearnerExerciseKind.selectListen => 'What do you hear',
+    LearnerExerciseKind.selectListenPassage => 'Listen and choose',
+    LearnerExerciseKind.selectRead => 'Reading comprehension',
+    LearnerExerciseKind.selectDialogue => 'Dialogue response',
+    LearnerExerciseKind.selectContext => 'Contextual comprehension',
+    LearnerExerciseKind.selectTranslation => 'Pick the translation',
+    LearnerExerciseKind.inputComplete => 'Type a missing word',
+    LearnerExerciseKind.inputTranslation => 'Type the translation',
+    LearnerExerciseKind.inputListenWrite => 'Type what you hear',
+    LearnerExerciseKind.inputListenGaps => 'Listen for missing words',
+    LearnerExerciseKind.inputMissingWord => 'Type the missing word',
+    LearnerExerciseKind.arrangeSentence => 'Build the sentence',
+    LearnerExerciseKind.arrangeTranslation => 'Build the translation',
+    LearnerExerciseKind.arrangeWord => 'Image-prompt ordering',
+    LearnerExerciseKind.match => 'Match related words',
+    LearnerExerciseKind.matchAudio => 'Listen and match',
+    LearnerExerciseKind.matchTranslation => 'Match the words',
+    LearnerExerciseKind.presentation => 'a Flashcard',
+    LearnerExerciseKind.other => 'an exercise this version cannot play',
+  };
 
   List<CourseAuditIssue> auditExercise(
     Exercise ex, {
@@ -1219,753 +1232,756 @@ class CourseAuditService {
         updatedAt: ex.updatedAt,
       ),
     );
-    if (!supportedTypes.contains(ex.type)) {
-      add(AuditCode.exerciseTypeUnknown, 'Unknown exercise type: ${ex.type}');
+    final f = ExerciseFeatures(ex);
+    final evaluation = ex.canonicalEvaluation;
+    final kind = f.kind;
+    final itemIds = ex.items.map((item) => item.id).toList();
+    final itemIdSet = itemIds.toSet();
+    final itemValues = ex.items.map((item) => item.value).toList();
+
+    // 1. Canonical validity: options, evaluation mode and their
+    // combinations through the capability registry (Errors).
+    for (final violation in PrimitiveCapabilityRegistry.validate(
+      primitive: ex.primitive,
+      options: ex.options,
+      evaluationMode: evaluation.mode,
+    )) {
+      add(_violationCode(violation), violation.message);
     }
-    final preset =
-        ExercisePresetRegistry.byId(ex.editorTemplate) ??
-        ExercisePresetRegistry.byId(ex.type) ??
-        (ex.type == 'flashcard'
-            ? ExercisePresetRegistry.byId('flashcard')
-            : null);
-    if (preset == null) {
-      add(
-        AuditCode.exercisePresetUnknown,
-        'Exercise preset “${ex.editorTemplate}” is not available.',
-      );
-    } else if (preset.primitive != ExercisePrimitive.presentation) {
-      // The v11 interaction kinds are the serialized identifiers of the four
-      // evaluated primitives presets configure (Build 256 Session 1).
-      final expectedInteraction = preset.primitive.serialized;
-      if (ex.interaction.kind != expectedInteraction) {
-        add(
-          AuditCode.presetCanonicalMismatch,
-          '${preset.name} has an incompatible response configuration. Use the response fields for this preset.',
-        );
+    // Multiple selection: the registry's limit invariants (minimum ≤ correct
+    // ≤ maximum ≤ items). A single selection has its own rule below.
+    if (f.multipleSelection &&
+        !f.selectInline &&
+        evaluation.correctItemIds.isNotEmpty) {
+      for (final violation in PrimitiveCapabilityRegistry.checkSelectionLimits(
+        options: ex.options,
+        evaluationMode: evaluation.mode,
+        correctCount: evaluation.correctItemIds.length,
+        itemCount: ex.items.length,
+      )) {
+        add(AuditCode.exerciseSelectionLimits, violation.message);
       }
     }
+
+    // 2. Media and references (Errors).
     const promptMedia = {'text', 'audio', 'image'};
-    if (ex.promptElements.any(
-      (element) => !promptMedia.contains(element.type),
-    )) {
+    final elements = [
+      ...ex.promptElements,
+      for (final item in ex.items) ...item.content,
+    ];
+    if (elements.any((element) => !promptMedia.contains(element.type))) {
       add(
         AuditCode.promptMediaUnsupported,
         'Prompt media must be text, audio or image.',
       );
     }
-    final itemIds = ex.interaction.items.map((item) => item.id).toList();
+    if (elements.any(
+      (element) => element.isAudio && element.text.trim().isEmpty,
+    )) {
+      add(
+        AuditCode.promptMediaUnsupported,
+        'An audio element needs the text it speaks.',
+      );
+    }
     if (itemIds.any((id) => id.trim().isEmpty) ||
-        itemIds.toSet().length != itemIds.length) {
+        itemIdSet.length != itemIds.length) {
       add(
         AuditCode.exerciseItemIds,
         'Exercise Item IDs must be non-empty and unique.',
       );
     }
-    final itemIdSet = itemIds.toSet();
-    final referencedIds = <String>{
-      ...ex.evaluation.correctItemIds,
-      for (final answer in ex.evaluation.correctOrders) ...answer.itemIds,
-      for (final pair in ex.evaluation.pairs) ...pair,
-    };
-    if (referencedIds.any((id) => !itemIdSet.contains(id))) {
+    if (evaluation.referencedItemIds.any((id) => !itemIdSet.contains(id))) {
       add(
         AuditCode.exerciseItemReference,
         'Exercise evaluation references an unknown Item ID.',
       );
     }
-    if (ex.prompt.length > 1200 || ex.question.length > 800) {
+    final targetIds = ex.targets.map((target) => target.id).toList();
+    final targetIdSet = targetIds.toSet();
+    if (targetIds.any((id) => id.trim().isEmpty) ||
+        targetIdSet.length != targetIds.length) {
+      add(
+        AuditCode.exerciseTargetReference,
+        'Target IDs must be non-empty and unique.',
+      );
+    }
+    final layoutTargets = ex.layout
+        .where((element) => element.isTarget)
+        .map((element) => element.targetId)
+        .toList();
+    if (layoutTargets.any((id) => !targetIdSet.contains(id))) {
+      add(
+        AuditCode.exerciseTargetReference,
+        'The layout names a target the exercise does not declare.',
+      );
+    }
+    if (layoutTargets.toSet().length != layoutTargets.length) {
+      add(
+        AuditCode.exerciseTargetReference,
+        'A target appears more than once in the layout.',
+      );
+    }
+    if (ex.layout.isNotEmpty &&
+        targetIdSet.difference(layoutTargets.toSet()).isNotEmpty) {
+      add(
+        AuditCode.exerciseTargetReference,
+        'A declared target has no place in the layout.',
+      );
+    }
+    if (evaluation.referencedTargetIds.any((id) => !targetIdSet.contains(id))) {
+      add(
+        AuditCode.exerciseTargetReference,
+        'Exercise evaluation references an unknown target ID.',
+      );
+    }
+    final layoutOption = f.options.enumValue<LayoutValue>(OptionKey.layout);
+    final inlineOption =
+        layoutOption == LayoutValue.inline ||
+        layoutOption == LayoutValue.inlineGaps ||
+        f.options.enumValue<PlacementMode>(OptionKey.placementMode) ==
+            PlacementMode.inlineGaps;
+    if (inlineOption && layoutTargets.isEmpty) {
+      add(
+        AuditCode.exerciseTargetReference,
+        'An inline layout needs at least one target.',
+      );
+    } else if (!inlineOption && ex.layout.isNotEmpty) {
+      add(
+        AuditCode.exerciseTargetReference,
+        'Only an inline layout may carry layout elements; choose the inline layout or remove them.',
+      );
+    }
+    final longest = [
+      f.primaryText,
+      f.clueText,
+      f.passageText,
+      f.situationText,
+      f.contextText,
+    ].fold(0, (max, text) => text.length > max ? text.length : max);
+    if (longest > 1200 || f.questionText.length > 800) {
       add(
         AuditCode.exerciseTextLong,
         'Very long text may be difficult to read on small screens.',
       );
     }
 
-    // Flag genuinely independent fields that do not belong to the selected
-    // preset. Canonical v6 interaction items are shared by Select, Arrange and
-    // Match; the author-friendly answers/tokens/icons getters are projections
-    // of those same items and therefore cannot be used to detect stale data.
-    void unexpected(bool condition, String field) {
-      if (condition) {
+    // 3. The preset is authoring metadata: what disagrees with it warns and
+    // never blocks (plan A.5); an unknown preset is information.
+    final presetId = ex.editorTemplate;
+    if (presetId.isNotEmpty) {
+      final preset = ExercisePresetRegistry.byId(presetId);
+      if (preset == null) {
         add(
-          AuditCode.exerciseFieldUnexpected,
-          'Unexpected field for ${ex.type}: $field.',
-        );
-      }
-    }
-
-    unexpected(
-      !choiceTypes.contains(ex.type) && ex.evaluation.correctItemIds.isNotEmpty,
-      'correct answer',
-    );
-    unexpected(
-      !const {
-            'fill_blank',
-            'listening_spelling',
-            'missing_word',
-            'type_translation',
-            'type_missing_word',
-          }.contains(ex.type) &&
-          ex.evaluation.accepted.isNotEmpty,
-      'accepted answers',
-    );
-    unexpected(
-      !const {
-            'word_order',
-            'image_word',
-            'build_translation',
-          }.contains(ex.type) &&
-          ex.evaluation.correctOrders.isNotEmpty,
-      'correct sentence/order',
-    );
-    unexpected(
-      !const {
-            'matching',
-            'audio_match',
-            'word_match',
-            'super_match',
-          }.contains(ex.type) &&
-          ex.evaluation.pairs.isNotEmpty,
-      'pairs',
-    );
-    unexpected(
-      !const {
-            'gap_choice',
-            'fill_blank',
-            'type_translation',
-            'type_missing_word',
-          }.contains(ex.type) &&
-          ex.hint.isNotEmpty,
-      'hint',
-    );
-    unexpected(
-      ex.type != 'missing_word' && ex.missingWords.isNotEmpty,
-      'missing words',
-    );
-    unexpected(
-      ex.type != 'icon_choice' &&
-          ex.type != 'script_recognition' &&
-          ex.icons.any((icon) => icon.trim().isNotEmpty),
-      'icons',
-    );
-
-    if (ex.type == 'script_recognition') {
-      final imageOptions = ex.interaction.items.any(
-        (item) => item.content.any((element) => element.type == 'image'),
-      );
-      final images = ex.promptElements
-          .where((element) => element.type == 'image')
-          .toList();
-      if (ex.evaluation.kind != 'selected_items' ||
-          ex.interaction.minSelections != 1 ||
-          ex.interaction.maxSelections != 1 ||
-          ex.evaluation.correctItemIds.length != 1) {
-        add(
-          AuditCode.choiceCorrectAnswerInvalid,
-          'Recognize characters requires exactly one correct option and one selection.',
-        );
-      }
-      if (imageOptions) {
-        if (ex.prompt.trim().isEmpty ||
-            images.isNotEmpty ||
-            ex.interaction.items.any(
-              (item) =>
-                  item.image.isEmpty ||
-                  item.content.any((element) => element.type != 'image'),
-            )) {
-          add(
-            AuditCode.presetCanonicalMismatch,
-            'Text to image requires a nonempty text prompt and at least two image-only options.',
-          );
-        }
-      } else if (images.isEmpty ||
-          ex.interaction.items.any(
-            (item) =>
-                item.text.trim().isEmpty ||
-                item.content.any((element) => element.type != 'text'),
-          )) {
-        add(
-          AuditCode.presetCanonicalMismatch,
-          'Image to text requires one or more prompt images and at least two text-only options.',
-        );
-      }
-      final assets = [
-        ...images.map((element) => element.asset),
-        for (final item in ex.interaction.items)
-          ...item.content
-              .where((element) => element.type == 'image')
-              .map((element) => element.asset),
-      ];
-      if (assets.any(
-        (asset) => !PortableExerciseImageService.isPortable(asset),
-      )) {
-        add(
-          AuditCode.promptMediaUnsupported,
-          'Recognize characters images must be portable bundled assets or valid embedded PNG, JPEG or WebP images of at most 50 KB. Absolute local paths are not supported.',
-        );
-      }
-    }
-    if (ex.type == 'type_missing_word') {
-      if (ex.accepted.isEmpty) {
-        add(
-          AuditCode.fillBlankAnswerRequired,
-          'Type the missing word needs a complete accepted word.',
+          AuditCode.exercisePresetUnknown,
+          'Exercise preset “$presetId” is not available in this version; the exercise plays from its own data.',
         );
       } else {
-        try {
-          FirstLetterAnswerService.display(ex.prompt, ex.accepted);
-        } on AnswerExpressionException catch (error) {
-          add(AuditCode.answerExpressionInvalid, error.message);
-        }
-      }
-      if (ex.evaluation.kind != 'text_match' ||
-          ex.interaction.inputType != 'text') {
-        add(
-          AuditCode.presetCanonicalMismatch,
-          'Type the missing word requires normal text Input evaluation.',
-        );
-      }
-    }
-    if (ex.type == 'choice' && ex.hasSelectGaps) {
-      _auditSelectGapFill(ex, itemIdSet, add);
-    }
-    if (TranslationChoice.isTranslationChoice(ex.type)) {
-      if (ex.question.trim().isEmpty) {
-        add(
-          AuditCode.translationChoiceTextRequired,
-          'Pick the translation needs the text to translate.',
-        );
-      }
-      if (ex.isMultiSelect || ex.hasSelectGaps) {
-        add(
-          AuditCode.presetCanonicalMismatch,
-          'Pick the translation requires single-answer Select without inline gaps or multiple selection.',
-        );
-      }
-      if (ex.answers.length > TranslationChoice.maxAnswers) {
-        add(
-          AuditCode.translationChoiceTooManyAnswers,
-          'Pick the translation accepts at most ${TranslationChoice.maxAnswers} answer options.',
-        );
-      }
-      unexpected(ex.prompt.trim().isNotEmpty, 'prompt');
-      unexpected((ex.tts ?? '').trim().isNotEmpty, 'spoken text');
-    }
-    if (choiceTypes.contains(ex.type) &&
-        !(ex.type == 'choice' && ex.hasSelectGaps)) {
-      if (ex.isMultiSelect) {
-        if (ex.evaluation.correctItemIds.isEmpty) {
+        final expected = presetKinds[presetId];
+        if (preset.primitive != ex.primitive) {
           add(
-            AuditCode.choiceCorrectAnswerInvalid,
-            'Multiple-selection Choice exercise needs at least one correct answer.',
+            AuditCode.presetCanonicalMismatch,
+            '${preset.name} configures ${preset.primitive.label} exercises; this one is ${ex.primitive.label}.',
+          );
+        } else if (expected != null && expected != kind) {
+          add(
+            AuditCode.presetCanonicalMismatch,
+            'This exercise no longer matches ${preset.name}: it plays as ${_kindLabel(kind)}.',
           );
         }
-        if (ex.requiredSelectionCount < 1 ||
-            ex.requiredSelectionCount > ex.answers.length) {
-          add(
-            AuditCode.choiceCorrectAnswerInvalid,
-            'Required selections must be between 1 and the number of answers.',
-          );
+        switch (presetId) {
+          case 'dialogue_response':
+            if (f.situationText.trim().isEmpty) {
+              add(
+                AuditCode.dialogueContextRequired,
+                'Dialogue Response needs a context sentence.',
+              );
+            }
+            if (f.questionText.trim().isEmpty) {
+              add(
+                AuditCode.dialogueQuestionRequired,
+                'Dialogue Response needs a question.',
+              );
+            }
+            if (ex.items.length != 2) {
+              add(
+                AuditCode.dialogueResponseOptionCount,
+                'Dialogue Response requires exactly two response options.',
+              );
+            }
+          case 'contextual_comprehension':
+            if (f.questionText.trim().isEmpty) {
+              add(
+                AuditCode.contextQuestionRequired,
+                'Contextual comprehension needs a separate question. Enter what the learner should answer about the context.',
+              );
+            }
+            if (f.contextText.trim().isEmpty &&
+                f.contextAudio.trim().isEmpty &&
+                f.dialogueTurns.isEmpty) {
+              add(
+                AuditCode.contextRequired,
+                'Contextual comprehension needs text, audio or dialogue context. Add the material the question refers to.',
+              );
+            }
+          case 'reading_comprehension':
+            if (_lexicalWordCount(f.passageText) == 0) {
+              add(
+                AuditCode.readingPassageRequired,
+                'Reading Comprehension needs a Reading Passage containing words.',
+              );
+            }
+          case 'listening_choice':
+          case 'listening_comprehension':
+          case 'listening_spelling':
+          case 'missing_word':
+            if ((f.automaticAudio?.text ?? '').trim().isEmpty) {
+              add(
+                AuditCode.listeningAudioRequired,
+                'Listening exercise has no audio text. Enter the text the learner should hear.',
+              );
+            }
+            if (presetId == 'listening_comprehension' &&
+                f.passageAudio.trim().split(RegExp(r'\s+')).length < 5) {
+              add(
+                AuditCode.listeningPassageShort,
+                'Listening comprehension passage is very short; make sure it tests comprehension.',
+              );
+            }
+          case 'gap_choice':
+            if (f.questionText.trim().isEmpty) {
+              add(
+                AuditCode.gapSentenceRequired,
+                'Gap Choice needs a target-language sentence.',
+              );
+            } else if (!RegExp(r'___').hasMatch(f.questionText)) {
+              add(
+                AuditCode.gapMarkerMissing,
+                'Gap Choice sentence must contain the ___ gap marker.',
+              );
+            }
+          case 'translation_choice_to_target':
+          case 'translation_choice_to_source':
+            if (f.questionText.trim().isEmpty) {
+              add(
+                AuditCode.translationChoiceTextRequired,
+                'Pick the translation needs the text to translate.',
+              );
+            }
+            if (ex.items.length > TranslationChoice.maxAnswers) {
+              add(
+                AuditCode.translationChoiceTooManyAnswers,
+                'Pick the translation accepts at most ${TranslationChoice.maxAnswers} answer options.',
+              );
+            }
+            if (f.primaryText.trim().isNotEmpty || f.audioElements.isNotEmpty) {
+              add(
+                AuditCode.presetCanonicalMismatch,
+                'Pick the translation shows only the text to translate and speaks it itself; remove the extra prompt text or spoken text.',
+              );
+            }
+          case 'word_match':
+          case 'super_match':
+            if (evaluation.relations.length != 3) {
+              add(
+                AuditCode.matchPairCount,
+                '${preset.name} requires exactly 3 pairs.',
+              );
+            }
+          case 'audio_match':
+            if (evaluation.relations.length != 3) {
+              add(
+                AuditCode.audioMatchPairCount,
+                'Audio Match requires exactly 3 sound/text pairs.',
+              );
+            }
+            if (f.rightItems.length != evaluation.relations.length) {
+              add(
+                AuditCode.audioMatchAnswerCount,
+                'Audio Match must have one visible answer for each sound and no distractors.',
+              );
+            }
+          case 'script_recognition':
+            final imageItems = f.hasImageItems;
+            if (evaluation.mode != EvaluationMode.exactItem ||
+                f.multipleSelection ||
+                evaluation.correctItemIds.length != 1) {
+              add(
+                AuditCode.presetCanonicalMismatch,
+                'Recognize characters requires exactly one correct option and one selection.',
+              );
+            }
+            if (imageItems) {
+              if (f.primaryText.trim().isEmpty ||
+                  f.characterImages.isNotEmpty ||
+                  ex.items.any(
+                    (item) =>
+                        item.image.isEmpty ||
+                        item.content.any((element) => !element.isImage),
+                  )) {
+                add(
+                  AuditCode.presetCanonicalMismatch,
+                  'Text to image requires a nonempty text prompt and at least two image-only options.',
+                );
+              }
+            } else if (f.characterImages.isEmpty ||
+                ex.items.any(
+                  (item) =>
+                      item.text.trim().isEmpty ||
+                      item.content.any((element) => !element.isText),
+                )) {
+              add(
+                AuditCode.presetCanonicalMismatch,
+                'Image to text requires one or more prompt images and at least two text-only options.',
+              );
+            }
         }
       }
-      if (ex.answers.length < 2) {
-        add(
-          AuditCode.choiceAnswersRequired,
-          'Choice exercise needs at least two answers.',
-        );
-      }
-      if (ex.type == 'dialogue_response' && ex.answers.length != 2) {
-        add(
-          AuditCode.dialogueResponseOptionCount,
-          'Dialogue Response requires exactly two response options.',
-        );
-      }
-      if (ex.type == 'dialogue_response' && ex.prompt.trim().isEmpty) {
-        add(
-          AuditCode.dialogueContextRequired,
-          'Dialogue Response needs a context sentence.',
-        );
-      }
-      if (ex.type == 'dialogue_response' && ex.question.trim().isEmpty) {
-        add(
-          AuditCode.dialogueQuestionRequired,
-          'Dialogue Response needs a question.',
-        );
-      }
-      if (ex.correct == null ||
-          ex.correct! < 0 ||
-          ex.correct! >= ex.answers.length) {
-        add(
-          AuditCode.choiceCorrectAnswerInvalid,
-          'Correct answer is missing or outside the answer list. Select a correct answer from the current options.',
-        );
-      }
-      if (ex.answers.any((e) => e.trim().isEmpty)) {
-        add(AuditCode.choiceAnswerEmpty, 'Answer options cannot be blank.');
-      }
-      final repeated = TranslationChoice.isTranslationChoice(ex.type)
-          ? TranslationChoice.hasRepeatedAnswers(ex.answers)
-          : ex.answers.map((e) => e.trim().toLowerCase()).toSet().length !=
-                ex.answers.length;
-      if (repeated) {
-        add(
-          AuditCode.choiceAnswerDuplicate,
-          'Answer options contain duplicates.',
-        );
-      }
-      const placeholderAnswers = {
-        'xyz',
-        'abc',
-        'placeholder',
-        'test answer',
-        'dummy',
-      };
-      if (ex.answers.any(
-        (e) => placeholderAnswers.contains(e.trim().toLowerCase()),
-      )) {
-        add(
-          AuditCode.placeholderAnswer,
-          'Answer options contain placeholder text. Replace it with a real course-language distractor.',
-        );
-      }
-      final normalizedPrompt = ex.prompt.trim().toLowerCase();
-      if (normalizedPrompt == 'choose the correct translation.' ||
-          normalizedPrompt == 'elige la traducción correcta.') {
-        add(
-          AuditCode.translationPromptMissingSource,
-          'Translation prompt does not identify the word or expression to translate.',
-        );
-      }
-      if (ex.evaluation.correctItemIds.isNotEmpty && ex.correct == null) {
-        add(
-          AuditCode.correctItemUnresolved,
-          'Correct Item ID does not resolve to a visible answer option.',
-        );
-      }
-      if (ex.type == 'reading_comprehension' &&
-          ex.question.toLowerCase().contains(
-            'which option best fits the lesson vocabulary',
-          ) &&
-          ex.correct != null &&
-          ex.correct! >= 0 &&
-          ex.correct! < ex.answers.length) {
-        final correctText = ex.answers[ex.correct!].trim().toLowerCase();
-        final passage = ex.prompt.trim().toLowerCase();
-        if (correctText.isNotEmpty && !passage.contains(correctText)) {
-          add(
-            AuditCode.readingOptionNotInPassage,
-            'The declared correct option does not occur in the reading passage. Review this generated Reading exercise for a likely vocabulary mismatch.',
-          );
-        }
-      }
-    }
-    if ((ex.type.startsWith('listening') || ex.type == 'missing_word') &&
-        (ex.tts == null || ex.tts!.trim().isEmpty)) {
-      add(
-        AuditCode.listeningAudioRequired,
-        'Listening exercise has no audio text. Enter the text the learner should hear.',
-      );
-    }
-    if (ex.type == 'gap_choice') {
-      if (ex.question.trim().isEmpty) {
-        add(
-          AuditCode.gapSentenceRequired,
-          'Gap Choice needs a target-language sentence.',
-        );
-      }
-      final gapCount = RegExp(r'___').allMatches(ex.question).length;
-      if (gapCount == 0) {
-        add(
-          AuditCode.gapMarkerMissing,
-          'Gap Choice sentence must contain the ___ gap marker.',
-        );
-      }
-      if (gapCount > 1) {
-        add(
-          AuditCode.gapMarkerCount,
-          'Gap Choice should normally contain exactly one gap.',
-        );
-      }
-      final correctAnswer =
-          ex.correct != null &&
-              ex.correct! >= 0 &&
-              ex.correct! < ex.answers.length
-          ? ex.answers[ex.correct!]
-          : '';
-      if (correctAnswer.isNotEmpty && ex.question.contains('___')) {
-        final completed = ex.question.replaceFirst('___', correctAnswer);
-        if (_lexicalWordCount(completed) < 2) {
-          add(
-            AuditCode.gapSentenceTooShort,
-            'The completed sentence must contain at least 2 words.',
-          );
-        }
-      }
-    }
-    if (ex.type == 'listening_spelling' && ex.accepted.isEmpty) {
-      add(
-        AuditCode.listeningSpellingNoAnswer,
-        'Listening Spelling needs at least one accepted text answer.',
-      );
-    }
-    if (const {
-          'fill_blank',
-          'listening_spelling',
-          'type_translation',
-        }.contains(ex.type) &&
-        ex.accepted.isNotEmpty) {
-      for (final expression in ex.accepted) {
-        try {
-          AnswerExpressionParser.expand(expression);
-        } on AnswerExpressionException catch (error) {
-          add(AuditCode.answerExpressionInvalid, error.message);
-        }
-      }
-      try {
-        AnswerExpressionParser.expandAll(ex.accepted);
-      } on AnswerExpressionException catch (error) {
-        add(AuditCode.answerExpansionLimit, error.message);
-      }
-    }
-    if (ex.type == 'type_translation') {
-      if (ex.prompt.trim().isEmpty) {
-        add(
-          AuditCode.translationSourceRequired,
-          'Type the translation needs source text.',
-        );
-      }
-      if (ex.accepted.isEmpty) {
-        add(
-          AuditCode.translationAnswerRequired,
-          'Type the translation needs at least one accepted answer.',
-        );
-      }
-    }
-    if (ex.type == 'contextual_comprehension') {
-      if (ex.question.trim().isEmpty) {
-        add(
-          AuditCode.contextQuestionRequired,
-          'Contextual comprehension needs a separate question. Enter what the learner should answer about the context.',
-        );
-      }
-      if (ex.contextText.trim().isEmpty &&
-          ex.contextAudio.trim().isEmpty &&
-          ex.dialogueTurns.isEmpty) {
-        add(
-          AuditCode.contextRequired,
-          'Contextual comprehension needs text, audio or dialogue context. Add the material the question refers to.',
-        );
-      }
-      if (ex.dialogueTurns.any(
-        (turn) => turn.speaker.trim().isEmpty || turn.text.trim().isEmpty,
-      )) {
-        add(
-          AuditCode.dialogueTurnInvalid,
-          'Every dialogue turn needs a speaker and text.',
-        );
-      }
-    }
-    if (ex.type == 'missing_word') {
-      if (ex.prompt.trim().isEmpty) {
-        add(
-          AuditCode.missingWordTranscriptRequired,
-          'Missing Word exercise needs a passage transcript.',
-        );
-      }
-      if (ex.missingWords.isEmpty) {
-        add(
-          AuditCode.missingWordAnswerRequired,
-          'Missing Word exercise needs at least one missing word.',
-        );
-      }
-      final passage = ex.prompt.toLowerCase();
-      for (final word in ex.missingWords) {
-        if (!passage.contains(word.toLowerCase())) {
-          add(
-            AuditCode.missingWordNotInTranscript,
-            'Missing word “$word” does not occur in the passage transcript.',
-          );
-        }
-      }
-      if (ex.missingWords.map((e) => e.trim().toLowerCase()).toSet().length !=
-          ex.missingWords.length) {
-        add(
-          AuditCode.missingWordDuplicate,
-          'Missing Word exercise contains duplicate missing-word entries.',
-        );
-      }
-    }
-    if (ex.type == 'reading_comprehension') {
-      final lexicalWords = _lexicalWordCount(ex.prompt);
-      if (lexicalWords == 0) {
-        add(
-          AuditCode.readingPassageRequired,
-          'Reading Comprehension needs a Reading Passage containing words.',
-        );
-      } else if (lexicalWords < 3) {
-        add(
-          AuditCode.readingPassageTooShort,
-          'Reading Comprehension passages should contain at least three words.',
-        );
-      }
-    }
-    if (ex.type == 'listening_comprehension' &&
-        (ex.tts ?? '').trim().split(RegExp(r'\s+')).length < 5) {
-      add(
-        AuditCode.listeningPassageShort,
-        'Listening comprehension passage is very short; make sure it tests comprehension.',
-      );
     }
 
-    if (ex.type == 'fill_blank') {
-      if (ex.accepted.isEmpty) {
-        add(
-          AuditCode.fillBlankAnswerRequired,
-          'Fill-in exercise needs at least one accepted answer.',
-        );
-      }
-    }
-    if (const {'word_order', 'build_translation'}.contains(ex.type) &&
-        ex.hasArrangeGaps) {
-      _auditArrangeGapFill(ex, itemIdSet, add);
-    } else if (const {
-      'word_order',
-      'image_word',
-      'build_translation',
-    }.contains(ex.type)) {
-      if (ex.tokens.isEmpty || ex.evaluation.correctOrders.isEmpty) {
-        add(
-          AuditCode.wordBlockDataRequired,
-          ex.type == 'build_translation'
-              ? 'Build the translation needs usable Language blocks and at least one correct translation.'
-              : 'Word-block exercise needs available blocks and a correct answer. Enter the answer and select its blocks in order.',
-        );
-      }
-      final normalizedAnswers = <String>{};
-      final usedItemIds = <String>{};
-      final itemValueById = {
-        for (final item in ex.interaction.items) item.id: item.value,
-      };
-      for (final answer in ex.evaluation.correctOrders) {
-        final normalized = _orderedAnswerComparable(answer.text);
-        if (normalized.isEmpty) {
+    // 4. Content rules by primitive and kind, from canonical data.
+    switch (ex.primitive) {
+      case ExercisePrimitive.select:
+        if (f.selectInline) {
+          _auditGapFill(f, itemIdSet, add);
+          break;
+        }
+        if (ex.items.length < 2) {
           add(
-            AuditCode.buildTranslationAnswerRequired,
-            'Each correct answer must contain complete, non-empty literal text that its selected blocks can build.',
-          );
-        } else if (!normalizedAnswers.add(normalized)) {
-          add(
-            AuditCode.buildTranslationDuplicateAnswer,
-            'Correct answers contain a duplicate after ignoring case, repeated spaces and final sentence punctuation. Keep one copy of that answer.',
+            AuditCode.choiceAnswersRequired,
+            'Choice exercise needs at least two answers.',
           );
         }
-        if (answer.itemIds.isEmpty ||
-            answer.itemIds.any((id) => !itemIdSet.contains(id))) {
+        if (f.multipleSelection) {
+          if (evaluation.correctItemIds.isEmpty) {
+            add(
+              AuditCode.choiceCorrectAnswerInvalid,
+              'Multiple-selection Choice exercise needs at least one correct answer.',
+            );
+          }
+        } else if (evaluation.correctItemIds.isEmpty ||
+            !itemIdSet.contains(evaluation.correctItemIds.first)) {
           add(
-            AuditCode.buildTranslationInvalidSequence,
-            'A correct answer has no block order or refers to unavailable blocks. Select its blocks from the current available list.',
+            AuditCode.choiceCorrectAnswerInvalid,
+            'Correct answer is missing or outside the answer list. Select a correct answer from the current options.',
           );
-          continue;
-        }
-        if (answer.itemIds.toSet().length != answer.itemIds.length) {
+        } else if (evaluation.correctItemIds.length > 1) {
           add(
-            AuditCode.buildTranslationReusedBlock,
-            'Repeated words require separate available block occurrences. Add another copy of the word and select each occurrence once.',
-          );
-        }
-        usedItemIds.addAll(answer.itemIds);
-        final separator = ex.type == 'image_word' ? '' : ' ';
-        final constructed = answer.itemIds
-            .map((id) => itemValueById[id])
-            .whereType<String>()
-            .join(separator);
-        if (_orderedAnswerComparable(constructed) != normalized) {
-          add(
-            AuditCode.buildTranslationUnconstructable,
-            'A correct answer cannot be built from its selected block order. Make the answer text and ordered blocks agree exactly, allowing the existing case, spacing and final-punctuation normalization.',
+            AuditCode.choiceCorrectAnswerInvalid,
+            'A single-selection exercise needs exactly one correct answer.',
           );
         }
-      }
-      final comparisonOrder = ex.type == 'build_translation'
-          ? usedItemIds
-          : ex.evaluation.correctOrders.isEmpty
-          ? const <String>{}
-          : ex.evaluation.correctOrders.first.itemIds.toSet();
-      final extraCount = itemIdSet.difference(comparisonOrder).length;
-      final maxDistractors = ex.type == 'image_word' ? 0 : 2;
-      if (extraCount < 0 || extraCount > maxDistractors) {
-        add(
-          AuditCode.wordBlockDistractorCount,
-          ex.type == 'image_word'
-              ? 'Letter/syllable word-building exercises must contain only the blocks needed for the answer; found $extraCount extra blocks.'
-              : ex.type == 'build_translation'
-              ? 'Build the translation may contain 0, 1 or 2 blocks unused by every correct translation; found $extraCount.'
-              : 'Word-order exercise may contain 0, 1 or 2 extra distractor blocks; found $extraCount.',
-        );
-      }
-      _auditWordBlockLanguage(ex, add);
+        if (evaluation.correctItemIds.isNotEmpty &&
+            !evaluation.correctItemIds.any(itemIdSet.contains)) {
+          add(
+            AuditCode.correctItemUnresolved,
+            'Correct Item ID does not resolve to a visible answer option.',
+          );
+        }
+        if (itemValues.any((value) => value.trim().isEmpty)) {
+          add(AuditCode.choiceAnswerEmpty, 'Answer options cannot be blank.');
+        }
+        final repeated = f.isTranslationChoice
+            ? TranslationChoice.hasRepeatedAnswers(itemValues)
+            : itemValues.map((e) => e.trim().toLowerCase()).toSet().length !=
+                  itemValues.length;
+        if (repeated) {
+          add(
+            AuditCode.choiceAnswerDuplicate,
+            'Answer options contain duplicates.',
+          );
+        }
+        const placeholderAnswers = {
+          'xyz',
+          'abc',
+          'placeholder',
+          'test answer',
+          'dummy',
+        };
+        if (itemValues.any(
+          (e) => placeholderAnswers.contains(e.trim().toLowerCase()),
+        )) {
+          add(
+            AuditCode.placeholderAnswer,
+            'Answer options contain placeholder text. Replace it with a real course-language distractor.',
+          );
+        }
+        final normalizedPrompt = f.primaryText.trim().toLowerCase();
+        if (normalizedPrompt == 'choose the correct translation.' ||
+            normalizedPrompt == 'elige la traducción correcta.') {
+          add(
+            AuditCode.translationPromptMissingSource,
+            'Translation prompt does not identify the word or expression to translate.',
+          );
+        }
+        if (kind == LearnerExerciseKind.selectRead) {
+          final lexicalWords = _lexicalWordCount(f.passageText);
+          if (lexicalWords > 0 && lexicalWords < 3) {
+            add(
+              AuditCode.readingPassageTooShort,
+              'Reading Comprehension passages should contain at least three words.',
+            );
+          }
+          final correct = evaluation.correctItemIds.firstOrNull;
+          final correctText = ex.items
+              .where((item) => item.id == correct)
+              .map((item) => item.value.trim().toLowerCase())
+              .firstOrNull;
+          if (f.questionText.toLowerCase().contains(
+                'which option best fits the lesson vocabulary',
+              ) &&
+              correctText != null &&
+              correctText.isNotEmpty &&
+              !f.passageText.trim().toLowerCase().contains(correctText)) {
+            add(
+              AuditCode.readingOptionNotInPassage,
+              'The declared correct option does not occur in the reading passage. Review this generated Reading exercise for a likely vocabulary mismatch.',
+            );
+          }
+        }
+        if (kind == LearnerExerciseKind.selectComplete) {
+          final sentence = ex.promptElements
+              .where((e) => e.isText && RegExp(r'___').hasMatch(e.text))
+              .map((e) => e.text)
+              .first;
+          final gapCount = RegExp(r'___').allMatches(sentence).length;
+          if (gapCount > 1) {
+            add(
+              AuditCode.gapMarkerCount,
+              'Gap Choice should normally contain exactly one gap.',
+            );
+          }
+          final correct = evaluation.correctItemIds.firstOrNull;
+          final correctAnswer = ex.items
+              .where((item) => item.id == correct)
+              .map((item) => item.value)
+              .firstOrNull;
+          if (correctAnswer != null && correctAnswer.isNotEmpty) {
+            final completed = sentence.replaceFirst('___', correctAnswer);
+            if (_lexicalWordCount(completed) < 2) {
+              add(
+                AuditCode.gapSentenceTooShort,
+                'The completed sentence must contain at least 2 words.',
+              );
+            }
+          }
+        }
+        if (f.dialogueTurns.any(
+          (turn) => turn.speaker.trim().isEmpty || turn.text.trim().isEmpty,
+        )) {
+          add(
+            AuditCode.dialogueTurnInvalid,
+            'Every dialogue turn needs a speaker and text.',
+          );
+        }
+        if (kind == LearnerExerciseKind.selectCharacter) {
+          final assets = [
+            ...f.characterImages.map((element) => element.asset),
+            for (final item in ex.items)
+              ...item.content
+                  .where((element) => element.isImage)
+                  .map((element) => element.asset),
+          ];
+          if (assets.any(
+            (asset) => !PortableExerciseImageService.isPortable(asset),
+          )) {
+            add(
+              AuditCode.promptMediaUnsupported,
+              'Recognize characters images must be portable bundled assets or valid embedded PNG, JPEG or WebP images of at most 50 KB. Absolute local paths are not allowed.',
+            );
+          }
+        }
+      case ExercisePrimitive.input:
+        final answers = f.acceptedAnswers;
+        if (answers.isEmpty) {
+          switch (kind) {
+            case LearnerExerciseKind.inputTranslation:
+              add(
+                AuditCode.translationAnswerRequired,
+                'Type the translation needs at least one accepted answer.',
+              );
+            case LearnerExerciseKind.inputListenWrite:
+              add(
+                AuditCode.listeningSpellingNoAnswer,
+                'Listening Spelling needs at least one accepted text answer.',
+              );
+            case LearnerExerciseKind.inputListenGaps:
+              add(
+                AuditCode.missingWordAnswerRequired,
+                'Missing Word exercise needs at least one missing word.',
+              );
+            case LearnerExerciseKind.inputMissingWord:
+              add(
+                AuditCode.fillBlankAnswerRequired,
+                'Type the missing word needs a complete accepted word.',
+              );
+            default:
+              add(
+                AuditCode.fillBlankAnswerRequired,
+                'Fill-in exercise needs at least one accepted answer.',
+              );
+          }
+        }
+        for (final expression in answers) {
+          try {
+            AnswerExpressionParser.expand(expression);
+          } on AnswerExpressionException catch (error) {
+            add(AuditCode.answerExpressionInvalid, error.message);
+          }
+        }
+        if (answers.isNotEmpty) {
+          try {
+            AnswerExpressionParser.expandAll(answers);
+          } on AnswerExpressionException catch (error) {
+            add(AuditCode.answerExpansionLimit, error.message);
+          }
+        }
+        if (kind == LearnerExerciseKind.inputMissingWord &&
+            answers.isNotEmpty) {
+          try {
+            FirstLetterAnswerService.display(f.inlineSentence, answers);
+          } on AnswerExpressionException catch (error) {
+            add(AuditCode.answerExpressionInvalid, error.message);
+          }
+        }
+        if (kind == LearnerExerciseKind.inputTranslation &&
+            f.primaryText.trim().isEmpty &&
+            f.clueText.trim().isEmpty) {
+          add(
+            AuditCode.translationSourceRequired,
+            'Type the translation needs source text.',
+          );
+        }
+        if (kind == LearnerExerciseKind.inputListenGaps &&
+            ex.layout.every(
+              (element) => element.isTarget || element.text.trim().isEmpty,
+            )) {
+          add(
+            AuditCode.missingWordTranscriptRequired,
+            'Missing Word exercise needs a passage transcript.',
+          );
+        }
+      case ExercisePrimitive.arrange:
+        if (f.arrangeInline) {
+          _auditGapFill(f, itemIdSet, add);
+          break;
+        }
+        final orders = evaluation.correctOrders;
+        final translation = kind == LearnerExerciseKind.arrangeTranslation;
+        if (ex.items.isEmpty || orders.isEmpty) {
+          add(
+            AuditCode.wordBlockDataRequired,
+            translation
+                ? 'Build the translation needs usable Language blocks and at least one correct translation.'
+                : 'Word-block exercise needs available blocks and a correct answer. Enter the answer and select its blocks in order.',
+          );
+        }
+        final normalizedAnswers = <String>{};
+        final usedItemIds = <String>{};
+        final itemValueById = {
+          for (final item in ex.items) item.id: item.value,
+        };
+        final separator = f.joinsWithoutSpaces ? '' : ' ';
+        for (final answer in orders) {
+          final normalized = _orderedAnswerComparable(answer.text);
+          if (normalized.isEmpty) {
+            add(
+              AuditCode.buildTranslationAnswerRequired,
+              'Each correct answer must contain complete, non-empty literal text that its selected blocks can build.',
+            );
+          } else if (!normalizedAnswers.add(normalized)) {
+            add(
+              AuditCode.buildTranslationDuplicateAnswer,
+              'Correct answers contain a duplicate after ignoring case, repeated spaces and final sentence punctuation. Keep one copy of that answer.',
+            );
+          }
+          if (answer.itemIds.isEmpty ||
+              answer.itemIds.any((id) => !itemIdSet.contains(id))) {
+            add(
+              AuditCode.buildTranslationInvalidSequence,
+              'A correct answer has no block order or refers to unavailable blocks. Select its blocks from the current available list.',
+            );
+            continue;
+          }
+          if (answer.itemIds.toSet().length != answer.itemIds.length) {
+            add(
+              AuditCode.buildTranslationReusedBlock,
+              'Repeated words require separate available block occurrences. Add another copy of the word and select each occurrence once.',
+            );
+          }
+          usedItemIds.addAll(answer.itemIds);
+          final constructed = answer.itemIds
+              .map((id) => itemValueById[id])
+              .whereType<String>()
+              .join(separator);
+          if (_orderedAnswerComparable(constructed) != normalized) {
+            add(
+              AuditCode.buildTranslationUnconstructable,
+              'A correct answer cannot be built from its selected block order. Make the answer text and ordered blocks agree exactly, allowing the existing final sentence punctuation.',
+            );
+          }
+        }
+        final comparisonOrder = translation
+            ? usedItemIds
+            : orders.isEmpty
+            ? const <String>{}
+            : orders.first.itemIds.toSet();
+        final extraCount = itemIdSet.difference(comparisonOrder).length;
+        if (extraCount < 0 || extraCount > 2) {
+          add(
+            AuditCode.wordBlockDistractorCount,
+            translation
+                ? 'Build the translation may contain 0, 1 or 2 blocks unused by every correct translation; found $extraCount.'
+                : 'Word-block exercise may contain 0, 1 or 2 extra distractor blocks; found $extraCount.',
+          );
+        } else if (kind == LearnerExerciseKind.arrangeWord &&
+            extraCount > 0 &&
+            presetId == 'image_word') {
+          add(
+            AuditCode.presetCanonicalMismatch,
+            'Letter/syllable word-building exercises should contain only the blocks needed for the answer; found $extraCount extra ${extraCount == 1 ? 'block' : 'blocks'}.',
+          );
+        }
+        if (kind == LearnerExerciseKind.arrangeSentence) {
+          _auditWordBlockLanguage(f, add);
+        }
+        // Blocks joined without spaces build the word a picture shows: without
+        // the picture the exercise cannot be solved, whatever authored it.
+        if (kind == LearnerExerciseKind.arrangeWord &&
+            f.illustrationAsset.trim().isEmpty) {
+          add(
+            AuditCode.imageWordImageRequired,
+            'Image Word exercise requires an image.',
+          );
+        }
+      case ExercisePrimitive.match:
+        final relations = evaluation.relations;
+        if (relations.isEmpty) {
+          add(
+            AuditCode.matchingPairsRequired,
+            'Matching exercise needs at least one pair.',
+          );
+        }
+        final valueById = {for (final item in ex.items) item.id: item.value};
+        String normalizedMatchText(String value) => value
+            .toLowerCase()
+            .replaceAll(RegExp(r'[^\p{L}\p{N}\s]', unicode: true), '')
+            .replaceAll(RegExp(r'\s+'), ' ')
+            .trim();
+        final pairs = [
+          for (final relation in relations)
+            if (relation.length == 2)
+              [valueById[relation[0]] ?? '', valueById[relation[1]] ?? ''],
+        ];
+        if (relations.any((relation) => relation.length != 2) ||
+            pairs.any(
+              (pair) => pair[0].trim().isEmpty || pair[1].trim().isEmpty,
+            )) {
+          add(
+            kind == LearnerExerciseKind.matchAudio
+                ? AuditCode.audioMatchPairEmpty
+                : AuditCode.matchPairEmpty,
+            kind == LearnerExerciseKind.matchAudio
+                ? 'Audio Match contains an empty sound or match.'
+                : 'Match exercise contains an empty pair.',
+          );
+        }
+        final left = pairs.map((pair) => normalizedMatchText(pair[0])).toList();
+        final right = pairs
+            .map((pair) => normalizedMatchText(pair[1]))
+            .toList();
+        if (kind == LearnerExerciseKind.matchAudio) {
+          final visibleKeys = f.rightItems
+              .map((item) => item.value.trim().toLowerCase())
+              .toList();
+          final visible = visibleKeys.toSet();
+          if (visible.length != visibleKeys.length) {
+            add(
+              AuditCode.audioMatchAnswerDuplicate,
+              'Audio Match visible choices contain duplicates.',
+            );
+          }
+          if (pairs.any(
+            (pair) => !visible.contains(pair[1].trim().toLowerCase()),
+          )) {
+            add(
+              AuditCode.audioMatchAnswerMissing,
+              'Every Audio Match value must appear among the visible choices.',
+            );
+          }
+          if (left.toSet().length != left.length) {
+            add(
+              AuditCode.audioMatchSoundDuplicate,
+              'Audio Match repeats the same target audio.',
+            );
+          }
+          if (right.toSet().length != right.length) {
+            add(
+              AuditCode.audioMatchTextDuplicate,
+              'Audio Match repeats the same matching text.',
+            );
+          }
+        } else {
+          if (left.toSet().length != left.length) {
+            add(
+              AuditCode.matchLeftDuplicate,
+              'Match exercise repeats the same left-side item after ignoring case and punctuation.',
+            );
+          }
+          if (right.toSet().length != right.length) {
+            add(
+              AuditCode.matchRightDuplicate,
+              'Match exercise repeats the same right-side item after ignoring case and punctuation.',
+            );
+          }
+        }
+      case ExercisePrimitive.presentation:
+        if (f.textOf('term').trim().isEmpty) {
+          add(
+            AuditCode.flashcardTextRequired,
+            'Flashcard needs a target word or phrase.',
+          );
+        }
+        if (f.textOf('meaning').trim().isEmpty) {
+          add(AuditCode.flashcardMeaningEmpty, 'Flashcard meaning is empty.');
+        }
+        if (f.textOf('usage').trim().isEmpty) {
+          add(
+            AuditCode.flashcardExampleEmpty,
+            'Flashcard has no usage sentence.',
+          );
+        }
+        if (f.audioOf('audio').trim().isEmpty) {
+          add(
+            AuditCode.flashcardAudioEmpty,
+            'Flashcard has no pronunciation TTS text.',
+          );
+        }
+      case ExercisePrimitive.assign:
+      case ExercisePrimitive.speak:
+      case ExercisePrimitive.ink:
+      case ExercisePrimitive.submit:
+        break;
     }
-    if (ex.type == 'flashcard') {
-      if (ex.prompt.trim().isEmpty) {
-        add(
-          AuditCode.flashcardTextRequired,
-          'Flashcard needs a target word or phrase.',
-        );
-      }
-      if (ex.question.trim().isEmpty) {
-        add(AuditCode.flashcardMeaningEmpty, 'Flashcard meaning is empty.');
-      }
-      if (ex.answers.isEmpty || ex.answers.first.trim().isEmpty) {
-        add(
-          AuditCode.flashcardExampleEmpty,
-          'Flashcard has no usage sentence.',
-        );
-      }
-      if (ex.tts == null || ex.tts!.trim().isEmpty) {
-        add(
-          AuditCode.flashcardAudioEmpty,
-          'Flashcard has no pronunciation TTS text.',
-        );
-      }
-    }
-    if (ex.type == 'matching' && ex.pairs.isEmpty) {
-      add(
-        AuditCode.matchingPairsRequired,
-        'Matching exercise needs at least one pair.',
-      );
-    }
-    if (ex.type == 'audio_match') {
-      if (ex.pairs.length != 3) {
-        add(
-          AuditCode.audioMatchPairCount,
-          'Audio Match requires exactly 3 sound/text pairs.',
-        );
-      }
-      if (ex.answers.length != ex.pairs.length) {
-        add(
-          AuditCode.audioMatchAnswerCount,
-          'Audio Match must have one visible answer for each sound and no distractors.',
-        );
-      }
-      final visibleKeys = ex.answers
-          .map((e) => e.trim().toLowerCase())
-          .toList();
-      final visible = visibleKeys.toSet();
-      if (visible.length != visibleKeys.length) {
-        add(
-          AuditCode.audioMatchAnswerDuplicate,
-          'Audio Match visible choices contain duplicates.',
-        );
-      }
-      if (ex.pairs.any(
-        (p) => p.length != 2 || p[0].trim().isEmpty || p[1].trim().isEmpty,
-      )) {
-        add(
-          AuditCode.audioMatchPairEmpty,
-          'Audio Match contains an empty sound or match.',
-        );
-      }
-      if (ex.pairs.any((p) => !visible.contains(p[1].trim().toLowerCase()))) {
-        add(
-          AuditCode.audioMatchAnswerMissing,
-          'Every Audio Match value must appear among the visible choices.',
-        );
-      }
-      String normalizedAudioMatchText(String value) => value
-          .toLowerCase()
-          .replaceAll(RegExp(r'[^\p{L}\p{N}\s]', unicode: true), '')
-          .replaceAll(RegExp(r'\s+'), ' ')
-          .trim();
-      final soundKeys = ex.pairs
-          .map((p) => normalizedAudioMatchText(p[0]))
-          .toList();
-      final matchKeys = ex.pairs
-          .map((p) => normalizedAudioMatchText(p[1]))
-          .toList();
-      if (soundKeys.toSet().length != soundKeys.length) {
-        add(
-          AuditCode.audioMatchSoundDuplicate,
-          'Audio Match repeats the same target audio.',
-        );
-      }
-      if (matchKeys.toSet().length != matchKeys.length) {
-        add(
-          AuditCode.audioMatchTextDuplicate,
-          'Audio Match repeats the same matching text.',
-        );
-      }
-    }
-    if (ex.type == 'word_match' || ex.type == 'super_match') {
-      if (ex.pairs.length != 3) {
-        add(
-          AuditCode.matchPairCount,
-          '${ex.type == 'word_match' ? 'Word Match' : 'Super Match'} requires exactly 3 pairs.',
-        );
-      }
-      if (ex.pairs.any(
-        (p) => p.length != 2 || p[0].trim().isEmpty || p[1].trim().isEmpty,
-      )) {
-        add(AuditCode.matchPairEmpty, 'Match exercise contains an empty pair.');
-      }
-      String normalizedMatchText(String value) => value
-          .toLowerCase()
-          .replaceAll(RegExp(r'[^\p{L}\p{N}\s]', unicode: true), '')
-          .replaceAll(RegExp(r'\s+'), ' ')
-          .trim();
-      final left = ex.pairs
-          .where((p) => p.length == 2)
-          .map((p) => normalizedMatchText(p[0]))
-          .toList();
-      final right = ex.pairs
-          .where((p) => p.length == 2)
-          .map((p) => normalizedMatchText(p[1]))
-          .toList();
-      if (left.toSet().length != left.length) {
-        add(
-          AuditCode.matchLeftDuplicate,
-          'Match exercise repeats the same left-side item after ignoring case and punctuation.',
-        );
-      }
-      if (right.toSet().length != right.length) {
-        add(
-          AuditCode.matchRightDuplicate,
-          'Match exercise repeats the same right-side item after ignoring case and punctuation.',
-        );
-      }
-    }
-    if (ex.type == 'image_word') {
-      if (ex.imageAsset.trim().isEmpty) {
-        add(
-          AuditCode.imageWordImageRequired,
-          'Image Word exercise requires an image.',
-        );
-      }
-      if (ex.orderAnswer.isEmpty) {
-        add(
-          AuditCode.imageWordAnswerRequired,
-          'Image Word exercise requires a correct target-language word.',
-        );
-      }
-      if (ex.orderAnswer.join().trim().isEmpty) {
-        add(
-          AuditCode.imageWordAnswerBlank,
-          'Image Word correct word cannot be blank.',
-        );
-      }
-    }
-    if (ex.type == 'icon_choice' && ex.icons.length != ex.answers.length) {
-      add(AuditCode.iconChoiceCount, 'Icon count must match answer count.');
-    }
+
+    // 5. Hints, from the canonical texts and answers.
     _auditRepeatingHint(ex.hint, [
-      ex.prompt,
-      ex.question,
-      ex.contextText,
-      ex.contextAudio,
+      f.primaryText,
+      f.clueText,
+      f.questionText,
+      f.passageText,
+      f.situationText,
+      f.contextText,
+      f.contextAudio,
     ], add);
     _auditRevealingHint(ex.hint, [
-      ...ex.evaluation.accepted,
-      ...ex.evaluation.correctOrders.map((answer) => answer.text),
-      for (final correctId in ex.evaluation.correctItemIds)
-        ...ex.interaction.items
+      ...f.acceptedAnswers,
+      ...f.literalAnswers,
+      ...evaluation.correctOrders.map((answer) => answer.text),
+      for (final correctId in [
+        ...evaluation.correctItemIds,
+        ...f.targetAssignments.values,
+      ])
+        ...ex.items
             .where((item) => item.id == correctId)
             .map((item) => item.value),
     ], add);

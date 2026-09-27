@@ -829,7 +829,7 @@
                     "text": "Identify this printed e-family character."
                   },
                   {
-                    "role": "clue",
+                    "role": "character",
                     "type": "image",
                     "text": "A printed accented letter",
                     "asset": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAG4AAACmCAAAAAAei+X+AAAAgElEQVR42u3ZMQ7AIAgFUI/h/S9K5w422lRDyfsrkTcSsMXRNBwOh8PhcLiPuX7LfA2Hw+Fw1TjjFYfD4XA4HA6Hw43XjqfgcDgcrhq32mT+HQ6Hw+H+zL0NDofD4apx249UOBwOh0vLOcHhcDgcLnzT43A4HA6Hw+FwOBwuH3cB3IUCccMAJ2AAAAAASUVORK5CYII="
@@ -893,7 +893,7 @@
                     "text": "Which accented e is printed here?"
                   },
                   {
-                    "role": "clue",
+                    "role": "character",
                     "type": "image",
                     "text": "A printed accented letter",
                     "asset": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAG4AAACmCAAAAAAei+X+AAAAfUlEQVR42u3ZuQ0AIAwDQMZg/0WhpuKRQBDOfXS1nVSOJuFwOBwOh8Md5HITHA6Hw/3EzQI4HA6Hi8opXDgcDvcvl4eDw+FwuGjcau3o3+FwOBzuZW41OBwOh4vGbR+pcDgcDnctZ4LD4XA4XPGmx+FwOBwOh8PhcDjcfVwFX4kCcY7YXVIAAAAASUVORK5CYII="
@@ -957,7 +957,7 @@
                     "text": "Which o-family character is shown?"
                   },
                   {
-                    "role": "clue",
+                    "role": "character",
                     "type": "image",
                     "text": "A printed accented letter",
                     "asset": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAG4AAACmCAAAAAAei+X+AAAAdUlEQVR42u3ZMQoAIAwDQJ/h/z+qs1NBimi97OXmpG0cTcPhcDgcDodL5voSHA6Hw/3LZeI4HA6Hq8MpXDgcDmc1ioPD4XC4atxu7YjvcDgcDofD4XA4HA6Hw+Fw73ImOBwOh8MNb3ocDofD4XA4HA6Hw93HTS4OZDi+dmo0AAAAAElFTkSuQmCC"
@@ -1761,7 +1761,7 @@
                 "primitive": "select",
                 "prompt": [
                   {
-                    "role": "passage",
+                    "role": "situation",
                     "type": "text",
                     "text": "Anna: Bondì!"
                   },
@@ -1814,7 +1814,7 @@
                 "primitive": "select",
                 "prompt": [
                   {
-                    "role": "passage",
+                    "role": "situation",
                     "type": "text",
                     "text": "Anna: Grassie!"
                   },
@@ -1867,7 +1867,7 @@
                 "primitive": "select",
                 "prompt": [
                   {
-                    "role": "passage",
+                    "role": "situation",
                     "type": "text",
                     "text": "Anna: Bon-aneuit!"
                   },
@@ -3749,7 +3749,8 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "bondì"
+                        "text": "bondì",
+                        "language": "target"
                       }
                     ],
                     "side": "left"
@@ -3760,7 +3761,8 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "good morning"
+                        "text": "good morning",
+                        "language": "source"
                       }
                     ],
                     "side": "right"
@@ -3771,7 +3773,8 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "bon-aneuit"
+                        "text": "bon-aneuit",
+                        "language": "target"
                       }
                     ],
                     "side": "left"
@@ -3782,7 +3785,8 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "good night"
+                        "text": "good night",
+                        "language": "source"
                       }
                     ],
                     "side": "right"
@@ -3793,7 +3797,8 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "grassie"
+                        "text": "grassie",
+                        "language": "target"
                       }
                     ],
                     "side": "left"
@@ -3804,7 +3809,8 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "thank you"
+                        "text": "thank you",
+                        "language": "source"
                       }
                     ],
                     "side": "right"
@@ -3854,7 +3860,8 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "ël lìber"
+                        "text": "ël lìber",
+                        "language": "target"
                       }
                     ],
                     "side": "left"
@@ -3865,7 +3872,8 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "the book"
+                        "text": "the book",
+                        "language": "source"
                       }
                     ],
                     "side": "right"
@@ -3876,7 +3884,8 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "la ca"
+                        "text": "la ca",
+                        "language": "target"
                       }
                     ],
                     "side": "left"
@@ -3887,7 +3896,8 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "the house"
+                        "text": "the house",
+                        "language": "source"
                       }
                     ],
                     "side": "right"
@@ -3898,7 +3908,8 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "ël can"
+                        "text": "ël can",
+                        "language": "target"
                       }
                     ],
                     "side": "left"
@@ -3909,7 +3920,8 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "the dog"
+                        "text": "the dog",
+                        "language": "source"
                       }
                     ],
                     "side": "right"
@@ -3959,7 +3971,8 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "ross"
+                        "text": "ross",
+                        "language": "target"
                       }
                     ],
                     "side": "left"
@@ -3970,7 +3983,8 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "red"
+                        "text": "red",
+                        "language": "source"
                       }
                     ],
                     "side": "right"
@@ -3981,7 +3995,8 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "nèir"
+                        "text": "nèir",
+                        "language": "target"
                       }
                     ],
                     "side": "left"
@@ -3992,7 +4007,8 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "black"
+                        "text": "black",
+                        "language": "source"
                       }
                     ],
                     "side": "right"
@@ -4003,7 +4019,8 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "bianch"
+                        "text": "bianch",
+                        "language": "target"
                       }
                     ],
                     "side": "left"
@@ -4014,7 +4031,8 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "white"
+                        "text": "white",
+                        "language": "source"
                       }
                     ],
                     "side": "right"
@@ -4107,7 +4125,8 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "bread"
+                        "text": "bread",
+                        "language": "source"
                       }
                     ],
                     "side": "left"
@@ -4118,7 +4137,8 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "pan"
+                        "text": "pan",
+                        "language": "target"
                       }
                     ],
                     "side": "right"
@@ -4129,7 +4149,8 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "water"
+                        "text": "water",
+                        "language": "source"
                       }
                     ],
                     "side": "left"
@@ -4140,7 +4161,8 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "eva"
+                        "text": "eva",
+                        "language": "target"
                       }
                     ],
                     "side": "right"
@@ -4151,7 +4173,8 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "apple"
+                        "text": "apple",
+                        "language": "source"
                       }
                     ],
                     "side": "left"
@@ -4162,7 +4185,8 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "pom"
+                        "text": "pom",
+                        "language": "target"
                       }
                     ],
                     "side": "right"
@@ -4212,7 +4236,8 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "cat"
+                        "text": "cat",
+                        "language": "source"
                       }
                     ],
                     "side": "left"
@@ -4223,7 +4248,8 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "gat"
+                        "text": "gat",
+                        "language": "target"
                       }
                     ],
                     "side": "right"
@@ -4234,7 +4260,8 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "dog"
+                        "text": "dog",
+                        "language": "source"
                       }
                     ],
                     "side": "left"
@@ -4245,7 +4272,8 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "can"
+                        "text": "can",
+                        "language": "target"
                       }
                     ],
                     "side": "right"
@@ -4256,7 +4284,8 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "horse"
+                        "text": "horse",
+                        "language": "source"
                       }
                     ],
                     "side": "left"
@@ -4267,7 +4296,8 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "caval"
+                        "text": "caval",
+                        "language": "target"
                       }
                     ],
                     "side": "right"
@@ -4317,7 +4347,8 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "table"
+                        "text": "table",
+                        "language": "source"
                       }
                     ],
                     "side": "left"
@@ -4328,7 +4359,8 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "tàula"
+                        "text": "tàula",
+                        "language": "target"
                       }
                     ],
                     "side": "right"
@@ -4339,7 +4371,8 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "chair"
+                        "text": "chair",
+                        "language": "source"
                       }
                     ],
                     "side": "left"
@@ -4350,7 +4383,8 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "cadrega"
+                        "text": "cadrega",
+                        "language": "target"
                       }
                     ],
                     "side": "right"
@@ -4361,7 +4395,8 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "door"
+                        "text": "door",
+                        "language": "source"
                       }
                     ],
                     "side": "left"
@@ -4372,7 +4407,8 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "pòrta"
+                        "text": "pòrta",
+                        "language": "target"
                       }
                     ],
                     "side": "right"
@@ -5864,5 +5900,5 @@
       }
     }
   ],
-  "officialChecksum": "4c89a470d93608c96d1990e5edc8d58de0111b0288af82de4aafea665a9aa058"
+  "officialChecksum": "42e1133949f7122c8763ec1ef5dc2ac5de7d04fdd90a12639ce7e0093cf478bd"
 }

@@ -7,29 +7,32 @@ condensed specification). Working rules: Part A.1 of the plan. Reference:
 the Session 2 design). Summary: `docs/256_CHANGE_SUMMARY.md`. Evidence:
 `docs/256_VALIDATION.md`.
 
-## State (27 September 2026, 08:15)
+## State (27 September 2026, 09:43)
 
 - Branch `claude/256-exercise-architecture`, created from `main` at
   `611a1a1` (Build 255 handoff; version `2.0.55+255007`).
 - Commits: `507be89` Build 256 Revision 0 (canonical definitions;
-  `2.0.56+256000`; suite 2,813 passed, 1 skipped); `4e19353` handoff;
-  `e850cc2` **Build 256 Revision 1: Course Model v12** (`2.0.56+256001`;
-  complete suite 2,829 passed, 1 skipped, 0 failed; evidence in
-  `docs/256_VALIDATION.md`).
-- **Session 3 (Revision 2, `2.0.56+256002`) has started**; the session
-  stopped at 08:15 on the owner's usage limit, with step 1 of the design
-  below in the working tree, uncommitted: `lib/screens/round_screen.dart`
-  gained keys only (`exercise-heading`, `exercise-instruction`,
-  `exercise-prompt-text`, `exercise-passage`, `exercise-image`);
-  `test/exercise_laboratory_254_test.dart` gained `_presentation` (a record
-  of heading, instruction, prompt, panels, audio controls, answer controls,
-  spoken text and feedback, before and after the correct answer) and
-  `_checkPresentation` (compares with `laboratoryPresentation`, or writes
-  JSON records when `QQL_RECORD_PRESENTATION` names a directory);
-  `test/support/laboratory_presentation_254.dart` holds the 80 records
-  captured before any runtime change (record run: 165 tests passed). Next:
-  run `flutter test --no-pub test/exercise_laboratory_254_test.dart` once
-  in compare mode to confirm the baseline, then step 2 of the design.
+  `2.0.56+256000`); `4e19353` handoff; `e850cc2` Build 256 Revision 1
+  (Course Model v12; `2.0.56+256001`; suite 2,829 passed, 1 skipped);
+  `b480e15`, `af15ff0` handoffs.
+- **Session 3 (Revision 2, `2.0.56+256002`) is complete in the working
+  tree, uncommitted, with the complete suite running for the second time**
+  through the keep-awake wrapper (log: scratchpad `full_rev2b.log`,
+  UTF-16). The first run (09:14–09:36) gave 2,837 passed, 1 skipped, 3
+  failed, all fixed since: `IMAGE_WORD_IMAGE_REQUIRED` is an Error again
+  (the picture is the prompt of a word-building Arrange: a solvability
+  rule, now emitted by kind), `imported_course_v6_regression_test` checks
+  the canonical dispatch of the listening-spelling renderer, and
+  `authoring_transfer_ui_226_02_test` expects a green destination Round
+  (a hint on a Choose is no longer the retired "unexpected field"
+  warning). Analyzer clean; the affected files pass (216 tests). When the suite passes:
+  write the Revision 2 section of `docs/256_VALIDATION.md`, commit
+  everything except the owner's untracked `devtools_options.yaml` and
+  `tools/cloud_setup.sh` as "Build 256 Revision 2: runtime and Audit on
+  canonical data", write this handoff again and commit it, then start
+  Session 4 at once (plan Part B, Session 4; A.12, A.13). If the suite
+  fails: rerun the failing file alone; any fix means rerunning that file
+  and the complete suite before the commit (plan A.1).
 - Untracked files that are the owner's and stay untouched:
   `devtools_options.yaml`, `tools/cloud_setup.sh` (commit with
   `git add -A -- . ':!devtools_options.yaml' ':!tools/cloud_setup.sh'`).
@@ -38,21 +41,51 @@ the Session 2 design). Summary: `docs/256_CHANGE_SUMMARY.md`. Evidence:
   expires after 7 days or all six sessions are committed (then delete it with
   `CronDelete`). It cannot survive the desktop app closing.
 
-## Session 2 (done, `e850cc2`)
+## Session 3 (done in the working tree)
 
-Everything in the plan's Session 2 list is committed: the v12 model
-(`lib/models/exercise_canonical.dart`, `course_models.dart`, flow JSON),
-the converter library and tools (`convert_course_to_v12.dart`,
-`convert_stored_courses_256.dart`, `qql_course_v12.py`; the v11 tool is
-retired), the storage cut (`QQL_Courses_v12`, retired `QQL_Courses`, backup
-format 12), the four bundled Courses, the demo package and the re-signed
-Publisher fixtures (v11 originals in `test/fixtures/v11/`), the call sites,
-the editor publication and shared-image fix, `CourseImageRemoval` on v12
-items, Help EN/IT/ES, the Publisher guide, `COURSE_JSON_FORMAT.md`, the
-reset inventory, AGENTS.md (invariants for v12 and the boundary entry),
-README, CHANGELOG and the three Build 256 documents. The runtime, Audit,
-editor and image walker still read the canonical exercise through the
-v11-shaped views on `Exercise`; that is Session 3's and 4's work.
+What the design below asked for is implemented (see `CHANGELOG.md` and
+`docs/256_CHANGE_SUMMARY.md`, Revision 2): `ExerciseFeatures` and
+`LearnerExerciseKind` (`lib/models/exercise_features.dart`), the Round
+screen on primitives and features with the shared `ExercisePromptPanels`,
+the Duel by capability with the same panels, `ExerciseCopyService` keyed by
+kind, `TranslationChoice.instructionFor`/`spokenTextFor`, audio exercises
+by required audio, linear Stories, content-based gap grading, the Audit on
+canonical data through the registry (`presetKinds`; 102 codes), the
+converter refinements (`situation`, `character`, Match side languages,
+`clue` text languages, optional translation audio; bundled Courses
+regenerated), the Laboratory presentation baseline
+(`test/support/laboratory_presentation_254.dart`, three deliberate changes
+marked) and `test/runtime_canonical_256_test.dart`. Preset-dependent
+runtime branches remaining: none (plan A.3; `rg "\.type\b" lib/screens/round_screen.dart lib/screens/duel_screen.dart`
+finds only the `_ChoiceOption`/element-type reads).
+
+Session 4 starting points (plan Part B Session 4; A.12, A.13):
+
+- Presets as recipes: `ExercisePreset` gains the recipe (the kind it
+  produces is `CourseAuditService.presetKinds`, to move next to the preset)
+  and exact recognition (decompose → rebuild → `semanticallyEquals`), never
+  writing; unknown `authoringMetadata` keys cleared when canonical content
+  is edited (A.13); View only and Inspection show canonical data.
+- The Generic Primitive Editor in new files (not inside
+  `course_editor_screen.dart`): Primitive, Options (controls from the
+  registry), Prompt/media, Items, Targets, Layout, Evaluation, Feedback.
+- Move the editor, `exercise_draft_builder.dart`, `exercise_search_service.dart`,
+  `authoring_duplication_service.dart`, `course_hierarchy_update_service.dart`
+  and `script_recognition_editor.dart` off the v11 views on `Exercise`
+  (`interaction`, `evaluation`, `type`, `prompt`, `question`, `tts`,
+  `answers`, `correct`, `accepted`, `missingWords`, `tokens`, `orderAnswer`,
+  `pairs`, `icons`, `imageAsset`, `contextText`, `contextAudio`,
+  `dialogueTurns`, `contextMode`, `hasArrangeGaps`, `hasSelectGaps`,
+  `isMultiSelect`, `correctItemIdSet`, `requiredSelectionCount`,
+  `correctTranslationTexts`); delete each view when its last reader goes
+  (`maxSelectionCount` and `orderAnswers` already have none in `lib/`).
+- Help (A.12): Primitives, Primitive options, Layouts, Evaluation modes and
+  Presets chapters in EN, IT and ES (`localization_catalog_test` enforces
+  key parity); the Round editor for content nodes and Story order.
+- Version `2.0.56+256003`, Beta expiry 30 days from the commit date,
+  CHANGELOG, the three 256 documents, AGENTS.md boundary entry, then the
+  six-part report and the commit "Build 256 Revision 3: presets as recipes
+  and the Generic Primitive Editor".
 
 ## Session 3 design (Revision 2, `2.0.56+256002`): runtime and Audit on canonical data
 
@@ -172,7 +205,7 @@ Order of work:
 | --- | --- | --- | --- |
 | 1 Canonical definitions | 0 | 2.0.56+256000 | committed `507be89` |
 | 2 Course Model v12 | 1 | 2.0.56+256001 | committed `e850cc2` |
-| 3 Runtime and Audit | 2 | 2.0.56+256002 | in progress |
+| 3 Runtime and Audit | 2 | 2.0.56+256002 | complete in the working tree; suite running |
 | 4 Presets and Generic Primitive Editor | 3 | 2.0.56+256003 | not started |
 | 5 Interoperability | 4 | 2.0.56+256004 | not started |
 | 6 Laboratory, Assign, final verification | 5 | 2.0.56+256005 | not started |

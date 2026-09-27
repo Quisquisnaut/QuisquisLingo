@@ -1054,7 +1054,7 @@
                     "text": "Select the character shown."
                   },
                   {
-                    "role": "clue",
+                    "role": "character",
                     "type": "image",
                     "asset": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAKAAAACgCAIAAAAErfB6AAABSElEQVR42u3dsREAIAgAMQZx/zVxAUu9A8mPQKhoiNTXhREAFmABFmABFmABBizAAizAAizAAgxYgAVYgAVYgAVYgAELsAALsAALsAADFmABFmABFmABBizAAizAl1vvAwwYMGDAgAEDBgwYMGDAgAEDBgwY8HjgCtPvvgGAAQMGDBgwYMCAAQMGDBgwYMCAAQMGDBgwYMCAAQMGDBgwYMCAAQMGDBgw4BHAFQIMGDBgwIABAwYMGDBgwIABAwYMGLBbtFs0YMCAAQMGDBgwYMCAAQMGDBgwYMCAAQMGDBgwYMCAAQMGDBgwYMCAAQMGDBgwYMCAAQMGDBgwYMCAAQMGDBgwYMCAASu9eBdgARZgAQYswAIswAIswAIswIAFWIAFWIAFWIABC7AAC7AAC7AAAxZgARZgARZgARZgwAIswAIswAKsYxtiQ0JbHk5iKwAAAABJRU5ErkJggg==",
                     "text": "Printed character specimen"
@@ -1118,13 +1118,13 @@
                     "text": "Select the character shown in both specimens."
                   },
                   {
-                    "role": "clue",
+                    "role": "character",
                     "type": "image",
                     "asset": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAKAAAACgCAIAAAAErfB6AAABPklEQVR42u3dsQ0AAAQAQYPYf01mUOJ+BNeJRJROF0YAWIAFWIAFWIAFGLAAC7AAC7AACzBgARZgARZgARZgAQYswAIswAIswAIMWIAFWIAFWIAFGLAAC7AAz8oNAQYMGDBgwIABAwYMGDBgwIABAwYM+D2wVTNgwIABAwYMGDBgwIABAwYswIABAwYMGDBgwIABAxZgwIABAwYMGDBgwIABu4oFDBgwYMCAAQMGDBgwYMCAAQMGDBiwXTRgwIABAwYMWIABAwYMGDBgwIABAwYMGLAAAwYMGDBgwIABAwYMWIABAwbsb5K/SYABAwYMGDBgwIABAwYMGDBgwIABvwIWYAEGLMACLMACLMACLMCABViABViABViAAQuwAAuwAAuwAAswYAEWYAEWYAEWYMACLMACLMACLMCABVgLa69vQlvwdtYGAAAAAElFTkSuQmCC",
                     "text": "Printed character specimen"
                   },
                   {
-                    "role": "clue",
+                    "role": "character",
                     "type": "image",
                     "asset": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAKAAAACgCAIAAAAErfB6AAABRUlEQVR42u3dUQ0AIAhAQWqQyX7WlQz+odwbCbw/5kYcfV14AsACLMACLMACLMCABViABViABViAAQuwAAuwAAuwAAswYAEWYAEWYAEWYMACLMACLMACLMCABViABfiuXLv/AAYMGDBgwIABAwYMGDBgwIABAwYMeDywVTNgwIABAwYMGDBgwIABAwYswIABAwYMGDBgwIABAxZgwIABAwYMGDBgwIAB+xULGDBgwIABAwYMGDBgwIABAwYMGDBgu2jAgAEDBgwYsAADBgwYMGDAgAEDBgwYMGABBgwYMGDAgAEDBgwYsAADBgzY3SR3kwADBgwYMGDAgAEDBgwYMGDAgAEDHgUswAIMWIAFWIAFWIAFWIABC7AAC7AAC7AAAxZgARZgARZgARZgwAIswAIswAIswIAFWIAFWIAFWIABC7AerACJEsbyyDrW8gAAAABJRU5ErkJggg==",
                     "text": "Printed character specimen"
@@ -1193,7 +1193,7 @@
                     "id": "qql_lab254_script_text_image_item_0",
                     "content": [
                       {
-                        "role": "primary",
+                        "role": "character",
                         "type": "image",
                         "asset": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAKAAAACgCAIAAAAErfB6AAABPklEQVR42u3dsQ0AAAQAQYPYf01mUOJ+BNeJRJROF0YAWIAFWIAFWIAFGLAAC7AAC7AACzBgARZgARZgARZgAQYswAIswAIswAIMWIAFWIAFWIAFGLAAC7AAz8oNAQYMGDBgwIABAwYMGDBgwIABAwYM+D2wVTNgwIABAwYMGDBgwIABAwYswIABAwYMGDBgwIABAxZgwIABAwYMGDBgwIABu4oFDBgwYMCAAQMGDBgwYMCAAQMGDBiwXTRgwIABAwYMWIABAwYMGDBgwIABAwYMGLAAAwYMGDBgwIABAwYMWIABAwbsb5K/SYABAwYMGDBgwIABAwYMGDBgwIABvwIWYAEGLMACLMACLMACLMCABViABViABViAAQuwAAuwAAuwAAswYAEWYAEWYAEWYMACLMACLMACLMCABVgLa69vQlvwdtYGAAAAAElFTkSuQmCC"
                       }
@@ -1203,7 +1203,7 @@
                     "id": "qql_lab254_script_text_image_item_1",
                     "content": [
                       {
-                        "role": "primary",
+                        "role": "character",
                         "type": "image",
                         "asset": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAKAAAACgCAIAAAAErfB6AAABVElEQVR42u3dwQ0AIAgAMQZx/zVxBH9ApDeC5UVMiNTXhScALMACLMACLMACDFiABViABViABRiwAAuwAAuwAAuwAAMW4MbOK8CAAQMGDBgwYMCAAQMGDBgwYMCAAQM2AYABAwYMGDBgwIABAwYMGDBgwIABAwYswIAFWIAFWIAFWIABC7AAZ8kmeUKAAQMGDBgwYMCAAQMGDBgwYMCAAQNeD2zVDBgwYMCAAQMGDBgwYMCAAQswYMCAAQMGDBgwYMCABRgwYMCAAQMGDBgwYMB+xQIGDBgwYMCAAQMGDBgwYMCAAQMGDNguGjBgwIABAwYswIABAwYMGDBgwIABAwYMWIABAwYMGDBgwIABAwYswIABA3Y3yd0kwIABAwYMGDBgwIABAwYMGDBgwIBXAQuwAAMWYAEWYAEWYAEWYMACLMACLMACLMCABViABViABViAdQGypb5sQvMdpAAAAABJRU5ErkJggg=="
                       }
@@ -1213,7 +1213,7 @@
                     "id": "qql_lab254_script_text_image_item_2",
                     "content": [
                       {
-                        "role": "primary",
+                        "role": "character",
                         "type": "image",
                         "asset": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAKAAAACgCAIAAAAErfB6AAABSElEQVR42u3dsREAIAgAMQZx/zVxAUu9A8mPQKhoiNTXhREAFmABFmABFmABBizAAizAAizAAgxYgAVYgAVYgAVYgAELsAALsAALsAADFmABFmABFmABBizAAizAl1vvAwwYMGDAgAEDBgwYMGDAgAEDBgwY8HjgCtPvvgGAAQMGDBgwYMCAAQMGDBgwYMCAAQMGDBgwYMCAAQMGDBgwYMCAAQMGDBgw4BHAFQIMGDBgwIABAwYMGDBgwIABAwYMGLBbtFs0YMCAAQMGDBgwYMCAAQMGDBgwYMCAAQMGDBgwYMCAAQMGDBgwYMCAAQMGDBgwYMCAAQMGDBgwYMCAAQMGDBgwYMCAASu9eBdgARZgAQYswAIswAIswAIswIAFWIAFWIAFWIABC7AAC7AAC7AAAxZgARZgARZgARZgwAIswAIswAKsYxtiQ0JbHk5iKwAAAABJRU5ErkJggg=="
                       }
@@ -1321,7 +1321,7 @@
                 "primitive": "select",
                 "prompt": [
                   {
-                    "role": "passage",
+                    "role": "situation",
                     "type": "text",
                     "text": "Un amico ti offre un bicchiere d'acqua."
                   },
@@ -4902,7 +4902,8 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "ciao"
+                        "text": "ciao",
+                        "language": "target"
                       }
                     ],
                     "side": "left"
@@ -4913,7 +4914,8 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "hello"
+                        "text": "hello",
+                        "language": "source"
                       }
                     ],
                     "side": "right"
@@ -4955,7 +4957,8 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "a domani"
+                        "text": "a domani",
+                        "language": "target"
                       }
                     ],
                     "side": "left"
@@ -4966,7 +4969,8 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "see you tomorrow"
+                        "text": "see you tomorrow",
+                        "language": "source"
                       }
                     ],
                     "side": "right"
@@ -4977,7 +4981,8 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "per favore"
+                        "text": "per favore",
+                        "language": "target"
                       }
                     ],
                     "side": "left"
@@ -4988,7 +4993,8 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "please"
+                        "text": "please",
+                        "language": "source"
                       }
                     ],
                     "side": "right"
@@ -4999,7 +5005,8 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "buon viaggio"
+                        "text": "buon viaggio",
+                        "language": "target"
                       }
                     ],
                     "side": "left"
@@ -5010,7 +5017,8 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "have a good trip"
+                        "text": "have a good trip",
+                        "language": "source"
                       }
                     ],
                     "side": "right"
@@ -5021,7 +5029,8 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "a presto"
+                        "text": "a presto",
+                        "language": "target"
                       }
                     ],
                     "side": "left"
@@ -5032,7 +5041,8 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "see you soon"
+                        "text": "see you soon",
+                        "language": "source"
                       }
                     ],
                     "side": "right"
@@ -5086,7 +5096,8 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "water"
+                        "text": "water",
+                        "language": "source"
                       }
                     ],
                     "side": "left"
@@ -5097,7 +5108,8 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "acqua"
+                        "text": "acqua",
+                        "language": "target"
                       }
                     ],
                     "side": "right"
@@ -5108,7 +5120,8 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "bread"
+                        "text": "bread",
+                        "language": "source"
                       }
                     ],
                     "side": "left"
@@ -5119,7 +5132,8 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "pane"
+                        "text": "pane",
+                        "language": "target"
                       }
                     ],
                     "side": "right"
@@ -5130,7 +5144,8 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "book"
+                        "text": "book",
+                        "language": "source"
                       }
                     ],
                     "side": "left"
@@ -5141,7 +5156,8 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "libro"
+                        "text": "libro",
+                        "language": "target"
                       }
                     ],
                     "side": "right"
@@ -5814,5 +5830,5 @@
       }
     }
   ],
-  "officialChecksum": "680c6779c5691ae7e4816db1bcfe3e948a62fc05b6d03399a21ef27caf8c0449"
+  "officialChecksum": "6bf4f17d7170754e64d5d77eb381e06ab2be03d0f1e5cb4b81f5c4f694523ac2"
 }

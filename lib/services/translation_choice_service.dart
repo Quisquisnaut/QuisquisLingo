@@ -1,4 +1,5 @@
 import '../models/course_models.dart';
+import '../models/exercise_features.dart';
 
 /// Preset definitions for the two Select-based translation choice exercises.
 ///
@@ -60,6 +61,36 @@ abstract final class TranslationChoice {
   /// language names and is deliberately not an authored field.
   static String instruction(Course course, String type) =>
       'Pick the correct ${answerLanguage(course, type)} translation';
+
+  /// The same instruction from canonical data: the language the answer
+  /// items are in (Build 256, plan A.3).
+  static String instructionFor(Course course, TextLanguage answerLanguage) =>
+      'Pick the correct '
+      '${answerLanguage == TextLanguage.target ? _targetName(course) : _sourceName(course)} '
+      'translation';
+
+  /// The optional audio of a translation Select from canonical data: QQL
+  /// speech concerns the target language, so a target-language question is
+  /// spoken on request and a target-language correct answer only after the
+  /// learner has answered. Null when nothing applies.
+  static String? spokenTextFor(
+    ExerciseFeatures features, {
+    required bool answered,
+  }) {
+    if (features.questionLanguage == TextLanguage.target) {
+      final text = features.questionText.trim();
+      return text.isEmpty ? null : text;
+    }
+    if (features.itemLanguage == TextLanguage.target && answered) {
+      final correct = features.evaluation.correctItemIds.firstOrNull;
+      final text = features.items
+          .where((item) => item.id == correct)
+          .map((item) => item.text.trim())
+          .firstOrNull;
+      return text == null || text.isEmpty ? null : text;
+    }
+    return null;
+  }
 
   /// The text the optional audio button speaks, or null when this exercise
   /// has none. QQL speech always concerns the target language, so the to-target

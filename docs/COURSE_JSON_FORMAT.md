@@ -266,7 +266,7 @@ Round `content[]` with a `flow` is the structured container for Story-like seque
 
 ## Lesson Duel
 
-Every Lesson serializes a Duel object with a stable `id` and `title`. Availability is not serialized. At runtime QuisquisLingo collects exercises from that Lesson only, applies the established eligibility and deduplication rules, and requires 25 eligible exercises.
+Every Lesson serializes a Duel object with a stable `id` and `title`. Availability is not serialized. At runtime QuisquisLingo collects exercises from that Lesson only, applies the established eligibility and deduplication rules, and requires 25 eligible exercises. Since Build 256 Revision 2 eligibility is decided from canonical data (`DuelEligibilityService.isEligible`): a Select with a single selection, items shown as choices (not inline gaps), `exactItem` grading, at least two items and one existing correct item; the preset never matters.
 
 Course `createDuels` defaults to true. When false, the learner renders no Duel or reserved Duel spacing and Audit emits no `DUEL_UNAVAILABLE` finding. When true, the same shared eligible pool drives learner availability and the non-blocking `DUEL_UNAVAILABLE` Info finding. An insufficient pool also renders no learner Duel placeholder. The preference never deletes Duel identity, course-owned victory history, Lesson completion or earned XP.
 

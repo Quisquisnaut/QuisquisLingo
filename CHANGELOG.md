@@ -1,3 +1,63 @@
+# 2.0.56 (Build 256, Revision 2) - Runtime and Audit on canonical data - 2026-09-27
+
+Session 3 of the exercise architecture redesign
+(`docs/256_EXERCISE_ARCHITECTURE_PLAN.md`): what learners see, play and are
+graded on comes from the canonical exercise, never from the preset that
+authored it (plan A.3).
+
+- **Learner runtime on canonical data:** the Round screen dispatches on the
+  primitive and on `ExerciseFeatures` (`lib/models/exercise_features.dart`:
+  roles, attributes, options, layout, evaluation, feedback) instead of
+  preset IDs; headings and instructions come from the derived
+  `LearnerExerciseKind`; Select panels (context, dialogue, passage or
+  situation, character specimens) are one shared widget used by the Round
+  and Duel screens. The recorded Laboratory presentation
+  (`test/support/laboratory_presentation_254.dart`, 80 examples before and
+  after answering) proves the refactor changed nothing except three
+  deliberate points: Match the words now says "Match each word with its
+  translation" (its sides carry languages), and a Dialogue response's
+  situation is shown once, in its panel, instead of twice.
+- **Converter refinements (Course Model v12 stays v12):** a Dialogue
+  response's text is a `situation`, Recognize characters' images are
+  `character` specimens, Match the words / Match related words state the
+  languages of their two sides, Build/Type the translation mark a `clue`
+  text as source language too, and Pick the translation's spoken text is
+  `required: false`. The four bundled Courses are regenerated (parity
+  test kept).
+- **Duel by capability (plan A.10):** every single-answer Select whose
+  items are shown as choices is eligible, so Contextual comprehension and
+  Recognize characters join the pool and a multiple-answer Choose leaves it
+  (it was graded as single-answer before). The Duel draws context panels,
+  dialogue and image answers like the Round screen.
+- **Inline-gap Arrange grades block content (plan A.11):** two identical
+  blocks may fill either of their gaps; the Laboratory's repeated-block
+  example is the regression test.
+- **Stories (plan A.7):** a Round with a linear content `flow` plays its
+  nodes in authored order, unshuffled and without a mistake review; a Round
+  whose flow branches is not playable in this version (Round level).
+- **Audio exercises** are those with a required audio element; Pick the
+  translation's optional audio never makes one.
+- **Audit through the capability registry (plan A.5):** new Errors
+  `EXERCISE_OPTION_INVALID`, `EXERCISE_COMBINATION_ILLEGAL`,
+  `EXERCISE_EVALUATION_MODE_INVALID`, `EXERCISE_SELECTION_LIMITS` (the
+  impossible multiple-selection limits are now caught) and
+  `EXERCISE_TARGET_REFERENCE`; the preset rules (Dialogue response's two
+  options, the three-pair Match presets, Pick the translation's five
+  options and its extra prompt or spoken text, Image-prompt ordering's
+  extra blocks, a reading preset without a passage, a listening preset
+  without audio, Gap Choice's sentence and marker, Recognize characters'
+  shapes) are Warnings that never block, `PRESET_CANONICAL_MISMATCH` says
+  when an exercise no longer plays as its preset, and an unknown preset is
+  Info. Retired because v12 makes them impossible or subsumes them:
+  `EXERCISE_TYPE_UNKNOWN`, `EXERCISE_FIELD_UNEXPECTED`, `ICON_CHOICE_COUNT`,
+  `MISSING_WORD_NOT_IN_TRANSCRIPT`, `MISSING_WORD_DUPLICATE`,
+  `IMAGE_WORD_ANSWER_REQUIRED`, `IMAGE_WORD_ANSWER_BLANK`. The registry has
+  102 rules.
+- **Unchanged:** scoring, progression, Review, learner data, Course Model
+  v12 files (the converter refinements only add roles and attributes), the
+  editor (Session 4 moves it to canonical data).
+- **Beta expiry:** 27 October 2026, 23:59:59 local time (same release day).
+
 # 2.0.56 (Build 256, Revision 1) - Course Model v12 - 2026-09-27
 
 Session 2 of the exercise architecture redesign

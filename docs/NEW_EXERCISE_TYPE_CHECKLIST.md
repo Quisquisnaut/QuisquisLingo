@@ -227,15 +227,17 @@ Analyze what the type can produce, then decide what is already covered.
 - `[ALL]` List every situation that should produce an Error or a Warning and
   map each to an existing `AuditCode` or to a needed new one. Present the
   result as a table (situation, code, severity, covered or new).
-- `[ALL]` Add the type to `supportedTypes` (else `EXERCISE_TYPE_UNKNOWN`) and
-  to the registry (else `EXERCISE_PRESET_UNKNOWN`).
-- `[SELECT]` Add to `choiceTypes` to inherit: too few answers, invalid or
-  unresolved correct answer, empty or duplicate options, placeholder answers,
-  item ID and reference checks.
-- `[ALL]` Fields the type does not use but that are populated: extend
-  `EXERCISE_FIELD_UNEXPECTED` (for example prompt, hint, icons, spoken text).
-- `[SELECT]` Configuration the type forbids (multiple selection, inline gaps,
-  required-selection count): extend `PRESET_CANONICAL_MISMATCH`.
+- `[ALL]` Since Build 256 the Audit reads canonical data: add the preset to
+  the registry and to `CourseAuditService.presetKinds` (the learner kind its
+  recipe produces); an unknown preset is `EXERCISE_PRESET_UNKNOWN` (Info).
+- `[SELECT]` Every Select inherits: too few answers, invalid or unresolved
+  correct answer, empty or duplicate options, placeholder answers, item,
+  target and reference checks, and the registry's option, combination,
+  evaluation-mode and selection-limit Errors.
+- `[ALL]` Shapes the preset's recipe forbids (extra fields, multiple
+  selection, inline gaps, counts): add a non-blocking Warning under the
+  preset's case in `auditExercise` (`PRESET_CANONICAL_MISMATCH` or a
+  preset-rule code). Never make a valid canonical exercise an Error.
 - `[ALL]` Required content that no existing code describes (for example a
   blank text to translate) needs a new code with severity, scope, meaning,
   trigger and creator action. Prefer a new precise code over stretching an
@@ -363,5 +365,5 @@ between text and options; optional audio button (to source: speaks the target
 language text; to target: speaks the correct answer after answering; greyed out
 when audio or TTS is off); Duel eligible; one new Audit code
 (`TRANSLATION_CHOICE_TEXT_REQUIRED`) plus extended
-`PRESET_CANONICAL_MISMATCH` and `EXERCISE_FIELD_UNEXPECTED`; no Course Model
+`PRESET_CANONICAL_MISMATCH` (Build 256 retired `EXERCISE_FIELD_UNEXPECTED`); no Course Model
 change; version 2.0.39 (Build 239, Revision 0) with the Beta expiry unchanged.

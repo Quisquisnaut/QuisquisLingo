@@ -9,7 +9,7 @@
   "publisherName": "QuisquisLingo",
   "officialCourseVersion": "1.2.0",
   "officialReleaseDateUtc": "2026-09-26T00:00:00.000Z",
-  "officialChecksum": "e10f8e33f64c62c203ddbe0f85f71f921aace71029d6766915f0f27664ebdab0",
+  "officialChecksum": "af55ab338578faa0957fbda47826f104f375d10e6c7635502f765ae02534e090",
   "officialReleaseNotes": "QQL Build 255 Revision 6: All rights reserved; derivative works explicitly forbidden.",
   "distributionChannel": "bundled",
   "publisherVerificationStatus": "verified",
@@ -455,7 +455,7 @@
                 "primitive": "select",
                 "prompt": [
                   {
-                    "role": "passage",
+                    "role": "situation",
                     "type": "text",
                     "text": "선생님이 “저는 민수예요”라고 말해요."
                   },
@@ -887,7 +887,7 @@
                 "primitive": "select",
                 "prompt": [
                   {
-                    "role": "passage",
+                    "role": "situation",
                     "type": "text",
                     "text": "선생님이 “만나서 반가워요”라고 말해요."
                   },
@@ -1376,7 +1376,7 @@
                 "primitive": "select",
                 "prompt": [
                   {
-                    "role": "passage",
+                    "role": "situation",
                     "type": "text",
                     "text": "선생님이 “이름이 뭐예요?”라고 말해요."
                   },
@@ -1866,7 +1866,7 @@
                 "primitive": "select",
                 "prompt": [
                   {
-                    "role": "passage",
+                    "role": "situation",
                     "type": "text",
                     "text": "선생님이 “안녕하세요”라고 말해요."
                   },
@@ -2480,7 +2480,7 @@
                 "primitive": "select",
                 "prompt": [
                   {
-                    "role": "passage",
+                    "role": "situation",
                     "type": "text",
                     "text": "선생님이 “천만에요”라고 말해요."
                   },
@@ -2912,7 +2912,7 @@
                 "primitive": "select",
                 "prompt": [
                   {
-                    "role": "passage",
+                    "role": "situation",
                     "type": "text",
                     "text": "선생님이 “죄송합니다”라고 말해요."
                   },
@@ -3401,7 +3401,7 @@
                 "primitive": "select",
                 "prompt": [
                   {
-                    "role": "passage",
+                    "role": "situation",
                     "type": "text",
                     "text": "선생님이 “괜찮아요”라고 말해요."
                   },
@@ -3891,7 +3891,7 @@
                 "primitive": "select",
                 "prompt": [
                   {
-                    "role": "passage",
+                    "role": "situation",
                     "type": "text",
                     "text": "선생님이 “감사합니다”라고 말해요."
                   },
@@ -4471,7 +4471,7 @@
                 "primitive": "select",
                 "prompt": [
                   {
-                    "role": "passage",
+                    "role": "situation",
                     "type": "text",
                     "text": "선생님이 “아버지”라고 말해요."
                   },
@@ -4903,7 +4903,7 @@
                 "primitive": "select",
                 "prompt": [
                   {
-                    "role": "passage",
+                    "role": "situation",
                     "type": "text",
                     "text": "선생님이 “형제자매”라고 말해요."
                   },
@@ -5392,7 +5392,7 @@
                 "primitive": "select",
                 "prompt": [
                   {
-                    "role": "passage",
+                    "role": "situation",
                     "type": "text",
                     "text": "선생님이 “우리 가족이에요”라고 말해요."
                   },
@@ -5882,7 +5882,7 @@
                 "primitive": "select",
                 "prompt": [
                   {
-                    "role": "passage",
+                    "role": "situation",
                     "type": "text",
                     "text": "선생님이 “어머니”라고 말해요."
                   },
@@ -6461,7 +6461,7 @@
                 "primitive": "select",
                 "prompt": [
                   {
-                    "role": "passage",
+                    "role": "situation",
                     "type": "text",
                     "text": "선생님이 “둘”라고 말해요."
                   },
@@ -6893,7 +6893,7 @@
                 "primitive": "select",
                 "prompt": [
                   {
-                    "role": "passage",
+                    "role": "situation",
                     "type": "text",
                     "text": "선생님이 “세 개 주세요”라고 말해요."
                   },
@@ -7382,7 +7382,7 @@
                 "primitive": "select",
                 "prompt": [
                   {
-                    "role": "passage",
+                    "role": "situation",
                     "type": "text",
                     "text": "선생님이 “얼마예요?”라고 말해요."
                   },
@@ -7872,7 +7872,7 @@
                 "primitive": "select",
                 "prompt": [
                   {
-                    "role": "passage",
+                    "role": "situation",
                     "type": "text",
                     "text": "선생님이 “하나”라고 말해요."
                   },
@@ -8452,7 +8452,7 @@
                 "primitive": "select",
                 "prompt": [
                   {
-                    "role": "passage",
+                    "role": "situation",
                     "type": "text",
                     "text": "선생님이 “커피 한 잔 주세요”라고 말해요."
                   },
@@ -8884,7 +8884,7 @@
                 "primitive": "select",
                 "prompt": [
                   {
-                    "role": "passage",
+                    "role": "situation",
                     "type": "text",
                     "text": "선생님이 “맛있어요”라고 말해요."
                   },
@@ -9373,7 +9373,7 @@
                 "primitive": "select",
                 "prompt": [
                   {
-                    "role": "passage",
+                    "role": "situation",
                     "type": "text",
                     "text": "선생님이 “채식 메뉴가 있어요?”라고 말해요."
                   },
@@ -9863,7 +9863,7 @@
                 "primitive": "select",
                 "prompt": [
                   {
-                    "role": "passage",
+                    "role": "situation",
                     "type": "text",
                     "text": "선생님이 “물 주세요”라고 말해요."
                   },
@@ -10442,7 +10442,7 @@
                 "primitive": "select",
                 "prompt": [
                   {
-                    "role": "passage",
+                    "role": "situation",
                     "type": "text",
                     "text": "선생님이 “책”라고 말해요."
                   },
@@ -10874,7 +10874,7 @@
                 "primitive": "select",
                 "prompt": [
                   {
-                    "role": "passage",
+                    "role": "situation",
                     "type": "text",
                     "text": "선생님이 “문을 열어 주세요”라고 말해요."
                   },
@@ -11363,7 +11363,7 @@
                 "primitive": "select",
                 "prompt": [
                   {
-                    "role": "passage",
+                    "role": "situation",
                     "type": "text",
                     "text": "선생님이 “열쇠가 어디에 있어요?”라고 말해요."
                   },
@@ -11853,7 +11853,7 @@
                 "primitive": "select",
                 "prompt": [
                   {
-                    "role": "passage",
+                    "role": "situation",
                     "type": "text",
                     "text": "선생님이 “집”라고 말해요."
                   },
@@ -12432,7 +12432,7 @@
                 "primitive": "select",
                 "prompt": [
                   {
-                    "role": "passage",
+                    "role": "situation",
                     "type": "text",
                     "text": "선생님이 “아침에 일어나요”라고 말해요."
                   },
@@ -12864,7 +12864,7 @@
                 "primitive": "select",
                 "prompt": [
                   {
-                    "role": "passage",
+                    "role": "situation",
                     "type": "text",
                     "text": "선생님이 “매일 공부해요”라고 말해요."
                   },
@@ -13353,7 +13353,7 @@
                 "primitive": "select",
                 "prompt": [
                   {
-                    "role": "passage",
+                    "role": "situation",
                     "type": "text",
                     "text": "선생님이 “저녁에 쉬어요”라고 말해요."
                   },
@@ -13843,7 +13843,7 @@
                 "primitive": "select",
                 "prompt": [
                   {
-                    "role": "passage",
+                    "role": "situation",
                     "type": "text",
                     "text": "선생님이 “지금 몇 시예요?”라고 말해요."
                   },
@@ -14423,7 +14423,7 @@
                 "primitive": "select",
                 "prompt": [
                   {
-                    "role": "passage",
+                    "role": "situation",
                     "type": "text",
                     "text": "선생님이 “버스로 가요”라고 말해요."
                   },
@@ -14855,7 +14855,7 @@
                 "primitive": "select",
                 "prompt": [
                   {
-                    "role": "passage",
+                    "role": "situation",
                     "type": "text",
                     "text": "선생님이 “왼쪽으로 가세요”라고 말해요."
                   },
@@ -15344,7 +15344,7 @@
                 "primitive": "select",
                 "prompt": [
                   {
-                    "role": "passage",
+                    "role": "situation",
                     "type": "text",
                     "text": "선생님이 “여기에서 가까워요”라고 말해요."
                   },
@@ -15834,7 +15834,7 @@
                 "primitive": "select",
                 "prompt": [
                   {
-                    "role": "passage",
+                    "role": "situation",
                     "type": "text",
                     "text": "선생님이 “역이 어디예요?”라고 말해요."
                   },
@@ -16413,7 +16413,7 @@
                 "primitive": "select",
                 "prompt": [
                   {
-                    "role": "passage",
+                    "role": "situation",
                     "type": "text",
                     "text": "선생님이 “공항에 가고 싶어요”라고 말해요."
                   },
@@ -16845,7 +16845,7 @@
                 "primitive": "select",
                 "prompt": [
                   {
-                    "role": "passage",
+                    "role": "situation",
                     "type": "text",
                     "text": "선생님이 “도와주세요”라고 말해요."
                   },
@@ -17334,7 +17334,7 @@
                 "primitive": "select",
                 "prompt": [
                   {
-                    "role": "passage",
+                    "role": "situation",
                     "type": "text",
                     "text": "선생님이 “화장실이 어디예요?”라고 말해요."
                   },
@@ -17824,7 +17824,7 @@
                 "primitive": "select",
                 "prompt": [
                   {
-                    "role": "passage",
+                    "role": "situation",
                     "type": "text",
                     "text": "선생님이 “표 한 장 주세요”라고 말해요."
                   },

@@ -423,9 +423,12 @@ void main() {
           matching: find.byType(Card),
         ),
       );
+      // Build 256: a hint on a Choose is ordinary canonical data, no longer
+      // the v11 "unexpected field" warning, so the valid destination Round
+      // is green until the invalid copy arrives.
       expect(
         (destinationCard.shape! as RoundedRectangleBorder).side.color,
-        const Color(0xFFC90000),
+        const Color(0xFF00A83B),
       );
       expect(
         find.byKey(const ValueKey('round-draft-indicator-same-lesson-round')),

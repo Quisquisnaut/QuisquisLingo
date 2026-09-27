@@ -111,9 +111,11 @@ void main() {
       source.contains('Widget _listeningSpellingExercise(Exercise ex)'),
       isTrue,
     );
+    // Build 256: the renderer is chosen from canonical data (an Input with
+    // automatic audio and no first-grapheme reveal), never from a preset.
     expect(
       RegExp(
-        r"case 'listening_spelling':\r?\n[ \t]+return _listeningSpellingExercise\(ex\);",
+        r"if \(f\.automaticAudio != null && f\.revealTarget == null\) \{\r?\n[ \t]+return _listeningSpellingExercise\(ex\);",
       ).hasMatch(source),
       isTrue,
     );

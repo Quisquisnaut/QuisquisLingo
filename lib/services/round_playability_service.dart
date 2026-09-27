@@ -8,10 +8,15 @@ class RoundPlayabilityService {
   RoundPlayabilityService({CourseAuditService? auditService})
     : _audit = auditService ?? CourseAuditService();
 
+  /// The indices of the exercises a learner can play. A Round whose content
+  /// flow branches is not playable in this version at all (Build 256, plan
+  /// A.7): only linear Stories run.
   List<int> playableExerciseIndices(
     LearningRound round, {
     bool includeDrafts = false,
-  }) => !includeDrafts && !round.publicationState.isPublished
+  }) =>
+      (!includeDrafts && !round.publicationState.isPublished) ||
+          (round.flow != null && !round.flow!.isLinear)
       ? const []
       : List<int>.generate(round.exercises.length, (index) => index)
             .where(

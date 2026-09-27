@@ -134,8 +134,9 @@ void main() {
     test('a required-selection count outside range is flagged', () {
       final exercise = _multiSelectExercise(minSelections: 9);
       final issues = CourseAuditService().auditExercise(exercise);
+      // Build 256: the capability registry reports the impossible limit.
       expect(
-        issues.any((issue) => issue.message.contains('Required selections')),
+        issues.any((issue) => issue.code == 'EXERCISE_SELECTION_LIMITS'),
         isTrue,
       );
     });
@@ -199,7 +200,7 @@ void main() {
       for (var frame = 0; frame < 80; frame++) {
         await tester.pump(const Duration(milliseconds: 25));
         if (find
-            .byKey(const Key('exercise-renderer-choice'))
+            .byKey(const Key('exercise-renderer-select'))
             .evaluate()
             .isNotEmpty) {
           break;

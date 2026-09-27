@@ -1,6 +1,6 @@
 import '../models/course_models.dart';
+import '../models/exercise_features.dart';
 import 'recorded_audio_service.dart';
-import 'translation_choice_service.dart';
 
 enum EffectiveRoundAudioAvailability {
   none,
@@ -17,20 +17,12 @@ class AudioExerciseAvailabilityService {
   AudioExerciseAvailabilityService({RecordedAudioService? recordedAudio})
     : _recordedAudio = recordedAudio ?? RecordedAudioService();
 
-  bool isAudioExercise(Exercise exercise) {
-    // Audio is optional for Pick the translation: the exercise is
-    // fully solvable without it and must never be skipped for lack of TTS.
-    if (TranslationChoice.isTranslationChoice(exercise.type)) return false;
-    final spokenText = exercise.tts?.trim() ?? '';
-    return exercise.type == 'audio_match' ||
-        exercise.type == 'listening_choice' ||
-        exercise.type == 'listening_comprehension' ||
-        exercise.type == 'listening_spelling' ||
-        exercise.type == 'missing_word' ||
-        (exercise.type == 'contextual_comprehension' &&
-            exercise.contextAudio.trim().isNotEmpty) ||
-        spokenText.isNotEmpty;
-  }
+  /// An exercise the learner cannot solve without audio: one with a required
+  /// audio element (the default for audio; optional audio, such as Pick the
+  /// translation's, is stated with `required: false`). Canonical data only
+  /// (Build 256).
+  bool isAudioExercise(Exercise exercise) =>
+      ExerciseFeatures(exercise).requiresAudio;
 
   Future<bool> hasRecordedSource(Course course, Exercise exercise) async {
     final text = _audioText(exercise);
@@ -91,8 +83,9 @@ class AudioExerciseAvailabilityService {
   }
 
   String _audioText(Exercise exercise) {
-    final contextual = exercise.contextAudio.trim();
+    final features = ExerciseFeatures(exercise);
+    final contextual = features.contextAudio.trim();
     if (contextual.isNotEmpty) return contextual;
-    return exercise.tts?.trim() ?? '';
+    return features.primaryAudioText ?? '';
   }
 }

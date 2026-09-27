@@ -313,12 +313,25 @@ def convert_exercise(preset: str, exercise: dict, missing_words: list[str] | Non
                          "correctItemIds": list(evaluation.get("correctItemIds", []))}
         if type_ in {"listening_choice", "listening_comprehension", "contextual_comprehension"}:
             prompt = _with_audio(prompt, "automatic")
+        if type_ in {"translation_choice_to_target", "translation_choice_to_source"}:
+            # Pick the translation is solvable without audio: optional.
+            prompt = [dict(e, required=False) if e.get("type") == "audio" else e for e in prompt]
         if type_ == "translation_choice_to_target":
             prompt = _with_text_language(prompt, "question", "source")
             items = _with_item_language(items, "target")
         elif type_ == "translation_choice_to_source":
             prompt = _with_text_language(prompt, "question", "target")
             items = _with_item_language(items, "source")
+        elif type_ == "dialogue_response":
+            # The text a Dialogue response answers is a situation.
+            prompt = [dict(e, role="situation") if e.get("type") == "text" and e.get("role") == "passage" else e
+                      for e in prompt]
+        elif type_ == "script_recognition":
+            # Recognize characters shows character specimens, not illustrations.
+            prompt = [dict(e, role="character") if e.get("type") == "image" else e for e in prompt]
+            items = [dict(item, content=[dict(e, role="character") if e.get("type") == "image" else e
+                                         for e in item.get("content", [])])
+                     for item in items]
     elif kind == "input":
         primitive = "input"
         normalization = evaluation.get("normalization", {})
@@ -372,6 +385,7 @@ def convert_exercise(preset: str, exercise: dict, missing_words: list[str] | Non
             prompt = _with_audio(prompt, "automatic")
         elif type_ == "type_translation":
             prompt = _with_text_language(prompt, "primary", "source")
+            prompt = _with_text_language(prompt, "clue", "source")
             feedback["showAlternatives"] = "ranked"
     elif kind == "arrange":
         primitive = "arrange"
@@ -390,6 +404,7 @@ def convert_exercise(preset: str, exercise: dict, missing_words: list[str] | Non
                          "correctOrders": orders}
         if type_ == "build_translation":
             prompt = _with_text_language(prompt, "primary", "source")
+            prompt = _with_text_language(prompt, "clue", "source")
             feedback["showAlternatives"] = "all"
     elif kind == "match":
         primitive = "match"
@@ -400,6 +415,13 @@ def convert_exercise(preset: str, exercise: dict, missing_words: list[str] | Non
                       if item["id"] in right else ("left" if i % 2 == 0 else "right"))
                  for i, item in enumerate(items)]
         canonical = {"mode": "exactRelations", "relations": [list(pair) for pair in pairs]}
+        # The v11 presets implied the languages of the two sides.
+        side_languages = {"matching": ("target", "source"), "word_match": ("source", "target")}.get(type_)
+        if side_languages:
+            items = [dict(item, content=[
+                dict(e, language=side_languages[0] if item["side"] == "left" else side_languages[1])
+                if e.get("type") == "text" and e.get("role", "primary") == "primary" else e
+                for e in item.get("content", [])]) for item in items]
     else:
         raise ValueError(f"unknown interaction kind {kind!r}")
 

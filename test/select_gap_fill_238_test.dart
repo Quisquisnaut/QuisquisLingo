@@ -304,7 +304,7 @@ void main() {
       for (var frame = 0; frame < 80; frame++) {
         await tester.pump(const Duration(milliseconds: 25));
         if (find
-            .byKey(const Key('exercise-renderer-choice'))
+            .byKey(const Key('exercise-renderer-select'))
             .evaluate()
             .isNotEmpty) {
           break;

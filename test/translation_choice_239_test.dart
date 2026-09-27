@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
+import 'package:quisquislingo_app/models/exercise_features.dart';
 import 'package:quisquislingo_app/models/exercise_authoring.dart';
 import 'package:quisquislingo_app/screens/course_editor_screen.dart';
 import 'package:quisquislingo_app/screens/duel_screen.dart';
@@ -383,7 +384,7 @@ void main() {
       expect(legacy.isMultiSelect, isFalse);
       expect(legacy.correct, 0);
       expect(
-        ExerciseCopyService.typeLabel(_course(), 'choice'),
+        ExerciseCopyService.typeLabel(_course(), LearnerExerciseKind.select),
         isNot(anyOf(isEmpty, contains('translation'))),
       );
     });
@@ -403,11 +404,11 @@ void main() {
     test('the code list documents TRANSLATION_CHOICE_TEXT_REQUIRED', () {
       final code = AuditCodeRegistry.byCode('TRANSLATION_CHOICE_TEXT_REQUIRED');
       expect(code, isNotNull);
-      expect(code!.severity, AuditSeverity.error);
+      expect(code!.severity, AuditSeverity.warning);
       expect(code.scope, contains('Pick the translation'));
     });
 
-    test('blank text to translate is an error', () {
+    test('blank text to translate is a preset warning', () {
       expect(
         codes(_translationChoice(text: '  ')),
         contains('TRANSLATION_CHOICE_TEXT_REQUIRED'),
@@ -432,14 +433,14 @@ void main() {
       );
     });
 
-    test('an authored prompt or spoken text is an unexpected field', () {
+    test('an authored prompt or spoken text does not match the preset', () {
       expect(
         codes(_translationChoice(prompt: 'Translate this')),
-        contains('EXERCISE_FIELD_UNEXPECTED'),
+        contains('PRESET_CANONICAL_MISMATCH'),
       );
       expect(
         codes(_translationChoice(tts: 'Vado a Londra.')),
-        contains('EXERCISE_FIELD_UNEXPECTED'),
+        contains('PRESET_CANONICAL_MISMATCH'),
       );
     });
 
@@ -466,7 +467,7 @@ void main() {
         'TRANSLATION_CHOICE_TOO_MANY_ANSWERS',
       );
       expect(code, isNotNull);
-      expect(code!.severity, AuditSeverity.error);
+      expect(code!.severity, AuditSeverity.warning);
     });
 
     test(
@@ -1131,7 +1132,7 @@ void main() {
       );
       await _pumpUntil(
         tester,
-        find.byKey(const Key('exercise-renderer-choice')),
+        find.byKey(const Key('exercise-renderer-select')),
       );
       expect(find.text('CHOOSE'), findsOneWidget);
       expect(

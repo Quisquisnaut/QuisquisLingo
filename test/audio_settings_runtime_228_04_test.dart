@@ -322,7 +322,7 @@ void main() {
       expect(suppressedAt, greaterThan(sourceAt));
       expect(before, contains('uiState=before_you_start'));
       expect(before, contains('targetExerciseId=recorded-listening'));
-      expect(before, contains('exerciseType=listening_choice'));
+      expect(before, contains('exerciseType=selectListen'));
       expect(before, contains('prepared=true active=false'));
 
       await tester.tap(find.text('Continue to Round'));

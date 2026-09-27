@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
+import 'package:quisquislingo_app/models/exercise_features.dart';
 import 'package:quisquislingo_app/services/exercise_copy_service.dart';
 
 Course _course({
@@ -20,11 +21,11 @@ void main() {
   test('exercise copy follows English source language', () {
     final course = _course(sourceLanguage: 'English', interfaceLanguage: 'EN');
     expect(
-      ExerciseCopyService.typeLabel(course, 'audio_match'),
+      ExerciseCopyService.typeLabel(course, LearnerExerciseKind.matchAudio),
       'MATCH THE AUDIO',
     );
     expect(
-      ExerciseCopyService.instruction(course, 'audio_match'),
+      ExerciseCopyService.instruction(course, LearnerExerciseKind.matchAudio),
       'Listen and match each sound with the correct word.',
     );
   });
@@ -32,11 +33,11 @@ void main() {
   test('exercise copy follows Spanish source language', () {
     final course = _course(sourceLanguage: 'Spanish', interfaceLanguage: 'ES');
     expect(
-      ExerciseCopyService.typeLabel(course, 'audio_match'),
+      ExerciseCopyService.typeLabel(course, LearnerExerciseKind.matchAudio),
       'RELACIONA EL AUDIO',
     );
     expect(
-      ExerciseCopyService.instruction(course, 'audio_match'),
+      ExerciseCopyService.instruction(course, LearnerExerciseKind.matchAudio),
       'Escucha y relaciona cada audio con la palabra correcta.',
     );
   });

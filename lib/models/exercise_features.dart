@@ -1,0 +1,447 @@
+import 'course_models.dart';
+
+/// The learner-facing kind of an exercise, derived from canonical data only
+/// (Build 256 Session 3, plan A.3). It keys the learner heading and
+/// instruction and nothing else; grading, rendering and audio read the
+/// features directly.
+enum LearnerExerciseKind {
+  /// Select with text items and no other distinguishing feature.
+  select,
+
+  /// Select whose question text contains a `___` blank.
+  selectComplete,
+
+  /// Select whose items are images or icons.
+  selectImage,
+
+  /// Select showing or offering character specimens (`character` images).
+  selectCharacter,
+
+  /// Select with an automatic `primary` audio prompt.
+  selectListen,
+
+  /// Select with an automatic `passage` audio prompt.
+  selectListenPassage,
+
+  /// Select with a written `passage`.
+  selectRead,
+
+  /// Select with a `situation` to respond to.
+  selectDialogue,
+
+  /// Select with `context` material (text, audio, image or dialogue turns).
+  selectContext,
+
+  /// Select whose question and items are in different languages.
+  selectTranslation,
+
+  /// One-field Input with nothing else distinguishing it.
+  inputComplete,
+
+  /// One-field Input whose prompt is in the source language.
+  inputTranslation,
+
+  /// One-field Input with an automatic audio prompt.
+  inputListenWrite,
+
+  /// Inline-gap Input with an automatic audio prompt.
+  inputListenGaps,
+
+  /// Inline-gap Input whose target reveals its first grapheme.
+  inputMissingWord,
+
+  /// Arrange joining blocks with spaces.
+  arrangeSentence,
+
+  /// Arrange whose prompt is in the source language.
+  arrangeTranslation,
+
+  /// Arrange joining blocks without spaces.
+  arrangeWord,
+
+  /// Match with text on both sides.
+  match,
+
+  /// Match whose left items carry audio.
+  matchAudio,
+
+  /// Match whose two sides are in different languages.
+  matchTranslation,
+
+  /// A presentation exercise.
+  presentation,
+
+  /// A primitive today's runtime does not play.
+  other,
+}
+
+/// Everything the learner runtime, the Duel and the Audit read about an
+/// exercise's shape, derived from its canonical fields: primitive, effective
+/// options, elements with their roles and attributes, items, targets, layout,
+/// evaluation and feedback. Nothing here reads authoring metadata.
+class ExerciseFeatures {
+  ExerciseFeatures(this.exercise) : options = exercise.effectiveOptions;
+
+  final Exercise exercise;
+
+  /// The options with the registry defaults filled in.
+  final PrimitiveOptions options;
+
+  ExercisePrimitive get primitive => exercise.primitive;
+  List<PromptElement> get prompt => exercise.promptElements;
+  List<ExerciseItem> get items => exercise.items;
+  CanonicalEvaluation get evaluation => exercise.canonicalEvaluation;
+
+  // ---------------------------------------------------------------- elements
+
+  Iterable<PromptElement> _texts(String role) =>
+      prompt.where((e) => e.isText && e.role == role);
+  Iterable<PromptElement> _audios(String role) =>
+      prompt.where((e) => e.isAudio && e.role == role);
+
+  /// The first text of [role], or an empty string.
+  String textOf(String role) =>
+      _texts(role).map((e) => e.text).firstOrNull ?? '';
+
+  /// The first audio text of [role], or an empty string.
+  String audioOf(String role) =>
+      _audios(role).map((e) => e.text).firstOrNull ?? '';
+
+  String get primaryText => textOf('primary');
+  String get questionText => textOf('question');
+  String get passageText => textOf('passage');
+  String get situationText => textOf('situation');
+  String get clueText => textOf('clue');
+  String get contextText => textOf('context');
+  String get contextAudio => audioOf('context');
+  String get passageAudio => audioOf('passage');
+
+  /// Dialogue turns (`dialogue_turn` texts with a speaker), in order.
+  List<PromptElement> get dialogueTurns => prompt
+      .where((e) => e.isText && e.role == 'dialogue_turn')
+      .toList(growable: false);
+
+  /// Every audio element, in order.
+  List<PromptElement> get audioElements =>
+      prompt.where((e) => e.isAudio).toList(growable: false);
+
+  /// The audio element that plays by itself when the exercise becomes
+  /// active, or null.
+  PromptElement? get automaticAudio => audioElements
+      .where((e) => e.effectivePlayback == AudioPlayback.automatic)
+      .firstOrNull;
+
+  /// The audio elements the learner plays on request.
+  List<PromptElement> get manualAudio => audioElements
+      .where((e) => e.effectivePlayback == AudioPlayback.manual)
+      .toList(growable: false);
+
+  /// Whether the exercise cannot be solved without audio: any audio element
+  /// (prompt or item content) that is required. Pick the translation's
+  /// optional audio converts with `required: false`.
+  bool get requiresAudio =>
+      audioElements.any((e) => e.isRequired) ||
+      items.any((item) => item.content.any((e) => e.isAudio && e.isRequired));
+
+  /// Image elements shown as character specimens.
+  List<PromptElement> get characterImages => prompt
+      .where((e) => e.isImage && e.role == 'character')
+      .toList(growable: false);
+
+  /// Image elements that illustrate the prompt (any role but `character`).
+  List<PromptElement> get illustrationImages => prompt
+      .where((e) => e.isImage && e.role != 'character')
+      .toList(growable: false);
+
+  /// The first illustration image asset, or an empty string.
+  String get illustrationAsset =>
+      illustrationImages.map((e) => e.asset).firstOrNull ?? '';
+
+  TextLanguage? _languageOf(Iterable<PromptElement> elements) =>
+      elements.map((e) => e.language).whereType<TextLanguage>().firstOrNull;
+
+  /// The language of the question text, when stated.
+  TextLanguage? get questionLanguage => _languageOf(_texts('question'));
+
+  /// The language of the primary or clue text, when stated.
+  TextLanguage? get promptLanguage =>
+      _languageOf(_texts('primary')) ?? _languageOf(_texts('clue'));
+
+  /// Whether any prompt text contains a `___` blank.
+  bool get hasBlankInPrompt =>
+      prompt.any((e) => e.isText && RegExp(r'_{3,}').hasMatch(e.text));
+
+  // ------------------------------------------------------------------- items
+
+  /// The language stated on the items' text, when all stated items agree.
+  TextLanguage? get itemLanguage {
+    final languages = {
+      for (final item in items)
+        for (final e in item.content)
+          if (e.isText && e.language != null) e.language!,
+    };
+    return languages.length == 1 ? languages.single : null;
+  }
+
+  bool get hasImageItems =>
+      items.any((item) => item.content.any((e) => e.isImage));
+  bool get hasIconItems =>
+      items.any((item) => item.content.any((e) => e.role == 'icon'));
+  bool get hasCharacterItems => items.any(
+    (item) => item.content.any((e) => e.isImage && e.role == 'character'),
+  );
+
+  /// Match items by side; an item without a side counts as left when it is
+  /// the first of a relation, else right.
+  List<ExerciseItem> get leftItems => _side(MatchSide.left);
+  List<ExerciseItem> get rightItems => _side(MatchSide.right);
+  List<ExerciseItem> _side(MatchSide side) {
+    final lefts = {
+      for (final r in evaluation.relations)
+        if (r.isNotEmpty) r[0],
+    };
+    return [
+      for (final item in items)
+        if ((item.side ??
+                (lefts.contains(item.id) ? MatchSide.left : MatchSide.right)) ==
+            side)
+          item,
+    ];
+  }
+
+  /// Whether the left Match items carry audio (Listen and match).
+  bool get leftItemsHaveAudio =>
+      leftItems.isNotEmpty &&
+      leftItems.every((item) => item.content.any((e) => e.isAudio));
+
+  /// Whether the two Match sides state different languages.
+  bool get sidesDifferByLanguage {
+    TextLanguage? languageOfSide(List<ExerciseItem> side) {
+      final languages = {
+        for (final item in side)
+          for (final e in item.content)
+            if (e.isText && e.language != null) e.language!,
+      };
+      return languages.length == 1 ? languages.single : null;
+    }
+
+    final left = languageOfSide(leftItems);
+    final right = languageOfSide(rightItems);
+    return left != null && right != null && left != right;
+  }
+
+  // ----------------------------------------------------------------- options
+
+  bool get multipleSelection =>
+      primitive == ExercisePrimitive.select &&
+      options.enumValue<SelectionMode>(OptionKey.selectionMode) ==
+          SelectionMode.multiple;
+
+  /// The fewest selections a multiple Select accepts (1 for a single one).
+  int get minimumSelections {
+    if (!multipleSelection) return 1;
+    final minimum = options.intValue(OptionKey.minimumSelections) ?? 1;
+    return minimum < 1 ? 1 : minimum;
+  }
+
+  /// The most selections a multiple Select accepts (1 for a single one;
+  /// every item when the option is absent).
+  int get maximumSelections {
+    if (!multipleSelection) return 1;
+    final maximum = options.intValue(OptionKey.maximumSelections);
+    return maximum == null || maximum < 1 ? items.length : maximum;
+  }
+
+  /// Whether the exercise uses an inline layout with targets.
+  bool get hasInlineTargets => exercise.layout.any((e) => e.isTarget);
+
+  /// An Arrange whose blocks fill inline gaps.
+  bool get arrangeInline =>
+      primitive == ExercisePrimitive.arrange && hasInlineTargets;
+
+  /// A Select whose options fill inline gaps.
+  bool get selectInline =>
+      primitive == ExercisePrimitive.select && hasInlineTargets;
+
+  /// The inline gaps of an Input that each take a typed answer (Listen for
+  /// missing words); empty for a one-field Input and for a gap that reveals
+  /// its first grapheme, which the learner completes in one field.
+  List<ExerciseTarget> get gapFieldTargets =>
+      primitive == ExercisePrimitive.input &&
+          hasInlineTargets &&
+          revealTarget == null
+      ? exercise.targets
+      : const [];
+
+  /// The text the exercise's audio speaks: the automatic element's, else
+  /// the first audio element's; null when there is no audio or no text.
+  String? get primaryAudioText {
+    final element = automaticAudio ?? audioElements.firstOrNull;
+    final text = element?.text.trim() ?? '';
+    return text.isEmpty ? null : text;
+  }
+
+  /// The inline layout as one sentence: a target that reveals its first
+  /// grapheme reads `___`, any other target reads its first accepted answer.
+  String get inlineSentence => [
+    for (final element in exercise.layout)
+      if (element.isText)
+        element.text
+      else if (exercise.targets
+              .where((t) => t.id == element.targetId)
+              .firstOrNull
+              ?.reveal !=
+          null)
+        '___'
+      else
+        answersFor(element.targetId)?.answers.firstOrNull ?? '',
+  ].join();
+
+  /// The first target that reveals its first grapheme, or null.
+  ExerciseTarget? get revealTarget =>
+      exercise.targets.where((t) => t.reveal != null).firstOrNull;
+
+  /// Arrange: whether blocks join without a separator.
+  bool get joinsWithoutSpaces =>
+      options.enumValue<Joiner>(OptionKey.joiner) == Joiner.none;
+
+  /// Input: whether small typos are tolerated.
+  bool get toleratesTypos =>
+      options.enumValue<TypoTolerance>(OptionKey.typoTolerance) ==
+      TypoTolerance.conservative;
+
+  /// Input: the answer engine's normalization rules from the options.
+  Map<String, String> get normalization => {
+    'case':
+        options.enumValue<CaseHandling>(OptionKey.caseHandling) ==
+            CaseHandling.exact
+        ? 'preserve'
+        : 'ignore',
+    'punctuation':
+        options.enumValue<PunctuationHandling>(OptionKey.punctuationHandling) ==
+            PunctuationHandling.exact
+        ? 'preserve'
+        : 'ignore',
+    'whitespace':
+        options.enumValue<WhitespaceHandling>(OptionKey.whitespaceHandling) ==
+            WhitespaceHandling.exact
+        ? 'preserve'
+        : 'normalize',
+    'accents':
+        options.enumValue<AccentHandling>(OptionKey.accentHandling) ==
+            AccentHandling.ignore
+        ? 'ignore'
+        : 'preserve',
+  };
+
+  FeedbackAlternatives get showAlternatives =>
+      exercise.feedback.showAlternatives;
+
+  CompletionMode get completionMode =>
+      options.enumValue<CompletionMode>(OptionKey.completionMode) ??
+      CompletionMode.proceed;
+
+  // -------------------------------------------------------------- evaluation
+
+  /// Target ID -> the one item it must hold (inline gap grading).
+  Map<String, String> get targetAssignments => {
+    for (final assignment in evaluation.assignments)
+      if (assignment.itemIds.isNotEmpty)
+        assignment.targetId: assignment.itemIds.first,
+  };
+
+  /// The accepted answers of a one-field Input, or of every inline gap in
+  /// target order.
+  List<String> get acceptedAnswers => evaluation.targetAnswers.isEmpty
+      ? evaluation.answers
+      : [
+          for (final target in exercise.targets)
+            ...evaluation.targetAnswers
+                .where((a) => a.targetId == target.id)
+                .expand((a) => a.answers),
+        ];
+
+  /// The verbatim answers of a one-field Input, or of every inline gap.
+  List<String> get literalAnswers => evaluation.targetAnswers.isEmpty
+      ? evaluation.literalAnswers
+      : [
+          for (final target in exercise.targets)
+            ...evaluation.targetAnswers
+                .where((a) => a.targetId == target.id)
+                .expand((a) => a.literalAnswers),
+        ];
+
+  /// The accepted answers of one inline gap.
+  TargetAnswers? answersFor(String targetId) =>
+      evaluation.targetAnswers.where((a) => a.targetId == targetId).firstOrNull;
+
+  /// Whether the answer to a single Select is one item that is a translation
+  /// of the question (question and items in different stated languages).
+  bool get isTranslationChoice =>
+      primitive == ExercisePrimitive.select &&
+      !multipleSelection &&
+      !hasInlineTargets &&
+      questionLanguage != null &&
+      itemLanguage != null &&
+      questionLanguage != itemLanguage;
+
+  // -------------------------------------------------------------------- kind
+
+  LearnerExerciseKind get kind {
+    switch (primitive) {
+      case ExercisePrimitive.select:
+        if (isTranslationChoice) return LearnerExerciseKind.selectTranslation;
+        if (characterImages.isNotEmpty || hasCharacterItems) {
+          return LearnerExerciseKind.selectCharacter;
+        }
+        if (contextText.isNotEmpty ||
+            contextAudio.isNotEmpty ||
+            dialogueTurns.isNotEmpty) {
+          return LearnerExerciseKind.selectContext;
+        }
+        final automatic = automaticAudio;
+        if (automatic != null) {
+          return automatic.role == 'passage'
+              ? LearnerExerciseKind.selectListenPassage
+              : LearnerExerciseKind.selectListen;
+        }
+        if (situationText.isNotEmpty) return LearnerExerciseKind.selectDialogue;
+        if (passageText.isNotEmpty) return LearnerExerciseKind.selectRead;
+        if (hasImageItems || hasIconItems) {
+          return LearnerExerciseKind.selectImage;
+        }
+        if (!hasInlineTargets && hasBlankInPrompt) {
+          return LearnerExerciseKind.selectComplete;
+        }
+        return LearnerExerciseKind.select;
+      case ExercisePrimitive.input:
+        if (hasInlineTargets) {
+          return revealTarget != null
+              ? LearnerExerciseKind.inputMissingWord
+              : LearnerExerciseKind.inputListenGaps;
+        }
+        if (automaticAudio != null) return LearnerExerciseKind.inputListenWrite;
+        if (promptLanguage == TextLanguage.source) {
+          return LearnerExerciseKind.inputTranslation;
+        }
+        return LearnerExerciseKind.inputComplete;
+      case ExercisePrimitive.arrange:
+        if (joinsWithoutSpaces) return LearnerExerciseKind.arrangeWord;
+        if (promptLanguage == TextLanguage.source) {
+          return LearnerExerciseKind.arrangeTranslation;
+        }
+        return LearnerExerciseKind.arrangeSentence;
+      case ExercisePrimitive.match:
+        if (leftItemsHaveAudio) return LearnerExerciseKind.matchAudio;
+        if (sidesDifferByLanguage) return LearnerExerciseKind.matchTranslation;
+        return LearnerExerciseKind.match;
+      case ExercisePrimitive.presentation:
+        return LearnerExerciseKind.presentation;
+      case ExercisePrimitive.assign:
+      case ExercisePrimitive.speak:
+      case ExercisePrimitive.ink:
+      case ExercisePrimitive.submit:
+        return LearnerExerciseKind.other;
+    }
+  }
+}

@@ -1,4 +1,5 @@
 import '../models/course_models.dart';
+import '../models/exercise_features.dart';
 import 'audio_exercise_availability_service.dart';
 
 class DuelCandidate {
@@ -26,19 +27,27 @@ class DuelEligibilityResult {
 
 class DuelEligibilityService {
   static const int requiredQuestionCount = 25;
-  static const Set<String> supportedExerciseTypes = {
-    'choice',
-    'gap_choice',
-    'dialogue_response',
-    'icon_choice',
-    'listening_choice',
-    'listening_comprehension',
-    'reading_comprehension',
-    'translation_choice_to_target',
-    'translation_choice_to_source',
-  };
 
   const DuelEligibilityService();
+
+  /// Whether the Duel can ask [exercise]: a Select with one answer among
+  /// items shown as choices (not inline gaps), graded as exactly one item,
+  /// with at least two items and one correct item that exists. Decided
+  /// from canonical data only (Build 256, plan A.10): Contextual
+  /// comprehension and Recognize characters qualify, a multiple-answer
+  /// Choose does not.
+  static bool isEligible(Exercise exercise) {
+    if (exercise.primitive != ExercisePrimitive.select) return false;
+    final features = ExerciseFeatures(exercise);
+    if (features.multipleSelection || features.hasInlineTargets) return false;
+    final evaluation = exercise.canonicalEvaluation;
+    if (evaluation.mode != EvaluationMode.exactItem) return false;
+    if (exercise.items.length < 2 || evaluation.correctItemIds.length != 1) {
+      return false;
+    }
+    final correct = evaluation.correctItemIds.single;
+    return exercise.items.any((item) => item.id == correct);
+  }
 
   DuelEligibilityResult evaluate(Lesson lesson) {
     final candidates = <DuelCandidate>[];
@@ -56,23 +65,18 @@ class DuelEligibilityService {
       if (!round.publicationState.isPublished) continue;
       for (final exercise in round.exercises) {
         if (!exercise.publicationState.isPublished) continue;
-        final answers = exercise.answers;
-        final correct = exercise.correct;
-        final validCorrect =
-            correct != null && correct >= 0 && correct < answers.length;
-        if (!supportedExerciseTypes.contains(exercise.type) ||
-            answers.length < 2 ||
-            !validCorrect) {
-          continue;
-        }
-
-        final correctText = answers[correct];
+        if (!isEligible(exercise)) continue;
+        final features = ExerciseFeatures(exercise);
+        final correct = exercise.canonicalEvaluation.correctItemIds.single;
+        final correctText = exercise.items
+            .where((item) => item.id == correct)
+            .map((item) => item.value)
+            .first;
         final duplicateKey = [
           exercise.id,
-          exercise.type,
-          exercise.prompt.trim().toLowerCase(),
-          exercise.question.trim().toLowerCase(),
-          (exercise.tts ?? '').trim().toLowerCase(),
+          features.kind.name,
+          for (final element in exercise.promptElements)
+            element.text.trim().toLowerCase(),
           correctText.trim().toLowerCase(),
         ].join('|');
         if (!seen.add(duplicateKey)) continue;

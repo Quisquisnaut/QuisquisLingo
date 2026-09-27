@@ -5,6 +5,55 @@ spelling) with Flutter 3.47.4 / Dart 3.13.3 on Windows 10, the complete
 suite through the keep-awake wrapper (`ES_CONTINUOUS | ES_SYSTEM_REQUIRED`
 held for the run and cleared afterwards).
 
+## Revision 2 (2.0.56+256002): runtime and Audit on canonical data, 27 September 2026
+
+- Baseline first: `exercise_laboratory_254_test` records what the Round
+  screen shows for every one of the 80 Laboratory examples before and after
+  the correct answer (`_presentation`); the records were captured in record
+  mode (`QQL_RECORD_PRESENTATION`, 165 tests passed) before any runtime
+  change and compared afterwards on every batch. The only differences are
+  the three marked in `test/support/laboratory_presentation_254.dart`:
+  Match the words' instruction (its sides now carry languages), and the
+  Dialogue response situation shown once instead of twice (before and
+  after answering).
+- Validators outside the Flutter suite after each converter refinement:
+  `python -X utf8 tools/validate_courses.py` (four v12 files), the three
+  generators' checks, the Korean Course reconverted from its v11 fixture,
+  parity in `course_model_v11_243_test`.
+- `dart format` on the changed Dart files: nothing to change on the final
+  tree. `flutter analyze --no-pub`: **No issues found** (interim lint
+  findings, all `curly_braces_in_flow_control_structures` and one
+  `unnecessary_import`, were fixed as they appeared).
+- Focused batches during the session, each green before the next step:
+  the converter, Laboratory and bundled-Course tests after the role
+  refinements (300 passed); every Round-screen test plus the copy,
+  converter and bundled tests after the heading switched to the derived
+  kind (483 passed, 2 deliberate Match-instruction records then updated);
+  the same after the Round-screen refactor (427 passed, 1 deliberate
+  dialogue record then updated); the Round, Duel, audio and playability
+  tests after the Duel and availability changes (475 passed, 1 fixed: Pick
+  the translation's audio had to be `required: false`); the translation,
+  runtime, converter and package tests (104 passed, 1 fixed: a Story's end
+  button still offered the mistake review); every Audit-related test with
+  the Laboratory and runtime tests after the Audit rewrite (583 passed, 8
+  failed, all resolved: pinned code counts and severities, the duplicate
+  content key, the three-pair rule applied to Match the words, the
+  image-word wording, the single-selection correct-count rule, the short
+  listening passage rule tied to its preset); the registry, bundled-Course,
+  Audit and Laboratory files again (**197 passed**); the version tests and
+  `localization_catalog_test` before the suite.
+- New tests: `test/runtime_canonical_256_test.dart` (the kind every
+  preset's exercises derive to in all four bundled Courses; headings need
+  no preset; Duel eligibility by capability with Contextual comprehension
+  and Recognize characters in and multiple-answer Choose out; audio
+  exercises by required audio incl. the bundled Pick the translation
+  exercises; a linear Story plays five nodes in authored order without a
+  mistake review; a branching Story is not playable; two identical blocks
+  fill either gap). Rewritten: the Duel eligibility preset-list test
+  (canonical eligibility), the registry counts (102 rules: 56 Errors, 40
+  Warnings, 6 Info), the severity pins of the preset rules.
+- Complete suite on the final working tree (second run, 09:44–10:07): **2,840 passed, 1 skipped, 0 failed** (`All tests passed!` after 22 minutes 51 seconds). A first complete run on the pre-fix tree (09:14–09:36, 22 minutes 13 seconds) had given 2,837 passed, 1 skipped, 3 failed: `course_image_removal_test` (the image-word image rule had become a Warning; restored as an Error, a solvability rule of word-building Arrange emitted by kind), `imported_course_v6_regression_test` (a source-structure test pinned the v11 preset dispatch; it now checks the canonical dispatch), and `authoring_transfer_ui_226_02_test` (its destination Round was red only because of the retired unexpected-field warning on a Choose with a hint; it now expects green). The affected files were rerun (216 passed) before this final run.
+
 ## Revision 1 (2.0.56+256001): Course Model v12, 27 September 2026
 
 - Validators outside the Flutter suite: `python -X utf8 tools/validate_courses.py`

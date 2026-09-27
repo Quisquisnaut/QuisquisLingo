@@ -8,10 +8,10 @@ void main() {
 
   group('Reading Comprehension passage length', () {
     for (final entry in <String, (String, AuditSeverity?, String?)>{
-      'empty': ('', AuditSeverity.error, 'READING_PASSAGE_REQUIRED'),
+      'empty': ('', AuditSeverity.warning, 'READING_PASSAGE_REQUIRED'),
       'punctuation only': (
         '... — !!!',
-        AuditSeverity.error,
+        AuditSeverity.warning,
         'READING_PASSAGE_REQUIRED',
       ),
       'one word': ('Ciao!', AuditSeverity.warning, 'READING_PASSAGE_TOO_SHORT'),
@@ -99,32 +99,39 @@ void main() {
     );
   });
 
-  test('malformed Listening exercises retain the blocking audio check', () {
-    final exercise = Exercise(
-      id: 'silent-listening',
-      updatedAt: DateTime.utc(2026, 9, 4),
-      type: 'listening_choice',
-      prompt: '',
-      question: 'Which expression do you hear?',
-      answers: const ['Ciao', 'Grazie'],
-      correct: 0,
-      tts: null,
-      accepted: const [],
-      tokens: const [],
-      orderAnswer: const [],
-      pairs: const [],
-      hint: '',
-      icons: const [],
-    );
-    expect(
-      audit.auditExercise(exercise),
-      contains(
-        isA<CourseAuditIssue>()
-            .having((issue) => issue.code, 'code', 'LISTENING_AUDIO_REQUIRED')
-            .having((issue) => issue.severity, 'severity', AuditSeverity.error),
-      ),
-    );
-  });
+  test(
+    'a listening preset without audio keeps its non-blocking audio warning',
+    () {
+      final exercise = Exercise(
+        id: 'silent-listening',
+        updatedAt: DateTime.utc(2026, 9, 4),
+        type: 'listening_choice',
+        prompt: '',
+        question: 'Which expression do you hear?',
+        answers: const ['Ciao', 'Grazie'],
+        correct: 0,
+        tts: null,
+        accepted: const [],
+        tokens: const [],
+        orderAnswer: const [],
+        pairs: const [],
+        hint: '',
+        icons: const [],
+      );
+      expect(
+        audit.auditExercise(exercise),
+        contains(
+          isA<CourseAuditIssue>()
+              .having((issue) => issue.code, 'code', 'LISTENING_AUDIO_REQUIRED')
+              .having(
+                (issue) => issue.severity,
+                'severity',
+                AuditSeverity.warning,
+              ),
+        ),
+      );
+    },
+  );
 
   test('Hints warn when repetitive and block when revealing', () {
     final repeated = _choice(

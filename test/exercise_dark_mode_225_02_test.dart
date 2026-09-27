@@ -179,7 +179,7 @@ Future<void> _pumpRound(
     for (var frame = 0; frame < 80; frame++) {
       await tester.pump(const Duration(milliseconds: 25));
       if (find
-          .byKey(Key('exercise-renderer-${exercise.type}'))
+          .byKey(Key('exercise-renderer-${exercise.primitive.serialized}'))
           .evaluate()
           .isNotEmpty) {
         break;
@@ -188,7 +188,10 @@ Future<void> _pumpRound(
   } finally {
     debugPrint = normalDebugPrint;
   }
-  expect(find.byKey(Key('exercise-renderer-${exercise.type}')), findsOneWidget);
+  expect(
+    find.byKey(Key('exercise-renderer-${exercise.primitive.serialized}')),
+    findsOneWidget,
+  );
 }
 
 List<Exercise> _renderers() => [

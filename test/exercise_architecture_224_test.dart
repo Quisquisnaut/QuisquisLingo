@@ -9,7 +9,7 @@ void main() {
   test('every active QQL type is registered and maps to a canonical model', () {
     expect(
       ExercisePresetRegistry.presets.map((preset) => preset.id).toSet(),
-      CourseAuditService.supportedTypes,
+      CourseAuditService.presetKinds.keys.toSet(),
     );
     // Build 256: presets configure the five primitives QQL plays today; the
     // other four (Assign, Speak, Ink, Submit) exist without a preset.

@@ -3582,12 +3582,57 @@ class Exercise {
           }.contains(type)) {
             prompt = withAudio(prompt, AudioPlayback.automatic);
           }
+          if (type == 'translation_choice_to_target' ||
+              type == 'translation_choice_to_source') {
+            // Pick the translation is solvable without audio: its spoken
+            // text is optional and never makes it an audio exercise.
+            prompt = [
+              for (final element in prompt)
+                if (element.isAudio)
+                  element.copyWith(required: false)
+                else
+                  element,
+            ];
+          }
           if (type == 'translation_choice_to_target') {
             prompt = withTextLanguage(prompt, 'question', TextLanguage.source);
             items = withItemLanguage(TextLanguage.target);
           } else if (type == 'translation_choice_to_source') {
             prompt = withTextLanguage(prompt, 'question', TextLanguage.target);
             items = withItemLanguage(TextLanguage.source);
+          } else if (type == 'dialogue_response') {
+            // The text a Dialogue response answers is a situation, which the
+            // v11 shape stored under the reading passage's role.
+            prompt = [
+              for (final element in prompt)
+                if (element.isText && element.role == 'passage')
+                  element.copyWith(role: 'situation')
+                else
+                  element,
+            ];
+          } else if (type == 'script_recognition') {
+            // Recognize characters shows character specimens, not
+            // illustrations: the runtime draws `character` images as
+            // specimens and every other image as one illustration.
+            prompt = [
+              for (final element in prompt)
+                if (element.isImage)
+                  element.copyWith(role: 'character')
+                else
+                  element,
+            ];
+            items = [
+              for (final item in items)
+                item.copyWith(
+                  content: [
+                    for (final element in item.content)
+                      if (element.isImage)
+                        element.copyWith(role: 'character')
+                      else
+                        element,
+                  ],
+                ),
+            ];
           }
         case 'input':
           primitive = ExercisePrimitive.input;
@@ -3728,6 +3773,7 @@ class Exercise {
             prompt = withAudio(prompt, AudioPlayback.automatic);
           } else if (type == 'type_translation') {
             prompt = withTextLanguage(prompt, 'primary', TextLanguage.source);
+            prompt = withTextLanguage(prompt, 'clue', TextLanguage.source);
             canonicalFeedback = ExerciseFeedback(
               correct: feedback.correct,
               incorrect: feedback.incorrect,
@@ -3775,6 +3821,7 @@ class Exercise {
           }
           if (type == 'build_translation') {
             prompt = withTextLanguage(prompt, 'primary', TextLanguage.source);
+            prompt = withTextLanguage(prompt, 'clue', TextLanguage.source);
             canonicalFeedback = ExerciseFeedback(
               correct: feedback.correct,
               incorrect: feedback.incorrect,
@@ -3810,6 +3857,33 @@ class Exercise {
                 if (pair.length == 2) [pair[0], pair[1]],
             ],
           );
+          // The v11 presets implied the languages of the two sides: Match
+          // the words pairs target-language phrases with source-language
+          // translations, Match related words the other way round; the
+          // same-language presets state nothing.
+          final sideLanguages = type == 'matching'
+              ? (TextLanguage.target, TextLanguage.source)
+              : type == 'word_match'
+              ? (TextLanguage.source, TextLanguage.target)
+              : null;
+          if (sideLanguages != null) {
+            items = [
+              for (final item in items)
+                item.copyWith(
+                  content: [
+                    for (final element in item.content)
+                      if (element.isText && element.role == 'primary')
+                        element.copyWith(
+                          language: item.side == MatchSide.left
+                              ? sideLanguages.$1
+                              : sideLanguages.$2,
+                        )
+                      else
+                        element,
+                  ],
+                ),
+            ];
+          }
         default:
           throw FormatException(
             'Unknown interaction kind “${interaction.kind}” cannot be converted to a Course Model v12 primitive.',
@@ -4027,6 +4101,8 @@ class Exercise {
         ? _promptRole('context')
         : _promptRole('passage').isNotEmpty
         ? _promptRole('passage')
+        : _promptRole('situation').isNotEmpty
+        ? _promptRole('situation')
         : _promptRole('primary').isNotEmpty
         ? _promptRole('primary')
         : _promptRole('clue');

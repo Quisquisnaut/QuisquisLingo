@@ -4,6 +4,60 @@ Build 256 is the exercise architecture redesign (Course Model v12). Its six
 sessions are Revisions 0–5. Plan: `256_EXERCISE_ARCHITECTURE_PLAN.md`;
 reference: `EXERCISE_ARCHITECTURE_V12.md`; evidence: `256_VALIDATION.md`.
 
+## Revision 2 (2.0.56+256002, 27 September 2026): runtime and Audit on canonical data
+
+Session 3. Course files stay Course Model v12; the learner runtime, the
+Duel and the Audit stop reading preset IDs.
+
+### Files
+
+- `lib/models/exercise_features.dart` (new): `ExerciseFeatures` (roles,
+  attributes, options, layout, evaluation and feedback of one exercise) and
+  `LearnerExerciseKind` (the derived kind that keys headings).
+- `lib/widgets/exercise_prompt_panels.dart` (new): the Select panels shared
+  by the Round and Duel screens.
+- `lib/screens/round_screen.dart`: dispatch by primitive and features,
+  grading from the evaluation (literal answers, typo tolerance, ranked
+  alternatives, joiner, content-based gap grading), flows, keys
+  `exercise-heading`, `exercise-instruction`, `exercise-prompt-text`,
+  `exercise-passage`, `exercise-image`, `exercise-renderer-<primitive>`.
+- `lib/screens/duel_screen.dart`: choices from items, panels, image
+  answers, translation Select from features.
+- `lib/services/exercise_copy_service.dart` (keyed by kind, eight
+  languages), `translation_choice_service.dart` (`instructionFor`,
+  `spokenTextFor`), `duel_eligibility_service.dart` (`isEligible`),
+  `audio_exercise_availability_service.dart` (required audio),
+  `round_playability_service.dart` (branching flows not playable).
+- `lib/services/course_audit_service.dart`: `auditExercise` rewritten on
+  canonical data with the capability registry; `presetKinds`;
+  `lib/services/audit_code_registry.dart`: five codes added, seven retired,
+  preset rules as Warnings, unknown preset as Info (102 rules).
+- Converter (`Exercise.convertV11`, `tools/qql_course_v12.py`): `situation`
+  and `character` roles, Match side languages, `clue` text languages,
+  optional translation audio; `assets/courses/*.json` regenerated.
+- Tests: `test/runtime_canonical_256_test.dart` (new),
+  `test/support/laboratory_presentation_254.dart` (new baseline) with the
+  recorder in `exercise_laboratory_254_test.dart`, and the updated Audit,
+  Duel, copy and renderer-key tests.
+
+### Architecture decisions implemented
+
+- Plan §A.3 (no preset-dependent runtime branch: the report lists none),
+  §A.5, §A.7 (linear Stories), §A.10, §A.11, §A.13 (learner labels from
+  features; merged labels reported).
+- Deliberate learner-visible changes: Match the words' instruction, the
+  Dialogue response situation shown once, the Duel pool (A.10), repeated
+  blocks in inline-gap Arrange (A.11).
+
+### Known limitations and deferrals
+
+- The editor, the draft builder, Search and the copy/duplication services
+  still read the v11-shaped views on `Exercise`; Session 4 moves them and
+  deletes the views.
+- Readable-but-not-executable exercises are kept by the Audit and skipped
+  nowhere yet (Session 5, A.6); branching Stories are simply not playable.
+- Exact preset recognition and metadata clearing: Session 4.
+
 ## Revision 1 (2.0.56+256001, 27 September 2026): Course Model v12
 
 Session 2. Course files change format (clean cut); learner, Audit and

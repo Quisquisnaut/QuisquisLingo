@@ -13,10 +13,12 @@ import 'package:quisquislingo_app/services/exercise_draft_builder.dart';
 import 'package:quisquislingo_app/services/first_letter_answer_service.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:quisquislingo_app/services/tts_cache_service.dart';
+import 'package:quisquislingo_app/widgets/course_media_image.dart';
 import 'package:quisquislingo_app/widgets/portable_exercise_image.dart';
 import 'package:quisquislingo_app/widgets/script_recognition_editor.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'support/laboratory_presentation_254.dart';
 import 'support/test_directories.dart';
 
 const _asset = 'assets/courses/exercise_laboratory_en_it.json';
@@ -142,6 +144,150 @@ Map<String, Object?> _semantics(Exercise exercise) {
   };
 }
 
+/// What the learner sees for one Laboratory example: the heading, the
+/// instruction, the displayed prompt, which panels, audio controls and
+/// answer controls are present, what was spoken by itself and, after the
+/// correct answer, the feedback. Counts and sorted texts only, so the
+/// shuffled option order does not matter. Build 256 Session 3 refactors the
+/// Round screen onto canonical data and must keep every record equal, except
+/// where `laboratoryPresentation` says the change is deliberate.
+Map<String, Object?> _presentation(
+  WidgetTester tester,
+  Exercise exercise,
+  _Speech speech,
+) {
+  int count(Finder finder) => finder.evaluate().length;
+  String? textOf(Key key) {
+    final finder = find.byKey(key);
+    if (finder.evaluate().isEmpty) return null;
+    final widget = tester.widget(finder);
+    return widget is Text ? widget.data : null;
+  }
+
+  List<String> textsContaining(String pattern) =>
+      find
+          .byWidgetPredicate(
+            (widget) => widget is Text && (widget.data ?? '').contains(pattern),
+          )
+          .evaluate()
+          .map((element) => (element.widget as Text).data!)
+          .toList()
+        ..sort();
+  int keyed(String prefix) => count(
+    find.byWidgetPredicate(
+      (widget) =>
+          widget.key is ValueKey<String> &&
+          (widget.key as ValueKey<String>).value.startsWith(prefix),
+    ),
+  );
+  int shown(String text) => text.trim().isEmpty ? 0 : count(find.text(text));
+  List<String> buttonTexts<T extends ButtonStyleButton>() =>
+      find.byType(T).evaluate().map((element) {
+        final child = (element.widget as ButtonStyleButton).child;
+        return child is Text ? (child.data ?? '') : '<${child.runtimeType}>';
+      }).toList()..sort();
+
+  return {
+    'heading': textOf(const Key('exercise-heading')),
+    'instruction':
+        textOf(const Key('exercise-instruction')) ??
+        textOf(const Key('translation-choice-instruction')),
+    'prompt': textOf(const Key('exercise-prompt-text')),
+    'shown': {
+      'question': shown(exercise.question),
+      'prompt': shown(exercise.prompt),
+      'context': shown(exercise.contextText),
+      'translationText': count(
+        find.byKey(const Key('translation-choice-text')),
+      ),
+    },
+    'panels': {
+      'context': count(find.byKey(const Key('contextual-comprehension-text'))),
+      'dialogue': count(
+        find.byKey(const Key('contextual-comprehension-dialogue')),
+      ),
+      'passage': count(find.byKey(const Key('exercise-passage'))),
+      'image': count(find.byKey(const Key('exercise-image'))),
+      'portableImages': count(find.byType(PortableExerciseImage)),
+      'mediaImages': count(find.byType(CourseMediaImage)),
+    },
+    'audio': {
+      'again': count(find.byTooltip('Play audio again')),
+      'play': count(find.byTooltip('Play audio')),
+      'context': count(find.byTooltip('Play context audio')),
+      'sound': count(find.byTooltip('Play sound')),
+      'pronounce': count(find.byTooltip('Pronounce word or phrase')),
+      'usage': count(find.byTooltip('Pronounce usage sentence')),
+      'playLabel': count(find.widgetWithText(FilledButton, 'Play audio')),
+      'contextLabel': count(
+        find.widgetWithText(FilledButton, 'Play context audio'),
+      ),
+      'translation': count(find.byKey(const Key('translation-choice-audio'))),
+      'note': count(find.byKey(const Key('translation-choice-audio-note'))),
+    },
+    'controls': {
+      'filled': buttonTexts<FilledButton>(),
+      'outlined': buttonTexts<OutlinedButton>(),
+      'checkboxes': count(find.byType(CheckboxListTile)),
+      'textFields': count(find.byType(TextField)),
+      'actionChips': count(find.byType(ActionChip)),
+      'inputChips': count(find.byType(InputChip)),
+      'filterChips': count(find.byType(FilterChip)),
+      'choiceChips': count(find.byType(ChoiceChip)),
+      'dropdowns': count(find.byType(DropdownButtonFormField<String>)),
+      'gapSlots': keyed('gap-slot-'),
+      'selectGapSlots': keyed('select-gap-slot-'),
+      'imageButtons': count(
+        find.descendant(
+          of: find.byType(FilledButton),
+          matching: find.byType(PortableExerciseImage),
+        ),
+      ),
+      'iconButtons': count(
+        find.descendant(
+          of: find.byType(FilledButton),
+          matching: find.byType(Icon),
+        ),
+      ),
+    },
+    'texts': {
+      'firstLetter': textOf(const Key('first-letter-sentence')),
+      'gapHint': textOf(const Key('gap-choice-hint')),
+      'hints': textsContaining('Hint:'),
+      'translateFrom': textsContaining('Translate from'),
+      'usage': count(find.text('Usage:')),
+      'blanks': textsContaining('_____'),
+    },
+    'feedback': {
+      'correct': count(find.text('Correct')),
+      'correctAnswer': textsContaining('Correct answer'),
+      'alternativesHeading': textOf(const Key('translation-feedback-heading')),
+      'alternatives': keyed('translation-feedback-answer-'),
+      'correctTranslations': count(find.text('Correct translations:')),
+      'bullets': textsContaining('• ').length,
+      'acceptedDifferences': textsContaining('Accepted difference'),
+      'listenToAnswer': count(find.text('Listen to the answer')),
+      'cardReviewed': count(find.text('Card reviewed.')),
+      'surface': count(find.byKey(const Key('exercise-feedback-surface'))),
+    },
+    // Sorted: Listen and match plays its sounds in the shuffled card order.
+    'spoken': List<String>.of(speech.spoken)..sort(),
+  };
+}
+
+/// Compares the record with the expectation, or writes it as JSON when the
+/// `QQL_RECORD_PRESENTATION` environment variable names a directory (used
+/// once to produce `test/support/laboratory_presentation_254.dart`).
+void _checkPresentation(String id, Map<String, Object?> record) {
+  final directory = Platform.environment['QQL_RECORD_PRESENTATION'];
+  if (directory != null && directory.isNotEmpty) {
+    File('$directory/$id.json').writeAsStringSync(jsonEncode(record));
+    return;
+  }
+  expect(laboratoryPresentation.containsKey(id), isTrue, reason: id);
+  expect(record, laboratoryPresentation[id], reason: id);
+}
+
 class _Speech extends TtsCacheService {
   final spoken = <String>[];
 
@@ -224,7 +370,10 @@ Future<_Speech> _show(
       ),
     ),
   );
-  await _until(tester, find.byKey(Key('exercise-renderer-${exercise.type}')));
+  await _until(
+    tester,
+    find.byKey(Key('exercise-renderer-${exercise.primitive.serialized}')),
+  );
   return speech;
 }
 
@@ -531,7 +680,10 @@ void main() {
 
     testWidgets('learner completes ${exercise.id}', (tester) async {
       final speech = await _show(tester, course, exercise);
+      final before = _presentation(tester, exercise, speech);
       await _answer(tester, exercise, speech);
+      final after = _presentation(tester, exercise, speech);
+      _checkPresentation(exercise.id, {'before': before, 'after': after});
       await _tap(tester, find.widgetWithText(FilledButton, 'Finish round'));
       await _until(tester, find.text('Preview complete'));
       expect(find.textContaining('Temporary result: perfect.'), findsOneWidget);

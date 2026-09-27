@@ -906,7 +906,8 @@
                   {
                     "role": "clue",
                     "type": "text",
-                    "text": "Traduci: Oggi studio a casa."
+                    "text": "Traduci: Oggi studio a casa.",
+                    "language": "source"
                   }
                 ],
                 "items": [
@@ -2752,5 +2753,5 @@
       }
     }
   ],
-  "officialChecksum": "8e5dae5e9f48bc97a3a31a666de0e4d40b5ddaa697f8f378f0bcdba788bb2fe5"
+  "officialChecksum": "795a1a85562ec0b8f7a619549be7033c9b2665da6df389362478f6eec2d66a4d"
 }

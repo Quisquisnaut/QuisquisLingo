@@ -3,10 +3,12 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import '../services/first_letter_answer_service.dart';
 import '../widgets/course_media_image.dart';
+import '../widgets/exercise_prompt_panels.dart';
 import '../widgets/portable_exercise_image.dart';
 import '../services/beta_lifecycle_service.dart';
 import '../widgets/beta_expired_view.dart';
 import '../models/course_models.dart';
+import '../models/exercise_features.dart';
 import '../services/progress_service.dart';
 import '../services/learning_completion_service.dart';
 import '../services/report_service.dart';
@@ -134,6 +136,8 @@ class _RoundScreenState extends State<RoundScreen> {
   int _errorsThisAttempt = 0;
   bool _reviewPhase = false;
   bool _finishing = false;
+  bool _isStory = false;
+  late ExerciseFeatures _features;
   bool _answered = false;
   bool _lastAnswerCorrect = false;
   String _feedback = '';
@@ -304,7 +308,11 @@ class _RoundScreenState extends State<RoundScreen> {
       _ttsWasSkipped = filtered.length != valid.length;
       _queue = filtered;
       _evaluableExerciseCount = valid
-          .where((i) => widget.round.exercises[i].type != 'flashcard')
+          .where(
+            (i) =>
+                widget.round.exercises[i].primitive !=
+                ExercisePrimitive.presentation,
+          )
           .length;
       _wasCompleted =
           !widget.previewMode &&
@@ -315,7 +323,18 @@ class _RoundScreenState extends State<RoundScreen> {
       await CrashLogService.instance.recordDebugEvent(
         'Round: preferences loaded ${widget.round.id}, queue=${_queue.length}',
       );
-      _shuffleDifferentInts(_queue);
+      final flowOrder = _flowOrder;
+      _isStory = flowOrder != null;
+      if (flowOrder != null) {
+        // A Story plays its nodes in authored order and is never shuffled
+        // (Build 256, plan A.7).
+        _queue = [
+          for (final index in flowOrder)
+            if (filtered.contains(index)) index,
+        ];
+      } else {
+        _shuffleDifferentInts(_queue);
+      }
       if (!mounted) return;
       if (_queue.isNotEmpty) {
         await CrashLogService.instance.recordDebugEvent(
@@ -325,27 +344,9 @@ class _RoundScreenState extends State<RoundScreen> {
         // Choice-based exercises must be fully prepared before the learner UI
         // becomes ready. This prevents a transient screen with no answer buttons.
         final first = _exercise;
-        final needsChoices =
-            first.type == 'choice' ||
-            first.type == 'gap_choice' ||
-            first.type == 'listening_choice' ||
-            first.type == 'listening_comprehension' ||
-            first.type == 'reading_comprehension' ||
-            first.type == 'dialogue_response' ||
-            first.type == 'contextual_comprehension' ||
-            TranslationChoice.isTranslationChoice(first.type);
-        if (needsChoices &&
-            first.answers.isNotEmpty &&
-            _choiceOptions.isEmpty) {
-          _choiceOptions = List<_ChoiceOption>.generate(
-            first.answers.length,
-            (i) => _ChoiceOption(
-              first.answers[i],
-              first.correctItemIdSet.contains(first.interaction.items[i].id),
-              item: first.interaction.items[i],
-            ),
-          );
-          _shuffleDifferentChoices(_choiceOptions);
+        final needsChoices = first.primitive == ExercisePrimitive.select;
+        if (needsChoices && first.items.isNotEmpty && _choiceOptions.isEmpty) {
+          _choiceOptions = _choiceOptionsFor(first);
           await CrashLogService.instance.recordDebugEvent(
             'Round: rebuilt missing choice options ${widget.round.id}/${first.id}',
           );
@@ -392,6 +393,34 @@ class _RoundScreenState extends State<RoundScreen> {
     super.dispose();
   }
 
+  /// The exercise indices in the Round's linear flow order, or null for a
+  /// practice Round (no flow) or a flow this version cannot play.
+  List<int>? get _flowOrder {
+    final flow = widget.round.flow;
+    if (flow == null) return null;
+    final nodeIds = flow.linearNodeIds();
+    if (nodeIds == null) return null;
+    final exercises = widget.round.exercises;
+    final indexById = {
+      for (var i = 0; i < exercises.length; i++) exercises[i].id: i,
+    };
+    return [
+      for (final nodeId in nodeIds)
+        if (indexById[flow.nodeById(nodeId)?.contentId] case final index?)
+          index,
+    ];
+  }
+
+  List<_ChoiceOption> _choiceOptionsFor(Exercise ex) {
+    final correct = ex.canonicalEvaluation.correctItemIds.toSet();
+    final options = [
+      for (final item in ex.items)
+        _ChoiceOption(item.value, correct.contains(item.id), item: item),
+    ];
+    _shuffleDifferentChoices(options);
+    return options;
+  }
+
   void _prepareExercise({required String trigger}) {
     final previousDiagnostic = _preparedAudioDiagnostic;
     if (previousDiagnostic != null) {
@@ -403,6 +432,7 @@ class _RoundScreenState extends State<RoundScreen> {
     _startedAudioGeneration = null;
     final generation = ++_preparedExerciseGeneration;
     final ex = _exercise;
+    final f = _features = ExerciseFeatures(ex);
     _answered = false;
     _lastAnswerCorrect = false;
     _feedback = '';
@@ -419,7 +449,7 @@ class _RoundScreenState extends State<RoundScreen> {
     _missingWordControllers
       ..clear()
       ..addAll(
-        List.generate(ex.missingWords.length, (_) => TextEditingController()),
+        List.generate(f.gapFieldTargets.length, (_) => TextEditingController()),
       );
     _matchingSelections.clear();
     _gapFill.clear();
@@ -427,49 +457,39 @@ class _RoundScreenState extends State<RoundScreen> {
     _multiSelected.clear();
     _selectGapFill.clear();
     _selectArmedGapId = null;
-    _gapTileOrder = ex.hasArrangeGaps
-        ? _shuffledItemIds(ex.interaction.items)
-        : const [];
-    if (ex.hasArrangeGaps) {
+    _gapTileOrder = f.arrangeInline ? _shuffledItemIds(ex.items) : const [];
+    if (f.arrangeInline) {
       for (final element in ex.layout) {
         if (element.isTarget) _gapFill[element.targetId] = null;
       }
     }
-    if (ex.hasSelectGaps) {
+    if (f.selectInline) {
       for (final element in ex.layout) {
         if (element.isTarget) _selectGapFill[element.targetId] = null;
       }
     }
 
-    if (const {
-      'fill_blank',
-      'type_missing_word',
-      'listening_spelling',
-      'type_translation',
-    }.contains(ex.type)) {
+    // One text field is focused here; several gap fields focus their first
+    // one themselves.
+    if (f.primitive == ExercisePrimitive.input && f.gapFieldTargets.isEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted && !_answered) _textFocusNode.requestFocus();
       });
     }
 
-    _choiceOptions = List<_ChoiceOption>.generate(
-      ex.answers.length,
-      (i) => _ChoiceOption(
-        ex.answers[i],
-        ex.correctItemIdSet.contains(ex.interaction.items[i].id),
-        item: ex.interaction.items[i],
-      ),
-    );
-    _shuffleDifferentChoices(_choiceOptions);
-
-    _tokenOptions = _shuffledTokens(ex);
-    if (ex.interaction.kind == 'match') {
+    _choiceOptions = f.primitive == ExercisePrimitive.select
+        ? _choiceOptionsFor(ex)
+        : const [];
+    _tokenOptions = f.primitive == ExercisePrimitive.arrange
+        ? _shuffledTokens(ex)
+        : const [];
+    if (f.primitive == ExercisePrimitive.match) {
       final byId = <String, ExerciseItem>{
-        for (final item in ex.interaction.items) item.id: item,
+        for (final item in ex.items) item.id: item,
       };
       _matchingRightOptions = [];
       _matchingLeftPairs = [];
-      for (final pair in ex.evaluation.pairs) {
+      for (final pair in ex.canonicalEvaluation.relations) {
         if (pair.length != 2) continue;
         final left = byId[pair[0]];
         final right = byId[pair[1]];
@@ -492,9 +512,12 @@ class _RoundScreenState extends State<RoundScreen> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted || generation != _preparedExerciseGeneration) return;
-      final isListening = _isListeningExercise(ex);
-      if (isListening) {
-        if (ex.tts != null && ex.tts!.isNotEmpty) {
+      // An audio element with automatic playback is prepared now and plays
+      // when the exercise becomes active; any other audio only warms the
+      // synthesizer for the learner's own taps.
+      final automatic = f.automaticAudio;
+      if (automatic != null) {
+        if (automatic.text.isNotEmpty) {
           final diagnostic = AudioDiagnosticLifecycle.start(
             kind: 'round_activation',
             enabled: !widget.previewMode,
@@ -536,14 +559,6 @@ class _RoundScreenState extends State<RoundScreen> {
     });
   }
 
-  bool _isListeningExercise(Exercise exercise) =>
-      exercise.type == 'listening_choice' ||
-      exercise.type == 'listening_comprehension' ||
-      exercise.type == 'contextual_comprehension' ||
-      exercise.type == 'audio_match' ||
-      exercise.type == 'missing_word' ||
-      exercise.type == 'listening_spelling';
-
   String get _learnerAudioUiState => _lessonIntro != null && !_introAcknowledged
       ? 'before_you_start'
       : 'exercise_active';
@@ -570,7 +585,7 @@ class _RoundScreenState extends State<RoundScreen> {
     backend: backend,
     uiState: uiState ?? _learnerAudioUiState,
     targetExerciseId: exercise.id,
-    exerciseType: exercise.type,
+    exerciseType: ExerciseFeatures(exercise).kind.name,
     prepared: true,
     active: active,
     trigger: trigger,
@@ -645,7 +660,10 @@ class _RoundScreenState extends State<RoundScreen> {
   }
 
   List<String> _shuffledTokens(Exercise ex) {
-    final tokens = List<String>.from(ex.tokens);
+    final tokens = [
+      for (final item in ex.items)
+        if (item.value.isNotEmpty) item.value,
+    ];
     if (tokens.length < 2) return tokens;
 
     // A valid random shuffle may legitimately reproduce the source order,
@@ -663,7 +681,7 @@ class _RoundScreenState extends State<RoundScreen> {
   }
 
   Future<void> _prepareTts() async {
-    final text = _exercise.tts;
+    final text = _features.primaryAudioText;
     if (text == null || text.isEmpty) return;
     if (widget.course.audioMode == 'tts' ||
         (widget.course.audioMode == 'hybrid' &&
@@ -690,7 +708,7 @@ class _RoundScreenState extends State<RoundScreen> {
   }
 
   Future<bool> _speak() async {
-    final text = _exercise.tts;
+    final text = _features.primaryAudioText;
     if (text == null || text.isEmpty) return false;
     final ok = await _playCourseAudio(text);
     if (!ok && mounted) {
@@ -710,66 +728,59 @@ class _RoundScreenState extends State<RoundScreen> {
             'Audio unavailable. Enable Text-to-speech in Settings and check the system voice for this course language. On Linux, install eSpeak NG or eSpeak.';
 
   String _correctAnswerText(Exercise ex) {
-    switch (ex.type) {
-      case 'choice':
-      case 'gap_choice':
-      case 'listening_choice':
-      case 'listening_comprehension':
-      case 'reading_comprehension':
-      case 'dialogue_response':
-      case 'contextual_comprehension':
-      case 'translation_choice_to_target':
-      case 'translation_choice_to_source':
-      case 'icon_choice':
-        if (ex.hasSelectGaps) return _arrangeGapAnswerText(ex);
-        if (ex.isMultiSelect) return _selectMultiAnswerText(ex);
-        if (ex.correct != null &&
-            ex.correct! >= 0 &&
-            ex.correct! < ex.answers.length) {
-          return ex.answers[ex.correct!];
-        }
-        return 'See the course answer.';
-      case 'flashcard':
+    final f = _features;
+    switch (ex.primitive) {
+      case ExercisePrimitive.select:
+        if (f.hasInlineTargets) return _gapAnswerText(ex);
+        if (f.multipleSelection) return _selectMultiAnswerText(ex);
+        final value = _itemValue(
+          ex,
+          ex.canonicalEvaluation.correctItemIds.firstOrNull,
+        );
+        return value.isEmpty ? 'See the course answer.' : value;
+      case ExercisePrimitive.presentation:
         return 'Review the flashcard.';
-      case 'missing_word':
-        if (ex.missingWords.isNotEmpty) return ex.missingWords.join(' / ');
-        break;
-      case 'listening_spelling':
+      case ExercisePrimitive.input:
+        if (f.gapFieldTargets.isNotEmpty) {
+          final words = [
+            for (final target in f.gapFieldTargets)
+              ...?f.answersFor(target.id)?.answers.take(1),
+          ];
+          if (words.isNotEmpty) return words.join(' / ');
+          break;
+        }
         if (_displayedCorrection.isNotEmpty) return _displayedCorrection;
-        if (ex.accepted.isNotEmpty) return ex.accepted.first;
-        if ((ex.tts ?? '').trim().isNotEmpty) return ex.tts!.trim();
+        // Written from audio: the authored answer first, then the spoken
+        // text; otherwise the spoken text is the fuller answer.
+        final candidates = f.kind == LearnerExerciseKind.inputListenWrite
+            ? [...f.acceptedAnswers, ...f.literalAnswers]
+            : [...f.literalAnswers, ...f.acceptedAnswers];
+        final first = candidates
+            .map((answer) => answer.trim())
+            .where((answer) => answer.isNotEmpty)
+            .firstOrNull;
+        if (first != null) return first;
         break;
-      case 'fill_blank':
-      case 'type_missing_word':
-      case 'type_translation':
-        if (_displayedCorrection.isNotEmpty) return _displayedCorrection;
-        if (ex.tts != null && ex.tts!.trim().isNotEmpty) return ex.tts!;
-        if (ex.accepted.isNotEmpty) return ex.accepted.first;
+      case ExercisePrimitive.arrange:
+        if (f.hasInlineTargets) return _gapAnswerText(ex);
+        final orders = ex.canonicalEvaluation.correctOrders;
+        if (orders.isEmpty) break;
+        if (f.showAlternatives == FeedbackAlternatives.all) {
+          return orders.map((order) => order.text).join(' / ');
+        }
+        final joined = _orderText(ex, orders.first);
+        if (joined.isNotEmpty) return joined;
         break;
-      case 'word_order':
-        if (ex.hasArrangeGaps) return _arrangeGapAnswerText(ex);
-        if (ex.orderAnswer.isNotEmpty) return ex.orderAnswer.join(' ');
-        break;
-      case 'build_translation':
-        if (ex.hasArrangeGaps) return _arrangeGapAnswerText(ex);
-        if (ex.correctTranslationTexts.isNotEmpty) {
-          return ex.correctTranslationTexts.join(' / ');
+      case ExercisePrimitive.match:
+        final pairs = _pairTexts(ex);
+        if (pairs.isNotEmpty) {
+          return pairs.map((pair) => '${pair[0]} = ${pair[1]}').join('; ');
         }
         break;
-      case 'image_word':
-        if (ex.orderAnswer.isNotEmpty) return ex.orderAnswer.join('');
-        break;
-      case 'audio_match':
-        if (ex.pairs.isNotEmpty) {
-          return ex.pairs.map((p) => '${p[0]} = ${p[1]}').join('; ');
-        }
-        break;
-      case 'matching':
-      case 'word_match':
-      case 'super_match':
-        if (ex.pairs.isNotEmpty) {
-          return ex.pairs.map((p) => '${p[0]} = ${p[1]}').join('; ');
-        }
+      case ExercisePrimitive.assign:
+      case ExercisePrimitive.speak:
+      case ExercisePrimitive.ink:
+      case ExercisePrimitive.submit:
         break;
     }
     return 'See the course answer.';
@@ -777,15 +788,28 @@ class _RoundScreenState extends State<RoundScreen> {
 
   String _itemValue(Exercise ex, String? itemId) {
     if (itemId == null) return '';
-    return ex.interaction.items
+    return ex.items
             .where((item) => item.id == itemId)
             .map((item) => item.value)
             .firstOrNull ??
         '';
   }
 
-  String _arrangeGapAnswerText(Exercise ex) {
-    final assignments = ex.targetAssignments;
+  /// An ordered answer as the learner would build it: its blocks joined
+  /// with the exercise's joiner.
+  String _orderText(Exercise ex, OrderedAnswer order) => order.itemIds
+      .map((id) => _itemValue(ex, id))
+      .where((value) => value.isNotEmpty)
+      .join(_features.joinsWithoutSpaces ? '' : ' ');
+
+  /// The Match relations as [left value, right value] pairs.
+  List<List<String>> _pairTexts(Exercise ex) => [
+    for (final pair in ex.canonicalEvaluation.relations)
+      if (pair.length == 2) [_itemValue(ex, pair[0]), _itemValue(ex, pair[1])],
+  ];
+
+  String _gapAnswerText(Exercise ex) {
+    final assignments = _features.targetAssignments;
     if (assignments.isEmpty) return 'See the course answer.';
     return assignments.entries
         .map((entry) => _itemValue(ex, entry.value))
@@ -794,8 +818,8 @@ class _RoundScreenState extends State<RoundScreen> {
   }
 
   String _selectMultiAnswerText(Exercise ex) {
-    final correctIds = ex.correctItemIdSet;
-    final values = ex.interaction.items
+    final correctIds = ex.canonicalEvaluation.correctItemIds.toSet();
+    final values = ex.items
         .where((item) => correctIds.contains(item.id))
         .map((item) => item.value)
         .where((value) => value.isNotEmpty)
@@ -931,51 +955,38 @@ class _RoundScreenState extends State<RoundScreen> {
     _mark(_choiceOptions[displayedIndex].correct);
   }
 
-  bool _typedMatches(String typed, String expected) =>
-      _answerEngine.accepts(typed, [expected], typoTolerance: false);
-
   void _submitFill() {
     if (_answered) return;
     final enteredWord = _textController.text.trim();
     if (enteredWord.isEmpty) return;
-    final typed = _exercise.type == 'type_missing_word'
-        ? FirstLetterAnswerService.response(enteredWord, _exercise.accepted)
-        : enteredWord;
-    final accepted = <String>{..._exercise.accepted};
-
-    // Fill-in exercises accept both the missing fragment and the complete
-    // displayed phrase when the course provides it through TTS. This makes
-    // answers such as "buonasera" valid for "Buona____" as well as "sera".
-    final tts = _exercise.type == 'type_missing_word'
-        ? null
-        : _exercise.tts?.trim();
-
-    // TTS is a literal full-phrase compatibility answer, not an authored
-    // answer expression. Keep it outside expression parsing so punctuation
-    // such as parentheses cannot be interpreted as author syntax.
+    final f = _features;
+    final accepted = <String>{...f.acceptedAnswers};
+    final normalization = f.normalization;
     var evaluation = _answerEngine.evaluate(
-      typed,
+      enteredWord,
       accepted,
-      normalization: _exercise.evaluation.normalization,
-      typoTolerance: const {
-        'type_translation',
-        'type_missing_word',
-      }.contains(_exercise.type),
+      normalization: normalization,
+      typoTolerance: f.toleratesTypos,
     );
-    if (!evaluation.isCorrect && tts != null && tts.isNotEmpty) {
-      final literal = _answerEngine.evaluateLiteral(
-        typed,
-        tts,
-        normalization: _exercise.evaluation.normalization,
-      );
-      if (literal.isCorrect || accepted.isEmpty) evaluation = literal;
+    // Literal answers (a spoken phrase, for instance) are accepted verbatim,
+    // never parsed as author expressions.
+    if (!evaluation.isCorrect) {
+      for (final literal in f.literalAnswers) {
+        if (literal.trim().isEmpty) continue;
+        final result = _answerEngine.evaluateLiteral(
+          enteredWord,
+          literal,
+          normalization: normalization,
+        );
+        if (result.isCorrect || accepted.isEmpty) evaluation = result;
+        if (result.isCorrect) break;
+      }
     }
     _displayedCorrection = evaluation.matchedAcceptedAnswer;
     _acceptedDifferences = evaluation.acceptedDifferences;
-    if (_exercise.type == 'type_translation') {
-      final normalization = _exercise.evaluation.normalization;
+    if (f.showAlternatives == FeedbackAlternatives.ranked) {
       final ranked = _answerEngine.rankedAnswers(
-        typed,
+        enteredWord,
         accepted,
         normalization: normalization,
       );
@@ -1003,29 +1014,16 @@ class _RoundScreenState extends State<RoundScreen> {
   }
 
   void _submitOrder() {
-    final built = _builtOrder.join(' ');
-    if (_exercise.type == 'build_translation') {
-      _mark(
-        _exercise.correctTranslationTexts.any(
-          (answer) => _answerEngine
-              .evaluateLiteral(
-                built,
-                answer,
-                normalization: _exercise.evaluation.normalization,
-              )
-              .isCorrect,
-        ),
-      );
-      return;
-    }
-    _mark(_typedMatches(built, _exercise.orderAnswer.join(' ')));
+    final built = _builtOrder.join(_features.joinsWithoutSpaces ? '' : ' ');
+    _mark(
+      _exercise.canonicalEvaluation.correctOrders.any(
+        (order) => _answerEngine.evaluateLiteral(built, order.text).isCorrect,
+      ),
+    );
   }
 
-  void _submitImageWord() =>
-      _mark(_typedMatches(_builtOrder.join(), _exercise.orderAnswer.join()));
-
   void _submitMatching() {
-    if (_exercise.pairs.isEmpty) {
+    if (_exercise.canonicalEvaluation.relations.isEmpty) {
       _mark(false);
       return;
     }
@@ -1046,7 +1044,7 @@ class _RoundScreenState extends State<RoundScreen> {
       return;
     }
 
-    if (!_reviewPhase && _wrongFirstPass.isNotEmpty) {
+    if (!_reviewPhase && _wrongFirstPass.isNotEmpty && !_isStory) {
       await showDialog<void>(
         context: context,
         barrierDismissible: false,
@@ -1240,11 +1238,15 @@ class _RoundScreenState extends State<RoundScreen> {
     ),
   );
 
-  /// To-target only: after answering, the learner may hear the correct
-  /// (target-language) answer. Nothing is spoken automatically.
+  /// After answering a translation Select whose items are in the target
+  /// language, the learner may hear the correct answer. Nothing is spoken
+  /// automatically.
   List<Widget> _translationFeedbackAudio(Exercise ex) {
-    if (ex.type != TranslationChoice.toTarget) return const [];
-    final spoken = TranslationChoice.spokenText(ex, answered: _answered);
+    final f = _features;
+    if (!f.isTranslationChoice || f.itemLanguage != TextLanguage.target) {
+      return const [];
+    }
+    final spoken = TranslationChoice.spokenTextFor(f, answered: _answered);
     if (spoken == null) return const [];
     return [
       const SizedBox(height: 8),
@@ -1259,18 +1261,19 @@ class _RoundScreenState extends State<RoundScreen> {
   }
 
   Widget _translationChoiceExercise(Exercise ex) {
-    final spoken = ex.type == TranslationChoice.toSource
-        ? TranslationChoice.spokenText(ex, answered: _answered)
+    final f = _features;
+    final spoken = f.questionLanguage == TextLanguage.target
+        ? TranslationChoice.spokenTextFor(f, answered: _answered)
         : null;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (ex.question.trim().isNotEmpty) ...[
+        if (f.questionText.trim().isNotEmpty) ...[
           Row(
             children: [
               Expanded(
                 child: Text(
-                  ex.question,
+                  f.questionText,
                   key: const Key('translation-choice-text'),
                   style: Theme.of(context).textTheme.headlineSmall,
                 ),
@@ -1284,7 +1287,7 @@ class _RoundScreenState extends State<RoundScreen> {
           ],
           const SizedBox(height: 16),
         ],
-        if (ex.imageAsset.isNotEmpty) ...[
+        if (f.illustrationAsset.isNotEmpty) ...[
           _exerciseImage(ex),
           const SizedBox(height: 14),
         ],
@@ -1293,9 +1296,61 @@ class _RoundScreenState extends State<RoundScreen> {
     );
   }
 
+  /// Every Select exercise. Its panels come from the prompt elements' roles
+  /// and attributes and its options from the items and the layout; nothing
+  /// depends on the preset that authored it (Build 256, plan A.3).
+  Widget _selectExercise(Exercise ex) {
+    final f = _features;
+    if (f.isTranslationChoice) return _translationChoiceExercise(ex);
+    final automatic = f.automaticAudio;
+    final contextAudio = f.contextAudio.trim();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (automatic != null && automatic.role != 'context') ...[
+          Center(
+            child: IconButton.filledTonal(
+              tooltip: 'Play audio again',
+              iconSize: 34,
+              onPressed: _speak,
+              icon: const Icon(Icons.volume_up_outlined),
+            ),
+          ),
+          const SizedBox(height: 14),
+        ],
+        ExercisePromptPanels(
+          features: f,
+          panelColor: _exercisePanelColor,
+          onPlayContextAudio: _answered || contextAudio.isEmpty
+              ? null
+              : () => _speakText(contextAudio),
+        ),
+        if (f.questionText.isNotEmpty && !f.hasInlineTargets) ...[
+          Text(
+            f.questionText,
+            style: Theme.of(context).textTheme.headlineSmall,
+          ),
+          const SizedBox(height: 16),
+        ],
+        if (f.kind == LearnerExerciseKind.selectComplete &&
+            ex.hint.trim().isNotEmpty) ...[
+          Text(
+            'Hint: ${ex.hint}',
+            key: const Key('gap-choice-hint'),
+            style: Theme.of(context).textTheme.bodyLarge,
+          ),
+          const SizedBox(height: 16),
+        ],
+        _choiceExercise(ex),
+      ],
+    );
+  }
+
   Widget _choiceExercise(Exercise ex) {
-    if (ex.hasSelectGaps) return _selectGapFillExercise(ex);
-    if (ex.isMultiSelect) return _multiSelectChoiceExercise(ex);
+    final f = _features;
+    if (f.hasInlineTargets) return _selectGapFillExercise(ex);
+    if (f.multipleSelection) return _multiSelectChoiceExercise(ex);
+    if (f.hasIconItems) return _iconChoiceExercise(ex);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: List.generate(_choiceOptions.length, (i) {
@@ -1321,7 +1376,7 @@ class _RoundScreenState extends State<RoundScreen> {
     setState(() {
       if (_multiSelected.contains(index)) {
         _multiSelected.remove(index);
-      } else if (_multiSelected.length < _exercise.maxSelectionCount) {
+      } else if (_multiSelected.length < _features.maximumSelections) {
         _multiSelected.add(index);
       }
     });
@@ -1331,7 +1386,7 @@ class _RoundScreenState extends State<RoundScreen> {
     final selectedIds = _multiSelected
         .map((i) => _choiceOptions[i].item!.id)
         .toSet();
-    final correctIds = ex.correctItemIdSet;
+    final correctIds = ex.canonicalEvaluation.correctItemIds.toSet();
     _mark(
       selectedIds.length == correctIds.length &&
           selectedIds.containsAll(correctIds),
@@ -1352,7 +1407,7 @@ class _RoundScreenState extends State<RoundScreen> {
         const SizedBox(height: 16),
         FilledButton(
           onPressed:
-              _answered || _multiSelected.length < ex.requiredSelectionCount
+              _answered || _multiSelected.length < _features.minimumSelections
               ? null
               : () => _submitMultiChoice(ex),
           child: const Text('Check'),
@@ -1429,7 +1484,7 @@ class _RoundScreenState extends State<RoundScreen> {
   }
 
   void _submitSelectGaps(Exercise ex) {
-    final assignments = ex.targetAssignments;
+    final assignments = _features.targetAssignments;
     if (assignments.isEmpty || _selectGapFill.values.any((v) => v == null)) {
       _mark(false);
       return;
@@ -1442,15 +1497,16 @@ class _RoundScreenState extends State<RoundScreen> {
 
   Widget _selectGapFillExercise(Exercise ex) {
     final allGapsFilled = _selectGapFill.values.every((v) => v != null);
-    final itemById = {for (final item in ex.interaction.items) item.id: item};
+    final itemById = {for (final item in ex.items) item.id: item};
+    final audio = _features.primaryAudioText;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if ((ex.tts ?? '').trim().isNotEmpty) ...[
+        if (audio != null) ...[
           Align(
             alignment: Alignment.centerLeft,
             child: FilledButton.tonalIcon(
-              onPressed: () => _speakText(ex.tts!),
+              onPressed: () => _speakText(audio),
               icon: const Icon(Icons.volume_up_outlined),
               label: const Text('Play audio'),
             ),
@@ -1488,7 +1544,7 @@ class _RoundScreenState extends State<RoundScreen> {
           spacing: 8,
           runSpacing: 8,
           children: [
-            for (final item in ex.interaction.items)
+            for (final item in ex.items)
               FilterChip(
                 key: Key('select-gap-option-${item.id}'),
                 label: Text(item.value),
@@ -1510,91 +1566,35 @@ class _RoundScreenState extends State<RoundScreen> {
     );
   }
 
-  Widget _contextualComprehensionExercise(Exercise ex) {
-    final hasAudio = ex.contextAudio.trim().isNotEmpty;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        if (hasAudio) ...[
-          FilledButton.tonalIcon(
-            onPressed: _answered ? null : () => _speakText(ex.contextAudio),
-            icon: const Icon(Icons.volume_up_outlined),
-            label: const Text('Play context audio'),
-          ),
-          const SizedBox(height: 14),
-        ],
-        if (ex.contextText.trim().isNotEmpty) ...[
-          Container(
-            key: const Key('contextual-comprehension-text'),
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: _exercisePanelColor,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Text(ex.contextText),
-          ),
-          const SizedBox(height: 12),
-        ],
-        if (ex.dialogueTurns.isNotEmpty) ...[
-          Container(
-            key: const Key('contextual-comprehension-dialogue'),
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: _exercisePanelColor,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                for (final turn in ex.dialogueTurns)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 6),
-                    child: Text.rich(
-                      TextSpan(
-                        children: [
-                          TextSpan(
-                            text: '${turn.speaker}: ',
-                            style: const TextStyle(fontWeight: FontWeight.w800),
-                          ),
-                          TextSpan(text: turn.text),
-                        ],
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
-        ],
-        Text(ex.question, style: Theme.of(context).textTheme.headlineSmall),
-        const SizedBox(height: 16),
-        _choiceExercise(ex),
-      ],
-    );
-  }
-
   Widget _fillBlankExercise(Exercise ex) {
+    final f = _features;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (ex.type == 'type_translation') ...[
+        if (f.kind == LearnerExerciseKind.inputTranslation) ...[
           Text(
             'Translate from ${widget.course.sourceLanguage} into ${widget.course.targetLanguage}:',
             style: Theme.of(context).textTheme.titleMedium,
           ),
-        ] else if (ex.type == 'type_missing_word')
+        ] else if (f.revealTarget != null)
           Text(
             _answered
                 ? FirstLetterAnswerService.completedSentence(
-                    ex.prompt,
+                    f.inlineSentence,
                     _displayedCorrection,
                   )
-                : FirstLetterAnswerService.display(ex.prompt, ex.accepted),
+                : FirstLetterAnswerService.display(
+                    f.inlineSentence,
+                    f.acceptedAnswers,
+                  ),
             key: const Key('first-letter-sentence'),
             style: Theme.of(context).textTheme.headlineSmall,
           )
         else
-          Text(ex.question, style: Theme.of(context).textTheme.headlineSmall),
+          Text(
+            f.questionText,
+            style: Theme.of(context).textTheme.headlineSmall,
+          ),
         const SizedBox(height: 10),
         if (ex.hint.isNotEmpty)
           Container(
@@ -1633,19 +1633,21 @@ class _RoundScreenState extends State<RoundScreen> {
   }
 
   Widget _listeningSpellingExercise(Exercise ex) {
+    final f = _features;
+    final audio = f.primaryAudioText;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         FilledButton.tonalIcon(
-          onPressed: _answered || (ex.tts ?? '').trim().isEmpty
+          onPressed: _answered || audio == null
               ? null
-              : () => _speakText(ex.tts!),
+              : () => _speakText(audio),
           icon: const Icon(Icons.volume_up_outlined),
           label: const Text('Play audio'),
         ),
         const SizedBox(height: 14),
-        if (ex.question.trim().isNotEmpty) ...[
-          Text(ex.question, style: Theme.of(context).textTheme.titleMedium),
+        if (f.questionText.trim().isNotEmpty) ...[
+          Text(f.questionText, style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 12),
         ],
         TextField(
@@ -1777,13 +1779,18 @@ class _RoundScreenState extends State<RoundScreen> {
   }
 
   void _submitArrangeGaps() {
-    final assignments = _exercise.targetAssignments;
+    final ex = _exercise;
+    final assignments = _features.targetAssignments;
     if (assignments.isEmpty || _gapFill.values.any((v) => v == null)) {
       _mark(false);
       return;
     }
+    // Blocks with the same content are interchangeable: the gap is right
+    // when the placed block reads like the assigned one (Build 256, plan
+    // A.11), so two identical blocks can fill either of their gaps.
     final correct = assignments.entries.every(
-      (entry) => _gapFill[entry.key] == entry.value,
+      (entry) =>
+          _itemValue(ex, _gapFill[entry.key]) == _itemValue(ex, entry.value),
     );
     _mark(correct);
   }
@@ -1791,16 +1798,17 @@ class _RoundScreenState extends State<RoundScreen> {
   Widget _arrangeGapFillExercise(Exercise ex) {
     final placed = _gapFill.values.whereType<String>().toSet();
     final available = _gapTileOrder.where((id) => !placed.contains(id));
-    final itemById = {for (final item in ex.interaction.items) item.id: item};
+    final itemById = {for (final item in ex.items) item.id: item};
     final allGapsFilled = _gapFill.values.every((v) => v != null);
+    final audio = _features.primaryAudioText;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if ((ex.tts ?? '').trim().isNotEmpty) ...[
+        if (audio != null) ...[
           Align(
             alignment: Alignment.centerLeft,
             child: FilledButton.tonalIcon(
-              onPressed: () => _speakText(ex.tts!),
+              onPressed: () => _speakText(audio),
               icon: const Icon(Icons.volume_up_outlined),
               label: const Text('Play audio'),
             ),
@@ -1955,6 +1963,8 @@ class _RoundScreenState extends State<RoundScreen> {
   }
 
   Widget _imageWordExercise(Exercise ex) {
+    final f = _features;
+    final prompt = f.primaryText.isNotEmpty ? f.primaryText : f.clueText;
     final available = List<String>.from(_tokenOptions);
     for (final token in _builtOrder) {
       available.remove(token);
@@ -1962,10 +1972,11 @@ class _RoundScreenState extends State<RoundScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (ex.prompt.isNotEmpty &&
-            !ExerciseCopyService.isLegacyInstruction(ex.prompt)) ...[
+        if (prompt.isNotEmpty &&
+            !ExerciseCopyService.isLegacyInstruction(prompt)) ...[
           Text(
-            ExerciseCopyService.displayPrompt(widget.course, ex.prompt),
+            ExerciseCopyService.displayPrompt(widget.course, prompt),
+            key: const Key('exercise-prompt-text'),
             style: Theme.of(context).textTheme.titleMedium,
           ),
           const SizedBox(height: 12),
@@ -2010,32 +2021,37 @@ class _RoundScreenState extends State<RoundScreen> {
         ),
         const SizedBox(height: 16),
         FilledButton(
-          onPressed: _answered || _builtOrder.isEmpty ? null : _submitImageWord,
+          onPressed: _answered || _builtOrder.isEmpty ? null : _submitOrder,
           child: const Text('Check'),
         ),
       ],
     );
   }
 
-  String _missingWordDisplay(Exercise ex) {
-    var text = ex.prompt;
-    for (final word in ex.missingWords) {
-      final pattern = RegExp(RegExp.escape(word), caseSensitive: false);
-      text = text.replaceFirst(pattern, '_____');
-    }
-    return text;
-  }
+  /// The transcript with a blank for every gap.
+  String _missingWordDisplay() => [
+    for (final element in _exercise.layout)
+      element.isTarget ? '_____' : element.text,
+  ].join();
 
   void _submitMissingWords(Exercise ex) {
     if (_answered) return;
     if (!_missingWordControllers.any((c) => c.text.trim().isNotEmpty)) return;
-    var correct = _missingWordControllers.length == ex.missingWords.length;
+    final f = _features;
+    final targets = f.gapFieldTargets;
+    var correct = _missingWordControllers.length == targets.length;
     for (
       var i = 0;
-      i < _missingWordControllers.length && i < ex.missingWords.length;
+      i < _missingWordControllers.length && i < targets.length;
       i++
     ) {
-      if (!_typedMatches(_missingWordControllers[i].text, ex.missingWords[i])) {
+      final answers = f.answersFor(targets[i].id);
+      if (answers == null ||
+          !_answerEngine.accepts(
+            _missingWordControllers[i].text,
+            answers.answers,
+            typoTolerance: false,
+          )) {
         correct = false;
       }
     }
@@ -2046,13 +2062,14 @@ class _RoundScreenState extends State<RoundScreen> {
     final anyTyped = _missingWordControllers.any(
       (c) => c.text.trim().isNotEmpty,
     );
+    final audio = _features.primaryAudioText;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         FilledButton.tonalIcon(
-          onPressed: _answered || (ex.tts ?? '').trim().isEmpty
+          onPressed: _answered || audio == null
               ? null
-              : () => _speakText(ex.tts!),
+              : () => _speakText(audio),
           icon: const Icon(Icons.volume_up_outlined),
           label: const Text('Play audio'),
         ),
@@ -2064,7 +2081,7 @@ class _RoundScreenState extends State<RoundScreen> {
             borderRadius: BorderRadius.circular(16),
           ),
           child: Text(
-            _missingWordDisplay(ex),
+            _missingWordDisplay(),
             style: Theme.of(context).textTheme.bodyLarge,
           ),
         ),
@@ -2215,8 +2232,13 @@ class _RoundScreenState extends State<RoundScreen> {
   }
 
   Widget _flashcardExercise(Exercise ex) {
-    final usage = ex.answers.isNotEmpty ? ex.answers[0] : '';
-    final usageTranslation = ex.answers.length > 1 ? ex.answers[1] : '';
+    final f = _features;
+    final term = f.textOf('term');
+    final meaning = f.textOf('meaning');
+    final usage = f.textOf('usage');
+    final usageTranslation = f.textOf('usage_translation');
+    final audio = f.audioOf('audio').trim();
+    final reviewable = f.completionMode == CompletionMode.understoodReview;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -2229,19 +2251,19 @@ class _RoundScreenState extends State<RoundScreen> {
           child: Column(
             children: [
               Text(
-                ex.prompt,
+                term,
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.headlineMedium,
               ),
               const SizedBox(height: 8),
               IconButton.filledTonal(
                 tooltip: 'Pronounce word or phrase',
-                onPressed: ex.tts == null ? null : () => _speakText(ex.tts!),
+                onPressed: audio.isEmpty ? null : () => _speakText(audio),
                 icon: const Icon(Icons.volume_up_outlined),
               ),
               const SizedBox(height: 12),
               Text(
-                ex.question,
+                meaning,
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.titleMedium,
               ),
@@ -2272,84 +2294,83 @@ class _RoundScreenState extends State<RoundScreen> {
           ),
         ),
         const SizedBox(height: 16),
-        OutlinedButton(
-          onPressed: _answered
-              ? null
-              : () => _flashcardResult(reviewAgain: true),
-          child: const Text('Review again'),
-        ),
-        const SizedBox(height: 8),
+        if (reviewable) ...[
+          OutlinedButton(
+            onPressed: _answered
+                ? null
+                : () => _flashcardResult(reviewAgain: true),
+            child: const Text('Review again'),
+          ),
+          const SizedBox(height: 8),
+        ],
         FilledButton(
           onPressed: _answered
               ? null
               : () => _flashcardResult(reviewAgain: false),
-          child: const Text('Got it'),
+          child: Text(reviewable ? 'Got it' : 'Continue'),
         ),
       ],
     );
   }
 
   Widget _iconChoiceExercise(Exercise ex) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        if (ex.question.isNotEmpty) ...[
-          Text(ex.question, style: Theme.of(context).textTheme.headlineSmall),
-          const SizedBox(height: 16),
-        ],
-        Wrap(
-          spacing: 10,
-          runSpacing: 10,
-          children: List.generate(_choiceOptions.length, (i) {
-            final originalIndex = ex.answers.indexOf(_choiceOptions[i].text);
-            final iconKey =
-                originalIndex >= 0 && originalIndex < ex.icons.length
-                ? ex.icons[originalIndex]
-                : '';
-            final isAsset = iconKey.startsWith('assets/');
-            return SizedBox(
-              width: 112,
-              height: 120,
-              child: FilledButton.tonal(
-                onPressed: _answered ? null : () => _answerChoice(i),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    if (isAsset)
-                      Expanded(
-                        child: Image.asset(
-                          iconKey,
-                          fit: BoxFit.contain,
-                          errorBuilder: (_, __, ___) =>
-                              const Icon(Icons.broken_image_outlined, size: 34),
-                        ),
-                      )
-                    else
-                      Icon(_iconFor(iconKey), size: 34),
-                    if (!isAsset) ...[
-                      const SizedBox(height: 5),
-                      Text(
-                        _choiceOptions[i].text,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(fontSize: 12),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            );
-          }),
-        ),
-      ],
+    return Wrap(
+      spacing: 10,
+      runSpacing: 10,
+      children: List.generate(_choiceOptions.length, (i) {
+        final item = _choiceOptions[i].item;
+        final iconKey = item == null
+            ? ''
+            : item.image.isNotEmpty
+            ? item.image
+            : item.content
+                      .where((element) => element.role == 'icon')
+                      .map((element) => element.text)
+                      .firstOrNull ??
+                  '';
+        final isAsset = iconKey.startsWith('assets/');
+        return SizedBox(
+          width: 112,
+          height: 120,
+          child: FilledButton.tonal(
+            onPressed: _answered ? null : () => _answerChoice(i),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (isAsset)
+                  Expanded(
+                    child: Image.asset(
+                      iconKey,
+                      fit: BoxFit.contain,
+                      errorBuilder: (_, __, ___) =>
+                          const Icon(Icons.broken_image_outlined, size: 34),
+                    ),
+                  )
+                else
+                  Icon(_iconFor(iconKey), size: 34),
+                if (!isAsset) ...[
+                  const SizedBox(height: 5),
+                  Text(
+                    _choiceOptions[i].text,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 12),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        );
+      }),
     );
   }
 
   Widget _audioMatchExercise(Exercise ex) {
+    final question = _features.questionText;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (ex.question.isNotEmpty) ...[
-          Text(ex.question, style: Theme.of(context).textTheme.headlineSmall),
+        if (question.isNotEmpty) ...[
+          Text(question, style: Theme.of(context).textTheme.headlineSmall),
           const SizedBox(height: 12),
         ],
         ..._matchingLeftPairs.map((pair) {
@@ -2425,7 +2446,8 @@ class _RoundScreenState extends State<RoundScreen> {
   );
 
   Widget _exerciseImage(Exercise ex) {
-    if (ex.imageAsset.isEmpty) return const SizedBox.shrink();
+    final asset = _features.illustrationAsset;
+    if (asset.isEmpty) return const SizedBox.shrink();
     // Decode at the size actually shown. Nothing bounds the pixel dimensions
     // of a course-media image: a 50 KB PNG may declare 30,000 × 30,000 and
     // cost gigabytes to rasterize. The portable path already enforces 4096;
@@ -2434,13 +2456,14 @@ class _RoundScreenState extends State<RoundScreen> {
     const decodeHeight = 560;
     final image = CourseMediaImage(
       courseId: widget.course.courseId,
-      asset: ex.imageAsset,
+      asset: asset,
       cacheWidth: decodeWidth,
       cacheHeight: decodeHeight,
       semanticLabel: 'Exercise illustration',
-      missing: _missingImageNotice(ex.imageAsset),
+      missing: _missingImageNotice(asset),
     );
     return Center(
+      key: const Key('exercise-image'),
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 420, maxHeight: 280),
         child: image,
@@ -2448,117 +2471,42 @@ class _RoundScreenState extends State<RoundScreen> {
     );
   }
 
+  /// The text shown above the exercise body: the primary or clue text.
+  /// Passages, situations, context and the Flashcard's term have their own
+  /// place in the body.
+  String get _displayedPrompt {
+    final f = _features;
+    return f.primaryText.isNotEmpty ? f.primaryText : f.clueText;
+  }
+
   Widget _exerciseBody(Exercise ex) {
-    switch (ex.type) {
-      case 'choice':
-      case 'gap_choice':
-      case 'listening_choice':
-      case 'listening_comprehension':
-      case 'reading_comprehension':
-      case 'dialogue_response':
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            if (ex.type == 'listening_choice' ||
-                ex.type == 'listening_comprehension') ...[
-              Center(
-                child: IconButton.filledTonal(
-                  tooltip: 'Play audio again',
-                  iconSize: 34,
-                  onPressed: _speak,
-                  icon: const Icon(Icons.volume_up_outlined),
-                ),
-              ),
-              const SizedBox(height: 14),
-            ],
-            if ((ex.type == 'reading_comprehension' ||
-                    ex.type == 'dialogue_response') &&
-                ex.prompt.isNotEmpty) ...[
-              Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: _exercisePanelColor,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Text(
-                  ex.prompt,
-                  style: Theme.of(context).textTheme.bodyLarge,
-                ),
-              ),
-              const SizedBox(height: 16),
-            ],
-            if (ex.question.isNotEmpty && !ex.hasSelectGaps) ...[
-              Text(
-                ex.question,
-                style: Theme.of(context).textTheme.headlineSmall,
-              ),
-              const SizedBox(height: 16),
-            ],
-            if (ex.type == 'gap_choice' && ex.hint.trim().isNotEmpty) ...[
-              Text(
-                'Hint: ${ex.hint}',
-                key: const Key('gap-choice-hint'),
-                style: Theme.of(context).textTheme.bodyLarge,
-              ),
-              const SizedBox(height: 16),
-            ],
-            _choiceExercise(ex),
-          ],
-        );
-      case 'translation_choice_to_target':
-      case 'translation_choice_to_source':
-        return _translationChoiceExercise(ex);
-      case 'contextual_comprehension':
-        return _contextualComprehensionExercise(ex);
-      case 'script_recognition':
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Wrap(
-              spacing: 12,
-              runSpacing: 12,
-              children: [
-                for (final image in ex.promptElements.where(
-                  (element) => element.type == 'image',
-                ))
-                  PortableExerciseImage(
-                    asset: image.asset,
-                    width: 128,
-                    height: 128,
-                  ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            _choiceExercise(ex),
-          ],
-        );
-      case 'icon_choice':
-        return _iconChoiceExercise(ex);
-      case 'flashcard':
-        return _flashcardExercise(ex);
-      case 'fill_blank':
-      case 'type_missing_word':
-      case 'type_translation':
+    final f = _features;
+    switch (ex.primitive) {
+      case ExercisePrimitive.select:
+        return _selectExercise(ex);
+      case ExercisePrimitive.input:
+        if (f.gapFieldTargets.isNotEmpty) return _missingWordExercise(ex);
+        if (f.automaticAudio != null && f.revealTarget == null) {
+          return _listeningSpellingExercise(ex);
+        }
         return _fillBlankExercise(ex);
-      case 'word_order':
-      case 'build_translation':
-        return ex.hasArrangeGaps
-            ? _arrangeGapFillExercise(ex)
-            : _wordOrderExercise(ex);
-      case 'image_word':
-        return _imageWordExercise(ex);
-      case 'matching':
-      case 'word_match':
-      case 'super_match':
-        return _matchingExercise(ex);
-      case 'missing_word':
-        return _missingWordExercise(ex);
-      case 'listening_spelling':
-        return _listeningSpellingExercise(ex);
-      case 'audio_match':
-        return _audioMatchExercise(ex);
-      default:
-        return Text('Unsupported exercise type: ${ex.type}');
+      case ExercisePrimitive.arrange:
+        if (f.arrangeInline) return _arrangeGapFillExercise(ex);
+        if (f.joinsWithoutSpaces) return _imageWordExercise(ex);
+        return _wordOrderExercise(ex);
+      case ExercisePrimitive.match:
+        return f.leftItemsHaveAudio
+            ? _audioMatchExercise(ex)
+            : _matchingExercise(ex);
+      case ExercisePrimitive.presentation:
+        return _flashcardExercise(ex);
+      case ExercisePrimitive.assign:
+      case ExercisePrimitive.speak:
+      case ExercisePrimitive.ink:
+      case ExercisePrimitive.submit:
+        return Text(
+          'This exercise (${ex.primitive.serialized}) cannot be played in this version of QuisquisLingo.',
+        );
     }
   }
 
@@ -2735,11 +2683,10 @@ class _RoundScreenState extends State<RoundScreen> {
           ],
         ),
         actions: [
-          if (ex.tts != null &&
-              ex.tts!.isNotEmpty &&
-              ex.type != 'listening_choice' &&
-              ex.type != 'listening_comprehension' &&
-              ex.type != 'contextual_comprehension')
+          // A Select with automatic audio has its replay control in the body.
+          if (_features.primaryAudioText != null &&
+              !(ex.primitive == ExercisePrimitive.select &&
+                  _features.automaticAudio != null))
             IconButton(
               tooltip: 'Play audio',
               icon: const Icon(Icons.volume_up_outlined),
@@ -2768,11 +2715,14 @@ class _RoundScreenState extends State<RoundScreen> {
                   style: Theme.of(context).textTheme.labelLarge,
                 ),
               ),
-            if (TranslationChoice.isTranslationChoice(ex.type))
+            if (_features.isTranslationChoice)
               // The single learner-facing instruction: no type label, no
-              // authored prompt and no fallback text for these types.
+              // authored prompt and no fallback text for these exercises.
               Text(
-                TranslationChoice.instruction(widget.course, ex.type),
+                TranslationChoice.instructionFor(
+                  widget.course,
+                  _features.itemLanguage!,
+                ),
                 key: const Key('translation-choice-instruction'),
                 style: Theme.of(
                   context,
@@ -2780,7 +2730,11 @@ class _RoundScreenState extends State<RoundScreen> {
               )
             else ...[
               Text(
-                ExerciseCopyService.typeLabel(widget.course, ex.type),
+                ExerciseCopyService.typeLabel(
+                  widget.course,
+                  ExerciseFeatures(ex).kind,
+                ),
+                key: const Key('exercise-heading'),
                 style: Theme.of(context).textTheme.labelLarge?.copyWith(
                   fontWeight: FontWeight.w900,
                   letterSpacing: .7,
@@ -2789,23 +2743,23 @@ class _RoundScreenState extends State<RoundScreen> {
               const SizedBox(height: 4),
               Text(
                 ExerciseCopyService.instructionForExercise(widget.course, ex),
+                key: const Key('exercise-instruction'),
                 style: Theme.of(
                   context,
                 ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
               ),
             ],
-            if (!TranslationChoice.isTranslationChoice(ex.type) &&
-                ex.type != 'reading_comprehension' &&
-                ex.type != 'contextual_comprehension' &&
-                ex.type != 'flashcard' &&
-                ex.type != 'missing_word' &&
-                ex.type != 'type_missing_word' &&
-                ex.type != 'image_word' &&
-                ex.prompt.isNotEmpty &&
-                !ExerciseCopyService.isLegacyInstruction(ex.prompt)) ...[
+            if (!_features.isTranslationChoice &&
+                _features.kind != LearnerExerciseKind.arrangeWord &&
+                _displayedPrompt.isNotEmpty &&
+                !ExerciseCopyService.isLegacyInstruction(_displayedPrompt)) ...[
               const SizedBox(height: 12),
               Text(
-                ExerciseCopyService.displayPrompt(widget.course, ex.prompt),
+                ExerciseCopyService.displayPrompt(
+                  widget.course,
+                  _displayedPrompt,
+                ),
+                key: const Key('exercise-prompt-text'),
                 style: Theme.of(context).textTheme.titleMedium,
               ),
             ],
@@ -2813,15 +2767,14 @@ class _RoundScreenState extends State<RoundScreen> {
             // Keep the whole exercise screen scrollable. On short desktop
             // windows or larger system text sizes this prevents a RenderFlex
             // overflow at the bottom while preserving normal phone behavior.
-            if (ex.imageAsset.isNotEmpty &&
-                ex.type != 'script_recognition' &&
-                !TranslationChoice.isTranslationChoice(ex.type)) ...[
+            if (_features.illustrationAsset.isNotEmpty &&
+                !_features.isTranslationChoice) ...[
               _exerciseImage(ex),
               const SizedBox(height: 14),
             ] else
               ...[],
             KeyedSubtree(
-              key: Key('exercise-renderer-${ex.type}'),
+              key: Key('exercise-renderer-${ex.primitive.serialized}'),
               child: _exerciseBody(ex),
             ),
             if (_answered) ...[
@@ -2841,12 +2794,13 @@ class _RoundScreenState extends State<RoundScreen> {
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     ..._translationFeedbackAudio(ex),
-                    if (ex.type == 'build_translation' &&
-                        ex.correctTranslationTexts.isNotEmpty) ...[
+                    if (_features.showAlternatives ==
+                            FeedbackAlternatives.all &&
+                        ex.canonicalEvaluation.correctOrders.isNotEmpty) ...[
                       const SizedBox(height: 8),
                       Semantics(
                         label:
-                            '${ex.correctTranslationTexts.length} correct translations',
+                            '${ex.canonicalEvaluation.correctOrders.length} correct translations',
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -2855,20 +2809,22 @@ class _RoundScreenState extends State<RoundScreen> {
                               style: TextStyle(fontWeight: FontWeight.w700),
                             ),
                             const SizedBox(height: 4),
-                            for (final answer in ex.correctTranslationTexts)
+                            for (final answer
+                                in ex.canonicalEvaluation.correctOrders)
                               Padding(
                                 padding: const EdgeInsets.only(bottom: 3),
-                                child: Text('• $answer'),
+                                child: Text('• ${answer.text}'),
                               ),
                           ],
                         ),
                       ),
-                    ] else if (ex.type == 'script_recognition' &&
+                    ] else if (_features.kind ==
+                            LearnerExerciseKind.selectCharacter &&
                         !_lastAnswerCorrect) ...[
                       const Text('Correct answer:'),
-                      for (final item in ex.interaction.items.where(
-                        (item) =>
-                            ex.evaluation.correctItemIds.contains(item.id),
+                      for (final item in ex.items.where(
+                        (item) => ex.canonicalEvaluation.correctItemIds
+                            .contains(item.id),
                       ))
                         if (item.image.isNotEmpty)
                           PortableExerciseImage(
@@ -2878,7 +2834,8 @@ class _RoundScreenState extends State<RoundScreen> {
                           )
                         else
                           Text(item.text),
-                    ] else if (ex.type == 'type_translation') ...[
+                    ] else if (_features.showAlternatives ==
+                        FeedbackAlternatives.ranked) ...[
                       if (_translationFeedback.isNotEmpty) ...[
                         const SizedBox(height: 8),
                         Text(
@@ -2895,14 +2852,10 @@ class _RoundScreenState extends State<RoundScreen> {
                             key: ValueKey('translation-feedback-answer-$i'),
                           ),
                       ],
-                    ] else if (ex.type != 'flashcard' &&
+                    ] else if (ex.primitive != ExercisePrimitive.presentation &&
                         (!_lastAnswerCorrect ||
-                            const {
-                              'fill_blank',
-                              'type_missing_word',
-                              'type_translation',
-                              'listening_spelling',
-                            }.contains(ex.type))) ...[
+                            (ex.primitive == ExercisePrimitive.input &&
+                                _features.gapFieldTargets.isEmpty))) ...[
                       const SizedBox(height: 5),
                       Text('Correct answer: ${_correctAnswerText(ex)}'),
                     ],
@@ -2923,6 +2876,7 @@ class _RoundScreenState extends State<RoundScreen> {
                   _finishing
                       ? 'Finishing round…'
                       : !_reviewPhase &&
+                            !_isStory &&
                             _position + 1 == _queue.length &&
                             _wrongFirstPass.isNotEmpty
                       ? 'Review mistakes'
