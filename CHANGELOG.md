@@ -1,3 +1,67 @@
+# 2.0.56 (Build 256, Revision 3) - Presets as recipes and the Generic Primitive Editor - 2026-09-27
+
+Session 4 of the exercise architecture redesign
+(`docs/256_EXERCISE_ARCHITECTURE_PLAN.md`): a preset is a recipe over
+canonical data, every canonical field can be edited, and Stories survive
+authoring.
+
+- **Presets as recipes (plan A.13):** `PresetRecipes`
+  (`lib/services/preset_recipes.dart`) decomposes an exercise into a preset
+  form's fields, rebuilds it and compares the result semantically, so a
+  preset represents an exercise only when nothing is lost. The exercise
+  editor opens an exercise in the preset it carries, else in the first
+  preset that represents it exactly, else in the plainest preset of its
+  primitive. Recognition never writes: on save the carried preset stays only
+  while it still represents the content, another representing preset is
+  named otherwise, and every other authoring metadata key is dropped as soon
+  as the content changes (`CanonicalExerciseDraft.toExercise`).
+- **Generic Primitive Editor:** `lib/screens/primitive_editor_screen.dart`
+  edits every canonical field of any primitive with the values the
+  capability registry allows: Primitive (locked once the exercise exists),
+  Options, Prompt elements with roles, languages, playback and required
+  flags, Items (with sides for Match), Targets, Layout, Evaluation by mode
+  with that mode's answer data, Feedback and hint. It shows whether this
+  version can play the exercise, refuses the combinations the registry
+  refuses, previews with the learner runtime and saves like a preset form
+  (Save as draft, or Save with the Audit). It opens from the Round editor
+  (**Canonical editor**), from the preset picker (**Every primitive**) and
+  automatically for a stored exercise that no preset represents; the
+  preset form then shows a notice and cannot save it, because a save would
+  drop what the form does not show.
+- **Stories survive authoring:** every place that rebuilt a Round (the
+  Round editor, Rename, saves from Search, GuideBook references, Move/Copy,
+  duplication) dropped the Round's `flow`, so editing a Story silently made
+  it a practice Round. `RoundFlowAuthoring`
+  (`lib/services/round_flow_authoring.dart`) keeps it: a linear flow
+  follows the edited content order, a branching flow is kept as it is (the
+  Audit names what it no longer finds), and a copy renames the flow's
+  references with the copied content. The Round editor gains **Play as a
+  Story** (`round-story-switch`): on, the exercises play in authored order,
+  unshuffled and without a mistake review; turning a branching Story off
+  asks first.
+- **Canonical reads wherever a creator works:** Search, the hierarchy
+  update's content text, the Recognize characters controller (which now
+  copies the exercise canonically and marks new images as `character`
+  specimens) and the Course Editor's lists, wizard and image validation read
+  canonical data through `ExerciseFeatures`; the Audit's kind label
+  (`CourseAuditService.kindLabel`) is shared. The draft builder still
+  constructs candidates through the v11 shapes as converter input; Revision
+  4 replaces it preset by preset with the new catalogue.
+- **Help:** the Exercise primitives page (QQL Guide) describes Course Model
+  v12 in EN, IT and ES: the nine primitives, options, layouts, evaluation
+  modes, prompt and item media, presentation content, presets as recipes,
+  the canonical editor and Stories; Exercise Help gains a Canonical editor
+  supplement.
+- **Preset catalogue decided:** the owner's decisions of 27 September 2026
+  on the preset catalogue (merges, renames, new and greyed-out presets,
+  to-target/to-source pairs, the picker's direction filter, the save guard
+  against unchanged example content) are recorded in
+  `docs/256_PRESET_CATALOGUE_PLAN.md` and become Revision 4; the later
+  sessions shift by one.
+- Scoring, progression, Review, Duel availability, Course files (v12) and
+  learner data are unchanged. Version `2.0.56+256003`; the Beta expiry stays
+  `2026-10-27 23:59:59` local time (same release day).
+
 # 2.0.56 (Build 256, Revision 2) - Runtime and Audit on canonical data - 2026-09-27
 
 Session 3 of the exercise architecture redesign

@@ -16,6 +16,7 @@ import '../models/course_flag_selection.dart';
 import '../models/course_models.dart';
 import '../models/course_metadata_options.dart';
 import '../models/exercise_authoring.dart';
+import '../models/exercise_features.dart';
 import '../services/course_editor_service.dart';
 import '../services/course_editor_device_state.dart';
 import '../services/course_flag_service.dart';
@@ -41,6 +42,7 @@ import '../services/lesson_icon_service.dart';
 import '../services/lesson_presentation_service.dart';
 import '../services/recorded_audio_service.dart';
 import 'round_screen.dart';
+import 'primitive_editor_screen.dart';
 import 'flat_image_library_screen.dart';
 import 'editor_help_screen.dart';
 import 'course_version_history_screen.dart';
@@ -51,12 +53,16 @@ import '../services/course_authoring_transfer_service.dart';
 import '../services/translation_choice_service.dart';
 import '../services/exercise_field_help.dart';
 import '../widgets/editor_breadcrumbs.dart';
+import '../widgets/editor_dialogs.dart';
 import '../widgets/authoring_destination_dialog.dart';
 import '../widgets/editor_app_bar_actions.dart';
 import '../services/custom_course_transfer_service.dart';
 import '../services/authoring_duplication_service.dart';
 import '../services/exercise_creation_planner.dart';
 import '../services/exercise_draft_builder.dart';
+import '../services/canonical_exercise_draft.dart';
+import '../services/round_flow_authoring.dart';
+import '../services/preset_recipes.dart';
 import '../services/guidebook_round_generator.dart';
 import '../services/publication_service.dart';
 import '../services/provisional_publication_service.dart';
@@ -364,28 +370,6 @@ String _localCourseDateTime(BuildContext context, String utc) {
       '${localizations.formatTimeOfDay(TimeOfDay.fromDateTime(parsed))}';
 }
 
-Future<bool> _confirmMoveToDraft(BuildContext context, String entity) async =>
-    await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Save $entity as draft?'),
-        content: Text(
-          'This $entity will disappear from learner-facing content. Existing learner progress and XP will be preserved.',
-        ),
-        actions: [
-          FilledButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Save as draft'),
-          ),
-        ],
-      ),
-    ) ??
-    false;
-
 /// The same canonical exercise with another publication state. Course Model
 /// v12: copied canonically, never rebuilt through the v11 views, which would
 /// lose an inline layout.
@@ -409,7 +393,7 @@ Future<Course?> _openSearchResult(
   final saved = <String, Exercise>{};
   final returned = await Navigator.of(context).push<Exercise>(
     MaterialPageRoute(
-      builder: (_) => ExerciseEditorScreen(
+      builder: (_) => _exerciseEditorFor(
         exercise: exercise,
         title: 'Edit exercise ${result.exerciseIndex + 1}',
         isNew: false,
@@ -2503,7 +2487,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
             if (!mounted) return;
             final updatedExercise = await Navigator.of(context).push<Exercise>(
               MaterialPageRoute(
-                builder: (_) => ExerciseEditorScreen(
+                builder: (_) => _exerciseEditorFor(
                   exercise: round.exercises[ei],
                   title: 'Edit exercise ${ei + 1}',
                   isNew: false,
@@ -2558,6 +2542,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                 title: currentRound.title,
                 visualType: currentRound.visualType,
                 content: content,
+                flow: currentRound.flow,
               );
             }
           }
@@ -4158,7 +4143,7 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
     if (widget.readOnly) return;
     if (!state.isPublished &&
         _lesson.publicationState.isPublished &&
-        !await _confirmMoveToDraft(context, 'Lesson')) {
+        !await confirmMoveToDraft(context, 'Lesson')) {
       return;
     }
     if (!mounted) return;
@@ -4243,6 +4228,7 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
           updatedAt: round.updatedAt,
           title: round.title,
           visualType: round.visualType,
+          flow: round.flow,
           content: [
             for (final content in round.content)
               LearningContent(
@@ -5103,7 +5089,8 @@ class _GuidebookRoundGeneratorScreenState
         for (final exercise in round.exercises)
           ...CourseAuditService().auditExercise(
             exercise,
-            location: '${round.displayTitle(roundIndex)} · ${exercise.type}',
+            location:
+                '${round.displayTitle(roundIndex)} · ${_exerciseKindName(exercise)}',
             roundId: round.id,
           ),
   ];
@@ -5626,6 +5613,7 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
       title: title,
       visualType: source.visualType,
       content: source.content,
+      flow: source.flow,
     );
     _updateRounds(rounds);
   }
@@ -6001,6 +5989,10 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
   late DateTime _updatedAt;
   late PublicationState _publicationState;
   late bool _provisionalDraft;
+
+  /// The Round's content flow (a Story), kept through every edit: a linear
+  /// flow follows the edited content order (`RoundFlowAuthoring`).
+  ContentFlow? _flow;
   bool _routeMayPop = false;
   late final DateTime Function() _clock = widget.clock ?? DateTime.now;
   @override
@@ -6014,20 +6006,73 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
     _updatedAt = widget.round.updatedAt;
     _publicationState = widget.round.publicationState;
     _provisionalDraft = widget.round.provisionalDraft;
+    _flow = widget.round.flow;
   }
 
   LearningRound _editedRound({
     PublicationState? publicationState,
     DateTime? updatedAt,
-  }) => LearningRound(
-    id: widget.round.id,
-    publicationState: publicationState ?? _publicationState,
-    provisionalDraft: publicationState == null ? _provisionalDraft : false,
-    updatedAt: updatedAt ?? _updatedAt,
-    title: _title,
-    visualType: widget.round.visualType,
-    content: _editedContent(),
-  );
+  }) {
+    final content = _editedContent();
+    return LearningRound(
+      id: widget.round.id,
+      publicationState: publicationState ?? _publicationState,
+      provisionalDraft: publicationState == null ? _provisionalDraft : false,
+      updatedAt: updatedAt ?? _updatedAt,
+      title: _title,
+      visualType: widget.round.visualType,
+      content: content,
+      flow: RoundFlowAuthoring.forContent(_flow, content),
+    );
+  }
+
+  /// Story on: the exercises play in this order, unshuffled, without a
+  /// mistake review. Off: an ordinary practice Round. Turning a branching
+  /// Story off removes a flow QQL's forms cannot rebuild, so it asks first.
+  Future<void> _setStory(bool on) async {
+    if (widget.readOnly) return;
+    if (on) {
+      _mutateRound(
+        () => _flow = RoundFlowAuthoring.linearFor(_editedContent()),
+      );
+      return;
+    }
+    final flow = _flow;
+    if (flow != null && !flow.isLinear) {
+      final remove = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Remove the branching Story?'),
+          content: const Text(
+            'This Round\'s flow branches, which QQL\'s forms cannot rebuild. Turning the Story off removes the flow; the exercises stay.',
+          ),
+          actions: [
+            FilledButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Keep the Story'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Remove'),
+            ),
+          ],
+        ),
+      );
+      if (remove != true || !mounted) return;
+    }
+    _mutateRound(() => _flow = null);
+  }
+
+  String get _storyDescription {
+    final flow = _flow;
+    if (flow == null) {
+      return 'Off: a practice Round with an introduction, shuffled exercises and a mistake review.';
+    }
+    if (flow.isLinear) {
+      return 'On: the exercises play in this order, unshuffled, without a mistake review.';
+    }
+    return 'On: a branching Story authored outside QQL. Edits here keep its flow as it is; the Audit reports what it no longer finds.';
+  }
 
   List<LearningContent> _editedContent() =>
       _hierarchyUpdates.contentForExercises(_originalContent, _exercises);
@@ -6045,7 +6090,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
     if (widget.readOnly) return;
     if (!state.isPublished &&
         _publicationState.isPublished &&
-        !await _confirmMoveToDraft(context, 'Round')) {
+        !await confirmMoveToDraft(context, 'Round')) {
       return;
     }
     final candidate = _editedRound(publicationState: state);
@@ -6147,11 +6192,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
     _mutateRound(() => _exercises[index] = changed);
   }
 
-  String _summary(Exercise e) => e.prompt.trim().isNotEmpty
-      ? e.prompt.trim()
-      : e.question.trim().isNotEmpty
-      ? e.question.trim()
-      : (e.tts ?? e.id);
+  String _summary(Exercise e) => _exerciseSummary(e);
 
   Course get _workingCourse => _hierarchyUpdates.apply(
     _course,
@@ -6215,7 +6256,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
   Future<void> _edit(int i) async {
     final e = await Navigator.of(context).push<Exercise>(
       MaterialPageRoute(
-        builder: (_) => ExerciseEditorScreen(
+        builder: (_) => _exerciseEditorFor(
           exercise: _exercises[i],
           title: 'Edit exercise ${i + 1}',
           isNew: false,
@@ -6238,9 +6279,39 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
     if (widget.readOnly) return;
     final e = await Navigator.of(context).push<Exercise>(
       MaterialPageRoute(
-        builder: (_) => ExerciseEditorScreen(
+        builder: (_) => _exerciseEditorFor(
           exercise: _blankExerciseForPreset(TranslationChoice.toTarget, _ids),
           title: 'New exercise',
+          isNew: true,
+          course: _workingCourse,
+          lesson: _lesson,
+          round: _editedRound(),
+          onExerciseSaved: _acceptExercise,
+          linkParent: true,
+          clock: _clock,
+        ),
+      ),
+    );
+    if (e == null || !mounted) return;
+    if (!_exercises.any((item) => item.id == e.id)) {
+      _mutateRound(() => _exercises.add(e));
+    }
+    _warnLength();
+  }
+
+  /// A new exercise in the Generic Primitive Editor: any primitive, every
+  /// canonical field, no preset.
+  Future<void> _insertCanonical() async {
+    if (widget.readOnly) return;
+    final e = await Navigator.of(context).push<Exercise>(
+      MaterialPageRoute(
+        builder: (_) => PrimitiveEditorScreen(
+          exercise: CanonicalExerciseDraft.blankExercise(
+            ExercisePrimitive.select,
+            id: _ids.next('exercise'),
+            updatedAt: _clock().toUtc(),
+          ),
+          title: 'New canonical exercise',
           isNew: true,
           course: _workingCourse,
           lesson: _lesson,
@@ -6497,7 +6568,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
                 Padding(
                   padding: const EdgeInsets.only(bottom: 5),
                   child: Text(
-                    '• ${e.type.replaceAll('_', ' ')}: ${_summary(e)}',
+                    '• ${_exerciseKindName(e).replaceAll('_', ' ')}: ${_summary(e)}',
                   ),
                 ),
               if (audit.isNotEmpty) ...[
@@ -6730,10 +6801,11 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
           // Reading passages are guaranteed target-language material in the
           // course format, so they are a safe source of same-language
           // distractors for generated listening recognition questions.
-          if (exercise.type != 'reading_comprehension') continue;
+          final features = ExerciseFeatures(exercise);
+          if (features.kind != LearnerExerciseKind.selectRead) continue;
           for (final match in RegExp(
             r"[A-Za-zÀ-ÖØ-öø-ÿ']{2,}",
-          ).allMatches(exercise.prompt)) {
+          ).allMatches(features.passageText)) {
             final word = match.group(0)!;
             final key = _norm(word);
             if (key.isNotEmpty && seen.add(key)) result.add(word);
@@ -6853,6 +6925,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
       _updatedAt = adoptedRound.updatedAt;
       _publicationState = adoptedRound.publicationState;
       _provisionalDraft = adoptedRound.provisionalDraft;
+      _flow = adoptedRound.flow;
     });
     widget.onCourseChanged?.call(course);
   }
@@ -6919,6 +6992,12 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
                     icon: const Icon(Icons.add),
                     label: const Text('New exercise'),
                   ),
+                  OutlinedButton.icon(
+                    key: const Key('new-canonical-exercise'),
+                    onPressed: _insertCanonical,
+                    icon: const Icon(Icons.tune),
+                    label: const Text('Canonical editor'),
+                  ),
                   FilledButton.icon(
                     key: const Key('exercise-creation-wizard'),
                     onPressed: _openCreationWizard,
@@ -6947,6 +7026,13 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
                   id: widget.round.id,
                 ),
               ),
+              SwitchListTile(
+                key: const Key('round-story-switch'),
+                title: const Text('Play as a Story'),
+                subtitle: Text(_storyDescription),
+                value: _flow != null,
+                onChanged: widget.readOnly ? null : _setStory,
+              ),
             ],
           ),
           padding: const EdgeInsets.fromLTRB(10, 10, 10, 20),
@@ -6970,9 +7056,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
                       enabled: !widget.readOnly,
                       child: CircleAvatar(child: Text('${i + 1}')),
                     ),
-                    title: Text(
-                      _ExerciseEditorScreenState.labelForType(e.type),
-                    ),
+                    title: Text(_exerciseTypeLabel(e)),
                     subtitle: Text(
                       _summary(e),
                       maxLines: 2,
@@ -7031,7 +7115,8 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
                                 : 'Save',
                           ),
                         ),
-                        if (e.type == 'reading_comprehension')
+                        if (ExerciseFeatures(e).kind ==
+                            LearnerExerciseKind.selectRead)
                           PopupMenuItem(
                             value: 'generate',
                             enabled: !widget.readOnly,
@@ -7059,6 +7144,79 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
     );
   }
 }
+
+/// The preset an exercise carries, else its learner kind: the name the
+/// editor's lists and Audit locations show for it.
+String _exerciseKindName(Exercise e) => e.editorTemplate.isNotEmpty
+    ? e.editorTemplate
+    : ExerciseFeatures(e).kind.name;
+
+/// The friendly type label: the preset's name, else the kind's.
+String _exerciseTypeLabel(Exercise e) =>
+    ExercisePresetRegistry.byId(e.editorTemplate)?.name ??
+    CourseAuditService.kindLabel(ExerciseFeatures(e).kind);
+
+/// One line that identifies an exercise in a list: its sentence, context,
+/// main text, term, question, meaning or spoken text, else its ID.
+String _exerciseSummary(Exercise e) {
+  final features = ExerciseFeatures(e);
+  for (final text in [
+    features.inlineSentence,
+    features.contextText,
+    features.primaryText,
+    features.textOf('term'),
+    features.questionText,
+    features.textOf('meaning'),
+    features.primaryAudioText ?? '',
+  ]) {
+    if (text.trim().isNotEmpty) return text.trim();
+  }
+  return e.id;
+}
+
+/// The editor for one exercise: the preset form when a preset represents
+/// the exercise (or it is new), otherwise the Generic Primitive Editor, which
+/// shows every canonical field and never drops data the form cannot show
+/// (Build 256 Session 4, plan A.13).
+Widget _exerciseEditorFor({
+  required Exercise exercise,
+  required String title,
+  required bool isNew,
+  DateTime Function()? clock,
+  bool linkParent = false,
+  Course? course,
+  Lesson? lesson,
+  LearningRound? round,
+  ValueChanged<Exercise>? onExerciseSaved,
+  bool readOnly = false,
+  bool initiallyInspecting = false,
+}) => !isNew && PresetRecipes.presetToEdit(exercise) == null
+    ? PrimitiveEditorScreen(
+        exercise: exercise,
+        title: title,
+        isNew: isNew,
+        clock: clock,
+        linkParent: linkParent,
+        course: course,
+        lesson: lesson,
+        round: round,
+        onExerciseSaved: onExerciseSaved,
+        readOnly: readOnly,
+        initiallyInspecting: initiallyInspecting,
+      )
+    : ExerciseEditorScreen(
+        exercise: exercise,
+        title: title,
+        isNew: isNew,
+        clock: clock,
+        linkParent: linkParent,
+        course: course,
+        lesson: lesson,
+        round: round,
+        onExerciseSaved: onExerciseSaved,
+        readOnly: readOnly,
+        initiallyInspecting: initiallyInspecting,
+      );
 
 Exercise _blankExerciseForPreset(String presetId, AuthoringIdGenerator ids) =>
     Exercise(
@@ -7162,7 +7320,7 @@ class _ExerciseCreationWizardScreenState
     final existing = _drafts[_current];
     final exercise = await Navigator.of(context).push<Exercise>(
       MaterialPageRoute(
-        builder: (_) => ExerciseEditorScreen(
+        builder: (_) => _exerciseEditorFor(
           exercise:
               existing ??
               _blankExerciseForPreset(plan.presetIds[_current], _ids),
@@ -7742,8 +7900,6 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
   SharedImageSource? _selectedSharedSource;
   bool _useInlineGaps = false;
   bool _useMultiSelect = false;
-  static List<String> get _types =>
-      ExercisePresetRegistry.presets.map((preset) => preset.id).toList();
   static String labelForType(String type) =>
       ExercisePresetRegistry.byId(type)?.name ?? type.replaceAll('_', ' ');
   late String _type;
@@ -7772,64 +7928,40 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     _loadScriptController();
     _navigationExercises = [...?widget.round?.exercises];
     final e = _exercise;
-    _type = _types.contains(e.type) ? e.type : 'choice';
-    _prompt = TextEditingController(text: e.prompt);
-    _question = TextEditingController(text: e.question);
-    _tts = TextEditingController(text: e.tts ?? '');
-    _hint = TextEditingController(text: e.hint);
-    _answers = TextEditingController(text: e.answers.join('\n'));
-    _useMultiSelect = e.isMultiSelect;
-    _correct = TextEditingController(
-      text: e.isMultiSelect
-          ? _multiSelectCorrectNumbersText(e)
-          : (e.correct == null
-                ? (TranslationChoice.isTranslationChoice(e.type) ? '1' : '')
-                : '${e.correct! + 1}'),
-    );
-    _requiredSelections = TextEditingController(
-      text: e.isMultiSelect ? '${e.requiredSelectionCount}' : '',
-    );
-    _accepted = TextEditingController(text: e.accepted.join('\n'));
-    _useInlineGaps = e.hasArrangeGaps || e.hasSelectGaps;
-    _tokens = TextEditingController(
-      text: (e.hasArrangeGaps || e.hasSelectGaps)
-          ? _distractorTexts(e).join('\n')
-          : e.tokens.join('\n'),
-    );
-    _order = TextEditingController(text: e.orderAnswer.join('\n'));
-    _gapLayout = TextEditingController(text: _gapLayoutText(e));
-    final correctTranslations = e.correctTranslationTexts;
-    for (final value
-        in correctTranslations.isEmpty
-            ? const <String>['']
-            : correctTranslations) {
+    // The preset is a recipe over canonical data (Build 256): the exercise
+    // opens in the preset it carries, else in the first recipe that
+    // represents it exactly, else in the plainest one of its primitive.
+    _type =
+        PresetRecipes.presetToEdit(e) ??
+        PresetRecipes.defaultPresetFor(e.primitive) ??
+        'choice';
+    final draft = PresetRecipes.decompose(e, _type);
+    _prompt = TextEditingController(text: draft.prompt);
+    _question = TextEditingController(text: draft.question);
+    _tts = TextEditingController(text: draft.tts);
+    _hint = TextEditingController(text: draft.hint);
+    _answers = TextEditingController(text: draft.answers);
+    _useMultiSelect = draft.useMultiSelect;
+    _correct = TextEditingController(text: draft.correct);
+    _requiredSelections = TextEditingController(text: draft.requiredSelections);
+    _accepted = TextEditingController(text: draft.accepted);
+    _useInlineGaps = draft.useInlineGaps;
+    _tokens = TextEditingController(text: draft.tokens);
+    _order = TextEditingController(text: draft.order);
+    _gapLayout = TextEditingController(text: draft.gapLayout);
+    for (final value in draft.correctTranslations) {
       final controller = TextEditingController(text: value);
       _watchText(controller);
       _correctTranslations.add(controller);
     }
-    _pairs = TextEditingController(
-      text: e.pairs.map((p) => p.join(' = ')).join('\n'),
-    );
-    _icons = TextEditingController(text: e.icons.join('\n'));
-    _missingWords = TextEditingController(
-      text: (e.type == 'listening_spelling' ? e.accepted : e.missingWords).join(
-        '\n',
-      ),
-    );
-    _context = TextEditingController(text: e.contextText);
-    _dialogue = TextEditingController(
-      text: e.dialogueTurns
-          .map((turn) => '${turn.speaker}: ${turn.text}')
-          .join('\n'),
-    );
-    _contextMode = e.contextMode;
-    _imageAsset = e.imageAsset;
-    _selectedSharedSource = e.promptElements
-        .where(
-          (element) => element.type == 'image' && element.asset == _imageAsset,
-        )
-        .firstOrNull
-        ?.sharedImageSource;
+    _pairs = TextEditingController(text: draft.pairs);
+    _icons = TextEditingController(text: draft.icons);
+    _missingWords = TextEditingController(text: draft.missingWords);
+    _context = TextEditingController(text: draft.context);
+    _dialogue = TextEditingController(text: draft.dialogue);
+    _contextMode = draft.contextMode;
+    _imageAsset = draft.imageAsset;
+    _selectedSharedSource = draft.selectedSharedSource;
     for (final controller in [
       _prompt,
       _question,
@@ -8050,41 +8182,6 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
   /// text plus one `{answer}` block per inline gap, with the literal answer
   /// text embedded directly inside the braces) from an existing Arrange
   /// exercise's layout, for display when reopening it in the Editor.
-  String _gapLayoutText(Exercise e) {
-    final valueById = {
-      for (final item in e.interaction.items) item.id: item.value,
-    };
-    return e.layout
-        .map(
-          (el) => el.isTarget
-              ? '{${valueById[e.targetAssignments[el.targetId]] ?? ''}}'
-              : el.text,
-        )
-        .join(' ');
-  }
-
-  /// Reconstructs the 1-based, comma-separated "Correct answer numbers" text
-  /// for a multi-select Select exercise from its correct item IDs, for
-  /// display when reopening it in the Editor.
-  String _multiSelectCorrectNumbersText(Exercise e) {
-    final correctIds = e.correctItemIdSet;
-    final numbers = <int>[];
-    for (var i = 0; i < e.interaction.items.length; i++) {
-      if (correctIds.contains(e.interaction.items[i].id)) numbers.add(i + 1);
-    }
-    return numbers.join(', ');
-  }
-
-  /// The blocks that are not used to fill any gap (optional distractors),
-  /// for display in the "Extra distractor blocks" field.
-  List<String> _distractorTexts(Exercise e) {
-    final assignedIds = e.targetAssignments.values.toSet();
-    return [
-      for (final item in e.interaction.items)
-        if (!assignedIds.contains(item.id)) item.value,
-    ];
-  }
-
   String _fieldKey(TextEditingController controller) => {
     _prompt: 'prompt',
     _question: 'question',
@@ -8164,7 +8261,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     if (widget.readOnly) return;
     try {
       final expressions = _lines(_accepted);
-      final normalization = _exercise.evaluation.normalization;
+      final normalization = ExerciseFeatures(_exercise).normalization;
       final expanded = AnswerMaterializationService.expand(
         expressions,
         normalization: normalization,
@@ -8910,6 +9007,28 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
                           ),
                         ),
                     ],
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(4, 12, 4, 4),
+                    child: Text(
+                      'Every primitive',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                  Card(
+                    key: const Key('exercise-preset-canonical'),
+                    child: ListTile(
+                      leading: const Icon(Icons.tune),
+                      title: const Text('Canonical editor'),
+                      subtitle: const Text(
+                        'Every canonical field of any primitive, with the values the capability registry allows. No preset.',
+                      ),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () =>
+                          Navigator.pop(sheetContext, _canonicalEditorChoice),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -8918,6 +9037,10 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
       ),
     );
     WidgetsBinding.instance.addPostFrameCallback((_) => search.dispose());
+    if (selected == _canonicalEditorChoice) {
+      await _openCanonicalEditor();
+      return;
+    }
     if (selected != null && mounted) {
       final previousType = _type;
       setState(() {
@@ -9061,11 +9184,11 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
   }
 
   Future<bool> _validateScriptImages(Exercise candidate) async {
-    if (candidate.type != 'script_recognition') return true;
+    if (candidate.editorTemplate != 'script_recognition') return true;
     final assets = {
       for (final element in candidate.promptElements)
         if (element.type == 'image' && element.asset.isNotEmpty) element.asset,
-      for (final item in candidate.interaction.items)
+      for (final item in candidate.items)
         for (final element in item.content)
           if (element.type == 'image' && element.asset.isNotEmpty)
             element.asset,
@@ -9098,10 +9221,10 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     PublicationState publicationState, {
     bool close = true,
   }) async {
-    if (widget.readOnly || _inspection) return false;
+    if (widget.readOnly || _inspection || _unrepresentable) return false;
     if (!publicationState.isPublished &&
         _exercise.publicationState.isPublished &&
-        !await _confirmMoveToDraft(context, 'Exercise')) {
+        !await confirmMoveToDraft(context, 'Exercise')) {
       return false;
     }
     if (!mounted) return false;
@@ -9363,55 +9486,37 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
       setState(() {
         _exercise = e;
         _loadScriptController();
-        _type = e.type;
-        _prompt.text = e.prompt;
-        _question.text = e.question;
-        _tts.text = e.tts ?? '';
-        _hint.text = e.hint;
-        _answers.text = e.answers.join('\n');
-        _useMultiSelect = e.isMultiSelect;
-        _correct.text = e.isMultiSelect
-            ? _multiSelectCorrectNumbersText(e)
-            : (e.correct == null
-                  ? (TranslationChoice.isTranslationChoice(e.type) ? '1' : '')
-                  : '${e.correct! + 1}');
-        _requiredSelections.text = e.isMultiSelect
-            ? '${e.requiredSelectionCount}'
-            : '';
-        _accepted.text = e.accepted.join('\n');
-        _useInlineGaps = e.hasArrangeGaps || e.hasSelectGaps;
-        _tokens.text = (e.hasArrangeGaps || e.hasSelectGaps)
-            ? _distractorTexts(e).join('\n')
-            : e.tokens.join('\n');
-        _order.text = e.orderAnswer.join('\n');
-        _gapLayout.text = _gapLayoutText(e);
-        _pairs.text = e.pairs.map((pair) => pair.join(' = ')).join('\n');
-        _icons.text = e.icons.join('\n');
-        _missingWords.text =
-            (e.type == 'listening_spelling' ? e.accepted : e.missingWords).join(
-              '\n',
-            );
-        _context.text = e.contextText;
-        _dialogue.text = e.dialogueTurns
-            .map((turn) => '${turn.speaker}: ${turn.text}')
-            .join('\n');
-        _contextMode = e.contextMode;
-        _imageAsset = e.imageAsset;
-        _selectedSharedSource = e.promptElements
-            .where(
-              (element) =>
-                  element.type == 'image' && element.asset == _imageAsset,
-            )
-            .firstOrNull
-            ?.sharedImageSource;
+        _type =
+            PresetRecipes.presetToEdit(e) ??
+            PresetRecipes.defaultPresetFor(e.primitive) ??
+            'choice';
+        final draft = PresetRecipes.decompose(e, _type);
+        _prompt.text = draft.prompt;
+        _question.text = draft.question;
+        _tts.text = draft.tts;
+        _hint.text = draft.hint;
+        _answers.text = draft.answers;
+        _useMultiSelect = draft.useMultiSelect;
+        _correct.text = draft.correct;
+        _requiredSelections.text = draft.requiredSelections;
+        _accepted.text = draft.accepted;
+        _useInlineGaps = draft.useInlineGaps;
+        _tokens.text = draft.tokens;
+        _order.text = draft.order;
+        _gapLayout.text = draft.gapLayout;
+        _pairs.text = draft.pairs;
+        _icons.text = draft.icons;
+        _missingWords.text = draft.missingWords;
+        _context.text = draft.context;
+        _dialogue.text = draft.dialogue;
+        _contextMode = draft.contextMode;
+        _imageAsset = draft.imageAsset;
+        _selectedSharedSource = draft.selectedSharedSource;
         for (final controller in _correctTranslations) {
           controller.dispose();
         }
         _correctTranslations.clear();
-        for (final text
-            in e.correctTranslationTexts.isEmpty
-                ? ['']
-                : e.correctTranslationTexts) {
+        for (final text in draft.correctTranslations) {
           _correctTranslations.add(_translationController(text));
         }
         _correctTranslationError = null;
@@ -9428,6 +9533,61 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     if (_inspection == value) return;
     setState(() => _inspection = value);
   }
+
+  static const _canonicalEditorChoice = '__canonical_editor__';
+
+  /// True when no preset represents the stored exercise exactly: the preset
+  /// form then shows its closest reading but must not save it, because a
+  /// save would drop what the form cannot show (plan A.13).
+  bool get _unrepresentable =>
+      !widget.isNew && PresetRecipes.presetToEdit(_exercise) == null;
+
+  /// Opens the Generic Primitive Editor on this exercise; a saved result is
+  /// accepted exactly as a preset-form save is.
+  Future<void> _openCanonicalEditor() async {
+    if (widget.readOnly) return;
+    final exercise = _unrepresentable
+        ? _exercise
+        : (_buildCandidate(
+                _exercise.publicationState,
+                attachSelectedSharedSource: true,
+              ) ??
+              _exercise);
+    final result = await Navigator.of(context).push<Exercise>(
+      MaterialPageRoute(
+        builder: (_) => PrimitiveEditorScreen(
+          exercise: exercise,
+          title: widget.title,
+          isNew: widget.isNew,
+          clock: _clock,
+          course: widget.course,
+          lesson: widget.lesson,
+          round: widget.round,
+          readOnly: widget.readOnly,
+        ),
+      ),
+    );
+    if (result == null || !mounted) return;
+    await _persistAndClose(result);
+  }
+
+  Widget _unrepresentableNotice() => Card(
+    key: const Key('exercise-unrepresentable-notice'),
+    child: ListTile(
+      leading: const Icon(Icons.tune),
+      title: const Text('No preset represents this exercise exactly'),
+      subtitle: const Text(
+        'This form shows its closest reading and cannot save it, because a save would drop what the form does not show. Edit it in the canonical editor.',
+      ),
+      trailing: widget.readOnly
+          ? null
+          : FilledButton(
+              key: const Key('exercise-open-canonical'),
+              onPressed: _openCanonicalEditor,
+              child: const Text('Open'),
+            ),
+    ),
+  );
 
   String get _pageTitle {
     if (_inspection) return 'Exercise inspection';
@@ -9495,6 +9655,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
             ),
           if (_exercise.id.trim().isNotEmpty)
             EditorInternalIdText(label: 'Exercise', id: _exercise.id),
+          if (_unrepresentable) _unrepresentableNotice(),
           Wrap(
             spacing: 8,
             runSpacing: 8,
@@ -9596,7 +9757,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
               ),
               OutlinedButton.icon(
                 key: const Key('exercise-save-draft'),
-                onPressed: widget.readOnly || _inspection
+                onPressed: widget.readOnly || _inspection || _unrepresentable
                     ? null
                     : () => _save(PublicationState.draft),
                 icon: const Icon(Icons.save_outlined),
@@ -9604,7 +9765,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
               ),
               FilledButton.icon(
                 key: const Key('exercise-save'),
-                onPressed: widget.readOnly || _inspection
+                onPressed: widget.readOnly || _inspection || _unrepresentable
                     ? null
                     : () => _save(PublicationState.published),
                 icon: const Icon(Icons.save_outlined),

@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import '../models/course_models.dart';
+import 'round_flow_authoring.dart';
 
 abstract interface class AuthoringIdGenerator {
   String next(String kind);
@@ -379,6 +380,8 @@ class AuthoringDuplicationService {
           preservePublicationState: preservePublicationState,
         ),
     ],
+    // A copied Story keeps its flow over the copied content's fresh IDs.
+    flow: RoundFlowAuthoring.remapped(source.flow, remap),
   );
 
   LearningContent _copyContent(

@@ -33,9 +33,10 @@ only in preset or editor metadata are semantically equal.
 | 1 (Revision 0) | The canonical definitions below: nine primitives, typed options, evaluation modes, the capability registry with rules and the runtime-support table, the content-flow model with structural checks. No Course JSON or learner behavior changed; `ExercisePreset.primitive` replaced the five-value `CanonicalExerciseModel`. |
 | 2 (Revision 1) | Done: Course Model v12 serialization (the "Course Model v12 JSON" section below), converter and tools, storage cut, semantic equality. The runtime, Audit and editor still read v11-shaped views until Sessions 3–4. |
 | 3 (Revision 2) | Done: learner runtime, Duel and Course Audit on canonical data (`ExerciseFeatures`, `LearnerExerciseKind`); linear Stories play; capability-based Duel; content-based gap grading. The editor still reads the v11 views until Session 4. |
-| 4 (Revision 3) | Planned: presets as recipes, exact recognition, Generic Primitive Editor, Help. |
-| 5 (Revision 4) | Planned: interoperability, the four support states, conditional transitions, capability JSON. |
-| 6 (Revision 5) | Planned: Laboratory by primitive and options, Assign runtime, Story tests, final verification. |
+| 4 (Revision 3) | Done: presets as recipes (`PresetRecipes`: decompose, rebuild, represent, recognize), exact recognition and metadata clearing on save (`CanonicalExerciseDraft`), the Generic Primitive Editor (`PrimitiveEditorScreen`, controls and values from the registry, runtime-support line, Preview, Inspection), Stories kept through every Round rebuild and the Round editor's Play as a Story switch (`RoundFlowAuthoring`), canonical reads in Search, hierarchy update, Recognize characters and the Course Editor, Help in EN/IT/ES. |
+| 5 (Revision 4) | Planned: the preset catalogue (`docs/256_PRESET_CATALOGUE_PLAN.md`): merges, renames, new and greyed presets, to-target/to-source pairs, picker filter, save guard, the small runtime changes they need. |
+| 6 (Revision 5) | Planned: interoperability, the four support states, conditional transitions, capability JSON. |
+| 7 (Revision 6) | Planned: Laboratory by primitive and options, Assign runtime, Story tests, final verification. |
 
 ## The nine primitives
 

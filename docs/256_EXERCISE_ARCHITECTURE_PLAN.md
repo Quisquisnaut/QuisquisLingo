@@ -143,12 +143,15 @@ Asked and answered before the branch was created.
    - New files, not inside course_editor_screen.dart; controls and values from the registry.
    - Exact recognition, metadata clearing, View only and Inspection.
    - Help (A.12); Round editor for content nodes and Story order.
-5. **Interoperability.**
+5. **Preset catalogue** (added 27 September 2026 by owner decision; `docs/256_PRESET_CATALOGUE_PLAN.md`).
+   - Merges, renames, new presets, to-target/to-source pairs, greyed future presets, the skill-grouped picker with the direction filter, and the save guard against unchanged example content.
+   - The small runtime changes the new presets need (within-word Input gap, word tiles without a picture, picture left items in Match).
+6. **Interoperability.**
    - Canonical import and interoperability mappings, with the preset only as a hint.
    - The four support states and A.6.
    - Conditional transitions and the flow engine.
    - The service sweep from Part D; the capability JSON tool; end-to-end tests.
-6. **Laboratory, Assign, final verification.**
+7. **Laboratory, Assign, final verification.**
    - Laboratory by primitive and options, plus the fixture Course; negative tests.
    - Assign runtime (categories, slots, gaps, regions if the overlay fits; capacity single/multiple; reuse forbidden/allowed; exactAssignments) with Generic Primitive Editor support.
    - Story tests; semantic-equality tests; the final verification list.

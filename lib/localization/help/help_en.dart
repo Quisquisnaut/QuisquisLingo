@@ -351,28 +351,41 @@ Remove from my courses, in the Selector or Course Studio, removes the course onl
   'technical.exercisePrimitives.title': r'''Exercise primitives''',
   'technical.exercisePrimitives.status.title': r'''Status''',
   'technical.exercisePrimitives.status.body':
-      r'''Work in progress. The current primitive set is the implemented Course Model v12 baseline.''',
+      r'''Course Model v12 (Build 256). Every exercise is one of nine primitives with typed options, prompt elements, items, targets, an inline layout, an evaluation mode and optional feedback. Presets are recipes over this data and never change what learners see.''',
   'technical.exercisePrimitives.exerciseAnatomy.title': r'''Exercise anatomy''',
   'technical.exercisePrimitives.exerciseAnatomy.body':
-      r'''Exercise = Prompt[] + Interaction + Evaluation, with optional hint and feedback.''',
-  'technical.exercisePrimitives.interactions.title': r'''Interactions''',
-  'technical.exercisePrimitives.interactions.body':
-      r'''select: choose one or more Items. input: produce a typed response. arrange: order Items. match: create relationships between Items.''',
-  'technical.exercisePrimitives.evaluations.title': r'''Evaluations''',
-  'technical.exercisePrimitives.evaluations.body':
-      r'''selected_items checks selected stable Item IDs. text_match checks accepted text with explicit normalization. ordered_items checks Item order. matched_items checks Item relationships.''',
+      r'''Exercise = primitive + options + prompt[] + items[] + targets[] + layout[] + evaluation + feedback, with an optional hint. Prompt elements are text, audio or image with a role (primary, question, passage, situation, clue, context, dialogue_turn, character, illustration) and the attributes language (source or target), playback (automatic or manual) and required. Items are what the learner chooses, orders, places or pairs; a Match item has a side. Targets are the gaps, slots or regions the learner fills, and the layout places them in the text. Items and targets are named by stable IDs, never by position.''',
+  'technical.exercisePrimitives.primitives.title': r'''The nine primitives''',
+  'technical.exercisePrimitives.primitives.body':
+      r'''select: the learner selects one or more items. input: the learner types text or a number into a field or into inline gaps. arrange: the learner orders blocks or drags them into gaps. match: the learner pairs left and right items. assign: the learner sorts items into groups, slots or picture regions (definitions only; it plays in a later version). speak: the learner speaks (definitions only). ink: the learner writes by hand (definitions only). submit: the learner hands in a free answer for self-check or review (definitions only). presentation: a card or note with nothing to answer, such as a Flashcard. The primitive is locked once an exercise exists.''',
+  'technical.exercisePrimitives.primitiveOptions.title':
+      r'''Primitive options''',
+  'technical.exercisePrimitives.primitiveOptions.body':
+      r'''Options are typed and belong to one primitive: selectionMode, selectionTarget, minimumSelections, maximumSelections, itemReuse, layout, evaluationTiming and shuffleItems for select; inputMode, cardinality, caseHandling, punctuationHandling, whitespaceHandling, accentHandling and typoTolerance for input; placementMode, unusedItems and joiner for arrange; relationship, interactionStyle, shuffleLeft and shuffleRight for match; completionMode, navigation and mediaPlayback for presentation. Course JSON stores only the values that were set; an omitted option means the registry default. The capability registry lists every legal value, the required options and the combinations it refuses; an unknown option or an illegal value is a format error and is never silently corrected.''',
+  'technical.exercisePrimitives.layouts.title': r'''Layouts''',
+  'technical.exercisePrimitives.layouts.body':
+      r'''list and grid show items as choices; inline places selected items into gaps in the text. field and inlineGaps are typed answers: one field, or one field per gap. sequence puts arranged blocks in a row and inlineGaps drags them into gaps. dropdown Match pairs each left item with one right item. The inline layout is a sequence of text pieces and target gaps; a target may reveal its first letter, as Type the missing word does.''',
+  'technical.exercisePrimitives.evaluationModes.title': r'''Evaluation modes''',
+  'technical.exercisePrimitives.evaluationModes.body':
+      r'''The evaluation mode says how the answer is checked and which answer data applies: exactItem and exactSet (correct item IDs); exactText, acceptedTexts and expression (answers with {a|b} variants, literalAnswers that are never expanded, or targetAnswers per gap); regex (pattern); numericExact, numericRange and numericTolerance; exactOrder and acceptedOrders (correctOrders with item IDs); gapAssignments and exactAssignments (assignments per target); exactRelations (relations of left and right item IDs); acceptedTargets; none for presentations. Input normalization comes from the options, not from the evaluation. The runtime-support table decides which combinations this version can play; a readable but not playable exercise stays in the Course as it is.''',
   'technical.exercisePrimitives.promptAndItemMedia.title':
       r'''Prompt and Item media''',
   'technical.exercisePrimitives.promptAndItemMedia.body':
-      r'''The initial media primitives are text, image and audio. Prompt elements may carry roles such as primary, passage, question, context or clue.''',
+      r'''Text, audio and image elements carry roles and attributes. Audio with required: true makes the exercise an audio exercise, which Audio Exercises Off removes from Rounds and Duels; audio with required: false is optional, like the read-aloud button of Pick the translation. An image with the role character is a Recognize characters specimen; any other image is an illustration. Item media follow the same rules.''',
   'technical.exercisePrimitives.presentationContent.title':
       r'''Presentation Content''',
   'technical.exercisePrimitives.presentationContent.body':
-      r'''Flashcard is presentation Content, not an Exercise. The learner chooses understood or review_later. Both complete the current presentation; review_later requests re-presentation and is not an incorrect answer.''',
-  'technical.exercisePrimitives.friendlyTemplates.title':
-      r'''Templates vs primitives''',
-  'technical.exercisePrimitives.friendlyTemplates.body':
-      r'''Friendly templates remain an authoring layer. Multiple templates can share the same primitive mechanics. Template constraints such as distractor limits do not become universal primitive rules.''',
+      r'''A Flashcard or a note is a presentation-primitive exercise with evaluation mode none and a completionMode (continue, acknowledge or understoodReview). It awards no XP, counts as neither correct nor wrong and never blocks a perfect Round.''',
+  'technical.exercisePrimitives.presets.title': r'''Presets as recipes''',
+  'technical.exercisePrimitives.presets.body':
+      r'''A preset is a recipe: its form asks for a few fields and writes ordinary canonical data. The exercise carries the preset as authoring metadata only (presetId); the learner runtime, the Duel and the Audit read the canonical data. On every save QQL checks whether the preset still represents the exercise exactly. If another preset does, that one is named; if none does, the exercise keeps no preset and opens in the canonical editor. Other authoring metadata is dropped as soon as the content changes.''',
+  'technical.exercisePrimitives.canonicalEditor.title':
+      r'''The canonical editor''',
+  'technical.exercisePrimitives.canonicalEditor.body':
+      r'''The canonical editor (Round editor: Canonical editor; preset picker: Every primitive) shows every canonical field of any primitive with the values the capability registry allows: Primitive, Options, Prompt, Items, Targets, Layout, Evaluation by mode, Feedback and hint. It says whether this version can play the exercise, refuses the combinations the registry refuses, previews with the learner runtime and saves like a preset form (Save as draft, or Save with the Audit). An exercise that no preset represents opens there.''',
+  'technical.exercisePrimitives.stories.title': r'''Stories''',
+  'technical.exercisePrimitives.stories.body':
+      r'''A Story is a Round with a content flow. Play as a Story in the Round editor gives the Round a linear flow: its exercises play in the authored order, unshuffled and without a mistake review; XP, completion, Laurels and Review work as in a practice Round. Editing, moving, copying and duplicating a Story keeps its flow. Branching flows (onCorrect, onIncorrect, onChoice, conditional) are stored and checked but are not playable in this version.''',
   'technical.jsonStructure.title': r'''JSON data structure''',
   'technical.jsonStructure.status.title': r'''Status''',
   'technical.jsonStructure.status.body':
@@ -731,6 +744,9 @@ Dummy testing requires no approval request to a real publisher. All dummy releas
   'exerciseHelp.category.matching': r'''Matching''',
   'exerciseHelp.category.ordering': r'''Ordering''',
   'exerciseHelp.category.presentation': r'''Presentation''',
+  'exerciseHelp.supplement.canonicalEditor.title': r'''Canonical editor''',
+  'exerciseHelp.supplement.canonicalEditor.body':
+      r'''Every preset form writes ordinary canonical data. The canonical editor (Round editor: Canonical editor; preset picker: Every primitive) shows all of it for any primitive: options, prompt elements with roles and languages, items, targets, layout, the evaluation mode with its answer data, feedback and hint, and says whether this version can play the result. An exercise that no preset represents exactly opens there; the preset form shows it read-only and offers Open. See Exercise primitives in QQL Guide for the definitions.''',
   'exerciseHelp.supplement.answerVariants.title': r'''Answer variants''',
   'exerciseHelp.supplement.answerVariants.body':
       r'''Multiple complete equivalent answers may be entered on separate lines. Compact syntax is optional: {Io} makes “Io” optional; [prendo|vorrei] chooses one independent alternative; and (non arrivo <> oggi) swaps only declared phrase parts. Grouped alternatives use *: to link by position: [*:il|i] [*:tuo|tuoi] [*:denaro|soldi] accepts “il tuo denaro” and “i tuoi soldi”, never “il tuoi soldi” or “i tuo denaro”. Two or more linked groups are required and every linked group must have the same number of alternatives. Linked groups compose with {}, ordinary [] and valid <> scopes. During reordering, terminal punctuation stays at the final sentence end. Expansion is deterministic, removes duplicates, and rejects malformed syntax or more than 128 variants instead of truncating.''',

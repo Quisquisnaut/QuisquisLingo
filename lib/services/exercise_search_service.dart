@@ -1,5 +1,6 @@
 import '../models/course_models.dart';
 import '../models/exercise_authoring.dart';
+import 'preset_recipes.dart';
 
 enum ExerciseSearchScope { course, lesson, round }
 
@@ -143,10 +144,12 @@ abstract final class ExerciseSearchRegistry {
   ];
 
   static ExerciseTypeSearchDefinition? forExercise(Exercise exercise) {
+    // The preset the exercise carries, else the one that represents it,
+    // else the plainest preset of its primitive: the searchable fields are
+    // the same canonical fields either way.
     final presetId =
-        ExercisePresetRegistry.byId(exercise.editorTemplate) != null
-        ? exercise.editorTemplate
-        : exercise.type;
+        PresetRecipes.presetToEdit(exercise) ??
+        PresetRecipes.defaultPresetFor(exercise.primitive);
     return definitions
         .where((definition) => definition.presetId == presetId)
         .firstOrNull;
@@ -176,15 +179,32 @@ abstract final class ExerciseSearchRegistry {
               .where((element) => element.speaker.trim().isNotEmpty)
               .map((element) => element.speaker),
         ExerciseSearchField.interactionText =>
-          exercise.interaction.items
+          exercise.items
               .expand((item) => item.content)
               .where((element) => element.text.trim().isNotEmpty)
               .map((element) => element.text),
-        ExerciseSearchField.acceptedAnswers => exercise.evaluation.accepted,
+        ExerciseSearchField.acceptedAnswers => [
+          ...exercise.canonicalEvaluation.answers,
+          ...exercise.canonicalEvaluation.literalAnswers,
+          for (final target in exercise.canonicalEvaluation.targetAnswers) ...[
+            ...target.answers,
+            ...target.literalAnswers,
+          ],
+        ],
         ExerciseSearchField.correctOrderText =>
-          exercise.evaluation.correctOrders.map((answer) => answer.text),
+          exercise.canonicalEvaluation.correctOrders.map(
+            (answer) => answer.text,
+          ),
         ExerciseSearchField.hint => [exercise.hint],
-        ExerciseSearchField.missingWords => exercise.missingWords,
+        // The first answer of every typed gap that reveals nothing (Listen
+        // for missing words).
+        ExerciseSearchField.missingWords => [
+          for (final target in exercise.targets)
+            if (target.reveal == null)
+              for (final answers in exercise.canonicalEvaluation.targetAnswers)
+                if (answers.targetId == target.id && answers.answers.isNotEmpty)
+                  answers.answers.first,
+        ],
       };
       for (final candidate in candidates) {
         final text = candidate.trim();

@@ -92,11 +92,15 @@ const courseModelHelpSectionIds = <String>[
 const exercisePrimitivesHelpSectionIds = <String>[
   'status',
   'exerciseAnatomy',
-  'interactions',
-  'evaluations',
+  'primitives',
+  'primitiveOptions',
+  'layouts',
+  'evaluationModes',
   'promptAndItemMedia',
   'presentationContent',
-  'friendlyTemplates',
+  'presets',
+  'canonicalEditor',
+  'stories',
 ];
 
 const jsonStructureHelpSectionIds = <String>[
@@ -160,6 +164,7 @@ const exerciseHelpSupplementIds = <String>[
   'answerVariants',
   'textEvaluationAndCorrections',
   'contextualComprehensionExample',
+  'canonicalEditor',
 ];
 
 const exerciseHelpCategoryIds = <String>[

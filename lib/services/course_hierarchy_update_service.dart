@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import '../models/course_models.dart';
+import '../models/exercise_features.dart';
 
 /// A Course authoring change addressed by stable hierarchy identities.
 sealed class CourseHierarchyUpdate {
@@ -358,11 +359,28 @@ LearningContent _replaceLearningContentExercise(
       required: source.required,
       editorTemplate: source.editorTemplate,
       role: source.role,
-      text: exercise.prompt.isNotEmpty ? exercise.prompt : exercise.question,
+      text: _contentText(exercise),
       sourceRefs: source.sourceRefs,
     );
   }
   return LearningContent.fromExercise(exercise);
+}
+
+/// The one text a Content wrapper keeps for a non-exercise kind: the
+/// exercise's main text, else its question (canonical roles, no v11 view).
+String _contentText(Exercise exercise) {
+  final features = ExerciseFeatures(exercise);
+  for (final text in [
+    features.inlineSentence,
+    features.contextText,
+    features.primaryText,
+    features.textOf('term'),
+    features.questionText,
+    features.textOf('meaning'),
+  ]) {
+    if (text.trim().isNotEmpty) return text;
+  }
+  return '';
 }
 
 void _requireSameId(String target, String replacement, String label) {

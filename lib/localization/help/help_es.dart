@@ -434,28 +434,40 @@ const Map<String, String> helpEs = {
   'technical.exercisePrimitives.title': 'Primitivas de Exercise',
   'technical.exercisePrimitives.status.title': 'Estado',
   'technical.exercisePrimitives.status.body':
-      'En desarrollo. El conjunto actual de primitivas es la base implementada en Course Model v12.',
+      'Course Model v12 (Build 256). Cada ejercicio es una de las nueve primitivas, con opciones tipadas, elementos del prompt, items, targets, un layout inline, un modo de evaluación y un feedback opcional. Los presets son recetas sobre estos datos y nunca cambian lo que ve el estudiante.',
   'technical.exercisePrimitives.exerciseAnatomy.title': 'Anatomía de Exercise',
   'technical.exercisePrimitives.exerciseAnatomy.body':
-      'Exercise = Prompt[] + Interaction + Evaluation, con hint y feedback opcionales.',
-  'technical.exercisePrimitives.interactions.title': 'Interacciones',
-  'technical.exercisePrimitives.interactions.body':
-      'select: elegir uno o varios Items. input: escribir una respuesta. arrange: ordenar Items. match: relacionar Items.',
-  'technical.exercisePrimitives.evaluations.title': 'Evaluaciones',
-  'technical.exercisePrimitives.evaluations.body':
-      'selected_items comprueba IDs estables de Items elegidos; text_match compara texto aceptado con normalización explícita; ordered_items comprueba el orden; matched_items, las relaciones.',
+      'Exercise = primitive + options + prompt[] + items[] + targets[] + layout[] + evaluation + feedback, con hint opcional. Los elementos del prompt son text, audio o image con una función (primary, question, passage, situation, clue, context, dialogue_turn, character, illustration) y los atributos language (source o target), playback (automatic o manual) y required. Los items son lo que el estudiante elige, ordena, coloca o empareja; un item de Match tiene un lado. Los targets son los huecos, casillas o regiones que el estudiante rellena, y el layout los sitúa en el texto. Items y targets tienen IDs estables, nunca posiciones.',
+  'technical.exercisePrimitives.primitives.title': 'Las nueve primitivas',
+  'technical.exercisePrimitives.primitives.body':
+      'select: el estudiante elige uno o varios items. input: el estudiante escribe texto o un número en un campo o en huecos inline. arrange: el estudiante ordena bloques o los arrastra a huecos. match: el estudiante empareja items de la izquierda y de la derecha. assign: el estudiante clasifica items en grupos, casillas o regiones de una imagen (solo definiciones; se podrá jugar en una versión futura). speak: el estudiante habla (solo definiciones). ink: el estudiante escribe a mano (solo definiciones). submit: el estudiante entrega una respuesta libre para autoevaluación o revisión (solo definiciones). presentation: una tarjeta o nota sin respuesta, como una Flashcard. La primitiva queda fija cuando el ejercicio existe.',
+  'technical.exercisePrimitives.primitiveOptions.title':
+      'Opciones de las primitivas',
+  'technical.exercisePrimitives.primitiveOptions.body':
+      'Las opciones son tipadas y pertenecen a una primitiva: selectionMode, selectionTarget, minimumSelections, maximumSelections, itemReuse, layout, evaluationTiming y shuffleItems para select; inputMode, cardinality, caseHandling, punctuationHandling, whitespaceHandling, accentHandling y typoTolerance para input; placementMode, unusedItems y joiner para arrange; relationship, interactionStyle, shuffleLeft y shuffleRight para match; completionMode, navigation y mediaPlayback para presentation. El JSON del Course guarda solo los valores definidos; una opción omitida vale el valor predeterminado del registro. El registro de capacidades enumera cada valor permitido, las opciones obligatorias y las combinaciones que rechaza; una opción desconocida o un valor no permitido es un error de formato y nunca se corrige en silencio.',
+  'technical.exercisePrimitives.layouts.title': 'Layouts',
+  'technical.exercisePrimitives.layouts.body':
+      'list y grid muestran los items como opciones; inline coloca los items elegidos en huecos del texto. field e inlineGaps son respuestas escritas: un campo, o un campo por hueco. sequence pone los bloques ordenados en fila e inlineGaps los arrastra a huecos. El Match dropdown empareja cada item de la izquierda con uno de la derecha. El layout inline es una secuencia de trozos de texto y huecos target; un target puede revelar su primera letra, como hace Type the missing word.',
+  'technical.exercisePrimitives.evaluationModes.title': 'Modos de evaluación',
+  'technical.exercisePrimitives.evaluationModes.body':
+      'El modo de evaluación dice cómo se comprueba la respuesta y qué datos de respuesta se aplican: exactItem y exactSet (IDs de los items correctos); exactText, acceptedTexts y expression (answers con variantes {a|b}, literalAnswers que nunca se expanden, o targetAnswers por hueco); regex (pattern); numericExact, numericRange y numericTolerance; exactOrder y acceptedOrders (correctOrders con IDs de items); gapAssignments y exactAssignments (assignments por target); exactRelations (relations entre IDs de la izquierda y de la derecha); acceptedTargets; none para presentaciones. La normalización de input viene de las opciones, no de la evaluación. La tabla de soporte del runtime decide qué combinaciones puede jugar esta versión; un ejercicio legible pero no jugable permanece en el Course tal cual.',
   'technical.exercisePrimitives.promptAndItemMedia.title':
       'Medios de Prompt e Item',
   'technical.exercisePrimitives.promptAndItemMedia.body':
-      'Las primitivas de medios son text, image y audio. Un elemento Prompt puede tener funciones como primary, passage, question, context o clue.',
+      'Los elementos text, audio e image llevan funciones y atributos. Un audio con required: true convierte el ejercicio en ejercicio de audio, que Audio Exercises Off retira de Rounds y Duels; un audio con required: false es opcional, como el botón de lectura de Pick the translation. Una imagen con la función character es una muestra de Recognize characters; cualquier otra imagen es una ilustración. Los medios de los items siguen las mismas reglas.',
   'technical.exercisePrimitives.presentationContent.title':
       'Presentation Content',
   'technical.exercisePrimitives.presentationContent.body':
-      'Flashcard es Presentation Content, no Exercise. El estudiante elige understood o review_later. Ambas opciones completan la presentación; review_later pide repetirla y no cuenta como respuesta incorrecta.',
-  'technical.exercisePrimitives.friendlyTemplates.title':
-      'Plantillas y primitivas',
-  'technical.exercisePrimitives.friendlyTemplates.body':
-      'Las plantillas claras son una capa de autoría. Varias pueden usar las mismas primitivas. Límites de una plantilla, como cantidad de distractores, no se convierten en reglas universales.',
+      'Una Flashcard o una nota es un ejercicio de primitiva presentation con modo de evaluación none y un completionMode (continue, acknowledge o understoodReview). No da XP, no cuenta como correcta ni como incorrecta y nunca impide un Round perfecto.',
+  'technical.exercisePrimitives.presets.title': 'Presets como recetas',
+  'technical.exercisePrimitives.presets.body':
+      'Un preset es una receta: su formulario pide pocos campos y escribe datos canónicos ordinarios. El ejercicio lleva el preset solo como metadato de autoría (presetId); el runtime del estudiante, el Duel y la Audit leen los datos canónicos. En cada guardado QQL comprueba si el preset sigue representando exactamente el ejercicio. Si lo hace otro preset, se nombra ese; si ninguno lo hace, el ejercicio queda sin preset y se abre en el editor canónico. Los demás metadatos de autoría se eliminan en cuanto cambia el contenido.',
+  'technical.exercisePrimitives.canonicalEditor.title': 'El editor canónico',
+  'technical.exercisePrimitives.canonicalEditor.body':
+      'El editor canónico (editor del Round: Canonical editor; selector de presets: Every primitive) muestra cada campo canónico de cualquier primitiva con los valores que permite el registro de capacidades: Primitive, Options, Prompt, Items, Targets, Layout, Evaluation por modo, Feedback y hint. Indica si esta versión puede jugar el ejercicio, rechaza las combinaciones que rechaza el registro, muestra la vista previa con el runtime del estudiante y guarda como un formulario de preset (Save as draft, o Save con la Audit). Un ejercicio que ningún preset representa se abre ahí.',
+  'technical.exercisePrimitives.stories.title': 'Historias',
+  'technical.exercisePrimitives.stories.body':
+      'Una Story es un Round con un flujo de contenidos. Play as a Story en el editor del Round da al Round un flujo lineal: sus ejercicios se juegan en el orden escrito, sin mezclar y sin repaso de errores; XP, finalización, Laurels y Review funcionan como en un Round de práctica. Editar, mover, copiar y duplicar una Story conserva su flujo. Los flujos con ramas (onCorrect, onIncorrect, onChoice, conditional) se guardan y se comprueban, pero no se pueden jugar en esta versión.',
   'technical.jsonStructure.title': 'Estructura de datos JSON',
   'technical.jsonStructure.status.title': 'Estado',
   'technical.jsonStructure.status.body':
@@ -725,6 +737,9 @@ Estas builds muestran TEST ONLY. No las distribuyas como versiones públicas; co
   'exerciseHelp.clearSearch': 'Clear search',
   'exerciseHelp.noResults':
       'No hay resultados de Exercise Help para tu búsqueda.',
+  'exerciseHelp.supplement.canonicalEditor.title': 'Editor canónico',
+  'exerciseHelp.supplement.canonicalEditor.body':
+      'Cada formulario de preset escribe datos canónicos ordinarios. El editor canónico (editor del Round: Canonical editor; selector de presets: Every primitive) los muestra todos para cualquier primitiva: opciones, elementos del prompt con funciones e idiomas, items, targets, layout, el modo de evaluación con sus datos de respuesta, feedback y hint, e indica si esta versión puede jugar el resultado. Un ejercicio que ningún preset representa exactamente se abre ahí; el formulario de preset lo muestra en solo lectura y ofrece Open. Las definiciones están en Exercise primitives de la QQL Guide.',
   'exerciseHelp.supplement.answerVariants.title': 'Variantes de respuesta',
   'exerciseHelp.supplement.answerVariants.body':
       'Puedes escribir respuestas completas equivalentes en líneas separadas. La sintaxis compacta es opcional: {Io} hace opcional Io; [prendo|vorrei] elige una alternativa; (non arrivo <> oggi) intercambia solo las partes indicadas. Los grupos [*:il|i] [*:tuo|tuoi] [*:denaro|soldi] se enlazan por posición: admiten il tuo denaro e i tuoi soldi, no mezclas. Necesitas al menos dos grupos enlazados con la misma cantidad de opciones. Se combinan con {}, [] normales y <> válidos. La puntuación final permanece al final. La expansión elimina duplicados y rechaza sintaxis inválida o más de 128 variantes.',

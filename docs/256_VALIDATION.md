@@ -5,6 +5,58 @@ spelling) with Flutter 3.47.4 / Dart 3.13.3 on Windows 10, the complete
 suite through the keep-awake wrapper (`ES_CONTINUOUS | ES_SYSTEM_REQUIRED`
 held for the run and cleared afterwards).
 
+## Revision 3 (2.0.56+256003): presets as recipes and the Generic Primitive Editor, 27 September 2026
+
+- Recipes first: `test/preset_recipes_256_test.dart` (83 tests) proves every
+  Laboratory example is represented by its own preset, is recognized again
+  once its metadata is stripped, that a shape no recipe expresses (an extra
+  spoken text on a Choose) is not recognized, and that recognition writes
+  nothing. Green before the editor was touched.
+- Editor batch after the editor started decomposing through the recipes
+  (every test naming the exercise editor, the draft builder or the Course
+  Editor file, plus the Laboratory): **971 passed, 0 failed**.
+- Generic Primitive Editor: `test/primitive_editor_256_test.dart` (an
+  untouched draft rebuilds all 80 Laboratory exercises unchanged with their
+  metadata; a changed draft keeps only a preset that still represents it,
+  and a hinted Choose is unrepresentable because the Choose form has no hint
+  field; a blank exercise; saving an unchanged exercise returns the same
+  object; moving the correct answer keeps the preset and stamps the clock; a
+  Select built from nothing is recognized as Choose; read-only and
+  Inspection). Two expectations were corrected after the first run (the
+  hint case and the recognized Choose); **7 passed** on the rerun.
+- Canonical reads and wiring batch (editor, Audit, Search, hierarchy,
+  Recognize characters, Laboratory, runtime, recipes, primitive editor;
+  every test naming the exercise editor, the draft builder, the Course
+  Editor file or the Audit service): **1,215 passed, 0 failed** (`All tests
+  passed!` after 12 minutes 39 seconds).
+- Stories: `test/round_flow_authoring_256_test.dart` (linear flows follow
+  content order; `forContent` keeps none, regenerates linear, keeps
+  branching; `remapped` renames nodes, content, targets, choices and
+  conditions; duplication keeps a flow over the copied IDs; copying an
+  exercise into a Story extends its flow; the Round editor keeps a Story
+  and its switch turns a practice Round into a linear Story and back):
+  **7 passed** after two fixture corrections (Move/Copy and Copy as New
+  Course refuse an official Course, so the fixture is a licensed Fork of
+  the Laboratory, which also proves the fork carries the flow; the fork's
+  content is Draft, so the editor test saves as draft).
+- Third batch (the flow, primitive editor and recipe tests with
+  `localization_catalog_test` (EN/IT/ES key parity, section IDs), the QQL
+  Guide, Editor Help, version, Beta, transfer, hierarchy-indicator and
+  duplication tests): **429 passed, 1 failed** (the official-Course
+  fixture above, then fixed and rerun green).
+- `dart format` on the changed files (8 reformatted); `flutter analyze
+  --no-pub`: **No issues found** after every step.
+- Version pins: a first complete run (12:09) was stopped at +196 when
+  `app_metadata_225_04_test` failed on the old build number; that file,
+  `course_audit_report_225_test` and README's Beta sentence were moved to
+  Revision 3 (the integer `correctiveRevision` pin needed a second look),
+  the five version and Beta tests passed (27 tests) and the suite was
+  restarted.
+- Complete suite on the final working tree (`flutter test --no-pub
+  --concurrency=1` under the keep-awake wrapper, 12:05–12:26): **2,937
+  passed, 1 skipped, 0 failed** (`All tests passed!` after 21 minutes
+  2 seconds).
+
 ## Revision 2 (2.0.56+256002): runtime and Audit on canonical data, 27 September 2026
 
 - Baseline first: `exercise_laboratory_254_test` records what the Round

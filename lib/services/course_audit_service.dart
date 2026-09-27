@@ -7,6 +7,7 @@ import 'portable_exercise_image.dart';
 import 'audit_code_registry.dart';
 import 'duel_eligibility_service.dart';
 import 'lesson_icon_catalog.dart';
+import 'preset_recipes.dart';
 import 'translation_choice_service.dart';
 
 export 'audit_code_registry.dart' show AuditSeverity;
@@ -171,36 +172,11 @@ class NumberedAuditIssue {
 /// few high-confidence consistency rules. It intentionally does not claim to
 /// certify grammar, translation quality or pedagogy.
 class CourseAuditService {
-  /// The learner kind each preset's recipe produces. An exercise whose
-  /// derived kind differs from its preset's gets a non-blocking
-  /// PRESET_CANONICAL_MISMATCH: the preset is authoring metadata and never
-  /// changes what plays (Build 256, plan A.3 and A.5).
-  static const presetKinds = <String, LearnerExerciseKind>{
-    'choice': LearnerExerciseKind.select,
-    'gap_choice': LearnerExerciseKind.selectComplete,
-    'icon_choice': LearnerExerciseKind.selectImage,
-    'script_recognition': LearnerExerciseKind.selectCharacter,
-    'listening_choice': LearnerExerciseKind.selectListen,
-    'listening_comprehension': LearnerExerciseKind.selectListenPassage,
-    'reading_comprehension': LearnerExerciseKind.selectRead,
-    'dialogue_response': LearnerExerciseKind.selectDialogue,
-    'contextual_comprehension': LearnerExerciseKind.selectContext,
-    'translation_choice_to_target': LearnerExerciseKind.selectTranslation,
-    'translation_choice_to_source': LearnerExerciseKind.selectTranslation,
-    'fill_blank': LearnerExerciseKind.inputComplete,
-    'type_translation': LearnerExerciseKind.inputTranslation,
-    'listening_spelling': LearnerExerciseKind.inputListenWrite,
-    'missing_word': LearnerExerciseKind.inputListenGaps,
-    'type_missing_word': LearnerExerciseKind.inputMissingWord,
-    'word_order': LearnerExerciseKind.arrangeSentence,
-    'build_translation': LearnerExerciseKind.arrangeTranslation,
-    'image_word': LearnerExerciseKind.arrangeWord,
-    'matching': LearnerExerciseKind.matchTranslation,
-    'word_match': LearnerExerciseKind.matchTranslation,
-    'super_match': LearnerExerciseKind.match,
-    'audio_match': LearnerExerciseKind.matchAudio,
-    'flashcard': LearnerExerciseKind.presentation,
-  };
+  /// The learner kind each preset's recipe produces ([PresetRecipes.kinds]).
+  /// An exercise whose derived kind differs from its preset's gets a
+  /// non-blocking PRESET_CANONICAL_MISMATCH: the preset is authoring
+  /// metadata and never changes what plays (Build 256, plan A.3 and A.5).
+  static const presetKinds = PresetRecipes.kinds;
 
   String _courseSourceCode(Course course) {
     final source = course.sourceLanguage.trim().toLowerCase();
@@ -1189,7 +1165,8 @@ class CourseAuditService {
           AuditCode.exerciseSelectionLimits,
       };
 
-  static String _kindLabel(LearnerExerciseKind kind) => switch (kind) {
+  /// The friendly English name of a learner kind, for messages and lists.
+  static String kindLabel(LearnerExerciseKind kind) => switch (kind) {
     LearnerExerciseKind.select => 'a plain Choose',
     LearnerExerciseKind.selectComplete => 'Fill in the blank',
     LearnerExerciseKind.selectImage => 'Select the image',
@@ -1385,7 +1362,7 @@ class CourseAuditService {
         } else if (expected != null && expected != kind) {
           add(
             AuditCode.presetCanonicalMismatch,
-            'This exercise no longer matches ${preset.name}: it plays as ${_kindLabel(kind)}.',
+            'This exercise no longer matches ${preset.name}: it plays as ${kindLabel(kind)}.',
           );
         }
         switch (presetId) {

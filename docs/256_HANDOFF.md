@@ -7,7 +7,7 @@ condensed specification). Working rules: Part A.1 of the plan. Reference:
 the Session 2 design). Summary: `docs/256_CHANGE_SUMMARY.md`. Evidence:
 `docs/256_VALIDATION.md`.
 
-## State (27 September 2026, 10:09)
+## State (27 September 2026, 11:58)
 
 - Branch `claude/256-exercise-architecture`, created from `main` at
   `611a1a1` (Build 255 handoff; version `2.0.55+255007`).
@@ -17,8 +17,101 @@ the Session 2 design). Summary: `docs/256_CHANGE_SUMMARY.md`. Evidence:
   on canonical data** (`2.0.56+256002`; complete suite 2,840 passed, 1
   skipped, 0 failed; evidence in `docs/256_VALIDATION.md`); handoff
   commits between them.
-- **Session 4 (Revision 3, `2.0.56+256003`) starts now** with the design
-  below. Nothing of it is in the working tree yet.
+- **Session 4 (Revision 3, `2.0.56+256003`) is in progress** (uncommitted;
+  handoff written 11:35): step A `lib/services/preset_recipes.dart` +
+  `test/preset_recipes_256_test.dart` (83 tests green); step B the exercise
+  editor opens and reloads through `PresetRecipes.presetToEdit`/`decompose`
+  (editor batch: 971 tests green); step C the Generic Primitive Editor:
+  `lib/services/canonical_exercise_draft.dart` (pure draft; `toExercise`
+  keeps carried metadata only while semantically unchanged and names the
+  preset `PresetRecipes.recognize` finds, plan A.13; `blankExercise`),
+  `lib/screens/primitive_editor_screen.dart` (sections Primitive, Options
+  from the registry, Prompt, Items, Targets, Layout, Evaluation by mode,
+  Feedback; Preview, Inspection, Save as draft, Save; runtime-support line;
+  registry violations block Save), `lib/widgets/editor_dialogs.dart`
+  (shared `confirmMoveToDraft`), wiring in `course_editor_screen.dart`
+  (`_exerciseEditorFor` opens the canonical editor when no preset represents
+  a stored exercise; Round editor button `new-canonical-exercise`; preset
+  sheet entry `exercise-preset-canonical`; the preset form shows
+  `exercise-unrepresentable-notice` and disables Save when no preset
+  represents the exercise). Analyzer clean. `test/primitive_editor_256_test.dart`
+  written; two expectations corrected (a Choose form has no hint field, so a
+  hinted Choose is unrepresentable; a canonical exercise a recipe represents
+  gets that preset on save); rerun pending.
+- Done since (handoff 11:50, all uncommitted, analyzer clean before the
+  last two steps): step D the v11-view readers moved to canonical data
+  (`exercise_search_service.dart` through `PresetRecipes.presetToEdit` /
+  `defaultPresetFor` and the canonical evaluation; `course_hierarchy_update_service.dart`
+  `_contentText` through `ExerciseFeatures`; `script_recognition_editor.dart`
+  rebuilds with `copyWith` and gives new images the `character` role; the
+  editor's `_exerciseKindName` / `_exerciseTypeLabel` / `_exerciseSummary`
+  helpers, `CourseAuditService.kindLabel` made public). Decision: the draft
+  builder keeps constructing through `Exercise.v2`/`Exercise(...)` until
+  Revision 4 rewrites the recipes. Step E **Stories survive authoring**: every
+  `LearningRound(...)` rebuild dropped `flow` (Round editor, rename, Search
+  save, GuideBook references, Move/Copy, duplication), so editing a Story made
+  it a practice Round; `lib/services/round_flow_authoring.dart`
+  (`linearFor`, `forContent`, `remapped`) and the Round editor's **Play as a
+  Story** switch (`round-story-switch`, `_flow`, `_setStory`; a branching
+  flow is kept as it is and asks before removal) fix that;
+  `test/round_flow_authoring_256_test.dart` written, not yet run. Step F
+  Help (A.12): the Exercise primitives technical page now has sections
+  status, exerciseAnatomy, primitives, primitiveOptions, layouts,
+  evaluationModes, promptAndItemMedia, presentationContent, presets,
+  canonicalEditor, stories in EN/IT/ES, and Exercise Help has a
+  `canonicalEditor` supplement (scratchpad `s4_help.py`). The editor test
+  batch (`s4_batch2.log`, ~1,000 tests) was green at +917 when this was
+  written.
+- 11:55: the canonical-reads batch (`s4_batch2.log`) finished **1,215
+  passed, 0 failed**. Version `2.0.56+256003` applied (pubspec,
+  `app_metadata`, `qql_233_revision_platform_contract_test`,
+  `qql_229_revision3_test`, `beta_lifecycle_test` title and service comment;
+  Beta expiry unchanged, 27 October 2026, same release day), CHANGELOG entry,
+  `docs/256_CHANGE_SUMMARY.md` and `docs/256_VALIDATION.md` Revision 3
+  sections (validation has `<<FLOW>>`, `<<HELP>>`, `<<SUITE>>` placeholders
+  to fill), `docs/EXERCISE_ARCHITECTURE_V12.md` status rows 4–7, README,
+  AGENTS entry and invariants (scratchpad `s4_release.py`). Analyzer clean
+  after one test fix (`CourseAuthoringTransferService()` is not const).
+  Owner note (11:52): the future Picture flashcard also has a usage example
+  with optional read-aloud; recorded in the catalogue plan.
+- 12:09: the third batch finished 429 passed, 1 failed (the Story copy test
+  used the official Laboratory, which Move/Copy and Copy as New Course
+  refuse; the fixture is now a licensed Fork and the editor test saves as
+  draft); `round_flow_authoring_256_test` then **7 passed**. Analyzer clean,
+  every changed Dart file formatted. A first complete run (12:09) was
+  stopped at +196 when `app_metadata_225_04_test` failed on the version
+  pin: two more files pin the version (`app_metadata_225_04_test`,
+  `course_audit_report_225_test`) and README line 352 names the Beta
+  revision; all three moved to Revision 3 (plus the integer
+  `correctiveRevision` pin in `app_metadata_225_04_test`, found on the
+  next attempt). **The complete suite restarted at 12:05** after the five
+  version tests passed (`run_awake.ps1`, log
+  `scratchpad/suite_rev3.log`, UTF-16, about 23 minutes). Commit message
+  ready in `scratchpad/commit_rev3.txt`. Version pins to remember for every
+  revision: pubspec, `app_metadata.dart`, `beta_lifecycle_service.dart`
+  comment, `qql_233_revision_platform_contract_test`,
+  `qql_229_revision3_test`, `beta_lifecycle_test`,
+  `app_metadata_225_04_test`, `course_audit_report_225_test`, README lines
+  3 and 352.
+- Still to do in Session 4: fix anything the batch shows; `dart format` on
+  the last edited files; fill the validation placeholders; the complete
+  suite once (`run_awake.ps1 -Command "flutter test --no-pub
+  --concurrency=1" -LogFile …`, UTF-16 log, about 23 minutes); six-part
+  report; commit "Build 256 Revision 3: presets as recipes and the Generic
+  Primitive Editor" with `git add -A -- . ':!devtools_options.yaml'
+  ':!tools/cloud_setup.sh'`; then `flutter build apk --debug --no-pub` with
+  `JAVA_HOME="C:\Program Files\Android\Android Studio\jbr"` (output
+  `build/app/outputs/flutter-apk/app-debug.apk`) and a sound
+  (`C:\Windows\Media\tada.wav`); then start Session 5 (Revision 4, the
+  catalogue). **Owner (11:30): handoff every 30 minutes; at the end of every
+  revision build the Android debug APK and play a sound.**
+- **Owner decisions of 27 September 2026 (11:30) on the preset catalogue**
+  are recorded in `docs/256_PRESET_CATALOGUE_PLAN.md`: the catalogue overhaul
+  (merges, renames, new and greyed presets, to-target/to-source pairs, picker
+  filter, save guard against unchanged example content) is **its own
+  revision right after Revision 3** (Revision 4, `2.0.56+256004`); the later
+  sessions shift by one (Interoperability → Revision 5, Laboratory/Assign →
+  Revision 6). Revision 3 keeps its planned scope.
 - The owner asked (10:00) where to build a test release: from
   `C:\QQL\QuisquisLingo`, `tools\package_windows_release.ps1
   -RebuildFlutterApplication` writes
@@ -49,6 +142,49 @@ regenerated), the Laboratory presentation baseline
 marked) and `test/runtime_canonical_256_test.dart`. Preset-dependent
 runtime branches remaining: none (plan A.3; `rg "\.type\b" lib/screens/round_screen.dart lib/screens/duel_screen.dart`
 finds only the `_ChoiceOption`/element-type reads).
+
+Session 5 starting points (Revision 4, `2.0.56+256004`: the preset
+catalogue, `docs/256_PRESET_CATALOGUE_PLAN.md`; written 12:20 before the
+Revision 3 commit):
+
+- Registry: `ExercisePreset` gains `direction` (toTarget, toSource, both,
+  none), `status` (active, comingLater with the reason) and a skill group
+  replacing `ExerciseCategory` (vocabulary, grammarAndSentences, listening,
+  readingAndDialogue, picturesAndCharacters, cardsAndNotes, comingLater);
+  the action chip (Choose, Type, Arrange, Match, Card) comes from the
+  primitive. Retired IDs (`choice`, `fill_blank`, `matching`,
+  `listening_choice`, `listening_comprehension`, `reading_comprehension`,
+  `contextual_comprehension`, `dialogue_response`, `type_translation`,
+  `build_translation`) leave the registry; `PresetRecipes.presetToEdit`
+  then recognizes by content, the Audit keeps their kinds in
+  `_retiredPresetKinds` for Info only. Pick the translation (to target /
+  to source) untouched.
+- Recipes: rewrite `ExerciseDraftBuilder` preset by preset into canonical
+  construction (`Exercise.canonical`), starting with the merged and paired
+  presets, so the v11 shapes and the `Exercise` views can go; every recipe
+  gets `exampleDraft(course)` (labelled placeholders like the New Course
+  sample) and `requiredFields`; `PresetRecipes.represents` unchanged.
+- Editor form: fields per preset from the recipe; the save guard refuses
+  while any required field still equals its example (message lists them);
+  switches only where the plan keeps them (one/several correct answers,
+  show the first letter, letters/syllables, text/dialogue lines).
+- Picker (`_choosePreset` sheet, and the Exercise Wizard's list): skill
+  groups, action chips, direction filter (All / To target / To source),
+  greyed "in a later version" tiles; Help and tooltips (Choose the answer
+  asks about grammar, culture, meaning too).
+- Runtime (small): within-word Input gap (Missing letters), word tiles
+  without a picture (Spell what you hear, Spell the word; the
+  `IMAGE_WORD_IMAGE_REQUIRED` rule becomes "picture, audio or clue"),
+  syllable tiles (split at `|`), picture left items in Match; Picture
+  flashcard = Flashcard + picture + optional usage example with optional
+  read-aloud (`required: false`).
+- Tests: recipes for every new preset (represents + recognize), the save
+  guard, the picker filter, the runtime additions, the Laboratory
+  presentation baseline re-recorded for renamed and merged presets (or the
+  Laboratory generator extended for the new presets, else Session 7).
+- Docs: CHANGELOG, `docs/256_CHANGE_SUMMARY.md`, `docs/256_VALIDATION.md`,
+  AGENTS entry, Help EN/IT/ES for the catalogue; then the suite, commit
+  "Build 256 Revision 4: the preset catalogue", APK, sound.
 
 Session 4 starting points (plan Part B Session 4; A.12, A.13):
 
@@ -198,12 +334,24 @@ Order of work:
 | 2 Course Model v12 | 1 | 2.0.56+256001 | committed `e850cc2` |
 | 3 Runtime and Audit | 2 | 2.0.56+256002 | committed `41dd91a` |
 | 4 Presets and Generic Primitive Editor | 3 | 2.0.56+256003 | in progress |
-| 5 Interoperability | 4 | 2.0.56+256004 | not started |
-| 6 Laboratory, Assign, final verification | 5 | 2.0.56+256005 | not started |
+| 5 Preset catalogue (`docs/256_PRESET_CATALOGUE_PLAN.md`) | 4 | 2.0.56+256004 | not started (owner decisions taken 27 Sep 2026) |
+| 6 Interoperability | 5 | 2.0.56+256005 | not started |
+| 7 Laboratory, Assign, final verification | 6 | 2.0.56+256006 | not started |
 
 ## Decisions in flight
 
-- None new. Applied so far in Session 2 without asking (all within the
+- Session 4, draft builder: `ExerciseDraftBuilder` keeps *constructing*
+  candidates through `Exercise.v2(...)`/`Exercise(...)` (the v11 shapes are
+  converter input, which AGENTS.md allows) while every *read* of an exercise
+  moves to canonical fields or `ExerciseFeatures`. Rewriting the 24 recipes
+  canonically now would be redone in Revision 4, which replaces the catalogue;
+  the recipes are rewritten there, preset by preset.
+- Preset catalogue (Session 5): every decision is in
+  `docs/256_PRESET_CATALOGUE_PLAN.md` §1; §5 lists three small proposals the
+  owner has not objected to (Match the words sides, True/False prefill
+  language, card completion modes). Treat them as decided unless the owner
+  says otherwise.
+- None else new. Applied so far in Session 2 without asking (all within the
   plan): `tools/convert_course_to_v11.dart` is retired because it can no
   longer load v11 (the v12 converter takes v11 only; v9/v10 files need the
   Build 255 tool first); a Presentation given as the v11 shape without a

@@ -4,6 +4,80 @@ Build 256 is the exercise architecture redesign (Course Model v12). Its six
 sessions are Revisions 0–5. Plan: `256_EXERCISE_ARCHITECTURE_PLAN.md`;
 reference: `EXERCISE_ARCHITECTURE_V12.md`; evidence: `256_VALIDATION.md`.
 
+## Revision 3 (2.0.56+256003, 27 September 2026): presets as recipes and the Generic Primitive Editor
+
+Session 4. Course files stay Course Model v12; presets become recipes,
+every canonical field is editable, Stories keep their flow through
+authoring, and the creator-side code reads canonical data.
+
+### Files
+
+- `lib/services/preset_recipes.dart` (new): `PresetRecipes.kinds`,
+  `defaultPresetFor`, `presetToEdit`, `decompose`, `rebuild`, `represents`
+  (decompose → rebuild → semantic comparison in a normalized form: positional
+  item IDs, stable element order by role and type, blank image captions)
+  and `recognize` (own preset first, then same-kind presets).
+- `lib/services/canonical_exercise_draft.dart` (new): the pure, mutable
+  draft behind the Generic Primitive Editor; `toExercise` applies plan A.13
+  (metadata kept only while semantically unchanged, preset by recognition);
+  `blankExercise`; registry `violations`; `audit`.
+- `lib/screens/primitive_editor_screen.dart` (new): the Generic Primitive
+  Editor (keys `primitive-editor`, `primitive-editor-primitive`,
+  `primitive-option-<key>`, `primitive-prompt-add-*`, `primitive-item-add`,
+  `primitive-target-add`, `primitive-layout-add-*`,
+  `primitive-evaluation-mode`, `primitive-correct-<item>`,
+  `primitive-support-state`, `primitive-violations`, `primitive-preview`,
+  `primitive-inspection-toggle`, `primitive-save-draft`, `primitive-save`).
+- `lib/widgets/editor_dialogs.dart` (new): the shared `confirmMoveToDraft`.
+- `lib/services/round_flow_authoring.dart` (new): `linearFor`,
+  `forContent`, `remapped`.
+- `lib/screens/course_editor_screen.dart`: the exercise editor decomposes
+  through the recipe (init and Previous/Next), `_exerciseEditorFor` routes
+  to the canonical editor when no preset represents a stored exercise,
+  `exercise-unrepresentable-notice` + `exercise-open-canonical`, the preset
+  sheet's `exercise-preset-canonical` entry, the Round editor's
+  `new-canonical-exercise` button and `round-story-switch`, `_flow` carried
+  through `_editedRound`, Rename, Search saves and GuideBook references;
+  canonical reads (`_exerciseKindName`, `_exerciseTypeLabel`,
+  `_exerciseSummary`, `ExerciseFeatures` in the wizard and validation).
+- `lib/services/exercise_search_service.dart`,
+  `course_hierarchy_update_service.dart`,
+  `lib/widgets/script_recognition_editor.dart`,
+  `lib/services/course_authoring_transfer_service.dart`,
+  `authoring_duplication_service.dart`, `course_audit_service.dart`
+  (`kindLabel` public, `presetKinds` = `PresetRecipes.kinds`).
+- Help: `lib/localization/help/help_{en,it,es}.dart` (Exercise primitives
+  sections `primitives`, `primitiveOptions`, `layouts`, `evaluationModes`,
+  `presets`, `canonicalEditor`, `stories`; supplement `canonicalEditor`),
+  `help_structure.dart`.
+- Docs: `docs/256_PRESET_CATALOGUE_PLAN.md` (new, the owner's decisions and
+  the proposed catalogue for Revision 4), the plan's Part B (session 5
+  inserted), `docs/EXERCISE_ARCHITECTURE_V12.md` status.
+- Tests: `test/preset_recipes_256_test.dart`,
+  `test/primitive_editor_256_test.dart`,
+  `test/round_flow_authoring_256_test.dart` (new).
+
+### Architecture decisions implemented
+
+- Plan A.12 (Help chapters), A.13 (exact recognition, metadata clearing,
+  primitive locked, defaults from the registry), Part B Session 4 (new
+  files, controls from the registry, View only and Inspection on canonical
+  data, Story order in the Round editor).
+- Decision: `ExerciseDraftBuilder` keeps constructing candidates through
+  `Exercise.v2`/`Exercise(...)` (converter input) while every read is
+  canonical; Revision 4 rewrites the recipes with the new catalogue.
+- Defect found and fixed: Rounds lost their `flow` on every rebuild.
+
+### Known limitations and deferrals
+
+- The canonical editor edits image assets by reference or from the Image
+  Library (portable copies, as Recognize characters does); the Course media
+  picker of the preset forms is not embedded in it yet.
+- The v11-shaped views on `Exercise` still exist for the draft builder and
+  tests; they go with the Revision 4 recipes.
+- The preset catalogue itself (merges, renames, new presets, pairs, filter,
+  save guard) is Revision 4.
+
 ## Revision 2 (2.0.56+256002, 27 September 2026): runtime and Audit on canonical data
 
 Session 3. Course files stay Course Model v12; the learner runtime, the
