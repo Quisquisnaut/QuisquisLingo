@@ -2,6 +2,7 @@ import '../models/course_models.dart';
 import 'answer_engine.dart';
 import 'first_letter_answer_service.dart';
 import 'translation_choice_service.dart';
+import 'preset_variants.dart';
 
 /// A detached snapshot of the Exercise form. It holds no controllers or Course
 /// working copy, and building it has no effect on the authoring session.
@@ -35,6 +36,10 @@ class ExerciseDraftValues {
     this.selectedSharedSource,
     this.attachSelectedSharedSource = false,
     this.scriptCandidate,
+    this.revealFirstLetter = true,
+    this.textRole = '',
+    this.audioRole = '',
+    this.matchSides = '',
   }) : correctTranslations = List.unmodifiable(correctTranslations);
 
   final Exercise original;
@@ -64,6 +69,69 @@ class ExerciseDraftValues {
   final String imageAsset;
   final SharedImageSource? selectedSharedSource;
   final bool attachSelectedSharedSource;
+
+  /// Type the missing word: whether the gap reveals its first letter.
+  final bool revealFirstLetter;
+
+  /// Read and answer: the role the exercise's text had when it was opened
+  /// (`passage`, `situation` or `context`), so saving it unchanged keeps
+  /// its shape; empty for a new exercise.
+  final String textRole;
+
+  /// Listen and answer: the role its automatic audio had (`primary` or
+  /// `passage`); empty for a new exercise.
+  final String audioRole;
+
+  /// Match the words: the languages of the opened exercise's sides,
+  /// `source_target` (Match the words) or `target_source` (the former
+  /// Matching), `none` when they state none, empty for a new exercise.
+  final String matchSides;
+
+  ExerciseDraftValues copyWith({
+    String? type,
+    bool? useInlineGaps,
+    bool? useMultiSelect,
+    String? prompt,
+    String? question,
+    String? tts,
+    String? answers,
+    String? missingWords,
+    String? context,
+    String? contextMode,
+  }) => ExerciseDraftValues(
+    original: original,
+    type: type ?? this.type,
+    publicationState: publicationState,
+    requireValidAnswer: requireValidAnswer,
+    useInlineGaps: useInlineGaps ?? this.useInlineGaps,
+    useMultiSelect: useMultiSelect ?? this.useMultiSelect,
+    prompt: prompt ?? this.prompt,
+    question: question ?? this.question,
+    tts: tts ?? this.tts,
+    hint: hint,
+    answers: answers ?? this.answers,
+    correct: correct,
+    accepted: accepted,
+    tokens: tokens,
+    order: order,
+    gapLayout: gapLayout,
+    pairs: pairs,
+    icons: icons,
+    missingWords: missingWords ?? this.missingWords,
+    context: context ?? this.context,
+    dialogue: dialogue,
+    requiredSelections: requiredSelections,
+    correctTranslations: correctTranslations,
+    contextMode: contextMode ?? this.contextMode,
+    imageAsset: imageAsset,
+    selectedSharedSource: selectedSharedSource,
+    attachSelectedSharedSource: attachSelectedSharedSource,
+    scriptCandidate: scriptCandidate,
+    revealFirstLetter: revealFirstLetter,
+    textRole: textRole,
+    audioRole: audioRole,
+    matchSides: matchSides,
+  );
 
   /// Script recognition already owns its canonical Select construction and
   /// stable option identities in ScriptRecognitionController. The widget
@@ -136,9 +204,15 @@ class ExerciseDraftBuildResult {
 /// The screen's former candidate construction, without UI feedback or writes.
 abstract final class ExerciseDraftBuilder {
   static ExerciseDraftBuildResult build(ExerciseDraftValues draft) {
-    final result = _build(draft);
-    final candidate = result.candidate;
-    if (candidate == null || !draft.attachSelectedSharedSource) return result;
+    // A catalogue preset runs its base recipe and is finished as itself
+    // (Build 256 Revision 4, PresetVariants).
+    final result = _build(PresetVariants.draftFor(draft.type, draft));
+    var candidate = result.candidate;
+    if (candidate == null) return result;
+    candidate = PresetVariants.finish(draft.type, candidate, draft);
+    if (!draft.attachSelectedSharedSource) {
+      return ExerciseDraftBuildResult.success(candidate);
+    }
     return ExerciseDraftBuildResult.success(
       _withSelectedSharedSource(candidate, draft),
     );
@@ -520,6 +594,11 @@ abstract final class ExerciseDraftBuilder {
                   'listening_comprehension',
                   'missing_word',
                   'listening_spelling',
+                  // Listen and pick the image, Spell what you hear, True or
+                  // false (Build 256 Revision 4).
+                  'icon_choice',
+                  'image_word',
+                  'choice',
                 }.contains(type) &&
                 draft.tts.trim().isNotEmpty
             ? draft.tts.trim()
@@ -557,6 +636,8 @@ abstract final class ExerciseDraftBuilder {
               'gap_choice',
               'fill_blank',
               'type_translation',
+              // Missing letters (Build 256 Revision 4).
+              'missing_word',
             }.contains(type)
             ? draft.hint.trim()
             : '',

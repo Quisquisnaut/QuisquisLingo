@@ -15,7 +15,28 @@ void main() {
     // Inventory of the real form values, including fields visible only in one
     // context mode. Widget tests separately check their direct Help controls.
     const fieldsByPreset = <String, List<String>>{
-      'choice': [
+      'translation_choice_to_target': ['question', 'answers', 'correct'],
+      'translation_choice_to_source': ['question', 'answers', 'correct'],
+      'type_translation_to_target': ['prompt', 'accepted', 'hint'],
+      'type_translation_to_source': ['prompt', 'accepted', 'hint'],
+      'build_translation_to_target': [
+        'prompt',
+        'tokens',
+        'correctTranslation',
+        'gapLayout',
+        'tts',
+      ],
+      'build_translation_to_source': [
+        'prompt',
+        'tokens',
+        'correctTranslation',
+        'gapLayout',
+        'tts',
+      ],
+      'word_match': ['prompt', 'pairs'],
+      'super_match': ['prompt', 'pairs'],
+      'flashcard': ['prompt', 'question', 'tts', 'answers'],
+      'choice_target': [
         'prompt',
         'question',
         'answers',
@@ -25,25 +46,41 @@ void main() {
         'tokens',
         'tts',
       ],
-      'translation_choice_to_target': ['question', 'answers', 'correct'],
-      'translation_choice_to_source': ['question', 'answers', 'correct'],
+      'choice_source': [
+        'prompt',
+        'question',
+        'answers',
+        'correct',
+        'requiredSelections',
+        'gapLayout',
+        'tokens',
+        'tts',
+      ],
       'gap_choice': ['question', 'answers', 'correct', 'hint'],
-      'icon_choice': ['question', 'answers', 'correct', 'icons'],
-      'listening_choice': ['tts', 'question', 'answers', 'correct'],
-      'listening_comprehension': ['tts', 'question', 'answers', 'correct'],
-      'reading_comprehension': ['prompt', 'question', 'answers', 'correct'],
-      'dialogue_response': ['prompt', 'question', 'answers', 'correct'],
-      'contextual_comprehension': [
-        'contextMode',
-        'context',
+      'type_missing_word': ['revealFirstLetter', 'prompt', 'accepted', 'hint'],
+      'word_order': ['prompt', 'gapLayout', 'tokens', 'order', 'tts'],
+      'listening_answer_target': ['tts', 'question', 'answers', 'correct'],
+      'listening_answer_source': ['tts', 'question', 'answers', 'correct'],
+      'listening_spelling': ['prompt', 'tts', 'missingWords'],
+      'missing_word': ['prompt', 'tts', 'missingWords'],
+      'audio_match': ['prompt', 'pairs'],
+      'reading_answer_target': [
+        'prompt',
         'tts',
         'dialogue',
         'question',
         'answers',
         'correct',
       ],
-      'type_translation': ['prompt', 'accepted', 'hint'],
-      'type_missing_word': ['prompt', 'accepted', 'hint'],
+      'reading_answer_source': [
+        'prompt',
+        'tts',
+        'dialogue',
+        'question',
+        'answers',
+        'correct',
+      ],
+      'icon_choice': ['question', 'answers', 'correct', 'icons'],
       'script_recognition': [
         'scriptMode',
         'scriptPrompt',
@@ -52,23 +89,27 @@ void main() {
         'scriptImageOptions',
         'scriptCorrect',
       ],
-      'build_translation': [
-        'prompt',
-        'tokens',
-        'correctTranslation',
-        'gapLayout',
-        'tts',
-      ],
-      'fill_blank': ['question', 'accepted', 'hint', 'tts'],
-      'listening_spelling': ['prompt', 'tts', 'missingWords'],
-      'missing_word': ['prompt', 'tts', 'missingWords'],
-      'matching': ['prompt', 'pairs'],
-      'word_match': ['prompt', 'pairs'],
-      'super_match': ['prompt', 'pairs'],
-      'audio_match': ['prompt', 'pairs'],
-      'word_order': ['prompt', 'gapLayout', 'tokens', 'order', 'tts'],
       'image_word': ['prompt', 'tokens', 'order'],
-      'flashcard': ['prompt', 'question', 'tts', 'answers'],
+      'picture_flashcard': ['prompt', 'question', 'tts', 'answers'],
+      'true_false': ['question', 'tts', 'answers', 'correct'],
+      'gap_choice_inline': ['prompt', 'gapLayout', 'tokens', 'tts'],
+      'complete_text': ['prompt', 'missingWords'],
+      'missing_letters': ['prompt', 'tts', 'hint'],
+      'gap_blocks': ['prompt', 'gapLayout', 'tokens', 'tts'],
+      'sentence_order': ['prompt', 'tokens', 'order'],
+      'listening_image_choice': [
+        'tts',
+        'question',
+        'answers',
+        'correct',
+        'icons',
+      ],
+      'spell_heard': ['tts', 'tokens', 'order'],
+      'picture_choice': ['question', 'answers', 'correct'],
+      'picture_name': ['question', 'accepted', 'hint'],
+      'spell_word': ['prompt', 'tokens', 'order'],
+      'picture_word_match': ['prompt', 'answers', 'icons'],
+      'note_card': ['prompt', 'question'],
     };
     expect(
       fieldsByPreset.keys.toSet(),
@@ -92,8 +133,8 @@ void main() {
   });
 
   test('Prompt and Question have distinct concrete examples', () {
-    final prompt = help('choice', 'prompt');
-    final question = help('choice', 'question');
+    final prompt = help('choice_target', 'prompt');
+    final question = help('choice_target', 'question');
     expect(
       prompt.purpose,
       'The instruction shown to the learner. Example: How do you say this in Italian?',
@@ -101,7 +142,7 @@ void main() {
     expect(prompt.example, 'How do you say this in Italian?');
     expect(
       question.purpose,
-      'The word or phrase the learner must translate. Example: Good morning',
+      'The question the learner answers, or the word or phrase to translate. Example: Good morning',
     );
     expect(question.example, 'Good morning');
     expect(prompt.text, contains('Example\nHow do you say this in Italian?'));
@@ -109,14 +150,17 @@ void main() {
   });
 
   test('concise examples clarify common field formats', () {
-    expect(help('choice', 'answers').example, 'caffè\nacqua\npane');
-    expect(help('matching', 'pairs').example, 'casa = house\npane = bread');
+    expect(help('choice_target', 'answers').example, 'caffè\nacqua\npane');
     expect(
-      help('reading_comprehension', 'prompt').example,
+      help('word_match', 'pairs').example,
+      'house = casa\nbread = pane\nwater = acqua',
+    );
+    expect(
+      help('reading_answer_target', 'prompt').example,
       contains('Maria prende il treno.'),
     );
     expect(
-      help('type_translation', 'accepted').example,
+      help('type_translation_to_target', 'accepted').example,
       contains('[prendo|vorrei]'),
     );
     expect(
@@ -127,16 +171,18 @@ void main() {
       help('image_word', 'image').example,
       contains('Bundled path: assets/exercise_images/house.webp'),
     );
-    expect(help('listening_choice', 'tts').example, 'Buongiorno, come stai?');
     expect(
-      help('listening_choice', 'tts').entryRules,
+      help('listening_answer_target', 'tts').example,
+      'Buongiorno, come stai?',
+    );
+    expect(
+      help('listening_answer_target', 'tts').entryRules,
       contains('not an MP3 filename or path'),
     );
-    expect(help('fill_blank', 'tts').title, contains('(optional)'));
   });
 
   test('accepted-answer Help examples run through the production parser', () {
-    final definition = help('type_translation', 'accepted');
+    final definition = help('type_translation_to_target', 'accepted');
     expect(AnswerExpressionParser.expand(definition.example!), [
       'Prendo un cappuccino',
       'Vorrei un cappuccino',
@@ -163,8 +209,8 @@ void main() {
 
   test('typed-answer fields share syntax while listening gaps are literal', () {
     for (final definition in [
-      help('type_translation', 'accepted'),
-      help('fill_blank', 'accepted'),
+      help('type_translation_to_target', 'accepted'),
+      help('type_translation_to_source', 'accepted'),
       help('listening_spelling', 'missingWords'),
     ]) {
       expect(
@@ -188,7 +234,10 @@ void main() {
   test(
     'Arrange Help distinguishes answer rows, word lines and letter lines',
     () {
-      final sentence = help('build_translation', 'correctTranslation');
+      final sentence = help(
+        'build_translation_to_target',
+        'correctTranslation',
+      );
       expect(sentence.entryRules, contains('Each separate answer entry'));
       expect(
         sentence.entryRules,
@@ -224,7 +273,7 @@ void main() {
       help('word_order', 'tokens').validation,
       contains('at most 2 unused distractor'),
     );
-    final translation = help('build_translation', 'tokens');
+    final translation = help('build_translation_to_target', 'tokens');
     expect(
       translation.validation,
       contains('unused by every correct translation'),
@@ -238,13 +287,10 @@ void main() {
   });
 
   test('matching Help preserves ordinary and specialized cardinalities', () {
-    expect(
-      help('matching', 'pairs').validation,
-      contains('At least one usable pair'),
-    );
-    for (final preset in ['word_match', 'super_match']) {
-      expect(help(preset, 'pairs').entryRules, contains('exactly three'));
-    }
+    // Build 256 Revision 4: Match the words absorbs Matching and takes any
+    // number of pairs from two; Match by meaning keeps three.
+    expect(help('word_match', 'pairs').entryRules, contains('at least two'));
+    expect(help('super_match', 'pairs').entryRules, contains('exactly three'));
     final audio = help('audio_match', 'pairs');
     expect(audio.entryRules, contains('exactly three lines'));
     expect(audio.entryRules, contains('audio text = visible text'));
@@ -261,57 +307,31 @@ void main() {
     );
     expect(usage.validation, contains('presentation content'));
     expect(
-      help('choice', 'answers').entryRules,
+      help('choice_target', 'answers').entryRules,
       contains('one literal answer per line'),
     );
     expect(
-      help('dialogue_response', 'answers').entryRules,
-      contains('exactly two'),
-    );
-    expect(
-      help('choice', 'correct').entryRules,
+      help('choice_target', 'correct').entryRules,
       contains('counting non-empty answer lines from 1'),
     );
   });
 
-  test(
-    'context Help separates mode, plain context, audio and speaker turns',
-    () {
-      expect(
-        help('contextual_comprehension', 'contextMode').validation,
-        contains('An image alone is not sufficient context'),
-      );
-      expect(
-        help('contextual_comprehension', 'contextMode').purpose,
-        contains('Text is a presentation mode'),
-      );
-      expect(
-        help('contextual_comprehension', 'context').purpose,
-        contains('passage or background'),
-      );
-      expect(
-        help('contextual_comprehension', 'context').example,
-        contains('Marta is describing her daily routine.'),
-      );
-      expect(
-        help('contextual_comprehension', 'context').entryRules,
-        contains('question belongs in its own field'),
-      );
-      final dialogue = help('contextual_comprehension', 'dialogue');
-      expect(
-        dialogue.entryRules,
-        contains('one turn per line as Speaker: text'),
-      );
-      expect(
-        dialogue.validation,
-        contains('non-empty speaker and non-empty text'),
-      );
-      expect(
-        help('contextual_comprehension', 'tts').entryRules,
-        contains('not an MP3 filename or path'),
-      );
-    },
-  );
+  test('Read and answer Help covers the text, its audio and speaker turns', () {
+    final text = help('reading_answer_target', 'prompt');
+    expect(text.title, 'Text to read');
+    expect(text.purpose, contains('situation or context'));
+    expect(text.example, contains('Maria prende il treno.'));
+    final dialogue = help('reading_answer_target', 'dialogue');
+    expect(dialogue.entryRules, contains('one turn per line as Speaker: text'));
+    expect(
+      dialogue.validation,
+      contains('non-empty speaker and non-empty text'),
+    );
+    expect(
+      help('reading_answer_target', 'tts').entryRules,
+      contains('not an MP3 filename or path'),
+    );
+  });
 
   test('image Help separates imported prompt image from choice icon keys', () {
     final image = help('image_word', 'image');
@@ -357,7 +377,7 @@ void main() {
   test(
     'unknown field keys cannot silently acquire irrelevant generic Help',
     () {
-      expect(() => help('choice', 'speakerVoice'), throwsArgumentError);
+      expect(() => help('choice_target', 'speakerVoice'), throwsArgumentError);
     },
   );
 

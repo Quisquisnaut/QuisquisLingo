@@ -22,10 +22,15 @@ void main() {
     expect(
       plan.rounds.first.presetIds,
       everyElement(
-        isIn({'choice', 'gap_choice', 'listening_choice', 'word_match'}),
+        isIn({
+          'choice_target',
+          'gap_choice',
+          'listening_answer_target',
+          'word_match',
+        }),
       ),
     );
-    expect(plan.rounds.last.presetIds, contains('type_translation'));
+    expect(plan.rounds.last.presetIds, contains('type_translation_to_target'));
     expect(
       plan.rounds.expand((round) => round.presetIds),
       everyElement(

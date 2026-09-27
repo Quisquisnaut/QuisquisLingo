@@ -48,7 +48,14 @@ abstract final class ExerciseSearchRegistry {
   static const _missing = ExerciseSearchField.missingWords;
 
   static const definitions = <ExerciseTypeSearchDefinition>[
-    ExerciseTypeSearchDefinition(presetId: 'choice', fields: [_prompt, _items]),
+    ExerciseTypeSearchDefinition(
+      presetId: 'choice_target',
+      fields: [_prompt, _items],
+    ),
+    ExerciseTypeSearchDefinition(
+      presetId: 'choice_source',
+      fields: [_prompt, _items],
+    ),
     ExerciseTypeSearchDefinition(
       presetId: 'translation_choice_to_target',
       fields: [_prompt, _items],
@@ -70,36 +77,36 @@ abstract final class ExerciseSearchRegistry {
       fields: [_prompt, _items],
     ),
     ExerciseTypeSearchDefinition(
-      presetId: 'listening_choice',
+      presetId: 'listening_answer_target',
       fields: [_audio, _prompt, _items],
     ),
     ExerciseTypeSearchDefinition(
-      presetId: 'listening_comprehension',
+      presetId: 'listening_answer_source',
       fields: [_audio, _prompt, _items],
     ),
     ExerciseTypeSearchDefinition(
-      presetId: 'reading_comprehension',
-      fields: [_prompt, _items],
-    ),
-    ExerciseTypeSearchDefinition(
-      presetId: 'dialogue_response',
-      fields: [_prompt, _items],
-    ),
-    ExerciseTypeSearchDefinition(
-      presetId: 'contextual_comprehension',
+      presetId: 'reading_answer_target',
       fields: [_prompt, _audio, _speaker, _items],
     ),
     ExerciseTypeSearchDefinition(
-      presetId: 'type_translation',
+      presetId: 'reading_answer_source',
+      fields: [_prompt, _audio, _speaker, _items],
+    ),
+    ExerciseTypeSearchDefinition(
+      presetId: 'type_translation_to_target',
       fields: [_prompt, _accepted, _hint],
     ),
     ExerciseTypeSearchDefinition(
-      presetId: 'build_translation',
+      presetId: 'type_translation_to_source',
+      fields: [_prompt, _accepted, _hint],
+    ),
+    ExerciseTypeSearchDefinition(
+      presetId: 'build_translation_to_target',
       fields: [_prompt, _items, _orders],
     ),
     ExerciseTypeSearchDefinition(
-      presetId: 'fill_blank',
-      fields: [_prompt, _audio, _accepted, _hint],
+      presetId: 'build_translation_to_source',
+      fields: [_prompt, _items, _orders],
     ),
     ExerciseTypeSearchDefinition(
       presetId: 'type_missing_word',
@@ -112,10 +119,6 @@ abstract final class ExerciseSearchRegistry {
     ExerciseTypeSearchDefinition(
       presetId: 'missing_word',
       fields: [_prompt, _audio, _missing],
-    ),
-    ExerciseTypeSearchDefinition(
-      presetId: 'matching',
-      fields: [_prompt, _items],
     ),
     ExerciseTypeSearchDefinition(
       presetId: 'word_match',
@@ -141,6 +144,59 @@ abstract final class ExerciseSearchRegistry {
       presetId: 'flashcard',
       fields: [_prompt, _audio],
     ),
+    ExerciseTypeSearchDefinition(
+      presetId: 'picture_flashcard',
+      fields: [_prompt, _audio],
+    ),
+    ExerciseTypeSearchDefinition(
+      presetId: 'true_false',
+      fields: [_prompt, _audio, _items],
+    ),
+    ExerciseTypeSearchDefinition(
+      presetId: 'gap_choice_inline',
+      fields: [_prompt, _audio, _items],
+    ),
+    ExerciseTypeSearchDefinition(
+      presetId: 'complete_text',
+      fields: [_prompt, _missing],
+    ),
+    ExerciseTypeSearchDefinition(
+      presetId: 'missing_letters',
+      fields: [_prompt, _audio, _missing, _hint],
+    ),
+    ExerciseTypeSearchDefinition(
+      presetId: 'gap_blocks',
+      fields: [_prompt, _audio, _items, _orders],
+    ),
+    ExerciseTypeSearchDefinition(
+      presetId: 'sentence_order',
+      fields: [_prompt, _items, _orders],
+    ),
+    ExerciseTypeSearchDefinition(
+      presetId: 'listening_image_choice',
+      fields: [_audio, _prompt, _items],
+    ),
+    ExerciseTypeSearchDefinition(
+      presetId: 'spell_heard',
+      fields: [_audio, _items, _orders],
+    ),
+    ExerciseTypeSearchDefinition(
+      presetId: 'picture_choice',
+      fields: [_prompt, _items],
+    ),
+    ExerciseTypeSearchDefinition(
+      presetId: 'picture_name',
+      fields: [_prompt, _accepted, _hint],
+    ),
+    ExerciseTypeSearchDefinition(
+      presetId: 'spell_word',
+      fields: [_prompt, _items, _orders],
+    ),
+    ExerciseTypeSearchDefinition(
+      presetId: 'picture_word_match',
+      fields: [_prompt, _items],
+    ),
+    ExerciseTypeSearchDefinition(presetId: 'note_card', fields: [_prompt]),
   ];
 
   static ExerciseTypeSearchDefinition? forExercise(Exercise exercise) {

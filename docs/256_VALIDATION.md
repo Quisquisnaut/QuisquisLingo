@@ -5,6 +5,87 @@ spelling) with Flutter 3.47.4 / Dart 3.13.3 on Windows 10, the complete
 suite through the keep-awake wrapper (`ES_CONTINUOUS | ES_SYSTEM_REQUIRED`
 held for the run and cleared afterwards).
 
+## Revision 4 (2.0.56+256004): the preset catalogue, 27 September 2026
+
+- Stage 1 (skill groups, directions, the coming-later list, the picker's
+  filter, chips and greyed tiles): `test/preset_catalogue_256_test.dart`
+  (7 tests) and the adjusted editor, Help, planner and Pick the translation
+  tests: **680 passed, 7 failed** before the pins were moved, then green.
+- Stage 2 (merged and paired presets, successors, the Audit on the
+  catalogue, field help, Search, the source voice): focused batches of the
+  editor, Help, Audit, recipe, converter, runtime and Laboratory tests
+  after each script: 549/104, 590/30, 434/9, 338/12 (a typed translation
+  no longer represented: the rebuild blank carried the preset ID as its
+  v11 type and the base map made the builder reuse the blank's Select
+  interaction; the blank now has the recipe's base type), then green apart
+  from the bundled Courses awaiting Stage 4.
+- Stage 3 (the 14 new presets, pictures on answers, runtime additions) and
+  Stage 4 (generators, regenerated Courses, fixtures): batches 452/36,
+  578/38, 667/59 (29 of them new Laboratory examples without a baseline
+  record), each followed by its corrections (`docs/256_HANDOFF.md` lists
+  them by script).
+- Laboratory presentation baseline: the Laboratory test in record mode
+  (**All tests passed**, 107 records), `test/support/laboratory_presentation_254.dart`
+  rebuilt from the records; the diff against the Session 3 baseline shows
+  27 new records and exactly two changed ones, both deliberate: the two
+  inline-gap Build the translation examples are Drag the blocks into the
+  gaps with a clue (heading BUILD THE SENTENCE, instruction "Put the words
+  in the correct order."). Every other pre-existing record is byte-equal.
+- The first run of that batch (657 passed, 11 failed) exposed four gaps,
+  all closed before the rerun: the converter noted every `["continue"]`
+  Note card as an unmapped detail; the Audit demanded a usage sentence and
+  pronunciation from Note cards and Picture flashcards and called three
+  "What is this?" pictures duplicates; the Piedmontese Read and answer
+  (to source) passages were two words long and its Match picture to word
+  instructions repeated; recognition picked Missing letters for a
+  whole-word gap and Spell what you hear for a picture
+  (`PresetVariants.fits`, with a direct test). The rerun (671 passed, 4
+  failed) showed the v11 view reading an omitted completion mode as
+  understood/review (so the converter's lossless check never held; fixed in
+  `Presentation.fromExercise`), the two Note cards without a baseline
+  record (recorded, baseline rebuilt) and the release-gate key of the
+  Piedmontese opposites exercise still naming Lesson 20 (now Lesson 8).
+  The second rerun (14 files, 6 failures) found the Edge Case asset out of
+  date against its generator (the inline-gap presets `gap_blocks` and
+  `gap_choice_inline` were never re-emitted; regenerated, `--check` PASS),
+  the demo package roundtrip test assuming every card reviewable (a Note
+  card continues) and the release-gate test skipping usage items only for
+  the `flashcard` preset (now every card built on the flashcard recipe).
+  Validators outside the suite: `python -X utf8 tools/validate_courses.py`
+  (four v12 files; the Piedmontese count is 38 Lessons), the Piedmontese
+  generator's `--check`, the v11 fixtures regenerated (`s36_fixtures.py`).
+- Batch 9 (Laboratory, Piedmontese, recipes, primitive editor, runtime,
+  converter parity, Select editor, Help, Audit, characterization, builder,
+  catalogue, search, catalogs, field help, Pick the translation, follow-up,
+  Course Editor, Edge Case, registry): 657 passed, 11 failed on the first run (`focused_s20.log`); 671 passed, 4 failed on the 26-file rerun (`focused_s21.log`); **439 passed, 0 failed** on the 12-file rerun of every file the fixes touched (`focused_s23.log`); after the complete suite, the seven files it failed: 51 passed, 1 failed, then green after the Wizard fix (`focused_s24.log`).
+- `flutter analyze --no-pub`: **No issues found** after every script;
+  after the final `dart format` (26 files) it reported one
+  `curly_braces_in_flow_control_structures` info where the reflow had put
+  an `if` body on its own line (`exercise_features.dart`): braces added,
+  clean again.
+- Complete suite, first run (00:40–01:06, 28 September): **3040 passed, 1
+  skipped, 13 failed**, every failure in a file outside the focused
+  batches, all pins on Revision 3 shapes: the five Arrange inline-gap tests
+  tapped the removed Inline gaps switch (now they pick Drag the blocks into
+  the gaps), the Audit report expected `choice (choice)` (a v11 Choose
+  records `choice_target`), the image-removal fixture's Image Word kept a
+  clue (its v11 prompt), so the widened spelling rule no longer needed its
+  picture (the fixture has no prompt now), the Wizard test tapped the chip
+  `Type the translation` (now `(to target)`), the two first-letter Editor
+  tests tapped a Save row whose centre sits a pixel below the 600 px default
+  window (big window like the other editor tests), the View-only test read
+  the merged contextual comprehension form's context mode selector, and the
+  Recognize characters help had been reworded (restored to the 226.03 text).
+  No learner-visible behavior changed for these. The rerun then showed the
+  one production defect behind the Wizard failure: `_blankExerciseForPreset`
+  used the preset ID as the v11 type, so a catalogue twin fell back to a
+  Select interaction and the Wizard saved a Select without items (accepted
+  translations lost); it now builds on the recipe's base type with the
+  preset as editor template. The seven files were rerun green before the
+  second complete run.
+- Complete suite on the final working tree (`flutter test --no-pub
+  --concurrency=1` under the keep-awake wrapper): first run **3040 passed, 1 skipped, 13 failed** (00:40–01:06, 28 September, analysed above); second run on the final tree **3053 passed, 1 skipped, 0 failed** (01:26–01:52, `All other tests passed!`; the 13 fixed tests now count among the passes).
+
 ## Revision 3 (2.0.56+256003): presets as recipes and the Generic Primitive Editor, 27 September 2026
 
 - Recipes first: `test/preset_recipes_256_test.dart` (83 tests) proves every

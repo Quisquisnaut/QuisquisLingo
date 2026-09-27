@@ -64,6 +64,7 @@ import '../services/exercise_draft_builder.dart';
 import '../services/canonical_exercise_draft.dart';
 import '../services/round_flow_authoring.dart';
 import '../services/preset_recipes.dart';
+import '../services/preset_variants.dart';
 import '../services/guidebook_round_generator.dart';
 import '../services/publication_service.dart';
 import '../services/provisional_publication_service.dart';
@@ -7235,6 +7236,21 @@ final ButtonStyle _compactButtonStyle = ButtonStyle(
   textStyle: const WidgetStatePropertyAll(TextStyle(fontSize: 13)),
 );
 
+/// The action word of a preset tile (Choose, Type, Arrange, Match, Card, …).
+class _PresetActionChip extends StatelessWidget {
+  const _PresetActionChip(this.action);
+
+  final String action;
+
+  @override
+  Widget build(BuildContext context) => Chip(
+    label: Text(action),
+    visualDensity: VisualDensity.compact,
+    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+    padding: EdgeInsets.zero,
+  );
+}
+
 /// The preset an exercise carries, else its learner kind: the name the
 /// editor's lists and Audit locations show for it.
 String _exerciseKindName(Exercise e) => e.editorTemplate.isNotEmpty
@@ -7309,10 +7325,14 @@ Widget _exerciseEditorFor({
       );
 
 Exercise _blankExerciseForPreset(String presetId, AuthoringIdGenerator ids) =>
+    // The v11 shape needs the recipe's base type (a catalogue twin such as
+    // type_translation_to_target is not a v11 type and would fall back to a
+    // Select interaction); the preset itself travels as the editor template.
     Exercise(
       id: ids.next('exercise'),
       publicationState: PublicationState.draft,
-      type: presetId,
+      type: ExercisePresetRegistry.byId(presetId)?.base ?? presetId,
+      editorTemplate: presetId,
       prompt: '',
       question: '',
       answers: const [],
@@ -7537,17 +7557,18 @@ class _ExerciseCreationWizardScreenState
           runSpacing: 8,
           children: [
             for (final category in ExerciseCategory.values)
-              FilterChip(
-                label: Text(category.label),
-                selected: _categories.contains(category),
-                onSelected: (selected) => setState(() {
-                  if (selected) {
-                    _categories.add(category);
-                  } else {
-                    _categories.remove(category);
-                  }
-                }),
-              ),
+              if (ExercisePresetRegistry.inCategory(category).isNotEmpty)
+                FilterChip(
+                  label: Text(category.label),
+                  selected: _categories.contains(category),
+                  onSelected: (selected) => setState(() {
+                    if (selected) {
+                      _categories.add(category);
+                    } else {
+                      _categories.remove(category);
+                    }
+                  }),
+                ),
           ],
         ),
       ],
@@ -7989,6 +8010,10 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
   late String _imageAsset;
   SharedImageSource? _selectedSharedSource;
   bool _useInlineGaps = false;
+  bool _revealFirstLetter = true;
+  String _textRole = '';
+  String _audioRole = '';
+  String _matchSides = '';
   bool _useMultiSelect = false;
   static String labelForType(String type) =>
       ExercisePresetRegistry.byId(type)?.name ?? type.replaceAll('_', ' ');
@@ -8024,7 +8049,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     _type =
         PresetRecipes.presetToEdit(e) ??
         PresetRecipes.defaultPresetFor(e.primitive) ??
-        'choice';
+        'choice_target';
     final draft = PresetRecipes.decompose(e, _type);
     _prompt = TextEditingController(text: draft.prompt);
     _question = TextEditingController(text: draft.question);
@@ -8036,6 +8061,10 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     _requiredSelections = TextEditingController(text: draft.requiredSelections);
     _accepted = TextEditingController(text: draft.accepted);
     _useInlineGaps = draft.useInlineGaps;
+    _revealFirstLetter = draft.revealFirstLetter;
+    _textRole = draft.textRole;
+    _audioRole = draft.audioRole;
+    _matchSides = draft.matchSides;
     _tokens = TextEditingController(text: draft.tokens);
     _order = TextEditingController(text: draft.order);
     _gapLayout = TextEditingController(text: draft.gapLayout);
@@ -8046,6 +8075,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     }
     _pairs = TextEditingController(text: draft.pairs);
     _icons = TextEditingController(text: draft.icons);
+    if (_type == 'picture_word_match') _splitPicturePairs(draft.pairs);
     _missingWords = TextEditingController(text: draft.missingWords);
     _context = TextEditingController(text: draft.context);
     _dialogue = TextEditingController(text: draft.dialogue);
@@ -8189,6 +8219,116 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
       _correctTranslationError = null;
       _correctTranslationErrorIndexes = const {};
     });
+  }
+
+  /// The words for true and false in the Course's source language when QQL
+  /// knows it (the eight copy languages), else in English.
+  List<String> _trueFalseAnswers() {
+    final course = widget.course;
+    final code = course == null
+        ? ''
+        : (CourseLanguageResolver.base(course).code ?? '')
+              .split('-')
+              .first
+              .toLowerCase();
+    return switch (code) {
+      'it' => const ['Vero', 'Falso'],
+      'es' => const ['Verdadero', 'Falso'],
+      'de' => const ['Richtig', 'Falsch'],
+      'pt' => const ['Verdadeiro', 'Falso'],
+      'nl' => const ['Waar', 'Onwaar'],
+      'fi' => const ['Totta', 'Tarua'],
+      'cy' => const ['Cywir', 'Anghywir'],
+      _ => const ['True', 'False'],
+    };
+  }
+
+  List<String> _answerLines() => _answers.text
+      .split('\n')
+      .map((line) => line.trim())
+      .where((line) => line.isNotEmpty)
+      .toList(growable: false);
+
+  /// One picture per answer (Select the image, Listen and pick the image,
+  /// Match picture to word): `_icons` holds one line per answer, in the
+  /// answers' order, a picture reference or a named icon key.
+  Widget _answerPictures({String title = 'Pictures'}) {
+    final answers = _answerLines();
+    final lines = _icons.text.split('\n');
+    String lineAt(int index) => index < lines.length ? lines[index].trim() : '';
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(title, style: Theme.of(context).textTheme.titleSmall),
+        const SizedBox(height: 4),
+        if (answers.isEmpty)
+          const Text('Enter the answers above first; each gets a picture here.')
+        else
+          for (var i = 0; i < answers.length; i++)
+            Card(
+              key: ValueKey('answer-picture-$i'),
+              child: Padding(
+                padding: const EdgeInsets.all(8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      '${i + 1}. ${answers[i]}',
+                      style: Theme.of(context).textTheme.labelLarge,
+                    ),
+                    ExerciseImageField(
+                      course: widget.course,
+                      asset: PresetVariants.isImageReference(lineAt(i))
+                          ? lineAt(i)
+                          : '',
+                      sharedSource: null,
+                      readOnly: widget.readOnly,
+                      onChanged: (change) => setState(() {
+                        _setIconLine(i, change.asset, answers.length);
+                        _dirty = true;
+                      }),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+        const SizedBox(height: 12),
+      ],
+    );
+  }
+
+  void _setIconLine(int index, String value, int count) {
+    final lines = _icons.text.split('\n');
+    while (lines.length < count) {
+      lines.add('');
+    }
+    lines[index] = value;
+    _icons.text = lines.take(count).join('\n');
+  }
+
+  /// Match picture to word keeps its pairs as words (`_answers`) and
+  /// pictures (`_icons`) in the form and as `picture = word` lines in the
+  /// draft.
+  String _picturePairsText() {
+    final answers = _answerLines();
+    final lines = _icons.text.split('\n');
+    return [
+      for (var i = 0; i < answers.length; i++)
+        '${i < lines.length ? lines[i].trim() : ''} = ${answers[i]}',
+    ].join('\n');
+  }
+
+  void _splitPicturePairs(String pairs) {
+    final pictures = <String>[];
+    final words = <String>[];
+    for (final line in pairs.split('\n')) {
+      final separator = line.indexOf('=');
+      if (separator < 0) continue;
+      pictures.add(line.substring(0, separator).trim());
+      words.add(line.substring(separator + 1).trim());
+    }
+    _icons.text = pictures.join('\n');
+    _answers.text = words.join('\n');
   }
 
   Widget _correctTranslationsEditor() => Column(
@@ -8435,7 +8575,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
   }
 
   List<Widget> _specificFields() {
-    switch (_type) {
+    switch (PresetVariants.formFor(_type)) {
       case 'script_recognition':
         return [
           ScriptRecognitionEditor(
@@ -8491,9 +8631,11 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         return [
           _field(
             _prompt,
-            'Source text',
+            _type.endsWith('_to_source') ? 'Text to translate' : 'Source text',
             lines: 3,
-            helper: 'Enter the text the learner must translate.',
+            helper: _type.endsWith('_to_source')
+                ? 'Enter the target-language text the learner translates into the source language.'
+                : 'Enter the text the learner must translate.',
           ),
           _field(
             _accepted,
@@ -8530,12 +8672,27 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         ];
       case 'type_missing_word':
         return [
+          SwitchListTile(
+            key: const Key('type-missing-word-reveal'),
+            contentPadding: EdgeInsets.zero,
+            title: const Text('Show the first letter'),
+            subtitle: const Text(
+              'On: the gap reveals the first letter of the word as a hint. Off: the learner types the whole word without help.',
+            ),
+            value: _revealFirstLetter,
+            onChanged: widget.readOnly
+                ? null
+                : (value) => setState(() {
+                    _revealFirstLetter = value;
+                    _dirty = true;
+                  }),
+          ),
           _field(
             _prompt,
             'Sentence with one ___ gap',
             lines: 3,
             helper:
-                'The first letter is derived automatically from the complete accepted word.',
+                'The first letter, when shown, is derived automatically from the complete accepted word.',
           ),
           _field(
             _accepted,
@@ -8553,120 +8710,42 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         return [
           _field(
             _prompt,
-            'Source sentence',
+            _type.endsWith('_to_source')
+                ? 'Sentence to translate'
+                : 'Source sentence',
             lines: 3,
-            helper: 'Enter the complete sentence the learner must translate.',
+            helper: _type.endsWith('_to_source')
+                ? 'Enter the complete target-language sentence the learner translates into the source language.'
+                : 'Enter the complete sentence the learner must translate.',
           ),
-          SwitchListTile(
-            key: const Key('build-translation-use-inline-gaps'),
-            title: const Text('Inline gaps'),
-            subtitle: const Text(
-              'Fill one or more blanks inside a fixed target-language sentence instead of building the whole sentence from blocks. Disables multiple correct-translation variants.',
-            ),
-            value: _useInlineGaps,
-            onChanged: widget.readOnly
-                ? null
-                : (value) => setState(() {
-                    _useInlineGaps = value;
-                    _dirty = true;
-                  }),
+          _field(
+            _tokens,
+            _type.endsWith('_to_source')
+                ? 'Available source-language blocks'
+                : 'Available target-language blocks',
+            lines: 5,
+            helper:
+                'One literal block per line. Include enough occurrences to construct every correct translation; repeated words need separate blocks.',
           ),
-          if (_useInlineGaps) ...[
-            _field(
-              _gapLayout,
-              'Target sentence with gaps',
-              lines: 3,
-              helper:
-                  'Write the fixed target-language sentence and put each '
-                  'answer word or phrase directly inside braces: {answer}. '
-                  "Literal { or } characters can't appear anywhere else in "
-                  'the sentence. Example: Io {vorrei} un caffè.',
-            ),
-            _field(
-              _tokens,
-              'Extra distractor blocks (optional)',
-              lines: 3,
-              helper:
-                  'One extra block per line that is not used to fill any '
-                  'gap. Include 0, 1 or at most 2 distractors.',
-            ),
-            _field(
-              _tts,
-              'Spoken prompt (optional)',
-              lines: 2,
-              helper:
-                  'Optional audio played before the learner fills the gaps.',
-            ),
-          ] else ...[
-            _field(
-              _tokens,
-              'Available target-language blocks',
-              lines: 5,
-              helper:
-                  'One literal block per line. Include enough occurrences to construct every correct translation; repeated words need separate blocks.',
-            ),
-            _correctTranslationsEditor(),
-          ],
+          _correctTranslationsEditor(),
         ];
       case 'word_order':
         return [
           _field(_prompt, 'Translation prompt / instruction', lines: 2),
-          SwitchListTile(
-            key: const Key('word-order-use-inline-gaps'),
-            title: const Text('Inline gaps'),
-            subtitle: const Text(
-              'Fill one or more blanks inside a fixed sentence instead of building the whole sentence from blocks.',
-            ),
-            value: _useInlineGaps,
-            onChanged: widget.readOnly
-                ? null
-                : (value) => setState(() {
-                    _useInlineGaps = value;
-                    _dirty = true;
-                  }),
+          _field(
+            _tokens,
+            'Available word blocks',
+            lines: 4,
+            helper:
+                'One block per line. You may include 0, 1 or at most 2 extra distractors.',
           ),
-          if (_useInlineGaps) ...[
-            _field(
-              _gapLayout,
-              'Sentence with gaps',
-              lines: 3,
-              helper:
-                  'Write the fixed sentence and put each answer word or '
-                  'phrase directly inside braces: {answer}. Literal { or } '
-                  "characters can't appear anywhere else in the sentence. "
-                  'Example: I {am} going {to} London.',
-            ),
-            _field(
-              _tokens,
-              'Extra distractor blocks (optional)',
-              lines: 4,
-              helper:
-                  'One extra block per line that is not used to fill any '
-                  'gap. Include 0, 1 or at most 2 distractors.',
-            ),
-            _field(
-              _tts,
-              'Spoken prompt (optional)',
-              lines: 2,
-              helper:
-                  'Optional audio played before the learner fills the gaps.',
-            ),
-          ] else ...[
-            _field(
-              _tokens,
-              'Available word blocks',
-              lines: 4,
-              helper:
-                  'One block per line. You may include 0, 1 or at most 2 extra distractors.',
-            ),
-            _field(
-              _order,
-              'Correct sentence',
-              lines: 4,
-              helper:
-                  'One block per line in the required order. Exercise type cannot be changed after creation.',
-            ),
-          ],
+          _field(
+            _order,
+            'Correct sentence',
+            lines: 4,
+            helper:
+                'One block per line in the required order. Exercise type cannot be changed after creation.',
+          ),
         ];
       case 'image_word':
         return [
@@ -8711,9 +8790,10 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
           ),
           _field(
             _pairs,
-            'Three translation pairs',
+            'Translation pairs',
             lines: 5,
-            helper: 'Exactly three lines: source = target',
+            helper:
+                'At least two lines: source = target. Three is the usual number.',
           ),
         ];
       case 'super_match':
@@ -8748,6 +8828,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
           _field(_question, 'Question', lines: 2),
           _field(_answers, 'Target-language options', lines: 4),
           _field(_correct, 'Correct answer number'),
+          _answerPictures(),
           _field(
             _icons,
             'Icons / image keys',
@@ -8757,6 +8838,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
           ),
         ];
       case 'listening_choice':
+      case 'listening_comprehension':
         return [
           _field(
             _tts,
@@ -8774,14 +8856,13 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
             'MP3: open Course Editor > Audio Library. Copy MP3 files to ${QqlStorageLayout.current.folderLabel(QqlStorageRole.audioImports)}, press Import MP3, then Associate recording with its Word or expression. Choose Recorded MP3 only or Hybrid. This exercise uses those text mappings.',
           ),
           const SizedBox(height: 12),
-          _field(_question, 'Question', lines: 2),
-          _field(_answers, 'Answers', lines: 4),
-          _field(_correct, 'Correct answer number'),
-        ];
-      case 'listening_comprehension':
-        return [
-          _field(_tts, 'Spoken passage', lines: 4),
-          _field(_question, 'Comprehension question', lines: 2),
+          _field(
+            _question,
+            'Question (optional)',
+            lines: 2,
+            helper:
+                'Leave it empty to ask what was heard; with a question the learner answers it about the passage.',
+          ),
           _field(_answers, 'Answers', lines: 4),
           _field(_correct, 'Correct answer number'),
         ];
@@ -8789,86 +8870,25 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         return [
           _field(
             _prompt,
-            'Reading passage',
+            'Text to read',
             lines: 5,
-            helper: 'At least three lexical words are recommended.',
-          ),
-          _field(_question, 'Comprehension question', lines: 2),
-          _field(_answers, 'Answers', lines: 4),
-          _field(_correct, 'Correct answer number'),
-        ];
-      case 'dialogue_response':
-        return [
-          _field(
-            _prompt,
-            'Context sentence',
-            lines: 3,
-            helper: 'Write the situation in the target language.',
-          ),
-          _field(
-            _question,
-            'Question',
-            lines: 2,
-            helper: 'Write the question in the target language.',
-          ),
-          _field(
-            _answers,
-            'Two response options',
-            lines: 3,
-            helper: 'Exactly two lines, both in the target language.',
-          ),
-          _field(
-            _correct,
-            'Correct response number',
             helper:
-                'Enter 1 or 2. The learner sees the responses in randomized order.',
+                'A passage, a situation or a short text. At least three lexical words are recommended.',
           ),
-        ];
-      case 'contextual_comprehension':
-        return [
-          DropdownButtonFormField<String>(
-            key: const Key('context-mode-selector'),
-            isExpanded: true,
-            initialValue: _contextMode,
-            decoration: InputDecoration(
-              border: const OutlineInputBorder(),
-              labelText: 'Context mode',
-              suffixIcon: _helpButton('contextMode'),
-            ),
-            items: const [
-              DropdownMenuItem(value: 'text', child: Text('Text')),
-              DropdownMenuItem(value: 'audio', child: Text('Audio')),
-              DropdownMenuItem(
-                value: 'textAndAudio',
-                child: Text('Text and audio'),
-              ),
-            ],
-            onChanged: widget.readOnly
-                ? null
-                : (value) => setState(() {
-                    _contextMode = value ?? _contextMode;
-                    _dirty = true;
-                  }),
+          _field(
+            _tts,
+            'Spoken text (optional)',
+            lines: 3,
+            helper:
+                'Audio the learner listens to before answering, in the target language. With a text above, both are shown.',
           ),
-          const SizedBox(height: 12),
-          if (_contextMode != 'audio')
-            _field(
-              _context,
-              'Context text',
-              lines: 5,
-              helper:
-                  'Use this for a passage, announcement, situation or other context.',
-            ),
-          if (_contextMode != 'text')
-            _field(_tts, 'Context audio text', lines: 5),
-          if (_contextMode != 'audio')
-            _field(
-              _dialogue,
-              'Structured dialogue (optional)',
-              lines: 5,
-              helper:
-                  'One turn per line: Speaker: text. Leave blank for non-dialogue context.',
-            ),
+          _field(
+            _dialogue,
+            'Dialogue lines (optional)',
+            lines: 4,
+            helper:
+                'One line per turn as Speaker: text. With dialogue lines the text above is the context shown before them.',
+          ),
           _field(_question, 'Question', lines: 2),
           _field(_answers, 'Answers', lines: 4),
           _field(_correct, 'Correct answer number'),
@@ -8950,97 +8970,300 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
                 'from 1.',
           ),
         ];
+      case 'true_false':
+        return [
+          _field(
+            _question,
+            'Statement',
+            lines: 2,
+            helper: 'A sentence in the target language that is true or false.',
+          ),
+          _field(
+            _tts,
+            'Spoken statement (optional)',
+            lines: 2,
+            helper:
+                'Read aloud with the target-language voice when audio is on.',
+          ),
+          _field(
+            _answers,
+            'Answers',
+            lines: 2,
+            helper:
+                'Two lines in the source language: the word for true, then the word for false.',
+          ),
+          _field(
+            _correct,
+            'Correct answer number',
+            helper: '1 when the statement is true, 2 when it is false.',
+          ),
+        ];
+      case 'gap_choice_inline':
+        return [
+          _field(_prompt, 'Instruction (optional)', lines: 2),
+          _field(
+            _gapLayout,
+            'Sentence with gaps',
+            lines: 3,
+            helper:
+                'Write the sentence and put each answer word or phrase '
+                'directly inside braces: {answer}. Example: I {am} going '
+                '{to} London. Literal { or } characters can\'t appear '
+                'anywhere else.',
+          ),
+          _field(
+            _tokens,
+            'Distractor options (optional)',
+            lines: 3,
+            helper:
+                'One extra option per line that is not the answer to any gap. Include 0, 1 or at most 2 distractors.',
+          ),
+          _field(
+            _tts,
+            'Spoken prompt (optional)',
+            lines: 2,
+            helper: 'Optional audio played before the learner fills the gaps.',
+          ),
+        ];
+      case 'complete_text':
+        return [
+          _field(
+            _prompt,
+            'Text with the words to hide',
+            lines: 5,
+            helper:
+                'Write the complete text; the words listed below become gaps.',
+          ),
+          _field(
+            _missingWords,
+            'Missing words',
+            lines: 4,
+            helper: 'One per line, in order; each must occur in the text.',
+          ),
+        ];
+      case 'missing_letters':
+        return [
+          _field(
+            _prompt,
+            'Text with the missing letters in brackets',
+            lines: 4,
+            helper:
+                'Write the complete text and put the missing letters inside square brackets: My cat doesn\'t dr[ink] milk. The learner sees dr___ milk and types ink.',
+          ),
+          _field(
+            _tts,
+            'Spoken text (optional)',
+            lines: 2,
+            helper: 'The complete text, read aloud before the learner types.',
+          ),
+          _field(_hint, 'Hint (optional)'),
+        ];
+      case 'gap_blocks':
+        return [
+          _field(_prompt, 'Instruction (optional)', lines: 2),
+          _field(
+            _gapLayout,
+            'Sentence with gaps',
+            lines: 3,
+            helper:
+                'Write the fixed sentence and put each answer word or phrase directly inside braces: {answer}. Literal { or } characters can\'t appear anywhere else. Example: Io {vorrei} un caffè.',
+          ),
+          _field(
+            _tokens,
+            'Extra distractor blocks (optional)',
+            lines: 3,
+            helper:
+                'One extra block per line that is not used to fill any gap. Include 0, 1 or at most 2 distractors.',
+          ),
+          _field(
+            _tts,
+            'Spoken prompt (optional)',
+            lines: 2,
+            helper: 'Optional audio played before the learner fills the gaps.',
+          ),
+        ];
+      case 'sentence_order':
+        return [
+          _field(
+            _prompt,
+            'Instruction',
+            lines: 2,
+            helper: 'Example: Put the lines of the dialogue in order.',
+          ),
+          _field(
+            _tokens,
+            'Sentences or lines',
+            lines: 6,
+            helper:
+                'One sentence per line, in any order. You may add 0, 1 or at most 2 extra distractor lines.',
+          ),
+          _field(
+            _order,
+            'Correct order',
+            lines: 6,
+            helper: 'The lines in the right order, one per line.',
+          ),
+        ];
+      case 'listening_image_choice':
+        return [
+          _field(
+            _tts,
+            'Spoken text',
+            lines: 2,
+            helper: 'The word or sentence the learner hears.',
+          ),
+          _field(_question, 'Question (optional)', lines: 2),
+          _field(
+            _answers,
+            'Answers',
+            lines: 4,
+            helper: 'One per line; each answer gets a picture below.',
+          ),
+          _field(_correct, 'Correct answer number'),
+          _answerPictures(),
+        ];
+      case 'spell_heard':
+        return [
+          _field(
+            _tts,
+            'Spoken word',
+            helper: 'The word the learner hears and spells.',
+          ),
+          _field(
+            _tokens,
+            'Available letter / syllable blocks',
+            lines: 5,
+            helper:
+                'One block per line: letters, or syllables. Include only the blocks needed.',
+          ),
+          _field(
+            _order,
+            'Correct word',
+            lines: 5,
+            helper: 'The blocks in the correct order, one per line.',
+          ),
+        ];
+      case 'picture_choice':
+        return [
+          _field(
+            _question,
+            'Question',
+            lines: 2,
+            helper:
+                'Example: What is this? Choose the picture below, in Image.',
+          ),
+          _field(_answers, 'Answers', lines: 4),
+          _field(_correct, 'Correct answer number'),
+        ];
+      case 'picture_name':
+        return [
+          _field(
+            _question,
+            'Question / instruction',
+            lines: 2,
+            helper:
+                'Example: What is this? Choose the picture below, in Image.',
+          ),
+          _field(
+            _accepted,
+            'Accepted answers',
+            lines: 4,
+            helper:
+                'One complete answer per line. Optional {...}, alternatives [a|b] and scoped reorder (a <> b) are supported.',
+          ),
+          const Text('Use lowercase except for proper names.'),
+          const SizedBox(height: 8),
+          _field(_hint, 'Hint (optional)'),
+        ];
+      case 'spell_word':
+        return [
+          _field(
+            _prompt,
+            'Clue',
+            lines: 2,
+            helper: 'The word or a definition in the source language.',
+          ),
+          _field(
+            _tokens,
+            'Available letter / syllable blocks',
+            lines: 5,
+            helper:
+                'One block per line: letters, or syllables. Include only the blocks needed.',
+          ),
+          _field(
+            _order,
+            'Correct word',
+            lines: 5,
+            helper: 'The blocks in the correct order, one per line.',
+          ),
+        ];
+      case 'picture_word_match':
+        return [
+          _field(
+            _prompt,
+            'Instruction',
+            lines: 2,
+            helper: 'Example: Match each picture with its word.',
+          ),
+          _field(
+            _answers,
+            'Words',
+            lines: 4,
+            helper:
+                'One word per line; each gets a picture below. At least two pairs.',
+          ),
+          _answerPictures(title: 'Pictures, one per word'),
+        ];
+      case 'note_card':
+        return [
+          _field(_prompt, 'Title'),
+          _field(
+            _question,
+            'Note',
+            lines: 6,
+            helper:
+                'A tip, a grammar or a cultural note, in the language you prefer.',
+          ),
+        ];
       case 'choice':
         return [
           _field(_prompt, 'Prompt / instruction', lines: 2),
+          _field(_question, 'Question', lines: 2),
+          _field(_answers, 'Answers', lines: 4),
           SwitchListTile(
-            key: const Key('choice-use-inline-gaps'),
-            title: const Text('Inline gaps'),
+            key: const Key('choice-use-multi-select'),
+            title: const Text('Multiple correct answers'),
             subtitle: const Text(
-              'Fill one or more blanks inside a fixed question by tapping '
-              'options in order instead of choosing one whole answer. Each '
-              'tap fills the first empty blank; the same option can be '
-              'tapped again for another blank. Disables multiple correct '
-              'answers.',
+              'Let the learner select more than one option. The answer '
+              'counts as correct only when the selected options exactly '
+              'match the correct set.',
             ),
-            value: _useInlineGaps,
+            value: _useMultiSelect,
             onChanged: widget.readOnly
                 ? null
                 : (value) => setState(() {
-                    _useInlineGaps = value;
-                    if (value) _useMultiSelect = false;
+                    _useMultiSelect = value;
                     _dirty = true;
                   }),
           ),
-          if (_useInlineGaps) ...[
+          if (_useMultiSelect) ...[
             _field(
-              _gapLayout,
-              'Sentence with gaps',
-              lines: 3,
+              _correct,
+              'Correct answer numbers',
               helper:
-                  'Write the sentence and put each answer word or phrase '
-                  'directly inside braces: {answer}. Example: I {am} going '
-                  '{to} London. Each blank is filled in order by the '
-                  'options the learner taps, so a wrong choice can land in '
-                  'the wrong blank. If the same word answers more than one '
-                  'gap, write it inside each of those braces — the '
-                  'learner taps it once per blank it needs to fill: '
-                  '{Was} she happy? {Was} he late? Literal { or } '
-                  'characters can\'t appear anywhere else.',
+                  'Numbers of every correct answer, starting at 1, '
+                  'separated by commas. Example: 1, 3',
             ),
             _field(
-              _tokens,
-              'Distractor options (optional)',
-              lines: 3,
+              _requiredSelections,
+              'Required selections (optional)',
               helper:
-                  'One extra option per line that is not the answer to any '
-                  'gap. Include 0, 1 or at most 2 distractors.',
+                  'Minimum number of options the learner must select '
+                  'before checking. Leave blank to default to the number '
+                  'of correct answers.',
             ),
-            _field(
-              _tts,
-              'Spoken prompt (optional)',
-              lines: 2,
-              helper:
-                  'Optional audio played before the learner fills the gaps.',
-            ),
-          ] else ...[
-            _field(_question, 'Question', lines: 2),
-            _field(_answers, 'Answers', lines: 4),
-            SwitchListTile(
-              key: const Key('choice-use-multi-select'),
-              title: const Text('Multiple correct answers'),
-              subtitle: const Text(
-                'Let the learner select more than one option. The answer '
-                'counts as correct only when the selected options exactly '
-                'match the correct set.',
-              ),
-              value: _useMultiSelect,
-              onChanged: widget.readOnly
-                  ? null
-                  : (value) => setState(() {
-                      _useMultiSelect = value;
-                      _dirty = true;
-                    }),
-            ),
-            if (_useMultiSelect) ...[
-              _field(
-                _correct,
-                'Correct answer numbers',
-                helper:
-                    'Numbers of every correct answer, starting at 1, '
-                    'separated by commas. Example: 1, 3',
-              ),
-              _field(
-                _requiredSelections,
-                'Required selections (optional)',
-                helper:
-                    'Minimum number of options the learner must select '
-                    'before checking. Leave blank to default to the number '
-                    'of correct answers.',
-              ),
-            ] else
-              _field(_correct, 'Correct answer number'),
-          ],
+          ] else
+            _field(_correct, 'Correct answer number'),
         ];
       default:
         return [
@@ -9056,18 +9279,50 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     if (widget.readOnly) return;
     final search = TextEditingController();
     var query = '';
+    // The direction filter (owner decision, Build 256 Revision 4): every
+    // preset, or only those the learner answers in the target language, or
+    // in the source language. Cards and notes have no direction and show
+    // under All only.
+    PresetDirection? direction;
+    bool matchesDirection(ExercisePreset preset) =>
+        direction == null ||
+        preset.direction == direction ||
+        preset.direction == PresetDirection.both;
+    bool matchesQuery(String name, String description, String group) {
+      final needle = query.toLowerCase();
+      return needle.isEmpty ||
+          name.toLowerCase().contains(needle) ||
+          description.toLowerCase().contains(needle) ||
+          group.toLowerCase().contains(needle);
+    }
+
     final selected = await showModalBottomSheet<String>(
       context: context,
       isScrollControlled: true,
       builder: (sheetContext) => StatefulBuilder(
         builder: (context, setSheetState) {
-          final visible = ExercisePresetRegistry.presets.where((preset) {
-            final needle = query.toLowerCase();
-            return needle.isEmpty ||
-                preset.name.toLowerCase().contains(needle) ||
-                preset.description.toLowerCase().contains(needle) ||
-                preset.category.label.toLowerCase().contains(needle);
-          }).toList();
+          final visible = ExercisePresetRegistry.presets
+              .where(
+                (preset) =>
+                    matchesDirection(preset) &&
+                    matchesQuery(
+                      preset.name,
+                      preset.description,
+                      preset.category.label,
+                    ),
+              )
+              .toList();
+          final later = direction != null
+              ? const <ComingLaterPreset>[]
+              : ExercisePresetRegistry.comingLater
+                    .where(
+                      (preset) => matchesQuery(
+                        preset.name,
+                        preset.description,
+                        ExerciseCategory.comingLater.label,
+                      ),
+                    )
+                    .toList();
           return SafeArea(
             child: DraggableScrollableSheet(
               expand: false,
@@ -9094,6 +9349,23 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
                     ),
                   ),
                   const SizedBox(height: 12),
+                  SegmentedButton<PresetDirection?>(
+                    key: const Key('exercise-preset-direction'),
+                    segments: const [
+                      ButtonSegment(value: null, label: Text('All')),
+                      ButtonSegment(
+                        value: PresetDirection.toTarget,
+                        label: Text('To target'),
+                      ),
+                      ButtonSegment(
+                        value: PresetDirection.toSource,
+                        label: Text('To source'),
+                      ),
+                    ],
+                    selected: {direction},
+                    onSelectionChanged: (values) =>
+                        setSheetState(() => direction = values.first),
+                  ),
                   for (final category in ExerciseCategory.values)
                     if (visible.any(
                       (preset) => preset.category == category,
@@ -9110,14 +9382,43 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
                         (preset) => preset.category == category,
                       ))
                         Card(
+                          key: ValueKey('exercise-preset-${preset.id}'),
                           child: ListTile(
+                            leading: _PresetActionChip(preset.action),
                             title: Text(preset.name),
-                            subtitle: Text(preset.description),
+                            subtitle: Text(
+                              preset.direction == PresetDirection.none ||
+                                      preset.direction == PresetDirection.both
+                                  ? preset.description
+                                  : '${preset.description} · ${preset.direction.label}',
+                            ),
                             trailing: const Icon(Icons.chevron_right),
                             onTap: () => Navigator.pop(sheetContext, preset.id),
                           ),
                         ),
                     ],
+                  if (later.isNotEmpty) ...[
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(4, 12, 4, 4),
+                      child: Text(
+                        ExerciseCategory.comingLater.label,
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.w800),
+                      ),
+                    ),
+                    for (final preset in later)
+                      Card(
+                        key: ValueKey('exercise-preset-later-${preset.id}'),
+                        child: ListTile(
+                          enabled: false,
+                          leading: _PresetActionChip(preset.action),
+                          title: Text(preset.name),
+                          subtitle: Text(
+                            '${preset.description}\nIn a later version: ${preset.reason}',
+                          ),
+                        ),
+                      ),
+                  ],
                   Padding(
                     padding: const EdgeInsets.fromLTRB(4, 12, 4, 4),
                     child: Text(
@@ -9156,7 +9457,11 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
       final previousType = _type;
       final untouched = _formSnapshot() == _openedSnapshot;
       setState(() {
-        const arrangeFamily = {'word_order', 'build_translation'};
+        const arrangeFamily = {
+          'word_order',
+          'build_translation_to_target',
+          'build_translation_to_source',
+        };
         final staySameFamily =
             arrangeFamily.contains(previousType) &&
             arrangeFamily.contains(selected);
@@ -9169,6 +9474,11 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         if (TranslationChoice.isTranslationChoice(selected) &&
             _correct.text.trim().isEmpty) {
           _correct.text = '1';
+        }
+        // True or false starts with its two answers in the source language.
+        if (selected == 'true_false' && _answers.text.trim().isEmpty) {
+          _answers.text = _trueFalseAnswers().join('\n');
+          if (_correct.text.trim().isEmpty) _correct.text = '1';
         }
         _dirty = true;
         // A new exercise with nothing typed yet: the chosen type is its
@@ -9192,6 +9502,10 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         requireValidAnswer: requireValidAnswer,
         useInlineGaps: _useInlineGaps,
         useMultiSelect: _useMultiSelect,
+        revealFirstLetter: _revealFirstLetter,
+        textRole: _textRole,
+        audioRole: _audioRole,
+        matchSides: _matchSides,
         prompt: _prompt.text,
         question: _question.text,
         tts: _tts.text,
@@ -9202,7 +9516,9 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         tokens: _tokens.text,
         order: _order.text,
         gapLayout: _gapLayout.text,
-        pairs: _pairs.text,
+        pairs: _type == 'picture_word_match'
+            ? _picturePairsText()
+            : _pairs.text,
         icons: _icons.text,
         missingWords: _missingWords.text,
         context: _context.text,
@@ -9545,6 +9861,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     _contextMode,
     _useMultiSelect,
     _useInlineGaps,
+    _revealFirstLetter,
     _imageAsset,
     _selectedSharedSource?.id ?? '',
     for (final controller in [
@@ -9650,7 +9967,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         _type =
             PresetRecipes.presetToEdit(e) ??
             PresetRecipes.defaultPresetFor(e.primitive) ??
-            'choice';
+            'choice_target';
         final draft = PresetRecipes.decompose(e, _type);
         _prompt.text = draft.prompt;
         _question.text = draft.question;
@@ -9662,11 +9979,16 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         _requiredSelections.text = draft.requiredSelections;
         _accepted.text = draft.accepted;
         _useInlineGaps = draft.useInlineGaps;
+        _revealFirstLetter = draft.revealFirstLetter;
+        _textRole = draft.textRole;
+        _audioRole = draft.audioRole;
+        _matchSides = draft.matchSides;
         _tokens.text = draft.tokens;
         _order.text = draft.order;
         _gapLayout.text = draft.gapLayout;
         _pairs.text = draft.pairs;
         _icons.text = draft.icons;
+        if (_type == 'picture_word_match') _splitPicturePairs(draft.pairs);
         _missingWords.text = draft.missingWords;
         _context.text = draft.context;
         _dialogue.text = draft.dialogue;

@@ -649,10 +649,12 @@ void main() {
           .any((i) => i.message.contains('only the blocks needed')),
       isTrue,
     );
+    // Build 256 Revision 4: a picture, a spoken word or a clue names the
+    // word; this exercise has none of them.
     final missingImage = Exercise(
       id: 'iw3',
       type: 'image_word',
-      prompt: 'Build the word',
+      prompt: '',
       question: '',
       answers: const [],
       correct: null,
@@ -667,7 +669,10 @@ void main() {
     expect(
       CourseAuditService()
           .auditExercise(missingImage)
-          .any((i) => i.message.contains('requires an image')),
+          .any(
+            (i) =>
+                i.message.contains('needs a picture, a spoken word or a clue'),
+          ),
       isTrue,
     );
   });

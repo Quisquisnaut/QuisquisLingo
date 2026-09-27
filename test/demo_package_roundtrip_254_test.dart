@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
+import 'package:quisquislingo_app/models/exercise_features.dart';
 import 'package:quisquislingo_app/services/course_access_policy.dart';
 import 'package:quisquislingo_app/services/course_audit_service.dart';
 import 'package:quisquislingo_app/services/course_backup_service.dart';
@@ -136,7 +137,15 @@ void _expectFlashcardUsage(Course course) {
       },
       reason: card.id,
     );
-    expect(card.presentation!.actions, ['understood', 'review_later']);
+    // A vocabulary card is reviewed later; a Note card continues.
+    final reviewable =
+        ExerciseFeatures(card.exercise!).completionMode ==
+        CompletionMode.understoodReview;
+    expect(
+      card.presentation!.actions,
+      reviewable ? ['understood', 'review_later'] : ['continue'],
+      reason: card.id,
+    );
   }
 }
 

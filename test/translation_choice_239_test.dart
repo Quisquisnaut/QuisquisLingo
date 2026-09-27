@@ -252,9 +252,9 @@ void main() {
   });
 
   group('registry and model', () {
-    test('both presets appear in the Translation category', () {
+    test('both presets appear in the Vocabulary group', () {
       final translation = ExercisePresetRegistry.inCategory(
-        ExerciseCategory.translation,
+        ExerciseCategory.vocabulary,
       ).map((preset) => preset.id);
       expect(translation, contains(_toTarget));
       expect(translation, contains(_toSource));
@@ -370,11 +370,11 @@ void main() {
 
     test('existing exercise types remain available and unchanged', () {
       for (final id in [
-        'choice',
+        'choice_target',
         'gap_choice',
-        'type_translation',
-        'build_translation',
-        'dialogue_response',
+        'type_translation_to_target',
+        'build_translation_to_target',
+        'reading_answer_target',
         'word_order',
       ]) {
         expect(ExercisePresetRegistry.byId(id), isNotNull, reason: id);

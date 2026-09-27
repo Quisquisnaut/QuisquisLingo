@@ -27,14 +27,14 @@ void main() {
       ExercisePresetRegistry.presets
           .where((preset) => preset.primitive == ExercisePrimitive.arrange)
           .map((preset) => preset.id),
-      containsAll(['word_order', 'build_translation', 'image_word']),
+      containsAll(['word_order', 'build_translation_to_target', 'image_word']),
     );
   });
 
   test(
     'presets are grouped and author names do not expose canonical names',
     () {
-      expect(ExerciseCategory.values, hasLength(6));
+      expect(ExerciseCategory.values, hasLength(7));
       for (final preset in ExercisePresetRegistry.presets) {
         expect(preset.name.toLowerCase(), isNot(preset.primitive.name));
         expect(preset.description.trim(), isNotEmpty);

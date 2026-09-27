@@ -94,10 +94,9 @@ void main() {
     });
 
     test('a changed draft keeps only a preset that still represents it', () {
-      final choice = _laboratoryExercise('choice').withAuthoringMetadata({
-        'presetId': 'choice',
-        'note': 'kept only while unchanged',
-      });
+      final choice = _laboratoryExercise('choice_target').withAuthoringMetadata(
+        {'presetId': 'choice_target', 'note': 'kept only while unchanged'},
+      );
       final stamp = DateTime.utc(2026, 9, 27);
       // A change no recipe expresses: the preset and the other keys go.
       final withAudio = CanonicalExerciseDraft.fromExercise(choice);
@@ -122,7 +121,7 @@ void main() {
         publicationState: choice.publicationState,
         updatedAt: stamp,
       );
-      expect(kept.editorTemplate, 'choice');
+      expect(kept.editorTemplate, 'choice_target');
       expect(kept.authoringMetadata.containsKey('note'), isFalse);
       expect(
         kept.promptElements[question].text,
@@ -171,7 +170,7 @@ void main() {
 
   group('PrimitiveEditorScreen', () {
     testWidgets('saves an unchanged exercise exactly as it is', (tester) async {
-      final exercise = _laboratoryExercise('choice');
+      final exercise = _laboratoryExercise('choice_target');
       Exercise? saved;
       await _pump(tester, exercise, isNew: false, onSaved: (e) => saved = e);
       expect(find.byKey(const Key('primitive-editor')), findsOneWidget);
@@ -186,7 +185,7 @@ void main() {
     testWidgets(
       'moving the correct answer keeps the preset and stamps the time',
       (tester) async {
-        final exercise = _laboratoryExercise('choice');
+        final exercise = _laboratoryExercise('choice_target');
         final correct = exercise.canonicalEvaluation.correctItemIds.single;
         final other = exercise.items
             .map((item) => item.id)
@@ -202,7 +201,7 @@ void main() {
         await _acceptWarnings(tester);
         expect(saved, isNotNull);
         expect(saved!.canonicalEvaluation.correctItemIds, [other]);
-        expect(saved!.editorTemplate, 'choice');
+        expect(saved!.editorTemplate, 'choice_target');
         expect(saved!.updatedAt, DateTime.utc(2026, 9, 27, 12));
         expect(saved!.publicationState, PublicationState.published);
       },
@@ -251,7 +250,7 @@ void main() {
       expect(saved!.items.first.content.single.text, 'gatto');
       expect(saved!.canonicalEvaluation.correctItemIds, ['ex_new_item_0']);
       // Exactly what the Choose form would have made: recognition names it.
-      expect(saved!.editorTemplate, 'choice');
+      expect(saved!.editorTemplate, 'choice_target');
     });
 
     testWidgets('read-only shows the form without Save', (tester) async {

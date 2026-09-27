@@ -4,6 +4,7 @@ import 'dart:math';
 import 'canonical/canonical.dart';
 import 'exercise_canonical.dart';
 import 'exercise_image_metadata.dart';
+import 'preset_successors.dart';
 import '../services/app_metadata.dart';
 
 export 'canonical/canonical.dart';
@@ -2194,7 +2195,10 @@ class LearningContent {
   /// by the constructor's `editorTemplate`.
   Map<String, Object?> get _givenMetadata => _editorTemplate.isEmpty
       ? _authoringMetadata
-      : {..._authoringMetadata, 'presetId': _editorTemplate};
+      : {
+          ..._authoringMetadata,
+          'presetId': presetSuccessorOf[_editorTemplate] ?? _editorTemplate,
+        };
 
   String get kind =>
       (_presentation != null && _exercise == null) || _kind == 'presentation'
@@ -2416,15 +2420,16 @@ class Presentation {
     ],
   );
 
-  /// The v11 view of a `presentation`-primitive exercise.
+  /// The v11 view of a `presentation`-primitive exercise. An omitted
+  /// completion mode is the registry default, `proceed`, as the runtime
+  /// reads it.
   factory Presentation.fromExercise(Exercise e) => Presentation(
     content: e.promptElements,
     actions: switch (e.options.enumValue<CompletionMode>(
       OptionKey.completionMode,
     )) {
-      CompletionMode.understoodReview ||
-      null => const ['understood', 'review_later'],
-      CompletionMode.proceed => const ['continue'],
+      CompletionMode.understoodReview => const ['understood', 'review_later'],
+      CompletionMode.proceed || null => const ['continue'],
       CompletionMode.acknowledge => const ['acknowledge'],
       CompletionMode.automatic => const [],
     },
@@ -3435,9 +3440,18 @@ class Exercise {
     final notes = <String>[];
     final preset = editorTemplate.trim();
     final type = _legacyTypeFromTemplate(preset, interaction.kind);
+    // A preset the Build 256 Revision 4 catalogue retired is recorded as its
+    // successor; the v11 type above still decides the conversion. A Choose
+    // or Arrange with inline gaps is the inline-gap preset.
+    final hasGaps = interaction.layout.any((element) => element.type == 'gap');
+    final presetId = hasGaps && preset == 'choice'
+        ? 'gap_choice_inline'
+        : hasGaps && (preset == 'word_order' || preset == 'build_translation')
+        ? 'gap_blocks'
+        : presetSuccessorOf[preset] ?? preset;
     final metadata = <String, Object?>{
       ...authoringMetadata,
-      if (preset.isNotEmpty) 'presetId': preset,
+      if (presetId.isNotEmpty) 'presetId': presetId,
     };
     final gaps = interaction.layout
         .where((element) => element.type == 'gap')
@@ -3470,8 +3484,9 @@ class Exercise {
       String role,
       TextLanguage language,
     ) => [
+      // A language the element states wins over the one the preset implies.
       for (final element in elements)
-        if (element.isText && element.role == role)
+        if (element.isText && element.role == role && element.language == null)
           element.copyWith(language: language)
         else
           element,
@@ -3481,7 +3496,9 @@ class Exercise {
         item.copyWith(
           content: [
             for (final element in item.content)
-              if (element.isText && element.role == 'primary')
+              if (element.isText &&
+                  element.role == 'primary' &&
+                  element.language == null)
                 element.copyWith(language: language)
               else
                 element,
@@ -3579,6 +3596,8 @@ class Exercise {
             'listening_choice',
             'listening_comprehension',
             'contextual_comprehension',
+            // Listen and pick the image (Build 256 Revision 4).
+            'icon_choice',
           }.contains(type)) {
             prompt = withAudio(prompt, AudioPlayback.automatic);
           }
@@ -3788,6 +3807,8 @@ class Exercise {
         case 'arrange':
           primitive = ExercisePrimitive.arrange;
           if (type == 'image_word') {
+            // Spell what you hear speaks its word (Build 256 Revision 4).
+            prompt = withAudio(prompt, AudioPlayback.automatic);
             options[OptionKey.joiner] = const EnumOptionValue(Joiner.none);
             options[OptionKey.unusedItems] = const EnumOptionValue(
               UnusedItems.forbidden,
@@ -3872,7 +3893,9 @@ class Exercise {
                 item.copyWith(
                   content: [
                     for (final element in item.content)
-                      if (element.isText && element.role == 'primary')
+                      if (element.isText &&
+                          element.role == 'primary' &&
+                          element.language == null)
                         element.copyWith(
                           language: item.side == MatchSide.left
                               ? sideLanguages.$1
@@ -4385,7 +4408,9 @@ ExerciseInteraction _legacyInteraction(
           content: [
             PromptElement(type: 'text', text: answers[i]),
             if (i < icons.length && icons[i].isNotEmpty)
-              PromptElement(role: 'icon', type: 'text', text: icons[i]),
+              _isImageReference(icons[i])
+                  ? PromptElement(type: 'image', asset: icons[i])
+                  : PromptElement(role: 'icon', type: 'text', text: icons[i]),
           ],
         ),
       );
@@ -4592,6 +4617,13 @@ List<String> _resolveOrderedItemIds(
   return indexes.map((index) => 'item_$index').toList(growable: false);
 }
 
+/// Whether an icon key names a picture the item carries as an image element
+/// rather than a named icon or a bundled asset key: a Course medium or a
+/// portable data URI (Build 256 Revision 4). Bundled `assets/` keys stay
+/// icon keys, drawn as before.
+bool _isImageReference(String value) =>
+    value.startsWith('media:') || value.startsWith('data:');
+
 String _legacyTypeFromTemplate(String template, String interaction) {
   const map = {
     'choose_answer': 'choice',
@@ -4609,6 +4641,10 @@ String _legacyTypeFromTemplate(String template, String interaction) {
     'dialogue': 'flashcard',
   };
   if (map.containsKey(template)) return map[template]!;
+  // A Build 256 Revision 4 catalogue preset reads as the recipe it is built
+  // on (`presetRecipeBaseOf`); its own ID is not a v11 type.
+  final base = presetRecipeBaseOf[template];
+  if (base != null) return base;
   if (template.isNotEmpty) return template;
   return switch (interaction) {
     'select' => 'choice',

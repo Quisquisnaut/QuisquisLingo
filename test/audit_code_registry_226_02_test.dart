@@ -12,7 +12,7 @@ void main() {
     'all known rules have unique, complete definitions and fixed severity',
     () {
       final definitions = AuditCodeRegistry.definitions;
-      expect(definitions.length, 102);
+      expect(definitions.length, 98);
       expect(
         definitions.map((rule) => rule.code).toSet().length,
         definitions.length,
@@ -27,7 +27,7 @@ void main() {
         definitions
             .where((rule) => rule.severity == AuditSeverity.warning)
             .length,
-        40,
+        36,
       );
       expect(
         definitions.where((rule) => rule.severity == AuditSeverity.info).length,
@@ -248,7 +248,16 @@ void main() {
       prompt: '',
       tts: null,
     );
-    final issues = service.auditCourse(_course([reading, listening])).issues;
+    // Build 256 Revision 4: the passage-length information needs a passage
+    // to measure, so a second listening passage is short rather than absent.
+    final short = _exercise(
+      type: 'listening_comprehension',
+      prompt: '',
+      tts: 'ciao',
+    );
+    final issues = service
+        .auditCourse(_course([reading, listening, short]))
+        .issues;
     // Build 256: the preset rules (a reading preset without a passage, a
     // listening preset without audio) warn and never block; invalid
     // canonical data still errors.

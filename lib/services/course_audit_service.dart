@@ -668,6 +668,10 @@ class CourseAuditService {
             features.textOf('meaning'),
             features.inlineSentence,
             features.primaryAudioText ?? '',
+            // The pictures are the content of a picture exercise: three
+            // "What is this?" pictures are three exercises.
+            for (final element in features.prompt)
+              if (element.isImage) element.asset,
           ].map((text) => text.trim().toLowerCase()).join('|');
           if (!duplicatePrompts.add(key)) {
             issues.add(
@@ -1172,17 +1176,22 @@ class CourseAuditService {
   static String _mismatchHint(String presetId) => switch (presetId) {
     'icon_choice' =>
       ' Select the image needs one icon or image key per answer in Icons / image keys, in the same order as the answers.',
-    'listening_choice' ||
-    'listening_comprehension' ||
+    'listening_answer_target' ||
+    'listening_answer_source' ||
+    'listening_image_choice' ||
+    'spell_heard' ||
     'listening_spelling' ||
     'missing_word' ||
     'audio_match' => ' ${_presetNameOf(presetId)} needs its spoken text.',
+    'picture_choice' ||
+    'picture_name' ||
+    'picture_flashcard' => ' ${_presetNameOf(presetId)} needs its picture.',
+    'picture_word_match' =>
+      ' Match picture to word needs a picture on every left item.',
     'script_recognition' =>
       ' Recognize characters needs character images in the prompt or the options.',
-    'reading_comprehension' => ' Reading comprehension needs a passage.',
-    'dialogue_response' => ' Dialogue response needs a situation.',
-    'contextual_comprehension' =>
-      ' Contextual comprehension needs its context text or audio.',
+    'reading_answer_target' || 'reading_answer_source' =>
+      ' Read and answer needs a text to read or dialogue lines.',
     _ => '',
   };
 
@@ -1192,7 +1201,7 @@ class CourseAuditService {
   /// The friendly English name of a learner kind, for messages and lists.
   static String kindLabel(LearnerExerciseKind kind) => switch (kind) {
     LearnerExerciseKind.select => 'a plain Choose',
-    LearnerExerciseKind.selectComplete => 'Fill in the blank',
+    LearnerExerciseKind.selectComplete => 'Pick the missing word',
     LearnerExerciseKind.selectImage => 'Select the image',
     LearnerExerciseKind.selectCharacter => 'Recognize characters',
     LearnerExerciseKind.selectListen => 'What do you hear',
@@ -1204,12 +1213,13 @@ class CourseAuditService {
     LearnerExerciseKind.inputComplete => 'Type a missing word',
     LearnerExerciseKind.inputTranslation => 'Type the translation',
     LearnerExerciseKind.inputListenWrite => 'Type what you hear',
-    LearnerExerciseKind.inputListenGaps => 'Listen for missing words',
+    LearnerExerciseKind.inputListenGaps => 'Listen and fill the gaps',
     LearnerExerciseKind.inputMissingWord => 'Type the missing word',
     LearnerExerciseKind.arrangeSentence => 'Build the sentence',
     LearnerExerciseKind.arrangeTranslation => 'Build the translation',
-    LearnerExerciseKind.arrangeWord => 'Image-prompt ordering',
-    LearnerExerciseKind.match => 'Match related words',
+    LearnerExerciseKind.arrangeWord => 'Spell the word in the picture',
+    LearnerExerciseKind.arrangeLines => 'Put the sentences in order',
+    LearnerExerciseKind.match => 'Match by meaning',
     LearnerExerciseKind.matchAudio => 'Listen and match',
     LearnerExerciseKind.matchTranslation => 'Match the words',
     LearnerExerciseKind.presentation => 'a Flashcard',
@@ -1368,7 +1378,10 @@ class CourseAuditService {
 
     // 3. The preset is authoring metadata: what disagrees with it warns and
     // never blocks (plan A.5); an unknown preset is information.
-    final presetId = ex.editorTemplate;
+    // A retired preset (Build 256 Revision 4) is read as its successor.
+    final storedPresetId = ex.editorTemplate;
+    final presetId =
+        ExercisePresetRegistry.currentIdFor(storedPresetId) ?? storedPresetId;
     if (presetId.isNotEmpty) {
       final preset = ExercisePresetRegistry.byId(presetId);
       if (preset == null) {
@@ -1383,56 +1396,35 @@ class CourseAuditService {
             AuditCode.presetCanonicalMismatch,
             '${preset.name} configures ${preset.primitive.label} exercises; this one is ${ex.primitive.label}.',
           );
-        } else if (expected != null && expected != kind) {
+        } else if (expected != null && !expected.contains(kind)) {
           add(
             AuditCode.presetCanonicalMismatch,
             'This exercise no longer matches ${preset.name}: it plays as ${kindLabel(kind)}.${_mismatchHint(presetId)}',
           );
         }
         switch (presetId) {
-          case 'dialogue_response':
-            if (f.situationText.trim().isEmpty) {
-              add(
-                AuditCode.dialogueContextRequired,
-                'Dialogue Response needs a context sentence.',
-              );
-            }
-            if (f.questionText.trim().isEmpty) {
-              add(
-                AuditCode.dialogueQuestionRequired,
-                'Dialogue Response needs a question.',
-              );
-            }
-            if (ex.items.length != 2) {
-              add(
-                AuditCode.dialogueResponseOptionCount,
-                'Dialogue Response requires exactly two response options.',
-              );
-            }
-          case 'contextual_comprehension':
+          case 'reading_answer_target':
+          case 'reading_answer_source':
             if (f.questionText.trim().isEmpty) {
               add(
                 AuditCode.contextQuestionRequired,
-                'Contextual comprehension needs a separate question. Enter what the learner should answer about the context.',
+                'Read and answer needs a question. Enter what the learner should answer about the text.',
               );
             }
-            if (f.contextText.trim().isEmpty &&
+            if (_lexicalWordCount(f.passageText) == 0 &&
+                _lexicalWordCount(f.contextText) == 0 &&
+                _lexicalWordCount(f.situationText) == 0 &&
                 f.contextAudio.trim().isEmpty &&
                 f.dialogueTurns.isEmpty) {
               add(
-                AuditCode.contextRequired,
-                'Contextual comprehension needs text, audio or dialogue context. Add the material the question refers to.',
-              );
-            }
-          case 'reading_comprehension':
-            if (_lexicalWordCount(f.passageText) == 0) {
-              add(
                 AuditCode.readingPassageRequired,
-                'Reading Comprehension needs a Reading Passage containing words.',
+                'Read and answer needs a text to read containing words, or dialogue lines.',
               );
             }
-          case 'listening_choice':
-          case 'listening_comprehension':
+          case 'listening_answer_target':
+          case 'listening_answer_source':
+          case 'listening_image_choice':
+          case 'spell_heard':
           case 'listening_spelling':
           case 'missing_word':
             if ((f.automaticAudio?.text ?? '').trim().isEmpty) {
@@ -1441,7 +1433,7 @@ class CourseAuditService {
                 'Listening exercise has no audio text. Enter the text the learner should hear.',
               );
             }
-            if (presetId == 'listening_comprehension' &&
+            if (kind == LearnerExerciseKind.selectListenPassage &&
                 f.passageAudio.trim().split(RegExp(r'\s+')).length < 5) {
               add(
                 AuditCode.listeningPassageShort,
@@ -1480,7 +1472,29 @@ class CourseAuditService {
                 'Pick the translation shows only the text to translate and speaks it itself; remove the extra prompt text or spoken text.',
               );
             }
-          case 'word_match':
+          case 'true_false':
+            if (ex.items.length != 2) {
+              add(
+                AuditCode.presetCanonicalMismatch,
+                'True or false needs exactly two answers: the word for true and the word for false.',
+              );
+            }
+          case 'picture_choice':
+          case 'picture_name':
+          case 'picture_flashcard':
+            if (f.illustrationAsset.trim().isEmpty) {
+              add(
+                AuditCode.presetCanonicalMismatch,
+                '${preset.name} needs its picture.',
+              );
+            }
+          case 'picture_word_match':
+            if (f.leftItems.any((item) => item.image.isEmpty)) {
+              add(
+                AuditCode.presetCanonicalMismatch,
+                'Match picture to word needs a picture on every left item.',
+              );
+            }
           case 'super_match':
             if (evaluation.relations.length != 3) {
               add(
@@ -1845,13 +1859,16 @@ class CourseAuditService {
         if (kind == LearnerExerciseKind.arrangeSentence) {
           _auditWordBlockLanguage(f, add);
         }
-        // Blocks joined without spaces build the word a picture shows: without
-        // the picture the exercise cannot be solved, whatever authored it.
+        // Blocks joined without spaces spell a word the learner must be able
+        // to find: a picture, a spoken word or a clue (Spell the word in the
+        // picture, Spell what you hear, Spell the word), whatever authored it.
         if (kind == LearnerExerciseKind.arrangeWord &&
-            f.illustrationAsset.trim().isEmpty) {
+            f.illustrationAsset.trim().isEmpty &&
+            f.automaticAudio == null &&
+            f.clueText.trim().isEmpty) {
           add(
             AuditCode.imageWordImageRequired,
-            'Image Word exercise requires an image.',
+            'Spelling exercise needs a picture, a spoken word or a clue.',
           );
         }
       case ExercisePrimitive.match:
@@ -1936,22 +1953,32 @@ class CourseAuditService {
           }
         }
       case ExercisePrimitive.presentation:
+        // A vocabulary flashcard is reviewed later and has no picture; a
+        // Note card (completion `continue`) and a Picture flashcard carry
+        // an optional usage sentence and optional pronunciation.
+        final isNote = f.completionMode != CompletionMode.understoodReview;
+        final isVocabulary = !isNote && f.illustrationImages.isEmpty;
         if (f.textOf('term').trim().isEmpty) {
           add(
             AuditCode.flashcardTextRequired,
-            'Flashcard needs a target word or phrase.',
+            isNote
+                ? 'Note card needs a title.'
+                : 'Flashcard needs a target word or phrase.',
           );
         }
         if (f.textOf('meaning').trim().isEmpty) {
-          add(AuditCode.flashcardMeaningEmpty, 'Flashcard meaning is empty.');
+          add(
+            AuditCode.flashcardMeaningEmpty,
+            isNote ? 'Note card has no text.' : 'Flashcard meaning is empty.',
+          );
         }
-        if (f.textOf('usage').trim().isEmpty) {
+        if (isVocabulary && f.textOf('usage').trim().isEmpty) {
           add(
             AuditCode.flashcardExampleEmpty,
             'Flashcard has no usage sentence.',
           );
         }
-        if (f.audioOf('audio').trim().isEmpty) {
+        if (isVocabulary && f.audioOf('audio').trim().isEmpty) {
           add(
             AuditCode.flashcardAudioEmpty,
             'Flashcard has no pronunciation TTS text.',

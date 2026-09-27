@@ -119,7 +119,9 @@ Future<void> _configureTypeTranslation(
   await tester.pumpAndSettle();
   await tester.tap(find.text('Selected exercise types').last);
   await tester.pumpAndSettle();
-  await tester.tap(find.widgetWithText(FilterChip, 'Type the translation'));
+  await tester.tap(
+    find.widgetWithText(FilterChip, 'Type the translation (to target)'),
+  );
   await tester.pump();
   await tester.drag(
     find.byKey(const Key('wizard-setup')),

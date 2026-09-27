@@ -38,8 +38,8 @@ void main() {
     (tester) async {
       final source = _exercise('choice');
       await _mount(tester, source);
-      await _hoverHelp(tester, 'choice', 'prompt');
-      await _hoverHelp(tester, 'choice', 'question');
+      await _hoverHelp(tester, 'choice_target', 'prompt');
+      await _hoverHelp(tester, 'choice_target', 'question');
       await _enter(
         tester,
         'Prompt / instruction',
@@ -76,18 +76,18 @@ void main() {
   );
 
   testWidgets(
-    'Context text is the passage with background and Text is only its presentation mode',
+    'Read and answer keeps a context text as context and Text is only its presentation',
     (tester) async {
       final source = _exercise('contextual_comprehension');
       await _mount(tester, source);
       expect(workflow.field('Text'), findsNothing);
-      expect(workflow.field('Context text'), findsOneWidget);
-      expect(find.byKey(const Key('context-mode-selector')), findsOneWidget);
-      await _hoverHelp(tester, 'contextual_comprehension', 'contextMode');
-      await _hoverHelp(tester, 'contextual_comprehension', 'context');
+      expect(workflow.field('Context text'), findsNothing);
+      expect(workflow.field('Text to read'), findsOneWidget);
+      expect(find.byKey(const Key('context-mode-selector')), findsNothing);
+      await _hoverHelp(tester, 'reading_answer_target', 'prompt');
       const passage =
           'Marta is describing her daily routine. Marta takes the train to work every morning.';
-      await _enter(tester, 'Context text', passage);
+      await _enter(tester, 'Text to read', passage);
       await _enter(tester, 'Question', 'How does Marta travel to work?');
       await workflow.tapKey(tester, 'exercise-preview');
       final exercise = tester
@@ -132,13 +132,13 @@ void main() {
           mode.value,
         );
         expect(find.text(mode.value), findsOneWidget);
-        await _hoverHelp(tester, 'listening_choice', 'tts');
+        await _hoverHelp(tester, 'listening_answer_target', 'tts');
         final button = find.byKey(const ValueKey('exercise-field-help-tts'));
         await tester.ensureVisible(button);
         await tester.tap(button);
         await tester.pumpAndSettle();
         final help = ExerciseFieldHelpRegistry.forEditorField(
-          'listening_choice',
+          'listening_answer_target',
           'tts',
         );
         expect(
@@ -170,14 +170,14 @@ void main() {
     );
   }
 
-  testWidgets(
-    'Spoken text rename leaves other listening preset labels intact',
-    (tester) async {
-      await _mount(tester, _exercise('listening_comprehension'));
-      expect(workflow.field('Spoken passage'), findsOneWidget);
-      expect(workflow.field('Spoken text'), findsNothing);
-    },
-  );
+  testWidgets('a listening passage opens in the same Listen and answer form', (
+    tester,
+  ) async {
+    await _mount(tester, _exercise('listening_comprehension'));
+    expect(workflow.field('Spoken passage'), findsNothing);
+    expect(workflow.field('Spoken text'), findsOneWidget);
+    expect(workflow.field('Question (optional)'), findsOneWidget);
+  });
 
   testWidgets(
     'lowercase guidance is visible and never rewrites proper names or author syntax',

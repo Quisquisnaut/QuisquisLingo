@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import '../models/course_models.dart';
 import 'course_checksums.dart';
+import '../models/preset_successors.dart';
 
 /// Converts a Course Model v11 JSON object to Course Model v12 (Build 256).
 ///
@@ -123,7 +124,7 @@ Map<String, dynamic> _convertContent(
   final metadata = <String, Object?>{
     if (existing is Map)
       for (final entry in existing.entries) entry.key.toString(): entry.value,
-    if (preset.isNotEmpty) 'presetId': preset,
+    if (preset.isNotEmpty) 'presetId': presetSuccessorOf[preset] ?? preset,
   };
   out.remove('authoringMetadata');
   if (metadata.isNotEmpty) out['authoringMetadata'] = metadata;
@@ -152,7 +153,12 @@ Map<String, dynamic> _convertContent(
           : null,
       authoringMetadata: exerciseMetadata,
     );
-    if (presentation.completionMode != CompletionMode.understoodReview) {
+    // A `["continue"]` card is the proceed mode itself: nothing to report.
+    final lossless =
+        presentation.actions.join(',') ==
+        Presentation.fromExercise(exercise).actions.join(',');
+    if (presentation.completionMode != CompletionMode.understoodReview &&
+        !lossless) {
       notes.add(
         '$where $id: presentation actions ${presentation.actions} became completionMode ${presentation.completionMode.serialized}.',
       );

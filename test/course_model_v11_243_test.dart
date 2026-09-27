@@ -579,7 +579,7 @@ void main() {
             {'role': 'term', 'type': 'text', 'text': 'acqua'},
           ],
           'completion': {
-            'actions': ['continue'],
+            'actions': ['ok'],
           },
         },
       });
@@ -588,7 +588,7 @@ void main() {
         result.notes,
         containsAll([
           contains('pairs are not used by Select and were dropped'),
-          contains('became completionMode continue'),
+          contains('actions [ok] became completionMode continue'),
         ]),
       );
       final course = Course.fromJson(result.json);

@@ -20,10 +20,10 @@ void main() {
     );
 
     expect(report, contains('Version: 2.0.56'));
-    expect(report, contains('Build 256, Revision 3'));
+    expect(report, contains('Build 256, Revision 4'));
     expect(report, isNot(contains('Phase:')));
     expect(report, isNot(contains('revision')));
-    expect(report, contains('Technical version: 2.0.56+256003'));
+    expect(report, contains('Technical version: 2.0.56+256004'));
     expect(report, contains('Generated: 2026-09-03T20:15:30.000'));
     expect(report, contains('Course name: Italian test'));
     expect(report, contains('Course ID: stable_course_id'));
@@ -39,7 +39,8 @@ void main() {
     expect(report, contains('Lesson: Greetings (lesson_1)'));
     expect(report, contains('Round: First round (round_1)'));
     expect(report, contains('Exercise: 1 (exercise_1)'));
-    expect(report, contains('Exercise type: choice (choice)'));
+    // A v11 Choose records its successor preset (Build 256 Revision 4).
+    expect(report, contains('Exercise type: choice_target (choice)'));
     expect(report, contains('Code: REVIEW_TEST'));
     expect(report, contains('Message: Review finding'));
   });

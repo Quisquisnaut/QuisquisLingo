@@ -7,8 +7,211 @@ condensed specification). Working rules: Part A.1 of the plan. Reference:
 the Session 2 design). Summary: `docs/256_CHANGE_SUMMARY.md`. Evidence:
 `docs/256_VALIDATION.md`.
 
-## State (27 September 2026, 16:50)
+## State (27 September 2026, 20:04; the 19:05–21:05 stamps below were estimates, the real clock is used from 19:29 on)
 
+- **Revision 4 close-out in progress (20:04), everything applied in the
+  working tree, uncommitted.** Batch 10 (`scratchpad/focused_s20.log`)
+  ran 657 passed, 11 failed; `s38_fixes.py` closed four gaps (converter
+  note for `["continue"]` cards, Audit usage/pronunciation Warnings only for
+  vocabulary flashcards and `ROUND_DUPLICATE_CONTENT` counting the prompt's
+  pictures, Piedmontese three-word Read and answer (to source) passages and
+  distinct Match picture to word instructions, `PresetVariants.fits`/
+  `hasInWordGap` asked by `PresetRecipes.represents`), the Piedmontese asset
+  and both v11 fixtures regenerated, `tools/validate_courses.py` expects 38
+  Piedmontese Lessons. Rerun `focused_s21.log` (26 files): 671 passed, 4
+  failed; `s39_fixes.py` fixed `Presentation.fromExercise` (omitted mode =
+  proceed), the Session 2 note test (`['ok']`), the release-gate key
+  (`l08`). 20:19: the two Note cards recorded (`record2.log`), baseline
+  rebuilt (107 records; the `s34_baseline.py` diff's true/false "renames"
+  are its own parse artifact: it capitalises `true`/`false` inside the old
+  keys), second rerun `focused_s22.log` (14 files): 6 failures →
+  `s43_fixes.py` (Edge Case asset regenerated: its generator already emitted
+  the inline-gap presets; roundtrip and release-gate tests read the card's
+  completion mode / recipe). 20:22: `s43_fixes.py` applied, Edge Case asset
+  regenerated (`--check` PASS for all three generators, validator OK),
+  analyzer clean, third rerun `focused_s23.log` (12 files) was running when
+  the owner paused to switch off the PC: its result is unknown, rerun it
+  first. Nothing committed. Owner (20:0x): after the suite, commit, handoff,
+  PUSH, then WAIT for approval before Revision 5. 28 September 00:35: PC
+  back on; `dart format` on the git-status Dart files (26 changed), one
+  `curly_braces_in_flow_control_structures` info the reflow produced in
+  `exercise_features.dart` fixed with braces, analyzer clean, batch 3
+  (`focused_s23.log`, 12 files) rerun: **439 passed, 0 failed** (00:40).
+  00:41: complete suite running under `run_awake.ps1`
+  (`scratchpad/suite_256004.log`, UTF-16; summarise with
+  `s44_suite_summary.py`). After it: `s42_numbers.py`, handoff, commit
+  (`commit_256004.txt`), push, sound, report, then WAIT.
+  01:06: first complete run **3040 passed, 1 skipped, 13 failed** (7 files
+  outside every focused batch; details in `docs/256_VALIDATION.md`);
+  `s46_suite_fixes.py` (01:18) moved the pins (Arrange inline tests pick
+  `Drag the blocks into the gaps`, report `choice_target (choice)`,
+  image-removal fixture without a clue, Wizard chip `(to target)`,
+  first-letter big window, qql_231 context selector block removed,
+  Recognize characters help restored). Rerun of the seven files: 51 passed,
+  1 failed: the Wizard saved a Select without items for Type the
+  translation (to target): `_blankExerciseForPreset` used the preset ID as
+  the v11 type (a catalogue twin is no v11 type → Select fallback); it now
+  builds on the recipe's base type with the preset as editor template
+  (production fix, in CHANGELOG / summary / validation / commit message);
+  Wizard file green, analyzer clean, formatting clean. 01:26: second
+  complete suite (`suite_256004b.log`, 01:26–01:52): **3053 passed, 1
+  skipped, 0 failed**. 01:53: validation numbers filled; committing Revision 4
+  (`commit_256004.txt`), then a handoff commit, then push (owner's request),
+  sound, report, and WAIT for the owner's approval before Revision 5.
+  **Next (the earlier list, from here):** record the two Note cards
+  (`QQL_RECORD_PRESENTATION=scratchpad/record`, `--plain-name
+  "learner completes qql_lab254_note_card"`), `s34_baseline.py` (expect
+  exactly two new records), focused rerun of the touched files, `dart
+  format` on the git-status Dart files, analyze, complete suite
+  (`run_awake.ps1`), `s42_numbers.py <batch> <suite>`, commit with
+  `scratchpad/commit_256004.txt`, handoff, **push** (owner, 20:04: "At the
+  end of task, commit, handoff, and push. Then pause and wait for my
+  approval before going on with next revision"), report (accomplished /
+  issues / left), sound; no APK. Then WAIT for approval.
+
+- **Session 5 (Revision 4, the preset catalogue) is in progress; Stage 1 is
+  verified and Stage 2 is applied in the working tree (uncommitted, 17:20):**
+  registry rewritten (`ExercisePreset.base`/`twin`/`direction`/`action`, 24
+  catalogue presets, `successorOf` = `lib/models/preset_successors.dart`,
+  `currentIdFor`), `lib/services/preset_variants.dart` (base recipe, form
+  base, "to source" marking, first-letter switch), the draft builder runs
+  the base recipe and finishes as the preset, `ExerciseFeatures` input kinds
+  (`inputComplete` without reveal) and `isTranslationClue`, the editor forms
+  (Read and answer dialogue lines, `type-missing-word-reveal` switch), the
+  Audit (`currentIdFor`, kind sets, Read and answer / Listen and answer
+  rules, four codes retired: DIALOGUE_RESPONSE_OPTION_COUNT,
+  DIALOGUE_CONTEXT_REQUIRED, DIALOGUE_QUESTION_REQUIRED, CONTEXT_REQUIRED →
+  **98 rules**; areas renamed), the field help (`revealFirstLetter`, 24
+  IDs), `help_structure.dart` (24 IDs, field-key map regenerated), Search
+  definitions, the source voice (`ExerciseFeatures.primaryAudioLanguage`,
+  `audioLanguageOf`, `_voiceFor` in Round and Duel), the GuideBook Round
+  generator and the interoperability catalog on the catalogue IDs, and the
+  v11 converters (Dart `convertV11`, `_givenMetadata`, the file converter;
+  Python `PRESET_SUCCESSOR`) record successors. Scripts: scratchpad
+  `s10_registry.py`, `s10_recipes.py`, `s10_editor.py`, `s11a_successors.py`,
+  `s11b_audit.py`, `s11c_fieldhelp.py`, `s11e_search_runtime.py`. **Next:**
+  (18:40: catalogs done (`s11d_catalogs.py`); `s12_prod.py` + `s12_prod_b.py`
+  added the shape hints `ExerciseDraftValues.textRole`/`audioRole` (decompose
+  records them; `PresetVariants.baseFor` keeps an opened exercise's passage /
+  situation / context or primary / passage shape), merged the two listening
+  forms into one (`Spoken text`, `Question (optional)`), gave Read and answer
+  a `Spoken text (optional)` field, removed the dialogue_response and
+  contextual_comprehension form cases, direction labels for the translation
+  twins, `Translation pairs` (at least two), six dead `ExerciseAuthoringField`
+  values removed, to-source field help, Pick the translation Help restored
+  verbatim from HEAD; `s12_tests.py` moved the test pins; bundled Courses
+  regenerated with successor IDs: Laboratory and Edge Case by their
+  generators, Korean and Piedmontese by `dart run tools/convert_course_to_v12.dart
+  <fixture> <asset> --overwrite` (the Piedmontese generator asserts the
+  registry unchanged: Stage 4 extends its Lessons); `flutter analyze` clean;
+  second focused batch `scratchpad/focused_s12.log`: 590 passed, 30 failed;
+  `s13_fixes.py` then made Type the missing word absorb the Fill-in shape
+  (first-letter switch off = base recipe `fill_blank`, one field; decompose
+  shows the question as the sentence), let the script candidate cross
+  `finish` unchanged, removed the dead `pairs` field, renamed the Help
+  supplement to "Read and answer example" and moved the last pins
+  (`runtime_canonical_256` kinds as sets, Duel set, `translation_choice_239`
+  v11 types back to `type: 'choice'`); third batch `focused_s13.log`
+  ran: 434 passed, 9 failed; `s14_fixes.py` added the `matchSides` hint so
+  Match the words also keeps the former Matching shape (left target, right
+  source: base recipe `matching`), `s15_tests.py` fixed the picker test;
+  `s16_tests.py` gave the Laboratory test's `_author` the decompose shape
+  hints; `s17_fixes.py` added `presetRecipeBaseOf` (plain Dart, mirrored by
+  `PRESET_BASE` in Python): the v11 `type` view and `convertV11` resolve a
+  catalogue preset to the recipe it is built on, so `Exercise(type: 'choice',
+  editorTemplate: 'choice_source')` converts as a Choose; batch 5: 338
+  passed, 12 failed (typed translations no longer represented: the rebuild
+  blank had the preset ID as its v11 type, so with the base map the builder
+  reused the blank's Select interaction; fixed: the blank has the recipe's
+  base type). **Stage 3 part A applied (`s20_stage3a.py`, analyzer clean):**
+  14 new presets in the registry (`picture_flashcard`, `true_false`,
+  `gap_choice_inline`, `complete_text`, `missing_letters`, `gap_blocks`,
+  `sentence_order`, `listening_image_choice`, `spell_heard`,
+  `picture_choice`, `picture_name`, `spell_word`, `picture_word_match`,
+  `note_card`) with `helpByPreset` texts and `presetRecipeBaseOf` entries
+  (Python `PRESET_BASE` too); `PresetRecipes.kinds`; decompose
+  (`bracketedSentence` for Missing letters, picture items named by their
+  picture); `PresetVariants.ownForms`/`formFor`/`isImageReference`, the
+  Stage 3 `draftFor` cases (inline flags forced per preset, Missing letters
+  brackets → gaps, Note card) and `_shape` (True or false answers in the
+  source language, Spell the word clue, Picture flashcard optional audio,
+  Match picture to word left pictures); builder `copyWith` fields and spoken
+  text for `icon_choice`/`image_word`; converter: image-like icon keys become
+  image elements, `icon_choice`/`image_word` audio automatic (Python too);
+  `LearnerExerciseKind.arrangeLines` (+ copy in eight languages, Audit
+  label); Audit preset rules for the new presets, `IMAGE_WORD_IMAGE_REQUIRED`
+  now "a picture, a spoken word or a clue"; Round: captioned picture answers
+  in the grid via `CourseMediaImage`, Match left pictures, within-word gap
+  underscores; Duel item pictures via `CourseMediaImage`. Batch 6: 452
+  passed, 36 failed (inline-gap examples now recognized as
+  `gap_choice_inline`, Help crashing on missing catalog keys, image widgets):
+  `s22_fixes.py` keeps `PortableExerciseImage`/`Image.asset` for portable
+  and bundled pictures (only `media:` goes through `CourseMediaImage`) and
+  updates the spelling-rule Audit test. **Part B applied (`s21_stage3b.py`,
+  analyzer clean):** `formFor` switch, 13 own forms, `_answerPictures`
+  (one `ExerciseImageField` per answer writing `_icons` lines), Match picture
+  to word kept as words + pictures (`_picturePairsText`/`_splitPicturePairs`),
+  inline switches removed from Choose, Word order and Build the translation,
+  True or false prefilled in the source language (`_trueFalseAnswers`),
+  Missing letters keeps its hint. **Part C applied (`s23a_stage3c.py`,
+  `s23b_stage3c.py`, analyzer clean):** 12 new `ExerciseAuthoringField`
+  values with their help, `editorFieldKeys`/`fieldForEditor` for the 14
+  presets, `help_structure` (38 preset IDs, field-key map), Search
+  definitions, EN/IT/ES catalog entries (14 descriptions and bodies, 15
+  field bodies), test inventories (`_formFields`, `fieldsByPreset`,
+  `_expectedKinds`, Duel set, search helper's missing words, catalogue test's
+  empty group is Coming later). Batch 7: 578 passed, 38 failed (inline
+  examples, Help lazy list, the removed inline switches in tests). **Stage 4
+  applied:** `s30_converters.py` (an explicit `language` attribute wins over
+  the preset-implied one in `convertV11`'s `withTextLanguage`/`withItemLanguage`
+  and the Match sides, and in the Python mirror; the Choose recipe keeps a
+  spoken statement), `s31_laboratory.py` (Laboratory generator: `text(language=)`,
+  `audio(required=)`, `choose(language=, images=)`, `arrange(language=)`,
+  `match(left_images=)`, `card(preset=, picture=)`; inline examples re-tagged
+  `gap_choice_inline`/`gap_blocks`; new Rounds `select_source`,
+  `input_source_and_pictures`, `arrange_source_and_lines`, `match_pictures`,
+  `presentation_pictures_notes`: 107 examples, every preset), `s32_piedmontais.py`
+  (one Lesson per preset in registry order, `gaps()`, `picture_card()`,
+  `note()`, version 1.2.0), `s33_tests.py` (pins: 107 examples, 38 Lessons,
+  inline presets picked in the editor tests, Help/picker lists dragged).
+  Batch 8: 667 passed, 59 failed (29 new Laboratory examples without a
+  baseline record, recognition and generator details). `s35_fixes.py`: Listen
+  and pick the image needs its audio (`kinds` = selectListen), bundled
+  `assets/` icon keys stay icon keys (only `media:`/`data:` become image
+  elements), Choose twins drop a spoken text (True or false keeps it),
+  Missing letters keeps its gaps when reopened without brackets, the
+  Piedmontese generator remaps `gapAssignments`, generators expose
+  `course_v11()`/`build_course_v11()`; `s36_fixtures.py` rewrote the v11
+  converter fixtures of the Laboratory and Piedmontese; Help test lays the
+  whole page out (320 × 60000). Analyzer clean. **Running now (one chain):**
+  the Laboratory in record mode → `s34_baseline.py` (rebuilds
+  `test/support/laboratory_presentation_254.dart`, diff in
+  `scratchpad/baseline_diff.txt`, log `baseline.log`) → batch 9
+  `focused_s19.log`: record mode passed (107 records; the diff against the
+  Session 3 baseline: 27 new records, two deliberate changes: the inline
+  Build the translation examples are Drag the blocks into the gaps), batch 9
+  600 passed, 25 failed. `s37_fixes.py`: a target-language primary text is
+  a translation clue (`isTranslationClue`), the to-source translation twins
+  mark `primary` too, `picture_choice` drops spoken text, the picture presets
+  carry their picture as `picture` (not `clue`) so their bases do not
+  represent them, a Note card is `proceed` (Continue; generators write
+  `["continue"]`), the converters map an inline v11 Choose / Word order /
+  Build the translation to `gap_choice_inline` / `gap_blocks` (Dart and
+  Python), the generators write bundled answer pictures as icon keys (as the
+  picker does) and picture roles, fixtures carry a checksum. Docs written
+  (`s41_docs.py`: CHANGELOG, change summary, validation with placeholders,
+  AGENTS boundary, README, architecture status, catalogue plan status);
+  `s40_version.py` ready (not yet applied). **Running now (one chain):**
+  record → `s34_baseline.py` (against the restored Session 3 baseline) →
+  batch 10 `focused_s20.log`. **Next:** `s40_version.py`, `dart format` on
+  the changed Dart files, analyze, the complete suite (`run_awake.ps1`),
+  validation numbers, commit; still red by design until Stage 4:
+  `exercise_laboratory_254` (every current preset) and
+  `piedmontais_course_254`) the focused tests and their pins (retired IDs → successors;
+  `AuditCode.values` 98; `CONTEXT_REQUIRED` → `READING_PASSAGE_REQUIRED` in
+  `contextual_comprehension_224_test`), then Stage 3 (new presets, picture
+  answers), Stage 4 (generators, bundled Courses, baselines), version
+  `2.0.56+256004`, docs, suite, commit.
 - Branch `claude/256-exercise-architecture`, created from `main` at
   `611a1a1` (Build 255 handoff; version `2.0.55+255007`).
 - Commits: `507be89` Build 256 Revision 0 (canonical definitions;
@@ -145,7 +348,14 @@ the Session 2 design). Summary: `docs/256_CHANGE_SUMMARY.md`. Evidence:
   brackets) and the picture answers of Select the image are Revision 4
   work (recorded in the catalogue plan). Owner (16:45): "after commit go
   on with next revision".
-  **Revision 4 starts now**: `git stash pop`
+  **Revision 4 started 16:55**: `git stash pop` done (one conflict in
+  `course_editor_screen.dart`, both inserted blocks kept: `_compactButtonStyle`
+  and `_PresetActionChip`; stash dropped), analyzer clean, Stage 1 focused
+  batch running (`scratchpad/s9_stage1.log`),
+  `test/preset_catalogue_256_test.dart` written (registry groups,
+  directions, renames, coming-later list, planner, picker filter and
+  greyed tiles, Help section). Then Stage 2. The original note follows:
+  `git stash pop`
   restores Stage 1 (stash@{0}) and Session 5 continues from "Session 5
   starting points" below, with the direction decisions (pairs only where
   meaningful, bracket only on the twins).

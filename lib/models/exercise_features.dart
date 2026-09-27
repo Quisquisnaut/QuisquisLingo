@@ -53,6 +53,10 @@ enum LearnerExerciseKind {
   /// Arrange joining blocks with spaces.
   arrangeSentence,
 
+  /// Arrange whose blocks are whole lines or sentences (Put the sentences in
+  /// order): every block has three words or more, or ends a sentence.
+  arrangeLines,
+
   /// Arrange whose prompt is in the source language.
   arrangeTranslation,
 
@@ -166,6 +170,23 @@ class ExerciseFeatures {
   /// The language of the primary or clue text, when stated.
   TextLanguage? get promptLanguage =>
       _languageOf(_texts('primary')) ?? _languageOf(_texts('clue'));
+
+  /// A translation exercise: the text the learner translates has an
+  /// explicit language, either way round (`clue` in the source language for
+  /// "to target", in the target language for "to source"; a plain `primary`
+  /// text in the source language counts too, as the v11 converter wrote).
+  bool get isTranslationClue =>
+      promptLanguage == TextLanguage.source ||
+      ((clueText.isNotEmpty || primaryText.isNotEmpty) &&
+          promptLanguage == TextLanguage.target);
+
+  /// The language the learner answers in for a translation exercise: the
+  /// other side of the clue.
+  TextLanguage? get answerLanguage => !isTranslationClue
+      ? null
+      : promptLanguage == TextLanguage.source
+      ? TextLanguage.target
+      : TextLanguage.source;
 
   /// Whether any prompt text contains a `___` blank.
   bool get hasBlankInPrompt =>
@@ -281,6 +302,29 @@ class ExerciseFeatures {
     return text.isEmpty ? null : text;
   }
 
+  /// The language the element behind [primaryAudioText] states, or null:
+  /// a "to source" preset's audio is in the source language and is spoken
+  /// with the source voice.
+  TextLanguage? get primaryAudioLanguage =>
+      (automaticAudio ?? audioElements.firstOrNull)?.language;
+
+  /// The language stated by the audio element, in the prompt or in an
+  /// item, whose text is [text]; null when no element states one.
+  TextLanguage? audioLanguageOf(String text) {
+    final wanted = text.trim();
+    for (final element in audioElements) {
+      if (element.text.trim() == wanted) return element.language;
+    }
+    for (final item in items) {
+      for (final element in item.content) {
+        if (element.isAudio && element.text.trim() == wanted) {
+          return element.language;
+        }
+      }
+    }
+    return null;
+  }
+
   /// The inline layout as one sentence: a target that reveals its first
   /// grapheme reads `___`, any other target reads its first accepted answer.
   String get inlineSentence => [
@@ -297,9 +341,29 @@ class ExerciseFeatures {
         answersFor(element.targetId)?.answers.firstOrNull ?? '',
   ].join();
 
+  /// The inline layout as one text with every gap's first accepted answer
+  /// in square brackets (the Missing letters form): `dr[ink]`.
+  String get bracketedSentence => [
+    for (final element in exercise.layout)
+      if (element.isText)
+        element.text
+      else
+        '[${answersFor(element.targetId)?.answers.firstOrNull ?? ''}]',
+  ].join();
+
   /// The first target that reveals its first grapheme, or null.
   ExerciseTarget? get revealTarget =>
       exercise.targets.where((t) => t.reveal != null).firstOrNull;
+
+  /// Arrange: whether the blocks are lines or sentences rather than words:
+  /// two or more, each with three words or more or ending a sentence.
+  bool get isLineOrder =>
+      items.length >= 2 &&
+      items.every((item) {
+        final text = item.text.trim();
+        return text.split(RegExp(r'\s+')).length >= 3 ||
+            RegExp(r'[.!?…]$').hasMatch(text);
+      });
 
   /// Arrange: whether blocks join without a separator.
   bool get joinsWithoutSpaces =>
@@ -416,20 +480,23 @@ class ExerciseFeatures {
         return LearnerExerciseKind.select;
       case ExercisePrimitive.input:
         if (hasInlineTargets) {
+          // Gaps with audio are heard (Listen and fill the gaps); gaps
+          // that reveal a letter are Type the missing word; other gaps are
+          // completed from the text alone.
+          if (automaticAudio != null) {
+            return LearnerExerciseKind.inputListenGaps;
+          }
           return revealTarget != null
               ? LearnerExerciseKind.inputMissingWord
-              : LearnerExerciseKind.inputListenGaps;
+              : LearnerExerciseKind.inputComplete;
         }
         if (automaticAudio != null) return LearnerExerciseKind.inputListenWrite;
-        if (promptLanguage == TextLanguage.source) {
-          return LearnerExerciseKind.inputTranslation;
-        }
+        if (isTranslationClue) return LearnerExerciseKind.inputTranslation;
         return LearnerExerciseKind.inputComplete;
       case ExercisePrimitive.arrange:
         if (joinsWithoutSpaces) return LearnerExerciseKind.arrangeWord;
-        if (promptLanguage == TextLanguage.source) {
-          return LearnerExerciseKind.arrangeTranslation;
-        }
+        if (isTranslationClue) return LearnerExerciseKind.arrangeTranslation;
+        if (isLineOrder) return LearnerExerciseKind.arrangeLines;
         return LearnerExerciseKind.arrangeSentence;
       case ExercisePrimitive.match:
         if (leftItemsHaveAudio) return LearnerExerciseKind.matchAudio;

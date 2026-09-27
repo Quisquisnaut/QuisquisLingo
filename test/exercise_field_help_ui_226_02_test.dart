@@ -4,12 +4,19 @@ import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/models/exercise_authoring.dart';
 import 'package:quisquislingo_app/screens/course_editor_screen.dart';
 import 'package:quisquislingo_app/services/exercise_field_help.dart';
+import 'package:quisquislingo_app/services/preset_variants.dart';
 
 // This inventory is taken from the displayed editor forms, independently of
 // their controller-to-help resolver. It catches a Help control bound to the
 // wrong field as well as a missing control or an unreviewed new preset.
 const _formFields = <String, Map<String, String>>{
-  'choice': {
+  'choice_target': {
+    'Prompt / instruction': 'prompt',
+    'Question': 'question',
+    'Answers': 'answers',
+    'Correct answer number': 'correct',
+  },
+  'choice_source': {
     'Prompt / instruction': 'prompt',
     'Question': 'question',
     'Answers': 'answers',
@@ -37,40 +44,41 @@ const _formFields = <String, Map<String, String>>{
     'Correct answer number': 'correct',
     'Icons / image keys': 'icons',
   },
-  'listening_choice': {
+  'listening_answer_target': {
     'Spoken text': 'tts',
+    'Question (optional)': 'question',
+    'Answers': 'answers',
+    'Correct answer number': 'correct',
+  },
+  'listening_answer_source': {
+    'Spoken text': 'tts',
+    'Question (optional)': 'question',
+    'Answers': 'answers',
+    'Correct answer number': 'correct',
+  },
+  'reading_answer_target': {
+    'Text to read': 'prompt',
+    'Spoken text (optional)': 'tts',
+    'Dialogue lines (optional)': 'dialogue',
     'Question': 'question',
     'Answers': 'answers',
     'Correct answer number': 'correct',
   },
-  'listening_comprehension': {
-    'Spoken passage': 'tts',
-    'Comprehension question': 'question',
-    'Answers': 'answers',
-    'Correct answer number': 'correct',
-  },
-  'reading_comprehension': {
-    'Reading passage': 'prompt',
-    'Comprehension question': 'question',
-    'Answers': 'answers',
-    'Correct answer number': 'correct',
-  },
-  'dialogue_response': {
-    'Context sentence': 'prompt',
-    'Question': 'question',
-    'Two response options': 'answers',
-    'Correct response number': 'correct',
-  },
-  'contextual_comprehension': {
-    'Context text': 'context',
-    'Context audio text': 'tts',
-    'Structured dialogue (optional)': 'dialogue',
+  'reading_answer_source': {
+    'Text to read': 'prompt',
+    'Spoken text (optional)': 'tts',
+    'Dialogue lines (optional)': 'dialogue',
     'Question': 'question',
     'Answers': 'answers',
     'Correct answer number': 'correct',
   },
-  'type_translation': {
+  'type_translation_to_target': {
     'Source text': 'prompt',
+    'Accepted translations': 'accepted',
+    'Hint (optional)': 'hint',
+  },
+  'type_translation_to_source': {
+    'Text to translate': 'prompt',
     'Accepted translations': 'accepted',
     'Hint (optional)': 'hint',
   },
@@ -79,16 +87,15 @@ const _formFields = <String, Map<String, String>>{
     'Complete accepted words': 'accepted',
     'Hint (optional)': 'hint',
   },
-  'build_translation': {
+  'build_translation_to_target': {
     'Source sentence': 'prompt',
     'Available target-language blocks': 'tokens',
     'Correct translation 1': 'correctTranslation',
   },
-  'fill_blank': {
-    'Incomplete word / phrase': 'question',
-    'Accepted answers': 'accepted',
-    'Hint': 'hint',
-    'Complete phrase TTS (optional)': 'tts',
+  'build_translation_to_source': {
+    'Sentence to translate': 'prompt',
+    'Available source-language blocks': 'tokens',
+    'Correct translation 1': 'correctTranslation',
   },
   'listening_spelling': {
     'Passage transcript': 'prompt',
@@ -100,8 +107,7 @@ const _formFields = <String, Map<String, String>>{
     'Audio text': 'tts',
     'Missing word(s)': 'missingWords',
   },
-  'matching': {'Instruction': 'prompt', 'Pairs': 'pairs'},
-  'word_match': {'Instruction': 'prompt', 'Three translation pairs': 'pairs'},
+  'word_match': {'Instruction': 'prompt', 'Translation pairs': 'pairs'},
   'super_match': {
     'Match type / instruction': 'prompt',
     'Three target-language pairs': 'pairs',
@@ -123,6 +129,72 @@ const _formFields = <String, Map<String, String>>{
     'Pronunciation TTS': 'tts',
     'Usage sentence and optional translation': 'answers',
   },
+  'picture_flashcard': {
+    'Word / expression': 'prompt',
+    'Translation / meaning': 'question',
+    'Pronunciation TTS': 'tts',
+    'Usage sentence and optional translation': 'answers',
+  },
+  'true_false': {
+    'Statement': 'question',
+    'Spoken statement (optional)': 'tts',
+    'Answers': 'answers',
+    'Correct answer number': 'correct',
+  },
+  'gap_choice_inline': {
+    'Instruction (optional)': 'prompt',
+    'Sentence with gaps': 'gapLayout',
+    'Distractor options (optional)': 'tokens',
+    'Spoken prompt (optional)': 'tts',
+  },
+  'complete_text': {
+    'Text with the words to hide': 'prompt',
+    'Missing words': 'missingWords',
+  },
+  'missing_letters': {
+    'Text with the missing letters in brackets': 'prompt',
+    'Spoken text (optional)': 'tts',
+    'Hint (optional)': 'hint',
+  },
+  'gap_blocks': {
+    'Instruction (optional)': 'prompt',
+    'Sentence with gaps': 'gapLayout',
+    'Extra distractor blocks (optional)': 'tokens',
+    'Spoken prompt (optional)': 'tts',
+  },
+  'sentence_order': {
+    'Instruction': 'prompt',
+    'Sentences or lines': 'tokens',
+    'Correct order': 'order',
+  },
+  'listening_image_choice': {
+    'Spoken text': 'tts',
+    'Question (optional)': 'question',
+    'Answers': 'answers',
+    'Correct answer number': 'correct',
+  },
+  'spell_heard': {
+    'Spoken word': 'tts',
+    'Available letter / syllable blocks': 'tokens',
+    'Correct word': 'order',
+  },
+  'picture_choice': {
+    'Question': 'question',
+    'Answers': 'answers',
+    'Correct answer number': 'correct',
+  },
+  'picture_name': {
+    'Question / instruction': 'question',
+    'Accepted answers': 'accepted',
+    'Hint (optional)': 'hint',
+  },
+  'spell_word': {
+    'Clue': 'prompt',
+    'Available letter / syllable blocks': 'tokens',
+    'Correct word': 'order',
+  },
+  'picture_word_match': {'Instruction': 'prompt', 'Words': 'answers'},
+  'note_card': {'Title': 'prompt', 'Note': 'question'},
 };
 
 void main() {
@@ -166,61 +238,10 @@ void main() {
     });
   }
 
-  testWidgets('conditional context fields and mode retain direct Help', (
-    tester,
-  ) async {
-    await _mount(tester, 'contextual_comprehension');
-    await _reveal(tester, _help('contextMode'));
-    await _openAndCheck(
-      tester,
-      _help('contextMode'),
-      'contextual_comprehension',
-      'contextMode',
-    );
-
-    final mode = find.byKey(const Key('context-mode-selector'));
-    await _reveal(tester, mode);
-    await tester.tap(mode);
-    await _settle(tester);
-    await tester.tap(find.text('Audio').last);
-    await _settle(tester);
-    await _reveal(tester, _field('Context audio text'));
-    expect(_field('Context text'), findsNothing);
-    expect(_field('Structured dialogue (optional)'), findsNothing);
-    await _openAndCheck(
-      tester,
-      _help('tts'),
-      'contextual_comprehension',
-      'tts',
-    );
-
-    await _reveal(tester, mode);
-    await tester.tap(mode);
-    await _settle(tester);
-    await tester.tap(find.text('Text').last);
-    await _settle(tester);
-    await _reveal(tester, _field('Context text'));
-    expect(_field('Context audio text'), findsNothing);
-    await _openAndCheck(
-      tester,
-      _help('context'),
-      'contextual_comprehension',
-      'context',
-    );
-    await _reveal(tester, _field('Structured dialogue (optional)'));
-    await _openAndCheck(
-      tester,
-      _help('dialogue'),
-      'contextual_comprehension',
-      'dialogue',
-    );
-    expect(tester.takeException(), isNull);
-  });
-
   testWidgets('each dynamically added correct translation has its own Help', (
     tester,
   ) async {
-    await _mount(tester, 'build_translation');
+    await _mount(tester, 'build_translation_to_target');
     final add = find.byKey(const Key('add-correct-translation'));
     await _reveal(tester, add);
     await tester.tap(add);
@@ -235,7 +256,7 @@ void main() {
     await _openAndCheck(
       tester,
       button,
-      'build_translation',
+      'build_translation_to_target',
       'correctTranslation',
     );
     expect(
@@ -248,7 +269,7 @@ void main() {
   testWidgets('Prompt and Question Help stay distinct and fit at 320 px', (
     tester,
   ) async {
-    await _mount(tester, 'choice', size: const Size(320, 700));
+    await _mount(tester, 'choice_target', size: const Size(320, 700));
 
     await _reveal(tester, _help('prompt'));
     await tester.tap(_help('prompt'));
@@ -271,7 +292,9 @@ void main() {
     await tester.tap(_help('question'));
     await _settle(tester);
     expect(
-      find.textContaining('The word or phrase the learner must translate.'),
+      find.textContaining(
+        'The question the learner answers, or the word or phrase to translate.',
+      ),
       findsOneWidget,
     );
     expect(find.textContaining('Good morning'), findsOneWidget);
@@ -288,7 +311,7 @@ void main() {
       ) async {
         await _mount(
           tester,
-          'type_translation',
+          'type_translation_to_target',
           size: Size(width, 800),
           brightness: brightness,
         );
@@ -342,7 +365,7 @@ void main() {
 
         await _mount(
           tester,
-          'build_translation',
+          'build_translation_to_target',
           size: Size(width, 800),
           brightness: brightness,
         );
@@ -350,29 +373,29 @@ void main() {
         await _openAndCheck(
           tester,
           _help('correctTranslation'),
-          'build_translation',
+          'build_translation_to_target',
           'correctTranslation',
         );
         expect(tester.takeException(), isNull);
 
         await _mount(
           tester,
-          'contextual_comprehension',
+          'reading_answer_target',
           size: Size(width, 800),
           brightness: brightness,
         );
-        await _reveal(tester, _help('contextMode'));
+        await _reveal(tester, _help('dialogue'));
         await _openAndCheck(
           tester,
-          _help('contextMode'),
-          'contextual_comprehension',
-          'contextMode',
+          _help('dialogue'),
+          'reading_answer_target',
+          'dialogue',
         );
         await _reveal(tester, _help('image'));
         await _openAndCheck(
           tester,
           _help('image'),
-          'contextual_comprehension',
+          'reading_answer_target',
           'image',
         );
         expect(tester.takeException(), isNull);
@@ -468,44 +491,24 @@ Future<void> _mount(
   await tester.pumpWidget(const SizedBox.shrink());
   await tester.binding.setSurfaceSize(size);
   addTearDown(() => tester.binding.setSurfaceSize(null));
-  final exercise = preset == 'contextual_comprehension'
-      ? Exercise.v2(
-          id: 'help-exercise',
-          editorTemplate: preset,
-          publicationState: PublicationState.draft,
-          updatedAt: DateTime.utc(2026, 9, 5),
-          promptElements: const [
-            PromptElement(
-              role: 'context',
-              type: 'text',
-              text: 'Context passage',
-            ),
-            PromptElement(
-              role: 'context',
-              type: 'audio',
-              text: 'Spoken passage',
-            ),
-          ],
-          interaction: const ExerciseInteraction(kind: 'select'),
-          evaluation: const ExerciseEvaluation(kind: 'selected_items'),
-        )
-      : Exercise(
-          id: 'help-exercise',
-          type: preset,
-          publicationState: PublicationState.draft,
-          updatedAt: DateTime.utc(2026, 9, 5),
-          prompt: '',
-          question: '',
-          answers: const [],
-          correct: null,
-          tts: null,
-          accepted: const [],
-          tokens: const [],
-          orderAnswer: const [],
-          pairs: const [],
-          hint: '',
-          icons: const [],
-        );
+  final exercise = Exercise(
+    id: 'help-exercise',
+    type: PresetVariants.formBase(preset),
+    editorTemplate: preset,
+    publicationState: PublicationState.draft,
+    updatedAt: DateTime.utc(2026, 9, 5),
+    prompt: '',
+    question: '',
+    answers: const [],
+    correct: null,
+    tts: null,
+    accepted: const [],
+    tokens: const [],
+    orderAnswer: const [],
+    pairs: const [],
+    hint: '',
+    icons: const [],
+  );
   await tester.pumpWidget(
     MaterialApp(
       theme: ThemeData(brightness: brightness),

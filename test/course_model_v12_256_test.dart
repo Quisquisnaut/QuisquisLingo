@@ -677,8 +677,10 @@ void main() {
             .effectivePlayback,
         AudioPlayback.automatic,
       );
-      expect(listening.type, 'listening_choice');
-      expect(listening.editorTemplate, 'listening_choice');
+      // The v11-shaped view names the recipe the successor is built on.
+      expect(listening.type, 'listening_comprehension');
+      // Build 256 Revision 4: the converter records the successor preset.
+      expect(listening.editorTemplate, 'listening_answer_target');
 
       final toTarget = legacy(
         'translation_choice_to_target',

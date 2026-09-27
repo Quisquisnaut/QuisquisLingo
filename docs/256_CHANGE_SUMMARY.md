@@ -4,6 +4,144 @@ Build 256 is the exercise architecture redesign (Course Model v12). Its six
 sessions are Revisions 0–5. Plan: `256_EXERCISE_ARCHITECTURE_PLAN.md`;
 reference: `EXERCISE_ARCHITECTURE_V12.md`; evidence: `256_VALIDATION.md`.
 
+## Revision 4 (2.0.56+256004, 27 September 2026): the preset catalogue
+
+Session 5. The catalogue decided in `docs/256_PRESET_CATALOGUE_PLAN.md`:
+38 presets in six skill groups, twins where the direction matters, seven
+greyed presets, pictures on answers, and the runtime the new presets need.
+Course files stay Course Model v12.
+
+### Files
+
+- `lib/models/exercise_authoring.dart`: `ExerciseCategory` (vocabulary,
+  grammarAndSentences, listening, readingAndDialogue,
+  picturesAndCharacters, cardsAndNotes, comingLater), `PresetDirection`,
+  `ExercisePreset.direction`/`base`/`twin`/`action`, the 38 presets,
+  `ComingLaterPreset` and `ExercisePresetRegistry.comingLater`,
+  `successorOf`/`currentIdFor`, `helpByPreset`.
+- `lib/models/preset_successors.dart` (new, plain Dart): `presetSuccessorOf`
+  (retired ID → successor) and `presetRecipeBaseOf` (catalogue preset →
+  the older recipe it is built on); mirrored by `PRESET_SUCCESSOR` and
+  `PRESET_BASE` in `tools/qql_course_v12.py`.
+- `lib/services/preset_variants.dart` (new): `baseFor` (the recipe the
+  builder runs, following the shape hints), `formBase`/`formFor`/`ownForms`,
+  `draftFor` (inline flags forced per preset, Missing letters brackets →
+  gaps, Note card), `finish` (`toSource` marks a "to source" twin's
+  question, items or clue; `_shape` adds True or false answers in the
+  source language, Spell the word's clue language, a Picture flashcard's
+  optional audio, Match picture to word's pictures), `isImageReference`,
+  `fits`/`hasInWordGap` (the shape that tells the presets of one recipe
+  apart, asked before rebuilding: an in-word gap is Missing letters, a
+  picture Spell the word in the picture, automatic audio Spell what you
+  hear, neither Spell the word).
+- `lib/services/exercise_draft_builder.dart`: `ExerciseDraftValues.
+  revealFirstLetter`, `textRole`, `audioRole`, `matchSides`, a wider
+  `copyWith`; `build` runs the base recipe then `PresetVariants.finish`;
+  spoken text kept for Select the image, Spell the word in the picture and
+  Choose (True or false); Missing letters keeps its hint.
+- `lib/services/preset_recipes.dart`: `kinds` as sets per preset,
+  `defaultPresetFor` on catalogue IDs, `presetToEdit` through the successor,
+  decompose records the shape hints, the bracketed sentence and picture
+  items; `rebuild`'s blank carries the recipe's base type.
+- `lib/models/course_models.dart`: the converter records successor IDs
+  (`_givenMetadata`, `convertV11`), `_legacyTypeFromTemplate` resolves a
+  catalogue preset to its base recipe, an explicit `language` attribute
+  wins over the preset-implied one, `media:`/`data:` icon keys become image
+  elements, Select the image and Spell the word in the picture audio play
+  automatically; `Presentation.fromExercise` reads an omitted completion
+  mode as the registry default, `proceed` (`['continue']`), as the runtime
+  does (it used to answer understood/review). `lib/services/
+  course_model_v12_converter.dart` records successors too and no longer
+  notes a `["continue"]` card (the proceed mode itself, nothing unmapped;
+  any other non-standard action list is still noted).
+- `lib/models/exercise_features.dart`: input kinds (`inputComplete` for a
+  gap without reveal), `isTranslationClue`, `answerLanguage`,
+  `primaryAudioLanguage`, `audioLanguageOf`, `bracketedSentence`,
+  `isLineOrder` and `LearnerExerciseKind.arrangeLines`.
+- `lib/services/exercise_copy_service.dart`: `arrangeLines` heading and
+  instruction in EN, ES, IT, DE, PT, NL, FI, CY.
+- `lib/screens/round_screen.dart`: `_voiceFor` (source voice), captioned
+  picture answers in the grid, `_itemImage` (Course media through
+  `CourseMediaImage`, bundled and portable pictures as before), Match left
+  pictures (`_matchLeftContent`), within-word gap underscores.
+  `lib/screens/duel_screen.dart`: `_voiceFor`, Course media on answers.
+- `lib/screens/course_editor_screen.dart`: the picker (groups,
+  `_PresetActionChip`, `exercise-preset-direction`, `exercise-preset-<id>`,
+  `exercise-preset-later-<id>`), `formFor` switch and the 13 own forms, the
+  merged Listen and answer and Read and answer forms (`Spoken text`,
+  `Question (optional)`, `Text to read`, `Spoken text (optional)`, `Dialogue
+  lines (optional)`), direction labels on the translation twins,
+  `type-missing-word-reveal`, `_answerPictures` (one `ExerciseImageField`
+  per answer), Match picture to word as words + pictures, inline switches
+  removed, True or false prefilled (`_trueFalseAnswers`), the shape hints
+  carried through the form.
+- `lib/services/course_audit_service.dart`: `currentIdFor`, kind sets,
+  Read and answer / Listen and answer / True or false / picture / Match
+  picture to word rules, `_mismatchHint`, the widened spelling rule,
+  `kindLabel` for `arrangeLines`. `lib/services/audit_code_registry.dart`:
+  four codes retired (98 rules), areas renamed. `FLASHCARD_EXAMPLE_EMPTY`
+  and `FLASHCARD_AUDIO_EMPTY` apply to vocabulary flashcards only (reviewed
+  later, no picture): a Note card and a Picture flashcard carry optional
+  usage and pronunciation; `ROUND_DUPLICATE_CONTENT` counts the prompt's
+  pictures, so three "What is this?" pictures are three exercises.
+- Exercise Wizard: `_blankExerciseForPreset` builds the planned exercise
+  with the recipe's base type and the preset as editor template. It used
+  the preset ID as the v11 type, which for a catalogue twin (Type the
+  translation (to target)) is no v11 type and fell back to a Select
+  interaction: the Wizard then saved a Select without items and lost the
+  accepted translations (found by the complete suite).
+- `lib/services/exercise_field_help.dart`: `editorFieldKeys`/`fieldForEditor`
+  for the 38 presets, 12 new `ExerciseAuthoringField` values, seven dead
+  ones removed, to-source help; `lib/localization/help/help_structure.dart`
+  and the EN/IT/ES catalogs (every preset's description and body, the new
+  field bodies, the Read and answer example); `lib/services/
+  exercise_search_service.dart` definitions; `lib/services/
+  exercise_creation_planner.dart` skips empty groups;
+  `lib/screens/editor_help_screen.dart` Coming later section;
+  `lib/services/guidebook_round_generator.dart` and
+  `lib/models/exercise_interoperability.dart` on catalogue IDs.
+- Generators and Courses: `tools/generate_exercise_laboratory_254.py`
+  (languages, optional audio, pictures on answers and Match items, cards;
+  107 examples; `course_v11()`), `tools/generate_piedmontais_demo_254.py`
+  (one Lesson per preset in registry order, `gaps()`, `picture_card()`,
+  `note()`, version 1.2.0; `build_course_v11()`), `tools/qql_course_v12.py`
+  (successors, bases, explicit languages, automatic audio);
+  `assets/courses/*.json` regenerated; `test/fixtures/v11/` Laboratory and
+  Piedmontese originals regenerated; `docs/254_LABORATORY_COVERAGE.md`.
+- Tests: `test/preset_catalogue_256_test.dart` (new); the Laboratory
+  presentation baseline re-recorded (`test/support/laboratory_presentation_254.dart`,
+  107 records); pins moved in the editor, Help, Audit, runtime, recipe,
+  converter, Laboratory and Piedmontese tests.
+
+### Architecture decisions implemented
+
+- Presets stay metadata (plan A.3): the runtime, the Duel and the Audit
+  read canonical data; a preset never changes behavior. The catalogue is
+  the authoring vocabulary: recipes over the same canonical fields.
+- A retired preset is read as its successor everywhere and the successor's
+  form keeps an opened exercise's shape (shape hints), so no stored
+  exercise changes meaning when it is reopened and saved unchanged.
+- A "to source" twin is the same recipe with the source-language side
+  stated on the elements (`language`); an explicit language wins over the
+  language a v11 preset implied.
+- Inline gaps are presets of their own; the Choose, Word order and Build
+  the translation forms have no switches for them.
+- Pictures on answers are image elements on items; the Round and the Duel
+  draw Course media through `CourseMediaImage`, bundled and portable
+  pictures as before.
+
+### Known limitations and deferrals
+
+- The save guard on example content (refusing Save while a required field
+  still holds its example) is not implemented: the forms do not prefill
+  examples, so there is nothing to refuse yet.
+- Match picture to word keeps the dropdown Match layout; Match picture to
+  sound stays greyed (it needs a tap-to-pair layout).
+- The Piedmontese demo is an AI-generated sample: its new Lessons are not
+  linguistically reviewed.
+- Interoperability (Revision 5) and the Laboratory by primitive and option
+  with the Assign runtime (Revision 6) follow.
+
 ## Revision 3 (2.0.56+256003, 27 September 2026): presets as recipes and the Generic Primitive Editor
 
 Session 4. Course files stay Course Model v12; presets become recipes,

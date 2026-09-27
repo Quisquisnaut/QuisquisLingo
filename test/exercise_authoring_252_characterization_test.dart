@@ -21,6 +21,26 @@ void _largeViewport(WidgetTester tester) {
   addTearDown(tester.view.resetDevicePixelRatio);
 }
 
+/// Chooses [name] in the preset picker of a new exercise (Build 256
+/// Revision 4: inline gaps are presets of their own, not switches).
+Future<void> _pickPreset(WidgetTester tester, String name) async {
+  await tester.tap(find.byKey(const Key('exercise-preset-selector')));
+  await tester.pumpAndSettle();
+  final tile = find.text(name).last;
+  await tester.dragUntilVisible(
+    tile,
+    find
+        .descendant(
+          of: find.byType(DraggableScrollableSheet),
+          matching: find.byType(ListView),
+        )
+        .first,
+    const Offset(0, -400),
+  );
+  await tester.tap(tile);
+  await tester.pumpAndSettle();
+}
+
 Future<void> _mount(
   WidgetTester tester,
   Exercise original,
@@ -112,7 +132,7 @@ void main() {
         'publicationState': 'draft',
         'kind': 'exercise',
         'required': true,
-        'authoringMetadata': {'presetId': 'choice'},
+        'authoringMetadata': {'presetId': 'choice_target'},
         'exercise': {
           'updatedAt': _saveTime.toIso8601String(),
           'prompt': [
@@ -170,13 +190,15 @@ void main() {
     _expectV12RoundTrip(saved!);
   });
 
-  for (final type in [
-    'type_translation',
-    'build_translation',
-    'matching',
-    'contextual_comprehension',
-    'flashcard',
-    'listening_spelling',
+  // Build 256 Revision 4: a v11 type opens in its successor preset, which
+  // the saved exercise then carries.
+  for (final (type, presetId) in [
+    ('type_translation', 'type_translation_to_target'),
+    ('build_translation', 'build_translation_to_target'),
+    ('matching', 'word_match'),
+    ('contextual_comprehension', 'reading_answer_target'),
+    ('flashcard', 'flashcard'),
+    ('listening_spelling', 'listening_spelling'),
   ]) {
     testWidgets('$type Save Draft retains its v12 content wrapper', (
       tester,
@@ -187,13 +209,13 @@ void main() {
       await workflow.tapKey(tester, 'exercise-save-draft');
       expect(saved, isNotNull);
       expect(saved!.id, original.id);
-      expect(saved!.editorTemplate, type);
+      expect(saved!.editorTemplate, presetId);
       expect(saved!.publicationState, PublicationState.draft);
       expect(saved!.updatedAt, _saveTime);
       final content = _contentJson(saved!);
       expect(content['id'], original.id);
       expect(content['publicationState'], 'draft');
-      expect((content['authoringMetadata'] as Map)['presetId'], type);
+      expect((content['authoringMetadata'] as Map)['presetId'], presetId);
       // Course Model v12: a Flashcard is an exercise too.
       expect(content['kind'], 'exercise');
       if (type == 'matching') {
@@ -246,7 +268,7 @@ void main() {
     );
     Exercise? saved;
     await _mount(tester, original, (value) => saved = value);
-    await workflow.tapKey(tester, 'word-order-use-inline-gaps');
+    await _pickPreset(tester, 'Drag the blocks into the gaps');
     await tester.enterText(
       workflow.field('Sentence with gaps'),
       'I {go} {to} school.',
@@ -283,7 +305,7 @@ void main() {
     final original = workflow.modelExercise('choice', PublicationState.draft);
     Exercise? saved;
     await _mount(tester, original, (value) => saved = value);
-    await workflow.tapKey(tester, 'choice-use-inline-gaps');
+    await _pickPreset(tester, 'Pick the words for the gaps');
     await tester.enterText(
       workflow.field('Sentence with gaps'),
       '{Was} she happy? {Was} he late?',

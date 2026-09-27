@@ -66,7 +66,13 @@ class ExerciseCreationPlanner {
   }
 
   List<String> _balanced(int count) {
-    final categories = ExerciseCategory.values;
+    // A skill group without a recipe (Coming later, or a group whose
+    // presets arrive in a later revision) takes no turn.
+    final categories = ExerciseCategory.values
+        .where(
+          (category) => ExercisePresetRegistry.inCategory(category).isNotEmpty,
+        )
+        .toList();
     final offsets = <ExerciseCategory, int>{};
     final out = <String>[];
     for (var i = 0; i < count; i++) {

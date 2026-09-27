@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import '../services/course_language_resolver.dart';
 import '../services/beta_lifecycle_service.dart';
 import '../widgets/beta_expired_view.dart';
 import '../models/course_models.dart';
@@ -216,8 +217,21 @@ class _DuelScreenState extends State<DuelScreen> {
     values.shuffle(_random);
   }
 
-  Future<void> _speak(Exercise ex) =>
-      _speakText(ExerciseFeatures(ex).primaryAudioText ?? '');
+  Future<void> _speak(Exercise ex) {
+    final f = ExerciseFeatures(ex);
+    return _speakText(
+      f.primaryAudioText ?? '',
+      language: f.primaryAudioLanguage,
+    );
+  }
+
+  /// The speech language for text in [language]: the Course's source
+  /// language for source-language audio, else the learning language.
+  String _voiceFor(TextLanguage? language) {
+    if (language != TextLanguage.source) return widget.ttsLanguage;
+    final code = CourseLanguageResolver.base(widget.course).code ?? '';
+    return code.isEmpty ? widget.ttsLanguage : code;
+  }
 
   Widget _translationAudioButton(String text) => IconButton.filledTonal(
     key: const Key('translation-choice-audio'),
@@ -235,7 +249,7 @@ class _DuelScreenState extends State<DuelScreen> {
     ),
   );
 
-  Future<void> _speakText(String text) async {
+  Future<void> _speakText(String text, {TextLanguage? language}) async {
     if (text.isEmpty) return;
     var ok = false;
     if (widget.course.audioMode != 'tts') {
@@ -248,7 +262,7 @@ class _DuelScreenState extends State<DuelScreen> {
     if (!ok && widget.course.audioMode != 'recorded') {
       ok = await _tts.speak(
         text: text,
-        language: widget.ttsLanguage,
+        language: _voiceFor(language ?? _features.audioLanguageOf(text)),
         learningLanguage: widget.course.learningLanguage,
         targetLanguage: widget.course.targetLanguage,
       );
@@ -632,11 +646,20 @@ class _DuelScreenState extends State<DuelScreen> {
                           ? () => _selectChoice(i)
                           : null,
                       child: _choices[i].item.image.isNotEmpty
-                          ? PortableExerciseImage(
-                              asset: _choices[i].item.image,
-                              width: 128,
-                              height: 128,
-                            )
+                          ? _choices[i].item.image.startsWith('media:')
+                                ? CourseMediaImage(
+                                    courseId: widget.course.courseId,
+                                    asset: _choices[i].item.image,
+                                    width: 128,
+                                    height: 128,
+                                    cacheWidth: 256,
+                                    cacheHeight: 256,
+                                  )
+                                : PortableExerciseImage(
+                                    asset: _choices[i].item.image,
+                                    width: 128,
+                                    height: 128,
+                                  )
                           : Text(_choices[i].text),
                     ),
                   ),

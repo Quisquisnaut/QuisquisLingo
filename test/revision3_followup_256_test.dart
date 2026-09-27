@@ -350,7 +350,7 @@ void main() {
     ) async {
       _bigWindow(tester);
       final course = _laboratory();
-      final exercise = _laboratoryExercise(course, 'matching');
+      final exercise = _laboratoryExercise(course, 'word_match');
       Widget editor() => ExerciseEditorScreen(
         exercise: exercise,
         title: 'Edit',
@@ -518,7 +518,7 @@ void main() {
       addTearDown(() => ExerciseEditorIntro.enabled = false);
       _bigWindow(tester);
       final course = _laboratory();
-      final exercise = _laboratoryExercise(course, 'choice');
+      final exercise = _laboratoryExercise(course, 'choice_target');
       Future<void> open() async {
         await tester.pumpWidget(
           MaterialApp(
@@ -582,7 +582,7 @@ void main() {
       );
       await tester.tap(find.byKey(const Key('exercise-preset-selector')));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Type the translation').last);
+      await tester.tap(find.text('Type the translation (to target)').last);
       await tester.pumpAndSettle();
       await tester.tap(find.byType(BackButton));
       await tester.pumpAndSettle();

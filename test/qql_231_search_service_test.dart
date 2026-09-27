@@ -13,7 +13,11 @@ Exercise _exercise(String type, String id) {
   // Course Model v12 keeps only the fields of an exercise's own primitive, so
   // each preset is authored in the v11 shape of that primitive.
   final primitive = ExercisePresetRegistry.byId(type)?.primitive;
-  final missing = type == 'missing_word';
+  final missing = const {
+    'missing_word',
+    'complete_text',
+    'missing_letters',
+  }.contains(type);
   final promptText = missing
       ? '$type Prompt Marker $type Missing Marker'
       : '$type Prompt Marker';
@@ -300,7 +304,7 @@ void main() {
 
     test('type and structural scope filters are authoritative', () {
       expect(
-        service.search(_course(), query: 'come', exerciseType: 'choice'),
+        service.search(_course(), query: 'come', exerciseType: 'choice_target'),
         hasLength(1),
       );
       expect(

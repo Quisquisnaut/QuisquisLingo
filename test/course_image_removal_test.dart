@@ -32,7 +32,9 @@ Map<String, dynamic> _presentation(String id, String asset) => {
 };
 
 /// The demo Course plus:
-/// - `iw1`: an image_word exercise, which needs its image (house.webp);
+/// - `iw1`: an image_word exercise with no clue and no spoken word, so it
+///   needs its image (house.webp; a v11 prompt text converts as a clue and
+///   Build 256 Revision 4 lets a clue stand in for the picture);
 /// - an optional clue image (media a) on the first choice exercise;
 /// - a presentation with media b, a GuideBook presentation with media c;
 /// - the cover media 0, and an unrelated image (media e) elsewhere.
@@ -52,7 +54,7 @@ Course _course() {
   final imageWord = Exercise(
     id: 'iw1',
     type: 'image_word',
-    prompt: 'Build the word',
+    prompt: '',
     question: '',
     answers: const [],
     correct: null,

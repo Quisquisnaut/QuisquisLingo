@@ -5,19 +5,20 @@ This document and the JSON are generated together by `tools/generate_exercise_la
 - Course: **Exercise Laboratory**, `course_50d68435-d2c2-4b63-9a0b-b23161357f1d`.
 - Direction: English (`en-GB`) → Italian (`it-IT`); TTS `it-IT`.
 - Model 11, official Course version 1.0.0; all Lessons, Rounds and Content are Published.
-- Exactly five Lessons, 19 Rounds and 80 runnable examples across all 24 authoring presets.
+- Exactly five Lessons, 24 Rounds and 107 runnable examples across all 43 authoring presets.
 - Course rights explicitly allow Fork, so the bundled original can be inspected and a derivative can use the ordinary authoring/confirm/export/import paths.
 - Create Duels is off: Presentation is non-evaluable and the Course is not padded to manufacture Duel pools. The required per-Lesson Duel metadata is retained.
 - This Course leaves existing Course identities, learner data and media assets unchanged.
 
 ## Source inventory and supported modes
 
-The authoring registry is `lib/models/exercise_authoring.dart`. Its 24 presets map to Select (11), Input (5), Arrange (3), Match (4), and Presentation (1). `lib/services/exercise_draft_builder.dart` exposes the additional Choose multiple-selection/inline-gap modes and Word order/Build the translation inline-gap modes. `lib/widgets/script_recognition_editor.dart` exposes both character-recognition directions. `lib/screens/round_screen.dart` is the completion/evaluation reference.
+The authoring registry is `lib/models/exercise_authoring.dart`. Every one of its 43 presets has at least one example below.
 
 | Lesson | Preset | Examples |
 | --- | --- | ---: |
-| Select | `choice` | 9 |
+| Select | `choice` | 5 |
 | Select | `gap_choice` | 1 |
+| Select | `gap_choice_inline` | 4 |
 | Select | `icon_choice` | 2 |
 | Select | `script_recognition` | 3 |
 | Select | `reading_comprehension` | 1 |
@@ -27,19 +28,37 @@ The authoring registry is `lib/models/exercise_authoring.dart`. Its 24 presets m
 | Select | `listening_comprehension` | 1 |
 | Select | `translation_choice_to_target` | 2 |
 | Select | `translation_choice_to_source` | 2 |
+| Select | `choice_source` | 2 |
+| Select | `true_false` | 2 |
+| Select | `listening_answer_source` | 1 |
+| Select | `reading_answer_source` | 1 |
+| Select | `picture_choice` | 1 |
+| Select | `listening_image_choice` | 1 |
 | Input | `type_translation` | 10 |
 | Input | `fill_blank` | 3 |
 | Input | `type_missing_word` | 3 |
 | Input | `listening_spelling` | 3 |
 | Input | `missing_word` | 2 |
-| Arrange | `word_order` | 9 |
-| Arrange | `build_translation` | 6 |
+| Input | `type_translation_to_source` | 2 |
+| Input | `complete_text` | 1 |
+| Input | `missing_letters` | 2 |
+| Input | `picture_name` | 1 |
+| Arrange | `word_order` | 5 |
+| Arrange | `gap_blocks` | 6 |
+| Arrange | `build_translation` | 4 |
 | Arrange | `image_word` | 3 |
+| Arrange | `build_translation_to_source` | 2 |
+| Arrange | `sentence_order` | 2 |
+| Arrange | `spell_heard` | 2 |
+| Arrange | `spell_word` | 2 |
 | Match | `matching` | 2 |
 | Match | `word_match` | 1 |
 | Match | `super_match` | 2 |
+| Match | `picture_word_match` | 1 |
 | Match | `audio_match` | 1 |
 | Presentation | `flashcard` | 6 |
+| Presentation | `picture_flashcard` | 2 |
+| Presentation | `note_card` | 2 |
 
 ## Case matrix and answer keys
 
@@ -53,10 +72,10 @@ The suffix below follows `qql_lab254_` in the stable Content/Exercise ID. Answer
 | Select / Single and multiple answers | select_minimum | choice | Multiple selection; minimum one permits partial submission but only the exact two-answer set is correct | gatto + cane |
 | Select / Single and multiple answers | select_one_in_multi | choice | Multiple-selection presentation with one correct answer and an explicit Check | sì |
 | Select / Fixed sentences and reusable choices | select_gap_preset | gap_choice | Fill in the blank preset; one ___ gap and non-revealing hint | dorme |
-| Select / Fixed sentences and reusable choices | select_gap_one | choice | Inline Select; one gap; zero distractors | giorno |
-| Select / Fixed sentences and reusable choices | select_gap_distinct | choice | Inline Select; two distinct options; one distractor | è / casa |
-| Select / Fixed sentences and reusable choices | select_gap_reuse | choice | Inline Select; one reusable option assigned to two gaps; two distractors | è / è |
-| Select / Fixed sentences and reusable choices | select_gap_audio | choice | Inline Select with optional spoken prompt | bevo / acqua |
+| Select / Fixed sentences and reusable choices | select_gap_one | gap_choice_inline | Inline Select; one gap; zero distractors | giorno |
+| Select / Fixed sentences and reusable choices | select_gap_distinct | gap_choice_inline | Inline Select; two distinct options; one distractor | è / casa |
+| Select / Fixed sentences and reusable choices | select_gap_reuse | gap_choice_inline | Inline Select; one reusable option assigned to two gaps; two distractors | è / è |
+| Select / Fixed sentences and reusable choices | select_gap_audio | gap_choice_inline | Inline Select with optional spoken prompt | bevo / acqua |
 | Select / Images and written characters | select_named_icons | icon_choice | Select the image; existing named icon vocabulary | sole |
 | Select / Images and written characters | select_asset_options | icon_choice | Select the image; actual bundled image options | gatto |
 | Select / Images and written characters | script_image_text | script_recognition | Recognize characters; one portable image to text | A |
@@ -76,6 +95,14 @@ The suffix below follows `qql_lab254_` in the stable Content/Exercise ID. Answer
 | Select / Two translation directions | translation_target_five | translation_choice_to_target | Pick translation to target; maximum five answers; optional image | Il gatto dorme. |
 | Select / Two translation directions | translation_source_two | translation_choice_to_source | Pick translation to source; minimum two answers; no image | Thank you. |
 | Select / Two translation directions | translation_source_five | translation_choice_to_source | Pick translation to source; maximum five answers; optional image | The apple is red. |
+| Select / Source-language answers, pictures and true or false | choice_source_meaning | choice_source | Choose the answer (to source); question and answers in the source language | thank you |
+| Select / Source-language answers, pictures and true or false | choice_source_culture | choice_source | Choose the answer (to source); a culture question | From the afternoon on |
+| Select / Source-language answers, pictures and true or false | true_false_true | true_false | True or false; a true statement, answers in the source language | True |
+| Select / Source-language answers, pictures and true or false | true_false_spoken | true_false | True or false; a spoken false statement | False |
+| Select / Source-language answers, pictures and true or false | listening_source | listening_answer_source | Listen and answer (to source); answers in the source language | Thank you very much |
+| Select / Source-language answers, pictures and true or false | reading_source | reading_answer_source | Read and answer (to source); question and answers in the source language | By bus |
+| Select / Source-language answers, pictures and true or false | picture_choice | picture_choice | What is in the picture; picture prompt, text answers | la mela |
+| Select / Source-language answers, pictures and true or false | listening_image | listening_image_choice | Listen and pick the image; captioned picture answers | il gatto |
 | Input / Translations and accepted variants | input_literal | type_translation | One literal accepted translation | grazie |
 | Input / Translations and accepted variants | input_explicit | type_translation | Multiple explicit accepted translations and ranked feedback | ciao / salve / buongiorno |
 | Input / Translations and accepted variants | input_optional | type_translation | Optional subject with {...} | mangio una mela / io mangio una mela |
@@ -97,28 +124,43 @@ The suffix below follows `qql_lab254_` in the stable Content/Exercise ID. Answer
 | Input / Transcriptions and missing words | input_listen_variants | listening_spelling | Type what you hear; more than one explicitly accepted transcription | sono felice / io sono felice |
 | Input / Transcriptions and missing words | input_missing_one | missing_word | Listen for missing words; one transcript gap | mela |
 | Input / Transcriptions and missing words | input_missing_many | missing_word | Listen for missing words; three distinct gaps in transcript order | 1 legge; 2 libro; 3 giardino |
+| Input / Source answers, texts and pictures | type_source_literal | type_translation_to_source | Type the translation (to source); target text, source answers | thank you / thanks |
+| Input / Source answers, texts and pictures | type_source_variants | type_translation_to_source | Type the translation (to source); two accepted answers | I would like a coffee / I'd like a coffee |
+| Input / Source answers, texts and pictures | complete_text | complete_text | Complete the text; two typed gaps, no audio | caffè / treno |
+| Input / Source answers, texts and pictures | missing_letters | missing_letters | Missing letters; letters inside two words | tt / van |
+| Input / Source answers, texts and pictures | missing_letters_audio | missing_letters | Missing letters; spoken text and two gaps | ren / ove |
+| Input / Source answers, texts and pictures | picture_name | picture_name | Name what you see; picture prompt, typed answers | il pane / pane |
 | Arrange / Word and phrase blocks | arrange_zero | word_order | Word order; zero distractors | Il gatto dorme |
 | Arrange / Word and phrase blocks | arrange_one | word_order | Word order; one distractor | Anna beve acqua |
 | Arrange / Word and phrase blocks | arrange_two | word_order | Word order; two distinct target-language distractors | Il treno parte oggi |
 | Arrange / Word and phrase blocks | arrange_repeat | word_order | Word order; repeated visible words use separate block occurrences | Anna mangia pane e Luca mangia riso |
 | Arrange / Word and phrase blocks | arrange_phrases | word_order | Word order; multiword phrase blocks | Vado a scuola in autobus |
-| Arrange / Fixed sentences and consumed blocks | arrange_gap_one | word_order | Inline Arrange; one gap; no distractors | dorme |
-| Arrange / Fixed sentences and consumed blocks | arrange_gap_many | word_order | Inline Arrange; two gaps; one distractor | beve / acqua |
-| Arrange / Fixed sentences and consumed blocks | arrange_gap_repeat | word_order | Inline Arrange; repeated text requires distinct tile IDs; two distractors | è / è |
-| Arrange / Fixed sentences and consumed blocks | arrange_gap_audio | word_order | Inline Arrange; phrase blocks and spoken prompt | a scuola / in autobus |
+| Arrange / Fixed sentences and consumed blocks | arrange_gap_one | gap_blocks | Inline Arrange; one gap; no distractors | dorme |
+| Arrange / Fixed sentences and consumed blocks | arrange_gap_many | gap_blocks | Inline Arrange; two gaps; one distractor | beve / acqua |
+| Arrange / Fixed sentences and consumed blocks | arrange_gap_repeat | gap_blocks | Inline Arrange; repeated text requires distinct tile IDs; two distractors | è / è |
+| Arrange / Fixed sentences and consumed blocks | arrange_gap_audio | gap_blocks | Inline Arrange; phrase blocks and spoken prompt | a scuola / in autobus |
 | Arrange / Build translations | build_single | build_translation | Build translation; one literal answer and no distractors | Bevo acqua |
 | Arrange / Build translations | build_multiple | build_translation | Build translation; multiple valid orders with optional subject; one block unused by every answer | mangio pane / Io mangio pane |
 | Arrange / Build translations | build_phrase | build_translation | Build translation; phrase blocks and two distractors | Vado a scuola in treno |
 | Arrange / Build translations | build_repeat | build_translation | Build translation; repeated word occurrences | Anna beve acqua e Luca beve latte |
-| Arrange / Build translations | build_gap | build_translation | Build translation; inline gaps with one distractor | legge / libro |
-| Arrange / Build translations | build_gap_audio | build_translation | Build translation; inline gaps and spoken prompt | beviamo / acqua |
+| Arrange / Build translations | build_gap | gap_blocks | Build translation; inline gaps with one distractor | legge / libro |
+| Arrange / Build translations | build_gap_audio | gap_blocks | Build translation; inline gaps and spoken prompt | beviamo / acqua |
 | Arrange / Letters and syllables | image_letters | image_word | Image-prompt ordering; individual letter blocks | mela |
 | Arrange / Letters and syllables | image_syllables | image_word | Image-prompt ordering; syllable blocks | gatto |
 | Arrange / Letters and syllables | image_repeated_letters | image_word | Image-prompt ordering; repeated individual letters | banana |
+| Arrange / Source blocks, sentences and spelling | build_source_single | build_translation_to_source | Build the translation (to source); target text, source blocks | I drink water |
+| Arrange / Source blocks, sentences and spelling | build_source_distractor | build_translation_to_source | Build the translation (to source); one unused block | I go to school by train |
+| Arrange / Source blocks, sentences and spelling | sentence_order_story | sentence_order | Put the sentences in order; three lines of a story | Anna entra nel bar. Ordina un caffè. Paga e saluta. |
+| Arrange / Source blocks, sentences and spelling | sentence_order_dialogue | sentence_order | Put the sentences in order; four turns of a dialogue | Buongiorno, un caffè per favore. Subito. Zucchero? No, grazie. Ecco a lei. |
+| Arrange / Source blocks, sentences and spelling | spell_heard_letters | spell_heard | Spell what you hear; letter tiles, no picture | pane |
+| Arrange / Source blocks, sentences and spelling | spell_heard_syllables | spell_heard | Spell what you hear; syllable tiles | gatto |
+| Arrange / Source blocks, sentences and spelling | spell_word_clue | spell_word | Spell the word; a source-language clue and letter tiles | gatto |
+| Arrange / Source blocks, sentences and spelling | spell_word_definition | spell_word | Spell the word; a definition and syllable tiles | acqua |
 | Match / Words, meanings and relationships | match_single | matching | Match the pairs; smallest supported one-pair form | ciao = hello |
 | Match / Words, meanings and relationships | match_four | matching | Match the pairs; variable four-pair form with phrases | a domani = see you tomorrow; per favore = please; buon viaggio = have a good trip; a presto = see you soon |
 | Match / Words, meanings and relationships | match_words | word_match | Match the words; exactly three source-to-target pairs | water = acqua; bread = pane; book = libro |
 | Match / Words, meanings and relationships | match_synonyms | super_match | Match related words; exactly three target-language synonym pairs | felice = contento; veloce = rapido; grande = ampio |
+| Match / Pictures and words | picture_word_match | picture_word_match | Match picture to word; picture left items | cat = il gatto; dog = il cane; house = la casa |
 | Match / Listen and match | match_sounds | audio_match | Listen and match; three audio-to-text pairs with distinct sound and answer labels | acqua = water; pane = bread; libro = book |
 | Match / Opposites | match_opposites | super_match | Match related words; exactly three target-language opposite pairs | caldo = freddo; alto = basso; aperto = chiuso |
 | Presentation / Cards without pronunciation | card_minimal | flashcard | Term and meaning only; no usage or pronunciation | Got it; or Review again, then Got it on the repeated card |
@@ -127,6 +169,10 @@ The suffix below follows `qql_lab254_` in the stable Content/Exercise ID. Answer
 | Presentation / Cards with pronunciation | card_audio | flashcard | Term and meaning with pronunciation; no usage | Got it; or Review again, then Got it on the repeated card |
 | Presentation / Cards with pronunciation | card_audio_usage | flashcard | Term, meaning, pronunciation and usage; no usage translation | Got it; or Review again, then Got it on the repeated card |
 | Presentation / Cards with pronunciation | card_complete | flashcard | Term, meaning, pronunciation, usage and usage translation | Got it; or Review again, then Got it on the repeated card |
+| Presentation / Picture flashcards and note cards | picture_card | picture_flashcard | Picture flashcard; picture, usage, translation and optional pronunciation | Got it; or Review again, then Got it on the repeated card |
+| Presentation / Picture flashcards and note cards | picture_card_plain | picture_flashcard | Picture flashcard; picture, term and meaning only | Got it; or Review again, then Got it on the repeated card |
+| Presentation / Picture flashcards and note cards | note_card_tip | note_card | Note card; a usage tip | Got it; or Review again, then Got it on the repeated card |
+| Presentation / Picture flashcards and note cards | note_card_grammar | note_card | Note card; a grammar note | Got it; or Review again, then Got it on the repeated card |
 
 ## Boundaries and intentionally excluded combinations
 
@@ -148,8 +194,8 @@ The suffix below follows `qql_lab254_` in the stable Content/Exercise ID. Answer
 
 1. `python -X utf8 tools/generate_exercise_laboratory_254.py --check`: deterministic JSON/checksum and coverage-document readback.
 2. `python -X utf8 tools/validate_courses.py`: Course Model structure, timestamps, stable unique IDs, references, publication and official checksum.
-3. `test/exercise_laboratory_254_test.dart` checks the actual asset's Audit and canonical model round trip, then rebuilds all 80 examples through ExerciseDraftBuilder (and ScriptRecognitionController for its image modes), comparing semantic fields and each result's model round trip. Separate preservation assertions cover Flashcard usage and usage translation. Editor route tests include `exercise_authoring_252_characterization_test.dart`, `select_editor_238_test.dart`, `arrange_gap_fill_editor_238_test.dart`, `script_recognition_226_03_test.dart` and `translation_choice_239_test.dart`.
-4. The same Lab suite completes all 80 examples through RoundScreen Preview using actual controls and grading, including repeated blocks, reusable gaps, exact multiple-selection sets and audio matching. Additional cases finish an alternate Build translation answer and a Review again/Got it cycle. Speech is stubbed only at the playback seam; these tests do not establish native voice quality or normal progression persistence.
+3. `test/exercise_laboratory_254_test.dart` checks the actual asset's Audit and canonical model round trip, then rebuilds all 107 examples through ExerciseDraftBuilder (and ScriptRecognitionController for its image modes), comparing semantic fields and each result's model round trip. Separate preservation assertions cover Flashcard usage and usage translation. Editor route tests include `exercise_authoring_252_characterization_test.dart`, `select_editor_238_test.dart`, `arrange_gap_fill_editor_238_test.dart`, `script_recognition_226_03_test.dart` and `translation_choice_239_test.dart`.
+4. The same Lab suite completes all 107 examples through RoundScreen Preview using actual controls and grading, including repeated blocks, reusable gaps, exact multiple-selection sets and audio matching. Additional cases finish an alternate Build translation answer and a Review again/Got it cycle. Speech is stubbed only at the playback seam; these tests do not establish native voice quality or normal progression persistence.
 5. Export/import of the Course through the normal ZIP and embedded-image JSON routes preserves this Course's identity, content wrappers, answers and character PNG bytes. A Fork gets a new identity through the existing rights-aware operation.
 
 These are verification seams, not a claim that commands have been run. Fresh integrated results are recorded in the Build 254 validation document.

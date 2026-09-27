@@ -455,7 +455,7 @@ def validate(path: Path, global_ids: dict[str, str]) -> list[str]:
     expected_lessons = {
         "exercise_laboratory_en_it.json": 5,
         "edge_case_it_en.json": 5,
-        "piedmontais_en.json": 24,
+        "piedmontais_en.json": 38,
     }.get(path.name, 9)
     if len(lessons) != expected_lessons:
         issues.append(

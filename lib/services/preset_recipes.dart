@@ -3,6 +3,7 @@ import '../models/exercise_authoring.dart';
 import '../models/exercise_features.dart';
 import '../widgets/script_recognition_editor.dart';
 import 'exercise_draft_builder.dart';
+import 'preset_variants.dart';
 
 /// Presets are optional authoring recipes over the canonical exercise
 /// (Build 256 Session 4, plan A.13). A recipe is the preset's form: the
@@ -11,31 +12,83 @@ import 'exercise_draft_builder.dart';
 /// nothing here writes.
 abstract final class PresetRecipes {
   /// The learner kind each preset's recipe produces.
-  static const kinds = <String, LearnerExerciseKind>{
-    'choice': LearnerExerciseKind.select,
-    'gap_choice': LearnerExerciseKind.selectComplete,
-    'icon_choice': LearnerExerciseKind.selectImage,
-    'script_recognition': LearnerExerciseKind.selectCharacter,
-    'listening_choice': LearnerExerciseKind.selectListen,
-    'listening_comprehension': LearnerExerciseKind.selectListenPassage,
-    'reading_comprehension': LearnerExerciseKind.selectRead,
-    'dialogue_response': LearnerExerciseKind.selectDialogue,
-    'contextual_comprehension': LearnerExerciseKind.selectContext,
-    'translation_choice_to_target': LearnerExerciseKind.selectTranslation,
-    'translation_choice_to_source': LearnerExerciseKind.selectTranslation,
-    'fill_blank': LearnerExerciseKind.inputComplete,
-    'type_translation': LearnerExerciseKind.inputTranslation,
-    'listening_spelling': LearnerExerciseKind.inputListenWrite,
-    'missing_word': LearnerExerciseKind.inputListenGaps,
-    'type_missing_word': LearnerExerciseKind.inputMissingWord,
-    'word_order': LearnerExerciseKind.arrangeSentence,
-    'build_translation': LearnerExerciseKind.arrangeTranslation,
-    'image_word': LearnerExerciseKind.arrangeWord,
-    'matching': LearnerExerciseKind.matchTranslation,
-    'word_match': LearnerExerciseKind.matchTranslation,
-    'super_match': LearnerExerciseKind.match,
-    'audio_match': LearnerExerciseKind.matchAudio,
-    'flashcard': LearnerExerciseKind.presentation,
+  static const kinds = <String, Set<LearnerExerciseKind>>{
+    'translation_choice_to_target': {LearnerExerciseKind.selectTranslation},
+    'translation_choice_to_source': {LearnerExerciseKind.selectTranslation},
+    'type_translation_to_target': {LearnerExerciseKind.inputTranslation},
+    'type_translation_to_source': {LearnerExerciseKind.inputTranslation},
+    'build_translation_to_target': {LearnerExerciseKind.arrangeTranslation},
+    'build_translation_to_source': {LearnerExerciseKind.arrangeTranslation},
+    'word_match': {LearnerExerciseKind.matchTranslation},
+    'super_match': {LearnerExerciseKind.match},
+    'flashcard': {LearnerExerciseKind.presentation},
+    'choice_target': {
+      LearnerExerciseKind.select,
+      LearnerExerciseKind.selectListen,
+    },
+    'choice_source': {
+      LearnerExerciseKind.select,
+      LearnerExerciseKind.selectListen,
+    },
+    'gap_choice': {LearnerExerciseKind.selectComplete},
+    'type_missing_word': {
+      LearnerExerciseKind.inputMissingWord,
+      LearnerExerciseKind.inputComplete,
+    },
+    'word_order': {LearnerExerciseKind.arrangeSentence},
+    'listening_answer_target': {
+      LearnerExerciseKind.selectListen,
+      LearnerExerciseKind.selectListenPassage,
+    },
+    'listening_answer_source': {
+      LearnerExerciseKind.selectListen,
+      LearnerExerciseKind.selectListenPassage,
+    },
+    'listening_spelling': {LearnerExerciseKind.inputListenWrite},
+    'missing_word': {LearnerExerciseKind.inputListenGaps},
+    'audio_match': {LearnerExerciseKind.matchAudio},
+    'reading_answer_target': {
+      LearnerExerciseKind.selectRead,
+      LearnerExerciseKind.selectContext,
+      LearnerExerciseKind.selectDialogue,
+    },
+    'reading_answer_source': {
+      LearnerExerciseKind.selectRead,
+      LearnerExerciseKind.selectContext,
+      LearnerExerciseKind.selectDialogue,
+    },
+    'icon_choice': {LearnerExerciseKind.selectImage},
+    'script_recognition': {LearnerExerciseKind.selectCharacter},
+    'image_word': {LearnerExerciseKind.arrangeWord},
+    'picture_flashcard': {LearnerExerciseKind.presentation},
+    'true_false': {
+      LearnerExerciseKind.select,
+      LearnerExerciseKind.selectListen,
+    },
+    'gap_choice_inline': {
+      LearnerExerciseKind.select,
+      LearnerExerciseKind.selectListen,
+    },
+    'complete_text': {LearnerExerciseKind.inputComplete},
+    'missing_letters': {
+      LearnerExerciseKind.inputComplete,
+      LearnerExerciseKind.inputListenGaps,
+    },
+    'gap_blocks': {LearnerExerciseKind.arrangeSentence},
+    'sentence_order': {
+      LearnerExerciseKind.arrangeSentence,
+      LearnerExerciseKind.arrangeLines,
+    },
+    'listening_image_choice': {LearnerExerciseKind.selectListen},
+    'spell_heard': {LearnerExerciseKind.arrangeWord},
+    'picture_choice': {LearnerExerciseKind.select},
+    'picture_name': {LearnerExerciseKind.inputComplete},
+    'spell_word': {LearnerExerciseKind.arrangeWord},
+    'picture_word_match': {
+      LearnerExerciseKind.matchTranslation,
+      LearnerExerciseKind.match,
+    },
+    'note_card': {LearnerExerciseKind.presentation},
   };
 
   /// The plainest recipe of [primitive], for an exercise that carries no
@@ -43,10 +96,10 @@ abstract final class PresetRecipes {
   /// (Assign, Speak, Ink, Submit), which only the canonical editor edits.
   static String? defaultPresetFor(ExercisePrimitive primitive) =>
       switch (primitive) {
-        ExercisePrimitive.select => 'choice',
-        ExercisePrimitive.input => 'fill_blank',
+        ExercisePrimitive.select => 'choice_target',
+        ExercisePrimitive.input => 'type_missing_word',
         ExercisePrimitive.arrange => 'word_order',
-        ExercisePrimitive.match => 'matching',
+        ExercisePrimitive.match => 'word_match',
         ExercisePrimitive.presentation => 'flashcard',
         ExercisePrimitive.assign ||
         ExercisePrimitive.speak ||
@@ -60,6 +113,10 @@ abstract final class PresetRecipes {
   static String? presetToEdit(Exercise exercise) {
     final own = exercise.editorTemplate;
     if (own.isNotEmpty && ExercisePresetRegistry.byId(own) != null) return own;
+    // A retired preset (Revision 4 catalogue) opens in its successor when
+    // the successor still represents the exercise exactly.
+    final successor = ExercisePresetRegistry.successorOf[own];
+    if (successor != null && represents(exercise, successor)) return successor;
     return recognize(exercise) ?? defaultPresetFor(exercise.primitive);
   }
 
@@ -78,7 +135,11 @@ abstract final class PresetRecipes {
     final items = exercise.items;
     final evaluation = exercise.canonicalEvaluation;
     final assignments = f.targetAssignments;
-    final valueById = {for (final item in items) item.id: item.value};
+    // A picture item (Match picture to word) is named by its picture.
+    final valueById = {
+      for (final item in items)
+        item.id: item.value.isNotEmpty ? item.value : item.image,
+    };
     final inline =
         f.hasInlineTargets &&
         (f.primitive == ExercisePrimitive.select ||
@@ -104,6 +165,8 @@ abstract final class PresetRecipes {
     // its sentence.
     final prompt = presentation
         ? f.textOf('term')
+        : presetId == 'missing_letters' && f.hasInlineTargets
+        ? f.bracketedSentence
         : f.primitive == ExercisePrimitive.input && f.hasInlineTargets
         ? f.inlineSentence
         : [
@@ -114,6 +177,15 @@ abstract final class PresetRecipes {
             f.clueText,
           ].firstWhere((text) => text.isNotEmpty, orElse: () => '');
     final question = presentation ? f.textOf('meaning') : f.questionText;
+    // (A Note card keeps its body as the meaning.)
+    // The former Fill-in shape keeps its sentence in the question field; the
+    // Type the missing word form shows it as the sentence.
+    final sentence =
+        prompt.isEmpty &&
+            presetId == 'type_missing_word' &&
+            f.primitive == ExercisePrimitive.input
+        ? question
+        : prompt;
     final tts = presentation ? f.audioOf('audio') : (f.primaryAudioText ?? '');
     final rightValues = [
       for (final relation in evaluation.relations)
@@ -196,6 +268,12 @@ abstract final class PresetRecipes {
         .firstOrNull
         ?.sharedImageSource;
     final state = publicationState ?? exercise.publicationState;
+    final leftLanguage = f.leftItems.isEmpty
+        ? null
+        : f.leftItems.first.content
+              .where((e) => e.isText && e.language != null)
+              .map((e) => e.language)
+              .firstOrNull;
     Exercise? scriptCandidate;
     if (presetId == 'script_recognition') {
       final controller = ScriptRecognitionController(exercise);
@@ -212,7 +290,7 @@ abstract final class PresetRecipes {
       requireValidAnswer: requireValidAnswer,
       useInlineGaps: inline,
       useMultiSelect: multiple,
-      prompt: prompt,
+      prompt: sentence,
       question: question,
       tts: tts,
       hint: exercise.hint,
@@ -236,6 +314,24 @@ abstract final class PresetRecipes {
       selectedSharedSource: selectedSharedSource,
       attachSelectedSharedSource: attachSelectedSharedSource,
       scriptCandidate: scriptCandidate,
+      revealFirstLetter:
+          f.primitive != ExercisePrimitive.input ||
+          (f.hasInlineTargets && f.revealTarget != null),
+      textRole: f.situationText.isNotEmpty
+          ? 'situation'
+          : hasContextText || hasContextAudio
+          ? 'context'
+          : f.passageText.isNotEmpty
+          ? 'passage'
+          : '',
+      audioRole: f.automaticAudio?.role ?? '',
+      matchSides: f.primitive != ExercisePrimitive.match || items.isEmpty
+          ? ''
+          : leftLanguage == TextLanguage.target
+          ? 'target_source'
+          : leftLanguage == TextLanguage.source
+          ? 'source_target'
+          : 'none',
     );
   }
 
@@ -243,12 +339,15 @@ abstract final class PresetRecipes {
   /// (a blank original, so nothing the form cannot express survives), or
   /// null when the form refuses the fields.
   static Exercise? rebuild(Exercise exercise, String presetId) {
-    if (ExercisePresetRegistry.byId(presetId) == null) return null;
+    final preset = ExercisePresetRegistry.byId(presetId);
+    if (preset == null) return null;
+    // The blank has the recipe's own v11 type, so the builder's original
+    // carries the recipe's primitive and nothing else.
     final blank = Exercise(
       id: exercise.id,
       publicationState: exercise.publicationState,
       updatedAt: exercise.updatedAt,
-      type: presetId,
+      type: preset.base,
       prompt: '',
       question: '',
       answers: const [],
@@ -271,6 +370,7 @@ abstract final class PresetRecipes {
   /// the items it edits and mints new ones only for items it creates;
   /// authoring metadata, timestamps and publication state never count.
   static bool represents(Exercise exercise, String presetId) {
+    if (!PresetVariants.fits(presetId, exercise)) return false;
     final rebuilt = rebuild(exercise, presetId);
     return rebuilt != null &&
         _comparable(rebuilt).semanticallyEquals(_comparable(exercise));
@@ -354,7 +454,8 @@ abstract final class PresetRecipes {
     final candidates = [
       if (own.isNotEmpty && ExercisePresetRegistry.byId(own) != null) own,
       for (final preset in ExercisePresetRegistry.presets)
-        if (preset.id != own && kinds[preset.id] == kind) preset.id,
+        if (preset.id != own && (kinds[preset.id]?.contains(kind) ?? false))
+          preset.id,
     ];
     for (final presetId in candidates) {
       if (represents(exercise, presetId)) return presetId;

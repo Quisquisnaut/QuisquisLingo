@@ -9,7 +9,7 @@
   "publisherName": "QuisquisLingo",
   "officialCourseVersion": "1.0.0",
   "officialReleaseDateUtc": "2026-09-25T00:00:00.000Z",
-  "officialReleaseNotes": "Build 254: original English-to-Italian Exercise Laboratory covering all 24 current authoring presets and their supported modes.",
+  "officialReleaseNotes": "Build 254: original English-to-Italian Exercise Laboratory covering every current authoring preset and its supported modes.",
   "distributionChannel": "bundled",
   "publisherVerificationStatus": "verified",
   "originalCourseCreator": {
@@ -494,7 +494,7 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "choice",
+              "editorTemplate": "gap_choice_inline",
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
                 "prompt": [
@@ -551,7 +551,7 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "choice",
+              "editorTemplate": "gap_choice_inline",
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
                 "prompt": [
@@ -639,7 +639,7 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "choice",
+              "editorTemplate": "gap_choice_inline",
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
                 "prompt": [
@@ -727,7 +727,7 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "choice",
+              "editorTemplate": "gap_choice_inline",
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
                 "prompt": [
@@ -2192,6 +2192,539 @@
               }
             }
           ]
+        },
+        {
+          "id": "qql_lab254_round_select_source",
+          "publicationState": "published",
+          "updatedAt": "2026-09-25T00:00:00.000Z",
+          "title": "Source-language answers, pictures and true or false",
+          "visualType": "generic",
+          "content": [
+            {
+              "id": "qql_lab254_intro_select_source",
+              "publicationState": "published",
+              "kind": "text",
+              "required": false,
+              "role": "lesson_intro",
+              "text": "These Select exercises answer in the source language or with pictures: Choose the answer (to source), True or false, Listen and answer (to source), Read and answer (to source), What is in the picture and Listen and pick the image."
+            },
+            {
+              "id": "qql_lab254_choice_source_meaning",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "choice_source",
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "prompt": [
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "What does “grazie” mean?",
+                    "language": "source"
+                  }
+                ],
+                "interaction": {
+                  "kind": "select",
+                  "minSelections": 1,
+                  "maxSelections": 1,
+                  "items": [
+                    {
+                      "id": "qql_lab254_choice_source_meaning_item_0",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "thank you",
+                          "language": "source"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_lab254_choice_source_meaning_item_1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "please",
+                          "language": "source"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_lab254_choice_source_meaning_item_2",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "sorry",
+                          "language": "source"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "evaluation": {
+                  "kind": "selected_items",
+                  "correctItemIds": [
+                    "qql_lab254_choice_source_meaning_item_0"
+                  ]
+                }
+              }
+            },
+            {
+              "id": "qql_lab254_choice_source_culture",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "choice_source",
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "prompt": [
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "When do Italians say “buonasera”?",
+                    "language": "source"
+                  }
+                ],
+                "interaction": {
+                  "kind": "select",
+                  "minSelections": 1,
+                  "maxSelections": 1,
+                  "items": [
+                    {
+                      "id": "qql_lab254_choice_source_culture_item_0",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "From the afternoon on",
+                          "language": "source"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_lab254_choice_source_culture_item_1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "Only at night",
+                          "language": "source"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_lab254_choice_source_culture_item_2",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "Only in the morning",
+                          "language": "source"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "evaluation": {
+                  "kind": "selected_items",
+                  "correctItemIds": [
+                    "qql_lab254_choice_source_culture_item_0"
+                  ]
+                }
+              }
+            },
+            {
+              "id": "qql_lab254_true_false_true",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "true_false",
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "prompt": [
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "Roma è la capitale d’Italia."
+                  }
+                ],
+                "interaction": {
+                  "kind": "select",
+                  "minSelections": 1,
+                  "maxSelections": 1,
+                  "items": [
+                    {
+                      "id": "qql_lab254_true_false_true_item_0",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "True",
+                          "language": "source"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_lab254_true_false_true_item_1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "False",
+                          "language": "source"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "evaluation": {
+                  "kind": "selected_items",
+                  "correctItemIds": [
+                    "qql_lab254_true_false_true_item_0"
+                  ]
+                }
+              }
+            },
+            {
+              "id": "qql_lab254_true_false_spoken",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "true_false",
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "prompt": [
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "Il gatto è un frutto."
+                  },
+                  {
+                    "role": "primary",
+                    "type": "audio",
+                    "text": "Il gatto è un frutto."
+                  }
+                ],
+                "interaction": {
+                  "kind": "select",
+                  "minSelections": 1,
+                  "maxSelections": 1,
+                  "items": [
+                    {
+                      "id": "qql_lab254_true_false_spoken_item_0",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "True",
+                          "language": "source"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_lab254_true_false_spoken_item_1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "False",
+                          "language": "source"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "evaluation": {
+                  "kind": "selected_items",
+                  "correctItemIds": [
+                    "qql_lab254_true_false_spoken_item_1"
+                  ]
+                }
+              }
+            },
+            {
+              "id": "qql_lab254_listening_source",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "listening_answer_source",
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "prompt": [
+                  {
+                    "role": "primary",
+                    "type": "audio",
+                    "text": "Grazie mille!"
+                  },
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "What did you hear?",
+                    "language": "source"
+                  }
+                ],
+                "interaction": {
+                  "kind": "select",
+                  "minSelections": 1,
+                  "maxSelections": 1,
+                  "items": [
+                    {
+                      "id": "qql_lab254_listening_source_item_0",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "Thank you very much",
+                          "language": "source"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_lab254_listening_source_item_1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "Good night",
+                          "language": "source"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_lab254_listening_source_item_2",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "See you soon",
+                          "language": "source"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "evaluation": {
+                  "kind": "selected_items",
+                  "correctItemIds": [
+                    "qql_lab254_listening_source_item_0"
+                  ]
+                }
+              }
+            },
+            {
+              "id": "qql_lab254_reading_source",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "reading_answer_source",
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "prompt": [
+                  {
+                    "role": "passage",
+                    "type": "text",
+                    "text": "Anna abita a Roma. Ogni mattina va al lavoro in autobus."
+                  },
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "How does Anna get to work?",
+                    "language": "source"
+                  }
+                ],
+                "interaction": {
+                  "kind": "select",
+                  "minSelections": 1,
+                  "maxSelections": 1,
+                  "items": [
+                    {
+                      "id": "qql_lab254_reading_source_item_0",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "By bus",
+                          "language": "source"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_lab254_reading_source_item_1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "By train",
+                          "language": "source"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_lab254_reading_source_item_2",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "On foot",
+                          "language": "source"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "evaluation": {
+                  "kind": "selected_items",
+                  "correctItemIds": [
+                    "qql_lab254_reading_source_item_0"
+                  ]
+                }
+              }
+            },
+            {
+              "id": "qql_lab254_picture_choice",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "picture_choice",
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "prompt": [
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "What is this?"
+                  },
+                  {
+                    "role": "picture",
+                    "type": "image",
+                    "text": "An apple",
+                    "asset": "assets/exercise_images/apple.webp"
+                  }
+                ],
+                "interaction": {
+                  "kind": "select",
+                  "minSelections": 1,
+                  "maxSelections": 1,
+                  "items": [
+                    {
+                      "id": "qql_lab254_picture_choice_item_0",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "la mela"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_lab254_picture_choice_item_1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "la pera"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_lab254_picture_choice_item_2",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "il pane"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "evaluation": {
+                  "kind": "selected_items",
+                  "correctItemIds": [
+                    "qql_lab254_picture_choice_item_0"
+                  ]
+                }
+              }
+            },
+            {
+              "id": "qql_lab254_listening_image",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "listening_image_choice",
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "prompt": [
+                  {
+                    "role": "primary",
+                    "type": "audio",
+                    "text": "il gatto"
+                  }
+                ],
+                "interaction": {
+                  "kind": "select",
+                  "minSelections": 1,
+                  "maxSelections": 1,
+                  "items": [
+                    {
+                      "id": "qql_lab254_listening_image_item_0",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "il gatto"
+                        },
+                        {
+                          "role": "icon",
+                          "type": "text",
+                          "text": "assets/exercise_images/cat.webp"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_lab254_listening_image_item_1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "il cane"
+                        },
+                        {
+                          "role": "icon",
+                          "type": "text",
+                          "text": "assets/exercise_images/dog.webp"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_lab254_listening_image_item_2",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "il cavallo"
+                        },
+                        {
+                          "role": "icon",
+                          "type": "text",
+                          "text": "assets/exercise_images/horse.webp"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "evaluation": {
+                  "kind": "selected_items",
+                  "correctItemIds": [
+                    "qql_lab254_listening_image_item_0"
+                  ]
+                }
+              }
+            }
+          ]
         }
       ],
       "duel": {
@@ -3025,6 +3558,243 @@
               }
             }
           ]
+        },
+        {
+          "id": "qql_lab254_round_input_source_and_pictures",
+          "publicationState": "published",
+          "updatedAt": "2026-09-25T00:00:00.000Z",
+          "title": "Source answers, texts and pictures",
+          "visualType": "generic",
+          "content": [
+            {
+              "id": "qql_lab254_intro_input_source_and_pictures",
+              "publicationState": "published",
+              "kind": "text",
+              "required": false,
+              "role": "lesson_intro",
+              "text": "Type the translation (to source) takes a source-language translation. Complete the text and Missing letters are typed gaps without and with letters inside words. Name what you see names a picture."
+            },
+            {
+              "id": "qql_lab254_type_source_literal",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "type_translation_to_source",
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "prompt": [
+                  {
+                    "role": "primary",
+                    "type": "text",
+                    "text": "Grazie.",
+                    "language": "target"
+                  }
+                ],
+                "interaction": {
+                  "kind": "input",
+                  "inputType": "text"
+                },
+                "evaluation": {
+                  "kind": "text_match",
+                  "acceptedAnswers": [
+                    "thank you",
+                    "thanks"
+                  ],
+                  "normalization": {
+                    "case": "ignore",
+                    "punctuation": "ignore",
+                    "whitespace": "normalize",
+                    "accents": "preserve"
+                  }
+                }
+              }
+            },
+            {
+              "id": "qql_lab254_type_source_variants",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "type_translation_to_source",
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "prompt": [
+                  {
+                    "role": "primary",
+                    "type": "text",
+                    "text": "Vorrei un caffè.",
+                    "language": "target"
+                  }
+                ],
+                "interaction": {
+                  "kind": "input",
+                  "inputType": "text"
+                },
+                "evaluation": {
+                  "kind": "text_match",
+                  "acceptedAnswers": [
+                    "I would like a coffee",
+                    "I'd like a coffee"
+                  ],
+                  "normalization": {
+                    "case": "ignore",
+                    "punctuation": "ignore",
+                    "whitespace": "normalize",
+                    "accents": "preserve"
+                  }
+                }
+              }
+            },
+            {
+              "id": "qql_lab254_complete_text",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "complete_text",
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "prompt": [
+                  {
+                    "role": "primary",
+                    "type": "text",
+                    "text": "Anna beve un caffè al bar. Poi prende il treno."
+                  }
+                ],
+                "interaction": {
+                  "kind": "input",
+                  "inputType": "text"
+                },
+                "evaluation": {
+                  "kind": "text_match",
+                  "acceptedAnswers": [],
+                  "normalization": {
+                    "case": "ignore",
+                    "punctuation": "ignore",
+                    "whitespace": "normalize",
+                    "accents": "preserve"
+                  }
+                },
+                "missingWords": [
+                  "caffè",
+                  "treno"
+                ]
+              }
+            },
+            {
+              "id": "qql_lab254_missing_letters",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "missing_letters",
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "prompt": [
+                  {
+                    "role": "primary",
+                    "type": "text",
+                    "text": "Il gatto dorme sul divano."
+                  }
+                ],
+                "interaction": {
+                  "kind": "input",
+                  "inputType": "text"
+                },
+                "evaluation": {
+                  "kind": "text_match",
+                  "acceptedAnswers": [],
+                  "normalization": {
+                    "case": "ignore",
+                    "punctuation": "ignore",
+                    "whitespace": "normalize",
+                    "accents": "preserve"
+                  }
+                },
+                "missingWords": [
+                  "tt",
+                  "van"
+                ]
+              }
+            },
+            {
+              "id": "qql_lab254_missing_letters_audio",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "missing_letters",
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "prompt": [
+                  {
+                    "role": "primary",
+                    "type": "text",
+                    "text": "Il treno parte alle nove."
+                  },
+                  {
+                    "role": "primary",
+                    "type": "audio",
+                    "text": "Il treno parte alle nove."
+                  }
+                ],
+                "interaction": {
+                  "kind": "input",
+                  "inputType": "text"
+                },
+                "evaluation": {
+                  "kind": "text_match",
+                  "acceptedAnswers": [],
+                  "normalization": {
+                    "case": "ignore",
+                    "punctuation": "ignore",
+                    "whitespace": "normalize",
+                    "accents": "preserve"
+                  }
+                },
+                "missingWords": [
+                  "ren",
+                  "ove"
+                ]
+              }
+            },
+            {
+              "id": "qql_lab254_picture_name",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "picture_name",
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "prompt": [
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "What is this?"
+                  },
+                  {
+                    "role": "picture",
+                    "type": "image",
+                    "text": "Bread",
+                    "asset": "assets/exercise_images/bread.webp"
+                  }
+                ],
+                "interaction": {
+                  "kind": "input",
+                  "inputType": "text"
+                },
+                "evaluation": {
+                  "kind": "text_match",
+                  "acceptedAnswers": [
+                    "il pane",
+                    "pane"
+                  ],
+                  "normalization": {
+                    "case": "ignore",
+                    "punctuation": "ignore",
+                    "whitespace": "normalize",
+                    "accents": "preserve"
+                  }
+                }
+              }
+            }
+          ]
         }
       ],
       "duel": {
@@ -3498,7 +4268,7 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "word_order",
+              "editorTemplate": "gap_blocks",
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
                 "prompt": [
@@ -3553,7 +4323,7 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "word_order",
+              "editorTemplate": "gap_blocks",
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
                 "prompt": [
@@ -3634,7 +4404,7 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "word_order",
+              "editorTemplate": "gap_blocks",
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
                 "prompt": [
@@ -3730,7 +4500,7 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "word_order",
+              "editorTemplate": "gap_blocks",
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
                 "prompt": [
@@ -4153,12 +4923,12 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "build_translation",
+              "editorTemplate": "gap_blocks",
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
                 "prompt": [
                   {
-                    "role": "primary",
+                    "role": "clue",
                     "type": "text",
                     "text": "Anna reads a book."
                   }
@@ -4239,12 +5009,12 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "build_translation",
+              "editorTemplate": "gap_blocks",
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
                 "prompt": [
                   {
-                    "role": "primary",
+                    "role": "clue",
                     "type": "text",
                     "text": "We drink water."
                   },
@@ -4567,6 +5337,622 @@
                         "qql_lab254_image_repeated_letters_item_3",
                         "qql_lab254_image_repeated_letters_item_4",
                         "qql_lab254_image_repeated_letters_item_5"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "qql_lab254_round_arrange_source_and_lines",
+          "publicationState": "published",
+          "updatedAt": "2026-09-25T00:00:00.000Z",
+          "title": "Source blocks, sentences and spelling",
+          "visualType": "generic",
+          "content": [
+            {
+              "id": "qql_lab254_intro_arrange_source_and_lines",
+              "publicationState": "published",
+              "kind": "text",
+              "required": false,
+              "role": "lesson_intro",
+              "text": "Build the translation (to source) uses source-language blocks. Put the sentences in order orders lines. Spell what you hear and Spell the word spell a word from tiles without a picture."
+            },
+            {
+              "id": "qql_lab254_build_source_single",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "build_translation_to_source",
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "prompt": [
+                  {
+                    "role": "primary",
+                    "type": "text",
+                    "text": "Bevo acqua.",
+                    "language": "target"
+                  }
+                ],
+                "interaction": {
+                  "kind": "arrange",
+                  "items": [
+                    {
+                      "id": "qql_lab254_build_source_single_item_0",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "I",
+                          "language": "source"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_lab254_build_source_single_item_1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "drink",
+                          "language": "source"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_lab254_build_source_single_item_2",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "water",
+                          "language": "source"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "evaluation": {
+                  "kind": "ordered_items",
+                  "correctOrders": [
+                    {
+                      "text": "I drink water",
+                      "itemIds": [
+                        "qql_lab254_build_source_single_item_0",
+                        "qql_lab254_build_source_single_item_1",
+                        "qql_lab254_build_source_single_item_2"
+                      ]
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "qql_lab254_build_source_distractor",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "build_translation_to_source",
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "prompt": [
+                  {
+                    "role": "primary",
+                    "type": "text",
+                    "text": "Vado a scuola in treno.",
+                    "language": "target"
+                  }
+                ],
+                "interaction": {
+                  "kind": "arrange",
+                  "items": [
+                    {
+                      "id": "qql_lab254_build_source_distractor_item_0",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "I",
+                          "language": "source"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_lab254_build_source_distractor_item_1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "go",
+                          "language": "source"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_lab254_build_source_distractor_item_2",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "to",
+                          "language": "source"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_lab254_build_source_distractor_item_3",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "school",
+                          "language": "source"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_lab254_build_source_distractor_item_4",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "by",
+                          "language": "source"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_lab254_build_source_distractor_item_5",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "train",
+                          "language": "source"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_lab254_build_source_distractor_item_6",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "bus",
+                          "language": "source"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "evaluation": {
+                  "kind": "ordered_items",
+                  "correctOrders": [
+                    {
+                      "text": "I go to school by train",
+                      "itemIds": [
+                        "qql_lab254_build_source_distractor_item_0",
+                        "qql_lab254_build_source_distractor_item_1",
+                        "qql_lab254_build_source_distractor_item_2",
+                        "qql_lab254_build_source_distractor_item_3",
+                        "qql_lab254_build_source_distractor_item_4",
+                        "qql_lab254_build_source_distractor_item_5"
+                      ]
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "qql_lab254_sentence_order_story",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "sentence_order",
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "prompt": [
+                  {
+                    "role": "clue",
+                    "type": "text",
+                    "text": "Put the story in order."
+                  }
+                ],
+                "interaction": {
+                  "kind": "arrange",
+                  "items": [
+                    {
+                      "id": "qql_lab254_sentence_order_story_item_0",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "Anna entra nel bar."
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_lab254_sentence_order_story_item_1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "Ordina un caffè."
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_lab254_sentence_order_story_item_2",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "Paga e saluta."
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "evaluation": {
+                  "kind": "ordered_items",
+                  "correctOrders": [
+                    {
+                      "text": "Anna entra nel bar. Ordina un caffè. Paga e saluta.",
+                      "itemIds": [
+                        "qql_lab254_sentence_order_story_item_0",
+                        "qql_lab254_sentence_order_story_item_1",
+                        "qql_lab254_sentence_order_story_item_2"
+                      ]
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "qql_lab254_sentence_order_dialogue",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "sentence_order",
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "prompt": [
+                  {
+                    "role": "clue",
+                    "type": "text",
+                    "text": "Put the dialogue in order."
+                  }
+                ],
+                "interaction": {
+                  "kind": "arrange",
+                  "items": [
+                    {
+                      "id": "qql_lab254_sentence_order_dialogue_item_0",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "Buongiorno, un caffè per favore."
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_lab254_sentence_order_dialogue_item_1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "Subito. Zucchero?"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_lab254_sentence_order_dialogue_item_2",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "No, grazie."
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_lab254_sentence_order_dialogue_item_3",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "Ecco a lei."
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "evaluation": {
+                  "kind": "ordered_items",
+                  "correctOrders": [
+                    {
+                      "text": "Buongiorno, un caffè per favore. Subito. Zucchero? No, grazie. Ecco a lei.",
+                      "itemIds": [
+                        "qql_lab254_sentence_order_dialogue_item_0",
+                        "qql_lab254_sentence_order_dialogue_item_1",
+                        "qql_lab254_sentence_order_dialogue_item_2",
+                        "qql_lab254_sentence_order_dialogue_item_3"
+                      ]
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "qql_lab254_spell_heard_letters",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "spell_heard",
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "prompt": [
+                  {
+                    "role": "primary",
+                    "type": "audio",
+                    "text": "pane"
+                  }
+                ],
+                "interaction": {
+                  "kind": "arrange",
+                  "items": [
+                    {
+                      "id": "qql_lab254_spell_heard_letters_item_0",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "p"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_lab254_spell_heard_letters_item_1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "a"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_lab254_spell_heard_letters_item_2",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "n"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_lab254_spell_heard_letters_item_3",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "e"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "evaluation": {
+                  "kind": "ordered_items",
+                  "correctOrders": [
+                    {
+                      "text": "pane",
+                      "itemIds": [
+                        "qql_lab254_spell_heard_letters_item_0",
+                        "qql_lab254_spell_heard_letters_item_1",
+                        "qql_lab254_spell_heard_letters_item_2",
+                        "qql_lab254_spell_heard_letters_item_3"
+                      ]
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "qql_lab254_spell_heard_syllables",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "spell_heard",
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "prompt": [
+                  {
+                    "role": "primary",
+                    "type": "audio",
+                    "text": "gatto"
+                  }
+                ],
+                "interaction": {
+                  "kind": "arrange",
+                  "items": [
+                    {
+                      "id": "qql_lab254_spell_heard_syllables_item_0",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "gat"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_lab254_spell_heard_syllables_item_1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "to"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "evaluation": {
+                  "kind": "ordered_items",
+                  "correctOrders": [
+                    {
+                      "text": "gatto",
+                      "itemIds": [
+                        "qql_lab254_spell_heard_syllables_item_0",
+                        "qql_lab254_spell_heard_syllables_item_1"
+                      ]
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "qql_lab254_spell_word_clue",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "spell_word",
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "prompt": [
+                  {
+                    "role": "clue",
+                    "type": "text",
+                    "text": "cat (the animal)",
+                    "language": "source"
+                  }
+                ],
+                "interaction": {
+                  "kind": "arrange",
+                  "items": [
+                    {
+                      "id": "qql_lab254_spell_word_clue_item_0",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "g"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_lab254_spell_word_clue_item_1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "a"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_lab254_spell_word_clue_item_2",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "t"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_lab254_spell_word_clue_item_3",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "t"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_lab254_spell_word_clue_item_4",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "o"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "evaluation": {
+                  "kind": "ordered_items",
+                  "correctOrders": [
+                    {
+                      "text": "gatto",
+                      "itemIds": [
+                        "qql_lab254_spell_word_clue_item_0",
+                        "qql_lab254_spell_word_clue_item_1",
+                        "qql_lab254_spell_word_clue_item_2",
+                        "qql_lab254_spell_word_clue_item_3",
+                        "qql_lab254_spell_word_clue_item_4"
+                      ]
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "qql_lab254_spell_word_definition",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "spell_word",
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "prompt": [
+                  {
+                    "role": "clue",
+                    "type": "text",
+                    "text": "You drink it when you are thirsty.",
+                    "language": "source"
+                  }
+                ],
+                "interaction": {
+                  "kind": "arrange",
+                  "items": [
+                    {
+                      "id": "qql_lab254_spell_word_definition_item_0",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "ac"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_lab254_spell_word_definition_item_1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "qua"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "evaluation": {
+                  "kind": "ordered_items",
+                  "correctOrders": [
+                    {
+                      "text": "acqua",
+                      "itemIds": [
+                        "qql_lab254_spell_word_definition_item_0",
+                        "qql_lab254_spell_word_definition_item_1"
                       ]
                     }
                   ]
@@ -4982,6 +6368,125 @@
                     [
                       "qql_lab254_match_synonyms_item_4",
                       "qql_lab254_match_synonyms_item_5"
+                    ]
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "qql_lab254_round_match_pictures",
+          "publicationState": "published",
+          "updatedAt": "2026-09-25T00:00:00.000Z",
+          "title": "Pictures and words",
+          "visualType": "generic",
+          "content": [
+            {
+              "id": "qql_lab254_intro_match_pictures",
+              "publicationState": "published",
+              "kind": "text",
+              "required": false,
+              "role": "lesson_intro",
+              "text": "Match each picture on the left with its Italian word."
+            },
+            {
+              "id": "qql_lab254_picture_word_match",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "picture_word_match",
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "prompt": [
+                  {
+                    "role": "primary",
+                    "type": "text",
+                    "text": "Match each picture with its word."
+                  }
+                ],
+                "interaction": {
+                  "kind": "match",
+                  "items": [
+                    {
+                      "id": "qql_lab254_picture_word_match_item_0",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "image",
+                          "text": "il gatto",
+                          "asset": "assets/exercise_images/cat.webp"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_lab254_picture_word_match_item_1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "il gatto"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_lab254_picture_word_match_item_2",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "image",
+                          "text": "il cane",
+                          "asset": "assets/exercise_images/dog.webp"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_lab254_picture_word_match_item_3",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "il cane"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_lab254_picture_word_match_item_4",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "image",
+                          "text": "la casa",
+                          "asset": "assets/exercise_images/house.webp"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_lab254_picture_word_match_item_5",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "la casa"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "evaluation": {
+                  "kind": "matched_items",
+                  "pairs": [
+                    [
+                      "qql_lab254_picture_word_match_item_0",
+                      "qql_lab254_picture_word_match_item_1"
+                    ],
+                    [
+                      "qql_lab254_picture_word_match_item_2",
+                      "qql_lab254_picture_word_match_item_3"
+                    ],
+                    [
+                      "qql_lab254_picture_word_match_item_4",
+                      "qql_lab254_picture_word_match_item_5"
                     ]
                   ]
                 }
@@ -5486,6 +6991,157 @@
               }
             }
           ]
+        },
+        {
+          "id": "qql_lab254_round_presentation_pictures_notes",
+          "publicationState": "published",
+          "updatedAt": "2026-09-25T00:00:00.000Z",
+          "title": "Picture flashcards and note cards",
+          "visualType": "generic",
+          "content": [
+            {
+              "id": "qql_lab254_intro_presentation_pictures_notes",
+              "publicationState": "published",
+              "kind": "text",
+              "required": false,
+              "role": "lesson_intro",
+              "text": "Picture flashcards show a picture with the word; their audio is optional and never makes them audio exercises. Note cards carry a tip or a grammar note."
+            },
+            {
+              "id": "qql_lab254_picture_card",
+              "publicationState": "published",
+              "kind": "presentation",
+              "required": true,
+              "editorTemplate": "picture_flashcard",
+              "presentation": {
+                "content": [
+                  {
+                    "role": "term",
+                    "type": "text",
+                    "text": "la mela"
+                  },
+                  {
+                    "role": "meaning",
+                    "type": "text",
+                    "text": "apple"
+                  },
+                  {
+                    "role": "audio",
+                    "type": "audio",
+                    "text": "la mela",
+                    "required": false
+                  },
+                  {
+                    "role": "usage",
+                    "type": "text",
+                    "text": "Mangio una mela."
+                  },
+                  {
+                    "role": "usage_translation",
+                    "type": "text",
+                    "text": "I eat an apple."
+                  },
+                  {
+                    "role": "picture",
+                    "type": "image",
+                    "text": "la mela",
+                    "asset": "assets/exercise_images/apple.webp"
+                  }
+                ],
+                "completion": {
+                  "actions": [
+                    "understood",
+                    "review_later"
+                  ]
+                }
+              }
+            },
+            {
+              "id": "qql_lab254_picture_card_plain",
+              "publicationState": "published",
+              "kind": "presentation",
+              "required": true,
+              "editorTemplate": "picture_flashcard",
+              "presentation": {
+                "content": [
+                  {
+                    "role": "term",
+                    "type": "text",
+                    "text": "il pane"
+                  },
+                  {
+                    "role": "meaning",
+                    "type": "text",
+                    "text": "bread"
+                  },
+                  {
+                    "role": "picture",
+                    "type": "image",
+                    "text": "il pane",
+                    "asset": "assets/exercise_images/bread.webp"
+                  }
+                ],
+                "completion": {
+                  "actions": [
+                    "understood",
+                    "review_later"
+                  ]
+                }
+              }
+            },
+            {
+              "id": "qql_lab254_note_card_tip",
+              "publicationState": "published",
+              "kind": "presentation",
+              "required": true,
+              "editorTemplate": "note_card",
+              "presentation": {
+                "content": [
+                  {
+                    "role": "term",
+                    "type": "text",
+                    "text": "Tu o Lei?"
+                  },
+                  {
+                    "role": "meaning",
+                    "type": "text",
+                    "text": "Use Lei with people you do not know well; tu is for friends, family and children."
+                  }
+                ],
+                "completion": {
+                  "actions": [
+                    "continue"
+                  ]
+                }
+              }
+            },
+            {
+              "id": "qql_lab254_note_card_grammar",
+              "publicationState": "published",
+              "kind": "presentation",
+              "required": true,
+              "editorTemplate": "note_card",
+              "presentation": {
+                "content": [
+                  {
+                    "role": "term",
+                    "type": "text",
+                    "text": "Gli articoli"
+                  },
+                  {
+                    "role": "meaning",
+                    "type": "text",
+                    "text": "il, lo, la, i, gli, le: the article agrees with the noun in gender and number."
+                  }
+                ],
+                "completion": {
+                  "actions": [
+                    "continue"
+                  ]
+                }
+              }
+            }
+          ]
         }
       ],
       "duel": {
@@ -5494,5 +7150,5 @@
       }
     }
   ],
-  "officialChecksum": "1ff77110f49a81d8ef7d0fad5fe9e4072681e5022bb93d28e47c58ddc43131f9"
+  "officialChecksum": "3a54360d86a6658317565994fbe81e53b2267e43aa933893ca751cda34ddba60"
 }

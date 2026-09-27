@@ -443,6 +443,22 @@ class _ExerciseHelpScreenState extends State<ExerciseHelpScreen> {
             body: _t(locale, 'exerciseHelp.preset.${preset.id}.body'),
           ),
       ],
+    Padding(
+      padding: const EdgeInsets.fromLTRB(4, 12, 4, 8),
+      child: Text(
+        _t(locale, 'exerciseHelp.category.comingLater'),
+        style: Theme.of(
+          context,
+        ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+      ),
+    ),
+    for (final preset in ExercisePresetRegistry.comingLater)
+      _HelpSection(
+        key: ValueKey('exercise-help-later-${preset.id}'),
+        title: preset.name,
+        body:
+            '${preset.description}\n\n${_t(locale, 'exerciseHelp.comingLater')} ${preset.reason}',
+      ),
     ..._supplements(locale),
   ];
 

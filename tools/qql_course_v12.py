@@ -147,9 +147,41 @@ KIND_TYPE = {"select": "choice", "input": "fill_blank", "arrange": "word_order",
              "match": "matching", "presentation": "flashcard"}
 
 
+# The older recipe a Build 256 Revision 4 catalogue preset is built on
+# (mirrors lib/models/preset_successors.dart, presetRecipeBaseOf).
+PRESET_BASE = {
+    "choice_target": "choice",
+    "choice_source": "choice",
+    "listening_answer_target": "listening_comprehension",
+    "listening_answer_source": "listening_comprehension",
+    "reading_answer_target": "reading_comprehension",
+    "reading_answer_source": "reading_comprehension",
+    "type_translation_to_target": "type_translation",
+    "type_translation_to_source": "type_translation",
+    "build_translation_to_target": "build_translation",
+    "build_translation_to_source": "build_translation",
+    "picture_flashcard": "flashcard",
+    "true_false": "choice",
+    "gap_choice_inline": "choice",
+    "complete_text": "missing_word",
+    "missing_letters": "missing_word",
+    "gap_blocks": "word_order",
+    "sentence_order": "word_order",
+    "listening_image_choice": "icon_choice",
+    "spell_heard": "image_word",
+    "picture_choice": "choice",
+    "picture_name": "fill_blank",
+    "spell_word": "image_word",
+    "picture_word_match": "word_match",
+    "note_card": "flashcard",
+}
+
+
 def legacy_type(template: str, kind: str) -> str:
     if template in LEGACY_TYPE:
         return LEGACY_TYPE[template]
+    if template in PRESET_BASE:
+        return PRESET_BASE[template]
     if template:
         return template
     return KIND_TYPE.get(kind, kind)
@@ -169,15 +201,16 @@ def _with_audio(elements: list, playback: str) -> list:
 
 
 def _with_text_language(elements: list, role: str, language: str) -> list:
+    # A language the element states wins over the one the preset implies.
     return [dict(e, language=language)
-            if e.get("type") == "text" and e.get("role", "primary") == role else e
+            if e.get("type") == "text" and e.get("role", "primary") == role and "language" not in e else e
             for e in elements]
 
 
 def _with_item_language(items: list, language: str) -> list:
     return [dict(item, content=[
         dict(e, language=language)
-        if e.get("type") == "text" and e.get("role", "primary") == "primary" else e
+        if e.get("type") == "text" and e.get("role", "primary") == "primary" and "language" not in e else e
         for e in item.get("content", [])
     ]) for item in items]
 
@@ -311,7 +344,7 @@ def convert_exercise(preset: str, exercise: dict, missing_words: list[str] | Non
         else:
             canonical = {"mode": "exactSet" if multiple else "exactItem",
                          "correctItemIds": list(evaluation.get("correctItemIds", []))}
-        if type_ in {"listening_choice", "listening_comprehension", "contextual_comprehension"}:
+        if type_ in {"listening_choice", "listening_comprehension", "contextual_comprehension", "icon_choice"}:
             prompt = _with_audio(prompt, "automatic")
         if type_ in {"translation_choice_to_target", "translation_choice_to_source"}:
             # Pick the translation is solvable without audio: optional.
@@ -390,6 +423,7 @@ def convert_exercise(preset: str, exercise: dict, missing_words: list[str] | Non
     elif kind == "arrange":
         primitive = "arrange"
         if type_ == "image_word":
+            prompt = _with_audio(prompt, "automatic")
             options["joiner"] = "none"
             options["unusedItems"] = "forbidden"
         if gaps:
@@ -420,7 +454,7 @@ def convert_exercise(preset: str, exercise: dict, missing_words: list[str] | Non
         if side_languages:
             items = [dict(item, content=[
                 dict(e, language=side_languages[0] if item["side"] == "left" else side_languages[1])
-                if e.get("type") == "text" and e.get("role", "primary") == "primary" else e
+                if e.get("type") == "text" and e.get("role", "primary") == "primary" and "language" not in e else e
                 for e in item.get("content", [])]) for item in items]
     else:
         raise ValueError(f"unknown interaction kind {kind!r}")
@@ -444,13 +478,29 @@ def convert_exercise(preset: str, exercise: dict, missing_words: list[str] | Non
     return out
 
 
+# The successor of every preset the Build 256 Revision 4 catalogue retired
+# (mirrors lib/models/preset_successors.dart): the converter records it.
+PRESET_SUCCESSOR = {
+    "choice": "choice_target",
+    "fill_blank": "type_missing_word",
+    "matching": "word_match",
+    "listening_choice": "listening_answer_target",
+    "listening_comprehension": "listening_answer_target",
+    "reading_comprehension": "reading_answer_target",
+    "contextual_comprehension": "reading_answer_target",
+    "dialogue_response": "reading_answer_target",
+    "type_translation": "type_translation_to_target",
+    "build_translation": "build_translation_to_target",
+}
+
+
 def convert_content(content: dict, round_updated_at: str | None = None) -> dict:
     """The v12 Content for a v11 Content object, in the Dart key order."""
     content = copy.deepcopy(content)
     template = content.pop("editorTemplate", "") or ""
     metadata = dict(content.pop("authoringMetadata", {}) or {})
     if template:
-        metadata["presetId"] = template
+        metadata["presetId"] = PRESET_SUCCESSOR.get(template, template)
     kind = content.get("kind")
     exercise = None
     if kind == "presentation" or "presentation" in content:
@@ -461,6 +511,13 @@ def convert_content(content: dict, round_updated_at: str | None = None) -> dict:
         exercise = presentation_to_exercise(presentation, round_updated_at or "1970-01-01T00:00:00.000Z")
     elif isinstance(content.get("exercise"), dict):
         exercise = convert_exercise(template, content["exercise"])
+        # A Choose or Arrange with inline gaps is the inline-gap preset.
+        layout = (content["exercise"].get("interaction") or {}).get("layout", [])
+        if any(e.get("type") == "gap" for e in layout):
+            if template == "choice":
+                metadata["presetId"] = "gap_choice_inline"
+            elif template in ("word_order", "build_translation"):
+                metadata["presetId"] = "gap_blocks"
     out = {"id": content["id"], "publicationState": content["publicationState"],
            "kind": kind, "required": content.get("required", True)}
     if metadata:

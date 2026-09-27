@@ -738,12 +738,14 @@ Dummy testing requires no approval request to a real publisher. All dummy releas
   'exerciseHelp.search': r'''Search Exercise Help''',
   'exerciseHelp.clearSearch': r'''Clear search''',
   'exerciseHelp.noResults': r'''No Exercise Help results match your search.''',
-  'exerciseHelp.category.multipleChoice': r'''Multiple choice''',
-  'exerciseHelp.category.translation': r'''Translation''',
-  'exerciseHelp.category.textInput': r'''Text input''',
-  'exerciseHelp.category.matching': r'''Matching''',
-  'exerciseHelp.category.ordering': r'''Ordering''',
-  'exerciseHelp.category.presentation': r'''Presentation''',
+  'exerciseHelp.category.vocabulary': r'''Vocabulary''',
+  'exerciseHelp.category.grammarAndSentences': r'''Grammar and sentences''',
+  'exerciseHelp.category.listening': r'''Listening''',
+  'exerciseHelp.category.readingAndDialogue': r'''Reading and dialogue''',
+  'exerciseHelp.category.picturesAndCharacters': r'''Pictures and characters''',
+  'exerciseHelp.category.cardsAndNotes': r'''Cards and notes''',
+  'exerciseHelp.category.comingLater': r'''Coming later''',
+  'exerciseHelp.comingLater': r'''In a later version:''',
   'exerciseHelp.supplement.canonicalEditor.title': r'''Canonical editor''',
   'exerciseHelp.supplement.canonicalEditor.body':
       r'''Two ways to create an exercise. New exercise: ready preset forms for the most common exercise types; pick one, fill in a few fields, save. New canonical: the basic structure of any exercise, edited directly; powerful, sometimes complex. Every preset form writes ordinary canonical data. The canonical editor (Round editor: New canonical; preset picker: Every primitive) shows all of it for any primitive: options, prompt elements with roles and languages, items, targets, layout, the evaluation mode with its answer data, feedback and hint, and says whether this version can play the result. An exercise that no preset represents exactly opens there; the preset form shows it read-only and offers Open. See Exercise primitives in QQL Guide for the definitions.''',
@@ -755,7 +757,7 @@ Dummy testing requires no approval request to a real publisher. All dummy releas
   'exerciseHelp.supplement.textEvaluationAndCorrections.body':
       r'''QQL accepts any configured complete answer or syntax-expanded variant after the established case, punctuation, whitespace, apostrophe and accent rules. Type the translation also permits one omitted or duplicated repeated letter in a word of at least five characters when every word position is otherwise unchanged. Its incorrect feedback shows up to three similarity-ranked valid answers and says Some possible translations when more exist. Its correct feedback shows up to two alternatives, excluding the matched canonical answer even after typo tolerance. No alternatives means no empty section. Ties keep author order and ranking never changes correctness. Other typed presets retain their canonical Correct answer. Feedback names only differences actually used; exact answers show no false difference reason.''',
   'exerciseHelp.supplement.contextualComprehensionExample.title':
-      r'''Contextual comprehension example''',
+      r'''Read and answer example''',
   'exerciseHelp.supplement.contextualComprehensionExample.body':
       r'''Question: What does Jane mean?
 
@@ -765,42 +767,70 @@ Jim: I changed my mind.
 Jane: That’s just great.
 
 Question and Context are separate. Context can be text, audio, or both. Dialogue turns are optional; an announcement, short passage or situation is equally valid. Configure answer choices separately.''',
-  'exerciseHelp.preset.choice.description':
-      r'''Learner chooses the correct translation from alternatives.''',
+  'exerciseHelp.preset.choice_target.description':
+      r'''Learner reads a question and chooses the answer among target-language options: grammar, culture or meaning, not only translations.''',
+  'exerciseHelp.preset.choice_source.description':
+      r'''Learner reads a question in the source language and chooses the answer: rules, culture and meanings asked in the language the learner already knows.''',
+  'exerciseHelp.preset.listening_answer_target.description':
+      r'''Learner listens to target-language audio and picks the answer in the target language: what was heard, or the answer to a question about it.''',
+  'exerciseHelp.preset.listening_answer_source.description':
+      r'''Learner listens to target-language audio and picks the answer in the source language: its meaning, or the answer to a question about it.''',
+  'exerciseHelp.preset.reading_answer_target.description':
+      r'''Learner reads a text, a situation or a dialogue in the target language and answers a question in the target language.''',
+  'exerciseHelp.preset.reading_answer_source.description':
+      r'''Learner reads a text, a situation or a dialogue in the target language and answers a question asked in the source language.''',
+  'exerciseHelp.preset.type_translation_to_target.description':
+      r'''Learner types a translation in the target language.''',
+  'exerciseHelp.preset.type_translation_to_source.description':
+      r'''Learner reads target-language text and types its translation in the source language.''',
+  'exerciseHelp.preset.build_translation_to_target.description':
+      r'''Learner constructs a translation using provided word blocks.''',
+  'exerciseHelp.preset.build_translation_to_source.description':
+      r'''Learner reads target-language text and builds its translation in the source language from word blocks.''',
+  'exerciseHelp.preset.picture_flashcard.description':
+      r'''Learner reviews a picture with its word, meaning and an optional usage example, with optional read-aloud.''',
+  'exerciseHelp.preset.true_false.description':
+      r'''Learner reads (or hears) a statement in the target language and answers true or false.''',
+  'exerciseHelp.preset.gap_choice_inline.description':
+      r'''Learner fills the gaps of a fixed sentence by tapping options, one per gap.''',
+  'exerciseHelp.preset.complete_text.description':
+      r'''Learner types the words missing from a text with several gaps; no audio.''',
+  'exerciseHelp.preset.missing_letters.description':
+      r'''Learner types the letters missing inside words (dr__); optional spoken text or picture.''',
+  'exerciseHelp.preset.gap_blocks.description':
+      r'''Learner fills the gaps of a fixed sentence with word blocks, each used once.''',
+  'exerciseHelp.preset.sentence_order.description':
+      r'''Learner puts the lines of a story or a dialogue in the right order.''',
+  'exerciseHelp.preset.listening_image_choice.description':
+      r'''Learner hears a word or a sentence and picks the matching picture.''',
+  'exerciseHelp.preset.spell_heard.description':
+      r'''Learner hears a word and spells it from letter or syllable tiles.''',
+  'exerciseHelp.preset.picture_choice.description':
+      r'''Learner sees a picture and picks the word or sentence that names it.''',
+  'exerciseHelp.preset.picture_name.description':
+      r'''Learner sees a picture and types its name; several accepted answers.''',
+  'exerciseHelp.preset.spell_word.description':
+      r'''Learner spells a word from letter or syllable tiles after a clue in the source language.''',
+  'exerciseHelp.preset.picture_word_match.description':
+      r'''Learner matches pictures with their words.''',
+  'exerciseHelp.preset.note_card.description':
+      r'''A tip, a grammar or a cultural note the learner reads and continues.''',
   'exerciseHelp.preset.gap_choice.description':
       r'''Learner selects the missing word or expression.''',
   'exerciseHelp.preset.icon_choice.description':
       r'''Learner chooses the image corresponding to the prompt.''',
   'exerciseHelp.preset.script_recognition.description':
       r'''Recognize printed or handwritten characters: Image to text or Text to image.''',
-  'exerciseHelp.preset.listening_choice.description':
-      r'''Learner listens and chooses the matching written answer.''',
-  'exerciseHelp.preset.listening_comprehension.description':
-      r'''Learner listens to a passage and selects the correct answer.''',
-  'exerciseHelp.preset.reading_comprehension.description':
-      r'''Learner reads a passage and selects the correct answer.''',
-  'exerciseHelp.preset.dialogue_response.description':
-      r'''Learner reads a situation and selects the best response.''',
-  'exerciseHelp.preset.contextual_comprehension.description':
-      r'''Learner reads and/or listens to context and answers a separate question.''',
-  'exerciseHelp.preset.type_translation.description':
-      r'''Learner types a translation in the target language.''',
-  'exerciseHelp.preset.build_translation.description':
-      r'''Learner constructs a translation using provided word blocks.''',
   'exerciseHelp.preset.translation_choice_to_target.description':
       r'''Select: learner sees source-language text and picks its target-language translation.''',
   'exerciseHelp.preset.translation_choice_to_source.description':
       r'''Select: learner sees target-language text and picks its source-language translation.''',
-  'exerciseHelp.preset.fill_blank.description':
-      r'''Learner types the text missing from a word or phrase.''',
   'exerciseHelp.preset.type_missing_word.description':
-      r'''Complete a missing word after its first letter is provided.''',
+      r'''Learner types the word missing from a sentence; the first letter can be shown as a hint.''',
   'exerciseHelp.preset.listening_spelling.description':
       r'''Learner listens and types the heard word or passage.''',
   'exerciseHelp.preset.missing_word.description':
       r'''Learner listens and completes one or more gaps in a transcript.''',
-  'exerciseHelp.preset.matching.description':
-      r'''Learner matches corresponding textual items.''',
   'exerciseHelp.preset.word_match.description':
       r'''Learner matches words with their translations.''',
   'exerciseHelp.preset.super_match.description':
@@ -813,8 +843,54 @@ Question and Context are separate. Context can be text, audio, or both. Dialogue
       r'''Learner builds the word represented by an image.''',
   'exerciseHelp.preset.flashcard.description':
       r'''Presents learning material without an ordinary scored answer.''',
-  'exerciseHelp.preset.choice.body':
-      r'''The learner sees a source-language prompt and text alternatives, then chooses the correct target-language translation. Provide a clear prompt, at least two text answers and one correct answer. Text is supported; optional prompt audio or an image can supplement it. Keep distractors plausible but unambiguously wrong. Example: “How do you say good morning?”''',
+  'exerciseHelp.preset.choice_target.body':
+      r'''The learner reads a question and chooses the right answer among text alternatives in the target language; the question itself may be in either language. The question can be anything a course needs: a translation, a grammar form, a cultural fact, a meaning. Provide a clear question, at least two text answers and one correct answer (or several, with the several-answers switch). Optional prompt audio or a picture can support the question. Keep distractors plausible but clearly wrong. The twin Choose the answer (to source) asks and answers in the source language.''',
+  'exerciseHelp.preset.choice_source.body':
+      r'''The learner reads a question written in the source language and chooses the right answer among alternatives in the source language: a grammar rule, a cultural fact, the meaning of an expression, anything better asked in the language the learner already knows. Provide a clear question, at least two text answers and one correct answer (or several, with the several-answers switch). Optional prompt audio is spoken with the source-language voice, and a picture can support the question. Keep distractors plausible but clearly wrong. The twin Choose the answer (to target) asks and answers in the target language.''',
+  'exerciseHelp.preset.listening_answer_target.body':
+      r'''The learner hears target-language audio and chooses the answer among written alternatives in the target language. Without a question the learner picks what was heard; with a question the exercise tests comprehension of the passage, so make the passage long enough. Spoken text contains exactly what the learner should hear, for example: Buongiorno, come stai? On-Device TTS sends this text to the device’s native speech engine. Recorded MP3 resolves Course Audio Library text mappings; Hybrid tries a complete MP3 sequence before native TTS. For MP3, open Course Editor > Audio Library, copy files to {folderAudioImports}, press Import MP3, then Associate recording with its Word or expression and select Recorded MP3 only or Hybrid. There is no per-exercise MP3 attachment. Physical files are grouped by learning language; references belong to the Course. Verified Course backups copy referenced files; JSON alone does not transfer MP3 bytes. Provide written alternatives and exactly one correct answer; avoid visible text that gives away the audio. The twin Listen and answer (to source) asks and answers in the source language.''',
+  'exerciseHelp.preset.listening_answer_source.body':
+      r'''The learner hears target-language audio and chooses the answer among written alternatives in the source language: the meaning of what was heard, or the answer to a question asked in the source language. Provide the spoken text in the target language, an optional question, the alternatives and one correct answer. Spoken text, On-Device TTS, Recorded MP3 and Hybrid work as in Listen and answer (to target). Avoid visible text that gives away the audio.''',
+  'exerciseHelp.preset.reading_answer_target.body':
+      r'''The learner reads a text in the target language and answers a separate question by choosing among alternatives in the target language. The text can be a passage, a situation or a short exchange; optional dialogue lines, one “Speaker: text” turn per line, are shown after the text, which then works as their context. Provide the text or dialogue lines, the question, at least two answers and one correct answer. Keep the text long enough to test comprehension; punctuation alone is not a text. An exercise image may accompany it. This preset replaces Reading comprehension, Dialogue response and Contextual comprehension; exercises made with them open here. The twin Read and answer (to source) asks and answers in the source language.''',
+  'exerciseHelp.preset.reading_answer_source.body':
+      r'''The learner reads target-language text, a passage, a situation or dialogue lines, and answers a question written in the source language by choosing among source-language alternatives: what the text means, what a speaker intends, what happens next. Provide the text or dialogue lines, the question, at least two answers and one correct answer. The twin Read and answer (to target) asks and answers in the target language.''',
+  'exerciseHelp.preset.type_translation_to_target.body':
+      r'''The learner sees source text and freely types a target-language translation. Provide the source, one or more complete accepted translations, and an optional hint. Use lowercase except for proper names. Accepted lines may use optional {}, independent [a|b], linked [*:a|b] groups with equal counts, and valid <> reorder scopes. Expand answers opens a selectable, copyable preview without changing content. Use expanded answers adds independent explicit lines; editing or deleting the source expression never changes them. Equivalent explicit answers are not added twice, and overflow beyond 128 answers is rejected without partial changes. Wrong feedback shows up to three valid translations ranked by existing similarity; correct feedback shows up to two other translations, excluding the matched canonical answer. Ties keep author order. Ranking never changes acceptance. One omitted or duplicated repeated letter is tolerated conservatively, but substitutions and missing or extra words are not. The twin Type the translation (to source) shows target-language text and takes a source-language translation.''',
+  'exerciseHelp.preset.type_translation_to_source.body':
+      r'''The learner sees target-language text and freely types its source-language translation. Provide the text to translate in the target language, one or more complete accepted source-language translations, and an optional hint. Accepted answers use the same syntax, expansion, feedback and typo tolerance as Type the translation (to target): optional {}, independent [a|b], linked [*:a|b] groups, <> reorder scopes, Expand answers and Use expanded answers, at most 128 answers. Use lowercase except for proper names.''',
+  'exerciseHelp.preset.build_translation_to_target.body':
+      r'''The learner sees source text and constructs its target-language translation from word blocks. Provide source text, available literal blocks and one or more complete literal correct translations. Answers can be added, removed and reordered; each must be constructible from distinct block occurrences. Repeated words require repeated blocks, and no more than two blocks may remain unused. Type-the-translation syntax, typo tolerance and similarity matching do not apply. The twin Build the translation (to source) shows target-language text and takes source-language blocks.''',
+  'exerciseHelp.preset.build_translation_to_source.body':
+      r'''The learner sees target-language text and constructs its source-language translation from word blocks. Provide the text to translate in the target language, the available literal blocks in the source language and one or more complete literal correct translations. Answers can be added, removed and reordered; each must be constructible from distinct block occurrences. Repeated words require repeated blocks, and no more than two blocks may remain unused. Type-the-translation syntax, typo tolerance and similarity matching do not apply.''',
+  'exerciseHelp.preset.picture_flashcard.body':
+      r'''The learner sees a picture with its word and meaning, an optional usage example with its translation, and can hear the word and the example when audio is available. Provide the picture (Image), the word, the meaning and optionally the usage lines and the pronunciation text. The audio is optional: the card is never an audio exercise and is shown when Audio Exercises are off. Got it completes the card; Review again schedules it once more.''',
+  'exerciseHelp.preset.true_false.body':
+      r'''The learner reads a statement in the target language, optionally hears it, and chooses between the word for true and the word for false in the source language. Provide the statement, an optional spoken statement, the two answers (prefilled in the source language when QQL knows it) and the correct answer number: 1 when the statement is true, 2 when it is false.''',
+  'exerciseHelp.preset.gap_choice_inline.body':
+      r'''The learner sees a sentence with one or more gaps and fills them in order by tapping options; the same option can fill several gaps, and a wrong tap can land in the wrong gap. Write the sentence and put each answer inside braces: I {am} going {to} London. Add 0, 1 or at most 2 distractor options and an optional spoken prompt. This preset replaces the Inline gaps switch of Choose the answer.''',
+  'exerciseHelp.preset.complete_text.body':
+      r'''The learner reads a text with one or more gaps and types each missing word. Write the complete text and list the words to hide, one per line, in order; each must occur in the text. Answers are checked with the normal Input normalization. There is no audio: for gaps heard from a recording use Listen and fill the gaps.''',
+  'exerciseHelp.preset.missing_letters.body':
+      r'''The learner sees words with missing letters and types the letters. Write the complete text and put the missing letters inside square brackets: My cat doesn’t dr[ink] milk. The learner sees dr___ milk, one underscore per letter, and types ink. Several gaps are fine. An optional spoken text reads the whole sentence, an optional picture illustrates it, and an optional hint helps without giving the letters away.''',
+  'exerciseHelp.preset.gap_blocks.body':
+      r'''The learner sees a sentence with gaps and drags word blocks into them; each block is used once and must land in the right gap. Write the sentence with each answer inside braces: Io {vorrei} un caffè. Add 0, 1 or at most 2 distractor blocks and an optional spoken prompt. This preset replaces the Inline gaps switch of Word order and Build the translation.''',
+  'exerciseHelp.preset.sentence_order.body':
+      r'''The learner sees the lines of a short story or dialogue as blocks and puts them in order. Enter the lines, one per line, and the correct order; you may add 0, 1 or at most 2 extra lines that belong nowhere. The instruction says what to order: the sentences of a story, the turns of a dialogue.''',
+  'exerciseHelp.preset.listening_image_choice.body':
+      r'''The learner hears the spoken text and picks the picture it names. Provide the spoken text, an optional question, the answer labels (one per line) and one picture per answer, chosen with the pickers below the answers; mark the correct answer. The labels are shown under the pictures.''',
+  'exerciseHelp.preset.spell_heard.body':
+      r'''The learner hears a word and spells it by ordering letter or syllable tiles. Provide the spoken word, the tiles (one per line; split the word into letters or syllables as you like) and the correct order. No picture is needed; the tiles join without spaces.''',
+  'exerciseHelp.preset.picture_choice.body':
+      r'''The learner sees a picture and chooses the word or sentence that names it among text answers. Provide the picture (Image), a question such as What is this?, at least two answers and the correct one.''',
+  'exerciseHelp.preset.picture_name.body':
+      r'''The learner sees a picture and types what it shows. Provide the picture (Image), a question or instruction, one or more accepted answers with the same syntax as Type the translation (optional {}, alternatives [a|b], linked groups, reorder scopes) and an optional hint. Answers are checked with the normal Input normalization and typo tolerance.''',
+  'exerciseHelp.preset.spell_word.body':
+      r'''The learner reads a clue in the source language, the word itself or a definition, and spells the target-language word by ordering letter or syllable tiles. Provide the clue, the tiles and the correct order; a picture is optional.''',
+  'exerciseHelp.preset.picture_word_match.body':
+      r'''The learner matches each picture on the left with a word on the right. Provide the words, one per line, and one picture per word with the pickers below; at least two pairs. Pair relationships, not display positions, define correctness.''',
+  'exerciseHelp.preset.note_card.body':
+      r'''A card with a title and a note: a tip, a grammar point, a cultural remark. The learner reads it and presses Continue; there is no answer, no score and no audio. Write in the language your learners read best.''',
   'exerciseHelp.preset.gap_choice.body':
       r'''The learner sees a sentence containing ___ and chooses the missing word or expression. Provide one text gap, answer blocks and one correct answer. Text is supported. Use exactly one gap where possible and make only one option grammatically and semantically correct.''',
   'exerciseHelp.preset.icon_choice.body':
@@ -829,20 +905,6 @@ Text to image: learners see the text and choose the matching character image.
 The text can be the character’s name, sound, pronunciation, transliteration or another identifying label.
 
 Provide at least two options; exactly one is correct. Multiple prompt images may show print, handwriting or different fonts. Use bundled images or portable imported images, never absolute local paths. Preview uses the normal Select learner behavior.''',
-  'exerciseHelp.preset.listening_choice.body':
-      r'''The learner hears audio and chooses the matching written answer. Spoken text contains exactly what the learner should hear, for example: Buongiorno, come stai? On-Device TTS sends this text to the device’s native speech engine. Recorded MP3 resolves Course Audio Library text mappings; Hybrid tries a complete MP3 sequence before native TTS. For MP3, open Course Editor > Audio Library, copy files to {folderAudioImports}, press Import MP3, then Associate recording with its Word or expression and select Recorded MP3 only or Hybrid. There is no per-exercise MP3 attachment. Physical files are grouped by learning language; references belong to the Course. Verified Course backups copy referenced files; JSON alone does not transfer MP3 bytes. Provide written alternatives and exactly one correct answer; avoid visible text that gives away the audio.''',
-  'exerciseHelp.preset.listening_comprehension.body':
-      r'''The learner listens to a passage and selects the correct answer to a separate question. Provide audio text, the question, alternatives and one correct answer. Audio and text are supported. The answer should require understanding the passage.''',
-  'exerciseHelp.preset.reading_comprehension.body':
-      r'''The learner reads a passage and selects the answer to a separate question. Provide context text, the question, alternatives and one correct answer. Text is supported, with optional exercise imagery. Keep the passage long enough to test comprehension.''',
-  'exerciseHelp.preset.dialogue_response.body':
-      r'''The learner reads a situation and question, then chooses the best of two responses. Provide target-language context, a question, exactly two responses and one correct answer. Text is supported. Display order is randomized.''',
-  'exerciseHelp.preset.contextual_comprehension.body':
-      r'''The learner reads and/or listens to context and answers a separate multiple-choice question. Provide a question, text or audio context (or both), answers and one correct answer. Dialogue is optional: enter one “Speaker: text” turn per line. Text and audio are supported, and an exercise image may supplement the context. Example: ask what a speaker means after a short exchange.''',
-  'exerciseHelp.preset.type_translation.body':
-      r'''The learner sees source text and freely types a target-language translation. Provide the source, one or more complete accepted translations, and an optional hint. Use lowercase except for proper names. Accepted lines may use optional {}, independent [a|b], linked [*:a|b] groups with equal counts, and valid <> reorder scopes. Expand answers opens a selectable, copyable preview without changing content. Use expanded answers adds independent explicit lines; editing or deleting the source expression never changes them. Equivalent explicit answers are not added twice, and overflow beyond 128 answers is rejected without partial changes. Wrong feedback shows up to three valid translations ranked by existing similarity; correct feedback shows up to two other translations, excluding the matched canonical answer. Ties keep author order. Ranking never changes acceptance. One omitted or duplicated repeated letter is tolerated conservatively, but substitutions and missing or extra words are not.''',
-  'exerciseHelp.preset.build_translation.body':
-      r'''The learner sees source text and constructs its target-language translation from word blocks. Provide source text, available literal blocks and one or more complete literal correct translations. Answers can be added, removed and reordered; each must be constructible from distinct block occurrences. Repeated words require repeated blocks, and no more than two blocks may remain unused. Type-the-translation syntax, typo tolerance and similarity matching do not apply.''',
   'exerciseHelp.preset.translation_choice_to_target.body':
       r'''Select · single answer, checked immediately. Direction, languages and the learner instruction are set by this type.
 
@@ -851,18 +913,14 @@ The learner sees source-language text and picks its correct target-language tran
       r'''Select · single answer, checked immediately. Direction, languages and the learner instruction are set by this type.
 
 The learner sees target-language text and picks its correct source-language translation. QQL generates the only learner instruction, “Pick the correct [Source language] translation”, from the course languages, so you never write it. Provide the text to translate, two to five different source-language answers and one correct answer. Text is supported, with an optional image. A wrong choice reveals the correct answer. The learner can play the target-language text with text-to-speech when it is available; the exercise never depends on audio. Keep distractors plausible but unambiguously wrong. Example (for an English → Italian course): “Vado a Londra.” with I am going to London. / I went to London. / I am coming from London.''',
-  'exerciseHelp.preset.fill_blank.body':
-      r'''The learner sees an incomplete word or phrase and types the missing text. Provide the prompt, one or more accepted answers, an optional non-revealing hint and optional complete-phrase audio. Text and audio are supported. Accepted lines may use answer variants.''',
   'exerciseHelp.preset.type_missing_word.body':
-      r'''Enter a sentence with one ___ gap and complete accepted words. Enter the complete missing word. The first letter shown is a hint. QQL derives the first Unicode grapheme automatically; all accepted words must share exactly that first grapheme. The complete word entered uses normal Input normalization and feedback. Example: the learner sees é______ and enters école, not cole. The complete sentence is shown after checking.''',
+      r'''Enter a sentence with one ___ gap and the complete accepted words. With Show the first letter on, the gap reveals the first letter as a hint: QQL derives the first Unicode grapheme automatically and all accepted words must share exactly that first grapheme. With the switch off, the gap is empty and the learner types the word without help. Either way the learner enters the complete word, which uses normal Input normalization and feedback. Example: with the hint, the learner sees é______ and enters école, not cole. The complete sentence is shown after checking. Exercises made with the former Fill-in preset open here.''',
   'exerciseHelp.preset.listening_spelling.body':
       r'''The learner hears audio and types what was heard. Provide the audio text and accepted transcription. Audio and text are supported. Return or Enter submits the answer.''',
   'exerciseHelp.preset.missing_word.body':
       r'''The learner hears audio while reading a transcript with one or more gaps, then types each missing word. Provide the complete transcript/audio and every missing item in order. Audio and text are supported. Every missing item must occur in the transcript.''',
-  'exerciseHelp.preset.matching.body':
-      r'''The learner sees two shuffled columns and matches corresponding text items. Provide non-empty left = right pairs. Text is supported. Pair relationships, not display positions, define correctness.''',
   'exerciseHelp.preset.word_match.body':
-      r'''The learner matches source-language words with their target-language translations. Provide exactly three text pairs. Text is supported. Each visible item must be unique after ordinary normalization.''',
+      r'''The learner matches source-language words with their target-language translations. Provide at least two text pairs; three is the usual number. Text is supported. Each visible item must be unique after ordinary normalization. Exercises made with the former Matching preset open here.''',
   'exerciseHelp.preset.super_match.body':
       r'''The learner matches related target-language items such as synonyms or opposites. Provide exactly three text pairs and an instruction naming the relationship. Text is supported. Do not mix unrelated relationship rules.''',
   'exerciseHelp.preset.audio_match.body':
@@ -884,17 +942,284 @@ Keep the instruction consistent with the question and answer choices.
 
 Example
 How do you say this in Italian?''',
-  'exerciseHelp.field.choice.question.body':
-      r'''The word or phrase the learner must translate. Example: Good morning
+  'exerciseHelp.field.build_translation_to_source.correctTranslation.body':
+      r'''Defines one complete literal source-language answer for Build the translation (to source).
 
 What to enter
-Enter the source-language word or phrase separately from the instruction in Prompt.
+Each separate answer entry holds one complete source-language sentence. Use Add correct translation for another answer and the drag handle to reorder answers.
 
 Checks
-Provide matching target-language answer choices and mark exactly one correct.
+At least one non-empty answer is required. Answers must be unique after case, spacing and terminal-punctuation normalization, and constructible from distinct available block occurrences. No optional, alternative or reorder expressions, similarity matching or typo acceptance are applied.
 
 Example
-Good morning''',
+I would like a coffee.''',
+  'exerciseHelp.field.build_translation_to_source.tokens.body':
+      r'''Supplies the source-language blocks used to construct the correct translations.
+
+What to enter
+Enter one literal block per line, in the source language. Blank lines are ignored. Include enough distinct occurrences to construct every correct translation; repeated words require repeated lines. When Inline gaps is enabled, this field only adds optional distractor blocks.
+
+Checks
+Every correct translation must be constructible from these blocks. At most 2 blocks may be unused by every correct translation.
+
+Example
+I
+would
+like
+a
+coffee
+tea''',
+  'exerciseHelp.field.choice_source.answers.body':
+      r'''The alternatives, written in the source language.
+
+What to enter
+Enter one literal answer per line, with at least two non-empty lines, in the language the learner already knows. Blank lines are ignored. The first non-empty line is answer 1.
+
+Checks
+Select one valid Correct answer number. Avoid duplicate answers and make distractors plausible but unambiguously wrong.
+
+Example
+the one before a vowel
+the one before a consonant
+none''',
+  'exerciseHelp.field.choice_source.question.body':
+      r'''The question, written in the source language.
+
+What to enter
+Enter one question in the language the learner already knows: a grammar rule, a cultural fact, the meaning of an expression. Keep any instruction separate, in Prompt.
+
+Checks
+The answers below are in the source language too; mark the correct one (or several with the several-answers switch).
+
+Example
+Which Italian article goes with a masculine noun starting with a vowel?''',
+  'exerciseHelp.field.reading_answer.prompt.body':
+      r'''The text the learner reads before answering the question.
+
+What to enter
+Enter a passage, a situation or a short text in the target language. Multiple lines or paragraphs stay part of the text. With dialogue lines below, this text is the context shown before them and may stay short.
+
+Checks
+A text containing words, or dialogue lines, is required; punctuation alone is insufficient. One or two lexical words produce a warning; at least three are recommended. The question should test comprehension.
+
+Example
+Maria prende il treno. Va a Roma.''',
+  'exerciseHelp.field.type_missing_word.revealFirstLetter.body':
+      r'''Decides whether the gap reveals the first letter of the missing word as a hint.
+
+What to enter
+On: the learner sees the first letter followed by a blank and types the whole word. Off: the gap is empty and the learner types the word without help. Either way, enter the complete word among the accepted answers.
+
+Checks
+With the hint on, every accepted word must start with the same first letter. The setting is part of the exercise, so the Audit reads it from the exercise itself.
+
+Example
+On: é______ for école. Off: ______ for école.''',
+  'exerciseHelp.field.type_translation_to_source.accepted.body':
+      r'''Defines complete source-language translations accepted for the target-language text.
+
+What to enter
+Enter complete equivalent answers on separate lines, in the source language. Blank lines are ignored. The same syntax as Type the translation (to target) applies: optional {}, alternatives [a|b], linked [*:a|b] groups with equal counts, and <> reorder scopes.
+
+Checks
+At least one accepted answer is required. Malformed expressions are rejected; expansion is deterministic and limited to 128 answers. Declare equivalent answers explicitly.
+
+Example
+I would like a coffee.
+I’d like a coffee.''',
+  'exerciseHelp.field.type_translation_to_source.prompt.body':
+      r'''The text the learner translates into the source language.
+
+What to enter
+Enter one target-language sentence or passage. Line breaks belong to the same prompt; accepted answers or correct translations go in their own fields.
+
+Checks
+Provide non-empty target-language text and complete equivalent source-language answers. Keep the intended meaning unambiguous.
+
+Example
+Vorrei un caffè.''',
+  'exerciseHelp.field.answer_pictures.body': r'''One picture per answer.
+
+What to enter
+Use the picker under each answer: a flat image from the shared library, an imported image or a Course image. The pictures are copied into the Course.
+
+Checks
+Every answer needs a picture; the Audit warns otherwise. Course pictures travel with the Course package.
+
+Example
+1. gatto: a picture of a cat''',
+  'exerciseHelp.field.complete_text.missingWords.body':
+      r'''The words hidden from the text.
+
+What to enter
+One word or expression per line, in the order they appear in the text.
+
+Checks
+Each entry must occur in the text; the first occurrence after the previous gap is hidden. Answers are checked with the normal Input normalization.
+
+Example
+caffè
+treno''',
+  'exerciseHelp.field.complete_text.prompt.body':
+      r'''The complete text; the words listed below become gaps.
+
+What to enter
+Write the whole text including the words to hide. Several sentences are fine.
+
+Checks
+Every missing word must occur in the text, in order.
+
+Example
+Anna beve un caffè al bar. Poi prende il treno.''',
+  'exerciseHelp.field.gap_blocks.tokens.body':
+      r'''Blocks that fill no gap, offered beside the answers.
+
+What to enter
+One extra block per line. Include 0, 1 or at most 2 distractors.
+
+Checks
+A distractor must not repeat the text of any gap answer.
+
+Example
+sempre''',
+  'exerciseHelp.field.missing_letters.prompt.body':
+      r'''The complete text with the missing letters marked in square brackets.
+
+What to enter
+Write the text and put the letters to hide inside [ and ], one bracket per gap: My cat doesn’t dr[ink] milk.
+
+Checks
+At least one bracket, none empty. The learner sees one underscore per hidden letter and types the letters.
+
+Example
+Il ga[tt]o dor[me] sul divano.''',
+  'exerciseHelp.field.note_card.prompt.body': r'''The heading of the note card.
+
+What to enter
+One short title, in the language you prefer.
+
+Checks
+Required.
+
+Example
+Tu or Lei?''',
+  'exerciseHelp.field.note_card.question.body': r'''The note the learner reads.
+
+What to enter
+Plain text; several paragraphs are fine.
+
+Checks
+Required. There is no answer and no score; Continue closes the card.
+
+Example
+Use Lei with people you do not know well.''',
+  'exerciseHelp.field.picture_name.accepted.body':
+      r'''The names of what the picture shows that the learner may type.
+
+What to enter
+Complete answers on separate lines, with the Type the translation syntax: optional {}, alternatives [a|b], linked [*:a|b] groups, <> reorder scopes.
+
+Checks
+At least one accepted answer. Expansion is limited to 128 answers.
+
+Example
+[il|un] gatto
+gatto''',
+  'exerciseHelp.field.picture_word_match.answers.body':
+      r'''The words of the pairs; each gets a picture below.
+
+What to enter
+One word per line, in the target language. At least two.
+
+Checks
+Every word needs its picture; words must be unique.
+
+Example
+gatto
+cane
+casa''',
+  'exerciseHelp.field.sentence_order.order.body':
+      r'''The lines in the right order.
+
+What to enter
+One line per line, exactly as written above, in the correct order.
+
+Checks
+Each line must match one of the listed lines.
+
+Example
+Anna entra nel bar.
+Ordina un caffè.
+Paga e saluta.''',
+  'exerciseHelp.field.sentence_order.tokens.body':
+      r'''The lines of the story or dialogue the learner puts in order.
+
+What to enter
+One sentence or line per line, in any order. You may add 0, 1 or at most 2 extra lines that belong nowhere.
+
+Checks
+Every line of the correct order must be listed here.
+
+Example
+Anna entra nel bar.
+Ordina un caffè.
+Paga e saluta.''',
+  'exerciseHelp.field.spell_heard.tts.body':
+      r'''The word the learner hears and spells.
+
+What to enter
+Enter the word as text; it is read aloud with the target-language voice or matched to a Course recording.
+
+Checks
+Required. The tiles must spell exactly this word.
+
+Example
+gatto''',
+  'exerciseHelp.field.spell_word.prompt.body':
+      r'''The clue that names the word to spell.
+
+What to enter
+One short clue in the source language: the word itself or a definition.
+
+Checks
+Required unless a picture or a spoken word names the word.
+
+Example
+cat (the animal)''',
+  'exerciseHelp.field.true_false.answers.body':
+      r'''The two answers: the word for true and the word for false.
+
+What to enter
+Two lines in the source language, true first. QQL prefills them when it knows the language; you can change the words.
+
+Checks
+Exactly two lines; the Audit warns when there are more or fewer.
+
+Example
+True
+False''',
+  'exerciseHelp.field.true_false.question.body':
+      r'''The statement the learner judges true or false.
+
+What to enter
+Enter one statement in the target language, as plain text. Make it clearly true or clearly false.
+
+Checks
+Required. The correct answer number is 1 when the statement is true and 2 when it is false.
+
+Example
+Roma è la capitale d’Italia.''',
+  'exerciseHelp.field.choice.question.body':
+      r'''The question the learner answers.
+
+What to enter
+Enter one question as plain text, separately from any instruction in Prompt: a translation to pick, a form to choose, a fact, a meaning. In Choose the answer (to target) the answers are in the target language and the question may be in either language; in Choose the answer (to source) question and answers are in the source language.
+
+Checks
+Provide matching answer choices and mark the correct one (or several with the several-answers switch).
+
+Example
+Which form completes the sentence: Ieri ___ al cinema.''',
   'exerciseHelp.field.choice.answers.body':
       r'''Defines the alternatives presented to the learner.
 
@@ -1015,7 +1340,7 @@ What to enter
 Enter one question as plain text, separately from the reading, audio or dialogue context. Line breaks do not create separate questions.
 
 Checks
-Contextual comprehension requires a separate question. For Dialogue response, use the target language. Match the question to the declared correct answer.
+Read and answer requires a separate question. Match the question to the declared correct answer.
 
 Example
 How are you?''',
@@ -1321,13 +1646,13 @@ Keep this text consistent with the incomplete phrase and accepted answers. Test 
 Example
 Vorrei un caffè.''',
   'exerciseHelp.field.type_missing_word.prompt.body':
-      r'''Enter the complete missing word. The first letter shown is a hint.
+      r'''Enter the complete missing word. The first letter is shown as a hint when Show the first letter is on.
 
 What to enter
 Enter a sentence with exactly one ___ gap and complete accepted words, one per line. The first Unicode grapheme is derived automatically; the learner enters the complete word, including that first grapheme.
 
 Checks
-All complete accepted words must share exactly the same first grapheme. The complete word entered uses normal Input normalization and supported typo tolerance; the hint is not prepended to the response.
+With the hint on, all complete accepted words must share exactly the same first grapheme. The complete word entered uses normal Input normalization and supported typo tolerance; the hint is not prepended to the response.
 
 Example
 Je vais à l’___. Answer: école. Learner sees é______ and enters école, not cole.''',
@@ -1384,7 +1709,7 @@ What to enter
 Enter one instruction or prompt as plain text. Line breaks remain part of that text; they do not create separate answers. Use the course source language for operational instructions.
 
 Checks
-Keep it consistent with the selected exercise and the separately entered question, pairs or blocks. For Match related words, state the relationship in the target language.
+Keep it consistent with the selected exercise and the separately entered question, pairs or blocks. For Match by meaning, state the relationship in the target language.
 
 Example
 Build the sentence.''',
@@ -1404,10 +1729,10 @@ pane = bread''',
       r'''Matches source-language words with their target-language translations.
 
 What to enter
-Enter exactly three non-empty lines as source = target. The first equals sign separates the two sides. Blank lines are ignored.
+Enter at least two non-empty lines as source = target; three is the usual number. The first equals sign separates the two sides. Blank lines are ignored.
 
 Checks
-All three pairs need both sides. Check unique, unambiguous matching and remove malformed lines; fix lines without a usable separator before Preview or Save.
+Every pair needs both sides. Check unique, unambiguous matching and remove malformed lines; fix lines without a usable separator before Preview or Save.
 
 Example
 house = casa

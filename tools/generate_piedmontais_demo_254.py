@@ -40,12 +40,18 @@ AUDIO_NOTE = (
 )
 
 
-def text(value: str, role: str = "primary") -> dict:
-    return {"role": role, "type": "text", "text": value}
+def text(value: str, role: str = "primary", language: str | None = None) -> dict:
+    element = {"role": role, "type": "text", "text": value}
+    if language:
+        element["language"] = language
+    return element
 
 
-def audio(value: str, role: str = "primary") -> dict:
-    return {"role": role, "type": "audio", "text": value}
+def audio(value: str, role: str = "primary", required: bool | None = None) -> dict:
+    element = {"role": role, "type": "audio", "text": value}
+    if required is not None:
+        element["required"] = required
+    return element
 
 
 def image(name: str, alternative: str, role: str = "clue") -> dict:
@@ -101,12 +107,12 @@ def exercise(kind: str, prompt: list[dict], interaction: dict, evaluation: dict,
 
 
 def choose(kind: str, prompt: list[dict], choices: list[str], correct: int = 0,
-           pictures: list[str] | None = None) -> dict:
+           pictures: list[str] | None = None, language: str | None = None) -> dict:
     return exercise(kind, prompt, {
         "kind": "select", "minSelections": 1, "maxSelections": 1,
         "items": [
-            {"id": f"i{index}", "content": [text(value)] + (
-                [image(pictures[index], value, "primary")] if pictures else []
+            {"id": f"i{index}", "content": [text(value, language=language)] + (
+                [text(f"assets/exercise_images/{pictures[index]}.webp", "icon")] if pictures else []
             )} for index, value in enumerate(choices)
         ],
     }, {"kind": "selected_items", "correctItemIds": [f"i{correct}"]})
@@ -120,11 +126,11 @@ def enter(kind: str, prompt: list[dict], accepted: list[str], **fields) -> dict:
 
 
 def arrange(kind: str, prompt: list[dict], blocks: list[str],
-            orders: list[list[int]]) -> dict:
-    separator = "" if kind == "image_word" else " "
+            orders: list[list[int]], language: str | None = None) -> dict:
+    separator = "" if kind in ("image_word", "spell_heard", "spell_word") else " "
     return exercise(kind, prompt, {
         "kind": "arrange",
-        "items": [{"id": f"i{i}", "content": [text(block)]}
+        "items": [{"id": f"i{i}", "content": [text(block, language=language)]}
                   for i, block in enumerate(blocks)],
     }, {
         "kind": "ordered_items", "correctOrders": [
@@ -134,11 +140,42 @@ def arrange(kind: str, prompt: list[dict], blocks: list[str],
     })
 
 
+def gaps(kind: str, instruction: str, parts: list, distractors: list[str]) -> dict:
+    """An inline-gap Select (Pick the words for the gaps) or Arrange (Drag the
+    blocks into the gaps): `parts` mixes fixed text and one-element tuples."""
+    select = kind == "gap_choice_inline"
+    options: list[str] = []
+    layout, assignments = [], {}
+    for part in parts:
+        if isinstance(part, str):
+            layout.append(text(part))
+            continue
+        value = part[0]
+        gap_id = f"gap_{len(assignments) + 1}"
+        if not select or value not in options:
+            options.append(value)
+            index = len(options) - 1
+        else:
+            index = options.index(value)
+        assignments[gap_id] = f"i{index}"
+        layout.append({"role": "primary", "type": "gap", "text": gap_id})
+    options.extend(distractors)
+    interaction = {"kind": "select" if select else "arrange",
+                   "items": [{"id": f"i{i}", "content": [text(v)]} for i, v in enumerate(options)],
+                   "layout": layout}
+    if select:
+        interaction.update(minSelections=1, maxSelections=1)
+    return exercise(kind, [text(instruction, "primary" if select else "clue")], interaction,
+                    {"kind": "selected_items" if select else "ordered_items", "gapAssignments": assignments})
+
+
 def match(kind: str, instruction: str, pairs: list[tuple[str, str]]) -> dict:
     items = []
     for i, (left, right) in enumerate(pairs):
         items.append({"id": f"i{2 * i}", "content": [
-            audio(left) if kind == "audio_match" else text(left)
+            audio(left) if kind == "audio_match"
+            else image(left, right, "primary") if kind == "picture_word_match"
+            else text(left)
         ]})
         items.append({"id": f"i{2 * i + 1}", "content": [text(right)]})
     return exercise(kind, [text(instruction)], {"kind": "match", "items": items}, {
@@ -159,6 +196,32 @@ def flashcard(term: str, meaning: str, usage: str, translation: str) -> dict:
     }
 
 
+def picture_card(term: str, meaning: str, picture: str, usage: str = "", translation: str = "") -> dict:
+    """A Picture flashcard: the picture is required, the pronunciation optional."""
+    content = [text(term, "term"), text(meaning, "meaning")]
+    if usage:
+        content.append(text(usage, "usage"))
+    if translation:
+        content.append(text(translation, "usage_translation"))
+    content += [image(picture, meaning, "picture"), audio(term, "audio", required=False)]
+    return {
+        "publicationState": "published", "kind": "presentation", "required": True,
+        "editorTemplate": "picture_flashcard", "presentation": {
+            "content": content, "completion": {"actions": ["understood", "review_later"]},
+        },
+    }
+
+
+def note(title: str, body: str) -> dict:
+    return {
+        "publicationState": "published", "kind": "presentation", "required": True,
+        "editorTemplate": "note_card", "presentation": {
+            "content": [text(title, "term"), text(body, "meaning")],
+            "completion": {"actions": ["continue"]},
+        },
+    }
+
+
 def lesson_specs() -> list[tuple[str, str, str, list[dict]]]:
     """Preset ID, teaching topic, GuideBook, authored examples."""
     specs = []
@@ -166,10 +229,20 @@ def lesson_specs() -> list[tuple[str, str, str, list[dict]]]:
     def add(kind, topic, guide, examples):
         specs.append((kind, topic, guide, examples))
 
-    add("choice", "First words", "pan = bread; gat = cat; eva = water. Choose the Piedmontese word.", [
-        choose("choice", [text("How do you say bread in Piedmontese?")], ["pan", "gat", "eva"]),
-        choose("choice", [text("How do you say cat in Piedmontese?")], ["can", "gat", "pan"], 1),
-        choose("choice", [text("How do you say water in Piedmontese?")], ["pom", "pan", "eva"], 2),
+    add("choice_target", "First words", "pan = bread; gat = cat; eva = water. Choose the Piedmontese word.", [
+        choose("choice_target", [text("How do you say bread in Piedmontese?")], ["pan", "gat", "eva"]),
+        choose("choice_target", [text("How do you say cat in Piedmontese?")], ["can", "gat", "pan"], 1),
+        choose("choice_target", [text("How do you say water in Piedmontese?")], ["pom", "pan", "eva"], 2),
+    ])
+    add("choice_source", "What does it mean?", "grassie and mersì = thank you; ciàu = hello or bye; bondì = good morning. The questions and the answers are in English.", [
+        choose("choice_source", [text("What does “grassie” mean?", "question", "source")], ["thank you", "good morning", "goodbye"], language="source"),
+        choose("choice_source", [text("When do people say “bondì”?", "question", "source")], ["At night", "In the morning", "At the table"], 1, language="source"),
+        choose("choice_source", [text("Which word is a greeting?", "question", "source")], ["pan", "eva", "ciàu"], 2, language="source"),
+    ])
+    add("true_false", "True or false?", "Ël gat a l'é n'animal = the cat is an animal; ël pan a l'é n'animal = the bread is an animal (false); l'eva a l'é da bèive = water is for drinking. Answer True or False.", [
+        choose("true_false", [text("Ël gat a l'é n'animal.", "question")], ["True", "False"], 0, language="source"),
+        choose("true_false", [text("Ël pan a l'é n'animal.", "question"), audio("Ël pan a l'é n'animal.")], ["True", "False"], 1, language="source"),
+        choose("true_false", [text("L'eva a l'é da bèive.", "question")], ["True", "False"], 0, language="source"),
     ])
     add("gap_choice", "Small phrases", "ël can = the dog; la ca = the house; bon-a matin = good morning.", [
         choose("gap_choice", [text("Complete the phrase meaning the dog."), text("ël ___", "question")], ["pan", "can", "pom"], 1),
@@ -192,48 +265,48 @@ def lesson_specs() -> list[tuple[str, str, str, list[dict]]]:
             ("ò", ["o", "ó", "ò"], 2, "Which o-family character is shown?"),
         ]
     ])
-    add("listening_choice", "Hear a greeting", "bondì = good morning; mersì = thank you; ciàu = hello or bye. Choose the exact written word you hear. " + AUDIO_NOTE, [
-        choose("listening_choice", [text(instruction), audio(heard)], choices, correct)
+    add("listening_answer_target", "Hear a greeting", "bondì = good morning; mersì = thank you; ciàu = hello or bye. Choose the exact written word you hear. " + AUDIO_NOTE, [
+        choose("listening_answer_target", [text(instruction), audio(heard)], choices, correct)
         for heard, choices, correct, instruction in [
             ("bondì", ["bondì", "mersì", "ciàu"], 0, "Listen to the first greeting."),
             ("mersì", ["ciàu", "mersì", "bondì"], 1, "Listen to the next expression."),
             ("ciàu", ["mersì", "bondì", "ciàu"], 2, "Listen to the final greeting."),
         ]
     ])
-    add("listening_comprehension", "Listen for meaning", "I l'hai = I have; i son = I am; a ca = at home; lìber = book; un = one; doi = two; tre = three. Listen to each short passage and answer its English question. " + AUDIO_NOTE, [
-        choose("listening_comprehension", [audio("Mi i son a ca. I l'hai un lìber.", "passage"), text("What does the speaker have?", "question")], ["a book", "a dog", "an apple"]),
-        choose("listening_comprehension", [audio("I l'hai un gat e un can.", "passage"), text("Which two animals are mentioned?", "question")], ["a cat and a horse", "a cat and a dog", "a dog and a horse"], 1),
-        choose("listening_comprehension", [audio("La lista: pan, eva e tre pom.", "passage"), text("How many apples are on the list?", "question")], ["one", "two", "three"], 2),
+    add("listening_answer_source", "Listen for meaning", "I l'hai = I have; i son = I am; a ca = at home; lìber = book; un = one; doi = two; tre = three. Listen to each short passage and answer its English question. " + AUDIO_NOTE, [
+        choose("listening_answer_source", [audio("Mi i son a ca. I l'hai un lìber.", "passage"), text("What does the speaker have?", "question", "source")], ["a book", "a dog", "an apple"]),
+        choose("listening_answer_source", [audio("I l'hai un gat e un can.", "passage"), text("Which two animals are mentioned?", "question", "source")], ["a cat and a horse", "a cat and a dog", "a dog and a horse"], 1),
+        choose("listening_answer_source", [audio("La lista: pan, eva e tre pom.", "passage"), text("How many apples are on the list?", "question", "source")], ["one", "two", "three"], 2),
     ])
-    add("reading_comprehension", "Read a short note", "la lista = the list; pan = bread; eva = water; pom = apple; gat = cat; can = dog; lìber = book; a ca = at home.", [
-        choose("reading_comprehension", [text("La lista: pan, eva e tre pom.", "passage"), text("Which drink is on the list?", "question")], ["water", "coffee", "milk"]),
-        choose("reading_comprehension", [text("I l'hai un gat e un can.", "passage"), text("How many kinds of animal does the speaker have?", "question")], ["one", "two", "three"], 1),
-        choose("reading_comprehension", [text("Mi i son a ca. I l'hai un lìber.", "passage"), text("Where is the speaker?", "question")], ["at school", "at the station", "at home"], 2),
+    add("reading_answer_target", "Read a short note", "la lista = the list; pan = bread; eva = water; pom = apple; gat = cat; can = dog; lìber = book; a ca = at home.", [
+        choose("reading_answer_target", [text("La lista: pan, eva e tre pom.", "passage"), text("Which drink is on the list?", "question")], ["water", "coffee", "milk"]),
+        choose("reading_answer_target", [text("I l'hai un gat e un can.", "passage"), text("How many kinds of animal does the speaker have?", "question")], ["one", "two", "three"], 1),
+        choose("reading_answer_target", [text("Mi i son a ca. I l'hai un lìber.", "passage"), text("Where is the speaker?", "question")], ["at school", "at the station", "at home"], 2),
     ])
-    add("dialogue_response", "Reply politely", "bondì = good morning; grassie = thank you; prego = you are welcome; bon-aneuit = good night. The situation determines the reply.", [
-        choose("dialogue_response", [text("Anna: Bondì!", "passage"), text("It is morning. Return Anna's greeting.", "question")], ["Bondì!", "Bon-aneuit!"]),
-        choose("dialogue_response", [text("Anna: Grassie!", "passage"), text("Anna thanks you. Choose you are welcome.", "question")], ["Bon-aneuit!", "Prego!"], 1),
-        choose("dialogue_response", [text("Anna: Bon-aneuit!", "passage"), text("You are going to bed. Return the good-night wish.", "question")], ["Bon-aneuit!", "Bondì!"]),
+    add("reading_answer_source", "Understand the situation", "bondì = good morning; grassie = thank you; prego = you are welcome; bon-aneuit = good night. Read the situation and answer in English.", [
+        choose("reading_answer_source", [text("Anna: Bondì, Gioann! Gioann: Bondì, Anna!", "passage"), text("What time of day is it?", "question", "source")], ["Morning", "Night", "Noon"], language="source"),
+        choose("reading_answer_source", [text("Anna: Grassie, Gioann! Gioann: Prego, Anna.", "passage"), text("What is Anna doing?", "question", "source")], ["Saying good night", "Thanking you", "Asking for bread"], 1, language="source"),
+        choose("reading_answer_source", [text("Anna: Bon-aneuit, Gioann! Gioann: Bon-aneuit, Anna.", "passage"), text("What is Anna about to do?", "question", "source")], ["Have lunch", "Leave for work", "Go to bed"], 2, language="source"),
     ])
-    context_examples = []
-    for first, second, question, choices, correct in [
-        ("I l'hai un gat.", "I l'hai un can.", "Who has a dog?", ["Anna", "Tòni"], 1),
-        ("I l'hai un lìber.", "I l'hai un pom.", "Who has a book?", ["Anna", "Tòni"], 0),
-        ("Grassie!", "Prego!", "What is Tòni doing?", ["Saying good night", "Replying to thanks"], 1),
-    ]:
-        turns = [dict(text(first, "dialogue_turn"), speaker="Anna"),
-                 dict(text(second, "dialogue_turn"), speaker="Tòni")]
-        context_examples.append(choose("contextual_comprehension", turns + [text(question, "question")], choices, correct))
-    add("contextual_comprehension", "Who said it", "Read the two speakers' words. I l'hai means I have. Keep track of who owns the object or responds to the other speaker.", context_examples)
-    add("type_translation", "Write in Piedmontese", "Translate English into Piedmontese. Thank you accepts grassie or mersì. The happy speaker is masculine: i son content; mi is optional. The house is la ca.", [
-        enter("type_translation", [text("thank you")], ["grassie", "mersì"]),
-        enter("type_translation", [text("I am happy. (masculine speaker)")], ["{mi} i son content"]),
-        enter("type_translation", [text("the house")], ["la ca"]),
+    add("type_translation_to_target", "Write in Piedmontese", "Translate English into Piedmontese. Thank you accepts grassie or mersì. The happy speaker is masculine: i son content; mi is optional. The house is la ca.", [
+        enter("type_translation_to_target", [text("thank you")], ["grassie", "mersì"]),
+        enter("type_translation_to_target", [text("I am happy. (masculine speaker)")], ["{mi} i son content"]),
+        enter("type_translation_to_target", [text("the house")], ["la ca"]),
     ])
-    add("build_translation", "Translate with blocks", "Build an English phrase in Piedmontese. ël lìber = the book; i son content = I am happy (masculine); pan e eva = bread and water. For I am happy, both mi i son content and i son content are accepted.", [
-        arrange("build_translation", [text("the book")], ["lìber", "la", "ël"], [[2, 0]]),
-        arrange("build_translation", [text("I am happy. (masculine speaker)")], ["content", "mi", "son", "i"], [[1, 3, 2, 0], [3, 2, 0]]),
-        arrange("build_translation", [text("bread and water")], ["eva", "pan", "e"], [[1, 2, 0]]),
+    add("type_translation_to_source", "Translate into English", "grassie = thank you; la ca = the house; i son content = I am happy. Type the English meaning.", [
+        enter("type_translation_to_source", [text("grassie", language="target")], ["thank you", "thanks"]),
+        enter("type_translation_to_source", [text("la ca", language="target")], ["the house"]),
+        enter("type_translation_to_source", [text("mi i son content", language="target")], ["I am happy", "I'm happy"]),
+    ])
+    add("build_translation_to_target", "Translate with blocks", "Build an English phrase in Piedmontese. ël lìber = the book; i son content = I am happy (masculine); pan e eva = bread and water. For I am happy, both mi i son content and i son content are accepted.", [
+        arrange("build_translation_to_target", [text("the book")], ["lìber", "la", "ël"], [[2, 0]]),
+        arrange("build_translation_to_target", [text("I am happy. (masculine speaker)")], ["content", "mi", "son", "i"], [[1, 3, 2, 0], [3, 2, 0]]),
+        arrange("build_translation_to_target", [text("bread and water")], ["eva", "pan", "e"], [[1, 2, 0]]),
+    ])
+    add("build_translation_to_source", "Translate into English with blocks", "ël lìber = the book; pan e eva = bread and water; ël can = the dog. Build the English phrase from the blocks.", [
+        arrange("build_translation_to_source", [text("ël lìber", language="target")], ["the", "book", "dog"], [[0, 1]], language="source"),
+        arrange("build_translation_to_source", [text("pan e eva", language="target")], ["water", "bread", "and"], [[1, 2, 0]], language="source"),
+        arrange("build_translation_to_source", [text("ël can", language="target")], ["cat", "the", "dog"], [[1, 2]], language="source"),
     ])
     add("translation_choice_to_target", "English to Piedmontese", "Read the English source and pick its Piedmontese translation. ël can = the dog; ross = red; tre = three.", [
         choose("translation_choice_to_target", [text("the dog", "question")], ["ël can", "ël gat", "ël pan"]),
@@ -245,15 +318,25 @@ def lesson_specs() -> list[tuple[str, str, str, list[dict]]]:
         choose("translation_choice_to_source", [text("ël pan", "question")], ["the dog", "the bread", "the house"], 1),
         choose("translation_choice_to_source", [text("mi i son content", "question")], ["I have a book", "I am at home", "I am happy"], 2),
     ])
-    add("fill_blank", "Complete a phrase", "Type only the missing word. ël lìber = the book; la ca = the house; pan e eva = bread and water. Preserve the accent in lìber.", [
-        enter("fill_blank", [text("ël ___")], ["lìber"], hint="Complete the book."),
-        enter("fill_blank", [text("la ___")], ["ca"], hint="Complete the house."),
-        enter("fill_blank", [text("pan e ___")], ["eva"], hint="Complete bread and water."),
+    add("complete_text", "Complete the text", "Type the words missing from each short text: gat = cat; can = dog; pan = bread; eva = water; lìber = book. No audio.", [
+        enter("complete_text", [text("I l'hai un gat e un can.")], [], missingWords=["gat", "can"]),
+        enter("complete_text", [text("La lista: pan, eva e tre pom.")], [], missingWords=["pan", "eva"]),
+        enter("complete_text", [text("Mi i son a ca. I l'hai un lìber.")], [], missingWords=["lìber"]),
+    ])
+    add("missing_letters", "Missing letters", "Type the letters missing inside the words: gat = cat; granda = big; eva = water.", [
+        enter("missing_letters", [text("I l'hai un gat.")], [], missingWords=["at"]),
+        enter("missing_letters", [text("La ca a l'é granda.")], [], missingWords=["and"]),
+        enter("missing_letters", [text("Pan e eva."), audio("Pan e eva.")], [], missingWords=["va"]),
     ])
     add("type_missing_word", "First-letter help", "Complete each missing word after its first letter is shown. Enter the whole word: gat (cat), ca (house), or lìber (book), including the first letter.", [
         enter("type_missing_word", [text("I l'hai un ___.")], ["gat"], hint="The animal that meows."),
         enter("type_missing_word", [text("la ___")], ["ca"], hint="The place where you live."),
         enter("type_missing_word", [text("ël ___")], ["lìber"], hint="An object with pages to read."),
+    ])
+    add("gap_choice_inline", "Pick the words for the gaps", "Tap the options to fill the gaps of a fixed sentence: mi i son content = I am happy; pan e eva = bread and water; ël gat e ël can = the cat and the dog.", [
+        gaps("gap_choice_inline", "Complete the sentence about being happy.", ["Mi", ("i",), ("son",), "content."], ["a"]),
+        gaps("gap_choice_inline", "Complete the phrase meaning bread and water.", [("pan",), "e", ("eva",)], ["pom"]),
+        gaps("gap_choice_inline", "Complete the phrase; the same article fills both gaps.", [("ël",), "gat e", ("ël",), "can"], ["la"]),
     ])
     add("listening_spelling", "Hear and spell", "Listen and type the whole word. The vocabulary is pan (bread), eva (water), and pom (apple). " + AUDIO_NOTE, [
         enter("listening_spelling", [text(instruction), audio(word)], [word])
@@ -271,11 +354,6 @@ def lesson_specs() -> list[tuple[str, str, str, list[dict]]]:
             ("I l'hai un lìber.", ["lìber"]),
         ]
     ])
-    add("matching", "Everyday pairs", "Match each English meaning with its Piedmontese phrase. Pair relationships stay the same when the display is shuffled.", [
-        match("matching", "Match each greeting with its English meaning.", [("bondì", "good morning"), ("bon-aneuit", "good night"), ("grassie", "thank you")]),
-        match("matching", "Match each Piedmontese phrase with its English meaning.", [("ël lìber", "the book"), ("la ca", "the house"), ("ël can", "the dog")]),
-        match("matching", "Match each Piedmontese colour with its English meaning.", [("ross", "red"), ("nèir", "black"), ("bianch", "white")]),
-    ])
     add("word_match", "Three translations", "Match English words with Piedmontese words. Food: pan, eva, pom. Animals: gat, can, caval. At home: tàula, cadrega, pòrta.", [
         match("word_match", f"Match English {topic} words to Piedmontese.", pairs)
         for topic, pairs in [
@@ -288,6 +366,11 @@ def lesson_specs() -> list[tuple[str, str, str, list[dict]]]:
         match("super_match", "Match the Piedmontese opposites.", [("càud", "frèid"), ("nèir", "bianch"), ("grand", "cit")]),
         match("super_match", "Match each singular phrase to its plural.", [("ël lìber", "ij lìber"), ("la ca", "le ca"), ("la cadrega", "le cadreghe")]),
         match("super_match", "Match each noun to the same noun with its definite article.", [("gat", "ël gat"), ("ca", "la ca"), ("lìber", "ël lìber")]),
+    ])
+    add("picture_word_match", "Pictures and words", "Match each picture with its Piedmontese word: gat = cat; can = dog; caval = horse; pan = bread; eva = water; pom = apple.", [
+        match("picture_word_match", "Match each animal picture with its word.", [("cat", "gat"), ("dog", "can"), ("horse", "caval")]),
+        match("picture_word_match", "Match each food picture with its word.", [("bread", "pan"), ("water", "eva"), ("apple", "pom")]),
+        match("picture_word_match", "Match each picture at home with its word.", [("house", "ca"), ("book", "lìber"), ("chair", "cadrega")]),
     ])
     add("audio_match", "Match what you hear", "Play each Piedmontese item and match it to the English meaning. Each exercise has three unique audio/text pairs and no distractors. " + AUDIO_NOTE, [
         match("audio_match", f"Match each spoken Piedmontese {topic} word to its English meaning.", pairs)
@@ -302,6 +385,16 @@ def lesson_specs() -> list[tuple[str, str, str, list[dict]]]:
         arrange("word_order", [text("Put the food first, then the link, then the drink.", "clue")], ["eva", "e", "pan"], [[2, 1, 0]]),
         arrange("word_order", [text("Put the cat first and the dog second, with an article before each.", "clue")], ["can", "ël", "e", "gat", "ël"], [[1, 3, 2, 4, 0]]),
     ])
+    add("gap_blocks", "Drag the blocks into the gaps", "Drag each block into its gap; every block is used once: mi i son content; pan e eva; ël gat e ël can.", [
+        gaps("gap_blocks", "Complete the sentence about being happy.", ["Mi", ("i",), ("son",), "content."], ["a"]),
+        gaps("gap_blocks", "Complete the phrase meaning bread and water.", [("pan",), "e", ("eva",)], ["pom"]),
+        gaps("gap_blocks", "Complete the phrase; the article is a separate block each time.", [("ël",), "gat e", ("ël",), "can"], []),
+    ])
+    add("sentence_order", "Put the sentences in order", "Put the lines of each short exchange in order. bondì = good morning; come ch'a va? = how are you?; bin, grassie = well, thank you.", [
+        arrange("sentence_order", [text("Put the greeting exchange in order.", "clue")], ["Bondì, Anna!", "Bondì, Tòni! Come ch'a va?", "Bin, grassie."], [[0, 1, 2]]),
+        arrange("sentence_order", [text("Put the shopping story in order.", "clue")], ["Anna va al mercà.", "A compra pan e eva.", "A torna a ca."], [[0, 1, 2]]),
+        arrange("sentence_order", [text("Put the evening in order.", "clue")], ["I mangio.", "I leso un lìber.", "Bon-aneuit!"], [[0, 1, 2]]),
+    ])
     add("image_word", "Build pictured words", "Use every letter to spell the Piedmontese word in the picture: pan (bread), gat (cat), caval (horse). The two a letters in caval are separate blocks.", [
         arrange("image_word", [text(instruction, "clue"), image(asset, alternative)], blocks, [order])
         for asset, alternative, blocks, order, instruction in [
@@ -309,6 +402,41 @@ def lesson_specs() -> list[tuple[str, str, str, list[dict]]]:
             ("cat", "A cat", ["t", "g", "a"], [1, 2, 0], "Spell the pictured pet in Piedmontese."),
             ("horse", "A horse", ["a", "l", "c", "a", "v"], [2, 0, 4, 3, 1], "Spell the pictured farm animal in Piedmontese."),
         ]
+    ])
+    add("spell_word", "Spell the word", "Spell the Piedmontese word from its English clue with letter or syllable tiles: gat = cat; pan = bread; eva = water.", [
+        arrange("spell_word", [text("cat (the animal)", "clue", "source")], ["g", "a", "t"], [[0, 1, 2]]),
+        arrange("spell_word", [text("bread", "clue", "source")], ["p", "a", "n"], [[0, 1, 2]]),
+        arrange("spell_word", [text("water (you drink it)", "clue", "source")], ["e", "va"], [[0, 1]]),
+    ])
+    add("spell_heard", "Spell what you hear", "Listen and spell the word with the tiles: gat = cat; pan = bread; caval = horse. " + AUDIO_NOTE, [
+        arrange("spell_heard", [audio("gat")], ["g", "a", "t"], [[0, 1, 2]]),
+        arrange("spell_heard", [audio("pan")], ["p", "a", "n"], [[0, 1, 2]]),
+        arrange("spell_heard", [audio("caval")], ["ca", "val"], [[0, 1]]),
+    ])
+    add("listening_image_choice", "Hear and pick the picture", "Listen to the Piedmontese word and pick its picture: gat = cat; can = dog; caval = horse; pan = bread; eva = water; pom = apple. " + AUDIO_NOTE, [
+        choose("listening_image_choice", [audio("gat")], ["gat", "can", "caval"], pictures=["cat", "dog", "horse"]),
+        choose("listening_image_choice", [audio("pan")], ["pom", "pan", "eva"], 1, ["apple", "bread", "water"]),
+        choose("listening_image_choice", [audio("eva")], ["pan", "pom", "eva"], 2, ["bread", "apple", "water"]),
+    ])
+    add("picture_choice", "What is in the picture?", "Look at the picture and pick its Piedmontese word: gat = cat; pan = bread; eva = water.", [
+        choose("picture_choice", [text("What is this?", "question"), image("cat", "A cat", "picture")], ["gat", "can", "caval"]),
+        choose("picture_choice", [text("What is this?", "question"), image("bread", "Bread", "picture")], ["pom", "pan", "eva"], 1),
+        choose("picture_choice", [text("What is this?", "question"), image("water", "Water", "picture")], ["pan", "pom", "eva"], 2),
+    ])
+    add("picture_name", "Name what you see", "Type the Piedmontese word for the picture: gat = cat; pan = bread; eva = water. The article is optional.", [
+        enter("picture_name", [text("What is this?", "question"), image("cat", "A cat", "picture")], ["{ël} gat"]),
+        enter("picture_name", [text("What is this?", "question"), image("bread", "Bread", "picture")], ["{ël} pan"]),
+        enter("picture_name", [text("What is this?", "question"), image("water", "Water", "picture")], ["{l'} eva", "eva"]),
+    ])
+    add("picture_flashcard", "Picture cards", "Look at the picture, read the word and its meaning; the pronunciation is optional. gat = cat; pan = bread; eva = water.", [
+        picture_card("gat", "cat", "cat", "I l'hai un gat.", "I have a cat."),
+        picture_card("pan", "bread", "bread", "Pan e eva.", "Bread and water."),
+        picture_card("eva", "water", "water"),
+    ])
+    add("note_card", "Good to know", "Three notes about Piedmontese: the articles, the pronouns and the greetings.", [
+        note("Ël, la, l'", "Piedmontese has ël for masculine and la for feminine nouns; l' comes before a vowel: l'eva."),
+        note("Mi i son", "The subject pronoun is often doubled: mi i son means I am, literally me I am."),
+        note("Bondì e bon-aneuit", "Bondì is good morning, bon-aneuit good night; ciàu works for hello and bye."),
     ])
     add("flashcard", "Remember useful words", "Read each term, meaning and example. Choose Got it or Review again. Flashcards do not award ordinary correct-answer XP. Pronunciation is optional and depends on the device. " + AUDIO_NOTE, [
         flashcard("lìber", "book", "I l'hai un lìber.", "I have a book."),
@@ -318,13 +446,18 @@ def lesson_specs() -> list[tuple[str, str, str, list[dict]]]:
     return specs
 
 
-def build_course() -> dict:
+def build_course_v11() -> dict:
+    """The Course before conversion: the v11 original the converter tests read."""
     registry = (ROOT / "lib/models/exercise_authoring.dart").read_text(encoding="utf-8")
     registry_pairs = re.findall(r"id: '([^']+)',\s+name: '([^']+)'", registry)
-    specs = lesson_specs()
-    assert [spec[0] for spec in specs] == [pair[0] for pair in registry_pairs], (
+    # The registry pairs include the Coming later presets, which have no
+    # Lesson; the Lessons follow the registry's order of the active presets.
+    by_kind = {spec[0]: spec for spec in lesson_specs()}
+    active = [pair[0] for pair in registry_pairs if pair[0] in by_kind]
+    assert set(by_kind) == set(active) and len(active) == len(by_kind), (
         "Preset registry changed: review the demo's authored Lesson coverage."
     )
+    specs = [by_kind[kind] for kind in active]
     names = dict(registry_pairs)
     lessons = []
     for number, (kind, topic, guide, examples) in enumerate(specs, 1):
@@ -346,6 +479,8 @@ def build_course() -> dict:
                     order["itemIds"] = [ids[i] for i in order["itemIds"]]
                 if "pairs" in evaluation:
                     evaluation["pairs"] = [[ids[i] for i in pair] for pair in evaluation["pairs"]]
+                if "gapAssignments" in evaluation:
+                    evaluation["gapAssignments"] = {gap: ids[i] for gap, i in evaluation["gapAssignments"].items()}
         introduction = {
             "id": f"{rid}_intro", "publicationState": "published", "kind": "text",
             "required": False, "role": "lesson_intro",
@@ -372,8 +507,8 @@ def build_course() -> dict:
         "lessonNumberingMode": "lesson", "defaultLessonIconStyle": "monochrome",
         "createDuels": False, "courseId": COURSE_ID, "originType": "bundledOfficial",
         "publisherId": "org.quisquislingo", "publisherName": "QuisquisLingo",
-        "officialCourseVersion": "1.1.0", "officialReleaseDateUtc": RELEASE_STAMP,
-        "officialReleaseNotes": "QQL Build 255 Revision 6: renamed Piedmontese, the name of its target language; derivative works forbidden (All rights reserved).",
+        "officialCourseVersion": "1.2.0", "officialReleaseDateUtc": RELEASE_STAMP,
+        "officialReleaseNotes": "QQL Build 256 Revision 4: one Lesson per preset of the new exercise catalogue.",
         "distributionChannel": "bundled", "publisherVerificationStatus": "verified",
         "originalCourseCreator": {"type": "publisher", "id": "org.quisquislingo", "displayName": "QuisquisLingo"},
         "originalCreatedAtUtc": STAMP, "modifiedAtUtc": RELEASE_STAMP,
@@ -392,12 +527,16 @@ def build_course() -> dict:
         }],
         "languageVariant": "Piedmontese literary spelling; introductory AI-authored examples awaiting native-speaker review",
         "startLevel": "Beginner", "targetLevel": "Beginner",
-        "courseDescription": "TEMPORARY UNREVIEWED AI-GENERATED SAMPLE. English to Piedmontese, with 24 Lessons demonstrating the 24 current named Exercise types. The content is for testing and requires native-speaker review before language-teaching use. Basic spellings were checked against Claudio Panero's English-Piedmontese dictionary; examples and letter diagrams are newly authored. " + AUDIO_NOTE,
+        "courseDescription": "TEMPORARY UNREVIEWED AI-GENERATED SAMPLE. English to Piedmontese, with one Lesson per current named Exercise type. The content is for testing and requires native-speaker review before language-teaching use. Basic spellings were checked against Claudio Panero's English-Piedmontese dictionary; examples and letter diagrams are newly authored. " + AUDIO_NOTE,
         "sourceLanguageTag": "en-GB", "targetLanguageTag": "pms-IT",
         "textDirection": "ltr", "worldFlagId": "piedmontese", "temporarySample": True,
         "lessons": lessons,
     }
-    course = convert_course_v11_to_v12(course)
+    return course
+
+
+def build_course() -> dict:
+    course = convert_course_v11_to_v12(build_course_v11())
     canonical = {key: value for key, value in course.items()
                  if key not in {"officialChecksum", "publisherVerificationStatus", "publisherSignature"}}
     course["officialChecksum"] = hashlib.sha256(json.dumps(
@@ -415,10 +554,10 @@ def main() -> int:
         if not OUTPUT.is_file() or OUTPUT.read_text(encoding="utf-8") != rendered:
             print(f"FAIL: {OUTPUT.relative_to(ROOT)} differs from the authored generator")
             return 1
-        print("PASS: Piedmontese course is reproducible; 24 named types, 24 Lessons, 72 examples")
+        print("PASS: Piedmontese course is reproducible; 38 catalogue presets, 38 Lessons, 114 examples")
         return 0
     OUTPUT.write_text(rendered, encoding="utf-8", newline="\n")
-    print(f"Wrote {OUTPUT.relative_to(ROOT)}: 24 Lessons, 24 Rounds, 69 Exercises and 3 Flashcards")
+    print(f"Wrote {OUTPUT.relative_to(ROOT)}: one Lesson per catalogue preset")
     return 0
 
 

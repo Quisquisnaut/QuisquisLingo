@@ -5,6 +5,18 @@ proposed catalogue that follows from them. Revision 3 (presets as recipes and
 the Generic Primitive Editor) stays as planned; this catalogue is its own
 revision right after it. The later sessions shift by one (see the handoff).
 
+**Delivered in Revision 4 (2.0.56+256004, 27 September 2026)** with these
+differences from section 3: Listen and answer is paired too (to target / to
+source), so the active count is 38, not 35; Choose the answer (to target)
+means *answers* in the target language (the question may be in either),
+Choose the answer (to source) means question and answers in the source
+language; Match the words keeps its source = target pairs for new
+exercises and also keeps the former Matching shape (left target, right
+source) of an existing exercise; Type the missing word absorbs Fill in the
+blank through its first-letter switch (off = one field under the sentence);
+the save guard on example content is not implemented (no form prefills
+examples). Evidence in `docs/256_VALIDATION.md`.
+
 ## 1. Decisions (owner, 27 September 2026)
 
 - Merge the overlapping presets so each one has one clear job. Do not keep

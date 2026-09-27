@@ -6,11 +6,13 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/models/exercise_authoring.dart';
+import 'package:quisquislingo_app/models/exercise_features.dart';
 import 'package:quisquislingo_app/screens/round_screen.dart';
 import 'package:quisquislingo_app/services/answer_engine.dart';
 import 'package:quisquislingo_app/services/course_audit_service.dart';
 import 'package:quisquislingo_app/services/exercise_draft_builder.dart';
 import 'package:quisquislingo_app/services/first_letter_answer_service.dart';
+import 'package:quisquislingo_app/services/preset_recipes.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:quisquislingo_app/services/tts_cache_service.dart';
 import 'package:quisquislingo_app/widgets/course_media_image.dart';
@@ -53,16 +55,26 @@ Exercise _author(Exercise exercise) {
   final script = exercise.type == 'script_recognition'
       ? ScriptRecognitionController(exercise)
       : null;
+  // Build 256 Revision 4: the shape hints (first-letter switch, text and
+  // audio roles, Match sides) come from the production decompose, as in the
+  // editor; the field values stay this test's own reconstruction.
+  final hints = PresetRecipes.decompose(exercise, exercise.editorTemplate);
   try {
     final result = ExerciseDraftBuilder.build(
       ExerciseDraftValues(
         original: exercise,
-        type: exercise.type,
+        type: exercise.editorTemplate,
         publicationState: PublicationState.published,
         requireValidAnswer: true,
         useInlineGaps: hasGaps,
         useMultiSelect: exercise.isMultiSelect,
-        prompt: exercise.prompt,
+        revealFirstLetter: hints.revealFirstLetter,
+        textRole: hints.textRole,
+        audioRole: hints.audioRole,
+        matchSides: hints.matchSides,
+        prompt: exercise.type == 'type_missing_word' && exercise.prompt.isEmpty
+            ? exercise.question
+            : exercise.prompt,
         question: exercise.question,
         tts: exercise.tts ?? '',
         hint: exercise.hint,
@@ -384,7 +396,14 @@ Future<void> _answer(
   int orderIndex = 0,
 }) async {
   if (exercise.type == 'flashcard') {
-    await _tap(tester, find.widgetWithText(FilledButton, 'Got it'));
+    // A vocabulary card is reviewed with Got it; a Note card continues.
+    final reviewable =
+        ExerciseFeatures(exercise).completionMode ==
+        CompletionMode.understoodReview;
+    await _tap(
+      tester,
+      find.widgetWithText(FilledButton, reviewable ? 'Got it' : 'Continue'),
+    );
     expect(find.text('Card reviewed.'), findsOneWidget);
     return;
   }
@@ -558,7 +577,7 @@ void main() {
       ]);
       expect(course.createDuels, isFalse);
       expect(course.derivativeWorksPolicy, DerivativeWorksPolicy.allowed);
-      expect(examples, hasLength(80));
+      expect(examples, hasLength(107));
       expect(
         examples.map((e) => e.editorTemplate).toSet(),
         ExercisePresetRegistry.presets.map((p) => p.id).toSet(),
@@ -666,7 +685,10 @@ void main() {
             isTrue,
           );
         }
-        if (candidate.type == 'type_missing_word') {
+        // The first-letter hint exists only in the inline-gap shape; with the
+        // switch off the exercise is one field under its sentence.
+        if (candidate.type == 'type_missing_word' &&
+            candidate.layout.isNotEmpty) {
           expect(
             FirstLetterAnswerService.display(
               candidate.prompt,

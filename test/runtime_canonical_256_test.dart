@@ -21,31 +21,80 @@ import 'support/test_directories.dart';
 /// every preset's exercises derive to, Duel eligibility by capability
 /// (plan A.10), audio exercises by required audio, linear Stories (A.7) and
 /// inline-gap Arrange graded by block content (A.11).
-const _expectedKinds = <String, LearnerExerciseKind>{
-  'choice': LearnerExerciseKind.select,
-  'gap_choice': LearnerExerciseKind.selectComplete,
-  'icon_choice': LearnerExerciseKind.selectImage,
-  'script_recognition': LearnerExerciseKind.selectCharacter,
-  'listening_choice': LearnerExerciseKind.selectListen,
-  'listening_comprehension': LearnerExerciseKind.selectListenPassage,
-  'reading_comprehension': LearnerExerciseKind.selectRead,
-  'dialogue_response': LearnerExerciseKind.selectDialogue,
-  'contextual_comprehension': LearnerExerciseKind.selectContext,
-  'translation_choice_to_target': LearnerExerciseKind.selectTranslation,
-  'translation_choice_to_source': LearnerExerciseKind.selectTranslation,
-  'fill_blank': LearnerExerciseKind.inputComplete,
-  'type_translation': LearnerExerciseKind.inputTranslation,
-  'listening_spelling': LearnerExerciseKind.inputListenWrite,
-  'missing_word': LearnerExerciseKind.inputListenGaps,
-  'type_missing_word': LearnerExerciseKind.inputMissingWord,
-  'word_order': LearnerExerciseKind.arrangeSentence,
-  'build_translation': LearnerExerciseKind.arrangeTranslation,
-  'image_word': LearnerExerciseKind.arrangeWord,
-  'matching': LearnerExerciseKind.matchTranslation,
-  'word_match': LearnerExerciseKind.matchTranslation,
-  'super_match': LearnerExerciseKind.match,
-  'audio_match': LearnerExerciseKind.matchAudio,
-  'flashcard': LearnerExerciseKind.presentation,
+const _expectedKinds = <String, Set<LearnerExerciseKind>>{
+  'choice_target': {
+    LearnerExerciseKind.select,
+    LearnerExerciseKind.selectListen,
+  },
+  'gap_choice': {LearnerExerciseKind.selectComplete},
+  'icon_choice': {LearnerExerciseKind.selectImage},
+  'script_recognition': {LearnerExerciseKind.selectCharacter},
+  'listening_answer_target': {
+    LearnerExerciseKind.selectListen,
+    LearnerExerciseKind.selectListenPassage,
+  },
+  'reading_answer_target': {
+    LearnerExerciseKind.selectRead,
+    LearnerExerciseKind.selectDialogue,
+    LearnerExerciseKind.selectContext,
+  },
+  'translation_choice_to_target': {LearnerExerciseKind.selectTranslation},
+  'translation_choice_to_source': {LearnerExerciseKind.selectTranslation},
+  'type_translation_to_target': {LearnerExerciseKind.inputTranslation},
+  'listening_spelling': {LearnerExerciseKind.inputListenWrite},
+  'missing_word': {LearnerExerciseKind.inputListenGaps},
+  'type_missing_word': {
+    LearnerExerciseKind.inputMissingWord,
+    LearnerExerciseKind.inputComplete,
+  },
+  'word_order': {LearnerExerciseKind.arrangeSentence},
+  'build_translation_to_target': {LearnerExerciseKind.arrangeTranslation},
+  'image_word': {LearnerExerciseKind.arrangeWord},
+  'word_match': {LearnerExerciseKind.matchTranslation},
+  'super_match': {LearnerExerciseKind.match},
+  'audio_match': {LearnerExerciseKind.matchAudio},
+  'flashcard': {LearnerExerciseKind.presentation},
+  'choice_source': {
+    LearnerExerciseKind.select,
+    LearnerExerciseKind.selectListen,
+  },
+  'listening_answer_source': {
+    LearnerExerciseKind.selectListen,
+    LearnerExerciseKind.selectListenPassage,
+  },
+  'reading_answer_source': {
+    LearnerExerciseKind.selectRead,
+    LearnerExerciseKind.selectDialogue,
+    LearnerExerciseKind.selectContext,
+  },
+  'type_translation_to_source': {LearnerExerciseKind.inputTranslation},
+  'build_translation_to_source': {LearnerExerciseKind.arrangeTranslation},
+  'picture_flashcard': {LearnerExerciseKind.presentation},
+  'true_false': {LearnerExerciseKind.select, LearnerExerciseKind.selectListen},
+  'gap_choice_inline': {
+    LearnerExerciseKind.select,
+    LearnerExerciseKind.selectListen,
+  },
+  'complete_text': {LearnerExerciseKind.inputComplete},
+  'missing_letters': {
+    LearnerExerciseKind.inputComplete,
+    LearnerExerciseKind.inputListenGaps,
+  },
+  'gap_blocks': {LearnerExerciseKind.arrangeSentence},
+  'sentence_order': {
+    LearnerExerciseKind.arrangeSentence,
+    LearnerExerciseKind.arrangeLines,
+  },
+  'listening_image_choice': {LearnerExerciseKind.selectListen},
+  'spell_heard': {LearnerExerciseKind.arrangeWord},
+  'picture_choice': {LearnerExerciseKind.select},
+  'picture_name': {LearnerExerciseKind.inputComplete},
+  'spell_word': {LearnerExerciseKind.arrangeWord},
+  'picture_word_match': {
+    LearnerExerciseKind.matchTranslation,
+    LearnerExerciseKind.match,
+  },
+  'note_card': {LearnerExerciseKind.presentation},
 };
 
 const _bundled = [
@@ -224,8 +273,8 @@ void main() {
           final expected = _expectedKinds[content.editorTemplate];
           expect(expected, isNotNull, reason: content.editorTemplate);
           expect(
-            ExerciseFeatures(content.exercise!).kind,
             expected,
+            contains(ExerciseFeatures(content.exercise!).kind),
             reason: '${content.id} (${content.editorTemplate})',
           );
           checked++;
@@ -258,17 +307,20 @@ void main() {
     test('every single-answer Select with choices qualifies', () {
       final course = _load(_bundled.first);
       const selectPresets = {
-        'choice',
+        'choice_target',
         'gap_choice',
         'icon_choice',
         'script_recognition',
-        'listening_choice',
-        'listening_comprehension',
-        'reading_comprehension',
-        'dialogue_response',
-        'contextual_comprehension',
+        'listening_answer_target',
+        'reading_answer_target',
         'translation_choice_to_target',
         'translation_choice_to_source',
+        'true_false',
+        'listening_image_choice',
+        'picture_choice',
+        'choice_source',
+        'listening_answer_source',
+        'reading_answer_source',
       };
       var contextual = 0;
       var characters = 0;
@@ -285,7 +337,7 @@ void main() {
           expected,
           reason: '${content.id} (${content.editorTemplate})',
         );
-        if (expected && content.editorTemplate == 'contextual_comprehension') {
+        if (expected && content.editorTemplate == 'reading_answer_target') {
           contextual++;
         }
         if (expected && content.editorTemplate == 'script_recognition') {

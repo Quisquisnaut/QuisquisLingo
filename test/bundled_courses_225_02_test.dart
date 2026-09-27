@@ -32,7 +32,7 @@ void main() {
         'IT|qql_lab254_card_audio|FLASHCARD_EXAMPLE_EMPTY',
         'EN_EDGE|qql_edge_254_e04_duplicate|CHOICE_ANSWER_DUPLICATE',
         'EN_EDGE|qql_edge_254_e07_long|EXERCISE_TEXT_LONG',
-        'PMS|pms_e5f5585a_l20_r01_e01|OPPOSITE_TOO_EARLY',
+        'PMS|pms_e5f5585a_l08_r01_e01|OPPOSITE_TOO_EARLY',
       };
       final observedDemoWarnings = <String>[];
 
@@ -113,9 +113,10 @@ void main() {
               if (!allIds.add(exercise.id)) {
                 failures.add('${entry.value} | DUPLICATE_ID | ${exercise.id}');
               }
-              // Flashcard usage items exist only in the runnable projection;
-              // canonical Presentation JSON has no Item identities.
-              if (exercise.editorTemplate == 'flashcard') continue;
+              // Usage items of a card built on the flashcard recipe exist
+              // only in the runnable projection; canonical Presentation JSON
+              // has no Item identities.
+              if (exercise.type == 'flashcard') continue;
               for (final item in exercise.interaction.items) {
                 if (!allIds.add(item.id)) {
                   failures.add('${entry.value} | DUPLICATE_ID | ${item.id}');

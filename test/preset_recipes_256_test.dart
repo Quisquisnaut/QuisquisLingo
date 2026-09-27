@@ -7,6 +7,7 @@ import 'package:quisquislingo_app/models/exercise_authoring.dart';
 import 'package:quisquislingo_app/models/exercise_features.dart';
 import 'package:quisquislingo_app/services/course_audit_service.dart';
 import 'package:quisquislingo_app/services/preset_recipes.dart';
+import 'package:quisquislingo_app/services/preset_variants.dart';
 
 /// Build 256 Session 4: presets as optional recipes. Decompose → rebuild →
 /// semantically equal is what "the preset represents the exercise" means;
@@ -50,6 +51,24 @@ void main() {
     }
   });
 
+  test('the shape rule tells the presets of one recipe apart', () {
+    final course = _load('exercise_laboratory_en_it.json');
+    Exercise example(String id) =>
+        _exerciseContent(course).firstWhere((c) => c.id == id).exercise!;
+    final letters = example('qql_lab254_missing_letters');
+    final word = example('qql_lab254_input_missing_one');
+    final picture = example('qql_lab254_image_letters');
+    expect(PresetVariants.hasInWordGap(letters), isTrue);
+    expect(PresetVariants.hasInWordGap(word), isFalse);
+    expect(PresetVariants.fits('missing_letters', letters), isTrue);
+    expect(PresetVariants.fits('complete_text', letters), isFalse);
+    expect(PresetVariants.fits('missing_letters', word), isFalse);
+    expect(PresetVariants.fits('missing_word', word), isTrue);
+    expect(PresetVariants.fits('image_word', picture), isTrue);
+    expect(PresetVariants.fits('spell_heard', picture), isFalse);
+    expect(PresetVariants.fits('spell_word', picture), isFalse);
+  });
+
   group('every Laboratory example is represented by its own preset', () {
     final course = _load('exercise_laboratory_en_it.json');
     for (final content in _exerciseContent(course)) {
@@ -70,7 +89,7 @@ void main() {
   test('a shape no recipe expresses is not recognized', () {
     final course = _load('exercise_laboratory_en_it.json');
     final plain = _exerciseContent(course)
-        .firstWhere((content) => content.editorTemplate == 'choice')
+        .firstWhere((content) => content.editorTemplate == 'choice_target')
         .exercise!
         .withAuthoringMetadata(const {});
     // A second, manual audio element is nothing the Choose form can show.
@@ -81,20 +100,20 @@ void main() {
       ],
     );
     expect(PresetRecipes.recognize(withExtraAudio), isNull);
-    expect(PresetRecipes.presetToEdit(withExtraAudio), 'choice');
+    expect(PresetRecipes.presetToEdit(withExtraAudio), 'choice_target');
     expect(ExerciseFeatures(withExtraAudio).kind, LearnerExerciseKind.select);
   });
 
   test('an exercise keeps opening in the preset it carries', () {
     final course = _load('exercise_laboratory_en_it.json');
-    final matching = _exerciseContent(
+    final wordMatch = _exerciseContent(
       course,
-    ).firstWhere((content) => content.editorTemplate == 'matching').exercise!;
-    expect(PresetRecipes.presetToEdit(matching), 'matching');
-    final asWordMatch = matching.withAuthoringMetadata(const {
-      'presetId': 'word_match',
+    ).firstWhere((content) => content.editorTemplate == 'word_match').exercise!;
+    expect(PresetRecipes.presetToEdit(wordMatch), 'word_match');
+    final asSuperMatch = wordMatch.withAuthoringMetadata(const {
+      'presetId': 'super_match',
     });
-    expect(PresetRecipes.presetToEdit(asWordMatch), 'word_match');
-    expect(PresetRecipes.represents(asWordMatch, 'word_match'), isFalse);
+    expect(PresetRecipes.presetToEdit(asSuperMatch), 'super_match');
+    expect(PresetRecipes.represents(asSuperMatch, 'super_match'), isFalse);
   });
 }

@@ -1,3 +1,65 @@
+# 2.0.56 (Build 256, Revision 4) - The preset catalogue - 2026-09-27
+
+Session 5 of the exercise architecture redesign
+(`docs/256_PRESET_CATALOGUE_PLAN.md`): 38 presets in six skill groups,
+paired *to target* / *to source* where the direction matters, seven greyed
+presets for later versions, pictures on answers, and the runtime additions
+the new presets need. Course files stay Course Model v12.
+
+- **Catalogue.** Vocabulary: Pick, Type and Build the translation (each to
+  target and to source), Match the words, Match by meaning, Flashcard,
+  Picture flashcard. Grammar and sentences: Choose the answer (to target /
+  to source), True or false, Pick the missing word, Pick the words for the
+  gaps, Type the missing word (with a *Show the first letter* switch; it
+  absorbs Fill in the blank), Complete the text, Missing letters, Word
+  order, Drag the blocks into the gaps, Put the sentences in order.
+  Listening: Listen and answer (to target / to source), Listen and pick the
+  image, Type what you hear, Listen and fill the gaps, Spell what you hear,
+  Listen and match. Reading and dialogue: Read and answer (to target / to
+  source: a text, a situation or dialogue lines, optional spoken text).
+  Pictures and characters: Select the image, What is in the picture, Name
+  what you see, Spell the word in the picture, Spell the word, Match
+  picture to word, Recognize characters. Cards and notes: Note card. Coming
+  later, greyed in the picker and in Help: Say it, Write by hand, Sort into
+  groups, Label the picture, Answer in your own words, Match picture to
+  sound, Adventure.
+- **Retired IDs** (`choice`, `fill_blank`, `matching`, `listening_choice`,
+  `listening_comprehension`, `reading_comprehension`,
+  `contextual_comprehension`, `dialogue_response`, `type_translation`,
+  `build_translation`) have successors: the v11 converter records the
+  successor, the Audit, the editor and Search read a stored retired ID as
+  its successor, and an existing exercise keeps its shape when it is
+  reopened and saved (shape hints for the text, audio and Match sides, the
+  first-letter switch).
+- **Picker:** skill groups, the action word on every tile (Choose, Type,
+  Arrange, Match, Card), the To target / To source filter, greyed tiles.
+- **Pictures on answers:** Select the image, Listen and pick the image and
+  Match picture to word have one picture picker per answer (Image Library,
+  imported or Course images, copied into the Course); the Round and the
+  Duel draw Course pictures on answers and on Match items.
+- **Runtime:** within-word gaps (Missing letters) show one underscore per
+  missing letter; a spelling exercise needs a picture, a spoken word or a
+  clue (`IMAGE_WORD_IMAGE_REQUIRED` widened); Put the sentences in order
+  has its own heading and instruction in the eight copy languages; audio in
+  the source language is spoken with the source voice.
+- **Audit:** four codes retired (`DIALOGUE_RESPONSE_OPTION_COUNT`,
+  `DIALOGUE_CONTEXT_REQUIRED`, `DIALOGUE_QUESTION_REQUIRED`,
+  `CONTEXT_REQUIRED`; 98 rules), Read and answer and Listen and answer
+  rules, picture and True or false rules, areas renamed after the
+  catalogue; Picture flashcards and Note cards are exempt from the usage
+  and pronunciation Warnings, and duplicate content counts the prompt's
+  pictures.
+- **Exercise Wizard:** a planned exercise of a catalogue twin (Type the
+  translation (to target)) is built on the recipe's base type; it used to
+  fall back to a Select interaction and lose the accepted translations.
+- **Help:** EN/IT/ES describe every preset and every field; Exercise Help
+  lists the greyed presets.
+- **Bundled Courses:** the Exercise Laboratory has 107 examples, at least
+  one per preset (five new Rounds); the Piedmontese demo has one Lesson per
+  preset (38); Korean and Edge Case carry the successor IDs.
+- Scoring, progression, Review, Duel availability, learner data and Course
+  files are unchanged. Beta expiry 27 October 2026, 23:59:59 local time.
+
 # 2.0.56 (Build 256, Revision 3) - Presets as recipes and the Generic Primitive Editor - 2026-09-27
 
 Session 4 of the exercise architecture redesign

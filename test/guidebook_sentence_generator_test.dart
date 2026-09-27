@@ -108,20 +108,20 @@ void main() {
           .expand((round) => round.exercises)
           .toList();
       final generatedTypes = generatedExercises
-          .map((exercise) => exercise.type)
+          .map((exercise) => exercise.editorTemplate)
           .toSet();
       expect(
         generatedTypes,
         containsAll({
-          'choice',
+          'choice_target',
           'word_match',
           'audio_match',
-          'listening_choice',
+          'listening_answer_target',
           'word_order',
           'gap_choice',
-          'contextual_comprehension',
-          'type_translation',
-          'build_translation',
+          'reading_answer_target',
+          'type_translation_to_target',
+          'build_translation_to_target',
         }),
       );
       final intro = generatedContent.singleWhere(

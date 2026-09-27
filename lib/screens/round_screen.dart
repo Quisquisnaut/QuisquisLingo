@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import '../services/course_language_resolver.dart';
 import '../services/first_letter_answer_service.dart';
 import '../widgets/course_media_image.dart';
 import '../widgets/exercise_prompt_panels.dart';
@@ -93,10 +94,12 @@ class _MatchOption {
 class _MatchPairView {
   final String leftId;
   final String leftLabel;
+  final String leftImage;
   final String rightId;
   const _MatchPairView({
     required this.leftId,
     required this.leftLabel,
+    this.leftImage = '',
     required this.rightId,
   });
 }
@@ -263,7 +266,16 @@ class _RoundScreenState extends State<RoundScreen> {
     _initializeRound();
   }
 
-  Future<bool> _playCourseAudio(String text) async {
+  /// The speech language for text in [language]: the Course's source
+  /// language for source-language audio (a "to source" preset), else the
+  /// learning language.
+  String _voiceFor(TextLanguage? language) {
+    if (language != TextLanguage.source) return widget.ttsLanguage;
+    final code = CourseLanguageResolver.base(widget.course).code ?? '';
+    return code.isEmpty ? widget.ttsLanguage : code;
+  }
+
+  Future<bool> _playCourseAudio(String text, {TextLanguage? language}) async {
     if (widget.course.audioMode != 'tts') {
       final recorded = await _recordedAudio.playConcatenated(
         text,
@@ -276,7 +288,7 @@ class _RoundScreenState extends State<RoundScreen> {
     }
     return _ttsCache.speak(
       text: text,
-      language: widget.ttsLanguage,
+      language: _voiceFor(language),
       learningLanguage: widget.course.learningLanguage,
       targetLanguage: widget.course.targetLanguage,
       applyLearnerSettings: !widget.previewMode,
@@ -530,6 +542,7 @@ class _RoundScreenState extends State<RoundScreen> {
           _MatchPairView(
             leftId: left.id,
             leftLabel: left.value,
+            leftImage: left.image,
             rightId: right.id,
           ),
         );
@@ -720,7 +733,7 @@ class _RoundScreenState extends State<RoundScreen> {
             _recordedAudio.segment(text, widget.course.audioLibrary) == null)) {
       await _ttsCache.synthesizeCached(
         text: text,
-        language: widget.ttsLanguage,
+        language: _voiceFor(_features.primaryAudioLanguage),
         applyLearnerSettings: !widget.previewMode,
       );
     }
@@ -728,7 +741,10 @@ class _RoundScreenState extends State<RoundScreen> {
 
   Future<void> _speakText(String text) async {
     if (text.trim().isEmpty) return;
-    final ok = await _playCourseAudio(text);
+    final ok = await _playCourseAudio(
+      text,
+      language: _features.audioLanguageOf(text),
+    );
     if (!ok && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -742,7 +758,10 @@ class _RoundScreenState extends State<RoundScreen> {
   Future<bool> _speak() async {
     final text = _features.primaryAudioText;
     if (text == null || text.isEmpty) return false;
-    final ok = await _playCourseAudio(text);
+    final ok = await _playCourseAudio(
+      text,
+      language: _features.primaryAudioLanguage,
+    );
     if (!ok && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -1521,7 +1540,12 @@ class _RoundScreenState extends State<RoundScreen> {
     final f = _features;
     if (f.hasInlineTargets) return _selectGapFillExercise(ex);
     if (f.multipleSelection) return _multiSelectChoiceExercise(ex);
-    if (f.hasIconItems) return _iconChoiceExercise(ex);
+    // Icon keys and captioned pictures make a grid; image-only options (a
+    // Recognize characters text-to-image exercise) keep the list below.
+    if (f.hasIconItems ||
+        ex.items.any((item) => item.image.isNotEmpty && item.text.isNotEmpty)) {
+      return _iconChoiceExercise(ex);
+    }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: List.generate(_choiceOptions.length, (i) {
@@ -1530,11 +1554,7 @@ class _RoundScreenState extends State<RoundScreen> {
           child: FilledButton.tonal(
             onPressed: _answered ? null : () => _answerChoice(i),
             child: _choiceOptions[i].item?.image.isNotEmpty == true
-                ? PortableExerciseImage(
-                    asset: _choiceOptions[i].item!.image,
-                    width: 128,
-                    height: 128,
-                  )
+                ? _itemImage(_choiceOptions[i].item!.image)
                 : Text(_choiceOptions[i].text),
           ),
         );
@@ -2200,10 +2220,30 @@ class _RoundScreenState extends State<RoundScreen> {
   }
 
   /// The transcript with a blank for every gap.
-  String _missingWordDisplay() => [
-    for (final element in _exercise.layout)
-      element.isTarget ? '_____' : element.text,
-  ].join();
+  /// The gapped text: a gap inside a word (Missing letters) shows one
+  /// underscore per missing letter, a whole-word gap a fixed blank.
+  String _missingWordDisplay() {
+    final layout = _exercise.layout;
+    final buffer = StringBuffer();
+    for (var i = 0; i < layout.length; i++) {
+      final element = layout[i];
+      if (!element.isTarget) {
+        buffer.write(element.text);
+        continue;
+      }
+      final before = i > 0 && layout[i - 1].isText ? layout[i - 1].text : '';
+      final after = i + 1 < layout.length && layout[i + 1].isText
+          ? layout[i + 1].text
+          : '';
+      final inWord =
+          (before.isNotEmpty && !before.endsWith(' ')) ||
+          (after.isNotEmpty && !RegExp(r'^[\s.,;:!?…]').hasMatch(after));
+      final answer =
+          _features.answersFor(element.targetId)?.answers.firstOrNull ?? '';
+      buffer.write(inWord && answer.isNotEmpty ? '_' * answer.length : '_____');
+    }
+    return buffer.toString();
+  }
 
   void _submitMissingWords(Exercise ex) {
     if (_answered) return;
@@ -2283,6 +2323,22 @@ class _RoundScreenState extends State<RoundScreen> {
     );
   }
 
+  /// A Match left item: its text, or its picture with the text beside it
+  /// (Match picture to word).
+  Widget _matchLeftContent(_MatchPairView pair) {
+    if (pair.leftImage.isEmpty) return Text(pair.leftLabel, softWrap: true);
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _itemImage(pair.leftImage, size: 64),
+        if (pair.leftLabel.isNotEmpty) ...[
+          const SizedBox(width: 8),
+          Flexible(child: Text(pair.leftLabel, softWrap: true)),
+        ],
+      ],
+    );
+  }
+
   Widget _matchingExercise(Exercise ex) {
     Widget selector(_MatchPairView pair) => DropdownButtonFormField<String>(
       isExpanded: true,
@@ -2323,7 +2379,7 @@ class _RoundScreenState extends State<RoundScreen> {
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Text(pair.leftLabel, softWrap: true),
+                      _matchLeftContent(pair),
                       const SizedBox(height: 7),
                       selector(pair),
                     ],
@@ -2336,7 +2392,7 @@ class _RoundScreenState extends State<RoundScreen> {
                       flex: 4,
                       child: Padding(
                         padding: const EdgeInsets.only(top: 14),
-                        child: Text(pair.leftLabel, softWrap: true),
+                        child: _matchLeftContent(pair),
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -2484,31 +2540,50 @@ class _RoundScreenState extends State<RoundScreen> {
     );
   }
 
+  /// An item's picture: a Course medium through the media store, a bundled
+  /// asset or a portable data URI as before.
+  Widget _itemImage(String asset, {double size = 128}) =>
+      asset.startsWith('media:')
+      ? CourseMediaImage(
+          courseId: widget.course.courseId,
+          asset: asset,
+          width: size,
+          height: size,
+          cacheWidth: 256,
+          cacheHeight: 256,
+        )
+      : PortableExerciseImage(asset: asset, width: size, height: size);
+
   Widget _iconChoiceExercise(Exercise ex) {
     return Wrap(
       spacing: 10,
       runSpacing: 10,
       children: List.generate(_choiceOptions.length, (i) {
         final item = _choiceOptions[i].item;
-        final iconKey = item == null
+        final image = item?.image ?? '';
+        final iconKey = item == null || image.isNotEmpty
             ? ''
-            : item.image.isNotEmpty
-            ? item.image
             : item.content
                       .where((element) => element.role == 'icon')
                       .map((element) => element.text)
                       .firstOrNull ??
                   '';
-        final isAsset = iconKey.startsWith('assets/');
+        // A picture on the item, else an icon key naming a bundled asset
+        // (drawn as before), else a named icon.
+        final isAsset = image.isEmpty && iconKey.startsWith('assets/');
+        final caption = _choiceOptions[i].text;
+        final showCaption = !isAsset;
         return SizedBox(
           width: 112,
-          height: 120,
+          height: image.isNotEmpty ? 150 : 120,
           child: FilledButton.tonal(
             onPressed: _answered ? null : () => _answerChoice(i),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                if (isAsset)
+                if (image.isNotEmpty)
+                  Expanded(child: Center(child: _itemImage(image, size: 88)))
+                else if (isAsset)
                   Expanded(
                     child: Image.asset(
                       iconKey,
@@ -2519,12 +2594,14 @@ class _RoundScreenState extends State<RoundScreen> {
                   )
                 else
                   Icon(_iconFor(iconKey), size: 34),
-                if (!isAsset) ...[
+                if (showCaption) ...[
                   const SizedBox(height: 5),
                   Text(
-                    _choiceOptions[i].text,
+                    caption,
                     textAlign: TextAlign.center,
                     style: const TextStyle(fontSize: 12),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ],

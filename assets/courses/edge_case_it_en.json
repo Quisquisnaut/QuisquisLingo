@@ -158,7 +158,7 @@
               "kind": "exercise",
               "required": true,
               "authoringMetadata": {
-                "presetId": "choice"
+                "presetId": "choice_target"
               },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
@@ -290,7 +290,7 @@
               "kind": "exercise",
               "required": true,
               "authoringMetadata": {
-                "presetId": "choice"
+                "presetId": "choice_target"
               },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
@@ -438,7 +438,7 @@
               "kind": "exercise",
               "required": true,
               "authoringMetadata": {
-                "presetId": "choice"
+                "presetId": "choice_target"
               },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
@@ -496,7 +496,7 @@
               "kind": "exercise",
               "required": true,
               "authoringMetadata": {
-                "presetId": "choice"
+                "presetId": "choice_target"
               },
               "sourceRefs": [
                 "qql_edge_254_v_caffè_日本語"
@@ -547,7 +547,7 @@
               "kind": "exercise",
               "required": true,
               "authoringMetadata": {
-                "presetId": "choice"
+                "presetId": "choice_target"
               },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
@@ -631,7 +631,7 @@
               "kind": "exercise",
               "required": true,
               "authoringMetadata": {
-                "presetId": "reading_comprehension"
+                "presetId": "reading_answer_target"
               },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
@@ -694,7 +694,7 @@
               "kind": "exercise",
               "required": true,
               "authoringMetadata": {
-                "presetId": "type_translation"
+                "presetId": "type_translation_to_target"
               },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
@@ -727,7 +727,7 @@
               "kind": "exercise",
               "required": true,
               "authoringMetadata": {
-                "presetId": "type_translation"
+                "presetId": "type_translation_to_target"
               },
               "sourceRefs": [
                 "qql_edge_254_v_caffè_日本語"
@@ -764,7 +764,7 @@
               "kind": "exercise",
               "required": true,
               "authoringMetadata": {
-                "presetId": "fill_blank"
+                "presetId": "type_missing_word"
               },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
@@ -897,7 +897,7 @@
               "kind": "exercise",
               "required": true,
               "authoringMetadata": {
-                "presetId": "build_translation"
+                "presetId": "build_translation_to_target"
               },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
@@ -1313,7 +1313,7 @@
               "kind": "exercise",
               "required": true,
               "authoringMetadata": {
-                "presetId": "word_order"
+                "presetId": "gap_blocks"
               },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
@@ -1379,7 +1379,7 @@
               "kind": "exercise",
               "required": true,
               "authoringMetadata": {
-                "presetId": "word_order"
+                "presetId": "gap_blocks"
               },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
@@ -1482,7 +1482,7 @@
               "kind": "exercise",
               "required": true,
               "authoringMetadata": {
-                "presetId": "word_order"
+                "presetId": "gap_blocks"
               },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
@@ -1600,7 +1600,7 @@
               "kind": "exercise",
               "required": true,
               "authoringMetadata": {
-                "presetId": "choice"
+                "presetId": "gap_choice_inline"
               },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
@@ -1663,7 +1663,7 @@
               "kind": "exercise",
               "required": true,
               "authoringMetadata": {
-                "presetId": "choice"
+                "presetId": "gap_choice_inline"
               },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
@@ -1763,7 +1763,7 @@
               "kind": "exercise",
               "required": true,
               "authoringMetadata": {
-                "presetId": "choice"
+                "presetId": "gap_choice_inline"
               },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
@@ -2026,7 +2026,7 @@
               "kind": "exercise",
               "required": true,
               "authoringMetadata": {
-                "presetId": "choice"
+                "presetId": "choice_target"
               },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
@@ -2090,7 +2090,7 @@
               "kind": "exercise",
               "required": true,
               "authoringMetadata": {
-                "presetId": "choice"
+                "presetId": "choice_target"
               },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
@@ -2148,7 +2148,7 @@
               "kind": "exercise",
               "required": true,
               "authoringMetadata": {
-                "presetId": "choice"
+                "presetId": "choice_target"
               },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
@@ -2227,7 +2227,7 @@
               "kind": "exercise",
               "required": true,
               "authoringMetadata": {
-                "presetId": "listening_choice"
+                "presetId": "listening_answer_target"
               },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
@@ -2281,7 +2281,7 @@
               "kind": "exercise",
               "required": true,
               "authoringMetadata": {
-                "presetId": "listening_choice"
+                "presetId": "listening_answer_target"
               },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
@@ -2335,7 +2335,7 @@
               "kind": "exercise",
               "required": true,
               "authoringMetadata": {
-                "presetId": "listening_comprehension"
+                "presetId": "listening_answer_target"
               },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
@@ -2499,7 +2499,7 @@
               "kind": "exercise",
               "required": true,
               "authoringMetadata": {
-                "presetId": "choice"
+                "presetId": "choice_target"
               },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
@@ -2547,7 +2547,7 @@
               "kind": "exercise",
               "required": true,
               "authoringMetadata": {
-                "presetId": "choice"
+                "presetId": "choice_target"
               },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
@@ -2603,7 +2603,7 @@
               "kind": "exercise",
               "required": true,
               "authoringMetadata": {
-                "presetId": "choice"
+                "presetId": "choice_target"
               },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
@@ -2701,7 +2701,7 @@
               "kind": "exercise",
               "required": true,
               "authoringMetadata": {
-                "presetId": "choice"
+                "presetId": "choice_target"
               },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
@@ -2753,5 +2753,5 @@
       }
     }
   ],
-  "officialChecksum": "795a1a85562ec0b8f7a619549be7033c9b2665da6df389362478f6eec2d66a4d"
+  "officialChecksum": "f60bf446c7d7f3932ca15ae6cb5c68d210f96bcff4efb0c61d6dd641067347c7"
 }
