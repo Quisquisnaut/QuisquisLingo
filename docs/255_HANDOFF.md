@@ -26,12 +26,14 @@ owner's and not part of this work: never stage, move or delete them.
 | `b56b9bf` | **Revision 6** `2.0.55+255006` on branch `claude/255-rev6-fixes` (from `main` at `2f4f89b`): twelve small corrections — four bundled demos left (German, Spanish, English-from-Spanish, Welsh, Portuguese and Neapolitan removed), All rights reserved demo licenses with Fork kept on Exercise Laboratory and Edge Case, Piedmontais renamed Piedmontese, Courses sections Minimal and saved per learner/tab/category, no startup Beta testing dialog, Advanced (Admin) after Do Not Disturb, enlargeable Flag Game flags and Course Info image, a Course cover in the Course Info Editor (1 MB for the cover alone), a Team Google Drive folder link. Suite 2,766 passed, 1 skip. |
 | `1ec3277` | Handoff through Revision 6. |
 | `6cc9154` | Merge of [PR #25](https://github.com/Quisquisnaut/QuisquisLingo/pull/25) into `main` (merge commit; the PR also carried `2f4f89b`, the handoff note for PR #24 that had stayed local). |
+| `3d4de23` | Handoff note: merged through PR #25 (local on `main`, not pushed). |
+| `d2b7132` | **Revision 7** `2.0.55+255007` on branch `claude/255-rev7-fixes` (from `main` at `3d4de23`): Team dialog refusal in full, Advanced (Admin) one line and greyed for non-admins, cover in Create new course, Crop the cover, known credits and reminders (Audit counts the cover), Selector covers without repeating the current Course, enlarged title and languages, Edge Case flag `EN`, first launch with only the renewed Welcome Wizard in the language chosen in Create Profile. Suite 2,786 passed, 1 skip. Beta expiry `2026-10-27 23:59:59`. |
 
 ## Status
 
 **Revision 7 (`2.0.55+255007`) is complete and committed locally** (27
-September 2026) on branch `claude/255-rev7-fixes`, created from `main` at
-`3d4de23`; nothing is pushed. Owner decisions (26–27 September 2026):
+September 2026) as `d2b7132` on branch `claude/255-rev7-fixes`, created from
+`main` at `3d4de23`; nothing is pushed. Owner decisions (26–27 September 2026):
 
 1. Team shared folder dialog: the refusal message is shown in full (it was
    cut at "other websites and short…"); the link in the field is slightly
