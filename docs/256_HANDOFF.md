@@ -7,7 +7,7 @@ condensed specification). Working rules: Part A.1 of the plan. Reference:
 the Session 2 design). Summary: `docs/256_CHANGE_SUMMARY.md`. Evidence:
 `docs/256_VALIDATION.md`.
 
-## State (27 September 2026, 08:05)
+## State (27 September 2026, 08:15)
 
 - Branch `claude/256-exercise-architecture`, created from `main` at
   `611a1a1` (Build 255 handoff; version `2.0.55+255007`).
@@ -16,8 +16,20 @@ the Session 2 design). Summary: `docs/256_CHANGE_SUMMARY.md`. Evidence:
   `e850cc2` **Build 256 Revision 1: Course Model v12** (`2.0.56+256001`;
   complete suite 2,829 passed, 1 skipped, 0 failed; evidence in
   `docs/256_VALIDATION.md`).
-- **Session 3 (Revision 2, `2.0.56+256002`) starts now** with the design
-  below. Nothing of it is in the working tree yet.
+- **Session 3 (Revision 2, `2.0.56+256002`) has started**; the session
+  stopped at 08:15 on the owner's usage limit, with step 1 of the design
+  below in the working tree, uncommitted: `lib/screens/round_screen.dart`
+  gained keys only (`exercise-heading`, `exercise-instruction`,
+  `exercise-prompt-text`, `exercise-passage`, `exercise-image`);
+  `test/exercise_laboratory_254_test.dart` gained `_presentation` (a record
+  of heading, instruction, prompt, panels, audio controls, answer controls,
+  spoken text and feedback, before and after the correct answer) and
+  `_checkPresentation` (compares with `laboratoryPresentation`, or writes
+  JSON records when `QQL_RECORD_PRESENTATION` names a directory);
+  `test/support/laboratory_presentation_254.dart` holds the 80 records
+  captured before any runtime change (record run: 165 tests passed). Next:
+  run `flutter test --no-pub test/exercise_laboratory_254_test.dart` once
+  in compare mode to confirm the baseline, then step 2 of the design.
 - Untracked files that are the owner's and stay untouched:
   `devtools_options.yaml`, `tools/cloud_setup.sh` (commit with
   `git add -A -- . ':!devtools_options.yaml' ':!tools/cloud_setup.sh'`).
