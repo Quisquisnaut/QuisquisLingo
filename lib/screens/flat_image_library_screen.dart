@@ -21,6 +21,7 @@ import '../services/profile_service.dart';
 import '../widgets/course_media_image.dart';
 import '../widgets/file_dialog_feedback.dart';
 import '../widgets/image_badges.dart';
+import '../widgets/image_credit_reminder.dart';
 import '../widgets/import_summary.dart';
 import '../services/course_package_service.dart';
 import '../services/import/image_validator.dart';
@@ -1338,6 +1339,10 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
       context,
       title: 'Images added to this Course',
       items: results,
+      // Build 255 Revision 7: pictures whose maker QQL does not know.
+      note: entries.any((entry) => entry.attribution == null)
+          ? imageCreditReminder
+          : null,
     );
   }
 

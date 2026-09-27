@@ -378,7 +378,9 @@ void main() {
             await Future<void>.delayed(const Duration(milliseconds: 20));
             await tester.pump();
             if (find
-                .text('Custom icon imported and normalized to a 256x256 PNG.')
+                .textContaining(
+                  'Custom icon imported and normalized to a 256x256 PNG.',
+                )
                 .evaluate()
                 .isNotEmpty) {
               return;

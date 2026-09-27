@@ -559,9 +559,7 @@ Future<void> _openHome(WidgetTester tester) async {
   addTearDown(tester.view.resetDevicePixelRatio);
   addTearDown(tester.view.resetPhysicalSize);
   await tester.pumpWidget(const MaterialApp(home: HomeScreen()));
-  final betaNotice = find.text('Beta expiry');
-  await _pumpUntilWithIo(tester, betaNotice);
-  await tester.tap(find.widgetWithText(FilledButton, 'OK'));
+  // Build 255 Revision 7: no Beta notice fifteen days before expiry.
   await _pumpUntilWithIo(tester, find.byType(UnifiedLearnerTopBar));
 }
 

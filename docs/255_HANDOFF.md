@@ -29,6 +29,84 @@ owner's and not part of this work: never stage, move or delete them.
 
 ## Status
 
+**Revision 7 (`2.0.55+255007`) is complete and committed locally** (27
+September 2026) on branch `claude/255-rev7-fixes`, created from `main` at
+`3d4de23`; nothing is pushed. Owner decisions (26–27 September 2026):
+
+1. Team shared folder dialog: the refusal message is shown in full (it was
+   cut at "other websites and short…"); the link in the field is slightly
+   smaller.
+2. Settings: at most one line under Advanced (Admin). For non-admins the
+   entry is shown greyed out and cannot be opened; a tooltip says what it
+   holds and that it is reserved for admins.
+3. Cover image already in "Create new course" (the Course ID is allocated
+   when the dialog opens; a cancelled dialog deletes the stored cover; a new
+   Course's editing session owns everything in its media folder).
+4. Custom crop: after choosing a picture, "Crop the cover" lets the author
+   move the square, resize it with its corner or a slider, and Reset it.
+5. Credits (owner: "reminder for missing attribution of any image, automatic
+   credit when the origin is known"): a reminder whenever a picture of
+   unknown origin joins a Course (exercise image, Course image library,
+   Lesson icon, custom flag, Recognize-characters image, cover); a cover made
+   from a library picture whose credit QQL knows gets that credit in Media
+   credits automatically (Applies to: Course cover); the Audit's
+   MEDIA_ATTRIBUTION_MISSING also counts the cover.
+6. Course Selector: the current Course is no longer repeated under Other
+   courses (Favorites may still repeat it, Build 250 decision).
+7. Enlarged Course image (Courses, Course Info): title and "Source → Target"
+   above the picture.
+8. First launch: only a renewed Welcome Wizard (five steps with mascots,
+   including the monkey), in the explanation language chosen in Create
+   Profile (EN/IT/ES, preselected from the system language; it becomes the
+   learner's Help Language). The version Welcome shows only after an update;
+   "Beta expiry" only in the last seven days. Wizard texts approved by the
+   owner (27 September 2026); mascots in order: kid reading, celebrating
+   cat, yawning monkey, running robot, laughing dog.
+9. Course Selector rows show the cover when there is one, else the flag, in
+   the square slot Courses uses. The Course flag stays separate and still
+   appears in the top bar, the Flag Background and the Course entry
+   animation; the cover field's text says so.
+10. Edge Case demo flag: `flagCode` "GB" (which QQL does not draw, so the
+    neutral flag showed; an invalid explicit choice never falls back to
+    Automatic) becomes "EN"; Edge Case 1.1.1, regenerated with
+    `tools/generate_edge_case_demo_254.py`. An Audit warning for undrawable
+    flag codes was mentioned to the owner as a later idea, not in scope.
+
+What Revision 7 contains: the Team dialog shows its whole refusal with a
+smaller link; Advanced (Admin) has one line and is greyed out for
+non-admins; the cover crop dialog (`lib/widgets/cover_crop_dialog.dart`, no
+scroll view so drags are not taken by scrolling) and
+`CourseCoverService.prepare/store(crop:)`; `CourseCoverField` without a
+stored Course (`courseId`, optional `course`, `CourseCoverChoice` with the
+known credit); the Create new course cover (preallocated ID, folder deleted
+on cancel, `newCourse(courseId:, coverImage:, mediaAttributions:)`) and
+`CourseAuthoringMedia(newCourse:)`; automatic cover credit rows in Course
+Info from `knownImageCredit` (`lib/services/image_credit.dart`); credit
+reminders (`lib/widgets/image_credit_reminder.dart`) at every entry point of
+a picture of unknown origin; the Audit counting the cover; Selector covers
+and no repetition of the current Course; the enlarged image's title and
+languages; the Edge Case flag `EN`; the Welcome Wizard
+(`lib/localization/welcome_text.dart`, mascots), the Create Profile language
+(`new-learner-language`, written with `LocaleService`) and the first-run
+sequence (`_showStartupNotices`; the Wizard marks this version's Welcome
+seen; the Beta notice only when `warningStage()` is set). Help (EN/IT/ES),
+CHANGELOG, README and AGENTS.md follow.
+
+Validation: analyzer clean; the first complete suite found 4 test-only
+failures (three `beta_lifecycle_test` cases on the 26 October dates, and a
+Create Profile test that tapped Continue below the longer form), corrected;
+the complete suite on the final tree: **2,786 passed, 1 existing skip, 0
+failed** (22 min 41 s); course and media validators pass. No package or
+emulator check. Details in `docs/255_VALIDATION.md`.
+
+Out of scope, flagged as a separate task and not fixed here: the Recognize
+characters "Choose from Image Bank" route pushes a `String` route but the
+image library pops an `ExerciseImageMetadata`, so choosing an image there
+most likely fails.
+
+Next: the owner's smoke test of Revision 7; push, PR and merge only when
+the owner asks.
+
 **Revision 6 (`2.0.55+255006`) is complete and merged** (26 September
 2026): commit `b56b9bf` reached `main` through
 [PR #25](https://github.com/Quisquisnaut/QuisquisLingo/pull/25), merge commit

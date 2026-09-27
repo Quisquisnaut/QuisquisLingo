@@ -8,9 +8,9 @@
   "originType": "bundledOfficial",
   "publisherId": "org.quisquislingo",
   "publisherName": "QuisquisLingo",
-  "officialCourseVersion": "1.1.0",
-  "officialReleaseDateUtc": "2026-09-26T00:00:00.000Z",
-  "officialReleaseNotes": "QQL Build 255 Revision 6: license text aligned to All rights reserved; derivative works remain allowed for this test Course.",
+  "officialCourseVersion": "1.1.1",
+  "officialReleaseDateUtc": "2026-09-27T00:00:00.000Z",
+  "officialReleaseNotes": "QQL Build 255 Revision 7: the Course flag is the English flag QQL draws (EN) instead of GB, which showed the neutral flag.",
   "distributionChannel": "bundled",
   "publisherVerificationStatus": "verified",
   "originalCourseCreator": {
@@ -19,7 +19,7 @@
     "displayName": "QuisquisLingo"
   },
   "originalCreatedAtUtc": "2026-09-25T00:00:00.000Z",
-  "modifiedAtUtc": "2026-09-26T00:00:00.000Z",
+  "modifiedAtUtc": "2026-09-27T00:00:00.000Z",
   "learningLanguage": "English",
   "interfaceLanguage": "Italian",
   "sourceLanguage": "Italian",
@@ -41,7 +41,7 @@
   "derivativeWorksPolicy": "allowed",
   "courseDescription": "TEMPORARY AI-GENERATED TEST COURSE. Italiano → inglese. Per trovarlo abilita Show unavailable: contiene strutture Draft valide, omesse nel Learner. Include due avvisi Audit intenzionali (opzioni duplicate e testo lungo). Hybrid prova MP3 preinstallati e fallback TTS; i campioni MP3 non hanno una trascrizione verificata e sono solo prove di riproduzione. Fork abilita i collaudi Copy as New Course e Merge su copie personali. Non è un percorso didattico revisionato.",
   "textDirection": "ltr",
-  "flagCode": "GB",
+  "flagCode": "EN",
   "temporarySample": true,
   "keywords": [
     "demo",
@@ -2663,5 +2663,5 @@
       }
     }
   ],
-  "officialChecksum": "314fbf4a4ec56d30c8f660d7354902eaa94cb8eebca49abd3910626569b3edb5"
+  "officialChecksum": "b2d5427631ad419007c85d6a1e9328aeb1c7ca0258dc451b6ff6417992b2e96a"
 }

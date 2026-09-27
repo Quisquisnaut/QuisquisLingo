@@ -20,11 +20,16 @@ class CourseAuthoringMedia {
     required this.courseId,
     required Future<Set<String>?> Function() persistedReferences,
     CourseMediaStore? mediaStore,
+    bool newCourse = false,
   }) : _persistedReferences = persistedReferences,
        _media = mediaStore ?? CourseMediaStore() {
     // Taken now, not on first use: an import can only happen after the session
-    // is open, so this is the folder as the session found it.
-    _openingFiles = _media.storedReferences(courseId);
+    // is open, so this is the folder as the session found it. A new Course's
+    // folder holds only what was made for it, such as the cover chosen in
+    // Create new course (Build 255 Revision 7), so its session owns it all.
+    _openingFiles = newCourse
+        ? Future.value(const <String>{})
+        : _media.storedReferences(courseId);
     // Observe a failed listing here so it cannot surface as an unhandled
     // asynchronous error before the session ends and awaits it.
     unawaited(_openingFiles.catchError((Object _) => const <String>{}));

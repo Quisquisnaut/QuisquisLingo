@@ -1,5 +1,6 @@
 import 'support/test_directories.dart';
 import 'support/pump_file_io.dart';
+import 'dart:io';
 import 'dart:math';
 import 'dart:ui' show SemanticsAction;
 
@@ -20,15 +21,18 @@ import 'package:quisquislingo_app/screens/review_screen.dart';
 import 'package:quisquislingo_app/screens/round_screen.dart';
 import 'package:quisquislingo_app/screens/settings_screen.dart';
 import 'package:quisquislingo_app/services/app_metadata.dart';
+import 'package:quisquislingo_app/services/beta_lifecycle_service.dart';
 import 'package:quisquislingo_app/services/course_editor_service.dart';
 import 'package:quisquislingo_app/services/course_favorite_service.dart';
 import 'package:quisquislingo_app/services/course_learner_visibility_service.dart';
 import 'package:quisquislingo_app/services/course_library_service.dart';
+import 'package:quisquislingo_app/services/course_media_store.dart';
 import 'package:quisquislingo_app/services/course_service.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:quisquislingo_app/services/progress_service.dart';
 import 'package:quisquislingo_app/services/settings_service.dart';
 import 'package:quisquislingo_app/services/xp_service.dart';
+import 'package:quisquislingo_app/widgets/course_artwork.dart';
 import 'package:quisquislingo_app/widgets/flag_art.dart';
 import 'package:quisquislingo_app/services/update_notice_service.dart';
 import 'package:quisquislingo_app/services/update_service.dart';
@@ -1757,7 +1761,7 @@ void main() {
 
     // The same learner opening Home again the same day is not asked again.
     await tester.pumpWidget(const SizedBox());
-    await _openHome(tester, scrollToActions: false, expectBetaNotice: false);
+    await _openHome(tester, scrollToActions: false);
     for (var i = 0; i < 20; i++) {
       await tester.pump(const Duration(milliseconds: 100));
     }
@@ -2158,8 +2162,6 @@ void main() {
     await tester.runAsync(
       () => Future<void>.delayed(const Duration(milliseconds: 300)),
     );
-    await _pumpUntil(tester, find.text('Beta expiry'));
-    await _dismissBetaNotice(tester);
     await _pumpUntil(tester, find.byKey(const Key('unified-learner-page')));
 
     expect(find.byType(HomeScreen), findsOneWidget);
@@ -2297,7 +2299,6 @@ void main() {
       await SettingsService().setIddqdModeEnabled(course.courseId, true);
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
-      var firstLaunch = true;
       for (final width in [320.0, 375.0, 430.0]) {
         await SettingsService().setLastVisitedLessonId(
           course.courseId,
@@ -2307,9 +2308,7 @@ void main() {
         await _openHome(
           tester,
           scrollToActions: false,
-          expectBetaNotice: firstLaunch,
         );
-        firstLaunch = false;
 
         final selector = find.byKey(const Key('unified-section-selector'));
         final initialHeight = tester.getSize(selector).height;
@@ -2376,7 +2375,6 @@ void main() {
       );
       await SettingsService().setIddqdModeEnabled(course.courseId, true);
       addTearDown(() => tester.binding.setSurfaceSize(null));
-      var firstLaunch = true;
       for (final width in [320.0, 375.0, 430.0]) {
         await SettingsService().setLastVisitedLessonId(
           course.courseId,
@@ -2386,9 +2384,7 @@ void main() {
         await _openHome(
           tester,
           scrollToActions: false,
-          expectBetaNotice: firstLaunch,
         );
-        firstLaunch = false;
 
         final page = tester.getRect(
           find.byKey(const Key('unified-learner-page')),
@@ -2501,7 +2497,6 @@ void main() {
     addTearDown(() => tester.binding.setSurfaceSize(null));
     final course = await _loadNavigationCourse(tester);
 
-    var firstLaunch = true;
     for (final brightness in [Brightness.light, Brightness.dark]) {
       dispatcher.platformBrightnessTestValue = brightness;
       for (final width in [320.0, 375.0, 430.0]) {
@@ -2509,9 +2504,7 @@ void main() {
         await _openHome(
           tester,
           scrollToActions: false,
-          expectBetaNotice: firstLaunch,
         );
-        firstLaunch = false;
 
         final page = tester.getRect(
           find.byKey(const Key('unified-learner-page')),
@@ -2577,18 +2570,15 @@ void main() {
       addTearDown(dispatcher.clearPlatformBrightnessTestValue);
       final course = await _loadNavigationCourse(tester);
 
-      var firstLaunch = true;
       for (final brightness in Brightness.values) {
         dispatcher.platformBrightnessTestValue = brightness;
         for (final mode in LearnerFlagBackgroundMode.values) {
           await _openHome(
             tester,
             scrollToActions: false,
-            expectBetaNotice: firstLaunch,
             flagBackgroundMode: mode,
             flagBackgroundCourseId: course.courseId,
           );
-          firstLaunch = false;
 
           final backdrop = find.byKey(
             const Key('unified-learner-flag-background'),
@@ -3201,17 +3191,82 @@ void main() {
       expect(position, greaterThan(recentTop));
       expect(position, lessThan(allTop));
     }
-    // The current Course is not repeated in Recent, but belongs to Other
-    // when it is not a Favorite.
+    // The oldest opened Course is under Other. The current Course keeps its
+    // own row and, from Build 255 Revision 7, is not repeated under Other.
+    const oldestRow = Key('local-course-user_oldest_recent_course');
     await tester.scrollUntilVisible(
-      find.byKey(const Key('bundled-course-IT')),
+      find.byKey(oldestRow),
       250,
       scrollable: find.descendant(
         of: find.byType(BottomSheet),
         matching: find.byType(Scrollable),
       ),
     );
-    expect(find.byKey(const Key('bundled-course-IT')), findsOneWidget);
+    expect(find.byKey(oldestRow), findsOneWidget);
+    expect(find.byKey(const Key('bundled-course-IT')), findsNothing);
+  });
+
+  testWidgets('Build 255 Revision 7: a Selector row shows the cover', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(1200, 1400);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetPhysicalSize);
+    const id = 'user_selector_cover_course';
+    final cover = (await tester.runAsync(() async {
+      final bytes = await File(
+        'test/fixtures/import/valid_cover.png',
+      ).readAsBytes();
+      return CourseMediaStore().addBytes(id, bytes, 'png', cover: true);
+    }))!;
+    final covered = Course(
+      courseId: id,
+      learningLanguage: 'Italian',
+      interfaceLanguage: 'English',
+      sourceLanguage: 'English',
+      targetLanguage: 'Italian',
+      title: 'Selector Cover Course',
+      ttsLanguage: 'it-IT',
+      flagCode: 'IT',
+      coverImage: cover,
+      lessons: [
+        Lesson(lessonId: 'selector_cover_first', title: 'First', rounds: const []),
+      ],
+    );
+    (await tester.runAsync(() => CourseEditorService().saveUserCourse(covered)));
+    await _openHome(tester, scrollToActions: false);
+    await tester.tap(find.byKey(const Key('unified-topbar-course-selector')));
+    await _pumpUntilWithIo(
+      tester,
+      find.text('Choose course'),
+      failureMessage: 'Selector did not open for covers.',
+    );
+
+    // A Course without a cover keeps its flag.
+    final current = find.byKey(const Key('current-course'));
+    expect(
+      find.descendant(of: current, matching: find.byType(CourseFlagBadge)),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: current, matching: find.byType(CourseArtwork)),
+      findsNothing,
+    );
+    const row = Key('local-course-$id');
+    await tester.scrollUntilVisible(
+      find.byKey(row),
+      250,
+      scrollable: find.descendant(
+        of: find.byType(BottomSheet),
+        matching: find.byType(Scrollable),
+      ),
+    );
+    final artwork = tester.widget<CourseArtwork>(
+      find.descendant(of: find.byKey(row), matching: find.byType(CourseArtwork)),
+    );
+    expect(artwork.size, 44);
+    expect(artwork.course.coverImage, cover);
   });
 
   testWidgets(
@@ -3293,12 +3348,15 @@ void main() {
       await tester.pumpAndSettle();
       expect(await favorites.isFavorite(current.courseId), isFalse);
       expect(await CourseLibraryService().contains(current), isTrue);
+      // No longer a Favorite, the current Course keeps only its own row: from
+      // Build 255 Revision 7 it is not repeated under Other courses.
       await tester.scrollUntilVisible(
-        find.byKey(const Key('bundled-course-IT')),
+        find.byKey(const Key('bundled-course-EN_EDGE')),
         250,
         scrollable: selectorScroll,
       );
-      expect(find.byKey(const Key('bundled-course-IT')), findsOneWidget);
+      expect(find.byKey(const Key('bundled-course-EN_EDGE')), findsOneWidget);
+      expect(find.byKey(const Key('bundled-course-IT')), findsNothing);
     },
   );
 
@@ -3405,6 +3463,13 @@ void main() {
       SharedPreferences.setMockInitialValues({'sound_effects_enabled': false});
       await ProfileService().addProfile('Popup Learner');
       await SettingsService().completeWelcomeWizard();
+      // Build 255 Revision 7: the Beta notice shows only in its last seven
+      // days; this one is five days before expiry.
+      final pinned = BetaLifecycleService.clock;
+      final expiry = BetaLifecycleService.expiryDate;
+      BetaLifecycleService.clock = () =>
+          DateTime(expiry.year, expiry.month, expiry.day - 5, 12);
+      addTearDown(() => BetaLifecycleService.clock = pinned);
 
       await tester.pumpWidget(const MaterialApp(home: HomeScreen()));
       await tester.runAsync(
@@ -3477,7 +3542,13 @@ void main() {
       final betaDialog = tester.widget<AlertDialog>(find.byType(AlertDialog));
       expect(betaDialog.backgroundColor, isNull);
       expect(betaDialog.surfaceTintColor, isNull);
-      expect(find.textContaining('Expiry date: 2026-10-26.'), findsOneWidget);
+      expect(find.textContaining('This beta expires in 5 days.'), findsOneWidget);
+      expect(
+        find.textContaining(
+          'Expiry date: ${BetaLifecycleService.expiryIsoDate}.',
+        ),
+        findsOneWidget,
+      );
       expect(find.widgetWithText(FilledButton, 'OK'), findsOneWidget);
       expect(
         tester
@@ -3680,7 +3751,6 @@ Future<void> _openHome(
   WidgetTester tester, {
   bool scrollToActions = true,
   bool includeLearnerShell = false,
-  bool expectBetaNotice = true,
   LearnerFlagBackgroundMode? flagBackgroundMode,
   String? flagBackgroundCourseId,
 }) async {
@@ -3704,12 +3774,8 @@ Future<void> _openHome(
       home: const HomeScreen(),
     ),
   );
-  if (expectBetaNotice) {
-    await tester.pumpUntilFileIoState(
-      () => find.text('Beta expiry').evaluate().isNotEmpty,
-    );
-    await _dismissBetaNotice(tester);
-  }
+  // Build 255 Revision 7: the Beta notice shows only in the last seven days,
+  // and the test clock sits fifteen days before expiry.
   await tester.pumpUntilFileIoState(() {
     final topBar = find.byType(UnifiedLearnerTopBar);
     if (topBar.evaluate().isEmpty) return false;
@@ -3863,12 +3929,6 @@ Color? _buttonBackgroundColor(WidgetTester tester, Finder button) => tester
     .style
     ?.backgroundColor
     ?.resolve(const {});
-
-Future<void> _dismissBetaNotice(WidgetTester tester) async {
-  if (find.text('Beta expiry').evaluate().isEmpty) return;
-  await tester.tap(find.text('OK'));
-  await tester.pump();
-}
 
 Future<void> _pumpFrames(WidgetTester tester, {int count = 16}) async {
   for (var frame = 0; frame < count; frame++) {

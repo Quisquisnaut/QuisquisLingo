@@ -8,9 +8,11 @@ import '../screens/flat_image_library_screen.dart';
 import '../services/course_image_usage.dart';
 import '../services/course_media_store.dart';
 import '../services/exercise_image_service.dart';
+import '../services/image_credit.dart';
 import 'course_media_image.dart';
 import 'file_dialog_feedback.dart';
 import 'image_badges.dart';
+import 'image_credit_reminder.dart';
 import '../services/storage/qql_storage.dart';
 import 'quick_import_access.dart';
 
@@ -112,6 +114,10 @@ class _ExerciseImageFieldState extends State<ExerciseImageField> {
                 attribution: selected.attribution,
               ),
       );
+      // Build 255 Revision 7: a picture whose maker QQL does not know.
+      if (knownImageCredit(selected, appliesTo: 'Exercise image') == null) {
+        showImageCreditReminder(context);
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -164,7 +170,9 @@ class _ExerciseImageFieldState extends State<ExerciseImageField> {
       // Straight into the Course's own media: nothing is written to the
       // shared image folder.
       final reference = await _media.addValidated(course.courseId, picked.image);
-      if (mounted) _change(reference, null);
+      if (!mounted) return;
+      _change(reference, null);
+      showImageCreditReminder(context);
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

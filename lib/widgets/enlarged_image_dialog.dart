@@ -7,26 +7,32 @@ import 'package:flutter/material.dart';
 /// Game all open through it.
 ///
 /// [builder] draws the picture into a box [aspectRatio] wide per unit of
-/// height; it receives that box's width. [closeTooltip] defaults to the
-/// Material "Close" of the dialog; a caller with its own language (Course
-/// Info) passes its own.
+/// height; it receives that box's width. [subtitle] is a line under [title]
+/// (a Course's languages). [closeTooltip] defaults to the Material "Close" of
+/// the dialog; a caller with its own language (Course Info) passes its own.
 Future<void> showEnlargedImage(
   BuildContext context, {
   required Key dialogKey,
   required Key closeKey,
   required Widget Function(BuildContext context, double width) builder,
   String? title,
+  String? subtitle,
   double aspectRatio = 1,
   String? closeTooltip,
 }) => showDialog<void>(
   context: context,
   builder: (dialogContext) {
     final viewport = MediaQuery.sizeOf(dialogContext);
+    // Room for the heading, padding and insets; one more line for a subtitle.
+    final reserved = subtitle == null ? 180 : 204;
     final width = math.max(
       96.0,
       math.min(
         520.0,
-        math.min(viewport.width - 80, (viewport.height - 180) * aspectRatio),
+        math.min(
+          viewport.width - 80,
+          (viewport.height - reserved) * aspectRatio,
+        ),
       ),
     );
     return Dialog(
@@ -42,9 +48,12 @@ Future<void> showEnlargedImage(
               child: Row(
                 children: [
                   Expanded(
-                    child: title == null
-                        ? const SizedBox.shrink()
-                        : Text(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (title != null)
+                          Text(
                             title,
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
@@ -52,6 +61,18 @@ Future<void> showEnlargedImage(
                               dialogContext,
                             ).textTheme.titleMedium,
                           ),
+                        if (subtitle != null)
+                          Text(
+                            subtitle,
+                            key: const Key('enlarged-image-subtitle'),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(
+                              dialogContext,
+                            ).textTheme.bodyMedium,
+                          ),
+                      ],
+                    ),
                   ),
                   IconButton(
                     key: closeKey,

@@ -1,13 +1,45 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:quisquislingo_app/services/course_flag_service.dart';
 import 'package:quisquislingo_app/services/course_service.dart';
 import 'package:quisquislingo_app/services/course_learner_visibility_service.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:quisquislingo_app/services/settings_service.dart';
+import 'package:quisquislingo_app/services/world_flag_repository.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   setUp(() => SharedPreferences.setMockInitialValues({}));
+
+  test('Build 255 Revision 7: every bundled Course flag can be drawn', () async {
+    // An explicit flag QQL cannot draw shows the neutral flag, never the
+    // automatic one: Edge Case said "GB" until Revision 7.
+    final courses = CourseService();
+    final worldFlags = WorldFlagRepository();
+    for (final code in CourseService.courseAssets.keys) {
+      final course = await courses.loadBundledCourse(code);
+      final flag = CourseFlagService.resolve(course, fallbackCode: code);
+      switch (flag.kind) {
+        case ResolvedCourseFlagKind.builtIn:
+          expect(
+            CourseFlagService.renderableBuiltInCodes,
+            contains(flag.identifier),
+            reason: course.title,
+          );
+        case ResolvedCourseFlagKind.worldFlag:
+          expect(
+            await worldFlags.findById(flag.identifier),
+            isNotNull,
+            reason: course.title,
+          );
+        case ResolvedCourseFlagKind.customImage ||
+            ResolvedCourseFlagKind.neutral:
+          fail('${course.title} has no drawable flag.');
+      }
+    }
+    final edge = await courses.loadBundledCourse('EN_EDGE');
+    expect(edge.flagCode, 'EN');
+  });
 
   test('Build 254 replaces the three requested bundled demos', () {
     expect(

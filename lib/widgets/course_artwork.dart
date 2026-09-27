@@ -8,7 +8,8 @@ import 'enlarged_image_dialog.dart';
 import 'flag_art.dart';
 
 /// Opens [course]'s artwork enlarged and uncropped: its cover, or its flag
-/// when it has none. Courses rows and Course Info both use it.
+/// when it has none, under its title and languages. Courses rows and Course
+/// Info both use it.
 Future<void> showCourseArtworkPreview(
   BuildContext context,
   Course course, {
@@ -19,6 +20,7 @@ Future<void> showCourseArtworkPreview(
   dialogKey: ValueKey('course-artwork-preview-${course.courseId}'),
   closeKey: const ValueKey('course-artwork-preview-close'),
   title: course.title,
+  subtitle: '${course.sourceLanguage} → ${course.targetLanguage}',
   closeTooltip: closeTooltip,
   builder: (_, size) => CourseArtwork(
     course: course,

@@ -36,6 +36,7 @@ class CourseAuthoringSession {
       courseId: course.courseId,
       persistedReferences: () =>
           editorService.persistedCustomCourseReferences(course.courseId),
+      newCourse: isNewCourse,
     );
   }
 

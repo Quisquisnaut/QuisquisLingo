@@ -38,10 +38,13 @@ void main() {
         .map((text) => text.data)
         .whereType<String>()
         .toList();
+    // Build 255 Revision 7: Advanced (Admin) is listed for everyone and
+    // opens only for admins.
     expect(titles, [
       'Profile',
       'Audio Settings',
       'Do Not Disturb',
+      'Advanced (Admin)',
       'QQL Guide',
       'Debug',
       'Version and Build',

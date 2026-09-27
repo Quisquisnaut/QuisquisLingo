@@ -8,33 +8,49 @@ import '../screens/flat_image_library_screen.dart';
 import '../services/course_cover_service.dart';
 import '../services/course_media_store.dart';
 import '../services/course_service.dart';
+import '../services/image_credit.dart';
+import '../services/import/image_validator.dart';
 import 'course_media_image.dart';
+import 'cover_crop_dialog.dart';
 import 'file_dialog_feedback.dart';
 import 'flag_art.dart';
+import 'image_credit_reminder.dart';
 import 'quick_import_access.dart';
 
-/// The Course Info Editor's cover (Build 255 Revision 6): a preview with
-/// Choose image, Quick Import, Open from… and Remove cover.
+/// A cover choice: the cover reference ('' for none) and the credit QQL knows
+/// for its picture, if any.
+typedef CourseCoverChoice = ({String cover, CourseMediaAttribution? credit});
+
+/// A Course's cover (Build 255 Revision 6): a preview with Choose image,
+/// Quick Import, Open from… and Remove cover. The Course Info Editor has it,
+/// and from Revision 7 Create new course too.
 ///
-/// A chosen picture becomes the Course's own media at once, like an image
-/// added to an Exercise; the Course keeps it only when the Course changes are
-/// confirmed, and an unconfirmed session removes it again.
+/// A chosen picture is cropped to the square its author picks and becomes the
+/// Course's own media at once, like an image added to an Exercise; the Course
+/// keeps it only when the Course changes are confirmed, and an unconfirmed
+/// session removes it again.
 class CourseCoverField extends StatefulWidget {
   const CourseCoverField({
     super.key,
-    required this.course,
+    required this.courseId,
     required this.cover,
     required this.onChanged,
+    this.course,
     this.coverService,
     this.mediaStore,
   });
 
-  /// The Course being edited; its cover is stored in its own media.
-  final Course course;
+  /// The Course whose own media folder stores the cover.
+  final String courseId;
+
+  /// The stored Course, when there is one: without a cover its flag is shown,
+  /// and Choose image also offers its own images. Null while a Course is
+  /// being created.
+  final Course? course;
 
   /// The chosen cover reference, or '' for none.
   final String cover;
-  final ValueChanged<String> onChanged;
+  final ValueChanged<CourseCoverChoice> onChanged;
   final CourseCoverService? coverService;
   final CourseMediaStore? mediaStore;
 
@@ -49,8 +65,17 @@ class _CourseCoverFieldState extends State<CourseCoverField> {
   bool _busy = false;
   String? _error;
 
-  /// Reads a picture (null when the user cancelled) and makes it the cover.
-  Future<void> _use(Future<Uint8List?> Function() read) async {
+  /// What the picture chosen last needs said about its credit: the credit QQL
+  /// knew, or the reminder for a picture of unknown origin.
+  String? _creditNote;
+
+  /// Reads a picture (null when the user cancelled), lets the author choose
+  /// its square and makes it the cover. [credit] is what QQL knows of its
+  /// maker.
+  Future<void> _use(
+    Future<Uint8List?> Function() read, {
+    CourseMediaAttribution? credit,
+  }) async {
     setState(() {
       _busy = true;
       _error = null;
@@ -58,8 +83,35 @@ class _CourseCoverFieldState extends State<CourseCoverField> {
     try {
       final bytes = await read();
       if (bytes == null || !mounted) return;
-      final reference = await _covers.store(widget.course.courseId, bytes);
-      if (mounted) widget.onChanged(reference);
+      // The header is enough to place the square; the full check runs when
+      // the cover is made.
+      final facts = ImageValidator.inspect(
+        bytes,
+        ImageProfile.courseCoverSource,
+      );
+      // Nothing is working while the author chooses the square.
+      setState(() => _busy = false);
+      final crop = await showCoverCropDialog(
+        context,
+        bytes: bytes,
+        width: facts.width,
+        height: facts.height,
+      );
+      if (crop == null || !mounted) return;
+      setState(() => _busy = true);
+      final reference = await _covers.store(
+        widget.courseId,
+        bytes,
+        crop: crop,
+      );
+      if (!mounted) return;
+      setState(
+        () => _creditNote = credit == null
+            ? imageCreditReminder
+            : 'Credited in Course Info › Media credits: ${credit.author}, '
+                  '${credit.license}.',
+      );
+      widget.onChanged((cover: reference, credit: credit));
     } on FormatException catch (error) {
       if (mounted) setState(() => _error = error.message);
     } on StateError catch (error) {
@@ -83,8 +135,8 @@ class _CourseCoverFieldState extends State<CourseCoverField> {
     );
     if (selected == null || !mounted) return;
     await _use(
-      () =>
-          _covers.readLibraryImage(widget.course.courseId, selected.assetPath),
+      () => _covers.readLibraryImage(widget.courseId, selected.assetPath),
+      credit: knownImageCredit(selected, appliesTo: 'Course cover'),
     );
   }
 
@@ -121,13 +173,16 @@ class _CourseCoverFieldState extends State<CourseCoverField> {
   @override
   Widget build(BuildContext context) {
     final hasCover = Course.coverImagePattern.hasMatch(widget.cover);
+    final course = widget.course;
     final flag = Center(
-      child: CourseFlagBadge(
-        course: widget.course,
-        fallbackCode: CourseService.codeForCourse(widget.course),
-        width: 64,
-        height: 44,
-      ),
+      child: course == null
+          ? const Icon(Icons.flag_outlined, size: 40)
+          : CourseFlagBadge(
+              course: course,
+              fallbackCode: CourseService.codeForCourse(course),
+              width: 64,
+              height: 44,
+            ),
     );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -138,9 +193,13 @@ class _CourseCoverFieldState extends State<CourseCoverField> {
         ),
         const SizedBox(height: 4),
         const Text(
-          'Shown instead of the flag in Courses, Course Info and the Course '
-          'Editor. Any picture is cropped to its centred square and scaled to '
-          '512 × 512 pixels; a cover may be up to 1 MB.',
+          'Shown instead of the flag in Courses, the Course Selector, Course '
+          'Info and the Course Editor; the Course flag still appears in the '
+          'top bar, the Flag Background and the Course entry animation. You '
+          'choose the square it shows; it becomes 512 × 512 pixels, up to '
+          '1 MB. If someone else made the picture, credit them in Course Info '
+          '› Media credits with author and licence; QQL does it for you when '
+          'its image library knows them.',
         ),
         const SizedBox(height: 8),
         Row(
@@ -154,12 +213,14 @@ class _CourseCoverFieldState extends State<CourseCoverField> {
                 child: hasCover
                     ? CourseMediaImage(
                         key: const Key('course-cover-preview-image'),
-                        courseId: widget.course.courseId,
+                        courseId: widget.courseId,
                         asset: widget.cover,
                         width: 96,
                         height: 96,
                         fit: BoxFit.cover,
-                        semanticLabel: '${widget.course.title} cover',
+                        semanticLabel: course == null
+                            ? 'Course cover'
+                            : '${course.title} cover',
                         missing: flag,
                         mediaStore: _media,
                       )
@@ -194,7 +255,12 @@ class _CourseCoverFieldState extends State<CourseCoverField> {
                   if (hasCover)
                     TextButton.icon(
                       key: const Key('course-cover-remove'),
-                      onPressed: _busy ? null : () => widget.onChanged(''),
+                      onPressed: _busy
+                          ? null
+                          : () {
+                              setState(() => _creditNote = null);
+                              widget.onChanged((cover: '', credit: null));
+                            },
                       icon: const Icon(Icons.delete_outline),
                       label: const Text('Remove cover'),
                     ),
@@ -206,6 +272,9 @@ class _CourseCoverFieldState extends State<CourseCoverField> {
         if (!hasCover) ...[
           const SizedBox(height: 6),
           const Text('No cover: the flag is shown.'),
+        ] else if (_creditNote case final note?) ...[
+          const SizedBox(height: 6),
+          Text(note, key: const Key('course-cover-credit-note')),
         ],
         if (_busy) ...[
           const SizedBox(height: 8),

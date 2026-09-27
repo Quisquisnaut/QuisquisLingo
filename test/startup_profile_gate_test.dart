@@ -4,7 +4,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:quisquislingo_app/localization/locale_service.dart';
 import 'package:quisquislingo_app/main.dart';
+import 'package:quisquislingo_app/services/app_metadata.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:quisquislingo_app/services/settings_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -111,6 +113,11 @@ void main() {
       // profile creation waits for that asynchronous animation to finish.
       await _finishStartupGate(tester);
       await _pumpUntilHome(tester);
+      // Build 255 Revision 7: a first run shows only the Welcome Wizard, in
+      // the language chosen in Create Profile (English here).
+      expect(find.byKey(const Key('welcome-wizard')), findsOneWidget);
+      expect(find.text('Welcome aboard!'), findsOneWidget);
+      expect(find.text('Welcome to QuisquisLingo'), findsNothing);
 
       expect(find.text('Create Profile'), findsNothing);
       expect(find.text('QuisquisLingo'), findsNothing);
@@ -120,6 +127,64 @@ void main() {
       await tester.pump(const Duration(seconds: 2));
       expect(find.text('QuisquisLingo Beta testing'), findsNothing);
       expect(find.byKey(const Key('qql-startup-animation')), findsNothing);
+    },
+  );
+
+  testWidgets(
+    'Build 255 Revision 7: the first run speaks the language chosen in '
+    'Create Profile and shows no other notice',
+    (tester) async {
+      final profiles = ProfileService(
+        idGenerator: () => _firstLearnerId,
+        numericSuffixGenerator: () => 12345,
+        randomIndex: (_) => 0,
+      );
+      await tester.pumpWidget(QuisquisLingoApp(profileService: profiles));
+      await _pumpUntil(tester, find.text('Create Profile'));
+      await tester.enterText(
+        find.byKey(const Key('new-learner-screen-name')),
+        'Prima',
+      );
+      final italian = find.descendant(
+        of: find.byKey(const Key('new-learner-language')),
+        matching: find.text('Italiano'),
+      );
+      await tester.ensureVisible(italian);
+      await tester.pumpAndSettle();
+      await tester.tap(italian);
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Continue'));
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(
+        find.widgetWithText(FilledButton, 'Done'),
+        300,
+        scrollable: find.byType(Scrollable),
+      );
+      await tester.tap(find.widgetWithText(FilledButton, 'Done'));
+      await _finishStartupGate(tester);
+      await _pumpUntilHome(tester);
+
+      expect(await LocaleService().read(), AppLocale.italian);
+      expect(find.byKey(const Key('welcome-wizard')), findsOneWidget);
+      expect(find.text('Ti diamo il benvenuto!'), findsOneWidget);
+      expect(find.text('Passo 1 di 5'), findsOneWidget);
+      expect(
+        await SettingsService().hasSeenOneTimeNotice(
+          'welcome_${AppMetadata.technicalVersion}',
+        ),
+        isTrue,
+      );
+
+      await tester.tap(find.byKey(const Key('welcome-wizard-skip')));
+      for (var frame = 0; frame < 20; frame++) {
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 10)),
+        );
+        await tester.pump(const Duration(milliseconds: 50));
+      }
+      // Neither this version's Welcome nor the Beta notice follows.
+      expect(find.byType(AlertDialog), findsNothing);
+      expect(await SettingsService().hasCompletedWelcomeWizard(), isTrue);
     },
   );
 
@@ -406,11 +471,12 @@ Future<void> _finishStartupGate(WidgetTester tester) async {
   fail('Timed out waiting for the startup gate to finish.');
 }
 
-/// Home's first notice for these learners: the Welcome Wizard or the Beta
-/// expiry reminder.
+/// Home's first notice for these learners: the Welcome Wizard, or this
+/// version's Welcome for a learner who has seen the Wizard. The Beta notice
+/// shows only in its last seven days (Build 255 Revision 7).
 Future<void> _pumpUntilHome(WidgetTester tester) => _pumpUntilAny(tester, [
+  find.byKey(const Key('welcome-wizard')),
   find.text('Welcome to QuisquisLingo'),
-  find.text('Beta expiry'),
 ]);
 
 Future<void> _pumpUntilAny(WidgetTester tester, List<Finder> finders) async {

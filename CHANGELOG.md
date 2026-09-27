@@ -1,3 +1,78 @@
+# 2.0.55 (Build 255, Revision 7) - Welcome Wizard, cover crop and credits - 2026-09-27
+
+Owner-requested corrections to Revision 6 and a renewed first launch.
+
+- **Team shared folder dialog:** the explanation of a refused link is shown
+  in full; before, it was cut after two lines ("…other websites and
+  short…"). The link in the field uses a slightly smaller type, so more of
+  it is visible.
+- **Settings:** Advanced (Admin) has one line of description at most. It is
+  now listed for every learner: for learners who are not admins it is
+  greyed out with a lock and cannot be opened, and its tooltip says what it
+  holds (learners and PINs, startup behavior, device name, QQL-Tools, Shared
+  Images, Inventory and resets) and that only an admin can open it. Before,
+  it was hidden from them. Its Help says so (EN/IT/ES).
+- **Cover in Create new course:** the cover can be chosen while the Course
+  is created, not only later in the Course Info Editor. The Course ID is
+  allocated when the dialog opens so the cover can be stored in the Course's
+  own media; a cancelled dialog deletes it, and a new Course's editing
+  session owns everything in its media folder, so cancelling the Editor
+  removes the cover too. Without a cover the field shows a neutral icon,
+  since the Course has no flag yet.
+- **Cover crop:** after choosing a picture, *Crop the cover* shows it with a
+  square: drag the square to choose what the cover shows, make it smaller
+  with its corner or Size to zoom in (down to a fifth of the picture's
+  shorter side), or Reset it to the centred square, which is what an
+  uncropped cover shows. A ready 512 × 512 picture of at most 1 MB, used
+  whole, is still kept as it is. The dialog does not scroll, so dragging is
+  never taken by scrolling; the picture gets the height the window leaves.
+- **Media credits:** the cover field says that a picture someone else made
+  needs a credit in Course Info › Media credits, with author and licence.
+  When the image library knows who made the chosen picture (a QQL image, or
+  a Shared or Course image whose credit is recorded), QQL fills in that
+  credit by itself, applying to the Course cover; a later cover replaces the
+  credit the previous one added while nobody has changed it. A reminder
+  appears whenever a picture of unknown origin joins a Course: an imported
+  or chosen Exercise image, pictures added to a Course's Image Library, a
+  custom Lesson icon, a custom Course flag, a Recognize characters image and
+  the cover. The Audit's MEDIA_ATTRIBUTION_MISSING warning now also counts
+  the cover.
+- **Course Selector:** the current Course has its own row at the top and is
+  no longer repeated under Other courses (Favorites may still list it, as
+  since Build 250). Each row shows the Course's cover when it has one, in a
+  44-pixel square, and its flag otherwise. The Course flag stays separate
+  and still appears in the top bar, the Flag Background and the Course entry
+  animation; the cover field and Help say so.
+- **Enlarged Course image:** in Courses and Course Info the enlarged cover
+  or flag has the Course title and "Source → Target" above it.
+- **Edge Case demo flag:** its flag code was "GB", which QQL does not draw
+  (its English flag is "EN" or "UK"). An explicit flag QQL cannot draw shows
+  the neutral flag rather than an automatic one, so the Course showed a plain
+  beige flag. It is now "EN", the Union Jack QQL draws (Edge Case 1.1.1). A
+  test checks that every bundled Course's flag can be drawn.
+- **First launch:** only a renewed Welcome Wizard follows Create Profile.
+  Its five short steps each have a mascot (the kid, the celebrating cat, the
+  monkey, the robot and the dog): what QuisquisLingo is, Courses made by
+  others and Import Course, Lessons, Rounds, Laurels and Duels, studying a
+  little every day with Review, and making Courses in the hidden Course
+  Studio. Create Profile asks the **language for explanations** (English,
+  Italiano, Español; preselected from the system language): it becomes the
+  learner's Help Language and the Wizard speaks it. The Wizard stands in for
+  this version's Welcome, which now appears only after an update. The Beta
+  expiry reminder appears only in the last seven days before expiry (or once
+  it has expired); before, it appeared at every launch. Learners who already
+  finished the previous Wizard do not see the new one; *Show one-time
+  notices again* in Do Not Disturb shows it again.
+- Tests follow the new behavior: Home tests no longer wait for the Beta
+  reminder, the Selector tests choose the current Course again through a
+  Favorite row, and new tests cover the crop, the creation cover, credits
+  and reminders, the Audit, the Selector, Settings, the Team dialog, the
+  enlarged heading, the bundled flags, the Wizard and the first launch.
+
+Version `2.0.55+255007`; Beta expiry **2026-10-27 23:59:59 local time** (30
+days from the 27 September 2026 release date). See the
+[handoff](docs/255_HANDOFF.md) and [validation](docs/255_VALIDATION.md).
+
 # 2.0.55 (Build 255, Revision 6) - Courses views, Course covers and Team folders - 2026-09-26
 
 Small owner-requested corrections and additions.

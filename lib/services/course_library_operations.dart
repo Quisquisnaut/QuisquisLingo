@@ -567,11 +567,16 @@ class CourseLibraryOperations {
     required CourseFlagSelection flag,
     required int lessonCount,
     required int roundsPerLesson,
+    String? courseId,
+    String coverImage = '',
+    List<CourseMediaAttribution> mediaAttributions = const [],
   }) {
     final updatedAt = _clock().toUtc();
     final nowUtc = updatedAt.toIso8601String();
     return Course(
-      courseId: Course.newCourseId(),
+      // Create new course allocates the ID first when it stores a cover
+      // before the Course exists (Build 255 Revision 7).
+      courseId: courseId ?? Course.newCourseId(),
       originalCourseCreator: CourseProvenanceIdentity.qqlUser(
         profileId: creator.learnerProfileId,
         displayName: creator.presentationName,
@@ -611,6 +616,8 @@ class CourseLibraryOperations {
       flagCode: flag.flagCode,
       flagImageBase64: flag.flagImageBase64,
       worldFlagId: flag.selectedWorldFlagId,
+      coverImage: coverImage,
+      mediaAttributions: mediaAttributions,
       temporarySample: false,
       lessons: NewCourseStructure.create(
         sourceLanguage: sourceLanguage,

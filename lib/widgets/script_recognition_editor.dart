@@ -11,6 +11,7 @@ import '../services/import/selected_external_file.dart';
 import '../services/portable_exercise_image.dart';
 import '../services/storage/qql_storage.dart';
 import 'file_dialog_feedback.dart';
+import 'image_credit_reminder.dart';
 import 'portable_exercise_image.dart';
 import 'quick_import_access.dart';
 
@@ -347,9 +348,12 @@ class ScriptRecognitionEditor extends StatelessWidget {
           ),
         );
         if (asset == null) return null;
-        if (PortableExerciseImageService.isPortable(asset)) return asset;
         // Existing locally imported bank images become course-owned bytes.
-        return await PortableExerciseImageService.fromFile(File(asset));
+        final image = PortableExerciseImageService.isPortable(asset)
+            ? asset
+            : await PortableExerciseImageService.fromFile(File(asset));
+        if (context.mounted) _remindCredit(context, image);
+        return image;
       }
       if (source == 'open_from') {
         // Open from…: same bytes check as the fixed-folder import below.
@@ -373,7 +377,11 @@ class ScriptRecognitionEditor extends StatelessWidget {
           }
           return null;
         }
-        return await PortableExerciseImageService.fromBytes(picked.bytes!);
+        final image = await PortableExerciseImageService.fromBytes(
+          picked.bytes!,
+        );
+        if (context.mounted) _remindCredit(context, image);
+        return image;
       }
       final folder = await _storage.importFolder(QqlStorageRole.imageImports);
       final files = (await folder.files())
@@ -418,12 +426,14 @@ class ScriptRecognitionEditor extends StatelessWidget {
         throw tooLarge;
       }
       try {
-        return await PortableExerciseImageService.fromBytes(
+        final image = await PortableExerciseImageService.fromBytes(
           await readQuickImportFile(
             picked,
             maxBytes: PortableExerciseImageService.maxImageBytes,
           ),
         );
+        if (context.mounted) _remindCredit(context, image);
+        return image;
       } on ImportTooLargeException {
         throw tooLarge;
       } on ImportAccessException catch (error) {
@@ -437,6 +447,12 @@ class ScriptRecognitionEditor extends StatelessWidget {
       }
       return null;
     }
+  }
+
+  /// Build 255 Revision 7: a character image that did not come with QQL gets
+  /// the credit reminder.
+  void _remindCredit(BuildContext context, String image) {
+    if (!image.startsWith('assets/')) showImageCreditReminder(context);
   }
 
   Widget _image(BuildContext context, String asset, String label) => Tooltip(

@@ -84,7 +84,7 @@ enum AuditCode {
     AuditSeverity.warning,
     'Course Info',
     'The course carries media that did not ship with QuisquisLingo, but records no media attribution.',
-    'An embedded Lesson icon, an embedded course flag, an embedded exercise image, an imported exercise image or an imported recording is present while the media attribution list is empty.',
+    'An embedded Lesson icon, an embedded course flag, a cover image, an embedded exercise image, an imported exercise image or an imported recording is present while the media attribution list is empty.',
     'Add the author and licence of each third-party image or recording in Course Info Editor, under License / Rights. Media you made yourself still needs no entry.',
   ),
   courseDescriptionLong(

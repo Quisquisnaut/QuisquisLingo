@@ -341,6 +341,43 @@ void main() {
       expect(await media.storedReferences(_courseId), {existing});
     });
 
+    test('Build 255 Revision 7: a new Course owns what its folder held', () async {
+      // The cover Create new course stored before the session opened.
+      await media.addBytes(
+        _courseId,
+        Uint8List.fromList(const [0x89, 0x50, 0x4e, 0x47, 7, 7, 7]),
+        'png',
+      );
+      final owner = CourseAuthoringMedia(
+        courseId: _courseId,
+        persistedReferences: () async => null,
+        mediaStore: media,
+        newCourse: true,
+      );
+      await owner.ready;
+
+      expect(await owner.discardUnconfirmedMedia(), 1);
+      expect(await media.storedReferences(_courseId), isEmpty);
+    });
+
+    test('Build 255 Revision 7: a stored new Course keeps its cover', () async {
+      final cover = await media.addBytes(
+        _courseId,
+        Uint8List.fromList(const [0x89, 0x50, 0x4e, 0x47, 8, 8, 8]),
+        'png',
+      );
+      final owner = CourseAuthoringMedia(
+        courseId: _courseId,
+        persistedReferences: () async => {cover},
+        mediaStore: media,
+        newCourse: true,
+      );
+      await owner.ready;
+
+      expect(await owner.discardUnconfirmedMedia(), 0);
+      expect(await media.storedReferences(_courseId), {cover});
+    });
+
     test('an unreadable folder removes nothing', () async {
       final owner = CourseAuthoringMedia(
         courseId: _courseId,
