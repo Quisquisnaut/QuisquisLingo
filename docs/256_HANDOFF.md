@@ -7,7 +7,7 @@ condensed specification). Working rules: Part A.1 of the plan. Reference:
 the Session 2 design). Summary: `docs/256_CHANGE_SUMMARY.md`. Evidence:
 `docs/256_VALIDATION.md`.
 
-## State (27 September 2026, 12:52)
+## State (27 September 2026, 14:56)
 
 - Branch `claude/256-exercise-architecture`, created from `main` at
   `611a1a1` (Build 255 handoff; version `2.0.55+255007`).
@@ -100,8 +100,10 @@ the Session 2 design). Summary: `docs/256_CHANGE_SUMMARY.md`. Evidence:
   targets `exercise-field-pairs` and pushes the editors above a home page.
   14:30: the corrected files are green (follow-up file 11 passed, context
   menu 4 passed), analyzer clean. 14:52: **complete suite 2,948 passed, 1
-  skipped, 0 failed** (24 minutes). Committed as the Revision 3 follow-up
-  (same version `2.0.56+256003`), then the Android debug APK and the sound.
+  skipped, 0 failed** (24 minutes). Committed as **`1068fa4` Build 256
+  Revision 3 follow-up** (same version `2.0.56+256003`); the Android debug
+  APK was rebuilt (`buildpp\outputslutter-apkpp-debug.apk`,
+  208,700,575 bytes, 14:54) and the sound played.
   **Revision 4 waits for the owner's approval**: then `git stash pop`
   restores Stage 1 (stash@{0}) and Session 5 continues from "Session 5
   starting points" below, with the direction decisions (pairs only where
