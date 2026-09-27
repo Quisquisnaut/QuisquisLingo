@@ -7,7 +7,7 @@ condensed specification). Working rules: Part A.1 of the plan. Reference:
 the Session 2 design). Summary: `docs/256_CHANGE_SUMMARY.md`. Evidence:
 `docs/256_VALIDATION.md`.
 
-## State (27 September 2026, 12:40)
+## State (27 September 2026, 12:52)
 
 - Branch `claude/256-exercise-architecture`, created from `main` at
   `611a1a1` (Build 255 handoff; version `2.0.55+255007`).
@@ -28,6 +28,39 @@ the Session 2 design). Summary: `docs/256_CHANGE_SUMMARY.md`. Evidence:
   every revision). **Session 5 (Revision 4, the preset catalogue) starts next**
   from "Session 5 starting points" below and
   `docs/256_PRESET_CATALOGUE_PLAN.md`.
+- **Session 5 (Revision 4, the preset catalogue) started 12:45 and stopped
+  at 12:52 on the owner's usage limit.** Stage 1 is APPLIED BUT UNVERIFIED
+  in the working tree (uncommitted; scratchpad `s5_stage1.py`): skill
+  groups replace `ExerciseCategory` (vocabulary, grammarAndSentences,
+  listening, readingAndDialogue, picturesAndCharacters, cardsAndNotes,
+  comingLater), `PresetDirection` and `ExercisePreset.direction`/`action`,
+  `ComingLaterPreset` + `ExercisePresetRegistry.comingLater` (seven greyed
+  presets, not in `presets`), the 24 presets regrouped, five approved
+  renames (Choose the answer, Pick the missing word, Match by meaning,
+  Listen and fill the gaps, Spell the word in the picture) with the Audit
+  kind labels and the Choose Help texts (EN/IT/ES) updated, the picker's
+  direction filter (`exercise-preset-direction`), action chips
+  (`_PresetActionChip`), greyed "Coming later" tiles
+  (`exercise-preset-later-<id>`) and per-preset keys
+  (`exercise-preset-<id>`), the Wizard skipping empty groups, the planner's
+  `_balanced` skipping empty groups, Exercise Help's Coming later section,
+  the catalogs' seven group keys and `exerciseHelp.comingLater`, and five
+  test files adjusted (`exercise_architecture_224` 7 groups,
+  `course_editor_224` group titles, `translation_choice_239` Vocabulary,
+  `exercise_creation_planner` Vocabulary set incl. matching/word_match/super_match,
+  `exercise_help_224` 'Choose the answer'). **Next:** `flutter analyze
+  --no-pub`, then the focused tests (`exercise_architecture_224`,
+  `course_editor_224`, `translation_choice_239`, `exercise_creation_planner`,
+  `exercise_help_224`, `exercise_help_search_226_03_r1`,
+  `localization_catalog`, `exercise_field_help*`, `qql_231_search_service`,
+  `preset_recipes_256`, `canonical_primitives_256`, `exercise_laboratory_254`
+  and the Wizard tests), fix what they show, write
+  `test/preset_catalogue_256_test.dart` (groups, directions, coming-later
+  list, picker filter and greyed tiles, planner with an empty group), then
+  Stage 2 (merged and paired presets with canonical recipes, example
+  content, save guard), Stage 3 (new presets and runtime additions), Stage
+  4 (bundled Courses), version `2.0.56+256004` (see the version-pin list
+  above), docs, suite, commit, APK, sound.
 - Untracked files that are the owner's and stay untouched:
   `devtools_options.yaml`, `tools/cloud_setup.sh` (commit with
   `git add -A -- . ':!devtools_options.yaml' ':!tools/cloud_setup.sh'`).
