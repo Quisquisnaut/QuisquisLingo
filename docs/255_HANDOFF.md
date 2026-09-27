@@ -30,12 +30,20 @@ owner's and not part of this work: never stage, move or delete them.
 | `d2b7132` | **Revision 7** `2.0.55+255007` on branch `claude/255-rev7-fixes` (from `main` at `3d4de23`): Team dialog refusal in full, Advanced (Admin) one line and greyed for non-admins, cover in Create new course, Crop the cover, known credits and reminders (Audit counts the cover), Selector covers without repeating the current Course, enlarged title and languages, Edge Case flag `EN`, first launch with only the renewed Welcome Wizard in the language chosen in Create Profile. Suite 2,786 passed, 1 skip. Beta expiry `2026-10-27 23:59:59`. |
 | `73f3c67` | Handoff through Revision 7. |
 | `3cc644d` | **Revision 7 follow-up** (same version `2.0.55+255007`, owner request): Recognize characters "Choose from Image Bank" pushes an `ExerciseImageMetadata` route and uses `assetPath`. It pushed a `String` route, so Use image failed. New widget test. Focused tests 201 passed, analyzer clean; no further complete suite run (owner). |
+| `05024f1` | Handoff through the Revision 7 follow-up. |
+| `368d8ce` | Merge of [PR #26](https://github.com/Quisquisnaut/QuisquisLingo/pull/26) into `main` (merge commit; the PR also carried `3d4de23`, the handoff note for PR #25 that had stayed local). |
 
 ## Status
 
-**Revision 7 (`2.0.55+255007`) is complete and committed locally** (27
-September 2026) as `d2b7132` on branch `claude/255-rev7-fixes`, created from
-`main` at `3d4de23`; nothing is pushed. Owner decisions (26–27 September 2026):
+**Revision 7 (`2.0.55+255007`) is complete and merged** (27 September
+2026). `d2b7132` (committed on branch `claude/255-rev7-fixes`, created from
+`main` at `3d4de23`) and the follow-up `3cc644d` reached `main` through
+[PR #26](https://github.com/Quisquisnaut/QuisquisLingo/pull/26), merge commit
+`368d8ce` (03:59 local time). The PR branch `claude/modest-williams-a10e8f`
+was deleted on GitHub and locally. `claude/255-rev7-fixes`, never pushed,
+was deleted locally. Only `main` remains on both sides, and the local
+checkout is on `main` at `368d8ce` plus this handoff note. Owner decisions
+(26–27 September 2026):
 
 1. Team shared folder dialog: the refusal message is shown in full (it was
    cut at "other websites and short…"); the link in the field is slightly
@@ -105,17 +113,26 @@ emulator check. Details in `docs/255_VALIDATION.md`.
 
 Follow-up in the same version (owner request, 27 September 2026), committed
 as `3cc644d`. This was done in a separate session on branch
-`claude/modest-williams-a10e8f`, fast-forwarded to `73f3c67`. The Recognize characters "Choose from Image
-Bank" route pushed a `String` route while the image library pops the chosen
-`ExerciseImageMetadata`, so Use image failed and the library stayed open. It
-now pushes `<ExerciseImageMetadata>` and uses `assetPath`, and a new test
-shows the failure and the fix. The focused tests (201) and the analyzer
-pass; the owner asked for no further complete suite run. Details in
-`docs/255_VALIDATION.md`.
+`claude/modest-williams-a10e8f`, fast-forwarded to `73f3c67`. The Recognize
+characters "Choose from Image Bank" route pushed a `String` route while the
+image library pops the chosen `ExerciseImageMetadata`, so Use image failed
+and the library stayed open. It now pushes `<ExerciseImageMetadata>` and
+uses `assetPath`, and a new test shows the failure and the fix. The focused
+tests (201) and the analyzer pass; the owner asked for no further complete
+suite run. Details in `docs/255_VALIDATION.md`.
 
-Next (owner, 27 September 2026): push, PR and merge Revision 7 with the
-follow-up; delete the branch on GitHub and locally; bring the local checkout
-to `main`; build the Windows package.
+Windows package (owner request, 27 September 2026):
+`tools\package_windows_release.ps1 -RebuildFlutterApplication` passed in
+3 min 8 s. It ran from `C:\QQL\QuisquisLingo` on `main` at `368d8ce`. The
+package is `build\packages\quisquislingo_windows_beta_255007.zip` (486
+files, 28,693,653 bytes, SHA-256
+`D8427CF08EB058D8436FA9CD74BE7B800867E742749CE63529977FF084A94BDA`), with
+the staged folder beside it; its entry point is `QuisquisLingo.exe`. It is
+not published as a GitHub Release, and no emulator check was made. The
+earlier ZIPs in `C:\QQL\Final Releases` stay as rollback copies until this
+package has been tested.
+
+Next: the owner's test of the Windows package (`docs/WINDOWS_RELEASE_TEST.md`).
 
 **Revision 6 (`2.0.55+255006`) is complete and merged** (26 September
 2026): commit `b56b9bf` reached `main` through
