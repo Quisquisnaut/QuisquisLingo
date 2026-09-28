@@ -103,6 +103,23 @@ held for the run and cleared afterwards).
   rerun 252 green. Complete suite, run 2 on the final tree (19:09–19:39):
   **3139 passed, 1 skipped, 0 failed**.
 
+## Revision 5 third follow-up (same version), 28 September 2026, night
+
+- Owner requests (21:10 and 21:25): the Round Wizard and the Story Wizard
+  move to the Rounds page, the Story Wizard is renamed New Story, the
+  "Lines are never skipped" sentence leaves the Story options; in a Story
+  the Round editor replaces New exercise / New canonical / Exercise Wizard
+  with Add step (title block once and first, dialogue line, exercise).
+- `flutter analyze`: no issues; `dart format` clean on every changed file.
+- Focused batch (Add step, New Story, Story editor, Revision 3 follow-up,
+  generator, transaction, 231 modes, Exercise Wizard, Help, workflow,
+  translation choice, Audit, hierarchy indicators, Audit UI, context
+  menus): 164 tests, **163 passed, 1 failed** (the new test reused the
+  editor State between two pumps; helper fixed), then the five Add step
+  tests green on their own.
+- Complete suite on the final tree (`flutter test --concurrency=1`, 28
+  September 2026, 22:03–22:28): **3144 passed, 1 skipped, 0 failed**.
+
 ## Revision 5 second follow-up (same version), 28 September 2026, evening
 
 - Owner request: no DIALOGUE heading on a Dialogue line. One condition in

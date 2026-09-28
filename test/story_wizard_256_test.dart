@@ -8,10 +8,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'support/test_directories.dart';
 
-/// Build 256 Revision 5, Stage 4: the Story Wizard. A → B → C → builder,
-/// at least one line, an exercise step returns to the builder, Finish
-/// creates the Story Round through the Lesson editor's session, Cancel
-/// creates nothing.
+/// Build 256 Revision 5, Stage 4: New Story (the Story Wizard), a button of
+/// the Rounds page since the third follow-up. A → B → C → builder, at least
+/// one line, an exercise step returns to the builder, Finish creates the
+/// Story Round through the Rounds page's session, Cancel creates nothing.
 const _profileId = '12345678-1234-4234-9234-123456789abc';
 final _stamp = DateTime.utc(2026, 9, 28, 9);
 
@@ -62,14 +62,14 @@ Future<void> _tap(WidgetTester tester, Finder finder) async {
   await tester.pumpAndSettle();
 }
 
-Future<void> _pumpLessonEditor(
+Future<void> _pumpRoundsPage(
   WidgetTester tester,
   Course course,
   ValueChanged<Course> onChanged,
 ) async {
   await tester.pumpWidget(
     MaterialApp(
-      home: LessonEditorScreen(
+      home: LessonRoundsScreen(
         course: course,
         lesson: course.lessons.first,
         onCourseChanged: onChanged,
@@ -95,18 +95,18 @@ void main() {
     keepCrashLogUnavailable();
   });
 
-  testWidgets('the Story Wizard needs no GuideBook', (tester) async {
+  testWidgets('New Story needs no GuideBook', (tester) async {
     _bigWindow(tester);
-    await _pumpLessonEditor(tester, _course(), (_) {});
+    await _pumpRoundsPage(tester, _course(), (_) {});
     expect(
       tester
-          .widget<FilledButton>(find.byKey(const Key('lesson-round-wizard')))
+          .widget<FilledButton>(find.byKey(const Key('rounds-round-wizard')))
           .onPressed,
       isNull,
     );
     expect(
       tester
-          .widget<FilledButton>(find.byKey(const Key('lesson-story-wizard')))
+          .widget<FilledButton>(find.byKey(const Key('rounds-new-story')))
           .onPressed,
       isNotNull,
     );
@@ -117,8 +117,8 @@ void main() {
     (tester) async {
       _bigWindow(tester);
       Course? changed;
-      await _pumpLessonEditor(tester, _course(), (value) => changed = value);
-      await _tap(tester, find.byKey(const Key('lesson-story-wizard')));
+      await _pumpRoundsPage(tester, _course(), (value) => changed = value);
+      await _tap(tester, find.byKey(const Key('rounds-new-story')));
       expect(find.byKey(const Key('story-wizard-step-story')), findsOneWidget);
 
       // A: the title is required; read-aloud on request.
@@ -251,7 +251,7 @@ void main() {
       await _tap(tester, find.byType(CheckboxListTile));
 
       await _tap(tester, find.byKey(const Key('story-wizard-finish')));
-      expect(find.byType(LessonEditorScreen), findsOneWidget);
+      expect(find.byType(LessonRoundsScreen), findsOneWidget);
       final lesson = changed!.lessons.first;
       expect(lesson.rounds, hasLength(1));
       final round = lesson.rounds.single;
@@ -301,8 +301,8 @@ void main() {
     _bigWindow(tester);
     Course? changed;
     final course = _course();
-    await _pumpLessonEditor(tester, course, (value) => changed = value);
-    await _tap(tester, find.byKey(const Key('lesson-story-wizard')));
+    await _pumpRoundsPage(tester, course, (value) => changed = value);
+    await _tap(tester, find.byKey(const Key('rounds-new-story')));
     await tester.enterText(
       find.byKey(const Key('story-wizard-title')),
       'Never told',
@@ -317,7 +317,7 @@ void main() {
     await tester.pumpAndSettle();
     await _tap(tester, find.byKey(const Key('story-speaker-save')));
     await _tap(tester, find.byKey(const Key('story-wizard-cancel')));
-    expect(find.byType(LessonEditorScreen), findsOneWidget);
+    expect(find.byType(LessonRoundsScreen), findsOneWidget);
     expect(changed, isNull);
   });
 }

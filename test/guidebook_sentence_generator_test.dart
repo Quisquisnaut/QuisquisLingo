@@ -18,7 +18,8 @@ void main() {
       final routeResults = <Lesson?>[];
       await _openLessonEditor(tester, fixture, routeResults: routeResults);
 
-      await tester.tap(find.byKey(const Key('lesson-round-wizard')));
+      await _tapKeyAndSettle(tester, 'lesson-rounds-navigation');
+      await tester.tap(find.byKey(const Key('rounds-round-wizard')));
       await tester.pumpAndSettle();
 
       expect(
@@ -37,6 +38,10 @@ void main() {
       await _scrollToKey(tester, 'generator-cancel');
       await tester.tap(find.byKey(const Key('generator-cancel')));
       await tester.pumpAndSettle();
+      // Back from the Rounds page to the Lesson editor, then Save.
+      await tester.tap(find.byType(BackButton));
+      await tester.pumpAndSettle();
+      expect(find.byType(LessonEditorScreen), findsOneWidget);
       await _tapKeyAndSettle(tester, 'save-lesson');
 
       expect(routeResults, hasLength(1));
@@ -58,7 +63,8 @@ void main() {
       final routeResults = <Lesson?>[];
       await _openLessonEditor(tester, fixture, routeResults: routeResults);
 
-      await tester.tap(find.byKey(const Key('lesson-round-wizard')));
+      await _tapKeyAndSettle(tester, 'lesson-rounds-navigation');
+      await tester.tap(find.byKey(const Key('rounds-round-wizard')));
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('generator-review-plan')));
       await tester.pumpAndSettle();
@@ -75,6 +81,10 @@ void main() {
       await _scrollToKey(tester, 'generator-approve');
       await tester.tap(find.byKey(const Key('generator-approve')));
       await tester.pumpAndSettle();
+      // Back from the Rounds page to the Lesson editor, then Save.
+      await tester.tap(find.byType(BackButton));
+      await tester.pumpAndSettle();
+      expect(find.byType(LessonEditorScreen), findsOneWidget);
       await _tapKeyAndSettle(tester, 'save-lesson');
 
       expect(routeResults, hasLength(1));

@@ -422,7 +422,9 @@ void main() {
       await _settle(tester);
       expect(find.byType(LessonEditorScreen), findsOneWidget);
 
-      await tester.tap(find.byKey(const Key('lesson-round-wizard')));
+      await tester.tap(find.byKey(const Key('lesson-rounds-navigation')));
+      await _settle(tester);
+      await tester.tap(find.byKey(const Key('rounds-round-wizard')));
       await _settle(tester);
       await tester.enterText(
         find.byKey(const Key('generator-round-count')),
@@ -439,14 +441,12 @@ void main() {
       expect(find.textContaining('Automatic audit: 0 errors'), findsOneWidget);
       await tester.tap(find.byKey(const Key('generator-approve')));
       await _settle(tester);
-      expect(find.byType(LessonEditorScreen), findsOneWidget);
+      expect(find.byType(LessonRoundsScreen), findsOneWidget);
       expect(
         find.byKey(const Key('course-transaction-confirmation')),
         findsNothing,
       );
 
-      await tester.tap(find.byKey(const Key('lesson-rounds-navigation')));
-      await _settle(tester);
       await tester.tap(find.widgetWithText(FloatingActionButton, 'New round'));
       await _settle(tester);
       await tester.enterText(find.byType(TextFormField), 'Created round');

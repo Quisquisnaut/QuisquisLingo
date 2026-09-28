@@ -274,11 +274,14 @@ void main() {
     expect(find.byTooltip('Rename lesson'), findsNothing);
     expect(find.byTooltip('Generate Rounds from GuideBook'), findsNothing);
     expect(find.byKey(const Key('lesson-title-control')), findsNothing);
-    expect(find.byKey(const Key('lesson-round-wizard')), findsOneWidget);
+    expect(find.byKey(const Key('lesson-round-wizard')), findsNothing);
 
     await tester.tap(find.byKey(const Key('lesson-rounds-navigation')));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('rounds-search-action')), findsOneWidget);
+    // The wizards sit on the Rounds page (Revision 5, third follow-up).
+    expect(find.byKey(const Key('rounds-round-wizard')), findsOneWidget);
+    expect(find.byKey(const Key('rounds-new-story')), findsOneWidget);
     await tester.tap(find.text('Greetings'));
     await tester.pumpAndSettle();
 

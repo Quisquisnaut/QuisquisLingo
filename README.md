@@ -42,8 +42,8 @@ successors and every stored exercise keeps its shape. Revision 5 adds
 **Stories** ([plan](docs/256_STORY_PLAN.md)): a narrator and reusable
 characters with avatars and voice preferences, the Dialogue line and Story
 cover presets, the Story options in the Round editor (title, scrolling,
-dialogue-only log, read-aloud, exercises that need the Story's audio), a
-Story Wizard in the Lesson editor, and a Story Lesson in each bundled demo.
+dialogue-only log, read-aloud, exercises that need the Story's audio), the
+New Story button on the Rounds page, and a Story Lesson in each bundled demo.
 Scoring and learner data are unchanged. The Beta expiry is 28 October
 2026, 23:59:59 local time.
 

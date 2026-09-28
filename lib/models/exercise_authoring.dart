@@ -642,6 +642,6 @@ abstract final class ExercisePresetRegistry {
     'dialogue_line':
         'One line of a Story. Choose who speaks (the narrator or a Story character of the Course), write the line, and choose whether the learner reads it, hears it or both; read-aloud follows the Story unless the line overrides it. A line is never skipped: without audio the learner reads it. No answer, no score; Continue moves on.',
     'story_cover':
-        'The first card of a Story: the cover picture and an optional title line under the Story title. Continue moves on. Build Stories with the Story Wizard or with Play as a Story in the Round editor.',
+        'The first card of a Story: the cover picture and an optional title line under the Story title. Continue moves on. Build Stories with New Story on the Rounds page or with Play as a Story in the Round editor.',
   };
 }

@@ -4901,55 +4901,6 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
     setState(() => _themeIconAsset = selected == none ? null : selected);
   }
 
-  /// Build 256 Revision 5: the Story Wizard builds one Story Round (a cover,
-  /// lines and exercises) and hands back the narrator and characters it
-  /// edited; both reach the working copy through the authoring session, so
-  /// the Course confirmation still decides persistence.
-  Future<void> _openStoryWizard() async {
-    if (widget.readOnly) return;
-    final result = await Navigator.of(context).push<StoryWizardResult>(
-      MaterialPageRoute(
-        builder: (_) => StoryWizardScreen(
-          course: _courseWithIcons,
-          lesson: _lesson,
-          clock: _clock,
-        ),
-      ),
-    );
-    if (result == null || !mounted) return;
-    final lesson = _copy(rounds: [..._lesson.rounds, result.round]);
-    _adoptCourse(
-      _hierarchyUpdates.apply(
-        _courseWithSpeakers(
-          _course,
-          narrator: result.narrator,
-          characters: result.characters,
-          credits: result.credits,
-        ),
-        ReplaceLesson(
-          lesson.lessonId,
-          lesson,
-          lessonIconAssets: _lessonIconAssets,
-        ),
-      ),
-    );
-  }
-
-  Future<void> _openGuidebookRoundGenerator() async {
-    if (widget.readOnly) return;
-    final generated = await Navigator.of(context).push<List<LearningRound>>(
-      MaterialPageRoute(
-        builder: (_) => GuidebookRoundGeneratorScreen(
-          course: _courseWithIcons,
-          lesson: _lesson,
-          clock: _clock,
-        ),
-      ),
-    );
-    if (generated == null || generated.isEmpty || !mounted) return;
-    _publishLesson(_copy(rounds: [..._lesson.rounds, ...generated]));
-  }
-
   Future<void> _openSearch() async {
     final result = await Navigator.of(context).push<ExerciseSearchResult>(
       MaterialPageRoute(
@@ -5037,27 +4988,6 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
                     key: const Key('save-lesson'),
                     onPressed: () => _saveLesson(PublicationState.published),
                     child: const Text('Save'),
-                  ),
-                  Tooltip(
-                    message: widget.course.useGuidebook
-                        ? 'Generate Rounds from this Lesson\'s GuideBook.'
-                        : 'The Round Wizard builds Rounds from the Lesson GuideBook. Turn on Use GuideBook in the Course Editor\'s Lesson Options to use it.',
-                    child: FilledButton.icon(
-                      key: const Key('lesson-round-wizard'),
-                      style: _compactButtonStyle,
-                      onPressed: widget.course.useGuidebook
-                          ? _openGuidebookRoundGenerator
-                          : null,
-                      icon: const Icon(Icons.auto_awesome_outlined),
-                      label: const Text('Round Wizard'),
-                    ),
-                  ),
-                  FilledButton.icon(
-                    key: const Key('lesson-story-wizard'),
-                    style: _compactButtonStyle,
-                    onPressed: _openStoryWizard,
-                    icon: const Icon(Icons.auto_stories_outlined),
-                    label: const Text('Story Wizard'),
                   ),
                 ],
               ],
@@ -5639,7 +5569,8 @@ const storyWizardPresets = <String>[
 
 enum _StoryWizardStage { story, narrator, characters, builder }
 
-/// The Story Wizard (Build 256 Revision 5, `docs/256_STORY_PLAN.md` §5):
+/// New Story, the Story Wizard (Build 256 Revision 5, `docs/256_STORY_PLAN.md`
+/// §5; a button of the Rounds page since the third follow-up):
 /// A the Story (title, cover picture, read-aloud), B the narrator, C the
 /// characters, then the builder, where lines (an inline form) and
 /// exercises (the normal exercise form on top of this route) are added,
@@ -5723,18 +5654,7 @@ class _StoryWizardScreenState extends State<StoryWizardScreen> {
   );
 
   Exercise _lineExercise(String id, StoryLineValues values) =>
-      ExerciseDraftBuilder.build(
-        ExerciseDraftValues(
-          original: _blank(id),
-          type: 'dialogue_line',
-          publicationState: PublicationState.published,
-          prompt: values.text,
-          speakerId: values.speakerId,
-          lineMode: values.mode,
-          lineReadAloud: values.readAloud,
-          lineTextReveal: values.textReveal,
-        ),
-      ).candidate!;
+      _dialogueLineExercise(id, values, updatedAt: _clock().toUtc());
 
   void _next() => setState(
     () => _stage =
@@ -5832,38 +5752,7 @@ class _StoryWizardScreenState extends State<StoryWizardScreen> {
   }
 
   Future<void> _addExercise() async {
-    final presetId = await showModalBottomSheet<String>(
-      context: context,
-      isScrollControlled: true,
-      builder: (sheetContext) => SafeArea(
-        child: ListView(
-          shrinkWrap: true,
-          padding: const EdgeInsets.fromLTRB(12, 12, 12, 24),
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(4, 0, 4, 8),
-              child: Text(
-                'Add an exercise to the Story',
-                style: Theme.of(
-                  context,
-                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
-              ),
-            ),
-            for (final id in storyWizardPresets)
-              if (ExercisePresetRegistry.byId(id) case final preset?)
-                Card(
-                  key: ValueKey('story-wizard-preset-$id'),
-                  child: ListTile(
-                    leading: _PresetActionChip(preset.action),
-                    title: Text(preset.name),
-                    subtitle: Text(preset.description),
-                    onTap: () => Navigator.pop(sheetContext, id),
-                  ),
-                ),
-          ],
-        ),
-      ),
-    );
+    final presetId = await _chooseStoryPreset(context);
     if (presetId == null || !mounted) return;
     final exercise = await Navigator.of(context).push<Exercise>(
       MaterialPageRoute(
@@ -5966,7 +5855,7 @@ class _StoryWizardScreenState extends State<StoryWizardScreen> {
     const names = ['Story', 'Narrator', 'Characters', 'Steps'];
     return Scaffold(
       appBar: AppBar(
-        title: Text('Story Wizard · ${names[index]} (${index + 1} of 4)'),
+        title: Text('New Story · ${names[index]} (${index + 1} of 4)'),
         actions: const [EditorAppBarActions()],
       ),
       bottomNavigationBar: SafeArea(
@@ -6481,6 +6370,53 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
     }
   }
 
+  /// The Round Wizard (on this page since the Build 256 Revision 5 third
+  /// follow-up; the Lesson editor's bottom bar before): the approved Rounds
+  /// are appended after the existing ones through the authoring session.
+  Future<void> _openGuidebookRoundGenerator() async {
+    if (widget.readOnly) return;
+    final generated = await Navigator.of(context).push<List<LearningRound>>(
+      MaterialPageRoute(
+        builder: (_) => GuidebookRoundGeneratorScreen(
+          course: _auditableCourse,
+          lesson: _draftLesson,
+          clock: _clock,
+        ),
+      ),
+    );
+    if (generated == null || generated.isEmpty || !mounted) return;
+    _updateRounds([..._rounds, ...generated]);
+  }
+
+  /// New Story (the Story Wizard, Build 256 Revision 5) builds one Story
+  /// Round (a cover, lines and exercises) and hands back the narrator and
+  /// characters it edited; both reach the working copy through the
+  /// authoring session, so the Course confirmation still decides.
+  Future<void> _openStoryWizard() async {
+    if (widget.readOnly) return;
+    final result = await Navigator.of(context).push<StoryWizardResult>(
+      MaterialPageRoute(
+        builder: (_) => StoryWizardScreen(
+          course: _auditableCourse,
+          lesson: _draftLesson,
+          clock: _clock,
+        ),
+      ),
+    );
+    if (result == null || !mounted) return;
+    _adoptCourse(
+      _hierarchyUpdates.apply(
+        _courseWithSpeakers(
+          _course,
+          narrator: result.narrator,
+          characters: result.characters,
+          credits: result.credits,
+        ),
+        ReplaceRounds(widget.lesson.lessonId, [..._rounds, result.round]),
+      ),
+    );
+  }
+
   Lesson get _draftLesson => Lesson.fromJson({
     ..._currentLesson.toJson(),
     'rounds': _rounds.map((round) => round.toJson()).toList(),
@@ -6749,6 +6685,40 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
                 onPressed: _add,
                 icon: const Icon(Icons.add),
                 label: const Text('New round'),
+              ),
+        bottomNavigationBar: widget.readOnly
+            ? null
+            : SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+                  child: Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      Tooltip(
+                        message: _course.useGuidebook
+                            ? 'Generate Rounds from this Lesson\'s GuideBook.'
+                            : 'The Round Wizard builds Rounds from the Lesson GuideBook. Turn on Use GuideBook in the Course Editor\'s Lesson Options to use it.',
+                        child: FilledButton.icon(
+                          key: const Key('rounds-round-wizard'),
+                          style: _compactButtonStyle,
+                          onPressed: _course.useGuidebook
+                              ? _openGuidebookRoundGenerator
+                              : null,
+                          icon: const Icon(Icons.auto_awesome_outlined),
+                          label: const Text('Round Wizard'),
+                        ),
+                      ),
+                      FilledButton.icon(
+                        key: const Key('rounds-new-story'),
+                        style: _compactButtonStyle,
+                        onPressed: _openStoryWizard,
+                        icon: const Icon(Icons.auto_stories_outlined),
+                        label: const Text('New Story'),
+                      ),
+                    ],
+                  ),
+                ),
               ),
         body: ReorderableListView.builder(
           key: const Key('lesson-rounds-list'),
@@ -7264,7 +7234,13 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
             lesson.rounds.any((round) => round.id == widget.round.id),
       );
 
-  void _acceptExercise(Exercise exercise) {
+  void _acceptExercise(Exercise exercise) => _acceptExerciseAt(exercise);
+
+  /// A saved title block goes first: the cover is a Story's first card.
+  void _acceptFirst(Exercise exercise) =>
+      _acceptExerciseAt(exercise, first: true);
+
+  void _acceptExerciseAt(Exercise exercise, {bool first = false}) {
     if (widget.readOnly) return;
     final index = _exercises.indexWhere((value) => value.id == exercise.id);
     if (index >= 0 &&
@@ -7272,10 +7248,12 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
       return;
     }
     _mutateRound(() {
-      if (index < 0) {
-        _exercises.add(exercise);
-      } else {
+      if (index >= 0) {
         _exercises[index] = exercise;
+      } else if (first) {
+        _exercises.insert(0, exercise);
+      } else {
+        _exercises.add(exercise);
       }
     });
   }
@@ -7302,18 +7280,27 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
     if (e != null && mounted) _acceptExercise(e);
   }
 
-  Future<void> _insert() async {
+  Future<void> _insert() =>
+      _insertPreset(TranslationChoice.toTarget, title: 'New exercise');
+
+  /// A new exercise from a preset's form. A Story's title block (`first`)
+  /// goes before every other step.
+  Future<void> _insertPreset(
+    String presetId, {
+    required String title,
+    bool first = false,
+  }) async {
     if (widget.readOnly) return;
     final e = await Navigator.of(context).push<Exercise>(
       MaterialPageRoute(
         builder: (_) => _exerciseEditorFor(
-          exercise: _blankExerciseForPreset(TranslationChoice.toTarget, _ids),
-          title: 'New exercise',
+          exercise: _blankExerciseForPreset(presetId, _ids),
+          title: title,
           isNew: true,
           course: _workingCourse,
           lesson: _lesson,
           round: _editedRound(),
-          onExerciseSaved: _acceptExercise,
+          onExerciseSaved: first ? _acceptFirst : _acceptExercise,
           linkParent: true,
           clock: _clock,
         ),
@@ -7321,8 +7308,151 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
     );
     if (e == null || !mounted) return;
     if (!_exercises.any((item) => item.id == e.id)) {
-      _mutateRound(() => _exercises.add(e));
+      _mutateRound(() {
+        if (first) {
+          _exercises.insert(0, e);
+        } else {
+          _exercises.add(e);
+        }
+      });
     }
+    _warnLength();
+  }
+
+  static bool _isCover(Exercise exercise) =>
+      ExerciseFeatures(exercise).kind == LearnerExerciseKind.storyCover;
+
+  static bool _isLine(Exercise exercise) =>
+      ExerciseFeatures(exercise).kind == LearnerExerciseKind.dialogueLine;
+
+  /// What the Story holds, under its options: a Story has one title block
+  /// and at least one Dialogue line (owner rule, 28 September 2026).
+  String get _storyStepsSummary {
+    final covers = _exercises.where(_isCover).length;
+    final lines = _exercises.where(_isLine).length;
+    final exercises = _exercises.length - covers - lines;
+    final title = switch (covers) {
+      0 => 'No title block yet: add it with Add step',
+      1 => 'Title block: 1',
+      _ => 'Title blocks: $covers (a Story has one)',
+    };
+    final dialogue = lines == 0
+        ? 'no Dialogue line yet: add at least one with Add step'
+        : 'Dialogue lines: $lines';
+    return '$title · $dialogue · Exercises: $exercises.';
+  }
+
+  /// Add step (Build 256 Revision 5, third follow-up): in a Story, one
+  /// button instead of New exercise, New canonical and Exercise Wizard; it
+  /// asks for the block type. The title block is offered once, a Dialogue
+  /// line uses the short form New Story uses, an exercise the presets a
+  /// Story may use.
+  Future<void> _addStoryStep() async {
+    if (widget.readOnly || _flow == null) return;
+    final hasCover = _exercises.any(_isCover);
+    final hasLine = _exercises.any(_isLine);
+    final choice = await showModalBottomSheet<_StoryStepType>(
+      context: context,
+      isScrollControlled: true,
+      builder: (sheetContext) => SafeArea(
+        child: ListView(
+          shrinkWrap: true,
+          padding: const EdgeInsets.fromLTRB(12, 12, 12, 24),
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(4, 0, 4, 4),
+              child: Text(
+                'Add a step to the Story',
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+              ),
+            ),
+            const Padding(
+              padding: EdgeInsets.fromLTRB(4, 0, 4, 8),
+              child: Text(
+                'A Story has one title block, at least one Dialogue line and any number of exercises. A new step goes at the end (the title block first); drag it where it belongs.',
+              ),
+            ),
+            Card(
+              key: const Key('story-step-title'),
+              child: ListTile(
+                enabled: !hasCover,
+                leading: const Icon(Icons.auto_stories_outlined),
+                title: const Text('Title block'),
+                subtitle: Text(
+                  hasCover
+                      ? 'This Story already has its title block; edit it in the list.'
+                      : 'The cover: the Story title, its picture and an optional title line.',
+                ),
+                onTap: hasCover
+                    ? null
+                    : () => Navigator.pop(sheetContext, _StoryStepType.title),
+              ),
+            ),
+            Card(
+              key: const Key('story-step-line'),
+              child: ListTile(
+                leading: const Icon(Icons.chat_bubble_outline),
+                title: const Text('Dialogue line'),
+                subtitle: Text(
+                  hasLine
+                      ? 'Said by the narrator or a character; read, heard or both.'
+                      : 'Said by the narrator or a character; read, heard or both. The Story needs at least one.',
+                ),
+                onTap: () => Navigator.pop(sheetContext, _StoryStepType.line),
+              ),
+            ),
+            Card(
+              key: const Key('story-step-exercise'),
+              child: ListTile(
+                leading: const Icon(Icons.quiz_outlined),
+                title: const Text('Exercise'),
+                subtitle: const Text(
+                  'A question about the Story, from the presets a Story may use. Only exercises score.',
+                ),
+                onTap: () =>
+                    Navigator.pop(sheetContext, _StoryStepType.exercise),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (choice == null || !mounted) return;
+    switch (choice) {
+      case _StoryStepType.title:
+        await _insertPreset(
+          'story_cover',
+          title: 'New title block',
+          first: true,
+        );
+      case _StoryStepType.line:
+        await _insertLine();
+      case _StoryStepType.exercise:
+        final presetId = await _chooseStoryPreset(context);
+        if (presetId == null || !mounted) return;
+        await _insertPreset(presetId, title: 'New exercise');
+    }
+  }
+
+  /// A Dialogue line typed in the short form New Story uses; Edit opens the
+  /// full form afterwards (its language, for one).
+  Future<void> _insertLine() async {
+    if (widget.readOnly) return;
+    final values = await showStoryLineDialog(
+      context,
+      narrator: _course.narrator,
+      characters: _course.storyCharacters,
+    );
+    if (values == null || !mounted) return;
+    _acceptExercise(
+      _dialogueLineExercise(
+        _ids.next('exercise'),
+        values,
+        updatedAt: _clock().toUtc(),
+      ),
+    );
     _warnLength();
   }
 
@@ -8014,27 +8144,38 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
                     onPressed: () => _saveRound(PublicationState.published),
                     child: const Text('Save'),
                   ),
-                  OutlinedButton.icon(
-                    key: const Key('new-exercise'),
-                    style: _compactButtonStyle,
-                    onPressed: _insert,
-                    icon: const Icon(Icons.add),
-                    label: const Text('New exercise'),
-                  ),
-                  OutlinedButton.icon(
-                    key: const Key('new-canonical-exercise'),
-                    style: _compactButtonStyle,
-                    onPressed: _insertCanonical,
-                    icon: const Icon(Icons.tune),
-                    label: const Text('New canonical'),
-                  ),
-                  FilledButton.icon(
-                    key: const Key('exercise-creation-wizard'),
-                    style: _compactButtonStyle,
-                    onPressed: _openCreationWizard,
-                    icon: const Icon(Icons.auto_awesome_outlined),
-                    label: const Text('Exercise Wizard'),
-                  ),
+                  if (_flow == null) ...[
+                    OutlinedButton.icon(
+                      key: const Key('new-exercise'),
+                      style: _compactButtonStyle,
+                      onPressed: _insert,
+                      icon: const Icon(Icons.add),
+                      label: const Text('New exercise'),
+                    ),
+                    OutlinedButton.icon(
+                      key: const Key('new-canonical-exercise'),
+                      style: _compactButtonStyle,
+                      onPressed: _insertCanonical,
+                      icon: const Icon(Icons.tune),
+                      label: const Text('New canonical'),
+                    ),
+                    FilledButton.icon(
+                      key: const Key('exercise-creation-wizard'),
+                      style: _compactButtonStyle,
+                      onPressed: _openCreationWizard,
+                      icon: const Icon(Icons.auto_awesome_outlined),
+                      label: const Text('Exercise Wizard'),
+                    ),
+                  ] else
+                    // A Story is built from steps (third follow-up): the
+                    // block type is chosen first.
+                    FilledButton.icon(
+                      key: const Key('round-add-step'),
+                      style: _compactButtonStyle,
+                      onPressed: _addStoryStep,
+                      icon: const Icon(Icons.add),
+                      label: const Text('Add step'),
+                    ),
                 ],
               ],
             ),
@@ -8166,7 +8307,14 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
                 const Padding(
                   padding: EdgeInsets.fromLTRB(16, 0, 16, 8),
                   child: Text(
-                    'Lines are never skipped: without audio the learner reads them. An exercise that only makes sense with the Story\'s audio is marked “Needs the Story\'s audio” in its menu and is skipped with Audio Exercises off.',
+                    'An exercise that only makes sense with the Story\'s audio is marked “Needs the Story\'s audio” in its menu and is skipped with Audio Exercises off.',
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                  child: Text(
+                    _storyStepsSummary,
+                    key: const Key('round-story-steps'),
                   ),
                 ),
               ],
@@ -8227,7 +8375,10 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
                         ),
                         PopupMenuItem(
                           value: 'duplicate',
-                          enabled: !widget.readOnly,
+                          // A Story has one title block (third follow-up).
+                          enabled:
+                              !widget.readOnly &&
+                              !(_flow != null && _isCover(e)),
                           child: const Text('Duplicate'),
                         ),
                         const PopupMenuItem(
@@ -8470,6 +8621,71 @@ Exercise _blankExerciseForPreset(String presetId, AuthoringIdGenerator ids) {
     icons: const [],
   );
 }
+
+/// The block types Add step offers in a Story (Build 256 Revision 5,
+/// third follow-up).
+enum _StoryStepType { title, line, exercise }
+
+/// A Dialogue line built from the short line form's values (New Story's Add
+/// line and the Round editor's Add step): a presentation the dialogue_line
+/// recipe fills, Published as the Wizard makes its steps.
+Exercise _dialogueLineExercise(
+  String id,
+  StoryLineValues values, {
+  required DateTime updatedAt,
+}) => ExerciseDraftBuilder.build(
+  ExerciseDraftValues(
+    original: Exercise.canonical(
+      id: id,
+      primitive: ExercisePrimitive.presentation,
+      canonicalEvaluation: CanonicalEvaluation.none,
+      updatedAt: updatedAt,
+    ),
+    type: 'dialogue_line',
+    publicationState: PublicationState.published,
+    prompt: values.text,
+    speakerId: values.speakerId,
+    lineMode: values.mode,
+    lineReadAloud: values.readAloud,
+    lineTextReveal: values.textReveal,
+  ),
+).candidate!;
+
+/// The sheet that offers the presets a Story may use (`storyWizardPresets`);
+/// New Story's Add exercise and the Round editor's Add step share it.
+Future<String?> _chooseStoryPreset(BuildContext context) =>
+    showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      builder: (sheetContext) => SafeArea(
+        child: ListView(
+          shrinkWrap: true,
+          padding: const EdgeInsets.fromLTRB(12, 12, 12, 24),
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(4, 0, 4, 8),
+              child: Text(
+                'Add an exercise to the Story',
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+              ),
+            ),
+            for (final id in storyWizardPresets)
+              if (ExercisePresetRegistry.byId(id) case final preset?)
+                Card(
+                  key: ValueKey('story-wizard-preset-$id'),
+                  child: ListTile(
+                    leading: _PresetActionChip(preset.action),
+                    title: Text(preset.name),
+                    subtitle: Text(preset.description),
+                    onTap: () => Navigator.pop(sheetContext, id),
+                  ),
+                ),
+          ],
+        ),
+      ),
+    );
 
 enum _ExerciseWizardStage { setup, plan, guided }
 

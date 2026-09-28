@@ -168,6 +168,31 @@ of the Duel, lines never skipped. Course files stay Course Model v12.
   DIALOGUE label is gone; the instruction stays); the Laboratory
   presentation baseline re-recorded for the ten line examples (heading
   null), no other record changed; `story_runtime_256_test` pins it.
+- Third follow-up (same version, 28 September, night; owner requests of
+  21:10 and 21:25): `lib/screens/course_editor_screen.dart`: the Lesson
+  editor loses `_openGuidebookRoundGenerator`, `_openStoryWizard` and its
+  two wizard buttons; the Rounds page (`_LessonRoundsScreenState`) gains
+  them as a bottom bar (`rounds-round-wizard` with the Use GuideBook
+  tooltip, `rounds-new-story`; the Round Wizard appends through
+  `_updateRounds`, New Story through `_courseWithSpeakers` +
+  `ReplaceRounds`); the Wizard's app bar reads "New Story · …"; the Round
+  editor of a Story shows `round-add-step` instead of the three exercise
+  buttons (`_addStoryStep`: the sheet `story-step-title` /
+  `story-step-line` / `story-step-exercise`; `_insertPreset(first:)` puts
+  a title block first through `_acceptFirst`; `_insertLine` uses
+  `showStoryLineDialog` and the shared `_dialogueLineExercise`, which the
+  Wizard's `_lineExercise` uses too; `_chooseStoryPreset` is the Story
+  presets sheet shared with the Wizard), `Duplicate` greyed out for a
+  Story's title block, `round-story-steps` (`_storyStepsSummary`) under the
+  Story options, whose "Lines are never skipped" sentence is gone. Help
+  (EN/IT/ES: the Round Wizard, Exercise Wizard and Stories sections, the
+  Stories title "Stories and New Story"), the `STORY_WITHOUT_DIALOGUE`
+  hint, the Story cover preset text and README name New Story and the
+  Rounds page. Tests: `story_add_step_256_test.dart` (five tests);
+  `story_wizard_256_test`, `revision3_followup_256_test`,
+  `guidebook_sentence_generator_test`,
+  `production_course_transaction_225_04_test` and
+  `qql_231_course_editor_ui_test` reach the wizards on the Rounds page.
 - Tests: `xp_calculator_test` (a Round without evaluable exercises awards
   nothing), `learning_completion_service_test` (no Laurel, no XP; facts
   state their counts), `round_playability_service_test` (cards and texts

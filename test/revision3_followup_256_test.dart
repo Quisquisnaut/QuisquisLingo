@@ -599,9 +599,11 @@ void main() {
       json['useGuidebook'] = false;
       final course = Course.fromJson(json);
       expect(course.useGuidebook, isFalse);
+      // The Round Wizard sits on the Rounds page (Revision 5, third
+      // follow-up).
       await tester.pumpWidget(
         MaterialApp(
-          home: LessonEditorScreen(
+          home: LessonRoundsScreen(
             course: course,
             lesson: course.lessons.first,
           ),
@@ -609,12 +611,12 @@ void main() {
       );
       await tester.pumpAndSettle();
       final wizard = tester.widget<FilledButton>(
-        find.byKey(const Key('lesson-round-wizard')),
+        find.byKey(const Key('rounds-round-wizard')),
       );
       expect(wizard.onPressed, isNull);
       final tooltip = tester.widget<Tooltip>(
         find.ancestor(
-          of: find.byKey(const Key('lesson-round-wizard')),
+          of: find.byKey(const Key('rounds-round-wizard')),
           matching: find.byType(Tooltip),
         ),
       );

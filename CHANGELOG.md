@@ -108,6 +108,22 @@ Follow-up in the same version (owner review, 28 September 2026):
   question. Help (App Info, EN/IT/ES) states the scoring rule.
 - **No heading on a line.** A Dialogue line shows no DIALOGUE heading; the
   speaker's bubble and the instruction are enough (second follow-up).
+- **The wizards on the Rounds page; New Story (third follow-up).** Round
+  Wizard and New Story (the Story Wizard renamed) are buttons of the Rounds
+  page's bottom bar, beside the New round button, and no longer of the
+  Lesson editor's; the Round Wizard stays greyed out with its explanation
+  while Use GuideBook is off. Help, the Audit hint and the cover preset's
+  text follow.
+- **Add step in the Story editor (third follow-up).** In a Story the Round
+  editor replaces New exercise, New canonical and Exercise Wizard with Add
+  step, which asks for the block type: Title block (the cover, one per
+  Story: greyed out once the Story has it, placed first), Dialogue line
+  (the short form New Story uses) or Exercise (the presets a Story may
+  use). Duplicate is greyed out for the title block, the Story options
+  count the title block, lines and exercises, and the sentence "Lines are
+  never skipped: without audio the learner reads them" is gone from them.
+  A Story has one title block and at least one Dialogue line; the Audit
+  still warns about a Story without a line, and Save is not blocked.
 
 # 2.0.56 (Build 256, Revision 4) - The preset catalogue - 2026-09-27
 

@@ -789,7 +789,7 @@ enum AuditCode {
     'Round: Story',
     'The Story has no dialogue line.',
     'No exercise of the Story Round is a Dialogue line.',
-    'Add at least one Dialogue line; the Story Wizard requires one.',
+    'Add at least one Dialogue line (Add step in the Round editor); New Story requires one.',
   ),
   storySpeakerUnknown(
     'STORY_SPEAKER_UNKNOWN',
