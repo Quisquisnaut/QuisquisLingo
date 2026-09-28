@@ -826,6 +826,7 @@ abstract final class PrimitiveCapabilityRegistry {
         ],
         OptionKey.navigation: [PresentationNavigation.singlePage],
         OptionKey.mediaPlayback: MediaPlayback.values,
+        OptionKey.textReveal: TextReveal.values,
         OptionKey.scoring: [Scoring.none],
         OptionKey.evaluationTiming: [EvaluationTiming.none],
       },
@@ -1810,6 +1811,11 @@ abstract final class PrimitiveCapabilityRegistry {
         key: OptionKey.mediaPlayback,
         legalValues: MediaPlayback.values,
         defaultValue: EnumOptionValue(MediaPlayback.manual),
+      ),
+      OptionDefinition(
+        key: OptionKey.textReveal,
+        legalValues: TextReveal.values,
+        defaultValue: EnumOptionValue(TextReveal.immediate),
       ),
       OptionDefinition(
         key: OptionKey.scoring,

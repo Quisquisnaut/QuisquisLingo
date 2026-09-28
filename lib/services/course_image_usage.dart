@@ -25,7 +25,8 @@ class CourseImageUse {
 /// A Course uses an image in any image element of any Lesson content — the
 /// content of every Round and of the Lesson's GuideBook, whether that content
 /// is an exercise (prompt, answer items, layout) or a presentation such as a
-/// flashcard, explanation or Lesson introduction — and as its cover. Storage
+/// flashcard, explanation or Lesson introduction — as its cover and as the
+/// avatars of its Story narrator and characters (Build 256 Revision 5). Storage
 /// (`CourseMediaStore.referencesOf`), the Image Library's IN USE badge and the
 /// Exercise editor all ask here, so they always agree.
 abstract final class CourseImageUsage {
@@ -57,6 +58,25 @@ abstract final class CourseImageUsage {
     if (course.coverImage.isNotEmpty) {
       out.add(
         CourseImageUse(asset: course.coverImage, location: 'Course cover'),
+      );
+    }
+    final narrator = course.storyNarrator;
+    if (narrator != null && narrator.avatar.isNotEmpty) {
+      out.add(
+        CourseImageUse(
+          asset: narrator.avatar,
+          location: 'Story narrator avatar',
+        ),
+      );
+    }
+    for (final character in course.storyCharacters) {
+      if (character.avatar.isEmpty) continue;
+      final name = character.name.isEmpty ? character.id : character.name;
+      out.add(
+        CourseImageUse(
+          asset: character.avatar,
+          location: 'Story character “$name” avatar',
+        ),
       );
     }
     return out;

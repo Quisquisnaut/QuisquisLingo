@@ -18,7 +18,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from qql_course_v12 import convert_course_v11_to_v12  # noqa: E402
+from qql_course_v12 import convert_course_v11_to_v12, story_cover, story_flow, story_line  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 OUTPUT = ROOT / "assets/courses/piedmontais_en.json"
@@ -27,7 +27,9 @@ STAMP = "2026-09-25T00:00:00.000Z"
 # Build 255 Revision 6 released version 1.1.0: the Course was renamed from
 # Piedmontais to Piedmontese, the name of its target language, and its
 # derivative-works policy became forbidden (All rights reserved).
-RELEASE_STAMP = "2026-09-26T00:00:00.000Z"
+# Build 256 Revision 4 released version 1.2.0 (one Lesson per catalogue
+# preset); Revision 5 releases 1.3.0 with the two Story presets' Lessons.
+RELEASE_STAMP = "2026-09-28T00:00:00.000Z"
 PREFIX = "pms_e5f5585a"
 NORMALIZATION = {
     "case": "ignore", "punctuation": "ignore",
@@ -507,14 +509,14 @@ def build_course_v11() -> dict:
         "lessonNumberingMode": "lesson", "defaultLessonIconStyle": "monochrome",
         "createDuels": False, "courseId": COURSE_ID, "originType": "bundledOfficial",
         "publisherId": "org.quisquislingo", "publisherName": "QuisquisLingo",
-        "officialCourseVersion": "1.2.0", "officialReleaseDateUtc": RELEASE_STAMP,
-        "officialReleaseNotes": "QQL Build 256 Revision 4: one Lesson per preset of the new exercise catalogue.",
+        "officialCourseVersion": "1.3.0", "officialReleaseDateUtc": RELEASE_STAMP,
+        "officialReleaseNotes": "QQL Build 256 Revision 5: a Dialogue line Lesson played as a Story and a Story cover Lesson join the one Lesson per preset.",
         "distributionChannel": "bundled", "publisherVerificationStatus": "verified",
         "originalCourseCreator": {"type": "publisher", "id": "org.quisquislingo", "displayName": "QuisquisLingo"},
         "originalCreatedAtUtc": STAMP, "modifiedAtUtc": RELEASE_STAMP,
         "learningLanguage": "Piedmontese", "interfaceLanguage": "English",
         "sourceLanguage": "English", "targetLanguage": "Piedmontese",
-        "title": "AI-Slop Demo: Piedmontese", "ttsLanguage": "pms-IT", "audioMode": "tts",
+        "title": "Temporary Demo: Piedmontese", "ttsLanguage": "pms-IT", "audioMode": "tts",
         "authors": [{"name": "OpenAI Codex (AI-generated sample; not linguistically reviewed)", "roles": ["Author"]}],
         "license": "All rights reserved",
         "derivativeWorksPolicy": "forbidden",
@@ -535,8 +537,88 @@ def build_course_v11() -> dict:
     return course
 
 
+def story_lessons() -> list[dict]:
+    """Build 256 Revision 5: the two presets with no v11 recipe, one Lesson
+    each like every other preset. They join after conversion, so the
+    converter fixture (build_course_v11) omits them."""
+    narrator, gioanin, catlina = "", f"{PREFIX}_character_gioanin", f"{PREFIX}_character_catlina"
+
+    def entry(rid: str, index: int, preset: str, exercise: dict) -> dict:
+        return {"id": f"{rid}_e{index:02d}", "publicationState": "published", "kind": "exercise",
+                "required": True, "editorTemplate": preset, "exercise": exercise}
+
+    def intro(rid: str, name: str, topic: str) -> dict:
+        return {"id": f"{rid}_intro", "publicationState": "published", "kind": "text",
+                "required": False, "role": "lesson_intro",
+                "text": f"{name}: {topic}. Three short examples use this exercise type."}
+
+    def lesson(number: int, name: str, topic: str, guide: str, round_: dict) -> dict:
+        lid = f"{PREFIX}_l{number:02d}"
+        return {
+            "lessonId": lid, "publicationState": "published", "updatedAt": STAMP,
+            "section": False, "title": f"{name} — {topic}",
+            "themeIconAsset": "assets/lesson_icons/speech_bubbles.png",
+            "guidebook": {"content": [{
+                "id": f"{lid}_g01", "publicationState": "published", "kind": "explanation",
+                "required": False, "role": "overview", "text": guide,
+            }]},
+            "rounds": [round_],
+            "duel": {"id": f"{lid}_duel", "title": "Duel"},
+        }
+
+    rid = f"{PREFIX}_l39_r01"
+    lines = [
+        intro(rid, "Dialogue line", "At the market"),
+        entry(rid, 1, "dialogue_line", story_line(
+            "Gioanin goes to the market to buy bread.", updated_at=STAMP, speaker_id=narrator)),
+        entry(rid, 2, "dialogue_line", story_line(
+            "Bondì! Un pan, për piasì.", updated_at=STAMP, speaker_id=gioanin, text_reveal="afterAudio")),
+        entry(rid, 3, "dialogue_line", story_line(
+            "Grassie! Bon-a giornà, Gioanin.", updated_at=STAMP, speaker_id=catlina)),
+    ]
+    story = {
+        "id": rid, "publicationState": "published", "updatedAt": STAMP,
+        "visualType": "story", "title": "Dialogue line practice", "content": lines,
+        "flow": story_flow([(c["id"], "exercise" in c) for c in lines], title="Al mercà"),
+    }
+    rid = f"{PREFIX}_l40_r01"
+    covers = [
+        intro(rid, "Story cover", "Three covers"),
+        entry(rid, 1, "story_cover", story_cover(
+            updated_at=STAMP, picture="assets/exercise_images/bread.webp",
+            alternative="A loaf of bread", title_line="Al mercà")),
+        entry(rid, 2, "story_cover", story_cover(
+            updated_at=STAMP, picture="assets/exercise_images/coffee.webp",
+            alternative="A cup of coffee", title_line="Al bar")),
+        entry(rid, 3, "story_cover", story_cover(
+            updated_at=STAMP, picture="assets/exercise_images/house.webp",
+            alternative="A house", title_line="A ca'")),
+    ]
+    practice = {
+        "id": rid, "publicationState": "published", "updatedAt": STAMP,
+        "visualType": "generic", "title": "Story cover practice", "content": covers,
+    }
+    return [
+        lesson(39, "Dialogue line", "At the market",
+               "A Story: the narrator speaks English, Gioanin and Catlin-a speak Piedmontese. Read or listen to each line and continue; the scroll log keeps the dialogue. bondì = good morning; un pan = a loaf of bread; për piasì = please; grassie = thank you.",
+               story),
+        lesson(40, "Story cover", "Three covers",
+               "The first card of a Story: a picture and a title line. These three covers are shown on their own, outside a Story, so Continue simply moves on. al mercà = at the market; al bar = at the bar; a ca' = at home.",
+               practice),
+    ]
+
+
 def build_course() -> dict:
-    course = convert_course_v11_to_v12(build_course_v11())
+    v11 = build_course_v11()
+    v11["lessons"] = [*v11["lessons"], *story_lessons()]
+    course = convert_course_v11_to_v12(v11)
+    course["storyNarrator"] = {"name": "Narrator", "language": "source"}
+    course["storyCharacters"] = [
+        {"id": f"{PREFIX}_character_gioanin", "name": "Gioanin", "avatar": "assets/avatars/kid.png",
+         "language": "target", "voice": "male"},
+        {"id": f"{PREFIX}_character_catlina", "name": "Catlin-a", "avatar": "assets/avatars/cat.png",
+         "language": "target", "voice": "female"},
+    ]
     canonical = {key: value for key, value in course.items()
                  if key not in {"officialChecksum", "publisherVerificationStatus", "publisherSignature"}}
     course["officialChecksum"] = hashlib.sha256(json.dumps(
@@ -554,7 +636,7 @@ def main() -> int:
         if not OUTPUT.is_file() or OUTPUT.read_text(encoding="utf-8") != rendered:
             print(f"FAIL: {OUTPUT.relative_to(ROOT)} differs from the authored generator")
             return 1
-        print("PASS: Piedmontese course is reproducible; 38 catalogue presets, 38 Lessons, 114 examples")
+        print("PASS: Piedmontese course is reproducible; 40 catalogue presets, 40 Lessons, 120 examples")
         return 0
     OUTPUT.write_text(rendered, encoding="utf-8", newline="\n")
     print(f"Wrote {OUTPUT.relative_to(ROOT)}: one Lesson per catalogue preset")

@@ -1,3 +1,4 @@
+import 'support/korean_fixture.dart';
 import 'support/test_directories.dart';
 import 'support/pump_file_io.dart';
 import 'dart:io';
@@ -48,6 +49,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   setUp(() async {
+    registerKoreanFixture();
     for (final asset in CourseService.courseAssets.values) {
       rootBundle.evict(asset);
     }
@@ -2305,10 +2307,7 @@ void main() {
           course.lessons.first.lessonId,
         );
         await tester.binding.setSurfaceSize(Size(width, 900));
-        await _openHome(
-          tester,
-          scrollToActions: false,
-        );
+        await _openHome(tester, scrollToActions: false);
 
         final selector = find.byKey(const Key('unified-section-selector'));
         final initialHeight = tester.getSize(selector).height;
@@ -2381,10 +2380,7 @@ void main() {
           course.lessons.first.lessonId,
         );
         await tester.binding.setSurfaceSize(Size(width, 900));
-        await _openHome(
-          tester,
-          scrollToActions: false,
-        );
+        await _openHome(tester, scrollToActions: false);
 
         final page = tester.getRect(
           find.byKey(const Key('unified-learner-page')),
@@ -2501,10 +2497,7 @@ void main() {
       dispatcher.platformBrightnessTestValue = brightness;
       for (final width in [320.0, 375.0, 430.0]) {
         await tester.binding.setSurfaceSize(Size(width, 900));
-        await _openHome(
-          tester,
-          scrollToActions: false,
-        );
+        await _openHome(tester, scrollToActions: false);
 
         final page = tester.getRect(
           find.byKey(const Key('unified-learner-page')),
@@ -2995,12 +2988,12 @@ void main() {
       await _settleSelector(tester);
 
       await tester.scrollUntilVisible(
-        find.byKey(const Key('course-selector-actions-bundled-KO')),
+        find.byKey(const Key('course-selector-actions-bundled-EN_EDGE')),
         260,
         scrollable: selectorScroll,
       );
       await tester.tap(
-        find.byKey(const Key('course-selector-actions-bundled-KO')),
+        find.byKey(const Key('course-selector-actions-bundled-EN_EDGE')),
       );
       await _settleSelector(tester);
       expect(
@@ -3179,8 +3172,8 @@ void main() {
     expect(recentTiles, hasLength(3));
 
     final recentTitles = [
-      'AI-Slop Demo: Piedmontese',
-      'AI-Slop Demo: Edge Case Course',
+      'Temporary Demo: Piedmontese',
+      'Temporary Demo: Edge Case Course',
       'AI-Slop Demo: Korean for English Speakers',
     ];
     final recentPositions = recentTitles
@@ -3231,10 +3224,16 @@ void main() {
       flagCode: 'IT',
       coverImage: cover,
       lessons: [
-        Lesson(lessonId: 'selector_cover_first', title: 'First', rounds: const []),
+        Lesson(
+          lessonId: 'selector_cover_first',
+          title: 'First',
+          rounds: const [],
+        ),
       ],
     );
-    (await tester.runAsync(() => CourseEditorService().saveUserCourse(covered)));
+    (await tester.runAsync(
+      () => CourseEditorService().saveUserCourse(covered),
+    ));
     await _openHome(tester, scrollToActions: false);
     await tester.tap(find.byKey(const Key('unified-topbar-course-selector')));
     await _pumpUntilWithIo(
@@ -3263,7 +3262,10 @@ void main() {
       ),
     );
     final artwork = tester.widget<CourseArtwork>(
-      find.descendant(of: find.byKey(row), matching: find.byType(CourseArtwork)),
+      find.descendant(
+        of: find.byKey(row),
+        matching: find.byType(CourseArtwork),
+      ),
     );
     expect(artwork.size, 44);
     expect(artwork.course.coverImage, cover);
@@ -3542,7 +3544,10 @@ void main() {
       final betaDialog = tester.widget<AlertDialog>(find.byType(AlertDialog));
       expect(betaDialog.backgroundColor, isNull);
       expect(betaDialog.surfaceTintColor, isNull);
-      expect(find.textContaining('This beta expires in 5 days.'), findsOneWidget);
+      expect(
+        find.textContaining('This beta expires in 5 days.'),
+        findsOneWidget,
+      );
       expect(
         find.textContaining(
           'Expiry date: ${BetaLifecycleService.expiryIsoDate}.',

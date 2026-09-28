@@ -568,6 +568,65 @@ class CourseAuditService {
             ),
           );
         }
+        // Build 256 Revision 5: Stories. A Story wants a title and at least
+        // one dialogue line; a line names an existing character; a line
+        // outside a Story plays as a plain card.
+        final flow = r.flow;
+        final roundExercises = r.exercises;
+        if (flow != null) {
+          if (flow.title.trim().isEmpty) {
+            issues.add(
+              CourseAuditIssue.fromCode(
+                AuditCode.storyTitleMissing,
+                message: 'Story has no title.',
+                location: rl,
+                roundId: r.id,
+              ),
+            );
+          }
+          if (!roundExercises.any(
+            (ex) =>
+                ExerciseFeatures(ex).kind == LearnerExerciseKind.dialogueLine,
+          )) {
+            issues.add(
+              CourseAuditIssue.fromCode(
+                AuditCode.storyWithoutDialogue,
+                message: 'Story has no dialogue line.',
+                location: rl,
+                roundId: r.id,
+              ),
+            );
+          }
+        }
+        for (final ex in roundExercises) {
+          final lineFeatures = ExerciseFeatures(ex);
+          if (lineFeatures.kind != LearnerExerciseKind.dialogueLine) continue;
+          final speakerId = lineFeatures.speakerId;
+          if (speakerId.isNotEmpty && course.speakerOf(speakerId) == null) {
+            issues.add(
+              CourseAuditIssue.fromCode(
+                AuditCode.storySpeakerUnknown,
+                message:
+                    'Dialogue line names a character the Course does not have (“$speakerId”).',
+                location: rl,
+                roundId: r.id,
+                exerciseId: ex.id,
+              ),
+            );
+          }
+          if (flow == null) {
+            issues.add(
+              CourseAuditIssue.fromCode(
+                AuditCode.dialogueLineOutsideStory,
+                message:
+                    'Dialogue line in a Round that is not a Story: it plays as a plain card.',
+                location: rl,
+                roundId: r.id,
+                exerciseId: ex.id,
+              ),
+            );
+          }
+        }
         for (
           var contentIndex = 0;
           contentIndex < r.content.length;
@@ -1174,6 +1233,10 @@ class CourseAuditService {
   /// 2026: an empty Icons field turned Select the image into a plain Choose
   /// with no explanation).
   static String _mismatchHint(String presetId) => switch (presetId) {
+    'dialogue_line' =>
+      ' A Dialogue line needs its line as text, audio or both (role line).',
+    'story_cover' =>
+      ' A Story cover needs a picture or a title line and no word or meaning.',
     'icon_choice' =>
       ' Select the image needs one icon or image key per answer in Icons / image keys, in the same order as the answers.',
     'listening_answer_target' ||
@@ -1223,6 +1286,8 @@ class CourseAuditService {
     LearnerExerciseKind.matchAudio => 'Listen and match',
     LearnerExerciseKind.matchTranslation => 'Match the words',
     LearnerExerciseKind.presentation => 'a Flashcard',
+    LearnerExerciseKind.dialogueLine => 'a Dialogue line',
+    LearnerExerciseKind.storyCover => 'a Story cover',
     LearnerExerciseKind.other => 'an exercise this version cannot play',
   };
 
@@ -1953,6 +2018,19 @@ class CourseAuditService {
           }
         }
       case ExercisePrimitive.presentation:
+        // Build 256 Revision 5: a Story dialogue line needs its line; a
+        // Story cover has no word to check.
+        if (kind == LearnerExerciseKind.dialogueLine) {
+          if (f.lineText.trim().isEmpty &&
+              (f.lineAudio?.text.trim().isEmpty ?? true)) {
+            add(
+              AuditCode.dialogueLineEmpty,
+              'Dialogue line has neither text nor audio.',
+            );
+          }
+          break;
+        }
+        if (kind == LearnerExerciseKind.storyCover) break;
         // A vocabulary flashcard is reviewed later and has no picture; a
         // Note card (completion `continue`) and a Picture flashcard carry
         // an optional usage sentence and optional pronunciation.

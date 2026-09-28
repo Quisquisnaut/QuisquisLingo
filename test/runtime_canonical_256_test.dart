@@ -95,12 +95,14 @@ const _expectedKinds = <String, Set<LearnerExerciseKind>>{
     LearnerExerciseKind.match,
   },
   'note_card': {LearnerExerciseKind.presentation},
+  // Build 256 Revision 5: a Story's lines and covers.
+  'dialogue_line': {LearnerExerciseKind.dialogueLine},
+  'story_cover': {LearnerExerciseKind.storyCover},
 };
 
 const _bundled = [
   'exercise_laboratory_en_it.json',
   'edge_case_it_en.json',
-  'korean_en.json',
   'piedmontais_en.json',
 ];
 
@@ -157,6 +159,7 @@ class _Speech extends TtsCacheService {
     String? targetLanguage,
     double rate = 0.5,
     bool applyLearnerSettings = true,
+    String? voicePreference,
   }) async {
     spoken.add(text);
     return true;

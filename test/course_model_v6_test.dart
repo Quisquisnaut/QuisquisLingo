@@ -1,56 +1,8 @@
-import 'dart:convert';
-import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
-  // Build 255 Revision 6 removed the other nine-Lesson samples.
-  const samples = ['korean_en.json'];
-
-  for (final file in samples) {
-    test(
-      '$file is native Course Model v9 with ordered Lesson Guidebooks and Duels',
-      () async {
-        final raw = await rootBundle.loadString('assets/courses/$file');
-        final json = jsonDecode(raw) as Map<String, dynamic>;
-        expect(json['formatVersion'], 12);
-        expect(json.containsKey('topics'), isFalse);
-        expect(json.containsKey('chapters'), isFalse);
-        final course = Course.fromJson(json);
-        expect(course.formatVersion, Course.currentFormatVersion);
-        expect(course.lessons, hasLength(9));
-        expect(
-          course.lessons.map((lesson) => lesson.lessonId).toSet(),
-          hasLength(9),
-        );
-        for (final lesson in course.lessons) {
-          expect(lesson.title.trim(), isNotEmpty);
-          expect(
-            (json['lessons'] as List).cast<Map<String, dynamic>>().every(
-              (item) => !item.containsKey('imageAsset'),
-            ),
-            isTrue,
-          );
-          expect(lesson.guidebook.content, isNotEmpty);
-          expect(lesson.rounds, hasLength(4));
-          expect(lesson.rounds.every((r) => r.content.isNotEmpty), isTrue);
-          expect(lesson.rounds.first.content.first.role, 'lesson_intro');
-          expect(lesson.duel.id.trim(), isNotEmpty);
-        }
-        final encoded = course.toJson();
-        expect(encoded['formatVersion'], 12);
-        expect(encoded.containsKey('chapters'), isFalse);
-        expect(
-          (encoded['lessons'] as List).map(
-            (lesson) => (lesson as Map)['lessonId'],
-          ),
-          course.lessons.map((lesson) => lesson.lessonId),
-        );
-      },
-    );
-  }
-
   test('Course Model v9 rejects old formats and Chapter structures', () {
     final base = <String, dynamic>{
       'courseId': 'course',

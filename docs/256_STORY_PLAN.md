@@ -6,6 +6,15 @@ day. Waits for the owner's go before any code changes. Version
 6 and Laboratory / Assign / final verification becomes Revision 7
 (`docs/256_EXERCISE_ARCHITECTURE_PLAN.md` Part B renumbered).
 
+**Status: delivered as Build 256 Revision 5 (`2.0.56+256005`, 28 September
+2026); what was built is in `docs/256_CHANGE_SUMMARY.md`, the evidence in
+`docs/256_VALIDATION.md`.** Differences from this plan: the avatars are made
+by `tools/make_avatars.ps1` (.NET, no Pillow on the machine); the Laboratory's
+Story is a sixth Lesson beside the five primitive Lessons; the Piedmontese
+demo gets one Lesson per new preset (a Story of three lines and a Round of
+three covers); the Wizard adds and edits characters but leaves removal to
+the Course Editor; a custom avatar is a PNG of at most 50 KB.
+
 ## 0. Owner decisions (28 September 2026)
 
 1. A dedicated revision, not a Revision 4 follow-up.

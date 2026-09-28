@@ -1,3 +1,71 @@
+# 2.0.56 (Build 256, Revision 5) - Stories - 2026-09-28
+
+Session 6 of the exercise architecture redesign (`docs/256_STORY_PLAN.md`):
+Stories as in a conversation course, with a narrator and reusable
+characters, dialogue lines that are read or heard, a Story Wizard and the
+Story options in the Round editor. Course files stay Course Model v12.
+
+- **Narrator and characters.** A Course carries an optional narrator and a
+  list of characters (`storyNarrator`, `storyCharacters`): name, avatar (a
+  bundled figure of the cat, dog, kid, monkey or robot, or a picture of the
+  Course cropped to a square and stored as a small PNG), language (source
+  or target) and voice preference (any, male, female; matched against the
+  device voices, a miss never blocks speech). The Course Editor's Story
+  characters section adds and edits them; a character that lines still
+  name cannot be removed. Avatars count as image uses.
+- **Dialogue line and Story cover.** Two presets of the Cards and notes
+  group. A line is said by the narrator or a character as text, audio or
+  both (`speakerId` on the elements), read aloud as the Story says, always
+  or on request, with its text shown at once or after listening (the
+  presentation option `textReveal`); its language is the speaker's unless
+  the line says otherwise. A cover is the Story's picture and an optional
+  title line. Both are built canonically (they have no v11 shape); a new
+  one is blank as its recipe builds it. Field Help and Exercise Help cover
+  them.
+- **The learner's Story.** The Round screen draws a line as a bubble with
+  the avatar and the name, a play button and Continue; a cover shows the
+  Story title, the picture and the title line, each once. The speaker's
+  voice preference reaches the device speech. Lines and covers are never
+  skipped: without audio the learner reads them. An exercise marked as
+  needing the Story's audio (`requiresAudio` on its flow node) is skipped,
+  like the listening exercises, when Audio Exercises is off. The scrolling
+  log keeps only the dialogue by default (`log: dialogue`; Everything keeps
+  the exercises too). A Story's exercises stay out of the Duel pool.
+- **Round editor.** Play as a Story asks for the Story title (the Round is
+  called "Story: <title>"; the prefix goes when the Story is turned off),
+  Step by step or Scrolling, Dialogue only or Everything, Read aloud
+  automatically or On request; a new Story scrolls, logs the dialogue and
+  reads aloud automatically, an existing one keeps its stored values;
+  "Needs the Story's audio" sits in every exercise's menu.
+- **Story Wizard.** In the Lesson editor beside Round Wizard, without a
+  GuideBook: the Story (title, cover picture, read-aloud), the narrator,
+  the characters, then the steps: Add line (a short form), Add exercise
+  (True or false, Choose the answer, Pick the translation, Listen and
+  answer, Word order, Listen and fill the gaps, Type the missing word,
+  Complete the text; the ordinary exercise form opens on top of the Wizard
+  and Save or Cancel returns to the builder), move, remove, "Needs the
+  Story's audio". Finish needs at least one line and creates the Round
+  through the Course working copy; Cancel creates nothing.
+- **Audit.** Five codes, 103 rules: STORY_TITLE_MISSING and
+  STORY_WITHOUT_DIALOGUE (Warnings on a Story), STORY_SPEAKER_UNKNOWN and
+  DIALOGUE_LINE_EMPTY (Errors), DIALOGUE_LINE_OUTSIDE_STORY (Warning).
+- **Bundled Courses.** The Exercise Laboratory gains a Story Lesson (a
+  cover, five lines, an audio-dependent True or false, a Choose the answer
+  and a Word order: 116 examples), the Piedmontese demo a Dialogue line
+  Lesson played as a Story and a Story cover Lesson (40 Lessons, 120
+  examples), the Edge Case demo a Story with an audio-only line and an
+  exercise that needs the Story's audio. The Story Lessons join after the
+  v11 conversion; the converter fixtures omit them.
+- **Demos (owner request, 28 September).** The Korean demo leaves the
+  bundle and stays a test fixture; the three demos are titled Temporary
+  Demo: Exercise Laboratory, Edge Case Course and Piedmontese.
+- **Help** (EN/IT/ES): Stories and the Story Wizard in the Editor Help,
+  the Exercise primitives page's Stories section, the two presets' Help.
+- **Fix (owner report, 28 September).** A Story cover no longer shows its
+  picture twice at the start of a Preview.
+- Scoring, progression, Review, Course files and learner data are
+  unchanged. Beta expiry `2026-10-28 23:59:59` local time.
+
 # 2.0.56 (Build 256, Revision 4) - The preset catalogue - 2026-09-27
 
 Session 5 of the exercise architecture redesign

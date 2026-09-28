@@ -14,6 +14,7 @@ const editorHelpSectionIds = <String>[
   'importCustomFlag',
   'generateRoundsFromLessonGuidebook',
   'exerciseCreationWizard',
+  'storiesAndStoryWizard',
   'duplicateCopyMoveExercises',
   'exercisePreviewAndNavigation',
   'fieldHelpAndUntitledRounds',
@@ -216,6 +217,8 @@ const exerciseHelpPresetIds = <String>[
   'spell_word',
   'picture_word_match',
   'note_card',
+  'dialogue_line',
+  'story_cover',
 ];
 
 /// Each visible Exercise Help field resolves to one shared guide body.
@@ -453,4 +456,14 @@ const exerciseHelpFieldKeyByPresetAndField = <String, String>{
   'note_card.prompt': 'exerciseHelp.field.note_card.prompt.body',
   'note_card.question': 'exerciseHelp.field.note_card.question.body',
   'note_card.image': 'exerciseHelp.field.choice.image.body',
+  'dialogue_line.speaker': 'exerciseHelp.field.dialogue_line.speaker.body',
+  'dialogue_line.prompt': 'exerciseHelp.field.dialogue_line.prompt.body',
+  'dialogue_line.lineMode': 'exerciseHelp.field.dialogue_line.lineMode.body',
+  'dialogue_line.readAloud': 'exerciseHelp.field.dialogue_line.readAloud.body',
+  'dialogue_line.textReveal':
+      'exerciseHelp.field.dialogue_line.textReveal.body',
+  'dialogue_line.language': 'exerciseHelp.field.dialogue_line.language.body',
+  'dialogue_line.image': 'exerciseHelp.field.choice.image.body',
+  'story_cover.prompt': 'exerciseHelp.field.story_cover.prompt.body',
+  'story_cover.image': 'exerciseHelp.field.story_cover.image.body',
 };

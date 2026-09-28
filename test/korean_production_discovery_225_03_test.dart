@@ -1,3 +1,4 @@
+import 'support/korean_fixture.dart';
 import 'support/test_directories.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -21,6 +22,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   setUp(() async {
+    registerKoreanFixture();
     for (final asset in CourseService.courseAssets.values) {
       rootBundle.evict(asset);
     }
@@ -83,13 +85,13 @@ void main() {
     await _openHome(tester);
     UnifiedLearnerTopBar current() =>
         tester.widget<UnifiedLearnerTopBar>(find.byType(UnifiedLearnerTopBar));
-    expect(current().course.title, 'AI-Slop Demo: Edge Case Course');
+    expect(current().course.title, 'Temporary Demo: Edge Case Course');
     expect(current().course.sourceLanguage, 'Italian');
     await _openCoursePicker(tester);
     await _expectCourseTile(
       tester,
       const ValueKey('bundled-course-PMS'),
-      'AI-Slop Demo: Piedmontese',
+      'Temporary Demo: Piedmontese',
       selected: false,
     );
     await tester.tap(find.byKey(const ValueKey('bundled-course-PMS')));
@@ -107,7 +109,7 @@ void main() {
     await _expectCourseTile(
       tester,
       const ValueKey('recent-course-EN_EDGE'),
-      'AI-Slop Demo: Edge Case Course',
+      'Temporary Demo: Edge Case Course',
       selected: false,
     );
     await tester.tap(find.byKey(const ValueKey('recent-course-EN_EDGE')));
@@ -117,7 +119,7 @@ void main() {
     await tester.pumpWidget(const SizedBox.shrink());
     await _pumpIo(tester, frames: 4);
     await _openHome(tester);
-    expect(current().course.title, 'AI-Slop Demo: Edge Case Course');
+    expect(current().course.title, 'Temporary Demo: Edge Case Course');
     expect(await settings.getLastSelectedCourseCode(), 'EN_EDGE');
     expect(tester.takeException(), isNull);
   });
@@ -242,7 +244,7 @@ void main() {
       final reconciled = preferences.getStringList(
         CourseService.bundledCourseIndexStorageKey,
       );
-      expect(reconciled, CourseService.courseAssets.keys);
+      expect(reconciled, CourseService.bundledAssets.keys);
       expect(reconciled!.where((code) => code == 'KO'), hasLength(1));
       expect(
         ((await tester.runAsync(
@@ -286,12 +288,12 @@ void main() {
           await _expectCourseTile(
             tester,
             const Key('current-course'),
-            selectCustom ? custom.title : 'Exercise Laboratory',
+            selectCustom ? custom.title : 'Temporary Demo: Exercise Laboratory',
             selected: true,
           );
           for (final entry in {
-            'PMS': 'AI-Slop Demo: Piedmontese',
-            'EN_EDGE': 'AI-Slop Demo: Edge Case Course',
+            'PMS': 'Temporary Demo: Piedmontese',
+            'EN_EDGE': 'Temporary Demo: Edge Case Course',
             'custom:${otherCustom.courseId}': otherCustom.title,
           }.entries) {
             await _expectCourseTile(
@@ -307,20 +309,20 @@ void main() {
             await _expectCourseTile(
               tester,
               const ValueKey('bundled-course-IT'),
-              'Exercise Laboratory',
+              'Temporary Demo: Exercise Laboratory',
               selected: false,
             );
           }
           await _expectCourseTile(
             tester,
             const ValueKey('recent-course-PMS'),
-            'AI-Slop Demo: Piedmontese',
+            'Temporary Demo: Piedmontese',
             selected: false,
           );
           await _expectCourseTile(
             tester,
             const ValueKey('recent-course-EN_EDGE'),
-            'AI-Slop Demo: Edge Case Course',
+            'Temporary Demo: Edge Case Course',
             selected: false,
           );
           await _expectCourseTile(
@@ -428,7 +430,7 @@ Future<void> _pumpUntilWithIo(WidgetTester tester, Finder finder) async {
 }
 
 Future<void> _expectEveryBundledTile(WidgetTester tester) async {
-  expect(CourseService.courseAssets, hasLength(4));
+  expect(CourseService.bundledAssets, hasLength(4));
   final settings = SettingsService();
   final selected = await settings.getLastSelectedCourseCode();
   final recent = (await settings.getRecentCourseRefs())
@@ -442,7 +444,7 @@ Future<void> _expectEveryBundledTile(WidgetTester tester) async {
   final current = tester
       .widget<UnifiedLearnerTopBar>(find.byType(UnifiedLearnerTopBar))
       .course;
-  for (final code in CourseService.courseAssets.keys) {
+  for (final code in CourseService.bundledAssets.keys) {
     final course = await tester.runAsync(
       () => CourseService().loadCourse(code),
     );

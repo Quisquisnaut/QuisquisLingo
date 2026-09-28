@@ -460,6 +460,24 @@ abstract final class ExercisePresetRegistry {
       direction: PresetDirection.none,
       base: 'flashcard',
     ),
+    ExercisePreset(
+      id: 'dialogue_line',
+      name: 'Dialogue line',
+      description:
+          'One line of a Story, said by the narrator or a character as text, audio or both; the learner reads or listens and continues.',
+      category: ExerciseCategory.cardsAndNotes,
+      primitive: ExercisePrimitive.presentation,
+      direction: PresetDirection.none,
+    ),
+    ExercisePreset(
+      id: 'story_cover',
+      name: 'Story cover',
+      description:
+          'The opening card of a Story: its picture and an optional title line; the learner continues.',
+      category: ExerciseCategory.cardsAndNotes,
+      primitive: ExercisePrimitive.presentation,
+      direction: PresetDirection.none,
+    ),
   ];
 
   /// The successor of every preset retired by the Build 256 Revision 4
@@ -621,5 +639,9 @@ abstract final class ExercisePresetRegistry {
         'The learner matches pictures with their words. Provide one picture and one word per pair; at least two pairs.',
     'note_card':
         'A card the learner reads and continues: a tip, a grammar or a cultural note. Provide a title and the note; there is no answer and no score.',
+    'dialogue_line':
+        'One line of a Story. Choose who speaks (the narrator or a Story character of the Course), write the line, and choose whether the learner reads it, hears it or both; read-aloud follows the Story unless the line overrides it. A line is never skipped: without audio the learner reads it. No answer, no score; Continue moves on.',
+    'story_cover':
+        'The first card of a Story: the cover picture and an optional title line under the Story title. Continue moves on. Build Stories with the Story Wizard or with Play as a Story in the Round editor.',
   };
 }

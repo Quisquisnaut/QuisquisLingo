@@ -25,7 +25,6 @@ COURSES = ROOT / "assets" / "courses"
 EXPECTED_TTS = {
     "exercise_laboratory_en_it.json": "it-IT",
     "edge_case_it_en.json": "en-GB",
-    "korean_en.json": "ko-KR",
     "piedmontais_en.json": "pms-IT",
 }
 TEXT_MODES = {"exactText", "acceptedTexts", "expression"}
@@ -188,11 +187,6 @@ def validate(path: Path, global_ids: dict[str, str]) -> list[str]:
         issues.append("root: temporarySample must be a boolean")
     if data.get("ttsLanguage") != EXPECTED_TTS[path.name]:
         issues.append(f"root: expected TTS locale {EXPECTED_TTS[path.name]}, found {data.get('ttsLanguage')!r}")
-    if path.name == "korean_en.json":
-        if (data.get("sourceLanguage"), data.get("targetLanguage")) != ("English", "Korean"):
-            issues.append("root: Korean direction must be English to Korean")
-        if data.get("flagCode") != "KR":
-            issues.append("root: Korean course must use the South Korean KR flag")
     add_id(data.get("courseId"), "root")
 
     lesson_icon_assets = data.get("lessonIconAssets", [])
@@ -453,9 +447,9 @@ def validate(path: Path, global_ids: dict[str, str]) -> list[str]:
     if not isinstance(lessons, list):
         return issues + ["root: lessons must be a list"]
     expected_lessons = {
-        "exercise_laboratory_en_it.json": 5,
-        "edge_case_it_en.json": 5,
-        "piedmontais_en.json": 38,
+        "exercise_laboratory_en_it.json": 6,
+        "edge_case_it_en.json": 6,
+        "piedmontais_en.json": 40,
     }.get(path.name, 9)
     if len(lessons) != expected_lessons:
         issues.append(

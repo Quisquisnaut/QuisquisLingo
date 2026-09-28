@@ -139,9 +139,9 @@ void main() {
       expect(source.courseId, _courseId);
       expect(source.sourceLanguageTag, 'it-IT');
       expect(source.targetLanguageTag, 'en-GB');
-      expect(source.lessons, hasLength(5));
-      expect(source.lessons.expand((lesson) => lesson.rounds), hasLength(10));
-      expect(_exercises(source), hasLength(31));
+      expect(source.lessons, hasLength(6));
+      expect(source.lessons.expand((lesson) => lesson.rounds), hasLength(11));
+      expect(_exercises(source), hasLength(36));
       expect(CourseChecksums.official(source), source.officialChecksum);
       final audit = CourseAuditService().auditCourse(source);
       expect(audit.count(AuditSeverity.error), 0);
@@ -163,12 +163,14 @@ void main() {
     () {
       expect(CourseLibraryFilter.isUnavailable(source), isTrue);
       final learner = const PublicationService().learnerCourse(source)!;
-      expect(learner.lessons, hasLength(4));
-      expect(_exercises(learner), hasLength(28));
-      expect(learner.lessons.last.rounds, hasLength(1));
-      expect(learner.lessons.last.rounds.single.title, isEmpty);
-      expect(learner.lessons.last.rounds.single.displayTitle(0), 'Round 1');
-      expect(learner.lessons.last.guidebook.content, isEmpty);
+      // Build 256 Revision 5 appends a Story Lesson after the Draft Lesson;
+      // the fourth learner Lesson is still the one with the Draft GuideBook.
+      expect(learner.lessons, hasLength(5));
+      expect(_exercises(learner), hasLength(33));
+      expect(learner.lessons[3].rounds, hasLength(1));
+      expect(learner.lessons[3].rounds.single.title, isEmpty);
+      expect(learner.lessons[3].rounds.single.displayTitle(0), 'Round 1');
+      expect(learner.lessons[3].guidebook.content, isEmpty);
       expect(
         _exercises(
           learner,
@@ -411,6 +413,8 @@ void main() {
             LessonMergeChoice.left,
             LessonMergeChoice.right,
             LessonMergeChoice.left,
+            // The Story Lesson (Build 256 Revision 5).
+            LessonMergeChoice.right,
           ],
           options: CourseMergeOptions.fromCourse(newer),
         );
@@ -428,7 +432,7 @@ void main() {
           merged.mergeProvenance!.rightSourceCourseVersion,
           earlier.course.courseVersion,
         );
-        expect(_exercises(merged), hasLength(31));
+        expect(_exercises(merged), hasLength(36));
         expect(_ownedIds(merged).intersection(_ownedIds(fork)), isEmpty);
         _expectReferencesResolve(merged);
         expect(await editor.listUserCourses(), hasLength(3));
@@ -503,7 +507,7 @@ void main() {
       final installed = (await receiverEditor.listUserCourses()).single;
       expect(installed.courseId, portable.courseId);
       expect(installed.publicationState, portable.publicationState);
-      expect(_exercises(installed), hasLength(31));
+      expect(_exercises(installed), hasLength(36));
       expect(
         await (await receiverMedia.existingFile(
           installed.courseId,

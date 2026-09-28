@@ -893,7 +893,28 @@ class Course {
   /// Images the Course keeps in its own library even while no exercise uses
   /// them, so a confirmed save does not remove them.
   final List<CourseImageLibraryEntry> imageLibrary;
+
+  /// Build 256 Revision 5: the Story narrator's name, avatar, language and
+  /// voice; null means the default narrator.
+  final StorySpeaker? storyNarrator;
+
+  /// Build 256 Revision 5: the Story characters that dialogue lines refer to
+  /// by id.
+  final List<StorySpeaker> storyCharacters;
   final List<Lesson> lessons;
+
+  /// The narrator, customized or default.
+  StorySpeaker get narrator => storyNarrator ?? StorySpeaker.defaultNarrator;
+
+  /// The speaker of a line: the narrator for an empty [speakerId], the
+  /// character with that id, or null when the Course has no such character.
+  StorySpeaker? speakerOf(String speakerId) {
+    if (speakerId.isEmpty) return narrator;
+    for (final character in storyCharacters) {
+      if (character.id == speakerId) return character;
+    }
+    return null;
+  }
 
   Course({
     this.formatVersion = currentFormatVersion,
@@ -960,6 +981,8 @@ class Course {
     this.lessonIconAssets = const [],
     this.audioLibrary = const [],
     this.imageLibrary = const [],
+    this.storyNarrator,
+    this.storyCharacters = const [],
     required this.lessons,
   }) : originalCourseCreator =
            originalCourseCreator ??
@@ -1390,6 +1413,9 @@ class Course {
       'audioLibrary': audioLibrary.map((e) => e.toJson()).toList(),
     if (imageLibrary.isNotEmpty)
       'imageLibrary': imageLibrary.map((e) => e.toJson()).toList(),
+    if (storyNarrator != null) 'storyNarrator': storyNarrator!.toJson(),
+    if (storyCharacters.isNotEmpty)
+      'storyCharacters': storyCharacters.map((e) => e.toJson()).toList(),
     'lessons': lessons.map((e) => e.toJson()).toList(),
   };
 
@@ -1719,6 +1745,8 @@ class Course {
                 .toList()
           : const [],
       imageLibrary: CourseImageLibraryEntry.parseList(json['imageLibrary']),
+      storyNarrator: StorySpeaker.parseNarrator(json['storyNarrator']),
+      storyCharacters: StorySpeaker.parseCharacters(json['storyCharacters']),
       lessons: _parseLessons(json),
     );
   }
@@ -2710,6 +2738,10 @@ class PromptElement {
   final String text;
   final String asset;
   final String speaker;
+
+  /// Build 256 Revision 5: the Story character who says a dialogue line
+  /// (`Course.storyCharacters`); empty means the narrator.
+  final String speakerId;
   final SharedImageSource? sharedImageSource;
 
   /// Course Model v12: the language a text element is in (absent means
@@ -2730,6 +2762,7 @@ class PromptElement {
     this.text = '',
     this.asset = '',
     this.speaker = '',
+    this.speakerId = '',
     this.sharedImageSource,
     this.language,
     this.playback,
@@ -2752,6 +2785,7 @@ class PromptElement {
     String? text,
     String? asset,
     String? speaker,
+    String? speakerId,
     SharedImageSource? sharedImageSource,
     TextLanguage? language,
     AudioPlayback? playback,
@@ -2762,6 +2796,7 @@ class PromptElement {
     text: text ?? this.text,
     asset: asset ?? this.asset,
     speaker: speaker ?? this.speaker,
+    speakerId: speakerId ?? this.speakerId,
     sharedImageSource: sharedImageSource ?? this.sharedImageSource,
     language: language ?? this.language,
     playback: playback ?? this.playback,
@@ -2774,6 +2809,7 @@ class PromptElement {
     if (text.isNotEmpty) 'text': text,
     if (asset.isNotEmpty) 'asset': asset,
     if (speaker.isNotEmpty) 'speaker': speaker,
+    if (speakerId.isNotEmpty) 'speakerId': speakerId,
     if (sharedImageSource != null)
       'sharedImageSource': sharedImageSource!.toJson(),
     if (language != null) 'language': language!.serialized,
@@ -2820,6 +2856,7 @@ class PromptElement {
       text: _optionalString(j, 'text', ''),
       asset: _optionalString(j, 'asset', ''),
       speaker: _optionalString(j, 'speaker', ''),
+      speakerId: _optionalString(j, 'speakerId', ''),
       sharedImageSource: source == null
           ? null
           : SharedImageSource.fromJson(
@@ -2829,6 +2866,177 @@ class PromptElement {
       playback: playback,
       required: required as bool?,
     );
+  }
+}
+
+/// Build 256 Revision 5: the voice a Story speaker prefers. It is matched
+/// against the voices installed on the learner's device; a miss never
+/// blocks speech.
+enum StoryVoice {
+  any('any'),
+  male('male'),
+  female('female');
+
+  const StoryVoice(this.serialized);
+  final String serialized;
+
+  static StoryVoice? tryParse(Object? value) {
+    for (final voice in values) {
+      if (voice.serialized == value) return voice;
+    }
+    return null;
+  }
+}
+
+/// Build 256 Revision 5: who speaks a Story's lines. The narrator speaks
+/// every line without a `speakerId`; characters are reusable Course data
+/// (`Course.storyCharacters`) that lines reference by their stable IDs.
+class StorySpeaker {
+  const StorySpeaker({
+    this.id = '',
+    this.name = '',
+    this.avatar = '',
+    required this.language,
+    this.voice = StoryVoice.any,
+  });
+
+  /// Empty for the narrator; a stable `character_…` ID for a character.
+  final String id;
+  final String name;
+
+  /// A bundled avatar (`assets/avatars/<name>.png`) or a Course medium
+  /// (`media:<sha256>.<png|jpg|jpeg|webp>`); empty for none.
+  final String avatar;
+  final TextLanguage language;
+  final StoryVoice voice;
+
+  bool get isNarrator => id.isEmpty;
+
+  /// The default narrator: no name, no avatar, the source language.
+  static const StorySpeaker defaultNarrator = StorySpeaker(
+    language: TextLanguage.source,
+  );
+
+  static final RegExp avatarPattern = RegExp(
+    r'^(assets/avatars/[a-z0-9_]+\.png|media:[0-9a-f]{64}\.(png|jpg|jpeg|webp))$',
+  );
+
+  StorySpeaker copyWith({
+    String? id,
+    String? name,
+    String? avatar,
+    TextLanguage? language,
+    StoryVoice? voice,
+  }) => StorySpeaker(
+    id: id ?? this.id,
+    name: name ?? this.name,
+    avatar: avatar ?? this.avatar,
+    language: language ?? this.language,
+    voice: voice ?? this.voice,
+  );
+
+  Map<String, dynamic> toJson() => {
+    if (id.isNotEmpty) 'id': id,
+    if (name.isNotEmpty) 'name': name,
+    if (avatar.isNotEmpty) 'avatar': avatar,
+    'language': language.serialized,
+    if (voice != StoryVoice.any) 'voice': voice.serialized,
+  };
+
+  /// Parses a narrator (no `id`) or a character (an `id`), strictly.
+  factory StorySpeaker.fromJson(
+    Map<String, dynamic> j, {
+    required bool character,
+  }) {
+    const allowed = {'id', 'name', 'avatar', 'language', 'voice'};
+    final unknown = j.keys.where((key) => !allowed.contains(key)).toList();
+    if (unknown.isNotEmpty) {
+      throw FormatException(
+        'story speaker has unsupported fields: ${unknown.join(', ')}.',
+      );
+    }
+    final id = _optionalString(j, 'id', '').trim();
+    if (character && id.isEmpty) {
+      throw const FormatException('storyCharacters entries need an id.');
+    }
+    if (!character && id.isNotEmpty) {
+      throw const FormatException('storyNarrator has no id.');
+    }
+    final avatar = _optionalString(j, 'avatar', '').trim();
+    if (avatar.isNotEmpty && !avatarPattern.hasMatch(avatar)) {
+      throw FormatException(
+        'story avatar “$avatar” must be assets/avatars/<name>.png or a '
+        'Course-owned media image.',
+      );
+    }
+    final language = TextLanguage.tryParse(j['language']);
+    if (language == null) {
+      throw FormatException(
+        'story speaker language “${j['language']}” must be source or target.',
+      );
+    }
+    var voice = StoryVoice.any;
+    if (j.containsKey('voice')) {
+      final parsed = StoryVoice.tryParse(j['voice']);
+      if (parsed == null) {
+        throw FormatException(
+          'story speaker voice “${j['voice']}” must be any, male or female.',
+        );
+      }
+      voice = parsed;
+    }
+    return StorySpeaker(
+      id: id,
+      name: _optionalString(j, 'name', '').trim(),
+      avatar: avatar,
+      language: language,
+      voice: voice,
+    );
+  }
+
+  /// The optional `storyNarrator` object; null when absent.
+  static StorySpeaker? parseNarrator(Object? raw) {
+    if (raw == null) return null;
+    if (raw is! Map) {
+      throw const FormatException('course.storyNarrator must be an object.');
+    }
+    return StorySpeaker.fromJson(
+      Map<String, dynamic>.from(raw),
+      character: false,
+    );
+  }
+
+  /// The optional `storyCharacters` list: objects with unique IDs.
+  static List<StorySpeaker> parseCharacters(Object? raw) {
+    if (raw == null) return const [];
+    if (raw is! List) {
+      throw const FormatException('course.storyCharacters must be a list.');
+    }
+    final ids = <String>{};
+    return [
+      for (final entry in raw)
+        if (entry is Map)
+          _uniqueCharacter(
+            StorySpeaker.fromJson(
+              Map<String, dynamic>.from(entry),
+              character: true,
+            ),
+            ids,
+          )
+        else
+          throw const FormatException(
+            'course.storyCharacters entries must be objects.',
+          ),
+    ];
+  }
+
+  static StorySpeaker _uniqueCharacter(StorySpeaker speaker, Set<String> ids) {
+    if (!ids.add(speaker.id)) {
+      throw FormatException(
+        'course.storyCharacters repeats the id “${speaker.id}”.',
+      );
+    }
+    return speaker;
   }
 }
 

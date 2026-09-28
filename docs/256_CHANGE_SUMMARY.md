@@ -4,6 +4,136 @@ Build 256 is the exercise architecture redesign (Course Model v12). Its six
 sessions are Revisions 0–5. Plan: `256_EXERCISE_ARCHITECTURE_PLAN.md`;
 reference: `EXERCISE_ARCHITECTURE_V12.md`; evidence: `256_VALIDATION.md`.
 
+## Revision 5 (2.0.56+256005, 28 September 2026): Stories
+
+Session 6. The Stories decided with the owner on 28 September 2026
+(`docs/256_STORY_PLAN.md` §0): reusable narrator and characters, dialogue
+lines and covers, the Story options, the Story Wizard, Story exercises out
+of the Duel, lines never skipped. Course files stay Course Model v12.
+
+### Files
+
+- `lib/models/canonical/content_flow.dart`: `ContentFlow.title`, `log`
+  (`FlowLog` all | dialogue), `readAloud` (`FlowReadAloud` automatic |
+  manual), `audioDependentContentIds`; `FlowNode.requiresAudio` (scorable
+  exercise nodes only; JSON `requiresAudio: true`); defaults omitted in
+  JSON.
+- `lib/services/round_flow_authoring.dart`: `linearFor(..., title, log,
+  readAloud, requiresAudio)`, `withStoryOptions`, `withAudioDependence(flow,
+  LearningContent, requiresAudio:)`; `forContent` and `remapped` carry the
+  new fields.
+- `lib/models/course_models.dart`: `StoryVoice`, `StorySpeaker` (id, name,
+  avatar `assets/avatars/<name>.png` or `media:…`, language, voice;
+  `defaultNarrator`, `avatarPattern`, strict parsing), `Course.storyNarrator`
+  / `storyCharacters` / `narrator` / `speakerOf`; `PromptElement.speakerId`.
+  `Presentation.fromExercise` gives a null completion `['continue']`.
+- `lib/models/canonical/primitive_options.dart`,
+  `primitive_capability_registry.dart`: `OptionKey.textReveal` (`TextReveal`
+  immediate | afterAudio, presentation only).
+- `lib/models/exercise_authoring.dart`: presets `dialogue_line` and
+  `story_cover` (Cards and notes, presentation, no direction), `helpByPreset`.
+- `lib/services/preset_recipes.dart` (`kinds`, decompose of the line
+  fields, `canonicalOnly`), `preset_variants.dart` (`ownForms`, `fits`),
+  `exercise_draft_builder.dart` (`ExerciseDraftValues.speakerId`,
+  `lineMode`, `lineReadAloud`, `lineTextReveal`, `lineLanguage`;
+  `_buildDialogueLine`, `_buildStoryCover`, canonical).
+- `lib/models/exercise_features.dart`: `LearnerExerciseKind.dialogueLine`,
+  `storyCover`; `lineElements`, `lineText`, `lineAudio`, `lineMode`,
+  `speakerId`, `lineReadAloud`, `lineLanguage`, `textReveal`, `coverTitle`;
+  `illustrationImages` skips avatars.
+- `lib/services/exercise_copy_service.dart` (eight languages),
+  `exercise_field_help.dart` (speaker, dialogueLine, lineMode,
+  lineReadAloud, lineTextReveal, lineLanguage, coverTitle, coverImage;
+  `editorFieldKeys`), `exercise_search_service.dart`,
+  `course_image_usage.dart` (avatars), `authoring_duplication_service.dart`
+  and `course_authoring_transfer_service.dart` (speakers carried),
+  `course_cover_service.dart` (`storeAvatar`: the chosen square as a PNG
+  halved from 256 px until it fits the 50 KB image limit).
+- `lib/services/course_audit_service.dart`, `audit_code_registry.dart`:
+  `STORY_TITLE_MISSING`, `STORY_WITHOUT_DIALOGUE`, `STORY_SPEAKER_UNKNOWN`,
+  `DIALOGUE_LINE_EMPTY`, `DIALOGUE_LINE_OUTSIDE_STORY`; `kindLabel` and
+  `_mismatchHint` for the two presets; 103 rules.
+- `lib/screens/round_screen.dart`: the Story queue (lines and covers never
+  skipped, `requiresAudio` nodes skipped with the audio exercises),
+  `_dialogueLineExercise` (`story-line-bubble`, `-narrator`, `-play`,
+  `-continue`, `-audio-note`), `_storyCoverExercise` (`story-cover-title`,
+  `-continue`; the shared illustration stays out and a title line equal to
+  the Story title shows once), `_automaticAudioOf`, `_lineSpeaker`,
+  `_lineLanguage`, `_playCourseAudio(voice:)`, the filtered scroll log.
+  `lib/services/tts_cache_service.dart`: `speak(voicePreference:)`.
+  `lib/services/duel_eligibility_service.dart`: Story Rounds skipped.
+- `lib/screens/course_editor_screen.dart`: the Dialogue line and Story
+  cover forms (`_choiceField`, keys `exercise-choice-<field>`), Round editor
+  `round-story-title` / `-log` / `-read-aloud` and the `audio` menu item,
+  Course editor `course-story-characters` (`story-narrator`,
+  `story-character-<id>`, `story-character-add`, removal refused with the
+  line count), `StoryWizardScreen` (`StoryWizardResult`,
+  `storyWizardPresets`, keys `story-wizard-*`), `lesson-story-wizard`,
+  `_courseWithSpeakers`, `_blankExerciseForPreset` for canonical-only
+  presets.
+- `lib/widgets/story_speaker_dialog.dart` (new: `StoryAvatar`,
+  `showStorySpeakerDialog`, bundled avatars, None, Choose image / Quick
+  Import / Open from… through the cover crop dialog),
+  `lib/widgets/story_line_dialog.dart` (new: `showStoryLineDialog`).
+- `lib/localization/help/help_structure.dart`, `help_en.dart`,
+  `help_it.dart`, `help_es.dart`: the presets' descriptions and field help,
+  `storiesAndStoryWizard` in the Editor Help, the Stories section of the
+  Exercise primitives page.
+- `lib/services/course_service.dart`, `home_screen.dart`,
+  `available_courses_screen.dart`, `gamification_settings_screen.dart`,
+  `course_library_operations.dart`: `courseAssets` without `KO`;
+  `bundledAssets`, `debugExtraAssets`, `debugAssetReader` (test seams);
+  `test/support/korean_fixture.dart`, `test/fixtures/v12/korean_en.json`.
+- `tools/make_avatars.ps1` → `assets/avatars/{cat,dog,kid,monkey,robot}.png`
+  (`pubspec.yaml`); `tools/qql_course_v12.py` (`textReveal`, canonical
+  content passthrough, `story_line`, `story_cover`, `story_flow`); the three
+  generators (Story Lessons after conversion; the Laboratory's coverage
+  document), `tools/validate_courses.py` (6 / 6 / 40 Lessons);
+  `assets/courses/*.json` and `test/fixtures/v11/*` regenerated.
+- Tests: `test/story_model_256_test.dart` (14), `story_presets_256_test.dart`
+  (7), `story_runtime_256_test.dart` (5), `story_editor_256_test.dart` (10),
+  `story_wizard_256_test.dart` (3); the Laboratory test (Story Lesson,
+  lines and covers in `_answer` and `_author`, the source-language voice),
+  the presentation baseline re-recorded (116 records, 9 new, none changed),
+  the converter parity test skipping Story Lessons, the demo pins, the
+  registry pins (103 / 58 / 39), the version pins.
+
+### Architecture decisions implemented
+
+- Plan §0 (owner): reusable narrator and characters at Course level; voice
+  preference any / male / female with per-line read-aloud override; lines
+  never skipped, audio-dependent exercises skipped; any exercise markable
+  as needing the Story's audio; text immediately or after listening; the
+  Story Wizard's Step E opens the normal form and returns to the builder;
+  Story exercises out of the Duel; one whole-figure avatar per mascot;
+  existing Stories keep their stored presentation.
+- Plan §12 (mine): allowed Wizard presets; the Round title prefix `Story: `
+  with the cover as a separate first node; a Dialogue line outside a Story
+  is a Warning; removing a referenced character is refused; the character's
+  voice preference wins over the learner's; an audio-only line shows its
+  transcript only without audio and in the log.
+- A canonical-only preset's blank exercise is what its recipe builds from
+  empty fields (`PresetRecipes.canonicalOnly`), so it is a presentation
+  from the start.
+- The Wizard's cover always carries the Story title as its title line, so
+  it is a Story cover with or without a picture; the cover card shows it
+  once.
+- The bundled Story Lessons are appended after the v11 conversion in the
+  generators, so the v11 fixtures and the Dart converter never see content
+  without a v11 shape; the parity test checks that every shipped content
+  the fixture lacks belongs to a Story Round or carries a canonical-only
+  preset.
+
+### Known limitations and deferrals
+
+- Branching flows are still not playable (Revision 6); the Story Wizard
+  builds linear Stories only.
+- The Wizard adds and edits characters but does not remove them (removal,
+  with the reference check, lives in the Course Editor).
+- A custom avatar is a PNG of at most 50 KB (the ordinary image limit), so
+  a detailed photo is scaled down to 128 or 64 pixels.
+- The save guard on example content (Revision 4) is still not implemented.
+
 ## Revision 4 (2.0.56+256004, 27 September 2026): the preset catalogue
 
 Session 5. The catalogue decided in `docs/256_PRESET_CATALOGUE_PLAN.md`:

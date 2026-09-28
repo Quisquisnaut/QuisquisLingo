@@ -75,6 +75,9 @@ const Map<String, String> helpIt = {
   'editorHelp.exerciseCreationWizard.title': 'Exercise Wizard',
   'editorHelp.exerciseCreationWizard.body':
       'Dentro un Round, Exercise Wizard sta accanto a New exercise e New canonical. Scegli da 1 a 30 esercizi e poi Balanced mix, Random mix, una o più categorie, i tipi esatti di esercizio, oppure uno schema ordinato che si ripete. Il piano che rivedi non crea ancora nessun esercizio. Dopo la conferma, ogni passo del piano apre il normale editor dell’esercizio per quel preset. Save convalida e resta sul passo; Preview torna alla stessa bozza senza copiarla e senza andare avanti; Next convalida e passa al punto successivo; Finish restituisce gli esercizi creati nell’ordine del piano. Se annulli dopo aver salvato esplicitamente qualcosa, QQL ti chiede se vuoi tenere solo quegli esercizi validi già salvati. Non vengono mai inseriti segnaposti o esercizi non validi.',
+  'editorHelp.storiesAndStoryWizard.title': 'Storie e Story Wizard',
+  'editorHelp.storiesAndStoryWizard.body':
+      'Una Story è un Round giocato in ordine: una copertina, battute dette dal narratore o da un personaggio, ed esercizi su di esse. Nell’editor della Lesson, Story Wizard (non richiede un GuideBook) chiede il titolo della Story, l’immagine di copertina e se le battute si leggono ad alta voce automaticamente o a richiesta (A), mostra il narratore (B) e i personaggi del Course (C), dove li aggiungi o li modifichi, poi costruisce i passi: Add line apre un breve modulo (chi parla, battuta, testo e audio o uno dei due, lettura ad alta voce, se il testo aspetta l’audio); Add exercise offre i preset che una Story può usare e apre il normale modulo dell’esercizio, e Save o Cancel riportano al costruttore. Finish richiede almeno una battuta e crea il Round, chiamato “Story: <titolo>”, nella copia di lavoro del Course: la conferma del Course decide ancora. Nell’editor del Round, Play as a Story mostra il titolo della Story, Step by step o Scrolling, il registro dello scorrimento (Dialogue only conserva solo le battute; Everything anche gli esercizi) e Read-aloud; “Needs the Story’s audio” nel menu di un esercizio segna un esercizio che ha senso solo con l’audio, saltato come gli esercizi di ascolto quando Audio Exercises è disattivato. Le battute non si saltano mai: senza audio lo studente le legge. Il narratore e i personaggi sono dati del Course, modificati sotto Story characters nella pagina del Course Editor: nome, avatar (una figura in dotazione, nessuna, oppure una tua immagine ritagliata in quadrato e conservata con il Course), lingua e preferenza di voce (qualsiasi, maschile o femminile, cercata tra le voci del dispositivo; se manca, la lettura non si ferma). Un personaggio ancora nominato da battute non si può rimuovere. Solo gli esercizi danno punteggio; una Story conserva le regole di XP, completamento e Laurel di un Round di pratica, e i suoi esercizi restano fuori dal Duel.',
   'editorHelp.duplicateCopyMoveExercises.title':
       'Duplicare, copiare e spostare gli esercizi',
   'editorHelp.duplicateCopyMoveExercises.body':
@@ -274,7 +277,7 @@ const Map<String, String> helpIt = {
       'Il Course Studio si apre dal Course Selector della pagina di studio, non da Settings. È il punto da cui si gestisce tutto il ciclo di vita dei corsi: quelli ufficiali permettono la consultazione in sola lettura, il Fork su licenza, l’Audit e l’Export supportato; quelli personalizzati permettono Edit, Copy as New Course, Merge, Audit, Export e Delete. Il Fork mantiene la discendenza dal corso di origine; Copy as New Course fa partire una discendenza indipendente. Per le operazioni della libreria apri Course Studio Help; per creare e modificare i corsi apri Editor Help da una pagina del Course Editor.',
   'appInfo.courseContentAndAi.title': 'Contenuti dei corsi e IA',
   'appInfo.courseContentAndAi.body':
-      'I corsi inclusi nell’app che si chiamano AI-Slop Demo sono dimostrazioni generate dall’IA e non revisionate: non sono corsi affidabili per studiare. I veri contenuti di QuisquisLingo sono pensati per essere scritti e revisionati da persone. Questa classificazione non riguarda gli altri corsi, ufficiali o personalizzati.',
+      'I corsi inclusi nell’app che si chiamano Temporary Demo sono dimostrazioni generate dall’IA e non revisionate: non sono corsi affidabili per studiare. I veri contenuti di QuisquisLingo sono pensati per essere scritti e revisionati da persone. Questa classificazione non riguarda gli altri corsi, ufficiali o personalizzati.',
   'appInfo.creditsButton': 'App and image credits',
   // Course Info and the shared Locale selector.
   "courseInfo.title": "Course Info",
@@ -438,7 +441,7 @@ const Map<String, String> helpIt = {
       "L’editor canonico (editor del Round: New canonical; scelta del preset: Every primitive) mostra ogni campo canonico di qualsiasi primitiva con i valori ammessi dal registro delle capacità: Primitive, Options, Prompt, Items, Targets, Layout, Evaluation per modalità, Feedback e hint. Dice se questa versione può giocare l’esercizio, rifiuta le combinazioni rifiutate dal registro, mostra l’anteprima con il runtime dello studente e salva come un modulo preset (Save as draft, oppure Save con l’Audit). Un esercizio che nessun preset rappresenta si apre lì.",
   "technical.exercisePrimitives.stories.title": "Storie",
   "technical.exercisePrimitives.stories.body":
-      "Una Story è un Round con un flusso di contenuti. Play as a Story nell’editor del Round dà al Round un flusso lineare: i suoi esercizi si giocano nell’ordine scritto, senza mescolarli e senza ripasso degli errori; XP, completamento, Laurel e Review funzionano come in un Round di pratica. Modificare, spostare, copiare e duplicare una Story ne conserva il flusso. I flussi con diramazioni (onCorrect, onIncorrect, onChoice, conditional) vengono salvati e controllati ma non sono giocabili in questa versione. Una Story si mostra Step by step (un elemento per pagina) oppure Scrolling (gli elementi finiti restano nella pagina con la risposta dello studente, il successivo compare sotto e la pagina scorre fino a lì), a scelta sotto l’interruttore della Story.",
+      "Una Story è un Round con un flusso di contenuti. Play as a Story nell’editor del Round dà al Round un flusso lineare: i suoi esercizi si giocano nell’ordine scritto, senza mescolarli e senza ripasso degli errori; XP, completamento, Laurel e Review funzionano come in un Round di pratica. Modificare, spostare, copiare e duplicare una Story ne conserva il flusso. I flussi con diramazioni (onCorrect, onIncorrect, onChoice, conditional) vengono salvati e controllati ma non sono giocabili in questa versione. Una Story si mostra Step by step (un elemento per pagina) oppure Scrolling (gli elementi finiti restano nella pagina con la risposta dello studente, il successivo compare sotto e la pagina scorre fino a lì), a scelta sotto l’interruttore della Story. Build 256 Revision 5 aggiunge i preset Dialogue line e Story cover, il titolo della Story, le opzioni del registro di scorrimento e di lettura ad alta voce, gli esercizi segnati come bisognosi dell’audio della Story, il narratore e i personaggi come dati del Course (storyNarrator, storyCharacters, speakerId sugli elementi, l’opzione textReveal) e lo Story Wizard; vedi Storie e Story Wizard nell’Editor Help.",
   "technical.jsonStructure.title": "Struttura dati JSON",
   "technical.jsonStructure.status.title": "Stato",
   "technical.jsonStructure.status.body":
@@ -675,6 +678,10 @@ const Map<String, String> helpIt = {
       "Lo studente legge un indizio nella lingua di partenza, la parola stessa o una definizione, e compone la parola nella lingua studiata ordinando tessere di lettere o sillabe. Fornisci l’indizio, le tessere e l’ordine corretto; l’immagine è facoltativa.",
   "exerciseHelp.preset.picture_word_match.body":
       "Lo studente abbina ogni immagine a sinistra a una parola a destra. Fornisci le parole, una per riga, e un’immagine per parola con i selettori sotto; almeno due coppie. Contano le relazioni tra le coppie, non le posizioni.",
+  "exerciseHelp.preset.dialogue_line.body":
+      "Una battuta di dialogo in una Storia. Scegli chi parla (il narratore o un personaggio definito in Story characters del Course Editor), scrivi la battuta e scegli se lo studente la legge, la ascolta o entrambe le cose. La lettura ad alta voce segue l’impostazione della Storia, salvo che la battuta la sovrascriva; con testo e audio puoi nascondere il testo finché l’audio non è stato riprodotto. Una battuta non viene mai saltata: senza audio lo studente la legge. Non c’è risposta né punteggio; Continue va avanti.",
+  "exerciseHelp.preset.story_cover.body":
+      "La prima scheda di una Storia. Scegli l’immagine di copertina e, se vuoi, una riga di titolo; il titolo della Storia dalle opzioni del Round appare sopra. Lo studente preme Continue. Crea le Storie con lo Story Wizard o attivando Play as a Story nell’editor del Round.",
   "exerciseHelp.preset.note_card.body":
       "Una scheda con un titolo e una nota: un consiglio, un punto di grammatica, un’osservazione culturale. Lo studente la legge e preme Continue; non c’è risposta, punteggio né audio. Scrivi nella lingua che i tuoi studenti leggono meglio.",
   "exerciseHelp.preset.gap_choice.body":
@@ -787,6 +794,22 @@ const Map<String, String> helpIt = {
       "Blocchi che non riempiono alcuno spazio, offerti accanto alle risposte.\n\nCosa inserire\nUn blocco in più per riga. Includi 0, 1 o al massimo 2 distrattori.\n\nControlli\nUn distrattore non deve ripetere il testo di una risposta.\n\nEsempio\nsempre",
   "exerciseHelp.field.missing_letters.prompt.body":
       "Il testo completo con le lettere mancanti tra parentesi quadre.\n\nCosa inserire\nScrivi il testo e metti le lettere da nascondere tra [ e ], una parentesi per spazio: Il ga[tt]o dorme.\n\nControlli\nAlmeno una parentesi, nessuna vuota. Lo studente vede un trattino per lettera nascosta e scrive le lettere.\n\nEsempio\nIl ga[tt]o dor[me] sul divano.",
+  "exerciseHelp.field.dialogue_line.speaker.body":
+      "Chi dice la battuta.\n\nCosa inserire\nIl narratore o uno dei personaggi della Storia del Corso (Course Editor › Story characters).\n\nControlli\nIl personaggio deve esistere nel Corso; l’Audit segnala quello mancante.\n\nEsempio\nAnna",
+  "exerciseHelp.field.dialogue_line.prompt.body":
+      "La battuta stessa.\n\nCosa inserire\nUna battuta di dialogo, nella lingua di chi parla. Viene mostrata, letta ad alta voce o entrambe le cose, come dice la modalità.\n\nControlli\nObbligatoria.\n\nEsempio\nBuongiorno! Un caffè, per favore.",
+  "exerciseHelp.field.dialogue_line.lineMode.body":
+      "Se lo studente legge la battuta, la ascolta o entrambe le cose.\n\nCosa inserire\nText and audio, Text only oppure Audio only. Audio only rende la battuta un passaggio di ascolto; quando l’audio non è disponibile viene mostrato il testo.\n\nControlli\nNessuno.\n\nEsempio\nText and audio",
+  "exerciseHelp.field.dialogue_line.readAloud.body":
+      "Quando viene riprodotto l’audio della battuta.\n\nCosa inserire\nStory default (l’opzione Read-aloud del Round), Automatic (parte quando appare la battuta) oppure On request (lo studente tocca).\n\nControlli\nNessuno.\n\nEsempio\nStory default",
+  "exerciseHelp.field.dialogue_line.textReveal.body":
+      "Se il testo aspetta l’audio.\n\nCosa inserire\nImmediately, oppure After listening: il testo appare dopo che l’audio è stato riprodotto (solo con testo e audio).\n\nControlli\nNessuno.\n\nEsempio\nImmediately",
+  "exerciseHelp.field.dialogue_line.language.body":
+      "La lingua della battuta.\n\nCosa inserire\nLa lingua di chi parla (predefinita), oppure Target / Source per cambiarla solo in questa battuta.\n\nControlli\nNessuno.\n\nEsempio\nSpeaker’s",
+  "exerciseHelp.field.story_cover.prompt.body":
+      "Una riga di titolo facoltativa sulla copertina.\n\nCosa inserire\nUna riga breve; il titolo della Storia (opzioni del Round) appare comunque sopra la copertina.\n\nControlli\nFacoltativa.\n\nEsempio\nAl bar",
+  "exerciseHelp.field.story_cover.image.body":
+      "L’immagine di copertina.\n\nCosa inserire\nUn’immagine del Corso, della Shared Image Library o un’immagine integrata.\n\nControlli\nConsigliata; una copertina senza immagine mostra solo il titolo.\n\nEsempio\nUn tavolino di caffè",
   "exerciseHelp.field.note_card.prompt.body":
       "Il titolo della scheda.\n\nCosa inserire\nUn titolo breve, nella lingua che preferisci.\n\nControlli\nObbligatorio.\n\nEsempio\nTu o Lei?",
   "exerciseHelp.field.note_card.question.body":
@@ -979,6 +1002,10 @@ const Map<String, String> helpIt = {
       "Lo studente compone una parola con tessere di lettere o sillabe dopo un indizio nella lingua di partenza.",
   "exerciseHelp.preset.picture_word_match.description":
       "Lo studente abbina le immagini alle loro parole.",
+  "exerciseHelp.preset.dialogue_line.description":
+      "Una battuta di una Storia, detta dal narratore o da un personaggio come testo, audio o entrambi; lo studente legge o ascolta e continua.",
+  "exerciseHelp.preset.story_cover.description":
+      "La scheda di apertura di una Storia: la sua immagine e una riga di titolo facoltativa; lo studente continua.",
   "exerciseHelp.preset.note_card.description":
       "Un consiglio, una nota grammaticale o culturale che lo studente legge e poi continua.",
   "exerciseHelp.preset.gap_choice.description":

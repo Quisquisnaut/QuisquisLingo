@@ -16,6 +16,10 @@ const _formFields = <String, Map<String, String>>{
     'Answers': 'answers',
     'Correct answer number': 'correct',
   },
+  // The Dialogue line's speaker, mode, read-aloud, text and language are
+  // closed choices with the same Help control (Build 256 Revision 5).
+  'dialogue_line': {'Line': 'prompt'},
+  'story_cover': {'Title line': 'prompt'},
   'choice_source': {
     'Prompt / instruction': 'prompt',
     'Question': 'question',

@@ -30,7 +30,7 @@ void main() {
       expect(course.courseId, 'course_e5f5585a-7762-43a0-a6b2-62754e02d17b');
       expect(course.originType, CourseOriginType.bundledOfficial);
       // Build 255 Revision 6 renamed it from Piedmontais, keeping its ID.
-      expect(course.title, 'AI-Slop Demo: Piedmontese');
+      expect(course.title, 'Temporary Demo: Piedmontese');
       expect(course.learningLanguage, 'Piedmontese');
       expect(course.sourceLanguage, 'English');
       expect(course.targetLanguage, 'Piedmontese');
@@ -59,7 +59,7 @@ void main() {
       final course = await loadCourse();
       final presets = ExercisePresetRegistry.presets;
       expect(course.lessons, hasLength(presets.length));
-      expect(presets, hasLength(38));
+      expect(presets, hasLength(40));
       final seenTypes = <String>{};
       for (final lesson in course.lessons) {
         expect(lesson.publicationState, PublicationState.published);
@@ -90,7 +90,7 @@ void main() {
   );
 
   test(
-    'all 114 Piedmontese examples pass Audit and enter the runnable queue',
+    'all 120 Piedmontese examples pass Audit and enter the runnable queue',
     () async {
       final course = await loadCourse();
       final audit = CourseAuditService().auditCourse(course);
@@ -137,7 +137,7 @@ void main() {
           }
         }
       }
-      expect(playable.laurelEligibleRoundIds(course), hasLength(38));
+      expect(playable.laurelEligibleRoundIds(course), hasLength(40));
     },
   );
 

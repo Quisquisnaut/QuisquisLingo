@@ -40,6 +40,11 @@ class ExerciseDraftValues {
     this.textRole = '',
     this.audioRole = '',
     this.matchSides = '',
+    this.speakerId = '',
+    this.lineMode = 'both',
+    this.lineReadAloud = 'story',
+    this.lineTextReveal = 'immediate',
+    this.lineLanguage = '',
   }) : correctTranslations = List.unmodifiable(correctTranslations);
 
   final Exercise original;
@@ -87,6 +92,23 @@ class ExerciseDraftValues {
   /// Matching), `none` when they state none, empty for a new exercise.
   final String matchSides;
 
+  /// Dialogue line (Build 256 Revision 5): the speaking character's id
+  /// (empty for the narrator).
+  final String speakerId;
+
+  /// Dialogue line: `text`, `audio` or `both`.
+  final String lineMode;
+
+  /// Dialogue line: `story` (the Round's read-aloud option), `automatic` or
+  /// `manual`.
+  final String lineReadAloud;
+
+  /// Dialogue line: `immediate` or `afterAudio`.
+  final String lineTextReveal;
+
+  /// Dialogue line: `source`, `target` or empty for the speaker's language.
+  final String lineLanguage;
+
   ExerciseDraftValues copyWith({
     String? type,
     bool? useInlineGaps,
@@ -98,6 +120,11 @@ class ExerciseDraftValues {
     String? missingWords,
     String? context,
     String? contextMode,
+    String? speakerId,
+    String? lineMode,
+    String? lineReadAloud,
+    String? lineTextReveal,
+    String? lineLanguage,
   }) => ExerciseDraftValues(
     original: original,
     type: type ?? this.type,
@@ -131,6 +158,11 @@ class ExerciseDraftValues {
     textRole: textRole,
     audioRole: audioRole,
     matchSides: matchSides,
+    speakerId: speakerId ?? this.speakerId,
+    lineMode: lineMode ?? this.lineMode,
+    lineReadAloud: lineReadAloud ?? this.lineReadAloud,
+    lineTextReveal: lineTextReveal ?? this.lineTextReveal,
+    lineLanguage: lineLanguage ?? this.lineLanguage,
   );
 
   /// Script recognition already owns its canonical Select construction and
@@ -300,10 +332,95 @@ abstract final class ExerciseDraftBuilder {
       .replaceAll(RegExp(r'\s+'), ' ')
       .toLowerCase();
 
+  /// A Story dialogue line (Build 256 Revision 5): the line as text, audio
+  /// or both, said by the narrator or a character. Built canonically: its
+  /// speaker, language, playback and text reveal have no v11 shape.
+  static ExerciseDraftBuildResult _buildDialogueLine(
+    ExerciseDraftValues draft,
+  ) {
+    final original = draft.original;
+    final line = draft.prompt.trim();
+    final hasText = draft.lineMode != 'audio';
+    final hasAudio = draft.lineMode != 'text';
+    final language = TextLanguage.tryParse(draft.lineLanguage);
+    final playback = switch (draft.lineReadAloud) {
+      'automatic' => AudioPlayback.automatic,
+      'manual' => AudioPlayback.manual,
+      _ => null,
+    };
+    final speakerId = draft.speakerId.trim();
+    return ExerciseDraftBuildResult.success(
+      Exercise.canonical(
+        id: original.id,
+        publicationState: draft.publicationState,
+        updatedAt: original.updatedAt,
+        primitive: ExercisePrimitive.presentation,
+        options: PrimitiveOptions({
+          if (hasText && hasAudio && draft.lineTextReveal == 'afterAudio')
+            OptionKey.textReveal: const EnumOptionValue(TextReveal.afterAudio),
+        }),
+        promptElements: [
+          if (hasText)
+            PromptElement(
+              role: 'line',
+              type: 'text',
+              text: line,
+              speakerId: speakerId,
+              language: language,
+            ),
+          if (hasAudio)
+            PromptElement(
+              role: 'line',
+              type: 'audio',
+              text: line,
+              speakerId: speakerId,
+              language: language,
+              playback: playback,
+              // Optional next to the text; indispensable for an audio-only
+              // line (absent means required).
+              required: hasText ? false : null,
+            ),
+        ],
+        canonicalEvaluation: CanonicalEvaluation.none,
+        hint: draft.hint.trim(),
+        feedback: original.feedback,
+        authoringMetadata: original.authoringMetadata,
+      ),
+    );
+  }
+
+  /// A Story cover (Build 256 Revision 5): the cover picture and an
+  /// optional title line.
+  static ExerciseDraftBuildResult _buildStoryCover(ExerciseDraftValues draft) {
+    final original = draft.original;
+    final title = draft.prompt.trim();
+    final picture = draft.imageAsset.trim();
+    return ExerciseDraftBuildResult.success(
+      Exercise.canonical(
+        id: original.id,
+        publicationState: draft.publicationState,
+        updatedAt: original.updatedAt,
+        primitive: ExercisePrimitive.presentation,
+        promptElements: [
+          if (picture.isNotEmpty)
+            PromptElement(role: 'picture', type: 'image', asset: picture),
+          if (title.isNotEmpty)
+            PromptElement(role: 'title', type: 'text', text: title),
+        ],
+        canonicalEvaluation: CanonicalEvaluation.none,
+        hint: draft.hint.trim(),
+        feedback: original.feedback,
+        authoringMetadata: original.authoringMetadata,
+      ),
+    );
+  }
+
   static ExerciseDraftBuildResult _build(ExerciseDraftValues draft) {
     final original = draft.original;
     final type = draft.type;
     final publicationState = draft.publicationState;
+    if (type == 'dialogue_line') return _buildDialogueLine(draft);
+    if (type == 'story_cover') return _buildStoryCover(draft);
     if (type == 'script_recognition') {
       final candidate = draft.scriptCandidate;
       return candidate == null

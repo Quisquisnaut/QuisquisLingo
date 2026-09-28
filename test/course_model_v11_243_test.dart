@@ -10,6 +10,7 @@ import 'package:quisquislingo_app/services/course_file_store.dart';
 import 'package:quisquislingo_app/services/course_checksums.dart';
 import 'package:quisquislingo_app/services/course_merge_service.dart';
 import 'package:quisquislingo_app/services/course_model_v12_converter.dart';
+import 'package:quisquislingo_app/services/preset_recipes.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:quisquislingo_app/services/trusted_publishers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -75,7 +76,7 @@ void main() {
         }),
         throwsA(isA<FormatException>()),
       );
-      final bundled = _bundled('korean_en.json');
+      final bundled = _bundled('piedmontais_en.json');
       expect(
         () => Course.fromJson({...bundled, 'mergeProvenance': _merge()}),
         throwsA(isA<FormatException>()),
@@ -394,7 +395,6 @@ void main() {
       'edge_case_it_en.json': 'course_6f6a1fa3-b834-4936-b324-92fb57f73502',
       'exercise_laboratory_en_it.json':
           'course_50d68435-d2c2-4b63-9a0b-b23161357f1d',
-      'korean_en.json': 'sample_ko_en_ko',
       'piedmontais_en.json': 'course_e5f5585a-7762-43a0-a6b2-62754e02d17b',
     };
 
@@ -450,13 +450,6 @@ void main() {
       jsonDecode(File('test/fixtures/v11/$file').readAsStringSync()) as Map,
     );
 
-    test('the Korean Course is exactly the converter\'s result', () {
-      final result = convertCourseJsonToV12(v11('korean_en.json'));
-      expect(result.notes, isEmpty);
-      expect(result.json, _bundled('korean_en.json'));
-      expect(result.json['formatVersion'], 12);
-    });
-
     test(
       'the generated Courses agree with the converter exercise by exercise',
       () {
@@ -475,7 +468,35 @@ void main() {
               for (final round in lesson.rounds) ...round.content,
           ];
           final a = contents(converted);
-          final b = contents(shipped);
+          // Build 256 Revision 5: a Story's lines and covers have no v11
+          // shape, so the fixtures omit the Story Lessons; every shipped
+          // content the fixture lacks belongs to a Story Round or carries a
+          // canonical-only preset (the Story cover Lesson).
+          final knownIds = a.map((c) => c.id).toSet();
+          final b = <LearningContent>[];
+          for (final lesson in shipped.lessons) {
+            for (final round in lesson.rounds) {
+              final storyRound =
+                  round.flow != null ||
+                  round.content.any(
+                    (content) => PresetRecipes.canonicalOnly.contains(
+                      content.editorTemplate,
+                    ),
+                  );
+              for (final content in round.content) {
+                if (knownIds.contains(content.id)) {
+                  b.add(content);
+                } else {
+                  expect(
+                    storyRound,
+                    isTrue,
+                    reason:
+                        '$file ${content.id} is neither converted nor a Story',
+                  );
+                }
+              }
+            }
+          }
           expect(a.map((c) => c.id), b.map((c) => c.id), reason: file);
           for (var i = 0; i < a.length; i++) {
             final reason = '$file ${a[i].id}';

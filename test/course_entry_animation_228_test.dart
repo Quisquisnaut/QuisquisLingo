@@ -1,3 +1,4 @@
+import 'support/korean_fixture.dart';
 import 'support/test_directories.dart';
 import 'dart:async';
 
@@ -26,6 +27,7 @@ void main() {
     test(
       'bundled Korean keeps JSON KR while its course fallback is KO',
       () async {
+        registerKoreanFixture();
         final korean = await CourseService().loadCourse('KO');
 
         expect(korean.flagCode, 'KR');
@@ -317,6 +319,7 @@ void main() {
 
   group('Home course-switch wiring', () {
     setUp(() async {
+      registerKoreanFixture();
       for (final asset in CourseService.courseAssets.values) {
         rootBundle.evict(asset);
       }

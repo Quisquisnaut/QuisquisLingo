@@ -75,6 +75,14 @@ enum LearnerExerciseKind {
   /// A presentation exercise.
   presentation,
 
+  /// A Story dialogue line: a text and/or audio element with role `line`,
+  /// said by the narrator or a character (Build 256 Revision 5).
+  dialogueLine,
+
+  /// A Story cover: a picture and an optional title line, no word and no
+  /// meaning (Build 256 Revision 5).
+  storyCover,
+
   /// A primitive today's runtime does not play.
   other,
 }
@@ -152,9 +160,10 @@ class ExerciseFeatures {
       .where((e) => e.isImage && e.role == 'character')
       .toList(growable: false);
 
-  /// Image elements that illustrate the prompt (any role but `character`).
+  /// Image elements that illustrate the prompt (any role but `character`
+  /// and `avatar`).
   List<PromptElement> get illustrationImages => prompt
-      .where((e) => e.isImage && e.role != 'character')
+      .where((e) => e.isImage && e.role != 'character' && e.role != 'avatar')
       .toList(growable: false);
 
   /// The first illustration image asset, or an empty string.
@@ -405,6 +414,66 @@ class ExerciseFeatures {
       options.enumValue<CompletionMode>(OptionKey.completionMode) ??
       CompletionMode.proceed;
 
+  // ------------------------------------------------------------ Story lines
+
+  /// The elements of a Story dialogue line (role `line`): its text and/or
+  /// its audio (Build 256 Revision 5).
+  List<PromptElement> get lineElements => prompt
+      .where((e) => e.role == 'line' && (e.isText || e.isAudio))
+      .toList(growable: false);
+
+  /// The line's text; empty for an audio-only line.
+  String get lineText =>
+      lineElements.where((e) => e.isText).map((e) => e.text).firstOrNull ?? '';
+
+  /// The line's audio element, or null for a text-only line.
+  PromptElement? get lineAudio =>
+      lineElements.where((e) => e.isAudio).firstOrNull;
+
+  /// `text`, `audio` or `both`; empty when the exercise is not a line.
+  String get lineMode {
+    final text = lineElements.any((e) => e.isText);
+    final audio = lineAudio != null;
+    return text && audio
+        ? 'both'
+        : audio
+        ? 'audio'
+        : text
+        ? 'text'
+        : '';
+  }
+
+  /// The speaker of a line: empty for the narrator.
+  String get speakerId => lineElements
+      .map((e) => e.speakerId)
+      .firstWhere((id) => id.isNotEmpty, orElse: () => '');
+
+  /// `story` when the line's audio follows the Story's read-aloud default,
+  /// else `automatic` or `manual`.
+  String get lineReadAloud => switch (lineAudio?.playback) {
+    AudioPlayback.automatic => 'automatic',
+    AudioPlayback.manual => 'manual',
+    null => 'story',
+  };
+
+  /// The language the line states (`source` or `target`), or empty for the
+  /// speaker's language.
+  String get lineLanguage =>
+      lineElements
+          .map((e) => e.language)
+          .whereType<TextLanguage>()
+          .map((language) => language.serialized)
+          .firstOrNull ??
+      '';
+
+  /// When a presentation shows its text next to its audio.
+  TextReveal get textReveal =>
+      options.enumValue<TextReveal>(OptionKey.textReveal) ??
+      TextReveal.immediate;
+
+  /// A Story cover's title line (role `title`).
+  String get coverTitle => textOf('title');
+
   // -------------------------------------------------------------- evaluation
 
   /// Target ID -> the one item it must hold (inline gap grading).
@@ -503,6 +572,12 @@ class ExerciseFeatures {
         if (sidesDifferByLanguage) return LearnerExerciseKind.matchTranslation;
         return LearnerExerciseKind.match;
       case ExercisePrimitive.presentation:
+        if (lineElements.isNotEmpty) return LearnerExerciseKind.dialogueLine;
+        if (textOf('term').isEmpty &&
+            textOf('meaning').isEmpty &&
+            (coverTitle.isNotEmpty || illustrationImages.isNotEmpty)) {
+          return LearnerExerciseKind.storyCover;
+        }
         return LearnerExerciseKind.presentation;
       case ExercisePrimitive.assign:
       case ExercisePrimitive.speak:

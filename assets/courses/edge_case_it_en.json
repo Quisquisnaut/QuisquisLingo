@@ -8,9 +8,9 @@
   "originType": "bundledOfficial",
   "publisherId": "org.quisquislingo",
   "publisherName": "QuisquisLingo",
-  "officialCourseVersion": "1.1.1",
-  "officialReleaseDateUtc": "2026-09-27T00:00:00.000Z",
-  "officialReleaseNotes": "QQL Build 255 Revision 7: the Course flag is the English flag QQL draws (EN) instead of GB, which showed the neutral flag.",
+  "officialCourseVersion": "1.2.0",
+  "officialReleaseDateUtc": "2026-09-28T00:00:00.000Z",
+  "officialReleaseNotes": "QQL Build 256 Revision 5: a Story Lesson (a cover, lines, one of them audio only, and an exercise that needs the Story's audio).",
   "distributionChannel": "bundled",
   "publisherVerificationStatus": "verified",
   "originalCourseCreator": {
@@ -19,14 +19,14 @@
     "displayName": "QuisquisLingo"
   },
   "originalCreatedAtUtc": "2026-09-25T00:00:00.000Z",
-  "modifiedAtUtc": "2026-09-27T00:00:00.000Z",
+  "modifiedAtUtc": "2026-09-28T00:00:00.000Z",
   "learningLanguage": "English",
   "interfaceLanguage": "Italian",
   "sourceLanguage": "Italian",
   "targetLanguage": "English",
   "sourceLanguageTag": "it-IT",
   "targetLanguageTag": "en-GB",
-  "title": "AI-Slop Demo: Edge Case Course",
+  "title": "Temporary Demo: Edge Case Course",
   "ttsLanguage": "en-GB",
   "audioMode": "hybrid",
   "authors": [
@@ -60,6 +60,19 @@
       "id": "qql_edge_254_audio_02",
       "text": "recorded sample two",
       "filePath": "assets/audio/en_sample/sample_2.mp3"
+    }
+  ],
+  "storyNarrator": {
+    "name": "Narratore",
+    "language": "source"
+  },
+  "storyCharacters": [
+    {
+      "id": "qql_edge_254_character_marta",
+      "name": "Marta",
+      "avatar": "assets/avatars/kid.png",
+      "language": "target",
+      "voice": "female"
     }
   ],
   "lessons": [
@@ -2751,7 +2764,287 @@
         "id": "qql_edge_254_l05_draft_duel",
         "title": "Duel"
       }
+    },
+    {
+      "lessonId": "qql_edge_254_l06",
+      "publicationState": "published",
+      "updatedAt": "2026-09-25T00:00:00.000Z",
+      "title": "Storia: al bar (a Story)",
+      "section": false,
+      "guidebook": {
+        "content": [
+          {
+            "id": "qql_edge_254_l06_overview",
+            "publicationState": "published",
+            "kind": "explanation",
+            "required": false,
+            "role": "overview",
+            "text": "Una Story: copertina, tre battute (una solo audio) e un esercizio che richiede l’audio della Story. Il narratore parla italiano, Marta inglese."
+          },
+          {
+            "id": "qql_edge_254_l06_v1",
+            "publicationState": "published",
+            "kind": "vocabulary",
+            "required": false,
+            "role": "vocabulary",
+            "text": "a coffee = un caffè"
+          }
+        ]
+      },
+      "rounds": [
+        {
+          "id": "qql_edge_254_r11_story",
+          "publicationState": "published",
+          "updatedAt": "2026-09-25T00:00:00.000Z",
+          "visualType": "story",
+          "content": [
+            {
+              "id": "qql_edge_254_intro06",
+              "publicationState": "published",
+              "kind": "explanation",
+              "required": false,
+              "role": "lesson_intro",
+              "text": "Una Story (Build 256 Revision 5): la copertina, le battute del narratore e di Marta (una solo audio) e un esercizio che richiede l’audio della Story. Le battute non si saltano mai; l’esercizio segnato è saltato con Audio Exercises off."
+            },
+            {
+              "id": "qql_edge_254_e32_cover",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "authoringMetadata": {
+                "presetId": "story_cover"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "prompt": [
+                  {
+                    "role": "picture",
+                    "type": "image",
+                    "text": "Una tazza di caffè",
+                    "asset": "assets/exercise_images/coffee.webp"
+                  },
+                  {
+                    "role": "title",
+                    "type": "text",
+                    "text": "At the bar"
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
+            },
+            {
+              "id": "qql_edge_254_e33_narrator",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "authoringMetadata": {
+                "presetId": "dialogue_line"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "prompt": [
+                  {
+                    "role": "line",
+                    "type": "text",
+                    "text": "Marta entra nel bar e saluta."
+                  },
+                  {
+                    "role": "line",
+                    "type": "audio",
+                    "text": "Marta entra nel bar e saluta.",
+                    "required": false
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
+            },
+            {
+              "id": "qql_edge_254_e34_audio_only",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "authoringMetadata": {
+                "presetId": "dialogue_line"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "prompt": [
+                  {
+                    "role": "line",
+                    "type": "audio",
+                    "text": "Good morning! A coffee, please.",
+                    "speakerId": "qql_edge_254_character_marta"
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
+            },
+            {
+              "id": "qql_edge_254_e35_thanks",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "authoringMetadata": {
+                "presetId": "dialogue_line"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "prompt": [
+                  {
+                    "role": "line",
+                    "type": "text",
+                    "text": "Thank you!",
+                    "speakerId": "qql_edge_254_character_marta"
+                  },
+                  {
+                    "role": "line",
+                    "type": "audio",
+                    "text": "Thank you!",
+                    "speakerId": "qql_edge_254_character_marta",
+                    "required": false
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
+            },
+            {
+              "id": "qql_edge_254_e36_needs_audio",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "authoringMetadata": {
+                "presetId": "choice_target"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "select",
+                "prompt": [
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "Che cosa ordina Marta?"
+                  }
+                ],
+                "items": [
+                  {
+                    "id": "qql_edge_254_e36_needs_audio_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "a coffee"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e36_needs_audio_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "a tea"
+                      }
+                    ]
+                  }
+                ],
+                "evaluation": {
+                  "mode": "exactItem",
+                  "correctItemIds": [
+                    "qql_edge_254_e36_needs_audio_i1"
+                  ]
+                }
+              }
+            }
+          ],
+          "title": "Story: At the bar",
+          "flow": {
+            "start": "qql_edge_254_intro06",
+            "nodes": [
+              {
+                "id": "qql_edge_254_intro06",
+                "kind": "content",
+                "contentId": "qql_edge_254_intro06",
+                "transitions": [
+                  {
+                    "trigger": "next",
+                    "target": "qql_edge_254_e32_cover"
+                  }
+                ]
+              },
+              {
+                "id": "qql_edge_254_e32_cover",
+                "kind": "exercise",
+                "contentId": "qql_edge_254_e32_cover",
+                "transitions": [
+                  {
+                    "trigger": "next",
+                    "target": "qql_edge_254_e33_narrator"
+                  }
+                ]
+              },
+              {
+                "id": "qql_edge_254_e33_narrator",
+                "kind": "exercise",
+                "contentId": "qql_edge_254_e33_narrator",
+                "transitions": [
+                  {
+                    "trigger": "next",
+                    "target": "qql_edge_254_e34_audio_only"
+                  }
+                ]
+              },
+              {
+                "id": "qql_edge_254_e34_audio_only",
+                "kind": "exercise",
+                "contentId": "qql_edge_254_e34_audio_only",
+                "transitions": [
+                  {
+                    "trigger": "next",
+                    "target": "qql_edge_254_e35_thanks"
+                  }
+                ]
+              },
+              {
+                "id": "qql_edge_254_e35_thanks",
+                "kind": "exercise",
+                "contentId": "qql_edge_254_e35_thanks",
+                "transitions": [
+                  {
+                    "trigger": "next",
+                    "target": "qql_edge_254_e36_needs_audio"
+                  }
+                ]
+              },
+              {
+                "id": "qql_edge_254_e36_needs_audio",
+                "kind": "exercise",
+                "contentId": "qql_edge_254_e36_needs_audio",
+                "requiresAudio": true
+              }
+            ],
+            "presentation": "scroll",
+            "title": "At the bar",
+            "log": "dialogue"
+          }
+        }
+      ],
+      "duel": {
+        "id": "qql_edge_254_l06_duel",
+        "title": "Duel"
+      }
     }
   ],
-  "officialChecksum": "f60bf446c7d7f3932ca15ae6cb5c68d210f96bcff4efb0c61d6dd641067347c7"
+  "officialChecksum": "e95d23abc873f542a9af449a645e6b7660da97e68eac79ad0cb29becb3f7069c"
 }

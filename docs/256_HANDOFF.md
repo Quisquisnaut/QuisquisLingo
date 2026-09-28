@@ -15,13 +15,234 @@ open problems and the next step.
 
 ## State (28 September 2026, 08:53)
 
-- **WAITING FOR THE OWNER'S GO ON `docs/256_STORY_PLAN.md` (Build 256
-  Revision 5: Stories).** The owner approved a Stories revision on 28
-  September and answered its twelve design questions (plan §0); the plan is
-  written and pushed. Do not start coding until the owner says go; an
-  auto-resume run reads this line and replies with one line of status only.
+- **Build 256 Revision 5 (Stories, `docs/256_STORY_PLAN.md`) is in
+  progress: the owner gave the go ("Procedi") on 28 September.** The owner
+  approved the Stories revision and answered its twelve design questions
+  (plan §0); an auto-resume run continues from the latest progress note in
+  the next bullet.
   Interoperability is now Revision 6 and Laboratory / Assign / final
   verification Revision 7 (architecture plan Part B renumbered).
+- **Revision 5 started (owner: "Procedi", 28 September). Stage 1a applied
+  in the working tree (uncommitted, 09:14), analyzer clean, 22 tests green
+  (`test/story_model_256_test.dart`, flow authoring):** `ContentFlow.title/
+  log/readAloud`, `FlowNode.requiresAudio` (scorable exercises only),
+  `RoundFlowAuthoring` carries them (`withStoryOptions`,
+  `withAudioDependence(flow, LearningContent, requiresAudio:)`),
+  `StoryVoice`/`StorySpeaker` (`Course.storyNarrator`, `storyCharacters`,
+  `narrator`, `speakerOf`), `PromptElement.speakerId`, `TextReveal` option
+  (`OptionKey.textReveal`, presentation only), avatars in `CourseImageUsage`,
+  `tools/make_avatars.ps1` → `assets/avatars/{cat,dog,kid,monkey,robot}.png`
+  (pubspec). Scripts `s50_flow.py`, `s51_course.py`. **Next:** Stage 1b (the
+  presets dialogue_line / story_cover: registry, kinds, recipes, features,
+  copy, field help, Help catalogs, Search, Audit codes), then Stage 2.
+  09:24: Stage 1b applied (`s52_presets.py`), analyzer clean, tests not yet
+  run: presets `dialogue_line`/`story_cover` (registry, `helpByPreset`),
+  `PresetRecipes.kinds`, decompose/`ExerciseDraftValues` fields
+  (`speakerId`, `lineMode`, `lineReadAloud`, `lineTextReveal`,
+  `lineLanguage`), canonical `_buildDialogueLine`/`_buildStoryCover`,
+  `PresetVariants.ownForms`/`fits`, `LearnerExerciseKind.dialogueLine/
+  storyCover` + features (`lineElements`, `lineText`, `lineAudio`,
+  `lineMode`, `speakerId`, `lineReadAloud`, `lineLanguage`, `textReveal`,
+  `coverTitle`; `illustrationImages` skips `avatar`), copy (8 languages),
+  field help (8 fields), Help structure + EN/IT/ES catalogs, Search, Audit
+  (`kindLabel`, `_mismatchHint`, line/cover exemptions, Round-level Story
+  checks) and 5 codes (103; pins moved). **Next:** Stage 1b tests
+  (`test/story_presets_256_test.dart`) + focused batch, then Stage 2.
+  09:38: Stage 1b tests green (`story_presets_256_test.dart`, 7; batch 2
+  335 passed, 3 failed: field-help inventory and registry severity pins
+  moved, `exercise_field_help_ui_226_02` waits for the Stage 3 forms).
+  **Stage 2 applied (`s53_runtime.py`), analyzer clean,
+  `test/story_runtime_256_test.dart` 5 green:** Story queue (lines and
+  covers never skipped, any card of a Story kept, `requiresAudio` nodes
+  skipped with the audio exercises), `_dialogueLineExercise` (bubble,
+  avatar, name, play button, `story-line-continue`, `story-line-audio-note`),
+  `_storyCoverExercise` (`story-cover-continue`), `_automaticAudioOf`
+  (Story read-aloud default), `_lineSpeaker`/`_lineLanguage`,
+  `_playCourseAudio(voice:)` → `TtsCacheService.speak(voicePreference:)`
+  (5 test fakes patched), filtered `_logStoryItem`/`_storyEntryCard`,
+  `DuelEligibilityService.evaluate` skips Story Rounds. Batch 3 running
+  (`s5_batch3.log`). **Owner (28 September, mid-turn): delete the Korean
+  demo, rename Edge Case / Exercise Laboratory / Piedmontese to
+  "Temporary Demo: …"** — batch 3: 373 passed, 2 failed (a mistyped test
+  path; the Laboratory's every-preset pin waits for Stage 5). 09:47: demo
+  change applied (`s54_demos.py`): `CourseService.courseAssets` without
+  `KO` (`loadKoreanCourse` gone; `sample_ko_en_ko` stays reserved),
+  `assets/courses/korean_en.json`, `test/fixtures/v11/korean_en.json` and
+  `test/sample_courses_test.dart` removed (`git rm`), the three generators
+  title the demos "Temporary Demo: …" (assets, fixtures regenerated,
+  validator 3 files), Help EN/IT/ES + credits say Temporary Demo, README
+  feature list, 19 test files rewired (the Edge Case Course stands in for
+  Korean; the discovery test drops its Duel step: no bundled demo has a
+  Duel). Batch 4 running (`s5_batch4.log`, includes leaderboard). **Next:**
+  fix batch 4, then Stage 3 (editor forms, Round options, characters
+  section), Stage 4 (Story Wizard), Stage 5 (Courses, Help, docs, suite).
+  09:57: batch 4 (228 passed, 25 failed) showed the Home/navigation,
+  entry-animation and discovery tests were built around the Korean demo
+  (nine regular Lessons, sections, Duels; every remaining demo has
+  `createDuels: false`). Decision: the former Korean demo is a **test
+  fixture** (`test/fixtures/v12/korean_en.json`, not shipped) registered
+  by `test/support/korean_fixture.dart` (`registerKoreanFixture()`) through
+  the test-only seam `CourseService.debugExtraAssets`/`debugAssetReader`;
+  every registry read goes through `CourseService.bundledAssets`
+  (`s55_fixture.py`; the three navigation tests restored from HEAD and
+  re-titled). Batch 5 running (`s5_batch5.log`).
+  10:20: batch 5 (262 passed) left one real failure: the Selector test
+  tapped the Korean row, now the last row of the sheet and below the 600 px
+  test surface; it taps the Edge Case row instead (same assertion). The
+  Piedmontese every-preset pin waits for Stage 5. **Stage 3 (editor)
+  starts:** `lib/widgets/story_speaker_dialog.dart` written (narrator or
+  character: name, bundled avatar / Course picture / none, language, voice);
+  next the exercise forms, the Round editor's Story options, the Course
+  editor's Story characters section, the UI inventory and
+  `test/story_editor_256_test.dart`.
+  10:47: Stage 3 applied (`s56_editor.py`), analyzer clean, batch 6 (9
+  files) 170 passed, 4 failed: the four Course-editor tests of
+  `story_editor_256_test.dart` forgot that the Course Editor opens Locked
+  (fixed: tap `course-editor-lock`, Edit); rerun in `s5_batch7.log`.
+  Delivered: Dialogue line form (`exercise-choice-speaker|lineMode|
+  readAloud|textReveal|language`, `_choiceField` with field Help), Story
+  cover form, `PresetRecipes.canonicalOnly` (blank canonical exercise for
+  those presets), Round editor `round-story-title` (Round called
+  `Story: <title>`, prefix stripped when the Story is turned off; a new
+  Story is scroll + dialogue + automatic), `round-story-log`,
+  `round-story-read-aloud`, "Needs the Story's audio" (`CheckedPopupMenuItem`
+  value `audio`), Course editor `course-story-characters` (narrator row,
+  character rows, add, remove refused with the line count), the speaker
+  dialog (`lib/widgets/story_speaker_dialog.dart`: bundled avatars, None,
+  Choose image / Quick Import / Open from… through the cover crop dialog
+  and `CourseCoverService.storeAvatar`, a PNG halved until ≤ 50 KB), UI
+  inventory entries. **Next:** Stage 4 (Story Wizard:
+  `lib/widgets/story_line_dialog.dart`, `StoryWizardScreen`,
+  `lesson-story-wizard`, `test/story_wizard_256_test.dart`), then Stage 5.
+  11:11: **session stopped by the usage limit; Stages 3 and 4 green,
+  Stage 5 not started.** Stage 3: `story_editor_256_test.dart` 10 green
+  (`s5_batch7.log`). Stage 4 (`s57_wizard.py`, analyzer clean,
+  `story_wizard_256_test.dart` 3 green with the runtime tests in
+  `s5_batch9.log`): `lib/widgets/story_line_dialog.dart`
+  (`story-line-speaker|text|mode|read-aloud|text-reveal|save`),
+  `StoryWizardScreen` + `StoryWizardResult` + `storyWizardPresets` +
+  `_courseWithSpeakers` in `lib/screens/course_editor_screen.dart` (keys
+  `story-wizard-title`, `-read-aloud`, `-next`, `-back`, `-cancel`,
+  `-finish`, `-edit-narrator`, `-add-character`, `-character-<id>`,
+  `-add-line`, `-add-exercise`, `-preset-<id>`, `-step-<id>`,
+  `-up/-down/-remove-<i>`, `-audio-<id>`), Lesson editor button
+  `lesson-story-wizard` + `_openStoryWizard` (`_adoptCourse` with
+  `ReplaceLesson` on the Course carrying the speakers). The Wizard's cover
+  carries the Story title as its title line (else it is a plain
+  presentation, not a `storyCover`) and `_coverCard` in `round_screen.dart`
+  shows a title line equal to the Story title once. Working tree: 84
+  changed files, uncommitted (Revision 5 is one commit at the end).
+  **Stage 5 findings (nothing edited yet):** (1) the converter parity test
+  (`course_model_v11_243_test.dart` "agree with the converter exercise by
+  exercise") compares every content ID of the v11 fixture with the shipped
+  Course, so Story Lessons must be appended **after** conversion in the
+  three generators (v12 dicts; `build_course_v11()`/`course_v11()` stay
+  v11-only; `test/fixtures/v11/` unchanged) and that test must skip
+  contents whose Round has a `flow`; (2) the official checksum is Dart
+  `toJson()` sorted, so hand-written v12 JSON must match `toJson()`
+  exactly (Content: id, publicationState, kind, required,
+  authoringMetadata with presetId, exercise; exercise: updatedAt,
+  primitive, options only when set, prompt, evaluation mode none;
+  element: role, type, text, asset, speakerId, language, playback,
+  required; flow: start, nodes with id, kind, contentId, transitions
+  [trigger next, target], requiresAudio; presentation, title, log,
+  readAloud omitted when default; Course: storyNarrator with name and
+  language, storyCharacters with id, name, avatar, language, voice); the
+  Lab and Piedmontese tests pin the JSON round trip; (3)
+  `tools/validate_courses.py` requires prompt images under
+  `assets/exercise_images/` with a text alternative (a bundled cover cannot
+  use `assets/avatars/`), pins Lesson counts (Lab 5 to 6 with a Story
+  Lesson, Edge Case 5 to 6, Piedmontese 38 to 40) and reads `OPTIONS` from
+  `tools/qql_course_v12.py`, whose presentation table needs
+  `"textReveal": ["immediate", "afterAudio"]` and `OPTION_ORDER` the key
+  `"textReveal"` last; (4) the Piedmontese pin needs one Lesson per preset
+  with a Round of exactly three exercises of that preset and warnings
+  exactly `['OPPOSITE_TOO_EARLY']`: a `dialogue_line` Lesson whose Round is
+  a titled Story of three lines (speakers in the Course) and a
+  `story_cover` Lesson of three covers; (5) the Laboratory test pins five
+  Lessons whose exercises' primitive equals the title and 107 examples, its
+  `_Speech` asserts `it-IT`, `_answer` handles no line or cover (tap
+  `story-line-continue` / `story-cover-continue`), `_author` must pass
+  `hints.speakerId/lineMode/lineReadAloud/lineTextReveal/lineLanguage` and
+  `hints.prompt` for `PresetRecipes.canonicalOnly` presets, and every new
+  example needs a record in `test/support/laboratory_presentation_254.dart`
+  (record with `QQL_RECORD_PRESENTATION`, rebuild with the scratchpad's
+  `s34_baseline.py`); (6) Help: add an editor section (e.g.
+  `storiesAndStoryWizard`) to `editorHelpSectionIds` and EN/IT/ES after
+  `exerciseCreationWizard`, and refresh
+  `technical.exercisePrimitives.stories` (EN line 386; IT/ES by grep); (7)
+  docs and version: CHANGELOG top entry, `docs/256_CHANGE_SUMMARY.md` and
+  `docs/256_VALIDATION.md` "Revision 5" sections (format of Revision 4),
+  AGENTS boundary bullet, README lines 3 and 356, `pubspec.yaml`,
+  `app_metadata.dart` (256005 / 5 / "Build 256, Revision 5"),
+  `beta_lifecycle_service.dart` (expiry 30 days from the release day), the
+  pinned tests (`rg -n "256004|Build 256, Revision 4" test lib README.md`),
+  `docs/EXERCISE_ARCHITECTURE_V12.md`, the story plan's status line; then
+  `dart format` on git-status files, `flutter analyze`, the complete suite
+  once (`run_awake.ps1`), commit "Build 256 Revision 5: Stories", handoff,
+  sound; no APK; push only if the owner asks.
+  13:25 (resumed): owner report, a Story made by the Wizard showed its
+  cover picture twice at Preview start: the generic exercise page drew the
+  shared illustration (`exercise-image`) above the cover card, which draws
+  the picture itself. Fixed in `round_screen.dart` (the shared illustration
+  skips `LearnerExerciseKind.storyCover`); `story_runtime_256_test.dart`
+  asserts one picture and no `exercise-image` on the cover. Stage 5 next.
+  13:43: Stage 5 part A applied (`s58_courses.py`): `tools/qql_course_v12.py`
+  (`textReveal`, canonical passthrough in `convert_content`, `story_line`,
+  `story_cover`, `story_flow`), the three generators (Laboratory sixth
+  Lesson "Story" with 9 examples → 116; Piedmontese Lessons 39 Dialogue
+  line (a Story) and 40 Story cover → 40 Lessons / 120 examples, version
+  1.3.0; Edge Case Lesson l06 Story with an audio-only line and a
+  `requiresAudio` Select, version 1.2.0), validator counts 6 / 6 / 40,
+  fixtures rewritten (`s36_fixtures.py`), all `--check` and the validator
+  green; tests adjusted (parity test skips Story Lessons, Edge Case
+  6/11/35 and learner 5/32 with `learner.lessons[3]`, bundled source
+  6/11/35, Piedmontese 40/120, Laboratory titles + Story, 116, `_Speech`
+  accepts en-GB, `_answer` taps `story-line-continue`/`story-cover-continue`,
+  `_author` passes the line fields, `_semantics` adds them, a line's
+  Continue completes a one-item Round so Finish round is tapped only when
+  needed). Record run 1 (`s5_batch11.log`) 231/6 (the Finish round step);
+  record run 2 running (`s5_batch12.log`). **Next:** `s34_baseline.py`
+  (expect 9 new records, 0 changed), `s59_help.py` (Help), `s60_docs.py`
+  (version pins + docs; fill RESULT_BATCH / RESULT_SUITE in
+  `docs/256_VALIDATION.md` afterwards), format, analyze, focused batch
+  (Courses, converter, demos, Laboratory, Story, Help, version pins), the
+  complete suite, commit "Build 256 Revision 5: Stories", handoff, sound.
+  13:46: record run 2 green (237), baseline rebuilt (`s34_baseline.py`:
+  116 records, 9 new Story records, no changed record; header updated),
+  `s59_help.py` and `s60_docs.py` applied (Help EN/IT/ES section
+  `storiesAndStoryWizard` + the Stories section; version `2.0.56+256005`,
+  Beta expiry 2026-10-28, pinned tests, README, CHANGELOG, CHANGE_SUMMARY,
+  VALIDATION with RESULT_BATCH / RESULT_SUITE placeholders, AGENTS, V12
+  doc, plan status lines), `dart format` (3 changed), analyzer clean, no
+  stale pin. Batch 13 (Courses, converter, demos, Laboratory, Story, Help,
+  version pins; 33 files) running in `s5_batch13.log`. **Next:** fix any
+  batch 13 failure, fill the two placeholders, complete suite via
+  `run_awake.ps1` (`flutter test --no-pub --concurrency=1 --reporter compact`,
+  UTF-16 log summarized by `s44_suite_summary.py`), commit with
+  `commit_256005.txt` (`git add -A -- . ':!devtools_options.yaml'
+  ':!tools/cloud_setup.sh'`), handoff, `tada.wav`; no APK; push only if asked.
+  13:55: batch 13 416/15 → pins fixed (Edge Case 6/11/36, learner 5/33,
+  Merge sixth choice; bundled source 6/11/36; Piedmontese Round IDs 40;
+  parity filter accepts a Round holding a canonical-only preset; runtime
+  kind map + `dialogue_line`/`story_cover`; Beta test dates +1 day), batch
+  14 49/1, batch 15 7/0, analyzer clean, RESULT_BATCH filled. **Complete
+  suite running** (`run_awake.ps1`, log `suite_256005.log`, UTF-16). Next:
+  `s44_suite_summary.py` on the log, fill RESULT_SUITE, commit, handoff, sound.
+  14:07: complete suite run 1 (started 13:56) had three failures by
+  minute 9, all Korean-removal / Help-count pins outside the focused
+  batches, fixed in the tests while the run continued:
+  `course_library_screen_244_test.dart` (3 bundled, "2 of 3 shown",
+  " · 3"), `course_library_view_255_test.dart` ("2 of 3" / "3 of 3
+  shown"), `editor_help_translation_test.dart` (29 editor sections). Rule:
+  after the run, rerun those three files, then the complete suite once more
+  before committing.
+  14:23: suite run 1 finished 14:22: **3114 passed, 1 skipped, 3 failed**
+  (the three pins above); the three files rerun green (27); **suite run 2
+  running** on the final tree (`suite_256005_b.log`, started 14:23, about
+  26 minutes). Next: fill RESULT_SUITE in `docs/256_VALIDATION.md` with
+  both runs, commit (`commit_256005.txt`), handoff, `tada.wav`; no APK;
+  push only if the owner asks.
 - **Revision 4 (the preset catalogue, `2.0.56+256004`) is committed and
   pushed:** `eca0cd0` Build 256 Revision 4 (86 files) plus the handoff
   commits `f2e692a` and the compaction commit after it, on

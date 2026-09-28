@@ -361,6 +361,17 @@ enum MediaPlayback implements OptionEnumValue {
   final String serialized;
 }
 
+/// Build 256 Revision 5: when a presentation shows its text next to its
+/// audio: at once, or only after the audio has played.
+enum TextReveal implements OptionEnumValue {
+  immediate('immediate'),
+  afterAudio('afterAudio');
+
+  const TextReveal(this.serialized);
+  @override
+  final String serialized;
+}
+
 enum Scoring implements OptionEnumValue {
   none('none');
 
@@ -493,7 +504,8 @@ enum OptionKey {
     OptionValueKind.enumeration,
     MediaPlayback.values,
   ),
-  scoring('scoring', OptionValueKind.enumeration, Scoring.values);
+  scoring('scoring', OptionValueKind.enumeration, Scoring.values),
+  textReveal('textReveal', OptionValueKind.enumeration, TextReveal.values);
 
   const OptionKey(this.serialized, this.kind, [this.vocabulary = const []]);
 

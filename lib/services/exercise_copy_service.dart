@@ -137,6 +137,8 @@ class ExerciseCopyService {
     'type.selectDialogue': 'DIALOGUE',
     'type.selectImage': 'CHOOSE THE IMAGE',
     'type.presentation': 'FLASHCARD',
+    'type.dialogueLine': 'DIALOGUE',
+    'type.storyCover': 'STORY',
     'type.inputComplete': 'COMPLETE',
     'type.selectComplete': 'COMPLETE THE SENTENCE',
     'type.arrangeSentence': 'BUILD THE SENTENCE',
@@ -163,6 +165,8 @@ class ExerciseCopyService {
         'Read the dialogue and choose the best response.',
     'instruction.selectImage': 'Choose the image that matches.',
     'instruction.presentation': 'Study the word and its usage.',
+    'instruction.dialogueLine': 'Read or listen, then continue.',
+    'instruction.storyCover': 'A story begins. Continue when you are ready.',
     'instruction.inputComplete': 'Choose the word that completes the sentence.',
     'instruction.selectComplete':
         'Choose the block that best completes the sentence.',
@@ -195,6 +199,8 @@ class ExerciseCopyService {
     'type.selectDialogue': 'DIÁLOGO',
     'type.selectImage': 'ELIGE LA IMAGEN',
     'type.presentation': 'TARJETA',
+    'type.dialogueLine': 'DIÁLOGO',
+    'type.storyCover': 'HISTORIA',
     'type.inputComplete': 'COMPLETA',
     'type.selectComplete': 'COMPLETA LA FRASE',
     'type.arrangeSentence': 'FORMA LA FRASE',
@@ -217,6 +223,9 @@ class ExerciseCopyService {
     'instruction.selectDialogue': 'Lee el diálogo y elige la mejor respuesta.',
     'instruction.selectImage': 'Elige la imagen correcta.',
     'instruction.presentation': 'Estudia la palabra y su uso.',
+    'instruction.dialogueLine': 'Lee o escucha, luego continúa.',
+    'instruction.storyCover':
+        'Empieza una historia. Continúa cuando estés listo.',
     'instruction.inputComplete': 'Elige la palabra que completa la frase.',
     'instruction.selectComplete':
         'Elige el bloque que mejor completa la frase.',
@@ -252,6 +261,8 @@ class ExerciseCopyService {
     'type.selectDialogue': 'DIALOGO',
     'type.selectImage': 'SCEGLI L’IMMAGINE',
     'type.presentation': 'FLASHCARD',
+    'type.dialogueLine': 'DIALOGO',
+    'type.storyCover': 'STORIA',
     'type.inputComplete': 'COMPLETA',
     'type.selectComplete': 'COMPLETA LA FRASE',
     'type.arrangeSentence': 'COMPONI LA FRASE',
@@ -275,6 +286,8 @@ class ExerciseCopyService {
         'Leggi il dialogo e scegli la risposta migliore.',
     'instruction.selectImage': 'Scegli l’immagine corretta.',
     'instruction.presentation': 'Studia la parola e il suo uso.',
+    'instruction.dialogueLine': 'Leggi o ascolta, poi continua.',
+    'instruction.storyCover': 'Inizia una storia. Continua quando sei pronto.',
     'instruction.inputComplete': 'Scegli la parola che completa la frase.',
     'instruction.selectComplete':
         'Scegli il blocco che completa meglio la frase.',
@@ -310,6 +323,8 @@ class ExerciseCopyService {
     'type.selectDialogue': 'DIALOG',
     'type.selectImage': 'BILD AUSWÄHLEN',
     'type.presentation': 'KARTE',
+    'type.dialogueLine': 'DIALOG',
+    'type.storyCover': 'GESCHICHTE',
     'type.inputComplete': 'ERGÄNZEN',
     'type.selectComplete': 'SATZ ERGÄNZEN',
     'type.arrangeSentence': 'SATZ BILDEN',
@@ -333,6 +348,9 @@ class ExerciseCopyService {
         'Lies den Dialog und wähle die beste Antwort.',
     'instruction.selectImage': 'Wähle das passende Bild.',
     'instruction.presentation': 'Lerne das Wort und seine Verwendung.',
+    'instruction.dialogueLine': 'Lies oder höre zu, dann weiter.',
+    'instruction.storyCover':
+        'Eine Geschichte beginnt. Weiter, wenn du bereit bist.',
     'instruction.inputComplete':
         'Wähle das Wort, das den Satz vervollständigt.',
     'instruction.selectComplete':
@@ -370,6 +388,8 @@ class ExerciseCopyService {
     'type.selectDialogue': 'DIÁLOGO',
     'type.selectImage': 'ESCOLHER A IMAGEM',
     'type.presentation': 'CARTÃO',
+    'type.dialogueLine': 'DIÁLOGO',
+    'type.storyCover': 'HISTÓRIA',
     'type.inputComplete': 'COMPLETAR',
     'type.selectComplete': 'COMPLETAR A FRASE',
     'type.arrangeSentence': 'FORMAR A FRASE',
@@ -392,6 +412,9 @@ class ExerciseCopyService {
     'instruction.selectDialogue': 'Leia o diálogo e escolha a melhor resposta.',
     'instruction.selectImage': 'Escolha a imagem correta.',
     'instruction.presentation': 'Estude a palavra e o seu uso.',
+    'instruction.dialogueLine': 'Leia ou ouça, depois continue.',
+    'instruction.storyCover':
+        'Começa uma história. Continue quando estiver pronto.',
     'instruction.inputComplete': 'Escolha a palavra que completa a frase.',
     'instruction.selectComplete':
         'Escolha o bloco que melhor completa a frase.',
@@ -426,6 +449,8 @@ class ExerciseCopyService {
     'type.selectDialogue': 'DIALOOG',
     'type.selectImage': 'KIES DE AFBEELDING',
     'type.presentation': 'FLASHCARD',
+    'type.dialogueLine': 'DIALOOG',
+    'type.storyCover': 'VERHAAL',
     'type.inputComplete': 'AANVULLEN',
     'type.selectComplete': 'ZIN AANVULLEN',
     'type.arrangeSentence': 'MAAK DE ZIN',
@@ -447,6 +472,9 @@ class ExerciseCopyService {
     'instruction.selectDialogue': 'Lees de dialoog en kies het beste antwoord.',
     'instruction.selectImage': 'Kies de juiste afbeelding.',
     'instruction.presentation': 'Bestudeer het woord en het gebruik ervan.',
+    'instruction.dialogueLine': 'Lees of luister, en ga dan verder.',
+    'instruction.storyCover':
+        'Er begint een verhaal. Ga verder als je klaar bent.',
     'instruction.inputComplete': 'Kies het woord dat de zin aanvult.',
     'instruction.selectComplete': 'Kies het blok dat de zin het best aanvult.',
     'instruction.select_opposite': 'Kies het tegenovergestelde.',
@@ -480,6 +508,8 @@ class ExerciseCopyService {
     'type.selectDialogue': 'DIALOGI',
     'type.selectImage': 'VALITSE KUVA',
     'type.presentation': 'MUISTIKORTTI',
+    'type.dialogueLine': 'VUOROPUHELU',
+    'type.storyCover': 'TARINA',
     'type.inputComplete': 'TÄYDENNÄ',
     'type.selectComplete': 'TÄYDENNÄ LAUSE',
     'type.arrangeSentence': 'MUODOSTA LAUSE',
@@ -501,6 +531,8 @@ class ExerciseCopyService {
     'instruction.selectDialogue': 'Lue dialogi ja valitse paras vastaus.',
     'instruction.selectImage': 'Valitse oikea kuva.',
     'instruction.presentation': 'Opiskele sanaa ja sen käyttöä.',
+    'instruction.dialogueLine': 'Lue tai kuuntele, sitten jatka.',
+    'instruction.storyCover': 'Tarina alkaa. Jatka, kun olet valmis.',
     'instruction.inputComplete': 'Valitse sana, joka täydentää lauseen.',
     'instruction.selectComplete':
         'Valitse lohko, joka täydentää lauseen parhaiten.',
@@ -534,6 +566,8 @@ class ExerciseCopyService {
     'type.selectDialogue': 'DEIALOG',
     'type.selectImage': 'DEWIS Y DDELWEDD',
     'type.presentation': 'CERDYN',
+    'type.dialogueLine': 'DEIALOG',
+    'type.storyCover': 'STORI',
     'type.inputComplete': 'CWBLHAU',
     'type.selectComplete': 'CWBLHAU’R FRAWDDEG',
     'type.arrangeSentence': 'FFURFIO’R FRAW DDEG',
@@ -556,6 +590,9 @@ class ExerciseCopyService {
         'Darllenwch y deialog a dewiswch yr ateb gorau.',
     'instruction.selectImage': 'Dewiswch y ddelwedd gywir.',
     'instruction.presentation': 'Astudiwch y gair a’i ddefnydd.',
+    'instruction.dialogueLine': 'Darllenwch neu gwrandewch, yna parhewch.',
+    'instruction.storyCover':
+        'Mae stori yn dechrau. Parhewch pan fyddwch yn barod.',
     'instruction.inputComplete': 'Dewiswch y gair sy’n cwblhau’r frawddeg.',
     'instruction.selectComplete':
         'Dewiswch y bloc sy’n cwblhau’r frawddeg orau.',

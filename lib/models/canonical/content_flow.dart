@@ -223,6 +223,7 @@ final class FlowNode {
     required this.kind,
     required this.contentId,
     this.transitions = const [],
+    this.requiresAudio = false,
   });
 
   final String id;
@@ -232,12 +233,20 @@ final class FlowNode {
   final String contentId;
   final List<FlowTransition> transitions;
 
+  /// Build 256 Revision 5: this exercise needs the Story's audio (it depends
+  /// on having heard the dialogue), so it is skipped with the audio
+  /// exercises when audio is unavailable. Exercise nodes only; a
+  /// presentation (a dialogue line, a cover) is never skipped, so the runtime
+  /// ignores the flag on one.
+  final bool requiresAudio;
+
   Map<String, dynamic> toJson() => {
     'id': id,
     'kind': kind.serialized,
     'contentId': contentId,
     if (transitions.isNotEmpty)
       'transitions': transitions.map((t) => t.toJson()).toList(),
+    if (requiresAudio) 'requiresAudio': true,
   };
 
   factory FlowNode.fromJson(Map<String, dynamic> j) {
@@ -246,11 +255,23 @@ final class FlowNode {
       'kind',
       'contentId',
       'transitions',
+      'requiresAudio',
     }, 'flow node');
     final kind = FlowNodeKind.tryParse(j['kind']);
     if (kind == null) {
       throw FormatException(
         'flow node kind “${j['kind']}” must be content or exercise.',
+      );
+    }
+    final requiresAudio = j['requiresAudio'];
+    if (j.containsKey('requiresAudio') && requiresAudio is! bool) {
+      throw const FormatException(
+        'flow node requiresAudio must be true or false.',
+      );
+    }
+    if (requiresAudio == true && kind != FlowNodeKind.exercise) {
+      throw const FormatException(
+        'flow node requiresAudio applies to exercise nodes only.',
       );
     }
     final rawTransitions = j['transitions'];
@@ -261,6 +282,7 @@ final class FlowNode {
       id: _requiredFlowString(j, 'id', 'flow node'),
       kind: kind,
       contentId: _requiredFlowString(j, 'contentId', 'flow node'),
+      requiresAudio: requiresAudio == true,
       transitions: [
         if (rawTransitions is List)
           for (final transition in rawTransitions)
@@ -274,12 +296,14 @@ final class FlowNode {
     );
   }
 
-  FlowNode copyWith({List<FlowTransition>? transitions}) => FlowNode(
-    id: id,
-    kind: kind,
-    contentId: contentId,
-    transitions: transitions ?? this.transitions,
-  );
+  FlowNode copyWith({List<FlowTransition>? transitions, bool? requiresAudio}) =>
+      FlowNode(
+        id: id,
+        kind: kind,
+        contentId: contentId,
+        transitions: transitions ?? this.transitions,
+        requiresAudio: requiresAudio ?? this.requiresAudio,
+      );
 
   /// The unconditional successor, if any.
   String? get nextNodeId => transitions
@@ -345,11 +369,54 @@ enum FlowPresentation {
   }
 }
 
+/// What the scrolling presentation keeps on the page once an item is done
+/// (Build 256 Revision 5).
+enum FlowLog {
+  /// Every finished item: exercises stay as cards with the learner's answer.
+  all('all'),
+
+  /// Only the Story's cover and dialogue lines, as a readable dialogue.
+  dialogue('dialogue');
+
+  const FlowLog(this.serialized);
+  final String serialized;
+
+  static FlowLog? tryParse(Object? value) {
+    for (final log in values) {
+      if (log.serialized == value) return log;
+    }
+    return null;
+  }
+}
+
+/// How a Story's dialogue lines read themselves aloud unless a line says
+/// otherwise (Build 256 Revision 5).
+enum FlowReadAloud {
+  /// A line's audio plays when the line appears.
+  automatic('automatic'),
+
+  /// The learner taps to hear a line.
+  manual('manual');
+
+  const FlowReadAloud(this.serialized);
+  final String serialized;
+
+  static FlowReadAloud? tryParse(Object? value) {
+    for (final mode in values) {
+      if (mode.serialized == value) return mode;
+    }
+    return null;
+  }
+}
+
 final class ContentFlow {
   ContentFlow({
     required this.startNodeId,
     required List<FlowNode> nodes,
     this.presentation = FlowPresentation.step,
+    this.title = '',
+    this.log = FlowLog.all,
+    this.readAloud = FlowReadAloud.automatic,
   }) : nodes = List.unmodifiable(nodes);
 
   /// A flow that visits [nodes] in order with `next` transitions. Nodes are
@@ -357,17 +424,26 @@ final class ContentFlow {
   factory ContentFlow.linear(
     List<FlowNode> nodes, {
     FlowPresentation presentation = FlowPresentation.step,
+    String title = '',
+    FlowLog log = FlowLog.all,
+    FlowReadAloud readAloud = FlowReadAloud.automatic,
   }) {
     if (nodes.isEmpty) {
       return ContentFlow(
         startNodeId: '',
         nodes: const [],
         presentation: presentation,
+        title: title,
+        log: log,
+        readAloud: readAloud,
       );
     }
     return ContentFlow(
       startNodeId: nodes.first.id,
       presentation: presentation,
+      title: title,
+      log: log,
+      readAloud: readAloud,
       nodes: [
         for (var i = 0; i < nodes.length; i++)
           nodes[i].copyWith(
@@ -385,17 +461,61 @@ final class ContentFlow {
   /// Omitted in JSON when it is the default, [FlowPresentation.step].
   final FlowPresentation presentation;
 
+  /// The Story's title (Build 256 Revision 5); empty for a flow that is not
+  /// a Story. Omitted in JSON when empty.
+  final String title;
+
+  /// What the scrolling page keeps; omitted in JSON when [FlowLog.all].
+  final FlowLog log;
+
+  /// How dialogue lines read aloud unless a line overrides it; omitted in
+  /// JSON when [FlowReadAloud.automatic].
+  final FlowReadAloud readAloud;
+
+  /// The content IDs of the exercise nodes marked as needing the Story's
+  /// audio.
+  Set<String> get audioDependentContentIds => {
+    for (final node in nodes)
+      if (node.requiresAudio) node.contentId,
+  };
+
   Map<String, dynamic> toJson() => {
     'start': startNodeId,
     'nodes': nodes.map((node) => node.toJson()).toList(),
     if (presentation != FlowPresentation.step)
       'presentation': presentation.serialized,
+    if (title.isNotEmpty) 'title': title,
+    if (log != FlowLog.all) 'log': log.serialized,
+    if (readAloud != FlowReadAloud.automatic) 'readAloud': readAloud.serialized,
   };
+
+  ContentFlow copyWith({
+    String? startNodeId,
+    List<FlowNode>? nodes,
+    FlowPresentation? presentation,
+    String? title,
+    FlowLog? log,
+    FlowReadAloud? readAloud,
+  }) => ContentFlow(
+    startNodeId: startNodeId ?? this.startNodeId,
+    nodes: nodes ?? this.nodes,
+    presentation: presentation ?? this.presentation,
+    title: title ?? this.title,
+    log: log ?? this.log,
+    readAloud: readAloud ?? this.readAloud,
+  );
 
   /// Parses the structure only; [check] reports semantic problems such as
   /// unknown targets so a Course stays readable and the Audit can name them.
   factory ContentFlow.fromJson(Map<String, dynamic> j) {
-    _refuseUnknownFlowKeys(j, const {'start', 'nodes', 'presentation'}, 'flow');
+    _refuseUnknownFlowKeys(j, const {
+      'start',
+      'nodes',
+      'presentation',
+      'title',
+      'log',
+      'readAloud',
+    }, 'flow');
     final rawNodes = j['nodes'];
     if (rawNodes is! List) {
       throw const FormatException('flow.nodes must be a list.');
@@ -408,9 +528,28 @@ final class ContentFlow {
         'flow.presentation “${j['presentation']}” must be step or scroll.',
       );
     }
+    final rawTitle = j['title'];
+    if (j.containsKey('title') && rawTitle is! String) {
+      throw const FormatException('flow.title must be a string.');
+    }
+    final log = j.containsKey('log') ? FlowLog.tryParse(j['log']) : FlowLog.all;
+    if (log == null) {
+      throw FormatException('flow.log “${j['log']}” must be all or dialogue.');
+    }
+    final readAloud = j.containsKey('readAloud')
+        ? FlowReadAloud.tryParse(j['readAloud'])
+        : FlowReadAloud.automatic;
+    if (readAloud == null) {
+      throw FormatException(
+        'flow.readAloud “${j['readAloud']}” must be automatic or manual.',
+      );
+    }
     return ContentFlow(
       startNodeId: _requiredFlowString(j, 'start', 'flow'),
       presentation: presentation,
+      title: (rawTitle as String?)?.trim() ?? '',
+      log: log,
+      readAloud: readAloud,
       nodes: [
         for (final node in rawNodes)
           if (node is Map)

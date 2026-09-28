@@ -75,6 +75,8 @@ import '../widgets/course_artwork.dart';
 import '../widgets/course_cover_field.dart';
 import '../widgets/course_flag_picker.dart';
 import '../widgets/image_credit_reminder.dart';
+import '../widgets/story_line_dialog.dart';
+import '../widgets/story_speaker_dialog.dart';
 import '../widgets/lesson_fallback_icon.dart';
 import '../widgets/import_summary.dart';
 import '../services/storage/qql_storage.dart';
@@ -533,6 +535,8 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
   Course get _course => _session.workingCourse;
 
   bool get _dirty => _session.hasChanges;
+
+  final _storyIds = TimestampAuthoringIdGenerator();
 
   bool get _canModify => _session.canModify;
 
@@ -2223,6 +2227,201 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
 
   /// Course-level Lesson settings, shown under the Lessons tile. They were on
   /// the Lessons screen but none of them is a Lesson property.
+  /// Build 256 Revision 5: who speaks in this Course's Stories.
+  String get _storyCharactersSummary {
+    final narrator = _course.narrator.name;
+    final count = _course.storyCharacters.length;
+    return '${narrator.isEmpty ? 'Unnamed narrator' : 'Narrator: $narrator'} · '
+        '$count character${count == 1 ? '' : 's'}';
+  }
+
+  static String _speakerSummary(StorySpeaker speaker) =>
+      '${speaker.language == TextLanguage.source ? 'Source' : 'Target'} '
+      'language · voice ${speaker.voice.serialized}';
+
+  /// How many Dialogue lines of this Course a speaker says.
+  int _linesSpokenBy(String speakerId) {
+    var count = 0;
+    for (final lesson in _course.lessons) {
+      for (final round in lesson.rounds) {
+        for (final content in round.content) {
+          final exercise = content.exercise;
+          if (exercise != null &&
+              exercise.promptElements.any(
+                (element) => element.speakerId == speakerId,
+              )) {
+            count++;
+          }
+        }
+      }
+    }
+    return count;
+  }
+
+  /// The working copy with [narrator] and [characters] and, when a library
+  /// picture with a known credit became an avatar, that credit among the
+  /// Media credits (once).
+  Course _withSpeakers({
+    StorySpeaker? narrator,
+    List<StorySpeaker>? characters,
+    CourseMediaAttribution? credit,
+  }) {
+    final credits = [..._course.mediaAttributions];
+    if (credit != null &&
+        !credits.any(
+          (known) => jsonEncode(known.toJson()) == jsonEncode(credit.toJson()),
+        )) {
+      credits.add(credit);
+    }
+    final json = {..._course.toJson()}
+      ..remove('storyNarrator')
+      ..remove('storyCharacters')
+      ..remove('mediaAttributions');
+    final speaker = narrator ?? _course.storyNarrator;
+    final list = characters ?? _course.storyCharacters;
+    return Course.fromJson({
+      ...json,
+      if (speaker != null) 'storyNarrator': speaker.toJson(),
+      if (list.isNotEmpty)
+        'storyCharacters': [for (final character in list) character.toJson()],
+      if (credits.isNotEmpty)
+        'mediaAttributions': [for (final known in credits) known.toJson()],
+    });
+  }
+
+  Future<void> _editSpeaker(
+    StorySpeaker speaker, {
+    required bool narrator,
+  }) async {
+    final choice = await showStorySpeakerDialog(
+      context,
+      course: _course,
+      speaker: speaker,
+      narrator: narrator,
+      readOnly: !_canModify,
+    );
+    if (choice == null || !mounted) return;
+    _updateDraft(
+      _withSpeakers(
+        narrator: narrator ? choice.speaker : null,
+        characters: narrator
+            ? null
+            : [
+                for (final character in _course.storyCharacters)
+                  character.id == choice.speaker.id
+                      ? choice.speaker
+                      : character,
+              ],
+        credit: choice.credit,
+      ),
+    );
+  }
+
+  Future<void> _addCharacter() async {
+    final choice = await showStorySpeakerDialog(
+      context,
+      course: _course,
+      speaker: StorySpeaker(
+        id: _storyIds.next('character'),
+        language: TextLanguage.target,
+      ),
+      narrator: false,
+    );
+    if (choice == null || !mounted) return;
+    _updateDraft(
+      _withSpeakers(
+        characters: [..._course.storyCharacters, choice.speaker],
+        credit: choice.credit,
+      ),
+    );
+  }
+
+  /// Removing a character that lines still name is refused with the count
+  /// (owner decision: no silent fallback to the narrator).
+  Future<void> _removeCharacter(StorySpeaker character) async {
+    final lines = _linesSpokenBy(character.id);
+    if (lines > 0) {
+      await showDialog<void>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text('“${character.name}” still speaks'),
+          content: Text(
+            '$lines Dialogue line${lines == 1 ? '' : 's'} of this Course name this character. Give those lines another speaker first; QQL never hands them to the narrator silently.',
+            key: const Key('story-character-in-use'),
+          ),
+          actions: [
+            FilledButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+    _updateDraft(
+      _withSpeakers(
+        characters: [
+          for (final other in _course.storyCharacters)
+            if (other.id != character.id) other,
+        ],
+      ),
+    );
+  }
+
+  List<Widget> _storyCharacterRows() => [
+    const Padding(
+      padding: EdgeInsets.fromLTRB(16, 0, 16, 8),
+      child: Text(
+        'Who speaks in this Course\'s Stories: the narrator and reusable characters, each with a name, an avatar, a language and a voice preference. A Dialogue line names one of them.',
+      ),
+    ),
+    ListTile(
+      key: const Key('story-narrator'),
+      leading: StoryAvatar(
+        speaker: _course.narrator,
+        courseId: _course.courseId,
+      ),
+      title: Text(
+        _course.narrator.name.isEmpty
+            ? 'Narrator (unnamed)'
+            : 'Narrator: ${_course.narrator.name}',
+      ),
+      subtitle: Text(_speakerSummary(_course.narrator)),
+      trailing: Icon(_canModify ? Icons.edit_outlined : Icons.chevron_right),
+      onTap: () => _editSpeaker(_course.narrator, narrator: true),
+    ),
+    for (final character in _course.storyCharacters)
+      ListTile(
+        key: ValueKey('story-character-${character.id}'),
+        leading: StoryAvatar(speaker: character, courseId: _course.courseId),
+        title: Text(character.name),
+        subtitle: Text(_speakerSummary(character)),
+        trailing: _canModify
+            ? IconButton(
+                key: ValueKey('story-character-remove-${character.id}'),
+                tooltip: 'Remove character',
+                icon: const Icon(Icons.delete_outline),
+                onPressed: () => _removeCharacter(character),
+              )
+            : const Icon(Icons.chevron_right),
+        onTap: () => _editSpeaker(character, narrator: false),
+      ),
+    if (_canModify)
+      Padding(
+        padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+        child: Align(
+          alignment: Alignment.centerLeft,
+          child: OutlinedButton.icon(
+            key: const Key('story-character-add'),
+            onPressed: _addCharacter,
+            icon: const Icon(Icons.person_add_alt_1_outlined),
+            label: const Text('Add character'),
+          ),
+        ),
+      ),
+  ];
+
   List<Widget> _lessonOptions() => [
     Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
@@ -2730,6 +2929,16 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
               leading: const Icon(Icons.tune_outlined),
               title: const Text('Lesson Options'),
               children: _lessonOptions(),
+            ),
+            // Build 256 Revision 5: the narrator and the characters this
+            // Course's Stories reuse; collapsed like Lesson Options.
+            ExpansionTile(
+              key: const Key('course-story-characters'),
+              initiallyExpanded: false,
+              leading: const Icon(Icons.theater_comedy_outlined),
+              title: const Text('Story characters'),
+              subtitle: Text(_storyCharactersSummary),
+              children: _storyCharacterRows(),
             ),
             const Divider(height: 1),
             ListTile(
@@ -4692,6 +4901,40 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
     setState(() => _themeIconAsset = selected == none ? null : selected);
   }
 
+  /// Build 256 Revision 5: the Story Wizard builds one Story Round (a cover,
+  /// lines and exercises) and hands back the narrator and characters it
+  /// edited; both reach the working copy through the authoring session, so
+  /// the Course confirmation still decides persistence.
+  Future<void> _openStoryWizard() async {
+    if (widget.readOnly) return;
+    final result = await Navigator.of(context).push<StoryWizardResult>(
+      MaterialPageRoute(
+        builder: (_) => StoryWizardScreen(
+          course: _courseWithIcons,
+          lesson: _lesson,
+          clock: _clock,
+        ),
+      ),
+    );
+    if (result == null || !mounted) return;
+    final lesson = _copy(rounds: [..._lesson.rounds, result.round]);
+    _adoptCourse(
+      _hierarchyUpdates.apply(
+        _courseWithSpeakers(
+          _course,
+          narrator: result.narrator,
+          characters: result.characters,
+          credits: result.credits,
+        ),
+        ReplaceLesson(
+          lesson.lessonId,
+          lesson,
+          lessonIconAssets: _lessonIconAssets,
+        ),
+      ),
+    );
+  }
+
   Future<void> _openGuidebookRoundGenerator() async {
     if (widget.readOnly) return;
     final generated = await Navigator.of(context).push<List<LearningRound>>(
@@ -4808,6 +5051,13 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
                       icon: const Icon(Icons.auto_awesome_outlined),
                       label: const Text('Round Wizard'),
                     ),
+                  ),
+                  FilledButton.icon(
+                    key: const Key('lesson-story-wizard'),
+                    style: _compactButtonStyle,
+                    onPressed: _openStoryWizard,
+                    icon: const Icon(Icons.auto_stories_outlined),
+                    label: const Text('Story Wizard'),
                   ),
                 ],
               ],
@@ -5360,6 +5610,667 @@ class _GuidebookRoundGeneratorScreenState
       },
     ),
   );
+}
+
+/// What the Story Wizard hands back (Build 256 Revision 5): the Story
+/// Round, the narrator and characters as edited in its steps, and the
+/// credits of library pictures that became avatars.
+typedef StoryWizardResult = ({
+  LearningRound round,
+  StorySpeaker narrator,
+  List<StorySpeaker> characters,
+  List<CourseMediaAttribution> credits,
+});
+
+/// The presets an exercise step of a Story may use (story plan §5).
+const storyWizardPresets = <String>[
+  'true_false',
+  'choice_target',
+  'choice_source',
+  'translation_choice_to_target',
+  'translation_choice_to_source',
+  'listening_answer_target',
+  'listening_answer_source',
+  'word_order',
+  'missing_word',
+  'type_missing_word',
+  'complete_text',
+];
+
+enum _StoryWizardStage { story, narrator, characters, builder }
+
+/// The Story Wizard (Build 256 Revision 5, `docs/256_STORY_PLAN.md` §5):
+/// A the Story (title, cover picture, read-aloud), B the narrator, C the
+/// characters, then the builder, where lines (an inline form) and
+/// exercises (the normal exercise form on top of this route) are added,
+/// reordered and removed. Finish creates the Round: visual type story,
+/// title `Story: <title>`, a linear scrolling flow logging the dialogue,
+/// the cover first, and the exercises marked as needing the Story's audio.
+class StoryWizardScreen extends StatefulWidget {
+  const StoryWizardScreen({
+    super.key,
+    required this.course,
+    required this.lesson,
+    this.clock,
+  });
+
+  final Course course;
+  final Lesson lesson;
+  final DateTime Function()? clock;
+
+  @override
+  State<StoryWizardScreen> createState() => _StoryWizardScreenState();
+}
+
+class _StoryWizardScreenState extends State<StoryWizardScreen> {
+  final _title = TextEditingController();
+  final _ids = TimestampAuthoringIdGenerator();
+  late final DateTime Function() _clock = widget.clock ?? DateTime.now;
+  _StoryWizardStage _stage = _StoryWizardStage.story;
+  String _cover = '';
+  SharedImageSource? _coverSource;
+  FlowReadAloud _readAloud = FlowReadAloud.automatic;
+  late StorySpeaker _narrator = widget.course.narrator;
+  late final List<StorySpeaker> _characters = [
+    ...widget.course.storyCharacters,
+  ];
+  final List<CourseMediaAttribution> _credits = [];
+  final List<Exercise> _steps = [];
+  final Set<String> _audio = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _title.addListener(() => setState(() {}));
+  }
+
+  @override
+  void dispose() {
+    _title.dispose();
+    super.dispose();
+  }
+
+  /// The Course as the exercise form should see it: with the speakers
+  /// edited here, so a line form offers them.
+  Course get _courseForEditing => _courseWithSpeakers(
+    widget.course,
+    narrator: _narrator,
+    characters: _characters,
+    credits: _credits,
+  );
+
+  bool get _hasLine => _steps.any(_isLine);
+
+  static bool _isLine(Exercise exercise) =>
+      ExerciseFeatures(exercise).kind == LearnerExerciseKind.dialogueLine;
+
+  StorySpeaker _speakerOf(String speakerId) => speakerId.isEmpty
+      ? _narrator
+      : _characters.firstWhere(
+          (character) => character.id == speakerId,
+          orElse: () => StorySpeaker(
+            id: speakerId,
+            name: 'Unknown character',
+            language: TextLanguage.target,
+          ),
+        );
+
+  Exercise _blank(String id) => Exercise.canonical(
+    id: id,
+    primitive: ExercisePrimitive.presentation,
+    canonicalEvaluation: CanonicalEvaluation.none,
+    updatedAt: _clock().toUtc(),
+  );
+
+  Exercise _lineExercise(String id, StoryLineValues values) =>
+      ExerciseDraftBuilder.build(
+        ExerciseDraftValues(
+          original: _blank(id),
+          type: 'dialogue_line',
+          publicationState: PublicationState.published,
+          prompt: values.text,
+          speakerId: values.speakerId,
+          lineMode: values.mode,
+          lineReadAloud: values.readAloud,
+          lineTextReveal: values.textReveal,
+        ),
+      ).candidate!;
+
+  void _next() => setState(
+    () => _stage =
+        _StoryWizardStage.values[_StoryWizardStage.values.indexOf(_stage) + 1],
+  );
+
+  void _back() => setState(
+    () => _stage =
+        _StoryWizardStage.values[_StoryWizardStage.values.indexOf(_stage) - 1],
+  );
+
+  Future<void> _editNarrator() async {
+    final choice = await showStorySpeakerDialog(
+      context,
+      course: widget.course,
+      speaker: _narrator,
+      narrator: true,
+    );
+    if (choice == null || !mounted) return;
+    setState(() {
+      _narrator = choice.speaker;
+      if (choice.credit case final credit?) _credits.add(credit);
+    });
+  }
+
+  Future<void> _addCharacter() async {
+    final choice = await showStorySpeakerDialog(
+      context,
+      course: widget.course,
+      speaker: StorySpeaker(
+        id: _ids.next('character'),
+        language: TextLanguage.target,
+      ),
+      narrator: false,
+    );
+    if (choice == null || !mounted) return;
+    setState(() {
+      _characters.add(choice.speaker);
+      if (choice.credit case final credit?) _credits.add(credit);
+    });
+  }
+
+  Future<void> _editCharacter(int index) async {
+    final choice = await showStorySpeakerDialog(
+      context,
+      course: widget.course,
+      speaker: _characters[index],
+      narrator: false,
+    );
+    if (choice == null || !mounted) return;
+    setState(() {
+      _characters[index] = choice.speaker;
+      if (choice.credit case final credit?) _credits.add(credit);
+    });
+  }
+
+  Future<void> _addLine() async {
+    final values = await showStoryLineDialog(
+      context,
+      narrator: _narrator,
+      characters: _characters,
+    );
+    if (values == null || !mounted) return;
+    setState(() => _steps.add(_lineExercise(_ids.next('exercise'), values)));
+  }
+
+  Future<void> _editLine(int index) async {
+    final draft = PresetRecipes.decompose(_steps[index], 'dialogue_line');
+    final values = await showStoryLineDialog(
+      context,
+      narrator: _narrator,
+      characters: _characters,
+      initial: (
+        speakerId: draft.speakerId,
+        text: draft.prompt,
+        mode: draft.lineMode,
+        readAloud: draft.lineReadAloud,
+        textReveal: draft.lineTextReveal,
+      ),
+    );
+    if (values == null || !mounted) return;
+    setState(() => _steps[index] = _lineExercise(_steps[index].id, values));
+  }
+
+  void _acceptStep(Exercise exercise) {
+    if (!mounted) return;
+    setState(() {
+      final index = _steps.indexWhere((step) => step.id == exercise.id);
+      if (index < 0) {
+        _steps.add(exercise);
+      } else {
+        _steps[index] = exercise;
+      }
+    });
+  }
+
+  Future<void> _addExercise() async {
+    final presetId = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      builder: (sheetContext) => SafeArea(
+        child: ListView(
+          shrinkWrap: true,
+          padding: const EdgeInsets.fromLTRB(12, 12, 12, 24),
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(4, 0, 4, 8),
+              child: Text(
+                'Add an exercise to the Story',
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+              ),
+            ),
+            for (final id in storyWizardPresets)
+              if (ExercisePresetRegistry.byId(id) case final preset?)
+                Card(
+                  key: ValueKey('story-wizard-preset-$id'),
+                  child: ListTile(
+                    leading: _PresetActionChip(preset.action),
+                    title: Text(preset.name),
+                    subtitle: Text(preset.description),
+                    onTap: () => Navigator.pop(sheetContext, id),
+                  ),
+                ),
+          ],
+        ),
+      ),
+    );
+    if (presetId == null || !mounted) return;
+    final exercise = await Navigator.of(context).push<Exercise>(
+      MaterialPageRoute(
+        builder: (_) => _exerciseEditorFor(
+          exercise: _blankExerciseForPreset(presetId, _ids),
+          title: 'New exercise',
+          isNew: true,
+          course: _courseForEditing,
+          lesson: widget.lesson,
+          onExerciseSaved: _acceptStep,
+          clock: _clock,
+        ),
+      ),
+    );
+    if (exercise != null && mounted) _acceptStep(exercise);
+  }
+
+  Future<void> _editExercise(int index) async {
+    final exercise = await Navigator.of(context).push<Exercise>(
+      MaterialPageRoute(
+        builder: (_) => _exerciseEditorFor(
+          exercise: _steps[index],
+          title: 'Edit exercise',
+          isNew: false,
+          course: _courseForEditing,
+          lesson: widget.lesson,
+          onExerciseSaved: _acceptStep,
+          clock: _clock,
+        ),
+      ),
+    );
+    if (exercise != null && mounted) _acceptStep(exercise);
+  }
+
+  void _move(int index, int delta) {
+    final target = index + delta;
+    if (target < 0 || target >= _steps.length) return;
+    setState(() => _steps.insert(target, _steps.removeAt(index)));
+  }
+
+  void _remove(int index) => setState(() {
+    _audio.remove(_steps[index].id);
+    _steps.removeAt(index);
+  });
+
+  void _finish() {
+    if (!_hasLine) return;
+    final title = _title.text.trim();
+    // The cover carries the Story title as its title line, so it is a cover
+    // with or without a picture; the cover card shows the title once.
+    final cover = ExerciseDraftBuilder.build(
+      ExerciseDraftValues(
+        original: _blank(_ids.next('exercise')),
+        type: 'story_cover',
+        publicationState: PublicationState.published,
+        prompt: title,
+        imageAsset: _cover,
+        selectedSharedSource: _coverSource,
+        attachSelectedSharedSource: true,
+      ),
+    ).candidate!;
+    final content = [
+      for (final exercise in [cover, ..._steps])
+        LearningContent.fromExercise(exercise),
+    ];
+    final round = LearningRound(
+      id: _ids.next('round'),
+      publicationState: PublicationState.draft,
+      provisionalDraft: true,
+      updatedAt: _clock().toUtc(),
+      title: 'Story: $title',
+      visualType: 'story',
+      content: content,
+      flow: RoundFlowAuthoring.linearFor(
+        content,
+        presentation: FlowPresentation.scroll,
+        title: title,
+        log: FlowLog.dialogue,
+        readAloud: _readAloud,
+        requiresAudio: _audio,
+      ),
+    );
+    Navigator.pop(context, (
+      round: round,
+      narrator: _narrator,
+      characters: List<StorySpeaker>.unmodifiable(_characters),
+      credits: List<CourseMediaAttribution>.unmodifiable(_credits),
+    ));
+  }
+
+  static String _speakerSummary(StorySpeaker speaker) =>
+      '${speaker.language == TextLanguage.source ? 'Source' : 'Target'} '
+      'language · voice ${speaker.voice.serialized}';
+
+  @override
+  Widget build(BuildContext context) {
+    final index = _StoryWizardStage.values.indexOf(_stage);
+    const names = ['Story', 'Narrator', 'Characters', 'Steps'];
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Story Wizard · ${names[index]} (${index + 1} of 4)'),
+        actions: const [EditorAppBarActions()],
+      ),
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+          child: Wrap(
+            alignment: WrapAlignment.end,
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              TextButton(
+                key: const Key('story-wizard-cancel'),
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancel'),
+              ),
+              if (index > 0)
+                OutlinedButton(
+                  key: const Key('story-wizard-back'),
+                  onPressed: _back,
+                  child: const Text('Back'),
+                ),
+              if (_stage != _StoryWizardStage.builder)
+                FilledButton(
+                  key: const Key('story-wizard-next'),
+                  onPressed:
+                      _stage == _StoryWizardStage.story &&
+                          _title.text.trim().isEmpty
+                      ? null
+                      : _next,
+                  child: const Text('Next'),
+                )
+              else
+                FilledButton.icon(
+                  key: const Key('story-wizard-finish'),
+                  onPressed: _hasLine ? _finish : null,
+                  icon: const Icon(Icons.check),
+                  label: const Text('Finish'),
+                ),
+            ],
+          ),
+        ),
+      ),
+      body: switch (_stage) {
+        _StoryWizardStage.story => _storyStep(),
+        _StoryWizardStage.narrator => _narratorStep(),
+        _StoryWizardStage.characters => _charactersStep(),
+        _StoryWizardStage.builder => _builderStep(),
+      },
+    );
+  }
+
+  Widget _storyStep() => ListView(
+    key: const Key('story-wizard-step-story'),
+    padding: const EdgeInsets.all(16),
+    children: [
+      const Text(
+        'A Story is a Round played in order: a cover, dialogue lines said by the narrator or by characters, and exercises about them. Name it, choose its cover picture and how its lines are read aloud.',
+      ),
+      const SizedBox(height: 16),
+      TextField(
+        key: const Key('story-wizard-title'),
+        controller: _title,
+        decoration: const InputDecoration(
+          border: OutlineInputBorder(),
+          labelText: 'Story title',
+          helperText:
+              'Shown on the cover; the Round is called “Story: <title>”.',
+        ),
+      ),
+      const SizedBox(height: 16),
+      const Text(
+        'Cover picture',
+        style: TextStyle(fontWeight: FontWeight.bold),
+      ),
+      const SizedBox(height: 4),
+      ExerciseImageField(
+        course: widget.course,
+        asset: _cover,
+        sharedSource: _coverSource,
+        readOnly: false,
+        onChanged: (change) => setState(() {
+          _cover = change.asset;
+          _coverSource = change.source;
+        }),
+      ),
+      const SizedBox(height: 16),
+      const Text('Read-aloud', style: TextStyle(fontWeight: FontWeight.bold)),
+      const SizedBox(height: 4),
+      SegmentedButton<FlowReadAloud>(
+        key: const Key('story-wizard-read-aloud'),
+        segments: const [
+          ButtonSegment(
+            value: FlowReadAloud.automatic,
+            label: Text('Read aloud automatically'),
+            icon: Icon(Icons.volume_up_outlined),
+          ),
+          ButtonSegment(
+            value: FlowReadAloud.manual,
+            label: Text('On request'),
+            icon: Icon(Icons.touch_app_outlined),
+          ),
+        ],
+        selected: {_readAloud},
+        onSelectionChanged: (values) =>
+            setState(() => _readAloud = values.first),
+      ),
+      const SizedBox(height: 8),
+      const Text(
+        'A line may override this. Lines are never skipped: without audio the learner reads them.',
+      ),
+    ],
+  );
+
+  Widget _narratorStep() => ListView(
+    key: const Key('story-wizard-step-narrator'),
+    padding: const EdgeInsets.all(16),
+    children: [
+      const Text(
+        'The narrator says every line without a character. Its name, avatar, language and voice are Course data, shared by every Story of this Course.',
+      ),
+      const SizedBox(height: 12),
+      Card(
+        child: ListTile(
+          key: const Key('story-wizard-narrator'),
+          leading: StoryAvatar(
+            speaker: _narrator,
+            courseId: widget.course.courseId,
+          ),
+          title: Text(
+            _narrator.name.isEmpty
+                ? 'Narrator (unnamed)'
+                : 'Narrator: ${_narrator.name}',
+          ),
+          subtitle: Text(_speakerSummary(_narrator)),
+          trailing: const Icon(Icons.edit_outlined),
+          onTap: _editNarrator,
+        ),
+      ),
+      const SizedBox(height: 8),
+      Align(
+        alignment: Alignment.centerLeft,
+        child: OutlinedButton.icon(
+          key: const Key('story-wizard-edit-narrator'),
+          onPressed: _editNarrator,
+          icon: const Icon(Icons.edit_outlined),
+          label: const Text('Edit narrator'),
+        ),
+      ),
+    ],
+  );
+
+  Widget _charactersStep() => ListView(
+    key: const Key('story-wizard-step-characters'),
+    padding: const EdgeInsets.all(16),
+    children: [
+      const Text(
+        'Characters are Course data too: the ones below are already known to this Course. Add the ones this Story needs, or edit them. Characters are removed in the Course Editor › Story characters, which checks that no line still names them.',
+      ),
+      const SizedBox(height: 12),
+      for (var i = 0; i < _characters.length; i++)
+        Card(
+          child: ListTile(
+            key: ValueKey('story-wizard-character-${_characters[i].id}'),
+            leading: StoryAvatar(
+              speaker: _characters[i],
+              courseId: widget.course.courseId,
+            ),
+            title: Text(_characters[i].name),
+            subtitle: Text(_speakerSummary(_characters[i])),
+            trailing: const Icon(Icons.edit_outlined),
+            onTap: () => _editCharacter(i),
+          ),
+        ),
+      if (_characters.isEmpty)
+        const Padding(
+          padding: EdgeInsets.symmetric(vertical: 8),
+          child: Text(
+            'No character yet. A Story may also be told by the narrator alone.',
+          ),
+        ),
+      const SizedBox(height: 8),
+      Align(
+        alignment: Alignment.centerLeft,
+        child: OutlinedButton.icon(
+          key: const Key('story-wizard-add-character'),
+          onPressed: _addCharacter,
+          icon: const Icon(Icons.person_add_alt_1_outlined),
+          label: const Text('Add character'),
+        ),
+      ),
+    ],
+  );
+
+  Widget _builderStep() => ListView(
+    key: const Key('story-wizard-step-builder'),
+    padding: const EdgeInsets.all(16),
+    children: [
+      const Text(
+        'The Story in order, after its cover. Add lines and exercises, move them, remove them. Only exercises count for XP; a line is read or heard and continued. Finish needs at least one line.',
+      ),
+      const SizedBox(height: 12),
+      for (var i = 0; i < _steps.length; i++) _stepCard(i),
+      if (_steps.isEmpty)
+        const Padding(
+          padding: EdgeInsets.symmetric(vertical: 8),
+          child: Text('No step yet.'),
+        ),
+      const SizedBox(height: 8),
+      Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: [
+          FilledButton.tonalIcon(
+            key: const Key('story-wizard-add-line'),
+            onPressed: _addLine,
+            icon: const Icon(Icons.chat_bubble_outline),
+            label: const Text('Add line'),
+          ),
+          FilledButton.tonalIcon(
+            key: const Key('story-wizard-add-exercise'),
+            onPressed: _addExercise,
+            icon: const Icon(Icons.quiz_outlined),
+            label: const Text('Add exercise'),
+          ),
+        ],
+      ),
+    ],
+  );
+
+  Widget _stepCard(int i) {
+    final step = _steps[i];
+    final line = _isLine(step);
+    final features = ExerciseFeatures(step);
+    final preset = ExercisePresetRegistry.byId(step.editorTemplate);
+    final speaker = line ? _speakerOf(features.speakerId) : null;
+    return Card(
+      key: ValueKey('story-wizard-step-${step.id}'),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          ListTile(
+            leading: line
+                ? StoryAvatar(
+                    speaker: speaker!,
+                    courseId: widget.course.courseId,
+                  )
+                : _PresetActionChip(preset?.action ?? 'Exercise'),
+            title: Text(
+              line
+                  ? (features.lineText.isEmpty
+                        ? '(audio only)'
+                        : features.lineText)
+                  : preset?.name ?? 'Exercise',
+            ),
+            subtitle: Text(
+              line
+                  ? '${i + 1}. ${speaker!.isNarrator ? (speaker.name.isEmpty ? 'Narrator' : speaker.name) : speaker.name} · ${features.lineMode}'
+                  : '${i + 1}. ${step.publicationState.isPublished ? 'Published' : 'Draft'} exercise',
+            ),
+            onTap: () => line ? _editLine(i) : _editExercise(i),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  key: ValueKey('story-wizard-up-$i'),
+                  tooltip: 'Move up',
+                  onPressed: i == 0 ? null : () => _move(i, -1),
+                  icon: const Icon(Icons.arrow_upward),
+                ),
+                IconButton(
+                  key: ValueKey('story-wizard-down-$i'),
+                  tooltip: 'Move down',
+                  onPressed: i == _steps.length - 1 ? null : () => _move(i, 1),
+                  icon: const Icon(Icons.arrow_downward),
+                ),
+                IconButton(
+                  key: ValueKey('story-wizard-remove-$i'),
+                  tooltip: 'Remove',
+                  onPressed: () => _remove(i),
+                  icon: const Icon(Icons.delete_outline),
+                ),
+              ],
+            ),
+          ),
+          if (!line)
+            CheckboxListTile(
+              key: ValueKey('story-wizard-audio-${step.id}'),
+              dense: true,
+              controlAffinity: ListTileControlAffinity.leading,
+              title: const Text('Needs the Story\'s audio'),
+              subtitle: const Text(
+                'Skipped, like the audio exercises, when the learner has Audio Exercises off.',
+              ),
+              value: _audio.contains(step.id),
+              onChanged: (value) => setState(() {
+                if (value ?? false) {
+                  _audio.add(step.id);
+                } else {
+                  _audio.remove(step.id);
+                }
+              }),
+            ),
+        ],
+      ),
+    );
+  }
 }
 
 class LessonRoundsScreen extends StatefulWidget {
@@ -6003,6 +6914,12 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
   /// The Round's content flow (a Story), kept through every edit: a linear
   /// flow follows the edited content order (`RoundFlowAuthoring`).
   ContentFlow? _flow;
+
+  /// The Story title field (Build 256 Revision 5): the flow carries the
+  /// title and the Round is called `Story: <title>`.
+  late final TextEditingController _storyTitle = TextEditingController(
+    text: widget.round.flow?.title ?? '',
+  );
   bool _routeMayPop = false;
   late final DateTime Function() _clock = widget.clock ?? DateTime.now;
   @override
@@ -6017,6 +6934,12 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
     _publicationState = widget.round.publicationState;
     _provisionalDraft = widget.round.provisionalDraft;
     _flow = widget.round.flow;
+  }
+
+  @override
+  void dispose() {
+    _storyTitle.dispose();
+    super.dispose();
   }
 
   LearningRound _editedRound({
@@ -6042,8 +6965,19 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
   Future<void> _setStory(bool on) async {
     if (widget.readOnly) return;
     if (on) {
+      // A new Story (Build 256 Revision 5) scrolls, logs the dialogue only
+      // and reads aloud automatically; a title the Round already carries
+      // (`Story: …`) is kept.
+      final title = _storyTitleOf(_title);
+      _storyTitle.text = title;
       _mutateRound(
-        () => _flow = RoundFlowAuthoring.linearFor(_editedContent()),
+        () => _flow = RoundFlowAuthoring.linearFor(
+          _editedContent(),
+          presentation: FlowPresentation.scroll,
+          title: title,
+          log: FlowLog.dialogue,
+          readAloud: FlowReadAloud.automatic,
+        ),
       );
       return;
     }
@@ -6070,7 +7004,55 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
       );
       if (remove != true || !mounted) return;
     }
-    _mutateRound(() => _flow = null);
+    _mutateRound(() {
+      _flow = null;
+      // The Round keeps its name without the Story prefix.
+      if (_title.startsWith(_storyTitlePrefix)) _title = _storyTitleOf(_title);
+    });
+  }
+
+  static const _storyTitlePrefix = 'Story: ';
+
+  /// The Story title a Round title carries: what follows `Story: `, else
+  /// nothing.
+  static String _storyTitleOf(String roundTitle) =>
+      roundTitle.startsWith(_storyTitlePrefix)
+      ? roundTitle.substring(_storyTitlePrefix.length).trim()
+      : '';
+
+  /// Names the Story: the flow carries the title and the Round is called
+  /// `Story: <title>`, which the Lesson path and Home show. Clearing the
+  /// title leaves the Round unnamed (Round N).
+  void _setStoryTitle(String value) {
+    final flow = _flow;
+    if (flow == null || widget.readOnly) return;
+    final title = value.trim();
+    _mutateRound(() {
+      _flow = RoundFlowAuthoring.withStoryOptions(flow, title: title);
+      if (title.isNotEmpty) {
+        _title = '$_storyTitlePrefix$title';
+      } else if (_title.startsWith(_storyTitlePrefix)) {
+        _title = '';
+      }
+    });
+  }
+
+  /// Marks or unmarks an exercise as needing the Story's audio (Build 256
+  /// Revision 5): with Audio Exercises off the Story skips it, as it skips
+  /// the audio exercises; a line is never skipped.
+  void _toggleAudioDependence(int i) {
+    final flow = _flow;
+    if (flow == null || widget.readOnly) return;
+    final id = _exercises[i].id;
+    final entry = _editedContent().firstWhere((content) => content.id == id);
+    final requires = !flow.audioDependentContentIds.contains(id);
+    _mutateRound(
+      () => _flow = RoundFlowAuthoring.withAudioDependence(
+        flow,
+        entry,
+        requiresAudio: requires,
+      ),
+    );
   }
 
   String get _storyDescription {
@@ -7084,7 +8066,23 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
                 value: _flow != null,
                 onChanged: widget.readOnly ? null : _setStory,
               ),
-              if (_flow != null && _flow!.isLinear)
+              if (_flow != null && _flow!.isLinear) ...[
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+                  child: TextField(
+                    key: const Key('round-story-title'),
+                    controller: _storyTitle,
+                    readOnly: widget.readOnly,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: 'Story title',
+                      helperText:
+                          'Shown on the cover; the Round is called “Story: <title>”. The Audit asks for one.',
+                      helperMaxLines: 2,
+                    ),
+                    onChanged: _setStoryTitle,
+                  ),
+                ),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
                   child: SegmentedButton<FlowPresentation>(
@@ -7112,6 +8110,68 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
                           ),
                   ),
                 ),
+                if (_flow!.presentation == FlowPresentation.scroll)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                    child: SegmentedButton<FlowLog>(
+                      key: const Key('round-story-log'),
+                      segments: const [
+                        ButtonSegment(
+                          value: FlowLog.dialogue,
+                          label: Text('Dialogue only'),
+                          icon: Icon(Icons.forum_outlined),
+                        ),
+                        ButtonSegment(
+                          value: FlowLog.all,
+                          label: Text('Everything'),
+                          icon: Icon(Icons.view_list_outlined),
+                        ),
+                      ],
+                      selected: {_flow!.log},
+                      onSelectionChanged: widget.readOnly
+                          ? null
+                          : (values) => _mutateRound(
+                              () => _flow = RoundFlowAuthoring.withStoryOptions(
+                                _flow!,
+                                log: values.first,
+                              ),
+                            ),
+                    ),
+                  ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                  child: SegmentedButton<FlowReadAloud>(
+                    key: const Key('round-story-read-aloud'),
+                    segments: const [
+                      ButtonSegment(
+                        value: FlowReadAloud.automatic,
+                        label: Text('Read aloud automatically'),
+                        icon: Icon(Icons.volume_up_outlined),
+                      ),
+                      ButtonSegment(
+                        value: FlowReadAloud.manual,
+                        label: Text('On request'),
+                        icon: Icon(Icons.touch_app_outlined),
+                      ),
+                    ],
+                    selected: {_flow!.readAloud},
+                    onSelectionChanged: widget.readOnly
+                        ? null
+                        : (values) => _mutateRound(
+                            () => _flow = RoundFlowAuthoring.withStoryOptions(
+                              _flow!,
+                              readAloud: values.first,
+                            ),
+                          ),
+                  ),
+                ),
+                const Padding(
+                  padding: EdgeInsets.fromLTRB(16, 0, 16, 8),
+                  child: Text(
+                    'Lines are never skipped: without audio the learner reads them. An exercise that only makes sense with the Story\'s audio is marked “Needs the Story\'s audio” in its menu and is skipped with Audio Exercises off.',
+                  ),
+                ),
+              ],
             ],
           ),
           padding: const EdgeInsets.fromLTRB(10, 10, 10, 20),
@@ -7150,6 +8210,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
                         if (v == 'delete') _delete(i);
                         if (v == 'generate') _generateFromReading(i);
                         if (v == 'preview') _previewExercise(i);
+                        if (v == 'audio') _toggleAudioDependence(i);
                         if (v == 'copy') _transferExercise(i, copy: true);
                         if (v == 'move') _transferExercise(i, copy: false);
                         if (v == 'publication') {
@@ -7194,6 +8255,16 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
                                 : 'Save',
                           ),
                         ),
+                        if (_flow != null &&
+                            e.primitive != ExercisePrimitive.presentation)
+                          CheckedPopupMenuItem(
+                            value: 'audio',
+                            enabled: !widget.readOnly,
+                            checked: _flow!.audioDependentContentIds.contains(
+                              e.id,
+                            ),
+                            child: const Text('Needs the Story\'s audio'),
+                          ),
                         if (ExerciseFeatures(e).kind ==
                             LearnerExerciseKind.selectRead)
                           PopupMenuItem(
@@ -7324,27 +8395,83 @@ Widget _exerciseEditorFor({
         initiallyInspecting: initiallyInspecting,
       );
 
-Exercise _blankExerciseForPreset(String presetId, AuthoringIdGenerator ids) =>
-    // The v11 shape needs the recipe's base type (a catalogue twin such as
-    // type_translation_to_target is not a v11 type and would fall back to a
-    // Select interaction); the preset itself travels as the editor template.
-    Exercise(
-      id: ids.next('exercise'),
-      publicationState: PublicationState.draft,
-      type: ExercisePresetRegistry.byId(presetId)?.base ?? presetId,
-      editorTemplate: presetId,
-      prompt: '',
-      question: '',
-      answers: const [],
-      correct: null,
-      tts: null,
-      accepted: const [],
-      tokens: const [],
-      orderAnswer: const [],
-      pairs: const [],
-      hint: '',
-      icons: const [],
-    );
+/// [course] with the Story [narrator] and [characters] and any new media
+/// [credits] (Build 256 Revision 5). A narrator equal to the one the Course
+/// already has (or to the default, when it has none) leaves the JSON as it
+/// was.
+Course _courseWithSpeakers(
+  Course course, {
+  required StorySpeaker narrator,
+  required List<StorySpeaker> characters,
+  List<CourseMediaAttribution> credits = const [],
+}) {
+  final json = {...course.toJson()}
+    ..remove('storyNarrator')
+    ..remove('storyCharacters')
+    ..remove('mediaAttributions');
+  final known = [...course.mediaAttributions];
+  for (final credit in credits) {
+    if (!known.any(
+      (item) => jsonEncode(item.toJson()) == jsonEncode(credit.toJson()),
+    )) {
+      known.add(credit);
+    }
+  }
+  final sameNarrator =
+      jsonEncode(narrator.toJson()) == jsonEncode(course.narrator.toJson());
+  return Course.fromJson({
+    ...json,
+    if (course.storyNarrator != null || !sameNarrator)
+      'storyNarrator': narrator.toJson(),
+    if (characters.isNotEmpty)
+      'storyCharacters': [
+        for (final character in characters) character.toJson(),
+      ],
+    if (known.isNotEmpty)
+      'mediaAttributions': [for (final item in known) item.toJson()],
+  });
+}
+
+Exercise _blankExerciseForPreset(String presetId, AuthoringIdGenerator ids) {
+  final id = ids.next('exercise');
+  // A recipe with no v11 shape (a Dialogue line, a Story cover; Build 256
+  // Revision 5) is blank as its own recipe builds it from empty fields, so
+  // the exercise is a presentation from the start.
+  if (PresetRecipes.canonicalOnly.contains(presetId)) {
+    return ExerciseDraftBuilder.build(
+      ExerciseDraftValues(
+        original: Exercise.canonical(
+          id: id,
+          publicationState: PublicationState.draft,
+          primitive: ExercisePrimitive.presentation,
+          canonicalEvaluation: CanonicalEvaluation.none,
+        ),
+        type: presetId,
+        publicationState: PublicationState.draft,
+      ),
+    ).candidate!;
+  }
+  // The v11 shape needs the recipe's base type (a catalogue twin such as
+  // type_translation_to_target is not a v11 type and would fall back to a
+  // Select interaction); the preset itself travels as the editor template.
+  return Exercise(
+    id: id,
+    publicationState: PublicationState.draft,
+    type: ExercisePresetRegistry.byId(presetId)?.base ?? presetId,
+    editorTemplate: presetId,
+    prompt: '',
+    question: '',
+    answers: const [],
+    correct: null,
+    tts: null,
+    accepted: const [],
+    tokens: const [],
+    orderAnswer: const [],
+    pairs: const [],
+    hint: '',
+    icons: const [],
+  );
+}
 
 enum _ExerciseWizardStage { setup, plan, guided }
 
@@ -8015,6 +9142,13 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
   String _audioRole = '';
   String _matchSides = '';
   bool _useMultiSelect = false;
+  // Dialogue line (Build 256 Revision 5): who speaks and how the line is
+  // shown; the draft builder turns them into elements and options.
+  String _speakerId = '';
+  String _lineMode = 'both';
+  String _lineReadAloud = 'story';
+  String _lineTextReveal = 'immediate';
+  String _lineLanguage = '';
   static String labelForType(String type) =>
       ExercisePresetRegistry.byId(type)?.name ?? type.replaceAll('_', ' ');
   late String _type;
@@ -8065,6 +9199,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     _textRole = draft.textRole;
     _audioRole = draft.audioRole;
     _matchSides = draft.matchSides;
+    _readLineFields(draft);
     _tokens = TextEditingController(text: draft.tokens);
     _order = TextEditingController(text: draft.order);
     _gapLayout = TextEditingController(text: draft.gapLayout);
@@ -8461,6 +9596,60 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         ],
       ),
     );
+  }
+
+  /// A closed choice among a few values (Build 256 Revision 5, the Dialogue
+  /// line form), with the same Help control as a text field. The value is
+  /// part of the inner key so a form reload shows the reloaded value.
+  Widget _choiceField({
+    required String fieldKey,
+    required String label,
+    required String value,
+    required Map<String, String> choices,
+    required ValueChanged<String> onChanged,
+    String? helper,
+  }) => Padding(
+    key: ValueKey('exercise-choice-$fieldKey'),
+    padding: const EdgeInsets.only(bottom: 12),
+    child: DropdownButtonFormField<String>(
+      key: ValueKey('exercise-choice-$fieldKey-$value'),
+      initialValue: choices.containsKey(value) ? value : null,
+      isExpanded: true,
+      decoration: InputDecoration(
+        border: const OutlineInputBorder(),
+        labelText: label,
+        suffixIcon: _helpButton(fieldKey),
+        helperText: helper,
+        helperMaxLines: 3,
+        filled: widget.readOnly,
+        fillColor: widget.readOnly
+            ? Theme.of(
+                context,
+              ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.45)
+            : null,
+      ),
+      items: [
+        for (final entry in choices.entries)
+          DropdownMenuItem(value: entry.key, child: Text(entry.value)),
+      ],
+      onChanged: widget.readOnly
+          ? null
+          : (selected) {
+              if (selected == null) return;
+              setState(() {
+                onChanged(selected);
+                _dirty = true;
+              });
+            },
+    ),
+  );
+
+  void _readLineFields(ExerciseDraftValues draft) {
+    _speakerId = draft.speakerId;
+    _lineMode = draft.lineMode;
+    _lineReadAloud = draft.lineReadAloud;
+    _lineTextReveal = draft.lineTextReveal;
+    _lineLanguage = draft.lineLanguage;
   }
 
   Widget _helpButton(String fieldKey) => IconButton(
@@ -9214,6 +10403,91 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
           ),
           _answerPictures(title: 'Pictures, one per word'),
         ];
+      case 'dialogue_line':
+        final characters =
+            widget.course?.storyCharacters ?? const <StorySpeaker>[];
+        return [
+          _choiceField(
+            fieldKey: 'speaker',
+            label: 'Speaker',
+            value: _speakerId,
+            choices: {
+              '': 'Narrator',
+              for (final character in characters)
+                character.id: character.name.isEmpty
+                    ? character.id
+                    : character.name,
+              if (_speakerId.isNotEmpty &&
+                  !characters.any((character) => character.id == _speakerId))
+                _speakerId: 'Unknown character ($_speakerId)',
+            },
+            onChanged: (value) => _speakerId = value,
+            helper: characters.isEmpty
+                ? 'Characters are added in the Course Editor › Story characters.'
+                : 'The narrator or one of this Course\'s Story characters.',
+          ),
+          _field(
+            _prompt,
+            'Line',
+            lines: 2,
+            helper:
+                'What is said, in the speaker\'s language unless Language says otherwise.',
+          ),
+          _choiceField(
+            fieldKey: 'lineMode',
+            label: 'Mode',
+            value: _lineMode,
+            choices: const {
+              'both': 'Text and audio',
+              'text': 'Text only',
+              'audio': 'Audio only',
+            },
+            onChanged: (value) => _lineMode = value,
+          ),
+          if (_lineMode != 'text')
+            _choiceField(
+              fieldKey: 'readAloud',
+              label: 'Read-aloud',
+              value: _lineReadAloud,
+              choices: const {
+                'story': 'As the Story says',
+                'automatic': 'Automatic',
+                'manual': 'On request',
+              },
+              onChanged: (value) => _lineReadAloud = value,
+            ),
+          if (_lineMode == 'both')
+            _choiceField(
+              fieldKey: 'textReveal',
+              label: 'Show text',
+              value: _lineTextReveal,
+              choices: const {
+                'immediate': 'Immediately',
+                'afterAudio': 'After listening',
+              },
+              onChanged: (value) => _lineTextReveal = value,
+            ),
+          _choiceField(
+            fieldKey: 'language',
+            label: 'Language',
+            value: _lineLanguage,
+            choices: const {
+              '': 'The speaker\'s language',
+              'target': 'Target language',
+              'source': 'Source language',
+            },
+            onChanged: (value) => _lineLanguage = value,
+          ),
+        ];
+      case 'story_cover':
+        return [
+          _field(
+            _prompt,
+            'Title line',
+            helper:
+                'Optional: a line under the Story title on the cover. The cover picture is the image below.',
+          ),
+        ];
       case 'note_card':
         return [
           _field(_prompt, 'Title'),
@@ -9506,6 +10780,11 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         textRole: _textRole,
         audioRole: _audioRole,
         matchSides: _matchSides,
+        speakerId: _speakerId,
+        lineMode: _lineMode,
+        lineReadAloud: _lineReadAloud,
+        lineTextReveal: _lineTextReveal,
+        lineLanguage: _lineLanguage,
         prompt: _prompt.text,
         question: _question.text,
         tts: _tts.text,
@@ -9862,6 +11141,11 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     _useMultiSelect,
     _useInlineGaps,
     _revealFirstLetter,
+    _speakerId,
+    _lineMode,
+    _lineReadAloud,
+    _lineTextReveal,
+    _lineLanguage,
     _imageAsset,
     _selectedSharedSource?.id ?? '',
     for (final controller in [
@@ -9983,6 +11267,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         _textRole = draft.textRole;
         _audioRole = draft.audioRole;
         _matchSides = draft.matchSides;
+        _readLineFields(draft);
         _tokens.text = draft.tokens;
         _order.text = draft.order;
         _gapLayout.text = draft.gapLayout;

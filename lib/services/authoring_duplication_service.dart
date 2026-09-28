@@ -207,6 +207,8 @@ class AuthoringDuplicationService {
       keywords: [...source.keywords],
       coverImage: source.coverImage,
       imageLibrary: source.imageLibrary,
+      storyNarrator: source.storyNarrator,
+      storyCharacters: source.storyCharacters,
       languageVariant: source.languageVariant,
       startLevel: source.startLevel,
       targetLevel: source.targetLevel,

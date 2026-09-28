@@ -146,7 +146,7 @@ Asked and answered before the branch was created.
 5. **Preset catalogue** (added 27 September 2026 by owner decision; `docs/256_PRESET_CATALOGUE_PLAN.md`).
    - Merges, renames, new presets, to-target/to-source pairs, greyed future presets, the skill-grouped picker with the direction filter, and the save guard against unchanged example content.
    - The small runtime changes the new presets need (within-word Input gap, word tiles without a picture, picture left items in Match).
-6. **Stories** (added 28 September 2026 by owner decision; `docs/256_STORY_PLAN.md`).
+6. **Stories** (added 28 September 2026 by owner decision; `docs/256_STORY_PLAN.md`). Delivered as Revision 5 (`2.0.56+256005`, 28 September 2026).
    - Narrator and reusable characters with avatars and voice preferences; the Dialogue line and Story cover presets; the Story options (title, scrolling, filtered dialogue log, read-aloud); the Story Wizard; Story exercises out of the Duel pool; lines never skipped when audio is unavailable.
 7. **Interoperability.**
    - Canonical import and interoperability mappings, with the preset only as a hint.

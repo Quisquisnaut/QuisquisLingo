@@ -59,6 +59,11 @@ Exercise _author(Exercise exercise) {
   // audio roles, Match sides) come from the production decompose, as in the
   // editor; the field values stay this test's own reconstruction.
   final hints = PresetRecipes.decompose(exercise, exercise.editorTemplate);
+  // A Dialogue line or a Story cover has no v11 view: its fields are the
+  // recipe's own (Build 256 Revision 5).
+  final canonicalOnly = PresetRecipes.canonicalOnly.contains(
+    exercise.editorTemplate,
+  );
   try {
     final result = ExerciseDraftBuilder.build(
       ExerciseDraftValues(
@@ -72,7 +77,14 @@ Exercise _author(Exercise exercise) {
         textRole: hints.textRole,
         audioRole: hints.audioRole,
         matchSides: hints.matchSides,
-        prompt: exercise.type == 'type_missing_word' && exercise.prompt.isEmpty
+        speakerId: hints.speakerId,
+        lineMode: hints.lineMode,
+        lineReadAloud: hints.lineReadAloud,
+        lineTextReveal: hints.lineTextReveal,
+        lineLanguage: hints.lineLanguage,
+        prompt: canonicalOnly
+            ? hints.prompt
+            : exercise.type == 'type_missing_word' && exercise.prompt.isEmpty
             ? exercise.question
             : exercise.prompt,
         question: exercise.question,
@@ -105,7 +117,7 @@ Exercise _author(Exercise exercise) {
         requiredSelections: '${exercise.requiredSelectionCount}',
         correctTranslations: exercise.correctTranslationTexts,
         contextMode: exercise.contextMode,
-        imageAsset: exercise.imageAsset,
+        imageAsset: canonicalOnly ? hints.imageAsset : exercise.imageAsset,
         scriptCandidate: script?.build(PublicationState.published),
       ),
     );
@@ -153,6 +165,14 @@ Map<String, Object?> _semantics(Exercise exercise) {
         .map((turn) => '${turn.speaker}: ${turn.text}')
         .toList(),
     'contextMode': exercise.contextMode,
+    // A Story's lines and covers (Build 256 Revision 5).
+    'speaker': ExerciseFeatures(exercise).speakerId,
+    'lineText': ExerciseFeatures(exercise).lineText,
+    'lineMode': ExerciseFeatures(exercise).lineMode,
+    'lineReadAloud': ExerciseFeatures(exercise).lineReadAloud,
+    'lineLanguage': ExerciseFeatures(exercise).lineLanguage,
+    'textReveal': ExerciseFeatures(exercise).textReveal.name,
+    'coverTitle': ExerciseFeatures(exercise).coverTitle,
   };
 }
 
@@ -311,8 +331,10 @@ class _Speech extends TtsCacheService {
     String? targetLanguage,
     double rate = 0.5,
     bool applyLearnerSettings = true,
+    String? voicePreference,
   }) async {
-    expect(language, 'it-IT');
+    // The Story's narrator speaks the source language (Build 256 Revision 5).
+    expect(language, anyOf('it-IT', 'en-GB'));
     spoken.add(text);
     return true;
   }
@@ -395,6 +417,23 @@ Future<void> _answer(
   _Speech speech, {
   int orderIndex = 0,
 }) async {
+  final kind = ExerciseFeatures(exercise).kind;
+  if (kind == LearnerExerciseKind.dialogueLine ||
+      kind == LearnerExerciseKind.storyCover) {
+    // A line or a cover is read (or heard) and continued (Build 256
+    // Revision 5); it is never skipped and never scored.
+    await _tap(
+      tester,
+      find.byKey(
+        Key(
+          kind == LearnerExerciseKind.dialogueLine
+              ? 'story-line-continue'
+              : 'story-cover-continue',
+        ),
+      ),
+    );
+    return;
+  }
   if (exercise.type == 'flashcard') {
     // A vocabulary card is reviewed with Got it; a Note card continues.
     final reviewable =
@@ -574,10 +613,11 @@ void main() {
         'Arrange',
         'Match',
         'Presentation',
+        'Story',
       ]);
       expect(course.createDuels, isFalse);
       expect(course.derivativeWorksPolicy, DerivativeWorksPolicy.allowed);
-      expect(examples, hasLength(107));
+      expect(examples, hasLength(116));
       expect(
         examples.map((e) => e.editorTemplate).toSet(),
         ExercisePresetRegistry.presets.map((p) => p.id).toSet(),
@@ -589,6 +629,9 @@ void main() {
           expect(round.exercises, isNotEmpty);
           for (final exercise in round.exercises) {
             expect(exercise.publicationState, PublicationState.published);
+            // The Story Lesson mixes a cover, lines and exercises of several
+            // primitives (Build 256 Revision 5).
+            if (lesson.title == 'Story') continue;
             expect(
               ExercisePresetRegistry.byId(
                 exercise.editorTemplate,
@@ -706,7 +749,11 @@ void main() {
       await _answer(tester, exercise, speech);
       final after = _presentation(tester, exercise, speech);
       _checkPresentation(exercise.id, {'before': before, 'after': after});
-      await _tap(tester, find.widgetWithText(FilledButton, 'Finish round'));
+      // A line's or a cover's Continue moves straight on (Build 256
+      // Revision 5), so a one-item Round is already complete.
+      if (find.text('Preview complete').evaluate().isEmpty) {
+        await _tap(tester, find.widgetWithText(FilledButton, 'Finish round'));
+      }
       await _until(tester, find.text('Preview complete'));
       expect(find.textContaining('Temporary result: perfect.'), findsOneWidget);
       expect(tester.takeException(), isNull);

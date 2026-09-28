@@ -79,7 +79,8 @@ void main() {
       final managerItalian = courseManagerHelpSections(HelpLanguage.italian);
       final managerSpanish = courseManagerHelpSections(HelpLanguage.spanish);
 
-      expect(english, hasLength(28));
+      // Build 256 Revision 5 adds Stories and the Story Wizard.
+      expect(english, hasLength(29));
       expect(italian, hasLength(english.length));
       expect(spanish, hasLength(english.length));
       expect(managerEnglish, hasLength(14));

@@ -74,6 +74,8 @@ abstract final class PresetVariants {
     'spell_word',
     'picture_word_match',
     'note_card',
+    'dialogue_line',
+    'story_cover',
   };
 
   /// The form the editor shows for [presetId]: its own or its base's.
@@ -351,6 +353,8 @@ abstract final class PresetVariants {
       'image_word' => f.illustrationImages.isNotEmpty,
       'spell_heard' => f.illustrationImages.isEmpty && f.automaticAudio != null,
       'spell_word' => f.illustrationImages.isEmpty && f.automaticAudio == null,
+      'dialogue_line' => f.kind == LearnerExerciseKind.dialogueLine,
+      'story_cover' => f.kind == LearnerExerciseKind.storyCover,
       _ =>
         exercise.primitive != ExercisePrimitive.input ||
             !hasInWordGap(exercise),

@@ -35,7 +35,9 @@ only in preset or editor metadata are semantically equal.
 | 3 (Revision 2) | Done: learner runtime, Duel and Course Audit on canonical data (`ExerciseFeatures`, `LearnerExerciseKind`); linear Stories play; capability-based Duel; content-based gap grading. The editor still reads the v11 views until Session 4. |
 | 4 (Revision 3) | Done: presets as recipes (`PresetRecipes`: decompose, rebuild, represent, recognize), exact recognition and metadata clearing on save (`CanonicalExerciseDraft`), the Generic Primitive Editor (`PrimitiveEditorScreen`, controls and values from the registry, runtime-support line, Preview, Inspection), Stories kept through every Round rebuild and the Round editor's Play as a Story switch (`RoundFlowAuthoring`), canonical reads in Search, hierarchy update, Recognize characters and the Course Editor, Help in EN/IT/ES. Follow-up: `flow.presentation` (step or scroll) with the scrolling Story in `RoundScreen`, discard prompts by comparison, required options for Assign/Submit drafts, the two New exercise buttons, the Draft Exercises message, the first-time introduction. |
 | 5 (Revision 4) | Done: the preset catalogue (`docs/256_PRESET_CATALOGUE_PLAN.md`): 38 presets in six skill groups, to-target/to-source twins, seven greyed presets, successors for the ten retired IDs, `PresetVariants` over the older recipes with shape hints, the picker's groups, chips and filter, pictures on answers, `arrangeLines`, within-word gaps, the source voice; the Laboratory and the Piedmontese demo regenerated. Not done: the save guard on example content (no form prefills examples). |
-| 6 (Revision 5) | Planned: interoperability, the four support states, conditional transitions, capability JSON. |
+| 6 (Revision 5) | Done: Stories (`docs/256_STORY_PLAN.md`): narrator and reusable characters as Course data (`storyNarrator`, `storyCharacters`, avatars, voice preference), the Dialogue line and Story cover presets (canonical only; `speakerId` on elements, the `textReveal` option), the flow's `title`, `log`, `readAloud` and per-node `requiresAudio`, the Story options in the Round editor, the Story Wizard, lines never skipped and audio-dependent exercises skipped, Story exercises out of the Duel, a Story Lesson in each bundled demo. |
+| 7 (Revision 6) | Planned: interoperability, the four support states, conditional transitions, capability JSON. |
+| 8 (Revision 7) | Planned: the Laboratory by primitive and option, Assign runtime, final verification. |
 | 7 (Revision 6) | Planned: Laboratory by primitive and options, Assign runtime, Story tests, final verification. |
 
 ## The nine primitives
@@ -246,6 +248,18 @@ build will play first: valid, no branching, every node visited once along
 and 3; conditional evaluation and the stand-alone flow engine in Sessions 5
 and 6.
 
+Session 6 (Revision 5) gives a Story its options on the flow: `title`
+(shown on the cover; the Round is called `Story: <title>`), `presentation`
+(`step` or `scroll`), `log` (`all` keeps every finished item on the
+scrolling page, `dialogue` keeps only the lines and the cover) and
+`readAloud` (`automatic` plays a line's audio when the line appears,
+`manual` waits for the play button; a line's own `playback` overrides it).
+A node of a scorable exercise may carry `requiresAudio: true`: the exercise
+only makes sense with the Story's audio and is skipped, like the listening
+exercises, when the learner has Audio Exercises off. Lines and covers
+(presentation nodes) are never skipped. Defaults (`step`, empty title,
+`all`, `automatic`, `requiresAudio` false) are omitted in JSON.
+
 ## Course Model v12 JSON (Session 2)
 
 The Course root, Lessons, GuideBooks, media, provenance and every other
@@ -270,6 +284,25 @@ Unchanged fields plus an optional `flow`:
        {"trigger": "conditional", "target": "node_b",
         "condition": {"kind": "answeredCorrectly", "nodeId": "node_2"}}]}
   ]
+}
+```
+
+A linear Story as the Story Wizard writes it (Revision 5):
+
+```json
+"flow": {
+  "start": "cover_1",
+  "nodes": [
+    {"id": "cover_1", "kind": "exercise", "contentId": "cover_1",
+     "transitions": [{"trigger": "next", "target": "line_1"}]},
+    {"id": "line_1", "kind": "exercise", "contentId": "line_1",
+     "transitions": [{"trigger": "next", "target": "question_1"}]},
+    {"id": "question_1", "kind": "exercise", "contentId": "question_1",
+     "requiresAudio": true}
+  ],
+  "presentation": "scroll",
+  "title": "Al bar",
+  "log": "dialogue"
 }
 ```
 

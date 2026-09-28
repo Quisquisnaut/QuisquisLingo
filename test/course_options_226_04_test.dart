@@ -11,7 +11,7 @@ import 'package:quisquislingo_app/services/custom_course_transfer_service.dart';
 import 'support/quick_folders.dart';
 
 Map<String, dynamic> _bundledJson() =>
-    jsonDecode(File('assets/courses/korean_en.json').readAsStringSync())
+    jsonDecode(File('test/fixtures/v12/korean_en.json').readAsStringSync())
         as Map<String, dynamic>;
 
 Course _course({bool options = true}) {

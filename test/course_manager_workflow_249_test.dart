@@ -281,7 +281,7 @@ void main() {
       await addToLibrary(tester, theirs);
       await install(tester, publisher);
       final bundled = (await tester.runAsync(
-        () => CourseService().loadCourse('KO'),
+        () => CourseService().loadCourse('PMS'),
       ))!;
       await pumpManager(tester, current: bundled);
 

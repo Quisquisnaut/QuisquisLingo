@@ -111,6 +111,8 @@ OPTIONS = {
         "mediaPlayback": ["manual", "automatic", "none"],
         "scoring": ["none"],
         "evaluationTiming": ["none"],
+        # Build 256 Revision 5: a Dialogue line's text may wait for its audio.
+        "textReveal": ["immediate", "afterAudio"],
     },
 }
 
@@ -125,7 +127,7 @@ OPTION_ORDER = [
     "transcription", "playback", "maxDurationSeconds", "inkMode", "inputDevice",
     "strokeOrder", "templateVisible", "eraseAllowed", "submissionType",
     "captureSource", "reviewMode", "completionMode", "navigation",
-    "mediaPlayback", "scoring",
+    "mediaPlayback", "scoring", "textReveal",
 ]
 
 EVALUATION_KEYS = ["mode", "correctItemIds", "assignments", "answers",
@@ -509,6 +511,11 @@ def convert_content(content: dict, round_updated_at: str | None = None) -> dict:
             metadata = {"presetId": "flashcard"}
         kind = "exercise"
         exercise = presentation_to_exercise(presentation, round_updated_at or "1970-01-01T00:00:00.000Z")
+    elif isinstance(content.get("exercise"), dict) and "primitive" in content["exercise"]:
+        # Build 256 Revision 5: a Story's lines and covers have no v11 recipe
+        # and are authored in the canonical shape, so they pass through. The
+        # v11 fixtures never contain them; the Dart converter never sees them.
+        exercise = copy.deepcopy(content["exercise"])
     elif isinstance(content.get("exercise"), dict):
         exercise = convert_exercise(template, content["exercise"])
         # A Choose or Arrange with inline gaps is the inline-gap preset.
@@ -547,3 +554,83 @@ def convert_course_v11_to_v12(course: dict) -> dict:
             round_["content"] = [convert_content(c, round_.get("updatedAt"))
                                  for c in round_.get("content", [])]
     return course
+
+
+# ---------------------------------------------------------------------------
+# Build 256 Revision 5: Stories. The generators author a Story's lines and
+# covers directly in the canonical shape (there is no v11 recipe for them),
+# in the key order Dart's toJson writes, so the official checksum computed
+# here equals the one Dart computes from the parsed Course.
+
+
+def story_line(line: str, *, updated_at: str, speaker_id: str = "",
+               language: str | None = None, mode: str = "both",
+               read_aloud: str = "story", text_reveal: str = "immediate") -> dict:
+    """A Dialogue line exercise: `mode` is text, audio or both; `read_aloud`
+    story (the Round's option), automatic or manual; `text_reveal` immediate
+    or afterAudio (text and audio only)."""
+    has_text, has_audio = mode != "audio", mode != "text"
+    elements = []
+    if has_text:
+        element = {"role": "line", "type": "text", "text": line}
+        if speaker_id:
+            element["speakerId"] = speaker_id
+        if language:
+            element["language"] = language
+        elements.append(element)
+    if has_audio:
+        element = {"role": "line", "type": "audio", "text": line}
+        if speaker_id:
+            element["speakerId"] = speaker_id
+        if language:
+            element["language"] = language
+        if read_aloud in ("automatic", "manual"):
+            element["playback"] = read_aloud
+        if has_text:
+            element["required"] = False
+        elements.append(element)
+    exercise = {"updatedAt": updated_at, "primitive": "presentation"}
+    if has_text and has_audio and text_reveal == "afterAudio":
+        exercise["options"] = {"textReveal": "afterAudio"}
+    exercise["prompt"] = elements
+    exercise["evaluation"] = {"mode": "none"}
+    return exercise
+
+
+def story_cover(*, updated_at: str, picture: str = "", alternative: str = "",
+                title_line: str = "") -> dict:
+    """A Story cover exercise: the cover picture (a bundled exercise image
+    with its text alternative) and an optional title line."""
+    elements = []
+    if picture:
+        elements.append({"role": "picture", "type": "image", "text": alternative, "asset": picture})
+    if title_line:
+        elements.append({"role": "title", "type": "text", "text": title_line})
+    return {"updatedAt": updated_at, "primitive": "presentation", "prompt": elements,
+            "evaluation": {"mode": "none"}}
+
+
+def story_flow(entries: list[tuple[str, bool]], *, title: str, presentation: str = "scroll",
+               log: str = "dialogue", read_aloud: str = "automatic",
+               requires_audio: set[str] | frozenset[str] = frozenset()) -> dict:
+    """A linear Story flow over (content ID, is exercise) pairs, chained with
+    `next`; defaults are omitted as Dart omits them."""
+    nodes = []
+    for index, (content_id, is_exercise) in enumerate(entries):
+        node = {"id": content_id, "kind": "exercise" if is_exercise else "content",
+                "contentId": content_id}
+        if index + 1 < len(entries):
+            node["transitions"] = [{"trigger": "next", "target": entries[index + 1][0]}]
+        if content_id in requires_audio:
+            node["requiresAudio"] = True
+        nodes.append(node)
+    flow = {"start": entries[0][0], "nodes": nodes}
+    if presentation != "step":
+        flow["presentation"] = presentation
+    if title:
+        flow["title"] = title
+    if log != "all":
+        flow["log"] = log
+    if read_aloud != "automatic":
+        flow["readAloud"] = read_aloud
+    return flow

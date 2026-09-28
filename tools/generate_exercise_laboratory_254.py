@@ -20,7 +20,7 @@ import zlib
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from qql_course_v12 import convert_course_v11_to_v12  # noqa: E402
+from qql_course_v12 import convert_course_v11_to_v12, story_cover, story_flow, story_line  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 ASSET = ROOT / "assets/courses/exercise_laboratory_en_it.json"
@@ -92,6 +92,11 @@ def glyph_asset(letter: str, blue: bool = False) -> str:
 class Laboratory:
     def __init__(self) -> None:
         self.lessons: list[dict] = []
+        # The Story Lesson (Build 256 Revision 5) stands beside the five
+        # primitive Lessons: its Round mixes a cover, lines and exercises of
+        # several primitives, and its lines and covers have no v11 shape, so
+        # the converter fixture (course_v11) omits it.
+        self.story_lessons: list[dict] = []
         self.cases: list[dict] = []
         self.lesson: dict = {}
         self.round: dict = {}
@@ -277,6 +282,48 @@ class Laboratory:
                            "preset": preset, "capability": capability,
                            "answer": "Got it; or Review again, then Got it on the repeated card"})
 
+    def start_story_lesson(self, title: str, description: str) -> None:
+        self.start_lesson(title, description)
+        self.story_lessons.append(self.lessons.pop())
+
+    def start_story(self, key: str, title: str, intro: str, story_title: str, *,
+                    read_aloud: str = "automatic") -> None:
+        """A Story Round: scrolling, dialogue-only log; finish_story writes
+        the flow once every step is added."""
+        self.start_round(key, title, intro, "story")
+        self.round["story"] = {"title": story_title, "readAloud": read_aloud, "requiresAudio": []}
+
+    def _story_entry(self, key: str, preset: str, exercise: dict, capability: str) -> None:
+        identity = "qql_lab254_" + key
+        self.round["content"].append({
+            "id": identity, "publicationState": "published", "kind": "exercise",
+            "required": True, "editorTemplate": preset, "exercise": exercise,
+        })
+        self.cases.append({"id": identity, "lesson": self.lesson["title"], "round": self.round["title"],
+                           "preset": preset, "capability": capability, "answer": "Continue"})
+
+    def cover(self, key: str, picture: str, alternative: str, title_line: str, capability: str) -> None:
+        self._story_entry(key, "story_cover", story_cover(
+            updated_at=STAMP, picture=f"assets/exercise_images/{picture}.webp",
+            alternative=alternative, title_line=title_line), capability)
+
+    def line(self, key: str, line: str, capability: str, *, speaker: str = "",
+             language: str | None = None, mode: str = "both", read_aloud: str = "story",
+             text_reveal: str = "immediate") -> None:
+        self._story_entry(key, "dialogue_line", story_line(
+            line, updated_at=STAMP, speaker_id=speaker, language=language, mode=mode,
+            read_aloud=read_aloud, text_reveal=text_reveal), capability)
+
+    def needs_audio(self, key: str) -> None:
+        self.round["story"]["requiresAudio"].append("qql_lab254_" + key)
+
+    def finish_story(self) -> None:
+        story = self.round.pop("story")
+        self.round["flow"] = story_flow(
+            [(content["id"], "exercise" in content) for content in self.round["content"]],
+            title=story["title"], read_aloud=story["readAloud"],
+            requires_audio=set(story["requiresAudio"]))
+
 
 def laboratory() -> Laboratory:
     lab = Laboratory()
@@ -442,6 +489,20 @@ def laboratory() -> Laboratory:
     lab.card("picture_card_plain", "il pane", "bread", "Picture flashcard; picture, term and meaning only", preset="picture_flashcard", picture="bread")
     lab.card("note_card_tip", "Tu o Lei?", "Use Lei with people you do not know well; tu is for friends, family and children.", "Note card; a usage tip", preset="note_card")
     lab.card("note_card_grammar", "Gli articoli", "il, lo, la, i, gli, le: the article agrees with the noun in gender and number.", "Note card; a grammar note", preset="note_card")
+
+    lab.start_story_lesson("Story", "A Story is a Round played in order: a cover, dialogue lines said by the narrator or by a character, and exercises about them (Build 256 Revision 5). Lines are never skipped: without audio the learner reads them. An exercise marked as needing the Story's audio is skipped, like the listening exercises, when Audio Exercises is off. Only the exercises score.")
+    lab.start_story("story_cafe", "A morning in Turin", "Read or listen to the story, then answer. Continue moves from one line to the next; the scroll log keeps the dialogue.", "Al bar")
+    lab.cover("story_cover", "coffee", "A cup of coffee on a bar counter", "A morning in Turin", "Story cover; a bundled picture and a title line under the Story title")
+    lab.line("story_narrator", "Anna walks into a café in Turin and greets the barista.", "Dialogue line; the narrator in the source language, text and audio")
+    lab.line("story_anna_order", "Buongiorno! Un caffè, per favore.", "Dialogue line; a character in the target language, text shown after listening", speaker="qql_lab254_character_anna", text_reveal="afterAudio")
+    lab.line("story_luca_offer", "Subito! Vuole anche un cornetto?", "Dialogue line; a character, text and audio", speaker="qql_lab254_character_luca")
+    lab.line("story_anna_text", "No, grazie. Solo il caffè.", "Dialogue line; text only", speaker="qql_lab254_character_anna", mode="text")
+    lab.line("story_luca_audio", "Ecco il suo caffè.", "Dialogue line; audio only, read on request", speaker="qql_lab254_character_luca", mode="audio", read_aloud="manual")
+    lab.choose("story_true_false", "true_false", [text("Anna ordina un cornetto.", "question")], ["True", "False"], 1, "True or false inside a Story; needs the Story's audio, so Audio Exercises off skips it", language="source")
+    lab.needs_audio("story_true_false")
+    lab.choose("story_choice", "choice_target", [text("Che cosa ordina Anna?", "question")], ["Un caffè", "Un tè", "Un cornetto"], 0, "Choose the answer inside a Story")
+    lab.arrange("story_order", "word_order", [text("Put Anna's order in order: A coffee, please.", "clue")], ["Un", "caffè,", "per", "favore."], [[0, 1, 2, 3]], "Word order inside a Story")
+    lab.finish_story()
     return lab
 
 
@@ -460,10 +521,10 @@ def course_v11(lab: Laboratory) -> dict:
         "learningLanguage": "Italian", "interfaceLanguage": "English",
         "sourceLanguage": "English", "sourceLanguageTag": "en-GB",
         "targetLanguage": "Italian", "targetLanguageTag": "it-IT",
-        "title": "Exercise Laboratory", "ttsLanguage": "it-IT", "audioMode": "tts",
+        "title": "Temporary Demo: Exercise Laboratory", "ttsLanguage": "it-IT", "audioMode": "tts",
         "authors": [{"name": "QuisquisLingo", "roles": ["Author"]}],
         "license": "All rights reserved", "derivativeWorksPolicy": "allowed",
-        "courseDescription": "An English-to-Italian laboratory for trying every current Exercise type and its meaningful authoring options. Five Lessons group Select, Input, Arrange, Match and Presentation. Inspect or Fork the Course in Course Studio to study how the exercises are authored. Enable Audio Exercises and Text-to-speech to include all listening and pronunciation examples; ordinary lesson progression remains in effect.",
+        "courseDescription": "An English-to-Italian laboratory for trying every current Exercise type and its meaningful authoring options. Five Lessons group Select, Input, Arrange, Match and Presentation; a sixth Lesson is a Story. Inspect or Fork the Course in Course Studio to study how the exercises are authored. Enable Audio Exercises and Text-to-speech to include all listening and pronunciation examples; ordinary lesson progression remains in effect.",
         "textDirection": "ltr", "temporarySample": True, "flagCode": "IT",
         "createDuels": False,
         "mediaAttributions": [{
@@ -479,7 +540,20 @@ def course_v11(lab: Laboratory) -> dict:
 
 
 def course(lab: Laboratory) -> dict:
-    value = convert_course_v11_to_v12(course_v11(lab))
+    # The Story Lesson joins after the v11 original (Build 256 Revision 5):
+    # its lines and covers pass through the converter in their canonical
+    # shape; the fixture written from course_v11 omits it, and the Dart
+    # parity test skips it.
+    v11 = course_v11(lab)
+    v11["lessons"] = [*lab.lessons, *lab.story_lessons]
+    value = convert_course_v11_to_v12(v11)
+    value["storyNarrator"] = {"name": "Narrator", "language": "source"}
+    value["storyCharacters"] = [
+        {"id": "qql_lab254_character_anna", "name": "Anna", "avatar": "assets/avatars/cat.png",
+         "language": "target", "voice": "female"},
+        {"id": "qql_lab254_character_luca", "name": "Luca", "avatar": "assets/avatars/dog.png",
+         "language": "target", "voice": "male"},
+    ]
     # The checksum excludes the local verification status.
     checksum_value = dict(value)
     checksum_value.pop("publisherVerificationStatus")
@@ -498,7 +572,7 @@ def coverage(lab: Laboratory) -> str:
         f"- Course: **Exercise Laboratory**, `{COURSE_ID}`.",
         "- Direction: English (`en-GB`) → Italian (`it-IT`); TTS `it-IT`.",
         "- Model 11, official Course version 1.0.0; all Lessons, Rounds and Content are Published.",
-        f"- Exactly five Lessons, {sum(len(lesson['rounds']) for lesson in lab.lessons)} Rounds and {len(lab.cases)} runnable examples across all {len(preset_counts)} authoring presets.",
+        f"- Exactly six Lessons (five primitives and a Story), {sum(len(lesson['rounds']) for lesson in [*lab.lessons, *lab.story_lessons])} Rounds and {len(lab.cases)} runnable examples across all {len(preset_counts)} authoring presets.",
         "- Course rights explicitly allow Fork, so the bundled original can be inspected and a derivative can use the ordinary authoring/confirm/export/import paths.",
         "- Create Duels is off: Presentation is non-evaluable and the Course is not padded to manufacture Duel pools. The required per-Lesson Duel metadata is retained.",
         "- This Course leaves existing Course identities, learner data and media assets unchanged.", "",
@@ -506,7 +580,7 @@ def coverage(lab: Laboratory) -> str:
         f"The authoring registry is `lib/models/exercise_authoring.dart`. Every one of its {len(preset_counts)} presets has at least one example below.", "",
         "| Lesson | Preset | Examples |", "| --- | --- | ---: |",
     ]
-    for lesson in ("Select", "Input", "Arrange", "Match", "Presentation"):
+    for lesson in ("Select", "Input", "Arrange", "Match", "Presentation", "Story"):
         for preset, count in preset_counts.items():
             if any(c["lesson"] == lesson and c["preset"] == preset for c in lab.cases):
                 rows.append(f"| {lesson} | `{preset}` | {count} |")
@@ -561,7 +635,8 @@ def main() -> None:
                 raise SystemExit(f"Generated output differs: {path.relative_to(ROOT)}")
         else:
             path.write_text(expected, encoding="utf-8", newline="\n")
-    print(f"Exercise Laboratory {'verified' if args.check else 'generated'}: {len(lab.lessons)} Lessons, {sum(len(l['rounds']) for l in lab.lessons)} Rounds, {len(lab.cases)} examples, {len({c['preset'] for c in lab.cases})} presets.")
+    lessons = [*lab.lessons, *lab.story_lessons]
+    print(f"Exercise Laboratory {'verified' if args.check else 'generated'}: {len(lessons)} Lessons, {sum(len(l['rounds']) for l in lessons)} Rounds, {len(lab.cases)} examples, {len({c['preset'] for c in lab.cases})} presets.")
 
 
 if __name__ == "__main__":

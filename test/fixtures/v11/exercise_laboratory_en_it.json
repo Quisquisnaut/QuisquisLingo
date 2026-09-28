@@ -25,7 +25,7 @@
   "sourceLanguageTag": "en-GB",
   "targetLanguage": "Italian",
   "targetLanguageTag": "it-IT",
-  "title": "Exercise Laboratory",
+  "title": "Temporary Demo: Exercise Laboratory",
   "ttsLanguage": "it-IT",
   "audioMode": "tts",
   "authors": [
@@ -38,7 +38,7 @@
   ],
   "license": "All rights reserved",
   "derivativeWorksPolicy": "allowed",
-  "courseDescription": "An English-to-Italian laboratory for trying every current Exercise type and its meaningful authoring options. Five Lessons group Select, Input, Arrange, Match and Presentation. Inspect or Fork the Course in Course Studio to study how the exercises are authored. Enable Audio Exercises and Text-to-speech to include all listening and pronunciation examples; ordinary lesson progression remains in effect.",
+  "courseDescription": "An English-to-Italian laboratory for trying every current Exercise type and its meaningful authoring options. Five Lessons group Select, Input, Arrange, Match and Presentation; a sixth Lesson is a Story. Inspect or Fork the Course in Course Studio to study how the exercises are authored. Enable Audio Exercises and Text-to-speech to include all listening and pronunciation examples; ordinary lesson progression remains in effect.",
   "textDirection": "ltr",
   "temporarySample": true,
   "flagCode": "IT",
@@ -7150,5 +7150,5 @@
       }
     }
   ],
-  "officialChecksum": "3a54360d86a6658317565994fbe81e53b2267e43aa933893ca751cda34ddba60"
+  "officialChecksum": "460b6353f1427ffef9dccd9ab2c485ae6d6850af8bea932880e70e4d277ab117"
 }

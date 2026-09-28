@@ -12,7 +12,7 @@ void main() {
     'all known rules have unique, complete definitions and fixed severity',
     () {
       final definitions = AuditCodeRegistry.definitions;
-      expect(definitions.length, 98);
+      expect(definitions.length, 103);
       expect(
         definitions.map((rule) => rule.code).toSet().length,
         definitions.length,
@@ -21,13 +21,13 @@ void main() {
         definitions
             .where((rule) => rule.severity == AuditSeverity.error)
             .length,
-        56,
+        58,
       );
       expect(
         definitions
             .where((rule) => rule.severity == AuditSeverity.warning)
             .length,
-        36,
+        39,
       );
       expect(
         definitions.where((rule) => rule.severity == AuditSeverity.info).length,

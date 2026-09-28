@@ -110,6 +110,15 @@ void main() {
       'spell_word': ['prompt', 'tokens', 'order'],
       'picture_word_match': ['prompt', 'answers', 'icons'],
       'note_card': ['prompt', 'question'],
+      'dialogue_line': [
+        'speaker',
+        'prompt',
+        'lineMode',
+        'readAloud',
+        'textReveal',
+        'language',
+      ],
+      'story_cover': ['prompt', 'image'],
     };
     expect(
       fieldsByPreset.keys.toSet(),

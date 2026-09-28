@@ -218,6 +218,7 @@ class _RecordingTtsService extends TtsCacheService {
     String? targetLanguage,
     double rate = 0.5,
     bool applyLearnerSettings = true,
+    String? voicePreference,
   }) async {
     requests.add((
       text: text,

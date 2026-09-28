@@ -5,6 +5,65 @@ spelling) with Flutter 3.47.4 / Dart 3.13.3 on Windows 10, the complete
 suite through the keep-awake wrapper (`ES_CONTINUOUS | ES_SYSTEM_REQUIRED`
 held for the run and cleared afterwards).
 
+## Revision 5 (2.0.56+256005): Stories, 28 September 2026
+
+- Stage 1 (model, flow, speakers, avatars; the two presets, recipes,
+  features, copy, field help, Search, Audit codes):
+  `test/story_model_256_test.dart` (14) and the flow authoring tests green;
+  `test/story_presets_256_test.dart` (7) green; batch 2 (Help, Audit,
+  registry, field help) 335 passed, 3 failed: the registry severity pins
+  moved to 103 / 58 / 39 and the field-help inventory, then green apart
+  from the UI inventory awaiting the Stage 3 forms.
+- Stage 2 (runtime): `test/story_runtime_256_test.dart` (5) green; batch 3
+  (runtime, Duel, audio, Laboratory) 373 passed, 2 failed (a mistyped test
+  path; the Laboratory's every-preset pin awaiting Stage 5).
+- Demo change (owner, 28 September): batch 4 (navigation, Home, discovery,
+  registry) 228 passed, 25 failed because those tests were built around the
+  Korean demo; with the Korean demo as a test fixture (`registerKoreanFixture`,
+  `CourseService.bundledAssets`) batch 5 262 passed, 3 failed: a mistyped
+  path, the Piedmontese pin awaiting Stage 5, and the Selector test tapping
+  the Korean row that had become the last row below the 600 px test surface
+  (it taps the Edge Case row); then green.
+- Stage 3 (editor): batch 6 (editor, field help UI, follow-up, Course
+  editor, Lesson controls, Story tests, navigation) 170 passed, 4 failed:
+  the four Course-editor Story tests forgot that the Course Editor opens
+  Locked (`course-editor-lock`, Edit); `test/story_editor_256_test.dart`
+  10 green on the rerun.
+- Stage 4 (Story Wizard): batch 8 (Wizard, editor, GuideBook generator,
+  production transaction, field help UI, Lesson controls) 90 passed, 1
+  failed: a cover without a picture and without a title line was a plain
+  presentation, not a Story cover; the Wizard's cover now carries the Story
+  title as its title line and the cover card shows it once;
+  `test/story_wizard_256_test.dart` (3) and the runtime tests green on the
+  rerun (8/8). Owner report (Preview showed a Story's cover picture twice):
+  the shared illustration skips a Story cover; pinned in the runtime test
+  (8/8 green).
+- Stage 5 (bundled Courses): the three generators regenerate their Courses
+  and pass `--check`; `tools/validate_courses.py` validates the three v12
+  files (6, 6 and 40 Lessons); the two converter fixtures rewritten from
+  the generators' v11 originals. Laboratory presentation baseline: record
+  mode over 116 examples, `test/support/laboratory_presentation_254.dart`
+  rebuilt: 9 new records (the Story Lesson), no changed record.
+- Focused batch on the final tree (Courses, converter, demos, Laboratory,
+  Story tests, Help catalogs, version pins; 33 files): 416 passed, 15
+  failed, every one a pin of the previous shape: the Edge Case and
+  bundled-source counts (6 Lessons, 11 Rounds, 36 exercises, 33 in the
+  learner view) and its Merge needing a sixth Lesson choice, the
+  Piedmontese Round-ID count (40), the parity filter refusing the cover
+  Lesson's intro text, the runtime-kind map without the two Story presets,
+  and the Beta lifecycle dates one day behind the new expiry; the rerun of
+  those six files 49 passed, 1 failed (the Merge choice), then 7/7.
+- `flutter analyze`: no issues. `dart format` on every changed Dart file.
+- Complete suite, run 1 (13:56–14:22): **3114 passed, 1 skipped, 3
+  failed**, the three being pins outside the focused batches that the
+  Korean removal and the new Help section had moved
+  (`course_library_screen_244_test.dart`: three bundled demos, "2 of 3
+  shown", " · 3"; `course_library_view_255_test.dart`: "2 of 3" and "3 of
+  3 shown"; `editor_help_translation_test.dart`: 29 editor sections);
+  fixed in those tests, rerun green (27), then the complete suite once
+  more on the final tree, run 2 (14:23–14:49): **3117 passed, 1 skipped,
+  0 failed**.
+
 ## Revision 4 (2.0.56+256004): the preset catalogue, 27 September 2026
 
 - Stage 1 (skill groups, directions, the coming-later list, the picker's

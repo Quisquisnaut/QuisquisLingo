@@ -75,6 +75,9 @@ const Map<String, String> helpEn = <String, String>{
   'editorHelp.exerciseCreationWizard.title': r'''Exercise Wizard''',
   'editorHelp.exerciseCreationWizard.body':
       r'''In a Round, Exercise Wizard sits beside New exercise and New canonical. Choose 1–30 Exercises and select Balanced mix, Random mix, one or more categories, exact exercise types, or an ordered repeating pattern. The reviewed plan creates no Exercise objects. After confirmation, each planned step opens the ordinary preset-specific Exercise editor. Save validates and stays on the step; Preview returns to the same draft without copying or advancing; Next validates and advances one step; Finish returns the created Exercises in plan order. If you cancel after explicitly saving work, confirm whether to keep only those valid saved Exercises. Future and invalid placeholders are never inserted.''',
+  'editorHelp.storiesAndStoryWizard.title': r'''Stories and the Story Wizard''',
+  'editorHelp.storiesAndStoryWizard.body':
+      r'''A Story is a Round played in order: a cover, dialogue lines said by the narrator or by a character, and exercises about them. In the Lesson editor, Story Wizard (it needs no GuideBook) asks for the Story title, its cover picture and whether lines are read aloud automatically or on request (A), shows the narrator (B) and the characters of the Course (C), where you add or edit them, then builds the steps: Add line opens a short form (speaker, line, text and audio or one of them, read-aloud, whether the text waits for the audio); Add exercise offers the presets a Story may use and opens the ordinary exercise form, and Save or Cancel returns to the builder. Finish needs at least one line and creates the Round, called “Story: <title>”, in the Course working copy: the Course confirmation still decides. In the Round editor, Play as a Story shows the Story title, Step by step or Scrolling, the scroll log (Dialogue only keeps just the lines; Everything keeps the exercises too) and Read-aloud; “Needs the Story’s audio” in an exercise’s menu marks an exercise that only makes sense with the audio, skipped like the listening exercises when Audio Exercises is off. Lines are never skipped: without audio the learner reads them. The narrator and the characters are Course data, edited under Story characters on the Course Editor page: name, avatar (a bundled figure, none, or your own picture cropped to a square and stored with the Course), language and voice preference (any, male or female, matched against the device voices; a miss never blocks speech). A character that lines still name cannot be removed. Only the exercises score; a Story keeps the XP, completion and Laurel rules of a practice Round, and its exercises stay out of the Duel.''',
   'editorHelp.duplicateCopyMoveExercises.title':
       r'''Duplicate, Copy and Move exercises''',
   'editorHelp.duplicateCopyMoveExercises.body':
@@ -272,7 +275,7 @@ const Map<String, String> helpEn = <String, String>{
   'appInfo.courseStudioAndCourseEditor.body':
       r'''Course Studio is opened from the learner Course Selector rather than Settings. It is the lifecycle hub: official courses provide read-only inspection, licensed Fork, Audit and supported Export; custom courses provide Edit, Copy as New Course, Merge, Audit, Export and Delete. Fork preserves the source lineage; Copy as New Course starts an independent Course lineage. Open Course Studio Help for library operations, and Editor Help from any Course Editor hierarchy page for authoring instructions.''',
   'appInfo.courseContentAndAi.body':
-      r'''The bundled courses titled AI-Slop Demo are AI-generated, unreviewed demonstrations and are not reliable learning courses. Real QuisquisLingo course content is intended to be authored and reviewed by humans. This classification does not apply to other official or custom courses.''',
+      r'''The bundled courses titled Temporary Demo are AI-generated, unreviewed demonstrations and are not reliable learning courses. Real QuisquisLingo course content is intended to be authored and reviewed by humans. This classification does not apply to other official or custom courses.''',
   'appInfo.versionAndBuild.body': r'''{version}''',
   'appInfo.betaExpiry.active':
       r'''This is a time-limited beta build. It expires on {expiryDate}. After expiry, learner exercises and Review are blocked until a newer beta is installed. Local progress, courses, course edits and settings are not deleted, and Course Editor remains available.''',
@@ -385,7 +388,7 @@ Remove from my courses, in the Selector or Course Studio, removes the course onl
       r'''The canonical editor (Round editor: New canonical; preset picker: Every primitive) shows every canonical field of any primitive with the values the capability registry allows: Primitive, Options, Prompt, Items, Targets, Layout, Evaluation by mode, Feedback and hint. It says whether this version can play the exercise, refuses the combinations the registry refuses, previews with the learner runtime and saves like a preset form (Save as draft, or Save with the Audit). An exercise that no preset represents opens there.''',
   'technical.exercisePrimitives.stories.title': r'''Stories''',
   'technical.exercisePrimitives.stories.body':
-      r'''A Story is a Round with a content flow. Play as a Story in the Round editor gives the Round a linear flow: its exercises play in the authored order, unshuffled and without a mistake review; XP, completion, Laurels and Review work as in a practice Round. Editing, moving, copying and duplicating a Story keeps its flow. Branching flows (onCorrect, onIncorrect, onChoice, conditional) are stored and checked but are not playable in this version. A Story is shown Step by step (one item per page) or Scrolling (finished items stay on the page with the learner's answer, the next item appears below and the page scrolls to it), chosen under the Story switch.''',
+      r'''A Story is a Round with a content flow. Play as a Story in the Round editor gives the Round a linear flow: its exercises play in the authored order, unshuffled and without a mistake review; XP, completion, Laurels and Review work as in a practice Round. Editing, moving, copying and duplicating a Story keeps its flow. Branching flows (onCorrect, onIncorrect, onChoice, conditional) are stored and checked but are not playable in this version. A Story is shown Step by step (one item per page) or Scrolling (finished items stay on the page with the learner's answer, the next item appears below and the page scrolls to it), chosen under the Story switch. Build 256 Revision 5 adds the Dialogue line and Story cover presets, the Story title, scroll log and read-aloud options, exercises marked as needing the Story’s audio, the narrator and characters as Course data (storyNarrator, storyCharacters, speakerId on elements, the textReveal option) and the Story Wizard; see Stories and the Story Wizard in the Editor Help.''',
   'technical.jsonStructure.title': r'''JSON data structure''',
   'technical.jsonStructure.status.title': r'''Status''',
   'technical.jsonStructure.status.body':
@@ -813,6 +816,10 @@ Question and Context are separate. Context can be text, audio, or both. Dialogue
       r'''Learner spells a word from letter or syllable tiles after a clue in the source language.''',
   'exerciseHelp.preset.picture_word_match.description':
       r'''Learner matches pictures with their words.''',
+  'exerciseHelp.preset.dialogue_line.description':
+      r'''One line of a Story, said by the narrator or a character as text, audio or both; the learner reads or listens and continues.''',
+  'exerciseHelp.preset.story_cover.description':
+      r'''The opening card of a Story: its picture and an optional title line; the learner continues.''',
   'exerciseHelp.preset.note_card.description':
       r'''A tip, a grammar or a cultural note the learner reads and continues.''',
   'exerciseHelp.preset.gap_choice.description':
@@ -889,6 +896,10 @@ Question and Context are separate. Context can be text, audio, or both. Dialogue
       r'''The learner reads a clue in the source language, the word itself or a definition, and spells the target-language word by ordering letter or syllable tiles. Provide the clue, the tiles and the correct order; a picture is optional.''',
   'exerciseHelp.preset.picture_word_match.body':
       r'''The learner matches each picture on the left with a word on the right. Provide the words, one per line, and one picture per word with the pickers below; at least two pairs. Pair relationships, not display positions, define correctness.''',
+  'exerciseHelp.preset.dialogue_line.body':
+      r'''A line of dialogue in a Story. Choose who speaks (the narrator or a character defined in the Course Editor's Story characters), write the line, and choose whether the learner reads it, hears it, or both. Read-aloud follows the Story's setting unless the line overrides it; with text and audio you may hide the text until the audio has played. A line is never skipped: without audio the learner reads it. There is no answer and no score; Continue moves on.''',
+  'exerciseHelp.preset.story_cover.body':
+      r'''The first card of a Story. Choose the cover picture and, if you like, a title line; the Story's title from the Round options is shown above it. The learner presses Continue. Create Stories with the Story Wizard or by turning on Play as a Story in the Round editor.''',
   'exerciseHelp.preset.note_card.body':
       r'''A card with a title and a note: a tip, a grammar point, a cultural remark. The learner reads it and presses Continue; there is no answer, no score and no audio. Write in the language your learners read best.''',
   'exerciseHelp.preset.gap_choice.body':
@@ -1093,6 +1104,91 @@ At least one bracket, none empty. The learner sees one underscore per hidden let
 
 Example
 Il ga[tt]o dor[me] sul divano.''',
+  'exerciseHelp.field.dialogue_line.speaker.body': r'''Who says the line.
+
+What to enter
+The narrator or one of the Course's Story characters (Course Editor › Story characters).
+
+Checks
+A character must exist in the Course; the Audit reports a missing one.
+
+Example
+Anna''',
+  'exerciseHelp.field.dialogue_line.prompt.body': r'''The line itself.
+
+What to enter
+One line of dialogue, in the speaker's language. It is shown, spoken or both, as the mode says.
+
+Checks
+Required.
+
+Example
+Buongiorno! Un caffè, per favore.''',
+  'exerciseHelp.field.dialogue_line.lineMode.body':
+      r'''Whether the learner reads the line, hears it, or both.
+
+What to enter
+Text and audio, Text only, or Audio only. Audio only makes the line a listening step; when audio is unavailable the text is shown instead.
+
+Checks
+None.
+
+Example
+Text and audio''',
+  'exerciseHelp.field.dialogue_line.readAloud.body':
+      r'''When the line's audio plays.
+
+What to enter
+Story default (the Round's Read-aloud option), Automatic (plays when the line appears) or On request (the learner taps).
+
+Checks
+None.
+
+Example
+Story default''',
+  'exerciseHelp.field.dialogue_line.textReveal.body':
+      r'''Whether the text waits for the audio.
+
+What to enter
+Immediately, or After listening: the text appears once the audio has played (only with text and audio).
+
+Checks
+None.
+
+Example
+Immediately''',
+  'exerciseHelp.field.dialogue_line.language.body':
+      r'''The language the line is in.
+
+What to enter
+The speaker's language (default), or Target / Source to override it for this line.
+
+Checks
+None.
+
+Example
+Speaker's''',
+  'exerciseHelp.field.story_cover.prompt.body':
+      r'''An optional title line on the cover.
+
+What to enter
+A short line; the Story's title (Round options) is shown above the cover anyway.
+
+Checks
+Optional.
+
+Example
+At the café''',
+  'exerciseHelp.field.story_cover.image.body': r'''The cover picture.
+
+What to enter
+A picture from the Course, the Shared Image Library or a bundled image.
+
+Checks
+Recommended; a cover without a picture shows the title only.
+
+Example
+A café terrace''',
   'exerciseHelp.field.note_card.prompt.body': r'''The heading of the note card.
 
 What to enter

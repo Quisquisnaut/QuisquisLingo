@@ -25,7 +25,7 @@
   "sourceLanguageTag": "en-GB",
   "targetLanguage": "Italian",
   "targetLanguageTag": "it-IT",
-  "title": "Exercise Laboratory",
+  "title": "Temporary Demo: Exercise Laboratory",
   "ttsLanguage": "it-IT",
   "audioMode": "tts",
   "authors": [
@@ -38,7 +38,7 @@
   ],
   "license": "All rights reserved",
   "derivativeWorksPolicy": "allowed",
-  "courseDescription": "An English-to-Italian laboratory for trying every current Exercise type and its meaningful authoring options. Five Lessons group Select, Input, Arrange, Match and Presentation. Inspect or Fork the Course in Course Studio to study how the exercises are authored. Enable Audio Exercises and Text-to-speech to include all listening and pronunciation examples; ordinary lesson progression remains in effect.",
+  "courseDescription": "An English-to-Italian laboratory for trying every current Exercise type and its meaningful authoring options. Five Lessons group Select, Input, Arrange, Match and Presentation; a sixth Lesson is a Story. Inspect or Fork the Course in Course Studio to study how the exercises are authored. Enable Audio Exercises and Text-to-speech to include all listening and pronunciation examples; ordinary lesson progression remains in effect.",
   "textDirection": "ltr",
   "temporarySample": true,
   "flagCode": "IT",
@@ -7590,7 +7590,538 @@
         "id": "qql_lab254_presentation_duel",
         "title": "Presentation Duel"
       }
+    },
+    {
+      "lessonId": "qql_lab254_story",
+      "publicationState": "published",
+      "updatedAt": "2026-09-25T00:00:00.000Z",
+      "title": "Story",
+      "section": false,
+      "guidebook": {
+        "content": [
+          {
+            "id": "qql_lab254_story_guide",
+            "publicationState": "published",
+            "kind": "explanation",
+            "required": false,
+            "role": "overview",
+            "text": "A Story is a Round played in order: a cover, dialogue lines said by the narrator or by a character, and exercises about them (Build 256 Revision 5). Lines are never skipped: without audio the learner reads them. An exercise marked as needing the Story's audio is skipped, like the listening exercises, when Audio Exercises is off. Only the exercises score."
+          }
+        ]
+      },
+      "rounds": [
+        {
+          "id": "qql_lab254_round_story_cafe",
+          "publicationState": "published",
+          "updatedAt": "2026-09-25T00:00:00.000Z",
+          "title": "A morning in Turin",
+          "visualType": "story",
+          "content": [
+            {
+              "id": "qql_lab254_intro_story_cafe",
+              "publicationState": "published",
+              "kind": "text",
+              "required": false,
+              "role": "lesson_intro",
+              "text": "Read or listen to the story, then answer. Continue moves from one line to the next; the scroll log keeps the dialogue."
+            },
+            {
+              "id": "qql_lab254_story_cover",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "authoringMetadata": {
+                "presetId": "story_cover"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "prompt": [
+                  {
+                    "role": "picture",
+                    "type": "image",
+                    "text": "A cup of coffee on a bar counter",
+                    "asset": "assets/exercise_images/coffee.webp"
+                  },
+                  {
+                    "role": "title",
+                    "type": "text",
+                    "text": "A morning in Turin"
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
+            },
+            {
+              "id": "qql_lab254_story_narrator",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "authoringMetadata": {
+                "presetId": "dialogue_line"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "prompt": [
+                  {
+                    "role": "line",
+                    "type": "text",
+                    "text": "Anna walks into a café in Turin and greets the barista."
+                  },
+                  {
+                    "role": "line",
+                    "type": "audio",
+                    "text": "Anna walks into a café in Turin and greets the barista.",
+                    "required": false
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
+            },
+            {
+              "id": "qql_lab254_story_anna_order",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "authoringMetadata": {
+                "presetId": "dialogue_line"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "textReveal": "afterAudio"
+                },
+                "prompt": [
+                  {
+                    "role": "line",
+                    "type": "text",
+                    "text": "Buongiorno! Un caffè, per favore.",
+                    "speakerId": "qql_lab254_character_anna"
+                  },
+                  {
+                    "role": "line",
+                    "type": "audio",
+                    "text": "Buongiorno! Un caffè, per favore.",
+                    "speakerId": "qql_lab254_character_anna",
+                    "required": false
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
+            },
+            {
+              "id": "qql_lab254_story_luca_offer",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "authoringMetadata": {
+                "presetId": "dialogue_line"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "prompt": [
+                  {
+                    "role": "line",
+                    "type": "text",
+                    "text": "Subito! Vuole anche un cornetto?",
+                    "speakerId": "qql_lab254_character_luca"
+                  },
+                  {
+                    "role": "line",
+                    "type": "audio",
+                    "text": "Subito! Vuole anche un cornetto?",
+                    "speakerId": "qql_lab254_character_luca",
+                    "required": false
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
+            },
+            {
+              "id": "qql_lab254_story_anna_text",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "authoringMetadata": {
+                "presetId": "dialogue_line"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "prompt": [
+                  {
+                    "role": "line",
+                    "type": "text",
+                    "text": "No, grazie. Solo il caffè.",
+                    "speakerId": "qql_lab254_character_anna"
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
+            },
+            {
+              "id": "qql_lab254_story_luca_audio",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "authoringMetadata": {
+                "presetId": "dialogue_line"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "prompt": [
+                  {
+                    "role": "line",
+                    "type": "audio",
+                    "text": "Ecco il suo caffè.",
+                    "speakerId": "qql_lab254_character_luca",
+                    "playback": "manual"
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
+            },
+            {
+              "id": "qql_lab254_story_true_false",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "authoringMetadata": {
+                "presetId": "true_false"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "select",
+                "prompt": [
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "Anna ordina un cornetto."
+                  }
+                ],
+                "items": [
+                  {
+                    "id": "qql_lab254_story_true_false_item_0",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "True",
+                        "language": "source"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_lab254_story_true_false_item_1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "False",
+                        "language": "source"
+                      }
+                    ]
+                  }
+                ],
+                "evaluation": {
+                  "mode": "exactItem",
+                  "correctItemIds": [
+                    "qql_lab254_story_true_false_item_1"
+                  ]
+                }
+              }
+            },
+            {
+              "id": "qql_lab254_story_choice",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "authoringMetadata": {
+                "presetId": "choice_target"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "select",
+                "prompt": [
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "Che cosa ordina Anna?"
+                  }
+                ],
+                "items": [
+                  {
+                    "id": "qql_lab254_story_choice_item_0",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "Un caffè"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_lab254_story_choice_item_1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "Un tè"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_lab254_story_choice_item_2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "Un cornetto"
+                      }
+                    ]
+                  }
+                ],
+                "evaluation": {
+                  "mode": "exactItem",
+                  "correctItemIds": [
+                    "qql_lab254_story_choice_item_0"
+                  ]
+                }
+              }
+            },
+            {
+              "id": "qql_lab254_story_order",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "authoringMetadata": {
+                "presetId": "word_order"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "arrange",
+                "prompt": [
+                  {
+                    "role": "clue",
+                    "type": "text",
+                    "text": "Put Anna's order in order: A coffee, please."
+                  }
+                ],
+                "items": [
+                  {
+                    "id": "qql_lab254_story_order_item_0",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "Un"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_lab254_story_order_item_1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "caffè,"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_lab254_story_order_item_2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "per"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_lab254_story_order_item_3",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "favore."
+                      }
+                    ]
+                  }
+                ],
+                "evaluation": {
+                  "mode": "exactOrder",
+                  "correctOrders": [
+                    {
+                      "text": "Un caffè, per favore.",
+                      "itemIds": [
+                        "qql_lab254_story_order_item_0",
+                        "qql_lab254_story_order_item_1",
+                        "qql_lab254_story_order_item_2",
+                        "qql_lab254_story_order_item_3"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          ],
+          "flow": {
+            "start": "qql_lab254_intro_story_cafe",
+            "nodes": [
+              {
+                "id": "qql_lab254_intro_story_cafe",
+                "kind": "content",
+                "contentId": "qql_lab254_intro_story_cafe",
+                "transitions": [
+                  {
+                    "trigger": "next",
+                    "target": "qql_lab254_story_cover"
+                  }
+                ]
+              },
+              {
+                "id": "qql_lab254_story_cover",
+                "kind": "exercise",
+                "contentId": "qql_lab254_story_cover",
+                "transitions": [
+                  {
+                    "trigger": "next",
+                    "target": "qql_lab254_story_narrator"
+                  }
+                ]
+              },
+              {
+                "id": "qql_lab254_story_narrator",
+                "kind": "exercise",
+                "contentId": "qql_lab254_story_narrator",
+                "transitions": [
+                  {
+                    "trigger": "next",
+                    "target": "qql_lab254_story_anna_order"
+                  }
+                ]
+              },
+              {
+                "id": "qql_lab254_story_anna_order",
+                "kind": "exercise",
+                "contentId": "qql_lab254_story_anna_order",
+                "transitions": [
+                  {
+                    "trigger": "next",
+                    "target": "qql_lab254_story_luca_offer"
+                  }
+                ]
+              },
+              {
+                "id": "qql_lab254_story_luca_offer",
+                "kind": "exercise",
+                "contentId": "qql_lab254_story_luca_offer",
+                "transitions": [
+                  {
+                    "trigger": "next",
+                    "target": "qql_lab254_story_anna_text"
+                  }
+                ]
+              },
+              {
+                "id": "qql_lab254_story_anna_text",
+                "kind": "exercise",
+                "contentId": "qql_lab254_story_anna_text",
+                "transitions": [
+                  {
+                    "trigger": "next",
+                    "target": "qql_lab254_story_luca_audio"
+                  }
+                ]
+              },
+              {
+                "id": "qql_lab254_story_luca_audio",
+                "kind": "exercise",
+                "contentId": "qql_lab254_story_luca_audio",
+                "transitions": [
+                  {
+                    "trigger": "next",
+                    "target": "qql_lab254_story_true_false"
+                  }
+                ]
+              },
+              {
+                "id": "qql_lab254_story_true_false",
+                "kind": "exercise",
+                "contentId": "qql_lab254_story_true_false",
+                "transitions": [
+                  {
+                    "trigger": "next",
+                    "target": "qql_lab254_story_choice"
+                  }
+                ],
+                "requiresAudio": true
+              },
+              {
+                "id": "qql_lab254_story_choice",
+                "kind": "exercise",
+                "contentId": "qql_lab254_story_choice",
+                "transitions": [
+                  {
+                    "trigger": "next",
+                    "target": "qql_lab254_story_order"
+                  }
+                ]
+              },
+              {
+                "id": "qql_lab254_story_order",
+                "kind": "exercise",
+                "contentId": "qql_lab254_story_order"
+              }
+            ],
+            "presentation": "scroll",
+            "title": "Al bar",
+            "log": "dialogue"
+          }
+        }
+      ],
+      "duel": {
+        "id": "qql_lab254_story_duel",
+        "title": "Story Duel"
+      }
     }
   ],
-  "officialChecksum": "393f218f605d4f9ace1749f6a1615c5a4807fbc737f3650f9aee208d71f1ebae"
+  "storyNarrator": {
+    "name": "Narrator",
+    "language": "source"
+  },
+  "storyCharacters": [
+    {
+      "id": "qql_lab254_character_anna",
+      "name": "Anna",
+      "avatar": "assets/avatars/cat.png",
+      "language": "target",
+      "voice": "female"
+    },
+    {
+      "id": "qql_lab254_character_luca",
+      "name": "Luca",
+      "avatar": "assets/avatars/dog.png",
+      "language": "target",
+      "voice": "male"
+    }
+  ],
+  "officialChecksum": "0edbdd4a36ccb3dab4ad99354719a70dc1d8038a98a053cddfd4dda64db7eb85"
 }

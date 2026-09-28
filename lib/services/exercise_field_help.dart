@@ -56,6 +56,14 @@ enum ExerciseAuthoringField {
   pairWords,
   noteTitle,
   noteText,
+  speaker,
+  dialogueLine,
+  lineMode,
+  lineReadAloud,
+  lineTextReveal,
+  lineLanguage,
+  coverTitle,
+  coverImage,
 }
 
 class ExerciseFieldHelp {
@@ -198,6 +206,15 @@ abstract final class ExerciseFieldHelpRegistry {
       'spell_word': ['prompt', 'tokens', 'order'],
       'picture_word_match': ['prompt', 'answers', 'icons'],
       'note_card': ['prompt', 'question'],
+      'dialogue_line': [
+        'speaker',
+        'prompt',
+        'lineMode',
+        'readAloud',
+        'textReveal',
+        'language',
+      ],
+      'story_cover': ['prompt', 'image'],
     };
     final selected = fields[presetId];
     if (selected == null) {
@@ -417,6 +434,8 @@ abstract final class ExerciseFieldHelpRegistry {
       'missing_letters' => ExerciseAuthoringField.bracketedText,
       'spell_word' => ExerciseAuthoringField.clue,
       'note_card' => ExerciseAuthoringField.noteTitle,
+      'dialogue_line' => ExerciseAuthoringField.dialogueLine,
+      'story_cover' => ExerciseAuthoringField.coverTitle,
       'type_translation_to_target' ||
       'type_translation_to_source' ||
       'build_translation_to_target' ||
@@ -488,7 +507,15 @@ abstract final class ExerciseFieldHelpRegistry {
           ? ExerciseAuthoringField.missingWord
           : ExerciseAuthoringField.missingWords,
     'dialogue' => ExerciseAuthoringField.dialogue,
-    'image' => ExerciseAuthoringField.image,
+    'speaker' => ExerciseAuthoringField.speaker,
+    'lineMode' => ExerciseAuthoringField.lineMode,
+    'readAloud' => ExerciseAuthoringField.lineReadAloud,
+    'textReveal' => ExerciseAuthoringField.lineTextReveal,
+    'language' => ExerciseAuthoringField.lineLanguage,
+    'image' => switch (presetId) {
+      'story_cover' => ExerciseAuthoringField.coverImage,
+      _ => ExerciseAuthoringField.image,
+    },
     'scriptMode' => ExerciseAuthoringField.scriptMode,
     'scriptPrompt' => ExerciseAuthoringField.scriptPrompt,
     'scriptPromptImages' => ExerciseAuthoringField.scriptPromptImages,
@@ -892,6 +919,72 @@ abstract final class ExerciseFieldHelpRegistry {
       validation:
           'Required. There is no answer and no score; Continue closes the card.',
       example: 'Use Lei with people you do not know well.',
+    ),
+    ExerciseAuthoringField.speaker => const ExerciseFieldHelp(
+      title: 'Speaker',
+      purpose: 'Who says the line.',
+      entryRules:
+          "The narrator or one of the Course's Story characters (Course Editor › Story characters).",
+      validation:
+          'A character must exist in the Course; the Audit reports a missing one.',
+      example: 'Anna',
+    ),
+    ExerciseAuthoringField.dialogueLine => const ExerciseFieldHelp(
+      title: 'Line',
+      purpose: 'The line itself.',
+      entryRules:
+          "One line of dialogue, in the speaker's language. It is shown, spoken or both, as the mode says.",
+      validation: 'Required.',
+      example: 'Buongiorno! Un caffè, per favore.',
+    ),
+    ExerciseAuthoringField.lineMode => const ExerciseFieldHelp(
+      title: 'Mode',
+      purpose: 'Whether the learner reads the line, hears it, or both.',
+      entryRules:
+          'Text and audio, Text only, or Audio only. Audio only makes the line a listening step; when audio is unavailable the text is shown instead.',
+      validation: 'None.',
+      example: 'Text and audio',
+    ),
+    ExerciseAuthoringField.lineReadAloud => const ExerciseFieldHelp(
+      title: 'Read-aloud',
+      purpose: "When the line's audio plays.",
+      entryRules:
+          "Story default (the Round's Read-aloud option), Automatic (plays when the line appears) or On request (the learner taps).",
+      validation: 'None.',
+      example: 'Story default',
+    ),
+    ExerciseAuthoringField.lineTextReveal => const ExerciseFieldHelp(
+      title: 'Show text',
+      purpose: 'Whether the text waits for the audio.',
+      entryRules:
+          'Immediately, or After listening: the text appears once the audio has played (only with text and audio).',
+      validation: 'None.',
+      example: 'Immediately',
+    ),
+    ExerciseAuthoringField.lineLanguage => const ExerciseFieldHelp(
+      title: 'Language',
+      purpose: 'The language the line is in.',
+      entryRules:
+          "The speaker's language (default), or Target / Source to override it for this line.",
+      validation: 'None.',
+      example: "Speaker's",
+    ),
+    ExerciseAuthoringField.coverTitle => const ExerciseFieldHelp(
+      title: 'Title line',
+      purpose: 'An optional title line on the cover.',
+      entryRules:
+          "A short line; the Story's title (Round options) is shown above the cover anyway.",
+      validation: 'Optional.',
+      example: 'At the café',
+    ),
+    ExerciseAuthoringField.coverImage => const ExerciseFieldHelp(
+      title: 'Cover picture',
+      purpose: 'The cover picture.',
+      entryRules:
+          'A picture from the Course, the Shared Image Library or a bundled image.',
+      validation:
+          'Recommended; a cover without a picture shows the title only.',
+      example: 'A café terrace',
     ),
     ExerciseAuthoringField.correctTranslation => const ExerciseFieldHelp(
       title: 'Correct translation',

@@ -11,6 +11,10 @@ import 'preset_variants.dart';
 /// the draft builder rebuilds from them. A preset never changes what plays;
 /// nothing here writes.
 abstract final class PresetRecipes {
+  /// The presets whose recipe has no v11 shape (Build 256 Revision 5): a
+  /// blank exercise for them is what the recipe builds from empty fields.
+  static const canonicalOnly = <String>{'dialogue_line', 'story_cover'};
+
   /// The learner kind each preset's recipe produces.
   static const kinds = <String, Set<LearnerExerciseKind>>{
     'translation_choice_to_target': {LearnerExerciseKind.selectTranslation},
@@ -89,6 +93,8 @@ abstract final class PresetRecipes {
       LearnerExerciseKind.match,
     },
     'note_card': {LearnerExerciseKind.presentation},
+    'dialogue_line': {LearnerExerciseKind.dialogueLine},
+    'story_cover': {LearnerExerciseKind.storyCover},
   };
 
   /// The plainest recipe of [primitive], for an exercise that carries no
@@ -163,7 +169,11 @@ abstract final class PresetRecipes {
     // The main text of the form: context, passage, situation, primary text,
     // then clue; a Presentation shows its term and an Input with inline gaps
     // its sentence.
-    final prompt = presentation
+    final prompt = presetId == 'dialogue_line'
+        ? (f.lineText.isNotEmpty ? f.lineText : (f.lineAudio?.text ?? ''))
+        : presetId == 'story_cover'
+        ? f.coverTitle
+        : presentation
         ? f.textOf('term')
         : presetId == 'missing_letters' && f.hasInlineTargets
         ? f.bracketedSentence
@@ -176,7 +186,12 @@ abstract final class PresetRecipes {
             f.primaryText,
             f.clueText,
           ].firstWhere((text) => text.isNotEmpty, orElse: () => '');
-    final question = presentation ? f.textOf('meaning') : f.questionText;
+    final story = presetId == 'dialogue_line' || presetId == 'story_cover';
+    final question = story
+        ? ''
+        : presentation
+        ? f.textOf('meaning')
+        : f.questionText;
     // (A Note card keeps its body as the meaning.)
     // The former Fill-in shape keeps its sentence in the question field; the
     // Type the missing word form shows it as the sentence.
@@ -186,7 +201,11 @@ abstract final class PresetRecipes {
             f.primitive == ExercisePrimitive.input
         ? question
         : prompt;
-    final tts = presentation ? f.audioOf('audio') : (f.primaryAudioText ?? '');
+    final tts = story
+        ? ''
+        : presentation
+        ? f.audioOf('audio')
+        : (f.primaryAudioText ?? '');
     final rightValues = [
       for (final relation in evaluation.relations)
         if (relation.length == 2) valueById[relation[1]] ?? '',
@@ -286,6 +305,13 @@ abstract final class PresetRecipes {
     return ExerciseDraftValues(
       original: original ?? exercise,
       type: presetId,
+      speakerId: f.speakerId,
+      lineMode: f.lineMode.isEmpty ? 'both' : f.lineMode,
+      lineReadAloud: f.lineReadAloud,
+      lineTextReveal: f.textReveal == TextReveal.afterAudio
+          ? 'afterAudio'
+          : 'immediate',
+      lineLanguage: f.lineLanguage,
       publicationState: state,
       requireValidAnswer: requireValidAnswer,
       useInlineGaps: inline,

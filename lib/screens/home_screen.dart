@@ -243,7 +243,7 @@ class _HomeScreenState extends State<HomeScreen> {
   String _selectedLanguage = 'IT';
   String _selectedCourseRef = 'IT';
   List<String> _bundledCourseCodes = List<String>.unmodifiable(
-    CourseService.courseAssets.keys,
+    CourseService.bundledAssets.keys,
   );
   int _activeLessonIndex = 0;
   String? _flowCourseId;
@@ -1534,7 +1534,7 @@ class _HomeScreenState extends State<HomeScreen> {
         course: bundledCourses[code]!,
         leading: courseImage(bundledCourses[code]!, code),
         subtitle: Text(
-          '${CourseService.sourceLabels[code] ?? 'English'} → ${CourseService.targetLabels[code] ?? code}'
+          '${CourseService.sourceLabels[code] ?? bundledCourses[code]!.sourceLanguage} → ${CourseService.targetLabels[code] ?? bundledCourses[code]!.targetLanguage}'
           ' · Bundled official${CourseService.hasCourse(code) ? '' : ' · Coming soon'}',
           maxLines: 2,
           overflow: TextOverflow.ellipsis,

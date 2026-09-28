@@ -197,6 +197,11 @@ abstract final class ExerciseSearchRegistry {
       fields: [_prompt, _items],
     ),
     ExerciseTypeSearchDefinition(presetId: 'note_card', fields: [_prompt]),
+    ExerciseTypeSearchDefinition(
+      presetId: 'dialogue_line',
+      fields: [_prompt, _audio],
+    ),
+    ExerciseTypeSearchDefinition(presetId: 'story_cover', fields: [_prompt]),
   ];
 
   static ExerciseTypeSearchDefinition? forExercise(Exercise exercise) {

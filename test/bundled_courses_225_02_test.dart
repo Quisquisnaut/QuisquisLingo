@@ -127,8 +127,7 @@ void main() {
         }
       }
 
-      expect(CourseService.courseAssets, hasLength(4));
-      expect(CourseService.courseAssets['KO'], 'assets/courses/korean_en.json');
+      expect(CourseService.courseAssets, hasLength(3));
       final auditReport = <String>[
         ...auditSummaries,
         'BUNDLED_AUDIT aggregate: $aggregateErrors errors, '
@@ -151,15 +150,16 @@ void main() {
     },
   );
 
-  test('Korean course loads through the registry with v9 metadata', () async {
+  test('the Piedmontese demo loads through the registry', () async {
     SharedPreferences.setMockInitialValues({});
-    final course = await CourseService().loadKoreanCourse();
+    final course = await CourseService().loadCourse('PMS');
 
     expect(course.formatVersion, Course.currentFormatVersion);
+    expect(course.title, 'Temporary Demo: Piedmontese');
     expect(course.sourceLanguage, 'English');
-    expect(course.targetLanguage, 'Korean');
-    expect(course.ttsLanguage, 'ko-KR');
-    expect(course.flagCode, 'KR');
+    expect(course.targetLanguage, 'Piedmontese');
+    expect(course.ttsLanguage, 'pms-IT');
+    expect(course.worldFlagId, 'piedmontese');
   });
 
   testWidgets('Korean registry code renders the South Korean flag', (

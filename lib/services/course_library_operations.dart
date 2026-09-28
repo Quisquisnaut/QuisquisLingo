@@ -327,7 +327,7 @@ class CourseLibraryOperations {
     final personal = await _membership.included(await editor.listUserCourses());
     final bundled = <Course>[
       if (!importOnly)
-        for (final code in CourseService.courseAssets.keys)
+        for (final code in CourseService.bundledAssets.keys)
           await _courses.loadCourse(code),
     ];
     // Home supplies its learner projection, which omits authored Draft content.

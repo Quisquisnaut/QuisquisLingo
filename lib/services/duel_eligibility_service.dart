@@ -63,6 +63,9 @@ class DuelEligibilityService {
 
     for (final round in lesson.rounds) {
       if (!round.publicationState.isPublished) continue;
+      // Build 256 Revision 5: a Story's exercises depend on its dialogue
+      // and never enter the Duel pool (owner decision).
+      if (round.flow != null) continue;
       for (final exercise in round.exercises) {
         if (!exercise.publicationState.isPublished) continue;
         if (!isEligible(exercise)) continue;

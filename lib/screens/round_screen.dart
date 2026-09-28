@@ -69,6 +69,9 @@ class _StoryEntry {
     required this.answer,
     required this.correct,
     required this.evaluable,
+    this.kind = LearnerExerciseKind.other,
+    this.speaker,
+    this.picture = '',
   });
 
   final String heading;
@@ -76,6 +79,12 @@ class _StoryEntry {
   final String? answer;
   final bool correct;
   final bool evaluable;
+
+  /// Build 256 Revision 5: a dialogue line or a Story cover is drawn as it
+  /// was shown (bubble, cover), any other item as a card.
+  final LearnerExerciseKind kind;
+  final StorySpeaker? speaker;
+  final String picture;
 }
 
 class _ChoiceOption {
@@ -160,6 +169,10 @@ class _RoundScreenState extends State<RoundScreen> {
   late ExerciseFeatures _features;
   bool _answered = false;
   bool _lastAnswerCorrect = false;
+
+  /// Build 256 Revision 5: a dialogue line's audio has played once, so a
+  /// text shown "after listening" may appear.
+  bool _lineAudioPlayed = false;
   String _feedback = '';
   String _displayedCorrection = '';
   List<String> _translationFeedback = const [];
@@ -275,7 +288,39 @@ class _RoundScreenState extends State<RoundScreen> {
     return code.isEmpty ? widget.ttsLanguage : code;
   }
 
-  Future<bool> _playCourseAudio(String text, {TextLanguage? language}) async {
+  /// The audio that plays when the exercise becomes active: an element with
+  /// automatic playback, or a dialogue line's audio when the line follows a
+  /// Story whose read-aloud is automatic (Build 256 Revision 5).
+  PromptElement? _automaticAudioOf(ExerciseFeatures f) {
+    final automatic = f.automaticAudio;
+    if (automatic != null) return automatic;
+    if (f.kind != LearnerExerciseKind.dialogueLine) return null;
+    final audio = f.lineAudio;
+    if (audio == null || audio.playback != null) return null;
+    final readAloud = widget.round.flow?.readAloud ?? FlowReadAloud.automatic;
+    return readAloud == FlowReadAloud.automatic ? audio : null;
+  }
+
+  /// Who says a dialogue line: its character, else the narrator (also for a
+  /// character the Course no longer has; the Audit names that).
+  StorySpeaker _lineSpeaker(ExerciseFeatures f) =>
+      widget.course.speakerOf(f.speakerId) ?? widget.course.narrator;
+
+  /// The language a dialogue line is spoken in: the line's own, else its
+  /// speaker's.
+  TextLanguage _lineLanguage(ExerciseFeatures f) =>
+      f.lineAudio?.language ??
+      f.lineElements
+          .map((e) => e.language)
+          .whereType<TextLanguage>()
+          .firstOrNull ??
+      _lineSpeaker(f).language;
+
+  Future<bool> _playCourseAudio(
+    String text, {
+    TextLanguage? language,
+    StoryVoice? voice,
+  }) async {
     if (widget.course.audioMode != 'tts') {
       final recorded = await _recordedAudio.playConcatenated(
         text,
@@ -292,6 +337,10 @@ class _RoundScreenState extends State<RoundScreen> {
       learningLanguage: widget.course.learningLanguage,
       targetLanguage: widget.course.targetLanguage,
       applyLearnerSettings: !widget.previewMode,
+      // A Story speaker's voice preference (Build 256 Revision 5).
+      voicePreference: voice == null || voice == StoryVoice.any
+          ? null
+          : voice.serialized,
     );
   }
 
@@ -321,13 +370,38 @@ class _RoundScreenState extends State<RoundScreen> {
       if (widget.previewMode) {
         filtered.addAll(valid);
       } else {
+        // Build 256 Revision 5: a dialogue line or a Story cover is never
+        // skipped (without audio the learner reads it), nor is any card of
+        // a Story; an exercise marked as needing the Story's audio is
+        // skipped like an audio exercise when audio cannot play.
+        final flow = widget.round.flow;
+        final audioDependent =
+            flow?.audioDependentContentIds ?? const <String>{};
+        final storyAudioPlayable =
+            ttsEnabled || widget.course.audioMode != 'tts';
         for (final index in valid) {
           final exercise = widget.round.exercises[index];
-          if (!_audioAvailability.isAudioExercise(exercise)) {
+          final kind = ExerciseFeatures(exercise).kind;
+          final neverSkipped =
+              kind == LearnerExerciseKind.dialogueLine ||
+              kind == LearnerExerciseKind.storyCover ||
+              (flow != null &&
+                  exercise.primitive == ExercisePrimitive.presentation);
+          if (neverSkipped) {
+            filtered.add(index);
+            continue;
+          }
+          final ownAudio = _audioAvailability.isAudioExercise(exercise);
+          final dependsOnStory = audioDependent.contains(exercise.id);
+          if (!ownAudio && !dependsOnStory) {
             filtered.add(index);
             continue;
           }
           if (!audioExercisesEnabled) continue;
+          if (!ownAudio) {
+            if (storyAudioPlayable) filtered.add(index);
+            continue;
+          }
           if (await _audioAvailability.isAvailable(
             widget.course,
             exercise,
@@ -478,6 +552,7 @@ class _RoundScreenState extends State<RoundScreen> {
     final ex = _exercise;
     final f = _features = ExerciseFeatures(ex);
     _answered = false;
+    _lineAudioPlayed = false;
     _lastAnswerCorrect = false;
     _feedback = '';
     _displayedCorrection = '';
@@ -560,7 +635,7 @@ class _RoundScreenState extends State<RoundScreen> {
       // An audio element with automatic playback is prepared now and plays
       // when the exercise becomes active; any other audio only warms the
       // synthesizer for the learner's own taps.
-      final automatic = f.automaticAudio;
+      final automatic = _automaticAudioOf(f);
       if (automatic != null) {
         if (automatic.text.isNotEmpty) {
           final diagnostic = AudioDiagnosticLifecycle.start(
@@ -758,10 +833,17 @@ class _RoundScreenState extends State<RoundScreen> {
   Future<bool> _speak() async {
     final text = _features.primaryAudioText;
     if (text == null || text.isEmpty) return false;
+    final line = _features.kind == LearnerExerciseKind.dialogueLine;
     final ok = await _playCourseAudio(
       text,
-      language: _features.primaryAudioLanguage,
+      language: line
+          ? _lineLanguage(_features)
+          : _features.primaryAudioLanguage,
+      voice: line ? _lineSpeaker(_features).voice : null,
     );
+    if (ok && line && mounted) {
+      setState(() => _lineAudioPlayed = true);
+    }
     if (!ok && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -1104,6 +1186,41 @@ class _RoundScreenState extends State<RoundScreen> {
   void _logStoryItem() {
     if (!_storyScrolls) return;
     final ex = _exercise;
+    final kind = _features.kind;
+    // Build 256 Revision 5: lines and covers stay as they were shown; with
+    // the dialogue log nothing else is kept.
+    if (kind == LearnerExerciseKind.dialogueLine) {
+      final audio = _features.lineAudio;
+      _storyLog.add(
+        _StoryEntry(
+          heading: '',
+          prompt: _features.lineText.isNotEmpty
+              ? _features.lineText
+              : (audio?.text ?? ''),
+          answer: null,
+          correct: true,
+          evaluable: false,
+          kind: kind,
+          speaker: _lineSpeaker(_features),
+        ),
+      );
+      return;
+    }
+    if (kind == LearnerExerciseKind.storyCover) {
+      _storyLog.add(
+        _StoryEntry(
+          heading: widget.round.flow?.title ?? '',
+          prompt: _features.coverTitle,
+          answer: null,
+          correct: true,
+          evaluable: false,
+          kind: kind,
+          picture: _features.illustrationAsset,
+        ),
+      );
+      return;
+    }
+    if ((widget.round.flow?.log ?? FlowLog.all) == FlowLog.dialogue) return;
     _storyLog.add(
       _StoryEntry(
         heading: _features.isTranslationChoice
@@ -1175,7 +1292,30 @@ class _RoundScreenState extends State<RoundScreen> {
     ),
   );
 
-  Widget _storyEntryCard(_StoryEntry entry, int number) => Container(
+  Widget _storyEntryCard(_StoryEntry entry, int number) {
+    switch (entry.kind) {
+      case LearnerExerciseKind.dialogueLine:
+        return Padding(
+          key: ValueKey('story-entry-$number'),
+          padding: const EdgeInsets.only(bottom: 12),
+          child: _lineBubble(speaker: entry.speaker!, text: entry.prompt),
+        );
+      case LearnerExerciseKind.storyCover:
+        return Container(
+          key: ValueKey('story-entry-$number'),
+          margin: const EdgeInsets.only(bottom: 12),
+          child: _coverCard(
+            title: entry.heading,
+            line: entry.prompt,
+            picture: entry.picture,
+          ),
+        );
+      default:
+        return _storyExerciseCard(entry, number);
+    }
+  }
+
+  Widget _storyExerciseCard(_StoryEntry entry, int number) => Container(
     key: ValueKey('story-entry-$number'),
     margin: const EdgeInsets.only(bottom: 12),
     padding: const EdgeInsets.all(14),
@@ -2540,6 +2680,256 @@ class _RoundScreenState extends State<RoundScreen> {
     );
   }
 
+  /// A Story dialogue line (Build 256 Revision 5): the speaker's avatar and
+  /// name, the line as a bubble, its audio (automatic through the activation
+  /// path, or on request) and Continue. Never skipped: without audio the
+  /// learner reads the line.
+  Widget _dialogueLineExercise(Exercise ex) {
+    final f = _features;
+    final speaker = _lineSpeaker(f);
+    final audio = f.lineAudio;
+    final text = f.lineText;
+    final audioPlayable = audio != null && _optionalAudioEnabled;
+    final hidden =
+        text.isNotEmpty &&
+        audio != null &&
+        f.textReveal == TextReveal.afterAudio &&
+        audioPlayable &&
+        !_lineAudioPlayed;
+    final transcript = text.isNotEmpty ? text : (audio?.text ?? '');
+    final showsText = text.isNotEmpty ? !hidden : !audioPlayable;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _lineBubble(
+          speaker: speaker,
+          text: showsText ? transcript : null,
+          placeholder: hidden
+              ? 'Listen first…'
+              : (audio != null && !showsText ? 'Listen…' : null),
+          trailing: audio == null
+              ? null
+              : IconButton.filledTonal(
+                  key: const Key('story-line-play'),
+                  tooltip: audioPlayable ? 'Play' : 'Audio unavailable',
+                  onPressed: audioPlayable ? () => _playLine(f) : null,
+                  icon: const Icon(Icons.volume_up_outlined),
+                ),
+        ),
+        if (audio != null && !audioPlayable)
+          Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: Text(
+              'Audio not available on this device.',
+              key: const Key('story-line-audio-note'),
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ),
+        const SizedBox(height: 16),
+        FilledButton(
+          key: const Key('story-line-continue'),
+          onPressed: _answered ? null : _continueLine,
+          child: const Text('Continue'),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _playLine(ExerciseFeatures f) async {
+    final audio = f.lineAudio;
+    if (audio == null) return;
+    final ok = await _playCourseAudio(
+      audio.text,
+      language: _lineLanguage(f),
+      voice: _lineSpeaker(f).voice,
+    );
+    if (!mounted) return;
+    if (ok) {
+      setState(() => _lineAudioPlayed = true);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          duration: const Duration(seconds: 8),
+          content: Text(_audioFailureDescription),
+        ),
+      );
+    }
+  }
+
+  /// Continue on a dialogue line or a Story cover: no feedback step, the
+  /// next item follows at once (a card is never scored).
+  void _continueLine() {
+    if (_answered) return;
+    setState(() {
+      _answered = true;
+      _lastAnswerCorrect = true;
+      _feedback = '';
+    });
+    _next();
+  }
+
+  /// A Story cover (Build 256 Revision 5): the Story's title, the cover
+  /// picture and an optional title line, then Continue.
+  Widget _storyCoverExercise(Exercise ex) {
+    final f = _features;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _coverCard(
+          title: widget.round.flow?.title ?? '',
+          line: f.coverTitle,
+          picture: f.illustrationAsset,
+        ),
+        const SizedBox(height: 16),
+        FilledButton(
+          key: const Key('story-cover-continue'),
+          onPressed: _answered ? null : _continueLine,
+          child: const Text('Continue'),
+        ),
+      ],
+    );
+  }
+
+  Widget _coverCard({
+    required String title,
+    required String line,
+    required String picture,
+  }) => Container(
+    padding: const EdgeInsets.all(20),
+    decoration: BoxDecoration(
+      color: _exercisePanelColor,
+      borderRadius: BorderRadius.circular(20),
+    ),
+    child: Column(
+      children: [
+        if (title.isNotEmpty)
+          Text(
+            title,
+            key: const Key('story-cover-title'),
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.headlineMedium,
+          ),
+        if (picture.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: _itemImage(picture, size: 220),
+          ),
+        ],
+        // A title line that repeats the Story title is shown once.
+        if (line.isNotEmpty && line != title) ...[
+          const SizedBox(height: 12),
+          Text(
+            line,
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+        ],
+      ],
+    ),
+  );
+
+  /// A speaker's line as a bubble beside their avatar and name; the narrator
+  /// without an avatar speaks in a quieter, centred style.
+  Widget _lineBubble({
+    required StorySpeaker speaker,
+    String? text,
+    String? placeholder,
+    Widget? trailing,
+  }) {
+    final theme = Theme.of(context);
+    final body = Text(
+      text ?? placeholder ?? '',
+      style: text == null
+          ? theme.textTheme.bodyLarge?.copyWith(
+              fontStyle: FontStyle.italic,
+              color: theme.colorScheme.onSurfaceVariant,
+            )
+          : theme.textTheme.bodyLarge,
+    );
+    if (speaker.isNarrator && speaker.avatar.isEmpty) {
+      return Padding(
+        key: const Key('story-line-narrator'),
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  if (speaker.name.isNotEmpty)
+                    Text(
+                      speaker.name,
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.labelLarge,
+                    ),
+                  DefaultTextStyle.merge(
+                    style: const TextStyle(fontStyle: FontStyle.italic),
+                    textAlign: TextAlign.center,
+                    child: body,
+                  ),
+                ],
+              ),
+            ),
+            if (trailing != null) trailing,
+          ],
+        ),
+      );
+    }
+    return Row(
+      key: const Key('story-line-bubble'),
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _speakerAvatar(speaker),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (speaker.name.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: Text(
+                    speaker.name,
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: _exercisePanelColor,
+                  borderRadius: const BorderRadius.only(
+                    topRight: Radius.circular(18),
+                    bottomLeft: Radius.circular(18),
+                    bottomRight: Radius.circular(18),
+                  ),
+                ),
+                child: body,
+              ),
+            ],
+          ),
+        ),
+        if (trailing != null) ...[const SizedBox(width: 6), trailing],
+      ],
+    );
+  }
+
+  Widget _speakerAvatar(StorySpeaker speaker) => SizedBox(
+    width: 44,
+    height: 44,
+    child: speaker.avatar.isEmpty
+        ? CircleAvatar(
+            child: Text(
+              speaker.name.isEmpty
+                  ? '?'
+                  : speaker.name.characters.first.toUpperCase(),
+            ),
+          )
+        : ClipOval(child: _itemImage(speaker.avatar, size: 44)),
+  );
+
   /// An item's picture: a Course medium through the media store, a bundled
   /// asset or a portable data URI as before.
   Widget _itemImage(String asset, {double size = 128}) =>
@@ -2747,6 +3137,12 @@ class _RoundScreenState extends State<RoundScreen> {
             ? _audioMatchExercise(ex)
             : _matchingExercise(ex);
       case ExercisePrimitive.presentation:
+        if (f.kind == LearnerExerciseKind.dialogueLine) {
+          return _dialogueLineExercise(ex);
+        }
+        if (f.kind == LearnerExerciseKind.storyCover) {
+          return _storyCoverExercise(ex);
+        }
         return _flashcardExercise(ex);
       case ExercisePrimitive.assign:
       case ExercisePrimitive.speak:
@@ -3022,8 +3418,11 @@ class _RoundScreenState extends State<RoundScreen> {
             // Keep the whole exercise screen scrollable. On short desktop
             // windows or larger system text sizes this prevents a RenderFlex
             // overflow at the bottom while preserving normal phone behavior.
+            // A Story cover draws its picture on the cover card (Build 256
+            // Revision 5), so the shared illustration would show it twice.
             if (_features.illustrationAsset.isNotEmpty &&
-                !_features.isTranslationChoice) ...[
+                !_features.isTranslationChoice &&
+                _features.kind != LearnerExerciseKind.storyCover) ...[
               _exerciseImage(ex),
               const SizedBox(height: 14),
             ] else
