@@ -13,14 +13,15 @@ narrative of Revision 4 is gone (the evidence lives in
 `docs/256_VALIDATION.md`); what follows is state, decisions, requirements,
 open problems and the next step.
 
-## State (28 September 2026, 02:10)
+## State (28 September 2026, 08:53)
 
-- **WAITING FOR THE OWNER'S APPROVAL BEFORE REVISION 5.** Owner, 27
-  September 20:04: "At the end of task, commit, handoff, and push. Then pause
-  and wait for my approval before going on with next revision." Do not start
-  Revision 5 (Interoperability) or Revision 6 (Laboratory, Assign, final
-  verification) until the owner says so. An auto-resume run reads this line
-  and replies with one line of status only.
+- **WAITING FOR THE OWNER'S GO ON `docs/256_STORY_PLAN.md` (Build 256
+  Revision 5: Stories).** The owner approved a Stories revision on 28
+  September and answered its twelve design questions (plan §0); the plan is
+  written and pushed. Do not start coding until the owner says go; an
+  auto-resume run reads this line and replies with one line of status only.
+  Interoperability is now Revision 6 and Laboratory / Assign / final
+  verification Revision 7 (architecture plan Part B renumbered).
 - **Revision 4 (the preset catalogue, `2.0.56+256004`) is committed and
   pushed:** `eca0cd0` Build 256 Revision 4 (86 files) plus the handoff
   commits `f2e692a` and the compaction commit after it, on
@@ -50,8 +51,9 @@ open problems and the next step.
 | 3 Runtime and Audit | 2 | 2.0.56+256002 | committed `41dd91a` (suite 2,840/1/0) |
 | 4 Presets and Generic Primitive Editor | 3 | 2.0.56+256003 | committed `974f700`, follow-ups `1068fa4`, `02a4aa5` (suite 2,951/1/0) |
 | 5 Preset catalogue | 4 | 2.0.56+256004 | committed `eca0cd0` (suite 3053/1/0), pushed |
-| 6 Interoperability | 5 | 2.0.56+256005 | **not started: waits for the owner's approval** |
-| 7 Laboratory, Assign, final verification | 6 | 2.0.56+256006 | not started |
+| 6 Stories (`docs/256_STORY_PLAN.md`) | 5 | 2.0.56+256005 | plan written 28 September, **waits for the owner's go** |
+| 7 Interoperability | 6 | 2.0.56+256006 | not started |
+| 8 Laboratory, Assign, final verification | 7 | 2.0.56+256007 | not started |
 
 Branch `claude/256-exercise-architecture`, created from `main` at `611a1a1`
 (Build 255 handoff, `2.0.55+255007`).
@@ -217,15 +219,18 @@ Branch `claude/256-exercise-architecture`, created from `main` at `611a1a1`
 - Revision 4's Beta expiry versus the after-midnight commit (see State).
 - The interoperability catalog (`lib/models/exercise_interoperability.dart`)
   only carries catalogue preset IDs as hints; the real mappings, support
-  states (A.6) and the flow engine are Revision 5's scope.
+  states (A.6) and the flow engine are Revision 6's scope.
 - Speak, Ink, Submit and Assign remain definitions only (A.2); Assign
-  becomes playable in Revision 6.
+  becomes playable in Revision 7.
 
 ## Next step
 
-1. Wait for the owner's approval (reply with one line of status if a run
-   arrives before it).
-2. Revision 5, **Interoperability** (`2.0.56+256005`; plan Part B item 6):
+1. Wait for the owner's go on `docs/256_STORY_PLAN.md` (reply with one line
+   of status if a run arrives before it).
+2. Revision 5, **Stories** (`2.0.56+256005`): follow the story plan's stages
+   (model and characters, runtime, editor, Story Wizard, bundled Courses and
+   Help), with the Revision 4 process and a handoff after each stage.
+3. Revision 6, **Interoperability** (`2.0.56+256006`; plan Part B item 7):
    canonical import and interoperability mappings with the preset only as a
    hint; the four support states and A.6 (readable-but-not-executable
    exercises stay in the file, `runtimeSupport` computed, never stored);
@@ -234,8 +239,8 @@ Branch `claude/256-exercise-architecture`, created from `main` at `611a1a1`
    capability JSON tool; end-to-end tests. Start by reading Part B item 6,
    Part D and `docs/EXERCISE_ARCHITECTURE_V12.md`, then write the plan of
    the session into this file before editing.
-3. Revision 6, **Laboratory, Assign, final verification**
-   (`2.0.56+256006`; Part B item 7): Laboratory by primitive and options
+4. Revision 7, **Laboratory, Assign, final verification**
+   (`2.0.56+256007`; Part B item 8): Laboratory by primitive and options
    plus the test-only fixture Course; Assign runtime with Generic Primitive
    Editor support; Story tests; semantic-equality tests; the final
    verification list (Part D "Final acceptance scenario").

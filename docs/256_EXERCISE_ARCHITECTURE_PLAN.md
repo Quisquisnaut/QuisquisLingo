@@ -25,7 +25,7 @@ Change summary: `docs/256_CHANGE_SUMMARY.md`.
 - Update the handoff after every commit and at least every 30 minutes, so a new session can resume from it alone.
 - Report failures honestly; never weaken tests or validation to get a pass.
 
-### A.2 What learners can play by Session 6
+### A.2 What learners can play by the final session (Session 8 after the 28 September renumbering)
 - Exactly today's behaviors plus Assign. Every other legal combination is valid but not yet executable: Speak, Ink, Submit; Input number/range/tolerance/regex/manual; Select subset/orderedSelections, textSpans/regions/cells, evaluationTiming onCompletion; Match one-to-many/many-to-one/many-to-many, connect/memory; Arrange grid; and similar.
 - Executability is computed per exercise (primitive + options + evaluation mode) from a runtime-support table in the capability registry. It is never stored in Course data.
 
@@ -146,12 +146,14 @@ Asked and answered before the branch was created.
 5. **Preset catalogue** (added 27 September 2026 by owner decision; `docs/256_PRESET_CATALOGUE_PLAN.md`).
    - Merges, renames, new presets, to-target/to-source pairs, greyed future presets, the skill-grouped picker with the direction filter, and the save guard against unchanged example content.
    - The small runtime changes the new presets need (within-word Input gap, word tiles without a picture, picture left items in Match).
-6. **Interoperability.**
+6. **Stories** (added 28 September 2026 by owner decision; `docs/256_STORY_PLAN.md`).
+   - Narrator and reusable characters with avatars and voice preferences; the Dialogue line and Story cover presets; the Story options (title, scrolling, filtered dialogue log, read-aloud); the Story Wizard; Story exercises out of the Duel pool; lines never skipped when audio is unavailable.
+7. **Interoperability.**
    - Canonical import and interoperability mappings, with the preset only as a hint.
    - The four support states and A.6.
    - Conditional transitions and the flow engine.
    - The service sweep from Part D; the capability JSON tool; end-to-end tests.
-7. **Laboratory, Assign, final verification.**
+8. **Laboratory, Assign, final verification.**
    - Laboratory by primitive and options, plus the fixture Course; negative tests.
    - Assign runtime (categories, slots, gaps, regions if the overlay fits; capacity single/multiple; reuse forbidden/allowed; exactAssignments) with Generic Primitive Editor support.
    - Story tests; semantic-equality tests; the final verification list.
