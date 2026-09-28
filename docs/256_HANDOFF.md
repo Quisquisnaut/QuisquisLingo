@@ -13,22 +13,22 @@ narrative of Revision 4 is gone (the evidence lives in
 `docs/256_VALIDATION.md`); what follows is state, decisions, requirements,
 open problems and the next step.
 
-## State (28 September 2026, 21:35)
+## State (28 September 2026, 22:35)
 
 - **Build 256 Revision 5 (Stories) is committed locally as `4172d98`
   (108 files) plus its same-version follow-up `7903e9f` (47 files, owner
   review of 28 September: Continue, per-mode line instructions, no XP
   without evaluable exercises, derived "Story:" label, avatars, scroll
-  margin, sample Stories) and follow-up 2 `41a5555` (no DIALOGUE heading
-  on a line; suite 3139 passed, 1 skipped, 0 failed), NOT pushed. In
-  progress: follow-up 3 (owner request, 21:10): the Round Wizard and the
-  Story Wizard move to the Rounds page, the Story Wizard is renamed New
-  Story, the "Lines are never skipped…" sentence leaves the Story options,
-  and the Round editor of a Story replaces New exercise / New canonical /
-  Exercise Wizard with Add step (title block once, dialogue line,
-  exercise). Then the Revision 6 plan (F block + Story editor), for
-  approval before code.** An auto-resume run replies with one line
-  of status and does nothing else. Complete suite on the final tree: 3117
+  margin, sample Stories), follow-up 2 `41a5555` (no DIALOGUE heading on a
+  line; suite 3139 passed, 1 skipped, 0 failed) and follow-up 3 `32fedfb`
+  (the Round Wizard and New Story on the Rounds page, Add step in the
+  Story editor; suite 3144 passed, 1 skipped, 0 failed), NOT pushed;
+  waiting for the owner. Adventures are parked for a future release
+  (owner, 28 September, 22:20): the F block and the video block belong to
+  a branched Round kind, not to Stories; the discussion points are under
+  Next step. The next revision's scope is the owner's call (spoken
+  exercises, or Interoperability from the plan).** An auto-resume run
+  replies with one line of status and does nothing else. Complete suite on the final tree: 3117
   passed, 1 skipped, 0 failed (run 2; run 1 had three count pins fixed in
   tests). No APK built (owner: only on request); the end-of-revision sound
   played. The progress notes of the day stay in the next bullet as the
@@ -524,47 +524,50 @@ Branch `claude/256-exercise-architecture`, created from `main` at `611a1a1`
   states (A.6) and the flow engine are Revision 6's scope.
 - Speak, Ink, Submit and Assign remain definitions only (A.2); Assign
   becomes playable in Revision 7.
+- A Story's Save is not blocked without a title block or a Dialogue line
+  (follow-up 3): the owner's rule "one title block, at least one line" is
+  enforced by Add step (the title block offered once), by Duplicate greyed
+  out for the title block and by the steps line under the Story options;
+  the Audit warns about a missing line (`STORY_WITHOUT_DIALOGUE`) and has
+  no code for a missing title block. Say so if the owner wants a hard rule.
 
 ## Next step
 
-1. Follow-up 3 (same version; owner request of 28 September, 21:10; script
-   `s65_followup3.py` in the scratchpad): (a) `_openGuidebookRoundGenerator`
-   and `_openStoryWizard` leave the Lesson editor for the Rounds page
-   (`_LessonRoundsScreenState`, bottom bar with `rounds-round-wizard`
-   gated by `_course.useGuidebook` and `rounds-new-story`; the Round
-   Wizard appends through `_updateRounds`, New Story through
-   `_courseWithSpeakers` + `ReplaceRounds`); (b) the Wizard's app bar reads
-   "New Story · …", Help titles/bodies (EN/IT/ES), the Audit hint, the
-   cover preset text and README follow; (c) the Round editor's Story
-   options lose "Lines are never skipped: without audio the learner reads
-   them."; (d) in a Story the bottom bar shows Add step (`round-add-step`)
-   instead of the three exercise buttons: a sheet with Title block
-   (`story-step-title`, greyed out once the Story has one, inserted first),
-   Dialogue line (`story-step-line`, the Wizard's short form) and Exercise
-   (`story-step-exercise`, the Story presets sheet shared with the Wizard),
-   Duplicate greyed out for the title block; (e) tests: generator,
-   transaction, 231, revision3 follow-up and Story Wizard tests navigate
-   to the Rounds page; a new `story_add_step_256_test.dart`; (f) docs,
-   focused tests, analyzer, format, complete suite, commit "Build 256
-   Revision 5 follow-up 3: wizards on the Rounds page, New Story, Add
-   step", handoff, sound. Then wait for the owner's word; push only when
-   asked (`git push` of `claude/256-exercise-architecture`).
-   **Decisions of 28 September evening for later revisions:** Revision 7
-   = spoken exercises (an exercise said by a speaker: "Said by" in the
-   Wizard and the form, drawn in the speaker's bubble with the avatar,
-   instruction "What comes next?" / "What do you hear?", the completed
-   line spoken and appended to the dialogue log after a correct answer,
-   and after a wrong one with the correct line; Match the words allowed
-   in Stories with a Wizard action prefilled from the Story's lines),
-   separate from Revision 6. Then write the Revision 6 plan:
-   the F block (a Presentation with choices that branches the Story, one
-   per Story, tags Branch 1 / Branch 2 / Both defaulting to Both, allowed
-   right after the cover, a line on each branch, the registry, converter,
-   validator and Python mirror learning presentation choices, a small flow
-   engine for one choice, the scroll log and XP over the played lane) and
-   the Story editor (reopen any Story in the Wizard); Interoperability
-   becomes Revision 7. Sample Stories alternate two or three lines with a
-   question (owner, 28 September).
+1. Wait for the owner's word on Revision 5 (`4172d98`) and its three
+   follow-ups (`7903e9f`, `41a5555`, `32fedfb`); push only when asked
+   (`git push` of `claude/256-exercise-architecture`). The next revision's
+   scope is open: the owner parked Adventures for a future release on 28
+   September at 22:20, so Revision 6 is either the spoken exercises agreed
+   earlier or Interoperability (plan Part B item 7). Ask before planning.
+   **Agreed, unscheduled: spoken exercises** (an exercise said by a
+   speaker: "Said by" in the Wizard and the form, drawn in the speaker's
+   bubble with the avatar, instruction "What comes next?" / "What do you
+   hear?", the completed line spoken and appended to the dialogue log after
+   a correct answer, and after a wrong one with the correct line; Match the
+   words allowed in Stories with a Wizard action prefilled from the Story's
+   lines). Sample Stories alternate two or three lines with a question
+   (owner, 28 September).
+   **Parked: Adventures** (owner, 28 September, 22:05 and 22:20): a
+   branched Round kind, separate from Stories, built from blocks A (title,
+   cover picture, read-aloud), B (narrator), C (characters), D (dialogue
+   line), E (exercise), F (one choice block that forks into Branch 1 /
+   Branch 2, later blocks tagged Branch 1 / Branch 2 / Both with Both as
+   the default, at least one line on each path, F allowed right after the
+   cover) and G (an embedded YouTube video). Claude's assessment given to
+   the owner, not yet answered: derive the kind from a branching flow (no
+   stored type; "Adventure: <title>" like "Story:"); F as a presentation
+   with two named choices compiled to `onChoice`, lanes re-merging on Both
+   blocks, the pick logged as a short line; scoring, perfect bonus and
+   Laurel over the played path, Review replays, Adventure exercises out of
+   the Duel; the video block as a stored 11-character video ID validated
+   on import with a Watch on YouTube button opening the system browser
+   (offline rule; an in-app player needs a webview plugin, WebView2 on
+   Windows); retire the greyed `adventure` tile of the preset picker; split
+   into 6a (model, flow player, Audit, New Adventure wizard, Add step
+   entries, samples, Python mirror, validator) and 6b (video). Open
+   questions: the greyed tile, in-app player or not, videos in plain
+   Stories, forks on wrong answers, whether Add step makes "reopen a Story
+   in the Wizard" unnecessary.
 2. Revision 6, **Interoperability** (`2.0.56+256006`; plan Part B item 7):
    canonical import and interoperability mappings with the preset only as a
    hint; the four support states and A.6 (readable-but-not-executable
