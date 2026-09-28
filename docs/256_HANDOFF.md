@@ -13,13 +13,27 @@ narrative of Revision 4 is gone (the evidence lives in
 `docs/256_VALIDATION.md`); what follows is state, decisions, requirements,
 open problems and the next step.
 
-## State (28 September 2026, 08:53)
+## State (28 September 2026, 14:50)
 
-- **Build 256 Revision 5 (Stories, `docs/256_STORY_PLAN.md`) is in
-  progress: the owner gave the go ("Procedi") on 28 September.** The owner
-  approved the Stories revision and answered its twelve design questions
-  (plan §0); an auto-resume run continues from the latest progress note in
-  the next bullet.
+- **Build 256 Revision 5 (Stories) is committed locally as `4172d98`
+  (108 files) and NOT pushed; waiting for the owner's approval before
+  Revision 6 (Interoperability).** An auto-resume run replies with one line
+  of status and does nothing else. Complete suite on the final tree: 3117
+  passed, 1 skipped, 0 failed (run 2; run 1 had three count pins fixed in
+  tests). No APK built (owner: only on request); the end-of-revision sound
+  played. The progress notes of the day stay in the next bullet as the
+  record of how the revision was built; the summary of what it delivers is
+  `docs/256_CHANGE_SUMMARY.md` (Revision 5) and the evidence
+  `docs/256_VALIDATION.md`.
+- Owner-facing items to mention at the next opportunity: (1) the Korean
+  demo left the bundle by the owner's request and survives only as the test
+  fixture `test/fixtures/v12/korean_en.json`; (2) the Piedmontese demo is
+  version 1.3.0 and the Edge Case demo 1.2.0 (release stamps 28 September);
+  (3) the Wizard's cover carries the Story title as its title line by
+  design; (4) a custom avatar is a PNG of at most 50 KB (scaled down when a
+  photo is too detailed); (5) the v11 fixture of the Edge Case demo still
+  carries the former "AI-Slop" title (the parity test compares content, not
+  titles; harmless, regenerating it needs the generator's v11 dict).
   Interoperability is now Revision 6 and Laboratory / Assign / final
   verification Revision 7 (architecture plan Part B renumbered).
 - **Revision 5 started (owner: "Procedi", 28 September). Stage 1a applied
@@ -446,12 +460,10 @@ Branch `claude/256-exercise-architecture`, created from `main` at `611a1a1`
 
 ## Next step
 
-1. Wait for the owner's go on `docs/256_STORY_PLAN.md` (reply with one line
-   of status if a run arrives before it).
-2. Revision 5, **Stories** (`2.0.56+256005`): follow the story plan's stages
-   (model and characters, runtime, editor, Story Wizard, bundled Courses and
-   Help), with the Revision 4 process and a handoff after each stage.
-3. Revision 6, **Interoperability** (`2.0.56+256006`; plan Part B item 7):
+1. Wait for the owner's approval of Revision 5 (`4172d98`); push only when
+   asked (`git push` of `claude/256-exercise-architecture`). A same-version
+   follow-up for owner corrections lands as its own commit.
+2. Revision 6, **Interoperability** (`2.0.56+256006`; plan Part B item 7):
    canonical import and interoperability mappings with the preset only as a
    hint; the four support states and A.6 (readable-but-not-executable
    exercises stay in the file, `runtimeSupport` computed, never stored);
@@ -467,6 +479,19 @@ Branch `claude/256-exercise-architecture`, created from `main` at `611a1a1`
    verification list (Part D "Final acceptance scenario").
 
 ## Gotchas
+
+- Pins that move when a bundled demo is added or removed or a Help section
+  is added, all outside the obvious batches: `course_library_screen_244_test`
+  (bundled count, "N of M shown"), `course_library_view_255_test` ("N of M
+  shown"), `editor_help_translation_test` (editor section count),
+  `edge_case_course_254_test` / `bundled_source_254_test` (Lessons, Rounds,
+  exercises, learner view, Merge choices per Lesson),
+  `piedmontais_course_254_test` (presets, Round IDs, examples in the title),
+  `runtime_canonical_256_test` (`_expectedKinds` per preset),
+  `tools/validate_courses.py` (Lesson counts).
+- The complete suite launched with the Bash tool in the background (a
+  `run_awake.ps1` call, ~26 minutes) survives the tool's ten-minute
+  timeout; poll the UTF-16 log with `s44_suite_summary.py`.
 
 - Bash heredocs mangle backslashes and long scripts: write edit scripts
   with the file tool into the scratchpad and run them by path; `re.sub`
