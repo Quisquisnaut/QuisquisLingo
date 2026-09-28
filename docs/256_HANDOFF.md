@@ -13,39 +13,21 @@ narrative of Revision 4 is gone (the evidence lives in
 `docs/256_VALIDATION.md`); what follows is state, decisions, requirements,
 open problems and the next step.
 
-## State (29 September 2026, 23:56)
+## State (29 September 2026, 00:26)
 
-- **Build 256 Revision 5 (Stories) is committed locally as `4172d98`
-  (108 files) plus its same-version follow-up `7903e9f` (47 files, owner
-  review of 28 September: Continue, per-mode line instructions, no XP
-  without evaluable exercises, derived "Story:" label, avatars, scroll
-  margin, sample Stories), follow-up 2 `41a5555` (no DIALOGUE heading on a
-  line; suite 3139 passed, 1 skipped, 0 failed) and follow-up 3 `32fedfb`
-  (the Round Wizard and New Story on the Rounds page, Add step in the
-  Story editor; suite 3144 passed, 1 skipped, 0 failed), NOT pushed.
-  Adventures and spoken exercises are parked (owner, 28 September, 22:20
-  and 22:00): "do the rest that is left" = plan items 7 and 8. Revision 6
-  (Interoperability, `2.0.56+256006`) is **committed as `355ad94`**
-  (suite 3182 passed, 1 skipped, 0 failed; 23:00), NOT pushed. Revision 7
-  (plan item 8: Laboratory by primitive and option, Assign runtime, final
-  verification; `2.0.56+256007`) is in progress from the session plan
-  below: Stage 1 (the Assign runtime: registry entries, kinds, copy in
-  eight languages, the Round screen renderer, `ASSIGN_STRUCTURE_REQUIRED`,
-  Help, pins; `assign_runtime_256_test.dart` 10 tests green), Stage 2
-  (the Laboratory's Assign Lesson: 128 examples, the baseline re-recorded
-  with six new records, `exercise_laboratory_254_test` 261 green) and
-  Stage 3 (the future fixture `test/fixtures/v12/laboratory_future_en_it.json`
-  and its test), Stage 4 (`negative_cases_256_test`,
-  `semantic_equality_256_test`) and Stage 5 (version `2.0.56+256007`, Beta
-  expiry 29 October, CHANGELOG, summary, validation, AGENTS, reference doc,
-  plan, README) are on the working tree; every focused batch is green and
-  the analyzer clean; the first complete suite (`suite_256007_a.log`)
-  had 11 failures, all fixed in tests (the Assign Lesson has no preset;
-  the end-to-end fixture's Assign uses drag placement); the second complete
-  suite runs (`suite_256007_b.log`, started 00:00); then the validation
-  line, the commit "Build 256 Revision
-  7: Laboratory, Assign, final verification" (`commit_256007.txt`), the
-  handoff, the sound, and the final six-part report to the owner.** An auto-resume run replies with one line of
+- **Build 256 is complete: eight sessions, Revisions 0–7, every one
+  committed locally on `claude/256-exercise-architecture`, NOT pushed.
+  Revision 7 (`2.0.56+256007`, Laboratory, Assign, final verification) is
+  committed as `07384ef` (suite 3229 passed, 1 skipped, 0 failed, 00:25).
+  Waiting for the owner: push only when asked (`git push` of
+  `claude/256-exercise-architecture`), APK only on request. Parked by the
+  owner: Adventures (the F block and the video block, see Next step) and
+  spoken exercises. Open owner items: the Story Save rule (not blocked
+  without a title block or a line), an Assign preset for the catalogue
+  (Sort into groups and Label the picture stay greyed), the Speak, Ink and
+  Submit runtimes, regions, cells and drag placement for Assign. The
+  owner was given a checklist for the next Windows build (follow-up 3,
+  Revision 6, Revision 7 items).** An auto-resume run replies with one line of
   status and does nothing else. Complete suite on the final tree: 3117
   passed, 1 skipped, 0 failed (run 2; run 1 had three count pins fixed in
   tests). No APK built (owner: only on request); the end-of-revision sound
@@ -482,7 +464,7 @@ Plan Part B item 8 and Part D session 6, `2.0.56+256007`. Pre-approved
 | 5 Preset catalogue | 4 | 2.0.56+256004 | committed `eca0cd0` (suite 3053/1/0), pushed |
 | 6 Stories (`docs/256_STORY_PLAN.md`) | 5 | 2.0.56+256005 | committed `4172d98`, follow-ups `7903e9f`, `41a5555`, `32fedfb` |
 | 7 Interoperability | 6 | 2.0.56+256006 | committed `355ad94` (suite 3182/1/0) |
-| 8 Laboratory, Assign, final verification | 7 | 2.0.56+256007 | REV7_STATE |
+| 8 Laboratory, Assign, final verification | 7 | 2.0.56+256007 | committed `07384ef` (suite 3229/1/0) |
 
 Branch `claude/256-exercise-architecture`, created from `main` at `611a1a1`
 (Build 255 handoff, `2.0.55+255007`).
@@ -660,16 +642,12 @@ Branch `claude/256-exercise-architecture`, created from `main` at `611a1a1`
 
 ## Next step
 
-1. Finish Revision 6 (see State), then start Revision 7 at once (plan
-   Part B item 8, `2.0.56+256007`): the Laboratory by primitive and option
-   plus the test-only fixture Course (Speak, Ink, Submit, branching Stories
-   go there), negative tests, the Assign runtime (categories, slots, gaps,
-   regions if the overlay fits; capacity single/multiple; reuse
-   forbidden/allowed; exactAssignments) with Generic Primitive Editor
-   support and the registry's runtime-support table extended, Story tests,
-   semantic-equality tests, the final verification list (plan Part D).
-   Write the session plan into this file before editing. Push only when
-   asked (`git push` of `claude/256-exercise-architecture`).
+1. Nothing is in progress. Wait for the owner's review of Revisions 5–7
+   (`4172d98` + follow-ups `7903e9f`, `41a5555`, `32fedfb`; `355ad94`;
+   `07384ef`); push only when asked. The next work is the owner's choice:
+   corrections from the Windows build review as same-version follow-up
+   commits, an Assign preset, the Adventure release (parked), spoken
+   exercises (parked).
    **Parked: spoken exercises** (owner, 28 September, 22:00) (an exercise said by a
    speaker: "Said by" in the Wizard and the form, drawn in the speaker's
    bubble with the avatar, instruction "What comes next?" / "What do you
