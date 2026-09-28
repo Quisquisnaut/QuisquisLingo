@@ -3626,6 +3626,20 @@ class Exercise {
   PrimitiveOptions get effectiveOptions =>
       PrimitiveCapabilityRegistry.effectiveOptions(primitive, options);
 
+  /// Whether this version of QQL can play the exercise, from the registry's
+  /// runtime-support table (Build 256 Revision 6, plan A.2 and A.6):
+  /// computed here, never stored in Course data. A legal configuration no
+  /// entry covers is readable but not executable: kept, editable and
+  /// exported unchanged; learners of this version skip it.
+  ExerciseRuntimeSupport get runtimeSupport =>
+      PrimitiveCapabilityRegistry.runtimeSupport(
+        primitive: primitive,
+        options: options,
+        evaluationMode: canonicalEvaluation.mode,
+      );
+
+  bool get isExecutable => runtimeSupport.isExecutable;
+
   /// The canonical content in a form that ignores authoring metadata, the
   /// timestamp and the publication state, with every default option filled
   /// in: two exercises are semantically equal when this is equal. IDs and

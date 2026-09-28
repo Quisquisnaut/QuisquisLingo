@@ -598,6 +598,19 @@ class CourseAuditService {
             );
           }
         }
+        // Build 256 Revision 6 (plan A.6, A.7): what learners of this
+        // version cannot complete. Not blocking: the content is valid.
+        final notCompletable = notCompletableReason(r);
+        if (notCompletable != null) {
+          issues.add(
+            CourseAuditIssue.fromCode(
+              AuditCode.roundNotCompletable,
+              message: notCompletable,
+              location: rl,
+              roundId: r.id,
+            ),
+          );
+        }
         for (final ex in roundExercises) {
           final lineFeatures = ExerciseFeatures(ex);
           if (lineFeatures.kind != LearnerExerciseKind.dialogueLine) continue;
@@ -873,6 +886,44 @@ class CourseAuditService {
         sourceReferenceCourse: sourceReferenceCourse,
       ).issues.where((issue) => issue.location.startsWith(prefix)).toList(),
     );
+  }
+
+  /// Why learners using this version cannot complete [round], or null
+  /// (Build 256 Revision 6, plan A.6 and A.7): a practice Round whose
+  /// exercises are all ones this version cannot play, a Story whose flow
+  /// branches or is not a straight sequence, or a Story whose last step is
+  /// an exercise this version cannot play (learners reach its card and the
+  /// Story ends without being recorded).
+  static String? notCompletableReason(LearningRound round) {
+    final flow = round.flow;
+    final exercises = round.exercises;
+    if (flow == null) {
+      if (exercises.isNotEmpty && exercises.every((ex) => !ex.isExecutable)) {
+        return 'No exercise of this Round can be played by this version of QuisquisLingo, so learners cannot complete it.';
+      }
+      return null;
+    }
+    if (flow.hasBranching) {
+      return 'The Story’s flow branches; this version plays linear Stories only, so learners cannot start it.';
+    }
+    final order = flow.linearNodeIds();
+    if (order == null) {
+      final problems = flow.check().map((issue) => issue.message).join(' ');
+      return 'The Story’s flow is not a straight sequence, so this version cannot play it. $problems'
+          .trim();
+    }
+    if (order.isEmpty) return null;
+    final last = flow.nodeById(order.last);
+    final content = last == null
+        ? null
+        : round.content
+              .where((entry) => entry.id == last.contentId)
+              .firstOrNull;
+    final exercise = content?.exercise;
+    if (exercise != null && !exercise.isExecutable) {
+      return 'The Story ends on a step this version of QuisquisLingo cannot play: learners reach its card and the Story ends without being recorded. Move the step earlier or replace it.';
+    }
+    return null;
   }
 
   CourseAuditResult auditRound(
@@ -1324,6 +1375,12 @@ class CourseAuditService {
     )) {
       add(_violationCode(violation), violation.message);
     }
+    // Build 256 Revision 6 (plan A.6): a legal configuration this version
+    // cannot play is reported once, as information; nothing blocks.
+    final support = ex.runtimeSupport;
+    if (support.state == ExerciseSupportState.readableButNotExecutable) {
+      add(AuditCode.exerciseNotExecutable, support.reason);
+    }
     // Multiple selection: the registry's limit invariants (minimum ≤ correct
     // ≤ maximum ≤ items). A single selection has its own rule below.
     if (f.multipleSelection &&
@@ -1772,7 +1829,16 @@ class CourseAuditService {
         }
       case ExercisePrimitive.input:
         final answers = f.acceptedAnswers;
-        if (answers.isEmpty) {
+        // A typed text answer is required by the text modes only; a
+        // numeric, pattern or manual evaluation keeps its answer elsewhere
+        // (Build 256 Revision 6: such an Input is valid, just not playable
+        // yet).
+        if (answers.isEmpty &&
+            const {
+              EvaluationMode.exactText,
+              EvaluationMode.acceptedTexts,
+              EvaluationMode.expression,
+            }.contains(evaluation.mode)) {
           switch (kind) {
             case LearnerExerciseKind.inputTranslation:
               add(

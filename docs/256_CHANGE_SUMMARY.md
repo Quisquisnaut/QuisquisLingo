@@ -1,8 +1,80 @@
 # Build 256 change summary
 
-Build 256 is the exercise architecture redesign (Course Model v12). Its six
-sessions are Revisions 0–5. Plan: `256_EXERCISE_ARCHITECTURE_PLAN.md`;
+Build 256 is the exercise architecture redesign (Course Model v12). Its eight
+sessions are Revisions 0–7. Plan: `256_EXERCISE_ARCHITECTURE_PLAN.md`;
 reference: `EXERCISE_ARCHITECTURE_V12.md`; evidence: `256_VALIDATION.md`.
+
+## Revision 6 (2.0.56+256006, 28 September 2026): Interoperability
+
+Session 7 (plan Part B item 7). Support states at runtime (A.6), the
+stand-alone flow engine (A.7), interoperability on canonical semantics with
+presets as hints, the machine-readable capability description (A.13) and
+the end-to-end acceptance scenario. Adventures and spoken exercises are
+parked (owner, 28 September 2026). Course files stay Course Model v12.
+
+### Files
+
+- `lib/models/course_models.dart`: `Exercise.runtimeSupport` and
+  `isExecutable` (computed from the registry, never stored).
+- `lib/services/round_playability_service.dart`: `playableExerciseIndices`
+  drops not-executable exercises (with the invalid and unpublished ones,
+  before any audio filter) unless `keepNotExecutable`; `notExecutableIndices`.
+- `lib/screens/round_screen.dart`: practice Rounds skip them
+  (`_versionSkipped`, the completion line `round-completed-version-skipped`,
+  the empty-Round texts), the "skipped perfect" mark reuses `ttsWasSkipped`
+  (`_audioWasSkipped` kept apart for the messages); a Story and the Preview
+  keep them and draw `_notExecutableCard` (`not-executable-card`,
+  `not-executable-continue`; no heading, no instruction; the scrolling log's
+  entry "Not playable in this version"); a Story ending on one shows
+  `story-ends-unplayable` and leaves without recording ("Leave story").
+- `lib/services/duel_eligibility_service.dart`: executable only.
+- `lib/services/audit_code_registry.dart`, `course_audit_service.dart`:
+  `EXERCISE_NOT_EXECUTABLE` (Info), `ROUND_NOT_COMPLETABLE` (Warning,
+  `notCompletableReason`); the Input text-answer Error applies to the text
+  modes only.
+- `lib/services/course_library_operations.dart`,
+  `lib/screens/course_projects_screen.dart`:
+  `CourseImportReview.notExecutableCount`, `CourseLibraryReports.imported(
+  notExecutable:)` and `notExecutableNote`, the line in the Matching Course
+  ID and Publisher dialogs (`import-not-executable-note`).
+- `lib/services/flow_engine.dart`: `FlowOutcome`, `FlowState`, `FlowEngine`
+  (`nextAfter`, `walk`).
+- `lib/models/exercise_interoperability.dart`: `CanonicalConfiguration`,
+  `InteroperabilityMapping` (configuration, `presetHint`, `flow`, notes).
+  `lib/models/normalized_import_exercise.dart`: canonical fields, optional
+  `presetHint`. `lib/services/canonical_exercise_import.dart`:
+  `CanonicalExerciseImport.adopt` → `CanonicalImportResult`.
+- `lib/models/canonical/capability_description.dart`,
+  `tools/export_capabilities.dart`, `docs/capabilities_v12.json`,
+  `tools/qql_capabilities.py`; `tools/qql_course_v12.py` and
+  `tools/validate_courses.py` read the JSON.
+- Tests: `support_states_256_test.dart` (11), `flow_engine_256_test.dart`
+  (8), `interoperability_256_test.dart` (7),
+  `capability_description_256_test.dart` (2),
+  `interoperability_end_to_end_256_test.dart` (10) with the fixture
+  `test/support/canonical_course_256.dart`; `exercise_architecture_224_test`
+  and the two registry-count pins updated.
+
+### Decisions implemented
+
+- A.6 as written, with one reading: a Story shows the card and the Story's
+  "skipped perfect" mark follows the same rule as a practice Round's; the
+  prompt of the card is the exercise's own prompt line, shown read-only
+  above it.
+- A.7: the engine exists and is tested; playback of branching flows waits
+  (Adventures parked).
+- Presets as hints only: the hint is recorded only when
+  `PresetRecipes.represents` confirms it; a greyed (coming-later) preset is
+  never recorded.
+- The Python tools keep no vocabulary of their own; the JSON is the source.
+
+### Known limits
+
+- The Round editor and the preset forms do not mark an unplayable exercise
+  beyond the Audit's Info line and the Generic Primitive Editor's support
+  line.
+- `PickOneAudio` (items that are audio clips) stays unsupported in the
+  catalog: no Select renderer draws audio items.
 
 ## Revision 5 (2.0.56+256005, 28 September 2026): Stories
 

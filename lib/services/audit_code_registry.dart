@@ -815,6 +815,22 @@ enum AuditCode {
     'The Round has no flow, so the line plays as a plain card.',
     'Turn on Play as a Story in the Round editor, or use a Note card.',
   ),
+  exerciseNotExecutable(
+    'EXERCISE_NOT_EXECUTABLE',
+    AuditSeverity.info,
+    'Exercise',
+    'This version of QuisquisLingo cannot play the exercise yet.',
+    'The exercise is valid, but its primitive, options or evaluation mode lie outside the runtime-support table of this version (readable but not executable).',
+    'Nothing to repair: learners using this version skip it (a Story shows a card in its place); it is kept, editable and exported unchanged. Choose a supported configuration if it must play now.',
+  ),
+  roundNotCompletable(
+    'ROUND_NOT_COMPLETABLE',
+    AuditSeverity.warning,
+    'Round, Story',
+    'Learners using this version cannot complete the Round or Story.',
+    'Every exercise of a practice Round is one this version cannot play, the Story’s flow branches, or the Story ends on an exercise this version cannot play.',
+    'Add an exercise this version plays, keep the Story linear until branching plays, or move the unplayable step before the end.',
+  ),
   hintRepeatsPrompt(
     'HINT_REPEATS_PROMPT',
     AuditSeverity.warning,

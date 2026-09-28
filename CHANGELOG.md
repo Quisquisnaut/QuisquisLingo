@@ -1,3 +1,52 @@
+# 2.0.56 (Build 256, Revision 6) - Interoperability - 2026-09-28
+
+Session 7 of the exercise architecture redesign (plan Part B item 7):
+support states at runtime, the stand-alone flow engine, interoperability on
+canonical semantics and the machine-readable capability description. Course
+files stay Course Model v12; scoring, progression, Review and learner data
+are unchanged. Adventures and spoken exercises are parked for a later
+release (owner, 28 September 2026).
+
+- **Exercises this version cannot play (plan A.6).** A valid exercise whose
+  configuration lies outside the runtime-support table is readable but not
+  executable: computed from the registry, never stored. A practice Round
+  skips it before the audio filter (not in the queue, the mistake review,
+  the count or the XP); the completion dialog counts what was skipped and a
+  zero-error attempt gets the "skipped perfect" mark instead of the Laurel;
+  a Round of such exercises alone says why it is empty. A Story shows a card
+  in its place (the prompt read-only above it, one sentence, Continue) and
+  follows the node's next; a Story ending on one leaves without recording
+  (Leave story). The editor Preview shows the same card in practice Rounds
+  too. The Duel never asks such an exercise.
+- **Audit.** `EXERCISE_NOT_EXECUTABLE` (Info) names the reason;
+  `ROUND_NOT_COMPLETABLE` (Warning) marks a practice Round with nothing this
+  version plays, a Story whose flow branches or is no straight sequence, and
+  a Story ending on an unplayable step. 105 rules. The import review counts
+  the unplayable exercises in the Matching Course ID and Publisher dialogs
+  and in the result message. A numeric, pattern or manual Input no longer
+  gets the text-answer Error meant for typed answers.
+- **Flow engine.** `FlowEngine` resolves onChoice, onCorrect, onIncorrect
+  and conditional transitions in declared order with `next` as the
+  fallback, a node's own outcome visible to its conditions, and a bounded
+  walk for tests. Not wired to playback: linear Stories play directly and a
+  branching flow still counts as "cannot run yet".
+- **Interoperability.** The catalog maps every surveyed external type to a
+  primitive, options, evaluation mode and layout, with the preset only as a
+  hint; every mapping validates in the registry and plays today except the
+  Speak ones, which are kept for a later version. `NormalizedImportExercise`
+  is canonical (no preset required) and `CanonicalExerciseImport` records
+  the hint only when the recipe represents the result.
+- **Capability description.** `dart run tools/export_capabilities.dart`
+  writes `docs/capabilities_v12.json`; a test pins it to the registry;
+  `tools/qql_capabilities.py` feeds the generators and
+  `tools/validate_courses.py` from it instead of their own tables.
+- **End to end.** A Course an external converter could write (no preset
+  metadata, every primitive, a Story, a branching Round) imports, audits,
+  plays, duplicates, merges, searches, signs and exports with the same
+  semantics (`test/interoperability_end_to_end_256_test.dart`).
+- Beta expiry `2026-10-28 23:59:59` local time (released the same day as
+  Revision 5).
+
 # 2.0.56 (Build 256, Revision 5) - Stories - 2026-09-28
 
 Session 6 of the exercise architecture redesign (`docs/256_STORY_PLAN.md`):

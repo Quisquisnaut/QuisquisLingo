@@ -2,9 +2,10 @@
 """Offline structural validation for bundled Course Model v12 JSON.
 
 The exercise vocabularies (primitives, options, evaluation modes) come from
-tools/qql_course_v12.py, the Python mirror of the registry in
-lib/models/canonical/; Session 5 of Build 256 replaces them with the
-generated capability description.
+docs/capabilities_v12.json, the capability description written by
+`dart run tools/export_capabilities.dart` from the registry in
+lib/models/canonical/ (Build 256 Revision 6), through tools/qql_capabilities.py
+and tools/qql_course_v12.py.
 """
 from __future__ import annotations
 

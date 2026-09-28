@@ -10,11 +10,32 @@ class RoundPlayabilityService {
 
   /// The indices of the exercises a learner can play. A Round whose content
   /// flow branches is not playable in this version at all (Build 256, plan
-  /// A.7): only linear Stories run.
+  /// A.7): only linear Stories run. An exercise this version cannot play
+  /// (readable but not executable, plan A.6) leaves here too, with the
+  /// invalid and unpublished ones and before any audio filter, unless
+  /// [keepNotExecutable]: a Story draws a card in its place and the editor
+  /// Preview shows the same card.
   List<int> playableExerciseIndices(
     LearningRound round, {
     bool includeDrafts = false,
-  }) =>
+    bool keepNotExecutable = false,
+  }) => _valid(round, includeDrafts: includeDrafts)
+      .where(
+        (index) => keepNotExecutable || round.exercises[index].isExecutable,
+      )
+      .toList();
+
+  /// The valid exercises of [round] this version of QQL cannot play: they
+  /// are skipped in a practice Round and shown as cards in a Story.
+  List<int> notExecutableIndices(
+    LearningRound round, {
+    bool includeDrafts = false,
+  }) => _valid(
+    round,
+    includeDrafts: includeDrafts,
+  ).where((index) => !round.exercises[index].isExecutable).toList();
+
+  List<int> _valid(LearningRound round, {required bool includeDrafts}) =>
       (!includeDrafts && !round.publicationState.isPublished) ||
           (round.flow != null && !round.flow!.isLinear)
       ? const []

@@ -1,0 +1,1807 @@
+{
+  "formatVersion": 12,
+  "generatedBy": "tools/export_capabilities.dart",
+  "optionKeys": [
+    "selectionMode",
+    "selectionTarget",
+    "minimumSelections",
+    "maximumSelections",
+    "itemReuse",
+    "layout",
+    "evaluationTiming",
+    "shuffleItems",
+    "inputMode",
+    "cardinality",
+    "caseHandling",
+    "punctuationHandling",
+    "whitespaceHandling",
+    "accentHandling",
+    "typoTolerance",
+    "placementMode",
+    "unusedItems",
+    "joiner",
+    "relationship",
+    "interactionStyle",
+    "shuffleLeft",
+    "shuffleRight",
+    "targetMode",
+    "targetCapacity",
+    "speechMode",
+    "captureMode",
+    "language",
+    "transcription",
+    "playback",
+    "maxDurationSeconds",
+    "inkMode",
+    "inputDevice",
+    "strokeOrder",
+    "templateVisible",
+    "eraseAllowed",
+    "submissionType",
+    "captureSource",
+    "reviewMode",
+    "completionMode",
+    "navigation",
+    "mediaPlayback",
+    "scoring",
+    "textReveal"
+  ],
+  "primitives": [
+    {
+      "id": "select",
+      "label": "Select",
+      "learnerAction": "The learner selects one or more selectable entities.",
+      "usesItems": true,
+      "usesTargets": true,
+      "notes": "Items are reusable when configured; an inline layout lets one item fill several gaps. Regions are normalized rectangles on one referenced image; cells are the cells of a grid.",
+      "options": [
+        {
+          "key": "selectionMode",
+          "type": "enumeration",
+          "values": [
+            "single",
+            "multiple"
+          ],
+          "default": "single",
+          "required": false,
+          "description": "How many selections the learner makes."
+        },
+        {
+          "key": "selectionTarget",
+          "type": "enumeration",
+          "values": [
+            "items",
+            "textSpans",
+            "regions",
+            "cells"
+          ],
+          "default": "items",
+          "required": false,
+          "description": "What is selectable."
+        },
+        {
+          "key": "minimumSelections",
+          "type": "integer",
+          "default": 1,
+          "required": false,
+          "minimum": 1,
+          "description": "Fewest selections before the answer can be checked."
+        },
+        {
+          "key": "maximumSelections",
+          "type": "integer",
+          "default": null,
+          "required": false,
+          "minimum": 1,
+          "description": "Most selections allowed at once; absent means all items."
+        },
+        {
+          "key": "itemReuse",
+          "type": "enumeration",
+          "values": [
+            "forbidden",
+            "allowed",
+            "unlimited"
+          ],
+          "default": "forbidden",
+          "required": false,
+          "description": "Whether one item may fill more than one target."
+        },
+        {
+          "key": "layout",
+          "type": "enumeration",
+          "values": [
+            "list",
+            "grid",
+            "inline",
+            "overlay"
+          ],
+          "default": "list",
+          "required": false,
+          "description": "A list or grid of choices, inline gaps in text, or an overlay on an image (regions)."
+        },
+        {
+          "key": "evaluationTiming",
+          "type": "enumeration",
+          "values": [
+            "immediate",
+            "explicit",
+            "onCompletion"
+          ],
+          "default": "immediate",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "shuffleItems",
+          "type": "boolean",
+          "default": true,
+          "required": false,
+          "description": ""
+        }
+      ],
+      "evaluationModes": [
+        "exactItem",
+        "exactSet",
+        "subset",
+        "orderedSelections",
+        "perSelection"
+      ],
+      "defaultEvaluationMode": "exactItem",
+      "rules": [
+        {
+          "id": "select.single.minimum",
+          "kind": "optionRequiresIntegers",
+          "description": "A single selection needs no minimum other than 1.",
+          "key": "selectionMode",
+          "when": [
+            "single"
+          ],
+          "integerKey": "minimumSelections",
+          "allowed": [
+            1
+          ]
+        },
+        {
+          "id": "select.single.maximum",
+          "kind": "optionRequiresIntegers",
+          "description": "A single selection needs no maximum other than 1.",
+          "key": "selectionMode",
+          "when": [
+            "single"
+          ],
+          "integerKey": "maximumSelections",
+          "allowed": [
+            1
+          ]
+        },
+        {
+          "id": "select.limits.order",
+          "kind": "integerOrder",
+          "description": "minimumSelections must not exceed maximumSelections.",
+          "lowerKey": "minimumSelections",
+          "upperKey": "maximumSelections"
+        },
+        {
+          "id": "select.items.layout",
+          "kind": "optionImplication",
+          "description": "Listed items are shown in a list, a grid or inline.",
+          "key": "selectionTarget",
+          "when": [
+            "items"
+          ],
+          "requiredKey": "layout",
+          "allowed": [
+            "list",
+            "grid",
+            "inline"
+          ]
+        },
+        {
+          "id": "select.textSpans.layout",
+          "kind": "optionImplication",
+          "description": "Text spans are selected inside inline text.",
+          "key": "selectionTarget",
+          "when": [
+            "textSpans"
+          ],
+          "requiredKey": "layout",
+          "allowed": [
+            "inline"
+          ]
+        },
+        {
+          "id": "select.regions.layout",
+          "kind": "optionImplication",
+          "description": "Regions are selected on an image overlay.",
+          "key": "selectionTarget",
+          "when": [
+            "regions"
+          ],
+          "requiredKey": "layout",
+          "allowed": [
+            "overlay"
+          ]
+        },
+        {
+          "id": "select.cells.layout",
+          "kind": "optionImplication",
+          "description": "Cells are selected in a grid.",
+          "key": "selectionTarget",
+          "when": [
+            "cells"
+          ],
+          "requiredKey": "layout",
+          "allowed": [
+            "grid"
+          ]
+        },
+        {
+          "id": "select.reuse.inline",
+          "kind": "optionImplication",
+          "description": "Reusing an item only means something when items fill inline gaps.",
+          "key": "itemReuse",
+          "when": [
+            "allowed",
+            "unlimited"
+          ],
+          "requiredKey": "layout",
+          "allowed": [
+            "inline"
+          ]
+        },
+        {
+          "id": "select.reuse.items",
+          "kind": "optionImplication",
+          "description": "Only listed items can be reused.",
+          "key": "itemReuse",
+          "when": [
+            "allowed",
+            "unlimited"
+          ],
+          "requiredKey": "selectionTarget",
+          "allowed": [
+            "items"
+          ]
+        },
+        {
+          "id": "select.exactItem.single",
+          "kind": "evaluationImplication",
+          "description": "exactItem grades one selection.",
+          "modes": [
+            "exactItem"
+          ],
+          "key": "selectionMode",
+          "allowed": [
+            "single"
+          ]
+        },
+        {
+          "id": "select.set.multiple",
+          "kind": "evaluationImplication",
+          "description": "Set, ordered and per-selection grading need several selections.",
+          "modes": [
+            "exactSet",
+            "subset",
+            "orderedSelections",
+            "perSelection"
+          ],
+          "key": "selectionMode",
+          "allowed": [
+            "multiple"
+          ]
+        },
+        {
+          "id": "select.set.timing",
+          "kind": "evaluationImplication",
+          "description": "A set is graded when the learner checks or completes, not on each tap.",
+          "modes": [
+            "exactSet",
+            "subset",
+            "orderedSelections"
+          ],
+          "key": "evaluationTiming",
+          "allowed": [
+            "explicit",
+            "onCompletion"
+          ]
+        },
+        {
+          "id": "select.perSelection.timing",
+          "kind": "evaluationImplication",
+          "description": "Per-selection grading answers each tap at once.",
+          "modes": [
+            "perSelection"
+          ],
+          "key": "evaluationTiming",
+          "allowed": [
+            "immediate"
+          ]
+        }
+      ],
+      "runtimeSupport": [
+        {
+          "description": "One choice among listed items, checked at once.",
+          "evaluationModes": [
+            "exactItem"
+          ],
+          "values": {
+            "selectionMode": [
+              "single"
+            ],
+            "selectionTarget": [
+              "items"
+            ],
+            "itemReuse": [
+              "forbidden"
+            ],
+            "layout": [
+              "list",
+              "grid"
+            ],
+            "evaluationTiming": [
+              "immediate"
+            ]
+          }
+        },
+        {
+          "description": "Several choices among listed items, checked on Check.",
+          "evaluationModes": [
+            "exactSet"
+          ],
+          "values": {
+            "selectionMode": [
+              "multiple"
+            ],
+            "selectionTarget": [
+              "items"
+            ],
+            "itemReuse": [
+              "forbidden"
+            ],
+            "layout": [
+              "list",
+              "grid"
+            ],
+            "evaluationTiming": [
+              "explicit"
+            ]
+          }
+        },
+        {
+          "description": "Items chosen into inline gaps, one item per gap, checked on Check.",
+          "evaluationModes": [
+            "exactItem"
+          ],
+          "values": {
+            "selectionMode": [
+              "single"
+            ],
+            "selectionTarget": [
+              "items"
+            ],
+            "itemReuse": [
+              "forbidden",
+              "allowed",
+              "unlimited"
+            ],
+            "layout": [
+              "inline"
+            ],
+            "evaluationTiming": [
+              "explicit"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "input",
+      "label": "Input",
+      "learnerAction": "The learner enters textual, symbolic or numeric information.",
+      "usesItems": false,
+      "usesTargets": true,
+      "notes": "An inline layout turns each target into a field. QQL answer expressions are the expression evaluation mode.",
+      "options": [
+        {
+          "key": "inputMode",
+          "type": "enumeration",
+          "values": [
+            "text",
+            "number",
+            "date",
+            "formula",
+            "code"
+          ],
+          "default": "text",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "cardinality",
+          "type": "enumeration",
+          "values": [
+            "single",
+            "multiple"
+          ],
+          "default": "single",
+          "required": false,
+          "description": "One answer, or one answer per target."
+        },
+        {
+          "key": "layout",
+          "type": "enumeration",
+          "values": [
+            "field",
+            "inlineGaps",
+            "grid",
+            "multiline"
+          ],
+          "default": "field",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "caseHandling",
+          "type": "enumeration",
+          "values": [
+            "exact",
+            "ignore"
+          ],
+          "default": "ignore",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "punctuationHandling",
+          "type": "enumeration",
+          "values": [
+            "exact",
+            "ignore"
+          ],
+          "default": "ignore",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "whitespaceHandling",
+          "type": "enumeration",
+          "values": [
+            "exact",
+            "normalize"
+          ],
+          "default": "normalize",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "accentHandling",
+          "type": "enumeration",
+          "values": [
+            "exact",
+            "missingAccentsAccepted",
+            "ignore"
+          ],
+          "default": "missingAccentsAccepted",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "typoTolerance",
+          "type": "enumeration",
+          "values": [
+            "none",
+            "conservative"
+          ],
+          "default": "none",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "evaluationTiming",
+          "type": "enumeration",
+          "values": [
+            "explicit",
+            "onCompletion"
+          ],
+          "default": "explicit",
+          "required": false,
+          "description": ""
+        }
+      ],
+      "evaluationModes": [
+        "exactText",
+        "acceptedTexts",
+        "expression",
+        "numericExact",
+        "numericRange",
+        "numericTolerance",
+        "regex",
+        "manual"
+      ],
+      "defaultEvaluationMode": "expression",
+      "rules": [
+        {
+          "id": "input.multiple.layout",
+          "kind": "optionImplication",
+          "description": "Several answers need one field per target.",
+          "key": "cardinality",
+          "when": [
+            "multiple"
+          ],
+          "requiredKey": "layout",
+          "allowed": [
+            "inlineGaps",
+            "grid"
+          ]
+        },
+        {
+          "id": "input.grid.multiple",
+          "kind": "optionImplication",
+          "description": "A grid of fields holds several answers.",
+          "key": "layout",
+          "when": [
+            "grid"
+          ],
+          "requiredKey": "cardinality",
+          "allowed": [
+            "multiple"
+          ]
+        },
+        {
+          "id": "input.typo.text",
+          "kind": "optionImplication",
+          "description": "Typo tolerance applies to text only.",
+          "key": "typoTolerance",
+          "when": [
+            "conservative"
+          ],
+          "requiredKey": "inputMode",
+          "allowed": [
+            "text"
+          ]
+        },
+        {
+          "id": "input.numeric.mode",
+          "kind": "evaluationImplication",
+          "description": "Numeric grading needs a number.",
+          "modes": [
+            "numericExact",
+            "numericRange",
+            "numericTolerance"
+          ],
+          "key": "inputMode",
+          "allowed": [
+            "number"
+          ]
+        },
+        {
+          "id": "input.expression.text",
+          "kind": "evaluationImplication",
+          "description": "QQL answer expressions grade text.",
+          "modes": [
+            "expression"
+          ],
+          "key": "inputMode",
+          "allowed": [
+            "text"
+          ]
+        },
+        {
+          "id": "input.regex.mode",
+          "kind": "evaluationImplication",
+          "description": "A regular expression grades text or code.",
+          "modes": [
+            "regex"
+          ],
+          "key": "inputMode",
+          "allowed": [
+            "text",
+            "code"
+          ]
+        },
+        {
+          "id": "input.texts.mode",
+          "kind": "evaluationImplication",
+          "description": "Literal texts grade text, dates, formulas and code.",
+          "modes": [
+            "exactText",
+            "acceptedTexts"
+          ],
+          "key": "inputMode",
+          "allowed": [
+            "text",
+            "date",
+            "formula",
+            "code"
+          ]
+        }
+      ],
+      "runtimeSupport": [
+        {
+          "description": "One typed text answer, in a field or one inline gap.",
+          "evaluationModes": [
+            "exactText",
+            "acceptedTexts",
+            "expression"
+          ],
+          "values": {
+            "inputMode": [
+              "text"
+            ],
+            "cardinality": [
+              "single"
+            ],
+            "layout": [
+              "field",
+              "inlineGaps"
+            ],
+            "caseHandling": [
+              "exact",
+              "ignore"
+            ],
+            "punctuationHandling": [
+              "exact",
+              "ignore"
+            ],
+            "whitespaceHandling": [
+              "exact",
+              "normalize"
+            ],
+            "accentHandling": [
+              "exact",
+              "missingAccentsAccepted",
+              "ignore"
+            ],
+            "typoTolerance": [
+              "none",
+              "conservative"
+            ],
+            "evaluationTiming": [
+              "explicit"
+            ]
+          }
+        },
+        {
+          "description": "Several typed text answers, one per inline gap.",
+          "evaluationModes": [
+            "exactText",
+            "acceptedTexts",
+            "expression"
+          ],
+          "values": {
+            "inputMode": [
+              "text"
+            ],
+            "cardinality": [
+              "multiple"
+            ],
+            "layout": [
+              "inlineGaps"
+            ],
+            "caseHandling": [
+              "exact",
+              "ignore"
+            ],
+            "punctuationHandling": [
+              "exact",
+              "ignore"
+            ],
+            "whitespaceHandling": [
+              "exact",
+              "normalize"
+            ],
+            "accentHandling": [
+              "exact",
+              "missingAccentsAccepted",
+              "ignore"
+            ],
+            "typoTolerance": [
+              "none",
+              "conservative"
+            ],
+            "evaluationTiming": [
+              "explicit"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "arrange",
+      "label": "Arrange",
+      "learnerAction": "The learner orders or places item occurrences into an ordered result.",
+      "usesItems": true,
+      "usesTargets": true,
+      "notes": "Arrange consumes item occurrences: a word used twice needs two blocks. Reuse is never allowed; reusable choices belong to Select or Assign.",
+      "options": [
+        {
+          "key": "placementMode",
+          "type": "enumeration",
+          "values": [
+            "sequence",
+            "inlineGaps",
+            "grid"
+          ],
+          "default": "sequence",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "itemReuse",
+          "type": "enumeration",
+          "values": [
+            "forbidden"
+          ],
+          "default": "forbidden",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "unusedItems",
+          "type": "enumeration",
+          "values": [
+            "forbidden",
+            "allowed"
+          ],
+          "default": "allowed",
+          "required": false,
+          "description": "Whether blocks may be left over (distractors)."
+        },
+        {
+          "key": "layout",
+          "type": "enumeration",
+          "values": [
+            "horizontal",
+            "vertical",
+            "wrapped",
+            "inline",
+            "grid"
+          ],
+          "default": "wrapped",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "shuffleItems",
+          "type": "boolean",
+          "default": true,
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "joiner",
+          "type": "enumeration",
+          "values": [
+            "space",
+            "none"
+          ],
+          "default": "space",
+          "required": false,
+          "description": "How placed blocks join into the compared text: with spaces or without (letters building one word)."
+        },
+        {
+          "key": "evaluationTiming",
+          "type": "enumeration",
+          "values": [
+            "explicit",
+            "onCompletion"
+          ],
+          "default": "explicit",
+          "required": false,
+          "description": ""
+        }
+      ],
+      "evaluationModes": [
+        "exactOrder",
+        "acceptedOrders",
+        "gapAssignments"
+      ],
+      "defaultEvaluationMode": "exactOrder",
+      "rules": [
+        {
+          "id": "arrange.inlineGaps.layout",
+          "kind": "optionImplication",
+          "description": "Inline gaps live in inline text.",
+          "key": "placementMode",
+          "when": [
+            "inlineGaps"
+          ],
+          "requiredKey": "layout",
+          "allowed": [
+            "inline"
+          ]
+        },
+        {
+          "id": "arrange.grid.layout",
+          "kind": "optionImplication",
+          "description": "Grid placement uses a grid.",
+          "key": "placementMode",
+          "when": [
+            "grid"
+          ],
+          "requiredKey": "layout",
+          "allowed": [
+            "grid"
+          ]
+        },
+        {
+          "id": "arrange.sequence.layout",
+          "kind": "optionImplication",
+          "description": "A sequence runs horizontally, vertically or wrapped.",
+          "key": "placementMode",
+          "when": [
+            "sequence"
+          ],
+          "requiredKey": "layout",
+          "allowed": [
+            "horizontal",
+            "vertical",
+            "wrapped"
+          ]
+        },
+        {
+          "id": "arrange.gapAssignments.placement",
+          "kind": "evaluationImplication",
+          "description": "Gap grading needs inline gaps.",
+          "modes": [
+            "gapAssignments"
+          ],
+          "key": "placementMode",
+          "allowed": [
+            "inlineGaps"
+          ]
+        },
+        {
+          "id": "arrange.order.placement",
+          "kind": "evaluationImplication",
+          "description": "Order grading needs a sequence or a grid.",
+          "modes": [
+            "exactOrder",
+            "acceptedOrders"
+          ],
+          "key": "placementMode",
+          "allowed": [
+            "sequence",
+            "grid"
+          ]
+        }
+      ],
+      "runtimeSupport": [
+        {
+          "description": "Blocks placed into one wrapped sequence.",
+          "evaluationModes": [
+            "exactOrder",
+            "acceptedOrders"
+          ],
+          "values": {
+            "placementMode": [
+              "sequence"
+            ],
+            "itemReuse": [
+              "forbidden"
+            ],
+            "unusedItems": [
+              "forbidden",
+              "allowed"
+            ],
+            "layout": [
+              "wrapped"
+            ],
+            "joiner": [
+              "space",
+              "none"
+            ],
+            "evaluationTiming": [
+              "explicit"
+            ]
+          }
+        },
+        {
+          "description": "Blocks placed into inline gaps.",
+          "evaluationModes": [
+            "gapAssignments"
+          ],
+          "values": {
+            "placementMode": [
+              "inlineGaps"
+            ],
+            "itemReuse": [
+              "forbidden"
+            ],
+            "unusedItems": [
+              "forbidden",
+              "allowed"
+            ],
+            "layout": [
+              "inline"
+            ],
+            "joiner": [
+              "space",
+              "none"
+            ],
+            "evaluationTiming": [
+              "explicit"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "match",
+      "label": "Match",
+      "learnerAction": "The learner establishes relationships between peer items.",
+      "usesItems": true,
+      "usesTargets": false,
+      "notes": "Items carry an explicit side (left or right). Relationships other than one-to-one need reusable items.",
+      "options": [
+        {
+          "key": "relationship",
+          "type": "enumeration",
+          "values": [
+            "oneToOne",
+            "oneToMany",
+            "manyToOne",
+            "manyToMany"
+          ],
+          "default": "oneToOne",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "interactionStyle",
+          "type": "enumeration",
+          "values": [
+            "pair",
+            "dropdown",
+            "connect",
+            "memory"
+          ],
+          "default": "dropdown",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "itemReuse",
+          "type": "enumeration",
+          "values": [
+            "forbidden",
+            "allowed"
+          ],
+          "default": "forbidden",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "layout",
+          "type": "enumeration",
+          "values": [
+            "columns",
+            "cards",
+            "free"
+          ],
+          "default": "columns",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "shuffleLeft",
+          "type": "boolean",
+          "default": true,
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "shuffleRight",
+          "type": "boolean",
+          "default": true,
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "evaluationTiming",
+          "type": "enumeration",
+          "values": [
+            "explicit",
+            "onCompletion"
+          ],
+          "default": "explicit",
+          "required": false,
+          "description": ""
+        }
+      ],
+      "evaluationModes": [
+        "exactRelations",
+        "requiredRelations",
+        "partialRelations"
+      ],
+      "defaultEvaluationMode": "exactRelations",
+      "rules": [
+        {
+          "id": "match.memory.layout",
+          "kind": "optionImplication",
+          "description": "A memory game turns cards.",
+          "key": "interactionStyle",
+          "when": [
+            "memory"
+          ],
+          "requiredKey": "layout",
+          "allowed": [
+            "cards"
+          ]
+        },
+        {
+          "id": "match.dropdown.layout",
+          "kind": "optionImplication",
+          "description": "Dropdowns sit beside a column of left items.",
+          "key": "interactionStyle",
+          "when": [
+            "dropdown"
+          ],
+          "requiredKey": "layout",
+          "allowed": [
+            "columns"
+          ]
+        },
+        {
+          "id": "match.pair.layout",
+          "kind": "optionImplication",
+          "description": "Tap-to-pair works on columns or cards.",
+          "key": "interactionStyle",
+          "when": [
+            "pair"
+          ],
+          "requiredKey": "layout",
+          "allowed": [
+            "columns",
+            "cards"
+          ]
+        },
+        {
+          "id": "match.connect.layout",
+          "kind": "optionImplication",
+          "description": "Lines are drawn between columns or freely placed items.",
+          "key": "interactionStyle",
+          "when": [
+            "connect"
+          ],
+          "requiredKey": "layout",
+          "allowed": [
+            "columns",
+            "free"
+          ]
+        },
+        {
+          "id": "match.oneToOne.reuse",
+          "kind": "optionImplication",
+          "description": "One-to-one relations use every item once.",
+          "key": "relationship",
+          "when": [
+            "oneToOne"
+          ],
+          "requiredKey": "itemReuse",
+          "allowed": [
+            "forbidden"
+          ]
+        },
+        {
+          "id": "match.many.reuse",
+          "kind": "optionImplication",
+          "description": "Relations with a many side reuse items.",
+          "key": "relationship",
+          "when": [
+            "oneToMany",
+            "manyToOne",
+            "manyToMany"
+          ],
+          "requiredKey": "itemReuse",
+          "allowed": [
+            "allowed"
+          ]
+        }
+      ],
+      "runtimeSupport": [
+        {
+          "description": "One-to-one pairs chosen from a dropdown per left item.",
+          "evaluationModes": [
+            "exactRelations"
+          ],
+          "values": {
+            "relationship": [
+              "oneToOne"
+            ],
+            "interactionStyle": [
+              "dropdown"
+            ],
+            "itemReuse": [
+              "forbidden"
+            ],
+            "layout": [
+              "columns"
+            ],
+            "evaluationTiming": [
+              "explicit"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "assign",
+      "label": "Assign",
+      "learnerAction": "The learner places items into explicit targets, categories, gaps, regions or cells.",
+      "usesItems": true,
+      "usesTargets": true,
+      "notes": "Items are placed into explicit destinations: categories, slots, gaps in text, regions of an image or cells of a grid.",
+      "options": [
+        {
+          "key": "targetMode",
+          "type": "enumeration",
+          "values": [
+            "categories",
+            "slots",
+            "gaps",
+            "regions",
+            "cells"
+          ],
+          "default": null,
+          "required": true,
+          "description": "What the destinations are."
+        },
+        {
+          "key": "targetCapacity",
+          "type": "enumeration",
+          "values": [
+            "single",
+            "multiple",
+            "unlimited"
+          ],
+          "default": "single",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "itemReuse",
+          "type": "enumeration",
+          "values": [
+            "forbidden",
+            "allowed",
+            "unlimited"
+          ],
+          "default": "forbidden",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "placementMode",
+          "type": "enumeration",
+          "values": [
+            "drag",
+            "selectTarget",
+            "tapTarget"
+          ],
+          "default": "tapTarget",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "layout",
+          "type": "enumeration",
+          "values": [
+            "inline",
+            "columns",
+            "overlay",
+            "grid",
+            "free"
+          ],
+          "default": "columns",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "shuffleItems",
+          "type": "boolean",
+          "default": true,
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "evaluationTiming",
+          "type": "enumeration",
+          "values": [
+            "explicit",
+            "onCompletion"
+          ],
+          "default": "explicit",
+          "required": false,
+          "description": ""
+        }
+      ],
+      "evaluationModes": [
+        "exactAssignments",
+        "acceptedTargets",
+        "categoryMembership",
+        "partialAssignments"
+      ],
+      "defaultEvaluationMode": "exactAssignments",
+      "rules": [
+        {
+          "id": "assign.gaps.layout",
+          "kind": "optionImplication",
+          "description": "Gaps live in inline text.",
+          "key": "targetMode",
+          "when": [
+            "gaps"
+          ],
+          "requiredKey": "layout",
+          "allowed": [
+            "inline"
+          ]
+        },
+        {
+          "id": "assign.regions.layout",
+          "kind": "optionImplication",
+          "description": "Regions are drawn over an image.",
+          "key": "targetMode",
+          "when": [
+            "regions"
+          ],
+          "requiredKey": "layout",
+          "allowed": [
+            "overlay"
+          ]
+        },
+        {
+          "id": "assign.cells.layout",
+          "kind": "optionImplication",
+          "description": "Cells belong to a grid.",
+          "key": "targetMode",
+          "when": [
+            "cells"
+          ],
+          "requiredKey": "layout",
+          "allowed": [
+            "grid"
+          ]
+        },
+        {
+          "id": "assign.categories.layout",
+          "kind": "optionImplication",
+          "description": "Categories are columns or freely placed groups.",
+          "key": "targetMode",
+          "when": [
+            "categories"
+          ],
+          "requiredKey": "layout",
+          "allowed": [
+            "columns",
+            "free"
+          ]
+        },
+        {
+          "id": "assign.slots.layout",
+          "kind": "optionImplication",
+          "description": "Slots are never an image overlay.",
+          "key": "targetMode",
+          "when": [
+            "slots"
+          ],
+          "requiredKey": "layout",
+          "allowed": [
+            "inline",
+            "columns",
+            "grid",
+            "free"
+          ]
+        },
+        {
+          "id": "assign.gaps.capacity",
+          "kind": "optionImplication",
+          "description": "A gap holds one item.",
+          "key": "targetMode",
+          "when": [
+            "gaps"
+          ],
+          "requiredKey": "targetCapacity",
+          "allowed": [
+            "single"
+          ]
+        },
+        {
+          "id": "assign.categoryMembership.mode",
+          "kind": "evaluationImplication",
+          "description": "Category membership grades categories.",
+          "modes": [
+            "categoryMembership"
+          ],
+          "key": "targetMode",
+          "allowed": [
+            "categories"
+          ]
+        }
+      ],
+      "runtimeSupport": []
+    },
+    {
+      "id": "speak",
+      "label": "Speak",
+      "learnerAction": "The learner produces speech.",
+      "usesItems": false,
+      "usesTargets": false,
+      "notes": "The learner produces speech; a spoken prompt is media, not Speak. No recognition or pronunciation runtime exists yet.",
+      "options": [
+        {
+          "key": "speechMode",
+          "type": "enumeration",
+          "values": [
+            "repeat",
+            "readAloud",
+            "freeResponse"
+          ],
+          "default": "repeat",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "captureMode",
+          "type": "enumeration",
+          "values": [
+            "microphone"
+          ],
+          "default": "microphone",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "language",
+          "type": "language",
+          "default": null,
+          "required": false,
+          "description": "The language spoken; absent means the Course target language."
+        },
+        {
+          "key": "transcription",
+          "type": "enumeration",
+          "values": [
+            "none",
+            "optional",
+            "required"
+          ],
+          "default": "optional",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "playback",
+          "type": "enumeration",
+          "values": [
+            "none",
+            "allowed",
+            "requiredBeforeSubmit"
+          ],
+          "default": "allowed",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "evaluationTiming",
+          "type": "enumeration",
+          "values": [
+            "explicit",
+            "onCompletion"
+          ],
+          "default": "explicit",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "maxDurationSeconds",
+          "type": "integer",
+          "default": null,
+          "required": false,
+          "minimum": 1,
+          "description": "Recording limit; absent means none."
+        }
+      ],
+      "evaluationModes": [
+        "transcriptionMatch",
+        "acceptedTranscriptions",
+        "pronunciation",
+        "combined",
+        "manual",
+        "none"
+      ],
+      "defaultEvaluationMode": "transcriptionMatch",
+      "rules": [
+        {
+          "id": "speak.transcription.needed",
+          "kind": "evaluationImplication",
+          "description": "Grading a transcription needs one.",
+          "modes": [
+            "transcriptionMatch",
+            "acceptedTranscriptions",
+            "combined"
+          ],
+          "key": "transcription",
+          "allowed": [
+            "optional",
+            "required"
+          ]
+        },
+        {
+          "id": "speak.freeResponse.evaluation",
+          "kind": "optionEvaluationImplication",
+          "description": "A free response has no expected text to grade automatically.",
+          "key": "speechMode",
+          "when": [
+            "freeResponse"
+          ],
+          "allowedModes": [
+            "manual",
+            "none"
+          ]
+        }
+      ],
+      "runtimeSupport": []
+    },
+    {
+      "id": "ink",
+      "label": "Ink",
+      "learnerAction": "The learner produces spatial strokes.",
+      "usesItems": false,
+      "usesTargets": false,
+      "notes": "Handwriting, tracing and character writing; no runtime yet.",
+      "options": [
+        {
+          "key": "inkMode",
+          "type": "enumeration",
+          "values": [
+            "freehand",
+            "trace",
+            "character",
+            "diagram"
+          ],
+          "default": "freehand",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "inputDevice",
+          "type": "enumeration",
+          "values": [
+            "pointer",
+            "touch",
+            "stylus",
+            "any"
+          ],
+          "default": "any",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "strokeOrder",
+          "type": "enumeration",
+          "values": [
+            "ignored",
+            "checked"
+          ],
+          "default": "ignored",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "templateVisible",
+          "type": "boolean",
+          "default": false,
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "eraseAllowed",
+          "type": "boolean",
+          "default": true,
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "evaluationTiming",
+          "type": "enumeration",
+          "values": [
+            "explicit",
+            "onCompletion"
+          ],
+          "default": "explicit",
+          "required": false,
+          "description": ""
+        }
+      ],
+      "evaluationModes": [
+        "recognition",
+        "strokeMatch",
+        "shapeSimilarity",
+        "manual",
+        "none"
+      ],
+      "defaultEvaluationMode": "recognition",
+      "rules": [
+        {
+          "id": "ink.strokeOrder.mode",
+          "kind": "optionImplication",
+          "description": "Stroke order exists only against a template.",
+          "key": "strokeOrder",
+          "when": [
+            "checked"
+          ],
+          "requiredKey": "inkMode",
+          "allowed": [
+            "trace",
+            "character"
+          ]
+        },
+        {
+          "id": "ink.strokeMatch.mode",
+          "kind": "evaluationImplication",
+          "description": "Stroke matching needs a traced or character template.",
+          "modes": [
+            "strokeMatch"
+          ],
+          "key": "inkMode",
+          "allowed": [
+            "trace",
+            "character"
+          ]
+        },
+        {
+          "id": "ink.recognition.mode",
+          "kind": "evaluationImplication",
+          "description": "Recognition reads handwriting or characters, not diagrams.",
+          "modes": [
+            "recognition"
+          ],
+          "key": "inkMode",
+          "allowed": [
+            "freehand",
+            "trace",
+            "character"
+          ]
+        }
+      ],
+      "runtimeSupport": []
+    },
+    {
+      "id": "submit",
+      "label": "Submit",
+      "learnerAction": "The learner supplies an artifact that QQL does not necessarily interpret directly.",
+      "usesItems": false,
+      "usesTargets": false,
+      "notes": "An artifact QQL stores for review. A recording QQL analyses is Speak, not Submit. No runtime yet.",
+      "options": [
+        {
+          "key": "submissionType",
+          "type": "enumeration",
+          "values": [
+            "audio",
+            "video",
+            "image",
+            "file",
+            "textDocument"
+          ],
+          "default": null,
+          "required": true,
+          "description": ""
+        },
+        {
+          "key": "cardinality",
+          "type": "enumeration",
+          "values": [
+            "single",
+            "multiple"
+          ],
+          "default": "single",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "captureSource",
+          "type": "enumeration",
+          "values": [
+            "device",
+            "file",
+            "either"
+          ],
+          "default": "either",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "reviewMode",
+          "type": "enumeration",
+          "values": [
+            "self",
+            "manual",
+            "external"
+          ],
+          "default": "self",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "evaluationTiming",
+          "type": "enumeration",
+          "values": [
+            "none",
+            "onCompletion"
+          ],
+          "default": "onCompletion",
+          "required": false,
+          "description": ""
+        }
+      ],
+      "evaluationModes": [
+        "presence",
+        "manual",
+        "none"
+      ],
+      "defaultEvaluationMode": "presence",
+      "rules": [
+        {
+          "id": "submit.noTiming.evaluation",
+          "kind": "optionEvaluationImplication",
+          "description": "Without an evaluation moment nothing is evaluated.",
+          "key": "evaluationTiming",
+          "when": [
+            "none"
+          ],
+          "allowedModes": [
+            "none"
+          ]
+        },
+        {
+          "id": "submit.evaluated.timing",
+          "kind": "evaluationImplication",
+          "description": "Presence and manual review happen on completion.",
+          "modes": [
+            "presence",
+            "manual"
+          ],
+          "key": "evaluationTiming",
+          "allowed": [
+            "onCompletion"
+          ]
+        },
+        {
+          "id": "submit.device.type",
+          "kind": "optionImplication",
+          "description": "A device captures audio, video, images or typed text, not files.",
+          "key": "captureSource",
+          "when": [
+            "device"
+          ],
+          "requiredKey": "submissionType",
+          "allowed": [
+            "audio",
+            "video",
+            "image",
+            "textDocument"
+          ]
+        }
+      ],
+      "runtimeSupport": []
+    },
+    {
+      "id": "presentation",
+      "label": "Presentation",
+      "learnerAction": "The learner consumes instructional material without an ordinary scored response.",
+      "usesItems": false,
+      "usesTargets": false,
+      "notes": "Flashcards, explanations, examples, vocabulary presentations and other unscored material. Never scored, never evaluated.",
+      "options": [
+        {
+          "key": "completionMode",
+          "type": "enumeration",
+          "values": [
+            "continue",
+            "acknowledge",
+            "understoodReview",
+            "automatic"
+          ],
+          "default": "continue",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "navigation",
+          "type": "enumeration",
+          "values": [
+            "singlePage",
+            "paged"
+          ],
+          "default": "singlePage",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "mediaPlayback",
+          "type": "enumeration",
+          "values": [
+            "manual",
+            "automatic",
+            "none"
+          ],
+          "default": "manual",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "textReveal",
+          "type": "enumeration",
+          "values": [
+            "immediate",
+            "afterAudio"
+          ],
+          "default": "immediate",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "scoring",
+          "type": "enumeration",
+          "values": [
+            "none"
+          ],
+          "default": "none",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "evaluationTiming",
+          "type": "enumeration",
+          "values": [
+            "none"
+          ],
+          "default": "none",
+          "required": false,
+          "description": ""
+        }
+      ],
+      "evaluationModes": [
+        "none"
+      ],
+      "defaultEvaluationMode": "none",
+      "rules": [],
+      "runtimeSupport": [
+        {
+          "description": "A single page of material with a completion action.",
+          "evaluationModes": [
+            "none"
+          ],
+          "values": {
+            "completionMode": [
+              "continue",
+              "acknowledge",
+              "understoodReview"
+            ],
+            "navigation": [
+              "singlePage"
+            ],
+            "mediaPlayback": [
+              "manual",
+              "automatic",
+              "none"
+            ],
+            "textReveal": [
+              "immediate",
+              "afterAudio"
+            ],
+            "scoring": [
+              "none"
+            ],
+            "evaluationTiming": [
+              "none"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

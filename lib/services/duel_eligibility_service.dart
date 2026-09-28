@@ -38,6 +38,9 @@ class DuelEligibilityService {
   /// Choose does not.
   static bool isEligible(Exercise exercise) {
     if (exercise.primitive != ExercisePrimitive.select) return false;
+    // An exercise this version cannot play never reaches the Duel (Build
+    // 256 Revision 6, plan A.6).
+    if (!exercise.isExecutable) return false;
     final features = ExerciseFeatures(exercise);
     if (features.multipleSelection || features.hasInlineTargets) return false;
     final evaluation = exercise.canonicalEvaluation;

@@ -62,25 +62,24 @@ void main() {
   });
 
   test('normalized imports stop source taxonomy before canonical runtime', () {
+    // Build 256 Revision 6: the normalized shape is canonical (primitive,
+    // options, items, evaluation); no preset is needed and none is written.
     const normalized = NormalizedImportExercise(
       sourceType: 'source-specific-select',
-      presetId: 'choice',
+      primitive: ExercisePrimitive.select,
       prompt: [PromptElement(type: 'text', text: 'Question')],
-      interaction: ExerciseInteraction(
-        kind: 'select',
-        items: [
-          ExerciseItem(
-            id: 'answer_a',
-            content: [PromptElement(type: 'text', text: 'A')],
-          ),
-          ExerciseItem(
-            id: 'answer_b',
-            content: [PromptElement(type: 'text', text: 'B')],
-          ),
-        ],
-      ),
-      evaluation: ExerciseEvaluation(
-        kind: 'selected_items',
+      items: [
+        ExerciseItem(
+          id: 'answer_a',
+          content: [PromptElement(type: 'text', text: 'A')],
+        ),
+        ExerciseItem(
+          id: 'answer_b',
+          content: [PromptElement(type: 'text', text: 'B')],
+        ),
+      ],
+      evaluation: CanonicalEvaluation(
+        mode: EvaluationMode.exactItem,
         correctItemIds: ['answer_a'],
       ),
     );
@@ -89,7 +88,8 @@ void main() {
       updatedAt: DateTime.utc(2026, 9, 4),
     );
     expect(exercise.id, 'stable_external_id');
-    expect(exercise.interaction.kind, 'select');
+    expect(exercise.primitive, ExercisePrimitive.select);
+    expect(exercise.editorTemplate, '');
     expect(
       exercise.toJson().toString(),
       isNot(contains(normalized.sourceType)),

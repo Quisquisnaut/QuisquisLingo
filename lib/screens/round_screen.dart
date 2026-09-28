@@ -153,6 +153,12 @@ class _RoundScreenState extends State<RoundScreen> {
   bool _introAcknowledged = false;
   bool _initializationFailed = false;
   bool _ttsWasSkipped = false;
+
+  /// Build 256 Revision 6 (plan A.6): audio exercises left out, and the
+  /// exercises this version cannot play (skipped in a practice Round, shown
+  /// as cards in a Story). Either keeps a zero-error attempt from the Laurel.
+  bool _audioWasSkipped = false;
+  int _versionSkipped = 0;
   bool _audioExercisesEnabled = false;
   bool _optionalAudioEnabled = false;
   bool _wasCompleted = false;
@@ -355,12 +361,24 @@ class _RoundScreenState extends State<RoundScreen> {
       // Locally edited courses may temporarily contain invalid exercises. The
       // Course Editor reports them, while the learner-facing Round screen skips
       // exercises with structural audit errors instead of indexing invalid data.
+      // Build 256 Revision 6 (plan A.6): an exercise this version cannot
+      // play leaves a practice Round here, with the invalid and unpublished
+      // ones and before the audio filter; a Story and the editor Preview
+      // keep it and draw a card in its place.
+      final keepsCards = widget.previewMode || widget.round.flow != null;
       final valid = _roundPlayability.playableExerciseIndices(
         widget.round,
         includeDrafts: widget.previewMode,
+        keepNotExecutable: keepsCards,
       );
+      final notExecutable = _roundPlayability.notExecutableIndices(
+        widget.round,
+        includeDrafts: widget.previewMode,
+      );
+      _versionSkipped = widget.previewMode ? 0 : notExecutable.length;
       await CrashLogService.instance.recordDebugEvent(
-        'Round: audit completed ${widget.round.id}, valid=${valid.length}',
+        'Round: audit completed ${widget.round.id}, valid=${valid.length}, '
+        'notExecutable=${notExecutable.length}',
       );
       // Resolve availability before preparing an exercise. Authoring Preview
       // bypasses learner Audio Settings and never filters its selected content.
@@ -394,6 +412,11 @@ class _RoundScreenState extends State<RoundScreen> {
             filtered.add(index);
             continue;
           }
+          if (!exercise.isExecutable) {
+            // A card in a Story (plan A.6): never an audio matter.
+            filtered.add(index);
+            continue;
+          }
           final ownAudio = _audioAvailability.isAudioExercise(exercise);
           final dependsOnStory = audioDependent.contains(exercise.id);
           if (!ownAudio && !dependsOnStory) {
@@ -418,13 +441,18 @@ class _RoundScreenState extends State<RoundScreen> {
       _optionalAudioEnabled =
           audioExercisesEnabled &&
           (ttsEnabled || widget.course.audioMode != 'tts');
-      _ttsWasSkipped = filtered.length != valid.length;
+      _audioWasSkipped = filtered.length != valid.length;
+      // Something the learner could not do (audio, or an exercise this
+      // version cannot play) keeps a zero-error attempt from the Laurel and
+      // gives the "skipped perfect" mark instead (plan A.6; one stored key).
+      _ttsWasSkipped = _audioWasSkipped || _versionSkipped > 0;
       _queue = filtered;
       _evaluableExerciseCount = valid
           .where(
             (i) =>
                 widget.round.exercises[i].primitive !=
-                ExercisePrimitive.presentation,
+                    ExercisePrimitive.presentation &&
+                widget.round.exercises[i].isExecutable,
           )
           .length;
       _wasCompleted =
@@ -1224,6 +1252,18 @@ class _RoundScreenState extends State<RoundScreen> {
       return;
     }
     if ((widget.round.flow?.log ?? FlowLog.all) == FlowLog.dialogue) return;
+    if (!ex.isExecutable) {
+      _storyLog.add(
+        _StoryEntry(
+          heading: 'Not playable in this version',
+          prompt: _notExecutablePrompt(ex),
+          answer: null,
+          correct: true,
+          evaluable: false,
+        ),
+      );
+      return;
+    }
     _storyLog.add(
       _StoryEntry(
         heading: _features.isTranslationChoice
@@ -1386,6 +1426,29 @@ class _RoundScreenState extends State<RoundScreen> {
       _scrollStoryToEnd();
       return;
     }
+    if (_isStory && !widget.previewMode && !_exercise.isExecutable) {
+      // Plan A.6: a Story ending on a step this version cannot play ends
+      // there and nothing is recorded.
+      await showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (ctx) => AlertDialog(
+          key: const Key('story-ends-unplayable'),
+          title: const Text('Story not finished'),
+          content: const Text(
+            'This version of QuisquisLingo cannot play the last step of this Story, so the Story ends here and nothing was recorded. A later version will play it.',
+          ),
+          actions: [
+            FilledButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+      if (mounted) Navigator.of(context).pop();
+      return;
+    }
 
     if (!_reviewPhase && _wrongFirstPass.isNotEmpty && !_isStory) {
       await showDialog<void>(
@@ -1505,6 +1568,7 @@ class _RoundScreenState extends State<RoundScreen> {
                       ),
                       Text('Total: ${completion.awardedXp} XP'),
                     ],
+                    if (_versionSkipped > 0) _versionSkippedLine(),
                   ]
                 : [
                     Text(
@@ -1525,6 +1589,7 @@ class _RoundScreenState extends State<RoundScreen> {
                         'Lesson completed: +${completion.lessonCompletionXp} XP',
                       ),
                     Text('Total: ${completion.awardedXp} XP'),
+                    if (_versionSkipped > 0) _versionSkippedLine(),
                   ],
           ),
           actions: [
@@ -3154,6 +3219,9 @@ class _RoundScreenState extends State<RoundScreen> {
 
   Widget _exerciseBody(Exercise ex) {
     final f = _features;
+    // Build 256 Revision 6 (plan A.6): a configuration this version cannot
+    // play is a card here, whatever its primitive.
+    if (!ex.isExecutable) return _notExecutableCard(ex);
     switch (ex.primitive) {
       case ExercisePrimitive.select:
         return _selectExercise(ex);
@@ -3183,11 +3251,85 @@ class _RoundScreenState extends State<RoundScreen> {
       case ExercisePrimitive.speak:
       case ExercisePrimitive.ink:
       case ExercisePrimitive.submit:
-        return Text(
-          'This exercise (${ex.primitive.serialized}) cannot be played in this version of QuisquisLingo.',
-        );
+        return _notExecutableCard(ex);
     }
   }
+
+  /// The text the card shows for an exercise this version cannot play: its
+  /// question, primary text, passage or inline sentence, else its first
+  /// text element.
+  String _notExecutablePrompt(Exercise ex) {
+    final f = ExerciseFeatures(ex);
+    for (final text in [
+      f.questionText,
+      f.primaryText,
+      f.passageText,
+      f.inlineSentence,
+    ]) {
+      if (text.trim().isNotEmpty) return text.trim();
+    }
+    return ex.promptElements
+            .where((element) => element.isText)
+            .map((element) => element.text.trim())
+            .where((text) => text.isNotEmpty)
+            .firstOrNull ??
+        '';
+  }
+
+  /// A card in place of an exercise this version of QQL cannot play (Build
+  /// 256 Revision 6, plan A.6): the prompt stays read-only above it, the
+  /// card says why in one sentence, Continue moves on. A Story shows it and
+  /// follows the node's next; the editor Preview shows it in practice
+  /// Rounds too, which learners skip instead.
+  Widget _notExecutableCard(Exercise ex) {
+    return Column(
+      key: const Key('not-executable-card'),
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: _exercisePanelColor,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Column(
+            children: [
+              Text(
+                'Not playable in this version',
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.labelLarge,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'This version of QuisquisLingo cannot play this ${ex.primitive.label} exercise yet; it stays in the Course for a later version.',
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        FilledButton(
+          key: const Key('not-executable-continue'),
+          onPressed: _answered ? null : _skipNotExecutable,
+          child: const Text('Continue'),
+        ),
+      ],
+    );
+  }
+
+  void _skipNotExecutable() {
+    if (_answered) return;
+    setState(() {
+      _answered = true;
+      _lastAnswerCorrect = true; // Nothing was asked.
+      _feedback = 'Not playable in this version.';
+    });
+  }
+
+  Widget _versionSkippedLine() => Text(
+    '$_versionSkipped exercise${_versionSkipped == 1 ? '' : 's'} this version of QuisquisLingo cannot play ${_isStory ? 'appeared as cards' : 'were skipped'}.',
+    key: const Key('round-completed-version-skipped'),
+  );
 
   PreferredSizeWidget _simpleRoundAppBar(Color background) => AppBar(
     backgroundColor: background,
@@ -3307,20 +3449,24 @@ class _RoundScreenState extends State<RoundScreen> {
               Text(
                 _initializationFailed
                     ? 'This round could not be opened safely.'
-                    : (_ttsWasSkipped
+                    : (_audioWasSkipped
                           ? !_audioExercisesEnabled
                                 ? 'All exercises in this round use audio and Audio Exercises are disabled.'
                                 : 'All audio exercises in this round are currently unavailable.'
+                          : _versionSkipped > 0
+                          ? 'This version of QuisquisLingo cannot play the exercises of this round yet.'
                           : 'This round has no usable exercises.'),
               ),
               const SizedBox(height: 8),
               Text(
                 _initializationFailed
                     ? 'QuisquisLingo kept the app running and wrote the error to the crash log.'
-                    : (_ttsWasSkipped
+                    : (_audioWasSkipped
                           ? !_audioExercisesEnabled
                                 ? 'Turn on “Enable Audio Exercises” in Audio Settings to play this round.'
                                 : 'Check Text-to-speech and available Recorded MP3 sources in Audio Settings.'
+                          : _versionSkipped > 0
+                          ? 'They are kept in the Course unchanged; a later version of QuisquisLingo will play them.'
                           : 'Open Course Editor > Run course audit to see the problems that need to be corrected.'),
               ),
             ],
@@ -3416,9 +3562,12 @@ class _RoundScreenState extends State<RoundScreen> {
               )
             else ...[
               // A dialogue line shows no heading (owner decision, 28
-              // September 2026): the speaker's bubble says what it is.
+              // September 2026): the speaker's bubble says what it is. A
+              // card for an exercise this version cannot play shows neither
+              // heading nor instruction (Build 256 Revision 6).
               if (ExerciseFeatures(ex).kind !=
-                  LearnerExerciseKind.dialogueLine) ...[
+                      LearnerExerciseKind.dialogueLine &&
+                  ex.isExecutable) ...[
                 Text(
                   ExerciseCopyService.typeLabel(
                     widget.course,
@@ -3432,13 +3581,14 @@ class _RoundScreenState extends State<RoundScreen> {
                 ),
                 const SizedBox(height: 4),
               ],
-              Text(
-                ExerciseCopyService.instructionForExercise(widget.course, ex),
-                key: const Key('exercise-instruction'),
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
-              ),
+              if (ex.isExecutable)
+                Text(
+                  ExerciseCopyService.instructionForExercise(widget.course, ex),
+                  key: const Key('exercise-instruction'),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+                ),
             ],
             if (!_features.isTranslationChoice &&
                 _features.kind != LearnerExerciseKind.arrangeWord &&
@@ -3578,7 +3728,12 @@ class _RoundScreenState extends State<RoundScreen> {
                             _wrongFirstPass.isNotEmpty
                       ? 'Review mistakes'
                       : (_position + 1 == _queue.length
-                            ? (_isStory ? 'Finish story' : 'Finish round')
+                            ? (_isStory
+                                  ? (!widget.previewMode &&
+                                            !_exercise.isExecutable
+                                        ? 'Leave story'
+                                        : 'Finish story')
+                                  : 'Finish round')
                             : 'Continue'),
                 ),
               ),

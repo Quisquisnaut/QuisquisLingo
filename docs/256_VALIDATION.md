@@ -5,6 +5,28 @@ spelling) with Flutter 3.47.4 / Dart 3.13.3 on Windows 10, the complete
 suite through the keep-awake wrapper (`ES_CONTINUOUS | ES_SYSTEM_REQUIRED`
 held for the run and cleared afterwards).
 
+## Revision 6 (2.0.56+256006): Interoperability, 28 September 2026
+
+- Stage 1 (support states in the model, playability, Duel, Audit, import
+  review, Round screen): `support_states_256_test.dart` (11) with the
+  registry pins, Story runtime, XP regression, Duel, library operations,
+  runtime canonical, playability, Audit, Laboratory, Edge Case, Piedmontese
+  and bundled-Course tests: 409 passed, 2 failed (a duplicated prompt on the
+  card, the severity-count pins), then green.
+- Stage 2–4 (flow engine, interoperability, capability JSON):
+  `flow_engine_256_test.dart` (8), `interoperability_256_test.dart` (7),
+  `capability_description_256_test.dart` (2), the architecture test and the
+  content-flow tests: green after one test fix (a doubled Continue finder).
+  `dart run tools/export_capabilities.dart`, `tools/validate_courses.py`
+  and the three generators' `--check`: pass with the JSON as the source.
+- Stage 5 (end to end): `interoperability_end_to_end_256_test.dart` (10):
+  5 failures on the first run (the Input text-answer Error on a numeric
+  Input, the official fixture's lineage, the merge's Course version, an
+  editor finder), then green.
+- `flutter analyze`: no issues; `dart format` clean on every changed file.
+- Complete suite on the final tree (`flutter test --concurrency=1`, 28
+  September 2026, 22:35–23:00): **3182 passed, 1 skipped, 0 failed**.
+
 ## Revision 5 (2.0.56+256005): Stories, 28 September 2026
 
 - Stage 1 (model, flow, speakers, avatars; the two presets, recipes,

@@ -13,7 +13,7 @@ narrative of Revision 4 is gone (the evidence lives in
 `docs/256_VALIDATION.md`); what follows is state, decisions, requirements,
 open problems and the next step.
 
-## State (28 September 2026, 22:35)
+## State (28 September 2026, 22:34)
 
 - **Build 256 Revision 5 (Stories) is committed locally as `4172d98`
   (108 files) plus its same-version follow-up `7903e9f` (47 files, owner
@@ -22,13 +22,18 @@ open problems and the next step.
   margin, sample Stories), follow-up 2 `41a5555` (no DIALOGUE heading on a
   line; suite 3139 passed, 1 skipped, 0 failed) and follow-up 3 `32fedfb`
   (the Round Wizard and New Story on the Rounds page, Add step in the
-  Story editor; suite 3144 passed, 1 skipped, 0 failed), NOT pushed;
-  waiting for the owner. Adventures are parked for a future release
-  (owner, 28 September, 22:20): the F block and the video block belong to
-  a branched Round kind, not to Stories; the discussion points are under
-  Next step. The next revision's scope is the owner's call (spoken
-  exercises, or Interoperability from the plan).** An auto-resume run
-  replies with one line of status and does nothing else. Complete suite on the final tree: 3117
+  Story editor; suite 3144 passed, 1 skipped, 0 failed), NOT pushed.
+  Adventures and spoken exercises are parked (owner, 28 September, 22:20
+  and 22:00): "do the rest that is left" = plan items 7 and 8. Revision 6
+  (Interoperability, `2.0.56+256006`) is implemented on the working tree
+  (Stages 1–7 of the session plan below, all focused batches green,
+  analyzer and format clean); its complete suite runs
+  (`suite_256006_a.log`, started 22:35); then the validation line, the
+  commit "Build 256 Revision 6: interoperability"
+  (`commit_256006.txt`), the handoff, the sound, and Revision 7 (plan item
+  8: Laboratory by primitive and option, Assign runtime, final
+  verification) at once.** An auto-resume run replies with one line of
+  status and does nothing else. Complete suite on the final tree: 3117
   passed, 1 skipped, 0 failed (run 2; run 1 had three count pins fixed in
   tests). No APK built (owner: only on request); the end-of-revision sound
   played. The progress notes of the day stay in the next bullet as the
@@ -344,6 +349,64 @@ open problems and the next step.
   auto-resume messages come from the owner's scheduled task and must obey
   the first bullet.
 
+## Revision 6 session plan (Interoperability; written 28 September 2026, 22:05)
+
+Owner (28 September, 21:50 and 22:00): Adventures and spoken exercises are
+parked; "do the rest that is left" = plan Part B items 7 and 8. Revision 6 =
+item 7, `2.0.56+256006`; Revision 7 = item 8. Plan pre-approved; ask only on
+the three conditions of A.1.
+
+1. **Support states in the model and runtime (A.6).** `Exercise.runtimeSupport`
+   and `isExecutable` (computed from the registry, never stored).
+   `RoundPlayabilityService.playableExerciseIndices` drops not-executable
+   exercises for practice Rounds (the same step as invalid and unpublished,
+   before the audio filter) and reports them (`notExecutableIndices`); a
+   Story and the editor Preview keep them and `RoundScreen` draws a card
+   (the prompt read-only, one sentence, Continue) that follows the node's
+   `next`; a Story whose last node is such an exercise ends there without
+   recording. Practice Rounds: not in the queue, the mistake review, the
+   count or the XP; the completion dialog gets one line counting them; the
+   empty-Round screen names the reason; the "skipped perfect" mark reuses
+   `ttsWasSkipped` (no new key). Duel eligibility requires executable.
+2. **Audit.** `EXERCISE_NOT_EXECUTABLE` (Info, per exercise, the registry's
+   reason) and `ROUND_NOT_COMPLETABLE` (Warning: a practice Round whose
+   exercises are all not executable, a Story whose flow branches, a Story
+   ending on a not-executable exercise). Registry 103 → 105; the pinned
+   count and the import review (`CourseImportReview.notExecutableCount`,
+   one line in the Matching-ID / warnings texts and the snackbar) follow.
+3. **Flow engine** (`lib/services/flow_engine.dart`, pure Dart): outcomes
+   (correct, incorrect, chose), the visited set, `nextAfter` resolving
+   onChoice / onCorrect / onIncorrect / conditional (answeredCorrectly,
+   answeredIncorrectly, chose, visited) in declared order with `next` as
+   the fallback, a bounded `walk` for tests. Not wired to playback
+   (branching Stories stay "can't run yet", A.7; Adventures are parked).
+4. **Interoperability on canonical semantics.** `InteroperabilityMapping`
+   names the primitive, options, evaluation mode and layout, with the
+   preset as a hint only; `NormalizedImportExercise` is canonical (no
+   preset required) and `CanonicalExerciseImport.adopt` records the hint
+   only when `PresetRecipes.recognize` confirms it. Tests: every mapping
+   validates in the registry and its executability matches its status.
+5. **Capability JSON.** `lib/models/canonical/capability_description.dart`
+   builds the machine-readable description (primitives, options with
+   values/defaults/required, evaluation modes, rules, runtime support);
+   `tools/export_capabilities.dart` writes `docs/capabilities_v12.json`; a
+   drift test pins the file; `tools/qql_course_v12.py` and
+   `tools/validate_courses.py` read the JSON instead of their own tables.
+6. **Service sweep and end-to-end tests** (`test/interoperability_256_test.dart`,
+   fixture `test/support/canonical_course_256.dart`: a Course an external
+   converter could write, no authoring metadata, every primitive incl.
+   not-executable ones, a Story, a branching Round): JSON and package round
+   trips, import, Audit, playability, Duel, duplication, merge, search,
+   inspection through `CanonicalExerciseDraft`, publisher signing and
+   checksums, the Story played through `RoundScreen`, the card in a Story,
+   the skipped count in a practice Round, recognition as the hint.
+7. **Docs and release.** Reference doc (status, A.6 runtime, engine,
+   interoperability, capability JSON), CHANGELOG, CHANGE_SUMMARY,
+   VALIDATION, AGENTS (boundary entry + invariants), README, plan status,
+   version touchpoints, Beta expiry 30 days from the release day; format,
+   analyze, focused batches, the complete suite once, commit, handoff,
+   sound. Then Revision 7 (item 8) at once.
+
 ## Sessions
 
 | Session | Revision | Version | State |
@@ -353,8 +416,8 @@ open problems and the next step.
 | 3 Runtime and Audit | 2 | 2.0.56+256002 | committed `41dd91a` (suite 2,840/1/0) |
 | 4 Presets and Generic Primitive Editor | 3 | 2.0.56+256003 | committed `974f700`, follow-ups `1068fa4`, `02a4aa5` (suite 2,951/1/0) |
 | 5 Preset catalogue | 4 | 2.0.56+256004 | committed `eca0cd0` (suite 3053/1/0), pushed |
-| 6 Stories (`docs/256_STORY_PLAN.md`) | 5 | 2.0.56+256005 | plan written 28 September, **waits for the owner's go** |
-| 7 Interoperability | 6 | 2.0.56+256006 | not started |
+| 6 Stories (`docs/256_STORY_PLAN.md`) | 5 | 2.0.56+256005 | committed `4172d98`, follow-ups `7903e9f`, `41a5555`, `32fedfb` |
+| 7 Interoperability | 6 | 2.0.56+256006 | committed REV6_HASH (suite 3182/1/0) |
 | 8 Laboratory, Assign, final verification | 7 | 2.0.56+256007 | not started |
 
 Branch `claude/256-exercise-architecture`, created from `main` at `611a1a1`
@@ -533,13 +596,17 @@ Branch `claude/256-exercise-architecture`, created from `main` at `611a1a1`
 
 ## Next step
 
-1. Wait for the owner's word on Revision 5 (`4172d98`) and its three
-   follow-ups (`7903e9f`, `41a5555`, `32fedfb`); push only when asked
-   (`git push` of `claude/256-exercise-architecture`). The next revision's
-   scope is open: the owner parked Adventures for a future release on 28
-   September at 22:20, so Revision 6 is either the spoken exercises agreed
-   earlier or Interoperability (plan Part B item 7). Ask before planning.
-   **Agreed, unscheduled: spoken exercises** (an exercise said by a
+1. Finish Revision 6 (see State), then start Revision 7 at once (plan
+   Part B item 8, `2.0.56+256007`): the Laboratory by primitive and option
+   plus the test-only fixture Course (Speak, Ink, Submit, branching Stories
+   go there), negative tests, the Assign runtime (categories, slots, gaps,
+   regions if the overlay fits; capacity single/multiple; reuse
+   forbidden/allowed; exactAssignments) with Generic Primitive Editor
+   support and the registry's runtime-support table extended, Story tests,
+   semantic-equality tests, the final verification list (plan Part D).
+   Write the session plan into this file before editing. Push only when
+   asked (`git push` of `claude/256-exercise-architecture`).
+   **Parked: spoken exercises** (owner, 28 September, 22:00) (an exercise said by a
    speaker: "Said by" in the Wizard and the form, drawn in the speaker's
    bubble with the avatar, instruction "What comes next?" / "What do you
    hear?", the completed line spoken and appended to the dialogue log after
