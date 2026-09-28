@@ -25,14 +25,10 @@ open problems and the next step.
   Story editor; suite 3144 passed, 1 skipped, 0 failed), NOT pushed.
   Adventures and spoken exercises are parked (owner, 28 September, 22:20
   and 22:00): "do the rest that is left" = plan items 7 and 8. Revision 6
-  (Interoperability, `2.0.56+256006`) is implemented on the working tree
-  (Stages 1–7 of the session plan below, all focused batches green,
-  analyzer and format clean); its complete suite runs
-  (`suite_256006_a.log`, started 22:35); then the validation line, the
-  commit "Build 256 Revision 6: interoperability"
-  (`commit_256006.txt`), the handoff, the sound, and Revision 7 (plan item
-  8: Laboratory by primitive and option, Assign runtime, final
-  verification) at once.** An auto-resume run replies with one line of
+  (Interoperability, `2.0.56+256006`) is **committed as `355ad94`**
+  (suite 3182 passed, 1 skipped, 0 failed; 23:00), NOT pushed. Revision 7
+  (plan item 8: Laboratory by primitive and option, Assign runtime, final
+  verification; `2.0.56+256007`) starts now from the session plan below.** An auto-resume run replies with one line of
   status and does nothing else. Complete suite on the final tree: 3117
   passed, 1 skipped, 0 failed (run 2; run 1 had three count pins fixed in
   tests). No APK built (owner: only on request); the end-of-revision sound
@@ -407,6 +403,57 @@ the three conditions of A.1.
    analyze, focused batches, the complete suite once, commit, handoff,
    sound. Then Revision 7 (item 8) at once.
 
+## Revision 7 session plan (Laboratory, Assign, final verification; written 28 September 2026, 23:00)
+
+Plan Part B item 8 and Part D session 6, `2.0.56+256007`. Pre-approved
+("do the rest that is left"); ask only on the three conditions of A.1.
+
+1. **Assign runtime.** The registry's runtime-support table gains three
+   Assign entries (categories in columns; slots in columns; gaps inline;
+   capacity single or multiple or unlimited as each mode allows; reuse
+   forbidden or allowed; placement tapTarget or selectTarget; explicit
+   timing; exactAssignments), `ExercisePrimitive.executableToday` includes
+   Assign, the architecture test excludes Assign from the preset check
+   (authored in the canonical editor; the greyed catalogue tiles stay).
+   `ExerciseFeatures`: kinds `assignGroups`, `assignSlots`, `assignGaps`,
+   the target label from the text run before the target in the layout,
+   `assignmentsByTarget`. `ExerciseCopyService`: headings and instructions
+   in the eight languages. `RoundScreen`: `_assignExercise` (tiles
+   `assign-tile-<item>`, bins `assign-target-<target>` or inline slots
+   `assign-slot-<target>`; tap a tile, then its destination; capacity and
+   reuse honoured; Check grades exactAssignments; the correct-answer text
+   and the learner-answer text). Audit: `ASSIGN_STRUCTURE_REQUIRED` (Error:
+   an Assign needs targets and items; exactAssignments needs assignments
+   naming existing IDs), 106 rules. Regions (overlay) and cells (grid) and
+   drag placement stay readable but not executable.
+2. **Laboratory.** A seventh Lesson, Assign (canonical content, no preset;
+   the generator's `assign_exercise` in `qql_course_v12.py` and
+   `Laboratory.assign`; the coverage document's Lesson list and counts;
+   `validate_courses.py` Lesson count; the Lab test's Lesson list, preset
+   set without the empty template, an Assign driver in `_answer`, the
+   canonical draft round trip for preset-less examples, the presentation
+   baseline re-recorded for the new examples only).
+3. **The future fixture.** `tools/generate_exercise_laboratory_254.py
+   --fixture` writes `test/fixtures/v12/laboratory_future_en_it.json` from
+   the same generator: Speak (repeat, free response), Ink (trace), Submit
+   (audio), a Story ending on a Speak step, a branching Story (onChoice);
+   `--check` covers it. `test/laboratory_future_256_test.dart`: parse, no
+   Audit Errors, the Info and Warning codes, no playable exercise, the
+   canonical draft, JSON and package round trips.
+4. **Negative and semantic tests.** `negative_cases_256_test.dart` (unknown
+   primitive, unknown and inapplicable options, illegal values, illegal
+   combinations, illegal evaluation modes, unknown evaluation keys, broken
+   item, target and layout references, impossible selection limits, a
+   missing required option, a v11 file, a malformed flow) and
+   `semantic_equality_256_test.dart` (defaults, metadata, timestamps,
+   publication state, IDs and order, JSON round trip).
+5. **Docs and release.** Help (the primitives page: Assign plays), the
+   reference doc (status row 8, an Assign runtime section), CHANGELOG,
+   CHANGE_SUMMARY (with the final six-part verification), VALIDATION,
+   AGENTS (boundary entry, invariants), README, the plan's status, version
+   touchpoints, Beta expiry 30 days from the release day; format, analyze,
+   focused batches, the complete suite once, commit, handoff, sound.
+
 ## Sessions
 
 | Session | Revision | Version | State |
@@ -417,7 +464,7 @@ the three conditions of A.1.
 | 4 Presets and Generic Primitive Editor | 3 | 2.0.56+256003 | committed `974f700`, follow-ups `1068fa4`, `02a4aa5` (suite 2,951/1/0) |
 | 5 Preset catalogue | 4 | 2.0.56+256004 | committed `eca0cd0` (suite 3053/1/0), pushed |
 | 6 Stories (`docs/256_STORY_PLAN.md`) | 5 | 2.0.56+256005 | committed `4172d98`, follow-ups `7903e9f`, `41a5555`, `32fedfb` |
-| 7 Interoperability | 6 | 2.0.56+256006 | committed REV6_HASH (suite 3182/1/0) |
+| 7 Interoperability | 6 | 2.0.56+256006 | committed `355ad94` (suite 3182/1/0) |
 | 8 Laboratory, Assign, final verification | 7 | 2.0.56+256007 | not started |
 
 Branch `claude/256-exercise-architecture`, created from `main` at `611a1a1`
