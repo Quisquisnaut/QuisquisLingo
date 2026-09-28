@@ -103,6 +103,16 @@ held for the run and cleared afterwards).
   rerun 252 green. Complete suite, run 2 on the final tree (19:09–19:39):
   **3139 passed, 1 skipped, 0 failed**.
 
+## Revision 5 second follow-up (same version), 28 September 2026, evening
+
+- Owner request: no DIALOGUE heading on a Dialogue line. One condition in
+  the Round screen; `story_runtime_256_test` asserts no heading on a line.
+- Laboratory presentation baseline re-recorded (254 tests with the runtime
+  test): the ten line records lose their heading, no other record changed.
+- `flutter analyze`: no issues; `dart format` clean.
+- Complete suite on the final tree (`flutter test --concurrency=1`, 28
+  September 2026, 19:58–20:22): **3139 passed, 1 skipped, 0 failed**.
+
 ## Revision 4 (2.0.56+256004): the preset catalogue, 27 September 2026
 
 - Stage 1 (skill groups, directions, the coming-later list, the picker's

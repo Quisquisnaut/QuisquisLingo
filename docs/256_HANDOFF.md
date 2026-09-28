@@ -522,7 +522,20 @@ Branch `claude/256-exercise-architecture`, created from `main` at `611a1a1`
 
 1. Wait for the owner's word on Revision 5 (`4172d98`) and its follow-up
    (`7903e9f`); push only when asked (`git push` of
-   `claude/256-exercise-architecture`). Then write the Revision 6 plan:
+   `claude/256-exercise-architecture`). A second same-version follow-up
+   (no DIALOGUE heading on a line) is in progress at 19:55: runtime and
+   test edited, record run + runtime test in `s5_batch24.log`; then
+   `s34_baseline.py`, the placeholders RESULT_FOLLOWUP2_* in the
+   validation, the complete suite, the commit "Build 256 Revision 5
+   follow-up 2: no heading on a Dialogue line", handoff, sound.
+   **Decisions of 28 September evening for later revisions:** Revision 7
+   = spoken exercises (an exercise said by a speaker: "Said by" in the
+   Wizard and the form, drawn in the speaker's bubble with the avatar,
+   instruction "What comes next?" / "What do you hear?", the completed
+   line spoken and appended to the dialogue log after a correct answer,
+   and after a wrong one with the correct line; Match the words allowed
+   in Stories with a Wizard action prefilled from the Story's lines),
+   separate from Revision 6. Then write the Revision 6 plan:
    the F block (a Presentation with choices that branches the Story, one
    per Story, tags Branch 1 / Branch 2 / Both defaulting to Both, allowed
    right after the cover, a line on each branch, the registry, converter,

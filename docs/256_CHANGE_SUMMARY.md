@@ -163,6 +163,11 @@ of the Duel, lines never skipped. Course files stay Course Model v12.
   alone whose `STORY_WITHOUT_DIALOGUE` is its third intentional warning
   (12 Rounds, 39 exercises); `tools/validate_courses.py` expects 39
   Piedmontese Lessons.
+- Second follow-up (same version, 28 September, evening):
+  `lib/screens/round_screen.dart` draws no heading for a Dialogue line (the
+  DIALOGUE label is gone; the instruction stays); the Laboratory
+  presentation baseline re-recorded for the ten line examples (heading
+  null), no other record changed; `story_runtime_256_test` pins it.
 - Tests: `xp_calculator_test` (a Round without evaluable exercises awards
   nothing), `learning_completion_service_test` (no Laurel, no XP; facts
   state their counts), `round_playability_service_test` (cards and texts

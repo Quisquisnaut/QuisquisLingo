@@ -3415,18 +3415,23 @@ class _RoundScreenState extends State<RoundScreen> {
                 ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
               )
             else ...[
-              Text(
-                ExerciseCopyService.typeLabel(
-                  widget.course,
-                  ExerciseFeatures(ex).kind,
+              // A dialogue line shows no heading (owner decision, 28
+              // September 2026): the speaker's bubble says what it is.
+              if (ExerciseFeatures(ex).kind !=
+                  LearnerExerciseKind.dialogueLine) ...[
+                Text(
+                  ExerciseCopyService.typeLabel(
+                    widget.course,
+                    ExerciseFeatures(ex).kind,
+                  ),
+                  key: const Key('exercise-heading'),
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: .7,
+                  ),
                 ),
-                key: const Key('exercise-heading'),
-                style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: .7,
-                ),
-              ),
-              const SizedBox(height: 4),
+                const SizedBox(height: 4),
+              ],
               Text(
                 ExerciseCopyService.instructionForExercise(widget.course, ex),
                 key: const Key('exercise-instruction'),

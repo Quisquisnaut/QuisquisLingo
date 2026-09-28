@@ -106,6 +106,8 @@ Follow-up in the same version (owner review, 28 September 2026):
   examples); the Story of covers alone moves to the Edge Case demo as an
   intentional Audit warning, and its Story alternates lines and the
   question. Help (App Info, EN/IT/ES) states the scoring rule.
+- **No heading on a line.** A Dialogue line shows no DIALOGUE heading; the
+  speaker's bubble and the instruction are enough (second follow-up).
 
 # 2.0.56 (Build 256, Revision 4) - The preset catalogue - 2026-09-27
 

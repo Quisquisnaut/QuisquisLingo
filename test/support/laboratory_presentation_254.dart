@@ -5,14 +5,14 @@
 /// data; re-recorded on 27 September 2026 for Build 256 Revision 4 (the
 /// preset catalogue), whose regenerated Laboratory has 107 examples, and
 /// again on 28 September 2026 for Build 256 Revision 5 (Stories) and its
-/// same-day follow-up, whose Story Lesson holds two Stories (15 examples,
-/// 122 records; the Story records are the follow-up's, no other record
-/// changed). Every record of an example that existed before is equal to its
-/// Session 3 record except where `docs/256_VALIDATION.md` lists a
-/// deliberate change (the inline-gap examples of Build the translation are
-/// Drag the blocks into the gaps with a clue, no longer translations). Later
-/// work must keep every record equal except where a documented deliberate
-/// change says otherwise.
+/// same-day follow-ups, whose Story Lesson holds two Stories (15 examples,
+/// 122 records; the Story records are the follow-ups', a line shows no
+/// heading; no other record changed). Every record of an example that
+/// existed before is equal to its Session 3 record except where
+/// `docs/256_VALIDATION.md` lists a deliberate change (the inline-gap
+/// examples of Build the translation are Drag the blocks into the gaps with
+/// a clue, no longer translations). Later work must keep every record equal
+/// except where a documented deliberate change says otherwise.
 const laboratoryPresentation = <String, Map<String, Object?>>{
   'qql_lab254_arrange_gap_audio': {
     'before': {
@@ -8651,7 +8651,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
   },
   'qql_lab254_options_after_audio': {
     'before': {
-      'heading': 'DIALOGUE',
+      'heading': null,
       'instruction': 'Listen first; the text appears after.',
       'prompt': null,
       'shown': {'question': 0, 'prompt': 0, 'context': 0, 'translationText': 0},
@@ -8713,7 +8713,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
       'spoken': ['Buongiorno! Un caffè, per favore.'],
     },
     'after': {
-      'heading': 'DIALOGUE',
+      'heading': null,
       'instruction': 'Listen first; the text appears after.',
       'prompt': null,
       'shown': {'question': 0, 'prompt': 0, 'context': 0, 'translationText': 0},
@@ -8777,7 +8777,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
   },
   'qql_lab254_options_audio_only': {
     'before': {
-      'heading': 'DIALOGUE',
+      'heading': null,
       'instruction': 'Listen, then continue.',
       'prompt': null,
       'shown': {'question': 0, 'prompt': 0, 'context': 0, 'translationText': 0},
@@ -8839,7 +8839,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
       'spoken': <String>[],
     },
     'after': {
-      'heading': 'DIALOGUE',
+      'heading': null,
       'instruction': 'Listen, then continue.',
       'prompt': null,
       'shown': {'question': 0, 'prompt': 0, 'context': 0, 'translationText': 0},
@@ -8903,7 +8903,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
   },
   'qql_lab254_options_automatic': {
     'before': {
-      'heading': 'DIALOGUE',
+      'heading': null,
       'instruction': 'Read or listen, then continue.',
       'prompt': null,
       'shown': {'question': 0, 'prompt': 0, 'context': 0, 'translationText': 0},
@@ -8965,7 +8965,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
       'spoken': ['Ecco il suo caffè.'],
     },
     'after': {
-      'heading': 'DIALOGUE',
+      'heading': null,
       'instruction': 'Read or listen, then continue.',
       'prompt': null,
       'shown': {'question': 0, 'prompt': 0, 'context': 0, 'translationText': 0},
@@ -9155,7 +9155,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
   },
   'qql_lab254_options_narrator': {
     'before': {
-      'heading': 'DIALOGUE',
+      'heading': null,
       'instruction': 'Read or listen, then continue.',
       'prompt': null,
       'shown': {'question': 0, 'prompt': 0, 'context': 0, 'translationText': 0},
@@ -9217,7 +9217,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
       'spoken': ['Anna orders again; every line shows a different option.'],
     },
     'after': {
-      'heading': 'DIALOGUE',
+      'heading': null,
       'instruction': 'Read or listen, then continue.',
       'prompt': null,
       'shown': {'question': 0, 'prompt': 0, 'context': 0, 'translationText': 0},
@@ -9281,7 +9281,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
   },
   'qql_lab254_options_text_only': {
     'before': {
-      'heading': 'DIALOGUE',
+      'heading': null,
       'instruction': 'Read, then continue.',
       'prompt': null,
       'shown': {'question': 0, 'prompt': 0, 'context': 0, 'translationText': 0},
@@ -9343,7 +9343,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
       'spoken': <String>[],
     },
     'after': {
-      'heading': 'DIALOGUE',
+      'heading': null,
       'instruction': 'Read, then continue.',
       'prompt': null,
       'shown': {'question': 0, 'prompt': 0, 'context': 0, 'translationText': 0},
@@ -13324,7 +13324,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
   },
   'qql_lab254_story_anna_no': {
     'before': {
-      'heading': 'DIALOGUE',
+      'heading': null,
       'instruction': 'Read or listen, then continue.',
       'prompt': null,
       'shown': {'question': 0, 'prompt': 0, 'context': 0, 'translationText': 0},
@@ -13386,7 +13386,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
       'spoken': ['No, grazie. Solo il caffè.'],
     },
     'after': {
-      'heading': 'DIALOGUE',
+      'heading': null,
       'instruction': 'Read or listen, then continue.',
       'prompt': null,
       'shown': {'question': 0, 'prompt': 0, 'context': 0, 'translationText': 0},
@@ -13450,7 +13450,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
   },
   'qql_lab254_story_anna_order': {
     'before': {
-      'heading': 'DIALOGUE',
+      'heading': null,
       'instruction': 'Read or listen, then continue.',
       'prompt': null,
       'shown': {'question': 0, 'prompt': 0, 'context': 0, 'translationText': 0},
@@ -13512,7 +13512,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
       'spoken': ['Buongiorno! Un caffè, per favore.'],
     },
     'after': {
-      'heading': 'DIALOGUE',
+      'heading': null,
       'instruction': 'Read or listen, then continue.',
       'prompt': null,
       'shown': {'question': 0, 'prompt': 0, 'context': 0, 'translationText': 0},
@@ -13828,7 +13828,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
   },
   'qql_lab254_story_luca_offer': {
     'before': {
-      'heading': 'DIALOGUE',
+      'heading': null,
       'instruction': 'Read or listen, then continue.',
       'prompt': null,
       'shown': {'question': 0, 'prompt': 0, 'context': 0, 'translationText': 0},
@@ -13890,7 +13890,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
       'spoken': ['Subito! Vuole anche un cornetto?'],
     },
     'after': {
-      'heading': 'DIALOGUE',
+      'heading': null,
       'instruction': 'Read or listen, then continue.',
       'prompt': null,
       'shown': {'question': 0, 'prompt': 0, 'context': 0, 'translationText': 0},
@@ -13954,7 +13954,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
   },
   'qql_lab254_story_luca_serves': {
     'before': {
-      'heading': 'DIALOGUE',
+      'heading': null,
       'instruction': 'Read or listen, then continue.',
       'prompt': null,
       'shown': {'question': 0, 'prompt': 0, 'context': 0, 'translationText': 0},
@@ -14016,7 +14016,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
       'spoken': ['Ecco il suo caffè.'],
     },
     'after': {
-      'heading': 'DIALOGUE',
+      'heading': null,
       'instruction': 'Read or listen, then continue.',
       'prompt': null,
       'shown': {'question': 0, 'prompt': 0, 'context': 0, 'translationText': 0},
@@ -14080,7 +14080,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
   },
   'qql_lab254_story_narrator': {
     'before': {
-      'heading': 'DIALOGUE',
+      'heading': null,
       'instruction': 'Read or listen, then continue.',
       'prompt': null,
       'shown': {'question': 0, 'prompt': 0, 'context': 0, 'translationText': 0},
@@ -14142,7 +14142,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
       'spoken': ['Anna walks into a café in Turin and greets the barista.'],
     },
     'after': {
-      'heading': 'DIALOGUE',
+      'heading': null,
       'instruction': 'Read or listen, then continue.',
       'prompt': null,
       'shown': {'question': 0, 'prompt': 0, 'context': 0, 'translationText': 0},

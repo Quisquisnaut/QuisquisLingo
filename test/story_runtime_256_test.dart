@@ -271,6 +271,9 @@ void main() {
     expect(find.byKey(const Key('story-line-narrator')), findsOneWidget);
     expect(find.text('Narrator'), findsOneWidget);
     expect(find.text('Read or listen, then continue.'), findsOneWidget);
+    // A line has no heading (owner decision, 28 September 2026).
+    expect(find.byKey(const Key('exercise-heading')), findsNothing);
+    expect(find.text('DIALOGUE'), findsNothing);
     await tester.runAsync(
       () => Future<void>.delayed(const Duration(milliseconds: 50)),
     );
