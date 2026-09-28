@@ -13,11 +13,14 @@ narrative of Revision 4 is gone (the evidence lives in
 `docs/256_VALIDATION.md`); what follows is state, decisions, requirements,
 open problems and the next step.
 
-## State (28 September 2026, 14:50)
+## State (28 September 2026, 19:39)
 
 - **Build 256 Revision 5 (Stories) is committed locally as `4172d98`
-  (108 files) and NOT pushed; waiting for the owner's approval before
-  Revision 6 (Interoperability).** An auto-resume run replies with one line
+  (108 files) plus its same-version follow-up `7903e9f` (47 files, owner
+  review of 28 September: Continue, per-mode line instructions, no XP
+  without evaluable exercises, derived "Story:" label, avatars, scroll
+  margin, sample Stories), NOT pushed; waiting for the owner. Next work:
+  the Revision 6 plan (F block + Story editor), for approval before code.** An auto-resume run replies with one line
   of status and does nothing else. Complete suite on the final tree: 3117
   passed, 1 skipped, 0 failed (run 2; run 1 had three count pins fixed in
   tests). No APK built (owner: only on request); the end-of-revision sound
@@ -70,8 +73,8 @@ open problems and the next step.
   dropped (122 examples, baseline rebuilt with 122 records, counts updated
   in CHANGELOG, CHANGE_SUMMARY, VALIDATION, AGENTS); gate + Laboratory
   rerun 252 green; analyzer, format, generators green; **complete suite run
-  2 running** (`suite_256005_d.log`, started 19:09). Then: fill
-  RESULT_FOLLOWUP_SUITE, commit, handoff commit, sound. After that:
+  2 (`suite_256005_d.log`, 19:09–19:39): 3139 passed, 1 skipped, 0
+  failed; validation filled; **committed as `7903e9f`** (19:39). After that:
   + `s34_baseline.py` (Story records change deliberately), fill the three
   RESULT_FOLLOWUP_* placeholders in `docs/256_VALIDATION.md`, complete
   suite, commit "Build 256 Revision 5 follow-up: Continue, line
@@ -517,9 +520,17 @@ Branch `claude/256-exercise-architecture`, created from `main` at `611a1a1`
 
 ## Next step
 
-1. Wait for the owner's approval of Revision 5 (`4172d98`); push only when
-   asked (`git push` of `claude/256-exercise-architecture`). A same-version
-   follow-up for owner corrections lands as its own commit.
+1. Wait for the owner's word on Revision 5 (`4172d98`) and its follow-up
+   (`7903e9f`); push only when asked (`git push` of
+   `claude/256-exercise-architecture`). Then write the Revision 6 plan:
+   the F block (a Presentation with choices that branches the Story, one
+   per Story, tags Branch 1 / Branch 2 / Both defaulting to Both, allowed
+   right after the cover, a line on each branch, the registry, converter,
+   validator and Python mirror learning presentation choices, a small flow
+   engine for one choice, the scroll log and XP over the played lane) and
+   the Story editor (reopen any Story in the Wizard); Interoperability
+   becomes Revision 7. Sample Stories alternate two or three lines with a
+   question (owner, 28 September).
 2. Revision 6, **Interoperability** (`2.0.56+256006`; plan Part B item 7):
    canonical import and interoperability mappings with the preset only as a
    hint; the four support states and A.6 (readable-but-not-executable
