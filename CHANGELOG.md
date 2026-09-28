@@ -1,3 +1,40 @@
+# 2.0.56 (Build 256, Revision 7) - Laboratory, Assign, final verification - 2026-09-29
+
+Session 8, the last of the exercise architecture redesign (plan Part B item
+8): the Assign runtime, the Laboratory's Assign Lesson, the test-only
+fixture of what still waits, and the negative and semantic-equality tests
+of the plan's verification list. Course files stay Course Model v12;
+scoring, progression, Review and learner data are unchanged.
+
+- **Assign plays.** Sort into groups (categories in columns), Fill the
+  slots and Fill the gaps of a text: the learner taps an item, then the
+  destination that takes it; a placed item's chip gives it back; a group
+  may take one, several or any number of items, a slot or a gap takes one;
+  a reusable item stays in the bank; Check grades every destination at
+  once (exact assignments). Headings and instructions in the eight learner
+  languages. Picture regions, grid cells, drag placement and the other
+  Assign evaluation modes stay readable but not executable. Assign has no
+  catalogue preset yet (the greyed tiles stay); it is authored in the
+  Generic Primitive Editor, whose layout may name each destination with a
+  text before its target. The Audit adds `ASSIGN_STRUCTURE_REQUIRED`
+  (Error: items, targets and an answer) for 106 rules.
+- **Exercise Laboratory.** A seventh Lesson, Assign: groups, a word that
+  belongs nowhere, slots, reusable slots, one gap and two gaps (128
+  examples, 28 Rounds); the coverage document and the validator follow;
+  the presentation baseline gains six records and keeps every other one.
+- **The future fixture.** `test/fixtures/v12/laboratory_future_en_it.json`,
+  written by the same generator: Speak (repeat, free response), Ink
+  (trace), Submit (audio), a Story ending on a Speak step and a Story whose
+  flow branches on a choice. Its test reads it, audits it (information and
+  warnings only), plays nothing of it, and carries it through the canonical
+  editor, a JSON round trip and a package unchanged.
+- **Verification.** `negative_cases_256_test` (what the parser refuses,
+  what the Audit blocks, what a malformed flow reports) and
+  `semantic_equality_256_test` (defaults, metadata, timestamps, publication
+  state, IDs, item order, JSON round trips); the Revision 6 end-to-end
+  scenario stands as the plan's final acceptance.
+- Beta expiry `2026-10-29 23:59:59` local time.
+
 # 2.0.56 (Build 256, Revision 6) - Interoperability - 2026-09-28
 
 Session 7 of the exercise architecture redesign (plan Part B item 7):

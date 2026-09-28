@@ -218,6 +218,12 @@ class _RoundScreenState extends State<RoundScreen> {
   // is greater than 1; single-select exercises keep using `_selected`.
   final Set<int> _multiSelected = {};
 
+  // Assign state (Build 256 Revision 7): the items placed in each target, in
+  // placement order, and the bank tile armed for the next destination tap.
+  final Map<String, List<String>> _assignPlacements = {};
+  String? _armedAssignItemId;
+  List<String> _assignTileOrder = [];
+
   // Linked-gap Select state: maps each gap ID from the exercise's layout to
   // the item ID currently filling it (or null when empty), mirroring
   // Arrange's `_gapFill`/`_armedGapId`. Unlike Arrange, options are never
@@ -607,6 +613,17 @@ class _RoundScreenState extends State<RoundScreen> {
     _multiSelected.clear();
     _selectGapFill.clear();
     _selectArmedGapId = null;
+    _assignPlacements.clear();
+    _armedAssignItemId = null;
+    _assignTileOrder = const [];
+    if (f.primitive == ExercisePrimitive.assign) {
+      _assignTileOrder = f.shuffleItems
+          ? _shuffledItemIds(ex.items)
+          : [for (final item in ex.items) item.id];
+      for (final target in ex.targets) {
+        _assignPlacements[target.id] = [];
+      }
+    }
     _gapTileOrder = f.arrangeInline ? _shuffledItemIds(ex.items) : const [];
     if (f.arrangeInline) {
       for (final element in ex.layout) {
@@ -942,6 +959,12 @@ class _RoundScreenState extends State<RoundScreen> {
         }
         break;
       case ExercisePrimitive.assign:
+        final answer = _assignAnswerText(ex, {
+          for (final entry in f.assignmentsByTarget.entries)
+            entry.key: entry.value.toList(),
+        });
+        if (answer.isNotEmpty) return answer;
+        break;
       case ExercisePrimitive.speak:
       case ExercisePrimitive.ink:
       case ExercisePrimitive.submit:
@@ -1210,9 +1233,39 @@ class _RoundScreenState extends State<RoundScreen> {
     if (_builtOrder.isNotEmpty) {
       return _builtOrder.join(_features.joinsWithoutSpaces ? '' : ' ');
     }
+    if (_assignPlacements.values.any((placed) => placed.isNotEmpty)) {
+      return _assignAnswerText(_exercise, _assignPlacements);
+    }
     final typed = _textController.text.trim();
     return typed.isEmpty ? null : typed;
   }
+
+  /// "Animals: gatto, cane · Food: mela" for the given placements; targets
+  /// are named by their layout label, else by their position.
+  String _assignAnswerText(Exercise ex, Map<String, List<String>> placements) {
+    final f = ExerciseFeatures(ex);
+    final parts = <String>[];
+    for (var i = 0; i < ex.targets.length; i++) {
+      final target = ex.targets[i];
+      final items = (placements[target.id] ?? const <String>[])
+          .map((id) => _itemValue(ex, id))
+          .where((value) => value.isNotEmpty)
+          .toList();
+      if (items.isEmpty) continue;
+      final label = f.targetLabel(target.id);
+      parts.add(
+        '${label.isEmpty ? _assignTargetFallbackLabel(f, i) : label}: ${items.join(', ')}',
+      );
+    }
+    return parts.join(' · ');
+  }
+
+  String _assignTargetFallbackLabel(ExerciseFeatures f, int index) =>
+      switch (f.assignTargetMode) {
+        AssignTargetMode.slots => 'Slot ${index + 1}',
+        AssignTargetMode.gaps => 'Gap ${index + 1}',
+        _ => 'Group ${index + 1}',
+      };
 
   void _logStoryItem() {
     if (!_storyScrolls) return;
@@ -3248,11 +3301,239 @@ class _RoundScreenState extends State<RoundScreen> {
         }
         return _flashcardExercise(ex);
       case ExercisePrimitive.assign:
+        return _assignExercise(ex);
       case ExercisePrimitive.speak:
       case ExercisePrimitive.ink:
       case ExercisePrimitive.submit:
         return _notExecutableCard(ex);
     }
+  }
+
+  /// Assign (Build 256 Revision 7): tap a bank tile, then the destination
+  /// that takes it; a placed item's chip gives it back. Groups and slots are
+  /// bins in a column, gaps are slots inside the text. Capacity single
+  /// replaces what a destination held; multiple and unlimited add to it. A
+  /// reusable item stays in the bank; otherwise it leaves the bank and any
+  /// other destination.
+  Widget _assignExercise(Exercise ex) {
+    final f = _features;
+    final itemById = {for (final item in ex.items) item.id: item};
+    final placed = {
+      for (final placements in _assignPlacements.values) ...placements,
+    };
+    final bank = _assignTileOrder.where(
+      (id) => f.assignItemReuse || !placed.contains(id),
+    );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: _exercisePanelColor,
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: f.assignTargetMode == AssignTargetMode.gaps
+              ? _assignInlineLayout(ex, itemById)
+              : _assignBins(ex, itemById),
+        ),
+        const SizedBox(height: 16),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final itemId in bank)
+              ChoiceChip(
+                key: Key('assign-tile-$itemId'),
+                label: Text(itemById[itemId]?.value ?? ''),
+                selected: _armedAssignItemId == itemId,
+                onSelected: _answered ? null : (_) => _onAssignTileTap(itemId),
+              ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        FilledButton(
+          key: const Key('assign-check'),
+          onPressed: _answered || placed.isEmpty ? null : _submitAssign,
+          child: const Text('Check'),
+        ),
+      ],
+    );
+  }
+
+  Widget _assignBins(Exercise ex, Map<String, ExerciseItem> itemById) {
+    final f = _features;
+    final scheme = Theme.of(context).colorScheme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (var i = 0; i < ex.targets.length; i++)
+          InkWell(
+            key: Key('assign-target-${ex.targets[i].id}'),
+            borderRadius: BorderRadius.circular(10),
+            onTap: _answered
+                ? null
+                : () => _onAssignTargetTap(ex.targets[i].id),
+            child: Container(
+              margin: EdgeInsets.only(
+                bottom: i + 1 < ex.targets.length ? 8 : 0,
+              ),
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: scheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: _armedAssignItemId != null
+                      ? scheme.primary
+                      : Colors.transparent,
+                  width: 2,
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    f.targetLabel(ex.targets[i].id).isEmpty
+                        ? _assignTargetFallbackLabel(f, i)
+                        : f.targetLabel(ex.targets[i].id),
+                    style: Theme.of(context).textTheme.labelLarge,
+                  ),
+                  const SizedBox(height: 6),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: [
+                      for (final itemId
+                          in _assignPlacements[ex.targets[i].id] ??
+                              const <String>[])
+                        InputChip(
+                          key: Key('assign-placed-${ex.targets[i].id}-$itemId'),
+                          label: Text(itemById[itemId]?.value ?? ''),
+                          onDeleted: _answered
+                              ? null
+                              : () => _removeAssignPlacement(
+                                  ex.targets[i].id,
+                                  itemId,
+                                ),
+                        ),
+                      if ((_assignPlacements[ex.targets[i].id] ?? const [])
+                          .isEmpty)
+                        Text(
+                          f.assignTargetMode == AssignTargetMode.slots
+                              ? 'Empty'
+                              : 'Nothing here yet',
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _assignInlineLayout(Exercise ex, Map<String, ExerciseItem> itemById) {
+    final scheme = Theme.of(context).colorScheme;
+    return Wrap(
+      crossAxisAlignment: WrapCrossAlignment.center,
+      spacing: 6,
+      runSpacing: 8,
+      children: [
+        for (final segment in ex.layout)
+          if (segment.isText)
+            Text(segment.text, style: Theme.of(context).textTheme.titleMedium)
+          else
+            GestureDetector(
+              key: Key('assign-slot-${segment.targetId}'),
+              behavior: HitTestBehavior.opaque,
+              onTap: _answered
+                  ? null
+                  : () => _onAssignTargetTap(segment.targetId),
+              child: Container(
+                constraints: const BoxConstraints(minWidth: 56),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color:
+                      (_assignPlacements[segment.targetId] ?? const []).isEmpty
+                      ? scheme.surfaceContainerHighest
+                      : scheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: _armedAssignItemId != null
+                        ? scheme.primary
+                        : Colors.transparent,
+                    width: 2,
+                  ),
+                ),
+                child: Text(
+                  (_assignPlacements[segment.targetId] ?? const <String>[])
+                      .map((id) => itemById[id]?.value ?? '')
+                      .join(', '),
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ),
+            ),
+      ],
+    );
+  }
+
+  void _onAssignTileTap(String itemId) {
+    if (_answered) return;
+    setState(
+      () => _armedAssignItemId = _armedAssignItemId == itemId ? null : itemId,
+    );
+  }
+
+  void _onAssignTargetTap(String targetId) {
+    if (_answered) return;
+    final itemId = _armedAssignItemId;
+    if (itemId == null) return;
+    setState(() {
+      final f = _features;
+      final placements = _assignPlacements.putIfAbsent(targetId, () => []);
+      if (!f.assignItemReuse) {
+        // An item lives in one place: take it out of wherever it was.
+        for (final placed in _assignPlacements.values) {
+          placed.remove(itemId);
+        }
+      } else if (placements.contains(itemId)) {
+        _armedAssignItemId = null;
+        return;
+      }
+      if (f.targetCapacity == TargetCapacity.single) placements.clear();
+      placements.add(itemId);
+      _armedAssignItemId = null;
+    });
+  }
+
+  void _removeAssignPlacement(String targetId, String itemId) {
+    if (_answered) return;
+    setState(() => _assignPlacements[targetId]?.remove(itemId));
+  }
+
+  /// exactAssignments: every target holds exactly the items authored for it
+  /// (order does not matter); a target with no authored items stays empty.
+  void _submitAssign() {
+    if (_answered) return;
+    final expected = _features.assignmentsByTarget;
+    if (expected.isEmpty) {
+      _mark(false);
+      return;
+    }
+    for (final target in _exercise.targets) {
+      final placed = (_assignPlacements[target.id] ?? const <String>[]).toSet();
+      final wanted = expected[target.id] ?? const <String>{};
+      if (placed.length != wanted.length || !placed.containsAll(wanted)) {
+        _mark(false);
+        return;
+      }
+    }
+    _mark(true);
   }
 
   /// The text the card shows for an exercise this version cannot play: its

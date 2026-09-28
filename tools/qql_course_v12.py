@@ -525,3 +525,51 @@ def story_flow(entries: list[tuple[str, bool]], *, title: str, presentation: str
     if read_aloud != "automatic":
         flow["readAloud"] = read_aloud
     return flow
+
+
+def assign_exercise(*, updated_at: str, mode: str, question: str,
+                    items: list[tuple[str, str]], targets: list[tuple[str, str]],
+                    assignments: dict[str, list[str]], capacity: str = "single",
+                    reuse: str = "forbidden", shuffle: bool = True,
+                    sentence: list | None = None) -> dict:
+    """An Assign exercise in its canonical shape (Build 256 Revision 7).
+    `items` are (id, text); `targets` are (id, label): for groups and slots
+    the layout is a label text before each target (an empty label gives a
+    bare target); for gaps, `sentence` lists the text runs and (target id,)
+    tuples in reading order and the layout option is inline. Exact
+    assignments: `assignments` maps a target ID to the item IDs it holds."""
+    options = {"targetMode": mode}
+    if capacity != "single":
+        options["targetCapacity"] = capacity
+    if reuse != "forbidden":
+        options["itemReuse"] = reuse
+    if mode == "gaps":
+        options["layout"] = "inline"
+    if not shuffle:
+        options["shuffleItems"] = False
+    layout = []
+    if mode == "gaps":
+        for part in sentence or []:
+            if isinstance(part, tuple):
+                layout.append({"type": "target", "targetId": part[0]})
+            else:
+                layout.append({"type": "text", "text": part})
+    else:
+        for target_id, label in targets:
+            if label:
+                layout.append({"type": "text", "text": label})
+            layout.append({"type": "target", "targetId": target_id})
+    return {
+        "updatedAt": updated_at, "primitive": "assign",
+        "options": _ordered_options(options),
+        "prompt": [{"role": "question", "type": "text", "text": question}],
+        "items": [{"id": item_id, "content": [{"role": "primary", "type": "text", "text": text}]}
+                  for item_id, text in items],
+        "targets": [{"id": target_id} for target_id, _ in targets],
+        "layout": layout,
+        "evaluation": _ordered_evaluation({
+            "mode": "exactAssignments",
+            "assignments": [{"targetId": target_id, "itemIds": item_ids}
+                            for target_id, item_ids in assignments.items()],
+        }),
+    }

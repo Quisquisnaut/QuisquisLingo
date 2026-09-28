@@ -75,6 +75,14 @@ void main() {
       final exercise = content.exercise!;
       test('${content.id} (${content.editorTemplate})', () {
         final presetId = content.editorTemplate;
+        if (presetId.isEmpty) {
+          // The Assign Lesson has no preset (Build 256 Revision 7): no
+          // recipe represents it and recognition names none.
+          expect(exercise.primitive, ExercisePrimitive.assign);
+          expect(PresetRecipes.recognize(exercise), isNull);
+          expect(PresetRecipes.presetToEdit(exercise), isNull);
+          return;
+        }
         expect(PresetRecipes.represents(exercise, presetId), isTrue);
         // Recognition finds the same preset once the metadata is gone.
         final stripped = exercise.withAuthoringMetadata(const {});

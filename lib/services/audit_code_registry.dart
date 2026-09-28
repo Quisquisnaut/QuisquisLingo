@@ -815,6 +815,14 @@ enum AuditCode {
     'The Round has no flow, so the line plays as a plain card.',
     'Turn on Play as a Story in the Round editor, or use a Note card.',
   ),
+  assignStructureRequired(
+    'ASSIGN_STRUCTURE_REQUIRED',
+    AuditSeverity.error,
+    'Exercise: Assign',
+    'An Assign has nothing to place, nowhere to place it, or no answer.',
+    'The exercise has no item or no target, or its exactAssignments name no item for any target.',
+    'Add at least one item and one target, and mark which items each target holds.',
+  ),
   exerciseNotExecutable(
     'EXERCISE_NOT_EXECUTABLE',
     AuditSeverity.info,

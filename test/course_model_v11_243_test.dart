@@ -476,12 +476,17 @@ void main() {
           final b = <LearningContent>[];
           for (final lesson in shipped.lessons) {
             for (final round in lesson.rounds) {
+              // Build 256 Revision 7: the Assign Lesson is canonical content
+              // without a preset and has no v11 shape either.
               final storyRound =
                   round.flow != null ||
                   round.content.any(
-                    (content) => PresetRecipes.canonicalOnly.contains(
-                      content.editorTemplate,
-                    ),
+                    (content) =>
+                        PresetRecipes.canonicalOnly.contains(
+                          content.editorTemplate,
+                        ) ||
+                        (content.exercise != null &&
+                            content.editorTemplate.isEmpty),
                   );
               for (final content in round.content) {
                 if (knownIds.contains(content.id)) {

@@ -273,6 +273,22 @@ void main() {
         final course = _load(file);
         var checked = 0;
         for (final content in _exerciseContent(course)) {
+          if (content.editorTemplate.isEmpty) {
+            // The Assign Lesson has no preset (Build 256 Revision 7): its
+            // kind comes from the target mode alone.
+            expect(content.exercise!.primitive, ExercisePrimitive.assign);
+            expect(
+              ExerciseFeatures(content.exercise!).kind,
+              isIn([
+                LearnerExerciseKind.assignGroups,
+                LearnerExerciseKind.assignSlots,
+                LearnerExerciseKind.assignGaps,
+              ]),
+              reason: content.id,
+            );
+            checked++;
+            continue;
+          }
           final expected = _expectedKinds[content.editorTemplate];
           expect(expected, isNotNull, reason: content.editorTemplate);
           expect(

@@ -226,11 +226,14 @@ List<Exercise> canonicalNotExecutable256() => [
       ],
     ),
   ),
+  // Groups play since Build 256 Revision 7; drag placement still waits, so
+  // this one stays an exercise this version cannot play.
   _exercise(
     'assign_groups',
     ExercisePrimitive.assign,
     options: {
       OptionKey.targetMode: const EnumOptionValue(AssignTargetMode.categories),
+      OptionKey.placementMode: const EnumOptionValue(PlacementMode.drag),
     },
     prompt: [_text('Sort the words', role: 'question')],
     items: [_item('as_0', 'gatto'), _item('as_1', 'mela')],

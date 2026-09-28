@@ -193,6 +193,12 @@ class ExerciseCopyService {
     'instruction.arrangeWord': 'Build the word shown in the image.',
     'instruction.matchTranslation': 'Match each word with its translation.',
     'instruction.match': 'Match the corresponding items.',
+    'type.assignGroups': 'SORT INTO GROUPS',
+    'type.assignSlots': 'FILL THE SLOTS',
+    'type.assignGaps': 'FILL THE GAPS',
+    'instruction.assignGroups': 'Tap an item, then the group it belongs to.',
+    'instruction.assignSlots': 'Tap an item, then its slot.',
+    'instruction.assignGaps': 'Tap a word, then the gap it fills.',
     'instruction.inputListenGaps': 'Listen and complete the missing word.',
     'instruction.inputListenWrite': 'Listen and write what you hear.',
     'instruction.matchAudio':
@@ -256,6 +262,13 @@ class ExerciseCopyService {
     'instruction.arrangeWord': 'Forma la palabra que aparece en la imagen.',
     'instruction.matchTranslation': 'Relaciona cada palabra con su traducción.',
     'instruction.match': 'Relaciona los elementos correspondientes.',
+    'type.assignGroups': 'ORDENA EN GRUPOS',
+    'type.assignSlots': 'RELLENA LAS CASILLAS',
+    'type.assignGaps': 'RELLENA LOS HUECOS',
+    'instruction.assignGroups':
+        'Toca un elemento y luego el grupo al que pertenece.',
+    'instruction.assignSlots': 'Toca un elemento y luego su casilla.',
+    'instruction.assignGaps': 'Toca una palabra y luego el hueco que rellena.',
     'instruction.inputListenGaps': 'Escucha y completa la palabra que falta.',
     'instruction.inputListenWrite': 'Escucha y escribe lo que oyes.',
     'instruction.matchAudio':
@@ -322,6 +335,13 @@ class ExerciseCopyService {
     'instruction.arrangeWord': 'Componi la parola mostrata nell’immagine.',
     'instruction.matchTranslation': 'Abbina ogni parola alla sua traduzione.',
     'instruction.match': 'Abbina gli elementi corrispondenti.',
+    'type.assignGroups': 'SMISTA IN GRUPPI',
+    'type.assignSlots': 'RIEMPI LE CASELLE',
+    'type.assignGaps': 'RIEMPI GLI SPAZI',
+    'instruction.assignGroups':
+        'Tocca un elemento, poi il gruppo a cui appartiene.',
+    'instruction.assignSlots': 'Tocca un elemento, poi la sua casella.',
+    'instruction.assignGaps': 'Tocca una parola, poi lo spazio che riempie.',
     'instruction.inputListenGaps': 'Ascolta e completa la parola mancante.',
     'instruction.inputListenWrite': 'Ascolta e scrivi ciò che senti.',
     'instruction.matchAudio':
@@ -391,6 +411,14 @@ class ExerciseCopyService {
     'instruction.arrangeWord': 'Bilde das Wort auf dem Bild.',
     'instruction.matchTranslation': 'Ordne jedes Wort seiner Übersetzung zu.',
     'instruction.match': 'Ordne die passenden Elemente einander zu.',
+    'type.assignGroups': 'IN GRUPPEN SORTIEREN',
+    'type.assignSlots': 'FELDER FÜLLEN',
+    'type.assignGaps': 'LÜCKEN FÜLLEN',
+    'instruction.assignGroups':
+        'Tippe auf ein Element und dann auf seine Gruppe.',
+    'instruction.assignSlots': 'Tippe auf ein Element und dann auf sein Feld.',
+    'instruction.assignGaps':
+        'Tippe auf ein Wort und dann auf die Lücke, die es füllt.',
     'instruction.inputListenGaps': 'Höre zu und ergänze das fehlende Wort.',
     'instruction.inputListenWrite': 'Höre zu und schreibe, was du hörst.',
     'instruction.matchAudio':
@@ -457,6 +485,14 @@ class ExerciseCopyService {
     'instruction.arrangeWord': 'Forme a palavra mostrada na imagem.',
     'instruction.matchTranslation': 'Associe cada palavra à sua tradução.',
     'instruction.match': 'Associe os elementos correspondentes.',
+    'type.assignGroups': 'ORDENAR EM GRUPOS',
+    'type.assignSlots': 'PREENCHER AS CASAS',
+    'type.assignGaps': 'PREENCHER AS LACUNAS',
+    'instruction.assignGroups':
+        'Toque num item e depois no grupo a que pertence.',
+    'instruction.assignSlots': 'Toque num item e depois na sua casa.',
+    'instruction.assignGaps':
+        'Toque numa palavra e depois na lacuna que ela preenche.',
     'instruction.inputListenGaps': 'Ouça e complete a palavra em falta.',
     'instruction.inputListenWrite': 'Ouça e escreva o que ouve.',
     'instruction.matchAudio': 'Ouça e associe cada áudio à palavra correta.',
@@ -520,6 +556,14 @@ class ExerciseCopyService {
     'instruction.arrangeWord': 'Maak het woord dat op de afbeelding staat.',
     'instruction.matchTranslation': 'Koppel elk woord aan de vertaling.',
     'instruction.match': 'Koppel de bijbehorende items.',
+    'type.assignGroups': 'IN GROEPEN SORTEREN',
+    'type.assignSlots': 'VAKJES VULLEN',
+    'type.assignGaps': 'GATEN VULLEN',
+    'instruction.assignGroups':
+        'Tik op een item en dan op de groep waar het bij hoort.',
+    'instruction.assignSlots': 'Tik op een item en dan op zijn vakje.',
+    'instruction.assignGaps':
+        'Tik op een woord en dan op het gat dat het vult.',
     'instruction.inputListenGaps': 'Luister en vul het ontbrekende woord aan.',
     'instruction.inputListenWrite': 'Luister en schrijf wat je hoort.',
     'instruction.matchAudio':
@@ -583,6 +627,14 @@ class ExerciseCopyService {
     'instruction.arrangeWord': 'Muodosta kuvassa näkyvä sana.',
     'instruction.matchTranslation': 'Yhdistä jokainen sana sen käännökseen.',
     'instruction.match': 'Yhdistä toisiaan vastaavat kohteet.',
+    'type.assignGroups': 'LAJITTELE RYHMIIN',
+    'type.assignSlots': 'TÄYTÄ PAIKAT',
+    'type.assignGaps': 'TÄYTÄ AUKOT',
+    'instruction.assignGroups':
+        'Napauta kohdetta ja sitten ryhmää, johon se kuuluu.',
+    'instruction.assignSlots': 'Napauta kohdetta ja sitten sen paikkaa.',
+    'instruction.assignGaps':
+        'Napauta sanaa ja sitten aukkoa, jonka se täyttää.',
     'instruction.inputListenGaps': 'Kuuntele ja täydennä puuttuva sana.',
     'instruction.inputListenWrite': 'Kuuntele ja kirjoita kuulemasi.',
     'instruction.matchAudio':
@@ -647,6 +699,13 @@ class ExerciseCopyService {
     'instruction.arrangeWord': 'Ffurfiwch y gair a ddangosir yn y ddelwedd.',
     'instruction.matchTranslation': 'Parwch bob gair â’i gyfieithiad.',
     'instruction.match': 'Parwch yr eitemau cyfatebol.',
+    'type.assignGroups': 'DIDOLI I GRWPIAU',
+    'type.assignSlots': 'LLENWI’R SLOTIAU',
+    'type.assignGaps': 'LLENWI’R BYLCHAU',
+    'instruction.assignGroups':
+        'Tapiwch eitem, yna’r grŵp y mae’n perthyn iddo.',
+    'instruction.assignSlots': 'Tapiwch eitem, yna ei slot.',
+    'instruction.assignGaps': 'Tapiwch air, yna’r bwlch y mae’n ei lenwi.',
     'instruction.inputListenGaps': 'Gwrandewch a chwblhewch y gair coll.',
     'instruction.inputListenWrite':
         'Gwrandewch ac ysgrifennwch yr hyn a glywch.',

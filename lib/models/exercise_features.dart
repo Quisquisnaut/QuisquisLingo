@@ -83,6 +83,15 @@ enum LearnerExerciseKind {
   /// meaning (Build 256 Revision 5).
   storyCover,
 
+  /// Assign: items sorted into named groups (Build 256 Revision 7).
+  assignGroups,
+
+  /// Assign: one item per slot (Build 256 Revision 7).
+  assignSlots,
+
+  /// Assign: items placed into the gaps of a text (Build 256 Revision 7).
+  assignGaps,
+
   /// A primitive today's runtime does not play.
   other,
 }
@@ -580,10 +589,64 @@ class ExerciseFeatures {
         }
         return LearnerExerciseKind.presentation;
       case ExercisePrimitive.assign:
+        return switch (assignTargetMode) {
+          AssignTargetMode.categories => LearnerExerciseKind.assignGroups,
+          AssignTargetMode.slots => LearnerExerciseKind.assignSlots,
+          AssignTargetMode.gaps => LearnerExerciseKind.assignGaps,
+          AssignTargetMode.regions ||
+          AssignTargetMode.cells => LearnerExerciseKind.other,
+        };
       case ExercisePrimitive.speak:
       case ExercisePrimitive.ink:
       case ExercisePrimitive.submit:
         return LearnerExerciseKind.other;
     }
+  }
+
+  // ------------------------------------------------------------------ assign
+
+  /// What an Assign's destinations are (Build 256 Revision 7).
+  AssignTargetMode get assignTargetMode =>
+      options.enumValue<AssignTargetMode>(OptionKey.targetMode) ??
+      AssignTargetMode.categories;
+
+  /// How many items one destination takes.
+  TargetCapacity get targetCapacity =>
+      options.enumValue<TargetCapacity>(OptionKey.targetCapacity) ??
+      TargetCapacity.single;
+
+  /// Whether an item may be placed more than once (it stays in the bank).
+  bool get assignItemReuse =>
+      (options.enumValue<ItemReuse>(OptionKey.itemReuse) ??
+          ItemReuse.forbidden) !=
+      ItemReuse.forbidden;
+
+  /// Whether the item bank is shuffled.
+  bool get shuffleItems => options.boolValue(OptionKey.shuffleItems) ?? true;
+
+  /// The items each target must hold (exactAssignments), by target ID.
+  Map<String, Set<String>> get assignmentsByTarget {
+    final result = <String, Set<String>>{};
+    for (final assignment in evaluation.assignments) {
+      result
+          .putIfAbsent(assignment.targetId, () => <String>{})
+          .addAll(assignment.itemIds);
+    }
+    return result;
+  }
+
+  /// The label of a group or slot: the text run just before its target in
+  /// the layout, without a trailing colon; empty when the layout has none.
+  String targetLabel(String targetId) {
+    final layout = exercise.layout;
+    for (var i = 0; i < layout.length; i++) {
+      if (!layout[i].isTarget || layout[i].targetId != targetId) continue;
+      if (i == 0 || !layout[i - 1].isText) return '';
+      return layout[i - 1].text
+          .trim()
+          .replaceAll(RegExp(r'[:：]\s*$'), '')
+          .trim();
+    }
+    return '';
   }
 }

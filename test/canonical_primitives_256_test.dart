@@ -151,7 +151,13 @@ void main() {
     final primitives = ExercisePresetRegistry.presets
         .map((preset) => preset.primitive)
         .toSet();
-    expect(primitives, ExercisePrimitive.executableToday.toSet());
+    // Build 256 Revision 7: Assign plays but has no preset yet; it is
+    // authored in the canonical editor.
+    expect(
+      primitives,
+      ExercisePrimitive.executableToday.toSet()
+        ..remove(ExercisePrimitive.assign),
+    );
     for (final preset in ExercisePresetRegistry.presets) {
       expect(ExercisePrimitive.values, contains(preset.primitive));
     }

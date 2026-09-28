@@ -20,11 +20,15 @@ import zlib
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from qql_course_v12 import convert_course_v11_to_v12, story_cover, story_flow, story_line  # noqa: E402
+from qql_course_v12 import _ordered_evaluation, _ordered_options, assign_exercise, convert_course_v11_to_v12, story_cover, story_flow, story_line  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 ASSET = ROOT / "assets/courses/exercise_laboratory_en_it.json"
 COVERAGE = ROOT / "docs/254_LABORATORY_COVERAGE.md"
+# The test-only fixture of what this version cannot play (Build 256
+# Revision 7, plan A.12): the same generator, a Course that is never bundled.
+FIXTURE = ROOT / "test/fixtures/v12/laboratory_future_en_it.json"
+FUTURE_ID = "course_9b1f6c2e-8d4a-4c3b-9e7f-2a5d6c8b1f04"
 # Allocated once with Course.newCourseId(); regeneration retains the identity.
 COURSE_ID = "course_50d68435-d2c2-4b63-9a0b-b23161357f1d"
 STAMP = "2026-09-25T00:00:00.000Z"
@@ -286,6 +290,37 @@ class Laboratory:
         self.start_lesson(title, description)
         self.story_lessons.append(self.lessons.pop())
 
+    def start_canonical_lesson(self, title: str, description: str) -> None:
+        """A Lesson whose exercises exist only in the canonical shape (no v11
+        recipe, no preset): it joins the Course after the v11 conversion, as
+        the Story Lesson does (Build 256 Revision 7: Assign)."""
+        self.start_story_lesson(title, description)
+
+    def assign(self, key: str, mode: str, question: str, items: list[tuple[str, str]],
+               targets: list[tuple[str, str]], assignments: dict[str, list[str]],
+               capability: str, answer: str, *, capacity: str = "single",
+               reuse: str = "forbidden", sentence: list | None = None) -> None:
+        """An Assign example (Build 256 Revision 7), authored canonically: no
+        editorTemplate, global item and target IDs."""
+        identity = "qql_lab254_" + key
+        item_ids = {item_id: f"{identity}_{item_id}" for item_id, _ in items}
+        target_ids = {target_id: f"{identity}_{target_id}" for target_id, _ in targets}
+        exercise = assign_exercise(
+            updated_at=STAMP, mode=mode, question=question,
+            items=[(item_ids[i], text) for i, text in items],
+            targets=[(target_ids[t], label) for t, label in targets],
+            assignments={target_ids[t]: [item_ids[i] for i in ids] for t, ids in assignments.items()},
+            capacity=capacity, reuse=reuse,
+            sentence=None if sentence is None else [
+                (target_ids[part[0]],) if isinstance(part, tuple) else part for part in sentence],
+        )
+        self.round["content"].append({
+            "id": identity, "publicationState": "published", "kind": "exercise",
+            "required": True, "exercise": exercise,
+        })
+        self.cases.append({"id": identity, "lesson": self.lesson["title"], "round": self.round["title"],
+                           "preset": "canonical:assign", "capability": capability, "answer": answer})
+
     def start_story(self, key: str, title: str, intro: str, story_title: str, *,
                     read_aloud: str = "automatic") -> None:
         """A Story Round: scrolling, dialogue-only log; finish_story writes
@@ -513,6 +548,39 @@ def laboratory() -> Laboratory:
     lab.line("options_audio_only", "No, grazie. Solo il caffè.", "Dialogue line; audio only, read on request", speaker=anna, mode="audio", read_aloud="manual")
     lab.line("options_automatic", "Ecco il suo caffè.", "Dialogue line; read aloud automatically although the Story reads on request", speaker=luca, read_aloud="automatic")
     lab.finish_story()
+    lab.start_canonical_lesson("Assign", "Assign places items into destinations (Build 256 Revision 7): tap an item, then the group, slot or gap that takes it; Check grades every destination at once. A group may take several items, a slot or a gap takes one; a reusable item stays in the bank. Assign has no preset yet, so these examples are authored in the canonical editor. Picture regions, grid cells and drag placement wait for a later version.")
+    lab.start_round("assign_bins", "Groups and slots", "Sort the words into their groups, or fill each slot with the right word. Tap a word, then its destination; Check when every word is placed.")
+    lab.assign("assign_groups", "categories", "Sort the words: animals or food?",
+               [("gatto", "gatto"), ("cane", "cane"), ("mela", "mela"), ("pane", "pane")],
+               [("animals", "Animals"), ("food", "Food")],
+               {"animals": ["gatto", "cane"], "food": ["mela", "pane"]},
+               "Assign, groups; a group takes several items (capacity multiple), reuse forbidden",
+               "Animals: gatto, cane; Food: mela, pane", capacity="multiple")
+    lab.assign("assign_groups_leftover", "categories", "Put the animals in their group and leave the other word out.",
+               [("gatto", "gatto"), ("cane", "cane"), ("tavolo", "tavolo")],
+               [("animals", "Animals")], {"animals": ["gatto", "cane"]},
+               "Assign, groups; an item that belongs nowhere stays in the bank (capacity unlimited)",
+               "Animals: gatto, cane; tavolo stays in the bank", capacity="unlimited")
+    lab.assign("assign_slots", "slots", "Which article goes with each noun?",
+               [("il", "il"), ("la", "la")], [("s1", "… gatto"), ("s2", "… casa")],
+               {"s1": ["il"], "s2": ["la"]},
+               "Assign, slots; one item per slot, a second placement replaces the first",
+               "… gatto: il; … casa: la")
+    lab.assign("assign_slots_reuse", "slots", "Which article goes with each noun? An article may serve twice.",
+               [("il", "il"), ("la", "la")], [("s1", "… cane"), ("s2", "… libro"), ("s3", "… casa")],
+               {"s1": ["il"], "s2": ["il"], "s3": ["la"]},
+               "Assign, slots; reuse allowed, the item stays in the bank",
+               "… cane: il; … libro: il; … casa: la", reuse="allowed")
+    lab.start_round("assign_gaps", "Gaps", "Fill each gap of the sentence with the right word. Tap a word, then the gap; Check when every gap is filled.")
+    lab.assign("assign_gap_one", "gaps", "Complete the sentence.",
+               [("dorme", "dorme"), ("mangia", "mangia")], [("g1", "")], {"g1": ["dorme"]},
+               "Assign, gaps; one gap inside the text, one distractor",
+               "Il gatto dorme sul divano.", sentence=["Il gatto", ("g1",), "sul divano."])
+    lab.assign("assign_gap_two", "gaps", "Complete the sentence.",
+               [("beve", "beve"), ("caffe", "caffè"), ("mangia", "mangia")], [("g1", ""), ("g2", "")],
+               {"g1": ["beve"], "g2": ["caffe"]},
+               "Assign, gaps; two gaps, one distractor", "Anna beve un caffè.",
+               sentence=["Anna", ("g1",), "un", ("g2",), "."])
     return lab
 
 
@@ -534,7 +602,7 @@ def course_v11(lab: Laboratory) -> dict:
         "title": "Temporary Demo: Exercise Laboratory", "ttsLanguage": "it-IT", "audioMode": "tts",
         "authors": [{"name": "QuisquisLingo", "roles": ["Author"]}],
         "license": "All rights reserved", "derivativeWorksPolicy": "allowed",
-        "courseDescription": "An English-to-Italian laboratory for trying every current Exercise type and its meaningful authoring options. Five Lessons group Select, Input, Arrange, Match and Presentation; a sixth Lesson is a Story. Inspect or Fork the Course in Course Studio to study how the exercises are authored. Enable Audio Exercises and Text-to-speech to include all listening and pronunciation examples; ordinary lesson progression remains in effect.",
+        "courseDescription": "An English-to-Italian laboratory for trying every current Exercise type and its meaningful authoring options. Five Lessons group Select, Input, Arrange, Match and Presentation; a sixth Lesson is a Story and a seventh holds Assign, which has no preset yet. Inspect or Fork the Course in Course Studio to study how the exercises are authored. Enable Audio Exercises and Text-to-speech to include all listening and pronunciation examples; ordinary lesson progression remains in effect.",
         "textDirection": "ltr", "temporarySample": True, "flagCode": "IT",
         "createDuels": False,
         "mediaAttributions": [{
@@ -572,25 +640,157 @@ def course(lab: Laboratory) -> dict:
     return value
 
 
+def _canonical(key: str, exercise: dict) -> dict:
+    return {"id": f"qql_labfuture_{key}", "publicationState": "published",
+            "kind": "exercise", "required": True, "exercise": exercise}
+
+
+def _intro(key: str, text: str) -> dict:
+    return {"id": f"qql_labfuture_intro_{key}", "publicationState": "published",
+            "kind": "text", "required": False, "role": "lesson_intro", "text": text}
+
+
+def _future_round(key: str, title: str, content: list[dict], *, visual: str = "generic",
+                  flow: dict | None = None) -> dict:
+    value = {"id": f"qql_labfuture_round_{key}", "publicationState": "published",
+             "updatedAt": STAMP, "title": title, "visualType": visual, "content": content}
+    if flow is not None:
+        value["flow"] = flow
+    return value
+
+
+def _speak(prompt: str, *, mode: str, evaluation: str, answers: list[str] | None = None) -> dict:
+    exercise = {"updatedAt": STAMP, "primitive": "speak",
+                "options": _ordered_options({"speechMode": mode}),
+                "prompt": [text(prompt)]}
+    value = {"mode": evaluation}
+    if answers:
+        value["answers"] = answers
+    exercise["evaluation"] = _ordered_evaluation(value)
+    return exercise
+
+
+def _ink(prompt: str, *, mode: str = "trace") -> dict:
+    return {"updatedAt": STAMP, "primitive": "ink",
+            "options": _ordered_options({"inkMode": mode}),
+            "prompt": [text(prompt)], "evaluation": {"mode": "none"}}
+
+
+def _submit(prompt: str, *, kind: str = "audio") -> dict:
+    return {"updatedAt": STAMP, "primitive": "submit",
+            "options": _ordered_options({"submissionType": kind}),
+            "prompt": [text(prompt)], "evaluation": {"mode": "presence"}}
+
+
+def _select(key: str, question: str, choices: list[str]) -> dict:
+    ids = [f"qql_labfuture_{key}_{index}" for index in range(len(choices))]
+    return {"updatedAt": STAMP, "primitive": "select",
+            "prompt": [text(question, "question")],
+            "items": [{"id": item_id, "content": [text(choice)]} for item_id, choice in zip(ids, choices)],
+            "evaluation": {"mode": "exactItem", "correctItemIds": [ids[0]]}}
+
+
+def future(root: dict) -> dict:
+    """The fixture Course (plan A.12): Speak, Ink and Submit exercises, a
+    Story ending on a Speak step and a Story whose flow branches, on the
+    Laboratory's Course root with its own identity. Never bundled: the
+    tests read it from test/fixtures/v12."""
+    anna = "qql_lab254_character_anna"
+    speak = _future_round("speak", "Speak", [
+        _intro("speak", "Speaking exercises wait for a later version: this Round shows how they are stored."),
+        _canonical("speak_repeat", _speak("Buongiorno!", mode="repeat", evaluation="transcriptionMatch", answers=["Buongiorno!"])),
+        _canonical("speak_free", _speak("Say what you had for breakfast.", mode="freeResponse", evaluation="manual")),
+    ])
+    ink = _future_round("ink_submit", "Ink and Submit", [
+        _intro("ink_submit", "Handwriting and hand-in exercises wait for a later version."),
+        _canonical("ink_trace", _ink("Trace the letter è.")),
+        _canonical("submit_audio", _submit("Record yourself greeting a friend.")),
+    ])
+    ends = [
+        _canonical("ends_cover", story_cover(updated_at=STAMP, title_line="Say it back")),
+        _canonical("ends_line", story_line("Buongiorno! Un caffè, per favore.", updated_at=STAMP, speaker_id=anna)),
+        _canonical("ends_speak", _speak("Repeat: Un caffè, per favore.", mode="repeat", evaluation="transcriptionMatch", answers=["Un caffè, per favore."])),
+    ]
+    ends_story = _future_round("ends_on_speech", "A Story that ends on speech",
+                               [_intro("ends", "A Story whose last step this version cannot play ends unrecorded."), *ends],
+                               visual="story",
+                               flow=story_flow([(c["id"], True) for c in ends], title="Say it back"))
+    branch = [
+        _canonical("branch_cover", story_cover(updated_at=STAMP, title_line="Coffee or tea")),
+        _canonical("branch_question", _select("branch_question", "What does Anna order?", ["Un caffè", "Un tè"])),
+        _canonical("branch_coffee", story_line("Un caffè, per favore.", updated_at=STAMP, speaker_id=anna)),
+        _canonical("branch_tea", story_line("Un tè, per favore.", updated_at=STAMP, speaker_id=anna)),
+        _canonical("branch_end", story_line("Grazie!", updated_at=STAMP, speaker_id=anna)),
+    ]
+    ids = [c["id"] for c in branch]
+    cover, question, coffee, tea, end = ids
+    branching_flow = {
+        "start": cover,
+        "nodes": [
+            {"id": cover, "kind": "exercise", "contentId": cover,
+             "transitions": [{"trigger": "next", "target": question}]},
+            {"id": question, "kind": "exercise", "contentId": question,
+             "transitions": [
+                 {"trigger": "onChoice", "target": coffee, "choiceItemId": f"{question}_0"},
+                 {"trigger": "onChoice", "target": tea, "choiceItemId": f"{question}_1"},
+                 {"trigger": "next", "target": end},
+             ]},
+            {"id": coffee, "kind": "exercise", "contentId": coffee,
+             "transitions": [{"trigger": "next", "target": end}]},
+            {"id": tea, "kind": "exercise", "contentId": tea,
+             "transitions": [{"trigger": "next", "target": end}]},
+            {"id": end, "kind": "exercise", "contentId": end},
+        ],
+        "presentation": "scroll", "title": "Coffee or tea", "log": "dialogue",
+    }
+    branching = _future_round("branching", "A branching Story",
+                              [_intro("branching", "A Story whose flow branches on a choice cannot start in this version."), *branch],
+                              visual="story", flow=branching_flow)
+    lesson = {
+        "lessonId": "qql_labfuture_lesson", "publicationState": "published", "updatedAt": STAMP,
+        "title": "Future", "section": False,
+        "guidebook": {"content": [{
+            "id": "qql_labfuture_guide", "publicationState": "published",
+            "kind": "explanation", "required": False, "role": "overview",
+            "text": "What QuisquisLingo stores but cannot play yet: Speak, Ink and Submit exercises, a Story ending on speech and a Story whose flow branches. Kept, editable and exported unchanged; skipped by learners.",
+        }]},
+        "rounds": [speak, ink, ends_story, branching],
+        "duel": {"id": "qql_labfuture_duel", "title": "Future Duel"},
+    }
+    value = dict(root)
+    value["courseId"] = FUTURE_ID
+    value["title"] = "Temporary Demo: Laboratory of the future"
+    value["officialReleaseNotes"] = "Build 256 Revision 7: the test-only fixture of what this version cannot play yet."
+    value["courseDescription"] = "A test-only Course beside the Exercise Laboratory: Speak, Ink and Submit exercises, a Story that ends on a Speak step and a Story whose flow branches. Nothing in it plays in this version; the Audit reports each piece as information or a warning, and every service keeps it unchanged."
+    value["keywords"] = ["exercise laboratory", "future", "speak", "ink", "submit", "branching"]
+    value["lessons"] = [lesson]
+    checksum_value = dict(value)
+    checksum_value.pop("publisherVerificationStatus")
+    canonical = json.dumps(checksum_value, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    value["officialChecksum"] = hashlib.sha256(canonical).hexdigest()
+    return value
+
+
 def coverage(lab: Laboratory) -> str:
     preset_counts: dict[str, int] = {}
     for case in lab.cases:
         preset_counts[case["preset"]] = preset_counts.get(case["preset"], 0) + 1
+    preset_count = len([preset for preset in preset_counts if not preset.startswith("canonical:")])
     rows = [
         "# Build 254 Exercise Laboratory coverage", "",
         "This document and the JSON are generated together by `tools/generate_exercise_laboratory_254.py`. Run its `--check` mode to detect drift. The current repository model, editor and learner are the source of truth; the Course does not add a new primitive or engine feature.", "",
         f"- Course: **Exercise Laboratory**, `{COURSE_ID}`.",
         "- Direction: English (`en-GB`) → Italian (`it-IT`); TTS `it-IT`.",
         "- Model 11, official Course version 1.0.0; all Lessons, Rounds and Content are Published.",
-        f"- Exactly six Lessons (five primitives and a Story), {sum(len(lesson['rounds']) for lesson in [*lab.lessons, *lab.story_lessons])} Rounds and {len(lab.cases)} runnable examples across all {len(preset_counts)} authoring presets.",
+        f"- Exactly seven Lessons (six primitives and a Story), {sum(len(lesson['rounds']) for lesson in [*lab.lessons, *lab.story_lessons])} Rounds and {len(lab.cases)} runnable examples across all {preset_count} authoring presets, plus the Assign examples authored in the canonical editor (Build 256 Revision 7).",
         "- Course rights explicitly allow Fork, so the bundled original can be inspected and a derivative can use the ordinary authoring/confirm/export/import paths.",
         "- Create Duels is off: Presentation is non-evaluable and the Course is not padded to manufacture Duel pools. The required per-Lesson Duel metadata is retained.",
         "- This Course leaves existing Course identities, learner data and media assets unchanged.", "",
         "## Source inventory and supported modes", "",
-        f"The authoring registry is `lib/models/exercise_authoring.dart`. Every one of its {len(preset_counts)} presets has at least one example below.", "",
+        f"The authoring registry is `lib/models/exercise_authoring.dart`. Every one of its {preset_count} presets has at least one example below; `canonical:assign` marks the Assign examples, which have no preset.", "",
         "| Lesson | Preset | Examples |", "| --- | --- | ---: |",
     ]
-    for lesson in ("Select", "Input", "Arrange", "Match", "Presentation", "Story"):
+    for lesson in ("Select", "Input", "Arrange", "Match", "Presentation", "Story", "Assign"):
         for preset, count in preset_counts.items():
             if any(c["lesson"] == lesson and c["preset"] == preset for c in lab.cases):
                 rows.append(f"| {lesson} | `{preset}` | {count} |")
@@ -617,6 +817,7 @@ def coverage(lab: Laboratory) -> str:
         "- Type the missing word expects a complete word whose first Unicode grapheme is shared by all accepted alternatives. It is not an Input-style character-recognition direction. Listen for missing words uses distinct complete transcript words in displayed order.",
         "- Build the translation records literal complete answers and distinct block occurrences; expressions, typo tolerance and similarity-ranked acceptance do not apply. Word order and Image-prompt ordering each expose one correct authored order. Image-prompt ordering has no distractors.",
         "- Match the pairs supports a variable count; the three named specialised Match presets require exactly three pairs. Images as matching operands and arbitrary many-to-many relationships are not exposed by the current authoring/learner paths.",
+        "- Assign (Build 256 Revision 7) plays groups (categories in columns), slots and gaps in a text by tapping an item and then its destination, graded as exact assignments. Groups may take several items or any number; a slot or a gap takes one; a reusable item stays in the bank; an item that belongs nowhere stays in the bank. Picture regions, grid cells, drag placement and the other Assign evaluation modes are readable but not executable. Assign has no catalogue preset: the examples are canonical content and open in the Generic Primitive Editor.",
         "- Flashcard coverage includes all six meaningful combinations of optional audio, usage, and usage translation (a translation requires usage). The learner buttons currently read Got it / Review again; JSON completion actions remain understood / review_later. Cards are non-evaluable and earn no correct-answer base XP. Optional omissions produce existing informational/warning Audit findings, not invalid content.",
         "- Flashcard image content is excluded: the current Presentation↔Exercise projection does not preserve images on an authoring round trip. Rich textual explanation/example/vocabulary/text/dialogue kinds share the presentation path but are not additional current Exercise picker presets. GuideBook explanations and Round introductions demonstrate explanatory text through their normal authoring surfaces.",
         "- Audio mode is On-Device TTS. Every spoken prompt is authored Italian, uses it-IT and needs an available native voice. Learner Enable Audio Exercises and Text-to-speech must be on to include every audio example; Authoring Preview ignores the learner switches. No recording transcript was guessed and no voice or MP3 is fabricated. Course audio modes and recorded-media transport are independent of the exercise primitive and covered by the separate Edge Cases Course.",
@@ -638,7 +839,9 @@ def main() -> None:
     parser.add_argument("--check", action="store_true")
     args = parser.parse_args()
     lab = laboratory()
-    outputs = {ASSET: json.dumps(course(lab), ensure_ascii=False, indent=2) + "\n", COVERAGE: coverage(lab)}
+    laboratory_course = course(lab)
+    outputs = {ASSET: json.dumps(laboratory_course, ensure_ascii=False, indent=2) + "\n", COVERAGE: coverage(lab),
+               FIXTURE: json.dumps(future(laboratory_course), ensure_ascii=False, indent=2) + "\n"}
     for path, expected in outputs.items():
         if args.check:
             if not path.is_file() or path.read_text(encoding="utf-8") != expected:

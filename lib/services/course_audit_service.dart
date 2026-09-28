@@ -1339,6 +1339,9 @@ class CourseAuditService {
     LearnerExerciseKind.presentation => 'a Flashcard',
     LearnerExerciseKind.dialogueLine => 'a Dialogue line',
     LearnerExerciseKind.storyCover => 'a Story cover',
+    LearnerExerciseKind.assignGroups => 'Sort into groups',
+    LearnerExerciseKind.assignSlots => 'Fill the slots',
+    LearnerExerciseKind.assignGaps => 'Fill the gaps',
     LearnerExerciseKind.other => 'an exercise this version cannot play',
   };
 
@@ -1478,7 +1481,11 @@ class CourseAuditService {
         AuditCode.exerciseTargetReference,
         'An inline layout needs at least one target.',
       );
-    } else if (!inlineOption && ex.layout.isNotEmpty) {
+    } else if (!inlineOption &&
+        ex.layout.isNotEmpty &&
+        ex.primitive != ExercisePrimitive.assign) {
+      // An Assign's layout names its destinations in any layout (a label
+      // text before each target; Build 256 Revision 7).
       add(
         AuditCode.exerciseTargetReference,
         'Only an inline layout may carry layout elements; choose the inline layout or remove them.',
@@ -2129,6 +2136,23 @@ class CourseAuditService {
           );
         }
       case ExercisePrimitive.assign:
+        // Build 256 Revision 7: groups, slots and gaps play; the structure
+        // an Assign needs is items, targets and, for exactAssignments, at
+        // least one target with items.
+        if (ex.items.isEmpty || ex.targets.isEmpty) {
+          add(
+            AuditCode.assignStructureRequired,
+            'Assign needs at least one item and one target.',
+          );
+        } else if (evaluation.mode == EvaluationMode.exactAssignments &&
+            evaluation.assignments.every(
+              (assignment) => assignment.itemIds.isEmpty,
+            )) {
+          add(
+            AuditCode.assignStructureRequired,
+            'Assign needs at least one target with the items it holds.',
+          );
+        }
       case ExercisePrimitive.speak:
       case ExercisePrimitive.ink:
       case ExercisePrimitive.submit:

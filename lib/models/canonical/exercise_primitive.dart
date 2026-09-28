@@ -74,6 +74,8 @@ enum ExercisePrimitive {
     arrange,
     match,
     presentation,
+    // Build 256 Revision 7: groups, slots and gaps by tapping.
+    assign,
   ];
 
   /// Every stable identifier, in declaration order.

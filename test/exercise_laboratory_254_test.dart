@@ -9,6 +9,7 @@ import 'package:quisquislingo_app/models/exercise_authoring.dart';
 import 'package:quisquislingo_app/models/exercise_features.dart';
 import 'package:quisquislingo_app/screens/round_screen.dart';
 import 'package:quisquislingo_app/services/answer_engine.dart';
+import 'package:quisquislingo_app/services/canonical_exercise_draft.dart';
 import 'package:quisquislingo_app/services/course_audit_service.dart';
 import 'package:quisquislingo_app/services/exercise_draft_builder.dart';
 import 'package:quisquislingo_app/services/first_letter_answer_service.dart';
@@ -36,6 +37,16 @@ List<Exercise> _exercises(Course course) => [
 /// Reconstruct the values exposed by the real authoring form. The production
 /// builder, audit and runtime then consume the candidate; no grader is mocked.
 Exercise _author(Exercise exercise) {
+  // An example without a preset (the Assign Lesson, Build 256 Revision 7)
+  // is authored in the Generic Primitive Editor: its draft rebuilds it.
+  if (exercise.editorTemplate.isEmpty) {
+    final draft = CanonicalExerciseDraft.fromExercise(exercise);
+    expect(draft.violations, isEmpty, reason: exercise.id);
+    return draft.toExercise(
+      publicationState: PublicationState.published,
+      updatedAt: exercise.updatedAt,
+    );
+  }
   final hasGaps = exercise.hasArrangeGaps || exercise.hasSelectGaps;
   String valueOf(String id) =>
       exercise.interaction.items.singleWhere((item) => item.id == id).value;
@@ -173,6 +184,25 @@ Map<String, Object?> _semantics(Exercise exercise) {
     'lineLanguage': ExerciseFeatures(exercise).lineLanguage,
     'textReveal': ExerciseFeatures(exercise).textReveal.name,
     'coverTitle': ExerciseFeatures(exercise).coverTitle,
+    // Assign (Build 256 Revision 7).
+    'targets': exercise.targets.map((target) => target.id).toList(),
+    'assignments': ExerciseFeatures(exercise).assignmentsByTarget.map(
+      (target, ids) => MapEntry(
+        target,
+        ids
+            .map(
+              (id) => exercise.items.singleWhere((item) => item.id == id).value,
+            )
+            .toList()
+          ..sort(),
+      ),
+    ),
+    'layoutElements': exercise.layout
+        .map(
+          (part) =>
+              part.isText ? 'text:${part.text}' : 'target:${part.targetId}',
+        )
+        .toList(),
   };
 }
 
@@ -434,6 +464,26 @@ Future<void> _answer(
     );
     return;
   }
+  if (exercise.primitive == ExercisePrimitive.assign) {
+    // Tap an item, then its destination (Build 256 Revision 7); gaps are
+    // slots inside the text, groups and slots are bins.
+    final features = ExerciseFeatures(exercise);
+    final gaps = features.assignTargetMode == AssignTargetMode.gaps;
+    for (final entry in features.assignmentsByTarget.entries) {
+      for (final itemId in entry.value) {
+        await _tap(tester, find.byKey(Key('assign-tile-$itemId')));
+        await _tap(
+          tester,
+          find.byKey(
+            Key('${gaps ? 'assign-slot' : 'assign-target'}-${entry.key}'),
+          ),
+        );
+      }
+    }
+    await _tap(tester, find.byKey(const Key('assign-check')));
+    expect(find.text('Correct'), findsOneWidget, reason: exercise.id);
+    return;
+  }
   if (exercise.type == 'flashcard') {
     // A vocabulary card is reviewed with Got it; a Note card continues.
     final reviewable =
@@ -614,12 +664,17 @@ void main() {
         'Match',
         'Presentation',
         'Story',
+        'Assign',
       ]);
       expect(course.createDuels, isFalse);
       expect(course.derivativeWorksPolicy, DerivativeWorksPolicy.allowed);
-      expect(examples, hasLength(122));
+      expect(examples, hasLength(128));
+      // The Assign examples carry no preset (Build 256 Revision 7).
       expect(
-        examples.map((e) => e.editorTemplate).toSet(),
+        examples
+            .map((e) => e.editorTemplate)
+            .where((id) => id.isNotEmpty)
+            .toSet(),
         ExercisePresetRegistry.presets.map((p) => p.id).toSet(),
       );
       for (final lesson in course.lessons) {
@@ -630,8 +685,14 @@ void main() {
           for (final exercise in round.exercises) {
             expect(exercise.publicationState, PublicationState.published);
             // The Story Lesson mixes a cover, lines and exercises of several
-            // primitives (Build 256 Revision 5).
+            // primitives (Build 256 Revision 5); the Assign Lesson has no
+            // preset (Build 256 Revision 7).
             if (lesson.title == 'Story') continue;
+            if (lesson.title == 'Assign') {
+              expect(exercise.primitive, ExercisePrimitive.assign);
+              expect(exercise.editorTemplate, isEmpty);
+              continue;
+            }
             expect(
               ExercisePresetRegistry.byId(
                 exercise.editorTemplate,

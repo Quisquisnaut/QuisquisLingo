@@ -1,8 +1,72 @@
 # Build 256 change summary
 
 Build 256 is the exercise architecture redesign (Course Model v12). Its eight
-sessions are Revisions 0–7. Plan: `256_EXERCISE_ARCHITECTURE_PLAN.md`;
+sessions are Revisions 0–7, all delivered. Plan: `256_EXERCISE_ARCHITECTURE_PLAN.md`;
 reference: `EXERCISE_ARCHITECTURE_V12.md`; evidence: `256_VALIDATION.md`.
+
+## Revision 7 (2.0.56+256007, 29 September 2026): Laboratory, Assign, final verification
+
+Session 8, the last (plan Part B item 8). The Assign runtime, the
+Laboratory's Assign Lesson, the test-only fixture of what still waits, the
+negative and semantic-equality tests, the final verification.
+
+### Files
+
+- `lib/models/canonical/primitive_capability_registry.dart`: three Assign
+  entries in the runtime-support table (categories in columns; slots in
+  columns; gaps inline; tap or select placement; explicit timing;
+  exactAssignments); `ExercisePrimitive.executableToday` includes Assign.
+- `lib/models/exercise_features.dart`: `LearnerExerciseKind.assignGroups`,
+  `assignSlots`, `assignGaps`; `assignTargetMode`, `targetCapacity`,
+  `assignItemReuse`, `shuffleItems`, `assignmentsByTarget`, `targetLabel`
+  (the text run before a target in the layout).
+- `lib/services/exercise_copy_service.dart`: headings and instructions of
+  the three kinds in EN, ES, IT, DE, PT, NL, FI, CY.
+- `lib/screens/round_screen.dart`: `_assignExercise` (bins
+  `assign-target-<id>` or inline slots `assign-slot-<id>`, bank tiles
+  `assign-tile-<id>`, placed chips `assign-placed-<target>-<item>`,
+  `assign-check`), the tap handlers, `_submitAssign`, the correct-answer
+  and learner-answer texts.
+- `lib/services/audit_code_registry.dart`, `course_audit_service.dart`:
+  `ASSIGN_STRUCTURE_REQUIRED`; an Assign's layout may carry elements in any
+  layout; `kindLabel` for the three kinds.
+- Help (EN/IT/ES): the primitives page says Assign plays.
+- `tools/qql_course_v12.py` (`assign_exercise`),
+  `tools/generate_exercise_laboratory_254.py` (`start_canonical_lesson`,
+  `Laboratory.assign`, the Assign Lesson, the future fixture `future()`
+  written to `test/fixtures/v12/laboratory_future_en_it.json`, the coverage
+  document's seventh Lesson), `tools/validate_courses.py` (7 Lessons),
+  `assets/courses/exercise_laboratory_en_it.json` (128 examples),
+  `docs/254_LABORATORY_COVERAGE.md`,
+  `test/support/laboratory_presentation_254.dart` (six new records).
+- Tests: `assign_runtime_256_test.dart` (10), `laboratory_future_256_test.dart`
+  (4), `negative_cases_256_test.dart` (9), `semantic_equality_256_test.dart`
+  (4); `exercise_laboratory_254_test` (Assign driver, canonical draft round
+  trip for preset-less examples, 128 examples), `runtime_canonical_256_test`,
+  `course_model_v11_243_test` (the canonical Lessons are skipped by the
+  parity check), `capability_registry_256_test` (regions and drag as the
+  unplayable examples), `exercise_architecture_224_test` (Assign has no
+  preset), the registry pins (106 rules, 59 Errors).
+
+### Decisions implemented
+
+- Assign plays by tapping (tap or select placement); drag, regions and
+  cells wait. The layout names destinations: a text run before a target is
+  its label; a gap layout is the sentence with its targets.
+- No Assign preset in this revision (the catalogue's greyed Sort into
+  groups and Label the picture stay for a later catalogue); the Generic
+  Primitive Editor authors it.
+- The future fixture sits on the Laboratory's bundled root, so the import
+  route refuses it by design; its test reads it as a converter's own tests
+  would.
+
+### Known limits
+
+- Assign's `acceptedTargets`, `categoryMembership` and `partialAssignments`
+  are readable but not executable; so are regions (overlay), cells (grid)
+  and drag placement.
+- The Assign bins and gap slots are tap targets without drag; a large item
+  bank wraps below the destinations.
 
 ## Revision 6 (2.0.56+256006, 28 September 2026): Interoperability
 

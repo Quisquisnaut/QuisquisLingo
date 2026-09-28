@@ -13,7 +13,7 @@ narrative of Revision 4 is gone (the evidence lives in
 `docs/256_VALIDATION.md`); what follows is state, decisions, requirements,
 open problems and the next step.
 
-## State (28 September 2026, 22:34)
+## State (29 September 2026, 23:56)
 
 - **Build 256 Revision 5 (Stories) is committed locally as `4172d98`
   (108 files) plus its same-version follow-up `7903e9f` (47 files, owner
@@ -28,7 +28,24 @@ open problems and the next step.
   (Interoperability, `2.0.56+256006`) is **committed as `355ad94`**
   (suite 3182 passed, 1 skipped, 0 failed; 23:00), NOT pushed. Revision 7
   (plan item 8: Laboratory by primitive and option, Assign runtime, final
-  verification; `2.0.56+256007`) starts now from the session plan below.** An auto-resume run replies with one line of
+  verification; `2.0.56+256007`) is in progress from the session plan
+  below: Stage 1 (the Assign runtime: registry entries, kinds, copy in
+  eight languages, the Round screen renderer, `ASSIGN_STRUCTURE_REQUIRED`,
+  Help, pins; `assign_runtime_256_test.dart` 10 tests green), Stage 2
+  (the Laboratory's Assign Lesson: 128 examples, the baseline re-recorded
+  with six new records, `exercise_laboratory_254_test` 261 green) and
+  Stage 3 (the future fixture `test/fixtures/v12/laboratory_future_en_it.json`
+  and its test), Stage 4 (`negative_cases_256_test`,
+  `semantic_equality_256_test`) and Stage 5 (version `2.0.56+256007`, Beta
+  expiry 29 October, CHANGELOG, summary, validation, AGENTS, reference doc,
+  plan, README) are on the working tree; every focused batch is green and
+  the analyzer clean; the first complete suite (`suite_256007_a.log`)
+  had 11 failures, all fixed in tests (the Assign Lesson has no preset;
+  the end-to-end fixture's Assign uses drag placement); the second complete
+  suite runs (`suite_256007_b.log`, started 00:00); then the validation
+  line, the commit "Build 256 Revision
+  7: Laboratory, Assign, final verification" (`commit_256007.txt`), the
+  handoff, the sound, and the final six-part report to the owner.** An auto-resume run replies with one line of
   status and does nothing else. Complete suite on the final tree: 3117
   passed, 1 skipped, 0 failed (run 2; run 1 had three count pins fixed in
   tests). No APK built (owner: only on request); the end-of-revision sound
@@ -465,7 +482,7 @@ Plan Part B item 8 and Part D session 6, `2.0.56+256007`. Pre-approved
 | 5 Preset catalogue | 4 | 2.0.56+256004 | committed `eca0cd0` (suite 3053/1/0), pushed |
 | 6 Stories (`docs/256_STORY_PLAN.md`) | 5 | 2.0.56+256005 | committed `4172d98`, follow-ups `7903e9f`, `41a5555`, `32fedfb` |
 | 7 Interoperability | 6 | 2.0.56+256006 | committed `355ad94` (suite 3182/1/0) |
-| 8 Laboratory, Assign, final verification | 7 | 2.0.56+256007 | not started |
+| 8 Laboratory, Assign, final verification | 7 | 2.0.56+256007 | REV7_STATE |
 
 Branch `claude/256-exercise-architecture`, created from `main` at `611a1a1`
 (Build 255 handoff, `2.0.55+255007`).

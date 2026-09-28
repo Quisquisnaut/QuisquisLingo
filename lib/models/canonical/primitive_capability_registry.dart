@@ -689,7 +689,8 @@ abstract final class PrimitiveCapabilityRegistry {
   }
 
   /// The configurations this version of QQL can play (Part A.2 of the plan:
-  /// exactly today's behaviors; Assign joins in Session 6). Never stored in
+  /// exactly today's behaviors; Assign joined in Session 8, Build 256
+  /// Revision 7: groups, slots and gaps by tapping). Never stored in
   /// Course data.
   static const List<SupportedConfiguration> runtimeSupportTable = [
     SupportedConfiguration(
@@ -829,6 +830,58 @@ abstract final class PrimitiveCapabilityRegistry {
         OptionKey.textReveal: TextReveal.values,
         OptionKey.scoring: [Scoring.none],
         OptionKey.evaluationTiming: [EvaluationTiming.none],
+      },
+    ),
+    // Build 256 Revision 7: Assign plays by tapping an item, then its
+    // destination. Groups (categories) and slots in columns, gaps in a
+    // text; drag placement, picture regions and grid cells wait for a
+    // later version.
+    SupportedConfiguration(
+      primitive: ExercisePrimitive.assign,
+      description: 'Sort items into groups, checked on Check.',
+      evaluationModes: [EvaluationMode.exactAssignments],
+      values: {
+        OptionKey.targetMode: [AssignTargetMode.categories],
+        OptionKey.targetCapacity: TargetCapacity.values,
+        OptionKey.itemReuse: ItemReuse.values,
+        OptionKey.placementMode: [
+          PlacementMode.tapTarget,
+          PlacementMode.selectTarget,
+        ],
+        OptionKey.layout: [LayoutValue.columns],
+        OptionKey.evaluationTiming: [EvaluationTiming.explicit],
+      },
+    ),
+    SupportedConfiguration(
+      primitive: ExercisePrimitive.assign,
+      description: 'Fill slots with items, checked on Check.',
+      evaluationModes: [EvaluationMode.exactAssignments],
+      values: {
+        OptionKey.targetMode: [AssignTargetMode.slots],
+        OptionKey.targetCapacity: [TargetCapacity.single],
+        OptionKey.itemReuse: ItemReuse.values,
+        OptionKey.placementMode: [
+          PlacementMode.tapTarget,
+          PlacementMode.selectTarget,
+        ],
+        OptionKey.layout: [LayoutValue.columns],
+        OptionKey.evaluationTiming: [EvaluationTiming.explicit],
+      },
+    ),
+    SupportedConfiguration(
+      primitive: ExercisePrimitive.assign,
+      description: 'Fill the gaps of a text with items, checked on Check.',
+      evaluationModes: [EvaluationMode.exactAssignments],
+      values: {
+        OptionKey.targetMode: [AssignTargetMode.gaps],
+        OptionKey.targetCapacity: [TargetCapacity.single],
+        OptionKey.itemReuse: ItemReuse.values,
+        OptionKey.placementMode: [
+          PlacementMode.tapTarget,
+          PlacementMode.selectTarget,
+        ],
+        OptionKey.layout: [LayoutValue.inline],
+        OptionKey.evaluationTiming: [EvaluationTiming.explicit],
       },
     ),
   ];

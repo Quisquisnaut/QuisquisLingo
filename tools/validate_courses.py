@@ -448,7 +448,7 @@ def validate(path: Path, global_ids: dict[str, str]) -> list[str]:
     if not isinstance(lessons, list):
         return issues + ["root: lessons must be a list"]
     expected_lessons = {
-        "exercise_laboratory_en_it.json": 6,
+        "exercise_laboratory_en_it.json": 7,
         "edge_case_it_en.json": 6,
         "piedmontais_en.json": 39,
     }.get(path.name, 9)

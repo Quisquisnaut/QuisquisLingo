@@ -321,12 +321,14 @@ void main() {
       await tester.tap(find.text('Assign').last);
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('primitive-violations')), findsNothing);
-      expect(find.text('Not playable in this version'), findsOneWidget);
+      // Build 256 Revision 7: a blank Assign (groups in columns) plays.
+      expect(find.text('Not playable in this version'), findsNothing);
       await tester.tap(find.byKey(const Key('primitive-editor-primitive')));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Submit').last);
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('primitive-violations')), findsNothing);
+      expect(find.text('Not playable in this version'), findsOneWidget);
       // A new exercise still blank for its primitive: leaving does not ask.
       await tester.tap(find.byType(BackButton));
       await tester.pumpAndSettle();

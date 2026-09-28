@@ -13,9 +13,12 @@ void main() {
     );
     // Build 256: presets configure the five primitives QQL plays today; the
     // other four (Assign, Speak, Ink, Submit) exist without a preset.
+    // Build 256 Revision 7: Assign plays (groups, slots, gaps) but has no
+    // preset yet; it is authored in the canonical editor.
     expect(
       ExercisePresetRegistry.presets.map((preset) => preset.primitive).toSet(),
-      ExercisePrimitive.executableToday.toSet(),
+      ExercisePrimitive.executableToday.toSet()
+        ..remove(ExercisePrimitive.assign),
     );
     expect(
       ExercisePresetRegistry.presets

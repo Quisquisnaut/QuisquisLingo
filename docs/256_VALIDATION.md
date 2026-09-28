@@ -5,6 +5,40 @@ spelling) with Flutter 3.47.4 / Dart 3.13.3 on Windows 10, the complete
 suite through the keep-awake wrapper (`ES_CONTINUOUS | ES_SYSTEM_REQUIRED`
 held for the run and cleared afterwards).
 
+## Revision 7 (2.0.56+256007): Laboratory, Assign, final verification, 29 September 2026
+
+- Stage 1 (the Assign runtime): `assign_runtime_256_test.dart` (10) with
+  the registry, description, architecture and runtime-canonical tests: 42
+  green after two test corrections (a moved item is taken back first; the
+  registry's unplayable examples are regions and drag).
+- Stage 2 (the Laboratory's Assign Lesson): generator `--check`,
+  `tools/validate_courses.py`: pass (7 Lessons, 28 Rounds, 128 examples);
+  the presentation recorded for all 128 examples and the baseline rebuilt:
+  six new records, no other record changed; `exercise_laboratory_254_test`
+  261 green.
+- Stage 3 (the future fixture) and Stage 4 (negative and semantic tests):
+  `laboratory_future_256_test` (4), `negative_cases_256_test` (9),
+  `semantic_equality_256_test` (4) with the parity, bundled-Course,
+  package, flashcard, library and Help tests: **120 passed, 0 failed**
+  (after the parity test learned to skip the canonical Assign Lesson).
+- `flutter analyze`: no issues; `dart format` clean on every changed file.
+- Complete suite, first run (28 September, 23:32–23:58): 3218 passed, 1
+  skipped, **11 failed**, all from the Assign Lesson having no preset and
+  Assign now playing: `canonical_primitives_256_test` (the preset pin),
+  the three end-to-end tests whose fixture Assign became playable (its
+  placement is drag now, still unplayable), the six recipe tests over the
+  Assign examples (no recipe represents them), and the canonical-editor
+  test that expected a blank Assign not to play. The six files rerun
+  green (178 tests).
+- Complete suite on the final tree (`flutter test --concurrency=1`, 28–29
+  September 2026, 23:57–00:25): **3229 passed, 1 skipped, 0 failed**.
+- Final verification list (plan Part D): the acceptance scenario is
+  `interoperability_end_to_end_256_test` (Revision 6); Story tests are
+  `story_runtime_256_test`, `story_model_256_test`, `flow_engine_256_test`,
+  the Story cases of the end-to-end test and the future fixture; capability
+  based Duel eligibility is `duel_eligibility_service_test` and
+  `support_states_256_test`.
+
 ## Revision 6 (2.0.56+256006): Interoperability, 28 September 2026
 
 - Stage 1 (support states in the model, playability, Duel, Audit, import

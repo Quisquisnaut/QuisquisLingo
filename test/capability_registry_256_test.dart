@@ -956,8 +956,21 @@ void main() {
                 EvaluationMode.exactRelations,
               ),
               (
+                // Build 256 Revision 7: groups by tapping play; regions
+                // over a picture and drag placement still wait.
                 ExercisePrimitive.assign,
-                options({OptionKey.targetMode: AssignTargetMode.categories}),
+                options({
+                  OptionKey.targetMode: AssignTargetMode.regions,
+                  OptionKey.layout: LayoutValue.overlay,
+                }),
+                EvaluationMode.exactAssignments,
+              ),
+              (
+                ExercisePrimitive.assign,
+                options({
+                  OptionKey.targetMode: AssignTargetMode.categories,
+                  OptionKey.placementMode: PlacementMode.drag,
+                }),
                 EvaluationMode.exactAssignments,
               ),
               (

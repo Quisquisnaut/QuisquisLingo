@@ -1320,7 +1320,97 @@
           ]
         }
       ],
-      "runtimeSupport": []
+      "runtimeSupport": [
+        {
+          "description": "Sort items into groups, checked on Check.",
+          "evaluationModes": [
+            "exactAssignments"
+          ],
+          "values": {
+            "targetMode": [
+              "categories"
+            ],
+            "targetCapacity": [
+              "single",
+              "multiple",
+              "unlimited"
+            ],
+            "itemReuse": [
+              "forbidden",
+              "allowed",
+              "unlimited"
+            ],
+            "placementMode": [
+              "tapTarget",
+              "selectTarget"
+            ],
+            "layout": [
+              "columns"
+            ],
+            "evaluationTiming": [
+              "explicit"
+            ]
+          }
+        },
+        {
+          "description": "Fill slots with items, checked on Check.",
+          "evaluationModes": [
+            "exactAssignments"
+          ],
+          "values": {
+            "targetMode": [
+              "slots"
+            ],
+            "targetCapacity": [
+              "single"
+            ],
+            "itemReuse": [
+              "forbidden",
+              "allowed",
+              "unlimited"
+            ],
+            "placementMode": [
+              "tapTarget",
+              "selectTarget"
+            ],
+            "layout": [
+              "columns"
+            ],
+            "evaluationTiming": [
+              "explicit"
+            ]
+          }
+        },
+        {
+          "description": "Fill the gaps of a text with items, checked on Check.",
+          "evaluationModes": [
+            "exactAssignments"
+          ],
+          "values": {
+            "targetMode": [
+              "gaps"
+            ],
+            "targetCapacity": [
+              "single"
+            ],
+            "itemReuse": [
+              "forbidden",
+              "allowed",
+              "unlimited"
+            ],
+            "placementMode": [
+              "tapTarget",
+              "selectTarget"
+            ],
+            "layout": [
+              "inline"
+            ],
+            "evaluationTiming": [
+              "explicit"
+            ]
+          }
+        }
+      ]
     },
     {
       "id": "speak",

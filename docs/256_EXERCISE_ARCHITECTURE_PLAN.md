@@ -153,7 +153,7 @@ Asked and answered before the branch was created.
    - The four support states and A.6.
    - Conditional transitions and the flow engine.
    - The service sweep from Part D; the capability JSON tool; end-to-end tests.
-8. **Laboratory, Assign, final verification.**
+8. **Laboratory, Assign, final verification.** Delivered as Revision 7 (`2.0.56+256007`, 29 September 2026).
    - Laboratory by primitive and options, plus the fixture Course; negative tests.
    - Assign runtime (categories, slots, gaps, regions if the overlay fits; capacity single/multiple; reuse forbidden/allowed; exactAssignments) with Generic Primitive Editor support.
    - Story tests; semantic-equality tests; the final verification list.
