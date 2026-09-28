@@ -13,14 +13,21 @@ narrative of Revision 4 is gone (the evidence lives in
 `docs/256_VALIDATION.md`); what follows is state, decisions, requirements,
 open problems and the next step.
 
-## State (28 September 2026, 19:39)
+## State (28 September 2026, 21:35)
 
 - **Build 256 Revision 5 (Stories) is committed locally as `4172d98`
   (108 files) plus its same-version follow-up `7903e9f` (47 files, owner
   review of 28 September: Continue, per-mode line instructions, no XP
   without evaluable exercises, derived "Story:" label, avatars, scroll
-  margin, sample Stories), NOT pushed; waiting for the owner. Next work:
-  the Revision 6 plan (F block + Story editor), for approval before code.** An auto-resume run replies with one line
+  margin, sample Stories) and follow-up 2 `41a5555` (no DIALOGUE heading
+  on a line; suite 3139 passed, 1 skipped, 0 failed), NOT pushed. In
+  progress: follow-up 3 (owner request, 21:10): the Round Wizard and the
+  Story Wizard move to the Rounds page, the Story Wizard is renamed New
+  Story, the "Lines are never skipped…" sentence leaves the Story options,
+  and the Round editor of a Story replaces New exercise / New canonical /
+  Exercise Wizard with Add step (title block once, dialogue line,
+  exercise). Then the Revision 6 plan (F block + Story editor), for
+  approval before code.** An auto-resume run replies with one line
   of status and does nothing else. Complete suite on the final tree: 3117
   passed, 1 skipped, 0 failed (run 2; run 1 had three count pins fixed in
   tests). No APK built (owner: only on request); the end-of-revision sound
@@ -520,14 +527,28 @@ Branch `claude/256-exercise-architecture`, created from `main` at `611a1a1`
 
 ## Next step
 
-1. Wait for the owner's word on Revision 5 (`4172d98`) and its follow-up
-   (`7903e9f`); push only when asked (`git push` of
-   `claude/256-exercise-architecture`). A second same-version follow-up
-   (no DIALOGUE heading on a line) is in progress at 19:55: runtime and
-   test edited, record run + runtime test in `s5_batch24.log`; then
-   `s34_baseline.py`, the placeholders RESULT_FOLLOWUP2_* in the
-   validation, the complete suite, the commit "Build 256 Revision 5
-   follow-up 2: no heading on a Dialogue line", handoff, sound.
+1. Follow-up 3 (same version; owner request of 28 September, 21:10; script
+   `s65_followup3.py` in the scratchpad): (a) `_openGuidebookRoundGenerator`
+   and `_openStoryWizard` leave the Lesson editor for the Rounds page
+   (`_LessonRoundsScreenState`, bottom bar with `rounds-round-wizard`
+   gated by `_course.useGuidebook` and `rounds-new-story`; the Round
+   Wizard appends through `_updateRounds`, New Story through
+   `_courseWithSpeakers` + `ReplaceRounds`); (b) the Wizard's app bar reads
+   "New Story · …", Help titles/bodies (EN/IT/ES), the Audit hint, the
+   cover preset text and README follow; (c) the Round editor's Story
+   options lose "Lines are never skipped: without audio the learner reads
+   them."; (d) in a Story the bottom bar shows Add step (`round-add-step`)
+   instead of the three exercise buttons: a sheet with Title block
+   (`story-step-title`, greyed out once the Story has one, inserted first),
+   Dialogue line (`story-step-line`, the Wizard's short form) and Exercise
+   (`story-step-exercise`, the Story presets sheet shared with the Wizard),
+   Duplicate greyed out for the title block; (e) tests: generator,
+   transaction, 231, revision3 follow-up and Story Wizard tests navigate
+   to the Rounds page; a new `story_add_step_256_test.dart`; (f) docs,
+   focused tests, analyzer, format, complete suite, commit "Build 256
+   Revision 5 follow-up 3: wizards on the Rounds page, New Story, Add
+   step", handoff, sound. Then wait for the owner's word; push only when
+   asked (`git push` of `claude/256-exercise-architecture`).
    **Decisions of 28 September evening for later revisions:** Revision 7
    = spoken exercises (an exercise said by a speaker: "Said by" in the
    Wizard and the form, drawn in the speaker's bubble with the avatar,
