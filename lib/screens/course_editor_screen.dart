@@ -5929,12 +5929,14 @@ class _StoryWizardScreenState extends State<StoryWizardScreen> {
       for (final exercise in [cover, ..._steps])
         LearningContent.fromExercise(exercise),
     ];
+    // The Round is named after the Story; lists derive "Story: <title>"
+    // from the flow (LearningRound.displayTitle).
     final round = LearningRound(
       id: _ids.next('round'),
       publicationState: PublicationState.draft,
       provisionalDraft: true,
       updatedAt: _clock().toUtc(),
-      title: 'Story: $title',
+      title: title,
       visualType: 'story',
       content: content,
       flow: RoundFlowAuthoring.linearFor(
@@ -6966,9 +6968,10 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
     if (widget.readOnly) return;
     if (on) {
       // A new Story (Build 256 Revision 5) scrolls, logs the dialogue only
-      // and reads aloud automatically; a title the Round already carries
-      // (`Story: …`) is kept.
-      final title = _storyTitleOf(_title);
+      // and reads aloud automatically. It is named after the Round's own
+      // title, or after the prefixed title an earlier build stored.
+      final stored = _storyTitleOf(_title);
+      final title = stored.isNotEmpty ? stored : _title.trim();
       _storyTitle.text = title;
       _mutateRound(
         () => _flow = RoundFlowAuthoring.linearFor(
@@ -7020,21 +7023,18 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
       ? roundTitle.substring(_storyTitlePrefix.length).trim()
       : '';
 
-  /// Names the Story: the flow carries the title and the Round is called
-  /// `Story: <title>`, which the Lesson path and Home show. Clearing the
-  /// title leaves the Round unnamed (Round N).
+  /// Names the Story: the flow carries the title, the Round keeps its own
+  /// name, and every list derives "Story: <title>" from the flow
+  /// (`LearningRound.displayTitle`), so a Rename cannot lose the prefix.
   void _setStoryTitle(String value) {
     final flow = _flow;
     if (flow == null || widget.readOnly) return;
-    final title = value.trim();
-    _mutateRound(() {
-      _flow = RoundFlowAuthoring.withStoryOptions(flow, title: title);
-      if (title.isNotEmpty) {
-        _title = '$_storyTitlePrefix$title';
-      } else if (_title.startsWith(_storyTitlePrefix)) {
-        _title = '';
-      }
-    });
+    _mutateRound(
+      () => _flow = RoundFlowAuthoring.withStoryOptions(
+        flow,
+        title: value.trim(),
+      ),
+    );
   }
 
   /// Marks or unmarks an exercise as needing the Story's audio (Build 256
@@ -7968,9 +7968,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
       child: Scaffold(
         appBar: AppBar(
           leading: BackButton(onPressed: _returnToRounds),
-          title: Text(
-            _title.isEmpty ? 'Round ${widget.roundIndex + 1}' : _title,
-          ),
+          title: Text(_editedRound().displayTitle(widget.roundIndex)),
           actions: [
             IconButton(
               key: const Key('round-search-action'),
@@ -8077,7 +8075,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
                       border: OutlineInputBorder(),
                       labelText: 'Story title',
                       helperText:
-                          'Shown on the cover; the Round is called “Story: <title>”. The Audit asks for one.',
+                          'Shown on the cover; lists call the Round “Story: <title>”. The Audit asks for one.',
                       helperMaxLines: 2,
                     ),
                     onChanged: _setStoryTitle,

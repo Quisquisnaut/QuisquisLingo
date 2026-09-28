@@ -3733,6 +3733,7 @@ class _RoundNode extends StatelessWidget {
   };
 
   bool get _hasDescriptiveTitle {
+    if (round.flow != null) return true;
     final title = round.title.trim();
     return title.isNotEmpty &&
         !RegExp(r'^(round|ronda)\s+\d+$', caseSensitive: false).hasMatch(title);
@@ -3849,7 +3850,9 @@ class _RoundNode extends StatelessWidget {
                     ),
                     if (_hasDescriptiveTitle)
                       Text(
-                        round.title,
+                        round.flow != null
+                            ? round.displayTitle(roundNumber - 1)
+                            : round.title,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: Theme.of(context).textTheme.titleMedium

@@ -146,6 +146,36 @@ Future<void> _choose(WidgetTester tester, String fieldKey, String label) async {
 LearningRound _roundOf(Course course) => course.lessons.first.rounds.first;
 
 void main() {
+  group('LearningRound.displayTitle', () {
+    test(
+      'derives "Story: <title>" from the flow and strips a stored prefix',
+      () {
+        final content = [LearningContent.fromExercise(_line('n1', 'Ciao.'))];
+        LearningRound round(String title, {String? story}) => LearningRound(
+          id: 'r',
+          title: title,
+          content: content,
+          flow: story == null
+              ? null
+              : RoundFlowAuthoring.linearFor(content, title: story),
+        );
+        expect(round('Round one').displayTitle(0), 'Round one');
+        expect(round('').displayTitle(2), 'Round 3');
+        expect(
+          round('Round one', story: 'Al bar').displayTitle(0),
+          'Story: Al bar',
+        );
+        expect(
+          round('Story: Al bar', story: '').displayTitle(0),
+          'Story: Al bar',
+        );
+        expect(round('', story: '').displayTitle(4), 'Story: Round 5');
+        expect(round('Story: Al bar').displayTitle(0), 'Story: Al bar');
+        expect(round('Story: Al bar', story: 'Al bar').storyTitle, 'Al bar');
+      },
+    );
+  });
+
   setUp(() {
     SharedPreferences.setMockInitialValues({
       ProfileService.profilesKey: [
@@ -349,7 +379,9 @@ void main() {
         expect(flow.presentation, FlowPresentation.scroll);
         expect(flow.log, FlowLog.dialogue);
         expect(flow.readAloud, FlowReadAloud.automatic);
-        expect(flow.title, '');
+        // A new Story is named after the Round's own title.
+        expect(flow.title, 'Round one');
+        expect(_roundOf(changed!).displayTitle(0), 'Story: Round one');
         expect(find.byKey(const Key('round-story-title')), findsOneWidget);
         expect(find.byKey(const Key('round-story-log')), findsOneWidget);
         expect(find.byKey(const Key('round-story-read-aloud')), findsOneWidget);
@@ -361,7 +393,9 @@ void main() {
         await tester.pumpAndSettle();
         flow = _roundOf(changed!).flow!;
         expect(flow.title, 'Al bar');
-        expect(_roundOf(changed!).title, 'Story: Al bar');
+        // The Round keeps its own name; the label is derived from the flow.
+        expect(_roundOf(changed!).title, 'Round one');
+        expect(_roundOf(changed!).displayTitle(0), 'Story: Al bar');
         expect(find.text('Story: Al bar'), findsOneWidget);
 
         await tester.tap(find.text('On request'));
@@ -377,11 +411,12 @@ void main() {
         expect(_roundOf(changed!).flow!.presentation, FlowPresentation.step);
         expect(find.byKey(const Key('round-story-log')), findsNothing);
 
-        // Story off: the Round keeps its name without the prefix.
+        // Story off: the Round keeps its own name.
         await tester.tap(find.byKey(const Key('round-story-switch')));
         await tester.pumpAndSettle();
         expect(_roundOf(changed!).flow, isNull);
-        expect(_roundOf(changed!).title, 'Al bar');
+        expect(_roundOf(changed!).title, 'Round one');
+        expect(_roundOf(changed!).displayTitle(0), 'Round one');
       },
     );
 

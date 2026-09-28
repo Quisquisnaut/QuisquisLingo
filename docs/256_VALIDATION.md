@@ -64,6 +64,45 @@ held for the run and cleared afterwards).
   more on the final tree, run 2 (14:23–14:49): **3117 passed, 1 skipped,
   0 failed**.
 
+## Revision 5 follow-up (same version), 28 September 2026, afternoon
+
+- Owner review of Revision 5: Continue instead of Next (Round, Story,
+  Duel) and Finish story; the Dialogue line instruction per mode; no XP, no
+  Laurel and a plain completion for a Round without evaluable exercises;
+  the derived "Story:" label; the avatar decoder; the scroll margin; the
+  Laboratory Story rebuilt as a clean story plus a Story of the line
+  options; the Piedmontese demo without the covers Lesson; the Edge Case
+  demo's Story alternating lines and question plus the Story of covers
+  alone.
+- Generators `--check` and `tools/validate_courses.py`: pass (Laboratory 6
+  Lessons, 26 Rounds, 122 examples; Piedmontese 39 Lessons, 117 examples;
+  Edge Case 6 Lessons, 12 Rounds).
+- Focused batch (Story, runtime, scoring, completion, playability, demos,
+  converter, Review, Help; 26 files): a first run against a half-fixed
+  tree (three analyzer findings: the rendering import for
+  `RenderAbstractViewport`, a required argument in the new completion test,
+  the decoder import awaiting its assertion), then 254 passed, 3 failed:
+  the new card-only Round test's driver (it re-tapped a reviewed card) and
+  the Top Bar test's fixture, whose "eligible" Rounds held only a note and
+  are rightly not Laurel-eligible any more (they hold a question now); the
+  two files rerun 24 passed, 1 failed, then the card-only test green.
+- Laboratory presentation baseline: the Laboratory test in record mode
+  (251 tests, 123 records, one of them dropped afterwards), `test/support/laboratory_presentation_254.dart`
+  rebuilt: 15 Story records (the two Stories' cover, lines and questions,
+  9 of them new IDs) and no changed record among the 107 earlier examples;
+  the gate's `ROUND_CONTENT_LONG` on the 11-item Story led to dropping its
+  last line (122 examples) and rebuilding once more.
+- `flutter analyze`: no issues; `dart format` clean on every changed file.
+- Complete suite, run 1 (17:48–18:14): **3139 passed, 1 skipped, 3
+  failed**, all pins fixed in tests after they ran: the bundled release
+  gate learning the intentional `STORY_WITHOUT_DIALOGUE` of the Story of
+  covers alone, and the two Learner Status Bar tests whose fixture Rounds
+  held only a note (a question each now); the gate rerun then exposed
+  `ROUND_CONTENT_LONG` on the 11-item Laboratory Story, whose last line
+  was dropped (122 examples, baseline rebuilt); the gate and the Laboratory
+  rerun 252 green. Complete suite, run 2 on the final tree (19:09–19:39):
+  **3139 passed, 1 skipped, 0 failed**.
+
 ## Revision 4 (2.0.56+256004): the preset catalogue, 27 September 2026
 
 - Stage 1 (skill groups, directions, the coming-later list, the picker's

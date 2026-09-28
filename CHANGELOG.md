@@ -66,6 +66,47 @@ Story options in the Round editor. Course files stay Course Model v12.
 - Scoring, progression, Review, Course files and learner data are
   unchanged. Beta expiry `2026-10-28 23:59:59` local time.
 
+Follow-up in the same version (owner review, 28 September 2026):
+
+- **Continue.** One verb for moving on: after every exercise in a Round,
+  a Story and the Duel the button reads Continue (it read Next); a Story's
+  last step reads Finish story, a Round's Finish round, the Duel's Finish
+  duel, and Review mistakes stays.
+- **The line says how to take it.** A Dialogue line's instruction follows
+  its mode: "Read, then continue." (text only), "Listen, then continue."
+  (audio only), "Listen first; the text appears after." (text after
+  listening), "Read or listen, then continue." (text and audio), in the
+  eight learner languages.
+- **No exercise, no XP (scoring rule).** A Round or Story without a scored
+  exercise (cards, covers or lines only) counts as completed for progression
+  and Lesson unlock but awards no answer XP, no perfect bonus and no Laurel,
+  and does not count toward the Laurel total; its completion dialog says
+  "Nothing to score in this Round" (or Story) with no XP arithmetic. Lesson
+  completion XP is unaffected. Rounds with at least one scored exercise are
+  unchanged: cards in them still do not block the perfect bonus.
+- **"Story:" is derived.** Lists, the Lesson path, the Rounds page, the
+  Round editor, Search, Review and the Round screen call a Story
+  "Story: <title>" from its flow's title (or the Round's own title), so a
+  Rename or a Story switched on over a named Round no longer loses the
+  prefix; the Wizard and the Story title field stop writing the prefix into
+  the Round title, and a title stored with it is shown once. Switching a
+  named Round to a Story names the Story after the Round.
+- **Avatars show.** Bundled avatars (`assets/avatars/…`) were refused by
+  the portable image decoder and drawn as a broken image in the bubble, the
+  Course Editor and the Wizard; they are bundled assets now.
+- **Scrolling keeps context.** After Continue, a scrolling Story leaves a
+  fifth of the page (at most 120 px) above the active item, so the tail of
+  the previous line stays readable.
+- **Sample Stories.** The Laboratory's "A morning in Turin" is a consistent
+  story that alternates two or three lines with a question (Choose the
+  answer, an audio-dependent True or false, Word order); a second Story,
+  "The same morning, line by line", shows the line options one by one and
+  has nothing to score (122 examples). The Piedmontese Story reads every
+  line at once and the demo has no Story cover Lesson (39 Lessons, 117
+  examples); the Story of covers alone moves to the Edge Case demo as an
+  intentional Audit warning, and its Story alternates lines and the
+  question. Help (App Info, EN/IT/ES) states the scoring rule.
+
 # 2.0.56 (Build 256, Revision 4) - The preset catalogue - 2026-09-27
 
 Session 5 of the exercise architecture redesign

@@ -39,7 +39,7 @@
   ],
   "license": "All rights reserved",
   "derivativeWorksPolicy": "allowed",
-  "courseDescription": "TEMPORARY AI-GENERATED TEST COURSE. Italiano → inglese. Per trovarlo abilita Show unavailable: contiene strutture Draft valide, omesse nel Learner. Include due avvisi Audit intenzionali (opzioni duplicate e testo lungo). Hybrid prova MP3 preinstallati e fallback TTS; i campioni MP3 non hanno una trascrizione verificata e sono solo prove di riproduzione. Fork abilita i collaudi Copy as New Course e Merge su copie personali. Non è un percorso didattico revisionato.",
+  "courseDescription": "TEMPORARY AI-GENERATED TEST COURSE. Italiano → inglese. Per trovarlo abilita Show unavailable: contiene strutture Draft valide, omesse nel Learner. Include tre avvisi Audit intenzionali (opzioni duplicate, testo lungo e una Story di sole copertine). Hybrid prova MP3 preinstallati e fallback TTS; i campioni MP3 non hanno una trascrizione verificata e sono solo prove di riproduzione. Fork abilita i collaudi Copy as New Course e Merge su copie personali. Non è un percorso didattico revisionato.",
   "textDirection": "ltr",
   "flagCode": "EN",
   "temporarySample": true,
@@ -2779,7 +2779,7 @@
             "kind": "explanation",
             "required": false,
             "role": "overview",
-            "text": "Una Story: copertina, tre battute (una solo audio) e un esercizio che richiede l’audio della Story. Il narratore parla italiano, Marta inglese."
+            "text": "Una Story: copertina, battute (una solo audio) alternate a un esercizio che richiede l’audio della Story; il narratore parla italiano, Marta inglese. Poi una Story di sole copertine, senza nulla da valutare."
           },
           {
             "id": "qql_edge_254_l06_v1",
@@ -2889,37 +2889,6 @@
               }
             },
             {
-              "id": "qql_edge_254_e35_thanks",
-              "publicationState": "published",
-              "kind": "exercise",
-              "required": true,
-              "authoringMetadata": {
-                "presetId": "dialogue_line"
-              },
-              "exercise": {
-                "updatedAt": "2026-09-25T00:00:00.000Z",
-                "primitive": "presentation",
-                "prompt": [
-                  {
-                    "role": "line",
-                    "type": "text",
-                    "text": "Thank you!",
-                    "speakerId": "qql_edge_254_character_marta"
-                  },
-                  {
-                    "role": "line",
-                    "type": "audio",
-                    "text": "Thank you!",
-                    "speakerId": "qql_edge_254_character_marta",
-                    "required": false
-                  }
-                ],
-                "evaluation": {
-                  "mode": "none"
-                }
-              }
-            },
-            {
               "id": "qql_edge_254_e36_needs_audio",
               "publicationState": "published",
               "kind": "exercise",
@@ -2966,9 +2935,40 @@
                   ]
                 }
               }
+            },
+            {
+              "id": "qql_edge_254_e35_thanks",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "authoringMetadata": {
+                "presetId": "dialogue_line"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "prompt": [
+                  {
+                    "role": "line",
+                    "type": "text",
+                    "text": "Thank you!",
+                    "speakerId": "qql_edge_254_character_marta"
+                  },
+                  {
+                    "role": "line",
+                    "type": "audio",
+                    "text": "Thank you!",
+                    "speakerId": "qql_edge_254_character_marta",
+                    "required": false
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
             }
           ],
-          "title": "Story: At the bar",
+          "title": "At the bar",
           "flow": {
             "start": "qql_edge_254_intro06",
             "nodes": [
@@ -3012,17 +3012,6 @@
                 "transitions": [
                   {
                     "trigger": "next",
-                    "target": "qql_edge_254_e35_thanks"
-                  }
-                ]
-              },
-              {
-                "id": "qql_edge_254_e35_thanks",
-                "kind": "exercise",
-                "contentId": "qql_edge_254_e35_thanks",
-                "transitions": [
-                  {
-                    "trigger": "next",
                     "target": "qql_edge_254_e36_needs_audio"
                   }
                 ]
@@ -3031,11 +3020,172 @@
                 "id": "qql_edge_254_e36_needs_audio",
                 "kind": "exercise",
                 "contentId": "qql_edge_254_e36_needs_audio",
+                "transitions": [
+                  {
+                    "trigger": "next",
+                    "target": "qql_edge_254_e35_thanks"
+                  }
+                ],
                 "requiresAudio": true
+              },
+              {
+                "id": "qql_edge_254_e35_thanks",
+                "kind": "exercise",
+                "contentId": "qql_edge_254_e35_thanks"
               }
             ],
             "presentation": "scroll",
             "title": "At the bar",
+            "log": "dialogue"
+          }
+        },
+        {
+          "id": "qql_edge_254_r12_covers",
+          "publicationState": "published",
+          "updatedAt": "2026-09-25T00:00:00.000Z",
+          "visualType": "story",
+          "content": [
+            {
+              "id": "qql_edge_254_intro07",
+              "publicationState": "published",
+              "kind": "explanation",
+              "required": false,
+              "role": "lesson_intro",
+              "text": "Una Story di sole copertine: niente battute, niente esercizi, nessun XP; l’Audit segnala STORY_WITHOUT_DIALOGUE, un avviso intenzionale."
+            },
+            {
+              "id": "qql_edge_254_e37_cover_market",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "authoringMetadata": {
+                "presetId": "story_cover"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "prompt": [
+                  {
+                    "role": "picture",
+                    "type": "image",
+                    "text": "Una pagnotta",
+                    "asset": "assets/exercise_images/bread.webp"
+                  },
+                  {
+                    "role": "title",
+                    "type": "text",
+                    "text": "Al mercato"
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
+            },
+            {
+              "id": "qql_edge_254_e38_cover_bar",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "authoringMetadata": {
+                "presetId": "story_cover"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "prompt": [
+                  {
+                    "role": "picture",
+                    "type": "image",
+                    "text": "Una tazza di caffè",
+                    "asset": "assets/exercise_images/coffee.webp"
+                  },
+                  {
+                    "role": "title",
+                    "type": "text",
+                    "text": "Al bar"
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
+            },
+            {
+              "id": "qql_edge_254_e39_cover_home",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "authoringMetadata": {
+                "presetId": "story_cover"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "prompt": [
+                  {
+                    "role": "picture",
+                    "type": "image",
+                    "text": "Una casa",
+                    "asset": "assets/exercise_images/house.webp"
+                  },
+                  {
+                    "role": "title",
+                    "type": "text",
+                    "text": "A casa"
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
+            }
+          ],
+          "title": "Tre copertine",
+          "flow": {
+            "start": "qql_edge_254_intro07",
+            "nodes": [
+              {
+                "id": "qql_edge_254_intro07",
+                "kind": "content",
+                "contentId": "qql_edge_254_intro07",
+                "transitions": [
+                  {
+                    "trigger": "next",
+                    "target": "qql_edge_254_e37_cover_market"
+                  }
+                ]
+              },
+              {
+                "id": "qql_edge_254_e37_cover_market",
+                "kind": "exercise",
+                "contentId": "qql_edge_254_e37_cover_market",
+                "transitions": [
+                  {
+                    "trigger": "next",
+                    "target": "qql_edge_254_e38_cover_bar"
+                  }
+                ]
+              },
+              {
+                "id": "qql_edge_254_e38_cover_bar",
+                "kind": "exercise",
+                "contentId": "qql_edge_254_e38_cover_bar",
+                "transitions": [
+                  {
+                    "trigger": "next",
+                    "target": "qql_edge_254_e39_cover_home"
+                  }
+                ]
+              },
+              {
+                "id": "qql_edge_254_e39_cover_home",
+                "kind": "exercise",
+                "contentId": "qql_edge_254_e39_cover_home"
+              }
+            ],
+            "presentation": "scroll",
+            "title": "Tre copertine",
             "log": "dialogue"
           }
         }
@@ -3046,5 +3196,5 @@
       }
     }
   ],
-  "officialChecksum": "e95d23abc873f542a9af449a645e6b7660da97e68eac79ad0cb29becb3f7069c"
+  "officialChecksum": "215f75f13bab1553138c76afa80395cb4411a673adbb8f7f39ec000249aa2896"
 }

@@ -717,7 +717,7 @@ class _DuelScreenState extends State<DuelScreen> {
                         ? 'Finishing duel…'
                         : _lives <= 0 || _index + 1 == items.length
                         ? 'Finish duel'
-                        : 'Next',
+                        : 'Continue',
                   ),
                 ),
               ],

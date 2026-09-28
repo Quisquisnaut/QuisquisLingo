@@ -124,6 +124,55 @@ of the Duel, lines never skipped. Course files stay Course Model v12.
   the fixture lacks belongs to a Story Round or carries a canonical-only
   preset.
 
+### Follow-up in the same version (owner review, 28 September 2026)
+
+- `lib/screens/round_screen.dart`, `lib/screens/duel_screen.dart`: the
+  post-answer button reads Continue (Round, Story, Duel); Finish story and
+  "Finishing story…" on a Story's last step; the completion dialog of a
+  Round without evaluable exercises ("Story completed" / "Round completed",
+  `round-completed-unscored`, no XP lines); `_scrollStoryToEnd` leaves
+  `storyScrollMargin` (a fifth of the viewport, at most 120 px) above the
+  active item through `RenderAbstractViewport.getOffsetToReveal`; the
+  Review context and the Round screen use the derived Story label.
+- `lib/services/exercise_copy_service.dart`: `instructionForExercise`
+  chooses `instruction.dialogueLine`, `dialogueLineText`,
+  `dialogueLineAudio` or `dialogueLineAfterAudio` from the line's mode and
+  `textReveal`; the three new keys in EN, ES, IT, DE, PT, NL, FI, CY.
+- `lib/services/xp_calculator.dart` (`RoundXpAwardContext.evaluableExerciseCount`,
+  zero awards nothing), `lib/services/learning_completion_service.dart`
+  (no Laurel and no perfect mark without evaluable exercises),
+  `lib/services/round_playability_service.dart` (`laurelEligibleRoundIds`
+  needs a scored playable exercise): the scoring rule "no exercise, no
+  XP"; AGENTS' Round XP rules updated; App Info Help (EN/IT/ES) states it.
+- `lib/models/course_models.dart`: `LearningRound.isStory`, `storyTitle`,
+  `withoutStoryPrefix`, `storyTitlePrefix`; `displayTitle` derives
+  "Story: <title>" for a Story. `lib/screens/home_screen.dart`,
+  `review_screen.dart`, `course_editor_search_screen.dart` and the Round
+  editor's app bar use it; `_setStoryTitle` only writes the flow title; a
+  Story switched on over a named Round is named after it; the Wizard's
+  Round title is the Story title without the prefix.
+- `lib/services/portable_exercise_image.dart`: `assets/avatars/<name>.png`
+  is a bundled asset to the decoder (avatars were drawn as broken images).
+- Generators: the Laboratory Story Lesson holds "A morning in Turin"
+  (cover, lines and questions alternating, 9 examples) and "The same
+  morning, line by line" (the four line options, nothing to score, 6
+  examples): 122 examples, presentation baseline re-recorded; the
+  Piedmontese demo has 39 Lessons (no Story cover Lesson) and reads every
+  line at once (117 examples); the Edge Case demo's Story alternates its
+  question with the lines and gains "Tre copertine", a Story of covers
+  alone whose `STORY_WITHOUT_DIALOGUE` is its third intentional warning
+  (12 Rounds, 39 exercises); `tools/validate_courses.py` expects 39
+  Piedmontese Lessons.
+- Tests: `xp_calculator_test` (a Round without evaluable exercises awards
+  nothing), `learning_completion_service_test` (no Laurel, no XP; facts
+  state their counts), `round_playability_service_test` (cards and texts
+  alone are not Laurel-eligible), `round_xp_completion_regression_test` (a
+  Round of cards only completes without XP, bonus or Laurel; Continue),
+  the seven files that pressed Next, `story_runtime_256_test` (per-mode
+  instruction, the avatar drawn as its asset, Finish story),
+  `story_editor_256_test` (`displayTitle` rules, the Round keeps its name),
+  `story_wizard_256_test`, the demo pins.
+
 ### Known limitations and deferrals
 
 - Branching flows are still not playable (Revision 6); the Story Wizard

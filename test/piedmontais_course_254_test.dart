@@ -58,7 +58,9 @@ void main() {
     () async {
       final course = await loadCourse();
       final presets = ExercisePresetRegistry.presets;
-      expect(course.lessons, hasLength(presets.length));
+      // One Lesson per preset, except Story cover: a Story of covers alone
+      // belongs to the Edge Case demo (owner decision, 28 September 2026).
+      expect(course.lessons, hasLength(presets.length - 1));
       expect(presets, hasLength(40));
       final seenTypes = <String>{};
       for (final lesson in course.lessons) {
@@ -85,12 +87,15 @@ void main() {
           isTrue,
         );
       }
-      expect(seenTypes, presets.map((preset) => preset.id).toSet());
+      expect(
+        seenTypes,
+        presets.map((preset) => preset.id).toSet()..remove('story_cover'),
+      );
     },
   );
 
   test(
-    'all 120 Piedmontese examples pass Audit and enter the runnable queue',
+    'all 117 Piedmontese examples pass Audit and enter the runnable queue',
     () async {
       final course = await loadCourse();
       final audit = CourseAuditService().auditCourse(course);
@@ -137,7 +142,9 @@ void main() {
           }
         }
       }
-      expect(playable.laurelEligibleRoundIds(course), hasLength(40));
+      // Rounds of cards or lines only (Flashcard, Picture flashcard, Note
+      // card, Dialogue line) can be completed but never earn a Laurel.
+      expect(playable.laurelEligibleRoundIds(course), hasLength(35));
     },
   );
 

@@ -84,6 +84,25 @@ void main() {
       );
     });
 
+    test('a Round without evaluable exercises awards nothing', () {
+      // Cards, covers or lines only (owner decision, 28 September 2026).
+      final result = calculator.calculateRoundAward(
+        const RoundXpAwardContext(
+          completed: true,
+          errorsThisAttempt: 0,
+          firstPassCorrect: 0,
+          wasCompletedAtStart: false,
+          newlyEarnedLaurel: true,
+          evaluableExerciseCount: 0,
+        ),
+      );
+
+      expect(result.correctAnswerXp, 0);
+      expect(result.perfectBonusXp, 0);
+      expect(result.laurelBonusXp, 0);
+      expect(result.totalXp, 0);
+    });
+
     test('abandoned Round awards no XP or bonuses', () {
       final result = award(
         completed: false,

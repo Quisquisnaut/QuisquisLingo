@@ -455,7 +455,7 @@ void main() {
             tester,
             find.widgetWithText(
               FilledButton,
-              i == authoredOrder.length - 1 ? 'Finish round' : 'Next',
+              i == authoredOrder.length - 1 ? 'Finish story' : 'Continue',
             ),
           );
         }

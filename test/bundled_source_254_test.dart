@@ -62,12 +62,12 @@ void main() {
   void expectFullSource(Course actual) {
     expect(actual.courseId, source.courseId);
     expect(actual.lessons, hasLength(6));
-    expect(actual.lessons.expand((lesson) => lesson.rounds), hasLength(11));
+    expect(actual.lessons.expand((lesson) => lesson.rounds), hasLength(12));
     expect(
       actual.lessons
           .expand((lesson) => lesson.rounds)
           .expand((round) => round.exercises),
-      hasLength(36),
+      hasLength(39),
     );
     expect(
       CourseBackupService.officialContentChecksum(actual),

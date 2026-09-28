@@ -145,18 +145,21 @@ void main() {
         const LearningCompletionAttemptFacts(
           errorsThisAttempt: 0,
           firstPassCorrect: 0,
+          evaluableExerciseCount: 3,
           wasCompletedAtStart: false,
           ttsWasSkipped: false,
         ),
         const LearningCompletionAttemptFacts(
           errorsThisAttempt: 1,
           firstPassCorrect: 2,
+          evaluableExerciseCount: 3,
           wasCompletedAtStart: false,
           ttsWasSkipped: false,
         ),
         const LearningCompletionAttemptFacts(
           errorsThisAttempt: 1,
           firstPassCorrect: 2,
+          evaluableExerciseCount: 3,
           wasCompletedAtStart: false,
           ttsWasSkipped: false,
         ),
@@ -196,6 +199,36 @@ void main() {
       expect(progress.addedXp, 10);
       expect(result.awardedXp, 10);
       expect(factsRead, 3);
+    },
+  );
+
+  test(
+    'a Round without evaluable exercises completes without a Laurel or XP',
+    () async {
+      // Cards, covers or lines only (owner decision, 28 September 2026).
+      final progress = _FakeLearningCompletionProgress(
+        events: <String>[],
+        weeklyXpValues: [40, 40],
+      );
+      final service = LearningCompletionService.withProgress(progress);
+      final result = await service.completeRound(
+        _request(
+          errorsThisAttempt: 0,
+          firstPassCorrect: 0,
+          wasCompletedAtStart: false,
+          ttsWasSkipped: false,
+          evaluableExerciseCount: 0,
+        ),
+        onNewLaurel: () async {},
+        getWeeklyXpTarget: () async => 100,
+      );
+
+      expect(progress.perfectRoundCalls, 0);
+      expect(progress.ttsSkippedPerfectRoundCalls, 0);
+      expect(progress.addedXp, 0);
+      expect(result.newlyEarnedLaurel, isFalse);
+      expect(result.awardedXp, 0);
+      expect(result.evaluableExerciseCount, 0);
     },
   );
 
@@ -574,11 +607,13 @@ LearningCompletionRequest _request({
   required int firstPassCorrect,
   required bool wasCompletedAtStart,
   required bool ttsWasSkipped,
+  int evaluableExerciseCount = 4,
   List<String>? factEvents,
 }) {
   final facts = LearningCompletionAttemptFacts(
     errorsThisAttempt: errorsThisAttempt,
     firstPassCorrect: firstPassCorrect,
+    evaluableExerciseCount: evaluableExerciseCount,
     wasCompletedAtStart: wasCompletedAtStart,
     ttsWasSkipped: ttsWasSkipped,
   );

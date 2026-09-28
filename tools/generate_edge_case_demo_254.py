@@ -298,17 +298,38 @@ def build_course() -> dict:
             "Marta entra nel bar e saluta.", updated_at=STAMP)),
         story_entry("e34_audio_only", "dialogue_line", story_line(
             "Good morning! A coffee, please.", updated_at=STAMP, speaker_id=marta, mode="audio")),
+        # The question sits between the lines, as a Story alternates them.
+        select("e36_needs_audio", "Che cosa ordina Marta?", ["a coffee", "a tea"]),
         story_entry("e35_thanks", "dialogue_line", story_line(
             "Thank you!", updated_at=STAMP, speaker_id=marta)),
-        select("e36_needs_audio", "Che cosa ordina Marta?", ["a coffee", "a tea"]),
     ]
-    story_round = round_case("r11_story", "Story: At the bar", story_content, visual="story")
+    story_round = round_case("r11_story", "At the bar", story_content, visual="story")
     story_round["flow"] = story_flow(
         [(content["id"], "exercise" in content) for content in story_content],
         title="At the bar", requires_audio={pid("e36_needs_audio")})
-    l6 = lesson("l06", "Storia: al bar (a Story)", [story_round], ["a coffee = un caffè"],
-                overview="Una Story: copertina, tre battute (una solo audio) e un esercizio che richiede "
-                "l’audio della Story. Il narratore parla italiano, Marta inglese.")
+    # A Story of covers alone (owner decision, 28 September 2026): nothing to
+    # score, no XP, and the intentional Audit warning STORY_WITHOUT_DIALOGUE.
+    covers_content = [
+        note("intro07", "Una Story di sole copertine: niente battute, niente esercizi, nessun XP; "
+             "l’Audit segnala STORY_WITHOUT_DIALOGUE, un avviso intenzionale.", role="lesson_intro"),
+        story_entry("e37_cover_market", "story_cover", story_cover(
+            updated_at=STAMP, picture="assets/exercise_images/bread.webp",
+            alternative="Una pagnotta", title_line="Al mercato")),
+        story_entry("e38_cover_bar", "story_cover", story_cover(
+            updated_at=STAMP, picture="assets/exercise_images/coffee.webp",
+            alternative="Una tazza di caffè", title_line="Al bar")),
+        story_entry("e39_cover_home", "story_cover", story_cover(
+            updated_at=STAMP, picture="assets/exercise_images/house.webp",
+            alternative="Una casa", title_line="A casa")),
+    ]
+    covers_round = round_case("r12_covers", "Tre copertine", covers_content, visual="story")
+    covers_round["flow"] = story_flow(
+        [(content["id"], "exercise" in content) for content in covers_content],
+        title="Tre copertine")
+    l6 = lesson("l06", "Storia: al bar (a Story)", [story_round, covers_round], ["a coffee = un caffè"],
+                overview="Una Story: copertina, battute (una solo audio) alternate a un esercizio che richiede "
+                "l’audio della Story; il narratore parla italiano, Marta inglese. Poi una Story di sole "
+                "copertine, senza nulla da valutare.")
     course = {
         "formatVersion": 11, "publicationState": "published", "lessonNumberingMode": "lesson",
         "defaultLessonIconStyle": "monochrome", "createDuels": False,
@@ -327,8 +348,8 @@ def build_course() -> dict:
         "license": "All rights reserved",
         "derivativeWorksPolicy": "allowed", "courseDescription":
             "TEMPORARY AI-GENERATED TEST COURSE. Italiano → inglese. Per trovarlo abilita Show unavailable: "
-            "contiene strutture Draft valide, omesse nel Learner. Include due avvisi Audit intenzionali "
-            "(opzioni duplicate e testo lungo). Hybrid prova MP3 preinstallati e fallback TTS; i campioni MP3 "
+            "contiene strutture Draft valide, omesse nel Learner. Include tre avvisi Audit intenzionali "
+            "(opzioni duplicate, testo lungo e una Story di sole copertine). Hybrid prova MP3 preinstallati e fallback TTS; i campioni MP3 "
             "non hanno una trascrizione verificata e sono solo prove di riproduzione. Fork abilita i collaudi "
             "Copy as New Course e Merge su copie personali. Non è un percorso didattico revisionato.",
         "textDirection": "ltr", "flagCode": "EN", "temporarySample": True,

@@ -25,6 +25,63 @@ open problems and the next step.
   record of how the revision was built; the summary of what it delivers is
   `docs/256_CHANGE_SUMMARY.md` (Revision 5) and the evidence
   `docs/256_VALIDATION.md`.
+- **Revision 5 follow-up in progress (owner review of 28 September,
+  afternoon; same version 2.0.56+256005).** Decisions: Continue after every
+  exercise (Round, Story, Duel) and Finish story; the Dialogue line
+  instruction per mode; no XP, no Laurel and a plain "Nothing to score"
+  completion for a Round without evaluable exercises (Lesson completion XP
+  unaffected; Laurel total excludes such Rounds); the "Story:" label
+  derived from the flow (`LearningRound.displayTitle`), never stored; the
+  avatar decoder fix (`assets/avatars/…` bundled); a scrolling Story keeps
+  a fifth of the page (max 120 px) above the active item; the Laboratory
+  Story rebuilt as "A morning in Turin" (lines and questions alternating)
+  plus "The same morning, line by line" (the options, nothing to score;
+  122 examples after dropping one line for the pacing warning);
+  the Piedmontese demo without the Story cover Lesson, all lines
+  immediate; the Edge Case demo's Story alternating its question and a
+  Story of covers alone ("Tre copertine", intentional
+  STORY_WITHOUT_DIALOGUE). Scripts `s62_followup_code.py`,
+  `s63_followup_courses.py`, `s64_followup_docs.py` applied at 17:37;
+  generators, validator, analyzer, format green; batch 18 (26 files)
+  running in `s5_batch18.log` (result 254/3, fixed: card-only test
+  driver, Top Bar fixture with a question per Round; 17:45 record run
+  `s5_batch21.log` 251 green, baseline rebuilt: 16 Story records, no
+  other record changed; analyzer, format and generators green; 17:49
+  **complete suite running** (`suite_256005_c.log`, about 26 minutes);
+  commit message in the scratchpad `commit_256005_followup.txt`). Next:
+  fill RESULT_FOLLOWUP_SUITE, commit, handoff, sound. 17:54: suite run
+  1 shows one failure by minute 2, the bundled release gate
+  (`bundled_courses_225_02_test.dart`) not knowing the intentional
+  `EN_EDGE|null|STORY_WITHOUT_DIALOGUE`; added; after the run, rerun that
+  file, then the complete suite once more before the commit. 18:15:
+  **session stopped by the usage limit.** Follow-up suite run 1 finished
+  18:14: 3139 passed, 1 skipped, 3 failed, all pins fixed in the tests
+  after they ran: the release gate (`bundled_courses_225_02_test.dart`,
+  `EN_EDGE|null|STORY_WITHOUT_DIALOGUE` added) and the two
+  `learner_status_bar_test.dart` tests whose fixture Rounds held only a
+  note (they hold a question now, like the Top Bar fixture). Not yet run:
+  the focused rerun of those two files, the complete suite run 2, the
+  RESULT_FOLLOWUP_SUITE placeholder in `docs/256_VALIDATION.md`, the
+  commit (`commit_256005_followup.txt`, `git add -A -- .
+  ':!devtools_options.yaml' ':!tools/cloud_setup.sh'`), the handoff commit,
+  `tada.wav`. Working tree: the follow-up, uncommitted, on top of
+  `d35722b`. 19:09 (resumed): the gate rerun showed `ROUND_CONTENT_LONG`
+  on the 11-item Laboratory Story; its last line ("Grazie! A domani.") was
+  dropped (122 examples, baseline rebuilt with 122 records, counts updated
+  in CHANGELOG, CHANGE_SUMMARY, VALIDATION, AGENTS); gate + Laboratory
+  rerun 252 green; analyzer, format, generators green; **complete suite run
+  2 running** (`suite_256005_d.log`, started 19:09). Then: fill
+  RESULT_FOLLOWUP_SUITE, commit, handoff commit, sound. After that:
+  + `s34_baseline.py` (Story records change deliberately), fill the three
+  RESULT_FOLLOWUP_* placeholders in `docs/256_VALIDATION.md`, complete
+  suite, commit "Build 256 Revision 5 follow-up: Continue, line
+  instructions, no XP without exercises, derived Story label, avatars,
+  scroll margin, sample Stories", handoff, sound. Owner asked (then
+  withdrew) character removal in the Wizard: nothing to do. **Revision 6
+  plan to write next: the F block (a choice card that branches, modelled
+  as a Presentation with choices, one per Story, Branch 1 / Branch 2 /
+  Both tags defaulting to Both, F may follow the cover, a line on each
+  branch) and the Story editor (reopen any Story in the Wizard).**
 - Owner-facing items to mention at the next opportunity: (1) the Korean
   demo left the bundle by the owner's request and survives only as the test
   fixture `test/fixtures/v12/korean_en.json`; (2) the Piedmontese demo is

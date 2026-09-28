@@ -255,7 +255,8 @@ void main() {
       final lesson = changed!.lessons.first;
       expect(lesson.rounds, hasLength(1));
       final round = lesson.rounds.single;
-      expect(round.title, 'Story: Al bar');
+      expect(round.title, 'Al bar');
+      expect(round.displayTitle(0), 'Story: Al bar');
       expect(round.visualType, 'story');
       expect(round.publicationState, PublicationState.draft);
       final flow = round.flow!;

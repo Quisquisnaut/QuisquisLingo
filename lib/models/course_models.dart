@@ -2163,7 +2163,34 @@ class LearningRound {
       .whereType<Exercise>()
       .toList(growable: false);
 
+  /// The prefix every list shows before a Story's title (Build 256
+  /// Revision 5 follow-up); derived here, never stored in [title].
+  static const storyTitlePrefix = 'Story: ';
+
+  /// A Round with a content flow is a Story.
+  bool get isStory => flow != null;
+
+  /// A Story's own title: the flow's, else the Round title without a prefix
+  /// an earlier build stored.
+  String get storyTitle {
+    final own = flow?.title.trim() ?? '';
+    return own.isNotEmpty ? own : withoutStoryPrefix(title);
+  }
+
+  static String withoutStoryPrefix(String value) {
+    final trimmed = value.trim();
+    return trimmed.startsWith(storyTitlePrefix)
+        ? trimmed.substring(storyTitlePrefix.length).trim()
+        : trimmed;
+  }
+
+  /// What lists, the Lesson path, Search, Review and the Round screen call
+  /// this Round: "Story: <title>" for a Story, else the title or "Round N".
   String displayTitle(int position) {
+    if (flow != null) {
+      final own = storyTitle;
+      return '$storyTitlePrefix${own.isEmpty ? 'Round ${position + 1}' : own}';
+    }
     final custom = title.trim();
     return custom.isEmpty ? 'Round ${position + 1}' : custom;
   }

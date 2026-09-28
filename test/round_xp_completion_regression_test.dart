@@ -33,7 +33,7 @@ void main() {
       await _openRound(tester, fixture, routeResults: routeResults);
 
       await _answerChoice(tester, correctly: false);
-      await _tapAndPump(tester, 'Next');
+      await _tapAndPump(tester, 'Continue');
       await _answerChoice(tester, correctly: true);
       await _tapAndPump(tester, 'Review mistakes');
       await _tapAndPump(tester, 'Continue');
@@ -60,6 +60,69 @@ void main() {
   );
 
   testWidgets(
+    'a Round of cards only is completed without XP, bonus or Laurel',
+    (tester) async {
+      // Owner decision, 28 September 2026: nothing to score, nothing awarded.
+      final fixture = _roundFixture(exerciseCount: 0, flashcardCount: 2);
+      final routeResults = <bool?>[];
+      await _openRound(
+        tester,
+        fixture,
+        routeResults: routeResults,
+        waitForChoice: false,
+      );
+      // Two cards, each left with Got it; the advance button may sit below
+      // the lazily built area, so scroll when it is not built yet.
+      var cards = 0;
+      for (var step = 0; step < 40; step++) {
+        await _pumpFrames(tester, count: 4);
+        if (find.text('Round completed').evaluate().isNotEmpty) break;
+        expect(
+          find.byType(RoundScreen),
+          findsOneWidget,
+          reason: 'step $step after $cards cards',
+        );
+        if (find.text('Got it').evaluate().isNotEmpty &&
+            find.text('Card reviewed.').evaluate().isEmpty) {
+          await _tapAndPump(tester, 'Got it');
+          cards++;
+          continue;
+        }
+        final advance = find.text('Finish round').evaluate().isNotEmpty
+            ? find.text('Finish round')
+            : find.text('Continue');
+        if (advance.evaluate().isEmpty) {
+          await tester.drag(
+            find.byType(Scrollable).first,
+            const Offset(0, -500),
+          );
+          continue;
+        }
+        await tester.ensureVisible(advance);
+        await tester.tap(advance);
+        await _pumpFrames(tester);
+      }
+      expect(cards, greaterThanOrEqualTo(2));
+      expect(find.text('Round completed'), findsOneWidget);
+      expect(find.byKey(const Key('round-completed-unscored')), findsOneWidget);
+      expect(find.textContaining('Correct answers'), findsNothing);
+      expect(find.textContaining('Perfect bonus'), findsNothing);
+      expect(find.textContaining('First Laurel'), findsNothing);
+      expect(find.textContaining('Total:'), findsNothing);
+      await _tapAndPump(tester, 'Continue');
+
+      final progress = ProgressService();
+      expect(routeResults, [true]);
+      expect(await progress.getCompletedRounds(courseId: courseId), {
+        fixture.round.id,
+      });
+      expect(await progress.getPerfectRounds(courseId: courseId), isEmpty);
+      expect(await progress.getXp(courseCode: courseCode), 0);
+      expect(await progress.getWeeklyXp(), 0);
+    },
+  );
+
+  testWidgets(
     'perfect first completion records a laurel and all three XP components',
     (tester) async {
       final fixture = _roundFixture(exerciseCount: 2);
@@ -68,7 +131,7 @@ void main() {
 
       final progress = ProgressService();
       await _answerChoice(tester, correctly: true);
-      await _tapAndPump(tester, 'Next');
+      await _tapAndPump(tester, 'Continue');
       await _answerChoice(tester, correctly: true);
       final finish = find.text('Finish round');
       await tester.ensureVisible(finish);
@@ -398,7 +461,7 @@ void main() {
     await _openRound(tester, fixture, routeResults: routeResults);
 
     await _answerChoice(tester, correctly: false);
-    await _tapAndPump(tester, 'Next');
+    await _tapAndPump(tester, 'Continue');
     await _answerChoice(tester, correctly: true);
     await _tapAndPump(tester, 'Review mistakes');
     await _tapAndPump(tester, 'Continue');
@@ -427,10 +490,10 @@ void main() {
     await _openRound(tester, fixture, routeResults: routeResults);
 
     await _answerChoice(tester, correctly: false);
-    await _tapAndPump(tester, 'Next');
+    await _tapAndPump(tester, 'Continue');
     for (var index = 1; index < 6; index++) {
       await _answerChoice(tester, correctly: true);
-      if (index < 5) await _tapAndPump(tester, 'Next');
+      if (index < 5) await _tapAndPump(tester, 'Continue');
     }
 
     expect(
@@ -732,7 +795,7 @@ Future<void> _completePerfectRound(
     await _answerChoice(tester, correctly: true);
     await _tapAndPump(
       tester,
-      index + 1 == exerciseCount ? 'Finish round' : 'Next',
+      index + 1 == exerciseCount ? 'Finish round' : 'Continue',
     );
   }
 }
@@ -755,7 +818,7 @@ Future<void> _completeMixedPerfectRound(
     } else {
       await _answerChoice(tester, correctly: true);
     }
-    final label = index + 1 == itemCount ? 'Finish round' : 'Next';
+    final label = index + 1 == itemCount ? 'Finish round' : 'Continue';
     // A card with usage can leave the advance button outside the lazy
     // ListView's built area; scroll to build it before locating the control.
     await tester.scrollUntilVisible(

@@ -140,8 +140,8 @@ void main() {
       expect(source.sourceLanguageTag, 'it-IT');
       expect(source.targetLanguageTag, 'en-GB');
       expect(source.lessons, hasLength(6));
-      expect(source.lessons.expand((lesson) => lesson.rounds), hasLength(11));
-      expect(_exercises(source), hasLength(36));
+      expect(source.lessons.expand((lesson) => lesson.rounds), hasLength(12));
+      expect(_exercises(source), hasLength(39));
       expect(CourseChecksums.official(source), source.officialChecksum);
       final audit = CourseAuditService().auditCourse(source);
       expect(audit.count(AuditSeverity.error), 0);
@@ -152,6 +152,8 @@ void main() {
         unorderedEquals([
           'CHOICE_ANSWER_DUPLICATE:${_prefix}e04_duplicate',
           'EXERCISE_TEXT_LONG:${_prefix}e07_long',
+          // The Story of covers alone (Build 256 Revision 5 follow-up).
+          'STORY_WITHOUT_DIALOGUE:null',
         ]),
       );
       _expectReferencesResolve(source);
@@ -166,7 +168,7 @@ void main() {
       // Build 256 Revision 5 appends a Story Lesson after the Draft Lesson;
       // the fourth learner Lesson is still the one with the Draft GuideBook.
       expect(learner.lessons, hasLength(5));
-      expect(_exercises(learner), hasLength(33));
+      expect(_exercises(learner), hasLength(36));
       expect(learner.lessons[3].rounds, hasLength(1));
       expect(learner.lessons[3].rounds.single.title, isEmpty);
       expect(learner.lessons[3].rounds.single.displayTitle(0), 'Round 1');
@@ -432,7 +434,7 @@ void main() {
           merged.mergeProvenance!.rightSourceCourseVersion,
           earlier.course.courseVersion,
         );
-        expect(_exercises(merged), hasLength(36));
+        expect(_exercises(merged), hasLength(39));
         expect(_ownedIds(merged).intersection(_ownedIds(fork)), isEmpty);
         _expectReferencesResolve(merged);
         expect(await editor.listUserCourses(), hasLength(3));
@@ -507,7 +509,7 @@ void main() {
       final installed = (await receiverEditor.listUserCourses()).single;
       expect(installed.courseId, portable.courseId);
       expect(installed.publicationState, portable.publicationState);
-      expect(_exercises(installed), hasLength(36));
+      expect(_exercises(installed), hasLength(39));
       expect(
         await (await receiverMedia.existingFile(
           installed.courseId,

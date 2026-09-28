@@ -617,7 +617,7 @@ void main() {
       ]);
       expect(course.createDuels, isFalse);
       expect(course.derivativeWorksPolicy, DerivativeWorksPolicy.allowed);
-      expect(examples, hasLength(116));
+      expect(examples, hasLength(122));
       expect(
         examples.map((e) => e.editorTemplate).toSet(),
         ExercisePresetRegistry.presets.map((p) => p.id).toSet(),
@@ -782,7 +782,7 @@ void main() {
     );
     await _show(tester, course, exercise);
     await _tap(tester, find.widgetWithText(OutlinedButton, 'Review again'));
-    await _tap(tester, find.widgetWithText(FilledButton, 'Next'));
+    await _tap(tester, find.widgetWithText(FilledButton, 'Continue'));
     await _tap(tester, find.widgetWithText(FilledButton, 'Got it'));
     await _tap(tester, find.widgetWithText(FilledButton, 'Finish round'));
     await _until(tester, find.text('Preview complete'));

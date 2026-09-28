@@ -72,6 +72,18 @@ class ExerciseCopyService {
       features.contextText,
     ].join(' ').toLowerCase();
     final c = _copy(course);
+    if (kind == LearnerExerciseKind.dialogueLine) {
+      // The instruction follows the line's mode and whether its text waits
+      // for the audio (owner review, 28 September 2026).
+      final variant = features.lineMode == 'text'
+          ? 'dialogueLineText'
+          : features.lineMode == 'audio'
+          ? 'dialogueLineAudio'
+          : features.textReveal == TextReveal.afterAudio
+          ? 'dialogueLineAfterAudio'
+          : 'dialogueLine';
+      return c['instruction.$variant'] ?? instruction(course, kind);
+    }
     if (prompt.contains('opposite') ||
         prompt.contains('contrari') ||
         prompt.contains('gegens') ||
@@ -166,6 +178,10 @@ class ExerciseCopyService {
     'instruction.selectImage': 'Choose the image that matches.',
     'instruction.presentation': 'Study the word and its usage.',
     'instruction.dialogueLine': 'Read or listen, then continue.',
+    'instruction.dialogueLineText': 'Read, then continue.',
+    'instruction.dialogueLineAudio': 'Listen, then continue.',
+    'instruction.dialogueLineAfterAudio':
+        'Listen first; the text appears after.',
     'instruction.storyCover': 'A story begins. Continue when you are ready.',
     'instruction.inputComplete': 'Choose the word that completes the sentence.',
     'instruction.selectComplete':
@@ -224,6 +240,10 @@ class ExerciseCopyService {
     'instruction.selectImage': 'Elige la imagen correcta.',
     'instruction.presentation': 'Estudia la palabra y su uso.',
     'instruction.dialogueLine': 'Lee o escucha, luego continúa.',
+    'instruction.dialogueLineText': 'Lee, luego continúa.',
+    'instruction.dialogueLineAudio': 'Escucha, luego continúa.',
+    'instruction.dialogueLineAfterAudio':
+        'Escucha primero; el texto aparece después.',
     'instruction.storyCover':
         'Empieza una historia. Continúa cuando estés listo.',
     'instruction.inputComplete': 'Elige la palabra que completa la frase.',
@@ -287,6 +307,10 @@ class ExerciseCopyService {
     'instruction.selectImage': 'Scegli l’immagine corretta.',
     'instruction.presentation': 'Studia la parola e il suo uso.',
     'instruction.dialogueLine': 'Leggi o ascolta, poi continua.',
+    'instruction.dialogueLineText': 'Leggi, poi continua.',
+    'instruction.dialogueLineAudio': 'Ascolta, poi continua.',
+    'instruction.dialogueLineAfterAudio':
+        'Ascolta prima; il testo compare dopo.',
     'instruction.storyCover': 'Inizia una storia. Continua quando sei pronto.',
     'instruction.inputComplete': 'Scegli la parola che completa la frase.',
     'instruction.selectComplete':
@@ -349,6 +373,10 @@ class ExerciseCopyService {
     'instruction.selectImage': 'Wähle das passende Bild.',
     'instruction.presentation': 'Lerne das Wort und seine Verwendung.',
     'instruction.dialogueLine': 'Lies oder höre zu, dann weiter.',
+    'instruction.dialogueLineText': 'Lies, dann weiter.',
+    'instruction.dialogueLineAudio': 'Hör zu, dann weiter.',
+    'instruction.dialogueLineAfterAudio':
+        'Hör zuerst zu; der Text erscheint danach.',
     'instruction.storyCover':
         'Eine Geschichte beginnt. Weiter, wenn du bereit bist.',
     'instruction.inputComplete':
@@ -413,6 +441,10 @@ class ExerciseCopyService {
     'instruction.selectImage': 'Escolha a imagem correta.',
     'instruction.presentation': 'Estude a palavra e o seu uso.',
     'instruction.dialogueLine': 'Leia ou ouça, depois continue.',
+    'instruction.dialogueLineText': 'Leia, depois continue.',
+    'instruction.dialogueLineAudio': 'Ouça, depois continue.',
+    'instruction.dialogueLineAfterAudio':
+        'Ouça primeiro; o texto aparece depois.',
     'instruction.storyCover':
         'Começa uma história. Continue quando estiver pronto.',
     'instruction.inputComplete': 'Escolha a palavra que completa a frase.',
@@ -473,6 +505,10 @@ class ExerciseCopyService {
     'instruction.selectImage': 'Kies de juiste afbeelding.',
     'instruction.presentation': 'Bestudeer het woord en het gebruik ervan.',
     'instruction.dialogueLine': 'Lees of luister, en ga dan verder.',
+    'instruction.dialogueLineText': 'Lees, en ga dan verder.',
+    'instruction.dialogueLineAudio': 'Luister, en ga dan verder.',
+    'instruction.dialogueLineAfterAudio':
+        'Luister eerst; de tekst verschijnt daarna.',
     'instruction.storyCover':
         'Er begint een verhaal. Ga verder als je klaar bent.',
     'instruction.inputComplete': 'Kies het woord dat de zin aanvult.',
@@ -532,6 +568,10 @@ class ExerciseCopyService {
     'instruction.selectImage': 'Valitse oikea kuva.',
     'instruction.presentation': 'Opiskele sanaa ja sen käyttöä.',
     'instruction.dialogueLine': 'Lue tai kuuntele, sitten jatka.',
+    'instruction.dialogueLineText': 'Lue, sitten jatka.',
+    'instruction.dialogueLineAudio': 'Kuuntele, sitten jatka.',
+    'instruction.dialogueLineAfterAudio':
+        'Kuuntele ensin; teksti tulee näkyviin sen jälkeen.',
     'instruction.storyCover': 'Tarina alkaa. Jatka, kun olet valmis.',
     'instruction.inputComplete': 'Valitse sana, joka täydentää lauseen.',
     'instruction.selectComplete':
@@ -591,6 +631,10 @@ class ExerciseCopyService {
     'instruction.selectImage': 'Dewiswch y ddelwedd gywir.',
     'instruction.presentation': 'Astudiwch y gair a’i ddefnydd.',
     'instruction.dialogueLine': 'Darllenwch neu gwrandewch, yna parhewch.',
+    'instruction.dialogueLineText': 'Darllenwch, yna parhewch.',
+    'instruction.dialogueLineAudio': 'Gwrandewch, yna parhewch.',
+    'instruction.dialogueLineAfterAudio':
+        'Gwrandewch yn gyntaf; mae’r testun yn ymddangos wedyn.',
     'instruction.storyCover':
         'Mae stori yn dechrau. Parhewch pan fyddwch yn barod.',
     'instruction.inputComplete': 'Dewiswch y gair sy’n cwblhau’r frawddeg.',

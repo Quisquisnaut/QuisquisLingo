@@ -5,6 +5,7 @@ import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/screens/round_screen.dart';
 import 'package:quisquislingo_app/services/duel_eligibility_service.dart';
 import 'package:quisquislingo_app/services/exercise_draft_builder.dart';
+import 'package:quisquislingo_app/services/portable_exercise_image.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:quisquislingo_app/services/round_flow_authoring.dart';
 import 'package:quisquislingo_app/services/tts_cache_service.dart';
@@ -269,6 +270,7 @@ void main() {
     await _until(tester, find.text('Anna walks into the café.'));
     expect(find.byKey(const Key('story-line-narrator')), findsOneWidget);
     expect(find.text('Narrator'), findsOneWidget);
+    expect(find.text('Read or listen, then continue.'), findsOneWidget);
     await tester.runAsync(
       () => Future<void>.delayed(const Duration(milliseconds: 50)),
     );
@@ -283,6 +285,22 @@ void main() {
     // spoken in the target language with the female voice.
     await _until(tester, find.byKey(const Key('story-line-bubble')));
     expect(find.text('Anna'), findsOneWidget);
+    expect(find.text('Listen first; the text appears after.'), findsOneWidget);
+    // Anna's bundled avatar is drawn as the asset it is: the portable
+    // decoder used to refuse assets/avatars and draw a broken image.
+    expect(
+      PortableExerciseImageService.decode('assets/avatars/cat.png'),
+      isNull,
+    );
+    expect(
+      find.byWidgetPredicate(
+        (widget) =>
+            widget is Image &&
+            widget.image is AssetImage &&
+            (widget.image as AssetImage).assetName == 'assets/avatars/cat.png',
+      ),
+      findsOneWidget,
+    );
     expect(find.text('Listen first…'), findsOneWidget);
     expect(find.text('Buongiorno! Un caffè, per favore.'), findsNothing);
     expect(speech.spoken, hasLength(1), reason: 'manual read-aloud');
@@ -309,13 +327,13 @@ void main() {
 
     // An exercise is answered as usual and leaves the dialogue log.
     await _tap(tester, find.widgetWithText(FilledButton, 'Right q1'));
-    await _tap(tester, find.widgetWithText(FilledButton, 'Next'));
+    await _tap(tester, find.widgetWithText(FilledButton, 'Continue'));
     await _until(tester, find.text('Where is Anna?'));
     expect(find.byKey(const ValueKey('story-entry-4')), findsNothing);
     expect(find.text('What did Anna order?'), findsNothing);
     expect(find.text('Anna walks into the café.'), findsOneWidget);
     await _tap(tester, find.widgetWithText(FilledButton, 'Right q2'));
-    await _tap(tester, find.widgetWithText(FilledButton, 'Finish round'));
+    await _tap(tester, find.widgetWithText(FilledButton, 'Finish story'));
     await _until(tester, find.text('Preview complete'));
   });
 
@@ -330,7 +348,7 @@ void main() {
     await _tap(tester, find.byKey(const Key('story-line-continue')));
     await _until(tester, find.text('What did Anna order?'));
     await _tap(tester, find.widgetWithText(FilledButton, 'Right q1'));
-    await _tap(tester, find.widgetWithText(FilledButton, 'Next'));
+    await _tap(tester, find.widgetWithText(FilledButton, 'Continue'));
     await _until(tester, find.text('Where is Anna?'));
     expect(find.byKey(const ValueKey('story-entry-4')), findsOneWidget);
     expect(find.text('What did Anna order?'), findsOneWidget);

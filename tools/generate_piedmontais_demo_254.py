@@ -510,7 +510,7 @@ def build_course_v11() -> dict:
         "createDuels": False, "courseId": COURSE_ID, "originType": "bundledOfficial",
         "publisherId": "org.quisquislingo", "publisherName": "QuisquisLingo",
         "officialCourseVersion": "1.3.0", "officialReleaseDateUtc": RELEASE_STAMP,
-        "officialReleaseNotes": "QQL Build 256 Revision 5: a Dialogue line Lesson played as a Story and a Story cover Lesson join the one Lesson per preset.",
+        "officialReleaseNotes": "QQL Build 256 Revision 5: a Dialogue line Lesson played as a Story joins the one Lesson per preset; the Story cover preset has no Lesson of its own.",
         "distributionChannel": "bundled", "publisherVerificationStatus": "verified",
         "originalCourseCreator": {"type": "publisher", "id": "org.quisquislingo", "displayName": "QuisquisLingo"},
         "originalCreatedAtUtc": STAMP, "modifiedAtUtc": RELEASE_STAMP,
@@ -538,9 +538,11 @@ def build_course_v11() -> dict:
 
 
 def story_lessons() -> list[dict]:
-    """Build 256 Revision 5: the two presets with no v11 recipe, one Lesson
-    each like every other preset. They join after conversion, so the
-    converter fixture (build_course_v11) omits them."""
+    """Build 256 Revision 5: the Dialogue line preset has no v11 recipe and
+    gets its Lesson here, a Story of three lines; it joins after conversion,
+    so the converter fixture (build_course_v11) omits it. The Story cover
+    preset has no Lesson of its own: a Story of covers alone belongs to the
+    Edge Case demo (owner decision, 28 September 2026)."""
     narrator, gioanin, catlina = "", f"{PREFIX}_character_gioanin", f"{PREFIX}_character_catlina"
 
     def entry(rid: str, index: int, preset: str, exercise: dict) -> dict:
@@ -572,7 +574,7 @@ def story_lessons() -> list[dict]:
         entry(rid, 1, "dialogue_line", story_line(
             "Gioanin goes to the market to buy bread.", updated_at=STAMP, speaker_id=narrator)),
         entry(rid, 2, "dialogue_line", story_line(
-            "Bondì! Un pan, për piasì.", updated_at=STAMP, speaker_id=gioanin, text_reveal="afterAudio")),
+            "Bondì! Un pan, për piasì.", updated_at=STAMP, speaker_id=gioanin)),
         entry(rid, 3, "dialogue_line", story_line(
             "Grassie! Bon-a giornà, Gioanin.", updated_at=STAMP, speaker_id=catlina)),
     ]
@@ -581,30 +583,10 @@ def story_lessons() -> list[dict]:
         "visualType": "story", "title": "Dialogue line practice", "content": lines,
         "flow": story_flow([(c["id"], "exercise" in c) for c in lines], title="Al mercà"),
     }
-    rid = f"{PREFIX}_l40_r01"
-    covers = [
-        intro(rid, "Story cover", "Three covers"),
-        entry(rid, 1, "story_cover", story_cover(
-            updated_at=STAMP, picture="assets/exercise_images/bread.webp",
-            alternative="A loaf of bread", title_line="Al mercà")),
-        entry(rid, 2, "story_cover", story_cover(
-            updated_at=STAMP, picture="assets/exercise_images/coffee.webp",
-            alternative="A cup of coffee", title_line="Al bar")),
-        entry(rid, 3, "story_cover", story_cover(
-            updated_at=STAMP, picture="assets/exercise_images/house.webp",
-            alternative="A house", title_line="A ca'")),
-    ]
-    practice = {
-        "id": rid, "publicationState": "published", "updatedAt": STAMP,
-        "visualType": "generic", "title": "Story cover practice", "content": covers,
-    }
     return [
         lesson(39, "Dialogue line", "At the market",
                "A Story: the narrator speaks English, Gioanin and Catlin-a speak Piedmontese. Read or listen to each line and continue; the scroll log keeps the dialogue. bondì = good morning; un pan = a loaf of bread; për piasì = please; grassie = thank you.",
                story),
-        lesson(40, "Story cover", "Three covers",
-               "The first card of a Story: a picture and a title line. These three covers are shown on their own, outside a Story, so Continue simply moves on. al mercà = at the market; al bar = at the bar; a ca' = at home.",
-               practice),
     ]
 
 
@@ -636,7 +618,7 @@ def main() -> int:
         if not OUTPUT.is_file() or OUTPUT.read_text(encoding="utf-8") != rendered:
             print(f"FAIL: {OUTPUT.relative_to(ROOT)} differs from the authored generator")
             return 1
-        print("PASS: Piedmontese course is reproducible; 40 catalogue presets, 40 Lessons, 120 examples")
+        print("PASS: Piedmontese course is reproducible; 40 catalogue presets, 39 Lessons (Story cover has none), 117 examples")
         return 0
     OUTPUT.write_text(rendered, encoding="utf-8", newline="\n")
     print(f"Wrote {OUTPUT.relative_to(ROOT)}: one Lesson per catalogue preset")

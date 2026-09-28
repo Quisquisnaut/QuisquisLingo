@@ -5,7 +5,7 @@ This document and the JSON are generated together by `tools/generate_exercise_la
 - Course: **Exercise Laboratory**, `course_50d68435-d2c2-4b63-9a0b-b23161357f1d`.
 - Direction: English (`en-GB`) → Italian (`it-IT`); TTS `it-IT`.
 - Model 11, official Course version 1.0.0; all Lessons, Rounds and Content are Published.
-- Exactly six Lessons (five primitives and a Story), 25 Rounds and 116 runnable examples across all 46 authoring presets.
+- Exactly six Lessons (five primitives and a Story), 26 Rounds and 122 runnable examples across all 46 authoring presets.
 - Course rights explicitly allow Fork, so the bundled original can be inspected and a derivative can use the ordinary authoring/confirm/export/import paths.
 - Create Duels is off: Presentation is non-evaluable and the Course is not padded to manufacture Duel pools. The required per-Lesson Duel metadata is retained.
 - This Course leaves existing Course identities, learner data and media assets unchanged.
@@ -61,8 +61,8 @@ The authoring registry is `lib/models/exercise_authoring.dart`. Every one of its
 | Presentation | `note_card` | 2 |
 | Story | `true_false` | 3 |
 | Story | `word_order` | 6 |
-| Story | `story_cover` | 1 |
-| Story | `dialogue_line` | 5 |
+| Story | `story_cover` | 2 |
+| Story | `dialogue_line` | 10 |
 | Story | `choice_target` | 1 |
 
 ## Case matrix and answer keys
@@ -180,13 +180,19 @@ The suffix below follows `qql_lab254_` in the stable Content/Exercise ID. Answer
 | Presentation / Picture flashcards and note cards | note_card_grammar | note_card | Note card; a grammar note | Got it; or Review again, then Got it on the repeated card |
 | Story / A morning in Turin | story_cover | story_cover | Story cover; a bundled picture and a title line under the Story title | Continue |
 | Story / A morning in Turin | story_narrator | dialogue_line | Dialogue line; the narrator in the source language, text and audio | Continue |
-| Story / A morning in Turin | story_anna_order | dialogue_line | Dialogue line; a character in the target language, text shown after listening | Continue |
+| Story / A morning in Turin | story_anna_order | dialogue_line | Dialogue line; a character in the target language, text and audio | Continue |
 | Story / A morning in Turin | story_luca_offer | dialogue_line | Dialogue line; a character, text and audio | Continue |
-| Story / A morning in Turin | story_anna_text | dialogue_line | Dialogue line; text only | Continue |
-| Story / A morning in Turin | story_luca_audio | dialogue_line | Dialogue line; audio only, read on request | Continue |
-| Story / A morning in Turin | story_true_false | true_false | True or false inside a Story; needs the Story's audio, so Audio Exercises off skips it | False |
-| Story / A morning in Turin | story_choice | choice_target | Choose the answer inside a Story | Un caffè |
-| Story / A morning in Turin | story_order | word_order | Word order inside a Story | Un caffè, per favore. |
+| Story / A morning in Turin | story_choice | choice_target | Choose the answer between the lines of a Story | Un caffè |
+| Story / A morning in Turin | story_anna_no | dialogue_line | Dialogue line; a character declines | Continue |
+| Story / A morning in Turin | story_luca_serves | dialogue_line | Dialogue line; a character serves | Continue |
+| Story / A morning in Turin | story_true_false | true_false | True or false between the lines of a Story; needs the Story's audio, so Audio Exercises off skips it | False |
+| Story / A morning in Turin | story_order | word_order | Word order closing a Story | Un caffè, per favore. |
+| Story / The same morning, line by line | options_cover | story_cover | Story cover of a Story without exercises | Continue |
+| Story / The same morning, line by line | options_narrator | dialogue_line | Dialogue line; the narrator, text and audio, read on request as the Story says | Continue |
+| Story / The same morning, line by line | options_after_audio | dialogue_line | Dialogue line; text shown after listening | Continue |
+| Story / The same morning, line by line | options_text_only | dialogue_line | Dialogue line; text only | Continue |
+| Story / The same morning, line by line | options_audio_only | dialogue_line | Dialogue line; audio only, read on request | Continue |
+| Story / The same morning, line by line | options_automatic | dialogue_line | Dialogue line; read aloud automatically although the Story reads on request | Continue |
 
 ## Boundaries and intentionally excluded combinations
 
@@ -208,8 +214,8 @@ The suffix below follows `qql_lab254_` in the stable Content/Exercise ID. Answer
 
 1. `python -X utf8 tools/generate_exercise_laboratory_254.py --check`: deterministic JSON/checksum and coverage-document readback.
 2. `python -X utf8 tools/validate_courses.py`: Course Model structure, timestamps, stable unique IDs, references, publication and official checksum.
-3. `test/exercise_laboratory_254_test.dart` checks the actual asset's Audit and canonical model round trip, then rebuilds all 116 examples through ExerciseDraftBuilder (and ScriptRecognitionController for its image modes), comparing semantic fields and each result's model round trip. Separate preservation assertions cover Flashcard usage and usage translation. Editor route tests include `exercise_authoring_252_characterization_test.dart`, `select_editor_238_test.dart`, `arrange_gap_fill_editor_238_test.dart`, `script_recognition_226_03_test.dart` and `translation_choice_239_test.dart`.
-4. The same Lab suite completes all 116 examples through RoundScreen Preview using actual controls and grading, including repeated blocks, reusable gaps, exact multiple-selection sets and audio matching. Additional cases finish an alternate Build translation answer and a Review again/Got it cycle. Speech is stubbed only at the playback seam; these tests do not establish native voice quality or normal progression persistence.
+3. `test/exercise_laboratory_254_test.dart` checks the actual asset's Audit and canonical model round trip, then rebuilds all 122 examples through ExerciseDraftBuilder (and ScriptRecognitionController for its image modes), comparing semantic fields and each result's model round trip. Separate preservation assertions cover Flashcard usage and usage translation. Editor route tests include `exercise_authoring_252_characterization_test.dart`, `select_editor_238_test.dart`, `arrange_gap_fill_editor_238_test.dart`, `script_recognition_226_03_test.dart` and `translation_choice_239_test.dart`.
+4. The same Lab suite completes all 122 examples through RoundScreen Preview using actual controls and grading, including repeated blocks, reusable gaps, exact multiple-selection sets and audio matching. Additional cases finish an alternate Build translation answer and a Review again/Got it cycle. Speech is stubbed only at the playback seam; these tests do not establish native voice quality or normal progression persistence.
 5. Export/import of the Course through the normal ZIP and embedded-image JSON routes preserves this Course's identity, content wrappers, answers and character PNG bytes. A Fork gets a new identity through the existing rights-aware operation.
 
 These are verification seams, not a claim that commands have been run. Fresh integrated results are recorded in the Build 254 validation document.

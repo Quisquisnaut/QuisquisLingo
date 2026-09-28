@@ -449,7 +449,7 @@ def validate(path: Path, global_ids: dict[str, str]) -> list[str]:
     expected_lessons = {
         "exercise_laboratory_en_it.json": 6,
         "edge_case_it_en.json": 6,
-        "piedmontais_en.json": 40,
+        "piedmontais_en.json": 39,
     }.get(path.name, 9)
     if len(lessons) != expected_lessons:
         issues.append(

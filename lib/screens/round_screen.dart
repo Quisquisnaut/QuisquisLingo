@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart' show RenderAbstractViewport;
 import '../services/course_language_resolver.dart';
 import '../services/first_letter_answer_service.dart';
 import '../widgets/course_media_image.dart';
@@ -126,7 +127,9 @@ class _RoundScreenState extends State<RoundScreen> {
     (lesson) => lesson.lessonId == widget.lesson.lessonId,
   );
   String get _reviewContext {
-    final roundTitle = widget.round.title.trim();
+    final roundTitle = widget.round.flow != null
+        ? widget.round.displayTitle(widget.roundIndex)
+        : widget.round.title.trim();
     return '${widget.course.title} · ${widget.course.targetLanguage} · '
         'Lesson ${_lessonIndex + 1}: ${widget.lesson.title} · '
         'Round ${widget.roundIndex + 1}'
@@ -1241,17 +1244,27 @@ class _RoundScreenState extends State<RoundScreen> {
     );
   }
 
-  /// Brings the active item ("Now") to the top of the page after Next, so
-  /// the finished cards scroll away above it.
+  /// Brings the active item ("Now") near the top of the page after
+  /// Continue: a fifth of the viewport, at most [storyScrollMargin] pixels,
+  /// stays above it, so the tail of the previous item remains readable
+  /// (owner decision, 28 September 2026).
+  static const double storyScrollMargin = 120;
+
   void _scrollStoryToEnd() {
     if (!_storyScrolls) return;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       final now = _storyNowKey.currentContext;
-      if (now != null) {
-        Scrollable.ensureVisible(
-          now,
-          alignment: 0,
+      final render = now?.findRenderObject();
+      final viewport = render == null
+          ? null
+          : RenderAbstractViewport.maybeOf(render);
+      if (render != null && viewport != null && _storyScroll.hasClients) {
+        final position = _storyScroll.position;
+        final margin = min(storyScrollMargin, position.viewportDimension * 0.2);
+        final reveal = viewport.getOffsetToReveal(render, 0).offset - margin;
+        _storyScroll.animateTo(
+          reveal.clamp(0.0, position.maxScrollExtent),
           duration: const Duration(milliseconds: 600),
           curve: Curves.easeInOut,
         );
@@ -1473,24 +1486,46 @@ class _RoundScreenState extends State<RoundScreen> {
         context: context,
         barrierDismissible: false,
         builder: (ctx) => AlertDialog(
-          title: const Text('Round completed'),
+          title: Text(_isStory ? 'Story completed' : 'Round completed'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Correct answers: ${completion.firstPassCorrect}/'
-                '${completion.evaluableExerciseCount} — '
-                '${completion.roundXp.correctAnswerXp} XP',
-              ),
-              if (completion.roundXp.perfectBonusXp > 0)
-                Text('Perfect bonus: +${completion.roundXp.perfectBonusXp} XP'),
-              if (completion.roundXp.laurelBonusXp > 0)
-                Text('First Laurel: +${completion.roundXp.laurelBonusXp} XP'),
-              if (completion.lessonCompletionXp > 0)
-                Text('Lesson completed: +${completion.lessonCompletionXp} XP'),
-              Text('Total: ${completion.awardedXp} XP'),
-            ],
+            // A Round or Story without a scored exercise (cards, covers,
+            // lines only) awards nothing and shows no XP arithmetic (owner
+            // decision, 28 September 2026).
+            children: completion.evaluableExerciseCount == 0
+                ? [
+                    Text(
+                      'Nothing to score in this ${_isStory ? 'Story' : 'Round'}.',
+                      key: const Key('round-completed-unscored'),
+                    ),
+                    if (completion.lessonCompletionXp > 0) ...[
+                      Text(
+                        'Lesson completed: +${completion.lessonCompletionXp} XP',
+                      ),
+                      Text('Total: ${completion.awardedXp} XP'),
+                    ],
+                  ]
+                : [
+                    Text(
+                      'Correct answers: ${completion.firstPassCorrect}/'
+                      '${completion.evaluableExerciseCount} — '
+                      '${completion.roundXp.correctAnswerXp} XP',
+                    ),
+                    if (completion.roundXp.perfectBonusXp > 0)
+                      Text(
+                        'Perfect bonus: +${completion.roundXp.perfectBonusXp} XP',
+                      ),
+                    if (completion.roundXp.laurelBonusXp > 0)
+                      Text(
+                        'First Laurel: +${completion.roundXp.laurelBonusXp} XP',
+                      ),
+                    if (completion.lessonCompletionXp > 0)
+                      Text(
+                        'Lesson completed: +${completion.lessonCompletionXp} XP',
+                      ),
+                    Text('Total: ${completion.awardedXp} XP'),
+                  ],
           ),
           actions: [
             FilledButton(
@@ -3526,17 +3561,20 @@ class _RoundScreenState extends State<RoundScreen> {
               const SizedBox(height: 12),
               FilledButton(
                 onPressed: _finishing ? null : _next,
+                // One verb for moving on (owner decision, 28 September
+                // 2026): Continue, as after a card or a line; the terminal
+                // labels stay.
                 child: Text(
                   _finishing
-                      ? 'Finishing round…'
+                      ? (_isStory ? 'Finishing story…' : 'Finishing round…')
                       : !_reviewPhase &&
                             !_isStory &&
                             _position + 1 == _queue.length &&
                             _wrongFirstPass.isNotEmpty
                       ? 'Review mistakes'
                       : (_position + 1 == _queue.length
-                            ? 'Finish round'
-                            : 'Next'),
+                            ? (_isStory ? 'Finish story' : 'Finish round')
+                            : 'Continue'),
                 ),
               ),
             ],

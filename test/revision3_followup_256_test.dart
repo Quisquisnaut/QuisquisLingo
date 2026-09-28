@@ -500,7 +500,7 @@ void main() {
       expect(find.byKey(const Key('story-scroll')), findsOneWidget);
       expect(find.text('Story · 2 steps'), findsOneWidget);
       await _tap(tester, find.widgetWithText(FilledButton, 'Right e1'));
-      await _tap(tester, find.widgetWithText(FilledButton, 'Next'));
+      await _tap(tester, find.widgetWithText(FilledButton, 'Continue'));
       expect(find.byKey(const ValueKey('story-entry-0')), findsOneWidget);
       expect(find.text('Now · step 2 of 2'), findsOneWidget);
       expect(find.byKey(const Key('story-spacer')), findsOneWidget);
@@ -508,7 +508,7 @@ void main() {
       expect(find.text('Question 1'), findsOneWidget);
       expect(find.text('Question 2'), findsOneWidget);
       await _tap(tester, find.widgetWithText(FilledButton, 'Wrong e2'));
-      await _tap(tester, find.widgetWithText(FilledButton, 'Finish round'));
+      await _tap(tester, find.widgetWithText(FilledButton, 'Finish story'));
       await _until(tester, find.text('Preview complete'));
     });
   });

@@ -29,11 +29,19 @@ class RoundPlayabilityService {
             )
             .toList();
 
+  /// The Rounds a Laurel can be earned in: at least one playable exercise
+  /// that is scored. A Round of cards, covers or lines only is completed but
+  /// never perfect (owner decision, 28 September 2026).
   Set<String> laurelEligibleRoundIds(Course course) => {
     for (final lesson in course.lessons)
       if (course.publicationState.isPublished &&
           lesson.publicationState.isPublished)
         for (final round in lesson.rounds)
-          if (playableExerciseIndices(round).isNotEmpty) round.id,
+          if (playableExerciseIndices(round).any(
+            (index) =>
+                round.exercises[index].primitive !=
+                ExercisePrimitive.presentation,
+          ))
+            round.id,
   };
 }
