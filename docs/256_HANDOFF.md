@@ -13,7 +13,81 @@ narrative of Revision 4 is gone (the evidence lives in
 `docs/256_VALIDATION.md`); what follows is state, decisions, requirements,
 open problems and the next step.
 
-## State (29 September 2026, 08:35)
+## State (29 September 2026, 09:35)
+
+- **Revision 7 third follow-up in progress (same version 2.0.56+256007,
+  uncommitted on local `main` on top of `71eaa38`).** Owner decisions of
+  29 September: a Round made with New Round and played as a sequence is a
+  plain ordered Round, not a Story. Story = a flow and `visualType: story`
+  (New Story's; `LearningRound.isStory`), sequence = a flow and any other
+  visual type (`isSequence`); Optional sequence title (not prefilled; new
+  sequence Step by step, log Everything); plain Round buttons instead of
+  Add Step; "sequence" in the editor texts; the label "Sequence:
+  <title>" (else the Round's name, else Round N) in every list, the
+  learner's path and the Round screen (Sequence completed, Finish
+  sequence, "Sequence · N steps"); the Audit's Round rules; exercises in
+  the Duel; no mistake review. Code, Help EN/IT/ES, tests
+  (`sequence_round_256_test` + Story fixtures with `visualType: story`),
+  AGENTS, CHANGELOG, CHANGE_SUMMARY, VALIDATION written; focused tests
+  green. Next: `dart format` on the changed files, `flutter analyze`, the
+  complete suite once, fill `RESULT_THIRD_FOLLOWUP` in
+  `docs/256_VALIDATION.md`, local commit "Build 256 Revision 7 third
+  follow-up: sequences are plain ordered Rounds", handoff, sound. No push.
+- **Also in the third follow-up (done, uncommitted): Type the missing
+  word** — with Show the first letter off the accepted words may start
+  with different letters; the form's helper and note follow the switch
+  (builder and Audit were already right). Complete suite run started 09:47
+  (`suite_third_a.log` in this session's scratchpad).
+- **Owner backlog of 29 September (review of the Windows build), in
+  order:**
+  1. **Name what you see** (decided, next after the commit): a new preset
+     `picture_blocks` "Name what you see" (Arrange: picture with role
+     `picture`, optional question, "Blocks of the name, in order" =
+     `order`, "Extra blocks (optional, at most 2)" = `extraWords`; base
+     `word_order`; one correct name); the typed preset keeps its ID
+     `picture_name`, renamed **"Type what you see"**; new learner kinds
+     `arrangePictureName` (NAME WHAT YOU SEE / "Build the name of what you
+     see.") and `inputPictureName` (NAME WHAT YOU SEE / "Type the name of
+     what you see.") in the eight copy languages (en es it de pt nl fi cy);
+     Laboratory and Piedmontese gain block examples (Piedmontese Lesson
+     per preset), presentation baseline re-recorded.
+  2. **Read and answer** (answers given 09:55, interpretation to confirm
+     with the owner): keep only `reading_answer_target` (retire
+     `reading_answer_source`); Text to read in the SOURCE language
+     (explained in its helper), no read-aloud; Dialogue (target language)
+     gets Read aloud No / On request / Automatically, spoken turn by turn
+     with a short pause; Spoken text field removed; the read-aloud is
+     optional (never an audio exercise); Laboratory/Piedmontese examples
+     with Spoken text removed and new ones generated.
+  3. **Sort into groups**: remove "Words that belong nowhere"; examples
+     Animals and Food → Animals and Plants in fields and Help. Open: the
+     Laboratory's leftover example (replace with three groups / remove /
+     canonical-only) and whether its Animals/Food example also changes
+     (two popups dismissed; ask again in text).
+- **Under discussion (owner, 29 September, "let's discuss", no edits
+  yet): Build the translation and capitals.** Found: learner grading and
+  the Audit's UNCONSTRUCTABLE check already ignore case; the blocker is
+  `_resolveOrderedItemIds` in `lib/models/course_models.dart` (the form's
+  answer-to-block matching compares case-sensitively), so "Io sono Anna"
+  with block "io" gets no block order and the Audit's
+  `BUILD_TRANSLATION_INVALID_SEQUENCE` Error blocks Save. Proposed:
+  case-insensitive fallback matching (exact match first) and a new
+  non-blocking Warning `BUILD_TRANSLATION_CASE_DIFFERS`. Questions asked:
+  is that the error seen; Warning always / except first letter / Info /
+  nothing (lowercase blocks are a common practice); Put the words in order
+  too; delivered as a same-version follow-up before Revision 8.
+- **Revision 8 decided (owner answers, 29 September): Editor Help as
+  Q&A.** Editor Help only (Course Studio Help keeps its paragraphs and the
+  12 shared `editorHelp.*` sections); 7 task topics (Getting started;
+  Saving and versions; Course settings; Lessons and Rounds; Exercises;
+  Pictures and sound; Checking the Course), questions that open on tap,
+  a search field (case and accents ignored), text rewritten in plain
+  language and checked against today's app (stale statements fixed,
+  e.g. Use GuideBook/Create Duels now in Lesson Options, backups v12),
+  EN/IT/ES complete together (UI names in English), Technical reference
+  card kept at the top, delivered as Revision 8 (`2.0.56+256008`, Beta
+  expiry stays `2026-10-29`). Starts after the sequence commit (and the
+  Build the translation follow-up if the owner approves it first).
 
 - **Build 256 is complete and reviewed twice: eight sessions, Revisions
   0–7, committed on `claude/256-exercise-architecture`. Revision 7

@@ -448,6 +448,7 @@ void main() {
         final round = LearningRound(
           id: 'story',
           title: 'Story',
+          visualType: LearningRound.storyVisualType,
           exercises: exercises,
           flow: linear,
         );

@@ -291,6 +291,11 @@ LearningRound _round(
     id: id,
     title: title,
     updatedAt: canonicalCourse256Stamp,
+    // The Stories of this Course, linear or branching, carry New Story's
+    // visual type.
+    visualType: story || flow != null
+        ? LearningRound.storyVisualType
+        : 'generic',
     content: content,
     flow:
         flow ??

@@ -570,10 +570,11 @@ class CourseAuditService {
         }
         // Build 256 Revision 5: Stories. A Story wants a title and at least
         // one dialogue line; a line names an existing character; a line
-        // outside a Story plays as a plain card.
-        final flow = r.flow;
+        // outside a Story plays as a plain card. A sequence gets the Round
+        // rules (Revision 7, third follow-up).
         final roundExercises = r.exercises;
-        if (flow != null) {
+        if (r.isStory) {
+          final flow = r.flow!;
           if (flow.title.trim().isEmpty) {
             issues.add(
               CourseAuditIssue.fromCode(
@@ -627,7 +628,7 @@ class CourseAuditService {
               ),
             );
           }
-          if (flow == null) {
+          if (!r.isStory) {
             issues.add(
               CourseAuditIssue.fromCode(
                 AuditCode.dialogueLineOutsideStory,
@@ -890,12 +891,13 @@ class CourseAuditService {
 
   /// Why learners using this version cannot complete [round], or null
   /// (Build 256 Revision 6, plan A.6 and A.7): a practice Round whose
-  /// exercises are all ones this version cannot play, a Story whose flow
-  /// branches or is not a straight sequence, or a Story whose last step is
-  /// an exercise this version cannot play (learners reach its card and the
-  /// Story ends without being recorded).
+  /// exercises are all ones this version cannot play, a Story or sequence
+  /// whose flow branches or is not a straight sequence, or a Story or
+  /// sequence whose last step is an exercise this version cannot play
+  /// (learners reach its card and it ends without being recorded).
   static String? notCompletableReason(LearningRound round) {
     final flow = round.flow;
+    final kind = round.isStory ? 'Story' : 'Sequence';
     final exercises = round.exercises;
     if (flow == null) {
       if (exercises.isNotEmpty && exercises.every((ex) => !ex.isExecutable)) {
@@ -904,12 +906,12 @@ class CourseAuditService {
       return null;
     }
     if (flow.hasBranching) {
-      return 'The Story’s flow branches; this version plays linear Stories only, so learners cannot start it.';
+      return 'The $kind’s flow branches; this version plays linear ${kind == 'Story' ? 'Stories' : 'sequences'} only, so learners cannot start it.';
     }
     final order = flow.linearNodeIds();
     if (order == null) {
       final problems = flow.check().map((issue) => issue.message).join(' ');
-      return 'The Story’s flow is not a straight sequence, so this version cannot play it. $problems'
+      return 'The $kind’s flow is not a straight sequence, so this version cannot play it. $problems'
           .trim();
     }
     if (order.isEmpty) return null;
@@ -921,7 +923,7 @@ class CourseAuditService {
               .firstOrNull;
     final exercise = content?.exercise;
     if (exercise != null && !exercise.isExecutable) {
-      return 'The Story ends on a step this version of QuisquisLingo cannot play: learners reach its card and the Story ends without being recorded. Move the step earlier or replace it.';
+      return 'The $kind ends on a step this version of QuisquisLingo cannot play: learners reach its card and the $kind ends without being recorded. Move the step earlier or replace it.';
     }
     return null;
   }

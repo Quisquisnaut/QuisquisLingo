@@ -174,7 +174,17 @@ class _RoundScreenState extends State<RoundScreen> {
   int _errorsThisAttempt = 0;
   bool _reviewPhase = false;
   bool _finishing = false;
-  bool _isStory = false;
+
+  /// The Round plays its flow in the authored order: a Story, or a sequence
+  /// (a plain Round played in order; Build 256 Revision 7, third follow-up).
+  bool _playsInOrder = false;
+
+  /// What the learner is told this Round is: a Story, a Sequence or a Round.
+  String get _roundNoun => !_playsInOrder
+      ? 'Round'
+      : widget.round.isStory
+      ? 'Story'
+      : 'Sequence';
   late ExerciseFeatures _features;
   bool _answered = false;
   bool _lastAnswerCorrect = false;
@@ -471,12 +481,12 @@ class _RoundScreenState extends State<RoundScreen> {
         'Round: preferences loaded ${widget.round.id}, queue=${_queue.length}',
       );
       final flowOrder = _flowOrder;
-      _isStory = flowOrder != null;
+      _playsInOrder = flowOrder != null;
       _storyScrolls =
-          _isStory &&
+          _playsInOrder &&
           widget.round.flow?.presentation == FlowPresentation.scroll;
       await CrashLogService.instance.recordDebugEvent(
-        'Round: ${widget.round.id} story=$_isStory scrolling=$_storyScrolls '
+        'Round: ${widget.round.id} story=$_playsInOrder scrolling=$_storyScrolls '
         'presentation=${widget.round.flow?.presentation.serialized ?? 'none'}',
       );
       if (flowOrder != null) {
@@ -1385,7 +1395,7 @@ class _RoundScreenState extends State<RoundScreen> {
         const SizedBox(width: 4),
         Text(
           _storyLog.isEmpty
-              ? 'Story · ${_queue.length} steps'
+              ? '$_roundNoun · ${_queue.length} steps'
               : 'Now · step ${_storyLog.length + 1} of ${_queue.length}',
           key: const Key('story-now'),
           style: Theme.of(context).textTheme.labelLarge?.copyWith(
@@ -1479,7 +1489,7 @@ class _RoundScreenState extends State<RoundScreen> {
       _scrollStoryToEnd();
       return;
     }
-    if (_isStory && !widget.previewMode && !_exercise.isExecutable) {
+    if (_playsInOrder && !widget.previewMode && !_exercise.isExecutable) {
       // Plan A.6: a Story ending on a step this version cannot play ends
       // there and nothing is recorded.
       await showDialog<void>(
@@ -1487,9 +1497,9 @@ class _RoundScreenState extends State<RoundScreen> {
         barrierDismissible: false,
         builder: (ctx) => AlertDialog(
           key: const Key('story-ends-unplayable'),
-          title: const Text('Story not finished'),
-          content: const Text(
-            'This version of QuisquisLingo cannot play the last step of this Story, so the Story ends here and nothing was recorded. A later version will play it.',
+          title: Text('$_roundNoun not finished'),
+          content: Text(
+            'This version of QuisquisLingo cannot play the last step of this $_roundNoun, so the $_roundNoun ends here and nothing was recorded. A later version will play it.',
           ),
           actions: [
             FilledButton(
@@ -1503,7 +1513,7 @@ class _RoundScreenState extends State<RoundScreen> {
       return;
     }
 
-    if (!_reviewPhase && _wrongFirstPass.isNotEmpty && !_isStory) {
+    if (!_reviewPhase && _wrongFirstPass.isNotEmpty && !_playsInOrder) {
       await showDialog<void>(
         context: context,
         barrierDismissible: false,
@@ -1602,7 +1612,7 @@ class _RoundScreenState extends State<RoundScreen> {
         context: context,
         barrierDismissible: false,
         builder: (ctx) => AlertDialog(
-          title: Text(_isStory ? 'Story completed' : 'Round completed'),
+          title: Text('$_roundNoun completed'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1612,7 +1622,7 @@ class _RoundScreenState extends State<RoundScreen> {
             children: completion.evaluableExerciseCount == 0
                 ? [
                     Text(
-                      'Nothing to score in this ${_isStory ? 'Story' : 'Round'}.',
+                      'Nothing to score in this $_roundNoun.',
                       key: const Key('round-completed-unscored'),
                     ),
                     if (completion.lessonCompletionXp > 0) ...[
@@ -3654,7 +3664,7 @@ class _RoundScreenState extends State<RoundScreen> {
   }
 
   Widget _versionSkippedLine() => Text(
-    '$_versionSkipped exercise${_versionSkipped == 1 ? '' : 's'} this version of QuisquisLingo cannot play ${_isStory ? 'appeared as cards' : 'were skipped'}.',
+    '$_versionSkipped exercise${_versionSkipped == 1 ? '' : 's'} this version of QuisquisLingo cannot play ${_playsInOrder ? 'appeared as cards' : 'were skipped'}.',
     key: const Key('round-completed-version-skipped'),
   );
 
@@ -4053,19 +4063,18 @@ class _RoundScreenState extends State<RoundScreen> {
                 // labels stay.
                 child: Text(
                   _finishing
-                      ? (_isStory ? 'Finishing story…' : 'Finishing round…')
+                      ? 'Finishing ${_roundNoun.toLowerCase()}…'
                       : !_reviewPhase &&
-                            !_isStory &&
+                            !_playsInOrder &&
                             _position + 1 == _queue.length &&
                             _wrongFirstPass.isNotEmpty
                       ? 'Review mistakes'
                       : (_position + 1 == _queue.length
-                            ? (_isStory
-                                  ? (!widget.previewMode &&
-                                            !_exercise.isExecutable
-                                        ? 'Leave story'
-                                        : 'Finish story')
-                                  : 'Finish round')
+                            ? (_playsInOrder &&
+                                      !widget.previewMode &&
+                                      !_exercise.isExecutable
+                                  ? 'Leave ${_roundNoun.toLowerCase()}'
+                                  : 'Finish ${_roundNoun.toLowerCase()}')
                             : 'Continue'),
                 ),
               ),

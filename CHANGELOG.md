@@ -104,6 +104,29 @@ Second follow-up in the same version (owner request, 29 September 2026):
   sequence (it was Play as a Story): a Story, with its title block,
   narrator and characters, is what New Story builds.
 
+Third follow-up in the same version (owner decisions, 29 September 2026):
+
+- **A sequence is a plain ordered Round, not a Story.** A Round made with
+  New Round and played as a sequence keeps the plain Round's New Exercise,
+  New Canonical and Exercise Wizard (no Add Step, no title-block count),
+  and its options speak of the sequence ("Needs the sequence's audio").
+  Its title is optional ("Optional sequence title", empty when the switch
+  is turned on); a new sequence starts Step by step. Lists, the learner's
+  path and the Round screen call it "Sequence: <title>", or "Sequence:
+  <Round name>" without one, and the Round screen says Sequence completed
+  and Finish sequence. The Audit applies the Round rules: no Story title
+  or Dialogue line is asked for, and a Dialogue line in a sequence gets the
+  warning of any Round. Its exercises count toward the Lesson's Duel; a
+  Story's still do not. Playback is unchanged: authored order, no shuffle,
+  no mistake review. A Story is what New Story makes (the `story` visual
+  type) and keeps all its options; Course files are unchanged.
+- **Type the missing word.** With Show the first letter off, the accepted
+  words may start with different letters, and the form now says so: its
+  help under Complete accepted words and the note under the fields follow
+  the switch (they always stated the same-first-letter rule). Saving and
+  the Audit already accepted such words; the rule still holds while the
+  first letter is shown.
+
 # 2.0.56 (Build 256, Revision 6) - Interoperability - 2026-09-28
 
 Session 7 of the exercise architecture redesign (plan Part B item 7):

@@ -64,6 +64,27 @@ held for the run and cleared afterwards).
 - `dart format` clean on every changed Dart file.
 - Complete suite on the final tree: **3238 passed, 1 skipped, 0 failed** (01:56–02:23, keep-awake wrapper).
 
+## Revision 7 third follow-up (same version), 29 September 2026
+
+- Owner decisions: a Round made with New Round and played as a sequence is
+  a plain ordered Round (Optional sequence title, "Sequence: <title>" in
+  every list, the learner's path and the Round screen, the Audit's Round
+  rules, exercises in the Duel, no mistake review); a Story is New Story's.
+- Focused run 1 (11 Story and flow files): 14 failures, all tests whose
+  Story Rounds lacked the `story` visual type New Story writes (so they
+  had become sequences); the fixtures now carry it. The seven files rerun:
+  67 passed, 0 failed. `sequence_round_256_test.dart`: 6 passed (after
+  one finder: the Round screen's title has no PREVIEW prefix).
+- Type the missing word: a probe confirmed the draft builder and the
+  Audit accept "casa" / "abitazione" with Show the first letter off (the
+  form's texts were the problem); `revision7_third_followup_256_test.dart`
+  1 passed (after the test stopped assuming the switch's starting state),
+  with `first_letter_226_03_test` and the two field-help tests: 78 passed.
+- `flutter analyze`: no issues; `dart format` clean on every changed Dart
+  file.
+- Complete suite on the final tree: **3249 passed, 1 skipped, 0 failed**
+  (09:47–10:12, keep-awake wrapper).
+
 ## Revision 7 second follow-up (same version), 29 September 2026
 
 - Owner requests: the Rounds page's New round button in the size and

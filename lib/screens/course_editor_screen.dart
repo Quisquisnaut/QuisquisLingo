@@ -6891,10 +6891,21 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
   ContentFlow? _flow;
 
   /// The Story title field (Build 256 Revision 5): the flow carries the
-  /// title and the Round is called `Story: <title>`.
+  /// title and the Round is called `Story: <title>`. In a sequence it is the
+  /// optional sequence title (`Sequence: <title>`).
   late final TextEditingController _storyTitle = TextEditingController(
     text: widget.round.flow?.title ?? '',
   );
+
+  /// A Story, made with New Story, rather than a sequence (a plain Round
+  /// played in order, made with New Round and Play as a sequence): the
+  /// Round carries the `story` visual type (Build 256 Revision 7, third
+  /// follow-up; `LearningRound.isStory`).
+  bool get _isStory =>
+      _flow != null && widget.round.visualType == LearningRound.storyVisualType;
+
+  /// What the options' texts call this Round: a Story or a sequence.
+  String get _flowNoun => _isStory ? 'Story' : 'sequence';
   bool _routeMayPop = false;
   late final DateTime Function() _clock = widget.clock ?? DateTime.now;
   @override
@@ -6939,6 +6950,16 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
   /// Story off removes a flow QQL's forms cannot rebuild, so it asks first.
   Future<void> _setStory(bool on) async {
     if (widget.readOnly) return;
+    if (on && widget.round.visualType != LearningRound.storyVisualType) {
+      // A sequence (Build 256 Revision 7, third follow-up) is a plain Round
+      // played in order: one exercise per page, every finished item kept
+      // when it scrolls, and an optional title the author types.
+      _storyTitle.text = '';
+      _mutateRound(
+        () => _flow = RoundFlowAuthoring.linearFor(_editedContent()),
+      );
+      return;
+    }
     if (on) {
       // A new Story (Build 256 Revision 5) scrolls, logs the dialogue only
       // and reads aloud automatically. It is named after the Round's own
@@ -6962,14 +6983,14 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
       final remove = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('Remove the branching Story?'),
-          content: const Text(
-            'This Round\'s flow branches, which QQL\'s forms cannot rebuild. Turning the Story off removes the flow; the exercises stay.',
+          title: Text('Remove the branching $_flowNoun?'),
+          content: Text(
+            'This Round\'s flow branches, which QQL\'s forms cannot rebuild. Turning the $_flowNoun off removes the flow; the exercises stay.',
           ),
           actions: [
             FilledButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('Keep the Story'),
+              child: Text('Keep the $_flowNoun'),
             ),
             TextButton(
               onPressed: () => Navigator.pop(context, true),
@@ -7038,7 +7059,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
           ? 'On, scrolling: finished items stay on the page, the next one appears below and the page scrolls to it. No shuffle, no mistake review.'
           : 'On, step by step: the exercises play in this order, one per page, unshuffled, without a mistake review.';
     }
-    return 'On: a branching Story authored outside QQL. Edits here keep its flow as it is; the Audit reports what it no longer finds.';
+    return 'On: a branching $_flowNoun authored outside QQL. Edits here keep its flow as it is; the Audit reports what it no longer finds.';
   }
 
   List<LearningContent> _editedContent() =>
@@ -7351,7 +7372,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
   /// line uses the short form New Story uses, an exercise the presets a
   /// Story may use.
   Future<void> _addStoryStep() async {
-    if (widget.readOnly || _flow == null) return;
+    if (widget.readOnly || !_isStory) return;
     final hasCover = _exercises.any(_isCover);
     final hasLine = _exercises.any(_isLine);
     final choice = await showModalBottomSheet<_StoryStepType>(
@@ -8147,7 +8168,9 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
                     onPressed: () => _saveRound(PublicationState.published),
                     child: const Text('Save'),
                   ),
-                  if (_flow == null) ...[
+                  // A sequence is a plain Round played in order (Build 256
+                  // Revision 7, third follow-up): the Round's own buttons.
+                  if (!_isStory) ...[
                     OutlinedButton.icon(
                       key: const Key('new-exercise'),
                       style: _compactButtonStyle,
@@ -8215,11 +8238,14 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
                     key: const Key('round-story-title'),
                     controller: _storyTitle,
                     readOnly: widget.readOnly,
-                    decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                      labelText: 'Story title',
-                      helperText:
-                          'Shown on the cover; lists call the Round “Story: <title>”. The Audit asks for one.',
+                    decoration: InputDecoration(
+                      border: const OutlineInputBorder(),
+                      labelText: _isStory
+                          ? 'Story title'
+                          : 'Optional sequence title',
+                      helperText: _isStory
+                          ? 'Shown on the cover; lists call the Round “Story: <title>”. The Audit asks for one.'
+                          : 'Lists and the learner\'s path call the Round “Sequence: <title>”; without a title they use the Round\'s name.',
                       helperMaxLines: 2,
                     ),
                     onChanged: _setStoryTitle,
@@ -8307,19 +8333,20 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
                           ),
                   ),
                 ),
-                const Padding(
-                  padding: EdgeInsets.fromLTRB(16, 0, 16, 8),
-                  child: Text(
-                    'An exercise that only makes sense with the Story\'s audio is marked “Needs the Story\'s audio” in its menu and is skipped with Audio Exercises off.',
-                  ),
-                ),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
                   child: Text(
-                    _storyStepsSummary,
-                    key: const Key('round-story-steps'),
+                    'An exercise that only makes sense with the $_flowNoun\'s audio is marked “Needs the $_flowNoun\'s audio” in its menu and is skipped with Audio Exercises off.',
                   ),
                 ),
+                if (_isStory)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                    child: Text(
+                      _storyStepsSummary,
+                      key: const Key('round-story-steps'),
+                    ),
+                  ),
               ],
             ],
           ),
@@ -8380,8 +8407,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
                           value: 'duplicate',
                           // A Story has one title block (third follow-up).
                           enabled:
-                              !widget.readOnly &&
-                              !(_flow != null && _isCover(e)),
+                              !widget.readOnly && !(_isStory && _isCover(e)),
                           child: const Text('Duplicate'),
                         ),
                         const PopupMenuItem(
@@ -8415,7 +8441,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
                             checked: _flow!.audioDependentContentIds.contains(
                               e.id,
                             ),
-                            child: const Text('Needs the Story\'s audio'),
+                            child: Text('Needs the $_flowNoun\'s audio'),
                           ),
                         if (ExerciseFeatures(e).kind ==
                             LearnerExerciseKind.selectRead)
@@ -10191,16 +10217,22 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
             helper:
                 'The first letter, when shown, is derived automatically from the complete accepted word.',
           ),
+          // The same-first-letter rule holds only while the first letter is
+          // shown (owner, 29 September 2026): off, the accepted words may
+          // start with different letters.
           _field(
             _accepted,
             'Complete accepted words',
             lines: 3,
-            helper:
-                'One complete word per line. All answers must have the same first Unicode grapheme.',
+            helper: _revealFirstLetter
+                ? 'One complete word per line. With the first letter shown, all answers must start with the same letter (Unicode grapheme).'
+                : 'One complete word per line. They may start with different letters.',
           ),
           _field(_hint, 'Hint (optional)'),
-          const Text(
-            'Enter the complete missing word. The first letter shown is a hint. Example: é______ → école, not cole.',
+          Text(
+            _revealFirstLetter
+                ? 'Enter the complete missing word. The first letter shown is a hint. Example: é______ → école, not cole.'
+                : 'Enter the complete missing word. The learner types it without a hint.',
           ),
         ];
       case 'build_translation':

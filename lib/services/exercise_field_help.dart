@@ -399,11 +399,11 @@ abstract final class ExerciseFieldHelpRegistry {
       return const ExerciseFieldHelp(
         title: 'Type the missing word',
         purpose:
-            'Enter the complete missing word. The first letter shown is a hint.',
+            'Enter the complete missing word. The first letter is shown as a hint when Show the first letter is on.',
         entryRules:
             'Enter a sentence with exactly one ___ gap and complete accepted words, one per line. The first Unicode grapheme is derived automatically; the learner enters the complete word, including that first grapheme.',
         validation:
-            'All complete accepted words must share exactly the same first grapheme. The complete word entered uses normal Input normalization and supported typo tolerance; the hint is not prepended to the response.',
+            'With Show the first letter on, all complete accepted words must share exactly the same first grapheme; off, they may start with different letters. The complete word entered uses normal Input normalization and supported typo tolerance; the hint is not prepended to the response.',
         example:
             'Je vais à l’___. Answer: école. Learner sees é______ and enters école, not cole.',
       );

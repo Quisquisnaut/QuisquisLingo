@@ -467,6 +467,7 @@ void main() {
       final round = LearningRound(
         id: 'story',
         title: 'Story',
+        visualType: LearningRound.storyVisualType,
         exercises: exercises,
         flow: ContentFlow.linear([
           for (final id in ['e1', 'e2'])

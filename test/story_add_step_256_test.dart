@@ -83,6 +83,7 @@ LearningRound _round(List<Exercise> exercises, {bool story = true}) {
     id: 'round_one',
     title: 'Al bar',
     updatedAt: _stamp,
+    visualType: story ? LearningRound.storyVisualType : 'generic',
     content: content,
     flow: story
         ? RoundFlowAuthoring.linearFor(

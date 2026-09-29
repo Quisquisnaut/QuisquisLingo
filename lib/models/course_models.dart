@@ -2167,11 +2167,24 @@ class LearningRound {
   /// Revision 5 follow-up); derived here, never stored in [title].
   static const storyTitlePrefix = 'Story: ';
 
-  /// A Round with a content flow is a Story.
-  bool get isStory => flow != null;
+  /// The prefix every list shows before a sequence's title (Build 256
+  /// Revision 7, third follow-up); derived like the Story prefix.
+  static const sequenceTitlePrefix = 'Sequence: ';
 
-  /// A Story's own title: the flow's, else the Round title without a prefix
-  /// an earlier build stored.
+  /// The visual type New Story gives a Story.
+  static const storyVisualType = 'story';
+
+  /// A Round with a content flow and the `story` visual type is a Story:
+  /// what New Story creates (owner decision, 29 September 2026).
+  bool get isStory => flow != null && visualType == storyVisualType;
+
+  /// A Round with a content flow and any other visual type is a sequence: a
+  /// plain Round played in the authored order (New Round with Play as a
+  /// sequence).
+  bool get isSequence => flow != null && visualType != storyVisualType;
+
+  /// A Story's own title, or a sequence's optional one: the flow's, else the
+  /// Round title without a prefix an earlier build stored.
   String get storyTitle {
     final own = flow?.title.trim() ?? '';
     return own.isNotEmpty ? own : withoutStoryPrefix(title);
@@ -2185,11 +2198,13 @@ class LearningRound {
   }
 
   /// What lists, the Lesson path, Search, Review and the Round screen call
-  /// this Round: "Story: <title>" for a Story, else the title or "Round N".
+  /// this Round: "Story: <title>" for a Story, "Sequence: <title>" for a
+  /// sequence, else the title or "Round N".
   String displayTitle(int position) {
     if (flow != null) {
       final own = storyTitle;
-      return '$storyTitlePrefix${own.isEmpty ? 'Round ${position + 1}' : own}';
+      final prefix = isStory ? storyTitlePrefix : sequenceTitlePrefix;
+      return '$prefix${own.isEmpty ? 'Round ${position + 1}' : own}';
     }
     final custom = title.trim();
     return custom.isEmpty ? 'Round ${position + 1}' : custom;

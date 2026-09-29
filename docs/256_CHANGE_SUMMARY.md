@@ -137,6 +137,56 @@ negative and semantic-equality tests, the final verification.
   an audio exercise; the Round's "Before you start" card stays Round
   content (no interactive-presentation primitive).
 
+### Third follow-up in the same version (owner decisions, 29 September 2026)
+
+- `lib/models/course_models.dart`: `LearningRound.storyVisualType`,
+  `sequenceTitlePrefix`; `isStory` = a flow and the `story` visual type
+  (New Story's), `isSequence` = a flow and any other visual type;
+  `displayTitle` derives "Sequence: <title>" for a sequence (its flow
+  title, else the Round's name, else "Round N"). No Course file change:
+  every Story in the bundled Courses and fixtures already has the `story`
+  visual type, and every Round QQL's editor creates is `generic`.
+- `lib/screens/course_editor_screen.dart` (Round editor): `_isStory`,
+  `_flowNoun`; Play as a sequence on a Round without the `story` visual
+  type writes a step-by-step flow with log Everything and no title; the
+  title field is "Optional sequence title" with its own helper; the
+  branching dialog, the switch description, the audio note and the menu
+  item say "sequence"; the steps count, Add Step and the greyed Duplicate
+  of the title block are the Story's only; a sequence keeps New Exercise,
+  New Canonical and Exercise Wizard.
+- `lib/screens/round_screen.dart`: `_isStory` renamed `_playsInOrder`
+  (ordered playback, no mistake review, cards for unplayable steps, for a
+  Story and a sequence alike); `_roundNoun` (Story, Sequence or Round)
+  names the completion dialog, "Nothing to score in this …", the Finish /
+  Finishing / Leave buttons, the scrolling marker and the unfinished
+  dialog.
+- `lib/services/course_audit_service.dart`: `STORY_TITLE_MISSING` and
+  `STORY_WITHOUT_DIALOGUE` apply to a Story only; `DIALOGUE_LINE_OUTSIDE_STORY`
+  to a line in any Round that is not a Story; `notCompletableReason` names
+  the Story or the Sequence.
+- `lib/services/duel_eligibility_service.dart`: a Story's and a branching
+  flow's exercises stay out of the pool; a sequence's join it.
+- Help EN/IT/ES: `editorHelp.storiesAndStoryWizard` and
+  `technical.exercisePrimitives.stories` explain sequence versus Story.
+- Tests: `sequence_round_256_test.dart` (model, Round editor for a
+  sequence and a Story, Audit, Duel, Round screen); the Story tests'
+  Rounds carry the `story` visual type (`story_editor_256_test` also pins
+  the sequence labels, `story_add_step_256_test`, `runtime_canonical_256_test`,
+  `revision3_followup_256_test`, `support_states_256_test`,
+  `support/canonical_course_256.dart`).
+- Decisions (owner): the label "Sequence" everywhere a Story would say
+  "Story" (lists, learner's path, Round screen); without a sequence title
+  the Round's name follows "Sequence:"; a sequence's exercises join the
+  Duel; no mistake review at the end of a sequence.
+- Type the missing word (owner, same day): `course_editor_screen.dart`'s
+  form states the same-first-letter rule and the first-letter note only
+  while Show the first letter is on (off: "They may start with different
+  letters." and "The learner types it without a hint."); the English
+  fallback in `exercise_field_help.dart` says the same. The draft builder
+  and the Audit already applied the rule to the first-letter shape only
+  (checked); the localized Help already said "with the hint on". Test:
+  `revision7_third_followup_256_test.dart`.
+
 ### Second follow-up in the same version (owner request, 29 September 2026)
 
 - `lib/screens/course_editor_screen.dart`: the Rounds page's New Round is
