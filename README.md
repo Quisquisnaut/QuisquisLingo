@@ -1,6 +1,63 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.55+255007 · Build 255, Revision 7 · Course Model v11 (`formatVersion: 11`).**
+**Current source version: 2.0.56+256007 · Build 256, Revision 7 · Course Model v12 (`formatVersion: 12`).**
+
+**QuisquisLingo 2.0.56 Beta — QQL 256 exercise architecture (Course Model v12)**
+
+Build 256 redesigns how QQL describes exercises, in six sessions that are its
+Revisions 0 to 5 ([plan](docs/256_EXERCISE_ARCHITECTURE_PLAN.md)). Every
+exercise becomes one of nine **primitives** (Select, Input, Arrange, Match,
+Assign, Speak, Ink, Submit, Presentation) with typed **options**, media,
+items or targets, a neutral **layout** and an **evaluation** mode; editor
+**presets** become optional authoring recipes, and Rounds gain **content
+flows** so Stories and branching lessons can be imported without a Story
+exercise type. Revision 0 adds the canonical definitions and the capability
+registry that the Audit, the editor, import and the learner runtime will all
+read ([reference](docs/EXERCISE_ARCHITECTURE_V12.md)). Revision 1 is the
+clean cut to **Course Model v12**: exercises are stored in that canonical
+form, the app reads v12 only, stored Courses move to `QQL_Courses_v12`, and
+`tools/convert_course_to_v12.dart` converts a Build 255 export (JSON or
+Course ZIP) for Quick Import ([format](docs/COURSE_JSON_FORMAT.md)).
+Revision 2 moves the learner runtime, the Duel and the Course Audit onto
+that canonical data: what an exercise shows, plays and grades is derived
+from its primitive, options, elements and evaluation, never from the
+preset that authored it; the Audit validates through the capability
+registry and treats preset rules as non-blocking warnings; every
+single-answer Select joins the Duel pool (Contextual comprehension and
+Recognize characters included, a multiple-answer Choose excluded);
+inline-gap Arrange grades block content; a Round with a linear content
+flow plays as a Story. Revision 3 makes presets **recipes** over that
+data: an exercise opens in the preset that represents it exactly, keeps a
+preset only while one does, and any exercise of any primitive can be
+edited field by field in the **canonical editor**, which shows whether
+this version can play it; the Round editor's **Play as a sequence** switch (Play as a Story until the Revision 7 follow-up)
+authors a linear flow, and Stories now survive every edit, move, copy and
+duplication (they used to lose their flow). Help describes the v12
+architecture in EN/IT/ES. Revision 4 delivers the **preset catalogue**
+([decisions](docs/256_PRESET_CATALOGUE_PLAN.md)): 38 presets in six skill
+groups, paired to target / to source where the direction matters, seven
+greyed presets for later versions, pictures on answers, and the runtime
+additions the new presets need; retired preset IDs read as their
+successors and every stored exercise keeps its shape. Revision 5 adds
+**Stories** ([plan](docs/256_STORY_PLAN.md)): a narrator and reusable
+characters with avatars and voice preferences, the Dialogue line and Story
+cover presets, the Story options in the Round editor (title, scrolling,
+dialogue-only log, read-aloud, exercises that need the Story's audio), the
+New Story button on the Rounds page, and a Story Lesson in each bundled demo.
+Revision 6 adds **interoperability**: an exercise this version cannot play
+is kept, skipped by learners (a Story shows a card in its place) and
+reported by the Audit; a stand-alone flow engine resolves branching flows;
+the interoperability catalog maps external exercise types to canonical
+semantics with presets as hints only; and `docs/capabilities_v12.json`, the
+machine-readable capability description, feeds the Python tools. Revision 7
+closes the redesign: **Assign** plays (sort into groups, fill slots, fill
+the gaps of a text, by tapping an item and then its destination; the presets
+Sort into groups and Fill the slots since the same-version follow-up of 29
+September, gaps in the canonical editor), the Exercise Laboratory gains an Assign Lesson and a
+test-only fixture of what still waits (Speak, Ink, Submit, branching
+Stories), and the negative and semantic-equality tests close the plan's
+verification list. Scoring and learner data are unchanged. The Beta expiry
+is 29 October 2026, 23:59:59 local time.
 
 **QuisquisLingo 2.0.55 Beta — QQL 255 logical storage and Quick folders**
 
@@ -313,7 +370,7 @@ The MPL-2.0 covers the QuisquisLingo software source. Courses, the Image Bank an
 
 ## Beta lifecycle
 
-Version 2.0.55, Build 255, Revision 7 is a time-limited Beta with an expiry of **2026-10-27 23:59:59 local time** (30 days after the 27 September 2026 release date). In its last seven days it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
+Version 2.0.56, Build 256, Revision 7 is a time-limited Beta with an expiry of **2026-10-29 23:59:59 local time** (30 days after the 29 September 2026 release date). In its last seven days it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
 
 ## Core logic
 
@@ -346,7 +403,7 @@ On Android, the platform's own Auto Backup is deliberately left enabled, because
 - Local daily quest
 - XP
 - Local TTS service with generated-file caching
-- Four bundled sample courses: Exercise Laboratory, Edge Case Course, Piedmontese and Korean
+- Three bundled sample courses, titled Temporary Demo: Exercise Laboratory, Edge Case Course and Piedmontese
 - Local authoring Teams with stable profile-ID membership and one or more Team Leaders
 - No account
 - Local offline leaderboard for the previous completed week, based on each participating learner’s XP across all courses
@@ -559,7 +616,7 @@ external publishers yet. Dummy is trusted only with the explicit compile-time
 `QQL_ENABLE_DUMMY_PUBLISHER=true` flag and a TEST ONLY banner; this is also
 available for release-mode **test** builds. Never distribute that configuration
 as a public production release. Bundled courses and unsigned custom courses
-retain their distinct trust rules. Course Model is v11; v9/v10 Publisher Courses must be converted and signed again.
+retain their distinct trust rules. Course Model is v12; v11 Publisher Courses must be converted with `tools/convert_course_to_v12.dart` and signed again.
 
 Final Build 241 Revision 2 validation passed; see the report for full-suite and final focused evidence. Build 242 evidence is in [242 validation](docs/242_VALIDATION.md); Build 243 evidence is in [243 validation](docs/243_VALIDATION.md); Build 244 evidence is in [244 validation](docs/244_VALIDATION.md).
 

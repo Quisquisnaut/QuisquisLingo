@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart' show FlutterError;
+import 'package:flutter/foundation.dart' show FlutterError, visibleForTesting;
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/course_models.dart';
@@ -16,40 +16,54 @@ import 'course_language_resolver.dart';
 class CourseService {
   final DiagnosticLogService _log = DiagnosticLogService();
   // Build 255 Revision 6 removed the German, Spanish, English-from-Spanish,
-  // Welsh, Portuguese and Neapolitan demos. Their Course IDs stay reserved in
+  // Welsh, Portuguese and Neapolitan demos and Build 256 Revision 5 the
+  // Korean one (owner request). Their Course IDs stay reserved in
   // CourseEditorService, as the demos removed in Build 254 do.
   static const Map<String, String> courseAssets = {
     'IT': 'assets/courses/exercise_laboratory_en_it.json',
-    'KO': 'assets/courses/korean_en.json',
     'EN_EDGE': 'assets/courses/edge_case_it_en.json',
     'PMS': 'assets/courses/piedmontais_en.json',
   };
+
+  /// Test-only: Courses registered by a test beside the bundle, such as the
+  /// former Korean demo (`test/fixtures/v12/korean_en.json`), whose nine
+  /// regular Lessons, sections and Duels the Home and navigation tests need
+  /// since Build 256 Revision 5 removed it from the bundle. Never set in
+  /// production; every registry read goes through [bundledAssets].
+  @visibleForTesting
+  static final Map<String, String> debugExtraAssets = {};
+
+  /// Test-only reader for [debugExtraAssets] paths outside the asset bundle.
+  @visibleForTesting
+  static Future<String> Function(String path)? debugAssetReader;
+
+  /// The bundled registry plus whatever a test registered.
+  static Map<String, String> get bundledAssets => debugExtraAssets.isEmpty
+      ? courseAssets
+      : {...courseAssets, ...debugExtraAssets};
 
   static const bundledCourseIndexStorageKey =
       'quisquislingo_bundled_course_codes_v9_233030';
 
   static const Map<String, String> targetLabels = {
     'IT': 'Italian',
-    'KO': 'Korean',
     'EN_EDGE': 'English',
     'PMS': 'Piedmontese',
   };
 
   static const Map<String, String> sourceLabels = {
     'IT': 'English',
-    'KO': 'English',
     'EN_EDGE': 'Italian',
     'PMS': 'English',
   };
 
   Future<Course> loadItalianCourse() => loadCourse('IT');
-  Future<Course> loadKoreanCourse() => loadCourse('KO');
 
   /// Reconciles the device-local discovery index with the authoritative
   /// bundled registry. This is normal startup initialization: it does not
   /// inspect or modify custom courses, learner progress, or earlier schemas.
   Future<List<String>> reconcileAvailableBundledCourseCodes() async {
-    final current = List<String>.unmodifiable(courseAssets.keys);
+    final current = List<String>.unmodifiable(bundledAssets.keys);
     final preferences = await SharedPreferences.getInstance();
     final stored = preferences.getStringList(bundledCourseIndexStorageKey);
     if (stored == null || !_sameCodes(stored, current)) {
@@ -67,7 +81,7 @@ class CourseService {
   }
 
   static bool hasCourse(String languageCode) =>
-      courseAssets.containsKey(languageCode.trim().toUpperCase());
+      bundledAssets.containsKey(languageCode.trim().toUpperCase());
 
   /// Bundled selection and source lookup use a distinct reference when more
   /// than one bundled Course teaches the same language. Language-scoped XP,
@@ -106,10 +120,13 @@ class CourseService {
   /// Loads the immutable bundled source without applying a local override.
   Future<Course> loadBundledCourse(String languageCode) async {
     final normalizedCode = languageCode.trim().toUpperCase();
-    final asset = courseAssets[normalizedCode];
+    final asset = bundledAssets[normalizedCode];
     if (asset == null) throw AppException(AppErrorCode.courseFileMissing);
     try {
-      final raw = await rootBundle.loadString(asset);
+      final reader = debugAssetReader;
+      final raw = reader != null && debugExtraAssets.containsKey(normalizedCode)
+          ? await reader(asset)
+          : await rootBundle.loadString(asset);
       try {
         final decodedValue = jsonDecode(raw);
         if (decodedValue is! Map) {

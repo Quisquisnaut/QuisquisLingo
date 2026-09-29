@@ -26,11 +26,14 @@ enum ScriptRecognitionMode { imageToText, textToImage }
 class ScriptRecognitionController extends ChangeNotifier {
   ScriptRecognitionController(Exercise exercise) : _original = exercise {
     _mode =
-        exercise.interaction.items.any(
+        exercise.items.any(
               (item) => item.content.any((element) => element.type == 'image'),
             ) ||
-            (exercise.interaction.items.isEmpty &&
-                exercise.prompt.trim().isNotEmpty &&
+            (exercise.items.isEmpty &&
+                exercise.promptElements.any(
+                  (element) =>
+                      element.type == 'text' && element.text.trim().isNotEmpty,
+                ) &&
                 !exercise.promptElements.any(
                   (element) => element.type == 'image',
                 ))
@@ -51,11 +54,11 @@ class ScriptRecognitionController extends ChangeNotifier {
     _promptImages.addAll(
       exercise.promptElements.where((element) => element.type == 'image'),
     );
-    _usedIds.addAll(exercise.interaction.items.map((item) => item.id));
-    for (final item in exercise.interaction.items) {
+    _usedIds.addAll(exercise.items.map((item) => item.id));
+    for (final item in exercise.items) {
       _options.add(_ScriptOption(item, notifyListeners));
     }
-    _correctIds.addAll(exercise.evaluation.correctItemIds);
+    _correctIds.addAll(exercise.canonicalEvaluation.correctItemIds);
   }
 
   final Exercise _original;
@@ -84,7 +87,10 @@ class ScriptRecognitionController extends ChangeNotifier {
   }
 
   void addPromptImage(String asset) {
-    _promptImages.add(PromptElement(type: 'image', asset: asset));
+    // A Recognize characters image is a character specimen (Build 256).
+    _promptImages.add(
+      PromptElement(role: 'character', type: 'image', asset: asset),
+    );
     notifyListeners();
   }
 
@@ -176,33 +182,37 @@ class ScriptRecognitionController extends ChangeNotifier {
     if (_mode == ScriptRecognitionMode.imageToText) {
       elements.addAll(_promptImages.skip(imageIndex));
     }
-    return Exercise.v2(
-      id: _original.id,
-      publicationState: publicationState,
-      updatedAt: _original.updatedAt,
-      editorTemplate: 'script_recognition',
-      promptElements: elements,
-      interaction: ExerciseInteraction(
-        kind: 'select',
-        inputType: _original.interaction.inputType,
-        minSelections: _original.interaction.minSelections,
-        maxSelections: _original.interaction.maxSelections,
-        items: _options
-            .map((option) => option.build(_mode, _mode != _initialMode))
-            .toList(),
-      ),
-      evaluation: ExerciseEvaluation(
-        kind: 'selected_items',
-        correctItemIds: List.of(_correctIds),
-        accepted: _original.evaluation.accepted,
-        correctOrders: _original.evaluation.correctOrders,
-        pairs: _original.evaluation.pairs,
-        normalization: _original.evaluation.normalization,
-      ),
-      hint: _original.hint,
-      feedback: _original.feedback,
-      missingWords: _original.missingWords,
-    );
+    // Copied canonically from the original (Course Model v12): options,
+    // targets, layout, feedback, hint and the other metadata stay as they
+    // are; only the prompt, the items and the correct item change.
+    final evaluation = _original.canonicalEvaluation;
+    return _original
+        .copyWith(
+          publicationState: publicationState,
+          promptElements: elements,
+          items: _options
+              .map((option) => option.build(_mode, _mode != _initialMode))
+              .toList(),
+          canonicalEvaluation: CanonicalEvaluation(
+            mode: evaluation.mode == EvaluationMode.none
+                ? EvaluationMode.exactItem
+                : evaluation.mode,
+            correctItemIds: List.of(_correctIds),
+            assignments: evaluation.assignments,
+            answers: evaluation.answers,
+            literalAnswers: evaluation.literalAnswers,
+            targetAnswers: evaluation.targetAnswers,
+            numeric: evaluation.numeric,
+            pattern: evaluation.pattern,
+            correctOrders: evaluation.correctOrders,
+            relations: evaluation.relations,
+            acceptedTargets: evaluation.acceptedTargets,
+          ),
+        )
+        .withAuthoringMetadata({
+          ..._original.authoringMetadata,
+          'presetId': 'script_recognition',
+        });
   }
 
   @override
@@ -256,6 +266,7 @@ class _ScriptOption {
     if (!replaced) {
       elements.add(
         PromptElement(
+          role: desiredType == 'image' ? 'character' : 'primary',
           type: desiredType,
           text: desiredType == 'text' ? text.text : '',
           asset: desiredType == 'image' ? image : '',

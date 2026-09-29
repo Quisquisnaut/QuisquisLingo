@@ -1,8 +1,10 @@
 import 'support/test_directories.dart';
 // QQL Build 238 Phase 1: focused tests for Course Editor authoring support
-// of the gap-fill extension of the existing Arrange primitive (word_order /
-// build_translation "Inline gaps"). Existing whole-sentence Arrange
-// authoring must remain unchanged when Inline gaps stays off.
+// of the gap-fill extension of the existing Arrange primitive. Since Build
+// 256 Revision 4 the gap fill is the preset Drag the blocks into the gaps
+// (`gap_blocks`) chosen in the preset picker, not an Inline gaps switch on
+// word_order / build_translation. Existing whole-sentence Arrange
+// authoring must remain unchanged for Word order.
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -22,6 +24,25 @@ void _bigWindow(WidgetTester tester) {
   tester.view.devicePixelRatio = 3;
   addTearDown(tester.view.resetPhysicalSize);
   addTearDown(tester.view.resetDevicePixelRatio);
+}
+
+/// Chooses [name] in the preset picker sheet.
+Future<void> _pickPreset(WidgetTester tester, String name) async {
+  await tester.tap(find.byKey(const Key('exercise-preset-selector')));
+  await tester.pumpAndSettle();
+  final tile = find.text(name).last;
+  await tester.dragUntilVisible(
+    tile,
+    find
+        .descendant(
+          of: find.byType(DraggableScrollableSheet),
+          matching: find.byType(ListView),
+        )
+        .first,
+    const Offset(0, -400),
+  );
+  await tester.tap(tile);
+  await tester.pumpAndSettle();
 }
 
 void main() {
@@ -115,7 +136,7 @@ void main() {
   );
 
   testWidgets(
-    'word_order: enabling Inline gaps reveals gap fields and Save builds a valid gap-fill exercise',
+    'word_order: choosing Drag the blocks into the gaps reveals gap fields and Save builds a valid gap-fill exercise',
     (tester) async {
       _bigWindow(tester);
       Exercise? saved;
@@ -132,7 +153,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(workflow.field('Sentence with gaps'), findsNothing);
-      await workflow.tapKey(tester, 'word-order-use-inline-gaps');
+      await _pickPreset(tester, 'Drag the blocks into the gaps');
       expect(workflow.field('Sentence with gaps'), findsOneWidget);
       expect(workflow.field('Correct sentence'), findsNothing);
       expect(
@@ -159,18 +180,21 @@ void main() {
       expect(saved, isNotNull);
       final exercise = saved!;
       expect(exercise.hasArrangeGaps, isTrue);
-      expect(exercise.arrangeLayout.map((e) => (e.type, e.text)).toList(), [
-        ('text', 'I'),
-        ('gap', 'gap_1'),
-        ('gap', 'gap_2'),
-        ('text', 'school.'),
-      ]);
+      expect(
+        exercise.interaction.layout.map((e) => (e.type, e.text)).toList(),
+        [
+          ('text', 'I'),
+          ('gap', 'gap_1'),
+          ('gap', 'gap_2'),
+          ('text', 'school.'),
+        ],
+      );
       expect(exercise.tokens.toSet(), {'go', 'to', 'goes', 'from'});
       final assignedGo = exercise.interaction.items
-          .firstWhere((i) => i.id == exercise.arrangeGapAssignments['gap_1'])
+          .firstWhere((i) => i.id == exercise.targetAssignments['gap_1'])
           .value;
       final assignedTo = exercise.interaction.items
-          .firstWhere((i) => i.id == exercise.arrangeGapAssignments['gap_2'])
+          .firstWhere((i) => i.id == exercise.targetAssignments['gap_2'])
           .value;
       expect(assignedGo, 'go');
       expect(assignedTo, 'to');
@@ -195,7 +219,7 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      await workflow.tapKey(tester, 'word-order-use-inline-gaps');
+      await _pickPreset(tester, 'Drag the blocks into the gaps');
       await tester.enterText(
         workflow.field('Sentence with gaps'),
         'I {go to school.',
@@ -233,7 +257,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    await workflow.tapKey(tester, 'word-order-use-inline-gaps');
+    await _pickPreset(tester, 'Drag the blocks into the gaps');
     await tester.enterText(
       workflow.field('Sentence with gaps'),
       'I {go} {} school.',
@@ -283,7 +307,7 @@ void main() {
   );
 
   testWidgets(
-    'word_order: reopening an existing gap-fill exercise restores the toggle and fields',
+    'word_order: reopening an existing gap-fill exercise restores the preset and fields',
     (tester) async {
       _bigWindow(tester);
       await tester.pumpWidget(
@@ -308,16 +332,13 @@ void main() {
         workflow.field('Extra distractor blocks (optional)'),
       );
       expect(distractorField.controller!.text.split('\n'), ['goes']);
-      final switchTile = tester.widget<SwitchListTile>(
-        find.byKey(const Key('word-order-use-inline-gaps')),
-      );
-      expect(switchTile.value, isTrue);
+      expect(workflow.field('Correct sentence'), findsNothing);
       expect(tester.takeException(), isNull);
     },
   );
 
   testWidgets(
-    'build_translation: enabling Inline gaps hides the translation-variant editor and Save builds a gap-fill exercise',
+    'build_translation: choosing Drag the blocks into the gaps hides the translation-variant editor and Save builds a gap-fill exercise',
     (tester) async {
       _bigWindow(tester);
       Exercise? saved;
@@ -337,13 +358,13 @@ void main() {
         findsOneWidget,
       );
 
-      await workflow.tapKey(tester, 'build-translation-use-inline-gaps');
+      await _pickPreset(tester, 'Drag the blocks into the gaps');
       expect(
         find.byKey(const Key('build-translation-correct-translations')),
         findsNothing,
       );
       await tester.enterText(
-        workflow.field('Target sentence with gaps'),
+        workflow.field('Sentence with gaps'),
         'Io {vorrei} un caffè.',
       );
       await tester.enterText(
@@ -357,7 +378,7 @@ void main() {
       expect(saved, isNotNull);
       final exercise = saved!;
       expect(exercise.hasArrangeGaps, isTrue);
-      expect(exercise.arrangeGapAssignments.length, 1);
+      expect(exercise.targetAssignments.length, 1);
       expect(tester.takeException(), isNull);
     },
   );
@@ -374,14 +395,14 @@ void main() {
       expect(copy.id, isNot(source.id));
       expect(copy.hasArrangeGaps, isTrue);
       expect(
-        copy.arrangeLayout.map((e) => (e.type, e.text)).toList(),
-        source.arrangeLayout.map((e) => (e.type, e.text)).toList(),
+        copy.interaction.layout.map((e) => (e.type, e.text)).toList(),
+        source.interaction.layout.map((e) => (e.type, e.text)).toList(),
       );
       // Gap IDs are unchanged (they are not owned identities); assigned
       // item IDs are remapped to the copy's own item identities.
-      expect(copy.arrangeGapAssignments.keys.toSet(), {'gap_1', 'gap_2'});
-      for (final gapId in copy.arrangeGapAssignments.keys) {
-        final copiedItemId = copy.arrangeGapAssignments[gapId]!;
+      expect(copy.targetAssignments.keys.toSet(), {'gap_1', 'gap_2'});
+      for (final gapId in copy.targetAssignments.keys) {
+        final copiedItemId = copy.targetAssignments[gapId]!;
         expect(
           copy.interaction.items.any((item) => item.id == copiedItemId),
           isTrue,
@@ -390,10 +411,10 @@ void main() {
       }
       // The underlying answer text is preserved through the remap.
       final sourceGo = source.interaction.items
-          .firstWhere((i) => i.id == source.arrangeGapAssignments['gap_1'])
+          .firstWhere((i) => i.id == source.targetAssignments['gap_1'])
           .value;
       final copyGo = copy.interaction.items
-          .firstWhere((i) => i.id == copy.arrangeGapAssignments['gap_1'])
+          .firstWhere((i) => i.id == copy.targetAssignments['gap_1'])
           .value;
       expect(copyGo, sourceGo);
     },

@@ -41,30 +41,18 @@ void main() {
   testWidgets(
     'Help renders every preset and answer/context guidance responsively',
     (tester) async {
-      tester.view.physicalSize = const Size(320, 700);
+      // Phone width; tall enough to lay every section out at once (the
+      // catalogue's 38 presets and the supplements), so nothing is scrolled.
+      tester.view.physicalSize = const Size(320, 60000);
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
       await tester.pumpWidget(const MaterialApp(home: ExerciseHelpScreen()));
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('exercise-help-list')), findsOneWidget);
-      expect(find.text('Choose'), findsOneWidget);
-      final helpScrollable = find.descendant(
-        of: find.byKey(const Key('exercise-help-list')),
-        matching: find.byType(Scrollable),
-      );
-      await tester.scrollUntilVisible(
-        find.text('Answer variants'),
-        500,
-        scrollable: helpScrollable,
-      );
+      expect(find.text('Type the translation (to target)'), findsOneWidget);
       expect(find.text('Answer variants'), findsOneWidget);
-      await tester.scrollUntilVisible(
-        find.text('Contextual comprehension example'),
-        500,
-        scrollable: helpScrollable,
-      );
-      expect(find.text('Contextual comprehension example'), findsOneWidget);
+      expect(find.text('Read and answer example'), findsOneWidget);
       expect(tester.takeException(), isNull);
     },
   );

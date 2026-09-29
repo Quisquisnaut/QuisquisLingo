@@ -16,6 +16,7 @@ import '../models/course_flag_selection.dart';
 import '../models/course_models.dart';
 import '../models/course_metadata_options.dart';
 import '../models/exercise_authoring.dart';
+import '../models/exercise_features.dart';
 import '../services/course_editor_service.dart';
 import '../services/course_editor_device_state.dart';
 import '../services/course_flag_service.dart';
@@ -41,6 +42,7 @@ import '../services/lesson_icon_service.dart';
 import '../services/lesson_presentation_service.dart';
 import '../services/recorded_audio_service.dart';
 import 'round_screen.dart';
+import 'primitive_editor_screen.dart';
 import 'flat_image_library_screen.dart';
 import 'editor_help_screen.dart';
 import 'course_version_history_screen.dart';
@@ -51,12 +53,18 @@ import '../services/course_authoring_transfer_service.dart';
 import '../services/translation_choice_service.dart';
 import '../services/exercise_field_help.dart';
 import '../widgets/editor_breadcrumbs.dart';
+import '../widgets/editor_dialogs.dart';
+import '../widgets/exercise_editor_intro.dart';
 import '../widgets/authoring_destination_dialog.dart';
 import '../widgets/editor_app_bar_actions.dart';
 import '../services/custom_course_transfer_service.dart';
 import '../services/authoring_duplication_service.dart';
 import '../services/exercise_creation_planner.dart';
 import '../services/exercise_draft_builder.dart';
+import '../services/canonical_exercise_draft.dart';
+import '../services/round_flow_authoring.dart';
+import '../services/preset_recipes.dart';
+import '../services/preset_variants.dart';
 import '../services/guidebook_round_generator.dart';
 import '../services/publication_service.dart';
 import '../services/provisional_publication_service.dart';
@@ -67,6 +75,8 @@ import '../widgets/course_artwork.dart';
 import '../widgets/course_cover_field.dart';
 import '../widgets/course_flag_picker.dart';
 import '../widgets/image_credit_reminder.dart';
+import '../widgets/story_line_dialog.dart';
+import '../widgets/story_speaker_dialog.dart';
 import '../widgets/lesson_fallback_icon.dart';
 import '../widgets/import_summary.dart';
 import '../services/storage/qql_storage.dart';
@@ -276,7 +286,7 @@ class AuthoringStatusCard extends StatelessWidget {
 /// the Lessons screen. Returns null when cancelled or left empty.
 Future<String?> askAuthoringName(
   BuildContext context, {
-  String title = 'New lesson',
+  String title = 'New Lesson',
   String initial = '',
   String confirmLabel = 'Create',
   int? maxLength,
@@ -364,44 +374,14 @@ String _localCourseDateTime(BuildContext context, String utc) {
       '${localizations.formatTimeOfDay(TimeOfDay.fromDateTime(parsed))}';
 }
 
-Future<bool> _confirmMoveToDraft(BuildContext context, String entity) async =>
-    await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Save $entity as draft?'),
-        content: Text(
-          'This $entity will disappear from learner-facing content. Existing learner progress and XP will be preserved.',
-        ),
-        actions: [
-          FilledButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Save as draft'),
-          ),
-        ],
-      ),
-    ) ??
-    false;
-
+/// The same canonical exercise with another publication state. Course Model
+/// v12: copied canonically, never rebuilt through the v11 views, which would
+/// lose an inline layout.
 Exercise _withExercisePublication(
   Exercise source,
   PublicationState state, {
   DateTime? updatedAt,
-}) => Exercise.v2(
-  id: source.id,
-  publicationState: state,
-  updatedAt: updatedAt ?? source.updatedAt,
-  editorTemplate: source.editorTemplate,
-  promptElements: source.promptElements,
-  interaction: source.interaction,
-  evaluation: source.evaluation,
-  hint: source.hint,
-  feedback: source.feedback,
-  missingWords: source.missingWords,
-);
+}) => source.withPublicationState(state, updatedAt: updatedAt);
 
 Future<Course?> _openSearchResult(
   BuildContext context, {
@@ -417,7 +397,7 @@ Future<Course?> _openSearchResult(
   final saved = <String, Exercise>{};
   final returned = await Navigator.of(context).push<Exercise>(
     MaterialPageRoute(
-      builder: (_) => ExerciseEditorScreen(
+      builder: (_) => _exerciseEditorFor(
         exercise: exercise,
         title: 'Edit exercise ${result.exerciseIndex + 1}',
         isNew: false,
@@ -555,6 +535,8 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
   Course get _course => _session.workingCourse;
 
   bool get _dirty => _session.hasChanges;
+
+  final _storyIds = TimestampAuthoringIdGenerator();
 
   bool get _canModify => _session.canModify;
 
@@ -858,1171 +840,1128 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
       child: Text(value.trim().isEmpty ? 'Not specified' : value),
     );
     final result = await showDialog<CourseInfoChange>(
-          context: context,
-          builder: (ctx) => StatefulBuilder(
-            builder: (ctx, setLocalState) => AlertDialog(
-              title: const Text('Course Info Editor'),
-              content: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 620),
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      const Text(
-                        'Course identity',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 8),
-                      TextField(
-                        key: const Key('course-info-title'),
-                        controller: courseTitle,
-                        maxLength: 120,
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          labelText: 'Course name',
-                          helper: Text('Renaming keeps the same Course ID.'),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      ValueListenableBuilder<bool>(
-                        valueListenable:
-                            EditorDisplayPreferences.showInternalIds,
-                        builder: (context, showInternalIds, _) =>
-                            showInternalIds
-                            ? Column(
-                                children: [
-                                  readOnlyField('Course ID', _course.courseId),
-                                  const SizedBox(height: 8),
-                                ],
-                              )
-                            : const SizedBox.shrink(),
-                      ),
-                      readOnlyField('Course origin', _course.originType.name),
-                      const SizedBox(height: 8),
-                      readOnlyField(
-                        'Original Course Creator',
-                        resolvedGovernance.originalCreatorLabel,
-                        helperText:
-                            'The person who originally created this Course. This does not change when maintainership changes or the Course is forked.',
-                      ),
-                      EditorInternalIdText(
-                        label: 'User',
-                        id: _course.originalCourseCreator.id,
-                        padding: const EdgeInsets.only(top: 6),
-                      ),
-                      const SizedBox(height: 8),
-                      if (canGovern)
-                        DropdownButtonFormField<String>(
-                          key: const Key('course-info-owner'),
-                          initialValue: selectedMaintainerId,
-                          isExpanded: true,
-                          decoration: const InputDecoration(
-                            border: OutlineInputBorder(),
-                            labelText: 'Course Maintainer',
-                            helper: Text(
-                              'The person currently responsible for maintaining this Course.',
-                            ),
-                          ),
-                          items: [
-                            for (final profile in profiles)
-                              DropdownMenuItem(
-                                value: profile.learnerProfileId,
-                                child: Tooltip(
-                                  message: profile.presentationName,
-                                  child: Text(
-                                    profile.presentationName,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              ),
-                          ],
-                          onChanged: (value) => setLocalState(
-                            () => selectedMaintainerId =
-                                value ?? selectedMaintainerId,
-                          ),
-                        )
-                      else
-                        readOnlyField(
-                          'Course Maintainer',
-                          resolvedGovernance.maintainerLabel,
-                          helperText: _editorMode == CourseEditorMode.edit
-                              ? 'Only the current Course Maintainer may change this field.'
-                              : 'Read-only outside Edit mode',
-                        ),
-                      EditorInternalIdText(
-                        label: 'User',
-                        id: selectedMaintainerId,
-                        padding: const EdgeInsets.only(top: 6),
-                      ),
-                      const SizedBox(height: 8),
-                      if (canGovern)
-                        KeyedSubtree(
-                          key: const Key('course-info-assigned-team'),
-                          child: DropdownButtonFormField<String?>(
-                            key: assignedTeamFieldKey,
-                            initialValue: selectedAssignedTeamId,
-                            isExpanded: true,
-                            decoration: const InputDecoration(
-                              border: OutlineInputBorder(),
-                              labelText: 'Assigned Team',
-                              helper: Text(
-                                'Grants Team management access; the Course Maintainer and Original Course Creator stay unchanged.',
-                              ),
-                            ),
-                            items: [
-                              const DropdownMenuItem<String?>(
-                                value: null,
-                                child: Text('No assigned Team'),
-                              ),
-                              for (final team in teams)
-                                DropdownMenuItem<String?>(
-                                  value: team.teamId,
-                                  child: Tooltip(
-                                    message: team.displayName,
-                                    child: Text(
-                                      team.displayName,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ),
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setLocalState) => AlertDialog(
+          title: const Text('Course Info Editor'),
+          content: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 620),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const Text(
+                    'Course identity',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    key: const Key('course-info-title'),
+                    controller: courseTitle,
+                    maxLength: 120,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: 'Course name',
+                      helper: Text('Renaming keeps the same Course ID.'),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  ValueListenableBuilder<bool>(
+                    valueListenable: EditorDisplayPreferences.showInternalIds,
+                    builder: (context, showInternalIds, _) => showInternalIds
+                        ? Column(
+                            children: [
+                              readOnlyField('Course ID', _course.courseId),
+                              const SizedBox(height: 8),
                             ],
-                            onChanged: (value) async {
-                              if (value == selectedAssignedTeamId) return;
-                              if (value != null) {
-                                final confirmed =
-                                    await showDialog<bool>(
-                                      context: ctx,
-                                      builder: (warningContext) => AlertDialog(
-                                        key: const Key(
-                                          'team-assignment-warning',
-                                        ),
-                                        title: const Text(
-                                          'Assign Course to Team?',
-                                        ),
-                                        content: const Text(
-                                          CourseGovernanceService
-                                              .teamAssignmentWarning,
-                                        ),
-                                        actions: [
-                                          TextButton(
-                                            key: const Key(
-                                              'team-assignment-cancel',
-                                            ),
-                                            onPressed: () => Navigator.pop(
-                                              warningContext,
-                                              false,
-                                            ),
-                                            child: const Text('Cancel'),
-                                          ),
-                                          FilledButton(
-                                            key: const Key(
-                                              'team-assignment-confirm',
-                                            ),
-                                            onPressed: () => Navigator.pop(
-                                              warningContext,
-                                              true,
-                                            ),
-                                            child: const Text(
-                                              'Confirm assignment',
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ) ??
-                                    false;
-                                if (!confirmed) {
-                                  assignedTeamFieldKey.currentState?.didChange(
-                                    selectedAssignedTeamId,
-                                  );
-                                  return;
-                                }
-                              }
-                              setLocalState(
-                                () => selectedAssignedTeamId = value,
-                              );
-                            },
-                          ),
-                        )
-                      else ...[
-                        readOnlyField(
-                          'Assigned Team',
-                          resolvedGovernance.assignedTeamLabel ?? 'None',
-                          helperText:
-                              'Only the current Course Maintainer may assign or revoke a Team.',
+                          )
+                        : const SizedBox.shrink(),
+                  ),
+                  readOnlyField('Course origin', _course.originType.name),
+                  const SizedBox(height: 8),
+                  readOnlyField(
+                    'Original Course Creator',
+                    resolvedGovernance.originalCreatorLabel,
+                    helperText:
+                        'The person who originally created this Course. This does not change when maintainership changes or the Course is forked.',
+                  ),
+                  EditorInternalIdText(
+                    label: 'User',
+                    id: _course.originalCourseCreator.id,
+                    padding: const EdgeInsets.only(top: 6),
+                  ),
+                  const SizedBox(height: 8),
+                  if (canGovern)
+                    DropdownButtonFormField<String>(
+                      key: const Key('course-info-owner'),
+                      initialValue: selectedMaintainerId,
+                      isExpanded: true,
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        labelText: 'Course Maintainer',
+                        helper: Text(
+                          'The person currently responsible for maintaining this Course.',
                         ),
+                      ),
+                      items: [
+                        for (final profile in profiles)
+                          DropdownMenuItem(
+                            value: profile.learnerProfileId,
+                            child: Tooltip(
+                              message: profile.presentationName,
+                              child: Text(
+                                profile.presentationName,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ),
                       ],
-                      if (selectedAssignedTeamId != null)
-                        EditorInternalIdText(
-                          label: 'Team',
-                          id: selectedAssignedTeamId!,
-                          padding: const EdgeInsets.only(top: 6),
-                        ),
-                      ValueListenableBuilder<bool>(
-                        valueListenable:
-                            EditorDisplayPreferences.showInternalIds,
-                        builder: (context, showInternalIds, _) =>
-                            showInternalIds
-                            ? Padding(
-                                padding: const EdgeInsets.only(top: 6),
-                                child: SelectableText(
-                                  'Course Model: v${_course.formatVersion}',
-                                  key: const Key('course-info-model-version'),
-                                  maxLines: 1,
-                                  style: Theme.of(ctx).textTheme.bodySmall
-                                      ?.copyWith(fontFamily: 'monospace'),
-                                ),
-                              )
-                            : const SizedBox.shrink(),
+                      onChanged: (value) => setLocalState(
+                        () => selectedMaintainerId =
+                            value ?? selectedMaintainerId,
                       ),
-                      if (_course.forkProvenance != null)
-                        CourseForkProvenanceCard(
-                          provenance: _course.forkProvenance!,
-                        ),
-                      ...[
-                        const SizedBox(height: 8),
-                        readOnlyField(
-                          'Original Course Created',
-                          _localCourseDateTime(
-                            ctx,
-                            _course.originalCreatedAtUtc,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        readOnlyField(
-                          'Last Version Editor',
-                          _course.lastVersionEditorDisplayName,
-                        ),
-                        const SizedBox(height: 8),
-                        readOnlyField(
-                          'Modified',
-                          _localCourseDateTime(ctx, _course.modifiedAtUtc),
-                        ),
-                        if (_course.versionNotes.isNotEmpty) ...[
-                          const SizedBox(height: 8),
-                          readOnlyField('Version notes', _course.versionNotes),
-                        ],
-                      ],
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: TextButton.icon(
-                          onPressed: () {
-                            Navigator.pop(ctx);
-                            _openVersionHistory();
-                          },
-                          icon: const Icon(Icons.history_outlined),
-                          label: const Text('Version history'),
-                        ),
-                      ),
-                      const SizedBox(height: 14),
-                      const Text(
-                        'Languages',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 8),
-                      if (narrowCourseInfo) ...[
-                        readOnlyField(
-                          'Base language',
-                          baseLanguage.displayLabel,
-                        ),
-                        const SizedBox(height: 8),
-                        readOnlyField(
-                          'Learning language',
-                          learningLanguage.displayLabel,
-                        ),
-                      ] else
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(
-                              child: readOnlyField(
-                                'Base language',
-                                baseLanguage.displayLabel,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: readOnlyField(
-                                'Learning language',
-                                learningLanguage.displayLabel,
-                              ),
-                            ),
-                          ],
-                        ),
-                      const SizedBox(height: 14),
-                      const Text(
-                        'Course flag',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 8),
-                      CourseFlagSelector(
-                        key: const Key('course-info-flag-selector'),
-                        selection: flagSelection,
-                        languageName: learningLanguage.displayLabel,
-                        languageTag: learningLanguage.code,
-                        onChanged: (selection) =>
-                            setLocalState(() => flagSelection = selection),
-                      ),
-                      const SizedBox(height: 14),
-                      CourseCoverField(
-                        key: const Key('course-info-cover'),
-                        courseId: _course.courseId,
-                        course: _course,
-                        cover: coverImage,
-                        onChanged: (choice) => setLocalState(() {
-                          coverImage = choice.cover;
-                          creditCover(choice.credit);
-                          mediaCreditError = null;
-                        }),
-                      ),
-                      const SizedBox(height: 14),
-                      const Text(
-                        'Authors',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 4),
-                      const Text(
-                        'Roles describe what each person did; they are not a hierarchy. More than one role may be selected.',
-                      ),
-                      const SizedBox(height: 8),
-                      for (var i = 0; i < names.length; i++)
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
-                          child: Card(
-                            child: Padding(
-                              padding: const EdgeInsets.all(10),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  Row(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Expanded(
-                                        child: TextField(
-                                          controller: names[i],
-                                          maxLength: 120,
-                                          decoration: const InputDecoration(
-                                            border: OutlineInputBorder(),
-                                            labelText: 'Name',
-                                          ),
-                                        ),
-                                      ),
-                                      IconButton(
-                                        tooltip: 'Remove author',
-                                        onPressed: names.length == 1
-                                            ? null
-                                            : () {
-                                                setLocalState(() {
-                                                  names.removeAt(i).dispose();
-                                                  selectedRoles.removeAt(i);
-                                                  customRoles
-                                                      .removeAt(i)
-                                                      .dispose();
-                                                });
-                                              },
-                                        icon: const Icon(
-                                          Icons.remove_circle_outline,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Wrap(
-                                    spacing: 6,
-                                    runSpacing: 6,
-                                    children: [
-                                      for (final role in standardRoles)
-                                        Tooltip(
-                                          message: role == 'Team Leader'
-                                              ? 'This is descriptive information only. To assign or change Team Leader roles in QQL, use Team Manager.'
-                                              : roleDescriptions[role] ?? role,
-                                          child: FilterChip(
-                                            label: Text(role),
-                                            selected: selectedRoles[i].contains(
-                                              role,
-                                            ),
-                                            onSelected: (on) => setLocalState(
-                                              () {
-                                                if (on) {
-                                                  selectedRoles[i].add(role);
-                                                } else {
-                                                  selectedRoles[i].remove(role);
-                                                }
-                                              },
-                                            ),
-                                          ),
-                                        ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 6),
-                                  for (final role in standardRoles.where(
-                                    (r) => selectedRoles[i].contains(r),
-                                  ))
-                                    Padding(
-                                      padding: const EdgeInsets.only(bottom: 3),
-                                      child: Text(
-                                        '$role: ${roleDescriptions[role]}',
-                                        style: Theme.of(
-                                          ctx,
-                                        ).textTheme.bodySmall,
-                                      ),
-                                    ),
-                                  const SizedBox(height: 6),
-                                  TextField(
-                                    controller: customRoles[i],
-                                    maxLength: 240,
-                                    decoration: const InputDecoration(
-                                      border: OutlineInputBorder(),
-                                      labelText: 'Custom role(s)',
-                                      helper: Text(
-                                        'Optional; separate roles with commas.',
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: TextButton.icon(
-                          onPressed: () {
-                            setLocalState(() {
-                              names.add(TextEditingController());
-                              selectedRoles.add({'Contributor'});
-                              customRoles.add(TextEditingController());
-                            });
-                          },
-                          icon: const Icon(Icons.add),
-                          label: const Text('Add author'),
-                        ),
-                      ),
-                      const Divider(),
-                      TextField(
-                        controller: variant,
-                        maxLength: 120,
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          labelText: 'Language variant',
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      if (narrowCourseInfo) ...[
-                        TextField(
-                          controller: startLevel,
-                          maxLength: 40,
-                          decoration: const InputDecoration(
-                            border: OutlineInputBorder(),
-                            labelText: 'Starting level',
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        TextField(
-                          controller: targetLevel,
-                          maxLength: 40,
-                          decoration: const InputDecoration(
-                            border: OutlineInputBorder(),
-                            labelText: 'Target level',
-                          ),
-                        ),
-                      ] else
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(
-                              child: TextField(
-                                controller: startLevel,
-                                maxLength: 40,
-                                decoration: const InputDecoration(
-                                  border: OutlineInputBorder(),
-                                  labelText: 'Starting level',
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: TextField(
-                                controller: targetLevel,
-                                maxLength: 40,
-                                decoration: const InputDecoration(
-                                  border: OutlineInputBorder(),
-                                  labelText: 'Target level',
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      const SizedBox(height: 8),
-                      readOnlyField(
-                        'Course version',
-                        _course.courseVersion.isEmpty
-                            ? 'Not confirmed yet'
-                            : _course.courseVersion,
-                      ),
-                      const SizedBox(height: 8),
-                      TextField(
-                        controller: description,
-                        minLines: 2,
-                        maxLines: 5,
-                        maxLength: 5000,
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          labelText: 'Course description / information',
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      TextField(
-                        controller: buyACoffeeUrl,
-                        maxLength: 2000,
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          labelText: 'Buy a Coffee URL (optional)',
-                          helper: Text('HTTPS only; shown in Course Info.'),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: TextField(
-                              key: const Key('course-info-estimated-hours'),
-                              controller: estimatedHours,
-                              keyboardType: TextInputType.number,
-                              decoration: const InputDecoration(
-                                border: OutlineInputBorder(),
-                                labelText: 'Estimated study hours (optional)',
-                                helper: Text('Whole number, 1–1000.'),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: DropdownButtonFormField<int?>(
-                              key: const Key('course-info-minimum-age'),
-                              initialValue: minimumAge,
-                              isExpanded: true,
-                              decoration: const InputDecoration(
-                                border: OutlineInputBorder(),
-                                labelText: 'Minimum age',
-                                helper: Text('App Store age classes.'),
-                              ),
-                              items: [
-                                const DropdownMenuItem<int?>(
-                                  value: null,
-                                  child: Text('Not specified'),
-                                ),
-                                for (final age in Course.minimumAgeClasses)
-                                  DropdownMenuItem<int?>(
-                                    value: age,
-                                    child: Text('$age+'),
-                                  ),
-                              ],
-                              onChanged: (value) =>
-                                  setLocalState(() => minimumAge = value),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      TextField(
-                        key: const Key('course-info-keywords'),
-                        controller: keywords,
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          labelText: 'Keywords (optional)',
-                          helper: Text(
-                            'Separate with commas. Up to 20 keywords of up to 32 characters each.',
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      TextField(
-                        key: const Key('course-info-contact-website'),
-                        controller: contactWebsite,
-                        maxLength: 500,
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          labelText: 'Publisher website (optional)',
-                          helper: Text(
-                            'HTTPS only; shown as plain text in Course Info.',
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      TextField(
-                        key: const Key('course-info-contact-email'),
-                        controller: contactEmail,
-                        maxLength: 254,
-                        keyboardType: TextInputType.emailAddress,
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          labelText: 'Publisher email (optional)',
-                          helper: Text('Shown as plain text in Course Info.'),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      TextField(
-                        key: const Key('course-info-minimum-app-build'),
-                        controller: minimumAppBuild,
-                        keyboardType: TextInputType.number,
-                        decoration: InputDecoration(
-                          border: const OutlineInputBorder(),
-                          labelText: 'Minimum QuisquisLingo build (optional)',
-                          helper: Text(
-                            'Older builds refuse this Course. Leave empty unless it needs a recent feature. This is build ${Course.appBuildNumber}.',
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 14),
-                      const Text(
-                        'License / Rights',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 8),
-                      DropdownButtonFormField<String>(
-                        initialValue: selected,
+                    )
+                  else
+                    readOnlyField(
+                      'Course Maintainer',
+                      resolvedGovernance.maintainerLabel,
+                      helperText: _editorMode == CourseEditorMode.edit
+                          ? 'Only the current Course Maintainer may change this field.'
+                          : 'Read-only outside Edit mode',
+                    ),
+                  EditorInternalIdText(
+                    label: 'User',
+                    id: selectedMaintainerId,
+                    padding: const EdgeInsets.only(top: 6),
+                  ),
+                  const SizedBox(height: 8),
+                  if (canGovern)
+                    KeyedSubtree(
+                      key: const Key('course-info-assigned-team'),
+                      child: DropdownButtonFormField<String?>(
+                        key: assignedTeamFieldKey,
+                        initialValue: selectedAssignedTeamId,
                         isExpanded: true,
                         decoration: const InputDecoration(
                           border: OutlineInputBorder(),
-                          labelText: 'Course content license',
+                          labelText: 'Assigned Team',
+                          helper: Text(
+                            'Grants Team management access; the Course Maintainer and Original Course Creator stay unchanged.',
+                          ),
                         ),
                         items: [
-                          for (final v in standardLicenses)
-                            DropdownMenuItem(
-                              value: v,
-                              child: Text(v, overflow: TextOverflow.ellipsis),
+                          const DropdownMenuItem<String?>(
+                            value: null,
+                            child: Text('No assigned Team'),
+                          ),
+                          for (final team in teams)
+                            DropdownMenuItem<String?>(
+                              value: team.teamId,
+                              child: Tooltip(
+                                message: team.displayName,
+                                child: Text(
+                                  team.displayName,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
                             ),
                         ],
-                        onChanged: (v) => setLocalState(() {
-                          selected = v ?? selected;
-                          final inferred =
-                              CourseMetadataOptions.derivativePolicyForLicense(
-                                selected,
+                        onChanged: (value) async {
+                          if (value == selectedAssignedTeamId) return;
+                          if (value != null) {
+                            final confirmed =
+                                await showDialog<bool>(
+                                  context: ctx,
+                                  builder: (warningContext) => AlertDialog(
+                                    key: const Key('team-assignment-warning'),
+                                    title: const Text('Assign Course to Team?'),
+                                    content: const Text(
+                                      CourseGovernanceService
+                                          .teamAssignmentWarning,
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        key: const Key(
+                                          'team-assignment-cancel',
+                                        ),
+                                        onPressed: () => Navigator.pop(
+                                          warningContext,
+                                          false,
+                                        ),
+                                        child: const Text('Cancel'),
+                                      ),
+                                      FilledButton(
+                                        key: const Key(
+                                          'team-assignment-confirm',
+                                        ),
+                                        onPressed: () =>
+                                            Navigator.pop(warningContext, true),
+                                        child: const Text('Confirm assignment'),
+                                      ),
+                                    ],
+                                  ),
+                                ) ??
+                                false;
+                            if (!confirmed) {
+                              assignedTeamFieldKey.currentState?.didChange(
+                                selectedAssignedTeamId,
                               );
-                          if (inferred != DerivativeWorksPolicy.unspecified) {
-                            derivativePolicy = inferred;
+                              return;
+                            }
                           }
-                        }),
+                          setLocalState(() => selectedAssignedTeamId = value);
+                        },
                       ),
-                      if (selected == 'Other / Custom license') ...[
-                        const SizedBox(height: 12),
-                        TextField(
-                          controller: customLicense,
-                          minLines: 2,
-                          maxLines: 5,
-                          maxLength: 2000,
-                          decoration: const InputDecoration(
-                            border: OutlineInputBorder(),
-                            labelText: 'Custom license',
+                    )
+                  else ...[
+                    readOnlyField(
+                      'Assigned Team',
+                      resolvedGovernance.assignedTeamLabel ?? 'None',
+                      helperText:
+                          'Only the current Course Maintainer may assign or revoke a Team.',
+                    ),
+                  ],
+                  if (selectedAssignedTeamId != null)
+                    EditorInternalIdText(
+                      label: 'Team',
+                      id: selectedAssignedTeamId!,
+                      padding: const EdgeInsets.only(top: 6),
+                    ),
+                  ValueListenableBuilder<bool>(
+                    valueListenable: EditorDisplayPreferences.showInternalIds,
+                    builder: (context, showInternalIds, _) => showInternalIds
+                        ? Padding(
+                            padding: const EdgeInsets.only(top: 6),
+                            child: SelectableText(
+                              'Course Model: v${_course.formatVersion}',
+                              key: const Key('course-info-model-version'),
+                              maxLines: 1,
+                              style: Theme.of(ctx).textTheme.bodySmall
+                                  ?.copyWith(fontFamily: 'monospace'),
+                            ),
+                          )
+                        : const SizedBox.shrink(),
+                  ),
+                  if (_course.forkProvenance != null)
+                    CourseForkProvenanceCard(
+                      provenance: _course.forkProvenance!,
+                    ),
+                  ...[
+                    const SizedBox(height: 8),
+                    readOnlyField(
+                      'Original Course Created',
+                      _localCourseDateTime(ctx, _course.originalCreatedAtUtc),
+                    ),
+                    const SizedBox(height: 8),
+                    readOnlyField(
+                      'Last Version Editor',
+                      _course.lastVersionEditorDisplayName,
+                    ),
+                    const SizedBox(height: 8),
+                    readOnlyField(
+                      'Modified',
+                      _localCourseDateTime(ctx, _course.modifiedAtUtc),
+                    ),
+                    if (_course.versionNotes.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      readOnlyField('Version notes', _course.versionNotes),
+                    ],
+                  ],
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: TextButton.icon(
+                      onPressed: () {
+                        Navigator.pop(ctx);
+                        _openVersionHistory();
+                      },
+                      icon: const Icon(Icons.history_outlined),
+                      label: const Text('Version history'),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  const Text(
+                    'Languages',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  if (narrowCourseInfo) ...[
+                    readOnlyField('Base language', baseLanguage.displayLabel),
+                    const SizedBox(height: 8),
+                    readOnlyField(
+                      'Learning language',
+                      learningLanguage.displayLabel,
+                    ),
+                  ] else
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: readOnlyField(
+                            'Base language',
+                            baseLanguage.displayLabel,
                           ),
                         ),
-                        const SizedBox(height: 8),
-                        DropdownButtonFormField<DerivativeWorksPolicy>(
-                          initialValue: derivativePolicy,
-                          isExpanded: true,
-                          decoration: const InputDecoration(
-                            border: OutlineInputBorder(),
-                            labelText: 'Derivative works for other users',
-                          ),
-                          items: const [
-                            DropdownMenuItem(
-                              value: DerivativeWorksPolicy.allowed,
-                              child: Text(
-                                'Allowed',
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            DropdownMenuItem(
-                              value: DerivativeWorksPolicy.forbidden,
-                              child: Text(
-                                'Forbidden',
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            DropdownMenuItem(
-                              value: DerivativeWorksPolicy.unspecified,
-                              child: Text(
-                                'Not specified',
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                          onChanged: (value) => setLocalState(
-                            () => derivativePolicy = value ?? derivativePolicy,
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: readOnlyField(
+                            'Learning language',
+                            learningLanguage.displayLabel,
                           ),
                         ),
                       ],
-                      const SizedBox(height: 12),
-                      const Text(
-                        'Rights Holder records rights ownership information. It does not control QQL permissions.',
-                      ),
-                      const SizedBox(height: 8),
-                      for (
-                        var rightsIndex = 0;
-                        rightsIndex < rightsHolderNames.length;
-                        rightsIndex++
-                      )
-                        Card(
-                          child: Padding(
-                            padding: const EdgeInsets.all(10),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: Text(
-                                        'Rights Holder ${rightsIndex + 1}',
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.w600,
+                    ),
+                  const SizedBox(height: 14),
+                  const Text(
+                    'Course flag',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  CourseFlagSelector(
+                    key: const Key('course-info-flag-selector'),
+                    selection: flagSelection,
+                    languageName: learningLanguage.displayLabel,
+                    languageTag: learningLanguage.code,
+                    onChanged: (selection) =>
+                        setLocalState(() => flagSelection = selection),
+                  ),
+                  const SizedBox(height: 14),
+                  CourseCoverField(
+                    key: const Key('course-info-cover'),
+                    courseId: _course.courseId,
+                    course: _course,
+                    cover: coverImage,
+                    onChanged: (choice) => setLocalState(() {
+                      coverImage = choice.cover;
+                      creditCover(choice.credit);
+                      mediaCreditError = null;
+                    }),
+                  ),
+                  const SizedBox(height: 14),
+                  const Text(
+                    'Authors',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 4),
+                  const Text(
+                    'Roles describe what each person did; they are not a hierarchy. More than one role may be selected.',
+                  ),
+                  const SizedBox(height: 8),
+                  for (var i = 0; i < names.length; i++)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: Card(
+                        child: Padding(
+                          padding: const EdgeInsets.all(10),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Expanded(
+                                    child: TextField(
+                                      controller: names[i],
+                                      maxLength: 120,
+                                      decoration: const InputDecoration(
+                                        border: OutlineInputBorder(),
+                                        labelText: 'Name',
+                                      ),
+                                    ),
+                                  ),
+                                  IconButton(
+                                    tooltip: 'Remove author',
+                                    onPressed: names.length == 1
+                                        ? null
+                                        : () {
+                                            setLocalState(() {
+                                              names.removeAt(i).dispose();
+                                              selectedRoles.removeAt(i);
+                                              customRoles.removeAt(i).dispose();
+                                            });
+                                          },
+                                    icon: const Icon(
+                                      Icons.remove_circle_outline,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 4),
+                              Wrap(
+                                spacing: 6,
+                                runSpacing: 6,
+                                children: [
+                                  for (final role in standardRoles)
+                                    Tooltip(
+                                      message: role == 'Team Leader'
+                                          ? 'This is descriptive information only. To assign or change Team Leader roles in QQL, use Team Manager.'
+                                          : roleDescriptions[role] ?? role,
+                                      child: FilterChip(
+                                        label: Text(role),
+                                        selected: selectedRoles[i].contains(
+                                          role,
                                         ),
+                                        onSelected: (on) => setLocalState(() {
+                                          if (on) {
+                                            selectedRoles[i].add(role);
+                                          } else {
+                                            selectedRoles[i].remove(role);
+                                          }
+                                        }),
                                       ),
                                     ),
-                                    IconButton(
-                                      tooltip: 'Remove Rights Holder',
-                                      onPressed: rightsHolderNames.length == 1
-                                          ? null
-                                          : () => setLocalState(() {
-                                              rightsHolderNames
-                                                  .removeAt(rightsIndex)
-                                                  .dispose();
-                                              rightsHolderTypes.removeAt(
-                                                rightsIndex,
-                                              );
-                                            }),
-                                      icon: const Icon(
-                                        Icons.remove_circle_outline,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                DropdownButtonFormField<CourseRightsHolderType>(
-                                  key: ValueKey(
-                                    'course-info-rights-holder-type-$rightsIndex',
-                                  ),
-                                  initialValue: rightsHolderTypes[rightsIndex],
-                                  isExpanded: true,
-                                  decoration: const InputDecoration(
-                                    border: OutlineInputBorder(),
-                                    labelText: 'Rights Holder type',
-                                  ),
-                                  items: const [
-                                    DropdownMenuItem(
-                                      value: CourseRightsHolderType.person,
-                                      child: Text('Person'),
-                                    ),
-                                    DropdownMenuItem(
-                                      value:
-                                          CourseRightsHolderType.organization,
-                                      child: Text('Organization'),
-                                    ),
-                                  ],
-                                  onChanged: (value) => setLocalState(() {
-                                    rightsHolderTypes[rightsIndex] =
-                                        value ?? rightsHolderTypes[rightsIndex];
-                                  }),
-                                ),
-                                const SizedBox(height: 8),
-                                TextField(
-                                  key: ValueKey(
-                                    'course-info-rights-holder-name-$rightsIndex',
-                                  ),
-                                  controller: rightsHolderNames[rightsIndex],
-                                  maxLength: 240,
-                                  decoration: const InputDecoration(
-                                    border: OutlineInputBorder(),
-                                    labelText: 'Rights Holder',
-                                    helper: Text(
-                                      'A person or organization; descriptive only.',
-                                    ),
+                                ],
+                              ),
+                              const SizedBox(height: 6),
+                              for (final role in standardRoles.where(
+                                (r) => selectedRoles[i].contains(r),
+                              ))
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 3),
+                                  child: Text(
+                                    '$role: ${roleDescriptions[role]}',
+                                    style: Theme.of(ctx).textTheme.bodySmall,
                                   ),
                                 ),
-                              ],
+                              const SizedBox(height: 6),
+                              TextField(
+                                controller: customRoles[i],
+                                maxLength: 240,
+                                decoration: const InputDecoration(
+                                  border: OutlineInputBorder(),
+                                  labelText: 'Custom role(s)',
+                                  helper: Text(
+                                    'Optional; separate roles with commas.',
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: TextButton.icon(
+                      onPressed: () {
+                        setLocalState(() {
+                          names.add(TextEditingController());
+                          selectedRoles.add({'Contributor'});
+                          customRoles.add(TextEditingController());
+                        });
+                      },
+                      icon: const Icon(Icons.add),
+                      label: const Text('Add author'),
+                    ),
+                  ),
+                  const Divider(),
+                  TextField(
+                    controller: variant,
+                    maxLength: 120,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: 'Language variant',
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  if (narrowCourseInfo) ...[
+                    TextField(
+                      controller: startLevel,
+                      maxLength: 40,
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        labelText: 'Starting level',
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: targetLevel,
+                      maxLength: 40,
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        labelText: 'Target level',
+                      ),
+                    ),
+                  ] else
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: startLevel,
+                            maxLength: 40,
+                            decoration: const InputDecoration(
+                              border: OutlineInputBorder(),
+                              labelText: 'Starting level',
                             ),
                           ),
                         ),
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: TextButton.icon(
-                          key: const Key('course-info-add-rights-holder'),
-                          onPressed: () => setLocalState(() {
-                            rightsHolderNames.add(TextEditingController());
-                            rightsHolderTypes.add(
-                              CourseRightsHolderType.person,
-                            );
-                          }),
-                          icon: const Icon(Icons.add),
-                          label: const Text('Add Rights Holder'),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      const Text(
-                        'Media credits',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        'Credit images and recordings made by someone else: an imported picture, a recording another person performed, a custom Lesson icon or course flag. Media that came with QuisquisLingo is already credited in App Info and needs no entry here. These credits travel inside the Course file even when the media files themselves do not. They are descriptive only and do not control QQL permissions.',
-                      ),
-                      const SizedBox(height: 8),
-                      for (
-                        var creditIndex = 0;
-                        creditIndex < mediaAuthors.length;
-                        creditIndex++
-                      )
-                        Card(
-                          child: Padding(
-                            padding: const EdgeInsets.all(10),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: Text(
-                                        'Media credit ${creditIndex + 1}',
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                    ),
-                                    IconButton(
-                                      tooltip: 'Remove media credit',
-                                      onPressed: mediaAuthors.length == 1
-                                          ? null
-                                          : () => setLocalState(() {
-                                              mediaAuthors
-                                                  .removeAt(creditIndex)
-                                                  .dispose();
-                                              mediaLicenses
-                                                  .removeAt(creditIndex)
-                                                  .dispose();
-                                              mediaTitles
-                                                  .removeAt(creditIndex)
-                                                  .dispose();
-                                              mediaSources
-                                                  .removeAt(creditIndex)
-                                                  .dispose();
-                                              mediaAppliesTo
-                                                  .removeAt(creditIndex)
-                                                  .dispose();
-                                              mediaCreditError = null;
-                                            }),
-                                      icon: const Icon(
-                                        Icons.remove_circle_outline,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                TextField(
-                                  key: ValueKey(
-                                    'course-info-media-author-$creditIndex',
-                                  ),
-                                  controller: mediaAuthors[creditIndex],
-                                  maxLength: 200,
-                                  decoration: const InputDecoration(
-                                    border: OutlineInputBorder(),
-                                    labelText: 'Author',
-                                    helper: Text('Who must be credited.'),
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                TextField(
-                                  key: ValueKey(
-                                    'course-info-media-license-$creditIndex',
-                                  ),
-                                  controller: mediaLicenses[creditIndex],
-                                  maxLength: 200,
-                                  decoration: const InputDecoration(
-                                    border: OutlineInputBorder(),
-                                    labelText: 'Licence',
-                                    helper: Text(
-                                      'As the creator states it, for example CC BY-SA 4.0.',
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                TextField(
-                                  key: ValueKey(
-                                    'course-info-media-title-$creditIndex',
-                                  ),
-                                  controller: mediaTitles[creditIndex],
-                                  maxLength: 200,
-                                  decoration: const InputDecoration(
-                                    border: OutlineInputBorder(),
-                                    labelText: 'Title (optional)',
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                TextField(
-                                  key: ValueKey(
-                                    'course-info-media-source-$creditIndex',
-                                  ),
-                                  controller: mediaSources[creditIndex],
-                                  maxLength: 500,
-                                  decoration: const InputDecoration(
-                                    border: OutlineInputBorder(),
-                                    labelText: 'Source (optional)',
-                                    helper: Text(
-                                      'A page reference or address. Shown as plain text, never opened.',
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                TextField(
-                                  key: ValueKey(
-                                    'course-info-media-applies-to-$creditIndex',
-                                  ),
-                                  controller: mediaAppliesTo[creditIndex],
-                                  maxLength: 200,
-                                  decoration: const InputDecoration(
-                                    border: OutlineInputBorder(),
-                                    labelText: 'Applies to (optional)',
-                                    helper: Text(
-                                      'Which media in this course it covers.',
-                                    ),
-                                  ),
-                                ),
-                              ],
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: TextField(
+                            controller: targetLevel,
+                            maxLength: 40,
+                            decoration: const InputDecoration(
+                              border: OutlineInputBorder(),
+                              labelText: 'Target level',
                             ),
                           ),
                         ),
-                      if (mediaCreditError != null)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 4, bottom: 4),
-                          child: Text(
-                            mediaCreditError!,
-                            key: const Key('course-info-media-credit-error'),
-                            style: TextStyle(
-                              color: Theme.of(ctx).colorScheme.error,
-                            ),
+                      ],
+                    ),
+                  const SizedBox(height: 8),
+                  readOnlyField(
+                    'Course version',
+                    _course.courseVersion.isEmpty
+                        ? 'Not confirmed yet'
+                        : _course.courseVersion,
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: description,
+                    minLines: 2,
+                    maxLines: 5,
+                    maxLength: 5000,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: 'Course description / information',
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: buyACoffeeUrl,
+                    maxLength: 2000,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: 'Buy a Coffee URL (optional)',
+                      helper: Text('HTTPS only; shown in Course Info.'),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          key: const Key('course-info-estimated-hours'),
+                          controller: estimatedHours,
+                          keyboardType: TextInputType.number,
+                          decoration: const InputDecoration(
+                            border: OutlineInputBorder(),
+                            labelText: 'Estimated study hours (optional)',
+                            helper: Text('Whole number, 1–1000.'),
                           ),
                         ),
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: TextButton.icon(
-                          key: const Key('course-info-add-media-credit'),
-                          onPressed: () =>
-                              setLocalState(() => addMediaCreditRow()),
-                          icon: const Icon(Icons.add),
-                          label: const Text('Add media credit'),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: DropdownButtonFormField<int?>(
+                          key: const Key('course-info-minimum-age'),
+                          initialValue: minimumAge,
+                          isExpanded: true,
+                          decoration: const InputDecoration(
+                            border: OutlineInputBorder(),
+                            labelText: 'Minimum age',
+                            helper: Text('App Store age classes.'),
+                          ),
+                          items: [
+                            const DropdownMenuItem<int?>(
+                              value: null,
+                              child: Text('Not specified'),
+                            ),
+                            for (final age in Course.minimumAgeClasses)
+                              DropdownMenuItem<int?>(
+                                value: age,
+                                child: Text('$age+'),
+                              ),
+                          ],
+                          onChanged: (value) =>
+                              setLocalState(() => minimumAge = value),
                         ),
                       ),
                     ],
                   ),
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(ctx),
-                  child: const Text('Cancel'),
-                ),
-                FilledButton(
-                  key: const Key('course-info-save'),
-                  onPressed: () async {
-                    String title;
-                    try {
-                      title = FormalNamePolicy.validatePresentationLabel(
-                        courseTitle.text,
-                        parameterName: 'courseName',
-                      );
-                    } on ArgumentError catch (error) {
-                      ScaffoldMessenger.of(ctx).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            error.message?.toString() ??
-                                'Check the Course name.',
+                  const SizedBox(height: 8),
+                  TextField(
+                    key: const Key('course-info-keywords'),
+                    controller: keywords,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: 'Keywords (optional)',
+                      helper: Text(
+                        'Separate with commas. Up to 20 keywords of up to 32 characters each.',
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    key: const Key('course-info-contact-website'),
+                    controller: contactWebsite,
+                    maxLength: 500,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: 'Publisher website (optional)',
+                      helper: Text(
+                        'HTTPS only; shown as plain text in Course Info.',
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    key: const Key('course-info-contact-email'),
+                    controller: contactEmail,
+                    maxLength: 254,
+                    keyboardType: TextInputType.emailAddress,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: 'Publisher email (optional)',
+                      helper: Text('Shown as plain text in Course Info.'),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    key: const Key('course-info-minimum-app-build'),
+                    controller: minimumAppBuild,
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      border: const OutlineInputBorder(),
+                      labelText: 'Minimum QuisquisLingo build (optional)',
+                      helper: Text(
+                        'Older builds refuse this Course. Leave empty unless it needs a recent feature. This is build ${Course.appBuildNumber}.',
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  const Text(
+                    'License / Rights',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  DropdownButtonFormField<String>(
+                    initialValue: selected,
+                    isExpanded: true,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: 'Course content license',
+                    ),
+                    items: [
+                      for (final v in standardLicenses)
+                        DropdownMenuItem(
+                          value: v,
+                          child: Text(v, overflow: TextOverflow.ellipsis),
+                        ),
+                    ],
+                    onChanged: (v) => setLocalState(() {
+                      selected = v ?? selected;
+                      final inferred =
+                          CourseMetadataOptions.derivativePolicyForLicense(
+                            selected,
+                          );
+                      if (inferred != DerivativeWorksPolicy.unspecified) {
+                        derivativePolicy = inferred;
+                      }
+                    }),
+                  ),
+                  if (selected == 'Other / Custom license') ...[
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: customLicense,
+                      minLines: 2,
+                      maxLines: 5,
+                      maxLength: 2000,
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        labelText: 'Custom license',
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    DropdownButtonFormField<DerivativeWorksPolicy>(
+                      initialValue: derivativePolicy,
+                      isExpanded: true,
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        labelText: 'Derivative works for other users',
+                      ),
+                      items: const [
+                        DropdownMenuItem(
+                          value: DerivativeWorksPolicy.allowed,
+                          child: Text(
+                            'Allowed',
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                      );
-                      return;
-                    }
-                    final duplicate = (await _service.listUserCourses()).any(
-                      (course) =>
-                          course.courseId != _course.courseId &&
-                          FormalNamePolicy.comparisonKey(course.title) ==
-                              FormalNamePolicy.comparisonKey(title),
-                    );
-                    if (duplicate) {
-                      if (!ctx.mounted) return;
-                      final continueAnyway = await showDialog<bool>(
-                        context: ctx,
-                        builder: (warningContext) => AlertDialog(
-                          title: const Text('Course name already exists'),
-                          content: const Text(
-                            'A Course with this name already exists.',
+                        DropdownMenuItem(
+                          value: DerivativeWorksPolicy.forbidden,
+                          child: Text(
+                            'Forbidden',
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          actions: [
-                            TextButton(
-                              onPressed: () =>
-                                  Navigator.pop(warningContext, false),
-                              child: const Text('Edit name'),
+                        ),
+                        DropdownMenuItem(
+                          value: DerivativeWorksPolicy.unspecified,
+                          child: Text(
+                            'Not specified',
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                      onChanged: (value) => setLocalState(
+                        () => derivativePolicy = value ?? derivativePolicy,
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 12),
+                  const Text(
+                    'Rights Holder records rights ownership information. It does not control QQL permissions.',
+                  ),
+                  const SizedBox(height: 8),
+                  for (
+                    var rightsIndex = 0;
+                    rightsIndex < rightsHolderNames.length;
+                    rightsIndex++
+                  )
+                    Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(10),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    'Rights Holder ${rightsIndex + 1}',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                                IconButton(
+                                  tooltip: 'Remove Rights Holder',
+                                  onPressed: rightsHolderNames.length == 1
+                                      ? null
+                                      : () => setLocalState(() {
+                                          rightsHolderNames
+                                              .removeAt(rightsIndex)
+                                              .dispose();
+                                          rightsHolderTypes.removeAt(
+                                            rightsIndex,
+                                          );
+                                        }),
+                                  icon: const Icon(Icons.remove_circle_outline),
+                                ),
+                              ],
                             ),
-                            FilledButton(
-                              onPressed: () =>
-                                  Navigator.pop(warningContext, true),
-                              child: const Text('Continue anyway'),
+                            DropdownButtonFormField<CourseRightsHolderType>(
+                              key: ValueKey(
+                                'course-info-rights-holder-type-$rightsIndex',
+                              ),
+                              initialValue: rightsHolderTypes[rightsIndex],
+                              isExpanded: true,
+                              decoration: const InputDecoration(
+                                border: OutlineInputBorder(),
+                                labelText: 'Rights Holder type',
+                              ),
+                              items: const [
+                                DropdownMenuItem(
+                                  value: CourseRightsHolderType.person,
+                                  child: Text('Person'),
+                                ),
+                                DropdownMenuItem(
+                                  value: CourseRightsHolderType.organization,
+                                  child: Text('Organization'),
+                                ),
+                              ],
+                              onChanged: (value) => setLocalState(() {
+                                rightsHolderTypes[rightsIndex] =
+                                    value ?? rightsHolderTypes[rightsIndex];
+                              }),
+                            ),
+                            const SizedBox(height: 8),
+                            TextField(
+                              key: ValueKey(
+                                'course-info-rights-holder-name-$rightsIndex',
+                              ),
+                              controller: rightsHolderNames[rightsIndex],
+                              maxLength: 240,
+                              decoration: const InputDecoration(
+                                border: OutlineInputBorder(),
+                                labelText: 'Rights Holder',
+                                helper: Text(
+                                  'A person or organization; descriptive only.',
+                                ),
+                              ),
                             ),
                           ],
                         ),
-                      );
-                      if (continueAnyway != true || !ctx.mounted) return;
-                    }
-                    final license = selected == 'Other / Custom license'
-                        ? customLicense.text.trim()
-                        : selected;
-                    if (license.isEmpty) return;
-                    String normalizedBuyACoffeeUrl;
-                    int? parsedHours;
-                    int? parsedMinimumBuild;
-                    List<String> parsedKeywords;
-                    CoursePublisherContact? parsedContact;
-                    try {
-                      normalizedBuyACoffeeUrl = Course.normalizeBuyACoffeeUrl(
-                        buyACoffeeUrl.text,
-                      );
-                      int? wholeNumber(String text, String label) {
-                        final value = text.trim();
-                        if (value.isEmpty) return null;
-                        final parsed = int.tryParse(value);
-                        if (parsed == null) {
-                          throw FormatException(
-                            '$label must be a whole number.',
-                          );
-                        }
-                        return parsed;
-                      }
-
-                      parsedHours = wholeNumber(
-                        estimatedHours.text,
-                        'Estimated study hours',
-                      );
-                      parsedMinimumBuild = wholeNumber(
-                        minimumAppBuild.text,
-                        'Minimum QuisquisLingo build',
-                      );
-                      parsedKeywords = Course.normalizeKeywords(
-                        keywords.text.split(','),
-                      );
-                      parsedContact = CoursePublisherContact.fromFields(
-                        contactWebsite.text,
-                        contactEmail.text,
-                      );
-                      // The model is the one authority on the limits.
-                      Course.validateDescriptiveMetadata(
-                        minimumAppBuild: parsedMinimumBuild,
-                        estimatedStudyHours: parsedHours,
-                        minimumAge: minimumAge,
-                        keywords: parsedKeywords,
-                      );
-                    } on FormatException catch (error) {
-                      if (!ctx.mounted) return;
-                      ScaffoldMessenger.of(
-                        ctx,
-                      ).showSnackBar(SnackBar(content: Text(error.message)));
-                      return;
-                    }
-                    final aa = <CourseAuthor>[];
-                    for (var i = 0; i < names.length; i++) {
-                      final n = names[i].text.trim();
-                      if (n.isEmpty) continue;
-                      final rr = <String>[
-                        ...standardRoles.where(selectedRoles[i].contains),
-                      ];
-                      for (final part in customRoles[i].text.split(',')) {
-                        final value = part.trim();
-                        if (value.isNotEmpty && !rr.contains(value)) {
-                          rr.add(value);
-                        }
-                      }
-                      if (rr.isEmpty) rr.add('Contributor');
-                      aa.add(CourseAuthor(name: n, roles: rr));
-                    }
-                    final rightsHolders = <CourseRightsHolder>[];
-                    for (var i = 0; i < rightsHolderNames.length; i++) {
-                      final name = rightsHolderNames[i].text.trim();
-                      if (name.isEmpty) continue;
-                      rightsHolders.add(
-                        CourseRightsHolder(
-                          type: rightsHolderTypes[i],
-                          name: name,
-                        ),
-                      );
-                    }
-                    final mediaAttributions = <CourseMediaAttribution>[];
-                    for (var i = 0; i < mediaAuthors.length; i++) {
-                      final author = mediaAuthors[i].text.trim();
-                      final license = mediaLicenses[i].text.trim();
-                      // Both identifying fields are required; a row with
-                      // neither is an untouched blank and is simply dropped.
-                      if (author.isEmpty && license.isEmpty) continue;
-                      if (author.isEmpty || license.isEmpty) {
-                        setLocalState(
-                          () => mediaCreditError =
-                              'Each media credit needs both an author and a licence. '
-                              'Complete row ${i + 1} or clear it.',
-                        );
-                        return;
-                      }
-                      final candidate = CourseMediaAttribution(
-                        author: author,
-                        license: license,
-                        title: mediaTitles[i].text.trim(),
-                        source: mediaSources[i].text.trim(),
-                        appliesTo: mediaAppliesTo[i].text.trim(),
-                      );
-                      if (mediaAttributions.contains(candidate)) {
-                        setLocalState(
-                          () => mediaCreditError =
-                              'Row ${i + 1} repeats an identical media credit.',
-                        );
-                        return;
-                      }
-                      mediaAttributions.add(candidate);
-                    }
-                    if (!ctx.mounted) return;
-                    Navigator.pop(ctx, (
-                      title: title,
-                      authors: aa,
-                      rightsHolders: rightsHolders,
-                      mediaAttributions: mediaAttributions,
-                      license: license,
-                      derivativePolicy: selected == 'Other / Custom license'
-                          ? derivativePolicy
-                          : license == _course.license
-                          ? _course.derivativeWorksPolicy
-                          : CourseMetadataOptions.derivativePolicyForLicense(
-                              selected,
+                      ),
+                    ),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: TextButton.icon(
+                      key: const Key('course-info-add-rights-holder'),
+                      onPressed: () => setLocalState(() {
+                        rightsHolderNames.add(TextEditingController());
+                        rightsHolderTypes.add(CourseRightsHolderType.person);
+                      }),
+                      icon: const Icon(Icons.add),
+                      label: const Text('Add Rights Holder'),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'Media credits',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Credit images and recordings made by someone else: an imported picture, a recording another person performed, a custom Lesson icon or course flag. Media that came with QuisquisLingo is already credited in App Info and needs no entry here. These credits travel inside the Course file even when the media files themselves do not. They are descriptive only and do not control QQL permissions.',
+                  ),
+                  const SizedBox(height: 8),
+                  for (
+                    var creditIndex = 0;
+                    creditIndex < mediaAuthors.length;
+                    creditIndex++
+                  )
+                    Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(10),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    'Media credit ${creditIndex + 1}',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                                IconButton(
+                                  tooltip: 'Remove media credit',
+                                  onPressed: mediaAuthors.length == 1
+                                      ? null
+                                      : () => setLocalState(() {
+                                          mediaAuthors
+                                              .removeAt(creditIndex)
+                                              .dispose();
+                                          mediaLicenses
+                                              .removeAt(creditIndex)
+                                              .dispose();
+                                          mediaTitles
+                                              .removeAt(creditIndex)
+                                              .dispose();
+                                          mediaSources
+                                              .removeAt(creditIndex)
+                                              .dispose();
+                                          mediaAppliesTo
+                                              .removeAt(creditIndex)
+                                              .dispose();
+                                          mediaCreditError = null;
+                                        }),
+                                  icon: const Icon(Icons.remove_circle_outline),
+                                ),
+                              ],
                             ),
-                      variant: variant.text.trim(),
-                      startLevel: startLevel.text.trim(),
-                      targetLevel: targetLevel.text.trim(),
-                      description: description.text.trim(),
-                      buyACoffeeUrl: normalizedBuyACoffeeUrl,
-                      estimatedStudyHours: parsedHours,
-                      minimumAge: minimumAge,
-                      keywords: parsedKeywords,
-                      publisherContact: parsedContact,
-                      minimumAppBuild: parsedMinimumBuild,
-                      flagCode: flagSelection.flagCode,
-                      flagImageBase64: flagSelection.flagImageBase64,
-                      worldFlagId: flagSelection.selectedWorldFlagId,
-                      coverImage: coverImage,
-                      maintainerProfileId: selectedMaintainerId,
-                      assignedTeamId: selectedAssignedTeamId,
-                    ));
-                  },
-                  child: const Text('Save'),
-                ),
-              ],
+                            TextField(
+                              key: ValueKey(
+                                'course-info-media-author-$creditIndex',
+                              ),
+                              controller: mediaAuthors[creditIndex],
+                              maxLength: 200,
+                              decoration: const InputDecoration(
+                                border: OutlineInputBorder(),
+                                labelText: 'Author',
+                                helper: Text('Who must be credited.'),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            TextField(
+                              key: ValueKey(
+                                'course-info-media-license-$creditIndex',
+                              ),
+                              controller: mediaLicenses[creditIndex],
+                              maxLength: 200,
+                              decoration: const InputDecoration(
+                                border: OutlineInputBorder(),
+                                labelText: 'Licence',
+                                helper: Text(
+                                  'As the creator states it, for example CC BY-SA 4.0.',
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            TextField(
+                              key: ValueKey(
+                                'course-info-media-title-$creditIndex',
+                              ),
+                              controller: mediaTitles[creditIndex],
+                              maxLength: 200,
+                              decoration: const InputDecoration(
+                                border: OutlineInputBorder(),
+                                labelText: 'Title (optional)',
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            TextField(
+                              key: ValueKey(
+                                'course-info-media-source-$creditIndex',
+                              ),
+                              controller: mediaSources[creditIndex],
+                              maxLength: 500,
+                              decoration: const InputDecoration(
+                                border: OutlineInputBorder(),
+                                labelText: 'Source (optional)',
+                                helper: Text(
+                                  'A page reference or address. Shown as plain text, never opened.',
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            TextField(
+                              key: ValueKey(
+                                'course-info-media-applies-to-$creditIndex',
+                              ),
+                              controller: mediaAppliesTo[creditIndex],
+                              maxLength: 200,
+                              decoration: const InputDecoration(
+                                border: OutlineInputBorder(),
+                                labelText: 'Applies to (optional)',
+                                helper: Text(
+                                  'Which media in this course it covers.',
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  if (mediaCreditError != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4, bottom: 4),
+                      child: Text(
+                        mediaCreditError!,
+                        key: const Key('course-info-media-credit-error'),
+                        style: TextStyle(
+                          color: Theme.of(ctx).colorScheme.error,
+                        ),
+                      ),
+                    ),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: TextButton.icon(
+                      key: const Key('course-info-add-media-credit'),
+                      onPressed: () => setLocalState(() => addMediaCreditRow()),
+                      icon: const Icon(Icons.add),
+                      label: const Text('Add media credit'),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-        );
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              key: const Key('course-info-save'),
+              onPressed: () async {
+                String title;
+                try {
+                  title = FormalNamePolicy.validatePresentationLabel(
+                    courseTitle.text,
+                    parameterName: 'courseName',
+                  );
+                } on ArgumentError catch (error) {
+                  ScaffoldMessenger.of(ctx).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        error.message?.toString() ?? 'Check the Course name.',
+                      ),
+                    ),
+                  );
+                  return;
+                }
+                final duplicate = (await _service.listUserCourses()).any(
+                  (course) =>
+                      course.courseId != _course.courseId &&
+                      FormalNamePolicy.comparisonKey(course.title) ==
+                          FormalNamePolicy.comparisonKey(title),
+                );
+                if (duplicate) {
+                  if (!ctx.mounted) return;
+                  final continueAnyway = await showDialog<bool>(
+                    context: ctx,
+                    builder: (warningContext) => AlertDialog(
+                      title: const Text('Course name already exists'),
+                      content: const Text(
+                        'A Course with this name already exists.',
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(warningContext, false),
+                          child: const Text('Edit name'),
+                        ),
+                        FilledButton(
+                          onPressed: () => Navigator.pop(warningContext, true),
+                          child: const Text('Continue anyway'),
+                        ),
+                      ],
+                    ),
+                  );
+                  if (continueAnyway != true || !ctx.mounted) return;
+                }
+                final license = selected == 'Other / Custom license'
+                    ? customLicense.text.trim()
+                    : selected;
+                if (license.isEmpty) return;
+                String normalizedBuyACoffeeUrl;
+                int? parsedHours;
+                int? parsedMinimumBuild;
+                List<String> parsedKeywords;
+                CoursePublisherContact? parsedContact;
+                try {
+                  normalizedBuyACoffeeUrl = Course.normalizeBuyACoffeeUrl(
+                    buyACoffeeUrl.text,
+                  );
+                  int? wholeNumber(String text, String label) {
+                    final value = text.trim();
+                    if (value.isEmpty) return null;
+                    final parsed = int.tryParse(value);
+                    if (parsed == null) {
+                      throw FormatException('$label must be a whole number.');
+                    }
+                    return parsed;
+                  }
+
+                  parsedHours = wholeNumber(
+                    estimatedHours.text,
+                    'Estimated study hours',
+                  );
+                  parsedMinimumBuild = wholeNumber(
+                    minimumAppBuild.text,
+                    'Minimum QuisquisLingo build',
+                  );
+                  parsedKeywords = Course.normalizeKeywords(
+                    keywords.text.split(','),
+                  );
+                  parsedContact = CoursePublisherContact.fromFields(
+                    contactWebsite.text,
+                    contactEmail.text,
+                  );
+                  // The model is the one authority on the limits.
+                  Course.validateDescriptiveMetadata(
+                    minimumAppBuild: parsedMinimumBuild,
+                    estimatedStudyHours: parsedHours,
+                    minimumAge: minimumAge,
+                    keywords: parsedKeywords,
+                  );
+                } on FormatException catch (error) {
+                  if (!ctx.mounted) return;
+                  ScaffoldMessenger.of(
+                    ctx,
+                  ).showSnackBar(SnackBar(content: Text(error.message)));
+                  return;
+                }
+                final aa = <CourseAuthor>[];
+                for (var i = 0; i < names.length; i++) {
+                  final n = names[i].text.trim();
+                  if (n.isEmpty) continue;
+                  final rr = <String>[
+                    ...standardRoles.where(selectedRoles[i].contains),
+                  ];
+                  for (final part in customRoles[i].text.split(',')) {
+                    final value = part.trim();
+                    if (value.isNotEmpty && !rr.contains(value)) {
+                      rr.add(value);
+                    }
+                  }
+                  if (rr.isEmpty) rr.add('Contributor');
+                  aa.add(CourseAuthor(name: n, roles: rr));
+                }
+                final rightsHolders = <CourseRightsHolder>[];
+                for (var i = 0; i < rightsHolderNames.length; i++) {
+                  final name = rightsHolderNames[i].text.trim();
+                  if (name.isEmpty) continue;
+                  rightsHolders.add(
+                    CourseRightsHolder(type: rightsHolderTypes[i], name: name),
+                  );
+                }
+                final mediaAttributions = <CourseMediaAttribution>[];
+                for (var i = 0; i < mediaAuthors.length; i++) {
+                  final author = mediaAuthors[i].text.trim();
+                  final license = mediaLicenses[i].text.trim();
+                  // Both identifying fields are required; a row with
+                  // neither is an untouched blank and is simply dropped.
+                  if (author.isEmpty && license.isEmpty) continue;
+                  if (author.isEmpty || license.isEmpty) {
+                    setLocalState(
+                      () => mediaCreditError =
+                          'Each media credit needs both an author and a licence. '
+                          'Complete row ${i + 1} or clear it.',
+                    );
+                    return;
+                  }
+                  final candidate = CourseMediaAttribution(
+                    author: author,
+                    license: license,
+                    title: mediaTitles[i].text.trim(),
+                    source: mediaSources[i].text.trim(),
+                    appliesTo: mediaAppliesTo[i].text.trim(),
+                  );
+                  if (mediaAttributions.contains(candidate)) {
+                    setLocalState(
+                      () => mediaCreditError =
+                          'Row ${i + 1} repeats an identical media credit.',
+                    );
+                    return;
+                  }
+                  mediaAttributions.add(candidate);
+                }
+                if (!ctx.mounted) return;
+                Navigator.pop(ctx, (
+                  title: title,
+                  authors: aa,
+                  rightsHolders: rightsHolders,
+                  mediaAttributions: mediaAttributions,
+                  license: license,
+                  derivativePolicy: selected == 'Other / Custom license'
+                      ? derivativePolicy
+                      : license == _course.license
+                      ? _course.derivativeWorksPolicy
+                      : CourseMetadataOptions.derivativePolicyForLicense(
+                          selected,
+                        ),
+                  variant: variant.text.trim(),
+                  startLevel: startLevel.text.trim(),
+                  targetLevel: targetLevel.text.trim(),
+                  description: description.text.trim(),
+                  buyACoffeeUrl: normalizedBuyACoffeeUrl,
+                  estimatedStudyHours: parsedHours,
+                  minimumAge: minimumAge,
+                  keywords: parsedKeywords,
+                  publisherContact: parsedContact,
+                  minimumAppBuild: parsedMinimumBuild,
+                  flagCode: flagSelection.flagCode,
+                  flagImageBase64: flagSelection.flagImageBase64,
+                  worldFlagId: flagSelection.selectedWorldFlagId,
+                  coverImage: coverImage,
+                  maintainerProfileId: selectedMaintainerId,
+                  assignedTeamId: selectedAssignedTeamId,
+                ));
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        ),
+      ),
+    );
     Future<void>.delayed(const Duration(milliseconds: 300), () {
       for (final c in names) {
         c.dispose();
@@ -2215,10 +2154,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
       return true;
     }
     try {
-      await _session.confirm(
-        languageCode: _code,
-        versionNotes: versionNotes,
-      );
+      await _session.confirm(languageCode: _code, versionNotes: versionNotes);
       if (!mounted) return false;
       setState(() {});
       return true;
@@ -2291,6 +2227,201 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
 
   /// Course-level Lesson settings, shown under the Lessons tile. They were on
   /// the Lessons screen but none of them is a Lesson property.
+  /// Build 256 Revision 5: who speaks in this Course's Stories.
+  String get _storyCharactersSummary {
+    final narrator = _course.narrator.name;
+    final count = _course.storyCharacters.length;
+    return '${narrator.isEmpty ? 'Unnamed narrator' : 'Narrator: $narrator'} · '
+        '$count character${count == 1 ? '' : 's'}';
+  }
+
+  static String _speakerSummary(StorySpeaker speaker) =>
+      '${speaker.language == TextLanguage.source ? 'Source' : 'Target'} '
+      'language · voice ${speaker.voice.serialized}';
+
+  /// How many Dialogue lines of this Course a speaker says.
+  int _linesSpokenBy(String speakerId) {
+    var count = 0;
+    for (final lesson in _course.lessons) {
+      for (final round in lesson.rounds) {
+        for (final content in round.content) {
+          final exercise = content.exercise;
+          if (exercise != null &&
+              exercise.promptElements.any(
+                (element) => element.speakerId == speakerId,
+              )) {
+            count++;
+          }
+        }
+      }
+    }
+    return count;
+  }
+
+  /// The working copy with [narrator] and [characters] and, when a library
+  /// picture with a known credit became an avatar, that credit among the
+  /// Media credits (once).
+  Course _withSpeakers({
+    StorySpeaker? narrator,
+    List<StorySpeaker>? characters,
+    CourseMediaAttribution? credit,
+  }) {
+    final credits = [..._course.mediaAttributions];
+    if (credit != null &&
+        !credits.any(
+          (known) => jsonEncode(known.toJson()) == jsonEncode(credit.toJson()),
+        )) {
+      credits.add(credit);
+    }
+    final json = {..._course.toJson()}
+      ..remove('storyNarrator')
+      ..remove('storyCharacters')
+      ..remove('mediaAttributions');
+    final speaker = narrator ?? _course.storyNarrator;
+    final list = characters ?? _course.storyCharacters;
+    return Course.fromJson({
+      ...json,
+      if (speaker != null) 'storyNarrator': speaker.toJson(),
+      if (list.isNotEmpty)
+        'storyCharacters': [for (final character in list) character.toJson()],
+      if (credits.isNotEmpty)
+        'mediaAttributions': [for (final known in credits) known.toJson()],
+    });
+  }
+
+  Future<void> _editSpeaker(
+    StorySpeaker speaker, {
+    required bool narrator,
+  }) async {
+    final choice = await showStorySpeakerDialog(
+      context,
+      course: _course,
+      speaker: speaker,
+      narrator: narrator,
+      readOnly: !_canModify,
+    );
+    if (choice == null || !mounted) return;
+    _updateDraft(
+      _withSpeakers(
+        narrator: narrator ? choice.speaker : null,
+        characters: narrator
+            ? null
+            : [
+                for (final character in _course.storyCharacters)
+                  character.id == choice.speaker.id
+                      ? choice.speaker
+                      : character,
+              ],
+        credit: choice.credit,
+      ),
+    );
+  }
+
+  Future<void> _addCharacter() async {
+    final choice = await showStorySpeakerDialog(
+      context,
+      course: _course,
+      speaker: StorySpeaker(
+        id: _storyIds.next('character'),
+        language: TextLanguage.target,
+      ),
+      narrator: false,
+    );
+    if (choice == null || !mounted) return;
+    _updateDraft(
+      _withSpeakers(
+        characters: [..._course.storyCharacters, choice.speaker],
+        credit: choice.credit,
+      ),
+    );
+  }
+
+  /// Removing a character that lines still name is refused with the count
+  /// (owner decision: no silent fallback to the narrator).
+  Future<void> _removeCharacter(StorySpeaker character) async {
+    final lines = _linesSpokenBy(character.id);
+    if (lines > 0) {
+      await showDialog<void>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text('“${character.name}” still speaks'),
+          content: Text(
+            '$lines Dialogue line${lines == 1 ? '' : 's'} of this Course name this character. Give those lines another speaker first; QQL never hands them to the narrator silently.',
+            key: const Key('story-character-in-use'),
+          ),
+          actions: [
+            FilledButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+    _updateDraft(
+      _withSpeakers(
+        characters: [
+          for (final other in _course.storyCharacters)
+            if (other.id != character.id) other,
+        ],
+      ),
+    );
+  }
+
+  List<Widget> _storyCharacterRows() => [
+    const Padding(
+      padding: EdgeInsets.fromLTRB(16, 0, 16, 8),
+      child: Text(
+        'Who speaks in this Course\'s Stories: the narrator and reusable characters, each with a name, an avatar, a language and a voice preference. A Dialogue line names one of them.',
+      ),
+    ),
+    ListTile(
+      key: const Key('story-narrator'),
+      leading: StoryAvatar(
+        speaker: _course.narrator,
+        courseId: _course.courseId,
+      ),
+      title: Text(
+        _course.narrator.name.isEmpty
+            ? 'Narrator (unnamed)'
+            : 'Narrator: ${_course.narrator.name}',
+      ),
+      subtitle: Text(_speakerSummary(_course.narrator)),
+      trailing: Icon(_canModify ? Icons.edit_outlined : Icons.chevron_right),
+      onTap: () => _editSpeaker(_course.narrator, narrator: true),
+    ),
+    for (final character in _course.storyCharacters)
+      ListTile(
+        key: ValueKey('story-character-${character.id}'),
+        leading: StoryAvatar(speaker: character, courseId: _course.courseId),
+        title: Text(character.name),
+        subtitle: Text(_speakerSummary(character)),
+        trailing: _canModify
+            ? IconButton(
+                key: ValueKey('story-character-remove-${character.id}'),
+                tooltip: 'Remove character',
+                icon: const Icon(Icons.delete_outline),
+                onPressed: () => _removeCharacter(character),
+              )
+            : const Icon(Icons.chevron_right),
+        onTap: () => _editSpeaker(character, narrator: false),
+      ),
+    if (_canModify)
+      Padding(
+        padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+        child: Align(
+          alignment: Alignment.centerLeft,
+          child: OutlinedButton.icon(
+            key: const Key('story-character-add'),
+            onPressed: _addCharacter,
+            icon: const Icon(Icons.person_add_alt_1_outlined),
+            label: const Text('Add character'),
+          ),
+        ),
+      ),
+  ];
+
   List<Widget> _lessonOptions() => [
     Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
@@ -2309,7 +2440,10 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
             value: LessonNumberingMode.lesson,
             child: Text('Lesson + number'),
           ),
-          DropdownMenuItem(value: LessonNumberingMode.unit, child: Text('Unit')),
+          DropdownMenuItem(
+            value: LessonNumberingMode.unit,
+            child: Text('Unit'),
+          ),
           DropdownMenuItem(
             value: LessonNumberingMode.topic,
             child: Text('Topic'),
@@ -2330,8 +2464,14 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
             value: LessonNumberingMode.stage,
             child: Text('Stage'),
           ),
-          DropdownMenuItem(value: LessonNumberingMode.step, child: Text('Step')),
-          DropdownMenuItem(value: LessonNumberingMode.part, child: Text('Part')),
+          DropdownMenuItem(
+            value: LessonNumberingMode.step,
+            child: Text('Step'),
+          ),
+          DropdownMenuItem(
+            value: LessonNumberingMode.part,
+            child: Text('Part'),
+          ),
           DropdownMenuItem(
             value: LessonNumberingMode.other,
             child: Text('Other...'),
@@ -2548,7 +2688,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
             if (!mounted) return;
             final updatedExercise = await Navigator.of(context).push<Exercise>(
               MaterialPageRoute(
-                builder: (_) => ExerciseEditorScreen(
+                builder: (_) => _exerciseEditorFor(
                   exercise: round.exercises[ei],
                   title: 'Edit exercise ${ei + 1}',
                   isNew: false,
@@ -2565,7 +2705,11 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                           if (!mounted) return;
                           setState(() {
                             _session.applyHierarchyUpdate(
-                              UpsertExercise(lesson.lessonId, round.id, exercise),
+                              UpsertExercise(
+                                lesson.lessonId,
+                                round.id,
+                                exercise,
+                              ),
                             );
                           });
                         },
@@ -2599,6 +2743,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                 title: currentRound.title,
                 visualType: currentRound.visualType,
                 content: content,
+                flow: currentRound.flow,
               );
             }
           }
@@ -2785,6 +2930,16 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
               title: const Text('Lesson Options'),
               children: _lessonOptions(),
             ),
+            // Build 256 Revision 5: the narrator and the characters this
+            // Course's Stories reuse; collapsed like Lesson Options.
+            ExpansionTile(
+              key: const Key('course-story-characters'),
+              initiallyExpanded: false,
+              leading: const Icon(Icons.theater_comedy_outlined),
+              title: const Text('Story characters'),
+              subtitle: Text(_storyCharactersSummary),
+              children: _storyCharacterRows(),
+            ),
             const Divider(height: 1),
             ListTile(
               key: const Key('course-editor-course-info'),
@@ -2966,7 +3121,8 @@ class _LessonManagementScreenState extends State<LessonManagementScreen> {
 
   void _adoptCourse(Course course) {
     if (!mounted) return;
-    course = widget.adoptCourse?.call(course, previous: _course) ??
+    course =
+        widget.adoptCourse?.call(course, previous: _course) ??
         const ProvisionalPublicationService().reconcile(
           course,
           updatedAt: _clock(),
@@ -2995,7 +3151,7 @@ class _LessonManagementScreenState extends State<LessonManagementScreen> {
   }
 
   Future<String?> _askName({
-    String title = 'New lesson',
+    String title = 'New Lesson',
     String initial = '',
     String confirmLabel = 'Create',
     int? maxLength,
@@ -3265,7 +3421,7 @@ class _LessonManagementScreenState extends State<LessonManagementScreen> {
             : FloatingActionButton.extended(
                 onPressed: _locked ? null : _addLesson,
                 icon: const Icon(Icons.add),
-                label: const Text('New lesson'),
+                label: const Text('New Lesson'),
               ),
         body: Column(
           children: [
@@ -3926,10 +4082,7 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
 
   Course get _courseWithIcons => _hierarchyUpdates.apply(
     _course,
-    OverlayLessonDraft(
-      _lesson,
-      lessonIconAssets: _lessonIconAssets,
-    ),
+    OverlayLessonDraft(_lesson, lessonIconAssets: _lessonIconAssets),
   );
 
   int get _lessonNumber {
@@ -3951,7 +4104,8 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
 
   void _adoptCourse(Course course) {
     if (!mounted) return;
-    course = widget.adoptCourse?.call(course, previous: _course) ??
+    course =
+        widget.adoptCourse?.call(course, previous: _course) ??
         const ProvisionalPublicationService().reconcile(
           course,
           updatedAt: _clock(),
@@ -4200,7 +4354,7 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
     if (widget.readOnly) return;
     if (!state.isPublished &&
         _lesson.publicationState.isPublished &&
-        !await _confirmMoveToDraft(context, 'Lesson')) {
+        !await confirmMoveToDraft(context, 'Lesson')) {
       return;
     }
     if (!mounted) return;
@@ -4285,6 +4439,7 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
           updatedAt: round.updatedAt,
           title: round.title,
           visualType: round.visualType,
+          flow: round.flow,
           content: [
             for (final content in round.content)
               LearningContent(
@@ -4746,21 +4901,6 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
     setState(() => _themeIconAsset = selected == none ? null : selected);
   }
 
-  Future<void> _openGuidebookRoundGenerator() async {
-    if (widget.readOnly) return;
-    final generated = await Navigator.of(context).push<List<LearningRound>>(
-      MaterialPageRoute(
-        builder: (_) => GuidebookRoundGeneratorScreen(
-          course: _courseWithIcons,
-          lesson: _lesson,
-          clock: _clock,
-        ),
-      ),
-    );
-    if (generated == null || generated.isEmpty || !mounted) return;
-    _publishLesson(_copy(rounds: [..._lesson.rounds, ...generated]));
-  }
-
   Future<void> _openSearch() async {
     final result = await Navigator.of(context).push<ExerciseSearchResult>(
       MaterialPageRoute(
@@ -4848,12 +4988,6 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
                     key: const Key('save-lesson'),
                     onPressed: () => _saveLesson(PublicationState.published),
                     child: const Text('Save'),
-                  ),
-                  FilledButton.icon(
-                    key: const Key('lesson-round-wizard'),
-                    onPressed: _openGuidebookRoundGenerator,
-                    icon: const Icon(Icons.auto_awesome_outlined),
-                    label: const Text('Round Wizard'),
                   ),
                 ],
               ],
@@ -5145,7 +5279,8 @@ class _GuidebookRoundGeneratorScreenState
         for (final exercise in round.exercises)
           ...CourseAuditService().auditExercise(
             exercise,
-            location: '${round.displayTitle(roundIndex)} · ${exercise.type}',
+            location:
+                '${round.displayTitle(roundIndex)} · ${_exerciseKindName(exercise)}',
             roundId: round.id,
           ),
   ];
@@ -5407,6 +5542,628 @@ class _GuidebookRoundGeneratorScreenState
   );
 }
 
+/// What the Story Wizard hands back (Build 256 Revision 5): the Story
+/// Round, the narrator and characters as edited in its steps, and the
+/// credits of library pictures that became avatars.
+typedef StoryWizardResult = ({
+  LearningRound round,
+  StorySpeaker narrator,
+  List<StorySpeaker> characters,
+  List<CourseMediaAttribution> credits,
+});
+
+/// The presets an exercise step of a Story may use (story plan §5).
+const storyWizardPresets = <String>[
+  'true_false',
+  'choice_target',
+  'choice_source',
+  'translation_choice_to_target',
+  'translation_choice_to_source',
+  'listening_answer_target',
+  'listening_answer_source',
+  'word_order',
+  'missing_word',
+  'type_missing_word',
+  'complete_text',
+];
+
+enum _StoryWizardStage { story, narrator, characters, builder }
+
+/// New Story, the Story Wizard (Build 256 Revision 5, `docs/256_STORY_PLAN.md`
+/// §5; a button of the Rounds page since the third follow-up):
+/// A the Story (title, cover picture, read-aloud), B the narrator, C the
+/// characters, then the builder, where lines (an inline form) and
+/// exercises (the normal exercise form on top of this route) are added,
+/// reordered and removed. Finish creates the Round: visual type story,
+/// title `Story: <title>`, a linear scrolling flow logging the dialogue,
+/// the cover first, and the exercises marked as needing the Story's audio.
+class StoryWizardScreen extends StatefulWidget {
+  const StoryWizardScreen({
+    super.key,
+    required this.course,
+    required this.lesson,
+    this.clock,
+  });
+
+  final Course course;
+  final Lesson lesson;
+  final DateTime Function()? clock;
+
+  @override
+  State<StoryWizardScreen> createState() => _StoryWizardScreenState();
+}
+
+class _StoryWizardScreenState extends State<StoryWizardScreen> {
+  final _title = TextEditingController();
+  final _ids = TimestampAuthoringIdGenerator();
+  late final DateTime Function() _clock = widget.clock ?? DateTime.now;
+  _StoryWizardStage _stage = _StoryWizardStage.story;
+  String _cover = '';
+  SharedImageSource? _coverSource;
+  FlowReadAloud _readAloud = FlowReadAloud.automatic;
+  late StorySpeaker _narrator = widget.course.narrator;
+  late final List<StorySpeaker> _characters = [
+    ...widget.course.storyCharacters,
+  ];
+  final List<CourseMediaAttribution> _credits = [];
+  final List<Exercise> _steps = [];
+  final Set<String> _audio = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _title.addListener(() => setState(() {}));
+  }
+
+  @override
+  void dispose() {
+    _title.dispose();
+    super.dispose();
+  }
+
+  /// The Course as the exercise form should see it: with the speakers
+  /// edited here, so a line form offers them.
+  Course get _courseForEditing => _courseWithSpeakers(
+    widget.course,
+    narrator: _narrator,
+    characters: _characters,
+    credits: _credits,
+  );
+
+  bool get _hasLine => _steps.any(_isLine);
+
+  static bool _isLine(Exercise exercise) =>
+      ExerciseFeatures(exercise).kind == LearnerExerciseKind.dialogueLine;
+
+  StorySpeaker _speakerOf(String speakerId) => speakerId.isEmpty
+      ? _narrator
+      : _characters.firstWhere(
+          (character) => character.id == speakerId,
+          orElse: () => StorySpeaker(
+            id: speakerId,
+            name: 'Unknown character',
+            language: TextLanguage.target,
+          ),
+        );
+
+  Exercise _blank(String id) => Exercise.canonical(
+    id: id,
+    primitive: ExercisePrimitive.presentation,
+    canonicalEvaluation: CanonicalEvaluation.none,
+    updatedAt: _clock().toUtc(),
+  );
+
+  Exercise _lineExercise(String id, StoryLineValues values) =>
+      _dialogueLineExercise(id, values, updatedAt: _clock().toUtc());
+
+  void _next() => setState(
+    () => _stage =
+        _StoryWizardStage.values[_StoryWizardStage.values.indexOf(_stage) + 1],
+  );
+
+  void _back() => setState(
+    () => _stage =
+        _StoryWizardStage.values[_StoryWizardStage.values.indexOf(_stage) - 1],
+  );
+
+  Future<void> _editNarrator() async {
+    final choice = await showStorySpeakerDialog(
+      context,
+      course: widget.course,
+      speaker: _narrator,
+      narrator: true,
+    );
+    if (choice == null || !mounted) return;
+    setState(() {
+      _narrator = choice.speaker;
+      if (choice.credit case final credit?) _credits.add(credit);
+    });
+  }
+
+  Future<void> _addCharacter() async {
+    final choice = await showStorySpeakerDialog(
+      context,
+      course: widget.course,
+      speaker: StorySpeaker(
+        id: _ids.next('character'),
+        language: TextLanguage.target,
+      ),
+      narrator: false,
+    );
+    if (choice == null || !mounted) return;
+    setState(() {
+      _characters.add(choice.speaker);
+      if (choice.credit case final credit?) _credits.add(credit);
+    });
+  }
+
+  Future<void> _editCharacter(int index) async {
+    final choice = await showStorySpeakerDialog(
+      context,
+      course: widget.course,
+      speaker: _characters[index],
+      narrator: false,
+    );
+    if (choice == null || !mounted) return;
+    setState(() {
+      _characters[index] = choice.speaker;
+      if (choice.credit case final credit?) _credits.add(credit);
+    });
+  }
+
+  Future<void> _addLine() async {
+    final values = await showStoryLineDialog(
+      context,
+      narrator: _narrator,
+      characters: _characters,
+    );
+    if (values == null || !mounted) return;
+    setState(() => _steps.add(_lineExercise(_ids.next('exercise'), values)));
+  }
+
+  Future<void> _editLine(int index) async {
+    final draft = PresetRecipes.decompose(_steps[index], 'dialogue_line');
+    final values = await showStoryLineDialog(
+      context,
+      narrator: _narrator,
+      characters: _characters,
+      initial: (
+        speakerId: draft.speakerId,
+        text: draft.prompt,
+        mode: draft.lineMode,
+        readAloud: draft.lineReadAloud,
+        textReveal: draft.lineTextReveal,
+      ),
+    );
+    if (values == null || !mounted) return;
+    setState(() => _steps[index] = _lineExercise(_steps[index].id, values));
+  }
+
+  void _acceptStep(Exercise exercise) {
+    if (!mounted) return;
+    setState(() {
+      final index = _steps.indexWhere((step) => step.id == exercise.id);
+      if (index < 0) {
+        _steps.add(exercise);
+      } else {
+        _steps[index] = exercise;
+      }
+    });
+  }
+
+  Future<void> _addExercise() async {
+    final presetId = await _chooseStoryPreset(context);
+    if (presetId == null || !mounted) return;
+    final exercise = await Navigator.of(context).push<Exercise>(
+      MaterialPageRoute(
+        builder: (_) => _exerciseEditorFor(
+          exercise: _blankExerciseForPreset(presetId, _ids),
+          title: 'New Exercise',
+          isNew: true,
+          course: _courseForEditing,
+          lesson: widget.lesson,
+          onExerciseSaved: _acceptStep,
+          clock: _clock,
+        ),
+      ),
+    );
+    if (exercise != null && mounted) _acceptStep(exercise);
+  }
+
+  Future<void> _editExercise(int index) async {
+    final exercise = await Navigator.of(context).push<Exercise>(
+      MaterialPageRoute(
+        builder: (_) => _exerciseEditorFor(
+          exercise: _steps[index],
+          title: 'Edit exercise',
+          isNew: false,
+          course: _courseForEditing,
+          lesson: widget.lesson,
+          onExerciseSaved: _acceptStep,
+          clock: _clock,
+        ),
+      ),
+    );
+    if (exercise != null && mounted) _acceptStep(exercise);
+  }
+
+  void _move(int index, int delta) {
+    final target = index + delta;
+    if (target < 0 || target >= _steps.length) return;
+    setState(() => _steps.insert(target, _steps.removeAt(index)));
+  }
+
+  void _remove(int index) => setState(() {
+    _audio.remove(_steps[index].id);
+    _steps.removeAt(index);
+  });
+
+  void _finish() {
+    if (!_hasLine) return;
+    final title = _title.text.trim();
+    // The cover carries the Story title as its title line, so it is a cover
+    // with or without a picture; the cover card shows the title once.
+    final cover = ExerciseDraftBuilder.build(
+      ExerciseDraftValues(
+        original: _blank(_ids.next('exercise')),
+        type: 'story_cover',
+        publicationState: PublicationState.published,
+        prompt: title,
+        imageAsset: _cover,
+        selectedSharedSource: _coverSource,
+        attachSelectedSharedSource: true,
+      ),
+    ).candidate!;
+    final content = [
+      for (final exercise in [cover, ..._steps])
+        LearningContent.fromExercise(exercise),
+    ];
+    // The Round is named after the Story; lists derive "Story: <title>"
+    // from the flow (LearningRound.displayTitle).
+    final round = LearningRound(
+      id: _ids.next('round'),
+      publicationState: PublicationState.draft,
+      provisionalDraft: true,
+      updatedAt: _clock().toUtc(),
+      title: title,
+      visualType: 'story',
+      content: content,
+      flow: RoundFlowAuthoring.linearFor(
+        content,
+        presentation: FlowPresentation.scroll,
+        title: title,
+        log: FlowLog.dialogue,
+        readAloud: _readAloud,
+        requiresAudio: _audio,
+      ),
+    );
+    Navigator.pop(context, (
+      round: round,
+      narrator: _narrator,
+      characters: List<StorySpeaker>.unmodifiable(_characters),
+      credits: List<CourseMediaAttribution>.unmodifiable(_credits),
+    ));
+  }
+
+  static String _speakerSummary(StorySpeaker speaker) =>
+      '${speaker.language == TextLanguage.source ? 'Source' : 'Target'} '
+      'language · voice ${speaker.voice.serialized}';
+
+  @override
+  Widget build(BuildContext context) {
+    final index = _StoryWizardStage.values.indexOf(_stage);
+    const names = ['Story', 'Narrator', 'Characters', 'Steps'];
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('New Story · ${names[index]} (${index + 1} of 4)'),
+        actions: const [EditorAppBarActions()],
+      ),
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+          child: Wrap(
+            alignment: WrapAlignment.end,
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              TextButton(
+                key: const Key('story-wizard-cancel'),
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancel'),
+              ),
+              if (index > 0)
+                OutlinedButton(
+                  key: const Key('story-wizard-back'),
+                  onPressed: _back,
+                  child: const Text('Back'),
+                ),
+              if (_stage != _StoryWizardStage.builder)
+                FilledButton(
+                  key: const Key('story-wizard-next'),
+                  onPressed:
+                      _stage == _StoryWizardStage.story &&
+                          _title.text.trim().isEmpty
+                      ? null
+                      : _next,
+                  child: const Text('Next'),
+                )
+              else
+                FilledButton.icon(
+                  key: const Key('story-wizard-finish'),
+                  onPressed: _hasLine ? _finish : null,
+                  icon: const Icon(Icons.check),
+                  label: const Text('Finish'),
+                ),
+            ],
+          ),
+        ),
+      ),
+      body: switch (_stage) {
+        _StoryWizardStage.story => _storyStep(),
+        _StoryWizardStage.narrator => _narratorStep(),
+        _StoryWizardStage.characters => _charactersStep(),
+        _StoryWizardStage.builder => _builderStep(),
+      },
+    );
+  }
+
+  Widget _storyStep() => ListView(
+    key: const Key('story-wizard-step-story'),
+    padding: const EdgeInsets.all(16),
+    children: [
+      const Text(
+        'A Story is a Round played in order: a cover, dialogue lines said by the narrator or by characters, and exercises about them. Name it, choose its cover picture and how its lines are read aloud.',
+      ),
+      const SizedBox(height: 16),
+      TextField(
+        key: const Key('story-wizard-title'),
+        controller: _title,
+        decoration: const InputDecoration(
+          border: OutlineInputBorder(),
+          labelText: 'Story title',
+          helperText:
+              'Shown on the cover; the Round is called “Story: <title>”.',
+        ),
+      ),
+      const SizedBox(height: 16),
+      const Text(
+        'Cover picture',
+        style: TextStyle(fontWeight: FontWeight.bold),
+      ),
+      const SizedBox(height: 4),
+      ExerciseImageField(
+        course: widget.course,
+        asset: _cover,
+        sharedSource: _coverSource,
+        readOnly: false,
+        onChanged: (change) => setState(() {
+          _cover = change.asset;
+          _coverSource = change.source;
+        }),
+      ),
+      const SizedBox(height: 16),
+      const Text('Read-aloud', style: TextStyle(fontWeight: FontWeight.bold)),
+      const SizedBox(height: 4),
+      SegmentedButton<FlowReadAloud>(
+        key: const Key('story-wizard-read-aloud'),
+        segments: const [
+          ButtonSegment(
+            value: FlowReadAloud.automatic,
+            label: Text('Read aloud automatically'),
+            icon: Icon(Icons.volume_up_outlined),
+          ),
+          ButtonSegment(
+            value: FlowReadAloud.manual,
+            label: Text('On request'),
+            icon: Icon(Icons.touch_app_outlined),
+          ),
+        ],
+        selected: {_readAloud},
+        onSelectionChanged: (values) =>
+            setState(() => _readAloud = values.first),
+      ),
+      const SizedBox(height: 8),
+      const Text(
+        'A line may override this. Lines are never skipped: without audio the learner reads them.',
+      ),
+    ],
+  );
+
+  Widget _narratorStep() => ListView(
+    key: const Key('story-wizard-step-narrator'),
+    padding: const EdgeInsets.all(16),
+    children: [
+      const Text(
+        'The narrator says every line without a character. Its name, avatar, language and voice are Course data, shared by every Story of this Course.',
+      ),
+      const SizedBox(height: 12),
+      Card(
+        child: ListTile(
+          key: const Key('story-wizard-narrator'),
+          leading: StoryAvatar(
+            speaker: _narrator,
+            courseId: widget.course.courseId,
+          ),
+          title: Text(
+            _narrator.name.isEmpty
+                ? 'Narrator (unnamed)'
+                : 'Narrator: ${_narrator.name}',
+          ),
+          subtitle: Text(_speakerSummary(_narrator)),
+          trailing: const Icon(Icons.edit_outlined),
+          onTap: _editNarrator,
+        ),
+      ),
+      const SizedBox(height: 8),
+      Align(
+        alignment: Alignment.centerLeft,
+        child: OutlinedButton.icon(
+          key: const Key('story-wizard-edit-narrator'),
+          onPressed: _editNarrator,
+          icon: const Icon(Icons.edit_outlined),
+          label: const Text('Edit narrator'),
+        ),
+      ),
+    ],
+  );
+
+  Widget _charactersStep() => ListView(
+    key: const Key('story-wizard-step-characters'),
+    padding: const EdgeInsets.all(16),
+    children: [
+      const Text(
+        'Characters are Course data too: the ones below are already known to this Course. Add the ones this Story needs, or edit them. Characters are removed in the Course Editor › Story characters, which checks that no line still names them.',
+      ),
+      const SizedBox(height: 12),
+      for (var i = 0; i < _characters.length; i++)
+        Card(
+          child: ListTile(
+            key: ValueKey('story-wizard-character-${_characters[i].id}'),
+            leading: StoryAvatar(
+              speaker: _characters[i],
+              courseId: widget.course.courseId,
+            ),
+            title: Text(_characters[i].name),
+            subtitle: Text(_speakerSummary(_characters[i])),
+            trailing: const Icon(Icons.edit_outlined),
+            onTap: () => _editCharacter(i),
+          ),
+        ),
+      if (_characters.isEmpty)
+        const Padding(
+          padding: EdgeInsets.symmetric(vertical: 8),
+          child: Text(
+            'No character yet. A Story may also be told by the narrator alone.',
+          ),
+        ),
+      const SizedBox(height: 8),
+      Align(
+        alignment: Alignment.centerLeft,
+        child: OutlinedButton.icon(
+          key: const Key('story-wizard-add-character'),
+          onPressed: _addCharacter,
+          icon: const Icon(Icons.person_add_alt_1_outlined),
+          label: const Text('Add character'),
+        ),
+      ),
+    ],
+  );
+
+  Widget _builderStep() => ListView(
+    key: const Key('story-wizard-step-builder'),
+    padding: const EdgeInsets.all(16),
+    children: [
+      const Text(
+        'The Story in order, after its cover. Add lines and exercises, move them, remove them. Only exercises count for XP; a line is read or heard and continued. Finish needs at least one line.',
+      ),
+      const SizedBox(height: 12),
+      for (var i = 0; i < _steps.length; i++) _stepCard(i),
+      if (_steps.isEmpty)
+        const Padding(
+          padding: EdgeInsets.symmetric(vertical: 8),
+          child: Text('No step yet.'),
+        ),
+      const SizedBox(height: 8),
+      Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: [
+          FilledButton.tonalIcon(
+            key: const Key('story-wizard-add-line'),
+            onPressed: _addLine,
+            icon: const Icon(Icons.chat_bubble_outline),
+            label: const Text('Add line'),
+          ),
+          FilledButton.tonalIcon(
+            key: const Key('story-wizard-add-exercise'),
+            onPressed: _addExercise,
+            icon: const Icon(Icons.quiz_outlined),
+            label: const Text('Add exercise'),
+          ),
+        ],
+      ),
+    ],
+  );
+
+  Widget _stepCard(int i) {
+    final step = _steps[i];
+    final line = _isLine(step);
+    final features = ExerciseFeatures(step);
+    final preset = ExercisePresetRegistry.byId(step.editorTemplate);
+    final speaker = line ? _speakerOf(features.speakerId) : null;
+    return Card(
+      key: ValueKey('story-wizard-step-${step.id}'),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          ListTile(
+            leading: line
+                ? StoryAvatar(
+                    speaker: speaker!,
+                    courseId: widget.course.courseId,
+                  )
+                : _PresetActionChip(preset?.action ?? 'Exercise'),
+            title: Text(
+              line
+                  ? (features.lineText.isEmpty
+                        ? '(audio only)'
+                        : features.lineText)
+                  : preset?.name ?? 'Exercise',
+            ),
+            subtitle: Text(
+              line
+                  ? '${i + 1}. ${speaker!.isNarrator ? (speaker.name.isEmpty ? 'Narrator' : speaker.name) : speaker.name} · ${features.lineMode}'
+                  : '${i + 1}. ${step.publicationState.isPublished ? 'Published' : 'Draft'} exercise',
+            ),
+            onTap: () => line ? _editLine(i) : _editExercise(i),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  key: ValueKey('story-wizard-up-$i'),
+                  tooltip: 'Move up',
+                  onPressed: i == 0 ? null : () => _move(i, -1),
+                  icon: const Icon(Icons.arrow_upward),
+                ),
+                IconButton(
+                  key: ValueKey('story-wizard-down-$i'),
+                  tooltip: 'Move down',
+                  onPressed: i == _steps.length - 1 ? null : () => _move(i, 1),
+                  icon: const Icon(Icons.arrow_downward),
+                ),
+                IconButton(
+                  key: ValueKey('story-wizard-remove-$i'),
+                  tooltip: 'Remove',
+                  onPressed: () => _remove(i),
+                  icon: const Icon(Icons.delete_outline),
+                ),
+              ],
+            ),
+          ),
+          if (!line)
+            CheckboxListTile(
+              key: ValueKey('story-wizard-audio-${step.id}'),
+              dense: true,
+              controlAffinity: ListTileControlAffinity.leading,
+              title: const Text('Needs the Story\'s audio'),
+              subtitle: const Text(
+                'Skipped, like the audio exercises, when the learner has Audio Exercises off.',
+              ),
+              value: _audio.contains(step.id),
+              onChanged: (value) => setState(() {
+                if (value ?? false) {
+                  _audio.add(step.id);
+                } else {
+                  _audio.remove(step.id);
+                }
+              }),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
 class LessonRoundsScreen extends StatefulWidget {
   final Course course;
   final ValueChanged<Course>? onCourseChanged;
@@ -5470,7 +6227,8 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
 
   void _adoptCourse(Course course) {
     if (!mounted) return;
-    course = widget.adoptCourse?.call(course, previous: _course) ??
+    course =
+        widget.adoptCourse?.call(course, previous: _course) ??
         const ProvisionalPublicationService().reconcile(
           course,
           updatedAt: _clock(),
@@ -5606,10 +6364,57 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
 
   Future<void> _add() async {
     if (widget.readOnly) return;
-    final title = await _name('New round', allowEmpty: true);
+    final title = await _name('New Round', allowEmpty: true);
     if (title != null && mounted) {
       _updateRounds([..._rounds, _blankRound(title)]);
     }
+  }
+
+  /// The Round Wizard (on this page since the Build 256 Revision 5 third
+  /// follow-up; the Lesson editor's bottom bar before): the approved Rounds
+  /// are appended after the existing ones through the authoring session.
+  Future<void> _openGuidebookRoundGenerator() async {
+    if (widget.readOnly) return;
+    final generated = await Navigator.of(context).push<List<LearningRound>>(
+      MaterialPageRoute(
+        builder: (_) => GuidebookRoundGeneratorScreen(
+          course: _auditableCourse,
+          lesson: _draftLesson,
+          clock: _clock,
+        ),
+      ),
+    );
+    if (generated == null || generated.isEmpty || !mounted) return;
+    _updateRounds([..._rounds, ...generated]);
+  }
+
+  /// New Story (the Story Wizard, Build 256 Revision 5) builds one Story
+  /// Round (a cover, lines and exercises) and hands back the narrator and
+  /// characters it edited; both reach the working copy through the
+  /// authoring session, so the Course confirmation still decides.
+  Future<void> _openStoryWizard() async {
+    if (widget.readOnly) return;
+    final result = await Navigator.of(context).push<StoryWizardResult>(
+      MaterialPageRoute(
+        builder: (_) => StoryWizardScreen(
+          course: _auditableCourse,
+          lesson: _draftLesson,
+          clock: _clock,
+        ),
+      ),
+    );
+    if (result == null || !mounted) return;
+    _adoptCourse(
+      _hierarchyUpdates.apply(
+        _courseWithSpeakers(
+          _course,
+          narrator: result.narrator,
+          characters: result.characters,
+          credits: result.credits,
+        ),
+        ReplaceRounds(widget.lesson.lessonId, [..._rounds, result.round]),
+      ),
+    );
   }
 
   Lesson get _draftLesson => Lesson.fromJson({
@@ -5667,6 +6472,7 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
       title: title,
       visualType: source.visualType,
       content: source.content,
+      flow: source.flow,
     );
     _updateRounds(rounds);
   }
@@ -5873,12 +6679,49 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
             const EditorAppBarActions(),
           ],
         ),
-        floatingActionButton: widget.readOnly
+        bottomNavigationBar: widget.readOnly
             ? null
-            : FloatingActionButton.extended(
-                onPressed: _add,
-                icon: const Icon(Icons.add),
-                label: const Text('New round'),
+            : SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+                  child: Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      // New Round sits with Round Wizard and New Story, in
+                      // their size and colour (owner request, 29 September
+                      // 2026; it was a floating button).
+                      FilledButton.icon(
+                        key: const Key('rounds-new-round'),
+                        style: _compactButtonStyle,
+                        onPressed: _add,
+                        icon: const Icon(Icons.add),
+                        label: const Text('New Round'),
+                      ),
+                      Tooltip(
+                        message: _course.useGuidebook
+                            ? 'Generate Rounds from this Lesson\'s GuideBook.'
+                            : 'The Round Wizard builds Rounds from the Lesson GuideBook. Turn on Use GuideBook in the Course Editor\'s Lesson Options to use it.',
+                        child: FilledButton.icon(
+                          key: const Key('rounds-round-wizard'),
+                          style: _compactButtonStyle,
+                          onPressed: _course.useGuidebook
+                              ? _openGuidebookRoundGenerator
+                              : null,
+                          icon: const Icon(Icons.auto_awesome_outlined),
+                          label: const Text('Round Wizard'),
+                        ),
+                      ),
+                      FilledButton.icon(
+                        key: const Key('rounds-new-story'),
+                        style: _compactButtonStyle,
+                        onPressed: _openStoryWizard,
+                        icon: const Icon(Icons.auto_stories_outlined),
+                        label: const Text('New Story'),
+                      ),
+                    ],
+                  ),
+                ),
               ),
         body: ReorderableListView.builder(
           key: const Key('lesson-rounds-list'),
@@ -6042,6 +6885,16 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
   late DateTime _updatedAt;
   late PublicationState _publicationState;
   late bool _provisionalDraft;
+
+  /// The Round's content flow (a Story), kept through every edit: a linear
+  /// flow follows the edited content order (`RoundFlowAuthoring`).
+  ContentFlow? _flow;
+
+  /// The Story title field (Build 256 Revision 5): the flow carries the
+  /// title and the Round is called `Story: <title>`.
+  late final TextEditingController _storyTitle = TextEditingController(
+    text: widget.round.flow?.title ?? '',
+  );
   bool _routeMayPop = false;
   late final DateTime Function() _clock = widget.clock ?? DateTime.now;
   @override
@@ -6055,20 +6908,138 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
     _updatedAt = widget.round.updatedAt;
     _publicationState = widget.round.publicationState;
     _provisionalDraft = widget.round.provisionalDraft;
+    _flow = widget.round.flow;
+  }
+
+  @override
+  void dispose() {
+    _storyTitle.dispose();
+    super.dispose();
   }
 
   LearningRound _editedRound({
     PublicationState? publicationState,
     DateTime? updatedAt,
-  }) => LearningRound(
-    id: widget.round.id,
-    publicationState: publicationState ?? _publicationState,
-    provisionalDraft: publicationState == null ? _provisionalDraft : false,
-    updatedAt: updatedAt ?? _updatedAt,
-    title: _title,
-    visualType: widget.round.visualType,
-    content: _editedContent(),
-  );
+  }) {
+    final content = _editedContent();
+    return LearningRound(
+      id: widget.round.id,
+      publicationState: publicationState ?? _publicationState,
+      provisionalDraft: publicationState == null ? _provisionalDraft : false,
+      updatedAt: updatedAt ?? _updatedAt,
+      title: _title,
+      visualType: widget.round.visualType,
+      content: content,
+      flow: RoundFlowAuthoring.forContent(_flow, content),
+    );
+  }
+
+  /// Story on: the exercises play in this order, unshuffled, without a
+  /// mistake review. Off: an ordinary practice Round. Turning a branching
+  /// Story off removes a flow QQL's forms cannot rebuild, so it asks first.
+  Future<void> _setStory(bool on) async {
+    if (widget.readOnly) return;
+    if (on) {
+      // A new Story (Build 256 Revision 5) scrolls, logs the dialogue only
+      // and reads aloud automatically. It is named after the Round's own
+      // title, or after the prefixed title an earlier build stored.
+      final stored = _storyTitleOf(_title);
+      final title = stored.isNotEmpty ? stored : _title.trim();
+      _storyTitle.text = title;
+      _mutateRound(
+        () => _flow = RoundFlowAuthoring.linearFor(
+          _editedContent(),
+          presentation: FlowPresentation.scroll,
+          title: title,
+          log: FlowLog.dialogue,
+          readAloud: FlowReadAloud.automatic,
+        ),
+      );
+      return;
+    }
+    final flow = _flow;
+    if (flow != null && !flow.isLinear) {
+      final remove = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Remove the branching Story?'),
+          content: const Text(
+            'This Round\'s flow branches, which QQL\'s forms cannot rebuild. Turning the Story off removes the flow; the exercises stay.',
+          ),
+          actions: [
+            FilledButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Keep the Story'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Remove'),
+            ),
+          ],
+        ),
+      );
+      if (remove != true || !mounted) return;
+    }
+    _mutateRound(() {
+      _flow = null;
+      // The Round keeps its name without the Story prefix.
+      if (_title.startsWith(_storyTitlePrefix)) _title = _storyTitleOf(_title);
+    });
+  }
+
+  static const _storyTitlePrefix = 'Story: ';
+
+  /// The Story title a Round title carries: what follows `Story: `, else
+  /// nothing.
+  static String _storyTitleOf(String roundTitle) =>
+      roundTitle.startsWith(_storyTitlePrefix)
+      ? roundTitle.substring(_storyTitlePrefix.length).trim()
+      : '';
+
+  /// Names the Story: the flow carries the title, the Round keeps its own
+  /// name, and every list derives "Story: <title>" from the flow
+  /// (`LearningRound.displayTitle`), so a Rename cannot lose the prefix.
+  void _setStoryTitle(String value) {
+    final flow = _flow;
+    if (flow == null || widget.readOnly) return;
+    _mutateRound(
+      () => _flow = RoundFlowAuthoring.withStoryOptions(
+        flow,
+        title: value.trim(),
+      ),
+    );
+  }
+
+  /// Marks or unmarks an exercise as needing the Story's audio (Build 256
+  /// Revision 5): with Audio Exercises off the Story skips it, as it skips
+  /// the audio exercises; a line is never skipped.
+  void _toggleAudioDependence(int i) {
+    final flow = _flow;
+    if (flow == null || widget.readOnly) return;
+    final id = _exercises[i].id;
+    final entry = _editedContent().firstWhere((content) => content.id == id);
+    final requires = !flow.audioDependentContentIds.contains(id);
+    _mutateRound(
+      () => _flow = RoundFlowAuthoring.withAudioDependence(
+        flow,
+        entry,
+        requiresAudio: requires,
+      ),
+    );
+  }
+
+  String get _storyDescription {
+    final flow = _flow;
+    if (flow == null) {
+      return 'Off: a practice Round with an introduction, shuffled exercises and a mistake review.';
+    }
+    if (flow.isLinear) {
+      return flow.presentation == FlowPresentation.scroll
+          ? 'On, scrolling: finished items stay on the page, the next one appears below and the page scrolls to it. No shuffle, no mistake review.'
+          : 'On, step by step: the exercises play in this order, one per page, unshuffled, without a mistake review.';
+    }
+    return 'On: a branching Story authored outside QQL. Edits here keep its flow as it is; the Audit reports what it no longer finds.';
+  }
 
   List<LearningContent> _editedContent() =>
       _hierarchyUpdates.contentForExercises(_originalContent, _exercises);
@@ -6086,7 +7057,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
     if (widget.readOnly) return;
     if (!state.isPublished &&
         _publicationState.isPublished &&
-        !await _confirmMoveToDraft(context, 'Round')) {
+        !await confirmMoveToDraft(context, 'Round')) {
       return;
     }
     final candidate = _editedRound(publicationState: state);
@@ -6118,6 +7089,39 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
           .length;
       if (errors > 0) {
         if (!mounted) return;
+        // A Round saved as normal content shows learners only its Published
+        // Exercises. When Draft ones are the reason it cannot be saved, say
+        // so and name them instead of counting blocking errors.
+        final drafts = _exercises
+            .where((exercise) => !exercise.publicationState.isPublished)
+            .toList();
+        if (drafts.isNotEmpty) {
+          final titles = drafts
+              .take(3)
+              .map((exercise) => '“${_exerciseSummary(exercise)}”')
+              .join(', ');
+          final more = drafts.length > 3
+              ? ' and ${drafts.length - 3} more'
+              : '';
+          await showDialog<void>(
+            context: context,
+            builder: (context) => AlertDialog(
+              key: const Key('round-draft-exercises-notice'),
+              title: const Text('Save the Draft Exercises first'),
+              content: Text(
+                '${drafts.length == 1 ? 'One Exercise is' : '${drafts.length} Exercises are'} still Draft: $titles$more. '
+                'A Round saved as normal content shows only its Published Exercises, so open each Draft Exercise and press Save, or save the Round as draft.',
+              ),
+              actions: [
+                FilledButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('OK'),
+                ),
+              ],
+            ),
+          );
+          return;
+        }
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -6188,11 +7192,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
     _mutateRound(() => _exercises[index] = changed);
   }
 
-  String _summary(Exercise e) => e.prompt.trim().isNotEmpty
-      ? e.prompt.trim()
-      : e.question.trim().isNotEmpty
-      ? e.question.trim()
-      : (e.tts ?? e.id);
+  String _summary(Exercise e) => _exerciseSummary(e);
 
   Course get _workingCourse => _hierarchyUpdates.apply(
     _course,
@@ -6206,7 +7206,8 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
     final before = _workingCourse;
     mutation();
     final candidate = _workingCourse;
-    final course = widget.adoptCourse?.call(candidate, previous: before) ??
+    final course =
+        widget.adoptCourse?.call(candidate, previous: before) ??
         const ProvisionalPublicationService().reconcile(
           candidate,
           updatedAt: _clock(),
@@ -6236,7 +7237,13 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
             lesson.rounds.any((round) => round.id == widget.round.id),
       );
 
-  void _acceptExercise(Exercise exercise) {
+  void _acceptExercise(Exercise exercise) => _acceptExerciseAt(exercise);
+
+  /// A saved title block goes first: the cover is a Story's first card.
+  void _acceptFirst(Exercise exercise) =>
+      _acceptExerciseAt(exercise, first: true);
+
+  void _acceptExerciseAt(Exercise exercise, {bool first = false}) {
     if (widget.readOnly) return;
     final index = _exercises.indexWhere((value) => value.id == exercise.id);
     if (index >= 0 &&
@@ -6244,10 +7251,12 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
       return;
     }
     _mutateRound(() {
-      if (index < 0) {
-        _exercises.add(exercise);
-      } else {
+      if (index >= 0) {
         _exercises[index] = exercise;
+      } else if (first) {
+        _exercises.insert(0, exercise);
+      } else {
+        _exercises.add(exercise);
       }
     });
   }
@@ -6255,7 +7264,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
   Future<void> _edit(int i) async {
     final e = await Navigator.of(context).push<Exercise>(
       MaterialPageRoute(
-        builder: (_) => ExerciseEditorScreen(
+        builder: (_) => _exerciseEditorFor(
           exercise: _exercises[i],
           title: 'Edit exercise ${i + 1}',
           isNew: false,
@@ -6274,13 +7283,195 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
     if (e != null && mounted) _acceptExercise(e);
   }
 
-  Future<void> _insert() async {
+  Future<void> _insert() =>
+      _insertPreset(TranslationChoice.toTarget, title: 'New Exercise');
+
+  /// A new exercise from a preset's form. A Story's title block (`first`)
+  /// goes before every other step.
+  Future<void> _insertPreset(
+    String presetId, {
+    required String title,
+    bool first = false,
+  }) async {
     if (widget.readOnly) return;
     final e = await Navigator.of(context).push<Exercise>(
       MaterialPageRoute(
-        builder: (_) => ExerciseEditorScreen(
-          exercise: _blankExerciseForPreset(TranslationChoice.toTarget, _ids),
-          title: 'New exercise',
+        builder: (_) => _exerciseEditorFor(
+          exercise: _blankExerciseForPreset(presetId, _ids),
+          title: title,
+          isNew: true,
+          course: _workingCourse,
+          lesson: _lesson,
+          round: _editedRound(),
+          onExerciseSaved: first ? _acceptFirst : _acceptExercise,
+          linkParent: true,
+          clock: _clock,
+        ),
+      ),
+    );
+    if (e == null || !mounted) return;
+    if (!_exercises.any((item) => item.id == e.id)) {
+      _mutateRound(() {
+        if (first) {
+          _exercises.insert(0, e);
+        } else {
+          _exercises.add(e);
+        }
+      });
+    }
+    _warnLength();
+  }
+
+  static bool _isCover(Exercise exercise) =>
+      ExerciseFeatures(exercise).kind == LearnerExerciseKind.storyCover;
+
+  static bool _isLine(Exercise exercise) =>
+      ExerciseFeatures(exercise).kind == LearnerExerciseKind.dialogueLine;
+
+  /// What the Story holds, under its options: a Story has one title block
+  /// and at least one Dialogue line (owner rule, 28 September 2026).
+  String get _storyStepsSummary {
+    final covers = _exercises.where(_isCover).length;
+    final lines = _exercises.where(_isLine).length;
+    final exercises = _exercises.length - covers - lines;
+    final title = switch (covers) {
+      0 => 'No title block yet: add it with Add Step',
+      1 => 'Title block: 1',
+      _ => 'Title blocks: $covers (a Story has one)',
+    };
+    final dialogue = lines == 0
+        ? 'no Dialogue line yet: add at least one with Add Step'
+        : 'Dialogue lines: $lines';
+    return '$title · $dialogue · Exercises: $exercises.';
+  }
+
+  /// Add Step (Build 256 Revision 5, third follow-up): in a Story, one
+  /// button instead of New Exercise, New Canonical and Exercise Wizard; it
+  /// asks for the block type. The title block is offered once, a Dialogue
+  /// line uses the short form New Story uses, an exercise the presets a
+  /// Story may use.
+  Future<void> _addStoryStep() async {
+    if (widget.readOnly || _flow == null) return;
+    final hasCover = _exercises.any(_isCover);
+    final hasLine = _exercises.any(_isLine);
+    final choice = await showModalBottomSheet<_StoryStepType>(
+      context: context,
+      isScrollControlled: true,
+      builder: (sheetContext) => SafeArea(
+        child: ListView(
+          shrinkWrap: true,
+          padding: const EdgeInsets.fromLTRB(12, 12, 12, 24),
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(4, 0, 4, 4),
+              child: Text(
+                'Add a step to the Story',
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+              ),
+            ),
+            const Padding(
+              padding: EdgeInsets.fromLTRB(4, 0, 4, 8),
+              child: Text(
+                'A Story has one title block, at least one Dialogue line and any number of exercises. A new step goes at the end (the title block first); drag it where it belongs.',
+              ),
+            ),
+            Card(
+              key: const Key('story-step-title'),
+              child: ListTile(
+                enabled: !hasCover,
+                leading: const Icon(Icons.auto_stories_outlined),
+                title: const Text('Title block'),
+                subtitle: Text(
+                  hasCover
+                      ? 'This Story already has its title block; edit it in the list.'
+                      : 'The cover: the Story title, its picture and an optional title line.',
+                ),
+                onTap: hasCover
+                    ? null
+                    : () => Navigator.pop(sheetContext, _StoryStepType.title),
+              ),
+            ),
+            Card(
+              key: const Key('story-step-line'),
+              child: ListTile(
+                leading: const Icon(Icons.chat_bubble_outline),
+                title: const Text('Dialogue line'),
+                subtitle: Text(
+                  hasLine
+                      ? 'Said by the narrator or a character; read, heard or both.'
+                      : 'Said by the narrator or a character; read, heard or both. The Story needs at least one.',
+                ),
+                onTap: () => Navigator.pop(sheetContext, _StoryStepType.line),
+              ),
+            ),
+            Card(
+              key: const Key('story-step-exercise'),
+              child: ListTile(
+                leading: const Icon(Icons.quiz_outlined),
+                title: const Text('Exercise'),
+                subtitle: const Text(
+                  'A question about the Story, from the presets a Story may use. Only exercises score.',
+                ),
+                onTap: () =>
+                    Navigator.pop(sheetContext, _StoryStepType.exercise),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (choice == null || !mounted) return;
+    switch (choice) {
+      case _StoryStepType.title:
+        await _insertPreset(
+          'story_cover',
+          title: 'New title block',
+          first: true,
+        );
+      case _StoryStepType.line:
+        await _insertLine();
+      case _StoryStepType.exercise:
+        final presetId = await _chooseStoryPreset(context);
+        if (presetId == null || !mounted) return;
+        await _insertPreset(presetId, title: 'New Exercise');
+    }
+  }
+
+  /// A Dialogue line typed in the short form New Story uses; Edit opens the
+  /// full form afterwards (its language, for one).
+  Future<void> _insertLine() async {
+    if (widget.readOnly) return;
+    final values = await showStoryLineDialog(
+      context,
+      narrator: _course.narrator,
+      characters: _course.storyCharacters,
+    );
+    if (values == null || !mounted) return;
+    _acceptExercise(
+      _dialogueLineExercise(
+        _ids.next('exercise'),
+        values,
+        updatedAt: _clock().toUtc(),
+      ),
+    );
+    _warnLength();
+  }
+
+  /// A new exercise in the Generic Primitive Editor: any primitive, every
+  /// canonical field, no preset.
+  Future<void> _insertCanonical() async {
+    if (widget.readOnly) return;
+    final e = await Navigator.of(context).push<Exercise>(
+      MaterialPageRoute(
+        builder: (_) => PrimitiveEditorScreen(
+          exercise: CanonicalExerciseDraft.blankExercise(
+            ExercisePrimitive.select,
+            id: _ids.next('exercise'),
+            updatedAt: _clock().toUtc(),
+          ),
+          title: 'New Canonical Exercise',
           isNew: true,
           course: _workingCourse,
           lesson: _lesson,
@@ -6370,7 +7561,8 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
               destinationLessonId: destination.lessonId,
               destinationRoundId: destination.roundId!,
             );
-      final updated = widget.adoptCourse?.call(
+      final updated =
+          widget.adoptCourse?.call(
             transferred,
             previous: course,
             usePrevious: false,
@@ -6536,7 +7728,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
                 Padding(
                   padding: const EdgeInsets.only(bottom: 5),
                   child: Text(
-                    '• ${e.type.replaceAll('_', ' ')}: ${_summary(e)}',
+                    '• ${_exerciseKindName(e).replaceAll('_', ' ')}: ${_summary(e)}',
                   ),
                 ),
               if (audit.isNotEmpty) ...[
@@ -6769,10 +7961,11 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
           // Reading passages are guaranteed target-language material in the
           // course format, so they are a safe source of same-language
           // distractors for generated listening recognition questions.
-          if (exercise.type != 'reading_comprehension') continue;
+          final features = ExerciseFeatures(exercise);
+          if (features.kind != LearnerExerciseKind.selectRead) continue;
           for (final match in RegExp(
             r"[A-Za-zÀ-ÖØ-öø-ÿ']{2,}",
-          ).allMatches(exercise.prompt)) {
+          ).allMatches(features.passageText)) {
             final word = match.group(0)!;
             final key = _norm(word);
             if (key.isNotEmpty && seen.add(key)) result.add(word);
@@ -6875,11 +8068,8 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
       clock: _clock,
     );
     if (changed == null || !mounted) return;
-    final course = widget.adoptCourse?.call(
-          changed,
-          previous: _workingCourse,
-        ) ??
-        changed;
+    final course =
+        widget.adoptCourse?.call(changed, previous: _workingCourse) ?? changed;
     final adoptedLesson = course.lessons.firstWhere(
       (candidate) => candidate.lessonId == _lesson.lessonId,
     );
@@ -6895,6 +8085,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
       _updatedAt = adoptedRound.updatedAt;
       _publicationState = adoptedRound.publicationState;
       _provisionalDraft = adoptedRound.provisionalDraft;
+      _flow = adoptedRound.flow;
     });
     widget.onCourseChanged?.call(course);
   }
@@ -6910,9 +8101,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
       child: Scaffold(
         appBar: AppBar(
           leading: BackButton(onPressed: _returnToRounds),
-          title: Text(
-            _title.isEmpty ? 'Round ${widget.roundIndex + 1}' : _title,
-          ),
+          title: Text(_editedRound().displayTitle(widget.roundIndex)),
           actions: [
             IconButton(
               key: const Key('round-search-action'),
@@ -6933,6 +8122,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
               children: [
                 OutlinedButton.icon(
                   key: const Key('round-preview'),
+                  style: _compactButtonStyle,
                   onPressed: _exercises.isEmpty ? null : _previewRound,
                   icon: const Icon(Icons.play_circle_outline),
                   label: const Text('Preview'),
@@ -6947,26 +8137,48 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
                 if (!widget.readOnly) ...[
                   OutlinedButton(
                     key: const Key('round-save-draft'),
+                    style: _compactButtonStyle,
                     onPressed: () => _saveRound(PublicationState.draft),
                     child: const Text('Save as draft'),
                   ),
                   FilledButton(
                     key: const Key('round-save'),
+                    style: _compactButtonStyle,
                     onPressed: () => _saveRound(PublicationState.published),
                     child: const Text('Save'),
                   ),
-                  OutlinedButton.icon(
-                    key: const Key('new-exercise'),
-                    onPressed: _insert,
-                    icon: const Icon(Icons.add),
-                    label: const Text('New exercise'),
-                  ),
-                  FilledButton.icon(
-                    key: const Key('exercise-creation-wizard'),
-                    onPressed: _openCreationWizard,
-                    icon: const Icon(Icons.auto_awesome_outlined),
-                    label: const Text('Exercise Wizard'),
-                  ),
+                  if (_flow == null) ...[
+                    OutlinedButton.icon(
+                      key: const Key('new-exercise'),
+                      style: _compactButtonStyle,
+                      onPressed: _insert,
+                      icon: const Icon(Icons.add),
+                      label: const Text('New Exercise'),
+                    ),
+                    OutlinedButton.icon(
+                      key: const Key('new-canonical-exercise'),
+                      style: _compactButtonStyle,
+                      onPressed: _insertCanonical,
+                      icon: const Icon(Icons.tune),
+                      label: const Text('New Canonical'),
+                    ),
+                    FilledButton.icon(
+                      key: const Key('exercise-creation-wizard'),
+                      style: _compactButtonStyle,
+                      onPressed: _openCreationWizard,
+                      icon: const Icon(Icons.auto_awesome_outlined),
+                      label: const Text('Exercise Wizard'),
+                    ),
+                  ] else
+                    // A Story is built from steps (third follow-up): the
+                    // block type is chosen first.
+                    FilledButton.icon(
+                      key: const Key('round-add-step'),
+                      style: _compactButtonStyle,
+                      onPressed: _addStoryStep,
+                      icon: const Icon(Icons.add),
+                      label: const Text('Add Step'),
+                    ),
                 ],
               ],
             ),
@@ -6989,6 +8201,126 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
                   id: widget.round.id,
                 ),
               ),
+              SwitchListTile(
+                key: const Key('round-story-switch'),
+                title: const Text('Play as a sequence'),
+                subtitle: Text(_storyDescription),
+                value: _flow != null,
+                onChanged: widget.readOnly ? null : _setStory,
+              ),
+              if (_flow != null && _flow!.isLinear) ...[
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+                  child: TextField(
+                    key: const Key('round-story-title'),
+                    controller: _storyTitle,
+                    readOnly: widget.readOnly,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: 'Story title',
+                      helperText:
+                          'Shown on the cover; lists call the Round “Story: <title>”. The Audit asks for one.',
+                      helperMaxLines: 2,
+                    ),
+                    onChanged: _setStoryTitle,
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                  child: SegmentedButton<FlowPresentation>(
+                    key: const Key('round-story-presentation'),
+                    segments: const [
+                      ButtonSegment(
+                        value: FlowPresentation.step,
+                        label: Text('Step by step'),
+                        icon: Icon(Icons.view_agenda_outlined),
+                      ),
+                      ButtonSegment(
+                        value: FlowPresentation.scroll,
+                        label: Text('Scrolling'),
+                        icon: Icon(Icons.swipe_vertical_outlined),
+                      ),
+                    ],
+                    selected: {_flow!.presentation},
+                    onSelectionChanged: widget.readOnly
+                        ? null
+                        : (values) => _mutateRound(
+                            () => _flow = RoundFlowAuthoring.withPresentation(
+                              _flow!,
+                              values.first,
+                            ),
+                          ),
+                  ),
+                ),
+                if (_flow!.presentation == FlowPresentation.scroll)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                    child: SegmentedButton<FlowLog>(
+                      key: const Key('round-story-log'),
+                      segments: const [
+                        ButtonSegment(
+                          value: FlowLog.dialogue,
+                          label: Text('Dialogue only'),
+                          icon: Icon(Icons.forum_outlined),
+                        ),
+                        ButtonSegment(
+                          value: FlowLog.all,
+                          label: Text('Everything'),
+                          icon: Icon(Icons.view_list_outlined),
+                        ),
+                      ],
+                      selected: {_flow!.log},
+                      onSelectionChanged: widget.readOnly
+                          ? null
+                          : (values) => _mutateRound(
+                              () => _flow = RoundFlowAuthoring.withStoryOptions(
+                                _flow!,
+                                log: values.first,
+                              ),
+                            ),
+                    ),
+                  ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                  child: SegmentedButton<FlowReadAloud>(
+                    key: const Key('round-story-read-aloud'),
+                    segments: const [
+                      ButtonSegment(
+                        value: FlowReadAloud.automatic,
+                        label: Text('Read aloud automatically'),
+                        icon: Icon(Icons.volume_up_outlined),
+                      ),
+                      ButtonSegment(
+                        value: FlowReadAloud.manual,
+                        label: Text('On request'),
+                        icon: Icon(Icons.touch_app_outlined),
+                      ),
+                    ],
+                    selected: {_flow!.readAloud},
+                    onSelectionChanged: widget.readOnly
+                        ? null
+                        : (values) => _mutateRound(
+                            () => _flow = RoundFlowAuthoring.withStoryOptions(
+                              _flow!,
+                              readAloud: values.first,
+                            ),
+                          ),
+                  ),
+                ),
+                const Padding(
+                  padding: EdgeInsets.fromLTRB(16, 0, 16, 8),
+                  child: Text(
+                    'An exercise that only makes sense with the Story\'s audio is marked “Needs the Story\'s audio” in its menu and is skipped with Audio Exercises off.',
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                  child: Text(
+                    _storyStepsSummary,
+                    key: const Key('round-story-steps'),
+                  ),
+                ),
+              ],
             ],
           ),
           padding: const EdgeInsets.fromLTRB(10, 10, 10, 20),
@@ -7012,9 +8344,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
                       enabled: !widget.readOnly,
                       child: CircleAvatar(child: Text('${i + 1}')),
                     ),
-                    title: Text(
-                      _ExerciseEditorScreenState.labelForType(e.type),
-                    ),
+                    title: Text(_exerciseTypeLabel(e)),
                     subtitle: Text(
                       _summary(e),
                       maxLines: 2,
@@ -7029,6 +8359,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
                         if (v == 'delete') _delete(i);
                         if (v == 'generate') _generateFromReading(i);
                         if (v == 'preview') _previewExercise(i);
+                        if (v == 'audio') _toggleAudioDependence(i);
                         if (v == 'copy') _transferExercise(i, copy: true);
                         if (v == 'move') _transferExercise(i, copy: false);
                         if (v == 'publication') {
@@ -7047,7 +8378,10 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
                         ),
                         PopupMenuItem(
                           value: 'duplicate',
-                          enabled: !widget.readOnly,
+                          // A Story has one title block (third follow-up).
+                          enabled:
+                              !widget.readOnly &&
+                              !(_flow != null && _isCover(e)),
                           child: const Text('Duplicate'),
                         ),
                         const PopupMenuItem(
@@ -7073,7 +8407,18 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
                                 : 'Save',
                           ),
                         ),
-                        if (e.type == 'reading_comprehension')
+                        if (_flow != null &&
+                            e.primitive != ExercisePrimitive.presentation)
+                          CheckedPopupMenuItem(
+                            value: 'audio',
+                            enabled: !widget.readOnly,
+                            checked: _flow!.audioDependentContentIds.contains(
+                              e.id,
+                            ),
+                            child: const Text('Needs the Story\'s audio'),
+                          ),
+                        if (ExerciseFeatures(e).kind ==
+                            LearnerExerciseKind.selectRead)
                           PopupMenuItem(
                             value: 'generate',
                             enabled: !widget.readOnly,
@@ -7102,22 +8447,260 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
   }
 }
 
-Exercise _blankExerciseForPreset(String presetId, AuthoringIdGenerator ids) =>
-    Exercise(
-      id: ids.next('exercise'),
-      publicationState: PublicationState.draft,
-      type: presetId,
-      prompt: '',
-      question: '',
-      answers: const [],
-      correct: null,
-      tts: null,
-      accepted: const [],
-      tokens: const [],
-      orderAnswer: const [],
-      pairs: const [],
-      hint: '',
-      icons: const [],
+/// The bottom bars' buttons: slightly smaller than Material's defaults so
+/// the Round editor's six actions fit two rows on a laptop window (owner
+/// report, 27 September 2026).
+final ButtonStyle _compactButtonStyle = ButtonStyle(
+  visualDensity: VisualDensity.compact,
+  padding: const WidgetStatePropertyAll(
+    EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+  ),
+  minimumSize: const WidgetStatePropertyAll(Size(0, 36)),
+  textStyle: const WidgetStatePropertyAll(TextStyle(fontSize: 13)),
+);
+
+/// The action word of a preset tile (Choose, Type, Arrange, Match, Card, …).
+class _PresetActionChip extends StatelessWidget {
+  const _PresetActionChip(this.action);
+
+  final String action;
+
+  @override
+  Widget build(BuildContext context) => Chip(
+    label: Text(action),
+    visualDensity: VisualDensity.compact,
+    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+    padding: EdgeInsets.zero,
+  );
+}
+
+/// The preset an exercise carries, else its learner kind: the name the
+/// editor's lists and Audit locations show for it.
+String _exerciseKindName(Exercise e) => e.editorTemplate.isNotEmpty
+    ? e.editorTemplate
+    : ExerciseFeatures(e).kind.name;
+
+/// The friendly type label: the preset's name, else the kind's.
+String _exerciseTypeLabel(Exercise e) =>
+    ExercisePresetRegistry.byId(e.editorTemplate)?.name ??
+    CourseAuditService.kindLabel(ExerciseFeatures(e).kind);
+
+/// One line that identifies an exercise in a list: its sentence, context,
+/// main text, term, question, meaning or spoken text, else its ID.
+String _exerciseSummary(Exercise e) {
+  final features = ExerciseFeatures(e);
+  for (final text in [
+    // A Story's line and cover keep their text in the line and title roles
+    // (owner report, 29 September 2026: the list showed their IDs).
+    features.lineText,
+    features.lineAudio?.text ?? '',
+    features.coverTitle,
+    features.inlineSentence,
+    features.contextText,
+    features.primaryText,
+    features.textOf('term'),
+    features.questionText,
+    features.textOf('meaning'),
+    features.primaryAudioText ?? '',
+  ]) {
+    if (text.trim().isNotEmpty) return text.trim();
+  }
+  if (features.kind == LearnerExerciseKind.storyCover ||
+      e.editorTemplate == 'story_cover') {
+    final picture = features.illustrationImages
+        .map((image) => image.text.trim())
+        .where((text) => text.isNotEmpty)
+        .firstOrNull;
+    return picture == null ? 'Title block' : 'Title block · $picture';
+  }
+  return e.id;
+}
+
+/// The editor for one exercise: the preset form when a preset represents
+/// the exercise (or it is new), otherwise the Generic Primitive Editor, which
+/// shows every canonical field and never drops data the form cannot show
+/// (Build 256 Session 4, plan A.13).
+Widget _exerciseEditorFor({
+  required Exercise exercise,
+  required String title,
+  required bool isNew,
+  DateTime Function()? clock,
+  bool linkParent = false,
+  Course? course,
+  Lesson? lesson,
+  LearningRound? round,
+  ValueChanged<Exercise>? onExerciseSaved,
+  bool readOnly = false,
+  bool initiallyInspecting = false,
+}) => !isNew && PresetRecipes.presetToEdit(exercise) == null
+    ? PrimitiveEditorScreen(
+        exercise: exercise,
+        title: title,
+        isNew: isNew,
+        clock: clock,
+        linkParent: linkParent,
+        course: course,
+        lesson: lesson,
+        round: round,
+        onExerciseSaved: onExerciseSaved,
+        readOnly: readOnly,
+        initiallyInspecting: initiallyInspecting,
+      )
+    : ExerciseEditorScreen(
+        exercise: exercise,
+        title: title,
+        isNew: isNew,
+        clock: clock,
+        linkParent: linkParent,
+        course: course,
+        lesson: lesson,
+        round: round,
+        onExerciseSaved: onExerciseSaved,
+        readOnly: readOnly,
+        initiallyInspecting: initiallyInspecting,
+      );
+
+/// [course] with the Story [narrator] and [characters] and any new media
+/// [credits] (Build 256 Revision 5). A narrator equal to the one the Course
+/// already has (or to the default, when it has none) leaves the JSON as it
+/// was.
+Course _courseWithSpeakers(
+  Course course, {
+  required StorySpeaker narrator,
+  required List<StorySpeaker> characters,
+  List<CourseMediaAttribution> credits = const [],
+}) {
+  final json = {...course.toJson()}
+    ..remove('storyNarrator')
+    ..remove('storyCharacters')
+    ..remove('mediaAttributions');
+  final known = [...course.mediaAttributions];
+  for (final credit in credits) {
+    if (!known.any(
+      (item) => jsonEncode(item.toJson()) == jsonEncode(credit.toJson()),
+    )) {
+      known.add(credit);
+    }
+  }
+  final sameNarrator =
+      jsonEncode(narrator.toJson()) == jsonEncode(course.narrator.toJson());
+  return Course.fromJson({
+    ...json,
+    if (course.storyNarrator != null || !sameNarrator)
+      'storyNarrator': narrator.toJson(),
+    if (characters.isNotEmpty)
+      'storyCharacters': [
+        for (final character in characters) character.toJson(),
+      ],
+    if (known.isNotEmpty)
+      'mediaAttributions': [for (final item in known) item.toJson()],
+  });
+}
+
+Exercise _blankExerciseForPreset(String presetId, AuthoringIdGenerator ids) {
+  final id = ids.next('exercise');
+  // A recipe with no v11 shape (a Dialogue line, a Story cover; Build 256
+  // Revision 5) is blank as its own recipe builds it from empty fields, so
+  // the exercise is a presentation from the start.
+  if (PresetRecipes.canonicalOnly.contains(presetId)) {
+    return ExerciseDraftBuilder.build(
+      ExerciseDraftValues(
+        original: Exercise.canonical(
+          id: id,
+          publicationState: PublicationState.draft,
+          primitive: ExercisePrimitive.presentation,
+          canonicalEvaluation: CanonicalEvaluation.none,
+        ),
+        type: presetId,
+        publicationState: PublicationState.draft,
+      ),
+    ).candidate!;
+  }
+  // The v11 shape needs the recipe's base type (a catalogue twin such as
+  // type_translation_to_target is not a v11 type and would fall back to a
+  // Select interaction); the preset itself travels as the editor template.
+  return Exercise(
+    id: id,
+    publicationState: PublicationState.draft,
+    type: ExercisePresetRegistry.byId(presetId)?.base ?? presetId,
+    editorTemplate: presetId,
+    prompt: '',
+    question: '',
+    answers: const [],
+    correct: null,
+    tts: null,
+    accepted: const [],
+    tokens: const [],
+    orderAnswer: const [],
+    pairs: const [],
+    hint: '',
+    icons: const [],
+  );
+}
+
+/// The block types Add Step offers in a Story (Build 256 Revision 5,
+/// third follow-up).
+enum _StoryStepType { title, line, exercise }
+
+/// A Dialogue line built from the short line form's values (New Story's Add
+/// line and the Round editor's Add Step): a presentation the dialogue_line
+/// recipe fills, Published as the Wizard makes its steps.
+Exercise _dialogueLineExercise(
+  String id,
+  StoryLineValues values, {
+  required DateTime updatedAt,
+}) => ExerciseDraftBuilder.build(
+  ExerciseDraftValues(
+    original: Exercise.canonical(
+      id: id,
+      primitive: ExercisePrimitive.presentation,
+      canonicalEvaluation: CanonicalEvaluation.none,
+      updatedAt: updatedAt,
+    ),
+    type: 'dialogue_line',
+    publicationState: PublicationState.published,
+    prompt: values.text,
+    speakerId: values.speakerId,
+    lineMode: values.mode,
+    lineReadAloud: values.readAloud,
+    lineTextReveal: values.textReveal,
+  ),
+).candidate!;
+
+/// The sheet that offers the presets a Story may use (`storyWizardPresets`);
+/// New Story's Add exercise and the Round editor's Add Step share it.
+Future<String?> _chooseStoryPreset(BuildContext context) =>
+    showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      builder: (sheetContext) => SafeArea(
+        child: ListView(
+          shrinkWrap: true,
+          padding: const EdgeInsets.fromLTRB(12, 12, 12, 24),
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(4, 0, 4, 8),
+              child: Text(
+                'Add an exercise to the Story',
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+              ),
+            ),
+            for (final id in storyWizardPresets)
+              if (ExercisePresetRegistry.byId(id) case final preset?)
+                Card(
+                  key: ValueKey('story-wizard-preset-$id'),
+                  child: ListTile(
+                    leading: _PresetActionChip(preset.action),
+                    title: Text(preset.name),
+                    subtitle: Text(preset.description),
+                    onTap: () => Navigator.pop(sheetContext, id),
+                  ),
+                ),
+          ],
+        ),
+      ),
     );
 
 enum _ExerciseWizardStage { setup, plan, guided }
@@ -7204,7 +8787,7 @@ class _ExerciseCreationWizardScreenState
     final existing = _drafts[_current];
     final exercise = await Navigator.of(context).push<Exercise>(
       MaterialPageRoute(
-        builder: (_) => ExerciseEditorScreen(
+        builder: (_) => _exerciseEditorFor(
           exercise:
               existing ??
               _blankExerciseForPreset(plan.presetIds[_current], _ids),
@@ -7331,17 +8914,18 @@ class _ExerciseCreationWizardScreenState
           runSpacing: 8,
           children: [
             for (final category in ExerciseCategory.values)
-              FilterChip(
-                label: Text(category.label),
-                selected: _categories.contains(category),
-                onSelected: (selected) => setState(() {
-                  if (selected) {
-                    _categories.add(category);
-                  } else {
-                    _categories.remove(category);
-                  }
-                }),
-              ),
+              if (ExercisePresetRegistry.inCategory(category).isNotEmpty)
+                FilterChip(
+                  label: Text(category.label),
+                  selected: _categories.contains(category),
+                  onSelected: (selected) => setState(() {
+                    if (selected) {
+                      _categories.add(category);
+                    } else {
+                      _categories.remove(category);
+                    }
+                  }),
+                ),
           ],
         ),
       ],
@@ -7783,9 +9367,24 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
   late String _imageAsset;
   SharedImageSource? _selectedSharedSource;
   bool _useInlineGaps = false;
+  bool _revealFirstLetter = true;
+  String _textRole = '';
+  String _audioRole = '';
+  String _matchSides = '';
   bool _useMultiSelect = false;
-  static List<String> get _types =>
-      ExercisePresetRegistry.presets.map((preset) => preset.id).toList();
+  // Dialogue line (Build 256 Revision 5): who speaks and how the line is
+  // shown; the draft builder turns them into elements and options.
+  String _speakerId = '';
+  String _lineMode = 'both';
+  String _lineReadAloud = 'story';
+  String _lineTextReveal = 'immediate';
+  String _lineLanguage = '';
+  // Fill the slots (Build 256 Revision 7 follow-up): whether a word may
+  // fill more than one slot.
+  bool _slotReuse = false;
+  // A Flashcard's read-aloud: none, manual (on request) or automatic; the
+  // spoken text is the word itself.
+  String _cardReadAloud = 'manual';
   static String labelForType(String type) =>
       ExercisePresetRegistry.byId(type)?.name ?? type.replaceAll('_', ' ');
   late String _type;
@@ -7805,7 +9404,11 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
       _missingWords,
       _context,
       _dialogue,
-      _requiredSelections;
+      _requiredSelections,
+      _groups,
+      _leftover,
+      _slots,
+      _extraWords;
   @override
   void initState() {
     super.initState();
@@ -7814,64 +9417,52 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     _loadScriptController();
     _navigationExercises = [...?widget.round?.exercises];
     final e = _exercise;
-    _type = _types.contains(e.type) ? e.type : 'choice';
-    _prompt = TextEditingController(text: e.prompt);
-    _question = TextEditingController(text: e.question);
-    _tts = TextEditingController(text: e.tts ?? '');
-    _hint = TextEditingController(text: e.hint);
-    _answers = TextEditingController(text: e.answers.join('\n'));
-    _useMultiSelect = e.isMultiSelect;
-    _correct = TextEditingController(
-      text: e.isMultiSelect
-          ? _multiSelectCorrectNumbersText(e)
-          : (e.correct == null
-                ? (TranslationChoice.isTranslationChoice(e.type) ? '1' : '')
-                : '${e.correct! + 1}'),
-    );
-    _requiredSelections = TextEditingController(
-      text: e.isMultiSelect ? '${e.requiredSelectionCount}' : '',
-    );
-    _accepted = TextEditingController(text: e.accepted.join('\n'));
-    _useInlineGaps = e.hasArrangeGaps || e.hasSelectGaps;
-    _tokens = TextEditingController(
-      text: (e.hasArrangeGaps || e.hasSelectGaps)
-          ? _distractorTexts(e).join('\n')
-          : e.tokens.join('\n'),
-    );
-    _order = TextEditingController(text: e.orderAnswer.join('\n'));
-    _gapLayout = TextEditingController(text: _gapLayoutText(e));
-    final correctTranslations = e.correctTranslationTexts;
-    for (final value
-        in correctTranslations.isEmpty
-            ? const <String>['']
-            : correctTranslations) {
+    // The preset is a recipe over canonical data (Build 256): the exercise
+    // opens in the preset it carries, else in the first recipe that
+    // represents it exactly, else in the plainest one of its primitive.
+    _type =
+        PresetRecipes.presetToEdit(e) ??
+        PresetRecipes.defaultPresetFor(e.primitive) ??
+        'choice_target';
+    final draft = PresetRecipes.decompose(e, _type);
+    _prompt = TextEditingController(text: draft.prompt);
+    _question = TextEditingController(text: draft.question);
+    _tts = TextEditingController(text: draft.tts);
+    _hint = TextEditingController(text: draft.hint);
+    _answers = TextEditingController(text: draft.answers);
+    _useMultiSelect = draft.useMultiSelect;
+    _correct = TextEditingController(text: _initialCorrect(e, draft));
+    _requiredSelections = TextEditingController(text: draft.requiredSelections);
+    _accepted = TextEditingController(text: draft.accepted);
+    _useInlineGaps = draft.useInlineGaps;
+    _revealFirstLetter = draft.revealFirstLetter;
+    _textRole = draft.textRole;
+    _audioRole = draft.audioRole;
+    _matchSides = draft.matchSides;
+    _readLineFields(draft);
+    _slotReuse = draft.slotReuse;
+    _cardReadAloud = draft.cardReadAloud;
+    _tokens = TextEditingController(text: draft.tokens);
+    _order = TextEditingController(text: draft.order);
+    _gapLayout = TextEditingController(text: draft.gapLayout);
+    for (final value in draft.correctTranslations) {
       final controller = TextEditingController(text: value);
       _watchText(controller);
       _correctTranslations.add(controller);
     }
-    _pairs = TextEditingController(
-      text: e.pairs.map((p) => p.join(' = ')).join('\n'),
-    );
-    _icons = TextEditingController(text: e.icons.join('\n'));
-    _missingWords = TextEditingController(
-      text: (e.type == 'listening_spelling' ? e.accepted : e.missingWords).join(
-        '\n',
-      ),
-    );
-    _context = TextEditingController(text: e.contextText);
-    _dialogue = TextEditingController(
-      text: e.dialogueTurns
-          .map((turn) => '${turn.speaker}: ${turn.text}')
-          .join('\n'),
-    );
-    _contextMode = e.contextMode;
-    _imageAsset = e.imageAsset;
-    _selectedSharedSource = e.promptElements
-        .where(
-          (element) => element.type == 'image' && element.asset == _imageAsset,
-        )
-        .firstOrNull
-        ?.sharedImageSource;
+    _pairs = TextEditingController(text: draft.pairs);
+    _icons = TextEditingController(text: draft.icons);
+    if (_type == 'picture_word_match') _splitPicturePairs(draft.pairs);
+    _missingWords = TextEditingController(text: draft.missingWords);
+    _context = TextEditingController(text: draft.context);
+    _dialogue = TextEditingController(text: draft.dialogue);
+    _groups = TextEditingController(text: draft.groups);
+    _leftover = TextEditingController(text: draft.leftover);
+    _slots = TextEditingController(text: draft.slots);
+    _extraWords = TextEditingController(text: draft.extraWords);
+    _contextMode = draft.contextMode;
+    _imageAsset = draft.imageAsset;
+    _selectedSharedSource = draft.selectedSharedSource;
     for (final controller in [
       _prompt,
       _question,
@@ -7889,15 +9480,34 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
       _context,
       _dialogue,
       _requiredSelections,
+      _groups,
+      _leftover,
+      _slots,
+      _extraWords,
     ]) {
       _watchText(controller);
     }
+    _openedSnapshot = _formSnapshot();
+    // The first time the Exercise Editor opens in a Course, a short
+    // introduction explains presets and the canonical editor.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        ExerciseEditorIntro.showIfNeeded(
+          context,
+          courseId: widget.course?.courseId,
+        );
+      }
+    });
   }
 
   void _loadScriptController() {
     _scriptController?.dispose();
+    _scriptDirty = false;
     _scriptController = ScriptRecognitionController(_exercise)
-      ..addListener(_markDirty);
+      ..addListener(() {
+        _scriptDirty = true;
+        _markDirty();
+      });
   }
 
   void _watchText(TextEditingController controller) {
@@ -7948,6 +9558,10 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
       _context,
       _dialogue,
       _requiredSelections,
+      _groups,
+      _leftover,
+      _slots,
+      _extraWords,
     ]) {
       c.dispose();
     }
@@ -7994,6 +9608,123 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
       _correctTranslationError = null;
       _correctTranslationErrorIndexes = const {};
     });
+  }
+
+  /// The words for true and false in the Course's source language when QQL
+  /// knows it (the eight copy languages), else in English.
+  List<String> _trueFalseAnswers() {
+    final course = widget.course;
+    final code = course == null
+        ? ''
+        : (CourseLanguageResolver.base(course).code ?? '')
+              .split('-')
+              .first
+              .toLowerCase();
+    return switch (code) {
+      'it' => const ['Vero', 'Falso'],
+      'es' => const ['Verdadero', 'Falso'],
+      'de' => const ['Richtig', 'Falsch'],
+      'pt' => const ['Verdadeiro', 'Falso'],
+      'nl' => const ['Waar', 'Onwaar'],
+      'fi' => const ['Totta', 'Tarua'],
+      'cy' => const ['Cywir', 'Anghywir'],
+      _ => const ['True', 'False'],
+    };
+  }
+
+  List<String> _answerLines() => _answers.text
+      .split('\n')
+      .map((line) => line.trim())
+      .where((line) => line.isNotEmpty)
+      .toList(growable: false);
+
+  /// One picture per answer (Select the image, Listen and pick the image,
+  /// Match picture to word): `_icons` holds one line per answer, in the
+  /// answers' order, a picture reference or a named icon key. The cards
+  /// follow the answers as they are typed (owner report, 29 September
+  /// 2026: the form rebuilt only on its first change, so a word typed
+  /// later had no card and no number), one compact picture card per
+  /// answer, headed by its number and text.
+  Widget _answerPictures({
+    String title = 'Pictures',
+  }) => ValueListenableBuilder<TextEditingValue>(
+    valueListenable: _answers,
+    builder: (context, value, child) {
+      final answers = _answerLines();
+      final lines = _icons.text.split('\n');
+      String lineAt(int index) =>
+          index < lines.length ? lines[index].trim() : '';
+      return Column(
+        key: const Key('answer-pictures'),
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(title, style: Theme.of(context).textTheme.titleSmall),
+          const SizedBox(height: 4),
+          if (answers.isEmpty)
+            const Text(
+              'Enter the answers above first; each gets a picture here.',
+            )
+          else ...[
+            Text(
+              'One card per answer, in the order above. Choose flat image takes a picture from the Shared Image Library; Import custom image reads the one picture file in ${QqlStorageLayout.current.folderLabel(QqlStorageRole.imageImports)}.',
+              style: const TextStyle(fontSize: 12),
+            ),
+            const SizedBox(height: 4),
+            for (var i = 0; i < answers.length; i++)
+              ExerciseImageField(
+                key: ValueKey('answer-picture-$i'),
+                title: '${i + 1}. ${answers[i]}',
+                compact: true,
+                course: widget.course,
+                asset: PresetVariants.isImageReference(lineAt(i))
+                    ? lineAt(i)
+                    : '',
+                sharedSource: null,
+                readOnly: widget.readOnly,
+                onChanged: (change) => setState(() {
+                  _setIconLine(i, change.asset, answers.length);
+                  _dirty = true;
+                }),
+              ),
+          ],
+          const SizedBox(height: 12),
+        ],
+      );
+    },
+  );
+
+  void _setIconLine(int index, String value, int count) {
+    final lines = _icons.text.split('\n');
+    while (lines.length < count) {
+      lines.add('');
+    }
+    lines[index] = value;
+    _icons.text = lines.take(count).join('\n');
+  }
+
+  /// Match picture to word keeps its pairs as words (`_answers`) and
+  /// pictures (`_icons`) in the form and as `picture = word` lines in the
+  /// draft.
+  String _picturePairsText() {
+    final answers = _answerLines();
+    final lines = _icons.text.split('\n');
+    return [
+      for (var i = 0; i < answers.length; i++)
+        '${i < lines.length ? lines[i].trim() : ''} = ${answers[i]}',
+    ].join('\n');
+  }
+
+  void _splitPicturePairs(String pairs) {
+    final pictures = <String>[];
+    final words = <String>[];
+    for (final line in pairs.split('\n')) {
+      final separator = line.indexOf('=');
+      if (separator < 0) continue;
+      pictures.add(line.substring(0, separator).trim());
+      words.add(line.substring(separator + 1).trim());
+    }
+    _icons.text = pictures.join('\n');
+    _answers.text = words.join('\n');
   }
 
   Widget _correctTranslationsEditor() => Column(
@@ -8092,41 +9823,6 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
   /// text plus one `{answer}` block per inline gap, with the literal answer
   /// text embedded directly inside the braces) from an existing Arrange
   /// exercise's layout, for display when reopening it in the Editor.
-  String _gapLayoutText(Exercise e) {
-    final valueById = {
-      for (final item in e.interaction.items) item.id: item.value,
-    };
-    return e.arrangeLayout
-        .map(
-          (el) => el.type == 'gap'
-              ? '{${valueById[e.arrangeGapAssignments[el.text]] ?? ''}}'
-              : el.text,
-        )
-        .join(' ');
-  }
-
-  /// Reconstructs the 1-based, comma-separated "Correct answer numbers" text
-  /// for a multi-select Select exercise from its correct item IDs, for
-  /// display when reopening it in the Editor.
-  String _multiSelectCorrectNumbersText(Exercise e) {
-    final correctIds = e.correctItemIdSet;
-    final numbers = <int>[];
-    for (var i = 0; i < e.interaction.items.length; i++) {
-      if (correctIds.contains(e.interaction.items[i].id)) numbers.add(i + 1);
-    }
-    return numbers.join(', ');
-  }
-
-  /// The blocks that are not used to fill any gap (optional distractors),
-  /// for display in the "Extra distractor blocks" field.
-  List<String> _distractorTexts(Exercise e) {
-    final assignedIds = e.arrangeGapAssignments.values.toSet();
-    return [
-      for (final item in e.interaction.items)
-        if (!assignedIds.contains(item.id)) item.value,
-    ];
-  }
-
   String _fieldKey(TextEditingController controller) => {
     _prompt: 'prompt',
     _question: 'question',
@@ -8144,6 +9840,10 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     _context: 'context',
     _dialogue: 'dialogue',
     _requiredSelections: 'requiredSelections',
+    _groups: 'groups',
+    _leftover: 'leftover',
+    _slots: 'slots',
+    _extraWords: 'extraWords',
   }[controller]!;
 
   Future<void> _showFieldHelp(String fieldKey, {String? title}) {
@@ -8161,6 +9861,73 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         ],
       ),
     );
+  }
+
+  /// A closed choice among a few values (Build 256 Revision 5, the Dialogue
+  /// line form), with the same Help control as a text field. The value is
+  /// part of the inner key so a form reload shows the reloaded value.
+  Widget _choiceField({
+    required String fieldKey,
+    required String label,
+    required String value,
+    required Map<String, String> choices,
+    required ValueChanged<String> onChanged,
+    String? helper,
+  }) => Padding(
+    key: ValueKey('exercise-choice-$fieldKey'),
+    padding: const EdgeInsets.only(bottom: 12),
+    child: DropdownButtonFormField<String>(
+      key: ValueKey('exercise-choice-$fieldKey-$value'),
+      initialValue: choices.containsKey(value) ? value : null,
+      isExpanded: true,
+      decoration: InputDecoration(
+        border: const OutlineInputBorder(),
+        labelText: label,
+        suffixIcon: _helpButton(fieldKey),
+        helperText: helper,
+        helperMaxLines: 3,
+        filled: widget.readOnly,
+        fillColor: widget.readOnly
+            ? Theme.of(
+                context,
+              ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.45)
+            : null,
+      ),
+      items: [
+        for (final entry in choices.entries)
+          DropdownMenuItem(value: entry.key, child: Text(entry.value)),
+      ],
+      onChanged: widget.readOnly
+          ? null
+          : (selected) {
+              if (selected == null) return;
+              setState(() {
+                onChanged(selected);
+                _dirty = true;
+              });
+            },
+    ),
+  );
+
+  /// A new single-answer Choose starts with answer 1 marked as correct
+  /// (owner request, 29 September 2026), as Pick the translation did; a
+  /// stored exercise shows what it has.
+  String _initialCorrect(Exercise e, ExerciseDraftValues draft) =>
+      widget.isNew &&
+          draft.correct.trim().isEmpty &&
+          e.primitive == ExercisePrimitive.select &&
+          !draft.useMultiSelect &&
+          !draft.useInlineGaps &&
+          PresetVariants.formFor(_type) != 'script_recognition'
+      ? '1'
+      : draft.correct;
+
+  void _readLineFields(ExerciseDraftValues draft) {
+    _speakerId = draft.speakerId;
+    _lineMode = draft.lineMode;
+    _lineReadAloud = draft.lineReadAloud;
+    _lineTextReveal = draft.lineTextReveal;
+    _lineLanguage = draft.lineLanguage;
   }
 
   Widget _helpButton(String fieldKey) => IconButton(
@@ -8206,7 +9973,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     if (widget.readOnly) return;
     try {
       final expressions = _lines(_accepted);
-      final normalization = _exercise.evaluation.normalization;
+      final normalization = ExerciseFeatures(_exercise).normalization;
       final expanded = AnswerMaterializationService.expand(
         expressions,
         normalization: normalization,
@@ -8275,7 +10042,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
   }
 
   List<Widget> _specificFields() {
-    switch (_type) {
+    switch (PresetVariants.formFor(_type)) {
       case 'script_recognition':
         return [
           ScriptRecognitionEditor(
@@ -8284,16 +10051,46 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
           ),
         ];
       case 'flashcard':
+        // Build 256 Revision 7 follow-up (owner review): the languages of
+        // the two texts are named, the read-aloud speaks the word itself
+        // and is chosen here instead of typed again.
         return [
-          _field(_prompt, 'Word / expression'),
-          _field(_question, 'Translation / meaning'),
-          _field(_tts, 'Pronunciation TTS'),
+          _field(
+            _prompt,
+            'Word or expression (target language)',
+            helper:
+                'In the language being learned, e.g. buongiorno. Read aloud, when on, speaks this text.',
+          ),
+          _field(
+            _question,
+            'Translation or meaning (source language)',
+            helper: 'In the learners’ own language, e.g. good morning.',
+          ),
+          _choiceField(
+            fieldKey: 'readAloud',
+            label: 'Read aloud',
+            value: _cardReadAloud,
+            choices: const {
+              'automatic': 'Automatically, when the card appears',
+              'manual': 'On request (speaker button)',
+              'none': 'No read-aloud',
+            },
+            onChanged: (value) => _cardReadAloud = value,
+            helper:
+                'The word or expression above is spoken with the Course audio mode, unless the field below says otherwise. Read-aloud never makes the card an audio exercise.',
+          ),
+          _field(
+            _tts,
+            'Pronunciation TTS (if different)',
+            helper:
+                'Leave empty to read the word or expression above. Enter a text only when what is spoken should differ, e.g. an abbreviation read in full.',
+          ),
           _field(
             _answers,
             'Usage sentence and optional translation',
             lines: 3,
             helper:
-                'First line = usage sentence. “Usage:” is added automatically in learner mode.',
+                'First line: a sentence using the word (target language). Second line, optional: its translation. “Usage:” is added automatically in learner mode.',
           ),
         ];
       case 'gap_choice':
@@ -8331,9 +10128,11 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         return [
           _field(
             _prompt,
-            'Source text',
+            _type.endsWith('_to_source') ? 'Text to translate' : 'Source text',
             lines: 3,
-            helper: 'Enter the text the learner must translate.',
+            helper: _type.endsWith('_to_source')
+                ? 'Enter the target-language text the learner translates into the source language.'
+                : 'Enter the text the learner must translate.',
           ),
           _field(
             _accepted,
@@ -8370,12 +10169,27 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         ];
       case 'type_missing_word':
         return [
+          SwitchListTile(
+            key: const Key('type-missing-word-reveal'),
+            contentPadding: EdgeInsets.zero,
+            title: const Text('Show the first letter'),
+            subtitle: const Text(
+              'On: the gap reveals the first letter of the word as a hint. Off: the learner types the whole word without help.',
+            ),
+            value: _revealFirstLetter,
+            onChanged: widget.readOnly
+                ? null
+                : (value) => setState(() {
+                    _revealFirstLetter = value;
+                    _dirty = true;
+                  }),
+          ),
           _field(
             _prompt,
             'Sentence with one ___ gap',
             lines: 3,
             helper:
-                'The first letter is derived automatically from the complete accepted word.',
+                'The first letter, when shown, is derived automatically from the complete accepted word.',
           ),
           _field(
             _accepted,
@@ -8393,122 +10207,47 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         return [
           _field(
             _prompt,
-            'Source sentence',
+            _type.endsWith('_to_source')
+                ? 'Sentence to translate'
+                : 'Source sentence',
             lines: 3,
-            helper: 'Enter the complete sentence the learner must translate.',
+            helper: _type.endsWith('_to_source')
+                ? 'Enter the complete target-language sentence the learner translates into the source language.'
+                : 'Enter the complete sentence the learner must translate.',
           ),
-          SwitchListTile(
-            key: const Key('build-translation-use-inline-gaps'),
-            title: const Text('Inline gaps'),
-            subtitle: const Text(
-              'Fill one or more blanks inside a fixed target-language sentence instead of building the whole sentence from blocks. Disables multiple correct-translation variants.',
-            ),
-            value: _useInlineGaps,
-            onChanged: widget.readOnly
-                ? null
-                : (value) => setState(() {
-                    _useInlineGaps = value;
-                    _dirty = true;
-                  }),
+          _field(
+            _tokens,
+            _type.endsWith('_to_source')
+                ? 'Available source-language blocks'
+                : 'Available target-language blocks',
+            lines: 5,
+            helper:
+                'One literal block per line. Include enough occurrences to construct every correct translation; repeated words need separate blocks.',
           ),
-          if (_useInlineGaps) ...[
-            _field(
-              _gapLayout,
-              'Target sentence with gaps',
-              lines: 3,
-              helper:
-                  'Write the fixed target-language sentence and put each '
-                  'answer word or phrase directly inside braces: {answer}. '
-                  "Literal { or } characters can't appear anywhere else in "
-                  'the sentence. Example: Io {vorrei} un caffè.',
-            ),
-            _field(
-              _tokens,
-              'Extra distractor blocks (optional)',
-              lines: 3,
-              helper:
-                  'One extra block per line that is not used to fill any '
-                  'gap. Include 0, 1 or at most 2 distractors.',
-            ),
-            _field(
-              _tts,
-              'Spoken prompt (optional)',
-              lines: 2,
-              helper:
-                  'Optional audio played before the learner fills the gaps.',
-            ),
-          ] else ...[
-            _field(
-              _tokens,
-              'Available target-language blocks',
-              lines: 5,
-              helper:
-                  'One literal block per line. Include enough occurrences to construct every correct translation; repeated words need separate blocks.',
-            ),
-            _correctTranslationsEditor(),
-          ],
+          _correctTranslationsEditor(),
         ];
       case 'word_order':
         return [
           _field(_prompt, 'Translation prompt / instruction', lines: 2),
-          SwitchListTile(
-            key: const Key('word-order-use-inline-gaps'),
-            title: const Text('Inline gaps'),
-            subtitle: const Text(
-              'Fill one or more blanks inside a fixed sentence instead of building the whole sentence from blocks.',
-            ),
-            value: _useInlineGaps,
-            onChanged: widget.readOnly
-                ? null
-                : (value) => setState(() {
-                    _useInlineGaps = value;
-                    _dirty = true;
-                  }),
+          _field(
+            _tokens,
+            'Available word blocks',
+            lines: 4,
+            helper:
+                'One block per line. You may include 0, 1 or at most 2 extra distractors.',
           ),
-          if (_useInlineGaps) ...[
-            _field(
-              _gapLayout,
-              'Sentence with gaps',
-              lines: 3,
-              helper:
-                  'Write the fixed sentence and put each answer word or '
-                  'phrase directly inside braces: {answer}. Literal { or } '
-                  "characters can't appear anywhere else in the sentence. "
-                  'Example: I {am} going {to} London.',
-            ),
-            _field(
-              _tokens,
-              'Extra distractor blocks (optional)',
-              lines: 4,
-              helper:
-                  'One extra block per line that is not used to fill any '
-                  'gap. Include 0, 1 or at most 2 distractors.',
-            ),
-            _field(
-              _tts,
-              'Spoken prompt (optional)',
-              lines: 2,
-              helper:
-                  'Optional audio played before the learner fills the gaps.',
-            ),
-          ] else ...[
-            _field(
-              _tokens,
-              'Available word blocks',
-              lines: 4,
-              helper:
-                  'One block per line. You may include 0, 1 or at most 2 extra distractors.',
-            ),
-            _field(
-              _order,
-              'Correct sentence',
-              lines: 4,
-              helper:
-                  'One block per line in the required order. Exercise type cannot be changed after creation.',
-            ),
-          ],
+          _field(
+            _order,
+            'Correct sentence',
+            lines: 4,
+            helper:
+                'One block per line in the required order. Exercise type cannot be changed after creation.',
+          ),
         ];
       case 'image_word':
+        // One field (Build 256 Revision 7 follow-up, owner review): the
+        // blocks of the word in order are also the blocks the learner gets;
+        // a spelling exercise has no distractors.
         return [
           _field(
             _prompt,
@@ -8517,18 +10256,11 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
             helper: 'Example: Build the word shown in the image.',
           ),
           _field(
-            _tokens,
-            'Available letter / syllable blocks',
-            lines: 5,
-            helper:
-                'One block per line. Do not add distractors: include only the blocks required to build the correct word.',
-          ),
-          _field(
             _order,
-            'Correct target-language word',
+            'Blocks of the word, in order',
             lines: 5,
             helper:
-                'One letter or syllable block per line, in the correct order. An image is required.',
+                'One letter or syllable per line, in the right order; the learner gets exactly these blocks, shuffled. An image is required.',
           ),
         ];
       case 'matching':
@@ -8551,9 +10283,10 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
           ),
           _field(
             _pairs,
-            'Three translation pairs',
+            'Translation pairs',
             lines: 5,
-            helper: 'Exactly three lines: source = target',
+            helper:
+                'At least two lines: source = target. Three is the usual number.',
           ),
         ];
       case 'super_match':
@@ -8588,9 +10321,17 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
           _field(_question, 'Question', lines: 2),
           _field(_answers, 'Target-language options', lines: 4),
           _field(_correct, 'Correct answer number'),
-          _field(_icons, 'Icons / image keys', lines: 4),
+          _answerPictures(),
+          _field(
+            _icons,
+            'Icons / image keys',
+            lines: 4,
+            helper:
+                'One per answer, in the same order. Left empty, the answers are plain text and the exercise plays as Choose the answer.',
+          ),
         ];
       case 'listening_choice':
+      case 'listening_comprehension':
         return [
           _field(
             _tts,
@@ -8608,14 +10349,13 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
             'MP3: open Course Editor > Audio Library. Copy MP3 files to ${QqlStorageLayout.current.folderLabel(QqlStorageRole.audioImports)}, press Import MP3, then Associate recording with its Word or expression. Choose Recorded MP3 only or Hybrid. This exercise uses those text mappings.',
           ),
           const SizedBox(height: 12),
-          _field(_question, 'Question', lines: 2),
-          _field(_answers, 'Answers', lines: 4),
-          _field(_correct, 'Correct answer number'),
-        ];
-      case 'listening_comprehension':
-        return [
-          _field(_tts, 'Spoken passage', lines: 4),
-          _field(_question, 'Comprehension question', lines: 2),
+          _field(
+            _question,
+            'Question (optional)',
+            lines: 2,
+            helper:
+                'Leave it empty to ask what was heard; with a question the learner answers it about the passage.',
+          ),
           _field(_answers, 'Answers', lines: 4),
           _field(_correct, 'Correct answer number'),
         ];
@@ -8623,86 +10363,25 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         return [
           _field(
             _prompt,
-            'Reading passage',
+            'Text to read',
             lines: 5,
-            helper: 'At least three lexical words are recommended.',
-          ),
-          _field(_question, 'Comprehension question', lines: 2),
-          _field(_answers, 'Answers', lines: 4),
-          _field(_correct, 'Correct answer number'),
-        ];
-      case 'dialogue_response':
-        return [
-          _field(
-            _prompt,
-            'Context sentence',
-            lines: 3,
-            helper: 'Write the situation in the target language.',
-          ),
-          _field(
-            _question,
-            'Question',
-            lines: 2,
-            helper: 'Write the question in the target language.',
-          ),
-          _field(
-            _answers,
-            'Two response options',
-            lines: 3,
-            helper: 'Exactly two lines, both in the target language.',
-          ),
-          _field(
-            _correct,
-            'Correct response number',
             helper:
-                'Enter 1 or 2. The learner sees the responses in randomized order.',
+                'A passage, a situation or a short text. At least three lexical words are recommended.',
           ),
-        ];
-      case 'contextual_comprehension':
-        return [
-          DropdownButtonFormField<String>(
-            key: const Key('context-mode-selector'),
-            isExpanded: true,
-            initialValue: _contextMode,
-            decoration: InputDecoration(
-              border: const OutlineInputBorder(),
-              labelText: 'Context mode',
-              suffixIcon: _helpButton('contextMode'),
-            ),
-            items: const [
-              DropdownMenuItem(value: 'text', child: Text('Text')),
-              DropdownMenuItem(value: 'audio', child: Text('Audio')),
-              DropdownMenuItem(
-                value: 'textAndAudio',
-                child: Text('Text and audio'),
-              ),
-            ],
-            onChanged: widget.readOnly
-                ? null
-                : (value) => setState(() {
-                    _contextMode = value ?? _contextMode;
-                    _dirty = true;
-                  }),
+          _field(
+            _tts,
+            'Spoken text (optional)',
+            lines: 3,
+            helper:
+                'Audio the learner listens to before answering, in the target language. With a text above, both are shown.',
           ),
-          const SizedBox(height: 12),
-          if (_contextMode != 'audio')
-            _field(
-              _context,
-              'Context text',
-              lines: 5,
-              helper:
-                  'Use this for a passage, announcement, situation or other context.',
-            ),
-          if (_contextMode != 'text')
-            _field(_tts, 'Context audio text', lines: 5),
-          if (_contextMode != 'audio')
-            _field(
-              _dialogue,
-              'Structured dialogue (optional)',
-              lines: 5,
-              helper:
-                  'One turn per line: Speaker: text. Leave blank for non-dialogue context.',
-            ),
+          _field(
+            _dialogue,
+            'Dialogue lines (optional)',
+            lines: 4,
+            helper:
+                'One line per turn as Speaker: text. With dialogue lines the text above is the context shown before them.',
+          ),
           _field(_question, 'Question', lines: 2),
           _field(_answers, 'Answers', lines: 4),
           _field(_correct, 'Correct answer number'),
@@ -8784,102 +10463,463 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
                 'from 1.',
           ),
         ];
-      case 'choice':
+      case 'true_false':
         return [
-          _field(_prompt, 'Prompt / instruction', lines: 2),
+          _field(
+            _question,
+            'Statement',
+            lines: 2,
+            helper: 'A sentence in the target language that is true or false.',
+          ),
+          _field(
+            _tts,
+            'Spoken statement (optional)',
+            lines: 2,
+            helper:
+                'Read aloud with the target-language voice when audio is on.',
+          ),
+          _field(
+            _answers,
+            'Answers',
+            lines: 2,
+            helper:
+                'Two lines in the source language: the word for true, then the word for false.',
+          ),
+          _field(
+            _correct,
+            'Correct answer number',
+            helper: '1 when the statement is true, 2 when it is false.',
+          ),
+        ];
+      case 'gap_choice_inline':
+        return [
+          _field(_prompt, 'Instruction (optional)', lines: 2),
+          _field(
+            _gapLayout,
+            'Sentence with gaps',
+            lines: 3,
+            helper:
+                'Write the sentence and put each answer word or phrase '
+                'directly inside braces: {answer}. Example: I {am} going '
+                '{to} London. Literal { or } characters can\'t appear '
+                'anywhere else.',
+          ),
+          _field(
+            _tokens,
+            'Distractor options (optional)',
+            lines: 3,
+            helper:
+                'One extra option per line that is not the answer to any gap. Include 0, 1 or at most 2 distractors.',
+          ),
+          _field(
+            _tts,
+            'Spoken prompt (optional)',
+            lines: 2,
+            helper: 'Optional audio played before the learner fills the gaps.',
+          ),
+        ];
+      case 'complete_text':
+        return [
+          _field(
+            _prompt,
+            'Text with the words to hide',
+            lines: 5,
+            helper:
+                'Write the complete text; the words listed below become gaps.',
+          ),
+          _field(
+            _missingWords,
+            'Missing words',
+            lines: 4,
+            helper: 'One per line, in order; each must occur in the text.',
+          ),
+        ];
+      case 'missing_letters':
+        return [
+          _field(
+            _prompt,
+            'Text with the missing letters in brackets',
+            lines: 4,
+            helper:
+                'Write the complete text and put the missing letters inside square brackets: My cat doesn\'t dr[ink] milk. The learner sees dr___ milk and types ink.',
+          ),
+          _field(
+            _tts,
+            'Spoken text (optional)',
+            lines: 2,
+            helper: 'The complete text, read aloud before the learner types.',
+          ),
+          _field(_hint, 'Hint (optional)'),
+        ];
+      case 'gap_blocks':
+        return [
+          _field(_prompt, 'Instruction (optional)', lines: 2),
+          _field(
+            _gapLayout,
+            'Sentence with gaps',
+            lines: 3,
+            helper:
+                'Write the fixed sentence and put each answer word or phrase directly inside braces: {answer}. Literal { or } characters can\'t appear anywhere else. Example: Io {vorrei} un caffè.',
+          ),
+          _field(
+            _tokens,
+            'Extra distractor blocks (optional)',
+            lines: 3,
+            helper:
+                'One extra block per line that is not used to fill any gap. Include 0, 1 or at most 2 distractors.',
+          ),
+          _field(
+            _tts,
+            'Spoken prompt (optional)',
+            lines: 2,
+            helper: 'Optional audio played before the learner fills the gaps.',
+          ),
+        ];
+      case 'sentence_order':
+        return [
+          _field(
+            _prompt,
+            'Instruction',
+            lines: 2,
+            helper: 'Example: Put the lines of the dialogue in order.',
+          ),
+          _field(
+            _tokens,
+            'Sentences or lines',
+            lines: 6,
+            helper:
+                'One sentence per line, in any order. You may add 0, 1 or at most 2 extra distractor lines.',
+          ),
+          _field(
+            _order,
+            'Correct order',
+            lines: 6,
+            helper: 'The lines in the right order, one per line.',
+          ),
+        ];
+      case 'listening_image_choice':
+        return [
+          _field(
+            _tts,
+            'Spoken text',
+            lines: 2,
+            helper: 'The word or sentence the learner hears.',
+          ),
+          _field(_question, 'Question (optional)', lines: 2),
+          _field(
+            _answers,
+            'Answers',
+            lines: 4,
+            helper: 'One per line; each answer gets a picture below.',
+          ),
+          _field(_correct, 'Correct answer number'),
+          _answerPictures(),
+        ];
+      case 'spell_heard':
+        return [
+          _field(
+            _tts,
+            'Spoken word',
+            helper: 'The word the learner hears and spells.',
+          ),
+          _field(
+            _order,
+            'Blocks of the word, in order',
+            lines: 5,
+            helper:
+                'One letter or syllable per line, in the right order; the learner gets exactly these blocks, shuffled.',
+          ),
+        ];
+      case 'picture_choice':
+        return [
+          _field(
+            _question,
+            'Question',
+            lines: 2,
+            helper:
+                'Example: What is this? Choose the picture below, in Image.',
+          ),
+          _field(_answers, 'Answers', lines: 4),
+          _field(_correct, 'Correct answer number'),
+        ];
+      case 'picture_name':
+        return [
+          _field(
+            _question,
+            'Question / instruction',
+            lines: 2,
+            helper:
+                'Example: What is this? Choose the picture below, in Image.',
+          ),
+          _field(
+            _accepted,
+            'Accepted answers',
+            lines: 4,
+            helper:
+                'One complete answer per line. Optional {...}, alternatives [a|b] and scoped reorder (a <> b) are supported.',
+          ),
+          const Text('Use lowercase except for proper names.'),
+          const SizedBox(height: 8),
+          _field(_hint, 'Hint (optional)'),
+        ];
+      case 'spell_word':
+        return [
+          _field(
+            _prompt,
+            'Clue',
+            lines: 2,
+            helper: 'The word or a definition in the source language.',
+          ),
+          _field(
+            _order,
+            'Blocks of the word, in order',
+            lines: 5,
+            helper:
+                'One letter or syllable per line, in the right order; the learner gets exactly these blocks, shuffled.',
+          ),
+        ];
+      case 'picture_word_match':
+        return [
+          _field(
+            _prompt,
+            'Instruction',
+            lines: 2,
+            helper: 'Example: Match each picture with its word.',
+          ),
+          _field(
+            _answers,
+            'Words',
+            lines: 4,
+            helper:
+                'One word per line, at least two. The pictures below follow this order: the first picture goes with the first word, and so on.',
+          ),
+          _answerPictures(title: 'Pictures, in the order of the words'),
+        ];
+      case 'sort_into_groups':
+        return [
+          _field(
+            _question,
+            'Question',
+            lines: 2,
+            helper: 'Example: Sort the words: animals or food?',
+          ),
+          _field(
+            _groups,
+            'Groups',
+            lines: 4,
+            helper:
+                'One group per line: the group name, a colon, then its words separated by commas. Usually two or more groups. Example: Animals: gatto, cane',
+          ),
+          _field(
+            _leftover,
+            'Words that belong nowhere (optional)',
+            lines: 2,
+            helper:
+                'One per line; they are offered too and the learner must leave them in the bank.',
+          ),
+        ];
+      case 'fill_the_slots':
+        return [
+          _field(
+            _question,
+            'Question',
+            lines: 2,
+            helper: 'Example: Which article goes with each noun?',
+          ),
+          _field(
+            _slots,
+            'Slots',
+            lines: 4,
+            helper:
+                'One slot per line: what the learner sees, an equals sign, then the word that fills it. Example: … gatto = il',
+          ),
+          _field(
+            _extraWords,
+            'Extra words (optional)',
+            lines: 2,
+            helper: 'Words offered that fill no slot, one per line.',
+          ),
           SwitchListTile(
-            key: const Key('choice-use-inline-gaps'),
-            title: const Text('Inline gaps'),
+            key: const Key('slot-reuse'),
+            contentPadding: EdgeInsets.zero,
+            title: const Text('A word may fill more than one slot'),
             subtitle: const Text(
-              'Fill one or more blanks inside a fixed question by tapping '
-              'options in order instead of choosing one whole answer. Each '
-              'tap fills the first empty blank; the same option can be '
-              'tapped again for another blank. Disables multiple correct '
-              'answers.',
+              'On: a word stays in the bank after each use, so the same word can be the answer of several slots.',
             ),
-            value: _useInlineGaps,
+            secondary: _helpButton('slotReuse'),
+            value: _slotReuse,
             onChanged: widget.readOnly
                 ? null
                 : (value) => setState(() {
-                    _useInlineGaps = value;
-                    if (value) _useMultiSelect = false;
+                    _slotReuse = value;
                     _dirty = true;
                   }),
           ),
-          if (_useInlineGaps) ...[
+        ];
+      case 'dialogue_line':
+        final characters =
+            widget.course?.storyCharacters ?? const <StorySpeaker>[];
+        return [
+          _choiceField(
+            fieldKey: 'speaker',
+            label: 'Speaker',
+            value: _speakerId,
+            choices: {
+              '': 'Narrator',
+              for (final character in characters)
+                character.id: character.name.isEmpty
+                    ? character.id
+                    : character.name,
+              if (_speakerId.isNotEmpty &&
+                  !characters.any((character) => character.id == _speakerId))
+                _speakerId: 'Unknown character ($_speakerId)',
+            },
+            onChanged: (value) => _speakerId = value,
+            helper: characters.isEmpty
+                ? 'Characters are added in the Course Editor › Story characters.'
+                : 'The narrator or one of this Course\'s Story characters.',
+          ),
+          _field(
+            _prompt,
+            'Line',
+            lines: 2,
+            helper:
+                'What is said, in the speaker\'s language unless Language says otherwise.',
+          ),
+          _choiceField(
+            fieldKey: 'lineMode',
+            label: 'Mode',
+            value: _lineMode,
+            choices: const {
+              'both': 'Text and audio',
+              'text': 'Text only',
+              'audio': 'Audio only',
+            },
+            onChanged: (value) => _lineMode = value,
+          ),
+          if (_lineMode != 'text')
+            _choiceField(
+              fieldKey: 'readAloud',
+              label: 'Read-aloud',
+              value: _lineReadAloud,
+              choices: const {
+                'story': 'As the Story says',
+                'automatic': 'Automatic',
+                'manual': 'On request',
+              },
+              onChanged: (value) => _lineReadAloud = value,
+            ),
+          if (_lineMode == 'both')
+            _choiceField(
+              fieldKey: 'textReveal',
+              label: 'Show text',
+              value: _lineTextReveal,
+              choices: const {
+                'immediate': 'Immediately',
+                'afterAudio': 'After listening',
+              },
+              onChanged: (value) => _lineTextReveal = value,
+            ),
+          _choiceField(
+            fieldKey: 'language',
+            label: 'Language',
+            value: _lineLanguage,
+            choices: const {
+              '': 'The speaker\'s language',
+              'target': 'Target language',
+              'source': 'Source language',
+            },
+            onChanged: (value) => _lineLanguage = value,
+          ),
+        ];
+      case 'story_cover':
+        return [
+          _field(
+            _prompt,
+            'Title line',
+            helper:
+                'Optional: a line under the Story title on the cover. The cover picture is the image below.',
+          ),
+        ];
+      case 'note_card':
+        return [
+          _field(_prompt, 'Title'),
+          _field(
+            _question,
+            'Note',
+            lines: 6,
+            helper:
+                'A tip, a grammar or a cultural note, in the language you prefer.',
+          ),
+        ];
+      case 'choice':
+        return [
+          _field(
+            _prompt,
+            'Prompt (optional)',
+            lines: 2,
+            helper:
+                'An optional line above the question: an instruction or some context, e.g. Pick the verb form that fits. It takes the place of the standard “Choose the correct answer.” line.',
+          ),
+          _field(
+            _question,
+            'Question or sentence to complete',
+            lines: 2,
+            helper:
+                'What the learner answers: a question, or a sentence with a gap the answers complete, e.g. Which article goes with casa?',
+          ),
+          _field(_answers, 'Answers', lines: 4),
+          SwitchListTile(
+            key: const Key('choice-use-multi-select'),
+            title: const Text('Multiple correct answers'),
+            subtitle: const Text(
+              'Let the learner select more than one option. The answer '
+              'counts as correct only when the selected options exactly '
+              'match the correct set.',
+            ),
+            value: _useMultiSelect,
+            onChanged: widget.readOnly
+                ? null
+                : (value) => setState(() {
+                    _useMultiSelect = value;
+                    _dirty = true;
+                  }),
+          ),
+          if (_useMultiSelect) ...[
             _field(
-              _gapLayout,
-              'Sentence with gaps',
-              lines: 3,
+              _correct,
+              'Correct answer numbers',
               helper:
-                  'Write the sentence and put each answer word or phrase '
-                  'directly inside braces: {answer}. Example: I {am} going '
-                  '{to} London. Each blank is filled in order by the '
-                  'options the learner taps, so a wrong choice can land in '
-                  'the wrong blank. If the same word answers more than one '
-                  'gap, write it inside each of those braces — the '
-                  'learner taps it once per blank it needs to fill: '
-                  '{Was} she happy? {Was} he late? Literal { or } '
-                  'characters can\'t appear anywhere else.',
+                  'Numbers of every correct answer, starting at 1, '
+                  'separated by commas. Example: 1, 3',
             ),
             _field(
-              _tokens,
-              'Distractor options (optional)',
-              lines: 3,
+              _requiredSelections,
+              'Required selections (optional)',
               helper:
-                  'One extra option per line that is not the answer to any '
-                  'gap. Include 0, 1 or at most 2 distractors.',
+                  'Minimum number of options the learner must select '
+                  'before checking. Leave blank to default to the number '
+                  'of correct answers.',
             ),
-            _field(
-              _tts,
-              'Spoken prompt (optional)',
-              lines: 2,
-              helper:
-                  'Optional audio played before the learner fills the gaps.',
-            ),
-          ] else ...[
-            _field(_question, 'Question', lines: 2),
-            _field(_answers, 'Answers', lines: 4),
-            SwitchListTile(
-              key: const Key('choice-use-multi-select'),
-              title: const Text('Multiple correct answers'),
-              subtitle: const Text(
-                'Let the learner select more than one option. The answer '
-                'counts as correct only when the selected options exactly '
-                'match the correct set.',
-              ),
-              value: _useMultiSelect,
-              onChanged: widget.readOnly
-                  ? null
-                  : (value) => setState(() {
-                      _useMultiSelect = value;
-                      _dirty = true;
-                    }),
-            ),
-            if (_useMultiSelect) ...[
-              _field(
-                _correct,
-                'Correct answer numbers',
-                helper:
-                    'Numbers of every correct answer, starting at 1, '
-                    'separated by commas. Example: 1, 3',
-              ),
-              _field(
-                _requiredSelections,
-                'Required selections (optional)',
-                helper:
-                    'Minimum number of options the learner must select '
-                    'before checking. Leave blank to default to the number '
-                    'of correct answers.',
-              ),
-            ] else
-              _field(_correct, 'Correct answer number'),
-          ],
+          ] else
+            _field(_correct, 'Correct answer number'),
         ];
       default:
         return [
-          _field(_prompt, 'Prompt / instruction', lines: 2),
-          _field(_question, 'Question', lines: 2),
+          _field(
+            _prompt,
+            'Prompt (optional)',
+            lines: 2,
+            helper:
+                'An optional line above the question: an instruction or some context, e.g. Pick the verb form that fits. It takes the place of the standard “Choose the correct answer.” line.',
+          ),
+          _field(
+            _question,
+            'Question or sentence to complete',
+            lines: 2,
+            helper:
+                'What the learner answers: a question, or a sentence with a gap the answers complete, e.g. Which article goes with casa?',
+          ),
           _field(_answers, 'Answers', lines: 4),
           _field(_correct, 'Correct answer number'),
         ];
@@ -8890,18 +10930,50 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     if (widget.readOnly) return;
     final search = TextEditingController();
     var query = '';
+    // The direction filter (owner decision, Build 256 Revision 4): every
+    // preset, or only those the learner answers in the target language, or
+    // in the source language. Cards and notes have no direction and show
+    // under All only.
+    PresetDirection? direction;
+    bool matchesDirection(ExercisePreset preset) =>
+        direction == null ||
+        preset.direction == direction ||
+        preset.direction == PresetDirection.both;
+    bool matchesQuery(String name, String description, String group) {
+      final needle = query.toLowerCase();
+      return needle.isEmpty ||
+          name.toLowerCase().contains(needle) ||
+          description.toLowerCase().contains(needle) ||
+          group.toLowerCase().contains(needle);
+    }
+
     final selected = await showModalBottomSheet<String>(
       context: context,
       isScrollControlled: true,
       builder: (sheetContext) => StatefulBuilder(
         builder: (context, setSheetState) {
-          final visible = ExercisePresetRegistry.presets.where((preset) {
-            final needle = query.toLowerCase();
-            return needle.isEmpty ||
-                preset.name.toLowerCase().contains(needle) ||
-                preset.description.toLowerCase().contains(needle) ||
-                preset.category.label.toLowerCase().contains(needle);
-          }).toList();
+          final visible = ExercisePresetRegistry.presets
+              .where(
+                (preset) =>
+                    matchesDirection(preset) &&
+                    matchesQuery(
+                      preset.name,
+                      preset.description,
+                      preset.category.label,
+                    ),
+              )
+              .toList();
+          final later = direction != null
+              ? const <ComingLaterPreset>[]
+              : ExercisePresetRegistry.comingLater
+                    .where(
+                      (preset) => matchesQuery(
+                        preset.name,
+                        preset.description,
+                        ExerciseCategory.comingLater.label,
+                      ),
+                    )
+                    .toList();
           return SafeArea(
             child: DraggableScrollableSheet(
               expand: false,
@@ -8928,6 +11000,23 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
                     ),
                   ),
                   const SizedBox(height: 12),
+                  SegmentedButton<PresetDirection?>(
+                    key: const Key('exercise-preset-direction'),
+                    segments: const [
+                      ButtonSegment(value: null, label: Text('All')),
+                      ButtonSegment(
+                        value: PresetDirection.toTarget,
+                        label: Text('To target'),
+                      ),
+                      ButtonSegment(
+                        value: PresetDirection.toSource,
+                        label: Text('To source'),
+                      ),
+                    ],
+                    selected: {direction},
+                    onSelectionChanged: (values) =>
+                        setSheetState(() => direction = values.first),
+                  ),
                   for (final category in ExerciseCategory.values)
                     if (visible.any(
                       (preset) => preset.category == category,
@@ -8944,14 +11033,65 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
                         (preset) => preset.category == category,
                       ))
                         Card(
+                          key: ValueKey('exercise-preset-${preset.id}'),
                           child: ListTile(
+                            leading: _PresetActionChip(preset.action),
                             title: Text(preset.name),
-                            subtitle: Text(preset.description),
+                            subtitle: Text(
+                              preset.direction == PresetDirection.none ||
+                                      preset.direction == PresetDirection.both
+                                  ? preset.description
+                                  : '${preset.description} · ${preset.direction.label}',
+                            ),
                             trailing: const Icon(Icons.chevron_right),
                             onTap: () => Navigator.pop(sheetContext, preset.id),
                           ),
                         ),
                     ],
+                  if (later.isNotEmpty) ...[
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(4, 12, 4, 4),
+                      child: Text(
+                        ExerciseCategory.comingLater.label,
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.w800),
+                      ),
+                    ),
+                    for (final preset in later)
+                      Card(
+                        key: ValueKey('exercise-preset-later-${preset.id}'),
+                        child: ListTile(
+                          enabled: false,
+                          leading: _PresetActionChip(preset.action),
+                          title: Text(preset.name),
+                          subtitle: Text(
+                            '${preset.description}\nIn a later version: ${preset.reason}',
+                          ),
+                        ),
+                      ),
+                  ],
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(4, 12, 4, 4),
+                    child: Text(
+                      'Every primitive',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                  Card(
+                    key: const Key('exercise-preset-canonical'),
+                    child: ListTile(
+                      leading: const Icon(Icons.tune),
+                      title: const Text('Canonical editor'),
+                      subtitle: const Text(
+                        'Every canonical field of any primitive, with the values the capability registry allows. No preset.',
+                      ),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () =>
+                          Navigator.pop(sheetContext, _canonicalEditorChoice),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -8960,10 +11100,19 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
       ),
     );
     WidgetsBinding.instance.addPostFrameCallback((_) => search.dispose());
+    if (selected == _canonicalEditorChoice) {
+      await _openCanonicalEditor();
+      return;
+    }
     if (selected != null && mounted) {
       final previousType = _type;
+      final untouched = _formSnapshot() == _openedSnapshot;
       setState(() {
-        const arrangeFamily = {'word_order', 'build_translation'};
+        const arrangeFamily = {
+          'word_order',
+          'build_translation_to_target',
+          'build_translation_to_source',
+        };
         final staySameFamily =
             arrangeFamily.contains(previousType) &&
             arrangeFamily.contains(selected);
@@ -8977,7 +11126,16 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
             _correct.text.trim().isEmpty) {
           _correct.text = '1';
         }
+        // True or false starts with its two answers in the source language.
+        if (selected == 'true_false' && _answers.text.trim().isEmpty) {
+          _answers.text = _trueFalseAnswers().join('\n');
+          if (_correct.text.trim().isEmpty) _correct.text = '1';
+        }
         _dirty = true;
+        // A new exercise with nothing typed yet: the chosen type is its
+        // starting point, not a change to keep (owner report, 27 September
+        // 2026). An existing exercise's type change stays a change.
+        if (widget.isNew && untouched) _openedSnapshot = _formSnapshot();
       });
     }
   }
@@ -8995,6 +11153,21 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         requireValidAnswer: requireValidAnswer,
         useInlineGaps: _useInlineGaps,
         useMultiSelect: _useMultiSelect,
+        revealFirstLetter: _revealFirstLetter,
+        textRole: _textRole,
+        audioRole: _audioRole,
+        matchSides: _matchSides,
+        speakerId: _speakerId,
+        lineMode: _lineMode,
+        lineReadAloud: _lineReadAloud,
+        lineTextReveal: _lineTextReveal,
+        lineLanguage: _lineLanguage,
+        groups: _groups.text,
+        leftover: _leftover.text,
+        slots: _slots.text,
+        extraWords: _extraWords.text,
+        slotReuse: _slotReuse,
+        cardReadAloud: _cardReadAloud,
         prompt: _prompt.text,
         question: _question.text,
         tts: _tts.text,
@@ -9005,7 +11178,9 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         tokens: _tokens.text,
         order: _order.text,
         gapLayout: _gapLayout.text,
-        pairs: _pairs.text,
+        pairs: _type == 'picture_word_match'
+            ? _picturePairsText()
+            : _pairs.text,
         icons: _icons.text,
         missingWords: _missingWords.text,
         context: _context.text,
@@ -9087,6 +11262,23 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
             'text, e.g. {answer}, not an empty {}.',
       ExerciseDraftErrorCode.scriptCandidateMissing =>
         'Recognize characters: reopen this Exercise to restore its options.',
+      ExerciseDraftErrorCode.groupLine =>
+        'Groups line ${error.line}: write the group name, a colon, then '
+            'its words separated by commas, e.g. Animals: gatto, cane.',
+      ExerciseDraftErrorCode.groupsRequired =>
+        'Groups: enter at least one group with its words.',
+      ExerciseDraftErrorCode.groupWordRepeated =>
+        'Groups: “${error.detail}” is listed more than once. A word can '
+            'be in one group only, or among the words that belong nowhere.',
+      ExerciseDraftErrorCode.slotLine =>
+        'Slots line ${error.line}: write what the learner sees, an equals '
+            'sign, then the word that fills the slot, e.g. … gatto = il.',
+      ExerciseDraftErrorCode.slotsRequired =>
+        'Slots: enter at least one slot with its word.',
+      ExerciseDraftErrorCode.slotWordRepeated =>
+        'Slots: “${error.detail}” is listed more than once. Turn on “A '
+            'word may fill more than one slot” when one word answers '
+            'several slots; an extra word cannot repeat a slot word.',
     };
     final longFeedback =
         error.code == ExerciseDraftErrorCode.translationChoiceAnswers ||
@@ -9103,11 +11295,11 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
   }
 
   Future<bool> _validateScriptImages(Exercise candidate) async {
-    if (candidate.type != 'script_recognition') return true;
+    if (candidate.editorTemplate != 'script_recognition') return true;
     final assets = {
       for (final element in candidate.promptElements)
         if (element.type == 'image' && element.asset.isNotEmpty) element.asset,
-      for (final item in candidate.interaction.items)
+      for (final item in candidate.items)
         for (final element in item.content)
           if (element.type == 'image' && element.asset.isNotEmpty)
             element.asset,
@@ -9140,10 +11332,10 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     PublicationState publicationState, {
     bool close = true,
   }) async {
-    if (widget.readOnly || _inspection) return false;
+    if (widget.readOnly || _inspection || _unrepresentable) return false;
     if (!publicationState.isPublished &&
         _exercise.publicationState.isPublished &&
-        !await _confirmMoveToDraft(context, 'Exercise')) {
+        !await confirmMoveToDraft(context, 'Exercise')) {
       return false;
     }
     if (!mounted) return false;
@@ -9253,6 +11445,8 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     setState(() {
       _exercise = exercise;
       _dirty = false;
+      _scriptDirty = false;
+      _openedSnapshot = _formSnapshot();
       _routeMayPop = close;
     });
     if (!close) return;
@@ -9339,8 +11533,63 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
       ? -1
       : _navigationExercises.indexWhere((item) => item.id == _exercise.id);
 
+  /// The form's fields as one comparable string: what the creator can
+  /// change in this preset form, in the state it was opened or last saved.
+  String _formSnapshot() => [
+    _type,
+    _contextMode,
+    _useMultiSelect,
+    _useInlineGaps,
+    _revealFirstLetter,
+    _speakerId,
+    _lineMode,
+    _lineReadAloud,
+    _lineTextReveal,
+    _lineLanguage,
+    _slotReuse,
+    _cardReadAloud,
+    _imageAsset,
+    _selectedSharedSource?.id ?? '',
+    for (final controller in [
+      _prompt,
+      _question,
+      _tts,
+      _hint,
+      _answers,
+      _correct,
+      _accepted,
+      _tokens,
+      _order,
+      _gapLayout,
+      _pairs,
+      _icons,
+      _missingWords,
+      _context,
+      _dialogue,
+      _requiredSelections,
+      _groups,
+      _leftover,
+      _slots,
+      _extraWords,
+    ])
+      controller.text,
+    for (final controller in _correctTranslations) controller.text,
+  ].join('\u0001');
+
+  String _openedSnapshot = '';
+
+  /// True when the form differs from what it opened with (or last saved).
+  /// The dirty flag alone is not enough: a control touched without a change
+  /// must not ask the creator to discard anything.
+  bool get _hasUnsavedChanges =>
+      _dirty &&
+      (_formSnapshot() != _openedSnapshot ||
+          (_type == 'script_recognition' && _scriptDirty));
+
+  bool _scriptDirty = false;
+
   Future<bool> _resolveUnsavedChanges() async {
-    if (!_dirty) return true;
+    if (!_hasUnsavedChanges) return true;
     final action = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
@@ -9405,61 +11654,56 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
       setState(() {
         _exercise = e;
         _loadScriptController();
-        _type = e.type;
-        _prompt.text = e.prompt;
-        _question.text = e.question;
-        _tts.text = e.tts ?? '';
-        _hint.text = e.hint;
-        _answers.text = e.answers.join('\n');
-        _useMultiSelect = e.isMultiSelect;
-        _correct.text = e.isMultiSelect
-            ? _multiSelectCorrectNumbersText(e)
-            : (e.correct == null
-                  ? (TranslationChoice.isTranslationChoice(e.type) ? '1' : '')
-                  : '${e.correct! + 1}');
-        _requiredSelections.text = e.isMultiSelect
-            ? '${e.requiredSelectionCount}'
-            : '';
-        _accepted.text = e.accepted.join('\n');
-        _useInlineGaps = e.hasArrangeGaps || e.hasSelectGaps;
-        _tokens.text = (e.hasArrangeGaps || e.hasSelectGaps)
-            ? _distractorTexts(e).join('\n')
-            : e.tokens.join('\n');
-        _order.text = e.orderAnswer.join('\n');
-        _gapLayout.text = _gapLayoutText(e);
-        _pairs.text = e.pairs.map((pair) => pair.join(' = ')).join('\n');
-        _icons.text = e.icons.join('\n');
-        _missingWords.text =
-            (e.type == 'listening_spelling' ? e.accepted : e.missingWords).join(
-              '\n',
-            );
-        _context.text = e.contextText;
-        _dialogue.text = e.dialogueTurns
-            .map((turn) => '${turn.speaker}: ${turn.text}')
-            .join('\n');
-        _contextMode = e.contextMode;
-        _imageAsset = e.imageAsset;
-        _selectedSharedSource = e.promptElements
-            .where(
-              (element) =>
-                  element.type == 'image' && element.asset == _imageAsset,
-            )
-            .firstOrNull
-            ?.sharedImageSource;
+        _type =
+            PresetRecipes.presetToEdit(e) ??
+            PresetRecipes.defaultPresetFor(e.primitive) ??
+            'choice_target';
+        final draft = PresetRecipes.decompose(e, _type);
+        _prompt.text = draft.prompt;
+        _question.text = draft.question;
+        _tts.text = draft.tts;
+        _hint.text = draft.hint;
+        _answers.text = draft.answers;
+        _useMultiSelect = draft.useMultiSelect;
+        _correct.text = _initialCorrect(e, draft);
+        _requiredSelections.text = draft.requiredSelections;
+        _accepted.text = draft.accepted;
+        _useInlineGaps = draft.useInlineGaps;
+        _revealFirstLetter = draft.revealFirstLetter;
+        _textRole = draft.textRole;
+        _audioRole = draft.audioRole;
+        _matchSides = draft.matchSides;
+        _readLineFields(draft);
+        _slotReuse = draft.slotReuse;
+        _cardReadAloud = draft.cardReadAloud;
+        _tokens.text = draft.tokens;
+        _order.text = draft.order;
+        _gapLayout.text = draft.gapLayout;
+        _pairs.text = draft.pairs;
+        _icons.text = draft.icons;
+        if (_type == 'picture_word_match') _splitPicturePairs(draft.pairs);
+        _missingWords.text = draft.missingWords;
+        _context.text = draft.context;
+        _dialogue.text = draft.dialogue;
+        _groups.text = draft.groups;
+        _leftover.text = draft.leftover;
+        _slots.text = draft.slots;
+        _extraWords.text = draft.extraWords;
+        _contextMode = draft.contextMode;
+        _imageAsset = draft.imageAsset;
+        _selectedSharedSource = draft.selectedSharedSource;
         for (final controller in _correctTranslations) {
           controller.dispose();
         }
         _correctTranslations.clear();
-        for (final text
-            in e.correctTranslationTexts.isEmpty
-                ? ['']
-                : e.correctTranslationTexts) {
+        for (final text in draft.correctTranslations) {
           _correctTranslations.add(_translationController(text));
         }
         _correctTranslationError = null;
         _correctTranslationErrorIndexes = const {};
         _dirty = false;
         _inspection = widget.initiallyInspecting;
+        _openedSnapshot = _formSnapshot();
       });
     } finally {
       _navigationBusy = false;
@@ -9470,6 +11714,61 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     if (_inspection == value) return;
     setState(() => _inspection = value);
   }
+
+  static const _canonicalEditorChoice = '__canonical_editor__';
+
+  /// True when no preset represents the stored exercise exactly: the preset
+  /// form then shows its closest reading but must not save it, because a
+  /// save would drop what the form cannot show (plan A.13).
+  bool get _unrepresentable =>
+      !widget.isNew && PresetRecipes.presetToEdit(_exercise) == null;
+
+  /// Opens the Generic Primitive Editor on this exercise; a saved result is
+  /// accepted exactly as a preset-form save is.
+  Future<void> _openCanonicalEditor() async {
+    if (widget.readOnly) return;
+    final exercise = _unrepresentable
+        ? _exercise
+        : (_buildCandidate(
+                _exercise.publicationState,
+                attachSelectedSharedSource: true,
+              ) ??
+              _exercise);
+    final result = await Navigator.of(context).push<Exercise>(
+      MaterialPageRoute(
+        builder: (_) => PrimitiveEditorScreen(
+          exercise: exercise,
+          title: widget.title,
+          isNew: widget.isNew,
+          clock: _clock,
+          course: widget.course,
+          lesson: widget.lesson,
+          round: widget.round,
+          readOnly: widget.readOnly,
+        ),
+      ),
+    );
+    if (result == null || !mounted) return;
+    await _persistAndClose(result);
+  }
+
+  Widget _unrepresentableNotice() => Card(
+    key: const Key('exercise-unrepresentable-notice'),
+    child: ListTile(
+      leading: const Icon(Icons.tune),
+      title: const Text('No preset represents this exercise exactly'),
+      subtitle: const Text(
+        'This form shows its closest reading and cannot save it, because a save would drop what the form does not show. Edit it in the canonical editor.',
+      ),
+      trailing: widget.readOnly
+          ? null
+          : FilledButton(
+              key: const Key('exercise-open-canonical'),
+              onPressed: _openCanonicalEditor,
+              child: const Text('Open'),
+            ),
+    ),
+  );
 
   String get _pageTitle {
     if (_inspection) return 'Exercise inspection';
@@ -9537,6 +11836,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
             ),
           if (_exercise.id.trim().isNotEmpty)
             EditorInternalIdText(label: 'Exercise', id: _exercise.id),
+          if (_unrepresentable) _unrepresentableNotice(),
           Wrap(
             spacing: 8,
             runSpacing: 8,
@@ -9638,7 +11938,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
               ),
               OutlinedButton.icon(
                 key: const Key('exercise-save-draft'),
-                onPressed: widget.readOnly || _inspection
+                onPressed: widget.readOnly || _inspection || _unrepresentable
                     ? null
                     : () => _save(PublicationState.draft),
                 icon: const Icon(Icons.save_outlined),
@@ -9646,7 +11946,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
               ),
               FilledButton.icon(
                 key: const Key('exercise-save'),
-                onPressed: widget.readOnly || _inspection
+                onPressed: widget.readOnly || _inspection || _unrepresentable
                     ? null
                     : () => _save(PublicationState.published),
                 icon: const Icon(Icons.save_outlined),
@@ -10003,22 +12303,24 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
           'On-Device TTS: this device reads the Course text aloud with its own text-to-speech voice. No MP3 files are needed. Choose Recorded MP3 only or Hybrid to manage Course recordings.',
       }),
       const SizedBox(height: 8),
-      if (_course.audioMode != 'tts') Card(
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Text(
-            'Import MP3: copy the MP3 files you want to import to ${QqlStorageLayout.current.folderLabel(QqlStorageRole.audioImports)}, then press Import MP3. All MP3 files in that folder are imported. Source files are left in place, so move or remove them after a successful import to avoid importing them again.',
+      if (_course.audioMode != 'tts')
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Text(
+              'Import MP3: copy the MP3 files you want to import to ${QqlStorageLayout.current.folderLabel(QqlStorageRole.audioImports)}, then press Import MP3. All MP3 files in that folder are imported. Source files are left in place, so move or remove them after a successful import to avoid importing them again.',
+            ),
           ),
         ),
-      ),
-      if (_course.audioMode != 'tts') ListTile(
-        title: const Text('Check unused MP3 files'),
-        subtitle: const Text(
-          'Find recordings not associated with any course text.',
+      if (_course.audioMode != 'tts')
+        ListTile(
+          title: const Text('Check unused MP3 files'),
+          subtitle: const Text(
+            'Find recordings not associated with any course text.',
+          ),
+          trailing: const Icon(Icons.cleaning_services_outlined),
+          onTap: _orphans,
         ),
-        trailing: const Icon(Icons.cleaning_services_outlined),
-        onTap: _orphans,
-      ),
       if (letters.isNotEmpty)
         SizedBox(
           height: 46,
@@ -10105,27 +12407,29 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
         if (!didPop) _leave();
       },
       child: Scaffold(
-      appBar: AppBar(
-        title: const Text('Audio Library'),
-        actions: [
-          if (_course.audioMode != 'tts' && _audio.fileDialogsAvailable)
-            IconButton(
-              key: const Key('open-mp3-from'),
-              tooltip: 'Open MP3 from…',
-              onPressed: _importFromDialog,
-              icon: const Icon(Icons.folder_open_outlined),
-            ),
-        ],
-      ),
-      floatingActionButton: _course.audioMode == 'tts' ? null : FloatingActionButton.extended(
-        onPressed: _import,
-        icon: const Icon(Icons.library_music_outlined),
-        label: const Text('Import MP3'),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(12, 12, 12, 90),
-        children: children,
-      ),
+        appBar: AppBar(
+          title: const Text('Audio Library'),
+          actions: [
+            if (_course.audioMode != 'tts' && _audio.fileDialogsAvailable)
+              IconButton(
+                key: const Key('open-mp3-from'),
+                tooltip: 'Open MP3 from…',
+                onPressed: _importFromDialog,
+                icon: const Icon(Icons.folder_open_outlined),
+              ),
+          ],
+        ),
+        floatingActionButton: _course.audioMode == 'tts'
+            ? null
+            : FloatingActionButton.extended(
+                onPressed: _import,
+                icon: const Icon(Icons.library_music_outlined),
+                label: const Text('Import MP3'),
+              ),
+        body: ListView(
+          padding: const EdgeInsets.fromLTRB(12, 12, 12, 90),
+          children: children,
+        ),
       ),
     );
   }

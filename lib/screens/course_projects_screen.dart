@@ -2176,7 +2176,8 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
               child: Text(
                 'Verified publisher: ${course.publisherName}.\nCourse ID: ${course.courseId}\nVersion: ${course.officialCourseVersion}.\n'
                 'The signed Course JSON pins every packaged media file by its SHA-256 name. Official courses remain read only; custom forks remain unchanged.'
-                '${existing != null && existing.publisherVerificationStatus != PublisherVerificationStatus.verified ? '\n\nVerification required for the existing version ${existing.officialCourseVersion} from ${existing.publisherName}. Confirm association with this signed release to reactivate this course and retain its progress.' : ''}',
+                '${existing != null && existing.publisherVerificationStatus != PublisherVerificationStatus.verified ? '\n\nVerification required for the existing version ${existing.officialCourseVersion} from ${existing.publisherName}. Confirm association with this signed release to reactivate this course and retain its progress.' : ''}'
+                '${review.notExecutableCount > 0 ? '\n\n${CourseLibraryReports.notExecutableNote(review.notExecutableCount).trim()}' : ''}',
               ),
             ),
             actions: [
@@ -2231,6 +2232,15 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
                           ? 'A newer version of the received Custom Course “${existing.title}” is available. Update to version ${course.courseVersion}, create an available Copy as New Course or Fork, or cancel?'
                           : 'A custom Course with ID “${course.courseId}” already exists. Replace “${existing.title}”, create an available Copy as New Course or Fork, or cancel?',
                     ),
+                    if (review.notExecutableCount > 0) ...[
+                      const SizedBox(height: 12),
+                      Text(
+                        CourseLibraryReports.notExecutableNote(
+                          review.notExecutableCount,
+                        ).trim(),
+                        key: const Key('import-not-executable-note'),
+                      ),
+                    ],
                     if (!_library.importAuthoringEnabled) ...[
                       const SizedBox(height: 12),
                       const Text(
@@ -2313,7 +2323,11 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
         SnackBar(
           duration: const Duration(seconds: 8),
           content: Text(
-            CourseLibraryReports.imported(course, review.warnings.length),
+            CourseLibraryReports.imported(
+              course,
+              review.warnings.length,
+              notExecutable: review.notExecutableCount,
+            ),
           ),
         ),
       );

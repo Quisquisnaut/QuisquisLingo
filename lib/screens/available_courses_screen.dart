@@ -213,7 +213,7 @@ class _AvailableCoursesScreenState extends State<AvailableCoursesScreen> {
     try {
       final editor = widget.editorService ?? CourseEditorService();
       final courses = <Course>[
-        for (final code in CourseService.courseAssets.keys)
+        for (final code in CourseService.bundledAssets.keys)
           await CourseService().loadCourse(code),
         ...await editor.listUserCourses(),
       ];

@@ -49,7 +49,7 @@ void main() {
       await _settle(tester);
       expect(find.byType(ExerciseEditorScreen), findsOneWidget);
 
-      await tester.enterText(_field('Prompt / instruction'), 'Edited prompt');
+      await tester.enterText(_field('Prompt (optional)'), 'Edited prompt');
       await tester.scrollUntilVisible(
         find.byKey(const Key('exercise-save-draft')),
         350,

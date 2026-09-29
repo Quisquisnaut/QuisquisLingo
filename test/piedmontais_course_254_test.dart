@@ -26,11 +26,11 @@ void main() {
     'Piedmontese demo is an independent published v11 bundled identity',
     () async {
       final course = await loadCourse();
-      expect(course.formatVersion, 11);
+      expect(course.formatVersion, 12);
       expect(course.courseId, 'course_e5f5585a-7762-43a0-a6b2-62754e02d17b');
       expect(course.originType, CourseOriginType.bundledOfficial);
       // Build 255 Revision 6 renamed it from Piedmontais, keeping its ID.
-      expect(course.title, 'AI-Slop Demo: Piedmontese');
+      expect(course.title, 'Temporary Demo: Piedmontese');
       expect(course.learningLanguage, 'Piedmontese');
       expect(course.sourceLanguage, 'English');
       expect(course.targetLanguage, 'Piedmontese');
@@ -58,8 +58,12 @@ void main() {
     () async {
       final course = await loadCourse();
       final presets = ExercisePresetRegistry.presets;
-      expect(course.lessons, hasLength(presets.length));
-      expect(presets, hasLength(24));
+      // One Lesson per preset, except Story cover (a Story of covers alone
+      // belongs to the Edge Case demo; owner decision, 28 September 2026)
+      // and the two Assign presets (the Laboratory's Assign Lesson shows
+      // them; owner decision, 29 September 2026).
+      expect(course.lessons, hasLength(presets.length - 3));
+      expect(presets, hasLength(42));
       final seenTypes = <String>{};
       for (final lesson in course.lessons) {
         expect(lesson.publicationState, PublicationState.published);
@@ -67,7 +71,9 @@ void main() {
         final round = lesson.rounds.single;
         expect(round.publicationState, PublicationState.published);
         expect(round.exercises, hasLength(3));
-        final types = round.exercises.map((exercise) => exercise.type).toSet();
+        final types = round.exercises
+            .map((exercise) => exercise.editorTemplate)
+            .toSet();
         expect(types, hasLength(1), reason: lesson.title);
         final type = types.single;
         expect(seenTypes.add(type), isTrue, reason: lesson.title);
@@ -83,12 +89,16 @@ void main() {
           isTrue,
         );
       }
-      expect(seenTypes, presets.map((preset) => preset.id).toSet());
+      expect(
+        seenTypes,
+        presets.map((preset) => preset.id).toSet()
+          ..removeAll(['story_cover', 'sort_into_groups', 'fill_the_slots']),
+      );
     },
   );
 
   test(
-    'all 72 Piedmontese examples pass Audit and enter the runnable queue',
+    'all 117 Piedmontese examples pass Audit and enter the runnable queue',
     () async {
       final course = await loadCourse();
       final audit = CourseAuditService().auditCourse(course);
@@ -135,7 +145,9 @@ void main() {
           }
         }
       }
-      expect(playable.laurelEligibleRoundIds(course), hasLength(24));
+      // Rounds of cards or lines only (Flashcard, Picture flashcard, Note
+      // card, Dialogue line) can be completed but never earn a Laurel.
+      expect(playable.laurelEligibleRoundIds(course), hasLength(35));
     },
   );
 
@@ -156,7 +168,10 @@ void main() {
           expect(exercise.missingWords, isNotEmpty);
           for (final word in exercise.missingWords) {
             expect(exercise.prompt, contains(word));
-            expect(exercise.tts, contains(word));
+            // Complete the text and Missing letters may have no audio.
+            if (exercise.editorTemplate == 'missing_word') {
+              expect(exercise.tts, contains(word));
+            }
           }
         } else if (exercise.interaction.kind == 'input') {
           final answers = engine.validAnswers(exercise.accepted);
@@ -190,6 +205,13 @@ void main() {
               hasLength(items.length),
             );
           }
+        } else if (exercise.interaction.kind == 'select' &&
+            exercise.hasSelectGaps) {
+          // Pick the words for the gaps: one option per gap, reusable.
+          expect(evaluation.gapAssignments, isNotEmpty);
+          for (final id in evaluation.gapAssignments.values) {
+            expect(items.keys, contains(id));
+          }
         } else if (exercise.interaction.kind == 'select') {
           expect(evaluation.correctItemIds, hasLength(1));
           expect(items.keys, contains(evaluation.correctItemIds.single));
@@ -203,7 +225,10 @@ void main() {
         }
       }
       final translations = all
-          .where((exercise) => exercise.type == 'type_translation')
+          .where(
+            (exercise) =>
+                exercise.editorTemplate == 'type_translation_to_target',
+          )
           .toList();
       expect(engine.validAnswers(translations.first.accepted), [
         'grassie',
@@ -213,7 +238,9 @@ void main() {
         'I son content',
         'Mi i son content',
       });
-      final horse = all.where((exercise) => exercise.type == 'image_word').last;
+      final horse = all
+          .where((exercise) => exercise.editorTemplate == 'image_word')
+          .last;
       expect(horse.evaluation.correctOrders.single.text, 'caval');
       expect(
         horse.interaction.items.where((item) => item.text == 'a'),

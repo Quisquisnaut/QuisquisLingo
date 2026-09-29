@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
+import 'package:quisquislingo_app/models/exercise_features.dart';
 import 'package:quisquislingo_app/models/exercise_authoring.dart';
 import 'package:quisquislingo_app/screens/course_editor_screen.dart';
 import 'package:quisquislingo_app/screens/duel_screen.dart';
@@ -251,9 +252,9 @@ void main() {
   });
 
   group('registry and model', () {
-    test('both presets appear in the Translation category', () {
+    test('both presets appear in the Vocabulary group', () {
       final translation = ExercisePresetRegistry.inCategory(
-        ExerciseCategory.translation,
+        ExerciseCategory.vocabulary,
       ).map((preset) => preset.id);
       expect(translation, contains(_toTarget));
       expect(translation, contains(_toSource));
@@ -270,7 +271,7 @@ void main() {
     test('both presets resolve to the existing Select primitive', () {
       for (final id in [_toTarget, _toSource]) {
         final preset = ExercisePresetRegistry.byId(id)!;
-        expect(preset.model, CanonicalExerciseModel.select);
+        expect(preset.primitive, ExercisePrimitive.select);
         expect(preset.description, startsWith('Select:'));
         expect(ExercisePresetRegistry.helpByPreset[id], startsWith('Select'));
         final exercise = _translationChoice(type: id);
@@ -369,11 +370,11 @@ void main() {
 
     test('existing exercise types remain available and unchanged', () {
       for (final id in [
-        'choice',
+        'choice_target',
         'gap_choice',
-        'type_translation',
-        'build_translation',
-        'dialogue_response',
+        'type_translation_to_target',
+        'build_translation_to_target',
+        'reading_answer_target',
         'word_order',
       ]) {
         expect(ExercisePresetRegistry.byId(id), isNotNull, reason: id);
@@ -383,7 +384,7 @@ void main() {
       expect(legacy.isMultiSelect, isFalse);
       expect(legacy.correct, 0);
       expect(
-        ExerciseCopyService.typeLabel(_course(), 'choice'),
+        ExerciseCopyService.typeLabel(_course(), LearnerExerciseKind.select),
         isNot(anyOf(isEmpty, contains('translation'))),
       );
     });
@@ -403,11 +404,11 @@ void main() {
     test('the code list documents TRANSLATION_CHOICE_TEXT_REQUIRED', () {
       final code = AuditCodeRegistry.byCode('TRANSLATION_CHOICE_TEXT_REQUIRED');
       expect(code, isNotNull);
-      expect(code!.severity, AuditSeverity.error);
+      expect(code!.severity, AuditSeverity.warning);
       expect(code.scope, contains('Pick the translation'));
     });
 
-    test('blank text to translate is an error', () {
+    test('blank text to translate is a preset warning', () {
       expect(
         codes(_translationChoice(text: '  ')),
         contains('TRANSLATION_CHOICE_TEXT_REQUIRED'),
@@ -432,14 +433,14 @@ void main() {
       );
     });
 
-    test('an authored prompt or spoken text is an unexpected field', () {
+    test('an authored prompt or spoken text does not match the preset', () {
       expect(
         codes(_translationChoice(prompt: 'Translate this')),
-        contains('EXERCISE_FIELD_UNEXPECTED'),
+        contains('PRESET_CANONICAL_MISMATCH'),
       );
       expect(
         codes(_translationChoice(tts: 'Vado a Londra.')),
-        contains('EXERCISE_FIELD_UNEXPECTED'),
+        contains('PRESET_CANONICAL_MISMATCH'),
       );
     });
 
@@ -466,7 +467,7 @@ void main() {
         'TRANSLATION_CHOICE_TOO_MANY_ANSWERS',
       );
       expect(code, isNotNull);
-      expect(code!.severity, AuditSeverity.error);
+      expect(code!.severity, AuditSeverity.warning);
     });
 
     test(
@@ -796,7 +797,7 @@ void main() {
       },
     );
 
-    testWidgets('Choose does not get an automatic Correct answer number', (
+    testWidgets('Choose starts with Correct answer number 1 as well', (
       tester,
     ) async {
       _bigWindow(tester);
@@ -829,7 +830,9 @@ void main() {
       final correct = tester.widget<TextField>(
         workflow.field('Correct answer number'),
       );
-      expect(correct.controller!.text, isEmpty);
+      // Build 256 Revision 7 follow-up (owner request): a new single-answer
+      // Choose starts with answer 1, as Pick the translation does.
+      expect(correct.controller!.text, '1');
     });
 
     test('the Exercise Help chapter opens with the Select note', () {
@@ -1131,7 +1134,7 @@ void main() {
       );
       await _pumpUntil(
         tester,
-        find.byKey(const Key('exercise-renderer-choice')),
+        find.byKey(const Key('exercise-renderer-select')),
       );
       expect(find.text('CHOOSE'), findsOneWidget);
       expect(

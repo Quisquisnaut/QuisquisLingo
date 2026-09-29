@@ -31,6 +31,9 @@ class CourseCoverService {
 
   static const size = 512;
 
+  /// A Story avatar's side (Build 256 Revision 5).
+  static const avatarSize = 256;
+
   final CourseMediaStore _media;
   final ExerciseImageService _images;
 
@@ -46,6 +49,30 @@ class CourseCoverService {
   }) async {
     final cover = await prepare(source, crop: crop);
     return _media.addBytes(courseId, cover.bytes, cover.extension, cover: true);
+  }
+
+  /// A Story avatar (Build 256 Revision 5): the square of [source] the
+  /// author chose, scaled to [avatarSize] × [avatarSize] and stored as an
+  /// ordinary medium of [courseId] (the cover allowance does not apply, so
+  /// the PNG shrinks by halves until it fits [CourseMediaStore.maxImageBytes]).
+  Future<String> storeAvatar(
+    String courseId,
+    Uint8List source, {
+    ui.Rect? crop,
+  }) async {
+    final picture = await ImageValidator.validate(
+      source,
+      ImageProfile.courseCoverSource,
+    );
+    for (var side = avatarSize; side >= 32; side ~/= 2) {
+      final bytes = await _squarePng(picture.bytes, crop, side: side);
+      if (bytes.length <= CourseMediaStore.maxImageBytes) {
+        return _media.addBytes(courseId, bytes, 'png');
+      }
+    }
+    throw const FormatException(
+      'This picture is too detailed for an avatar. Choose a simpler picture.',
+    );
   }
 
   /// The cover's bytes and file extension for [source]. [crop] is the square
@@ -86,7 +113,11 @@ class CourseCoverService {
     return cover;
   }
 
-  static Future<Uint8List> _squarePng(Uint8List bytes, ui.Rect? crop) async {
+  static Future<Uint8List> _squarePng(
+    Uint8List bytes,
+    ui.Rect? crop, {
+    int side = size,
+  }) async {
     final codec = await ui.instantiateImageCodec(bytes);
     final ui.Image source;
     try {
@@ -97,23 +128,23 @@ class CourseCoverService {
     try {
       final shorter = math.min(source.width, source.height).toDouble();
       // The square asked for, kept inside the picture as decoded.
-      final side = crop == null
+      final square = crop == null
           ? shorter
           : math.min(shorter, math.max(1.0, math.min(crop.width, crop.height)));
       final left = crop == null
-          ? (source.width - side) / 2
-          : crop.left.clamp(0.0, source.width - side);
+          ? (source.width - square) / 2
+          : crop.left.clamp(0.0, source.width - square);
       final top = crop == null
-          ? (source.height - side) / 2
-          : crop.top.clamp(0.0, source.height - side);
+          ? (source.height - square) / 2
+          : crop.top.clamp(0.0, source.height - square);
       final recorder = ui.PictureRecorder();
       ui.Canvas(recorder).drawImageRect(
         source,
-        ui.Rect.fromLTWH(left, top, side, side),
-        ui.Rect.fromLTWH(0, 0, size.toDouble(), size.toDouble()),
+        ui.Rect.fromLTWH(left, top, square, square),
+        ui.Rect.fromLTWH(0, 0, side.toDouble(), side.toDouble()),
         ui.Paint()..filterQuality = ui.FilterQuality.high,
       );
-      final image = await recorder.endRecording().toImage(size, size);
+      final image = await recorder.endRecording().toImage(side, side);
       try {
         final data = await image.toByteData(format: ui.ImageByteFormat.png);
         if (data == null) {

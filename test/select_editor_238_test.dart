@@ -24,6 +24,26 @@ void _bigWindow(WidgetTester tester) {
   addTearDown(tester.view.resetDevicePixelRatio);
 }
 
+/// Chooses [name] in the preset picker of a new exercise (Build 256
+/// Revision 4: inline gaps are presets of their own, not switches).
+Future<void> _pickPreset(WidgetTester tester, String name) async {
+  await tester.tap(find.byKey(const Key('exercise-preset-selector')));
+  await tester.pumpAndSettle();
+  final tile = find.text(name).last;
+  await tester.dragUntilVisible(
+    tile,
+    find
+        .descendant(
+          of: find.byType(DraggableScrollableSheet),
+          matching: find.byType(ListView),
+        )
+        .first,
+    const Offset(0, -400),
+  );
+  await tester.tap(tile);
+  await tester.pumpAndSettle();
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   setUp(() async {
@@ -254,7 +274,7 @@ void main() {
   );
 
   testWidgets(
-    'choice: enabling Inline gaps reveals gap fields and Save builds a linked-gap exercise',
+    'choice: Pick the words for the gaps shows gap fields and Save builds a linked-gap exercise',
     (tester) async {
       _bigWindow(tester);
       Exercise? saved;
@@ -271,7 +291,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(workflow.field('Sentence with gaps'), findsNothing);
-      await workflow.tapKey(tester, 'choice-use-inline-gaps');
+      await _pickPreset(tester, 'Pick the words for the gaps');
       expect(workflow.field('Sentence with gaps'), findsOneWidget);
       expect(workflow.field('Answers'), findsNothing);
       expect(workflow.field('Correct answer number'), findsNothing);
@@ -291,8 +311,8 @@ void main() {
       expect(saved, isNotNull);
       final exercise = saved!;
       expect(exercise.hasSelectGaps, isTrue);
-      expect(exercise.arrangeGapAssignments.length, 2);
-      expect(exercise.arrangeGapAssignments.values.toSet(), hasLength(1));
+      expect(exercise.targetAssignments.length, 2);
+      expect(exercise.targetAssignments.values.toSet(), hasLength(1));
       expect(exercise.interaction.items.length, 2);
       expect(tester.takeException(), isNull);
     },
@@ -314,7 +334,7 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      await workflow.tapKey(tester, 'choice-use-inline-gaps');
+      await _pickPreset(tester, 'Pick the words for the gaps');
       await tester.enterText(
         workflow.field('Sentence with gaps'),
         '{Was she happy?',
@@ -329,7 +349,7 @@ void main() {
   );
 
   testWidgets(
-    'choice: reopening an existing linked-gap exercise restores the toggle and fields',
+    'choice: reopening an existing linked-gap exercise opens Pick the words for the gaps',
     (tester) async {
       _bigWindow(tester);
       await tester.pumpWidget(
@@ -349,10 +369,9 @@ void main() {
       expect(layoutField.controller!.text, contains('{Was}'));
       expect(layoutField.controller!.text, contains('she happy?'));
       expect(layoutField.controller!.text, contains('he late?'));
-      final switchTile = tester.widget<SwitchListTile>(
-        find.byKey(const Key('choice-use-inline-gaps')),
-      );
-      expect(switchTile.value, isTrue);
+      // Build 256 Revision 4: inline gaps are a preset, not a switch.
+      expect(find.byKey(const Key('choice-use-inline-gaps')), findsNothing);
+      expect(workflow.field('Distractor options (optional)'), findsOneWidget);
       expect(tester.takeException(), isNull);
     },
   );
@@ -388,10 +407,10 @@ void main() {
       final copy = service.duplicateExercise(source);
 
       expect(copy.hasSelectGaps, isTrue);
-      expect(copy.arrangeGapAssignments.keys.toSet(), {'gap_1', 'gap_2'});
-      expect(copy.arrangeGapAssignments.values.toSet(), hasLength(1));
-      for (final gapId in copy.arrangeGapAssignments.keys) {
-        final copiedItemId = copy.arrangeGapAssignments[gapId]!;
+      expect(copy.targetAssignments.keys.toSet(), {'gap_1', 'gap_2'});
+      expect(copy.targetAssignments.values.toSet(), hasLength(1));
+      for (final gapId in copy.targetAssignments.keys) {
+        final copiedItemId = copy.targetAssignments[gapId]!;
         expect(
           copy.interaction.items.any((item) => item.id == copiedItemId),
           isTrue,

@@ -32,7 +32,10 @@ void main() {
         'IT|qql_lab254_card_audio|FLASHCARD_EXAMPLE_EMPTY',
         'EN_EDGE|qql_edge_254_e04_duplicate|CHOICE_ANSWER_DUPLICATE',
         'EN_EDGE|qql_edge_254_e07_long|EXERCISE_TEXT_LONG',
-        'PMS|pms_e5f5585a_l20_r01_e01|OPPOSITE_TOO_EARLY',
+        // The Story of covers alone (Build 256 Revision 5 follow-up); a
+        // Round-level warning has no exercise ID.
+        'EN_EDGE|null|STORY_WITHOUT_DIALOGUE',
+        'PMS|pms_e5f5585a_l08_r01_e01|OPPOSITE_TOO_EARLY',
       };
       final observedDemoWarnings = <String>[];
 
@@ -113,9 +116,10 @@ void main() {
               if (!allIds.add(exercise.id)) {
                 failures.add('${entry.value} | DUPLICATE_ID | ${exercise.id}');
               }
-              // Flashcard usage items exist only in the runnable projection;
-              // canonical Presentation JSON has no Item identities.
-              if (exercise.editorTemplate == 'flashcard') continue;
+              // Usage items of a card built on the flashcard recipe exist
+              // only in the runnable projection; canonical Presentation JSON
+              // has no Item identities.
+              if (exercise.type == 'flashcard') continue;
               for (final item in exercise.interaction.items) {
                 if (!allIds.add(item.id)) {
                   failures.add('${entry.value} | DUPLICATE_ID | ${item.id}');
@@ -126,8 +130,7 @@ void main() {
         }
       }
 
-      expect(CourseService.courseAssets, hasLength(4));
-      expect(CourseService.courseAssets['KO'], 'assets/courses/korean_en.json');
+      expect(CourseService.courseAssets, hasLength(3));
       final auditReport = <String>[
         ...auditSummaries,
         'BUNDLED_AUDIT aggregate: $aggregateErrors errors, '
@@ -150,15 +153,16 @@ void main() {
     },
   );
 
-  test('Korean course loads through the registry with v9 metadata', () async {
+  test('the Piedmontese demo loads through the registry', () async {
     SharedPreferences.setMockInitialValues({});
-    final course = await CourseService().loadKoreanCourse();
+    final course = await CourseService().loadCourse('PMS');
 
-    expect(course.formatVersion, 11);
+    expect(course.formatVersion, Course.currentFormatVersion);
+    expect(course.title, 'Temporary Demo: Piedmontese');
     expect(course.sourceLanguage, 'English');
-    expect(course.targetLanguage, 'Korean');
-    expect(course.ttsLanguage, 'ko-KR');
-    expect(course.flagCode, 'KR');
+    expect(course.targetLanguage, 'Piedmontese');
+    expect(course.ttsLanguage, 'pms-IT');
+    expect(course.worldFlagId, 'piedmontese');
   });
 
   testWidgets('Korean registry code renders the South Korean flag', (

@@ -9,32 +9,35 @@ void main() {
   test('every active QQL type is registered and maps to a canonical model', () {
     expect(
       ExercisePresetRegistry.presets.map((preset) => preset.id).toSet(),
-      CourseAuditService.supportedTypes,
+      CourseAuditService.presetKinds.keys.toSet(),
     );
+    // Build 256: presets configure the primitives QQL plays today (Assign
+    // since the Revision 7 follow-up: Sort into groups, Fill the slots);
+    // Speak, Ink and Submit exist without a preset.
     expect(
-      ExercisePresetRegistry.presets.map((preset) => preset.model).toSet(),
-      CanonicalExerciseModel.values.toSet(),
+      ExercisePresetRegistry.presets.map((preset) => preset.primitive).toSet(),
+      ExercisePrimitive.executableToday.toSet(),
     );
     expect(
       ExercisePresetRegistry.presets
-          .where((preset) => preset.model == CanonicalExerciseModel.select)
+          .where((preset) => preset.primitive == ExercisePrimitive.select)
           .length,
       greaterThan(1),
     );
     expect(
       ExercisePresetRegistry.presets
-          .where((preset) => preset.model == CanonicalExerciseModel.arrange)
+          .where((preset) => preset.primitive == ExercisePrimitive.arrange)
           .map((preset) => preset.id),
-      containsAll(['word_order', 'build_translation', 'image_word']),
+      containsAll(['word_order', 'build_translation_to_target', 'image_word']),
     );
   });
 
   test(
     'presets are grouped and author names do not expose canonical names',
     () {
-      expect(ExerciseCategory.values, hasLength(6));
+      expect(ExerciseCategory.values, hasLength(7));
       for (final preset in ExercisePresetRegistry.presets) {
-        expect(preset.name.toLowerCase(), isNot(preset.model.name));
+        expect(preset.name.toLowerCase(), isNot(preset.primitive.name));
         expect(preset.description.trim(), isNotEmpty);
       }
     },
@@ -60,25 +63,24 @@ void main() {
   });
 
   test('normalized imports stop source taxonomy before canonical runtime', () {
+    // Build 256 Revision 6: the normalized shape is canonical (primitive,
+    // options, items, evaluation); no preset is needed and none is written.
     const normalized = NormalizedImportExercise(
       sourceType: 'source-specific-select',
-      presetId: 'choice',
+      primitive: ExercisePrimitive.select,
       prompt: [PromptElement(type: 'text', text: 'Question')],
-      interaction: ExerciseInteraction(
-        kind: 'select',
-        items: [
-          ExerciseItem(
-            id: 'answer_a',
-            content: [PromptElement(type: 'text', text: 'A')],
-          ),
-          ExerciseItem(
-            id: 'answer_b',
-            content: [PromptElement(type: 'text', text: 'B')],
-          ),
-        ],
-      ),
-      evaluation: ExerciseEvaluation(
-        kind: 'selected_items',
+      items: [
+        ExerciseItem(
+          id: 'answer_a',
+          content: [PromptElement(type: 'text', text: 'A')],
+        ),
+        ExerciseItem(
+          id: 'answer_b',
+          content: [PromptElement(type: 'text', text: 'B')],
+        ),
+      ],
+      evaluation: CanonicalEvaluation(
+        mode: EvaluationMode.exactItem,
         correctItemIds: ['answer_a'],
       ),
     );
@@ -87,7 +89,8 @@ void main() {
       updatedAt: DateTime.utc(2026, 9, 4),
     );
     expect(exercise.id, 'stable_external_id');
-    expect(exercise.interaction.kind, 'select');
+    expect(exercise.primitive, ExercisePrimitive.select);
+    expect(exercise.editorTemplate, '');
     expect(
       exercise.toJson().toString(),
       isNot(contains(normalized.sourceType)),

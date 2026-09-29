@@ -30,23 +30,6 @@ Exercise _choiceExercise({String id = 'revision1_choice'}) => Exercise(
   icons: const [],
 );
 
-Exercise _contextExercise() => Exercise(
-  id: 'revision1_context',
-  updatedAt: _updatedAt,
-  type: 'contextual_comprehension',
-  prompt: 'A visible context.',
-  question: 'What happened?',
-  answers: const ['One', 'Two'],
-  correct: 0,
-  tts: 'A spoken context.',
-  accepted: const [],
-  tokens: const [],
-  orderAnswer: const [],
-  pairs: const [],
-  hint: '',
-  icons: const [],
-);
-
 Exercise _buildTranslationExercise() => Exercise(
   id: 'revision1_build',
   updatedAt: _updatedAt,
@@ -601,12 +584,9 @@ void main() {
   testWidgets(
     'View only disables selector, toggle, add, remove and reorder families',
     (tester) async {
-      await _pumpExercise(tester, _contextExercise(), readOnly: true);
-      final contextMode = tester.widget<DropdownButtonFormField<String>>(
-        find.byKey(const Key('context-mode-selector')),
-      );
-      expect(contextMode.onChanged, isNull);
-
+      // The contextual comprehension form and its context mode selector
+      // merged into Read and answer (Build 256 Revision 4); the selector
+      // family is covered by Recognize characters' mode below.
       await _pumpExercise(tester, _buildTranslationExercise(), readOnly: true);
       await tester.scrollUntilVisible(
         find.byKey(const Key('add-correct-translation')),

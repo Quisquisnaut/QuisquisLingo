@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Generate the original, deterministic Exercise Laboratory Course Model v11.
+"""Generate the original, deterministic Exercise Laboratory Course (Model v12).
+
+The examples are authored in the v11 shape the presets describe and pass
+through tools/qql_course_v12.py, the Python mirror of the Dart mapping, so
+the committed file is Course Model v12 (Build 256 Revision 1).
 
 Only this course and its coverage document are written. Existing courses and
 media are inputs, never rewritten. --check verifies the committed outputs.
@@ -11,12 +15,20 @@ import base64
 import hashlib
 import json
 import struct
+import sys
 import zlib
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from qql_course_v12 import _ordered_evaluation, _ordered_options, assign_exercise, convert_course_v11_to_v12, story_cover, story_flow, story_line  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 ASSET = ROOT / "assets/courses/exercise_laboratory_en_it.json"
 COVERAGE = ROOT / "docs/254_LABORATORY_COVERAGE.md"
+# The test-only fixture of what this version cannot play (Build 256
+# Revision 7, plan A.12): the same generator, a Course that is never bundled.
+FIXTURE = ROOT / "test/fixtures/v12/laboratory_future_en_it.json"
+FUTURE_ID = "course_9b1f6c2e-8d4a-4c3b-9e7f-2a5d6c8b1f04"
 # Allocated once with Course.newCourseId(); regeneration retains the identity.
 COURSE_ID = "course_50d68435-d2c2-4b63-9a0b-b23161357f1d"
 STAMP = "2026-09-25T00:00:00.000Z"
@@ -26,12 +38,18 @@ NORMALIZATION = {
 }
 
 
-def text(value: str, role: str = "primary") -> dict:
-    return {"role": role, "type": "text", "text": value}
+def text(value: str, role: str = "primary", language: str | None = None) -> dict:
+    element = {"role": role, "type": "text", "text": value}
+    if language:
+        element["language"] = language
+    return element
 
 
-def audio(value: str, role: str = "primary") -> dict:
-    return {"role": role, "type": "audio", "text": value}
+def audio(value: str, role: str = "primary", required: bool | None = None) -> dict:
+    element = {"role": role, "type": "audio", "text": value}
+    if required is not None:
+        element["required"] = required
+    return element
 
 
 def image(name: str, alternative: str, role: str = "clue") -> dict:
@@ -78,6 +96,11 @@ def glyph_asset(letter: str, blue: bool = False) -> str:
 class Laboratory:
     def __init__(self) -> None:
         self.lessons: list[dict] = []
+        # The Story Lesson (Build 256 Revision 5) stands beside the five
+        # primitive Lessons: its Round mixes a cover, lines and exercises of
+        # several primitives, and its lines and covers have no v11 shape, so
+        # the converter fixture (course_v11) omits it.
+        self.story_lessons: list[dict] = []
         self.cases: list[dict] = []
         self.lesson: dict = {}
         self.round: dict = {}
@@ -142,11 +165,18 @@ class Laboratory:
 
     def choose(self, key: str, preset: str, prompts: list[dict], answers: list[str],
                correct: int, capability: str, *, icons: list[str] | None = None,
-               hint: str = "") -> None:
-        items = [{"id": f"item_{i}", "content": [text(value)]} for i, value in enumerate(answers)]
+               hint: str = "", language: str | None = None,
+               images: list[str] | None = None) -> None:
+        items = [{"id": f"item_{i}", "content": [text(value, language=language)]}
+                 for i, value in enumerate(answers)]
         if icons:
             for item, icon in zip(items, icons, strict=True):
                 item["content"].append(text(icon, "icon"))
+        if images:
+            # Listen and pick the image: a bundled picture per answer, kept as
+            # an icon key like Select the image's (the picker writes the same).
+            for item, name in zip(items, images, strict=True):
+                item["content"].append(text(f"assets/exercise_images/{name}.webp", "icon"))
         self.add(key, preset, prompts,
                  {"kind": "select", "minSelections": 1, "maxSelections": 1, "items": items},
                  {"kind": "selected_items", "correctItemIds": [f"item_{correct}"]},
@@ -162,7 +192,7 @@ class Laboratory:
 
     def gaps(self, key: str, preset: str, instruction: str, parts: list[str | tuple[str]],
              distractors: list[str], capability: str, *, spoken: str = "") -> None:
-        select = preset == "choice"
+        select = preset in ("choice", "gap_choice_inline")
         options: list[str] = []
         layout, assignments, answers = [], {}, []
         for part in parts:
@@ -202,20 +232,28 @@ class Laboratory:
                  capability, answer or " / ".join(accepted), hint=hint, missing=missing)
 
     def arrange(self, key: str, preset: str, prompts: list[dict], tokens: list[str],
-                orders: list[list[int]], capability: str) -> None:
-        separator = "" if preset == "image_word" else " "
+                orders: list[list[int]], capability: str, *,
+                language: str | None = None) -> None:
+        separator = "" if preset in ("image_word", "spell_heard", "spell_word") else " "
         correct_orders = [{"text": separator.join(tokens[i] for i in order),
                            "itemIds": [f"item_{i}" for i in order]} for order in orders]
         self.add(key, preset, prompts,
-                 {"kind": "arrange", "items": [{"id": f"item_{i}", "content": [text(v)]} for i, v in enumerate(tokens)]},
+                 {"kind": "arrange", "items": [{"id": f"item_{i}", "content": [text(v, language=language)]}
+                                               for i, v in enumerate(tokens)]},
                  {"kind": "ordered_items", "correctOrders": correct_orders},
                  capability, " / ".join(order["text"] for order in correct_orders))
 
-    def match(self, key: str, preset: str, instruction: str, pairs: list[tuple[str, str]], capability: str) -> None:
+    def match(self, key: str, preset: str, instruction: str, pairs: list[tuple[str, str]], capability: str, *,
+              left_images: bool = False) -> None:
         items = []
         for index, (left, right) in enumerate(pairs):
+            left_content = (
+                audio(left) if preset == "audio_match"
+                else image(left, right, "primary") if left_images
+                else text(left)
+            )
             items.extend([
-                {"id": f"item_{index * 2}", "content": [audio(left) if preset == "audio_match" else text(left)]},
+                {"id": f"item_{index * 2}", "content": [left_content]},
                 {"id": f"item_{index * 2 + 1}", "content": [text(right)]},
             ])
         self.add(key, preset, [text(instruction)], {"kind": "match", "items": items},
@@ -223,24 +261,106 @@ class Laboratory:
                  capability, "; ".join(f"{left} = {right}" for left, right in pairs))
 
     def card(self, key: str, term: str, meaning: str, capability: str, *,
-             usage: str = "", translation: str = "", spoken: str = "") -> None:
+             usage: str = "", translation: str = "", spoken: str = "",
+             preset: str = "flashcard", picture: str = "") -> None:
         elements = [text(term, "term"), text(meaning, "meaning")]
         if spoken:
-            elements.append(audio(spoken, "audio"))
+            # A Flashcard's read-aloud is optional: never an audio exercise
+            # (Build 256 Revision 7 follow-up: the plain Flashcard too).
+            elements.append(audio(spoken, "audio", required=False))
         if usage:
             elements.append(text(usage, "usage"))
         if translation:
             assert usage
             elements.append(text(translation, "usage_translation"))
+        if picture:
+            elements.append(image(picture, term, "picture"))
         identity = "qql_lab254_" + key
         self.round["content"].append({
             "id": identity, "publicationState": "published", "kind": "presentation",
-            "required": True, "editorTemplate": "flashcard",
-            "presentation": {"content": elements, "completion": {"actions": ["understood", "review_later"]}},
+            "required": True, "editorTemplate": preset,
+            "presentation": {"content": elements, "completion": {
+                # A Note card is read and left with Continue.
+                "actions": ["continue"] if preset == "note_card" else ["understood", "review_later"]}},
         })
         self.cases.append({"id": identity, "lesson": self.lesson["title"], "round": self.round["title"],
-                           "preset": "flashcard", "capability": capability,
+                           "preset": preset, "capability": capability,
                            "answer": "Got it; or Review again, then Got it on the repeated card"})
+
+    def start_story_lesson(self, title: str, description: str) -> None:
+        self.start_lesson(title, description)
+        self.story_lessons.append(self.lessons.pop())
+
+    def start_canonical_lesson(self, title: str, description: str) -> None:
+        """A Lesson whose exercises exist only in the canonical shape (no v11
+        recipe): it joins the Course after the v11 conversion, as the Story
+        Lesson does (Build 256 Revision 7: Assign)."""
+        self.start_story_lesson(title, description)
+
+    def assign(self, key: str, preset: str, mode: str, question: str, items: list[tuple[str, str]],
+               targets: list[tuple[str, str]], assignments: dict[str, list[str]],
+               capability: str, answer: str, *, capacity: str = "single",
+               reuse: str = "forbidden", sentence: list | None = None) -> None:
+        """An Assign example (Build 256 Revision 7), authored in the canonical
+        shape with global item and target IDs; since the Revision 7
+        follow-up it carries its preset (Sort into groups, Fill the slots),
+        whose recipe represents it."""
+        identity = "qql_lab254_" + key
+        item_ids = {item_id: f"{identity}_{item_id}" for item_id, _ in items}
+        target_ids = {target_id: f"{identity}_{target_id}" for target_id, _ in targets}
+        exercise = assign_exercise(
+            updated_at=STAMP, mode=mode, question=question,
+            items=[(item_ids[i], text) for i, text in items],
+            targets=[(target_ids[t], label) for t, label in targets],
+            assignments={target_ids[t]: [item_ids[i] for i in ids] for t, ids in assignments.items()},
+            capacity=capacity, reuse=reuse,
+            sentence=None if sentence is None else [
+                (target_ids[part[0]],) if isinstance(part, tuple) else part for part in sentence],
+        )
+        self.round["content"].append({
+            "id": identity, "publicationState": "published", "kind": "exercise",
+            "required": True, "editorTemplate": preset, "exercise": exercise,
+        })
+        self.cases.append({"id": identity, "lesson": self.lesson["title"], "round": self.round["title"],
+                           "preset": preset, "capability": capability, "answer": answer})
+
+    def start_story(self, key: str, title: str, intro: str, story_title: str, *,
+                    read_aloud: str = "automatic") -> None:
+        """A Story Round: scrolling, dialogue-only log; finish_story writes
+        the flow once every step is added."""
+        self.start_round(key, title, intro, "story")
+        self.round["story"] = {"title": story_title, "readAloud": read_aloud, "requiresAudio": []}
+
+    def _story_entry(self, key: str, preset: str, exercise: dict, capability: str) -> None:
+        identity = "qql_lab254_" + key
+        self.round["content"].append({
+            "id": identity, "publicationState": "published", "kind": "exercise",
+            "required": True, "editorTemplate": preset, "exercise": exercise,
+        })
+        self.cases.append({"id": identity, "lesson": self.lesson["title"], "round": self.round["title"],
+                           "preset": preset, "capability": capability, "answer": "Continue"})
+
+    def cover(self, key: str, picture: str, alternative: str, title_line: str, capability: str) -> None:
+        self._story_entry(key, "story_cover", story_cover(
+            updated_at=STAMP, picture=f"assets/exercise_images/{picture}.webp",
+            alternative=alternative, title_line=title_line), capability)
+
+    def line(self, key: str, line: str, capability: str, *, speaker: str = "",
+             language: str | None = None, mode: str = "both", read_aloud: str = "story",
+             text_reveal: str = "immediate") -> None:
+        self._story_entry(key, "dialogue_line", story_line(
+            line, updated_at=STAMP, speaker_id=speaker, language=language, mode=mode,
+            read_aloud=read_aloud, text_reveal=text_reveal), capability)
+
+    def needs_audio(self, key: str) -> None:
+        self.round["story"]["requiresAudio"].append("qql_lab254_" + key)
+
+    def finish_story(self) -> None:
+        story = self.round.pop("story")
+        self.round["flow"] = story_flow(
+            [(content["id"], "exercise" in content) for content in self.round["content"]],
+            title=story["title"], read_aloud=story["readAloud"],
+            requires_audio=set(story["requiresAudio"]))
 
 
 def laboratory() -> Laboratory:
@@ -255,10 +375,10 @@ def laboratory() -> Laboratory:
 
     lab.start_round("select_gaps", "Fixed sentences and reusable choices", "In Fill in the blank, choose one missing expression. In the fixed-sentence exercises, fill each gap; an option can be used again. You can remove, move and swap answers before Check.")
     lab.choose("select_gap_preset", "gap_choice", [text("Il gatto ___ sul divano.", "question")], ["dorme", "dormono", "dormire"], 0, "Fill in the blank preset; one ___ gap and non-revealing hint", hint="The subject is one animal.")
-    lab.gaps("select_gap_one", "choice", "Complete the Italian greeting.", ["Buon", ("giorno",), "!"], [], "Inline Select; one gap; zero distractors")
-    lab.gaps("select_gap_distinct", "choice", "Complete the sentence about Anna.", ["Anna", ("è",), "a", ("casa",), "."], ["siamo"], "Inline Select; two distinct options; one distractor")
-    lab.gaps("select_gap_reuse", "choice", "Complete both sentences. The same word can be used twice.", ["Luca", ("è",), "italiano. Anna", ("è",), "italiana."], ["sono", "siamo"], "Inline Select; one reusable option assigned to two gaps; two distractors")
-    lab.gaps("select_gap_audio", "choice", "Listen and complete the sentence.", ["Io", ("bevo",), ("acqua",), "."], ["mangio"], "Inline Select with optional spoken prompt", spoken="Io bevo acqua.")
+    lab.gaps("select_gap_one", "gap_choice_inline", "Complete the Italian greeting.", ["Buon", ("giorno",), "!"], [], "Inline Select; one gap; zero distractors")
+    lab.gaps("select_gap_distinct", "gap_choice_inline", "Complete the sentence about Anna.", ["Anna", ("è",), "a", ("casa",), "."], ["siamo"], "Inline Select; two distinct options; one distractor")
+    lab.gaps("select_gap_reuse", "gap_choice_inline", "Complete both sentences. The same word can be used twice.", ["Luca", ("è",), "italiano. Anna", ("è",), "italiana."], ["sono", "siamo"], "Inline Select; one reusable option assigned to two gaps; two distractors")
+    lab.gaps("select_gap_audio", "gap_choice_inline", "Listen and complete the sentence.", ["Io", ("bevo",), ("acqua",), "."], ["mangio"], "Inline Select with optional spoken prompt", spoken="Io bevo acqua.")
 
     lab.start_round("select_visual", "Images and written characters", "Match words to pictures, then inspect the printed characters. Character images are original portable PNG specimens. Image choices check immediately.")
     lab.choose("select_named_icons", "icon_choice", [text("Select ‘sole’.", "question")], ["sole", "luna", "albero"], 0, "Select the image; existing named icon vocabulary", icons=["sun", "moon", "tree"])
@@ -296,6 +416,16 @@ def laboratory() -> Laboratory:
     lab.choose("translation_source_two", "translation_choice_to_source", [text("Grazie.", "question")], ["Thank you.", "Goodbye."], 0, "Pick translation to source; minimum two answers; no image")
     lab.choose("translation_source_five", "translation_choice_to_source", [text("La mela è rossa.", "question"), image("apple", "An apple")], ["The apple is red.", "The apple is green.", "The pear is red.", "The apple is small.", "The apple is yellow."], 0, "Pick translation to source; maximum five answers; optional image")
 
+    lab.start_round("select_source", "Source-language answers, pictures and true or false", "These Select exercises answer in the source language or with pictures: Choose the answer (to source), True or false, Listen and answer (to source), Read and answer (to source), What is in the picture and Listen and pick the image.")
+    lab.choose("choice_source_meaning", "choice_source", [text("What does “grazie” mean?", "question", "source")], ["thank you", "please", "sorry"], 0, "Choose the answer (to source); question and answers in the source language", language="source")
+    lab.choose("choice_source_culture", "choice_source", [text("When do Italians say “buonasera”?", "question", "source")], ["From the afternoon on", "Only at night", "Only in the morning"], 0, "Choose the answer (to source); a culture question", language="source")
+    lab.choose("true_false_true", "true_false", [text("Roma è la capitale d’Italia.", "question")], ["True", "False"], 0, "True or false; a true statement, answers in the source language", language="source")
+    lab.choose("true_false_spoken", "true_false", [text("Il gatto è un frutto.", "question"), audio("Il gatto è un frutto.")], ["True", "False"], 1, "True or false; a spoken false statement", language="source")
+    lab.choose("listening_source", "listening_answer_source", [audio("Grazie mille!"), text("What did you hear?", "question", "source")], ["Thank you very much", "Good night", "See you soon"], 0, "Listen and answer (to source); answers in the source language", language="source")
+    lab.choose("reading_source", "reading_answer_source", [text("Anna abita a Roma. Ogni mattina va al lavoro in autobus.", "passage"), text("How does Anna get to work?", "question", "source")], ["By bus", "By train", "On foot"], 0, "Read and answer (to source); question and answers in the source language", language="source")
+    lab.choose("picture_choice", "picture_choice", [text("What is this?", "question"), image("apple", "An apple", "picture")], ["la mela", "la pera", "il pane"], 0, "What is in the picture; picture prompt, text answers")
+    lab.choose("listening_image", "listening_image_choice", [audio("il gatto")], ["il gatto", "il cane", "il cavallo"], 0, "Listen and pick the image; captioned picture answers", images=["cat", "dog", "horse"])
+
     lab.start_lesson("Input", "Type a translation, a missing fragment, a complete word, or a transcription. Accepted answers can include optional wording and alternatives. Accents are preserved; ordinary capitalization, punctuation and spacing are normalized. Only Type the translation and Type the missing word tolerate one omitted or duplicated repeated letter.")
     lab.start_round("input_answers", "Translations and accepted variants", "Type a natural Italian translation. These examples demonstrate several ways an author can record equivalent answers; the answer notation is never shown as the learner prompt.")
     lab.enter("input_literal", "type_translation", [text("Thank you.")], ["grazie"], "One literal accepted translation")
@@ -325,6 +455,14 @@ def laboratory() -> Laboratory:
     lab.enter("input_missing_one", "missing_word", [text("Anna mangia una mela."), audio("Anna mangia una mela.")], ["mela"], "Listen for missing words; one transcript gap", missing=["mela"])
     lab.enter("input_missing_many", "missing_word", [text("Luca legge un libro in giardino."), audio("Luca legge un libro in giardino.")], ["legge", "libro", "giardino"], "Listen for missing words; three distinct gaps in transcript order", missing=["legge", "libro", "giardino"], answer="1 legge; 2 libro; 3 giardino")
 
+    lab.start_round("input_source_and_pictures", "Source answers, texts and pictures", "Type the translation (to source) takes a source-language translation. Complete the text and Missing letters are typed gaps without and with letters inside words. Name what you see names a picture.")
+    lab.enter("type_source_literal", "type_translation_to_source", [text("Grazie.", language="target")], ["thank you", "thanks"], "Type the translation (to source); target text, source answers")
+    lab.enter("type_source_variants", "type_translation_to_source", [text("Vorrei un caffè.", language="target")], ["I would like a coffee", "I'd like a coffee"], "Type the translation (to source); two accepted answers")
+    lab.enter("complete_text", "complete_text", [text("Anna beve un caffè al bar. Poi prende il treno.")], [], "Complete the text; two typed gaps, no audio", missing=["caffè", "treno"], answer="caffè / treno")
+    lab.enter("missing_letters", "missing_letters", [text("Il gatto dorme sul divano.")], [], "Missing letters; letters inside two words", missing=["tt", "van"], answer="tt / van")
+    lab.enter("missing_letters_audio", "missing_letters", [text("Il treno parte alle nove."), audio("Il treno parte alle nove.")], [], "Missing letters; spoken text and two gaps", missing=["ren", "ove"], answer="ren / ove")
+    lab.enter("picture_name", "picture_name", [text("What is this?", "question"), image("bread", "Bread", "picture")], ["il pane", "pane"], "Name what you see; picture prompt, typed answers")
+
     lab.start_lesson("Arrange", "Build an Italian answer from words, phrases, letters or syllables. Ordinary Arrange consumes each block once; repeated words need repeated blocks. Inline Arrange fills fixed gaps with distinct blocks. Word order and Build the translation allow zero, one or two distractors; Image-prompt ordering allows none.")
     lab.start_round("arrange_words", "Word and phrase blocks", "Tap blocks to build the answer. You can remove a chosen block before checking. Repeated words are separate occurrences.")
     lab.arrange("arrange_zero", "word_order", [text("Put the Italian sentence in order: The cat sleeps.", "clue")], ["Il", "gatto", "dorme"], [[0, 1, 2]], "Word order; zero distractors")
@@ -334,23 +472,33 @@ def laboratory() -> Laboratory:
     lab.arrange("arrange_phrases", "word_order", [text("Build: I go to school by bus.", "clue")], ["Vado", "a scuola", "in autobus"], [[0, 1, 2]], "Word order; multiword phrase blocks")
 
     lab.start_round("arrange_gaps", "Fixed sentences and consumed blocks", "Fill each gap using a separate block. Unlike Select, placing a block removes that occurrence from the available bank. Duplicate words need two blocks. Gap contents can be removed, moved or swapped.")
-    lab.gaps("arrange_gap_one", "word_order", "Complete the sentence.", ["Il gatto", ("dorme",), "."], [], "Inline Arrange; one gap; no distractors")
-    lab.gaps("arrange_gap_many", "word_order", "Complete the sentence about Anna's drink.", ["Anna", ("beve",), ("acqua",), "."], ["mangia"], "Inline Arrange; two gaps; one distractor")
-    lab.gaps("arrange_gap_repeat", "word_order", "Complete the sentences using separate blocks.", ["Luca", ("è",), "italiano. Anna", ("è",), "italiana."], ["sono", "siamo"], "Inline Arrange; repeated text requires distinct tile IDs; two distractors")
-    lab.gaps("arrange_gap_audio", "word_order", "Listen and complete the sentence.", ["Io vado", ("a scuola",), ("in autobus",), "."], [], "Inline Arrange; phrase blocks and spoken prompt", spoken="Io vado a scuola in autobus.")
+    lab.gaps("arrange_gap_one", "gap_blocks", "Complete the sentence.", ["Il gatto", ("dorme",), "."], [], "Inline Arrange; one gap; no distractors")
+    lab.gaps("arrange_gap_many", "gap_blocks", "Complete the sentence about Anna's drink.", ["Anna", ("beve",), ("acqua",), "."], ["mangia"], "Inline Arrange; two gaps; one distractor")
+    lab.gaps("arrange_gap_repeat", "gap_blocks", "Complete the sentences using separate blocks.", ["Luca", ("è",), "italiano. Anna", ("è",), "italiana."], ["sono", "siamo"], "Inline Arrange; repeated text requires distinct tile IDs; two distractors")
+    lab.gaps("arrange_gap_audio", "gap_blocks", "Listen and complete the sentence.", ["Io vado", ("a scuola",), ("in autobus",), "."], [], "Inline Arrange; phrase blocks and spoken prompt", spoken="Io vado a scuola in autobus.")
 
     lab.start_round("arrange_translations", "Build translations", "Translate the English prompt using the available literal blocks. Some questions accept more than one complete translation. Answer-expression notation and typo tolerance do not apply to this exercise type.")
     lab.arrange("build_single", "build_translation", [text("I drink water.")], ["Bevo", "acqua"], [[0, 1]], "Build translation; one literal answer and no distractors")
     lab.arrange("build_multiple", "build_translation", [text("I eat bread.")], ["Io", "mangio", "pane", "acqua"], [[1, 2], [0, 1, 2]], "Build translation; multiple valid orders with optional subject; one block unused by every answer")
     lab.arrange("build_phrase", "build_translation", [text("I go to school by train.")], ["Vado", "a scuola", "in treno", "in autobus", "a casa"], [[0, 1, 2]], "Build translation; phrase blocks and two distractors")
     lab.arrange("build_repeat", "build_translation", [text("Anna drinks water and Luca drinks milk.")], ["Anna", "beve", "acqua", "e", "Luca", "beve", "latte"], [[0, 1, 2, 3, 4, 5, 6]], "Build translation; repeated word occurrences")
-    lab.gaps("build_gap", "build_translation", "Anna reads a book.", ["Anna", ("legge",), "un", ("libro",), "."], ["caffè"], "Build translation; inline gaps with one distractor")
-    lab.gaps("build_gap_audio", "build_translation", "We drink water.", ["Noi", ("beviamo",), ("acqua",), "."], [], "Build translation; inline gaps and spoken prompt", spoken="Noi beviamo acqua.")
+    lab.gaps("build_gap", "gap_blocks", "Anna reads a book.", ["Anna", ("legge",), "un", ("libro",), "."], ["caffè"], "Build translation; inline gaps with one distractor")
+    lab.gaps("build_gap_audio", "gap_blocks", "We drink water.", ["Noi", ("beviamo",), ("acqua",), "."], [], "Build translation; inline gaps and spoken prompt", spoken="Noi beviamo acqua.")
 
     lab.start_round("arrange_images", "Letters and syllables", "Use every available block to write the Italian word for the picture. There are no distractors. Each repeated letter is a separate block.")
     lab.arrange("image_letters", "image_word", [text("Build the Italian word for this fruit.", "clue"), image("apple", "An apple")], ["m", "e", "l", "a"], [[0, 1, 2, 3]], "Image-prompt ordering; individual letter blocks")
     lab.arrange("image_syllables", "image_word", [text("Build the Italian word for this animal.", "clue"), image("cat", "A cat")], ["gat", "to"], [[0, 1]], "Image-prompt ordering; syllable blocks")
     lab.arrange("image_repeated_letters", "image_word", [text("Build the Italian word for this fruit. Use the singular word.", "clue"), image("bananas", "Bananas")], ["b", "a", "n", "a", "n", "a"], [[0, 1, 2, 3, 4, 5]], "Image-prompt ordering; repeated individual letters",)
+
+    lab.start_round("arrange_source_and_lines", "Source blocks, sentences and spelling", "Build the translation (to source) uses source-language blocks. Put the sentences in order orders lines. Spell what you hear and Spell the word spell a word from tiles without a picture.")
+    lab.arrange("build_source_single", "build_translation_to_source", [text("Bevo acqua.", language="target")], ["I", "drink", "water"], [[0, 1, 2]], "Build the translation (to source); target text, source blocks", language="source")
+    lab.arrange("build_source_distractor", "build_translation_to_source", [text("Vado a scuola in treno.", language="target")], ["I", "go", "to", "school", "by", "train", "bus"], [[0, 1, 2, 3, 4, 5]], "Build the translation (to source); one unused block", language="source")
+    lab.arrange("sentence_order_story", "sentence_order", [text("Put the story in order.", "clue")], ["Anna entra nel bar.", "Ordina un caffè.", "Paga e saluta."], [[0, 1, 2]], "Put the sentences in order; three lines of a story")
+    lab.arrange("sentence_order_dialogue", "sentence_order", [text("Put the dialogue in order.", "clue")], ["Buongiorno, un caffè per favore.", "Subito. Zucchero?", "No, grazie.", "Ecco a lei."], [[0, 1, 2, 3]], "Put the sentences in order; four turns of a dialogue")
+    lab.arrange("spell_heard_letters", "spell_heard", [audio("pane")], ["p", "a", "n", "e"], [[0, 1, 2, 3]], "Spell what you hear; letter tiles, no picture")
+    lab.arrange("spell_heard_syllables", "spell_heard", [audio("gatto")], ["gat", "to"], [[0, 1]], "Spell what you hear; syllable tiles")
+    lab.arrange("spell_word_clue", "spell_word", [text("cat (the animal)", "clue", "source")], ["g", "a", "t", "t", "o"], [[0, 1, 2, 3, 4]], "Spell the word; a source-language clue and letter tiles")
+    lab.arrange("spell_word_definition", "spell_word", [text("You drink it when you are thirsty.", "clue", "source")], ["ac", "qua"], [[0, 1]], "Spell the word; a definition and syllable tiles")
 
     lab.start_lesson("Match", "Match each item on the left to its partner. The shuffled columns preserve stable pair identities. Match the pairs can use a variable number of text pairs; Match the words, Match related words and Listen and match use exactly three pairs. Listen and match needs audio enabled.")
     lab.start_round("match_text", "Words, meanings and relationships", "Match every row before Check. For related words, read whether the task asks for synonyms or opposites.")
@@ -358,6 +506,8 @@ def laboratory() -> Laboratory:
     lab.match("match_four", "matching", "Match each Italian phrase with its English meaning.", [("a domani", "see you tomorrow"), ("per favore", "please"), ("buon viaggio", "have a good trip"), ("a presto", "see you soon")], "Match the pairs; variable four-pair form with phrases")
     lab.match("match_words", "word_match", "Match the English words with their Italian translations.", [("water", "acqua"), ("bread", "pane"), ("book", "libro")], "Match the words; exactly three source-to-target pairs")
     lab.match("match_synonyms", "super_match", "Abbina ogni parola al suo sinonimo.", [("felice", "contento"), ("veloce", "rapido"), ("grande", "ampio")], "Match related words; exactly three target-language synonym pairs")
+    lab.start_round("match_pictures", "Pictures and words", "Match each picture on the left with its Italian word.")
+    lab.match("picture_word_match", "picture_word_match", "Match each picture with its word.", [("cat", "il gatto"), ("dog", "il cane"), ("house", "la casa")], "Match picture to word; picture left items", left_images=True)
     lab.start_round("match_audio", "Listen and match", "Enable Audio Exercises and Text-to-speech. Play each sound and match it to the English meaning. Three sounds have three distinct partners and no distractors.", "listening")
     lab.match("match_sounds", "audio_match", "Listen and match each Italian word with its English meaning.", [("acqua", "water"), ("pane", "bread"), ("libro", "book")], "Listen and match; three audio-to-text pairs with distinct sound and answer labels")
     lab.start_round("match_opposites", "Opposites", "Match these familiar Italian words to their opposites.")
@@ -372,27 +522,80 @@ def laboratory() -> Laboratory:
     lab.card("card_audio", "buongiorno", "good morning", "Term and meaning with pronunciation; no usage", spoken="buongiorno")
     lab.card("card_audio_usage", "libro", "book", "Term, meaning, pronunciation and usage; no usage translation", usage="Leggo un libro.", spoken="libro")
     lab.card("card_complete", "acqua", "water", "Term, meaning, pronunciation, usage and usage translation", usage="Bevo un bicchiere d'acqua.", translation="I drink a glass of water.", spoken="acqua")
+    lab.start_round("presentation_pictures_notes", "Picture flashcards and note cards", "Picture flashcards show a picture with the word; their audio is optional and never makes them audio exercises. Note cards carry a tip or a grammar note.")
+    lab.card("picture_card", "la mela", "apple", "Picture flashcard; picture, usage, translation and optional pronunciation", usage="Mangio una mela.", translation="I eat an apple.", spoken="la mela", preset="picture_flashcard", picture="apple")
+    lab.card("picture_card_plain", "il pane", "bread", "Picture flashcard; picture, term and meaning only", preset="picture_flashcard", picture="bread")
+    lab.card("note_card_tip", "Tu o Lei?", "Use Lei with people you do not know well; tu is for friends, family and children.", "Note card; a usage tip", preset="note_card")
+    lab.card("note_card_grammar", "Gli articoli", "il, lo, la, i, gli, le: the article agrees with the noun in gender and number.", "Note card; a grammar note", preset="note_card")
+
+    anna, luca = "qql_lab254_character_anna", "qql_lab254_character_luca"
+    lab.start_story_lesson("Story", "A Story is a Round played in order: a cover, dialogue lines said by the narrator or by a character, and exercises about them (Build 256 Revision 5). Lines are never skipped: without audio the learner reads them. An exercise marked as needing the Story's audio is skipped, like the listening exercises, when Audio Exercises is off. Only the exercises score. The first Story alternates lines and questions; the second shows the line options one by one and has nothing to score.")
+    lab.start_story("story_cafe", "A morning in Turin", "Read or listen to the story and answer the questions between the lines. Continue moves on; the scroll log keeps the dialogue.", "Al bar")
+    lab.cover("story_cover", "coffee", "A cup of coffee on a bar counter", "A morning in Turin", "Story cover; a bundled picture and a title line under the Story title")
+    lab.line("story_narrator", "Anna walks into a café in Turin and greets the barista.", "Dialogue line; the narrator in the source language, text and audio")
+    lab.line("story_anna_order", "Buongiorno! Un caffè, per favore.", "Dialogue line; a character in the target language, text and audio", speaker=anna)
+    lab.line("story_luca_offer", "Subito! Vuole anche un cornetto?", "Dialogue line; a character, text and audio", speaker=luca)
+    lab.choose("story_choice", "choice_target", [text("Che cosa ordina Anna?", "question")], ["Un caffè", "Un tè", "Un cornetto"], 0, "Choose the answer between the lines of a Story")
+    lab.line("story_anna_no", "No, grazie. Solo il caffè.", "Dialogue line; a character declines", speaker=anna)
+    lab.line("story_luca_serves", "Ecco il suo caffè.", "Dialogue line; a character serves", speaker=luca)
+    lab.choose("story_true_false", "true_false", [text("Anna ordina un cornetto.", "question")], ["True", "False"], 1, "True or false between the lines of a Story; needs the Story's audio, so Audio Exercises off skips it", language="source")
+    lab.needs_audio("story_true_false")
+    lab.arrange("story_order", "word_order", [text("Put Anna's order in order: A coffee, please.", "clue")], ["Un", "caffè,", "per", "favore."], [[0, 1, 2, 3]], "Word order closing a Story")
+    lab.finish_story()
+
+    lab.start_story("story_options", "The same morning, line by line", "Each line of this Story shows one option: text after listening, text only, audio only read on request, and audio read aloud although the Story reads on request. Nothing is scored.", "Le opzioni", read_aloud="manual")
+    lab.cover("options_cover", "coffee", "A cup of coffee on a bar counter", "The same morning, line by line", "Story cover of a Story without exercises")
+    lab.line("options_narrator", "Anna orders again; every line shows a different option.", "Dialogue line; the narrator, text and audio, read on request as the Story says")
+    lab.line("options_after_audio", "Buongiorno! Un caffè, per favore.", "Dialogue line; text shown after listening", speaker=anna, text_reveal="afterAudio")
+    lab.line("options_text_only", "Subito! Vuole anche un cornetto?", "Dialogue line; text only", speaker=luca, mode="text")
+    lab.line("options_audio_only", "No, grazie. Solo il caffè.", "Dialogue line; audio only, read on request", speaker=anna, mode="audio", read_aloud="manual")
+    lab.line("options_automatic", "Ecco il suo caffè.", "Dialogue line; read aloud automatically although the Story reads on request", speaker=luca, read_aloud="automatic")
+    lab.finish_story()
+    lab.start_canonical_lesson("Assign", "Assign places items into destinations (Build 256 Revision 7): tap an item, then the group or slot that takes it; Check grades every destination at once. A group may take any number of items, a slot takes one; a reusable item stays in the bank. The presets Sort into groups and Fill the slots author these examples (Revision 7 follow-up). Gaps in a text are authored in the canonical editor; picture regions, grid cells and drag placement wait for a later version.")
+    lab.start_round("assign_bins", "Groups and slots", "Sort the words into their groups, or fill each slot with the right word. Tap a word, then its destination; Check when every word is placed.")
+    lab.assign("assign_groups", "sort_into_groups", "categories", "Sort the words: animals or food?",
+               [("gatto", "gatto"), ("cane", "cane"), ("mela", "mela"), ("pane", "pane")],
+               [("animals", "Animals"), ("food", "Food")],
+               {"animals": ["gatto", "cane"], "food": ["mela", "pane"]},
+               "Sort into groups; a group takes any number of items (capacity unlimited), reuse forbidden",
+               "Animals: gatto, cane; Food: mela, pane", capacity="unlimited")
+    lab.assign("assign_groups_leftover", "sort_into_groups", "categories", "Put the animals in their group and leave the other word out.",
+               [("gatto", "gatto"), ("cane", "cane"), ("tavolo", "tavolo")],
+               [("animals", "Animals")], {"animals": ["gatto", "cane"]},
+               "Sort into groups; a word that belongs nowhere stays in the bank",
+               "Animals: gatto, cane; tavolo stays in the bank", capacity="unlimited")
+    lab.assign("assign_slots", "fill_the_slots", "slots", "Which article goes with each noun?",
+               [("il", "il"), ("la", "la")], [("s1", "… gatto"), ("s2", "… casa")],
+               {"s1": ["il"], "s2": ["la"]},
+               "Fill the slots; one item per slot, a second placement replaces the first",
+               "… gatto: il; … casa: la")
+    lab.assign("assign_slots_reuse", "fill_the_slots", "slots", "Which article goes with each noun? An article may serve twice.",
+               [("il", "il"), ("la", "la")], [("s1", "… cane"), ("s2", "… libro"), ("s3", "… casa")],
+               {"s1": ["il"], "s2": ["il"], "s3": ["la"]},
+               "Fill the slots; a word may fill more than one slot (reuse allowed), the item stays in the bank",
+               "… cane: il; … libro: il; … casa: la", reuse="allowed")
     return lab
 
 
-def course(lab: Laboratory) -> dict:
+def course_v11(lab: Laboratory) -> dict:
+    """The Course before conversion: the v11 original the converter tests read."""
     value = {
         "formatVersion": 11, "publicationState": "published", "lessonNumberingMode": "lesson",
         "defaultLessonIconStyle": "monochrome", "courseId": COURSE_ID,
         "originType": "bundledOfficial", "publisherId": "org.quisquislingo",
         "publisherName": "QuisquisLingo", "officialCourseVersion": "1.0.0",
         "officialReleaseDateUtc": STAMP,
-        "officialReleaseNotes": "Build 254: original English-to-Italian Exercise Laboratory covering all 24 current authoring presets and their supported modes.",
+        "officialReleaseNotes": "Build 254: original English-to-Italian Exercise Laboratory covering every current authoring preset and its supported modes.",
         "distributionChannel": "bundled", "publisherVerificationStatus": "verified",
         "originalCourseCreator": {"type": "publisher", "id": "org.quisquislingo", "displayName": "QuisquisLingo"},
         "originalCreatedAtUtc": STAMP, "modifiedAtUtc": STAMP,
         "learningLanguage": "Italian", "interfaceLanguage": "English",
         "sourceLanguage": "English", "sourceLanguageTag": "en-GB",
         "targetLanguage": "Italian", "targetLanguageTag": "it-IT",
-        "title": "Exercise Laboratory", "ttsLanguage": "it-IT", "audioMode": "tts",
+        "title": "Temporary Demo: Exercise Laboratory", "ttsLanguage": "it-IT", "audioMode": "tts",
         "authors": [{"name": "QuisquisLingo", "roles": ["Author"]}],
         "license": "All rights reserved", "derivativeWorksPolicy": "allowed",
-        "courseDescription": "An English-to-Italian laboratory for trying every current Exercise type and its meaningful authoring options. Five Lessons group Select, Input, Arrange, Match and Presentation. Inspect or Fork the Course in Course Studio to study how the exercises are authored. Enable Audio Exercises and Text-to-speech to include all listening and pronunciation examples; ordinary lesson progression remains in effect.",
+        "courseDescription": "An English-to-Italian laboratory for trying every current Exercise type and its meaningful authoring options. Five Lessons group Select, Input, Arrange, Match and Presentation; a sixth Lesson is a Story and a seventh holds Assign (Sort into groups, Fill the slots). Inspect or Fork the Course in Course Studio to study how the exercises are authored. Enable Audio Exercises and Text-to-speech to include all listening and pronunciation examples; ordinary lesson progression remains in effect.",
         "textDirection": "ltr", "temporarySample": True, "flagCode": "IT",
         "createDuels": False,
         "mediaAttributions": [{
@@ -404,7 +607,156 @@ def course(lab: Laboratory) -> dict:
         "keywords": ["exercise laboratory", "authoring", "Italian", "examples"],
         "lessons": lab.lessons,
     }
+    return value
+
+
+def course(lab: Laboratory) -> dict:
+    # The Story Lesson joins after the v11 original (Build 256 Revision 5):
+    # its lines and covers pass through the converter in their canonical
+    # shape; the fixture written from course_v11 omits it, and the Dart
+    # parity test skips it.
+    v11 = course_v11(lab)
+    v11["lessons"] = [*lab.lessons, *lab.story_lessons]
+    value = convert_course_v11_to_v12(v11)
+    value["storyNarrator"] = {"name": "Narrator", "language": "source"}
+    value["storyCharacters"] = [
+        {"id": "qql_lab254_character_anna", "name": "Anna", "avatar": "assets/avatars/cat.png",
+         "language": "target", "voice": "female"},
+        {"id": "qql_lab254_character_luca", "name": "Luca", "avatar": "assets/avatars/dog.png",
+         "language": "target", "voice": "male"},
+    ]
     # The checksum excludes the local verification status.
+    checksum_value = dict(value)
+    checksum_value.pop("publisherVerificationStatus")
+    canonical = json.dumps(checksum_value, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    value["officialChecksum"] = hashlib.sha256(canonical).hexdigest()
+    return value
+
+
+def _canonical(key: str, exercise: dict) -> dict:
+    return {"id": f"qql_labfuture_{key}", "publicationState": "published",
+            "kind": "exercise", "required": True, "exercise": exercise}
+
+
+def _intro(key: str, text: str) -> dict:
+    return {"id": f"qql_labfuture_intro_{key}", "publicationState": "published",
+            "kind": "text", "required": False, "role": "lesson_intro", "text": text}
+
+
+def _future_round(key: str, title: str, content: list[dict], *, visual: str = "generic",
+                  flow: dict | None = None) -> dict:
+    value = {"id": f"qql_labfuture_round_{key}", "publicationState": "published",
+             "updatedAt": STAMP, "title": title, "visualType": visual, "content": content}
+    if flow is not None:
+        value["flow"] = flow
+    return value
+
+
+def _speak(prompt: str, *, mode: str, evaluation: str, answers: list[str] | None = None) -> dict:
+    exercise = {"updatedAt": STAMP, "primitive": "speak",
+                "options": _ordered_options({"speechMode": mode}),
+                "prompt": [text(prompt)]}
+    value = {"mode": evaluation}
+    if answers:
+        value["answers"] = answers
+    exercise["evaluation"] = _ordered_evaluation(value)
+    return exercise
+
+
+def _ink(prompt: str, *, mode: str = "trace") -> dict:
+    return {"updatedAt": STAMP, "primitive": "ink",
+            "options": _ordered_options({"inkMode": mode}),
+            "prompt": [text(prompt)], "evaluation": {"mode": "none"}}
+
+
+def _submit(prompt: str, *, kind: str = "audio") -> dict:
+    return {"updatedAt": STAMP, "primitive": "submit",
+            "options": _ordered_options({"submissionType": kind}),
+            "prompt": [text(prompt)], "evaluation": {"mode": "presence"}}
+
+
+def _select(key: str, question: str, choices: list[str]) -> dict:
+    ids = [f"qql_labfuture_{key}_{index}" for index in range(len(choices))]
+    return {"updatedAt": STAMP, "primitive": "select",
+            "prompt": [text(question, "question")],
+            "items": [{"id": item_id, "content": [text(choice)]} for item_id, choice in zip(ids, choices)],
+            "evaluation": {"mode": "exactItem", "correctItemIds": [ids[0]]}}
+
+
+def future(root: dict) -> dict:
+    """The fixture Course (plan A.12): Speak, Ink and Submit exercises, a
+    Story ending on a Speak step and a Story whose flow branches, on the
+    Laboratory's Course root with its own identity. Never bundled: the
+    tests read it from test/fixtures/v12."""
+    anna = "qql_lab254_character_anna"
+    speak = _future_round("speak", "Speak", [
+        _intro("speak", "Speaking exercises wait for a later version: this Round shows how they are stored."),
+        _canonical("speak_repeat", _speak("Buongiorno!", mode="repeat", evaluation="transcriptionMatch", answers=["Buongiorno!"])),
+        _canonical("speak_free", _speak("Say what you had for breakfast.", mode="freeResponse", evaluation="manual")),
+    ])
+    ink = _future_round("ink_submit", "Ink and Submit", [
+        _intro("ink_submit", "Handwriting and hand-in exercises wait for a later version."),
+        _canonical("ink_trace", _ink("Trace the letter è.")),
+        _canonical("submit_audio", _submit("Record yourself greeting a friend.")),
+    ])
+    ends = [
+        _canonical("ends_cover", story_cover(updated_at=STAMP, title_line="Say it back")),
+        _canonical("ends_line", story_line("Buongiorno! Un caffè, per favore.", updated_at=STAMP, speaker_id=anna)),
+        _canonical("ends_speak", _speak("Repeat: Un caffè, per favore.", mode="repeat", evaluation="transcriptionMatch", answers=["Un caffè, per favore."])),
+    ]
+    ends_story = _future_round("ends_on_speech", "A Story that ends on speech",
+                               [_intro("ends", "A Story whose last step this version cannot play ends unrecorded."), *ends],
+                               visual="story",
+                               flow=story_flow([(c["id"], True) for c in ends], title="Say it back"))
+    branch = [
+        _canonical("branch_cover", story_cover(updated_at=STAMP, title_line="Coffee or tea")),
+        _canonical("branch_question", _select("branch_question", "What does Anna order?", ["Un caffè", "Un tè"])),
+        _canonical("branch_coffee", story_line("Un caffè, per favore.", updated_at=STAMP, speaker_id=anna)),
+        _canonical("branch_tea", story_line("Un tè, per favore.", updated_at=STAMP, speaker_id=anna)),
+        _canonical("branch_end", story_line("Grazie!", updated_at=STAMP, speaker_id=anna)),
+    ]
+    ids = [c["id"] for c in branch]
+    cover, question, coffee, tea, end = ids
+    branching_flow = {
+        "start": cover,
+        "nodes": [
+            {"id": cover, "kind": "exercise", "contentId": cover,
+             "transitions": [{"trigger": "next", "target": question}]},
+            {"id": question, "kind": "exercise", "contentId": question,
+             "transitions": [
+                 {"trigger": "onChoice", "target": coffee, "choiceItemId": f"{question}_0"},
+                 {"trigger": "onChoice", "target": tea, "choiceItemId": f"{question}_1"},
+                 {"trigger": "next", "target": end},
+             ]},
+            {"id": coffee, "kind": "exercise", "contentId": coffee,
+             "transitions": [{"trigger": "next", "target": end}]},
+            {"id": tea, "kind": "exercise", "contentId": tea,
+             "transitions": [{"trigger": "next", "target": end}]},
+            {"id": end, "kind": "exercise", "contentId": end},
+        ],
+        "presentation": "scroll", "title": "Coffee or tea", "log": "dialogue",
+    }
+    branching = _future_round("branching", "A branching Story",
+                              [_intro("branching", "A Story whose flow branches on a choice cannot start in this version."), *branch],
+                              visual="story", flow=branching_flow)
+    lesson = {
+        "lessonId": "qql_labfuture_lesson", "publicationState": "published", "updatedAt": STAMP,
+        "title": "Future", "section": False,
+        "guidebook": {"content": [{
+            "id": "qql_labfuture_guide", "publicationState": "published",
+            "kind": "explanation", "required": False, "role": "overview",
+            "text": "What QuisquisLingo stores but cannot play yet: Speak, Ink and Submit exercises, a Story ending on speech and a Story whose flow branches. Kept, editable and exported unchanged; skipped by learners.",
+        }]},
+        "rounds": [speak, ink, ends_story, branching],
+        "duel": {"id": "qql_labfuture_duel", "title": "Future Duel"},
+    }
+    value = dict(root)
+    value["courseId"] = FUTURE_ID
+    value["title"] = "Temporary Demo: Laboratory of the future"
+    value["officialReleaseNotes"] = "Build 256 Revision 7: the test-only fixture of what this version cannot play yet."
+    value["courseDescription"] = "A test-only Course beside the Exercise Laboratory: Speak, Ink and Submit exercises, a Story that ends on a Speak step and a Story whose flow branches. Nothing in it plays in this version; the Audit reports each piece as information or a warning, and every service keeps it unchanged."
+    value["keywords"] = ["exercise laboratory", "future", "speak", "ink", "submit", "branching"]
+    value["lessons"] = [lesson]
     checksum_value = dict(value)
     checksum_value.pop("publisherVerificationStatus")
     canonical = json.dumps(checksum_value, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
@@ -416,21 +768,22 @@ def coverage(lab: Laboratory) -> str:
     preset_counts: dict[str, int] = {}
     for case in lab.cases:
         preset_counts[case["preset"]] = preset_counts.get(case["preset"], 0) + 1
+    preset_count = len([preset for preset in preset_counts if not preset.startswith("canonical:")])
     rows = [
         "# Build 254 Exercise Laboratory coverage", "",
         "This document and the JSON are generated together by `tools/generate_exercise_laboratory_254.py`. Run its `--check` mode to detect drift. The current repository model, editor and learner are the source of truth; the Course does not add a new primitive or engine feature.", "",
         f"- Course: **Exercise Laboratory**, `{COURSE_ID}`.",
         "- Direction: English (`en-GB`) → Italian (`it-IT`); TTS `it-IT`.",
         "- Model 11, official Course version 1.0.0; all Lessons, Rounds and Content are Published.",
-        f"- Exactly five Lessons, {sum(len(lesson['rounds']) for lesson in lab.lessons)} Rounds and {len(lab.cases)} runnable examples across all {len(preset_counts)} authoring presets.",
+        f"- Exactly seven Lessons (six primitives and a Story), {sum(len(lesson['rounds']) for lesson in [*lab.lessons, *lab.story_lessons])} Rounds and {len(lab.cases)} runnable examples across all {preset_count} authoring presets (the Assign Lesson uses the presets Sort into groups and Fill the slots since the Build 256 Revision 7 follow-up).",
         "- Course rights explicitly allow Fork, so the bundled original can be inspected and a derivative can use the ordinary authoring/confirm/export/import paths.",
         "- Create Duels is off: Presentation is non-evaluable and the Course is not padded to manufacture Duel pools. The required per-Lesson Duel metadata is retained.",
         "- This Course leaves existing Course identities, learner data and media assets unchanged.", "",
         "## Source inventory and supported modes", "",
-        "The authoring registry is `lib/models/exercise_authoring.dart`. Its 24 presets map to Select (11), Input (5), Arrange (3), Match (4), and Presentation (1). `lib/services/exercise_draft_builder.dart` exposes the additional Choose multiple-selection/inline-gap modes and Word order/Build the translation inline-gap modes. `lib/widgets/script_recognition_editor.dart` exposes both character-recognition directions. `lib/screens/round_screen.dart` is the completion/evaluation reference.", "",
+        f"The authoring registry is `lib/models/exercise_authoring.dart`. Every one of its {preset_count} presets has at least one example below.", "",
         "| Lesson | Preset | Examples |", "| --- | --- | ---: |",
     ]
-    for lesson in ("Select", "Input", "Arrange", "Match", "Presentation"):
+    for lesson in ("Select", "Input", "Arrange", "Match", "Presentation", "Story", "Assign"):
         for preset, count in preset_counts.items():
             if any(c["lesson"] == lesson and c["preset"] == preset for c in lab.cases):
                 rows.append(f"| {lesson} | `{preset}` | {count} |")
@@ -457,6 +810,7 @@ def coverage(lab: Laboratory) -> str:
         "- Type the missing word expects a complete word whose first Unicode grapheme is shared by all accepted alternatives. It is not an Input-style character-recognition direction. Listen for missing words uses distinct complete transcript words in displayed order.",
         "- Build the translation records literal complete answers and distinct block occurrences; expressions, typo tolerance and similarity-ranked acceptance do not apply. Word order and Image-prompt ordering each expose one correct authored order. Image-prompt ordering has no distractors.",
         "- Match the pairs supports a variable count; the three named specialised Match presets require exactly three pairs. Images as matching operands and arbitrary many-to-many relationships are not exposed by the current authoring/learner paths.",
+        "- Assign (Build 256 Revision 7) plays groups (categories in columns) and slots by tapping an item and then its destination, graded as exact assignments; the Laboratory authors them with Sort into groups and Fill the slots (Revision 7 follow-up, 29 September 2026). A group takes any number of items; a slot takes one; a reusable item stays in the bank; a word that belongs nowhere stays in the bank. Gaps in a text play too but have no preset and no Laboratory example (the owner prefers the inline gap presets); picture regions, grid cells, drag placement and the other Assign evaluation modes stay readable but not executable.",
         "- Flashcard coverage includes all six meaningful combinations of optional audio, usage, and usage translation (a translation requires usage). The learner buttons currently read Got it / Review again; JSON completion actions remain understood / review_later. Cards are non-evaluable and earn no correct-answer base XP. Optional omissions produce existing informational/warning Audit findings, not invalid content.",
         "- Flashcard image content is excluded: the current Presentation↔Exercise projection does not preserve images on an authoring round trip. Rich textual explanation/example/vocabulary/text/dialogue kinds share the presentation path but are not additional current Exercise picker presets. GuideBook explanations and Round introductions demonstrate explanatory text through their normal authoring surfaces.",
         "- Audio mode is On-Device TTS. Every spoken prompt is authored Italian, uses it-IT and needs an available native voice. Learner Enable Audio Exercises and Text-to-speech must be on to include every audio example; Authoring Preview ignores the learner switches. No recording transcript was guessed and no voice or MP3 is fabricated. Course audio modes and recorded-media transport are independent of the exercise primitive and covered by the separate Edge Cases Course.",
@@ -469,6 +823,7 @@ def coverage(lab: Laboratory) -> str:
         "5. Export/import of the Course through the normal ZIP and embedded-image JSON routes preserves this Course's identity, content wrappers, answers and character PNG bytes. A Fork gets a new identity through the existing rights-aware operation.",
         "", "These are verification seams, not a claim that commands have been run. Fresh integrated results are recorded in the Build 254 validation document.", "",
     ])
+    rows = [row.replace("all 80 examples", f"all {len(lab.cases)} examples") for row in rows]
     return "\n".join(rows)
 
 
@@ -477,14 +832,17 @@ def main() -> None:
     parser.add_argument("--check", action="store_true")
     args = parser.parse_args()
     lab = laboratory()
-    outputs = {ASSET: json.dumps(course(lab), ensure_ascii=False, indent=2) + "\n", COVERAGE: coverage(lab)}
+    laboratory_course = course(lab)
+    outputs = {ASSET: json.dumps(laboratory_course, ensure_ascii=False, indent=2) + "\n", COVERAGE: coverage(lab),
+               FIXTURE: json.dumps(future(laboratory_course), ensure_ascii=False, indent=2) + "\n"}
     for path, expected in outputs.items():
         if args.check:
             if not path.is_file() or path.read_text(encoding="utf-8") != expected:
                 raise SystemExit(f"Generated output differs: {path.relative_to(ROOT)}")
         else:
             path.write_text(expected, encoding="utf-8", newline="\n")
-    print(f"Exercise Laboratory {'verified' if args.check else 'generated'}: {len(lab.lessons)} Lessons, {sum(len(l['rounds']) for l in lab.lessons)} Rounds, {len(lab.cases)} examples, {len({c['preset'] for c in lab.cases})} presets.")
+    lessons = [*lab.lessons, *lab.story_lessons]
+    print(f"Exercise Laboratory {'verified' if args.check else 'generated'}: {len(lessons)} Lessons, {sum(len(l['rounds']) for l in lessons)} Rounds, {len(lab.cases)} examples, {len({c['preset'] for c in lab.cases})} presets.")
 
 
 if __name__ == "__main__":

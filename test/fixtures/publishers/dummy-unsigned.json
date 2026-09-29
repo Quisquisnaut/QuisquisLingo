@@ -1,5 +1,5 @@
 {
-  "formatVersion": 11,
+  "formatVersion": 12,
   "publicationState": "published",
   "lessonNumberingMode": "lesson",
   "defaultLessonIconStyle": "monochrome",
@@ -9,7 +9,7 @@
   "publisherName": "Dummy Publisher — TEST ONLY",
   "officialCourseVersion": "1",
   "officialReleaseDateUtc": "2026-09-06T00:00:00.000Z",
-  "officialChecksum": "9bf5468151b558bce882e51a7a16eeae5a9e352c74f182082b6d55d6dad4abb3",
+  "officialChecksum": "5d5cf092b707214ed5b0f1aaa43cc89f2d8b655c6f7a1963a727ff086e36766c",
   "officialReleaseNotes": "Build 226.02 revision 3 AI-generated sample label update.",
   "distributionChannel": "test-fixture",
   "publisherVerificationStatus": "unverified",
@@ -144,9 +144,9 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "choice",
               "exercise": {
                 "updatedAt": "2026-09-04T08:02:00.000Z",
+                "primitive": "select",
                 "prompt": [
                   {
                     "role": "primary",
@@ -154,49 +154,47 @@
                     "text": "How do you say “hello” in Italian?"
                   }
                 ],
-                "interaction": {
-                  "kind": "select",
-                  "minSelections": 1,
-                  "maxSelections": 1,
-                  "items": [
-                    {
-                      "id": "qql_it_l01_r01_e02_i1",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "ciao"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_it_l01_r01_e02_i2",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "grazie"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_it_l01_r01_e02_i3",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "sì"
-                        }
-                      ]
-                    }
-                  ]
-                },
+                "items": [
+                  {
+                    "id": "qql_it_l01_r01_e02_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "ciao"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_it_l01_r01_e02_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "grazie"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_it_l01_r01_e02_i3",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "sì"
+                      }
+                    ]
+                  }
+                ],
                 "evaluation": {
-                  "kind": "selected_items",
+                  "mode": "exactItem",
                   "correctItemIds": [
                     "qql_it_l01_r01_e02_i1"
                   ]
                 }
+              },
+              "authoringMetadata": {
+                "presetId": "choice"
               }
             },
             {
@@ -204,9 +202,9 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "choice",
               "exercise": {
                 "updatedAt": "2026-09-04T08:03:00.000Z",
+                "primitive": "select",
                 "prompt": [
                   {
                     "role": "primary",
@@ -214,49 +212,47 @@
                     "text": "How do you say “thank you” in Italian?"
                   }
                 ],
-                "interaction": {
-                  "kind": "select",
-                  "minSelections": 1,
-                  "maxSelections": 1,
-                  "items": [
-                    {
-                      "id": "qql_it_l01_r01_e03_i1",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "grazie"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_it_l01_r01_e03_i2",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "sì"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_it_l01_r01_e03_i3",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "no"
-                        }
-                      ]
-                    }
-                  ]
-                },
+                "items": [
+                  {
+                    "id": "qql_it_l01_r01_e03_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "grazie"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_it_l01_r01_e03_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "sì"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_it_l01_r01_e03_i3",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "no"
+                      }
+                    ]
+                  }
+                ],
                 "evaluation": {
-                  "kind": "selected_items",
+                  "mode": "exactItem",
                   "correctItemIds": [
                     "qql_it_l01_r01_e03_i1"
                   ]
                 }
+              },
+              "authoringMetadata": {
+                "presetId": "choice"
               }
             },
             {
@@ -264,14 +260,15 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "listening_choice",
               "exercise": {
                 "updatedAt": "2026-09-04T08:04:00.000Z",
+                "primitive": "select",
                 "prompt": [
                   {
                     "role": "primary",
                     "type": "audio",
-                    "text": "sì"
+                    "text": "sì",
+                    "playback": "automatic"
                   },
                   {
                     "role": "question",
@@ -279,49 +276,47 @@
                     "text": "Which expression do you hear?"
                   }
                 ],
-                "interaction": {
-                  "kind": "select",
-                  "minSelections": 1,
-                  "maxSelections": 1,
-                  "items": [
-                    {
-                      "id": "qql_it_l01_r01_e04_i1",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "sì"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_it_l01_r01_e04_i2",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "no"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_it_l01_r01_e04_i3",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "ciao"
-                        }
-                      ]
-                    }
-                  ]
-                },
+                "items": [
+                  {
+                    "id": "qql_it_l01_r01_e04_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "sì"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_it_l01_r01_e04_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "no"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_it_l01_r01_e04_i3",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "ciao"
+                      }
+                    ]
+                  }
+                ],
                 "evaluation": {
-                  "kind": "selected_items",
+                  "mode": "exactItem",
                   "correctItemIds": [
                     "qql_it_l01_r01_e04_i1"
                   ]
                 }
+              },
+              "authoringMetadata": {
+                "presetId": "listening_choice"
               }
             },
             {
@@ -329,14 +324,15 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "listening_comprehension",
               "exercise": {
                 "updatedAt": "2026-09-04T08:05:00.000Z",
+                "primitive": "select",
                 "prompt": [
                   {
                     "role": "passage",
                     "type": "audio",
-                    "text": "Ascolta bene: oggi usiamo insieme l’espressione no."
+                    "text": "Ascolta bene: oggi usiamo insieme l’espressione no.",
+                    "playback": "automatic"
                   },
                   {
                     "role": "question",
@@ -344,49 +340,47 @@
                     "text": "Which expression is being practised?"
                   }
                 ],
-                "interaction": {
-                  "kind": "select",
-                  "minSelections": 1,
-                  "maxSelections": 1,
-                  "items": [
-                    {
-                      "id": "qql_it_l01_r01_e05_i1",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "no"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_it_l01_r01_e05_i2",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "ciao"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_it_l01_r01_e05_i3",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "grazie"
-                        }
-                      ]
-                    }
-                  ]
-                },
+                "items": [
+                  {
+                    "id": "qql_it_l01_r01_e05_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "no"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_it_l01_r01_e05_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "ciao"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_it_l01_r01_e05_i3",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "grazie"
+                      }
+                    ]
+                  }
+                ],
                 "evaluation": {
-                  "kind": "selected_items",
+                  "mode": "exactItem",
                   "correctItemIds": [
                     "qql_it_l01_r01_e05_i1"
                   ]
                 }
+              },
+              "authoringMetadata": {
+                "presetId": "listening_comprehension"
               }
             },
             {
@@ -394,9 +388,9 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "reading_comprehension",
               "exercise": {
                 "updatedAt": "2026-09-04T08:06:00.000Z",
+                "primitive": "select",
                 "prompt": [
                   {
                     "role": "passage",
@@ -409,49 +403,47 @@
                     "text": "Which expression is being practised?"
                   }
                 ],
-                "interaction": {
-                  "kind": "select",
-                  "minSelections": 1,
-                  "maxSelections": 1,
-                  "items": [
-                    {
-                      "id": "qql_it_l01_r01_e06_i1",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "ciao"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_it_l01_r01_e06_i2",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "grazie"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_it_l01_r01_e06_i3",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "sì"
-                        }
-                      ]
-                    }
-                  ]
-                },
+                "items": [
+                  {
+                    "id": "qql_it_l01_r01_e06_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "ciao"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_it_l01_r01_e06_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "grazie"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_it_l01_r01_e06_i3",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "sì"
+                      }
+                    ]
+                  }
+                ],
                 "evaluation": {
-                  "kind": "selected_items",
+                  "mode": "exactItem",
                   "correctItemIds": [
                     "qql_it_l01_r01_e06_i1"
                   ]
                 }
+              },
+              "authoringMetadata": {
+                "presetId": "reading_comprehension"
               }
             },
             {
@@ -459,9 +451,9 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "dialogue_response",
               "exercise": {
                 "updatedAt": "2026-09-04T08:07:00.000Z",
+                "primitive": "select",
                 "prompt": [
                   {
                     "role": "passage",
@@ -474,39 +466,37 @@
                     "text": "Quale risposta mostra che hai capito?"
                   }
                 ],
-                "interaction": {
-                  "kind": "select",
-                  "minSelections": 1,
-                  "maxSelections": 1,
-                  "items": [
-                    {
-                      "id": "qql_it_l01_r01_e07_i1",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "Ho capito."
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_it_l01_r01_e07_i2",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "Non sto ascoltando."
-                        }
-                      ]
-                    }
-                  ]
-                },
+                "items": [
+                  {
+                    "id": "qql_it_l01_r01_e07_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "Ho capito."
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_it_l01_r01_e07_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "Non sto ascoltando."
+                      }
+                    ]
+                  }
+                ],
                 "evaluation": {
-                  "kind": "selected_items",
+                  "mode": "exactItem",
                   "correctItemIds": [
                     "qql_it_l01_r01_e07_i1"
                   ]
                 }
+              },
+              "authoringMetadata": {
+                "presetId": "dialogue_response"
               }
             },
             {
@@ -514,9 +504,9 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "contextual_comprehension",
               "exercise": {
                 "updatedAt": "2026-09-04T08:08:00.000Z",
+                "primitive": "select",
                 "prompt": [
                   {
                     "role": "context",
@@ -529,49 +519,47 @@
                     "text": "What does the highlighted expression mean?"
                   }
                 ],
-                "interaction": {
-                  "kind": "select",
-                  "minSelections": 1,
-                  "maxSelections": 1,
-                  "items": [
-                    {
-                      "id": "qql_it_l01_r01_e08_i1",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "yes"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_it_l01_r01_e08_i2",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "no"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_it_l01_r01_e08_i3",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "hello"
-                        }
-                      ]
-                    }
-                  ]
-                },
+                "items": [
+                  {
+                    "id": "qql_it_l01_r01_e08_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "yes"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_it_l01_r01_e08_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "no"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_it_l01_r01_e08_i3",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "hello"
+                      }
+                    ]
+                  }
+                ],
                 "evaluation": {
-                  "kind": "selected_items",
+                  "mode": "exactItem",
                   "correctItemIds": [
                     "qql_it_l01_r01_e08_i1"
                   ]
                 }
+              },
+              "authoringMetadata": {
+                "presetId": "contextual_comprehension"
               }
             }
           ]
@@ -587,9 +575,9 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "choice",
               "exercise": {
                 "updatedAt": "2026-09-04T08:13:00.000Z",
+                "primitive": "select",
                 "prompt": [
                   {
                     "role": "primary",
@@ -597,49 +585,47 @@
                     "text": "How do you say “thank you” in Italian?"
                   }
                 ],
-                "interaction": {
-                  "kind": "select",
-                  "minSelections": 1,
-                  "maxSelections": 1,
-                  "items": [
-                    {
-                      "id": "qql_it_l01_r02_e01_i1",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "grazie"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_it_l01_r02_e01_i2",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "sì"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_it_l01_r02_e01_i3",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "no"
-                        }
-                      ]
-                    }
-                  ]
-                },
+                "items": [
+                  {
+                    "id": "qql_it_l01_r02_e01_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "grazie"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_it_l01_r02_e01_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "sì"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_it_l01_r02_e01_i3",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "no"
+                      }
+                    ]
+                  }
+                ],
                 "evaluation": {
-                  "kind": "selected_items",
+                  "mode": "exactItem",
                   "correctItemIds": [
                     "qql_it_l01_r02_e01_i1"
                   ]
                 }
+              },
+              "authoringMetadata": {
+                "presetId": "choice"
               }
             },
             {
@@ -647,9 +633,9 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "choice",
               "exercise": {
                 "updatedAt": "2026-09-04T08:14:00.000Z",
+                "primitive": "select",
                 "prompt": [
                   {
                     "role": "primary",
@@ -657,49 +643,47 @@
                     "text": "How do you say “yes” in Italian?"
                   }
                 ],
-                "interaction": {
-                  "kind": "select",
-                  "minSelections": 1,
-                  "maxSelections": 1,
-                  "items": [
-                    {
-                      "id": "qql_it_l01_r02_e02_i1",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "sì"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_it_l01_r02_e02_i2",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "no"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_it_l01_r02_e02_i3",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "ciao"
-                        }
-                      ]
-                    }
-                  ]
-                },
+                "items": [
+                  {
+                    "id": "qql_it_l01_r02_e02_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "sì"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_it_l01_r02_e02_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "no"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_it_l01_r02_e02_i3",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "ciao"
+                      }
+                    ]
+                  }
+                ],
                 "evaluation": {
-                  "kind": "selected_items",
+                  "mode": "exactItem",
                   "correctItemIds": [
                     "qql_it_l01_r02_e02_i1"
                   ]
                 }
+              },
+              "authoringMetadata": {
+                "presetId": "choice"
               }
             },
             {
@@ -707,14 +691,15 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "listening_choice",
               "exercise": {
                 "updatedAt": "2026-09-04T08:15:00.000Z",
+                "primitive": "select",
                 "prompt": [
                   {
                     "role": "primary",
                     "type": "audio",
-                    "text": "no"
+                    "text": "no",
+                    "playback": "automatic"
                   },
                   {
                     "role": "question",
@@ -722,49 +707,47 @@
                     "text": "Which expression do you hear?"
                   }
                 ],
-                "interaction": {
-                  "kind": "select",
-                  "minSelections": 1,
-                  "maxSelections": 1,
-                  "items": [
-                    {
-                      "id": "qql_it_l01_r02_e03_i1",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "no"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_it_l01_r02_e03_i2",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "ciao"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_it_l01_r02_e03_i3",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "grazie"
-                        }
-                      ]
-                    }
-                  ]
-                },
+                "items": [
+                  {
+                    "id": "qql_it_l01_r02_e03_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "no"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_it_l01_r02_e03_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "ciao"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_it_l01_r02_e03_i3",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "grazie"
+                      }
+                    ]
+                  }
+                ],
                 "evaluation": {
-                  "kind": "selected_items",
+                  "mode": "exactItem",
                   "correctItemIds": [
                     "qql_it_l01_r02_e03_i1"
                   ]
                 }
+              },
+              "authoringMetadata": {
+                "presetId": "listening_choice"
               }
             },
             {
@@ -772,14 +755,15 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "listening_comprehension",
               "exercise": {
                 "updatedAt": "2026-09-04T08:16:00.000Z",
+                "primitive": "select",
                 "prompt": [
                   {
                     "role": "passage",
                     "type": "audio",
-                    "text": "Ascolta bene: oggi usiamo insieme l’espressione ciao."
+                    "text": "Ascolta bene: oggi usiamo insieme l’espressione ciao.",
+                    "playback": "automatic"
                   },
                   {
                     "role": "question",
@@ -787,49 +771,47 @@
                     "text": "Which expression is being practised?"
                   }
                 ],
-                "interaction": {
-                  "kind": "select",
-                  "minSelections": 1,
-                  "maxSelections": 1,
-                  "items": [
-                    {
-                      "id": "qql_it_l01_r02_e04_i1",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "ciao"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_it_l01_r02_e04_i2",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "grazie"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_it_l01_r02_e04_i3",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "sì"
-                        }
-                      ]
-                    }
-                  ]
-                },
+                "items": [
+                  {
+                    "id": "qql_it_l01_r02_e04_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "ciao"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_it_l01_r02_e04_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "grazie"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_it_l01_r02_e04_i3",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "sì"
+                      }
+                    ]
+                  }
+                ],
                 "evaluation": {
-                  "kind": "selected_items",
+                  "mode": "exactItem",
                   "correctItemIds": [
                     "qql_it_l01_r02_e04_i1"
                   ]
                 }
+              },
+              "authoringMetadata": {
+                "presetId": "listening_comprehension"
               }
             },
             {
@@ -837,9 +819,9 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "reading_comprehension",
               "exercise": {
                 "updatedAt": "2026-09-04T08:17:00.000Z",
+                "primitive": "select",
                 "prompt": [
                   {
                     "role": "passage",
@@ -852,49 +834,47 @@
                     "text": "Which expression is being practised?"
                   }
                 ],
-                "interaction": {
-                  "kind": "select",
-                  "minSelections": 1,
-                  "maxSelections": 1,
-                  "items": [
-                    {
-                      "id": "qql_it_l01_r02_e05_i1",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "grazie"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_it_l01_r02_e05_i2",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "sì"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_it_l01_r02_e05_i3",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "no"
-                        }
-                      ]
-                    }
-                  ]
-                },
+                "items": [
+                  {
+                    "id": "qql_it_l01_r02_e05_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "grazie"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_it_l01_r02_e05_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "sì"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_it_l01_r02_e05_i3",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "no"
+                      }
+                    ]
+                  }
+                ],
                 "evaluation": {
-                  "kind": "selected_items",
+                  "mode": "exactItem",
                   "correctItemIds": [
                     "qql_it_l01_r02_e05_i1"
                   ]
                 }
+              },
+              "authoringMetadata": {
+                "presetId": "reading_comprehension"
               }
             },
             {
@@ -902,9 +882,9 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "dialogue_response",
               "exercise": {
                 "updatedAt": "2026-09-04T08:18:00.000Z",
+                "primitive": "select",
                 "prompt": [
                   {
                     "role": "passage",
@@ -917,39 +897,37 @@
                     "text": "Quale risposta mostra che hai capito?"
                   }
                 ],
-                "interaction": {
-                  "kind": "select",
-                  "minSelections": 1,
-                  "maxSelections": 1,
-                  "items": [
-                    {
-                      "id": "qql_it_l01_r02_e06_i1",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "Ho capito."
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_it_l01_r02_e06_i2",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "Non sto ascoltando."
-                        }
-                      ]
-                    }
-                  ]
-                },
+                "items": [
+                  {
+                    "id": "qql_it_l01_r02_e06_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "Ho capito."
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_it_l01_r02_e06_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "Non sto ascoltando."
+                      }
+                    ]
+                  }
+                ],
                 "evaluation": {
-                  "kind": "selected_items",
+                  "mode": "exactItem",
                   "correctItemIds": [
                     "qql_it_l01_r02_e06_i1"
                   ]
                 }
+              },
+              "authoringMetadata": {
+                "presetId": "dialogue_response"
               }
             },
             {
@@ -957,9 +935,9 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "contextual_comprehension",
               "exercise": {
                 "updatedAt": "2026-09-04T08:19:00.000Z",
+                "primitive": "select",
                 "prompt": [
                   {
                     "role": "context",
@@ -972,49 +950,47 @@
                     "text": "What does the highlighted expression mean?"
                   }
                 ],
-                "interaction": {
-                  "kind": "select",
-                  "minSelections": 1,
-                  "maxSelections": 1,
-                  "items": [
-                    {
-                      "id": "qql_it_l01_r02_e07_i1",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "no"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_it_l01_r02_e07_i2",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "hello"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_it_l01_r02_e07_i3",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "thank you"
-                        }
-                      ]
-                    }
-                  ]
-                },
+                "items": [
+                  {
+                    "id": "qql_it_l01_r02_e07_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "no"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_it_l01_r02_e07_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "hello"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_it_l01_r02_e07_i3",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "thank you"
+                      }
+                    ]
+                  }
+                ],
                 "evaluation": {
-                  "kind": "selected_items",
+                  "mode": "exactItem",
                   "correctItemIds": [
                     "qql_it_l01_r02_e07_i1"
                   ]
                 }
+              },
+              "authoringMetadata": {
+                "presetId": "contextual_comprehension"
               }
             },
             {
@@ -1022,9 +998,9 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "gap_choice",
               "exercise": {
                 "updatedAt": "2026-09-04T08:20:00.000Z",
+                "primitive": "select",
                 "prompt": [
                   {
                     "role": "question",
@@ -1032,49 +1008,47 @@
                     "text": "Oggi usiamo l’espressione ___ durante la lezione."
                   }
                 ],
-                "interaction": {
-                  "kind": "select",
-                  "minSelections": 1,
-                  "maxSelections": 1,
-                  "items": [
-                    {
-                      "id": "qql_it_l01_r02_e08_i1",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "ciao"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_it_l01_r02_e08_i2",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "grazie"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_it_l01_r02_e08_i3",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "sì"
-                        }
-                      ]
-                    }
-                  ]
-                },
+                "items": [
+                  {
+                    "id": "qql_it_l01_r02_e08_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "ciao"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_it_l01_r02_e08_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "grazie"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_it_l01_r02_e08_i3",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "sì"
+                      }
+                    ]
+                  }
+                ],
                 "evaluation": {
-                  "kind": "selected_items",
+                  "mode": "exactItem",
                   "correctItemIds": [
                     "qql_it_l01_r02_e08_i1"
                   ]
                 }
+              },
+              "authoringMetadata": {
+                "presetId": "gap_choice"
               }
             }
           ]
@@ -1091,9 +1065,9 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "choice",
               "exercise": {
                 "updatedAt": "2026-09-04T08:25:00.000Z",
+                "primitive": "select",
                 "prompt": [
                   {
                     "role": "primary",
@@ -1101,49 +1075,47 @@
                     "text": "How do you say “yes” in Italian?"
                   }
                 ],
-                "interaction": {
-                  "kind": "select",
-                  "minSelections": 1,
-                  "maxSelections": 1,
-                  "items": [
-                    {
-                      "id": "qql_it_l01_r03_e01_i1",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "sì"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_it_l01_r03_e01_i2",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "no"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_it_l01_r03_e01_i3",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "ciao"
-                        }
-                      ]
-                    }
-                  ]
-                },
+                "items": [
+                  {
+                    "id": "qql_it_l01_r03_e01_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "sì"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_it_l01_r03_e01_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "no"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_it_l01_r03_e01_i3",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "ciao"
+                      }
+                    ]
+                  }
+                ],
                 "evaluation": {
-                  "kind": "selected_items",
+                  "mode": "exactItem",
                   "correctItemIds": [
                     "qql_it_l01_r03_e01_i1"
                   ]
                 }
+              },
+              "authoringMetadata": {
+                "presetId": "choice"
               }
             },
             {
@@ -1151,9 +1123,9 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "choice",
               "exercise": {
                 "updatedAt": "2026-09-04T08:26:00.000Z",
+                "primitive": "select",
                 "prompt": [
                   {
                     "role": "primary",
@@ -1161,49 +1133,47 @@
                     "text": "How do you say “no” in Italian?"
                   }
                 ],
-                "interaction": {
-                  "kind": "select",
-                  "minSelections": 1,
-                  "maxSelections": 1,
-                  "items": [
-                    {
-                      "id": "qql_it_l01_r03_e02_i1",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "no"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_it_l01_r03_e02_i2",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "ciao"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_it_l01_r03_e02_i3",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "grazie"
-                        }
-                      ]
-                    }
-                  ]
-                },
+                "items": [
+                  {
+                    "id": "qql_it_l01_r03_e02_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "no"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_it_l01_r03_e02_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "ciao"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_it_l01_r03_e02_i3",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "grazie"
+                      }
+                    ]
+                  }
+                ],
                 "evaluation": {
-                  "kind": "selected_items",
+                  "mode": "exactItem",
                   "correctItemIds": [
                     "qql_it_l01_r03_e02_i1"
                   ]
                 }
+              },
+              "authoringMetadata": {
+                "presetId": "choice"
               }
             },
             {
@@ -1211,14 +1181,15 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "listening_choice",
               "exercise": {
                 "updatedAt": "2026-09-04T08:27:00.000Z",
+                "primitive": "select",
                 "prompt": [
                   {
                     "role": "primary",
                     "type": "audio",
-                    "text": "ciao"
+                    "text": "ciao",
+                    "playback": "automatic"
                   },
                   {
                     "role": "question",
@@ -1226,49 +1197,47 @@
                     "text": "Which expression do you hear?"
                   }
                 ],
-                "interaction": {
-                  "kind": "select",
-                  "minSelections": 1,
-                  "maxSelections": 1,
-                  "items": [
-                    {
-                      "id": "qql_it_l01_r03_e03_i1",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "ciao"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_it_l01_r03_e03_i2",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "grazie"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_it_l01_r03_e03_i3",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "sì"
-                        }
-                      ]
-                    }
-                  ]
-                },
+                "items": [
+                  {
+                    "id": "qql_it_l01_r03_e03_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "ciao"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_it_l01_r03_e03_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "grazie"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_it_l01_r03_e03_i3",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "sì"
+                      }
+                    ]
+                  }
+                ],
                 "evaluation": {
-                  "kind": "selected_items",
+                  "mode": "exactItem",
                   "correctItemIds": [
                     "qql_it_l01_r03_e03_i1"
                   ]
                 }
+              },
+              "authoringMetadata": {
+                "presetId": "listening_choice"
               }
             },
             {
@@ -1276,14 +1245,15 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "listening_comprehension",
               "exercise": {
                 "updatedAt": "2026-09-04T08:28:00.000Z",
+                "primitive": "select",
                 "prompt": [
                   {
                     "role": "passage",
                     "type": "audio",
-                    "text": "Ascolta bene: oggi usiamo insieme l’espressione grazie."
+                    "text": "Ascolta bene: oggi usiamo insieme l’espressione grazie.",
+                    "playback": "automatic"
                   },
                   {
                     "role": "question",
@@ -1291,49 +1261,47 @@
                     "text": "Which expression is being practised?"
                   }
                 ],
-                "interaction": {
-                  "kind": "select",
-                  "minSelections": 1,
-                  "maxSelections": 1,
-                  "items": [
-                    {
-                      "id": "qql_it_l01_r03_e04_i1",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "grazie"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_it_l01_r03_e04_i2",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "sì"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_it_l01_r03_e04_i3",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "no"
-                        }
-                      ]
-                    }
-                  ]
-                },
+                "items": [
+                  {
+                    "id": "qql_it_l01_r03_e04_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "grazie"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_it_l01_r03_e04_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "sì"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_it_l01_r03_e04_i3",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "no"
+                      }
+                    ]
+                  }
+                ],
                 "evaluation": {
-                  "kind": "selected_items",
+                  "mode": "exactItem",
                   "correctItemIds": [
                     "qql_it_l01_r03_e04_i1"
                   ]
                 }
+              },
+              "authoringMetadata": {
+                "presetId": "listening_comprehension"
               }
             },
             {
@@ -1341,9 +1309,9 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "reading_comprehension",
               "exercise": {
                 "updatedAt": "2026-09-04T08:29:00.000Z",
+                "primitive": "select",
                 "prompt": [
                   {
                     "role": "passage",
@@ -1356,49 +1324,47 @@
                     "text": "Which expression is being practised?"
                   }
                 ],
-                "interaction": {
-                  "kind": "select",
-                  "minSelections": 1,
-                  "maxSelections": 1,
-                  "items": [
-                    {
-                      "id": "qql_it_l01_r03_e05_i1",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "sì"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_it_l01_r03_e05_i2",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "no"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_it_l01_r03_e05_i3",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "ciao"
-                        }
-                      ]
-                    }
-                  ]
-                },
+                "items": [
+                  {
+                    "id": "qql_it_l01_r03_e05_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "sì"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_it_l01_r03_e05_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "no"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_it_l01_r03_e05_i3",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "ciao"
+                      }
+                    ]
+                  }
+                ],
                 "evaluation": {
-                  "kind": "selected_items",
+                  "mode": "exactItem",
                   "correctItemIds": [
                     "qql_it_l01_r03_e05_i1"
                   ]
                 }
+              },
+              "authoringMetadata": {
+                "presetId": "reading_comprehension"
               }
             },
             {
@@ -1406,9 +1372,9 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "dialogue_response",
               "exercise": {
                 "updatedAt": "2026-09-04T08:30:00.000Z",
+                "primitive": "select",
                 "prompt": [
                   {
                     "role": "passage",
@@ -1421,39 +1387,37 @@
                     "text": "Quale risposta mostra che hai capito?"
                   }
                 ],
-                "interaction": {
-                  "kind": "select",
-                  "minSelections": 1,
-                  "maxSelections": 1,
-                  "items": [
-                    {
-                      "id": "qql_it_l01_r03_e06_i1",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "Ho capito."
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_it_l01_r03_e06_i2",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "Non sto ascoltando."
-                        }
-                      ]
-                    }
-                  ]
-                },
+                "items": [
+                  {
+                    "id": "qql_it_l01_r03_e06_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "Ho capito."
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_it_l01_r03_e06_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "Non sto ascoltando."
+                      }
+                    ]
+                  }
+                ],
                 "evaluation": {
-                  "kind": "selected_items",
+                  "mode": "exactItem",
                   "correctItemIds": [
                     "qql_it_l01_r03_e06_i1"
                   ]
                 }
+              },
+              "authoringMetadata": {
+                "presetId": "dialogue_response"
               }
             },
             {
@@ -1461,9 +1425,9 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "contextual_comprehension",
               "exercise": {
                 "updatedAt": "2026-09-04T08:31:00.000Z",
+                "primitive": "select",
                 "prompt": [
                   {
                     "role": "context",
@@ -1476,49 +1440,47 @@
                     "text": "What does the highlighted expression mean?"
                   }
                 ],
-                "interaction": {
-                  "kind": "select",
-                  "minSelections": 1,
-                  "maxSelections": 1,
-                  "items": [
-                    {
-                      "id": "qql_it_l01_r03_e07_i1",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "hello"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_it_l01_r03_e07_i2",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "thank you"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_it_l01_r03_e07_i3",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "yes"
-                        }
-                      ]
-                    }
-                  ]
-                },
+                "items": [
+                  {
+                    "id": "qql_it_l01_r03_e07_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "hello"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_it_l01_r03_e07_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "thank you"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_it_l01_r03_e07_i3",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "yes"
+                      }
+                    ]
+                  }
+                ],
                 "evaluation": {
-                  "kind": "selected_items",
+                  "mode": "exactItem",
                   "correctItemIds": [
                     "qql_it_l01_r03_e07_i1"
                   ]
                 }
+              },
+              "authoringMetadata": {
+                "presetId": "contextual_comprehension"
               }
             },
             {
@@ -1526,9 +1488,9 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "gap_choice",
               "exercise": {
                 "updatedAt": "2026-09-04T08:32:00.000Z",
+                "primitive": "select",
                 "prompt": [
                   {
                     "role": "question",
@@ -1536,49 +1498,47 @@
                     "text": "Oggi usiamo l’espressione ___ durante la lezione."
                   }
                 ],
-                "interaction": {
-                  "kind": "select",
-                  "minSelections": 1,
-                  "maxSelections": 1,
-                  "items": [
-                    {
-                      "id": "qql_it_l01_r03_e08_i1",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "grazie"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_it_l01_r03_e08_i2",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "sì"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_it_l01_r03_e08_i3",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "no"
-                        }
-                      ]
-                    }
-                  ]
-                },
+                "items": [
+                  {
+                    "id": "qql_it_l01_r03_e08_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "grazie"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_it_l01_r03_e08_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "sì"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_it_l01_r03_e08_i3",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "no"
+                      }
+                    ]
+                  }
+                ],
                 "evaluation": {
-                  "kind": "selected_items",
+                  "mode": "exactItem",
                   "correctItemIds": [
                     "qql_it_l01_r03_e08_i1"
                   ]
                 }
+              },
+              "authoringMetadata": {
+                "presetId": "gap_choice"
               }
             }
           ]
@@ -1594,9 +1554,9 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "choice",
               "exercise": {
                 "updatedAt": "2026-09-04T08:37:00.000Z",
+                "primitive": "select",
                 "prompt": [
                   {
                     "role": "primary",
@@ -1604,49 +1564,47 @@
                     "text": "How do you say “no” in Italian?"
                   }
                 ],
-                "interaction": {
-                  "kind": "select",
-                  "minSelections": 1,
-                  "maxSelections": 1,
-                  "items": [
-                    {
-                      "id": "qql_it_l01_r04_e01_i1",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "no"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_it_l01_r04_e01_i2",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "ciao"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_it_l01_r04_e01_i3",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "grazie"
-                        }
-                      ]
-                    }
-                  ]
-                },
+                "items": [
+                  {
+                    "id": "qql_it_l01_r04_e01_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "no"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_it_l01_r04_e01_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "ciao"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_it_l01_r04_e01_i3",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "grazie"
+                      }
+                    ]
+                  }
+                ],
                 "evaluation": {
-                  "kind": "selected_items",
+                  "mode": "exactItem",
                   "correctItemIds": [
                     "qql_it_l01_r04_e01_i1"
                   ]
                 }
+              },
+              "authoringMetadata": {
+                "presetId": "choice"
               }
             },
             {
@@ -1654,9 +1612,9 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "choice",
               "exercise": {
                 "updatedAt": "2026-09-04T08:38:00.000Z",
+                "primitive": "select",
                 "prompt": [
                   {
                     "role": "primary",
@@ -1664,49 +1622,47 @@
                     "text": "How do you say “hello” in Italian?"
                   }
                 ],
-                "interaction": {
-                  "kind": "select",
-                  "minSelections": 1,
-                  "maxSelections": 1,
-                  "items": [
-                    {
-                      "id": "qql_it_l01_r04_e02_i1",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "ciao"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_it_l01_r04_e02_i2",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "grazie"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_it_l01_r04_e02_i3",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "sì"
-                        }
-                      ]
-                    }
-                  ]
-                },
+                "items": [
+                  {
+                    "id": "qql_it_l01_r04_e02_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "ciao"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_it_l01_r04_e02_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "grazie"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_it_l01_r04_e02_i3",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "sì"
+                      }
+                    ]
+                  }
+                ],
                 "evaluation": {
-                  "kind": "selected_items",
+                  "mode": "exactItem",
                   "correctItemIds": [
                     "qql_it_l01_r04_e02_i1"
                   ]
                 }
+              },
+              "authoringMetadata": {
+                "presetId": "choice"
               }
             },
             {
@@ -1714,14 +1670,15 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "listening_choice",
               "exercise": {
                 "updatedAt": "2026-09-04T08:39:00.000Z",
+                "primitive": "select",
                 "prompt": [
                   {
                     "role": "primary",
                     "type": "audio",
-                    "text": "grazie"
+                    "text": "grazie",
+                    "playback": "automatic"
                   },
                   {
                     "role": "question",
@@ -1729,49 +1686,47 @@
                     "text": "Which expression do you hear?"
                   }
                 ],
-                "interaction": {
-                  "kind": "select",
-                  "minSelections": 1,
-                  "maxSelections": 1,
-                  "items": [
-                    {
-                      "id": "qql_it_l01_r04_e03_i1",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "grazie"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_it_l01_r04_e03_i2",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "sì"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_it_l01_r04_e03_i3",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "no"
-                        }
-                      ]
-                    }
-                  ]
-                },
+                "items": [
+                  {
+                    "id": "qql_it_l01_r04_e03_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "grazie"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_it_l01_r04_e03_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "sì"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_it_l01_r04_e03_i3",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "no"
+                      }
+                    ]
+                  }
+                ],
                 "evaluation": {
-                  "kind": "selected_items",
+                  "mode": "exactItem",
                   "correctItemIds": [
                     "qql_it_l01_r04_e03_i1"
                   ]
                 }
+              },
+              "authoringMetadata": {
+                "presetId": "listening_choice"
               }
             },
             {
@@ -1779,14 +1734,15 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "listening_comprehension",
               "exercise": {
                 "updatedAt": "2026-09-04T08:40:00.000Z",
+                "primitive": "select",
                 "prompt": [
                   {
                     "role": "passage",
                     "type": "audio",
-                    "text": "Ascolta bene: oggi usiamo insieme l’espressione sì."
+                    "text": "Ascolta bene: oggi usiamo insieme l’espressione sì.",
+                    "playback": "automatic"
                   },
                   {
                     "role": "question",
@@ -1794,49 +1750,47 @@
                     "text": "Which expression is being practised?"
                   }
                 ],
-                "interaction": {
-                  "kind": "select",
-                  "minSelections": 1,
-                  "maxSelections": 1,
-                  "items": [
-                    {
-                      "id": "qql_it_l01_r04_e04_i1",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "sì"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_it_l01_r04_e04_i2",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "no"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_it_l01_r04_e04_i3",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "ciao"
-                        }
-                      ]
-                    }
-                  ]
-                },
+                "items": [
+                  {
+                    "id": "qql_it_l01_r04_e04_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "sì"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_it_l01_r04_e04_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "no"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_it_l01_r04_e04_i3",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "ciao"
+                      }
+                    ]
+                  }
+                ],
                 "evaluation": {
-                  "kind": "selected_items",
+                  "mode": "exactItem",
                   "correctItemIds": [
                     "qql_it_l01_r04_e04_i1"
                   ]
                 }
+              },
+              "authoringMetadata": {
+                "presetId": "listening_comprehension"
               }
             },
             {
@@ -1844,9 +1798,9 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "reading_comprehension",
               "exercise": {
                 "updatedAt": "2026-09-04T08:41:00.000Z",
+                "primitive": "select",
                 "prompt": [
                   {
                     "role": "passage",
@@ -1859,49 +1813,47 @@
                     "text": "Which expression is being practised?"
                   }
                 ],
-                "interaction": {
-                  "kind": "select",
-                  "minSelections": 1,
-                  "maxSelections": 1,
-                  "items": [
-                    {
-                      "id": "qql_it_l01_r04_e05_i1",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "no"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_it_l01_r04_e05_i2",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "ciao"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_it_l01_r04_e05_i3",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "grazie"
-                        }
-                      ]
-                    }
-                  ]
-                },
+                "items": [
+                  {
+                    "id": "qql_it_l01_r04_e05_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "no"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_it_l01_r04_e05_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "ciao"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_it_l01_r04_e05_i3",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "grazie"
+                      }
+                    ]
+                  }
+                ],
                 "evaluation": {
-                  "kind": "selected_items",
+                  "mode": "exactItem",
                   "correctItemIds": [
                     "qql_it_l01_r04_e05_i1"
                   ]
                 }
+              },
+              "authoringMetadata": {
+                "presetId": "reading_comprehension"
               }
             },
             {
@@ -1909,9 +1861,9 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "dialogue_response",
               "exercise": {
                 "updatedAt": "2026-09-04T08:42:00.000Z",
+                "primitive": "select",
                 "prompt": [
                   {
                     "role": "passage",
@@ -1924,39 +1876,37 @@
                     "text": "Quale risposta mostra che hai capito?"
                   }
                 ],
-                "interaction": {
-                  "kind": "select",
-                  "minSelections": 1,
-                  "maxSelections": 1,
-                  "items": [
-                    {
-                      "id": "qql_it_l01_r04_e06_i1",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "Ho capito."
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_it_l01_r04_e06_i2",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "Non sto ascoltando."
-                        }
-                      ]
-                    }
-                  ]
-                },
+                "items": [
+                  {
+                    "id": "qql_it_l01_r04_e06_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "Ho capito."
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_it_l01_r04_e06_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "Non sto ascoltando."
+                      }
+                    ]
+                  }
+                ],
                 "evaluation": {
-                  "kind": "selected_items",
+                  "mode": "exactItem",
                   "correctItemIds": [
                     "qql_it_l01_r04_e06_i1"
                   ]
                 }
+              },
+              "authoringMetadata": {
+                "presetId": "dialogue_response"
               }
             },
             {
@@ -1964,9 +1914,9 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "contextual_comprehension",
               "exercise": {
                 "updatedAt": "2026-09-04T08:43:00.000Z",
+                "primitive": "select",
                 "prompt": [
                   {
                     "role": "context",
@@ -1979,49 +1929,47 @@
                     "text": "What does the highlighted expression mean?"
                   }
                 ],
-                "interaction": {
-                  "kind": "select",
-                  "minSelections": 1,
-                  "maxSelections": 1,
-                  "items": [
-                    {
-                      "id": "qql_it_l01_r04_e07_i1",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "thank you"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_it_l01_r04_e07_i2",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "yes"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_it_l01_r04_e07_i3",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "no"
-                        }
-                      ]
-                    }
-                  ]
-                },
+                "items": [
+                  {
+                    "id": "qql_it_l01_r04_e07_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "thank you"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_it_l01_r04_e07_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "yes"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_it_l01_r04_e07_i3",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "no"
+                      }
+                    ]
+                  }
+                ],
                 "evaluation": {
-                  "kind": "selected_items",
+                  "mode": "exactItem",
                   "correctItemIds": [
                     "qql_it_l01_r04_e07_i1"
                   ]
                 }
+              },
+              "authoringMetadata": {
+                "presetId": "contextual_comprehension"
               }
             },
             {
@@ -2029,9 +1977,9 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "gap_choice",
               "exercise": {
                 "updatedAt": "2026-09-04T08:44:00.000Z",
+                "primitive": "select",
                 "prompt": [
                   {
                     "role": "question",
@@ -2039,49 +1987,47 @@
                     "text": "Oggi usiamo l’espressione ___ durante la lezione."
                   }
                 ],
-                "interaction": {
-                  "kind": "select",
-                  "minSelections": 1,
-                  "maxSelections": 1,
-                  "items": [
-                    {
-                      "id": "qql_it_l01_r04_e08_i1",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "sì"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_it_l01_r04_e08_i2",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "no"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_it_l01_r04_e08_i3",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "ciao"
-                        }
-                      ]
-                    }
-                  ]
-                },
+                "items": [
+                  {
+                    "id": "qql_it_l01_r04_e08_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "sì"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_it_l01_r04_e08_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "no"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_it_l01_r04_e08_i3",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "ciao"
+                      }
+                    ]
+                  }
+                ],
                 "evaluation": {
-                  "kind": "selected_items",
+                  "mode": "exactItem",
                   "correctItemIds": [
                     "qql_it_l01_r04_e08_i1"
                   ]
                 }
+              },
+              "authoringMetadata": {
+                "presetId": "gap_choice"
               }
             }
           ]

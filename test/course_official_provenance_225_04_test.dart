@@ -9,44 +9,43 @@ import 'package:quisquislingo_app/services/course_service.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  test('all four bundled sources have verified immutable provenance', () async {
-    expect(CourseService.courseAssets, hasLength(4));
-    final mismatches = <String, String>{};
-    final titles = <String>{};
-    for (final entry in CourseService.courseAssets.entries) {
-      final raw = jsonDecode(await rootBundle.loadString(entry.value));
-      final course = Course.fromJson(Map<String, dynamic>.from(raw as Map));
-      expect(course.originType, CourseOriginType.bundledOfficial);
-      expect(course.temporarySample, isTrue);
-      expect(
-        course.title,
-        anyOf('Exercise Laboratory', startsWith('AI-Slop Demo: ')),
-      );
-      titles.add(course.title);
-      expect(course.publisherId, 'org.quisquislingo');
-      expect(
-        course.publisherVerificationStatus,
-        PublisherVerificationStatus.verified,
-      );
-      final calculated = CourseBackupService.officialContentChecksum(course);
-      if (course.officialChecksum != calculated) {
-        mismatches[entry.key] = calculated;
+  test(
+    'all three bundled sources have verified immutable provenance',
+    () async {
+      expect(CourseService.courseAssets, hasLength(3));
+      final mismatches = <String, String>{};
+      final titles = <String>{};
+      for (final entry in CourseService.courseAssets.entries) {
+        final raw = jsonDecode(await rootBundle.loadString(entry.value));
+        final course = Course.fromJson(Map<String, dynamic>.from(raw as Map));
+        expect(course.originType, CourseOriginType.bundledOfficial);
+        expect(course.temporarySample, isTrue);
+        expect(course.title, startsWith('Temporary Demo: '));
+        titles.add(course.title);
+        expect(course.publisherId, 'org.quisquislingo');
+        expect(
+          course.publisherVerificationStatus,
+          PublisherVerificationStatus.verified,
+        );
+        final calculated = CourseBackupService.officialContentChecksum(course);
+        if (course.officialChecksum != calculated) {
+          mismatches[entry.key] = calculated;
+        }
       }
-    }
-    expect(mismatches, isEmpty, reason: 'bundled checksum mismatches');
-    expect(titles, {
-      'AI-Slop Demo: Edge Case Course',
-      'AI-Slop Demo: Piedmontese',
-      'Exercise Laboratory',
-      'AI-Slop Demo: Korean for English Speakers',
-    });
-    for (final entry in CourseService.courseAssets.entries) {
-      expect(
-        (await CourseService().loadBundledCourse(entry.key)).courseId,
-        isNotEmpty,
-      );
-    }
-  });
+      expect(mismatches, isEmpty, reason: 'bundled checksum mismatches');
+      expect(titles, {
+        'Temporary Demo: Edge Case Course',
+        'Temporary Demo: Piedmontese',
+        'Temporary Demo: Exercise Laboratory',
+      });
+      for (final entry in CourseService.courseAssets.entries) {
+        expect(
+          (await CourseService().loadBundledCourse(entry.key)).courseId,
+          isNotEmpty,
+        );
+      }
+    },
+  );
 
   // Build 255 Revision 6: every demo is All rights reserved. Only the two test
   // demos keep derivative works allowed, so they can still be forked.
@@ -56,7 +55,6 @@ void main() {
       const derivatives = {
         'IT': DerivativeWorksPolicy.allowed,
         'EN_EDGE': DerivativeWorksPolicy.allowed,
-        'KO': DerivativeWorksPolicy.forbidden,
         'PMS': DerivativeWorksPolicy.forbidden,
       };
       expect(

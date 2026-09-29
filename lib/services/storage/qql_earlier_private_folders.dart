@@ -14,6 +14,11 @@ class QqlEarlierPrivateFolders {
   const QqlEarlierPrivateFolders._();
 
   static const courses = 'qql_courses_v2';
+
+  /// Build 255's Course store (Course Model v11). Build 256 Revision 1
+  /// reads `QQL_Courses_v12` only; `tools/convert_stored_courses_256.dart`
+  /// converts what is here.
+  static const coursesV11 = 'QQL_Courses';
   static const courseMedia = 'quisquislingo_course_media';
   static const courseBackups = 'qql_course_backups_v11';
   static const privateCourseBackups = 'QQL_CourseBackups';
@@ -26,7 +31,12 @@ class QqlEarlierPrivateFolders {
   /// [backups] are apart because they follow the Logs and Backups choices of
   /// Wipe everything, and [sharedImages] and [imageBanks] because their files
   /// are still in use.
-  static const retired = <String>[courses, courseMedia, importStaging];
+  static const retired = <String>[
+    courses,
+    coursesV11,
+    courseMedia,
+    importStaging,
+  ];
 
   /// The earlier private Course Backup folders.
   static const backups = <String>[courseBackups, privateCourseBackups];
@@ -99,7 +109,6 @@ class QqlEarlierPrivateFolders {
     }
   }
 
-  static String _nameOf(FileSystemEntity entity) => entity.path
-      .split(RegExp(r'[\\/]'))
-      .lastWhere((part) => part.isNotEmpty);
+  static String _nameOf(FileSystemEntity entity) =>
+      entity.path.split(RegExp(r'[\\/]')).lastWhere((part) => part.isNotEmpty);
 }

@@ -159,7 +159,7 @@ void main() {
     await tester.tap(find.text('Open Lessons'));
     await tester.pumpAndSettle();
     await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(FloatingActionButton, 'New lesson'));
+    await tester.tap(find.widgetWithText(FloatingActionButton, 'New Lesson'));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField), 'Third Lesson');
     await tester.tap(find.widgetWithText(FilledButton, 'Create'));
@@ -205,23 +205,30 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('exercise-preset-selector')));
     await tester.pumpAndSettle();
-    expect(find.text('Multiple choice'), findsOneWidget);
+    expect(find.text('Vocabulary'), findsOneWidget);
     await tester.enterText(
       find.byKey(const Key('exercise-preset-search')),
-      'translation',
+      'Type the translation',
     );
     await tester.pump();
-    expect(find.text('Translation'), findsOneWidget);
-    expect(find.text('Type the translation'), findsOneWidget);
+    expect(find.text('Vocabulary'), findsOneWidget);
+    expect(find.text('Type the translation (to target)'), findsOneWidget);
     await tester.enterText(
       find.byKey(const Key('exercise-preset-search')),
-      'contextual',
+      'Read and answer',
     );
     await tester.pump();
-    expect(find.text('Contextual comprehension'), findsOneWidget);
-    await tester.tap(find.text('Contextual comprehension'));
+    expect(find.text('Read and answer (to target)'), findsOneWidget);
+    await tester.tap(find.text('Read and answer (to target)'));
     await tester.pumpAndSettle();
-    expect(find.text('Context mode'), findsOneWidget);
+    expect(
+      find.byWidgetPredicate(
+        (widget) =>
+            widget is TextField &&
+            widget.decoration?.labelText == 'Text to read',
+      ),
+      findsOneWidget,
+    );
 
     await tester.tap(find.text('Exercise Help'));
     await tester.pumpAndSettle();

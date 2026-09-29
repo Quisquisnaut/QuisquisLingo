@@ -128,9 +128,12 @@ class _CourseEditorSearchScreenState extends State<CourseEditorSearchScreen> {
                       final result = results[index];
                       final lesson = widget.course.lessons[result.lessonIndex];
                       final round = lesson.rounds[result.roundIndex];
-                      final roundLabel = round.title.trim().isEmpty
+                      final roundName = round.flow != null
+                          ? round.displayTitle(result.roundIndex)
+                          : round.title.trim();
+                      final roundLabel = roundName.isEmpty
                           ? 'Round ${result.roundIndex + 1}'
-                          : 'Round ${result.roundIndex + 1} · ${round.title.trim()}';
+                          : 'Round ${result.roundIndex + 1} · $roundName';
                       final lessonLabel = const LessonPresentationService()
                           .identity(widget.course, result.lessonIndex)
                           .fullText;

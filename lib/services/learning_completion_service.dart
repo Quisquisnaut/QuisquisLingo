@@ -171,7 +171,13 @@ class LearningCompletionService {
 
     final perfectFacts = request.readAttemptFacts();
     var newlyEarnedLaurel = false;
-    if (perfectFacts.errorsThisAttempt == 0 && !perfectFacts.ttsWasSkipped) {
+    // A Round without an evaluable exercise (cards, covers or lines only)
+    // earns no Laurel and no perfect mark (owner decision, 28 September
+    // 2026); its completion still counts for progression.
+    final scorable = perfectFacts.evaluableExerciseCount > 0;
+    if (scorable &&
+        perfectFacts.errorsThisAttempt == 0 &&
+        !perfectFacts.ttsWasSkipped) {
       // A perfect result is permanent once earned, regardless of how the round
       // is entered (course path or Review) or of later imperfect attempts.
       newlyEarnedLaurel = await _progress.markPerfectRound(
@@ -188,7 +194,8 @@ class LearningCompletionService {
           // safe for injected/platform settings failures too.
         }
       }
-    } else if (perfectFacts.errorsThisAttempt == 0 &&
+    } else if (scorable &&
+        perfectFacts.errorsThisAttempt == 0 &&
         perfectFacts.ttsWasSkipped) {
       // Zero errors among presented exercises gets a separate mark when any
       // TTS exercise was skipped. A later full zero-error attempt can still
@@ -207,6 +214,7 @@ class LearningCompletionService {
         firstPassCorrect: scoringFacts.firstPassCorrect,
         wasCompletedAtStart: scoringFacts.wasCompletedAtStart,
         newlyEarnedLaurel: newlyEarnedLaurel,
+        evaluableExerciseCount: scoringFacts.evaluableExerciseCount,
       ),
     );
     final weeklyXpBefore = await _progress.getWeeklyXp();

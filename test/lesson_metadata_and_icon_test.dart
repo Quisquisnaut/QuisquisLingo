@@ -510,7 +510,7 @@ void main() {
       expect(find.byKey(const ValueKey('round-a')), findsOneWidget);
       expect(find.byKey(const ValueKey('round-b')), findsOneWidget);
 
-      await tester.tap(find.text('New round'));
+      await tester.tap(find.text('New Round'));
       await tester.pumpAndSettle();
       await tester.enterText(find.byType(TextFormField), 'New draft round');
       await tester.tap(find.text('Save').last);

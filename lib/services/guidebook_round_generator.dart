@@ -225,7 +225,7 @@ class GuidebookRoundGenerator {
     }
 
     switch (preset) {
-      case 'choice':
+      case 'choice_target':
         return select(
           type: 'choice',
           prompt: 'How do you say “${pair.source}”?',
@@ -251,7 +251,7 @@ class GuidebookRoundGenerator {
             ),
           ],
         );
-      case 'listening_choice':
+      case 'listening_answer_target':
         return select(
           type: 'listening_choice',
           prompt: '',
@@ -274,10 +274,10 @@ class GuidebookRoundGenerator {
             for (final item in pairs) [item.target, item.source],
           ],
         );
-      case 'build_translation':
+      case 'build_translation_to_target':
         final answer = _words(pair.target);
         return _legacy(
-          type: preset,
+          type: 'build_translation',
           prompt: 'Build the translation of “${pair.source}”.',
           tokens: answer,
           correctTranslations: [pair.target],
@@ -291,10 +291,10 @@ class GuidebookRoundGenerator {
           tokens: answer,
           orderAnswer: answer,
         );
-      case 'contextual_comprehension':
+      case 'reading_answer_target':
         final contextual = material.pairWithExample(position);
         return select(
-          type: preset,
+          type: 'contextual_comprehension',
           prompt: contextual.example,
           question:
               'Which expression in this context means “${contextual.pair.source}”?',
@@ -307,9 +307,9 @@ class GuidebookRoundGenerator {
             ),
           ],
         );
-      case 'type_translation':
+      case 'type_translation_to_target':
         return _legacy(
-          type: preset,
+          type: 'type_translation',
           prompt: pair.source,
           accepted: [pair.target],
           hint: difficulty < .67 ? 'Use the Lesson GuideBook vocabulary.' : '',
@@ -357,22 +357,22 @@ class GuidebookRoundGenerator {
   }) {
     final candidates = difficulty < .34
         ? [
-            'choice',
+            'choice_target',
             if (hasMatchedExamples) 'gap_choice',
-            'listening_choice',
+            'listening_answer_target',
             'word_match',
           ]
         : difficulty < .67
         ? [
-            'build_translation',
+            'build_translation_to_target',
             if (hasExamples) 'word_order',
             'audio_match',
-            if (hasMatchedExamples) 'contextual_comprehension',
+            if (hasMatchedExamples) 'reading_answer_target',
           ]
         : [
-            'type_translation',
-            if (hasMatchedExamples) 'contextual_comprehension',
-            'build_translation',
+            'type_translation_to_target',
+            if (hasMatchedExamples) 'reading_answer_target',
+            'build_translation_to_target',
             if (hasExamples) 'word_order',
           ];
     for (final preset in candidates) {

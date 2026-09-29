@@ -68,9 +68,8 @@ void main() {
       final result = ExerciseDraftBuilder.build(
         ExerciseDraftValues(
           original: _choice(),
-          type: 'word_order',
+          type: 'gap_blocks',
           publicationState: PublicationState.draft,
-          useInlineGaps: true,
           gapLayout: 'I {go} to {school}.',
           tokens: 'went',
           prompt: 'Build the sentence',

@@ -1,4 +1,5 @@
 import '../models/course_models.dart';
+import 'round_flow_authoring.dart';
 import 'authoring_duplication_service.dart';
 
 /// Moves or copies content inside one custom Course Editor working copy.
@@ -305,6 +306,8 @@ class CourseAuthoringTransferService {
     title: source.title,
     visualType: source.visualType,
     content: content,
+    // A Story keeps its flow: a linear one follows the new content order.
+    flow: RoundFlowAuthoring.forContent(source.flow, content),
   );
 
   Lesson _withRounds(Lesson source, List<LearningRound> rounds, DateTime now) =>
@@ -375,6 +378,8 @@ class CourseAuthoringTransferService {
     keywords: source.keywords,
     coverImage: source.coverImage,
     imageLibrary: source.imageLibrary,
+    storyNarrator: source.storyNarrator,
+    storyCharacters: source.storyCharacters,
     languageVariant: source.languageVariant,
     startLevel: source.startLevel,
     targetLevel: source.targetLevel,

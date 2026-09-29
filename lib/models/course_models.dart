@@ -1,12 +1,18 @@
 import 'dart:convert';
 import 'dart:math';
 
+import 'canonical/canonical.dart';
+import 'exercise_canonical.dart';
 import 'exercise_image_metadata.dart';
+import 'preset_successors.dart';
 import '../services/app_metadata.dart';
+
+export 'canonical/canonical.dart';
+export 'exercise_canonical.dart';
 
 /// QuisquisLingo Course Model v11.
 ///
-/// The serialized course format is formatVersion 11, the single accepted
+/// The serialized course format is formatVersion 12, the single accepted
 /// format: v9 and v10 are clean-cut and never read. A merged Course is an
 /// ordinary v11 Course that also carries mergeProvenance. Course content is stored as
 /// Course > Lesson > Guidebook + Round > Content. Exercises are one Content kind
@@ -783,7 +789,7 @@ class CoursePublisherContact {
 }
 
 class Course {
-  static const int currentFormatVersion = 11;
+  static const int currentFormatVersion = 12;
 
   /// App Store age-rating classes accepted by [minimumAge].
   static const List<int> minimumAgeClasses = [4, 9, 13, 16, 18];
@@ -887,7 +893,28 @@ class Course {
   /// Images the Course keeps in its own library even while no exercise uses
   /// them, so a confirmed save does not remove them.
   final List<CourseImageLibraryEntry> imageLibrary;
+
+  /// Build 256 Revision 5: the Story narrator's name, avatar, language and
+  /// voice; null means the default narrator.
+  final StorySpeaker? storyNarrator;
+
+  /// Build 256 Revision 5: the Story characters that dialogue lines refer to
+  /// by id.
+  final List<StorySpeaker> storyCharacters;
   final List<Lesson> lessons;
+
+  /// The narrator, customized or default.
+  StorySpeaker get narrator => storyNarrator ?? StorySpeaker.defaultNarrator;
+
+  /// The speaker of a line: the narrator for an empty [speakerId], the
+  /// character with that id, or null when the Course has no such character.
+  StorySpeaker? speakerOf(String speakerId) {
+    if (speakerId.isEmpty) return narrator;
+    for (final character in storyCharacters) {
+      if (character.id == speakerId) return character;
+    }
+    return null;
+  }
 
   Course({
     this.formatVersion = currentFormatVersion,
@@ -954,6 +981,8 @@ class Course {
     this.lessonIconAssets = const [],
     this.audioLibrary = const [],
     this.imageLibrary = const [],
+    this.storyNarrator,
+    this.storyCharacters = const [],
     required this.lessons,
   }) : originalCourseCreator =
            originalCourseCreator ??
@@ -1384,6 +1413,9 @@ class Course {
       'audioLibrary': audioLibrary.map((e) => e.toJson()).toList(),
     if (imageLibrary.isNotEmpty)
       'imageLibrary': imageLibrary.map((e) => e.toJson()).toList(),
+    if (storyNarrator != null) 'storyNarrator': storyNarrator!.toJson(),
+    if (storyCharacters.isNotEmpty)
+      'storyCharacters': storyCharacters.map((e) => e.toJson()).toList(),
     'lessons': lessons.map((e) => e.toJson()).toList(),
   };
 
@@ -1404,7 +1436,7 @@ class Course {
     final fv = json['formatVersion'];
     if (fv != currentFormatVersion) {
       throw FormatException(
-        'Unsupported course formatVersion: $fv. This version of QuisquisLingo supports Course Model format 11 only. Older course formats are not migrated or partially loaded; convert them with tools/convert_course_to_v11.dart.',
+        'Unsupported course formatVersion: $fv. This version of QuisquisLingo supports Course Model format 12 only. Older course formats are not migrated or partially loaded; convert them with tools/convert_course_to_v12.dart.',
       );
     }
     if (json.containsKey('mergeProvenance') &&
@@ -1455,23 +1487,23 @@ class Course {
     ]) {
       if (json.containsKey(removed)) {
         throw FormatException(
-          'Course Model formatVersion 11 does not support the obsolete course.$removed field.',
+          'Course Model formatVersion 12 does not support the obsolete course.$removed field.',
         );
       }
     }
     if (json.containsKey('topics')) {
       throw const FormatException(
-        'Course Model formatVersion 11 does not support the legacy topics field.',
+        'Course Model formatVersion 12 does not support the legacy topics field.',
       );
     }
     if (json.containsKey('chapters')) {
       throw const FormatException(
-        'Course Model formatVersion 11 does not support chapters.',
+        'Course Model formatVersion 12 does not support chapters.',
       );
     }
     if (json.containsKey('supportUrl')) {
       throw const FormatException(
-        'Course Model formatVersion 11 uses buyACoffeeUrl, not supportUrl.',
+        'Course Model formatVersion 12 uses buyACoffeeUrl, not supportUrl.',
       );
     }
     if (json.containsKey('buyACoffeeUrl') && json['buyACoffeeUrl'] is! String) {
@@ -1713,6 +1745,8 @@ class Course {
                 .toList()
           : const [],
       imageLibrary: CourseImageLibraryEntry.parseList(json['imageLibrary']),
+      storyNarrator: StorySpeaker.parseNarrator(json['storyNarrator']),
+      storyCharacters: StorySpeaker.parseCharacters(json['storyCharacters']),
       lessons: _parseLessons(json),
     );
   }
@@ -1978,12 +2012,12 @@ class Lesson {
     }
     if (j.containsKey('id') || j.containsKey('topicId')) {
       throw const FormatException(
-        'Course Model formatVersion 11 Lessons require lessonId and reject legacy Lesson identity fields.',
+        'Course Model formatVersion 12 Lessons require lessonId and reject legacy Lesson identity fields.',
       );
     }
     if (j.containsKey('role') || j.containsKey('assessment')) {
       throw const FormatException(
-        'Course Model formatVersion 11 Lessons do not support role or assessment fields.',
+        'Course Model formatVersion 12 Lessons do not support role or assessment fields.',
       );
     }
     final rawGuidebook = j['guidebook'];
@@ -2001,7 +2035,7 @@ class Lesson {
     }
     if (j.containsKey('imageAsset')) {
       throw const FormatException(
-        'Course Model formatVersion 11 Lessons do not support the obsolete imageAsset field.',
+        'Course Model formatVersion 12 Lessons do not support the obsolete imageAsset field.',
       );
     }
     if (j.containsKey('sectionName') &&
@@ -2061,6 +2095,11 @@ class LearningRound {
   final String title;
   final String visualType;
   final List<LearningContent> content;
+
+  /// Course Model v12: how the content and exercise nodes are ordered or
+  /// branched. Null means today's practice Round (lesson_intro first, then
+  /// shuffled exercises, then the mistake review).
+  final ContentFlow? flow;
   LearningRound({
     required this.id,
     this.publicationState = PublicationState.published,
@@ -2070,6 +2109,7 @@ class LearningRound {
     this.visualType = 'generic',
     List<LearningContent>? content,
     List<Exercise>? exercises,
+    this.flow,
   }) : updatedAt = _canonicalUtcTimestamp(updatedAt),
        content =
            content ??
@@ -2085,8 +2125,13 @@ class LearningRound {
     if (title.trim().isNotEmpty) 'title': title.trim(),
     'visualType': visualType,
     'content': content.map((e) => e.toJson()).toList(),
+    if (flow != null) 'flow': flow!.toJson(),
   };
   factory LearningRound.fromJson(Map<String, dynamic> j) {
+    final rawFlow = j['flow'];
+    if (j.containsKey('flow') && rawFlow is! Map) {
+      throw const FormatException('round.flow must be an object.');
+    }
     if (j.containsKey('provisionalDraft') && j['provisionalDraft'] is! bool) {
       throw const FormatException('round.provisionalDraft must be a boolean.');
     }
@@ -2104,6 +2149,9 @@ class LearningRound {
       title: _optionalString(j, 'title', ''),
       visualType: visualType,
       content: _mapList(j, 'content', 'round', LearningContent.fromJson),
+      flow: rawFlow is Map
+          ? ContentFlow.fromJson(Map<String, dynamic>.from(rawFlow))
+          : null,
     );
   }
 
@@ -2115,7 +2163,34 @@ class LearningRound {
       .whereType<Exercise>()
       .toList(growable: false);
 
+  /// The prefix every list shows before a Story's title (Build 256
+  /// Revision 5 follow-up); derived here, never stored in [title].
+  static const storyTitlePrefix = 'Story: ';
+
+  /// A Round with a content flow is a Story.
+  bool get isStory => flow != null;
+
+  /// A Story's own title: the flow's, else the Round title without a prefix
+  /// an earlier build stored.
+  String get storyTitle {
+    final own = flow?.title.trim() ?? '';
+    return own.isNotEmpty ? own : withoutStoryPrefix(title);
+  }
+
+  static String withoutStoryPrefix(String value) {
+    final trimmed = value.trim();
+    return trimmed.startsWith(storyTitlePrefix)
+        ? trimmed.substring(storyTitlePrefix.length).trim()
+        : trimmed;
+  }
+
+  /// What lists, the Lesson path, Search, Review and the Round screen call
+  /// this Round: "Story: <title>" for a Story, else the title or "Round N".
   String displayTitle(int position) {
+    if (flow != null) {
+      final own = storyTitle;
+      return '$storyTitlePrefix${own.isEmpty ? 'Round ${position + 1}' : own}';
+    }
     final custom = title.trim();
     return custom.isEmpty ? 'Round ${position + 1}' : custom;
   }
@@ -2124,36 +2199,111 @@ class LearningRound {
 class LearningContent {
   final String id;
   final PublicationState publicationState;
-  final String kind;
+  final String _kind;
   final bool required;
-  final String editorTemplate;
   final String role;
-  final Exercise? exercise;
-  final Presentation? presentation;
+  final Exercise? _exercise;
   final String text;
   final List<String> sourceRefs;
+  final String _editorTemplate;
+  final Map<String, Object?> _authoringMetadata;
+
+  /// The v11 presentation shape, kept only as a construction helper: since
+  /// Course Model v12 a Presentation is an exercise whose primitive is
+  /// `presentation`, which [exercise] returns.
+  final Presentation? _presentation;
+
+  /// Course Model v12: every exercise, Presentation included, is
+  /// `kind: exercise`. A [presentation] or a `presentation` kind given here
+  /// reads back as an exercise, and an [editorTemplate] reads back as the
+  /// `presetId` of [authoringMetadata]; both views are derived so this
+  /// constructor stays const.
   const LearningContent({
     required this.id,
     this.publicationState = PublicationState.published,
-    required this.kind,
+    required String kind,
     this.required = true,
-    this.editorTemplate = '',
+    String editorTemplate = '',
+    Map<String, Object?>? authoringMetadata,
     this.role = '',
-    this.exercise,
-    this.presentation,
+    Exercise? exercise,
+    Presentation? presentation,
     this.text = '',
     this.sourceRefs = const [],
-  });
-  factory LearningContent.fromExercise(Exercise e) {
-    if (e.editorTemplate == 'flashcard') {
-      return LearningContent(
-        id: e.id,
-        publicationState: e.publicationState,
-        kind: 'presentation',
-        editorTemplate: 'flashcard',
-        presentation: Presentation.fromLegacyExercise(e),
-      );
+  }) : _kind = kind,
+       _exercise = exercise,
+       _presentation = presentation,
+       _editorTemplate = editorTemplate,
+       _authoringMetadata = authoringMetadata ?? const {};
+
+  static bool _sameMetadata(Map<String, Object?> a, Map<String, Object?> b) {
+    if (a.length != b.length) return false;
+    for (final entry in a.entries) {
+      if (!b.containsKey(entry.key) || b[entry.key] != entry.value) {
+        return false;
+      }
     }
+    return true;
+  }
+
+  /// The metadata this Content was given: its own map plus the preset named
+  /// by the constructor's `editorTemplate`.
+  Map<String, Object?> get _givenMetadata => _editorTemplate.isEmpty
+      ? _authoringMetadata
+      : {
+          ..._authoringMetadata,
+          'presetId': presetSuccessorOf[_editorTemplate] ?? _editorTemplate,
+        };
+
+  String get kind =>
+      (_presentation != null && _exercise == null) || _kind == 'presentation'
+      ? 'exercise'
+      : _kind;
+
+  /// The exercise this Content holds, with the constructor's preset and
+  /// metadata applied; a given [Presentation] becomes a `presentation`
+  /// exercise here.
+  Exercise? get exercise {
+    final given = _givenMetadata;
+    final exercise = _exercise;
+    if (exercise != null) {
+      return given.isEmpty || _sameMetadata(given, exercise.authoringMetadata)
+          ? exercise
+          : exercise.withAuthoringMetadata(given);
+    }
+    final presentation = _presentation;
+    if (presentation == null) return null;
+    return presentation.toExercise(
+      id: id,
+      publicationState: publicationState,
+      authoringMetadata: given.isEmpty
+          ? const {'presetId': 'flashcard'}
+          : given,
+    );
+  }
+
+  /// The authoring metadata this Content carries: the exercise's when it
+  /// has one, else its own (textual Content rarely has any).
+  Map<String, Object?> get authoringMetadata =>
+      exercise?.authoringMetadata ?? _givenMetadata;
+
+  /// The preset that authored this Content's exercise, or an empty string.
+  /// Never read by anything learners see.
+  String get editorTemplate {
+    final preset = authoringMetadata['presetId'];
+    return preset is String ? preset.trim() : '';
+  }
+
+  /// A Presentation view of a `presentation`-primitive exercise, for callers
+  /// that still copy presentations; null otherwise.
+  Presentation? get presentation {
+    final exercise = this.exercise;
+    return exercise?.primitive == ExercisePrimitive.presentation
+        ? Presentation.fromExercise(exercise!)
+        : null;
+  }
+
+  factory LearningContent.fromExercise(Exercise e) {
     if (const {
       'explanation',
       'example',
@@ -2174,7 +2324,6 @@ class LearningContent {
       id: e.id,
       publicationState: e.publicationState,
       kind: 'exercise',
-      editorTemplate: e.editorTemplate,
       exercise: e,
     );
   }
@@ -2198,35 +2347,62 @@ class LearningContent {
     'publicationState': publicationState.name,
     'kind': kind,
     'required': required,
-    if (editorTemplate.isNotEmpty) 'editorTemplate': editorTemplate,
+    if (authoringMetadata.isNotEmpty) 'authoringMetadata': authoringMetadata,
     if (role.isNotEmpty) 'role': role,
     if (sourceRefs.isNotEmpty) 'sourceRefs': sourceRefs,
-    if (exercise != null) 'exercise': exercise!.toV2Json(),
-    if (presentation != null) 'presentation': presentation!.toJson(),
+    if (exercise != null) 'exercise': exercise!.toJson(),
     if (text.isNotEmpty) 'text': text,
   };
   factory LearningContent.fromJson(Map<String, dynamic> j) {
     final kind = _requiredString(j, 'kind', 'content');
+    if (j.containsKey('editorTemplate')) {
+      throw const FormatException(
+        'Course Model formatVersion 12 records the authoring preset in content.authoringMetadata.presetId, not editorTemplate. Convert the Course with tools/convert_course_to_v12.dart.',
+      );
+    }
+    if (kind == 'presentation' || j.containsKey('presentation')) {
+      throw const FormatException(
+        'Course Model formatVersion 12 has no presentation Content: a Presentation is an exercise whose primitive is presentation. Convert the Course with tools/convert_course_to_v12.dart.',
+      );
+    }
     final publicationState = PublicationState.parseRequired(j, 'content');
+    final rawMetadata = j['authoringMetadata'];
+    if (j.containsKey('authoringMetadata') && rawMetadata is! Map) {
+      throw const FormatException(
+        'content.authoringMetadata must be an object.',
+      );
+    }
+    final metadata = <String, Object?>{
+      if (rawMetadata is Map)
+        for (final entry in rawMetadata.entries)
+          entry.key.toString(): entry.value,
+    };
+    if (metadata.containsKey('presetId') && metadata['presetId'] is! String) {
+      throw const FormatException(
+        'content.authoringMetadata.presetId must be a string.',
+      );
+    }
     final ex = j['exercise'];
-    final p = j['presentation'];
+    if (kind == 'exercise' && ex is! Map) {
+      throw const FormatException('Exercise Content needs an exercise object.');
+    }
+    if (kind != 'exercise' && ex != null) {
+      throw FormatException('Content of kind $kind cannot carry an exercise.');
+    }
     return LearningContent(
       id: _requiredString(j, 'id', 'content'),
       publicationState: publicationState,
       kind: kind,
       required: j['required'] != false,
-      editorTemplate: _optionalString(j, 'editorTemplate', ''),
+      authoringMetadata: metadata,
       role: _optionalString(j, 'role', ''),
       exercise: ex is Map
-          ? Exercise.fromV2Json(
+          ? Exercise.fromJson(
               Map<String, dynamic>.from(ex),
               contentId: _requiredString(j, 'id', 'content'),
-              editorTemplate: _optionalString(j, 'editorTemplate', ''),
+              authoringMetadata: metadata,
               publicationState: publicationState,
             )
-          : null,
-      presentation: p is Map
-          ? Presentation.fromJson(Map<String, dynamic>.from(p))
           : null,
       text: _optionalString(j, 'text', ''),
       sourceRefs: _stringList(j, 'sourceRefs'),
@@ -2234,13 +2410,6 @@ class LearningContent {
   }
   Exercise? asRunnableExercise() {
     if (kind == 'exercise') return exercise;
-    if (kind == 'presentation' && presentation != null) {
-      return presentation!.asLegacyExercise(
-        id: id,
-        template: editorTemplate.isEmpty ? 'flashcard' : editorTemplate,
-        publicationState: publicationState,
-      );
-    }
     // Non-evaluated textual learning material is displayed through the existing
     // presentation card path until dedicated v2 renderers are added.
     if (const {
@@ -2263,6 +2432,10 @@ class LearningContent {
   }
 }
 
+/// The v11 presentation shape. Since Course Model v12 a Presentation is an
+/// exercise whose primitive is `presentation`; this class remains the
+/// converter's input and a construction helper, and [toExercise] is the one
+/// mapping between the two.
 class Presentation {
   final List<PromptElement> content;
   final List<String> actions;
@@ -2301,38 +2474,66 @@ class Presentation {
         ),
     ],
   );
+
+  /// The v11 view of a `presentation`-primitive exercise. An omitted
+  /// completion mode is the registry default, `proceed`, as the runtime
+  /// reads it.
+  factory Presentation.fromExercise(Exercise e) => Presentation(
+    content: e.promptElements,
+    actions: switch (e.options.enumValue<CompletionMode>(
+      OptionKey.completionMode,
+    )) {
+      CompletionMode.understoodReview => const ['understood', 'review_later'],
+      CompletionMode.proceed || null => const ['continue'],
+      CompletionMode.acknowledge => const ['acknowledge'],
+      CompletionMode.automatic => const [],
+    },
+  );
+
+  /// The completion mode the v11 actions mean.
+  CompletionMode get completionMode {
+    if (actions.contains('understood') || actions.contains('review_later')) {
+      return CompletionMode.understoodReview;
+    }
+    if (actions.isEmpty) return CompletionMode.automatic;
+    if (actions.contains('acknowledge')) return CompletionMode.acknowledge;
+    return CompletionMode.proceed;
+  }
+
+  /// The canonical exercise this presentation is.
+  Exercise toExercise({
+    required String id,
+    PublicationState publicationState = PublicationState.published,
+    DateTime? updatedAt,
+    Map<String, Object?> authoringMetadata = const {'presetId': 'flashcard'},
+  }) => Exercise.canonical(
+    id: id,
+    publicationState: publicationState,
+    updatedAt: updatedAt,
+    primitive: ExercisePrimitive.presentation,
+    options: completionMode == CompletionMode.proceed
+        ? PrimitiveOptions.empty
+        : PrimitiveOptions({
+            OptionKey.completionMode: EnumOptionValue(completionMode),
+          }),
+    promptElements: content,
+    canonicalEvaluation: CanonicalEvaluation.none,
+    authoringMetadata: authoringMetadata,
+  );
+
   Exercise asLegacyExercise({
     required String id,
     required String template,
     PublicationState publicationState = PublicationState.published,
-  }) {
-    String first(String role) =>
-        content.where((e) => e.role == role).map((e) => e.text).firstOrNull ??
-        '';
-    final usage = first('usage');
-    final usageTr = first('usage_translation');
-    return Exercise(
-      id: id,
-      publicationState: publicationState,
-      type: 'flashcard',
-      editorTemplate: template,
-      prompt: first('term'),
-      question: first('meaning'),
-      answers: [if (usage.isNotEmpty) usage, if (usageTr.isNotEmpty) usageTr],
-      correct: null,
-      tts: first('audio').isEmpty ? null : first('audio'),
-      accepted: const [],
-      tokens: const [],
-      orderAnswer: const [],
-      pairs: const [],
-      hint: '',
-      icons: const [],
-    );
-  }
+  }) => toExercise(
+    id: id,
+    publicationState: publicationState,
+    authoringMetadata: template.isEmpty
+        ? const {'presetId': 'flashcard'}
+        : {'presetId': template},
+  );
 }
 
-/// Snapshot of an Admin-added Shared Image Library entry. It is descriptive;
-/// importing a Course never installs or authorizes a global library entry.
 class SharedImageSource {
   final String id;
   final String label;
@@ -2564,23 +2765,83 @@ class PromptElement {
   final String text;
   final String asset;
   final String speaker;
+
+  /// Build 256 Revision 5: the Story character who says a dialogue line
+  /// (`Course.storyCharacters`); empty means the narrator.
+  final String speakerId;
   final SharedImageSource? sharedImageSource;
+
+  /// Course Model v12: the language a text element is in (absent means
+  /// unspecified, treated as the target language).
+  final TextLanguage? language;
+
+  /// Course Model v12: whether an audio element plays by itself when the
+  /// exercise becomes active. Absent means manual.
+  final AudioPlayback? playback;
+
+  /// Course Model v12: whether an audio element is needed to solve the
+  /// exercise, so the exercise is skipped when audio is unavailable. Absent
+  /// means true.
+  final bool? required;
   const PromptElement({
     this.role = 'primary',
     required this.type,
     this.text = '',
     this.asset = '',
     this.speaker = '',
+    this.speakerId = '',
     this.sharedImageSource,
+    this.language,
+    this.playback,
+    this.required,
   });
+
+  bool get isAudio => type == 'audio';
+  bool get isText => type == 'text';
+  bool get isImage => type == 'image';
+
+  /// The effective playback of an audio element.
+  AudioPlayback get effectivePlayback => playback ?? AudioPlayback.manual;
+
+  /// The effective requirement of an audio element.
+  bool get isRequired => required ?? true;
+
+  PromptElement copyWith({
+    String? role,
+    String? type,
+    String? text,
+    String? asset,
+    String? speaker,
+    String? speakerId,
+    SharedImageSource? sharedImageSource,
+    TextLanguage? language,
+    AudioPlayback? playback,
+    bool? required,
+  }) => PromptElement(
+    role: role ?? this.role,
+    type: type ?? this.type,
+    text: text ?? this.text,
+    asset: asset ?? this.asset,
+    speaker: speaker ?? this.speaker,
+    speakerId: speakerId ?? this.speakerId,
+    sharedImageSource: sharedImageSource ?? this.sharedImageSource,
+    language: language ?? this.language,
+    playback: playback ?? this.playback,
+    required: required ?? this.required,
+  );
+
   Map<String, dynamic> toJson() => {
     'role': role,
     'type': type,
     if (text.isNotEmpty) 'text': text,
     if (asset.isNotEmpty) 'asset': asset,
     if (speaker.isNotEmpty) 'speaker': speaker,
+    if (speakerId.isNotEmpty) 'speakerId': speakerId,
     if (sharedImageSource != null)
       'sharedImageSource': sharedImageSource!.toJson(),
+    if (language != null) 'language': language!.serialized,
+    if (playback != null) 'playback': playback!.serialized,
+    if (required != null) 'required': required,
   };
   factory PromptElement.fromJson(Map<String, dynamic> j) {
     final source = j['sharedImageSource'];
@@ -2594,32 +2855,255 @@ class PromptElement {
         'sharedImageSource requires a Course-owned image.',
       );
     }
+    TextLanguage? language;
+    if (j.containsKey('language')) {
+      language = TextLanguage.tryParse(j['language']);
+      if (language == null) {
+        throw FormatException(
+          'element.language “${j['language']}” must be source or target.',
+        );
+      }
+    }
+    AudioPlayback? playback;
+    if (j.containsKey('playback')) {
+      playback = AudioPlayback.tryParse(j['playback']);
+      if (playback == null) {
+        throw FormatException(
+          'element.playback “${j['playback']}” must be automatic or manual.',
+        );
+      }
+    }
+    final required = j['required'];
+    if (j.containsKey('required') && required is! bool) {
+      throw const FormatException('element.required must be true or false.');
+    }
     return PromptElement(
       role: _optionalString(j, 'role', 'primary'),
       type: _requiredString(j, 'type', 'prompt'),
       text: _optionalString(j, 'text', ''),
       asset: _optionalString(j, 'asset', ''),
       speaker: _optionalString(j, 'speaker', ''),
+      speakerId: _optionalString(j, 'speakerId', ''),
       sharedImageSource: source == null
           ? null
           : SharedImageSource.fromJson(
               Map<String, dynamic>.from(source as Map),
             ),
+      language: language,
+      playback: playback,
+      required: required as bool?,
     );
+  }
+}
+
+/// Build 256 Revision 5: the voice a Story speaker prefers. It is matched
+/// against the voices installed on the learner's device; a miss never
+/// blocks speech.
+enum StoryVoice {
+  any('any'),
+  male('male'),
+  female('female');
+
+  const StoryVoice(this.serialized);
+  final String serialized;
+
+  static StoryVoice? tryParse(Object? value) {
+    for (final voice in values) {
+      if (voice.serialized == value) return voice;
+    }
+    return null;
+  }
+}
+
+/// Build 256 Revision 5: who speaks a Story's lines. The narrator speaks
+/// every line without a `speakerId`; characters are reusable Course data
+/// (`Course.storyCharacters`) that lines reference by their stable IDs.
+class StorySpeaker {
+  const StorySpeaker({
+    this.id = '',
+    this.name = '',
+    this.avatar = '',
+    required this.language,
+    this.voice = StoryVoice.any,
+  });
+
+  /// Empty for the narrator; a stable `character_…` ID for a character.
+  final String id;
+  final String name;
+
+  /// A bundled avatar (`assets/avatars/<name>.png`) or a Course medium
+  /// (`media:<sha256>.<png|jpg|jpeg|webp>`); empty for none.
+  final String avatar;
+  final TextLanguage language;
+  final StoryVoice voice;
+
+  bool get isNarrator => id.isEmpty;
+
+  /// The default narrator: no name, no avatar, the source language.
+  static const StorySpeaker defaultNarrator = StorySpeaker(
+    language: TextLanguage.source,
+  );
+
+  static final RegExp avatarPattern = RegExp(
+    r'^(assets/avatars/[a-z0-9_]+\.png|media:[0-9a-f]{64}\.(png|jpg|jpeg|webp))$',
+  );
+
+  StorySpeaker copyWith({
+    String? id,
+    String? name,
+    String? avatar,
+    TextLanguage? language,
+    StoryVoice? voice,
+  }) => StorySpeaker(
+    id: id ?? this.id,
+    name: name ?? this.name,
+    avatar: avatar ?? this.avatar,
+    language: language ?? this.language,
+    voice: voice ?? this.voice,
+  );
+
+  Map<String, dynamic> toJson() => {
+    if (id.isNotEmpty) 'id': id,
+    if (name.isNotEmpty) 'name': name,
+    if (avatar.isNotEmpty) 'avatar': avatar,
+    'language': language.serialized,
+    if (voice != StoryVoice.any) 'voice': voice.serialized,
+  };
+
+  /// Parses a narrator (no `id`) or a character (an `id`), strictly.
+  factory StorySpeaker.fromJson(
+    Map<String, dynamic> j, {
+    required bool character,
+  }) {
+    const allowed = {'id', 'name', 'avatar', 'language', 'voice'};
+    final unknown = j.keys.where((key) => !allowed.contains(key)).toList();
+    if (unknown.isNotEmpty) {
+      throw FormatException(
+        'story speaker has unsupported fields: ${unknown.join(', ')}.',
+      );
+    }
+    final id = _optionalString(j, 'id', '').trim();
+    if (character && id.isEmpty) {
+      throw const FormatException('storyCharacters entries need an id.');
+    }
+    if (!character && id.isNotEmpty) {
+      throw const FormatException('storyNarrator has no id.');
+    }
+    final avatar = _optionalString(j, 'avatar', '').trim();
+    if (avatar.isNotEmpty && !avatarPattern.hasMatch(avatar)) {
+      throw FormatException(
+        'story avatar “$avatar” must be assets/avatars/<name>.png or a '
+        'Course-owned media image.',
+      );
+    }
+    final language = TextLanguage.tryParse(j['language']);
+    if (language == null) {
+      throw FormatException(
+        'story speaker language “${j['language']}” must be source or target.',
+      );
+    }
+    var voice = StoryVoice.any;
+    if (j.containsKey('voice')) {
+      final parsed = StoryVoice.tryParse(j['voice']);
+      if (parsed == null) {
+        throw FormatException(
+          'story speaker voice “${j['voice']}” must be any, male or female.',
+        );
+      }
+      voice = parsed;
+    }
+    return StorySpeaker(
+      id: id,
+      name: _optionalString(j, 'name', '').trim(),
+      avatar: avatar,
+      language: language,
+      voice: voice,
+    );
+  }
+
+  /// The optional `storyNarrator` object; null when absent.
+  static StorySpeaker? parseNarrator(Object? raw) {
+    if (raw == null) return null;
+    if (raw is! Map) {
+      throw const FormatException('course.storyNarrator must be an object.');
+    }
+    return StorySpeaker.fromJson(
+      Map<String, dynamic>.from(raw),
+      character: false,
+    );
+  }
+
+  /// The optional `storyCharacters` list: objects with unique IDs.
+  static List<StorySpeaker> parseCharacters(Object? raw) {
+    if (raw == null) return const [];
+    if (raw is! List) {
+      throw const FormatException('course.storyCharacters must be a list.');
+    }
+    final ids = <String>{};
+    return [
+      for (final entry in raw)
+        if (entry is Map)
+          _uniqueCharacter(
+            StorySpeaker.fromJson(
+              Map<String, dynamic>.from(entry),
+              character: true,
+            ),
+            ids,
+          )
+        else
+          throw const FormatException(
+            'course.storyCharacters entries must be objects.',
+          ),
+    ];
+  }
+
+  static StorySpeaker _uniqueCharacter(StorySpeaker speaker, Set<String> ids) {
+    if (!ids.add(speaker.id)) {
+      throw FormatException(
+        'course.storyCharacters repeats the id “${speaker.id}”.',
+      );
+    }
+    return speaker;
   }
 }
 
 class ExerciseItem {
   final String id;
   final List<PromptElement> content;
-  const ExerciseItem({required this.id, required this.content});
+
+  /// Course Model v12: the column of a Match item. Null for other
+  /// primitives.
+  final MatchSide? side;
+  const ExerciseItem({required this.id, required this.content, this.side});
   Map<String, dynamic> toJson() => {
     'id': id,
     'content': content.map((e) => e.toJson()).toList(),
+    if (side != null) 'side': side!.serialized,
   };
-  factory ExerciseItem.fromJson(Map<String, dynamic> j) => ExerciseItem(
-    id: _requiredString(j, 'id', 'item'),
-    content: _mapList(j, 'content', 'item', PromptElement.fromJson),
+  factory ExerciseItem.fromJson(Map<String, dynamic> j) {
+    MatchSide? side;
+    if (j.containsKey('side')) {
+      side = MatchSide.tryParse(j['side']);
+      if (side == null) {
+        throw FormatException(
+          'item.side “${j['side']}” must be left or right.',
+        );
+      }
+    }
+    return ExerciseItem(
+      id: _requiredString(j, 'id', 'item'),
+      content: _mapList(j, 'content', 'item', PromptElement.fromJson),
+      side: side,
+    );
+  }
+  ExerciseItem copyWith({
+    String? id,
+    List<PromptElement>? content,
+    MatchSide? side,
+  }) => ExerciseItem(
+    id: id ?? this.id,
+    content: content ?? this.content,
+    side: side ?? this.side,
   );
   String get text =>
       content.where((e) => e.type == 'text').map((e) => e.text).firstOrNull ??
@@ -2682,22 +3166,6 @@ class ExerciseInteraction {
       );
 }
 
-class OrderedAnswer {
-  final String text;
-  final List<String> itemIds;
-
-  const OrderedAnswer({required this.text, required this.itemIds});
-
-  Map<String, dynamic> toJson() => {'text': text, 'itemIds': itemIds};
-
-  factory OrderedAnswer.fromJson(Map<String, dynamic> json) {
-    return OrderedAnswer(
-      text: _requiredString(json, 'text', 'ordered answer'),
-      itemIds: _stringList(json, 'itemIds'),
-    );
-  }
-}
-
 class ExerciseEvaluation {
   final String kind;
   final List<String> correctItemIds;
@@ -2733,19 +3201,19 @@ class ExerciseEvaluation {
   factory ExerciseEvaluation.fromJson(Map<String, dynamic> j) {
     if (j.containsKey('accepted')) {
       throw const FormatException(
-        'Course Model formatVersion 11 uses acceptedAnswers and does not load the legacy accepted field.',
+        'Course Model formatVersion 12 uses acceptedAnswers and does not load the legacy accepted field.',
       );
     }
     if (j.containsKey('correctOrder')) {
       throw const FormatException(
-        'Course Model formatVersion 11 requires correctOrders and does not load the legacy single correctOrder field.',
+        'Course Model formatVersion 12 requires correctOrders and does not load the legacy single correctOrder field.',
       );
     }
     if (j.containsKey('caseSensitive') ||
         j.containsKey('ignorePunctuation') ||
         j.containsKey('ignoreAccents')) {
       throw const FormatException(
-        'Course Model formatVersion 11 requires the normalization object and does not load legacy normalization flags.',
+        'Course Model formatVersion 12 requires the normalization object and does not load legacy normalization flags.',
       );
     }
     final normalization = j['normalization'] is Map
@@ -2771,22 +3239,72 @@ class ExerciseEvaluation {
   }
 }
 
+/// The result of mapping a v11-shaped exercise to Course Model v12.
+class V11ExerciseConversion {
+  const V11ExerciseConversion({required this.exercise, required this.notes});
+
+  final Exercise exercise;
+
+  /// Everything the mapping could not carry over exactly, in plain words.
+  final List<String> notes;
+}
+
+/// One exercise of Course Model v12: a primitive, its options, media,
+/// items, targets, a neutral layout, an evaluation and feedback. Presets are
+/// authoring metadata only.
+///
+/// The v11 views below (`interaction`, `evaluation`, `type`, `prompt`,
+/// `answers`, …) are derived from the canonical fields for the learner
+/// runtime, Audit and editor that Build 256 Sessions 3 and 4 move onto the
+/// canonical fields; they are read-only and will go.
 class Exercise {
   final String id;
   final PublicationState publicationState;
   final DateTime updatedAt;
-  final String editorTemplate;
-  final List<PromptElement> promptElements;
-  final ExerciseInteraction interaction;
-  final ExerciseEvaluation evaluation;
-  final String hint;
-  final Map<String, String> feedback;
-  final List<String> missingWords;
+  final ExercisePrimitive primitive;
 
-  /// Compatibility constructor used by existing friendly Editor templates.
-  Exercise({
+  /// Explicitly set options only; the registry supplies defaults.
+  final PrimitiveOptions options;
+  final List<PromptElement> promptElements;
+  final List<ExerciseItem> items;
+  final List<ExerciseTarget> targets;
+
+  /// The neutral inline layout (text runs and targets); empty unless the
+  /// exercise uses an inline layout.
+  final List<LayoutElement> layout;
+  final CanonicalEvaluation canonicalEvaluation;
+  final ExerciseFeedback feedback;
+  final String hint;
+
+  /// Optional authoring metadata (`presetId` and anything else an editor
+  /// stores). Preserved, never read by anything learners see.
+  final Map<String, Object?> authoringMetadata;
+
+  Exercise.canonical({
     required this.id,
     this.publicationState = PublicationState.published,
+    DateTime? updatedAt,
+    required this.primitive,
+    PrimitiveOptions? options,
+    this.promptElements = const [],
+    this.items = const [],
+    this.targets = const [],
+    this.layout = const [],
+    required this.canonicalEvaluation,
+    this.feedback = ExerciseFeedback.empty,
+    this.hint = '',
+    Map<String, Object?>? authoringMetadata,
+  }) : updatedAt = _canonicalUtcTimestamp(updatedAt),
+       options = options ?? PrimitiveOptions.empty,
+       authoringMetadata = Map.unmodifiable(
+         Map<String, Object?>.from(authoringMetadata ?? const {}),
+       );
+
+  /// Compatibility constructor used by existing friendly Editor templates.
+  /// It builds the v11 shape from the template fields and converts it.
+  factory Exercise({
+    required String id,
+    PublicationState publicationState = PublicationState.published,
     DateTime? updatedAt,
     required String type,
     String? editorTemplate,
@@ -2800,67 +3318,91 @@ class Exercise {
     required List<String> orderAnswer,
     List<String> correctTranslations = const [],
     required List<List<String>> pairs,
-    required this.hint,
+    required String hint,
     required List<String> icons,
     String imageAsset = '',
-    this.missingWords = const [],
-  }) : updatedAt = _canonicalUtcTimestamp(updatedAt),
-       editorTemplate = editorTemplate ?? type,
-       promptElements = _legacyPrompt(type, prompt, question, tts, imageAsset),
-       interaction = _legacyInteraction(
-         type,
-         answers,
-         correct,
-         tokens,
-         pairs,
-         icons,
-       ),
-       evaluation = _legacyEvaluation(
-         type,
-         answers,
-         correct,
-         accepted,
-         tokens,
-         orderAnswer,
-         correctTranslations,
-         pairs,
-       ),
-       feedback = const {};
+    List<String> missingWords = const [],
+  }) => Exercise.v2(
+    id: id,
+    publicationState: publicationState,
+    updatedAt: updatedAt,
+    editorTemplate: editorTemplate ?? type,
+    promptElements: _legacyPrompt(type, prompt, question, tts, imageAsset),
+    interaction: _legacyInteraction(
+      type,
+      answers,
+      correct,
+      tokens,
+      pairs,
+      icons,
+    ),
+    evaluation: _legacyEvaluation(
+      type,
+      answers,
+      correct,
+      accepted,
+      tokens,
+      orderAnswer,
+      correctTranslations,
+      pairs,
+    ),
+    hint: hint,
+    missingWords: missingWords,
+  );
 
-  Exercise.v2({
-    required this.id,
-    this.publicationState = PublicationState.published,
+  /// The v11 shape (prompt elements, interaction, evaluation), converted to
+  /// Course Model v12 through the same mapping as the converter tool.
+  factory Exercise.v2({
+    required String id,
+    PublicationState publicationState = PublicationState.published,
     DateTime? updatedAt,
-    required this.editorTemplate,
-    required this.promptElements,
-    required this.interaction,
-    required this.evaluation,
-    this.hint = '',
-    this.feedback = const {},
-    this.missingWords = const [],
-  }) : updatedAt = _canonicalUtcTimestamp(updatedAt);
+    required String editorTemplate,
+    required List<PromptElement> promptElements,
+    required ExerciseInteraction interaction,
+    required ExerciseEvaluation evaluation,
+    String hint = '',
+    ExerciseFeedback feedback = ExerciseFeedback.empty,
+    List<String> missingWords = const [],
+    Map<String, Object?> authoringMetadata = const {},
+  }) => convertV11(
+    id: id,
+    publicationState: publicationState,
+    updatedAt: updatedAt,
+    editorTemplate: editorTemplate,
+    promptElements: promptElements,
+    interaction: interaction,
+    evaluation: evaluation,
+    hint: hint,
+    feedback: feedback,
+    missingWords: missingWords,
+    authoringMetadata: authoringMetadata,
+  ).exercise;
+
   factory Exercise.presentation({
     required String id,
     required String editorTemplate,
     required String term,
     required String meaning,
     PublicationState publicationState = PublicationState.published,
-  }) => Exercise(
+  }) => Exercise.canonical(
     id: id,
     publicationState: publicationState,
-    type: 'flashcard',
-    editorTemplate: editorTemplate,
-    prompt: term,
-    question: meaning,
-    answers: const [],
-    correct: null,
-    tts: null,
-    accepted: const [],
-    tokens: const [],
-    orderAnswer: const [],
-    pairs: const [],
-    hint: '',
-    icons: const [],
+    primitive: ExercisePrimitive.presentation,
+    options: PrimitiveOptions({
+      OptionKey.completionMode: const EnumOptionValue(
+        CompletionMode.understoodReview,
+      ),
+    }),
+    promptElements: [
+      if (term.isNotEmpty)
+        PromptElement(role: 'term', type: 'text', text: term),
+      if (meaning.isNotEmpty)
+        PromptElement(role: 'meaning', type: 'text', text: meaning),
+    ],
+    canonicalEvaluation: CanonicalEvaluation.none,
+    authoringMetadata: {
+      'presetId': editorTemplate.isEmpty ? 'flashcard' : editorTemplate,
+    },
   );
 
   /// Exposes the existing token/authored-order resolution used by the
@@ -2882,66 +3424,987 @@ class Exercise {
     String imageAsset,
   ) => _legacyPrompt(type, prompt, question, tts, imageAsset);
 
-  Map<String, dynamic> toV2Json() => {
-    'updatedAt': _timestampToJson(updatedAt),
-    'prompt': promptElements.map((e) => e.toJson()).toList(),
-    'interaction': interaction.toJson(),
-    'evaluation': evaluation.toJson(),
-    if (hint.isNotEmpty) 'hint': hint,
-    if (feedback.isNotEmpty) 'feedback': feedback,
-    if (missingWords.isNotEmpty) 'missingWords': missingWords,
+  // ---------------------------------------------------------------------
+  // Course Model v12 JSON
+  // ---------------------------------------------------------------------
+
+  static const _jsonKeys = {
+    'updatedAt',
+    'primitive',
+    'options',
+    'prompt',
+    'items',
+    'targets',
+    'layout',
+    'evaluation',
+    'feedback',
+    'hint',
   };
-  Map<String, dynamic> toJson() => toV2Json();
+
+  Map<String, dynamic> toJson() => {
+    'updatedAt': _timestampToJson(updatedAt),
+    'primitive': primitive.serialized,
+    if (options.isNotEmpty) 'options': options.toJson(),
+    'prompt': promptElements.map((e) => e.toJson()).toList(),
+    if (items.isNotEmpty) 'items': items.map((e) => e.toJson()).toList(),
+    if (targets.isNotEmpty) 'targets': targets.map((e) => e.toJson()).toList(),
+    if (layout.isNotEmpty) 'layout': layout.map((e) => e.toJson()).toList(),
+    'evaluation': canonicalEvaluation.toJson(),
+    if (!feedback.isEmpty) 'feedback': feedback.toJson(),
+    if (hint.isNotEmpty) 'hint': hint,
+  };
+
+  factory Exercise.fromJson(
+    Map<String, dynamic> j, {
+    required String contentId,
+    Map<String, Object?> authoringMetadata = const {},
+    required PublicationState publicationState,
+  }) {
+    for (final legacy in const ['interaction', 'editorTemplate']) {
+      if (j.containsKey(legacy)) {
+        throw FormatException(
+          'Course Model formatVersion 12 exercises have a primitive, options and a canonical evaluation, not $legacy. Convert the Course with tools/convert_course_to_v12.dart.',
+        );
+      }
+    }
+    final unknown = j.keys.where((key) => !_jsonKeys.contains(key)).toList();
+    if (unknown.isNotEmpty) {
+      throw FormatException(
+        'exercise contains unsupported fields: ${unknown.join(', ')}.',
+      );
+    }
+    final primitive = ExercisePrimitive.parse(j['primitive']);
+    final rawOptions = j['options'];
+    if (j.containsKey('options') && rawOptions is! Map) {
+      throw const FormatException('exercise.options must be an object.');
+    }
+    final parsedOptions = PrimitiveCapabilityRegistry.parseOptions(
+      primitive,
+      rawOptions is Map
+          ? Map<String, Object?>.from(
+              rawOptions.map((k, v) => MapEntry(k.toString(), v)),
+            )
+          : const {},
+    );
+    if (parsedOptions.violations.isNotEmpty) {
+      throw FormatException(
+        'exercise.options: ${parsedOptions.violations.map((v) => v.message).join(' ')}',
+      );
+    }
+    final p = j['prompt'];
+    final e = j['evaluation'];
+    if (p is! List || e is! Map) {
+      throw const FormatException(
+        'Exercise requires prompt[] and an evaluation object.',
+      );
+    }
+    final rawFeedback = j['feedback'];
+    if (j.containsKey('feedback') && rawFeedback is! Map) {
+      throw const FormatException('exercise.feedback must be an object.');
+    }
+    return Exercise.canonical(
+      id: contentId,
+      publicationState: publicationState,
+      updatedAt: _requiredUtcTimestamp(j, 'updatedAt', 'exercise'),
+      primitive: primitive,
+      options: parsedOptions.options,
+      promptElements: _mapList(j, 'prompt', 'exercise', PromptElement.fromJson),
+      items: j['items'] == null
+          ? const []
+          : _mapList(j, 'items', 'exercise', ExerciseItem.fromJson),
+      targets: j['targets'] == null
+          ? const []
+          : _mapList(j, 'targets', 'exercise', ExerciseTarget.fromJson),
+      layout: j['layout'] == null
+          ? const []
+          : _mapList(j, 'layout', 'exercise', LayoutElement.fromJson),
+      canonicalEvaluation: CanonicalEvaluation.fromJson(
+        Map<String, dynamic>.from(e),
+      ),
+      feedback: rawFeedback is Map
+          ? ExerciseFeedback.fromJson(Map<String, dynamic>.from(rawFeedback))
+          : ExerciseFeedback.empty,
+      hint: _optionalString(j, 'hint', ''),
+      authoringMetadata: authoringMetadata,
+    );
+  }
+
+  /// Alias of [toJson], kept for tests written against the v11 helper. The
+  /// result is Course Model v12 JSON.
+  Map<String, dynamic> toV2Json() => toJson();
+
+  /// Alias of [fromJson], kept for tests written against the v11 helper. It
+  /// reads Course Model v12 JSON; [editorTemplate] becomes the preset in the
+  /// authoring metadata.
   factory Exercise.fromV2Json(
     Map<String, dynamic> j, {
     required String contentId,
     required String editorTemplate,
     required PublicationState publicationState,
+  }) => Exercise.fromJson(
+    j,
+    contentId: contentId,
+    authoringMetadata: editorTemplate.trim().isEmpty
+        ? const {}
+        : {'presetId': editorTemplate.trim()},
+    publicationState: publicationState,
+  );
+
+  /// The same exercise with other authoring metadata (the canonical content
+  /// is untouched).
+  Exercise withAuthoringMetadata(Map<String, Object?> metadata) =>
+      Exercise.canonical(
+        id: id,
+        publicationState: publicationState,
+        updatedAt: updatedAt,
+        primitive: primitive,
+        options: options,
+        promptElements: promptElements,
+        items: items,
+        targets: targets,
+        layout: layout,
+        canonicalEvaluation: canonicalEvaluation,
+        feedback: feedback,
+        hint: hint,
+        authoringMetadata: metadata,
+      );
+
+  /// The same exercise with another publication state and, optionally,
+  /// timestamp.
+  Exercise withPublicationState(
+    PublicationState state, {
+    DateTime? updatedAt,
+  }) => Exercise.canonical(
+    id: id,
+    publicationState: state,
+    updatedAt: updatedAt ?? this.updatedAt,
+    primitive: primitive,
+    options: options,
+    promptElements: promptElements,
+    items: items,
+    targets: targets,
+    layout: layout,
+    canonicalEvaluation: canonicalEvaluation,
+    feedback: feedback,
+    hint: hint,
+    authoringMetadata: authoringMetadata,
+  );
+
+  /// A copy with some canonical fields replaced. Authoring code that changes
+  /// one part of an exercise uses this instead of rebuilding the exercise
+  /// through the v11 views, which cannot carry a v12 inline layout.
+  Exercise copyWith({
+    String? id,
+    PublicationState? publicationState,
+    DateTime? updatedAt,
+    PrimitiveOptions? options,
+    List<PromptElement>? promptElements,
+    List<ExerciseItem>? items,
+    List<ExerciseTarget>? targets,
+    List<LayoutElement>? layout,
+    CanonicalEvaluation? canonicalEvaluation,
+    ExerciseFeedback? feedback,
+    String? hint,
+    Map<String, Object?>? authoringMetadata,
+  }) => Exercise.canonical(
+    id: id ?? this.id,
+    publicationState: publicationState ?? this.publicationState,
+    updatedAt: updatedAt ?? this.updatedAt,
+    primitive: primitive,
+    options: options ?? this.options,
+    promptElements: promptElements ?? this.promptElements,
+    items: items ?? this.items,
+    targets: targets ?? this.targets,
+    layout: layout ?? this.layout,
+    canonicalEvaluation: canonicalEvaluation ?? this.canonicalEvaluation,
+    feedback: feedback ?? this.feedback,
+    hint: hint ?? this.hint,
+    authoringMetadata: authoringMetadata ?? this.authoringMetadata,
+  );
+
+  /// The options with the registry's defaults filled in.
+  PrimitiveOptions get effectiveOptions =>
+      PrimitiveCapabilityRegistry.effectiveOptions(primitive, options);
+
+  /// Whether this version of QQL can play the exercise, from the registry's
+  /// runtime-support table (Build 256 Revision 6, plan A.2 and A.6):
+  /// computed here, never stored in Course data. A legal configuration no
+  /// entry covers is readable but not executable: kept, editable and
+  /// exported unchanged; learners of this version skip it.
+  ExerciseRuntimeSupport get runtimeSupport =>
+      PrimitiveCapabilityRegistry.runtimeSupport(
+        primitive: primitive,
+        options: options,
+        evaluationMode: canonicalEvaluation.mode,
+      );
+
+  bool get isExecutable => runtimeSupport.isExecutable;
+
+  /// The canonical content in a form that ignores authoring metadata, the
+  /// timestamp and the publication state, with every default option filled
+  /// in: two exercises are semantically equal when this is equal. IDs and
+  /// item order count.
+  Map<String, dynamic> semanticJson() => {
+    'id': id,
+    ...toJson()..remove('updatedAt'),
+    'options': effectiveOptions.toJson(),
+  };
+
+  bool semanticallyEquals(Exercise other) =>
+      jsonEncode(_sortedJson(semanticJson())) ==
+      jsonEncode(_sortedJson(other.semanticJson()));
+
+  static Object? _sortedJson(Object? value) {
+    if (value is Map) {
+      final keys = value.keys.map((key) => key.toString()).toList()..sort();
+      return {for (final key in keys) key: _sortedJson(value[key])};
+    }
+    if (value is List) return value.map(_sortedJson).toList(growable: false);
+    return value;
+  }
+
+  // ---------------------------------------------------------------------
+  // v11 → v12 mapping (shared with the converter tool)
+  // ---------------------------------------------------------------------
+
+  /// Maps a v11-shaped exercise to Course Model v12. The preset (the v11
+  /// `editorTemplate`) decides the behaviors v11 attached to it: automatic
+  /// audio, text languages, typo tolerance, literal answers, the gap of Type
+  /// the missing word, the gaps of Listen for missing words, the joiner of
+  /// Image-prompt ordering. Without a known preset the interaction kind
+  /// alone decides, with the registry defaults.
+  static V11ExerciseConversion convertV11({
+    required String id,
+    PublicationState publicationState = PublicationState.published,
+    DateTime? updatedAt,
+    required String editorTemplate,
+    required List<PromptElement> promptElements,
+    required ExerciseInteraction interaction,
+    required ExerciseEvaluation evaluation,
+    String hint = '',
+    ExerciseFeedback feedback = ExerciseFeedback.empty,
+    List<String> missingWords = const [],
+    Map<String, Object?> authoringMetadata = const {},
   }) {
-    final p = j['prompt'];
-    final i = j['interaction'];
-    final e = j['evaluation'];
-    if (p is! List || i is! Map || e is! Map) {
-      throw const FormatException(
-        'Exercise requires prompt[], interaction and evaluation.',
+    final notes = <String>[];
+    final preset = editorTemplate.trim();
+    final type = _legacyTypeFromTemplate(preset, interaction.kind);
+    // A preset the Build 256 Revision 4 catalogue retired is recorded as its
+    // successor; the v11 type above still decides the conversion. A Choose
+    // or Arrange with inline gaps is the inline-gap preset.
+    final hasGaps = interaction.layout.any((element) => element.type == 'gap');
+    final presetId = hasGaps && preset == 'choice'
+        ? 'gap_choice_inline'
+        : hasGaps && (preset == 'word_order' || preset == 'build_translation')
+        ? 'gap_blocks'
+        : presetSuccessorOf[preset] ?? preset;
+    final metadata = <String, Object?>{
+      ...authoringMetadata,
+      if (presetId.isNotEmpty) 'presetId': presetId,
+    };
+    final gaps = interaction.layout
+        .where((element) => element.type == 'gap')
+        .map((element) => element.text)
+        .toList(growable: false);
+    List<LayoutElement> layoutOf() => [
+      for (final element in interaction.layout)
+        if (element.type == 'gap')
+          LayoutElement.target(element.text)
+        else
+          LayoutElement.text(element.text),
+    ];
+    List<TargetAssignment> assignmentsOf() => [
+      for (final gapId in gaps)
+        if (evaluation.gapAssignments.containsKey(gapId))
+          TargetAssignment(
+            targetId: gapId,
+            itemIds: [evaluation.gapAssignments[gapId]!],
+          ),
+    ];
+    List<PromptElement> withAudio(
+      List<PromptElement> elements,
+      AudioPlayback playback,
+    ) => [
+      for (final element in elements)
+        if (element.isAudio) element.copyWith(playback: playback) else element,
+    ];
+    List<PromptElement> withTextLanguage(
+      List<PromptElement> elements,
+      String role,
+      TextLanguage language,
+    ) => [
+      // A language the element states wins over the one the preset implies.
+      for (final element in elements)
+        if (element.isText && element.role == role && element.language == null)
+          element.copyWith(language: language)
+        else
+          element,
+    ];
+    List<ExerciseItem> withItemLanguage(TextLanguage language) => [
+      for (final item in interaction.items)
+        item.copyWith(
+          content: [
+            for (final element in item.content)
+              if (element.isText &&
+                  element.role == 'primary' &&
+                  element.language == null)
+                element.copyWith(language: language)
+              else
+                element,
+          ],
+        ),
+    ];
+
+    ExercisePrimitive primitive;
+    var options = <OptionKey, OptionValue>{};
+    var prompt = promptElements;
+    var items = interaction.items;
+    var targets = <ExerciseTarget>[];
+    var layout = <LayoutElement>[];
+    CanonicalEvaluation canonical;
+    var canonicalFeedback = feedback;
+
+    if (type == 'flashcard' || interaction.kind == 'presentation') {
+      primitive = ExercisePrimitive.presentation;
+      options[OptionKey.completionMode] = const EnumOptionValue(
+        CompletionMode.understoodReview,
+      );
+      final usage = interaction.items.map((item) => item.value).toList();
+      prompt = [
+        for (final element in promptElements)
+          if (element.isText && element.role != 'question')
+            element.copyWith(role: 'term')
+          else if (element.isText)
+            element.copyWith(role: 'meaning')
+          else if (element.isAudio)
+            element.copyWith(role: 'audio')
+          else
+            element,
+        if (usage.isNotEmpty)
+          PromptElement(role: 'usage', type: 'text', text: usage.first),
+        if (usage.length > 1)
+          PromptElement(
+            role: 'usage_translation',
+            type: 'text',
+            text: usage[1],
+          ),
+      ];
+      items = const [];
+      canonical = CanonicalEvaluation.none;
+    } else {
+      switch (interaction.kind) {
+        case 'select':
+          primitive = ExercisePrimitive.select;
+          final multiple = interaction.maxSelections > 1;
+          if (multiple) {
+            options[OptionKey.selectionMode] = const EnumOptionValue(
+              SelectionMode.multiple,
+            );
+            if (interaction.minSelections != 1) {
+              options[OptionKey.minimumSelections] = IntOptionValue(
+                interaction.minSelections < 1 ? 1 : interaction.minSelections,
+              );
+            }
+            options[OptionKey.maximumSelections] = IntOptionValue(
+              interaction.maxSelections,
+            );
+            options[OptionKey.evaluationTiming] = const EnumOptionValue(
+              EvaluationTiming.explicit,
+            );
+          }
+          if (gaps.isNotEmpty) {
+            options[OptionKey.layout] = const EnumOptionValue(
+              LayoutValue.inline,
+            );
+            options[OptionKey.itemReuse] = const EnumOptionValue(
+              ItemReuse.unlimited,
+            );
+            options[OptionKey.evaluationTiming] = const EnumOptionValue(
+              EvaluationTiming.explicit,
+            );
+            targets = [for (final gapId in gaps) ExerciseTarget(id: gapId)];
+            layout = layoutOf();
+            canonical = CanonicalEvaluation(
+              mode: EvaluationMode.exactItem,
+              assignments: assignmentsOf(),
+            );
+            if (evaluation.correctItemIds.isNotEmpty) {
+              notes.add(
+                '$id: correctItemIds are not used by an inline-gap Select and were dropped.',
+              );
+            }
+          } else {
+            canonical = CanonicalEvaluation(
+              mode: multiple
+                  ? EvaluationMode.exactSet
+                  : EvaluationMode.exactItem,
+              correctItemIds: evaluation.correctItemIds,
+            );
+          }
+          if (const {
+            'listening_choice',
+            'listening_comprehension',
+            'contextual_comprehension',
+            // Listen and pick the image (Build 256 Revision 4).
+            'icon_choice',
+          }.contains(type)) {
+            prompt = withAudio(prompt, AudioPlayback.automatic);
+          }
+          if (type == 'translation_choice_to_target' ||
+              type == 'translation_choice_to_source') {
+            // Pick the translation is solvable without audio: its spoken
+            // text is optional and never makes it an audio exercise.
+            prompt = [
+              for (final element in prompt)
+                if (element.isAudio)
+                  element.copyWith(required: false)
+                else
+                  element,
+            ];
+          }
+          if (type == 'translation_choice_to_target') {
+            prompt = withTextLanguage(prompt, 'question', TextLanguage.source);
+            items = withItemLanguage(TextLanguage.target);
+          } else if (type == 'translation_choice_to_source') {
+            prompt = withTextLanguage(prompt, 'question', TextLanguage.target);
+            items = withItemLanguage(TextLanguage.source);
+          } else if (type == 'dialogue_response') {
+            // The text a Dialogue response answers is a situation, which the
+            // v11 shape stored under the reading passage's role.
+            prompt = [
+              for (final element in prompt)
+                if (element.isText && element.role == 'passage')
+                  element.copyWith(role: 'situation')
+                else
+                  element,
+            ];
+          } else if (type == 'script_recognition') {
+            // Recognize characters shows character specimens, not
+            // illustrations: the runtime draws `character` images as
+            // specimens and every other image as one illustration.
+            prompt = [
+              for (final element in prompt)
+                if (element.isImage)
+                  element.copyWith(role: 'character')
+                else
+                  element,
+            ];
+            items = [
+              for (final item in items)
+                item.copyWith(
+                  content: [
+                    for (final element in item.content)
+                      if (element.isImage)
+                        element.copyWith(role: 'character')
+                      else
+                        element,
+                  ],
+                ),
+            ];
+          }
+        case 'input':
+          primitive = ExercisePrimitive.input;
+          final normalization = evaluation.normalization;
+          if (normalization['case'] == 'preserve') {
+            options[OptionKey.caseHandling] = const EnumOptionValue(
+              CaseHandling.exact,
+            );
+          }
+          if (normalization['punctuation'] == 'preserve') {
+            options[OptionKey.punctuationHandling] = const EnumOptionValue(
+              PunctuationHandling.exact,
+            );
+          }
+          if (normalization['whitespace'] == 'preserve') {
+            options[OptionKey.whitespaceHandling] = const EnumOptionValue(
+              WhitespaceHandling.exact,
+            );
+          }
+          if (normalization['accents'] == 'ignore') {
+            options[OptionKey.accentHandling] = const EnumOptionValue(
+              AccentHandling.ignore,
+            );
+          }
+          final unknownRules = normalization.keys
+              .where(
+                (key) => !const {
+                  'case',
+                  'punctuation',
+                  'whitespace',
+                  'accents',
+                }.contains(key),
+              )
+              .toList();
+          if (unknownRules.isNotEmpty) {
+            notes.add(
+              '$id: normalization keys ${unknownRules.join(', ')} have no v12 form and were dropped.',
+            );
+          }
+          if (type == 'type_translation' || type == 'type_missing_word') {
+            options[OptionKey.typoTolerance] = const EnumOptionValue(
+              TypoTolerance.conservative,
+            );
+          }
+          final spoken = promptElements
+              .where((element) => element.isAudio)
+              .map((element) => element.text.trim())
+              .firstOrNull;
+          final literal = <String>[
+            if (const {
+                  'fill_blank',
+                  'listening_spelling',
+                  'type_translation',
+                }.contains(type) &&
+                spoken != null &&
+                spoken.isNotEmpty &&
+                !evaluation.accepted.contains(spoken))
+              spoken,
+          ];
+          canonical = CanonicalEvaluation(
+            mode: EvaluationMode.expression,
+            answers: evaluation.accepted,
+            literalAnswers: literal,
+          );
+          if (type == 'type_missing_word') {
+            final sentence = _primaryText(prompt);
+            final match = RegExp(r'_{3,}').firstMatch(sentence ?? '');
+            if (sentence != null && match != null) {
+              options[OptionKey.layout] = const EnumOptionValue(
+                LayoutValue.inlineGaps,
+              );
+              targets = const [
+                ExerciseTarget(id: 'gap_1', reveal: TargetReveal.firstGrapheme),
+              ];
+              layout = [
+                if (match.start > 0)
+                  LayoutElement.text(sentence.substring(0, match.start)),
+                const LayoutElement.target('gap_1'),
+                if (match.end < sentence.length)
+                  LayoutElement.text(sentence.substring(match.end)),
+              ];
+              prompt = _withoutPrimaryText(prompt);
+              canonical = CanonicalEvaluation(
+                mode: EvaluationMode.expression,
+                targetAnswers: [
+                  TargetAnswers(
+                    targetId: 'gap_1',
+                    answers: evaluation.accepted,
+                  ),
+                ],
+              );
+            } else {
+              notes.add(
+                '$id: Type the missing word has no ___ gap in its sentence; kept as one field.',
+              );
+            }
+          } else if (type == 'missing_word') {
+            final transcript = _primaryText(prompt);
+            final words = missingWords.isNotEmpty
+                ? missingWords
+                : evaluation.accepted;
+            final built = transcript == null
+                ? null
+                : _missingWordLayout(transcript, words);
+            if (built != null) {
+              options[OptionKey.cardinality] = const EnumOptionValue(
+                Cardinality.multiple,
+              );
+              options[OptionKey.layout] = const EnumOptionValue(
+                LayoutValue.inlineGaps,
+              );
+              targets = [
+                for (var i = 0; i < words.length; i++)
+                  ExerciseTarget(id: 'gap_${i + 1}'),
+              ];
+              layout = built;
+              prompt = withAudio(
+                _withoutPrimaryText(prompt),
+                AudioPlayback.automatic,
+              );
+              canonical = CanonicalEvaluation(
+                mode: EvaluationMode.expression,
+                targetAnswers: [
+                  for (var i = 0; i < words.length; i++)
+                    TargetAnswers(
+                      targetId: 'gap_${i + 1}',
+                      answers: [words[i]],
+                    ),
+                ],
+              );
+            } else {
+              notes.add(
+                '$id: Listen for missing words could not place every missing word in its transcript; kept as one field.',
+              );
+              prompt = withAudio(prompt, AudioPlayback.automatic);
+            }
+          } else if (type == 'listening_spelling') {
+            prompt = withAudio(prompt, AudioPlayback.automatic);
+          } else if (type == 'type_translation') {
+            prompt = withTextLanguage(prompt, 'primary', TextLanguage.source);
+            prompt = withTextLanguage(prompt, 'clue', TextLanguage.source);
+            canonicalFeedback = ExerciseFeedback(
+              correct: feedback.correct,
+              incorrect: feedback.incorrect,
+              showAlternatives: FeedbackAlternatives.ranked,
+            );
+          }
+          if (missingWords.isNotEmpty && type != 'missing_word') {
+            notes.add(
+              '$id: missingWords apply to Listen for missing words only and were dropped.',
+            );
+          }
+        case 'arrange':
+          primitive = ExercisePrimitive.arrange;
+          if (type == 'image_word') {
+            // Spell what you hear speaks its word (Build 256 Revision 4).
+            prompt = withAudio(prompt, AudioPlayback.automatic);
+            options[OptionKey.joiner] = const EnumOptionValue(Joiner.none);
+            options[OptionKey.unusedItems] = const EnumOptionValue(
+              UnusedItems.forbidden,
+            );
+          }
+          if (gaps.isNotEmpty) {
+            options[OptionKey.placementMode] = const EnumOptionValue(
+              PlacementMode.inlineGaps,
+            );
+            options[OptionKey.layout] = const EnumOptionValue(
+              LayoutValue.inline,
+            );
+            targets = [for (final gapId in gaps) ExerciseTarget(id: gapId)];
+            layout = layoutOf();
+            canonical = CanonicalEvaluation(
+              mode: EvaluationMode.gapAssignments,
+              assignments: assignmentsOf(),
+            );
+            if (evaluation.correctOrders.isNotEmpty) {
+              notes.add(
+                '$id: correctOrders are not used by an inline-gap Arrange and were dropped.',
+              );
+            }
+          } else {
+            canonical = CanonicalEvaluation(
+              mode: evaluation.correctOrders.length > 1
+                  ? EvaluationMode.acceptedOrders
+                  : EvaluationMode.exactOrder,
+              correctOrders: evaluation.correctOrders,
+            );
+          }
+          if (type == 'build_translation') {
+            prompt = withTextLanguage(prompt, 'primary', TextLanguage.source);
+            prompt = withTextLanguage(prompt, 'clue', TextLanguage.source);
+            canonicalFeedback = ExerciseFeedback(
+              correct: feedback.correct,
+              incorrect: feedback.incorrect,
+              showAlternatives: FeedbackAlternatives.all,
+            );
+          }
+        case 'match':
+          primitive = ExercisePrimitive.match;
+          final left = <String>{};
+          final right = <String>{};
+          for (final pair in evaluation.pairs) {
+            if (pair.length == 2) {
+              left.add(pair[0]);
+              right.add(pair[1]);
+            }
+          }
+          items = [
+            for (var i = 0; i < interaction.items.length; i++)
+              interaction.items[i].copyWith(
+                side: left.contains(interaction.items[i].id)
+                    ? MatchSide.left
+                    : right.contains(interaction.items[i].id)
+                    ? MatchSide.right
+                    : i.isEven
+                    ? MatchSide.left
+                    : MatchSide.right,
+              ),
+          ];
+          canonical = CanonicalEvaluation(
+            mode: EvaluationMode.exactRelations,
+            relations: [
+              for (final pair in evaluation.pairs)
+                if (pair.length == 2) [pair[0], pair[1]],
+            ],
+          );
+          // The v11 presets implied the languages of the two sides: Match
+          // the words pairs target-language phrases with source-language
+          // translations, Match related words the other way round; the
+          // same-language presets state nothing.
+          final sideLanguages = type == 'matching'
+              ? (TextLanguage.target, TextLanguage.source)
+              : type == 'word_match'
+              ? (TextLanguage.source, TextLanguage.target)
+              : null;
+          if (sideLanguages != null) {
+            items = [
+              for (final item in items)
+                item.copyWith(
+                  content: [
+                    for (final element in item.content)
+                      if (element.isText &&
+                          element.role == 'primary' &&
+                          element.language == null)
+                        element.copyWith(
+                          language: item.side == MatchSide.left
+                              ? sideLanguages.$1
+                              : sideLanguages.$2,
+                        )
+                      else
+                        element,
+                  ],
+                ),
+            ];
+          }
+        default:
+          throw FormatException(
+            'Unknown interaction kind “${interaction.kind}” cannot be converted to a Course Model v12 primitive.',
+          );
+      }
+    }
+    // v11 let any evaluation carry every kind's fields; v12 keeps only the
+    // primitive's own, so stale data is reported rather than lost quietly.
+    final stale = <String>[
+      if (primitive != ExercisePrimitive.select &&
+          primitive != ExercisePrimitive.presentation &&
+          evaluation.correctItemIds.isNotEmpty)
+        'correctItemIds',
+      if (primitive != ExercisePrimitive.input &&
+          evaluation.accepted.isNotEmpty)
+        'acceptedAnswers',
+      if (primitive != ExercisePrimitive.arrange &&
+          evaluation.correctOrders.isNotEmpty)
+        'correctOrders',
+      if (primitive != ExercisePrimitive.match && evaluation.pairs.isNotEmpty)
+        'pairs',
+      if (primitive != ExercisePrimitive.input &&
+          evaluation.normalization.isNotEmpty)
+        'normalization',
+    ];
+    if (stale.isNotEmpty) {
+      notes.add(
+        '$id: v11 evaluation fields ${stale.join(', ')} are not used by ${primitive.label} and were dropped.',
       );
     }
-    return Exercise.v2(
-      id: contentId,
-      publicationState: publicationState,
-      updatedAt: _requiredUtcTimestamp(j, 'updatedAt', 'exercise'),
-      editorTemplate: editorTemplate,
-      promptElements: _mapList(j, 'prompt', 'exercise', PromptElement.fromJson),
-      interaction: ExerciseInteraction.fromJson(Map<String, dynamic>.from(i)),
-      evaluation: ExerciseEvaluation.fromJson(Map<String, dynamic>.from(e)),
-      hint: _optionalString(j, 'hint', ''),
-      feedback: j['feedback'] is Map
-          ? Map<String, String>.from(
-              (j['feedback'] as Map).map(
-                (k, v) => MapEntry(k.toString(), v.toString()),
-              ),
-            )
-          : const {},
-      missingWords: _stringList(j, 'missingWords'),
+    return V11ExerciseConversion(
+      exercise: Exercise.canonical(
+        id: id,
+        publicationState: publicationState,
+        updatedAt: updatedAt,
+        primitive: primitive,
+        options: PrimitiveOptions(options),
+        promptElements: prompt,
+        items: items,
+        targets: targets,
+        layout: layout,
+        canonicalEvaluation: canonical,
+        feedback: canonicalFeedback,
+        hint: hint,
+        authoringMetadata: metadata,
+      ),
+      notes: notes,
     );
   }
 
+  static String? _primaryText(List<PromptElement> elements) => elements
+      .where((element) => element.isText && element.role == 'primary')
+      .map((element) => element.text)
+      .firstOrNull;
+
+  static List<PromptElement> _withoutPrimaryText(List<PromptElement> elements) {
+    var removed = false;
+    return [
+      for (final element in elements)
+        if (!removed && element.isText && element.role == 'primary')
+          ...(() {
+            removed = true;
+            return const <PromptElement>[];
+          })()
+        else
+          element,
+    ];
+  }
+
+  /// The inline layout of Listen for missing words: the transcript with the
+  /// first case-insensitive occurrence of each missing word, in order,
+  /// replaced by a target. Null when a word is not found.
+  static List<LayoutElement>? _missingWordLayout(
+    String transcript,
+    List<String> words,
+  ) {
+    if (words.isEmpty) return null;
+    final out = <LayoutElement>[];
+    var cursor = 0;
+    final lower = transcript.toLowerCase();
+    for (var i = 0; i < words.length; i++) {
+      final word = words[i].trim();
+      if (word.isEmpty) return null;
+      final index = lower.indexOf(word.toLowerCase(), cursor);
+      if (index < 0) return null;
+      if (index > cursor) {
+        out.add(LayoutElement.text(transcript.substring(cursor, index)));
+      }
+      out.add(LayoutElement.target('gap_${i + 1}'));
+      cursor = index + word.length;
+    }
+    if (cursor < transcript.length) {
+      out.add(LayoutElement.text(transcript.substring(cursor)));
+    }
+    return out;
+  }
+
+  // ---------------------------------------------------------------------
+  // v11 views (read-only, derived; removed in Sessions 3 and 4)
+  // ---------------------------------------------------------------------
+
+  /// The preset that authored this exercise, or an empty string.
+  String get editorTemplate {
+    final preset = authoringMetadata['presetId'];
+    return preset is String ? preset.trim() : '';
+  }
+
+  late final ExerciseInteraction interaction = _buildInteraction();
+  late final ExerciseEvaluation evaluation = _buildEvaluation();
+
+  ExerciseInteraction _buildInteraction() {
+    final legacyItems = primitive == ExercisePrimitive.presentation
+        ? [
+            for (var i = 0; i < answers.length; i++)
+              ExerciseItem(
+                id: 'item_$i',
+                content: [PromptElement(type: 'text', text: answers[i])],
+              ),
+          ]
+        : items;
+    return ExerciseInteraction(
+      kind: primitive == ExercisePrimitive.presentation
+          ? 'select'
+          : primitive.serialized,
+      inputType: 'text',
+      minSelections: isMultiSelect ? requiredSelectionCount : 1,
+      maxSelections: isMultiSelect ? maxSelectionCount : 1,
+      items: legacyItems,
+      // v11 knew inline gaps on Select and Arrange only; an Input's inline
+      // layout (Type the missing word, Listen for missing words) is new in
+      // v12 and reaches v11 readers through the `prompt` view instead.
+      layout: [
+        if (primitive == ExercisePrimitive.select ||
+            primitive == ExercisePrimitive.arrange)
+          for (final element in layout)
+            element.isTarget
+                ? PromptElement(type: 'gap', text: element.targetId)
+                : PromptElement(type: 'text', text: element.text),
+      ],
+    );
+  }
+
+  ExerciseEvaluation _buildEvaluation() {
+    switch (primitive) {
+      case ExercisePrimitive.select:
+        return ExerciseEvaluation(
+          kind: 'selected_items',
+          correctItemIds: canonicalEvaluation.correctItemIds,
+          gapAssignments: targetAssignments,
+        );
+      case ExercisePrimitive.input:
+        final effective = effectiveOptions;
+        String rule<T extends OptionEnumValue>(OptionKey key, T strict) =>
+            effective.enumValue<T>(key) == strict ? 'preserve' : 'ignore';
+        return ExerciseEvaluation(
+          kind: 'text_match',
+          accepted: accepted,
+          normalization: {
+            'case': rule(OptionKey.caseHandling, CaseHandling.exact),
+            'punctuation': rule(
+              OptionKey.punctuationHandling,
+              PunctuationHandling.exact,
+            ),
+            'whitespace':
+                effective.enumValue<WhitespaceHandling>(
+                      OptionKey.whitespaceHandling,
+                    ) ==
+                    WhitespaceHandling.exact
+                ? 'preserve'
+                : 'normalize',
+            'accents':
+                effective.enumValue<AccentHandling>(OptionKey.accentHandling) ==
+                    AccentHandling.ignore
+                ? 'ignore'
+                : 'preserve',
+          },
+        );
+      case ExercisePrimitive.arrange:
+        return ExerciseEvaluation(
+          kind: 'ordered_items',
+          correctOrders: canonicalEvaluation.correctOrders,
+          gapAssignments: targetAssignments,
+        );
+      case ExercisePrimitive.match:
+        return ExerciseEvaluation(
+          kind: 'matched_items',
+          pairs: canonicalEvaluation.relations,
+        );
+      case ExercisePrimitive.presentation:
+        return const ExerciseEvaluation(kind: 'selected_items');
+      case ExercisePrimitive.assign:
+      case ExercisePrimitive.speak:
+      case ExercisePrimitive.ink:
+      case ExercisePrimitive.submit:
+        return ExerciseEvaluation(kind: canonicalEvaluation.mode.serialized);
+    }
+  }
+
   // Author-friendly compatibility views. These are derived from primitives.
-  String get type => _legacyTypeFromTemplate(editorTemplate, interaction.kind);
+  String get type => primitive == ExercisePrimitive.presentation
+      ? 'flashcard'
+      : _legacyTypeFromTemplate(editorTemplate, primitive.serialized);
   String _promptRole(String role) =>
       promptElements
           .where((e) => e.role == role && e.type == 'text')
           .map((e) => e.text)
           .firstOrNull ??
       '';
-  String get prompt => _promptRole('context').isNotEmpty
-      ? _promptRole('context')
-      : _promptRole('passage').isNotEmpty
-      ? _promptRole('passage')
-      : _promptRole('primary').isNotEmpty
-      ? _promptRole('primary')
-      : _promptRole('clue');
-  String get question => _promptRole('question');
+  String get prompt {
+    if (primitive == ExercisePrimitive.presentation) return _promptRole('term');
+    if (primitive == ExercisePrimitive.input && layout.isNotEmpty) {
+      return inlineSentence;
+    }
+    return _promptRole('context').isNotEmpty
+        ? _promptRole('context')
+        : _promptRole('passage').isNotEmpty
+        ? _promptRole('passage')
+        : _promptRole('situation').isNotEmpty
+        ? _promptRole('situation')
+        : _promptRole('primary').isNotEmpty
+        ? _promptRole('primary')
+        : _promptRole('clue');
+  }
+
+  /// The inline layout as one sentence: a target with a first-grapheme
+  /// reveal reads `___`, any other target reads its first accepted answer.
+  String get inlineSentence => [
+    for (final element in layout)
+      if (element.isText)
+        element.text
+      else if (_targetById(element.targetId)?.reveal != null)
+        '___'
+      else
+        _firstAnswerOf(element.targetId),
+  ].join();
+
+  ExerciseTarget? _targetById(String id) =>
+      targets.where((target) => target.id == id).firstOrNull;
+
+  String _firstAnswerOf(String targetId) =>
+      canonicalEvaluation.targetAnswers
+          .where((answers) => answers.targetId == targetId)
+          .expand((answers) => answers.answers)
+          .firstOrNull ??
+      '';
+
+  String get question => primitive == ExercisePrimitive.presentation
+      ? _promptRole('meaning')
+      : _promptRole('question');
   String? get tts {
     final a = promptElements
         .where((e) => e.type == 'audio')
@@ -2951,115 +4414,138 @@ class Exercise {
   }
 
   List<String> get answers {
-    if (interaction.kind == 'match' && type == 'audio_match') {
-      return evaluation.pairs
+    if (primitive == ExercisePrimitive.presentation) {
+      final usage = _promptRole('usage');
+      final translation = _promptRole('usage_translation');
+      return [
+        if (usage.isNotEmpty) usage,
+        if (translation.isNotEmpty) translation,
+      ];
+    }
+    if (primitive == ExercisePrimitive.match && type == 'audio_match') {
+      return canonicalEvaluation.relations
           .map((p) {
-            if (p.length != 2) return '';
-            final it = interaction.items.where((x) => x.id == p[1]).firstOrNull;
+            final it = items.where((x) => x.id == p[1]).firstOrNull;
             return it?.value ?? '';
           })
           .where((e) => e.isNotEmpty)
           .toList();
     }
-    if (interaction.kind == 'match') return const [];
-    return interaction.items
-        .map((e) => e.value)
-        .where((e) => e.isNotEmpty)
-        .toList();
+    if (primitive == ExercisePrimitive.match) return const [];
+    return items.map((e) => e.value).where((e) => e.isNotEmpty).toList();
   }
 
   int? get correct {
-    if (evaluation.correctItemIds.isEmpty) return null;
-    final id = evaluation.correctItemIds.first;
-    final i = interaction.items.indexWhere((e) => e.id == id);
+    if (canonicalEvaluation.correctItemIds.isEmpty) return null;
+    final id = canonicalEvaluation.correctItemIds.first;
+    final i = items.indexWhere((e) => e.id == id);
     return i < 0 ? null : i;
   }
 
-  List<String> get accepted => evaluation.accepted;
+  /// Every accepted text of an Input: the single field's answers, or the
+  /// answers of every inline gap in target order.
+  List<String> get accepted => canonicalEvaluation.targetAnswers.isEmpty
+      ? canonicalEvaluation.answers
+      : [
+          for (final target in targets)
+            ...canonicalEvaluation.targetAnswers
+                .where((answers) => answers.targetId == target.id)
+                .expand((answers) => answers.answers),
+        ];
+
+  /// Listen for missing words: the first accepted answer of each gap, in
+  /// order. Empty for every other exercise.
+  List<String> get missingWords => primitive == ExercisePrimitive.input
+      ? [
+          for (final target in targets)
+            if (target.reveal == null)
+              for (final answers in canonicalEvaluation.targetAnswers)
+                if (answers.targetId == target.id && answers.answers.isNotEmpty)
+                  answers.answers.first,
+        ]
+      : const [];
   List<String> get tokens =>
-      interaction.items.map((e) => e.value).where((e) => e.isNotEmpty).toList();
+      items.map((e) => e.value).where((e) => e.isNotEmpty).toList();
 
-  /// The fixed-text/gap layout for an Arrange exercise that embeds one or
-  /// more inline gaps inside otherwise fixed text. Empty for every existing
-  /// whole-sentence Arrange exercise.
-  List<PromptElement> get arrangeLayout => interaction.layout;
+  /// Whether this exercise uses an inline layout with targets.
+  bool get hasInlineTargets => layout.any((element) => element.isTarget);
 
-  /// Gap ID -> required item ID for a gap-based Arrange exercise. Empty for
-  /// every existing whole-sentence Arrange exercise.
-  Map<String, String> get arrangeGapAssignments => evaluation.gapAssignments;
+  /// Target ID -> the one item it must hold (gap grading).
+  Map<String, String> get targetAssignments => {
+    for (final assignment in canonicalEvaluation.assignments)
+      if (assignment.itemIds.isNotEmpty)
+        assignment.targetId: assignment.itemIds.first,
+  };
 
   /// Whether this Arrange exercise uses the inline-gap layout instead of the
-  /// original whole-sentence tile builder.
+  /// whole-sentence tile builder.
   bool get hasArrangeGaps =>
-      interaction.kind == 'arrange' &&
-      arrangeLayout.any((element) => element.type == 'gap');
+      primitive == ExercisePrimitive.arrange && hasInlineTargets;
 
   /// Whether this Select exercise allows choosing more than one option.
-  /// False (single-selection) for every existing Select exercise, which
-  /// keeps default single-select behavior unchanged.
   bool get isMultiSelect =>
-      interaction.kind == 'select' && interaction.maxSelections > 1;
+      primitive == ExercisePrimitive.select &&
+      options.enumValue<SelectionMode>(OptionKey.selectionMode) ==
+          SelectionMode.multiple;
 
   /// The minimum number of options a multi-select Select exercise requires
   /// before it can be submitted. Meaningless for single-select exercises.
-  int get requiredSelectionCount =>
-      interaction.minSelections < 1 ? 1 : interaction.minSelections;
+  int get requiredSelectionCount {
+    final minimum = options.intValue(OptionKey.minimumSelections) ?? 1;
+    return minimum < 1 ? 1 : minimum;
+  }
 
   /// The maximum number of options a multi-select Select exercise allows to
-  /// be selected at once. 1 for every existing single-select exercise.
-  int get maxSelectionCount =>
-      interaction.maxSelections < 1 ? 1 : interaction.maxSelections;
+  /// be selected at once. 1 for every single-select exercise.
+  int get maxSelectionCount {
+    if (!isMultiSelect) return 1;
+    final maximum = options.intValue(OptionKey.maximumSelections);
+    return maximum == null || maximum < 1 ? items.length : maximum;
+  }
 
   /// The full set of correct item IDs, used for set-based exact-match
-  /// correctness on multi-select Select exercises. A single-element set for
-  /// every existing single-select exercise.
-  Set<String> get correctItemIdSet => evaluation.correctItemIds.toSet();
+  /// correctness on multi-select Select exercises.
+  Set<String> get correctItemIdSet =>
+      canonicalEvaluation.correctItemIds.toSet();
 
   /// Whether this Select exercise embeds inline gaps whose values are filled
-  /// by selecting linked options: one option can be the required answer for
-  /// (and therefore fill) more than one gap at once. Reuses the same
-  /// layout/gapAssignments primitives as gap-based Arrange. False for every
-  /// existing Select exercise.
+  /// by selecting linked options.
   bool get hasSelectGaps =>
-      interaction.kind == 'select' &&
-      arrangeLayout.any((element) => element.type == 'gap');
+      primitive == ExercisePrimitive.select && hasInlineTargets;
   List<String> get orderAnswer =>
-      evaluation.correctOrders.firstOrNull?.itemIds
+      canonicalEvaluation.correctOrders.firstOrNull?.itemIds
           .map((id) {
-            final it = interaction.items.where((x) => x.id == id).firstOrNull;
+            final it = items.where((x) => x.id == id).firstOrNull;
             return it?.value ?? '';
           })
           .where((e) => e.isNotEmpty)
           .toList() ??
       const [];
-  List<List<String>> get orderAnswers => evaluation.correctOrders
+  List<List<String>> get orderAnswers => canonicalEvaluation.correctOrders
       .map(
         (answer) => answer.itemIds
             .map((id) {
-              final it = interaction.items.where((x) => x.id == id).firstOrNull;
+              final it = items.where((x) => x.id == id).firstOrNull;
               return it?.value ?? '';
             })
             .where((e) => e.isNotEmpty)
             .toList(growable: false),
       )
       .toList(growable: false);
-  List<String> get correctTranslationTexts => evaluation.correctOrders
+  List<String> get correctTranslationTexts => canonicalEvaluation.correctOrders
       .map((answer) => answer.text)
       .toList(growable: false);
-  List<List<String>> get pairs => evaluation.pairs
+  List<List<String>> get pairs => canonicalEvaluation.relations
       .map((p) {
         if (p.length != 2) return <String>[];
         String val(String id) =>
-            interaction.items
-                .where((x) => x.id == id)
-                .map((x) => x.value)
-                .firstOrNull ??
+            items.where((x) => x.id == id).map((x) => x.value).firstOrNull ??
             id;
         return [val(p[0]), val(p[1])];
       })
       .where((p) => p.length == 2)
       .toList();
-  List<String> get icons => interaction.items
+  List<String> get icons => items
       .map(
         (e) => e.image.isNotEmpty
             ? e.image
@@ -3171,7 +4657,9 @@ ExerciseInteraction _legacyInteraction(
           content: [
             PromptElement(type: 'text', text: answers[i]),
             if (i < icons.length && icons[i].isNotEmpty)
-              PromptElement(role: 'icon', type: 'text', text: icons[i]),
+              _isImageReference(icons[i])
+                  ? PromptElement(type: 'image', asset: icons[i])
+                  : PromptElement(role: 'icon', type: 'text', text: icons[i]),
           ],
         ),
       );
@@ -3378,6 +4866,13 @@ List<String> _resolveOrderedItemIds(
   return indexes.map((index) => 'item_$index').toList(growable: false);
 }
 
+/// Whether an icon key names a picture the item carries as an image element
+/// rather than a named icon or a bundled asset key: a Course medium or a
+/// portable data URI (Build 256 Revision 4). Bundled `assets/` keys stay
+/// icon keys, drawn as before.
+bool _isImageReference(String value) =>
+    value.startsWith('media:') || value.startsWith('data:');
+
 String _legacyTypeFromTemplate(String template, String interaction) {
   const map = {
     'choose_answer': 'choice',
@@ -3395,13 +4890,18 @@ String _legacyTypeFromTemplate(String template, String interaction) {
     'dialogue': 'flashcard',
   };
   if (map.containsKey(template)) return map[template]!;
+  // A Build 256 Revision 4 catalogue preset reads as the recipe it is built
+  // on (`presetRecipeBaseOf`); its own ID is not a v11 type.
+  final base = presetRecipeBaseOf[template];
+  if (base != null) return base;
   if (template.isNotEmpty) return template;
   return switch (interaction) {
     'select' => 'choice',
     'input' => 'fill_blank',
     'arrange' => 'word_order',
     'match' => 'matching',
-    _ => 'choice',
+    'presentation' => 'flashcard',
+    _ => interaction,
   };
 }
 

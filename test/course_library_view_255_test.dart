@@ -228,10 +228,10 @@ void main() {
         await tester.pump();
       }
       // The Edge Case demo has Draft content, so it is unavailable.
-      expect(count(tester, 0), ' · 3 of 4 shown');
+      expect(count(tester, 0), ' · 2 of 3 shown');
       await tester.tap(find.byKey(const Key('show-unavailable-courses')));
       await tester.pump();
-      expect(count(tester, 0), ' · 4 of 4 shown');
+      expect(count(tester, 0), ' · 3 of 3 shown');
       expect(
         find.byKey(
           const ValueKey(

@@ -79,7 +79,7 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('round')));
     await _settle(tester);
     await _openExercise(tester);
-    await tester.enterText(_field('Prompt / instruction'), 'Canonical edit');
+    await tester.enterText(_field('Prompt (optional)'), 'Canonical edit');
     await tester.scrollUntilVisible(
       find.byKey(const Key('exercise-save')),
       350,
@@ -186,7 +186,7 @@ void main() {
     await tester.tap(find.text('Open Round'));
     await _settle(tester);
     await _openExercise(tester);
-    await tester.enterText(_field('Prompt / instruction'), 'Standalone edit');
+    await tester.enterText(_field('Prompt (optional)'), 'Standalone edit');
     await tester.scrollUntilVisible(
       find.byKey(const Key('exercise-save-draft')),
       350,
@@ -282,7 +282,7 @@ void main() {
     await _settle(tester);
     expect(find.byType(ExerciseEditorScreen), findsOneWidget);
 
-    await tester.enterText(_field('Prompt / instruction'), 'Audit route edit');
+    await tester.enterText(_field('Prompt (optional)'), 'Audit route edit');
     await tester.scrollUntilVisible(
       find.byKey(const Key('exercise-save-draft')),
       350,

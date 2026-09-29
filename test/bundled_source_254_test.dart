@@ -61,13 +61,13 @@ void main() {
 
   void expectFullSource(Course actual) {
     expect(actual.courseId, source.courseId);
-    expect(actual.lessons, hasLength(5));
-    expect(actual.lessons.expand((lesson) => lesson.rounds), hasLength(10));
+    expect(actual.lessons, hasLength(6));
+    expect(actual.lessons.expand((lesson) => lesson.rounds), hasLength(12));
     expect(
       actual.lessons
           .expand((lesson) => lesson.rounds)
           .expand((round) => round.exercises),
-      hasLength(31),
+      hasLength(39),
     );
     expect(
       CourseBackupService.officialContentChecksum(actual),
@@ -79,7 +79,7 @@ void main() {
   test(
     'Studio keeps full bundled source when Home passes its learner view',
     () async {
-      expect(learner.lessons, hasLength(4));
+      expect(learner.lessons, hasLength(5));
       final library = await operations.load(currentCourse: learner);
       expect(library.activeCourseId, source.courseId);
       expectFullSource(

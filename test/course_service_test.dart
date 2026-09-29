@@ -7,20 +7,29 @@ void main() {
 
   setUp(() => SharedPreferences.setMockInitialValues({}));
 
-  test('Build 255 Revision 6 keeps four bundled demos', () {
+  test('Build 256 Revision 5 keeps three bundled demos', () {
     expect(CourseService.courseAssets, {
       'IT': 'assets/courses/exercise_laboratory_en_it.json',
-      'KO': 'assets/courses/korean_en.json',
       'EN_EDGE': 'assets/courses/edge_case_it_en.json',
       'PMS': 'assets/courses/piedmontais_en.json',
     });
-    expect(CourseService.hasCourse('ko'), isTrue);
+    expect(CourseService.hasCourse('ko'), isFalse);
     expect(CourseService.sourceLabels['PMS'], 'English');
     expect(CourseService.targetLabels['PMS'], 'Piedmontese');
   });
 
   test('removed demos are unavailable', () {
-    for (final code in ['DE', 'ES', 'EN', 'CY', 'PT', 'NAP', 'NL', 'FI']) {
+    for (final code in [
+      'DE',
+      'ES',
+      'EN',
+      'CY',
+      'PT',
+      'NAP',
+      'NL',
+      'FI',
+      'KO',
+    ]) {
       expect(CourseService.hasCourse(code), isFalse, reason: code);
       expect(CourseService.targetLabels.containsKey(code), isFalse);
       expect(CourseService.sourceLabels.containsKey(code), isFalse);
@@ -48,7 +57,7 @@ void main() {
 
       expect(first, CourseService.courseAssets.keys);
       expect(second, first);
-      expect(first, ['IT', 'KO', 'EN_EDGE', 'PMS']);
+      expect(first, ['IT', 'EN_EDGE', 'PMS']);
       expect(
         preferences.getStringList(CourseService.bundledCourseIndexStorageKey),
         first,

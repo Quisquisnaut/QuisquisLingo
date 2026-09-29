@@ -9,11 +9,12 @@ import 'package:quisquislingo_app/services/course_backup_service.dart';
 import 'package:quisquislingo_app/services/course_file_store.dart';
 import 'package:quisquislingo_app/services/course_checksums.dart';
 import 'package:quisquislingo_app/services/course_merge_service.dart';
+import 'package:quisquislingo_app/services/course_model_v12_converter.dart';
+import 'package:quisquislingo_app/services/preset_recipes.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:quisquislingo_app/services/trusted_publishers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../tools/convert_course_to_v11.dart';
 import 'support/publisher_fixtures.dart';
 
 const _profileId = '12345678-1234-4234-9234-123456789abc';
@@ -32,19 +33,22 @@ Map<String, dynamic> _merge() => {
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  group('Course Model v11 clean cut', () {
-    test('v11 is the only accepted format', () {
+  group('Course Model v12 clean cut', () {
+    test('v12 is the only accepted format', () {
       final json = _course().toJson();
-      expect(json['formatVersion'], 11);
-      expect(Course.fromJson(json).formatVersion, 11);
-      for (final old in [9, 10]) {
+      expect(json['formatVersion'], 12);
+      expect(Course.fromJson(json).formatVersion, 12);
+      for (final old in [9, 10, 11]) {
         expect(
           () => Course.fromJson({...json, 'formatVersion': old}),
           throwsA(
             isA<FormatException>().having(
               (error) => error.message,
               'message',
-              allOf(contains('format 11 only'), contains('convert_course')),
+              allOf(
+                contains('format 12 only'),
+                contains('convert_course_to_v12'),
+              ),
             ),
           ),
           reason: 'v$old must be refused, never read',
@@ -58,7 +62,7 @@ void main() {
         ..._course().toJson(),
         'mergeProvenance': _merge(),
       });
-      expect(merged.formatVersion, 11);
+      expect(merged.formatVersion, Course.currentFormatVersion);
       expect(merged.mergeProvenance!.leftSourceCourseId, 'older-left');
       expect(
         Course.fromJson(merged.toJson()).toJson()['mergeProvenance'],
@@ -72,7 +76,7 @@ void main() {
         }),
         throwsA(isA<FormatException>()),
       );
-      final bundled = _bundled('korean_en.json');
+      final bundled = _bundled('piedmontais_en.json');
       expect(
         () => Course.fromJson({...bundled, 'mergeProvenance': _merge()}),
         throwsA(isA<FormatException>()),
@@ -80,7 +84,7 @@ void main() {
     });
   });
 
-  group('v11 storage clean cut', () {
+  group('v12 storage clean cut', () {
     late Directory root;
     setUp(() async => root = await Directory.systemTemp.createTemp('qql_v11_'));
     tearDown(() async {
@@ -107,7 +111,7 @@ void main() {
           }),
         );
         final store = CourseFileStore(supportDirectory: () async => root);
-        expect(CourseFileStore.rootDirectoryName, 'QQL_Courses');
+        expect(CourseFileStore.rootDirectoryName, 'QQL_Courses_v12');
         expect(await store.readAll(CourseStoreKind.custom), isEmpty);
         expect(await old.exists(), isTrue);
       },
@@ -378,7 +382,7 @@ void main() {
             choices: const [LessonMergeChoice.left],
             options: CourseMergeOptions.fromCourse(left),
           );
-      expect(merged.formatVersion, 11);
+      expect(merged.formatVersion, Course.currentFormatVersion);
       expect(merged.mergeProvenance, isNotNull);
       expect(merged.keywords, ['left']);
       expect(merged.minimumAge, 4);
@@ -386,12 +390,11 @@ void main() {
     });
   });
 
-  group('bundled and fixture Courses are v11', () {
+  group('bundled and fixture Courses are v12', () {
     const bundledIds = {
       'edge_case_it_en.json': 'course_6f6a1fa3-b834-4936-b324-92fb57f73502',
       'exercise_laboratory_en_it.json':
           'course_50d68435-d2c2-4b63-9a0b-b23161357f1d',
-      'korean_en.json': 'sample_ko_en_ko',
       'piedmontais_en.json': 'course_e5f5585a-7762-43a0-a6b2-62754e02d17b',
     };
 
@@ -399,7 +402,7 @@ void main() {
       for (final entry in bundledIds.entries) {
         final json = _bundled(entry.key);
         final course = Course.fromJson(json);
-        expect(course.formatVersion, 11, reason: entry.key);
+        expect(course.formatVersion, 12, reason: entry.key);
         expect(course.courseId, entry.value, reason: entry.key);
         expect(
           course.officialChecksum,
@@ -419,7 +422,7 @@ void main() {
         'dummy-signed-v2.json',
       ]) {
         final course = Course.fromJson(_fixture(name));
-        expect(course.formatVersion, 11);
+        expect(course.formatVersion, 12);
         final verified = await verifier.requireVerified(course);
         expect(
           verified.publisherVerificationStatus,
@@ -437,109 +440,336 @@ void main() {
         );
       }
       final unsigned = Course.fromJson(_fixture('dummy-unsigned.json'));
-      expect(unsigned.formatVersion, 11);
+      expect(unsigned.formatVersion, 12);
       await expectLater(verifier.requireVerified(unsigned), throwsA(anything));
     });
   });
 
-  group('convert_course_to_v11 tool', () {
-    test('a v9 bundled Course converts back to exactly the shipped file', () {
-      for (final file in const ['korean_en.json', 'piedmontais_en.json']) {
-        final shipped = _bundled(file);
-        final asV9 = {
-          ...shipped,
-          'formatVersion': 9,
-          'officialChecksum': 'b' * 64,
-        };
-        expect(convertCourseJsonToV11(asV9), shipped, reason: file);
-      }
-    });
+  group('convert_course_to_v12 library', () {
+    Map<String, dynamic> v11(String file) => Map<String, dynamic>.from(
+      jsonDecode(File('test/fixtures/v11/$file').readAsStringSync()) as Map,
+    );
 
-    test('a v10 merged Course becomes v11 with its merge provenance', () {
-      final v10 = {
-        ..._course().toJson(),
-        'formatVersion': 10,
-        'mergeProvenance': _merge(),
-      };
-      final converted = convertCourseJsonToV11(v10);
-      expect(converted['formatVersion'], 11);
-      expect(Course.fromJson(converted).mergeProvenance, isNotNull);
-    });
+    test(
+      'the generated Courses agree with the converter exercise by exercise',
+      () {
+        for (final file in const [
+          'exercise_laboratory_en_it.json',
+          'edge_case_it_en.json',
+          'piedmontais_en.json',
+        ]) {
+          final result = convertCourseJsonToV12(v11(file));
+          expect(result.notes, isEmpty, reason: file);
+          final converted = Course.fromJson(result.json);
+          final shipped = Course.fromJson(_bundled(file));
+          expect(converted.courseId, shipped.courseId, reason: file);
+          List<LearningContent> contents(Course course) => [
+            for (final lesson in course.lessons)
+              for (final round in lesson.rounds) ...round.content,
+          ];
+          final a = contents(converted);
+          // Build 256 Revision 5: a Story's lines and covers have no v11
+          // shape, so the fixtures omit the Story Lessons; every shipped
+          // content the fixture lacks belongs to a Story Round or carries a
+          // canonical-only preset (the Story cover Lesson).
+          final knownIds = a.map((c) => c.id).toSet();
+          final b = <LearningContent>[];
+          for (final lesson in shipped.lessons) {
+            for (final round in lesson.rounds) {
+              // Build 256 Revision 7: the Assign Lesson is canonical content
+              // without a preset and has no v11 shape either.
+              final storyRound =
+                  round.flow != null ||
+                  round.content.any(
+                    (content) =>
+                        PresetRecipes.canonicalOnly.contains(
+                          content.editorTemplate,
+                        ) ||
+                        (content.exercise != null &&
+                            content.editorTemplate.isEmpty),
+                  );
+              for (final content in round.content) {
+                if (knownIds.contains(content.id)) {
+                  b.add(content);
+                } else {
+                  expect(
+                    storyRound,
+                    isTrue,
+                    reason:
+                        '$file ${content.id} is neither converted nor a Story',
+                  );
+                }
+              }
+            }
+          }
+          expect(a.map((c) => c.id), b.map((c) => c.id), reason: file);
+          for (var i = 0; i < a.length; i++) {
+            final reason = '$file ${a[i].id}';
+            expect(a[i].kind, b[i].kind, reason: reason);
+            expect(
+              a[i].authoringMetadata,
+              b[i].authoringMetadata,
+              reason: reason,
+            );
+            expect(
+              a[i].exercise == null,
+              b[i].exercise == null,
+              reason: reason,
+            );
+            if (a[i].exercise case final exercise?) {
+              expect(
+                exercise.semanticallyEquals(b[i].exercise!),
+                isTrue,
+                reason: reason,
+              );
+              expect(
+                exercise.updatedAt,
+                b[i].exercise!.updatedAt,
+                reason: reason,
+              );
+            }
+          }
+          expect(
+            shipped.officialChecksum,
+            CourseChecksums.official(shipped),
+            reason: file,
+          );
+        }
+      },
+    );
 
-    test('the official version can be raised during conversion', () {
-      final converted = convertCourseJsonToV11({
-        ..._bundled('korean_en.json'),
-        'formatVersion': 9,
-      }, officialVersion: '9.9.9');
-      final course = Course.fromJson(converted);
-      expect(course.officialCourseVersion, '9.9.9');
-      expect(course.officialChecksum, CourseChecksums.official(course));
+    test('a custom demo Course converts without notes', () {
+      final result = convertCourseJsonToV12(
+        v11('italian_demo_2_pick_the_translation.json'),
+      );
+      expect(result.notes, isEmpty);
       expect(
-        () => convertCourseJsonToV11({
-          ..._course().toJson(),
-          'formatVersion': 9,
-        }, officialVersion: '2'),
-        throwsA(isA<FormatException>()),
+        result.json,
+        Map<String, dynamic>.from(
+          jsonDecode(
+                File(
+                  'demo_courses/italian_demo_2_pick_the_translation.json',
+                ).readAsStringSync(),
+              )
+              as Map,
+        ),
       );
     });
 
     test('a Publisher Course loses its signature and must be re-signed', () {
-      final converted = convertCourseJsonToV11({
-        ..._fixture('dummy-signed-v1.json'),
-        'formatVersion': 9,
-      });
-      expect(converted.containsKey('publisherSignature'), isFalse);
-      expect(converted['publisherVerificationStatus'], 'unverified');
+      final result = convertCourseJsonToV12(
+        {
+            ..._v11Custom(),
+            'originType': 'externalOfficial',
+            'publisherId': 'org.example',
+            'publisherName': 'Example',
+            'officialCourseVersion': '1',
+            'officialReleaseDateUtc': '2026-09-01T00:00:00.000Z',
+            'officialChecksum': '0' * 64,
+            'distributionChannel': 'test',
+            'publisherVerificationStatus': 'verified',
+            'publisherSignature': 'qql-ed25519-v1:key-1:AAAA',
+            'originalCourseCreator': {
+              'type': 'publisher',
+              'id': 'org.example',
+              'displayName': 'Example',
+            },
+          }
+          ..remove('maintainer')
+          ..remove('courseVersion'),
+      );
+      expect(result.json.containsKey('publisherSignature'), isFalse);
+      expect(result.json['publisherVerificationStatus'], 'unverified');
+      expect(result.json['officialChecksum'], isA<String>());
+      expect(result.json['officialChecksum'], isNot('0' * 64));
+      expect(result.notes.single, contains('signature was removed'));
     });
 
-    test('media outside assets/ stops the conversion and is listed', () {
-      final json = {
-        ..._course(
-          exerciseImage: 'C:/pictures/mine.png',
-          audioPath: '/home/me/clip.mp3',
-        ).toJson(),
-        'formatVersion': 9,
-      };
+    test('stale fields and non-standard presentation actions are noted', () {
+      final json = _v11Custom();
+      final content =
+          (((json['lessons'] as List).first as Map)['rounds'] as List).first
+              as Map;
+      final exercise =
+          ((content['content'] as List).first as Map)['exercise'] as Map;
+      (exercise['evaluation'] as Map)['pairs'] = [
+        ['item_0', 'item_1'],
+      ];
+      (content['content'] as List).add({
+        'id': 'card',
+        'publicationState': 'published',
+        'kind': 'presentation',
+        'required': true,
+        'presentation': {
+          'content': [
+            {'role': 'term', 'type': 'text', 'text': 'acqua'},
+          ],
+          'completion': {
+            'actions': ['ok'],
+          },
+        },
+      });
+      final result = convertCourseJsonToV12(json);
       expect(
-        () => convertCourseJsonToV11(json),
+        result.notes,
+        containsAll([
+          contains('pairs are not used by Select and were dropped'),
+          contains('actions [ok] became completionMode continue'),
+        ]),
+      );
+      final course = Course.fromJson(result.json);
+      final card = course.lessons.single.rounds.single.content.last;
+      expect(card.kind, 'exercise');
+      expect(card.exercise!.primitive, ExercisePrimitive.presentation);
+      expect(card.exercise!.updatedAt, DateTime.utc(2026, 9, 7, 10, 1));
+      expect(card.editorTemplate, 'flashcard');
+    });
+
+    test('v12 and older formats are not converted', () {
+      expect(
+        () => convertCourseJsonToV12(_course().toJson()),
         throwsA(
-          isA<ExternalMediaReferences>().having(
-            (error) => error.locations,
-            'locations',
-            allOf(
-              hasLength(2),
-              contains(endsWith('= C:/pictures/mine.png')),
-              contains(endsWith('= /home/me/clip.mp3')),
-            ),
+          isA<FormatException>().having(
+            (error) => error.message,
+            'message',
+            contains('already'),
           ),
         ),
       );
-      // Bundled and embedded media are fine.
-      expect(
-        convertCourseJsonToV11({
-          ..._course(
-            exerciseImage: 'assets/exercise_images/apple.webp',
-            audioPath: 'assets/audio/it_sample/sample_1.mp3',
-          ).toJson(),
-          'formatVersion': 9,
-        })['formatVersion'],
-        11,
-      );
+      for (final old in [8, 9, 10]) {
+        expect(
+          () => convertCourseJsonToV12({..._v11Custom(), 'formatVersion': old}),
+          throwsA(
+            isA<FormatException>().having(
+              (error) => error.message,
+              'message',
+              contains('convert_course_to_v11'),
+            ),
+          ),
+          reason: 'v$old',
+        );
+      }
     });
 
-    test('v11 and older formats are not converted', () {
-      final json = _course().toJson();
+    test('a device path is refused by the final v12 check', () {
+      final json = _v11Custom();
+      final exercise =
+          ((((((json['lessons'] as List).first as Map)['rounds'] as List).first
+                              as Map)['content']
+                          as List)
+                      .first
+                  as Map)['exercise']
+              as Map;
+      (exercise['prompt'] as List).add({
+        'role': 'clue',
+        'type': 'image',
+        'asset': 'C:/pictures/mine.png',
+      });
       expect(
-        () => convertCourseJsonToV11(json),
-        throwsA(isA<FormatException>()),
-      );
-      expect(
-        () => convertCourseJsonToV11({...json, 'formatVersion': 8}),
-        throwsA(isA<FormatException>()),
+        () => convertCourseJsonToV12(json),
+        throwsA(
+          isA<FormatException>().having(
+            (error) => error.message,
+            'message',
+            contains('not supported'),
+          ),
+        ),
       );
     });
   });
 }
+
+/// A hand-written Course Model v11 custom Course: one Lesson, one Round, one
+/// Choose exercise. Written independently of the model, as a converter input.
+Map<String, dynamic> _v11Custom() => {
+  'formatVersion': 11,
+  'publicationState': 'published',
+  'lessonNumberingMode': 'lesson',
+  'defaultLessonIconStyle': 'monochrome',
+  'createDuels': false,
+  'useGuidebook': false,
+  'courseId': 'course_31b11b63-e6d2-4f2a-a731-a71ba236960c',
+  'originType': 'custom',
+  'originalCourseCreator': {
+    'type': 'qqlUser',
+    'id': _profileId,
+    'displayName': 'Converter tester',
+  },
+  'maintainer': {'profileId': _profileId},
+  'originalCreatedAtUtc': '2026-09-07T10:00:00.000Z',
+  'lastVersionEditorProfileId': _profileId,
+  'lastVersionEditorDisplayName': 'Converter tester',
+  'modifiedAtUtc': '2026-09-07T10:00:00.000Z',
+  'learningLanguage': 'Italian',
+  'interfaceLanguage': 'English',
+  'sourceLanguage': 'English',
+  'targetLanguage': 'Italian',
+  'title': 'v11 input',
+  'ttsLanguage': 'it-IT',
+  'courseVersion': '1',
+  'audioMode': 'tts',
+  'license': 'All rights reserved',
+  'textDirection': 'ltr',
+  'flagCode': 'IT',
+  'temporarySample': false,
+  'lessons': [
+    {
+      'lessonId': 'lesson-1',
+      'publicationState': 'published',
+      'updatedAt': '2026-09-07T10:00:00.000Z',
+      'title': 'Greetings',
+      'section': false,
+      'guidebook': {'content': []},
+      'rounds': [
+        {
+          'id': 'round-1',
+          'publicationState': 'published',
+          'updatedAt': '2026-09-07T10:01:00.000Z',
+          'visualType': 'generic',
+          'content': [
+            {
+              'id': 'exercise-1',
+              'publicationState': 'published',
+              'kind': 'exercise',
+              'required': true,
+              'editorTemplate': 'choice',
+              'exercise': {
+                'updatedAt': '2026-09-07T10:02:00.000Z',
+                'prompt': [
+                  {'role': 'question', 'type': 'text', 'text': 'water'},
+                ],
+                'interaction': {
+                  'kind': 'select',
+                  'minSelections': 1,
+                  'maxSelections': 1,
+                  'items': [
+                    {
+                      'id': 'item_0',
+                      'content': [
+                        {'role': 'primary', 'type': 'text', 'text': 'acqua'},
+                      ],
+                    },
+                    {
+                      'id': 'item_1',
+                      'content': [
+                        {'role': 'primary', 'type': 'text', 'text': 'libro'},
+                      ],
+                    },
+                  ],
+                },
+                'evaluation': {
+                  'kind': 'selected_items',
+                  'correctItemIds': ['item_0'],
+                },
+              },
+            },
+          ],
+        },
+      ],
+      'duel': {'id': 'lesson-1_duel', 'title': 'Duel'},
+    },
+  ],
+};
 
 Map<String, dynamic> _bundled(String file) => Map<String, dynamic>.from(
   jsonDecode(File('assets/courses/$file').readAsStringSync()) as Map,

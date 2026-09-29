@@ -156,18 +156,18 @@ void main() {
       );
       expect(restored.hasSelectGaps, isTrue);
       expect(
-        restored.arrangeLayout.map((e) => '${e.type}:${e.text}'),
-        exercise.arrangeLayout.map((e) => '${e.type}:${e.text}'),
+        restored.interaction.layout.map((e) => '${e.type}:${e.text}'),
+        exercise.interaction.layout.map((e) => '${e.type}:${e.text}'),
       );
-      expect(restored.arrangeGapAssignments, exercise.arrangeGapAssignments);
+      expect(restored.targetAssignments, exercise.targetAssignments);
       // Both gaps require the same linked option.
-      expect(restored.arrangeGapAssignments.values.toSet(), {'item_was'});
+      expect(restored.targetAssignments.values.toSet(), {'item_was'});
     });
 
     test('legacy single-select Choice exercises have no gaps', () {
       final exercise = _legacyChoiceExercise();
       expect(exercise.hasSelectGaps, isFalse);
-      expect(exercise.arrangeLayout, isEmpty);
+      expect(exercise.interaction.layout, isEmpty);
     });
   });
 
@@ -304,7 +304,7 @@ void main() {
       for (var frame = 0; frame < 80; frame++) {
         await tester.pump(const Duration(milliseconds: 25));
         if (find
-            .byKey(const Key('exercise-renderer-choice'))
+            .byKey(const Key('exercise-renderer-select'))
             .evaluate()
             .isNotEmpty) {
           break;

@@ -9,8 +9,11 @@ import 'import/image_validator.dart';
 abstract final class PortableExerciseImageService {
   static const maxImageBytes = 50 * 1024;
   static const maxImageDimension = 4096;
+  // Bundled pictures: the exercise-image library and, since Build 256
+  // Revision 5, the Story avatars (`assets/avatars/<name>.png`, the shape
+  // `StorySpeaker.avatarPattern` accepts).
   static final _bundled = RegExp(
-    r'^assets/exercise_images/(?:[A-Za-z0-9_-]+/)*[A-Za-z0-9_-]+\.(?:png|jpg|jpeg|webp)$',
+    r'^assets/(?:exercise_images/(?:[A-Za-z0-9_-]+/)*[A-Za-z0-9_-]+\.(?:png|jpg|jpeg|webp)|avatars/[a-z0-9_]+\.png)$',
   );
   static final _embedded = RegExp(
     r'^data:image/(png|jpeg|webp);base64,([A-Za-z0-9+/]+={0,2})$',
@@ -31,7 +34,9 @@ abstract final class PortableExerciseImageService {
     if (_bundled.hasMatch(asset)) return null;
     // Bound work before matching or allocating decoded bytes.
     if (asset.length > ((maxImageBytes + 2) ~/ 3) * 4 + 32) {
-      throw const FormatException('Exercise image is too large. Export a smaller picture and try again.');
+      throw const FormatException(
+        'Exercise image is too large. Export a smaller picture and try again.',
+      );
     }
     final match = _embedded.firstMatch(asset);
     if (match == null) {
@@ -42,7 +47,9 @@ abstract final class PortableExerciseImageService {
     final encoded = match.group(2)!;
     final bytes = base64Decode(encoded);
     if (bytes.isEmpty || bytes.length > maxImageBytes) {
-      throw const FormatException('Exercise image is empty or too large. Export a smaller picture and try again.');
+      throw const FormatException(
+        'Exercise image is empty or too large. Export a smaller picture and try again.',
+      );
     }
     if (base64Encode(bytes) != encoded || _mime(bytes) != match.group(1)) {
       throw const FormatException(
@@ -63,7 +70,9 @@ abstract final class PortableExerciseImageService {
 
   static Future<String> fromFile(File source) async {
     if (await source.length() > maxImageBytes) {
-      throw const FormatException('Exercise image is too large. Export a smaller picture and try again.');
+      throw const FormatException(
+        'Exercise image is too large. Export a smaller picture and try again.',
+      );
     }
     return fromBytes(await source.readAsBytes());
   }
@@ -72,7 +81,9 @@ abstract final class PortableExerciseImageService {
   /// import ([fromFile]) and Open from….
   static Future<String> fromBytes(Uint8List bytes) async {
     if (bytes.length > maxImageBytes) {
-      throw const FormatException('Exercise image is too large. Export a smaller picture and try again.');
+      throw const FormatException(
+        'Exercise image is too large. Export a smaller picture and try again.',
+      );
     }
     // The one image check shared by every import route. Stored images are not
     // re-checked this way: [decode] and [validate] keep their own rules, so
@@ -81,7 +92,8 @@ abstract final class PortableExerciseImageService {
       bytes,
       ImageProfile.exerciseImage,
     );
-    final asset = 'data:image/${image.format.mime};base64,${base64Encode(bytes)}';
+    final asset =
+        'data:image/${image.format.mime};base64,${base64Encode(bytes)}';
     decode(asset);
     return asset;
   }
@@ -109,7 +121,9 @@ abstract final class PortableExerciseImageService {
     } on FormatException {
       rethrow;
     } catch (_) {
-      throw const FormatException('This is not a readable PNG, JPEG or WebP image. Export a fresh picture and try again.');
+      throw const FormatException(
+        'This is not a readable PNG, JPEG or WebP image. Export a fresh picture and try again.',
+      );
     } finally {
       codec?.dispose();
       descriptor?.dispose();

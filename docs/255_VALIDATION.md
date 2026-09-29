@@ -710,3 +710,22 @@ unchanged.
   request (27 September 2026). The last complete run is the Revision 7 run
   above. The route for a picture imported on this device (`fromFile` and the
   reminder) has no widget test.
+
+### Windows package
+
+`tools\package_windows_release.ps1 -RebuildFlutterApplication` (owner
+request, 27 September 2026): **PASS** in 3 min 8 s. It ran from
+`C:\QQL\QuisquisLingo` on `main` at `368d8ce`, the PR #26 merge.
+
+- It rebuilt the Flutter Release; `quisquislingo_app.exe` reports
+  `2.0.55+255007` as FileVersion and ProductVersion.
+- It froze 470 application files (52,390,827 bytes).
+- All 24 launcher unit tests and all 4 packaged-launcher integration tests
+  passed.
+- The launcher's dependencies (COMCTL32, SHELL32, KERNEL32) were checked in
+  the built, staged and extracted copies.
+- The package is `quisquislingo_windows_beta_255007.zip` (486 files,
+  28,693,653 bytes, SHA-256
+  `D8427CF08EB058D8436FA9CD74BE7B800867E742749CE63529977FF084A94BDA`). Its
+  entry point is `QuisquisLingo.exe`.
+- It is not published as a GitHub Release.

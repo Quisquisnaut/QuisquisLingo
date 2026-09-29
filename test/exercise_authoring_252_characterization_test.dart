@@ -21,6 +21,26 @@ void _largeViewport(WidgetTester tester) {
   addTearDown(tester.view.resetDevicePixelRatio);
 }
 
+/// Chooses [name] in the preset picker of a new exercise (Build 256
+/// Revision 4: inline gaps are presets of their own, not switches).
+Future<void> _pickPreset(WidgetTester tester, String name) async {
+  await tester.tap(find.byKey(const Key('exercise-preset-selector')));
+  await tester.pumpAndSettle();
+  final tile = find.text(name).last;
+  await tester.dragUntilVisible(
+    tile,
+    find
+        .descendant(
+          of: find.byType(DraggableScrollableSheet),
+          matching: find.byType(ListView),
+        )
+        .first,
+    const Offset(0, -400),
+  );
+  await tester.tap(tile);
+  await tester.pumpAndSettle();
+}
+
 Future<void> _mount(
   WidgetTester tester,
   Exercise original,
@@ -49,7 +69,7 @@ Future<void> _mount(
 Map<String, dynamic> _contentJson(Exercise exercise) =>
     LearningContent.fromExercise(exercise).toJson();
 
-void _expectV11RoundTrip(Exercise exercise) {
+void _expectV12RoundTrip(Exercise exercise) {
   final content = _contentJson(exercise);
   final contentAgain = LearningContent.fromJson(
     jsonDecode(jsonEncode(content)) as Map<String, dynamic>,
@@ -60,7 +80,7 @@ void _expectV11RoundTrip(Exercise exercise) {
 
   final course = workflow.exampleCourse([exercise]);
   final courseJson = course.toJson();
-  expect(courseJson['formatVersion'], 11);
+  expect(courseJson['formatVersion'], Course.currentFormatVersion);
   final reloaded = Course.fromJson(
     jsonDecode(jsonEncode(courseJson)) as Map<String, dynamic>,
   );
@@ -87,7 +107,7 @@ void main() {
   });
 
   testWidgets(
-    'Draft choice accepts an invalid answer number; Preview rejects it and v11 JSON keeps the empty evaluation',
+    'Draft choice accepts an invalid answer number; Preview rejects it and v12 JSON keeps the empty evaluation',
     (tester) async {
       final original = workflow.modelExercise('choice', PublicationState.draft);
       final course = workflow.exampleCourse([original]);
@@ -112,7 +132,7 @@ void main() {
         'publicationState': 'draft',
         'kind': 'exercise',
         'required': true,
-        'editorTemplate': 'choice',
+        'authoringMetadata': {'presetId': 'choice_target'},
         'exercise': {
           'updatedAt': _saveTime.toIso8601String(),
           'prompt': [
@@ -127,30 +147,26 @@ void main() {
               'text': 'Choose the greeting.',
             },
           ],
-          'interaction': {
-            'kind': 'select',
-            'minSelections': 1,
-            'maxSelections': 1,
-            'items': [
-              {
-                'id': 'item_0',
-                'content': [
-                  {'role': 'primary', 'type': 'text', 'text': 'Ciao'},
-                ],
-              },
-              {
-                'id': 'item_1',
-                'content': [
-                  {'role': 'primary', 'type': 'text', 'text': 'Casa'},
-                ],
-              },
-            ],
-          },
-          'evaluation': {'kind': 'selected_items'},
+          'primitive': 'select',
+          'items': [
+            {
+              'id': 'item_0',
+              'content': [
+                {'role': 'primary', 'type': 'text', 'text': 'Ciao'},
+              ],
+            },
+            {
+              'id': 'item_1',
+              'content': [
+                {'role': 'primary', 'type': 'text', 'text': 'Casa'},
+              ],
+            },
+          ],
+          'evaluation': {'mode': 'exactItem'},
         },
       });
       expect(original.correct, 0);
-      _expectV11RoundTrip(saved!);
+      _expectV12RoundTrip(saved!);
     },
   );
 
@@ -171,18 +187,20 @@ void main() {
     ]);
     expect(saved!.evaluation.correctItemIds, ['item_0']);
     expect(_contentJson(saved!)['publicationState'], 'published');
-    _expectV11RoundTrip(saved!);
+    _expectV12RoundTrip(saved!);
   });
 
-  for (final type in [
-    'type_translation',
-    'build_translation',
-    'matching',
-    'contextual_comprehension',
-    'flashcard',
-    'listening_spelling',
+  // Build 256 Revision 4: a v11 type opens in its successor preset, which
+  // the saved exercise then carries.
+  for (final (type, presetId) in [
+    ('type_translation', 'type_translation_to_target'),
+    ('build_translation', 'build_translation_to_target'),
+    ('matching', 'word_match'),
+    ('contextual_comprehension', 'reading_answer_target'),
+    ('flashcard', 'flashcard'),
+    ('listening_spelling', 'listening_spelling'),
   ]) {
-    testWidgets('$type Save Draft retains its v11 content wrapper', (
+    testWidgets('$type Save Draft retains its v12 content wrapper', (
       tester,
     ) async {
       final original = workflow.modelExercise(type, PublicationState.draft);
@@ -191,17 +209,15 @@ void main() {
       await workflow.tapKey(tester, 'exercise-save-draft');
       expect(saved, isNotNull);
       expect(saved!.id, original.id);
-      expect(saved!.editorTemplate, type);
+      expect(saved!.editorTemplate, presetId);
       expect(saved!.publicationState, PublicationState.draft);
       expect(saved!.updatedAt, _saveTime);
       final content = _contentJson(saved!);
       expect(content['id'], original.id);
       expect(content['publicationState'], 'draft');
-      expect(content['editorTemplate'], type);
-      expect(
-        content['kind'],
-        type == 'flashcard' ? 'presentation' : 'exercise',
-      );
+      expect((content['authoringMetadata'] as Map)['presetId'], presetId);
+      // Course Model v12: a Flashcard is an exercise too.
+      expect(content['kind'], 'exercise');
       if (type == 'matching') {
         expect(saved!.interaction.items.map((item) => item.id), [
           'item_0',
@@ -239,11 +255,11 @@ void main() {
           'item_1',
         ]);
       }
-      _expectV11RoundTrip(saved!);
+      _expectV12RoundTrip(saved!);
     });
   }
 
-  testWidgets('inline Arrange keeps deterministic item and gap IDs in v11', (
+  testWidgets('inline Arrange keeps deterministic item and gap IDs in v12', (
     tester,
   ) async {
     final original = workflow.modelExercise(
@@ -252,7 +268,7 @@ void main() {
     );
     Exercise? saved;
     await _mount(tester, original, (value) => saved = value);
-    await workflow.tapKey(tester, 'word-order-use-inline-gaps');
+    await _pickPreset(tester, 'Drag the blocks into the gaps');
     await tester.enterText(
       workflow.field('Sentence with gaps'),
       'I {go} {to} school.',
@@ -280,7 +296,7 @@ void main() {
       'gap_1': 'item_0',
       'gap_2': 'item_1',
     });
-    _expectV11RoundTrip(saved!);
+    _expectV12RoundTrip(saved!);
   });
 
   testWidgets('linked-gap Select reuses an option ID across two gaps', (
@@ -289,7 +305,7 @@ void main() {
     final original = workflow.modelExercise('choice', PublicationState.draft);
     Exercise? saved;
     await _mount(tester, original, (value) => saved = value);
-    await workflow.tapKey(tester, 'choice-use-inline-gaps');
+    await _pickPreset(tester, 'Pick the words for the gaps');
     await tester.enterText(
       workflow.field('Sentence with gaps'),
       '{Was} she happy? {Was} he late?',
@@ -312,7 +328,7 @@ void main() {
       'gap_1': 'item_0',
       'gap_2': 'item_0',
     });
-    _expectV11RoundTrip(saved!);
+    _expectV12RoundTrip(saved!);
   });
 
   testWidgets('multi-select keeps ordered IDs and selection bounds', (
@@ -334,7 +350,7 @@ void main() {
     expect(saved!.evaluation.correctItemIds, ['item_0', 'item_2']);
     expect(saved!.interaction.minSelections, 2);
     expect(saved!.interaction.maxSelections, 3);
-    _expectV11RoundTrip(saved!);
+    _expectV12RoundTrip(saved!);
   });
 
   final asset = 'media:${List.filled(64, 'a').join()}.webp';
@@ -366,7 +382,7 @@ void main() {
     );
   }
 
-  testWidgets('Save retains a Course-owned image source in v11 JSON', (
+  testWidgets('Save retains a Course-owned image source in v12 JSON', (
     tester,
   ) async {
     final original = sourcedChoice();
@@ -386,7 +402,7 @@ void main() {
       (exerciseJson['prompt'] as List).cast<Map>().last['sharedImageSource'],
       source.toJson(),
     );
-    _expectV11RoundTrip(saved!);
+    _expectV12RoundTrip(saved!);
   });
 
   testWidgets(
@@ -409,7 +425,7 @@ void main() {
             ?.id,
         source.id,
       );
-      _expectV11RoundTrip(saved!);
+      _expectV12RoundTrip(saved!);
     },
   );
 

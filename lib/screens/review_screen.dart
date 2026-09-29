@@ -327,7 +327,9 @@ class _ReviewScreenState extends State<ReviewScreen> {
     final location = _location!;
     final entries = afterRound ? _postEntries : _preEntries;
     final entry = entries[_entryIndex];
-    final roundTitle = location.round.title.trim();
+    final roundTitle = location.round.flow != null
+        ? location.round.displayTitle(location.roundIndex)
+        : location.round.title.trim();
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
       children: [

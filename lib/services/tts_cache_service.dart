@@ -60,6 +60,7 @@ class TtsCacheService {
     String? targetLanguage,
     double rate = 0.5,
     bool applyLearnerSettings = true,
+    String? voicePreference,
   }) async {
     final lifecycle = AudioDiagnosticLifecycle.start(
       kind: 'tts',
@@ -173,9 +174,13 @@ class TtsCacheService {
       try {
         final wanted = language.toLowerCase().replaceAll('_', '-');
         final wantedBase = wanted.split('-').first;
-        final preference = applyLearnerSettings
-            ? await _settings.getTtsVoicePreference()
-            : 'system';
+        // Build 256 Revision 5: a Story speaker's voice preference (male,
+        // female) wins over the learner's when it is set.
+        final preference =
+            voicePreference ??
+            (applyLearnerSettings
+                ? await _settings.getTtsVoicePreference()
+                : 'system');
 
         if (!kIsWeb && defaultTargetPlatform == TargetPlatform.windows) {
           // Windows uses System.Speech directly. This avoids the flutter_tts

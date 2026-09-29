@@ -80,7 +80,9 @@ void main() {
                 originalItem.presentation?.toJson(),
               );
               expect(transferred.sourceRefs, originalItem.sourceRefs);
-              if (transferred.exercise case final exercise?) {
+              // A Presentation is an unscored exercise since Course Model v12.
+              if (transferred.exercise case final exercise?
+                  when exercise.primitive != ExercisePrimitive.presentation) {
                 expect(
                   exercise.interaction.items
                       .map((i) => i.id)
@@ -421,9 +423,12 @@ void main() {
           matching: find.byType(Card),
         ),
       );
+      // Build 256: a hint on a Choose is ordinary canonical data, no longer
+      // the v11 "unexpected field" warning, so the valid destination Round
+      // is green until the invalid copy arrives.
       expect(
         (destinationCard.shape! as RoundedRectangleBorder).side.color,
-        const Color(0xFFC90000),
+        const Color(0xFF00A83B),
       );
       expect(
         find.byKey(const ValueKey('round-draft-indicator-same-lesson-round')),
@@ -746,6 +751,6 @@ LearningContent _exerciseContent(
       correctItemIds: [invalid ? 'missing-item' : '${id}_a'],
     ),
     hint: 'A clue',
-    feedback: const {'correct': 'Authored feedback'},
+    feedback: const ExerciseFeedback(correct: 'Authored feedback'),
   ),
 );

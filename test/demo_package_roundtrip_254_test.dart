@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
+import 'package:quisquislingo_app/models/exercise_features.dart';
 import 'package:quisquislingo_app/services/course_access_policy.dart';
 import 'package:quisquislingo_app/services/course_audit_service.dart';
 import 'package:quisquislingo_app/services/course_backup_service.dart';
@@ -75,8 +76,10 @@ void _expectForkContent(Course source, Course fork) {
   final identityMap = <String, String>{};
   for (var index = 0; index < before.length; index++) {
     identityMap[before[index].id] = after[index].id;
-    final sourceItems = before[index].exercise?.interaction.items ?? [];
-    final forkItems = after[index].exercise?.interaction.items ?? [];
+    // Canonical items only: the v11 `interaction` view gives a Presentation
+    // usage lines as legacy items, which a fork does not renumber.
+    final sourceItems = before[index].exercise?.items ?? [];
+    final forkItems = after[index].exercise?.items ?? [];
     expect(forkItems, hasLength(sourceItems.length), reason: before[index].id);
     for (var item = 0; item < sourceItems.length; item++) {
       identityMap[sourceItems[item].id] = forkItems[item].id;
@@ -104,9 +107,10 @@ void _expectForkContent(Course source, Course fork) {
 }
 
 void _expectFlashcardUsage(Course course) {
-  final cards = _contents(
-    course,
-  ).where((content) => content.kind == 'presentation');
+  // Course Model v12: a Flashcard is a presentation-primitive exercise.
+  final cards = _contents(course).where(
+    (content) => content.exercise?.primitive == ExercisePrimitive.presentation,
+  );
   expect(cards, isNotEmpty);
   for (final card in cards) {
     final fields = {
@@ -133,7 +137,15 @@ void _expectFlashcardUsage(Course course) {
       },
       reason: card.id,
     );
-    expect(card.presentation!.actions, ['understood', 'review_later']);
+    // A vocabulary card is reviewed later; a Note card continues.
+    final reviewable =
+        ExerciseFeatures(card.exercise!).completionMode ==
+        CompletionMode.understoodReview;
+    expect(
+      card.presentation!.actions,
+      reviewable ? ['understood', 'review_later'] : ['continue'],
+      reason: card.id,
+    );
   }
 }
 

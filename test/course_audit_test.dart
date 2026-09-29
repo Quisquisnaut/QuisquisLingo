@@ -116,8 +116,11 @@ void main() {
     }
   });
 
-  test('independent stale evaluation data still produces warnings', () {
-    final choice = Exercise.v2(
+  test('stale v11 evaluation data is dropped on conversion and reported', () {
+    // Course Model v12 keeps only the primitive's own evaluation fields, so
+    // the v11 Audit warning about stale data has nothing left to find; the
+    // conversion names what it dropped instead.
+    final conversion = Exercise.convertV11(
       id: 'choice-stale',
       editorTemplate: 'choice',
       promptElements: const [
@@ -142,16 +145,14 @@ void main() {
         accepted: ['Yes'],
       ),
     );
-    final issues = CourseAuditService().auditExercise(choice);
-
+    expect(conversion.notes, [
+      'choice-stale: v11 evaluation fields acceptedAnswers are not used by Select and were dropped.',
+    ]);
+    expect(conversion.exercise.canonicalEvaluation.answers, isEmpty);
+    final issues = CourseAuditService().auditExercise(conversion.exercise);
     expect(
-      issues.any(
-        (issue) =>
-            issue.severity == AuditSeverity.warning &&
-            issue.code == 'EXERCISE_FIELD_UNEXPECTED' &&
-            issue.message == 'Unexpected field for choice: accepted answers.',
-      ),
-      isTrue,
+      issues.where((issue) => issue.code == 'EXERCISE_FIELD_UNEXPECTED'),
+      isEmpty,
     );
   });
 
@@ -648,10 +649,12 @@ void main() {
           .any((i) => i.message.contains('only the blocks needed')),
       isTrue,
     );
+    // Build 256 Revision 4: a picture, a spoken word or a clue names the
+    // word; this exercise has none of them.
     final missingImage = Exercise(
       id: 'iw3',
       type: 'image_word',
-      prompt: 'Build the word',
+      prompt: '',
       question: '',
       answers: const [],
       correct: null,
@@ -666,7 +669,10 @@ void main() {
     expect(
       CourseAuditService()
           .auditExercise(missingImage)
-          .any((i) => i.message.contains('requires an image')),
+          .any(
+            (i) =>
+                i.message.contains('needs a picture, a spoken word or a clue'),
+          ),
       isTrue,
     );
   });

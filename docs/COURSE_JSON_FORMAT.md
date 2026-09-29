@@ -1,13 +1,13 @@
-# QuisquisLingo Course JSON format 11
+# QuisquisLingo Course JSON format 12
 
 Status: implemented current format. The in-app Editor Help remains the author-facing reference.
 
 ## Root
 
-Every native Course Model v11 course declares:
+Every native Course Model v12 course declares:
 
 ```json
-"formatVersion": 11,
+"formatVersion": 12,
 "publicationState": "draft | published",
 "lessonNumberingMode": "lesson",
 "defaultLessonIconStyle": "monochrome"
@@ -17,7 +17,9 @@ Every native Course Model v11 course declares:
 
 Build 243 makes v11 the single accepted format and a clean cut: v9 and v10 files are refused with a message naming `tools/convert_course_to_v11.dart`, and the application never converts them. v11 is v9 plus three things: merge provenance becomes an optional field of any custom Course (the former v10 existed only to carry it), the Build 242 `mediaAttributions` list, and the optional descriptive fields below. The developer tool converts a v9/v10 file by changing only `formatVersion` and, for an official Course, recomputing `officialChecksum`; a Publisher Course loses its signature and must be signed again, and a Course naming media outside `assets/` is refused with every location listed.
 
-### Course media references (v11, Build 243 Revision 2)
+Build 256 Revision 1 makes v12 the single accepted format and a clean cut: v11 files are refused with a message naming `tools/convert_course_to_v12.dart`, and the application never converts them. v12 is v11 with a new exercise shape (`primitive`, `options`, `prompt`, `items`, `targets`, `layout`, `evaluation`, `feedback`; see Exercise below), `authoringMetadata` in place of `editorTemplate`, Presentation as an exercise primitive and an optional Round `flow`. The Course root, Lessons, GuideBooks, media references, provenance, rights, versions and every other field keep their v11 shape. Stored Courses live in `<AppSupport>/QQL_Courses_v12`; Course Backups keep the `Backups/Courses` folder with manifest format v12, and Version History names v11 backups as unreadable. The converter (`lib/services/course_model_v12_converter.dart`, no Flutter imports) accepts a Course JSON or a Course ZIP from Build 255 (media kept, package manifest regenerated), never modifies its input, lists anything it could not map exactly and strips Publisher signatures, which must be made again with `tools/sign_course.dart`. To carry a Course across the cut: export it from Build 255, convert the file, then Quick Import or Open from… it here.
+
+### Course media references (since v11, Build 243 Revision 2)
 
 A Course names its own images and recordings by content, never by a path on one device: `media:<sha256>.<ext>`, where `<sha256>` is the lowercase SHA-256 of the file bytes and `<ext>` is `mp3`, `png`, `jpg`, `jpeg` or `webp`. Each device keeps the file in the Course's own folder, `<AppSupport>/QQL_CourseMedia/QQL_<pair>_<sha256(courseId)>/<sha256>.<ext>` (`CourseMediaStore`; Build 255 Revision 4, where `<pair>` is the Course's language pair and a new Course's folder is `QQL_<sha256(courseId)>` until it is first stored), so the same JSON is valid everywhere and a signature over it also pins the media.
 
@@ -36,7 +38,7 @@ Exports keep these files at the ZIP root. Import also accepts all package files 
 
 When an image is selected from the Admin-added Shared Image Library, its image prompt can carry `sharedImageSource` with the original library `id`, `label`, `category`, `tags`, `origin` and optional per-image `attribution` (`author`, `license`, optional `title` and `source`). This is a snapshot on a Course-owned `media:` image, not an instruction to install a global library entry. The package manifest lists the same source snapshot, media reference and SHA-256 for Exercise prompt images; import verifies that it matches the Course. Known limit (Build 247): a `sharedImageSource` on an answer item, layout, presentation, GuideBook or Course image library image is not listed in the manifest. It still travels in `course.json`, so nothing is lost; package format 1 is kept unchanged so that existing QQL versions continue to accept each other's packages. Admins edit attribution on device images in the Shared Image Library's **Edit metadata** dialog; a bank may also provide it per image. Earlier entries without attribution remain valid. Any separate Course-level `mediaAttributions` remain in Course JSON. Import never adds an image to the recipient device's Shared Image Library or reuses a matching global file.
 
-### Optional descriptive fields (v11)
+### Optional descriptive fields (since v11)
 
 Each is omitted when unset and never grants QQL permissions. Fork, Copy as New Course and in-Course transfers carry them; a merge keeps the left Course's values, except `minimumAppBuild`, which keeps the higher of the two, and differing values never block a merge.
 
@@ -48,13 +50,13 @@ Each is omitted when unset and never grants QQL permissions. Fork, Copy as New C
 - `coverImage`: a course-media reference `media:<lowercase sha256>.<png|jpg|jpeg|webp>`, intended for a square 512 × 512 image of at most 100 KB. It is validated and stored only; the application does not display it yet.
 - `imageLibrary` (Build 243 Revision 8): the Course's own images that it keeps even while no exercise uses them. Each entry is an object with `asset`, an image `media:` reference listed at most once, and an optional `sharedImageSource` (the same snapshot shape as on an image element). Other fields are refused. Omitted when empty, so Courses without it stay byte-identical. The entries count as Course media: a confirmed save keeps their files, and the Course ZIP and backups carry them. Fork, Copy as New Course and in-Course transfers carry the list; a merge keeps the entries of both Courses, the left Course's entry winning for an image both list. **Compatibility:** builds before Revision 8 ignore the field, and would drop it if they saved the Course.
 
-Course Model v11 retains the optional presentation and availability fields introduced in Phase 226.04:
+Course Model v12 retains the optional presentation and availability fields introduced in Phase 226.04:
 
 - `createDuels` and `useGuidebook`: booleans, each defaulting to `true` when absent. Canonical JSON writes only `false`; explicit non-boolean values, including null, are rejected.
 - `sectionNames`: an optional ordered catalog of reusable, non-empty trimmed Section names. Duplicate names are removed while retaining first occurrence order. An empty catalog is omitted. Existing Lesson assignments remain discoverable without automatically adding a catalog to older JSON.
 - `worldFlagId`: an optional trimmed stable ID from the authoritative World Flags SVG library. An empty value is omitted. A present value must be a string. It references bundled artwork; SVG bytes and external file paths are not copied into the Course.
 
-These defaults preserve their established behavior inside v11. QQL does not migrate or partially load older Course formats. Current copy, transfer, editor transactions and exports retain explicitly stored choices and the complete canonical model.
+These defaults preserve their established behavior inside v12. QQL does not migrate or partially load older Course formats. Current copy, transfer, editor transactions and exports retain explicitly stored choices and the complete canonical model.
 
 New Course's **Number of Lessons** (default 3, range 1–100) and **Rounds per Lesson** (default 1, range 1–20) are one-time scaffolding inputs, not JSON fields. The generated canonical Lessons, Rounds and their single Draft sample Exercises persist normally, including their stable IDs and order. Neither these creation ranges nor the defaults constrain supported course imports, the Course Model or later editing; a course with more Lessons or Rounds remains supported.
 
@@ -66,7 +68,7 @@ Build 226.01 official courses are locally read-only and use the publisher-owned 
 
 A custom Course begins at `courseVersion: "1"` on its first confirmed creation. This integer version is stored as a JSON string and increments by one per later confirmed course-level transaction. Nested Save/Save as draft, cancellation and failed confirmation do not advance it. Official Courses instead use the publisher-owned `officialCourseVersion`; the two version fields are not flattened into a generic `version` field.
 
-Course Model v11 divides root metadata by meaning:
+Course Model v12 divides root metadata by meaning:
 
 - **Provenance:** `originalCourseCreator`, `originalCreatedAtUtc`, and for a fork only `forkProvenance`.
 - **Operational responsibility:** `maintainer` and optional `assignedTeamId` on a custom Course.
@@ -142,12 +144,12 @@ The parser rejects obsolete v8 debris rather than retaining aliases or fallbacks
 
 The Build 226.01 official checksum algorithm is `CourseBackupService.officialContentChecksum`:
 
-1. Start with the complete Course Model v11 object serialized by `Course.toJson()` after normal model parsing. Hash the model's serialized values and optional-field rules, not original file bytes or a partial content projection.
+1. Start with the complete Course Model v12 object serialized by `Course.toJson()` after normal model parsing. Hash the model's serialized values and optional-field rules, not original file bytes or a partial content projection.
 2. Remove exactly three root fields: `officialChecksum` (the digest cannot include itself), `publisherVerificationStatus` and `publisherSignature` (authenticity classification and signature metadata are separate from the authenticated payload). Identically named nested fields are not removed.
 3. Recursively sort every remaining object's string keys using Dart's default string ordering; preserve list order and serialized scalar values. Encode with Dart `jsonEncode` (compact JSON), then UTF-8, without a BOM or trailing newline.
 4. Compute SHA-256 and store the 64-character lowercase hexadecimal digest in `officialChecksum`.
 
-No other serialized fields are excluded. Publisher identity, origin, official version/release metadata, Original Course Creator/Created, content and any explicitly allowed/forbidden derivative policy are covered. `restoredFromVersion`, if serialized, is also covered; official Courses have no local restore workflow. Removed local-variant and v8 debris fields no longer reach serialization. Each format-number change (v9, then v11) intentionally changes every bundled source digest. The bundled generator and validator use the same exclusions and compact, recursively key-sorted UTF-8 JSON for bundled model values; author entries contain `roles[]` only, and unspecified derivative policy is omitted.
+No other serialized fields are excluded. Publisher identity, origin, official version/release metadata, Original Course Creator/Created, content and any explicitly allowed/forbidden derivative policy are covered. `restoredFromVersion`, if serialized, is also covered; official Courses have no local restore workflow. Removed local-variant and v8 debris fields no longer reach serialization. Each format-number change (v9, v11, then v12) intentionally changes every bundled source digest. The bundled generator and validator use the same exclusions and compact, recursively key-sorted UTF-8 JSON for bundled model values; author entries contain `roles[]` only, and unspecified derivative policy is omitted.
 
 The separate backup `courseChecksumSha256` hashes the complete `Course.toJson()` with the same sorting/encoding and **no exclusions**, including custom fork provenance. Referenced course-owned audio copies have separate SHA-256 checksums over their bytes, verified before custom restore remaps their paths. Official history/export retains the publisher's original payload paths so its checksum remains valid. Official Version History exposes publisher sources only; obsolete local-variant manifests remain on disk without being loaded or restored.
 
@@ -157,7 +159,7 @@ The canonical hierarchy is:
 
 `Course > lessons[] > guidebook + rounds[] + duel > content[]`
 
-Course owns an ordered list of Lessons. Every Lesson owns its Guidebook, ordered Rounds and stable Duel identity. Chapter and assessment-Lesson fields are not part of Course Model v11.
+Course owns an ordered list of Lessons. Every Lesson owns its Guidebook, ordered Rounds and stable Duel identity. Chapter and assessment-Lesson fields are not part of Course Model v12.
 
 Every mutable Lesson, Round and Exercise object requires `updatedAt` as a canonical UTC ISO-8601 timestamp ending in `Z`. Nested authoring Save writes only to the current Course Editor working copy. No child save updates live persistence or the course version. Deterministic bundled generation assigns explicit stable creation timestamps so repeated runs are byte-identical.
 
@@ -181,9 +183,9 @@ Every Lesson requires `lessonId` and `title`. Optional presentational metadata u
 
 `themeIconAsset` is optional. It names either an approved 256 × 256 transparent preinstalled PNG under `assets/lesson_icons/` or a managed Course reference such as `course-assets/lesson-icons/custom_123.png`. Managed references resolve only through the same Course’s optional `lessonIconAssets[]` registry; arbitrary and unresolved filesystem paths are rejected. Because Course transfer is the established JSON-only portable format, each managed registry entry contains its safe `assetId` and canonical `base64Png`. Import normalizes one author image by contain-scaling it without distortion onto a transparent 256 × 256 PNG canvas. The original path is never serialized or needed after import. Copy as New Course remaps managed asset IDs, while Lesson duplication within one Course may share the immutable reference.
 
-The former decorative Lesson `imageAsset` field is not part of Course Model v11 and is rejected. It is not an alias for `themeIconAsset` and is not migrated into one. Exercise Content may still use its own image field where that exercise type requires it.
+The former decorative Lesson `imageAsset` field is not part of Course Model v12 and is rejected. It is not an alias for `themeIconAsset` and is not migrated into one. Exercise Content may still use its own image field where that exercise type requires it.
 
-The structural fields `topics`, `topicId` and Lesson `id` are invalid in v11. Opaque stable identifier values from earlier bundled content may retain historical text because changing their values would break references and Course-associated learner progress.
+The structural fields `topics`, `topicId` and Lesson `id` are invalid in v12. Opaque stable identifier values from earlier bundled content may retain historical text because changing their values would break references and Course-associated learner progress.
 
 ## Lesson Guidebook
 
@@ -199,33 +201,38 @@ The first Content item of Round 1 may be a non-exercise `lesson_intro` derived f
 
 ## Round
 
-A Round contains a stable `id`, required `publicationState`, required UTC `updatedAt`, optional learner-facing `title`, `visualType` and ordered `content[]`. An empty or omitted title is valid and every learner, editor, Review, Audit and report surface falls back to its current position-derived `Round N` label without changing identity. `visualType` is one of `listening`, `story`, `generic` or `test` and is independent of exercise type.
+A Round contains a stable `id`, required `publicationState`, required UTC `updatedAt`, optional learner-facing `title`, `visualType` and ordered `content[]`. An empty or omitted title is valid and every learner, editor, Review, Audit and report surface falls back to its current position-derived `Round N` label without changing identity. `visualType` is one of `listening`, `story`, `generic` or `test` and is independent of exercise type. An optional `flow` (Build 256: `start` and `nodes[]`, each with `id`, `kind` `content` | `exercise`, `contentId` and `transitions[]` of `trigger` `next` | `onCorrect` | `onIncorrect` | `onChoice` | `conditional`, `target`, optional `choiceItemId` and `condition`) makes the Round a Story delivered in authored order; a Round without `flow` is the practice Round (lesson_intro first, then shuffled exercises, then the mistake review). `visualType` never decides delivery.
 
 ## Content
 
-Every Content object has a stable `id`, canonical `publicationState`, a `kind`, and `required`. Exercise Content also requires its canonical UTC `updatedAt`. `editorTemplate` is optional authoring metadata.
-
-Initial kinds include `exercise`, `presentation`, `explanation`, `example`, `vocabulary`, `text`, `image`, `audio`, and `dialogue`.
+Every Content object has a stable `id`, canonical `publicationState`, a `kind`, and `required`; the textual kinds (`explanation`, `example`, `vocabulary`, `text`, `image`, `audio`, `dialogue`) also carry `role`, `sourceRefs` and `text` as before. Every exercise, Presentation included, is `kind: exercise` with an `exercise` object; v12 has no `kind: presentation`. Optional `authoringMetadata` is an object whose `presetId` names the preset that authored the exercise (v11's `editorTemplate`); its other keys are preserved verbatim through import, export and copy and never read (Session 4 clears them when the exercise's canonical content is edited in QQL, plan A.13).
 
 ## Exercise
 
-Exercise Content uses:
+Exercise Content carries an `exercise` object:
 
-`prompt[] + interaction + evaluation`
+`updatedAt + primitive + options + prompt[] + items[] + targets[] + layout[] + evaluation + feedback + hint`
 
-Initial interaction primitives are `select`, `input`, `arrange`, and `match`.
+- `primitive` is one of the nine canonical primitives (`select`, `input`, `arrange`, `match`, `assign`, `speak`, `ink`, `submit`, `presentation`), parsed strictly; nothing else is accepted, and the primitive is locked once the exercise exists.
+- `options` holds only explicitly set values from the capability registry (`PrimitiveCapabilityRegistry`, `docs/EXERCISE_ARCHITECTURE_V12.md`) for that primitive; an omitted option means the registry default, and an unknown option or value is a format error, never coerced. The registry lists every option with its legal values and default, the evaluation modes each primitive may use and the coded illegal combinations.
+- `prompt[]` elements carry `role`, `type` (`text`, `audio`, `image`), `text`, `asset`, optional `speaker` (dialogue turns) and `sharedImageSource`, plus `language` (`source` | `target`, text elements; absent means unspecified), `playback` (`automatic` | `manual`, audio; default manual) and `required` (boolean, audio; default true). Defaults are omitted.
+- `items[]` are the stable Items the learner selects, arranges, matches or assigns: `id`, `content[]` (elements as above) and, for Match, `side` (`left` | `right`).
+- `targets[]` are the places an answer goes: `id`, optional `reveal` (`firstGrapheme`) and optional `region` (`{x, y, width, height}` as fractions of the exercise's image).
+- `layout[]` is the neutral inline sequence of text runs (`{type: text, text}`) and targets (`{type: target, targetId}`), present only for inline layouts (Select inline, Input inlineGaps, Arrange inlineGaps, Assign gaps). The prompt may be empty when the layout carries the sentence.
+- `evaluation.mode` is required; the other keys depend on the mode: `correctItemIds` (Select item modes), `assignments` `[{targetId, itemIds}]` (Select inline, Arrange gapAssignments, Assign), `answers` (accepted-answer expressions) and `literalAnswers` (accepted verbatim, never parsed as expressions) for one-field Input, `targetAnswers` `[{targetId, answers, literalAnswers}]` for Input inline gaps, `numeric` `{value, minimum, maximum, tolerance}` and `pattern` for Input's numeric and regex modes, `correctOrders` `[{text, itemIds}]` for Arrange order modes, `relations` `[[leftId, rightId]]` for Match and `acceptedTargets` `[{itemId, targetIds}]` for Assign; `presentation` uses mode `none`. Unknown evaluation keys are a format error. Evaluation refers to Item and target IDs, never display indexes. The v11 `normalization` map does not exist: the Input options `caseHandling`, `punctuationHandling`, `whitespaceHandling` and `accentHandling` replace it, and the v11 `acceptedAnswers`, `accepted` and single `correctOrder` fields are not read.
+- `feedback` has optional `correct`, `incorrect` and `showAlternatives` (`none` | `ranked` | `all`) and is omitted when empty.
 
-Initial evaluation primitives are `selected_items`, `text_match`, `ordered_items`, and `matched_items`.
+Executability is not stored: the capability registry's runtime-support table decides per exercise whether today's runtime can play a configuration; an exercise it cannot play is readable and kept in the Course.
 
-Options, tokens and match members are stable Items. Evaluation refers to Item IDs, never display indexes. For `text_match`, v11 writes accepted text as `acceptedAnswers`; legacy `accepted` is rejected rather than adapted.
+Semantic equality (`Exercise.semanticallyEquals`) compares the canonical JSON after filling in every default option and dropping `authoringMetadata`, `updatedAt` and `publicationState`; IDs and item order count.
 
-Phase 226.03 retains formatVersion 6 and the existing canonical fields. Translation expressions and materialized independent answers both remain ordinary `evaluation.acceptedAnswers` strings; no expression-to-answer synchronization metadata is stored. `editorTemplate: type_missing_word` uses Input/text_match with complete accepted words and one `___` prompt gap; its initial grapheme is derived at runtime, not serialized. Existing presets and absent optional fields retain their existing parsing/defaults.
+Presets (`authoringMetadata.presetId`) are authoring metadata; several presets intentionally share one primitive, and a preset never changes grading. Translation expressions and materialized independent answers are both ordinary `evaluation.answers` strings; no expression-to-answer synchronization metadata is stored. Type the missing word (preset `type_missing_word`) is an Input exercise with `inlineGaps`, one target with `reveal: firstGrapheme` and complete accepted words in `targetAnswers`; the revealed grapheme is derived at runtime, not serialized.
 
-`editorTemplate: script_recognition` uses Select/selected_items, stable option Item IDs and exactly one `correctItemIds` entry. Image to text stores prompt image elements and text option elements; Text to image stores a text prompt and image option elements. The mode derives from these canonical fields, with no new mode field or migration. Portable image assets are safe bundled `assets/exercise_images/...` references or bounded `data:image/png;base64,...`, `data:image/jpeg;base64,...` or `data:image/webp;base64,...` strings in the existing element `asset` field. Embedded images preserve original bytes, are limited to 50 KB and 4096 pixels per dimension, and travel with JSON exports, backups, copies and forks. Invalid assets are rejected by Audit/authoring gates; incomplete Drafts retain their canonical content for later correction. Unknown/legacy malformed input is not silently converted or discarded.
+Recognize characters (preset `script_recognition`) is a Select exercise with stable option Item IDs and exactly one `correctItemIds` entry. Image to text stores prompt image elements and text option elements; Text to image stores a text prompt and image option elements. The mode derives from these canonical fields, with no new mode field or migration. Portable image assets are safe bundled `assets/exercise_images/...` references or bounded `data:image/png;base64,...`, `data:image/jpeg;base64,...` or `data:image/webp;base64,...` strings in the existing element `asset` field. Embedded images preserve original bytes, are limited to 50 KB and 4096 pixels per dimension, and travel with JSON exports, backups, copies and forks. Invalid assets are rejected by Audit/authoring gates; incomplete Drafts retain their canonical content for later correction. Unknown/legacy malformed input is not silently converted or discarded.
 
-Build 224 groups these primitives as the canonical Select, Input, Arrange and Match models, with Presentation for non-response learning material. Concrete `editorTemplate` presets remain authoring metadata and several presets intentionally share one model. Prompt elements can independently carry text, audio or image media plus a semantic `role`; structured dialogue may add an optional `speaker` string to a text element whose role is `dialogue_turn`. Contextual comprehension stores its question and context as separate prompt roles.
+Prompt elements can independently carry text, audio or image media plus a semantic `role`; structured dialogue may add an optional `speaker` string to a text element whose role is `dialogue_turn`. Contextual comprehension stores its question and context as separate prompt roles.
 
-Build the translation uses canonical `arrange` interaction Items and one or more `ordered_items.correctOrders` objects. Each object stores the complete literal target-language `text` plus the stable `itemIds` for the exact block occurrences that construct it. The same Item may not be reused within one answer, but repeated words are supported by separate Item occurrences. Terminal sentence punctuation is stored in the literal answer and does not require an artificial punctuation Item. The legacy single `correctOrder` field is rejected without an adapter.
+Build the translation uses canonical `arrange` Items and one or more `evaluation.correctOrders` objects (mode `exactOrder` for one answer, `acceptedOrders` for several). Each object stores the complete literal target-language `text` plus the stable `itemIds` for the exact block occurrences that construct it. The same Item may not be reused within one answer, but repeated words are supported by separate Item occurrences. Terminal sentence punctuation is stored in the literal answer and does not require an artificial punctuation Item. The legacy single `correctOrder` field is rejected without an adapter.
 
 The Build-the-translation editor creates, deletes and reorders complete literal translations. Every answer must be non-empty, unique after the configured literal normalization, constructible from the available block occurrences and leave no more than two blocks unused across the exercise. Runtime accepts any listed answer with ordinary literal normalization and always displays all configured answers in author order after submission. Type-the-translation expression syntax and typo/similarity acceptance do not apply to Build the translation.
 
@@ -239,7 +246,7 @@ Answer acceptance and correction selection are separate. Structured evaluation r
 
 Editing and Draft/Published transitions preserve every existing Course, Lesson, Round, Exercise, Content and Item ID. Learner visibility requires the object and all ancestors to be Published. Draft descendants are retained in authoring export but excluded from learner selection, numbering, Sections, execution, completion, Review, Duel and XP. Copy as New Course and supported subtree-copy actions recursively allocate fresh IDs and start copied authoring content as Draft. Generated GuideBook material likewise becomes real fresh-ID Draft content only when explicitly approved; approval is not publication.
 
-Lesson and Round objects additionally support optional `provisionalDraft`, a boolean defaulting to `false` when absent. Canonical serialization writes only `true`; explicit `false` is accepted and omitted on the next canonical serialization. A present non-boolean value, including `null`, is rejected. This field was introduced in v6 and remains part of v11; it is not a Course, GuideBook or Content field. The marker records automatic parent-publication eligibility independently of `publicationState`; it does not change learner filtering or itself make content Published. A stored `true` alongside Published is preserved by parsing, but reconciliation acts only on Draft parents.
+Lesson and Round objects additionally support optional `provisionalDraft`, a boolean defaulting to `false` when absent. Canonical serialization writes only `true`; explicit `false` is accepted and omitted on the next canonical serialization. A present non-boolean value, including `null`, is rejected. This field was introduced in v6 and remains part of v12; it is not a Course, GuideBook or Content field. The marker records automatic parent-publication eligibility independently of `publicationState`; it does not change learner filtering or itself make content Published. A stored `true` alongside Published is preserved by parsing, but reconciliation acts only on Draft parents.
 
 New scaffolded Lessons and manually created Lesson/Round Drafts receive provisional eligibility. Normal immutable authoring mutations reconcile ready marked branches, including descendant saves, GuideBook availability changes, deletion and Move. A provisional Round must have nonempty learner-visible valid Content, no blocking Round Error, all Exercises Published and every required Content item Published. Optional non-runnable Draft Content stays stored and excluded from delivery. A provisional Lesson additionally requires ready Published Rounds, no blocking Lesson Error and, while `useGuidebook` is true, a Published nonempty GuideBook with all required Content Published. Nonblocking Warnings and Info preserve normal Save semantics; the required empty-GuideBook condition keeps the provisional Lesson Draft. Automatic parent transitions clear the marker and update that parent's UTC timestamp without altering IDs or the Course delivery choice.
 
@@ -253,13 +260,13 @@ Source-format conversion is isolated behind an import-normalization representati
 
 ## Presentation
 
-Flashcard is `kind: presentation`. Its completion actions include `understood` and `review_later`. It has no correct/incorrect result.
+Flashcard and other non-response material are exercises with `primitive: presentation`, evaluation mode `none` and the option `completionMode` (`understoodReview`, whose actions are `understood` and `review_later`). They have no correct/incorrect result.
 
-Round `content[]` is also the structured content container for future Story-like sequences: narration, dialogue or other presentation blocks can be interleaved with independently evaluated exercises. There is no separate monolithic Story evaluator.
+Round `content[]` with a `flow` is the structured container for Story-like sequences: narration, dialogue or other presentation blocks interleaved with independently evaluated exercises. There is no separate monolithic Story evaluator.
 
 ## Lesson Duel
 
-Every Lesson serializes a Duel object with a stable `id` and `title`. Availability is not serialized. At runtime QuisquisLingo collects exercises from that Lesson only, applies the established eligibility and deduplication rules, and requires 25 eligible exercises.
+Every Lesson serializes a Duel object with a stable `id` and `title`. Availability is not serialized. At runtime QuisquisLingo collects exercises from that Lesson only, applies the established eligibility and deduplication rules, and requires 25 eligible exercises. Since Build 256 Revision 2 eligibility is decided from canonical data (`DuelEligibilityService.isEligible`): a Select with a single selection, items shown as choices (not inline gaps), `exactItem` grading, at least two items and one existing correct item; the preset never matters.
 
 Course `createDuels` defaults to true. When false, the learner renders no Duel or reserved Duel spacing and Audit emits no `DUEL_UNAVAILABLE` finding. When true, the same shared eligible pool drives learner availability and the non-blocking `DUEL_UNAVAILABLE` Info finding. An insufficient pool also renders no learner Duel placeholder. The preference never deletes Duel identity, course-owned victory history, Lesson completion or earned XP.
 
@@ -267,4 +274,4 @@ The standard Duel uses 25 unique questions and 4 lives. There is no score or pas
 
 ## Compatibility
 
-Course Model v11 is the only native runtime, bundled, editor-storage, import and export format. v8, v9, v10 and every other `formatVersion` are unsupported and rejected with a clear error. Storage keeps the established names, which still contain `v9`: `quisquislingo_user_courses_v9_233030`, `quisquislingo_external_official_courses_v9_233030`, `quisquislingo_course_editor_corrupt_backup_v9_233030` and `quisquislingo_bundled_course_codes_v9_233030`. No compatibility migration or fallback read runs. v8 namespaces and incompatible source files are not read, transformed or deleted, and export writes only canonical v11 fields. A stored v9/v10 Course file is reported as unreadable and left untouched. Missing or invalid required provenance, maintenance, publication, numbering, icon-style, timestamp or evaluation fields are rejected rather than inferred.
+Course Model v12 is the only native runtime, bundled, editor-storage, import and export format. v11, v10, v9, v8 and every other `formatVersion` are unsupported and rejected with a clear error that names `tools/convert_course_to_v12.dart` (v11 to v12; JSON or Course ZIP, media kept, manifest regenerated, Publisher signatures stripped, anything not mapped exactly listed). Stored Courses live in `<AppSupport>/QQL_Courses_v12/Custom|Publisher`; Build 255's `QQL_Courses` is retired (never read, listed by the Inventory among the earlier private folders, removed by Wipe everything), and `tools/convert_stored_courses_256.dart` converts its custom Courses once, never overwriting or deleting. Course Backups stay in `Backups/Courses` with manifest format v12; v11 backups are listed as unreadable. Preference keys keep the established names, which still contain `v9`: `quisquislingo_user_courses_v9_233030`, `quisquislingo_external_official_courses_v9_233030`, `quisquislingo_course_editor_corrupt_backup_v9_233030` and `quisquislingo_bundled_course_codes_v9_233030`. No compatibility migration or fallback read runs. Older files and folders are not read, transformed or deleted, and export writes v12 only.

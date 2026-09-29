@@ -1,3 +1,639 @@
+# 2.0.56 (Build 256, Revision 7) - Laboratory, Assign, final verification - 2026-09-29
+
+Session 8, the last of the exercise architecture redesign (plan Part B item
+8): the Assign runtime, the Laboratory's Assign Lesson, the test-only
+fixture of what still waits, and the negative and semantic-equality tests
+of the plan's verification list. Course files stay Course Model v12;
+scoring, progression, Review and learner data are unchanged.
+
+- **Assign plays.** Sort into groups (categories in columns), Fill the
+  slots and Fill the gaps of a text: the learner taps an item, then the
+  destination that takes it; a placed item's chip gives it back; a group
+  may take one, several or any number of items, a slot or a gap takes one;
+  a reusable item stays in the bank; Check grades every destination at
+  once (exact assignments). Headings and instructions in the eight learner
+  languages. Picture regions, grid cells, drag placement and the other
+  Assign evaluation modes stay readable but not executable. Assign has no
+  catalogue preset yet (the greyed tiles stay); it is authored in the
+  Generic Primitive Editor, whose layout may name each destination with a
+  text before its target. The Audit adds `ASSIGN_STRUCTURE_REQUIRED`
+  (Error: items, targets and an answer) for 106 rules.
+- **Exercise Laboratory.** A seventh Lesson, Assign: groups, a word that
+  belongs nowhere, slots, reusable slots, one gap and two gaps (128
+  examples, 28 Rounds); the coverage document and the validator follow;
+  the presentation baseline gains six records and keeps every other one.
+- **The future fixture.** `test/fixtures/v12/laboratory_future_en_it.json`,
+  written by the same generator: Speak (repeat, free response), Ink
+  (trace), Submit (audio), a Story ending on a Speak step and a Story whose
+  flow branches on a choice. Its test reads it, audits it (information and
+  warnings only), plays nothing of it, and carries it through the canonical
+  editor, a JSON round trip and a package unchanged.
+- **Verification.** `negative_cases_256_test` (what the parser refuses,
+  what the Audit blocks, what a malformed flow reports) and
+  `semantic_equality_256_test` (defaults, metadata, timestamps, publication
+  state, IDs, item order, JSON round trips); the Revision 6 end-to-end
+  scenario stands as the plan's final acceptance.
+- Beta expiry `2026-10-29 23:59:59` local time.
+
+Follow-up in the same version (owner review of the Revision 7 build, 29
+September 2026):
+
+- **Two Assign presets.** Sort into groups (the question, one group per
+  line as "Animals: gatto, cane", optional words that belong nowhere) and
+  Fill the slots (one slot per line as "… gatto = il", optional extra
+  words, a switch letting one word fill several slots) join the Grammar
+  and sentences group as recipes over canonical Assign data; the greyed
+  Sort into groups tile is gone (six greyed presets). The Laboratory's
+  Assign Lesson uses them (four examples in one Round; the gap Round is
+  removed because the inline gap presets already cover gaps: 126 examples,
+  27 Rounds); the Piedmontese demo keeps 39 Lessons (no Lesson for the
+  two Assign presets, as for the Story cover). Recognition compares targets
+  by position, as it did items, so a stored Assign with foreign target IDs
+  still opens in its form. Help (EN/IT/ES), field Help, Search and the
+  Audit's mismatch hints know both presets.
+- **Match picture to word form.** The picture cards follow the words as
+  they are typed (they were rebuilt only on the form's first change, so a
+  word typed later had no card and no number); each word has one compact
+  card headed "N. word", the section says the pictures follow the order of
+  the words, and the long picker guidance is stated once.
+- **Flashcard form.** The fields are "Word or expression (target
+  language)" and "Translation or meaning (source language)"; the separate
+  pronunciation text is gone: Read aloud (Automatically when the card
+  appears, On request, or No read-aloud) speaks the word itself. A
+  Flashcard's read-aloud is optional and never makes the card an audio
+  exercise (as the Picture flashcard's already was); the bundled cards
+  carry `required: false`.
+- **Spelling presets.** Spell the word in the picture, Spell the word and
+  Spell what you hear have one field, "Blocks of the word, in order": the
+  learner gets exactly those blocks, shuffled. A stored spelling exercise
+  with extra blocks opens in the canonical editor.
+- **Story editor list.** A title block and a text-only Dialogue line are
+  named by their text in the Round editor's list (their IDs were shown).
+
+Second follow-up in the same version (owner request, 29 September 2026):
+
+- **One button style on the Rounds page.** New Round is a bottom-bar
+  button beside Round Wizard and New Story, in their size and colour, no
+  longer a floating button. The editor's creation buttons share one
+  capitalization: New Lesson, New Round, New Exercise, New Canonical, Add
+  Step, Round Wizard, Exercise Wizard, New Story; Help names them the same
+  way.
+- **Choose the answer, after the owner's review.** A new single-answer
+  Choose form starts with Correct answer number 1 (as Pick the translation
+  did). The Audit warns (`CHOICE_ALL_ANSWERS_CORRECT`, 107 rules) when a
+  multiple-answer Choose marks every answer correct. The fields are
+  "Prompt (optional)", an instruction or some context above the question,
+  and "Question or sentence to complete", with grammar examples (Pick the
+  verb form that fits. / Which article goes with casa?) instead of a
+  translation. In a Round, the authored Prompt takes the place of the
+  standard "Choose the correct answer." line under the CHOOSE heading, so
+  the two no longer repeat each other; without a Prompt the standard line
+  stays. The same rule holds for Match the words, Match by meaning and
+  Match picture to word: the authored instruction is the line. Match by
+  meaning no longer gets "Match each word with its opposite." guessed
+  from its text (it takes synonyms and more). The Laboratory's
+  presentation baseline records these changes.
+- **Flashcard, revised.** The pronunciation field returns as
+  "Pronunciation TTS (if different)": empty, the read-aloud speaks the
+  word or expression itself; filled, it speaks that text instead. Read
+  aloud keeps its three choices.
+- **Missing letters.** The learner's field says "Missing letters" for a
+  gap inside a word ("Missing word" misled); Complete the text keeps
+  "Missing word".
+- **Play as a sequence.** The Round editor's switch is called Play as a
+  sequence (it was Play as a Story): a Story, with its title block,
+  narrator and characters, is what New Story builds.
+
+# 2.0.56 (Build 256, Revision 6) - Interoperability - 2026-09-28
+
+Session 7 of the exercise architecture redesign (plan Part B item 7):
+support states at runtime, the stand-alone flow engine, interoperability on
+canonical semantics and the machine-readable capability description. Course
+files stay Course Model v12; scoring, progression, Review and learner data
+are unchanged. Adventures and spoken exercises are parked for a later
+release (owner, 28 September 2026).
+
+- **Exercises this version cannot play (plan A.6).** A valid exercise whose
+  configuration lies outside the runtime-support table is readable but not
+  executable: computed from the registry, never stored. A practice Round
+  skips it before the audio filter (not in the queue, the mistake review,
+  the count or the XP); the completion dialog counts what was skipped and a
+  zero-error attempt gets the "skipped perfect" mark instead of the Laurel;
+  a Round of such exercises alone says why it is empty. A Story shows a card
+  in its place (the prompt read-only above it, one sentence, Continue) and
+  follows the node's next; a Story ending on one leaves without recording
+  (Leave story). The editor Preview shows the same card in practice Rounds
+  too. The Duel never asks such an exercise.
+- **Audit.** `EXERCISE_NOT_EXECUTABLE` (Info) names the reason;
+  `ROUND_NOT_COMPLETABLE` (Warning) marks a practice Round with nothing this
+  version plays, a Story whose flow branches or is no straight sequence, and
+  a Story ending on an unplayable step. 105 rules. The import review counts
+  the unplayable exercises in the Matching Course ID and Publisher dialogs
+  and in the result message. A numeric, pattern or manual Input no longer
+  gets the text-answer Error meant for typed answers.
+- **Flow engine.** `FlowEngine` resolves onChoice, onCorrect, onIncorrect
+  and conditional transitions in declared order with `next` as the
+  fallback, a node's own outcome visible to its conditions, and a bounded
+  walk for tests. Not wired to playback: linear Stories play directly and a
+  branching flow still counts as "cannot run yet".
+- **Interoperability.** The catalog maps every surveyed external type to a
+  primitive, options, evaluation mode and layout, with the preset only as a
+  hint; every mapping validates in the registry and plays today except the
+  Speak ones, which are kept for a later version. `NormalizedImportExercise`
+  is canonical (no preset required) and `CanonicalExerciseImport` records
+  the hint only when the recipe represents the result.
+- **Capability description.** `dart run tools/export_capabilities.dart`
+  writes `docs/capabilities_v12.json`; a test pins it to the registry;
+  `tools/qql_capabilities.py` feeds the generators and
+  `tools/validate_courses.py` from it instead of their own tables.
+- **End to end.** A Course an external converter could write (no preset
+  metadata, every primitive, a Story, a branching Round) imports, audits,
+  plays, duplicates, merges, searches, signs and exports with the same
+  semantics (`test/interoperability_end_to_end_256_test.dart`).
+- Beta expiry `2026-10-28 23:59:59` local time (released the same day as
+  Revision 5).
+
+# 2.0.56 (Build 256, Revision 5) - Stories - 2026-09-28
+
+Session 6 of the exercise architecture redesign (`docs/256_STORY_PLAN.md`):
+Stories as in a conversation course, with a narrator and reusable
+characters, dialogue lines that are read or heard, a Story Wizard and the
+Story options in the Round editor. Course files stay Course Model v12.
+
+- **Narrator and characters.** A Course carries an optional narrator and a
+  list of characters (`storyNarrator`, `storyCharacters`): name, avatar (a
+  bundled figure of the cat, dog, kid, monkey or robot, or a picture of the
+  Course cropped to a square and stored as a small PNG), language (source
+  or target) and voice preference (any, male, female; matched against the
+  device voices, a miss never blocks speech). The Course Editor's Story
+  characters section adds and edits them; a character that lines still
+  name cannot be removed. Avatars count as image uses.
+- **Dialogue line and Story cover.** Two presets of the Cards and notes
+  group. A line is said by the narrator or a character as text, audio or
+  both (`speakerId` on the elements), read aloud as the Story says, always
+  or on request, with its text shown at once or after listening (the
+  presentation option `textReveal`); its language is the speaker's unless
+  the line says otherwise. A cover is the Story's picture and an optional
+  title line. Both are built canonically (they have no v11 shape); a new
+  one is blank as its recipe builds it. Field Help and Exercise Help cover
+  them.
+- **The learner's Story.** The Round screen draws a line as a bubble with
+  the avatar and the name, a play button and Continue; a cover shows the
+  Story title, the picture and the title line, each once. The speaker's
+  voice preference reaches the device speech. Lines and covers are never
+  skipped: without audio the learner reads them. An exercise marked as
+  needing the Story's audio (`requiresAudio` on its flow node) is skipped,
+  like the listening exercises, when Audio Exercises is off. The scrolling
+  log keeps only the dialogue by default (`log: dialogue`; Everything keeps
+  the exercises too). A Story's exercises stay out of the Duel pool.
+- **Round editor.** Play as a Story asks for the Story title (the Round is
+  called "Story: <title>"; the prefix goes when the Story is turned off),
+  Step by step or Scrolling, Dialogue only or Everything, Read aloud
+  automatically or On request; a new Story scrolls, logs the dialogue and
+  reads aloud automatically, an existing one keeps its stored values;
+  "Needs the Story's audio" sits in every exercise's menu.
+- **Story Wizard.** In the Lesson editor beside Round Wizard, without a
+  GuideBook: the Story (title, cover picture, read-aloud), the narrator,
+  the characters, then the steps: Add line (a short form), Add exercise
+  (True or false, Choose the answer, Pick the translation, Listen and
+  answer, Word order, Listen and fill the gaps, Type the missing word,
+  Complete the text; the ordinary exercise form opens on top of the Wizard
+  and Save or Cancel returns to the builder), move, remove, "Needs the
+  Story's audio". Finish needs at least one line and creates the Round
+  through the Course working copy; Cancel creates nothing.
+- **Audit.** Five codes, 103 rules: STORY_TITLE_MISSING and
+  STORY_WITHOUT_DIALOGUE (Warnings on a Story), STORY_SPEAKER_UNKNOWN and
+  DIALOGUE_LINE_EMPTY (Errors), DIALOGUE_LINE_OUTSIDE_STORY (Warning).
+- **Bundled Courses.** The Exercise Laboratory gains a Story Lesson (a
+  cover, five lines, an audio-dependent True or false, a Choose the answer
+  and a Word order: 116 examples), the Piedmontese demo a Dialogue line
+  Lesson played as a Story and a Story cover Lesson (40 Lessons, 120
+  examples), the Edge Case demo a Story with an audio-only line and an
+  exercise that needs the Story's audio. The Story Lessons join after the
+  v11 conversion; the converter fixtures omit them.
+- **Demos (owner request, 28 September).** The Korean demo leaves the
+  bundle and stays a test fixture; the three demos are titled Temporary
+  Demo: Exercise Laboratory, Edge Case Course and Piedmontese.
+- **Help** (EN/IT/ES): Stories and the Story Wizard in the Editor Help,
+  the Exercise primitives page's Stories section, the two presets' Help.
+- **Fix (owner report, 28 September).** A Story cover no longer shows its
+  picture twice at the start of a Preview.
+- Scoring, progression, Review, Course files and learner data are
+  unchanged. Beta expiry `2026-10-28 23:59:59` local time.
+
+Follow-up in the same version (owner review, 28 September 2026):
+
+- **Continue.** One verb for moving on: after every exercise in a Round,
+  a Story and the Duel the button reads Continue (it read Next); a Story's
+  last step reads Finish story, a Round's Finish round, the Duel's Finish
+  duel, and Review mistakes stays.
+- **The line says how to take it.** A Dialogue line's instruction follows
+  its mode: "Read, then continue." (text only), "Listen, then continue."
+  (audio only), "Listen first; the text appears after." (text after
+  listening), "Read or listen, then continue." (text and audio), in the
+  eight learner languages.
+- **No exercise, no XP (scoring rule).** A Round or Story without a scored
+  exercise (cards, covers or lines only) counts as completed for progression
+  and Lesson unlock but awards no answer XP, no perfect bonus and no Laurel,
+  and does not count toward the Laurel total; its completion dialog says
+  "Nothing to score in this Round" (or Story) with no XP arithmetic. Lesson
+  completion XP is unaffected. Rounds with at least one scored exercise are
+  unchanged: cards in them still do not block the perfect bonus.
+- **"Story:" is derived.** Lists, the Lesson path, the Rounds page, the
+  Round editor, Search, Review and the Round screen call a Story
+  "Story: <title>" from its flow's title (or the Round's own title), so a
+  Rename or a Story switched on over a named Round no longer loses the
+  prefix; the Wizard and the Story title field stop writing the prefix into
+  the Round title, and a title stored with it is shown once. Switching a
+  named Round to a Story names the Story after the Round.
+- **Avatars show.** Bundled avatars (`assets/avatars/…`) were refused by
+  the portable image decoder and drawn as a broken image in the bubble, the
+  Course Editor and the Wizard; they are bundled assets now.
+- **Scrolling keeps context.** After Continue, a scrolling Story leaves a
+  fifth of the page (at most 120 px) above the active item, so the tail of
+  the previous line stays readable.
+- **Sample Stories.** The Laboratory's "A morning in Turin" is a consistent
+  story that alternates two or three lines with a question (Choose the
+  answer, an audio-dependent True or false, Word order); a second Story,
+  "The same morning, line by line", shows the line options one by one and
+  has nothing to score (122 examples). The Piedmontese Story reads every
+  line at once and the demo has no Story cover Lesson (39 Lessons, 117
+  examples); the Story of covers alone moves to the Edge Case demo as an
+  intentional Audit warning, and its Story alternates lines and the
+  question. Help (App Info, EN/IT/ES) states the scoring rule.
+- **No heading on a line.** A Dialogue line shows no DIALOGUE heading; the
+  speaker's bubble and the instruction are enough (second follow-up).
+- **The wizards on the Rounds page; New Story (third follow-up).** Round
+  Wizard and New Story (the Story Wizard renamed) are buttons of the Rounds
+  page's bottom bar, beside the New round button, and no longer of the
+  Lesson editor's; the Round Wizard stays greyed out with its explanation
+  while Use GuideBook is off. Help, the Audit hint and the cover preset's
+  text follow.
+- **Add step in the Story editor (third follow-up).** In a Story the Round
+  editor replaces New exercise, New canonical and Exercise Wizard with Add
+  step, which asks for the block type: Title block (the cover, one per
+  Story: greyed out once the Story has it, placed first), Dialogue line
+  (the short form New Story uses) or Exercise (the presets a Story may
+  use). Duplicate is greyed out for the title block, the Story options
+  count the title block, lines and exercises, and the sentence "Lines are
+  never skipped: without audio the learner reads them" is gone from them.
+  A Story has one title block and at least one Dialogue line; the Audit
+  still warns about a Story without a line, and Save is not blocked.
+
+# 2.0.56 (Build 256, Revision 4) - The preset catalogue - 2026-09-27
+
+Session 5 of the exercise architecture redesign
+(`docs/256_PRESET_CATALOGUE_PLAN.md`): 38 presets in six skill groups,
+paired *to target* / *to source* where the direction matters, seven greyed
+presets for later versions, pictures on answers, and the runtime additions
+the new presets need. Course files stay Course Model v12.
+
+- **Catalogue.** Vocabulary: Pick, Type and Build the translation (each to
+  target and to source), Match the words, Match by meaning, Flashcard,
+  Picture flashcard. Grammar and sentences: Choose the answer (to target /
+  to source), True or false, Pick the missing word, Pick the words for the
+  gaps, Type the missing word (with a *Show the first letter* switch; it
+  absorbs Fill in the blank), Complete the text, Missing letters, Word
+  order, Drag the blocks into the gaps, Put the sentences in order.
+  Listening: Listen and answer (to target / to source), Listen and pick the
+  image, Type what you hear, Listen and fill the gaps, Spell what you hear,
+  Listen and match. Reading and dialogue: Read and answer (to target / to
+  source: a text, a situation or dialogue lines, optional spoken text).
+  Pictures and characters: Select the image, What is in the picture, Name
+  what you see, Spell the word in the picture, Spell the word, Match
+  picture to word, Recognize characters. Cards and notes: Note card. Coming
+  later, greyed in the picker and in Help: Say it, Write by hand, Sort into
+  groups, Label the picture, Answer in your own words, Match picture to
+  sound, Adventure.
+- **Retired IDs** (`choice`, `fill_blank`, `matching`, `listening_choice`,
+  `listening_comprehension`, `reading_comprehension`,
+  `contextual_comprehension`, `dialogue_response`, `type_translation`,
+  `build_translation`) have successors: the v11 converter records the
+  successor, the Audit, the editor and Search read a stored retired ID as
+  its successor, and an existing exercise keeps its shape when it is
+  reopened and saved (shape hints for the text, audio and Match sides, the
+  first-letter switch).
+- **Picker:** skill groups, the action word on every tile (Choose, Type,
+  Arrange, Match, Card), the To target / To source filter, greyed tiles.
+- **Pictures on answers:** Select the image, Listen and pick the image and
+  Match picture to word have one picture picker per answer (Image Library,
+  imported or Course images, copied into the Course); the Round and the
+  Duel draw Course pictures on answers and on Match items.
+- **Runtime:** within-word gaps (Missing letters) show one underscore per
+  missing letter; a spelling exercise needs a picture, a spoken word or a
+  clue (`IMAGE_WORD_IMAGE_REQUIRED` widened); Put the sentences in order
+  has its own heading and instruction in the eight copy languages; audio in
+  the source language is spoken with the source voice.
+- **Audit:** four codes retired (`DIALOGUE_RESPONSE_OPTION_COUNT`,
+  `DIALOGUE_CONTEXT_REQUIRED`, `DIALOGUE_QUESTION_REQUIRED`,
+  `CONTEXT_REQUIRED`; 98 rules), Read and answer and Listen and answer
+  rules, picture and True or false rules, areas renamed after the
+  catalogue; Picture flashcards and Note cards are exempt from the usage
+  and pronunciation Warnings, and duplicate content counts the prompt's
+  pictures.
+- **Exercise Wizard:** a planned exercise of a catalogue twin (Type the
+  translation (to target)) is built on the recipe's base type; it used to
+  fall back to a Select interaction and lose the accepted translations.
+- **Help:** EN/IT/ES describe every preset and every field; Exercise Help
+  lists the greyed presets.
+- **Bundled Courses:** the Exercise Laboratory has 107 examples, at least
+  one per preset (five new Rounds); the Piedmontese demo has one Lesson per
+  preset (38); Korean and Edge Case carry the successor IDs.
+- Scoring, progression, Review, Duel availability, learner data and Course
+  files are unchanged. Beta expiry 27 October 2026, 23:59:59 local time.
+
+# 2.0.56 (Build 256, Revision 3) - Presets as recipes and the Generic Primitive Editor - 2026-09-27
+
+Session 4 of the exercise architecture redesign
+(`docs/256_EXERCISE_ARCHITECTURE_PLAN.md`): a preset is a recipe over
+canonical data, every canonical field can be edited, and Stories survive
+authoring.
+
+**Follow-up in the same version (27 September 2026, afternoon; owner's
+review of the Windows build):**
+
+- **Scrolling Stories:** a Story's flow carries `presentation: step`
+  (default, omitted) or `scroll`. The Round editor offers **Step by step /
+  Scrolling** under the Play as a Story switch; a scrolling Story keeps the
+  finished items on the page (heading, prompt, the learner's answer, a tick
+  or a cross), shows the next item below and scrolls to it. One item is
+  active at a time; XP, completion and Review are unchanged.
+- **Discard prompts only for real changes:** the canonical editor compares
+  the form with the opened exercise before asking, and the preset form
+  compares a snapshot of its fields, so touching a control (or the Match the
+  pairs field) without changing anything never asks to discard.
+- **Assign and Submit in the canonical editor:** required options
+  (`targetMode`, `submissionType`) get their first legal value when a draft
+  is created or its primitive changes, so the registry no longer refuses an
+  untouched draft.
+- **Round editor buttons:** *New exercise (presets)* and *New exercise
+  (canonical)*.
+- **Draft Exercises:** saving a Round as normal content while some of its
+  Exercises are still Draft explains it and names them, instead of the
+  Audit's count of blocking errors.
+- **First-time introduction:** the first time the Exercise Editor (either
+  form) opens in a Course, a dialog explains presets versus the canonical
+  editor; it is a one-time notice, brought back by Show one-time notices
+  again. Exercise Help says the same.
+- **Help names:** the Lesson editor's Round Wizard and the Round editor's
+  Exercise Wizard are named as on screen (they were still "Generate Rounds
+  from GuideBook" and "Exercise Creation Wizard"); the Windows runner now
+  keeps the initial window inside the monitor's work area, because on a
+  small or scaled screen the editors' bottom bar sat under the taskbar and
+  the wizard buttons looked missing.
+- Owner decisions on preset directions recorded for Revision 4 (pairs only
+  where meaningful, bracket only on the twins).
+
+**Second follow-up (same version; the owner's visual inspection of the
+Windows build):**
+
+- **Round editor bottom bar:** the buttons are **New exercise** and **New
+  canonical**, in a slightly smaller style so the bar takes two rows
+  instead of three on a laptop window.
+- **New exercise, then a type:** choosing a preset type on a new exercise
+  whose form is still untouched no longer asks to discard changes on the
+  way out; an existing exercise's type change still counts as a change.
+- **Round Wizard without GuideBooks:** while Use GuideBook is off in the
+  Course Editor's Lesson Options, the Lesson editor's Round Wizard is
+  greyed out and its tooltip says why.
+- **Scrolling Story, made unmistakable:** the page shows "Story · N steps"
+  above the first item and "Now · step k of N" above the active one, the
+  active item is scrolled to the top after Next (the finished cards stay
+  above it), and the Crash Log's debug events record each Round's Story
+  state. The report that a scrolling Story played like a normal Round could
+  not be reproduced: a test driving Round editor → Play as a Story →
+  Scrolling → Preview → answer → Next shows the finished card, and every
+  save path keeps the flow's presentation. If it happens again, the debug
+  event names the Round and the presentation it received.
+- The direction tags in the preset picker and the twin presets with
+  "(to target)" / "(to source)" in their titles are Revision 4 work, not
+  part of this follow-up.
+
+**Third follow-up (same version; the owner's second inspection):**
+
+- **New canonical, then a primitive:** a new canonical exercise that is
+  still blank for the primitive picked so far leaves without a discard
+  prompt; adding content makes leaving ask.
+- **Scrolling Story, visible scroll:** the page keeps room below the
+  active item, so after Next the "Now" marker glides to the top and the
+  finished cards move up above it, whatever the window height.
+- **Select the image without icons:** the Audit's preset warning now says
+  what is missing ("one icon or image key per answer in Icons / image
+  keys") instead of only that the exercise plays as a plain Choose; the
+  same hint exists for the listening, reading, dialogue, context and
+  character presets, and the Icons field explains it in the form.
+
+- **Presets as recipes (plan A.13):** `PresetRecipes`
+  (`lib/services/preset_recipes.dart`) decomposes an exercise into a preset
+  form's fields, rebuilds it and compares the result semantically, so a
+  preset represents an exercise only when nothing is lost. The exercise
+  editor opens an exercise in the preset it carries, else in the first
+  preset that represents it exactly, else in the plainest preset of its
+  primitive. Recognition never writes: on save the carried preset stays only
+  while it still represents the content, another representing preset is
+  named otherwise, and every other authoring metadata key is dropped as soon
+  as the content changes (`CanonicalExerciseDraft.toExercise`).
+- **Generic Primitive Editor:** `lib/screens/primitive_editor_screen.dart`
+  edits every canonical field of any primitive with the values the
+  capability registry allows: Primitive (locked once the exercise exists),
+  Options, Prompt elements with roles, languages, playback and required
+  flags, Items (with sides for Match), Targets, Layout, Evaluation by mode
+  with that mode's answer data, Feedback and hint. It shows whether this
+  version can play the exercise, refuses the combinations the registry
+  refuses, previews with the learner runtime and saves like a preset form
+  (Save as draft, or Save with the Audit). It opens from the Round editor
+  (**Canonical editor**), from the preset picker (**Every primitive**) and
+  automatically for a stored exercise that no preset represents; the
+  preset form then shows a notice and cannot save it, because a save would
+  drop what the form does not show.
+- **Stories survive authoring:** every place that rebuilt a Round (the
+  Round editor, Rename, saves from Search, GuideBook references, Move/Copy,
+  duplication) dropped the Round's `flow`, so editing a Story silently made
+  it a practice Round. `RoundFlowAuthoring`
+  (`lib/services/round_flow_authoring.dart`) keeps it: a linear flow
+  follows the edited content order, a branching flow is kept as it is (the
+  Audit names what it no longer finds), and a copy renames the flow's
+  references with the copied content. The Round editor gains **Play as a
+  Story** (`round-story-switch`): on, the exercises play in authored order,
+  unshuffled and without a mistake review; turning a branching Story off
+  asks first.
+- **Canonical reads wherever a creator works:** Search, the hierarchy
+  update's content text, the Recognize characters controller (which now
+  copies the exercise canonically and marks new images as `character`
+  specimens) and the Course Editor's lists, wizard and image validation read
+  canonical data through `ExerciseFeatures`; the Audit's kind label
+  (`CourseAuditService.kindLabel`) is shared. The draft builder still
+  constructs candidates through the v11 shapes as converter input; Revision
+  4 replaces it preset by preset with the new catalogue.
+- **Help:** the Exercise primitives page (QQL Guide) describes Course Model
+  v12 in EN, IT and ES: the nine primitives, options, layouts, evaluation
+  modes, prompt and item media, presentation content, presets as recipes,
+  the canonical editor and Stories; Exercise Help gains a Canonical editor
+  supplement.
+- **Preset catalogue decided:** the owner's decisions of 27 September 2026
+  on the preset catalogue (merges, renames, new and greyed-out presets,
+  to-target/to-source pairs, the picker's direction filter, the save guard
+  against unchanged example content) are recorded in
+  `docs/256_PRESET_CATALOGUE_PLAN.md` and become Revision 4; the later
+  sessions shift by one.
+- Scoring, progression, Review, Duel availability, Course files (v12) and
+  learner data are unchanged. Version `2.0.56+256003`; the Beta expiry stays
+  `2026-10-27 23:59:59` local time (same release day).
+
+# 2.0.56 (Build 256, Revision 2) - Runtime and Audit on canonical data - 2026-09-27
+
+Session 3 of the exercise architecture redesign
+(`docs/256_EXERCISE_ARCHITECTURE_PLAN.md`): what learners see, play and are
+graded on comes from the canonical exercise, never from the preset that
+authored it (plan A.3).
+
+- **Learner runtime on canonical data:** the Round screen dispatches on the
+  primitive and on `ExerciseFeatures` (`lib/models/exercise_features.dart`:
+  roles, attributes, options, layout, evaluation, feedback) instead of
+  preset IDs; headings and instructions come from the derived
+  `LearnerExerciseKind`; Select panels (context, dialogue, passage or
+  situation, character specimens) are one shared widget used by the Round
+  and Duel screens. The recorded Laboratory presentation
+  (`test/support/laboratory_presentation_254.dart`, 80 examples before and
+  after answering) proves the refactor changed nothing except three
+  deliberate points: Match the words now says "Match each word with its
+  translation" (its sides carry languages), and a Dialogue response's
+  situation is shown once, in its panel, instead of twice.
+- **Converter refinements (Course Model v12 stays v12):** a Dialogue
+  response's text is a `situation`, Recognize characters' images are
+  `character` specimens, Match the words / Match related words state the
+  languages of their two sides, Build/Type the translation mark a `clue`
+  text as source language too, and Pick the translation's spoken text is
+  `required: false`. The four bundled Courses are regenerated (parity
+  test kept).
+- **Duel by capability (plan A.10):** every single-answer Select whose
+  items are shown as choices is eligible, so Contextual comprehension and
+  Recognize characters join the pool and a multiple-answer Choose leaves it
+  (it was graded as single-answer before). The Duel draws context panels,
+  dialogue and image answers like the Round screen.
+- **Inline-gap Arrange grades block content (plan A.11):** two identical
+  blocks may fill either of their gaps; the Laboratory's repeated-block
+  example is the regression test.
+- **Stories (plan A.7):** a Round with a linear content `flow` plays its
+  nodes in authored order, unshuffled and without a mistake review; a Round
+  whose flow branches is not playable in this version (Round level).
+- **Audio exercises** are those with a required audio element; Pick the
+  translation's optional audio never makes one.
+- **Audit through the capability registry (plan A.5):** new Errors
+  `EXERCISE_OPTION_INVALID`, `EXERCISE_COMBINATION_ILLEGAL`,
+  `EXERCISE_EVALUATION_MODE_INVALID`, `EXERCISE_SELECTION_LIMITS` (the
+  impossible multiple-selection limits are now caught) and
+  `EXERCISE_TARGET_REFERENCE`; the preset rules (Dialogue response's two
+  options, the three-pair Match presets, Pick the translation's five
+  options and its extra prompt or spoken text, Image-prompt ordering's
+  extra blocks, a reading preset without a passage, a listening preset
+  without audio, Gap Choice's sentence and marker, Recognize characters'
+  shapes) are Warnings that never block, `PRESET_CANONICAL_MISMATCH` says
+  when an exercise no longer plays as its preset, and an unknown preset is
+  Info. Retired because v12 makes them impossible or subsumes them:
+  `EXERCISE_TYPE_UNKNOWN`, `EXERCISE_FIELD_UNEXPECTED`, `ICON_CHOICE_COUNT`,
+  `MISSING_WORD_NOT_IN_TRANSCRIPT`, `MISSING_WORD_DUPLICATE`,
+  `IMAGE_WORD_ANSWER_REQUIRED`, `IMAGE_WORD_ANSWER_BLANK`. The registry has
+  102 rules.
+- **Unchanged:** scoring, progression, Review, learner data, Course Model
+  v12 files (the converter refinements only add roles and attributes), the
+  editor (Session 4 moves it to canonical data).
+- **Beta expiry:** 27 October 2026, 23:59:59 local time (same release day).
+
+# 2.0.56 (Build 256, Revision 1) - Course Model v12 - 2026-09-27
+
+Session 2 of the exercise architecture redesign
+(`docs/256_EXERCISE_ARCHITECTURE_PLAN.md`): the canonical exercise
+definitions of Revision 0 get their JSON form, and Course Model v12 becomes
+the only format QQL reads and writes.
+
+- **Course Model v12** (`formatVersion: 12`): every exercise is stored as
+  `primitive`, `options` (explicitly set values only), `prompt`, `items`,
+  `targets`, a neutral inline `layout`, `evaluation` (`mode` plus the keys
+  that mode needs) and optional `feedback`; text elements may say which
+  `language` they are in, audio elements whether their `playback` is
+  automatic and whether they are `required`; Match items carry a `side`;
+  Input's normalization map becomes Input options. `editorTemplate` becomes
+  `authoringMetadata.presetId` (other keys are preserved, never read); a
+  Flashcard is an ordinary exercise with the `presentation` primitive; a
+  Round may carry a `flow`. The Course root, Lessons, GuideBooks, media
+  references, provenance, rights and every other field keep their v11
+  shape (`docs/COURSE_JSON_FORMAT.md`, `docs/EXERCISE_ARCHITECTURE_V12.md`).
+- **Clean cut:** the app reads v12 only. A v11 file is refused with a
+  message naming `tools/convert_course_to_v12.dart` (Course JSON or Course
+  ZIP; media kept, package manifest regenerated, anything not mapped
+  exactly listed, Publisher signatures stripped). Stored Courses live in
+  the new private folder `QQL_Courses_v12/Custom|Publisher`; Build 255's
+  `QQL_Courses` is never read, is listed by the Inventory among the earlier
+  private folders and is removed by Wipe everything. Course Backups keep
+  the `Backups/Courses` folder with manifest format v12; Version History
+  names v11 backups as unreadable. `tools/convert_stored_courses_256.dart`
+  converts a device's stored custom Courses once, never overwriting or
+  deleting (a Publisher Course is re-imported from its signed package). A
+  Course kept outside QQL travels by exporting it from Build 255,
+  converting the file and Quick Importing it here.
+- **Bundled Courses** (Exercise Laboratory, Edge Case Course, Korean,
+  Piedmontese), the demo package and the Publisher test fixtures
+  (re-signed) are v12; the three generators, `tools/validate_courses.py`
+  and the new Python mirror of the mapping (`tools/qql_course_v12.py`) emit
+  and check v12, and a parity test compares the Python and Dart converters
+  on every bundled Course. `tools/convert_course_to_v11.dart` is retired;
+  the v11 originals are kept in `test/fixtures/v11/`.
+- **Semantic equality** (`Exercise.semanticallyEquals`): canonical JSON
+  with every default option filled in, without authoring metadata,
+  timestamp and publication state; IDs and item order count.
+- **Editor fix found by the conversion:** saving a converted Type the
+  missing word exercise as Published rebuilt it through the old view and
+  failed with "Use exactly one ___ gap"; publication and shared-image
+  changes now copy the canonical exercise. Course Editor Search finds the
+  sentence of an inline-gap exercise.
+- **Unchanged:** what learners see, scoring, Duel availability, Audit
+  findings, package format 1, rights and learner data. The runtime, Audit
+  and editor still read the canonical exercise through v11-shaped views
+  until Revisions 2 and 3 move them to the canonical fields.
+- **Beta expiry:** 27 October 2026, 23:59:59 local time (30 days from this
+  release date).
+
+# 2.0.56 (Build 256, Revision 0) - Canonical exercise definitions - 2026-09-27
+
+Session 1 of the exercise architecture redesign
+(`docs/256_EXERCISE_ARCHITECTURE_PLAN.md`). Nothing learners or authors see
+changes in this revision, and Course files stay Course Model v11; Revision 1
+introduces v12.
+
+- **Nine canonical primitives** (`lib/models/canonical/`): `select`,
+  `input`, `arrange`, `match`, `assign`, `speak`, `ink`, `submit` and
+  `presentation`, each naming one learner action. Identifiers are lowercase,
+  stable and parsed strictly; nothing else is a primitive.
+- **Typed options and evaluation modes:** every option has a stable JSON
+  name, a value kind and a closed vocabulary; an unknown or misspelt value is
+  reported and dropped, never turned into a default. The evaluation modes of
+  all nine primitives are one enum, and the registry says which each
+  primitive may use.
+- **Capability registry:** for each primitive, its options with legal
+  values, defaults and required ones; its evaluation modes; coded rules for
+  illegal combinations (a single selection with a maximum of 3, text spans
+  in a list layout, a memory game in columns, and so on) and for what an
+  evaluation mode implies (exactSet needs multiple selections, numeric
+  grading needs a number, gap grading needs inline gaps); the
+  selection-limit invariant minimumSelections <= correct <=
+  maximumSelections <= items; and a runtime-support table listing exactly
+  today's playable configurations, so executability is computed per
+  exercise and never stored.
+- **Content flow model:** content and exercise nodes with `next`,
+  `onCorrect`, `onIncorrect`, `onChoice` and `conditional` transitions,
+  structural checks (missing start, unknown targets, branching content
+  nodes, unreachable nodes) and recognition of linear flows.
+- **Presets name a primitive:** `ExercisePreset.primitive` replaces the
+  five-value `CanonicalExerciseModel`; the Audit's preset-versus-response
+  check reads it.
+- **Docs:** `docs/EXERCISE_ARCHITECTURE_V12.md` (the new reference, with
+  the final names of the extra canonical fields and the list of today's
+  behaviors the converter must map); `docs/EXERCISE_ARCHITECTURE_224.md` is
+  marked historical.
+- **Beta expiry:** 27 October 2026, 23:59:59 local time (30 days from this
+  release date, the same day as Build 255 Revision 7).
+
 # 2.0.55 (Build 255, Revision 7) - Welcome Wizard, cover crop and credits - 2026-09-27
 
 Owner-requested corrections to Revision 6 and a renewed first launch.

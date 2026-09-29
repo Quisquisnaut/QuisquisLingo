@@ -243,7 +243,7 @@ class _HomeScreenState extends State<HomeScreen> {
   String _selectedLanguage = 'IT';
   String _selectedCourseRef = 'IT';
   List<String> _bundledCourseCodes = List<String>.unmodifiable(
-    CourseService.courseAssets.keys,
+    CourseService.bundledAssets.keys,
   );
   int _activeLessonIndex = 0;
   String? _flowCourseId;
@@ -1534,7 +1534,7 @@ class _HomeScreenState extends State<HomeScreen> {
         course: bundledCourses[code]!,
         leading: courseImage(bundledCourses[code]!, code),
         subtitle: Text(
-          '${CourseService.sourceLabels[code] ?? 'English'} → ${CourseService.targetLabels[code] ?? code}'
+          '${CourseService.sourceLabels[code] ?? bundledCourses[code]!.sourceLanguage} → ${CourseService.targetLabels[code] ?? bundledCourses[code]!.targetLanguage}'
           ' · Bundled official${CourseService.hasCourse(code) ? '' : ' · Coming soon'}',
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
@@ -3733,6 +3733,7 @@ class _RoundNode extends StatelessWidget {
   };
 
   bool get _hasDescriptiveTitle {
+    if (round.flow != null) return true;
     final title = round.title.trim();
     return title.isNotEmpty &&
         !RegExp(r'^(round|ronda)\s+\d+$', caseSensitive: false).hasMatch(title);
@@ -3849,7 +3850,9 @@ class _RoundNode extends StatelessWidget {
                     ),
                     if (_hasDescriptiveTitle)
                       Text(
-                        round.title,
+                        round.flow != null
+                            ? round.displayTitle(roundNumber - 1)
+                            : round.title,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: Theme.of(context).textTheme.titleMedium

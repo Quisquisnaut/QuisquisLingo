@@ -47,7 +47,7 @@ class _GamificationSettingsScreenState
     final activeId = await _profiles.getActiveProfileId();
     final names = <String, String>{};
 
-    for (final code in CourseService.courseAssets.keys) {
+    for (final code in CourseService.bundledAssets.keys) {
       try {
         final course = await _courseService.loadCourse(code);
         names[course.courseId] = course.title;

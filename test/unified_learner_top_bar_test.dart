@@ -61,15 +61,32 @@ class _Progress extends ProgressService {
       perfectRounds;
 }
 
+// A Laurel needs a scored exercise (Build 256 Revision 5 follow-up): a
+// Round of notes alone is completed but never perfect.
 LearningRound _eligibleRound(int index) => LearningRound(
   id: 'round_$index',
   title: 'Round ${index + 1}',
   content: [
-    LearningContent.textual(
-      id: 'content_$index',
-      kind: 'explanation',
-      role: 'round_note',
-      text: 'Readable information $index',
+    LearningContent.fromExercise(
+      Exercise.canonical(
+        id: 'exercise_$index',
+        primitive: ExercisePrimitive.select,
+        promptElements: [PromptElement(type: 'text', text: 'Question $index')],
+        items: [
+          ExerciseItem(
+            id: 'exercise_${index}_a',
+            content: [PromptElement(type: 'text', text: 'Right')],
+          ),
+          ExerciseItem(
+            id: 'exercise_${index}_b',
+            content: [PromptElement(type: 'text', text: 'Wrong')],
+          ),
+        ],
+        canonicalEvaluation: CanonicalEvaluation(
+          mode: EvaluationMode.exactItem,
+          correctItemIds: ['exercise_${index}_a'],
+        ),
+      ),
     ),
   ],
 );

@@ -101,9 +101,9 @@ void main() {
     await Directory(
       path(support, 'quisquislingo_course_media'),
     ).create(recursive: true);
-    await (await media.courseDirectory(_courseId)).rename(
-      path(support, 'quisquislingo_course_media/course_$hash'),
-    );
+    await (await media.courseDirectory(
+      _courseId,
+    )).rename(path(support, 'quisquislingo_course_media/course_$hash'));
     // Revision 3's private backup folder, with the first version's manifest
     // named the earlier way; its assets folder keeps its name.
     await Directory(path(support, 'qql_course_backups_v11')).create();
@@ -167,86 +167,96 @@ void main() {
       if (entity is File) entity.path: entity.readAsBytesSync(),
   };
 
-  test('moves Courses, their media and backups where the app finds them', () async {
-    final reference = await earlierLayout();
+  test(
+    'moves Courses, their media and backups where the app finds them',
+    () async {
+      final reference = await earlierLayout();
 
-    final report = await movePrivateStorage(
-      support: support,
-      documents: documents,
-    );
+      final report = await movePrivateStorage(
+        support: support,
+        documents: documents,
+      );
 
-    final hash = CourseStorageNames.hashOf(_courseId);
-    expect(
-      File(path(support, 'QQL_Courses/Custom/QQL_EN_IT_abc.json')).existsSync(),
-      isTrue,
-    );
-    expect(
-      File(
-        path(support, 'QQL_Courses/Publisher/QQL_IT_NAP_pub.one.json'),
-      ).existsSync(),
-      isTrue,
-    );
-    expect(
-      Directory(path(support, 'QQL_CourseMedia/QQL_EN_IT_$hash')).existsSync(),
-      isTrue,
-    );
-    // No stored Course names this media folder, so it keeps the neutral name.
-    expect(
-      Directory(
-        path(
-          support,
-          'QQL_CourseMedia/QQL_${CourseStorageNames.hashOf('gone')}',
-        ),
-      ).existsSync(),
-      isTrue,
-    );
-    expect(
-      Directory(
-        path(documents, 'QuisquisLingo/Backups/Courses/QQL_bkp_EN_IT_abc'),
-      ).existsSync(),
-      isTrue,
-    );
+      final hash = CourseStorageNames.hashOf(_courseId);
+      expect(
+        File(
+          path(support, 'QQL_Courses/Custom/QQL_EN_IT_abc.json'),
+        ).existsSync(),
+        isTrue,
+      );
+      expect(
+        File(
+          path(support, 'QQL_Courses/Publisher/QQL_IT_NAP_pub.one.json'),
+        ).existsSync(),
+        isTrue,
+      );
+      expect(
+        Directory(
+          path(support, 'QQL_CourseMedia/QQL_EN_IT_$hash'),
+        ).existsSync(),
+        isTrue,
+      );
+      // No stored Course names this media folder, so it keeps the neutral name.
+      expect(
+        Directory(
+          path(
+            support,
+            'QQL_CourseMedia/QQL_${CourseStorageNames.hashOf('gone')}',
+          ),
+        ).existsSync(),
+        isTrue,
+      );
+      expect(
+        Directory(
+          path(documents, 'QuisquisLingo/Backups/Courses/QQL_bkp_EN_IT_abc'),
+        ).existsSync(),
+        isTrue,
+      );
 
-    // The app's own stores read what was moved.
-    final store = CourseFileStore(supportDirectory: () async => support);
-    final custom = await store.readReadable(CourseStoreKind.custom);
-    expect(custom.records.keys, [_courseId]);
-    expect(custom.skipped, isEmpty);
-    expect(
-      (await store.readReadable(CourseStoreKind.externalOfficial)).records.keys,
-      ['pub.one'],
-    );
-    final media = CourseMediaStore(supportDirectory: () async => support);
-    expect(await media.existingFile(_courseId, reference), isNotNull);
-    final backups = CourseBackupService(
-      backupsDirectoryProvider: () async =>
-          Directory(path(documents, 'QuisquisLingo/Backups/Courses')),
-      mediaStore: media,
-    );
-    final history = await backups.listBackups(_courseId);
-    expect(history, hasLength(3));
-    // The saved version keeps the name its manifest was written under.
-    expect(
-      history.map((r) => r.manifestFile.uri.pathSegments.last),
-      contains('course_abc_course_2_20260920T100000Z.json'),
-    );
-    for (final version in history) {
-      await backups.reinstateMedia(version);
-    }
+      // Build 256 Revision 1: the moved Courses and backups are Course Model
+      // v11, which the app no longer reads; the v12 store is empty until
+      // tools/convert_stored_courses_256.dart converts them, Version History
+      // names the v11 manifests as unreadable, and the media (keyed by Course
+      // ID) are already where a converted Course finds them.
+      final store = CourseFileStore(supportDirectory: () async => support);
+      expect(
+        (await store.readReadable(CourseStoreKind.custom)).records,
+        isEmpty,
+      );
+      final media = CourseMediaStore(supportDirectory: () async => support);
+      expect(await media.existingFile(_courseId, reference), isNotNull);
+      final backups = CourseBackupService(
+        backupsDirectoryProvider: () async =>
+            Directory(path(documents, 'QuisquisLingo/Backups/Courses')),
+        mediaStore: media,
+      );
+      // The backups this test wrote carry the current manifest format, so
+      // Version History reads them; a Build 255 manifest would be named as
+      // unreadable instead.
+      final history = await backups.listBackups(_courseId);
+      expect(history, hasLength(3));
+      // The saved version keeps the name its manifest was written under.
+      expect(
+        history.map((r) => r.manifestFile.uri.pathSegments.last),
+        contains('course_abc_course_2_20260920T100000Z.json'),
+      );
+      for (final version in history) {
+        await backups.reinstateMedia(version);
+      }
 
-    // The unreadable file stays where it was, and nothing was deleted.
-    expect(
-      File(path(support, 'qql_courses_v2/custom/broken.json')).existsSync(),
-      isTrue,
-    );
-    expect(
-      report.lines.where((line) => line.startsWith('Left in place')),
-      [contains('broken.json')],
-    );
-    expect(report.kept, 1);
-    expect(report.copied, 0);
-    expect(report.moved, greaterThanOrEqualTo(8));
-  });
+      // The unreadable file stays where it was, and nothing was deleted.
+      expect(
+        File(path(support, 'qql_courses_v2/custom/broken.json')).existsSync(),
+        isTrue,
+      );
+      expect(report.lines.where((line) => line.startsWith('Left in place')), [
+        contains('broken.json'),
+      ]);
+      expect(report.kept, 1);
+      expect(report.copied, 0);
+      expect(report.moved, greaterThanOrEqualTo(8));
+    },
+  );
 
   test('without a Documents folder, backups stay where they are', () async {
     await earlierLayout();
@@ -258,11 +268,15 @@ void main() {
       isFalse,
     );
     expect(
-      Directory(path(support, 'qql_course_backups_v11/course_abc')).existsSync(),
+      Directory(
+        path(support, 'qql_course_backups_v11/course_abc'),
+      ).existsSync(),
       isTrue,
     );
     expect(
-      Directory(path(support, 'QQL_CourseBackups/QQL_bkp_EN_IT_abc')).existsSync(),
+      Directory(
+        path(support, 'QQL_CourseBackups/QQL_bkp_EN_IT_abc'),
+      ).existsSync(),
       isTrue,
     );
     expect(
@@ -287,68 +301,73 @@ void main() {
     expect(report.summary, contains('Nothing was changed'));
   });
 
-  test('never overwrites a Course or a file already under the new names', () async {
-    await earlierLayout();
-    // The same Course is already stored under the new names, with another
-    // pair, and the recording is already in its new media folder.
-    final present = await put(
-      support,
-      'QQL_Courses/Custom/QQL_EN_FR_abc.json',
-      record(_courseId, 'course', const {
-        'sourceLanguage': 'English',
-        'targetLanguage': 'French',
-      }),
-    );
-    final presentBytes = present.readAsBytesSync();
-    final hash = CourseStorageNames.hashOf(_courseId);
-    final mediaName = Directory(
-      path(support, 'quisquislingo_course_media/course_$hash'),
-    ).listSync().single.uri.pathSegments.last;
-    final taken = await put(
-      support,
-      'QQL_CourseMedia/QQL_EN_FR_$hash/$mediaName',
-      const [7, 7, 7],
-    );
+  test(
+    'never overwrites a Course or a file already under the new names',
+    () async {
+      await earlierLayout();
+      // The same Course is already stored under the new names, with another
+      // pair, and the recording is already in its new media folder.
+      final present = await put(
+        support,
+        'QQL_Courses/Custom/QQL_EN_FR_abc.json',
+        record(_courseId, 'course', const {
+          'sourceLanguage': 'English',
+          'targetLanguage': 'French',
+        }),
+      );
+      final presentBytes = present.readAsBytesSync();
+      final hash = CourseStorageNames.hashOf(_courseId);
+      final mediaName = Directory(
+        path(support, 'quisquislingo_course_media/course_$hash'),
+      ).listSync().single.uri.pathSegments.last;
+      final taken = await put(
+        support,
+        'QQL_CourseMedia/QQL_EN_FR_$hash/$mediaName',
+        const [7, 7, 7],
+      );
 
-    final report = await movePrivateStorage(
-      support: support,
-      documents: documents,
-    );
+      final report = await movePrivateStorage(
+        support: support,
+        documents: documents,
+      );
 
-    expect(present.readAsBytesSync(), presentBytes);
-    expect(taken.readAsBytesSync(), const [7, 7, 7]);
-    expect(
-      File(path(support, 'qql_courses_v2/custom/course_abc.json')).existsSync(),
-      isTrue,
-    );
-    expect(
-      File(
-        path(support, 'quisquislingo_course_media/course_$hash/$mediaName'),
-      ).existsSync(),
-      isTrue,
-    );
-    // The stored Course's pair (EN_FR) names its backup folder.
-    expect(
-      Directory(
-        path(documents, 'QuisquisLingo/Backups/Courses/QQL_bkp_EN_FR_abc'),
-      ).existsSync(),
-      isTrue,
-    );
-    expect(
-      report.lines.where((line) => line.startsWith('Left in place')),
-      containsAll([
-        contains('course_abc.json'),
-        contains(mediaName),
-        contains('broken.json'),
-      ]),
-    );
-    expect(
-      (await CourseFileStore(
-        supportDirectory: () async => support,
-      ).readReadable(CourseStoreKind.custom)).skipped,
-      isEmpty,
-    );
-  });
+      expect(present.readAsBytesSync(), presentBytes);
+      expect(taken.readAsBytesSync(), const [7, 7, 7]);
+      expect(
+        File(
+          path(support, 'qql_courses_v2/custom/course_abc.json'),
+        ).existsSync(),
+        isTrue,
+      );
+      expect(
+        File(
+          path(support, 'quisquislingo_course_media/course_$hash/$mediaName'),
+        ).existsSync(),
+        isTrue,
+      );
+      // The stored Course's pair (EN_FR) names its backup folder.
+      expect(
+        Directory(
+          path(documents, 'QuisquisLingo/Backups/Courses/QQL_bkp_EN_FR_abc'),
+        ).existsSync(),
+        isTrue,
+      );
+      expect(
+        report.lines.where((line) => line.startsWith('Left in place')),
+        containsAll([
+          contains('course_abc.json'),
+          contains(mediaName),
+          contains('broken.json'),
+        ]),
+      );
+      expect(
+        (await CourseFileStore(
+          supportDirectory: () async => support,
+        ).readReadable(CourseStoreKind.custom)).skipped,
+        isEmpty,
+      );
+    },
+  );
 
   test('options: Windows defaults, and --support elsewhere', () {
     final windows = MoveStorageOptions.parse(

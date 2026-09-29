@@ -60,7 +60,7 @@ void main() {
 
       await _openExercise(tester);
       await tester.enterText(
-        _field('Prompt / instruction'),
+        _field('Prompt (optional)'),
         'Working-copy prompt',
       );
       await tester.scrollUntilVisible(
@@ -183,7 +183,7 @@ void main() {
     (tester) async {
       await _openEditor(tester, course, service);
       await _openExercise(tester);
-      await tester.enterText(_field('Prompt / instruction'), 'Unstaged prompt');
+      await tester.enterText(_field('Prompt (optional)'), 'Unstaged prompt');
       await tester.tap(find.byType(BackButton).last);
       await _settle(tester);
       expect(find.text('Unsaved Exercise changes'), findsOneWidget);
@@ -197,10 +197,7 @@ void main() {
       await tester.tap(find.text('Edit').last);
       await _settle(tester);
       expect(
-        tester
-            .widget<TextField>(_field('Prompt / instruction'))
-            .controller!
-            .text,
+        tester.widget<TextField>(_field('Prompt (optional)')).controller!.text,
         'Original prompt',
       );
     },
@@ -212,7 +209,7 @@ void main() {
     await _openEditor(tester, course, service);
     await _openExercise(tester);
     await tester.enterText(
-      _field('Prompt / instruction'),
+      _field('Prompt (optional)'),
       'Published working-copy prompt',
     );
     await tester.scrollUntilVisible(
@@ -377,7 +374,7 @@ void main() {
         find.byKey(const Key('course-editor-lessons-navigation')),
       );
       await _settle(tester);
-      await tester.tap(find.widgetWithText(FloatingActionButton, 'New lesson'));
+      await tester.tap(find.widgetWithText(FloatingActionButton, 'New Lesson'));
       await _settle(tester);
       await tester.enterText(find.byType(TextField), 'Created lesson');
       await tester.tap(find.widgetWithText(FilledButton, 'Create'));
@@ -422,7 +419,9 @@ void main() {
       await _settle(tester);
       expect(find.byType(LessonEditorScreen), findsOneWidget);
 
-      await tester.tap(find.byKey(const Key('lesson-round-wizard')));
+      await tester.tap(find.byKey(const Key('lesson-rounds-navigation')));
+      await _settle(tester);
+      await tester.tap(find.byKey(const Key('rounds-round-wizard')));
       await _settle(tester);
       await tester.enterText(
         find.byKey(const Key('generator-round-count')),
@@ -439,15 +438,13 @@ void main() {
       expect(find.textContaining('Automatic audit: 0 errors'), findsOneWidget);
       await tester.tap(find.byKey(const Key('generator-approve')));
       await _settle(tester);
-      expect(find.byType(LessonEditorScreen), findsOneWidget);
+      expect(find.byType(LessonRoundsScreen), findsOneWidget);
       expect(
         find.byKey(const Key('course-transaction-confirmation')),
         findsNothing,
       );
 
-      await tester.tap(find.byKey(const Key('lesson-rounds-navigation')));
-      await _settle(tester);
-      await tester.tap(find.widgetWithText(FloatingActionButton, 'New round'));
+      await tester.tap(find.byKey(const Key('rounds-new-round')));
       await _settle(tester);
       await tester.enterText(find.byType(TextFormField), 'Created round');
       await tester.tap(find.widgetWithText(FilledButton, 'Save'));
@@ -487,7 +484,7 @@ void main() {
       await _settle(tester);
       await tester.tap(find.text('Edit').last);
       await _settle(tester);
-      await tester.enterText(_field('Prompt / instruction'), 'Mixed edit');
+      await tester.enterText(_field('Prompt (optional)'), 'Mixed edit');
       await tester.scrollUntilVisible(
         find.byKey(const Key('exercise-save')),
         350,
@@ -668,7 +665,7 @@ void main() {
 
     await tester.tap(find.byKey(const Key('course-editor-lessons-navigation')));
     await _settle(tester);
-    await tester.tap(find.widgetWithText(FloatingActionButton, 'New lesson'));
+    await tester.tap(find.widgetWithText(FloatingActionButton, 'New Lesson'));
     await _settle(tester);
     await tester.enterText(find.byType(TextField), 'Cancelled lesson');
     await tester.tap(find.widgetWithText(FilledButton, 'Create'));
@@ -692,10 +689,7 @@ void main() {
     await _settle(tester);
     await tester.tap(find.text('Edit').last);
     await _settle(tester);
-    await tester.enterText(
-      _field('Prompt / instruction'),
-      'Cancelled exercise',
-    );
+    await tester.enterText(_field('Prompt (optional)'), 'Cancelled exercise');
     await tester.scrollUntilVisible(
       find.byKey(const Key('exercise-save-draft')),
       350,
@@ -890,15 +884,9 @@ Course _mixedCourse() {
     'title': 'Second round',
     'content': firstRound.content
         .map(
-          (item) => {
-            ...item.toJson(),
-            'id': '${item.id}_round_b',
-            if (item.exercise != null)
-              'exercise': {
-                ...item.exercise!.toJson(),
-                'id': '${item.exercise!.id}_round_b',
-              },
-          },
+          // Course Model v12: the Content ID is the exercise ID, so the
+          // exercise object carries none of its own.
+          (item) => {...item.toJson(), 'id': '${item.id}_round_b'},
         )
         .toList(),
   });

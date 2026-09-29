@@ -163,9 +163,7 @@ void main() {
   test('imported media removes only the media folders and keys', () async {
     touch('${support.path}${sep}exercise_images${sep}a.png');
     touch('${support.path}${sep}QQL_SharedImages${sep}b.png');
-    touch(
-      '${support.path}${sep}QQL_CourseMedia${sep}c$sep${'a' * 64}.mp3',
-    );
+    touch('${support.path}${sep}QQL_CourseMedia${sep}c$sep${'a' * 64}.mp3');
     final other = touch('${support.path}${sep}shared_preferences.json');
     await service.reset(
       AppResetScope.importedMedia,
@@ -221,12 +219,10 @@ void main() {
     File newBanks() =>
         File('${support.path}${sep}QQL_ImageBanks${sep}b${sep}m.json');
     // Course media holds both kinds; the reset separates them by file type.
-    File courseImage() => File(
-      '${support.path}${sep}QQL_CourseMedia${sep}c$sep${'b' * 64}.png',
-    );
-    File audio() => File(
-      '${support.path}${sep}QQL_CourseMedia${sep}c$sep${'a' * 64}.mp3',
-    );
+    File courseImage() =>
+        File('${support.path}${sep}QQL_CourseMedia${sep}c$sep${'b' * 64}.png');
+    File audio() =>
+        File('${support.path}${sep}QQL_CourseMedia${sep}c$sep${'a' * 64}.mp3');
     void seed() {
       touch(images().path);
       touch(banks().path);
@@ -287,9 +283,7 @@ void main() {
 
   test('custom courses also removes imported images and audio', () async {
     touch('${support.path}${sep}exercise_images${sep}a.png');
-    touch(
-      '${support.path}${sep}QQL_CourseMedia${sep}c$sep${'a' * 64}.mp3',
-    );
+    touch('${support.path}${sep}QQL_CourseMedia${sep}c$sep${'a' * 64}.mp3');
     await service.reset(
       AppResetScope.customCourses,
       actorProfileId: adminId,
@@ -307,7 +301,7 @@ void main() {
 
   for (final scope in AppResetScope.values) {
     test('course files follow the ${scope.name} reset scope', () async {
-      final courseRoot = '${support.path}${sep}QQL_Courses';
+      final courseRoot = '${support.path}${sep}QQL_Courses_v12';
       touch('$courseRoot${sep}Custom${sep}QQL_EN_IT_draft.json');
       touch('$courseRoot${sep}Publisher${sep}QQL_EN_IT_official.json');
       touch('$courseRoot${sep}Custom${sep}QQL_EN_IT_interrupted.json.tmp');
@@ -325,7 +319,7 @@ void main() {
   test('preview detects course files without preference records', () async {
     expect((await service.preview()).hasCustomCourses, isFalse);
     touch(
-      '${support.path}${sep}QQL_Courses${sep}Publisher${sep}broken.json',
+      '${support.path}${sep}QQL_Courses_v12${sep}Publisher${sep}broken.json',
     );
     expect((await service.preview()).hasCustomCourses, isTrue);
   });
@@ -440,12 +434,18 @@ void main() {
       );
       final left = support
           .listSync()
-          .map((entity) => entity.uri.pathSegments.lastWhere((s) => s.isNotEmpty))
+          .map(
+            (entity) => entity.uri.pathSegments.lastWhere((s) => s.isNotEmpty),
+          )
           .toSet();
       // Earlier logs follow the Logs choice, earlier backups the Backups one.
       expect(left, {
         'unrelated',
-        if (keep) ...['qql_logs', 'qql_course_backups_v11', 'QQL_CourseBackups'],
+        if (keep) ...[
+          'qql_logs',
+          'qql_course_backups_v11',
+          'QQL_CourseBackups',
+        ],
       });
       expect(unrelated.existsSync(), isTrue);
     });
@@ -472,7 +472,9 @@ void main() {
       keepBackups: false,
     );
     expect(
-      Directory('${documents.path}${sep}QuisquisLingo${sep}Backups').existsSync(),
+      Directory(
+        '${documents.path}${sep}QuisquisLingo${sep}Backups',
+      ).existsSync(),
       isFalse,
     );
   });

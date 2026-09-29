@@ -10,7 +10,11 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from qql_course_v12 import convert_course_v11_to_v12, story_cover, story_flow, story_line  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 OUTPUT = ROOT / "assets/courses/edge_case_it_en.json"
@@ -20,7 +24,9 @@ STAMP = "2026-09-25T00:00:00.000Z"
 # "All rights reserved"; derivative works stay allowed for this test Course.
 # Revision 7 released version 1.1.1: the Course flag is QQL's English flag
 # (EN); "GB", which QQL does not draw, showed the neutral flag.
-RELEASE_STAMP = "2026-09-27T00:00:00.000Z"
+# Build 256 Revision 5 released version 1.2.0: a Story Lesson (a cover,
+# lines, one of them audio only, and an exercise that needs the Story's audio).
+RELEASE_STAMP = "2026-09-28T00:00:00.000Z"
 PREFIX = "qql_edge_254_"
 VOCAB_UNICODE_ID = PREFIX + "v_caffè_日本語"
 
@@ -276,26 +282,74 @@ def build_course() -> dict:
         ])
     ], ["a copy = una copia"], overview="Lesson intenzionalmente Draft con struttura completa. "
        "Ispezionala nell’Editor o in Preview; il Learner la omette.", draft=True)
+    def story_entry(case: str, preset: str, payload: dict) -> dict:
+        return {"id": pid(case), "publicationState": "published", "kind": "exercise",
+                "required": True, "editorTemplate": preset, "exercise": payload}
+
+    marta = pid("character_marta")
+    story_content = [
+        note("intro06", "Una Story (Build 256 Revision 5): la copertina, le battute del narratore e di Marta "
+             "(una solo audio) e un esercizio che richiede l’audio della Story. Le battute non si saltano mai; "
+             "l’esercizio segnato è saltato con Audio Exercises off.", role="lesson_intro"),
+        story_entry("e32_cover", "story_cover", story_cover(
+            updated_at=STAMP, picture="assets/exercise_images/coffee.webp",
+            alternative="Una tazza di caffè", title_line="At the bar")),
+        story_entry("e33_narrator", "dialogue_line", story_line(
+            "Marta entra nel bar e saluta.", updated_at=STAMP)),
+        story_entry("e34_audio_only", "dialogue_line", story_line(
+            "Good morning! A coffee, please.", updated_at=STAMP, speaker_id=marta, mode="audio")),
+        # The question sits between the lines, as a Story alternates them.
+        select("e36_needs_audio", "Che cosa ordina Marta?", ["a coffee", "a tea"]),
+        story_entry("e35_thanks", "dialogue_line", story_line(
+            "Thank you!", updated_at=STAMP, speaker_id=marta)),
+    ]
+    story_round = round_case("r11_story", "At the bar", story_content, visual="story")
+    story_round["flow"] = story_flow(
+        [(content["id"], "exercise" in content) for content in story_content],
+        title="At the bar", requires_audio={pid("e36_needs_audio")})
+    # A Story of covers alone (owner decision, 28 September 2026): nothing to
+    # score, no XP, and the intentional Audit warning STORY_WITHOUT_DIALOGUE.
+    covers_content = [
+        note("intro07", "Una Story di sole copertine: niente battute, niente esercizi, nessun XP; "
+             "l’Audit segnala STORY_WITHOUT_DIALOGUE, un avviso intenzionale.", role="lesson_intro"),
+        story_entry("e37_cover_market", "story_cover", story_cover(
+            updated_at=STAMP, picture="assets/exercise_images/bread.webp",
+            alternative="Una pagnotta", title_line="Al mercato")),
+        story_entry("e38_cover_bar", "story_cover", story_cover(
+            updated_at=STAMP, picture="assets/exercise_images/coffee.webp",
+            alternative="Una tazza di caffè", title_line="Al bar")),
+        story_entry("e39_cover_home", "story_cover", story_cover(
+            updated_at=STAMP, picture="assets/exercise_images/house.webp",
+            alternative="Una casa", title_line="A casa")),
+    ]
+    covers_round = round_case("r12_covers", "Tre copertine", covers_content, visual="story")
+    covers_round["flow"] = story_flow(
+        [(content["id"], "exercise" in content) for content in covers_content],
+        title="Tre copertine")
+    l6 = lesson("l06", "Storia: al bar (a Story)", [story_round, covers_round], ["a coffee = un caffè"],
+                overview="Una Story: copertina, battute (una solo audio) alternate a un esercizio che richiede "
+                "l’audio della Story; il narratore parla italiano, Marta inglese. Poi una Story di sole "
+                "copertine, senza nulla da valutare.")
     course = {
         "formatVersion": 11, "publicationState": "published", "lessonNumberingMode": "lesson",
         "defaultLessonIconStyle": "monochrome", "createDuels": False,
         "courseId": COURSE_ID, "originType": "bundledOfficial", "publisherId": "org.quisquislingo",
-        "publisherName": "QuisquisLingo", "officialCourseVersion": "1.1.1",
-        "officialReleaseDateUtc": RELEASE_STAMP, "officialReleaseNotes": "QQL Build 255 Revision 7: the Course flag is the English flag QQL draws (EN) instead of GB, which showed the neutral flag.",
+        "publisherName": "QuisquisLingo", "officialCourseVersion": "1.2.0",
+        "officialReleaseDateUtc": RELEASE_STAMP, "officialReleaseNotes": "QQL Build 256 Revision 5: a Story Lesson (a cover, lines, one of them audio only, and an exercise that needs the Story's audio).",
         "distributionChannel": "bundled", "publisherVerificationStatus": "verified",
         "originalCourseCreator": {"type": "publisher", "id": "org.quisquislingo", "displayName": "QuisquisLingo"},
         "originalCreatedAtUtc": STAMP, "modifiedAtUtc": RELEASE_STAMP,
         "learningLanguage": "English", "interfaceLanguage": "Italian",
         "sourceLanguage": "Italian", "targetLanguage": "English",
         "sourceLanguageTag": "it-IT", "targetLanguageTag": "en-GB",
-        "title": "AI-Slop Demo: Edge Case Course",
+        "title": "Temporary Demo: Edge Case Course",
         "ttsLanguage": "en-GB", "audioMode": "hybrid",
         "authors": [{"name": "QuisquisLingo — AI-generated test content", "roles": ["Author"]}],
         "license": "All rights reserved",
         "derivativeWorksPolicy": "allowed", "courseDescription":
             "TEMPORARY AI-GENERATED TEST COURSE. Italiano → inglese. Per trovarlo abilita Show unavailable: "
-            "contiene strutture Draft valide, omesse nel Learner. Include due avvisi Audit intenzionali "
-            "(opzioni duplicate e testo lungo). Hybrid prova MP3 preinstallati e fallback TTS; i campioni MP3 "
+            "contiene strutture Draft valide, omesse nel Learner. Include tre avvisi Audit intenzionali "
+            "(opzioni duplicate, testo lungo e una Story di sole copertine). Hybrid prova MP3 preinstallati e fallback TTS; i campioni MP3 "
             "non hanno una trascrizione verificata e sono solo prove di riproduzione. Fork abilita i collaudi "
             "Copy as New Course e Merge su copie personali. Non è un percorso didattico revisionato.",
         "textDirection": "ltr", "flagCode": "EN", "temporarySample": True,
@@ -304,8 +358,12 @@ def build_course() -> dict:
             {"id": pid("audio_01"), "text": "recorded sample one", "filePath": "assets/audio/en_sample/sample_1.mp3"},
             {"id": pid("audio_02"), "text": "recorded sample two", "filePath": "assets/audio/en_sample/sample_2.mp3"},
         ],
-        "lessons": [l1, l2, l3, l4, l5],
+        "storyNarrator": {"name": "Narratore", "language": "source"},
+        "storyCharacters": [{"id": marta, "name": "Marta", "avatar": "assets/avatars/kid.png",
+                             "language": "target", "voice": "female"}],
+        "lessons": [l1, l2, l3, l4, l5, l6],
     }
+    course = convert_course_v11_to_v12(course)
     canonical = {key: value for key, value in course.items()
                  if key not in {"officialChecksum", "publisherVerificationStatus", "publisherSignature"}}
     course["officialChecksum"] = hashlib.sha256(json.dumps(

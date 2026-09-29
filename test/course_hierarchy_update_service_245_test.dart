@@ -127,7 +127,9 @@ void main() {
       expect(content[1].required, isFalse);
       expect(content[1].role, 'round_note');
       expect(content[1].sourceRefs, ['source-presentation']);
-      expect(content[1].presentation?.actions, ['review_later']);
+      // Course Model v12 keeps a completion mode, not an action list: any
+      // Understood/Review later variant reads back as the standard pair.
+      expect(content[1].presentation?.actions, ['understood', 'review_later']);
       expect(content[1].presentation?.content.first.text, 'Edited term');
       expect(content[2].toJson(), original[2].toJson());
       expect(content[3].required, isFalse);

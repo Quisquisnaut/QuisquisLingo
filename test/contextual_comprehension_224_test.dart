@@ -118,7 +118,7 @@ void main() {
       CourseAuditService()
           .auditExercise(missingContext)
           .map((issue) => issue.code),
-      contains('CONTEXT_REQUIRED'),
+      contains('READING_PASSAGE_REQUIRED'),
     );
     final malformedTurn = Exercise.v2(
       id: 'bad_turn',

@@ -232,7 +232,7 @@ void main() {
       expect(source, contains('Future<void> _addLesson()'));
       expect(source, contains('Future<void> _openLesson(int index)'));
       expect(source, contains('itemCount: _course.lessons.length'));
-      expect(source, contains("label: const Text('New lesson')"));
+      expect(source, contains("label: const Text('New Lesson')"));
       expect(source, contains('class LessonManagementScreen'));
       expect(
         source,
@@ -294,13 +294,12 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byType(CourseImportScreen), findsOneWidget);
       expect(find.text('Course Import'), findsOneWidget);
-      expect(
-        find.widgetWithText(FilledButton, 'Quick Import'),
-        findsOneWidget,
-      );
+      expect(find.widgetWithText(FilledButton, 'Quick Import'), findsOneWidget);
       expect(find.text('Import instructions'), findsOneWidget);
       expect(
-        find.textContaining('Documents/QuisquisLingo/Import/Courses/import.zip'),
+        find.textContaining(
+          'Documents/QuisquisLingo/Import/Courses/import.zip',
+        ),
         findsOneWidget,
       );
       expect(find.textContaining('/Exports/'), findsNothing);

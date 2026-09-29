@@ -54,43 +54,52 @@ void main() {
     'category, selected-type and repeated-pattern criteria use the registry',
     () {
       final category = planner.create(
-        count: 7,
+        count: 9,
         criterion: ExerciseWizardCriterion.byCategory,
-        categories: const [ExerciseCategory.translation],
+        categories: const [ExerciseCategory.vocabulary],
       );
       expect(category.presetIds.toSet(), {
-        'type_translation',
-        'build_translation',
         'translation_choice_to_target',
         'translation_choice_to_source',
+        'type_translation_to_target',
+        'type_translation_to_source',
+        'build_translation_to_target',
+        'build_translation_to_source',
+        'word_match',
+        'super_match',
+        'flashcard',
       });
 
       final selected = planner.create(
         count: 5,
         criterion: ExerciseWizardCriterion.selectedTypes,
-        presetIds: const ['choice', 'word_match'],
+        presetIds: const ['choice_target', 'word_match'],
       );
       expect(selected.presetIds, [
-        'choice',
+        'choice_target',
         'word_match',
-        'choice',
+        'choice_target',
         'word_match',
-        'choice',
+        'choice_target',
       ]);
 
       final pattern = planner.create(
         count: 7,
         criterion: ExerciseWizardCriterion.repeatPattern,
-        pattern: const ['choice', 'type_translation', 'word_match'],
+        pattern: const [
+          'choice_target',
+          'type_translation_to_target',
+          'word_match',
+        ],
       );
       expect(pattern.presetIds, [
-        'choice',
-        'type_translation',
+        'choice_target',
+        'type_translation_to_target',
         'word_match',
-        'choice',
-        'type_translation',
+        'choice_target',
+        'type_translation_to_target',
         'word_match',
-        'choice',
+        'choice_target',
       ]);
     },
   );

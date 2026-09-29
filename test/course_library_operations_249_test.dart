@@ -278,7 +278,7 @@ void main() {
     });
 
     test('a Bundled Course is read only and exportable', () async {
-      final bundled = await CourseService().loadCourse('KO');
+      final bundled = await CourseService().loadCourse('PMS');
       expect(admin.actionsFor(bundled), const [
         CourseManagerAction.removeFromMyCourses,
         CourseManagerAction.courseInfo,
@@ -356,7 +356,7 @@ void main() {
     });
 
     test('official Courses hide what can never apply', () async {
-      final bundled = await CourseService().loadCourse('KO');
+      final bundled = await CourseService().loadCourse('PMS');
       final shown = reasons(admin, bundled);
       expect(shown.keys, const [
         CourseManagerAction.removeFromMyCourses,
@@ -667,10 +667,7 @@ void main() {
       final exported = await ops.exportCourse(mine);
 
       expect(await File(exported.path).exists(), isTrue);
-      expect(
-        exported.path,
-        contains('Export${Platform.pathSeparator}Courses'),
-      );
+      expect(exported.path, contains('Export${Platform.pathSeparator}Courses'));
     });
 
     test('Audit names an unavailable World Flag and still audits', () async {

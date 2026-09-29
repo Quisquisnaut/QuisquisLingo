@@ -66,12 +66,10 @@ void main() {
       final flashcardQueue = service.playableExerciseIndices(rounds[1]);
       flashcardQueue.add(0);
       expect(flashcardQueue, [0, 0]);
-      expect(service.laurelEligibleRoundIds(course), {
-        'evaluated',
-        'flashcard',
-        'textual',
-        'mixed',
-      });
+      // Only Rounds with a scored exercise can earn a Laurel (Build 256
+      // Revision 5 follow-up): cards and texts alone are completed, never
+      // perfect.
+      expect(service.laurelEligibleRoundIds(course), {'evaluated', 'mixed'});
     },
   );
 }

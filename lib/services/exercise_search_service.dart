@@ -1,5 +1,6 @@
 import '../models/course_models.dart';
 import '../models/exercise_authoring.dart';
+import 'preset_recipes.dart';
 
 enum ExerciseSearchScope { course, lesson, round }
 
@@ -47,7 +48,14 @@ abstract final class ExerciseSearchRegistry {
   static const _missing = ExerciseSearchField.missingWords;
 
   static const definitions = <ExerciseTypeSearchDefinition>[
-    ExerciseTypeSearchDefinition(presetId: 'choice', fields: [_prompt, _items]),
+    ExerciseTypeSearchDefinition(
+      presetId: 'choice_target',
+      fields: [_prompt, _items],
+    ),
+    ExerciseTypeSearchDefinition(
+      presetId: 'choice_source',
+      fields: [_prompt, _items],
+    ),
     ExerciseTypeSearchDefinition(
       presetId: 'translation_choice_to_target',
       fields: [_prompt, _items],
@@ -69,36 +77,36 @@ abstract final class ExerciseSearchRegistry {
       fields: [_prompt, _items],
     ),
     ExerciseTypeSearchDefinition(
-      presetId: 'listening_choice',
+      presetId: 'listening_answer_target',
       fields: [_audio, _prompt, _items],
     ),
     ExerciseTypeSearchDefinition(
-      presetId: 'listening_comprehension',
+      presetId: 'listening_answer_source',
       fields: [_audio, _prompt, _items],
     ),
     ExerciseTypeSearchDefinition(
-      presetId: 'reading_comprehension',
-      fields: [_prompt, _items],
-    ),
-    ExerciseTypeSearchDefinition(
-      presetId: 'dialogue_response',
-      fields: [_prompt, _items],
-    ),
-    ExerciseTypeSearchDefinition(
-      presetId: 'contextual_comprehension',
+      presetId: 'reading_answer_target',
       fields: [_prompt, _audio, _speaker, _items],
     ),
     ExerciseTypeSearchDefinition(
-      presetId: 'type_translation',
+      presetId: 'reading_answer_source',
+      fields: [_prompt, _audio, _speaker, _items],
+    ),
+    ExerciseTypeSearchDefinition(
+      presetId: 'type_translation_to_target',
       fields: [_prompt, _accepted, _hint],
     ),
     ExerciseTypeSearchDefinition(
-      presetId: 'build_translation',
+      presetId: 'type_translation_to_source',
+      fields: [_prompt, _accepted, _hint],
+    ),
+    ExerciseTypeSearchDefinition(
+      presetId: 'build_translation_to_target',
       fields: [_prompt, _items, _orders],
     ),
     ExerciseTypeSearchDefinition(
-      presetId: 'fill_blank',
-      fields: [_prompt, _audio, _accepted, _hint],
+      presetId: 'build_translation_to_source',
+      fields: [_prompt, _items, _orders],
     ),
     ExerciseTypeSearchDefinition(
       presetId: 'type_missing_word',
@@ -111,10 +119,6 @@ abstract final class ExerciseSearchRegistry {
     ExerciseTypeSearchDefinition(
       presetId: 'missing_word',
       fields: [_prompt, _audio, _missing],
-    ),
-    ExerciseTypeSearchDefinition(
-      presetId: 'matching',
-      fields: [_prompt, _items],
     ),
     ExerciseTypeSearchDefinition(
       presetId: 'word_match',
@@ -140,13 +144,81 @@ abstract final class ExerciseSearchRegistry {
       presetId: 'flashcard',
       fields: [_prompt, _audio],
     ),
+    ExerciseTypeSearchDefinition(
+      presetId: 'picture_flashcard',
+      fields: [_prompt, _audio],
+    ),
+    ExerciseTypeSearchDefinition(
+      presetId: 'true_false',
+      fields: [_prompt, _audio, _items],
+    ),
+    ExerciseTypeSearchDefinition(
+      presetId: 'gap_choice_inline',
+      fields: [_prompt, _audio, _items],
+    ),
+    ExerciseTypeSearchDefinition(
+      presetId: 'complete_text',
+      fields: [_prompt, _missing],
+    ),
+    ExerciseTypeSearchDefinition(
+      presetId: 'missing_letters',
+      fields: [_prompt, _audio, _missing, _hint],
+    ),
+    ExerciseTypeSearchDefinition(
+      presetId: 'gap_blocks',
+      fields: [_prompt, _audio, _items, _orders],
+    ),
+    ExerciseTypeSearchDefinition(
+      presetId: 'sentence_order',
+      fields: [_prompt, _items, _orders],
+    ),
+    ExerciseTypeSearchDefinition(
+      presetId: 'sort_into_groups',
+      fields: [_prompt, _items],
+    ),
+    ExerciseTypeSearchDefinition(
+      presetId: 'fill_the_slots',
+      fields: [_prompt, _items],
+    ),
+    ExerciseTypeSearchDefinition(
+      presetId: 'listening_image_choice',
+      fields: [_audio, _prompt, _items],
+    ),
+    ExerciseTypeSearchDefinition(
+      presetId: 'spell_heard',
+      fields: [_audio, _items, _orders],
+    ),
+    ExerciseTypeSearchDefinition(
+      presetId: 'picture_choice',
+      fields: [_prompt, _items],
+    ),
+    ExerciseTypeSearchDefinition(
+      presetId: 'picture_name',
+      fields: [_prompt, _accepted, _hint],
+    ),
+    ExerciseTypeSearchDefinition(
+      presetId: 'spell_word',
+      fields: [_prompt, _items, _orders],
+    ),
+    ExerciseTypeSearchDefinition(
+      presetId: 'picture_word_match',
+      fields: [_prompt, _items],
+    ),
+    ExerciseTypeSearchDefinition(presetId: 'note_card', fields: [_prompt]),
+    ExerciseTypeSearchDefinition(
+      presetId: 'dialogue_line',
+      fields: [_prompt, _audio],
+    ),
+    ExerciseTypeSearchDefinition(presetId: 'story_cover', fields: [_prompt]),
   ];
 
   static ExerciseTypeSearchDefinition? forExercise(Exercise exercise) {
+    // The preset the exercise carries, else the one that represents it,
+    // else the plainest preset of its primitive: the searchable fields are
+    // the same canonical fields either way.
     final presetId =
-        ExercisePresetRegistry.byId(exercise.editorTemplate) != null
-        ? exercise.editorTemplate
-        : exercise.type;
+        PresetRecipes.presetToEdit(exercise) ??
+        PresetRecipes.defaultPresetFor(exercise.primitive);
     return definitions
         .where((definition) => definition.presetId == presetId)
         .firstOrNull;
@@ -158,10 +230,15 @@ abstract final class ExerciseSearchRegistry {
     final values = <ExerciseSearchText>[];
     for (final field in definition.fields) {
       final candidates = switch (field) {
-        ExerciseSearchField.promptText =>
-          exercise.promptElements
+        // Course Model v12: an inline layout carries the exercise's sentence
+        // (Type the missing word, Listen for missing words), so it is
+        // searchable prompt text too.
+        ExerciseSearchField.promptText => [
+          ...exercise.promptElements
               .where((element) => element.type == 'text')
               .map((element) => element.text),
+          if (exercise.layout.isNotEmpty) exercise.inlineSentence,
+        ],
         ExerciseSearchField.promptAudio =>
           exercise.promptElements
               .where((element) => element.type == 'audio')
@@ -171,15 +248,32 @@ abstract final class ExerciseSearchRegistry {
               .where((element) => element.speaker.trim().isNotEmpty)
               .map((element) => element.speaker),
         ExerciseSearchField.interactionText =>
-          exercise.interaction.items
+          exercise.items
               .expand((item) => item.content)
               .where((element) => element.text.trim().isNotEmpty)
               .map((element) => element.text),
-        ExerciseSearchField.acceptedAnswers => exercise.evaluation.accepted,
+        ExerciseSearchField.acceptedAnswers => [
+          ...exercise.canonicalEvaluation.answers,
+          ...exercise.canonicalEvaluation.literalAnswers,
+          for (final target in exercise.canonicalEvaluation.targetAnswers) ...[
+            ...target.answers,
+            ...target.literalAnswers,
+          ],
+        ],
         ExerciseSearchField.correctOrderText =>
-          exercise.evaluation.correctOrders.map((answer) => answer.text),
+          exercise.canonicalEvaluation.correctOrders.map(
+            (answer) => answer.text,
+          ),
         ExerciseSearchField.hint => [exercise.hint],
-        ExerciseSearchField.missingWords => exercise.missingWords,
+        // The first answer of every typed gap that reveals nothing (Listen
+        // for missing words).
+        ExerciseSearchField.missingWords => [
+          for (final target in exercise.targets)
+            if (target.reveal == null)
+              for (final answers in exercise.canonicalEvaluation.targetAnswers)
+                if (answers.targetId == target.id && answers.answers.isNotEmpty)
+                  answers.answers.first,
+        ],
       };
       for (final candidate in candidates) {
         final text = candidate.trim();

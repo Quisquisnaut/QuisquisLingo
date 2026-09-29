@@ -79,7 +79,9 @@ void main() {
       await tester.tap(wrong);
       await _pumpFrames(tester, count: 2);
       expect(find.byIcon(Icons.person), findsNWidgets(3 - wrongAnswer));
-      await tester.tap(find.text(wrongAnswer == 3 ? 'Finish duel' : 'Next'));
+      await tester.tap(
+        find.text(wrongAnswer == 3 ? 'Finish duel' : 'Continue'),
+      );
       await _pumpFrames(tester, count: 2);
     }
 
@@ -232,7 +234,7 @@ Future<void> _winOpenDuel(WidgetTester tester) async {
     expect(correct, findsOneWidget);
     await tester.tap(correct);
     await _pumpFrames(tester, count: 2);
-    await tester.tap(find.text(index == 24 ? 'Finish duel' : 'Next'));
+    await tester.tap(find.text(index == 24 ? 'Finish duel' : 'Continue'));
     await _pumpFrames(tester, count: 2);
   }
   await _pumpFrames(tester);

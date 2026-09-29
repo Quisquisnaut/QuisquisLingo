@@ -44,7 +44,7 @@ const Map<String, String> helpEs = {
   'editorHelp.localCourseEditsAndBackups.title':
       'Cambios locales y backups del curso',
   'editorHelp.localCourseEditsAndBackups.body':
-      'Antes de confirmar un cambio en un Custom Course existente, QQL archiva la versión completa en {folderBackups}/Courses, en una carpeta por curso con su par de idiomas y su ID. En Android 7–10, QQL pide una vez permiso para usar esa carpeta; en Android, Version History muestra solo los backups que hizo esta instalación de QQL. El manifiesto incluye Course Model v11, Maintainer, Assigned Team, origen, versiones, autores, fecha UTC, notas opcionales, checksum y audios referenciados. Los backups no se eliminan automáticamente. Version History muestra la versión actual y los backups verificados del más nuevo al más antiguo, con Open backup folder y Export JSON. Solo el historial custom permite Restore into working copy; también requiere la confirmación final para guardar. El historial oficial conserva solo los orígenes del editor.',
+      'Antes de confirmar un cambio en un Custom Course existente, QQL archiva la versión completa en {folderBackups}/Courses, en una carpeta por curso con su par de idiomas y su ID. En Android 7–10, QQL pide una vez permiso para usar esa carpeta; en Android, Version History muestra solo los backups que hizo esta instalación de QQL. El manifiesto incluye Course Model v12, Maintainer, Assigned Team, origen, versiones, autores, fecha UTC, notas opcionales, checksum y audios referenciados. Los backups no se eliminan automáticamente. Version History muestra la versión actual y los backups verificados del más nuevo al más antiguo, con Open backup folder y Export JSON. Solo el historial custom permite Restore into working copy; también requiere la confirmación final para guardar. El historial oficial conserva solo los orígenes del editor.',
   'editorHelp.androidDeviceBackupTechnical.title':
       'Backup del dispositivo Android (técnico)',
   'editorHelp.androidDeviceBackupTechnical.body':
@@ -60,23 +60,26 @@ const Map<String, String> helpEs = {
   'editorHelp.courseResponsibilityPermissionsAndTeams.title':
       'Responsabilidad, permisos y Teams',
   'editorHelp.courseResponsibilityPermissionsAndTeams.body':
-      'Original Course Creator, Course Maintainer, Assigned Team, Authors / Contributors, Rights Holder, License y el origen de Fork o Merge son datos separados. Todo Custom Course v11 tiene un creador original inmutable y un Maintainer individual. Solo ese Maintainer puede transferir el cargo o asignar y revocar un Team. Él y los miembros actuales de Assigned Team pueden administrar el contenido; los Team Leader gestionan miembros y roles del Team. Estos permisos solo rigen dentro de QQL: los créditos, derechos y origen no conceden acceso ni definen derechos de autor. Un usuario externo no puede modificar ni usar Copy as New Course; Fork depende de la licencia. Los cursos incluidos se consultan en el mismo Editor en solo lectura.',
+      'Original Course Creator, Course Maintainer, Assigned Team, Authors / Contributors, Rights Holder, License y el origen de Fork o Merge son datos separados. Todo Custom Course v12 tiene un creador original inmutable y un Maintainer individual. Solo ese Maintainer puede transferir el cargo o asignar y revocar un Team. Él y los miembros actuales de Assigned Team pueden administrar el contenido; los Team Leader gestionan miembros y roles del Team. Estos permisos solo rigen dentro de QQL: los créditos, derechos y origen no conceden acceso ni definen derechos de autor. Un usuario externo no puede modificar ni usar Copy as New Course; Fork depende de la licencia. Los cursos incluidos se consultan en el mismo Editor en solo lectura.',
   'editorHelp.importCustomCourse.title': 'Importar un curso personalizado',
   'editorHelp.importCustomCourse.body':
-      'Copia un Course ZIP compatible en {folderCourseImports}/import.zip o, si no tiene medios, un Course Model v11 JSON en import.json. Deja solo uno. El ZIP suele contener course.json, qql-course-package.json y media/ en la raíz; también acepta una carpeta única con el mismo nombre que el ZIP sin .zip, con un aviso. En Course Studio, abre Course Import y elige Quick Import. QQL comprueba todo el paquete y Course Audit antes de instalar. Los Error bloquean; los Warning se muestran. Las imágenes de Shared Image Library viajan con el curso, sin añadirse a la biblioteca del dispositivo receptor. Un Publisher Course requiere firma aprobada. El archivo original permanece en {folderCourseImports}. JSON debe ser UTF-8 y de hasta 10 MB; el ZIP, de hasta 300 MB comprimido y expandido. No se migran formatos anteriores.',
+      'Copia un Course ZIP compatible en {folderCourseImports}/import.zip o, si no tiene medios, un Course Model v12 JSON en import.json. Deja solo uno. El ZIP suele contener course.json, qql-course-package.json y media/ en la raíz; también acepta una carpeta única con el mismo nombre que el ZIP sin .zip, con un aviso. En Course Studio, abre Course Import y elige Quick Import. QQL comprueba todo el paquete y Course Audit antes de instalar. Los Error bloquean; los Warning se muestran. Las imágenes de Shared Image Library viajan con el curso, sin añadirse a la biblioteca del dispositivo receptor. Un Publisher Course requiere firma aprobada. El archivo original permanece en {folderCourseImports}. JSON debe ser UTF-8 y de hasta 10 MB; el ZIP, de hasta 300 MB comprimido y expandido. No se migran formatos anteriores.',
   'editorHelp.exportCustomCourse.title': 'Exportar un curso personalizado',
   'editorHelp.exportCustomCourse.body':
-      'Quick Export en Export Course guarda el JSON completo de Course Model v11 y las imágenes y grabaciones propias referenciadas en un ZIP en {folderCourseExports}. Los medios incluidos con la app siguen viniendo de QQL. Las imágenes de Shared Image Library usadas por el curso viajan como medios del curso con su ID, etiqueta, categoría, tags, origen y atribución disponible; importar el ZIP no las añade a la biblioteca compartida del destino. El JSON conserva creador, Maintainer, Team, autores, derechos, License, origen, estados Draft/Published y versión. Fork conserva la línea de origen; Copy as New Course crea otra. Save as… puede guardar el mismo ZIP mediante el diálogo del sistema.',
+      'Quick Export en Export Course guarda el JSON completo de Course Model v12 y las imágenes y grabaciones propias referenciadas en un ZIP en {folderCourseExports}. Los medios incluidos con la app siguen viniendo de QQL. Las imágenes de Shared Image Library usadas por el curso viajan como medios del curso con su ID, etiqueta, categoría, tags, origen y atribución disponible; importar el ZIP no las añade a la biblioteca compartida del destino. El JSON conserva creador, Maintainer, Team, autores, derechos, License, origen, estados Draft/Published y versión. Fork conserva la línea de origen; Copy as New Course crea otra. Save as… puede guardar el mismo ZIP mediante el diálogo del sistema.',
   'editorHelp.importCustomFlag.title': 'Importar una bandera personalizada',
   'editorHelp.importCustomFlag.body':
       'Copia un PNG o JPEG válido en {folderCourseFlagImports} como flag.png, flag.jpg o flag.jpeg y pulsa Upload custom flag. Si hay varios, QQL usa el primero en ese orden. Límite: 2 MB; dimensiones entre 64 × 40 y 4096 píxeles por lado. QQL verifica el formato y reduce proporcionalmente las imágenes de más de 256 píxeles en su lado mayor. No agranda las pequeñas, no recorta ni añade fondo cuadrado. Conserva la transparencia PNG y convierte el primer fotograma a PNG. Los datos quedan en el Course y sobreviven al exportar, importar o duplicar el JSON. El archivo original permanece. Si falta, está dañado, supera los límites o falla la conversión, la importación se detiene.',
   'editorHelp.generateRoundsFromLessonGuidebook.title':
-      'Generar Rounds desde GuideBook',
+      'Round Wizard (Rounds desde el GuideBook de la Lesson)',
   'editorHelp.generateRoundsFromLessonGuidebook.body':
-      'En una Lesson, elige Generate Rounds from GuideBook. Se usan solo pares de vocabulario y ejemplos de su GuideBook; hacen falta al menos tres pares válidos. Elige 1–12 Rounds y 1–15 Exercises por Round (por defecto 6 y 8). Revisa las cantidades, la progresión de dificultad y los tipos previstos antes de generar. Los primeros borradores favorecen reconocimiento guiado, los intermedios añaden construcción y contexto y los últimos, producción más libre. Los Rounds generados siguen en Draft: revísalos, edítalos, usa Preview y apruébalos expresamente antes de añadir copias con IDs nuevos. La corrección didáctica requiere revisión humana.',
-  'editorHelp.exerciseCreationWizard.title': 'Exercise Creation Wizard',
+      'En la página Rounds de una Lesson, pulsa Round Wizard en la barra inferior, junto a New Story (desactivado mientras Use GuideBook esté apagado en las Lesson Options del Course Editor). Se usan solo pares de vocabulario y ejemplos de su GuideBook; hacen falta al menos tres pares válidos. Elige 1–12 Rounds y 1–15 Exercises por Round (por defecto 6 y 8). Revisa las cantidades, la progresión de dificultad y los tipos previstos antes de generar. Los primeros borradores favorecen reconocimiento guiado, los intermedios añaden construcción y contexto y los últimos, producción más libre. Los Rounds generados siguen en Draft: revísalos, edítalos, usa Preview y apruébalos expresamente antes de añadir copias con IDs nuevos. La corrección didáctica requiere revisión humana.',
+  'editorHelp.exerciseCreationWizard.title': 'Exercise Wizard',
   'editorHelp.exerciseCreationWizard.body':
-      'En un Round, Exercise Wizard está junto a New exercise. Elige de 1 a 30 Exercises y Balanced mix, Random mix, categorías, tipos concretos o un patrón repetido. Revisar el plan no crea ejercicios. Después de confirmar, cada paso abre el editor normal de su preset. Save valida y mantiene el paso; Preview vuelve al mismo borrador; Next valida y avanza; Finish devuelve los ejercicios creados en orden. Si cancelas tras guardar algunos, decide si conservar solo los válidos ya guardados. No se insertan marcadores futuros o inválidos.',
+      'En un Round, Exercise Wizard está junto a New Exercise y New Canonical (en una Story, Add Step sustituye a los tres). Elige de 1 a 30 Exercises y Balanced mix, Random mix, categorías, tipos concretos o un patrón repetido. Revisar el plan no crea ejercicios. Después de confirmar, cada paso abre el editor normal de su preset. Save valida y mantiene el paso; Preview vuelve al mismo borrador; Next valida y avanza; Finish devuelve los ejercicios creados en orden. Si cancelas tras guardar algunos, decide si conservar solo los válidos ya guardados. No se insertan marcadores futuros o inválidos.',
+  'editorHelp.storiesAndStoryWizard.title': 'Historias y New Story',
+  'editorHelp.storiesAndStoryWizard.body':
+      'Una Story es un Round jugado en orden: una portada, líneas de diálogo dichas por el narrador o por un personaje, y ejercicios sobre ellas. En la página Rounds de una Lesson, New Story (no necesita GuideBook; junto a Round Wizard) pide el título de la Story, su imagen de portada y si las líneas se leen en voz alta automáticamente o a petición (A), muestra el narrador (B) y los personajes del Course (C), donde los añades o editas, y luego construye los pasos: Add line abre un formulario breve (quién habla, línea, texto y audio o solo uno de ellos, lectura en voz alta, si el texto espera al audio); Add exercise ofrece los presets que una Story puede usar y abre el formulario normal del ejercicio, y Save o Cancel vuelven al constructor. Finish necesita al menos una línea y crea el Round, llamado “Story: <título>”, en la copia de trabajo del Course: la confirmación del Course sigue decidiendo. En el editor del Round, Play as a sequence muestra el título de la Story, Step by step o Scrolling, el registro del desplazamiento (Dialogue only conserva solo las líneas; Everything también los ejercicios) y Read-aloud; “Needs the Story’s audio” en el menú de un ejercicio marca un ejercicio que solo tiene sentido con el audio, omitido como los ejercicios de escucha cuando Audio Exercises está desactivado. Las líneas nunca se omiten: sin audio el estudiante las lee. En una Story, Add Step sustituye a New Exercise, New Canonical y Exercise Wizard: elige Title block (la portada, una por Story: desactivada cuando la Story ya la tiene, colocada primero), Dialogue line (el mismo formulario breve) o Exercise (los presets que una Story puede usar); una Story tiene un bloque de título y al menos una línea de diálogo, y las opciones de la Story cuentan sus pasos. El narrador y los personajes son datos del Course, editados bajo Story characters en la página del Course Editor: nombre, avatar (una figura incluida, ninguna, o una imagen tuya recortada en cuadrado y guardada con el Course), idioma y preferencia de voz (cualquiera, masculina o femenina, buscada entre las voces del dispositivo; si falta, la lectura no se detiene). Un personaje que aún nombran líneas no se puede quitar. Solo los ejercicios puntúan; una Story conserva las reglas de XP, finalización y Laurel de un Round de práctica, y sus ejercicios quedan fuera del Duel.',
   'editorHelp.duplicateCopyMoveExercises.title':
       'Duplicar, copiar y mover ejercicios',
   'editorHelp.duplicateCopyMoveExercises.body':
@@ -128,7 +131,7 @@ const Map<String, String> helpEs = {
       'Course Audit revisa estructura y autoría: campos inválidos, IDs repetidos, Word Block, audio sin correspondencia y errores de Missing Word. Un texto de Reading vacío es Error; con una o dos palabras léxicas aparece READING_PASSAGE_TOO_SHORT, y con tres o más no. HINT_REPEATS_PROMPT es Warning; revelar una respuesta correcta es Error. Audit no certifica gramática, traducción ni calidad pedagógica.',
   'editorHelp.createNewCourse.title': 'Crear un curso nuevo',
   'editorHelp.createNewCourse.body':
-      'Course Studio crea un proyecto Course Model v11 independiente y lo abre en Course Editor. New Course ofrece License / Rights, Authors / Contributors, variante de lengua, niveles, descripción y datos de apoyo como Course Info Editor. El perfil activo es el Original Course Creator inmutable y, por defecto, Course Maintainer; puedes elegir a otra persona local como Maintainer. Assigned Team no se elige al crear. Number of Lessons empieza en 3 (1–100) y Rounds per Lesson en 1 (1–20). Los valores inválidos muestran un error y desactivan Create. La jerarquía inicial se crea de una vez con IDs nuevos y Rounds sin título, cada uno con un Exercise Draft de Pick the translation (to target). Revisa y guarda el contenido antes de publicar. El Course Not published solo existe en la copia de trabajo hasta que Confirm course changes crea la versión 1. Cancelar no guarda nada. Los cursos v11 importados deben declarar origen, Maintainer, estado Draft/Published y fechas UTC; no se convierten formatos anteriores.',
+      'Course Studio crea un proyecto Course Model v12 independiente y lo abre en Course Editor. New Course ofrece License / Rights, Authors / Contributors, variante de lengua, niveles, descripción y datos de apoyo como Course Info Editor. El perfil activo es el Original Course Creator inmutable y, por defecto, Course Maintainer; puedes elegir a otra persona local como Maintainer. Assigned Team no se elige al crear. Number of Lessons empieza en 3 (1–100) y Rounds per Lesson en 1 (1–20). Los valores inválidos muestran un error y desactivan Create. La jerarquía inicial se crea de una vez con IDs nuevos y Rounds sin título, cada uno con un Exercise Draft de Pick the translation (to target). Revisa y guarda el contenido antes de publicar. El Course Not published solo existe en la copia de trabajo hasta que Confirm course changes crea la versión 1. Cancelar no guarda nada. Los cursos v11 importados deben declarar origen, Maintainer, estado Draft/Published y fechas UTC; no se convierten formatos anteriores.',
   'courseStudioHelp.findingCourses.title': 'Encontrar cursos',
   'courseStudioHelp.findingCourses.body':
       'Search filtra títulos y lenguas de origen o estudio en Course Studio, incluso en Favorites. Favorites muestra accesos rápidos a cursos de la biblioteca personal del estudiante activo; cada curso sigue en su sección normal. Sort by y Show unavailable se aplican a Favorites y a las demás secciones. Cada sección tiene su propio Expanded / Compact / Minimal, que QQL recuerda para cada estudiante, por separado en cada pestaña. Estos controles solo cambian la vista.',
@@ -139,7 +142,7 @@ const Map<String, String> helpEs = {
   'courseStudioHelp.title': 'Ayuda de Course Studio',
   'editorHelp.technicalReference.title': 'Referencia técnica',
   'editorHelp.technicalReference.body':
-      'En desarrollo. Estas páginas describen la implementación actual de Course Model v11, aparte de las instrucciones prácticas de Course Editor.',
+      'En desarrollo. Estas páginas describen la implementación actual de Course Model v12, aparte de las instrucciones prácticas de Course Editor.',
   'courseStudioHelp.courseTypes.title': 'Tipos de curso',
   'courseStudioHelp.courseTypes.intro': 'En QQL hay tres tipos de curso:',
   'courseStudioHelp.courseTypes.type1':
@@ -221,7 +224,7 @@ const Map<String, String> helpEs = {
   'appInfo.progressWeekXpAndGamification.title':
       'Progreso, Week XP y Gamification',
   'appInfo.progressWeekXpAndGamification.body':
-      'Language XP, streak, Study Days y Status se guardan por estudiante y lengua de estudio. Profile > Statistics muestra Total Study Days y, por cada lengua, bandera, nombre, ID, Study Days, Current Streak y Max Streak. Los Rounds completados y laureles se guardan por Course ID. Week XP suma los XP de todos los cursos de la semana actual. Profile > Gamification incluye Weekly XP Target · All courses, Last Week XP · All courses y Local leaderboard · All courses. Last Week XP corresponde a la semana anterior completa; toca tu cifra para ver el desglose por curso. La clasificación local usa ese total semanal. Puedes dejar de participar sin borrar XP.',
+      'Language XP, streak, Study Days y Status se guardan por estudiante y lengua de estudio. Profile > Statistics muestra Total Study Days y, por cada lengua, bandera, nombre, ID, Study Days, Current Streak y Max Streak. Los Rounds completados y laureles se guardan por Course ID. Week XP suma los XP de todos los cursos de la semana actual. Profile > Gamification incluye Weekly XP Target · All courses, Last Week XP · All courses y Local leaderboard · All courses. Last Week XP corresponde a la semana anterior completa; toca tu cifra para ver el desglose por curso. La clasificación local usa ese total semanal. Puedes dejar de participar sin borrar XP. Un Round o una Story sin ejercicios puntuados (solo tarjetas, portadas o líneas de diálogo) cuenta como completado pero no otorga XP ni Laurel.',
   'appInfo.streakAndFreezeRule.title': 'Streak y pausa',
   'appInfo.streakAndFreezeRule.body':
       'El streak de una lengua sube cuando la estudias en un día nuevo. Si estudias otra lengua durante un día, el streak de la primera queda en pausa: no sube ni se reinicia. Un día completo sin estudiar ninguna lengua rompe los streaks activos.',
@@ -270,7 +273,7 @@ const Map<String, String> helpEs = {
       'Course Studio se abre desde Course Selector, no desde Settings. Gestiona los cursos: los oficiales permiten consulta, Fork según licencia, Audit y Export; los custom permiten Edit, Copy as New Course, Merge, Audit, Export y Delete según tus permisos. Fork conserva el origen; Copy as New Course inicia otro. Para las operaciones de la biblioteca, abre Course Studio Help. Para crear y modificar cursos, abre Editor Help desde una página de Course Editor.',
   'appInfo.courseContentAndAi.title': 'Contenido de cursos e IA',
   'appInfo.courseContentAndAi.body':
-      'Los cursos incluidos llamados AI-Slop Demo son demostraciones generadas con IA y sin revisión; no son cursos fiables para estudiar. El contenido real de QuisquisLingo está pensado para ser escrito y revisado por personas. Esto no clasifica a otros cursos oficiales o custom.',
+      'Los cursos incluidos llamados Temporary Demo son demostraciones generadas con IA y sin revisión; no son cursos fiables para estudiar. El contenido real de QuisquisLingo está pensado para ser escrito y revisado por personas. Esto no clasifica a otros cursos oficiales o custom.',
   'appInfo.creditsButton': 'App and image credits',
   'appInfo.title': 'Información de la app',
   'courseInfo.title': 'Course Info',
@@ -407,10 +410,10 @@ const Map<String, String> helpEs = {
       'Quitar un Publisher Course del dispositivo',
   'allCoursesHelp.removingPublisherCourse.body':
       'Solo un Admin puede usar Remove Publisher Course from device desde el menú de Course Studio. Se bloquea si otro perfil incluye ese curso en su biblioteca. La eliminación física conserva progreso y backups de versión para una futura reinstalación.',
-  'technical.courseModel.title': 'QuisquisLingo Course Model v11',
+  'technical.courseModel.title': 'QuisquisLingo Course Model v12',
   'technical.courseModel.status.title': 'Estado',
   'technical.courseModel.status.body':
-      'En desarrollo. QuisquisLingo usa formatVersion 11 como único Course Model nativo. Los formatos anteriores se rechazan sin migrarlos ni borrarlos. Cada Custom Course necesita un Original Course Creator inmutable y un Course Maintainer individual; Assigned Team es opcional y distinto.',
+      'En desarrollo. QuisquisLingo usa formatVersion 12 como único Course Model nativo. Los formatos anteriores se rechazan sin migrarlos ni borrarlos. Cada Custom Course necesita un Original Course Creator inmutable y un Course Maintainer individual; Assigned Team es opcional y distinto.',
   'technical.courseModel.hierarchy.title': 'Jerarquía',
   'technical.courseModel.hierarchy.body':
       'Course > Lesson > GuideBook + Round > Content. Cada Lesson tiene su GuideBook y Duel. Exercise es un tipo de Content, pero no el único permitido en un Round.',
@@ -434,35 +437,47 @@ const Map<String, String> helpEs = {
   'technical.exercisePrimitives.title': 'Primitivas de Exercise',
   'technical.exercisePrimitives.status.title': 'Estado',
   'technical.exercisePrimitives.status.body':
-      'En desarrollo. El conjunto actual de primitivas es la base implementada en Course Model v11.',
+      'Course Model v12 (Build 256). Cada ejercicio es una de las nueve primitivas, con opciones tipadas, elementos del prompt, items, targets, un layout inline, un modo de evaluación y un feedback opcional. Los presets son recetas sobre estos datos y nunca cambian lo que ve el estudiante.',
   'technical.exercisePrimitives.exerciseAnatomy.title': 'Anatomía de Exercise',
   'technical.exercisePrimitives.exerciseAnatomy.body':
-      'Exercise = Prompt[] + Interaction + Evaluation, con hint y feedback opcionales.',
-  'technical.exercisePrimitives.interactions.title': 'Interacciones',
-  'technical.exercisePrimitives.interactions.body':
-      'select: elegir uno o varios Items. input: escribir una respuesta. arrange: ordenar Items. match: relacionar Items.',
-  'technical.exercisePrimitives.evaluations.title': 'Evaluaciones',
-  'technical.exercisePrimitives.evaluations.body':
-      'selected_items comprueba IDs estables de Items elegidos; text_match compara texto aceptado con normalización explícita; ordered_items comprueba el orden; matched_items, las relaciones.',
+      'Exercise = primitive + options + prompt[] + items[] + targets[] + layout[] + evaluation + feedback, con hint opcional. Los elementos del prompt son text, audio o image con una función (primary, question, passage, situation, clue, context, dialogue_turn, character, illustration) y los atributos language (source o target), playback (automatic o manual) y required. Los items son lo que el estudiante elige, ordena, coloca o empareja; un item de Match tiene un lado. Los targets son los huecos, casillas o regiones que el estudiante rellena, y el layout los sitúa en el texto. Items y targets tienen IDs estables, nunca posiciones.',
+  'technical.exercisePrimitives.primitives.title': 'Las nueve primitivas',
+  'technical.exercisePrimitives.primitives.body':
+      'select: el estudiante elige uno o varios items. input: el estudiante escribe texto o un número en un campo o en huecos inline. arrange: el estudiante ordena bloques o los arrastra a huecos. match: el estudiante empareja items de la izquierda y de la derecha. assign: el estudiante clasifica items en grupos, rellena casillas o los huecos de un texto tocando un item y luego su destino (los presets Sort into groups y Fill the slots; los huecos se crean en el editor canónico; regiones de una imagen y celdas de una cuadrícula en una versión futura). speak: el estudiante habla (solo definiciones). ink: el estudiante escribe a mano (solo definiciones). submit: el estudiante entrega una respuesta libre para autoevaluación o revisión (solo definiciones). presentation: una tarjeta o nota sin respuesta, como una Flashcard. La primitiva queda fija cuando el ejercicio existe.',
+  'technical.exercisePrimitives.primitiveOptions.title':
+      'Opciones de las primitivas',
+  'technical.exercisePrimitives.primitiveOptions.body':
+      'Las opciones son tipadas y pertenecen a una primitiva: selectionMode, selectionTarget, minimumSelections, maximumSelections, itemReuse, layout, evaluationTiming y shuffleItems para select; inputMode, cardinality, caseHandling, punctuationHandling, whitespaceHandling, accentHandling y typoTolerance para input; placementMode, unusedItems y joiner para arrange; relationship, interactionStyle, shuffleLeft y shuffleRight para match; completionMode, navigation y mediaPlayback para presentation. El JSON del Course guarda solo los valores definidos; una opción omitida vale el valor predeterminado del registro. El registro de capacidades enumera cada valor permitido, las opciones obligatorias y las combinaciones que rechaza; una opción desconocida o un valor no permitido es un error de formato y nunca se corrige en silencio.',
+  'technical.exercisePrimitives.layouts.title': 'Layouts',
+  'technical.exercisePrimitives.layouts.body':
+      'list y grid muestran los items como opciones; inline coloca los items elegidos en huecos del texto. field e inlineGaps son respuestas escritas: un campo, o un campo por hueco. sequence pone los bloques ordenados en fila e inlineGaps los arrastra a huecos. El Match dropdown empareja cada item de la izquierda con uno de la derecha. El layout inline es una secuencia de trozos de texto y huecos target; un target puede revelar su primera letra, como hace Type the missing word.',
+  'technical.exercisePrimitives.evaluationModes.title': 'Modos de evaluación',
+  'technical.exercisePrimitives.evaluationModes.body':
+      'El modo de evaluación dice cómo se comprueba la respuesta y qué datos de respuesta se aplican: exactItem y exactSet (IDs de los items correctos); exactText, acceptedTexts y expression (answers con variantes {a|b}, literalAnswers que nunca se expanden, o targetAnswers por hueco); regex (pattern); numericExact, numericRange y numericTolerance; exactOrder y acceptedOrders (correctOrders con IDs de items); gapAssignments y exactAssignments (assignments por target); exactRelations (relations entre IDs de la izquierda y de la derecha); acceptedTargets; none para presentaciones. La normalización de input viene de las opciones, no de la evaluación. La tabla de soporte del runtime decide qué combinaciones puede jugar esta versión; un ejercicio legible pero no jugable permanece en el Course tal cual.',
   'technical.exercisePrimitives.promptAndItemMedia.title':
       'Medios de Prompt e Item',
   'technical.exercisePrimitives.promptAndItemMedia.body':
-      'Las primitivas de medios son text, image y audio. Un elemento Prompt puede tener funciones como primary, passage, question, context o clue.',
+      'Los elementos text, audio e image llevan funciones y atributos. Un audio con required: true convierte el ejercicio en ejercicio de audio, que Audio Exercises Off retira de Rounds y Duels; un audio con required: false es opcional, como el botón de lectura de Pick the translation. Una imagen con la función character es una muestra de Recognize characters; cualquier otra imagen es una ilustración. Los medios de los items siguen las mismas reglas.',
   'technical.exercisePrimitives.presentationContent.title':
       'Presentation Content',
   'technical.exercisePrimitives.presentationContent.body':
-      'Flashcard es Presentation Content, no Exercise. El estudiante elige understood o review_later. Ambas opciones completan la presentación; review_later pide repetirla y no cuenta como respuesta incorrecta.',
-  'technical.exercisePrimitives.friendlyTemplates.title':
-      'Plantillas y primitivas',
-  'technical.exercisePrimitives.friendlyTemplates.body':
-      'Las plantillas claras son una capa de autoría. Varias pueden usar las mismas primitivas. Límites de una plantilla, como cantidad de distractores, no se convierten en reglas universales.',
+      'Una Flashcard o una nota es un ejercicio de primitiva presentation con modo de evaluación none y un completionMode (continue, acknowledge o understoodReview). No da XP, no cuenta como correcta ni como incorrecta y nunca impide un Round perfecto.',
+  'technical.exercisePrimitives.presets.title': 'Presets como recetas',
+  'technical.exercisePrimitives.presets.body':
+      'Un preset es una receta: su formulario pide pocos campos y escribe datos canónicos ordinarios. El ejercicio lleva el preset solo como metadato de autoría (presetId); el runtime del estudiante, el Duel y la Audit leen los datos canónicos. En cada guardado QQL comprueba si el preset sigue representando exactamente el ejercicio. Si lo hace otro preset, se nombra ese; si ninguno lo hace, el ejercicio queda sin preset y se abre en el editor canónico. Los demás metadatos de autoría se eliminan en cuanto cambia el contenido.',
+  'technical.exercisePrimitives.canonicalEditor.title': 'El editor canónico',
+  'technical.exercisePrimitives.canonicalEditor.body':
+      'El editor canónico (editor del Round: New Canonical; selector de presets: Every primitive) muestra cada campo canónico de cualquier primitiva con los valores que permite el registro de capacidades: Primitive, Options, Prompt, Items, Targets, Layout, Evaluation por modo, Feedback y hint. Indica si esta versión puede jugar el ejercicio, rechaza las combinaciones que rechaza el registro, muestra la vista previa con el runtime del estudiante y guarda como un formulario de preset (Save as draft, o Save con la Audit). Un ejercicio que ningún preset representa se abre ahí.',
+  'technical.exercisePrimitives.stories.title': 'Historias',
+  'technical.exercisePrimitives.stories.body':
+      'Una Story es un Round con un flujo de contenidos. Play as a sequence en el editor del Round da al Round un flujo lineal: sus ejercicios se juegan en el orden escrito, sin mezclar y sin repaso de errores; XP, finalización, Laurels y Review funcionan como en un Round de práctica. Editar, mover, copiar y duplicar una Story conserva su flujo. Los flujos con ramas (onCorrect, onIncorrect, onChoice, conditional) se guardan y se comprueban, pero no se pueden jugar en esta versión. Una Story se muestra Step by step (un elemento por página) o Scrolling (los elementos terminados se quedan en la página con la respuesta del estudiante, el siguiente aparece debajo y la página se desplaza hasta él), a elegir bajo el interruptor de la Story. Build 256 Revision 5 añade los presets Dialogue line y Story cover, el título de la Story, las opciones del registro de desplazamiento y de lectura en voz alta, los ejercicios marcados como necesitados del audio de la Story, el narrador y los personajes como datos del Course (storyNarrator, storyCharacters, speakerId en los elementos, la opción textReveal) y el Story Wizard; véase Historias y Story Wizard en el Editor Help.',
   'technical.jsonStructure.title': 'Estructura de datos JSON',
   'technical.jsonStructure.status.title': 'Estado',
   'technical.jsonStructure.status.body':
-      'En desarrollo. QuisquisLingo escribe formatVersion: 11.',
+      'En desarrollo. QuisquisLingo escribe formatVersion: 12.',
   'technical.jsonStructure.root.title': 'Raíz',
   'technical.jsonStructure.root.body':
-      'La raíz contiene formatVersion, metadatos de Course y lessons[]. Los cursos incluidos y custom usan el modelo nativo v11; uno fusionado también lleva mergeProvenance. Un custom exige originalCourseCreator inmutable y un maintainer individual. assignedTeamId es opcional; la lista de miembros del Team vive fuera del Course JSON. No se leen ni migran modelos anteriores.',
+      'La raíz contiene formatVersion, metadatos de Course y lessons[]. Los cursos incluidos y custom usan el modelo nativo v12; uno fusionado también lleva mergeProvenance. Un custom exige originalCourseCreator inmutable y un maintainer individual. assignedTeamId es opcional; la lista de miembros del Team vive fuera del Course JSON. No se leen ni migran modelos anteriores.',
   'technical.jsonStructure.guidebook.title': 'GuideBook',
   'technical.jsonStructure.guidebook.body':
       'Cada Lesson contiene un guidebook con publicationState opcional y guidebook.content[] estructurado. Sin publicationState se considera Published; Draft lo excluye de la entrega al estudiante. Su Internal ID visible deriva de lessonId con el sufijo _guidebook; no se guarda otro ID. El Content del GuideBook conserva sus propios IDs. useGuidebook cambia el acceso del estudiante y el aviso por GuideBook vacío, nunca el contenido guardado.',
@@ -477,7 +492,7 @@ const Map<String, String> helpEs = {
       'La Lesson guarda un ID y título estables de Duel. Su disponibilidad se calcula al ejecutar según Exercises aptos y distintos, no se serializa ni depende de la cantidad de Rounds. createDuels y useGuidebook empiezan en true y solo se escriben si son false. sectionNames conserva nombres no vacíos; worldFlagId referencia el SVG oficial incluido y se omite si está vacío.',
   'technical.jsonStructure.compatibility.title': 'Compatibilidad',
   'technical.jsonStructure.compatibility.body':
-      'Los cursos incluidos y custom usan Course Model v11. Los formatos anteriores no se leen, migran, convierten ni borran. Créditos, origen y Rights Holder nunca conceden permisos ni implican Assigned Team.',
+      'Los cursos incluidos y custom usan Course Model v12. Los formatos anteriores no se leen, migran, convierten ni borran. Créditos, origen y Rights Holder nunca conceden permisos ni implican Assigned Team.',
   'deviceAdminHelp.title': 'Ayuda de Advanced (Admin)',
   'deviceAdminHelp.whatThisPageIs.title': 'Qué es esta página',
   'deviceAdminHelp.whatThisPageIs.paragraph1':
@@ -592,7 +607,7 @@ const Map<String, String> helpEs = {
 
 La aprobación es un proceso manual del propietario de QQL. Este mantiene las claves públicas en lib/services/trusted_publishers.dart y distribuye los cambios con una actualización. No hay portal de aprobación ni botón de firma en la app. La firma se hace fuera de QQL con una herramienta de desarrollo y OpenSSL.
 
-Course Model usa v11; los Publisher Courses v9/v10 requieren tools/convert_course_to_v11.dart y una firma nueva. El protocolo es qql-ed25519-v1.''',
+Course Model usa v12; los Publisher Courses v11 requieren tools/convert_course_to_v12.dart y una firma nueva. El protocolo es qql-ed25519-v1.''',
   'publisherSigningHelp.rolesAndTools.title': '1. Funciones y herramientas',
   'publisherSigningHelp.rolesAndTools.body':
       r'''El editor crea y protege su par de claves Ed25519, pide aprobación y firma sus versiones. El propietario de QQL no recibe la clave privada ni firma cada curso. Comprueba por separado la identidad del editor y la posesión de la clave, asigna publisherId y registra la clave pública en la app.
@@ -656,7 +671,7 @@ Añade TrustedPublisherKey a TrustedPublishers.application() en lib/services/tru
   'publisherSigningHelp.signAndDistribute.title':
       '7. Editor: firmar y distribuir un curso',
   'publisherSigningHelp.signAndDistribute.body':
-      r'''Prepara un externalOfficial JSON válido de Course Model v11 con publisherId y publisherName aprobados, origen, courseId estable y datos de versión. Para actualizar, conserva ID y origen y aumenta officialCourseVersion. Resuelve errores de Course Audit y revisa licencias. La herramienta no convierte cursos custom ni inventa datos del editor.
+      r'''Prepara un externalOfficial JSON válido de Course Model v12 con publisherId y publisherName aprobados, origen, courseId estable y datos de versión. Para actualizar, conserva ID y origen y aumenta officialCourseVersion. Resuelve errores de Course Audit y revisa licencias. La herramienta no convierte cursos custom ni inventa datos del editor.
 
 Desde el repositorio QQL, sustituye dummy-1 por tu keyId y usa tus rutas:
 
@@ -725,6 +740,9 @@ Estas builds muestran TEST ONLY. No las distribuyas como versiones públicas; co
   'exerciseHelp.clearSearch': 'Clear search',
   'exerciseHelp.noResults':
       'No hay resultados de Exercise Help para tu búsqueda.',
+  'exerciseHelp.supplement.canonicalEditor.title': 'Editor canónico',
+  'exerciseHelp.supplement.canonicalEditor.body':
+      'Dos maneras de crear un ejercicio. New Exercise: formularios de preset listos para los tipos de ejercicio más comunes; elige uno, rellena pocos campos, guarda. New Canonical: la estructura básica de cualquier ejercicio, editada directamente; potente, a veces compleja. Cada formulario de preset escribe datos canónicos ordinarios. El editor canónico (editor del Round: New Canonical; selector de presets: Every primitive) los muestra todos para cualquier primitiva: opciones, elementos del prompt con funciones e idiomas, items, targets, layout, el modo de evaluación con sus datos de respuesta, feedback y hint, e indica si esta versión puede jugar el resultado. Un ejercicio que ningún preset representa exactamente se abre ahí; el formulario de preset lo muestra en solo lectura y ofrece Open. Las definiciones están en Exercise primitives de la QQL Guide.',
   'exerciseHelp.supplement.answerVariants.title': 'Variantes de respuesta',
   'exerciseHelp.supplement.answerVariants.body':
       'Puedes escribir respuestas completas equivalentes en líneas separadas. La sintaxis compacta es opcional: {Io} hace opcional Io; [prendo|vorrei] elige una alternativa; (non arrivo <> oggi) intercambia solo las partes indicadas. Los grupos [*:il|i] [*:tuo|tuoi] [*:denaro|soldi] se enlazan por posición: admiten il tuo denaro e i tuoi soldi, no mezclas. Necesitas al menos dos grupos enlazados con la misma cantidad de opciones. Se combinan con {}, [] normales y <> válidos. La puntuación final permanece al final. La expansión elimina duplicados y rechaza sintaxis inválida o más de 128 variantes.',
@@ -733,47 +751,83 @@ Estas builds muestran TEST ONLY. No las distribuyas como versiones públicas; co
   'exerciseHelp.supplement.textEvaluationAndCorrections.body':
       'QQL acepta las respuestas completas configuradas y sus variantes tras normalizar mayúsculas, puntuación, espacios, apóstrofos y acentos. Type the translation también tolera una letra repetida omitida o duplicada en una palabra de al menos cinco caracteres si todo lo demás coincide. Ante un error muestra hasta tres respuestas válidas ordenadas por similitud y Some possible translations si hay más. Ante una respuesta correcta muestra hasta dos alternativas distintas de la respuesta aceptada. El orden de autor resuelve empates; la clasificación no cambia qué se acepta. Los demás presets escritos mantienen Correct answer. El feedback solo menciona diferencias reales.',
   'exerciseHelp.supplement.contextualComprehensionExample.title':
-      'Ejemplo de comprensión contextual',
+      'Ejemplo de Read and answer',
   'exerciseHelp.supplement.contextualComprehensionExample.body':
       'Question: What does Jane mean?\n\nContext:\nJane: I thought Jim was coming with us.\nJim: I changed my mind.\nJane: That’s just great.\n\nQuestion y Context son independientes. Context puede ser texto, audio o ambos. El diálogo es opcional; también sirve un anuncio, pasaje o situación breve. Configura las respuestas por separado.',
-  'exerciseHelp.preset.choice.body':
-      'El estudiante ve un prompt en la lengua base y elige su traducción en la lengua de estudio. Escribe un prompt claro, al menos dos respuestas y una correcta. Puedes añadir audio o imagen al prompt. Los distractores deben ser plausibles y claramente incorrectos.',
+  'exerciseHelp.preset.choice_target.body':
+      'El estudiante lee una pregunta, o una frase que completar, y elige la respuesta correcta entre alternativas de texto en la lengua de estudio; la pregunta puede estar en cualquiera de las dos lenguas. Puede ser cualquier cosa que necesite el curso: una forma gramatical, un dato cultural, un significado, una traducción. Escribe la pregunta, al menos dos respuestas de texto y una respuesta correcta (un ejercicio nuevo empieza con la respuesta 1; con Multiple correct answers pueden ser varias, y el Audit avisa si todas las respuestas son correctas). Una línea Prompt opcional, una instrucción o algo de contexto, se muestra encima de la pregunta en lugar de la línea estándar “Choose the correct answer.”. Un audio o una imagen opcionales pueden acompañar la pregunta. Haz que los distractores sean plausibles pero claramente incorrectos. Su gemelo Choose the answer (to source) pregunta y responde en la lengua base.',
+  'exerciseHelp.preset.choice_source.body':
+      'El estudiante lee una pregunta, o una frase que completar, escrita en la lengua base y elige la respuesta correcta entre alternativas en la lengua base: una regla gramatical, un dato cultural, el significado de una expresión, todo lo que conviene preguntar en la lengua que el estudiante ya conoce. Escribe la pregunta, al menos dos respuestas de texto y una respuesta correcta (un ejercicio nuevo empieza con la respuesta 1; con Multiple correct answers pueden ser varias, y el Audit avisa si todas las respuestas son correctas). Una línea Prompt opcional, una instrucción o algo de contexto, se muestra encima de la pregunta en lugar de la línea estándar “Choose the correct answer.”. El audio opcional del prompt se lee con la voz de la lengua base y una imagen puede acompañar la pregunta. Haz que los distractores sean plausibles pero claramente incorrectos. Su gemelo Choose the answer (to target) pregunta y responde en la lengua de estudio.',
+  'exerciseHelp.preset.listening_answer_target.body':
+      'El estudiante escucha audio en la lengua de estudio y elige la respuesta entre alternativas escritas en la lengua de estudio. Sin pregunta elige lo que oyó; con pregunta el Exercise comprueba la comprensión del pasaje, así que hazlo suficientemente largo. Audio text debe contener exactamente lo que se oye. On-Device TTS usa la voz del dispositivo; Recorded MP3 busca asociaciones de texto en Course Editor > Audio Library; Hybrid prueba primero los MP3 completos y después TTS. Para MP3, importa archivos en {folderAudioImports} con Import MP3 y usa Associate recording. No se adjunta MP3 a cada Exercise. El JSON solo guarda referencias, no bytes. Ofrece varias respuestas escritas y una correcta sin revelar el audio visualmente. Su gemelo Listen and answer (to source) pregunta y responde en la lengua base.',
+  'exerciseHelp.preset.listening_answer_source.body':
+      'El estudiante escucha audio en la lengua de estudio y elige la respuesta entre alternativas escritas en la lengua base: el significado de lo que oyó, o la respuesta a una pregunta formulada en la lengua base. Escribe Audio text en la lengua de estudio, una pregunta opcional, las alternativas y una respuesta correcta. Audio text, On-Device TTS, Recorded MP3 e Hybrid funcionan como en Listen and answer (to target). No reveles el audio visualmente.',
+  'exerciseHelp.preset.reading_answer_target.body':
+      'El estudiante lee un texto en la lengua de estudio y responde una pregunta aparte eligiendo entre alternativas en la lengua de estudio. El texto puede ser un pasaje, una situación o un intercambio breve; las líneas de diálogo opcionales, un turno “Speaker: texto” por línea, se muestran después del texto, que entonces sirve de Context. Escribe el texto o las líneas de diálogo, la pregunta, al menos dos respuestas y una correcta. Haz el texto suficientemente largo para comprobar la comprensión; la puntuación sola no es un texto. Una imagen del Exercise puede acompañarlo. Este preset sustituye a Reading comprehension, Dialogue response y Contextual comprehension; los Exercises creados con ellos se abren aquí. Su gemelo Read and answer (to source) pregunta y responde en la lengua base.',
+  'exerciseHelp.preset.reading_answer_source.body':
+      'El estudiante lee un texto en la lengua de estudio, un pasaje, una situación o líneas de diálogo, y responde una pregunta escrita en la lengua base eligiendo entre alternativas en la lengua base: qué significa el texto, qué pretende un hablante, qué pasa después. Escribe el texto o las líneas de diálogo, la pregunta, al menos dos respuestas y una correcta. Su gemelo Read and answer (to target) pregunta y responde en la lengua de estudio.',
+  'exerciseHelp.preset.type_translation_to_target.body':
+      'El estudiante traduce libremente un texto de la lengua base. Escribe el texto y una o más traducciones completas aceptadas; Hint es opcional. Usa minúsculas salvo nombres propios. Se admiten variantes {}, [a|b], grupos enlazados [*:a|b] y cambios de orden <>. Expand answers muestra una vista previa sin guardar; Use expanded answers añade líneas explícitas sin modificar la expresión original. Se rechazan más de 128 variantes sin cambios parciales. El feedback muestra respuestas válidas por similitud, sin cambiar cuáles se aceptan. Se tolera de forma conservadora una letra repetida omitida o duplicada, no palabras ausentes ni sustituciones. Su gemelo Type the translation (to source) muestra un texto en la lengua de estudio y acepta una traducción en la lengua base.',
+  'exerciseHelp.preset.type_translation_to_source.body':
+      'El estudiante ve un texto en la lengua de estudio y escribe libremente su traducción en la lengua base. Escribe el texto que traducir en la lengua de estudio, una o más traducciones completas aceptadas en la lengua base y un Hint opcional. Las respuestas aceptadas usan la misma sintaxis, expansión, feedback y tolerancia a erratas que Type the translation (to target): {} opcional, alternativas independientes [a|b], grupos enlazados [*:a|b], ámbitos <> de reordenación, Expand answers y Use expanded answers, 128 respuestas como máximo. Usa minúsculas salvo nombres propios.',
+  'exerciseHelp.preset.build_translation_to_target.body':
+      'El estudiante forma una traducción con bloques de palabras. Escribe el texto de origen, los bloques literales y una o más traducciones completas correctas. Cada respuesta debe poder construirse con bloques distintos; una palabra repetida requiere bloques repetidos. Pueden sobrar como máximo dos bloques. No se aplica la sintaxis de Type the translation ni tolerancia a erratas. Su gemelo Build the translation (to source) muestra un texto en la lengua de estudio y usa bloques en la lengua base.',
+  'exerciseHelp.preset.build_translation_to_source.body':
+      'El estudiante ve un texto en la lengua de estudio y construye su traducción en la lengua base con bloques de palabras. Escribe el texto que traducir en la lengua de estudio, los bloques literales disponibles en la lengua base y una o más traducciones completas correctas. Las respuestas se pueden añadir, quitar y reordenar; cada una debe poder construirse con ocurrencias distintas de los bloques. Una palabra repetida requiere bloques repetidos y pueden sobrar como máximo dos bloques. No se aplica la sintaxis de Type the translation, ni tolerancia a erratas ni similitud.',
+  'exerciseHelp.preset.picture_flashcard.body':
+      'El estudiante ve una imagen con su palabra en la lengua de estudio y su traducción en la lengua base, un ejemplo de uso opcional con su traducción, y escucha la palabra si la lectura en voz alta está activa. Escribe la imagen (Image), la palabra y la traducción, si quieres las líneas de uso, y elige Automatically, On request o No read-aloud; rellena Pronunciation TTS (if different) solo cuando el texto leído deba diferir de la palabra. La tarjeta nunca es un Exercise de audio y se muestra con Audio Exercises apagado. Got it completa la tarjeta; Review again la repite una vez.',
+  'exerciseHelp.preset.true_false.body':
+      'El estudiante lee una afirmación en la lengua de estudio, opcionalmente la escucha, y elige entre la palabra para verdadero y la palabra para falso en la lengua base. Escribe la afirmación, una afirmación hablada opcional, las dos respuestas (prellenadas en la lengua base cuando QQL la conoce) y el número de la respuesta correcta: 1 si la afirmación es verdadera, 2 si es falsa.',
+  'exerciseHelp.preset.gap_choice_inline.body':
+      'El estudiante ve una frase con uno o más huecos y los rellena en orden tocando opciones; la misma opción puede rellenar varios huecos y un toque equivocado puede caer en el hueco equivocado. Escribe la frase con cada respuesta entre llaves: I {am} going {to} London. Añade 0, 1 o como máximo 2 opciones distractoras y un audio opcional. Este preset sustituye al interruptor Inline gaps de Choose the answer.',
+  'exerciseHelp.preset.complete_text.body':
+      'El estudiante lee un texto con uno o más huecos y escribe cada palabra que falta. Escribe el texto completo y enumera las palabras que ocultar, una por línea, en orden; cada una debe aparecer en el texto. Las respuestas usan la normalización normal de Input. No hay audio: para huecos escuchados usa Listen and fill the gaps.',
+  'exerciseHelp.preset.missing_letters.body':
+      'El estudiante ve palabras con letras que faltan y las escribe. Escribe el texto completo y pon las letras que faltan entre corchetes: El ga[t]o duerme. El estudiante ve ga_o, un guion por letra, y escribe t. Varios huecos están bien. Un texto hablado opcional lee toda la frase, una imagen opcional la ilustra y una pista opcional ayuda sin revelar las letras.',
+  'exerciseHelp.preset.gap_blocks.body':
+      'El estudiante ve una frase con huecos y arrastra bloques de palabras a ellos; cada bloque se usa una vez y debe caer en el hueco correcto. Escribe la frase con cada respuesta entre llaves: Io {vorrei} un caffè. Añade 0, 1 o como máximo 2 bloques distractores y un audio opcional. Este preset sustituye al interruptor Inline gaps de Word order y Build the translation.',
+  'exerciseHelp.preset.sentence_order.body':
+      'El estudiante ve las líneas de una historia breve o un diálogo como bloques y las ordena. Escribe las líneas, una por línea, y el orden correcto; puedes añadir 0, 1 o como máximo 2 líneas que no pertenecen a nada. La instrucción dice qué ordenar: las frases de una historia, los turnos de un diálogo.',
+  'exerciseHelp.preset.sort_into_groups.body':
+      'El estudiante toca una palabra y luego el grupo al que pertenece; una palabra colocada se puede retirar; Check evalúa todos los grupos a la vez. Escribe la pregunta, un grupo por línea como “Nombre del grupo: palabra, palabra, …” (normalmente dos o más, cada uno con al menos una palabra) y, si quieres, palabras que no pertenecen a ningún grupo: también se ofrecen y deben quedarse en el banco. Una palabra solo puede estar en un grupo. Sort into groups nunca es un ejercicio de audio.',
+  'exerciseHelp.preset.fill_the_slots.body':
+      'El estudiante toca una palabra y luego la casilla que rellena; una segunda palabra sustituye a la primera; Check evalúa todas las casillas a la vez. Escribe la pregunta y una casilla por línea como “lo que ve el estudiante = la palabra que la rellena”, por ejemplo “… gatto = il”. Las palabras extra que no rellenan ninguna casilla son opcionales. Activa “A word may fill more than one slot” cuando la misma palabra es la respuesta de varias casillas: se queda en el banco tras cada uso.',
+  'exerciseHelp.preset.listening_image_choice.body':
+      'El estudiante escucha el texto hablado y elige la imagen que nombra. Escribe el texto hablado, una pregunta opcional, las etiquetas de las respuestas (una por línea) y una imagen por respuesta, elegida con los selectores bajo las respuestas; marca la respuesta correcta. Las etiquetas se muestran bajo las imágenes.',
+  'exerciseHelp.preset.spell_heard.body':
+      'El estudiante escucha una palabra y la deletrea ordenando fichas de letras o sílabas. Escribe la palabra hablada y sus fichas en orden, una por línea (divide la palabra en letras o sílabas como prefieras). No hace falta imagen; las fichas se unen sin espacios.',
+  'exerciseHelp.preset.picture_choice.body':
+      'El estudiante ve una imagen y elige entre respuestas de texto la palabra o la frase que la nombra. Escribe la imagen (Image), una pregunta como ¿Qué es esto?, al menos dos respuestas y la correcta.',
+  'exerciseHelp.preset.picture_name.body':
+      'El estudiante ve una imagen y escribe lo que muestra. Escribe la imagen (Image), una pregunta o instrucción, una o más respuestas aceptadas con la misma sintaxis que Type the translation ({} opcional, alternativas [a|b], grupos enlazados, ámbitos de reordenación) y una pista opcional. Las respuestas usan la normalización normal de Input y la tolerancia a erratas.',
+  'exerciseHelp.preset.spell_word.body':
+      'El estudiante lee una pista en la lengua base, la palabra misma o una definición, y deletrea la palabra en la lengua de estudio ordenando fichas de letras o sílabas. Escribe la pista y las fichas de la palabra en orden, una por línea; la imagen es opcional.',
+  'exerciseHelp.preset.picture_word_match.body':
+      'El estudiante relaciona cada imagen de la izquierda con una palabra de la derecha. Escribe las palabras, una por línea, y una imagen por palabra con los selectores de abajo; al menos dos pares. Cuentan las relaciones entre pares, no las posiciones.',
+  'exerciseHelp.preset.dialogue_line.body':
+      'Una línea de diálogo en una Historia. Elige quién habla (el narrador o un personaje definido en Story characters del Course Editor), escribe la línea y elige si el estudiante la lee, la escucha o ambas cosas. La lectura en voz alta sigue el ajuste de la Historia salvo que la línea lo cambie; con texto y audio puedes ocultar el texto hasta que el audio se haya reproducido. Una línea nunca se salta: sin audio el estudiante la lee. No hay respuesta ni puntuación; Continue avanza.',
+  'exerciseHelp.preset.story_cover.body':
+      'La primera tarjeta de una Historia. Elige la imagen de portada y, si quieres, una línea de título; el título de la Historia de las opciones del Round se muestra encima. El estudiante pulsa Continue. Crea Historias con el Story Wizard o activando Play as a sequence en el editor del Round.',
+  'exerciseHelp.preset.note_card.body':
+      'Una tarjeta con un título y una nota: un consejo, un punto gramatical, una observación cultural. El estudiante la lee y pulsa Continue; no hay respuesta, puntuación ni audio. Escribe en la lengua que tus estudiantes leen mejor.',
   'exerciseHelp.preset.gap_choice.body':
       'El estudiante ve una frase con ___ y elige la palabra o expresión que falta. Escribe un hueco, bloques de respuesta y una respuesta correcta. Procura que solo una opción sea correcta en significado y gramática.',
   'exerciseHelp.preset.icon_choice.body':
       'El estudiante ve una pregunta y varias imágenes, y elige la que corresponde. Añade texto o icono para cada opción y el número de la respuesta correcta. Todas las opciones necesitan imagen.',
   'exerciseHelp.preset.script_recognition.body':
       'Cada opción relaciona la imagen de un carácter con su texto. En Image to text se elige el texto que corresponde a la imagen; en Text to image se elige la imagen del texto. El texto puede ser nombre, sonido, pronunciación o transliteración. Da al menos dos opciones y una sola correcta. Puedes mostrar varias imágenes del carácter. Usa imágenes incluidas o importadas portátiles, nunca rutas absolutas. Preview emplea la interacción Select normal.',
-  'exerciseHelp.preset.listening_choice.body':
-      'El estudiante escucha audio y elige el texto correspondiente. Audio text debe contener exactamente lo que se oye. On-Device TTS usa la voz del dispositivo; Recorded MP3 busca asociaciones de texto en Course Editor > Audio Library; Hybrid prueba primero los MP3 completos y después TTS. Para MP3, importa archivos en {folderAudioImports} con Import MP3 y usa Associate recording. No se adjunta MP3 a cada Exercise. El JSON solo guarda referencias, no bytes. Ofrece varias respuestas escritas y una correcta sin revelar el audio visualmente.',
-  'exerciseHelp.preset.listening_comprehension.body':
-      'El estudiante escucha un pasaje y contesta una pregunta aparte. Escribe Audio text, la pregunta, alternativas y una respuesta correcta. La solución debe requerir comprender el pasaje.',
-  'exerciseHelp.preset.reading_comprehension.body':
-      'El estudiante lee un pasaje y contesta una pregunta aparte. Escribe el contexto, la pregunta, alternativas y una respuesta correcta. Puedes añadir imagen. El pasaje debe tener suficiente contenido para evaluar comprensión.',
-  'exerciseHelp.preset.dialogue_response.body':
-      'El estudiante lee una situación y una pregunta y elige la mejor de dos respuestas. Escribe Context, Question, exactamente dos respuestas y una correcta, todo en la lengua de estudio. El orden visible se mezcla.',
-  'exerciseHelp.preset.contextual_comprehension.body':
-      'El estudiante lee o escucha un Context y responde una pregunta de elección. Escribe Question, texto o audio de Context, alternativas y una correcta. Dialogue es opcional: una línea Speaker: text por turno. Puedes añadir una imagen.',
-  'exerciseHelp.preset.type_translation.body':
-      'El estudiante traduce libremente un texto de la lengua base. Escribe el texto y una o más traducciones completas aceptadas; Hint es opcional. Usa minúsculas salvo nombres propios. Se admiten variantes {}, [a|b], grupos enlazados [*:a|b] y cambios de orden <>. Expand answers muestra una vista previa sin guardar; Use expanded answers añade líneas explícitas sin modificar la expresión original. Se rechazan más de 128 variantes sin cambios parciales. El feedback muestra respuestas válidas por similitud, sin cambiar cuáles se aceptan. Se tolera de forma conservadora una letra repetida omitida o duplicada, no palabras ausentes ni sustituciones.',
-  'exerciseHelp.preset.build_translation.body':
-      'El estudiante forma una traducción con bloques de palabras. Escribe el texto de origen, los bloques literales y una o más traducciones completas correctas. Cada respuesta debe poder construirse con bloques distintos; una palabra repetida requiere bloques repetidos. Pueden sobrar como máximo dos bloques. No se aplica la sintaxis de Type the translation ni tolerancia a erratas.',
   'exerciseHelp.preset.translation_choice_to_target.body':
       'Select, una respuesta y comprobación inmediata. QQL crea la instrucción Pick the correct [Target language] translation según las lenguas del curso. Escribe el texto de origen, de dos a cinco traducciones diferentes y una correcta. Puedes añadir imagen. Elegir mal muestra la respuesta. Después se puede oír la correcta con TTS disponible; el Exercise no depende de audio. Usa distractores plausibles y claramente incorrectos.',
   'exerciseHelp.preset.translation_choice_to_source.body':
       'Select, una respuesta y comprobación inmediata. QQL crea la instrucción Pick the correct [Source language] translation. Escribe el texto en la lengua de estudio, de dos a cinco traducciones diferentes a la lengua base y una correcta. Puedes añadir imagen. Elegir mal muestra la respuesta. Se puede escuchar el texto de la lengua de estudio con TTS disponible; el Exercise no depende de audio.',
-  'exerciseHelp.preset.fill_blank.body':
-      'El estudiante ve una palabra o frase incompleta y escribe lo que falta. Escribe el prompt, una o más respuestas aceptadas, Hint opcional que no revele la solución y audio opcional de la frase completa. Las respuestas pueden usar variantes.',
   'exerciseHelp.preset.type_missing_word.body':
-      'Escribe una frase con un hueco ___ y las palabras completas aceptadas. QQL muestra automáticamente la primera letra Unicode como pista; todas las respuestas deben empezar por la misma. El estudiante escribe la palabra completa, no solo lo que queda después de la pista. Tras comprobar se muestra la frase completa.',
+      'Escribe una frase con un hueco ___ y las palabras completas aceptadas. Con Show the first letter activo, el hueco muestra la primera letra como pista: QQL obtiene automáticamente el primer grafema Unicode y todas las respuestas deben empezar por el mismo. Con el interruptor apagado, el hueco está vacío y el estudiante escribe la palabra sin ayuda. En ambos casos el estudiante escribe la palabra completa, con la normalización y el feedback normales de Input. Ejemplo: con la pista, el estudiante ve é______ y escribe école, no cole. Tras comprobar se muestra la frase completa. Los Exercises creados con el antiguo preset Fill-in se abren aquí.',
   'exerciseHelp.preset.listening_spelling.body':
       'El estudiante oye audio y escribe lo que escuchó. Introduce Audio text y una transcripción aceptada. Return o Enter envía la respuesta.',
   'exerciseHelp.preset.missing_word.body':
       'El estudiante escucha audio y lee una transcripción con uno o más huecos, luego escribe las palabras ausentes. Introduce la transcripción y Audio text completos, y cada Missing word en orden. Todas deben aparecer en la transcripción.',
-  'exerciseHelp.preset.matching.body':
-      'El estudiante relaciona elementos de dos columnas mezcladas. Escribe pares no vacíos left = right. La corrección depende de las relaciones, no de las posiciones visibles.',
   'exerciseHelp.preset.word_match.body':
-      'El estudiante relaciona palabras de la lengua base con sus traducciones. Escribe exactamente tres pares de texto. Cada elemento visible debe ser único tras la normalización.',
+      'El estudiante relaciona palabras de la lengua base con sus traducciones. Escribe al menos dos pares de texto; tres es el número habitual. Cada elemento visible debe ser único tras la normalización. Los Exercises creados con el antiguo preset Matching se abren aquí.',
   'exerciseHelp.preset.super_match.body':
       'El estudiante relaciona elementos de la lengua de estudio, como sinónimos u opuestos. Escribe exactamente tres pares y una instrucción que indique la relación. No mezcles reglas distintas.',
   'exerciseHelp.preset.audio_match.body':
@@ -781,45 +835,81 @@ Estas builds muestran TEST ONLY. No las distribuyas como versiones públicas; co
   'exerciseHelp.preset.word_order.body':
       'El estudiante ordena bloques de la lengua de estudio. Escribe los bloques y el orden correcto. Permite como máximo dos distractores distintos; este preset evalúa orden, no traducción.',
   'exerciseHelp.preset.image_word.body':
-      'El estudiante ve una imagen y ordena letras o sílabas para formar su palabra. Escribe imagen, instrucción, bloques y orden correcto. Incluye solo los bloques necesarios: no se permiten distractores.',
+      'El estudiante ve una imagen y ordena letras o sílabas para formar su palabra. Escribe la imagen, la instrucción y los bloques de la palabra en orden, uno por línea; el estudiante recibe exactamente esos bloques, mezclados. No se permiten distractores.',
   'exerciseHelp.preset.flashcard.body':
-      'El estudiante ve término, significado, uso opcional y pronunciación opcional y elige Understood o Review later. Aporta material de estudio, no una respuesta puntuable. Presentation Content no da XP de respuesta correcta.',
-  'exerciseHelp.preset.choice.description':
-      'El estudiante elige la traducción correcta entre varias opciones.',
+      'El estudiante ve una palabra o expresión en la lengua de estudio, su traducción en la lengua base y un ejemplo de uso opcional con traducción, escucha la palabra si la lectura en voz alta está activa y elige Got it o Review again. Aporta material de estudio, no una respuesta puntuable; elige Automatically, On request o No read-aloud; rellena Pronunciation TTS (if different) solo cuando el texto leído deba diferir de la palabra. La lectura en voz alta nunca convierte la tarjeta en un ejercicio de audio. Presentation Content no da XP de respuesta correcta.',
+  'exerciseHelp.preset.choice_target.description':
+      'El estudiante lee una pregunta y elige la respuesta entre opciones en la lengua de estudio: gramática, cultura o significado, no solo traducciones.',
+  'exerciseHelp.preset.choice_source.description':
+      'El estudiante lee una pregunta en la lengua base y elige la respuesta: reglas, cultura y significados preguntados en la lengua que ya conoce.',
+  'exerciseHelp.preset.listening_answer_target.description':
+      'El estudiante escucha audio en la lengua de estudio y elige la respuesta en la lengua de estudio: lo que oyó, o la respuesta a una pregunta sobre el pasaje.',
+  'exerciseHelp.preset.listening_answer_source.description':
+      'El estudiante escucha audio en la lengua de estudio y elige la respuesta en la lengua base: el significado, o la respuesta a una pregunta sobre el pasaje.',
+  'exerciseHelp.preset.reading_answer_target.description':
+      'El estudiante lee un texto, una situación o un diálogo en la lengua de estudio y responde una pregunta en la lengua de estudio.',
+  'exerciseHelp.preset.reading_answer_source.description':
+      'El estudiante lee un texto, una situación o un diálogo en la lengua de estudio y responde una pregunta formulada en la lengua base.',
+  'exerciseHelp.preset.type_translation_to_target.description':
+      'El estudiante escribe una traducción en la lengua de estudio.',
+  'exerciseHelp.preset.type_translation_to_source.description':
+      'El estudiante lee un texto en la lengua de estudio y escribe su traducción en la lengua base.',
+  'exerciseHelp.preset.build_translation_to_target.description':
+      'El estudiante construye una traducción con bloques de palabras.',
+  'exerciseHelp.preset.build_translation_to_source.description':
+      'El estudiante lee un texto en la lengua de estudio y construye su traducción en la lengua base con bloques de palabras.',
+  'exerciseHelp.preset.picture_flashcard.description':
+      'El estudiante repasa una imagen con su palabra, su significado y un ejemplo de uso opcional, con lectura en voz alta opcional.',
+  'exerciseHelp.preset.true_false.description':
+      'El estudiante lee (o escucha) una afirmación en la lengua de estudio y responde verdadero o falso.',
+  'exerciseHelp.preset.gap_choice_inline.description':
+      'El estudiante rellena los huecos de una frase fija tocando opciones, una por hueco.',
+  'exerciseHelp.preset.complete_text.description':
+      'El estudiante escribe las palabras que faltan en un texto con varios huecos; sin audio.',
+  'exerciseHelp.preset.missing_letters.description':
+      'El estudiante escribe las letras que faltan dentro de las palabras (be__); texto hablado o imagen opcionales.',
+  'exerciseHelp.preset.gap_blocks.description':
+      'El estudiante rellena los huecos de una frase fija con bloques de palabras, cada uno usado una vez.',
+  'exerciseHelp.preset.sentence_order.description':
+      'El estudiante ordena las líneas de una historia o un diálogo.',
+  'exerciseHelp.preset.sort_into_groups.description':
+      'El estudiante clasifica palabras en grupos, como masculino y femenino; una palabra puede no pertenecer a ningún grupo.',
+  'exerciseHelp.preset.fill_the_slots.description':
+      'El estudiante pone la palabra correcta en cada casilla, por ejemplo el artículo delante de cada nombre.',
+  'exerciseHelp.preset.listening_image_choice.description':
+      'El estudiante escucha una palabra o una frase y elige la imagen correspondiente.',
+  'exerciseHelp.preset.spell_heard.description':
+      'El estudiante escucha una palabra y la deletrea con fichas de letras o sílabas.',
+  'exerciseHelp.preset.picture_choice.description':
+      'El estudiante ve una imagen y elige la palabra o la frase que la nombra.',
+  'exerciseHelp.preset.picture_name.description':
+      'El estudiante ve una imagen y escribe su nombre; varias respuestas aceptadas.',
+  'exerciseHelp.preset.spell_word.description':
+      'El estudiante deletrea una palabra con fichas de letras o sílabas tras una pista en la lengua base.',
+  'exerciseHelp.preset.picture_word_match.description':
+      'El estudiante relaciona imágenes con sus palabras.',
+  'exerciseHelp.preset.dialogue_line.description':
+      'Una línea de una Historia, dicha por el narrador o un personaje como texto, audio o ambos; el estudiante lee o escucha y continúa.',
+  'exerciseHelp.preset.story_cover.description':
+      'La tarjeta de apertura de una Historia: su imagen y una línea de título opcional; el estudiante continúa.',
+  'exerciseHelp.preset.note_card.description':
+      'Un consejo, una nota gramatical o cultural que el estudiante lee y continúa.',
   'exerciseHelp.preset.gap_choice.description':
       'El estudiante elige la palabra o expresión que falta.',
   'exerciseHelp.preset.icon_choice.description':
       'El estudiante elige la imagen que corresponde al prompt.',
   'exerciseHelp.preset.script_recognition.description':
       'Reconoce caracteres impresos o manuscritos: Image to text o Text to image.',
-  'exerciseHelp.preset.listening_choice.description':
-      'El estudiante escucha y elige el texto correspondiente.',
-  'exerciseHelp.preset.listening_comprehension.description':
-      'El estudiante escucha un pasaje y elige la respuesta correcta.',
-  'exerciseHelp.preset.reading_comprehension.description':
-      'El estudiante lee un pasaje y elige la respuesta correcta.',
-  'exerciseHelp.preset.dialogue_response.description':
-      'El estudiante lee una situación y elige la mejor respuesta.',
-  'exerciseHelp.preset.contextual_comprehension.description':
-      'El estudiante lee o escucha un Context y responde una pregunta aparte.',
-  'exerciseHelp.preset.type_translation.description':
-      'El estudiante escribe una traducción en la lengua de estudio.',
-  'exerciseHelp.preset.build_translation.description':
-      'El estudiante construye una traducción con bloques de palabras.',
   'exerciseHelp.preset.translation_choice_to_target.description':
       'Select: el estudiante ve texto en la lengua base y elige su traducción.',
   'exerciseHelp.preset.translation_choice_to_source.description':
       'Select: el estudiante ve texto en la lengua de estudio y elige su traducción a la lengua base.',
-  'exerciseHelp.preset.fill_blank.description':
-      'El estudiante escribe lo que falta en una palabra o frase.',
   'exerciseHelp.preset.type_missing_word.description':
-      'Completa la palabra ausente después de ver su primera letra.',
+      'El estudiante escribe la palabra que falta en una frase; la primera letra puede mostrarse como pista.',
   'exerciseHelp.preset.listening_spelling.description':
       'El estudiante escucha y escribe la palabra o pasaje oído.',
   'exerciseHelp.preset.missing_word.description':
       'El estudiante escucha y completa huecos en una transcripción.',
-  'exerciseHelp.preset.matching.description':
-      'El estudiante relaciona elementos de texto correspondientes.',
   'exerciseHelp.preset.word_match.description':
       'El estudiante relaciona palabras y traducciones.',
   'exerciseHelp.preset.super_match.description':
@@ -832,16 +922,98 @@ Estas builds muestran TEST ONLY. No las distribuyas como versiones públicas; co
       'El estudiante forma la palabra que representa una imagen.',
   'exerciseHelp.preset.flashcard.description':
       'Presenta material de estudio sin una respuesta puntuable normal.',
-  'exerciseHelp.category.multipleChoice': 'Multiple choice',
-  'exerciseHelp.category.translation': 'Translation',
-  'exerciseHelp.category.textInput': 'Text input',
-  'exerciseHelp.category.matching': 'Matching',
-  'exerciseHelp.category.ordering': 'Ordering',
-  'exerciseHelp.category.presentation': 'Presentation',
+  'exerciseHelp.category.vocabulary': 'Vocabulary',
+  'exerciseHelp.category.grammarAndSentences': 'Grammar and sentences',
+  'exerciseHelp.category.listening': 'Listening',
+  'exerciseHelp.category.readingAndDialogue': 'Reading and dialogue',
+  'exerciseHelp.category.picturesAndCharacters': 'Pictures and characters',
+  'exerciseHelp.category.cardsAndNotes': 'Cards and notes',
+  'exerciseHelp.category.comingLater': 'Coming later',
+  'exerciseHelp.comingLater': 'En una versión posterior:',
   'exerciseHelp.field.choice.prompt.body':
-      'Instrucción visible para el estudiante.\n\nQué escribir\nEscribe aquí la instrucción y pon la palabra o frase a traducir en Question.\n\nComprobaciones\nLa instrucción debe corresponder a la pregunta y las respuestas.\n\nEjemplo\nHow do you say this in Italian?',
+      'Una línea opcional encima de la pregunta: una instrucción o algo de contexto. Ejemplo: Pick the verb form that fits.\n\nQué escribir\nUna línea, o nada. En un Round ocupa el lugar de la línea estándar “Choose the correct answer.” bajo el encabezado CHOOSE; déjala vacía para conservar esa línea. La pregunta o la frase va en su propio campo.\n\nComprobaciones\nOpcional. Debe corresponder a la pregunta y las respuestas.\n\nEjemplo\nPick the verb form that fits.',
+  'exerciseHelp.field.build_translation_to_source.correctTranslation.body':
+      'Define una respuesta completa y literal en la lengua base para Build the translation (to source).\n\nQué escribir\nCada entrada de respuesta contiene una frase completa en la lengua base. Usa Add correct translation para otra respuesta y el asa para reordenar.\n\nComprobaciones\nHace falta al menos una respuesta no vacía. Las respuestas deben ser únicas tras normalizar mayúsculas, espacios y puntuación final, y construibles con ocurrencias distintas de los bloques disponibles. No se aplican expresiones opcionales, alternativas ni de reordenación, ni similitud ni tolerancia a erratas.\n\nEjemplo\nI would like a coffee.',
+  'exerciseHelp.field.build_translation_to_source.tokens.body':
+      'Bloques en la lengua base con los que se construyen las traducciones correctas.\n\nQué escribir\nUn bloque literal por línea, en la lengua base. Las líneas vacías se ignoran. Incluye suficientes ocurrencias distintas para construir cada traducción correcta; una palabra repetida requiere líneas repetidas. Con Inline gaps activo, este campo solo añade distractores opcionales.\n\nComprobaciones\nCada traducción correcta debe poder construirse con estos bloques. Como máximo 2 bloques pueden quedar sin usar por todas las traducciones correctas.\n\nEjemplo\nI\nwould\nlike\na\ncoffee\ntea',
+  'exerciseHelp.field.choice_source.answers.body':
+      'Las alternativas, escritas en la lengua base.\n\nQué escribir\nUna respuesta literal por línea, al menos dos líneas no vacías, en la lengua que el estudiante ya conoce. Las líneas vacías se ignoran. La primera línea no vacía es la respuesta 1.\n\nComprobaciones\nElige un Correct answer number válido. Evita respuestas duplicadas y haz que los distractores sean plausibles pero claramente incorrectos.\n\nEjemplo\nel de antes de vocal\nel de antes de consonante\nninguno',
+  'exerciseHelp.field.choice_source.question.body':
+      'La pregunta, o la frase que completar, escrita en la lengua base.\n\nQué escribir\nUna pregunta en la lengua que el estudiante ya conoce, o una frase con ___ donde va la respuesta: una regla gramatical, un dato cultural, el significado de una expresión. La instrucción o el contexto van en Prompt.\n\nComprobaciones\nLas respuestas también están en la lengua base; marca la correcta (o varias con Multiple correct answers).\n\nEjemplo\n¿Qué artículo italiano acompaña a un sustantivo masculino que empieza por vocal?',
+  'exerciseHelp.field.reading_answer.prompt.body':
+      'El texto que el estudiante lee antes de responder.\n\nQué escribir\nUn pasaje, una situación o un texto breve en la lengua de estudio. Varias líneas o párrafos forman parte del texto. Con líneas de diálogo debajo, este texto es el Context que se muestra antes y puede ser breve.\n\nComprobaciones\nHace falta un texto con palabras o líneas de diálogo; la puntuación sola no basta. Una o dos palabras léxicas producen un aviso; se recomiendan al menos tres. La pregunta debe comprobar la comprensión.\n\nEjemplo\nMaria prende il treno. Va a Roma.',
+  'exerciseHelp.field.type_missing_word.revealFirstLetter.body':
+      'Decide si el hueco muestra la primera letra de la palabra ausente como pista.\n\nQué escribir\nOn: el estudiante ve la primera letra seguida de un espacio y escribe la palabra entera. Off: el hueco está vacío y el estudiante escribe la palabra sin ayuda. En ambos casos, escribe la palabra completa entre las respuestas aceptadas.\n\nComprobaciones\nCon la pista activa, cada palabra aceptada debe empezar por la misma primera letra. El ajuste forma parte del Exercise, así que el Audit lo lee del propio Exercise.\n\nEjemplo\nOn: é______ para école. Off: ______ para école.',
+  'exerciseHelp.field.type_translation_to_source.accepted.body':
+      'Define las traducciones completas en la lengua base aceptadas para el texto en la lengua de estudio.\n\nQué escribir\nRespuestas completas equivalentes en líneas separadas, en la lengua base. Las líneas vacías se ignoran. Se aplica la misma sintaxis que en Type the translation (to target): {} opcional, alternativas [a|b], grupos enlazados [*:a|b] con el mismo número de alternativas y ámbitos <> de reordenación.\n\nComprobaciones\nHace falta al menos una respuesta aceptada. Las expresiones malformadas se rechazan; la expansión es determinista y se limita a 128 respuestas. Declara explícitamente las respuestas equivalentes.\n\nEjemplo\nI would like a coffee.\nI’d like a coffee.',
+  'exerciseHelp.field.type_translation_to_source.prompt.body':
+      'El texto que el estudiante traduce a la lengua base.\n\nQué escribir\nUna frase o un pasaje en la lengua de estudio. Los saltos de línea pertenecen al mismo prompt; las respuestas aceptadas o las traducciones correctas van en sus propios campos.\n\nComprobaciones\nEscribe un texto no vacío en la lengua de estudio y respuestas completas equivalentes en la lengua base. Mantén el significado sin ambigüedad.\n\nEjemplo\nVorrei un caffè.',
+  'exerciseHelp.field.answer_pictures.body':
+      'Una imagen por respuesta.\n\nQué escribir\nUsa el selector bajo cada respuesta: una imagen plana de la biblioteca compartida, una imagen importada o una imagen del Course. Las imágenes se copian al Course.\n\nComprobaciones\nCada respuesta necesita su imagen; si no, el Audit avisa. Las imágenes del Course viajan con el paquete del Course.\n\nEjemplo\n1. gatto: la imagen de un gato',
+  'exerciseHelp.field.complete_text.missingWords.body':
+      'Las palabras ocultas del texto.\n\nQué escribir\nUna palabra o expresión por línea, en el orden en que aparecen en el texto.\n\nComprobaciones\nCada entrada debe aparecer en el texto; se oculta la primera aparición tras el hueco anterior. Las respuestas usan la normalización normal de Input.\n\nEjemplo\ncaffè\ntreno',
+  'exerciseHelp.field.complete_text.prompt.body':
+      'El texto completo; las palabras enumeradas debajo se convierten en huecos.\n\nQué escribir\nEscribe todo el texto, incluidas las palabras que ocultar. Varias frases están bien.\n\nComprobaciones\nCada palabra que falta debe aparecer en el texto, en orden.\n\nEjemplo\nAnna beve un caffè al bar. Poi prende il treno.',
+  'exerciseHelp.field.gap_blocks.tokens.body':
+      'Bloques que no rellenan ningún hueco, ofrecidos junto a las respuestas.\n\nQué escribir\nUn bloque extra por línea. Incluye 0, 1 o como máximo 2 distractores.\n\nComprobaciones\nUn distractor no debe repetir el texto de ninguna respuesta.\n\nEjemplo\nsempre',
+  'exerciseHelp.field.missing_letters.prompt.body':
+      'El texto completo con las letras que faltan entre corchetes.\n\nQué escribir\nEscribe el texto y pon las letras que ocultar entre [ y ], un corchete por hueco: El ga[t]o duerme.\n\nComprobaciones\nAl menos un corchete, ninguno vacío. El estudiante ve un guion por letra oculta y escribe las letras.\n\nEjemplo\nIl ga[tt]o dor[me] sul divano.',
+  'exerciseHelp.field.dialogue_line.speaker.body':
+      'Quién dice la línea.\n\nQué escribir\nEl narrador o uno de los personajes de Historia del Curso (Course Editor › Story characters).\n\nComprobaciones\nEl personaje debe existir en el Curso; el Audit señala el que falta.\n\nEjemplo\nAnna',
+  'exerciseHelp.field.dialogue_line.prompt.body':
+      'La línea en sí.\n\nQué escribir\nUna línea de diálogo, en la lengua de quien habla. Se muestra, se lee en voz alta o ambas cosas, según el modo.\n\nComprobaciones\nObligatoria.\n\nEjemplo\nBuongiorno! Un caffè, per favore.',
+  'exerciseHelp.field.dialogue_line.lineMode.body':
+      'Si el estudiante lee la línea, la escucha o ambas cosas.\n\nQué escribir\nText and audio, Text only o Audio only. Audio only convierte la línea en un paso de escucha; cuando el audio no está disponible se muestra el texto.\n\nComprobaciones\nNinguna.\n\nEjemplo\nText and audio',
+  'exerciseHelp.field.dialogue_line.readAloud.body':
+      'Cuándo se reproduce el audio de la línea.\n\nQué escribir\nStory default (la opción Read-aloud del Round), Automatic (suena cuando aparece la línea) u On request (el estudiante toca).\n\nComprobaciones\nNinguna.\n\nEjemplo\nStory default',
+  'exerciseHelp.field.dialogue_line.textReveal.body':
+      'Si el texto espera al audio.\n\nQué escribir\nImmediately, o After listening: el texto aparece cuando el audio se ha reproducido (solo con texto y audio).\n\nComprobaciones\nNinguna.\n\nEjemplo\nImmediately',
+  'exerciseHelp.field.dialogue_line.language.body':
+      'La lengua de la línea.\n\nQué escribir\nLa lengua de quien habla (predeterminada), o Target / Source para cambiarla solo en esta línea.\n\nComprobaciones\nNinguna.\n\nEjemplo\nSpeaker’s',
+  'exerciseHelp.field.story_cover.prompt.body':
+      'Una línea de título opcional en la portada.\n\nQué escribir\nUna línea breve; el título de la Historia (opciones del Round) se muestra encima de la portada de todos modos.\n\nComprobaciones\nOpcional.\n\nEjemplo\nEn el café',
+  'exerciseHelp.field.story_cover.image.body':
+      'La imagen de portada.\n\nQué escribir\nUna imagen del Curso, de la Shared Image Library o una imagen integrada.\n\nComprobaciones\nRecomendada; una portada sin imagen muestra solo el título.\n\nEjemplo\nLa terraza de un café',
+  'exerciseHelp.field.sort_into_groups.question.body':
+      'Qué debe hacer el estudiante.\n\nQué escribir\nUna línea, en la lengua que prefieras; nombra los grupos si ayuda.\n\nComprobaciones\nObligatoria.\n\nEjemplo\nSort the words: animals or food?',
+  'exerciseHelp.field.sort_into_groups.groups.body':
+      'Los grupos y sus palabras.\n\nQué escribir\nUn grupo por línea: el nombre del grupo, dos puntos y luego sus palabras separadas por comas. Al menos un grupo, normalmente dos o más, cada uno con al menos una palabra.\n\nComprobaciones\nUna palabra solo puede estar en un grupo; una línea sin dos puntos, sin nombre o sin palabras se rechaza antes de Preview o Save.\n\nEjemplo\nAnimals: gatto, cane\nFood: mela, pane',
+  'exerciseHelp.field.sort_into_groups.leftover.body':
+      'Palabras que no pertenecen a ningún grupo.\n\nQué escribir\nUna palabra por línea; déjalo vacío cuando cada palabra tiene su grupo.\n\nComprobaciones\nEl estudiante debe dejarlas en el banco; una palabra de esta lista no puede estar también en un grupo.\n\nEjemplo\ntavolo',
+  'exerciseHelp.field.fill_the_slots.question.body':
+      'Qué debe hacer el estudiante.\n\nQué escribir\nUna línea, en la lengua que prefieras.\n\nComprobaciones\nObligatoria.\n\nEjemplo\nWhich article goes with each noun?',
+  'exerciseHelp.field.fill_the_slots.slots.body':
+      'Las casillas y la palabra que rellena cada una.\n\nQué escribir\nUna casilla por línea: lo que ve el estudiante, un signo igual y luego la palabra. Al menos una casilla. Usa … o ___ para la parte que falta.\n\nComprobaciones\nCada línea necesita las dos partes. La misma palabra en dos casillas necesita “A word may fill more than one slot”.\n\nEjemplo\n… gatto = il\n… casa = la',
+  'exerciseHelp.field.fill_the_slots.extraWords.body':
+      'Palabras ofrecidas que no rellenan ninguna casilla.\n\nQué escribir\nUna palabra por línea; opcional.\n\nComprobaciones\nUna palabra extra no puede repetir la palabra de una casilla.\n\nEjemplo\nlo',
+  'exerciseHelp.field.fill_the_slots.slotReuse.body':
+      'Si una palabra puede rellenar varias casillas.\n\nQué escribir\nOff: cada palabra se ofrece una vez y rellena una casilla. On: la palabra se queda en el banco tras cada uso, así que la misma palabra puede ser la respuesta de varias casillas.\n\nComprobaciones\nNinguna.\n\nEjemplo\nOn, para “… cane = il” y “… libro = il”',
+  'exerciseHelp.field.flashcard.readAloud.body':
+      'Si la palabra se lee en voz alta y cuándo.\n\nQué escribir\nAutomatically (cuando aparece la tarjeta), On request (el estudiante toca el altavoz) o No read-aloud. El texto leído es la palabra o expresión misma, salvo que Pronunciation TTS (if different) diga otra cosa, con el modo de audio del Course.\n\nComprobaciones\nNinguna. La lectura en voz alta nunca convierte la tarjeta en un ejercicio de audio.\n\nEjemplo\nOn request',
+  'exerciseHelp.field.flashcard.tts.body':
+      'Lo que la lectura en voz alta dice cuando debe diferir de la palabra o expresión.\n\nQué escribir\nDéjalo vacío: la lectura en voz alta dice la palabra o expresión de arriba. Escribe un texto solo cuando la forma hablada difiere, por ejemplo una abreviatura leída completa. Sin ruta de grabación; las grabaciones se gestionan en Course Audio Library.\n\nComprobaciones\nOpcional. Si se indica, el modo de audio del Course debe poder reproducirlo.\n\nEjemplo\ndottore (para la abreviatura Dott.)',
+  'exerciseHelp.field.note_card.prompt.body':
+      'El título de la tarjeta.\n\nQué escribir\nUn título breve, en la lengua que prefieras.\n\nComprobaciones\nObligatorio.\n\nEjemplo\n¿Tu o Lei?',
+  'exerciseHelp.field.note_card.question.body':
+      'La nota que el estudiante lee.\n\nQué escribir\nTexto sencillo; varios párrafos están bien.\n\nComprobaciones\nObligatoria. No hay respuesta ni puntuación; Continue cierra la tarjeta.\n\nEjemplo\nUsa Lei con personas que no conoces bien.',
+  'exerciseHelp.field.picture_name.accepted.body':
+      'Los nombres de lo que muestra la imagen que el estudiante puede escribir.\n\nQué escribir\nRespuestas completas en líneas separadas, con la sintaxis de Type the translation: {} opcional, alternativas [a|b], grupos enlazados [*:a|b], ámbitos <> de reordenación.\n\nComprobaciones\nAl menos una respuesta aceptada. La expansión se limita a 128 respuestas.\n\nEjemplo\n[il|un] gatto\ngatto',
+  'exerciseHelp.field.picture_word_match.answers.body':
+      'Las palabras de los pares; cada una recibe una imagen debajo.\n\nQué escribir\nUna palabra por línea, en la lengua de estudio. Al menos dos.\n\nComprobaciones\nCada palabra necesita su imagen; las palabras deben ser únicas.\n\nEjemplo\ngatto\ncane\ncasa',
+  'exerciseHelp.field.sentence_order.order.body':
+      'Las líneas en el orden correcto.\n\nQué escribir\nUna línea por línea, exactamente como arriba, en el orden correcto.\n\nComprobaciones\nCada línea debe coincidir con una de las líneas enumeradas.\n\nEjemplo\nAnna entra nel bar.\nOrdina un caffè.\nPaga e saluta.',
+  'exerciseHelp.field.sentence_order.tokens.body':
+      'Las líneas de la historia o el diálogo que el estudiante ordena.\n\nQué escribir\nUna frase o línea por línea, en cualquier orden. Puedes añadir 0, 1 o como máximo 2 líneas que no pertenecen a nada.\n\nComprobaciones\nCada línea del orden correcto debe estar aquí.\n\nEjemplo\nAnna entra nel bar.\nOrdina un caffè.\nPaga e saluta.',
+  'exerciseHelp.field.spell_heard.tts.body':
+      'La palabra que el estudiante escucha y deletrea.\n\nQué escribir\nEscribe la palabra como texto; se lee con la voz de la lengua de estudio o se asocia a una grabación del Course.\n\nComprobaciones\nObligatoria. Las fichas deben deletrear exactamente esta palabra.\n\nEjemplo\ngatto',
+  'exerciseHelp.field.spell_word.prompt.body':
+      'La pista que nombra la palabra que deletrear.\n\nQué escribir\nUna pista breve en la lengua base: la palabra misma o una definición.\n\nComprobaciones\nObligatoria salvo que una imagen o una palabra hablada nombre la palabra.\n\nEjemplo\ncat (the animal)',
+  'exerciseHelp.field.true_false.answers.body':
+      'Las dos respuestas: la palabra para verdadero y la palabra para falso.\n\nQué escribir\nDos líneas en la lengua base, primero verdadero. QQL las prellena cuando conoce la lengua; puedes cambiar las palabras.\n\nComprobaciones\nExactamente dos líneas; el Audit avisa si hay más o menos.\n\nEjemplo\nVerdadero\nFalso',
+  'exerciseHelp.field.true_false.question.body':
+      'La afirmación que el estudiante juzga verdadera o falsa.\n\nQué escribir\nUna afirmación en la lengua de estudio, en texto sencillo. Hazla claramente verdadera o claramente falsa.\n\nComprobaciones\nObligatoria. El número de la respuesta correcta es 1 si la afirmación es verdadera y 2 si es falsa.\n\nEjemplo\nRoma è la capitale d’Italia.',
   'exerciseHelp.field.choice.question.body':
-      'Palabra o frase que el estudiante traduce.\n\nQué escribir\nPon el texto en la lengua base separado de Prompt.\n\nComprobaciones\nAñade respuestas correspondientes en la lengua de estudio y marca una correcta.\n\nEjemplo\nGood morning',
+      'Lo que responde el estudiante: una pregunta, o una frase con un hueco que las respuestas completan.\n\nQué escribir\nUna pregunta, o una frase con ___ donde va la respuesta, en texto; una instrucción o el contexto van en Prompt. En Choose the answer (to target) las respuestas están en la lengua de estudio y la pregunta puede estar en cualquiera de las dos lenguas; en Choose the answer (to source), pregunta y respuestas están en la lengua base.\n\nComprobaciones\nObligatoria. Añade respuestas correspondientes y marca la correcta (o varias con Multiple correct answers).\n\nEjemplo\nWhich article goes with casa?\nIeri ___ al cinema. (con el Prompt: Pick the verb form that fits.)',
   'exerciseHelp.field.choice.answers.body':
       'Alternativas visibles para el estudiante.\n\nQué escribir\nUna respuesta literal por línea, al menos dos. Se ignoran líneas vacías; la primera no vacía es la respuesta 1. La sintaxis de variantes no crea opciones.\n\nComprobaciones\nElige un Correct answer válido. Evita duplicados y distractores ambiguos. Select the image requiere una imagen por respuesta en el mismo orden.\n\nEjemplo\ncaffè\nacqua\npane',
   'exerciseHelp.field.choice.correct.body':
@@ -863,7 +1035,7 @@ Estas builds muestran TEST ONLY. No las distribuyas como versiones públicas; co
   'exerciseHelp.field.gap_choice.hint.body':
       'Pista útil para el estudiante.\n\nQué escribir\nTexto opcional; déjalo vacío si no hace falta. Los saltos de línea siguen en la misma pista.\n\nComprobaciones\nNo reveles la respuesta correcta ni repitas solo el prompt.\n\nEjemplo\nPiensa en una bebida caliente servida en taza pequeña.',
   'exerciseHelp.field.icon_choice.question.body':
-      'Pregunta concreta que responde el estudiante.\n\nQué escribir\nUna pregunta en texto, aparte del Context de lectura, audio o diálogo. Los saltos de línea no crean preguntas nuevas.\n\nComprobaciones\nContextual Comprehension requiere pregunta separada. En Dialogue Response usa la lengua de estudio y haz que coincida con la respuesta correcta.\n\nEjemplo\nHow are you?',
+      'Pregunta concreta que responde el estudiante.\n\nQué escribir\nUna pregunta en texto, aparte del Context de lectura, audio o diálogo. Los saltos de línea no crean preguntas nuevas.\n\nComprobaciones\nRead and answer requiere pregunta separada. Haz que coincida con la respuesta correcta.\n\nEjemplo\nHow are you?',
   'exerciseHelp.field.icon_choice.icons.body':
       'Asocia cada respuesta de Select the image a una imagen.\n\nQué escribir\nUna clave de icono o ruta assets/ incluida por línea, en el mismo orden que las respuestas. Se ignoran líneas vacías. Hay claves como water, home, coffee, person, hello, sun, moon, tree, bread, train y book.\n\nComprobaciones\nDebe haber tantas claves como respuestas. Una clave desconocida muestra un icono genérico: revisa cada opción con Preview. La imagen general del Exercise es distinta.\n\nEjemplo\ncoffee\nwater\nassets/exercise_images/house.webp',
   'exerciseHelp.field.script_recognition.scriptMode.body':
@@ -921,7 +1093,7 @@ Estas builds muestran TEST ONLY. No las distribuyas como versiones públicas; co
   'exerciseHelp.field.fill_blank.tts.body':
       'Texto opcional de pronunciación de la frase completa.\n\nQué escribir\nUna frase con la respuesta incluida, o déjalo vacío. Es texto para hablar, no ruta de grabación.\n\nComprobaciones\nDebe corresponder a la frase incompleta y las respuestas. Prueba la pronunciación en Preview.\n\nEjemplo\nVorrei un caffè.',
   'exerciseHelp.field.type_missing_word.prompt.body':
-      'La palabra ausente completa; la primera letra visible es una pista.\n\nQué escribir\nUna frase con exactamente un hueco ___ y palabras completas aceptadas, una por línea. QQL obtiene automáticamente el primer grafema Unicode; el estudiante escribe la palabra completa.\n\nComprobaciones\nTodas las respuestas deben compartir exactamente ese primer grafema. La pista no se añade a la respuesta.\n\nEjemplo\nJe vais à l’___. Respuesta: école. El estudiante ve é______ y escribe école.',
+      'La palabra ausente completa; la primera letra se muestra como pista cuando Show the first letter está activo.\n\nQué escribir\nUna frase con exactamente un hueco ___ y palabras completas aceptadas, una por línea. QQL obtiene automáticamente el primer grafema Unicode; el estudiante escribe la palabra completa.\n\nComprobaciones\nCon la pista activa, todas las respuestas deben compartir exactamente ese primer grafema. La pista no se añade a la respuesta.\n\nEjemplo\nJe vais à l’___. Respuesta: école. El estudiante ve é______ y escribe école.',
   'exerciseHelp.field.listening_spelling.prompt.body':
       'Texto visible para Type what you hear.\n\nQué escribir\nUn texto que se muestra tal como está; este preset no quita automáticamente la respuesta. Audio text controla lo que se oye.\n\nComprobaciones\nRevisa Preview para que el prompt no revele la respuesta. Las respuestas escritas van en Missing word.\n\nEjemplo\nListen and type the word you hear.',
   'exerciseHelp.field.listening_spelling.missingWords.body':
@@ -931,11 +1103,11 @@ Estas builds muestran TEST ONLY. No las distribuyas como versiones públicas; co
   'exerciseHelp.field.missing_word.missingWords.body':
       'Palabras o expresiones ocultas en la transcripción.\n\nQué escribir\nUna palabra o expresión literal por línea. Varias líneas crean varios huecos, no respuestas alternativas; no pongas marcadores en la transcripción.\n\nComprobaciones\nAl menos una entrada y todas presentes en Passage transcript, sin distinguir mayúsculas. Los duplicados generan Warning. Aquí no se expande sintaxis de variantes.\n\nEjemplo\ncaffè\nper favore',
   'exerciseHelp.field.matching.prompt.body':
-      'Instrucción o Context visible para el estudiante.\n\nQué escribir\nUn texto; los saltos de línea no crean respuestas. Usa la lengua base para instrucciones operativas.\n\nComprobaciones\nDebe corresponder a la pregunta, los pares o los bloques. En Match related words indica la relación en la lengua de estudio.\n\nEjemplo\nBuild the sentence.',
+      'Instrucción o Context visible para el estudiante.\n\nQué escribir\nUn texto; los saltos de línea no crean respuestas. Usa la lengua base para instrucciones operativas.\n\nComprobaciones\nDebe corresponder a la pregunta, los pares o los bloques. En Match by meaning indica la relación en la lengua de estudio.\n\nEjemplo\nBuild the sentence.',
   'exerciseHelp.field.matching.pairs.body':
       'Elementos de las dos columnas para relacionar.\n\nQué escribir\nUn par por línea como left = right. El primer signo igual separa los lados.\n\nComprobaciones\nHace falta al menos un par con ambos lados y separador. Corrige líneas incompletas antes de Preview o Save.\n\nEjemplo\ncasa = house\npane = bread',
   'exerciseHelp.field.word_match.pairs.body':
-      'Relaciona palabras de la lengua base con sus traducciones.\n\nQué escribir\nExactamente tres líneas no vacías como source = target; el primer igual separa los lados.\n\nComprobaciones\nLos tres pares necesitan ambos lados y correspondencia única, sin ambigüedad.\n\nEjemplo\nhouse = casa\nbread = pane\nwater = acqua',
+      'Relaciona palabras de la lengua base con sus traducciones.\n\nQué escribir\nAl menos dos líneas no vacías como source = target (tres es lo habitual); el primer igual separa los lados.\n\nComprobaciones\nCada par necesita ambos lados y correspondencia única, sin ambigüedad.\n\nEjemplo\nhouse = casa\nbread = pane\nwater = acqua',
   'exerciseHelp.field.super_match.pairs.body':
       'Relaciona palabras de la lengua de estudio, como sinónimos u opuestos.\n\nQué escribir\nExactamente tres líneas left = right, ambos lados en la lengua de estudio. Indica la relación en Match type / instruction.\n\nComprobaciones\nCada par necesita separador y debe seguir la misma relación sin ambigüedad.\n\nEjemplo\ngrande = piccolo\ncaldo = freddo\naperto = chiuso',
   'exerciseHelp.field.audio_match.pairs.body':
@@ -944,16 +1116,12 @@ Estas builds muestran TEST ONLY. No las distribuyas como versiones públicas; co
       'Bloques para ordenar la frase.\n\nQué escribir\nUn bloque literal en la lengua de estudio por línea. Repite líneas para palabras repetidas. En Inline gaps este campo se llama Extra distractor blocks; las respuestas vienen de {answer} en Sentence with gaps.\n\nComprobaciones\nIncluye cada bloque de Correct sentence y hasta dos distractores no usados. Conserva escritura y puntuación interna.\n\nEjemplo\nIo\nbevo\nun\ncaffè\ntè',
   'exerciseHelp.field.word_order.order.body':
       'Orden correcto de los bloques.\n\nQué escribir\nUn bloque por línea, no toda la frase en una línea. Se unen con espacios. No se usa con Inline gaps, donde las respuestas están en {answer}.\n\nComprobaciones\nCada línea debe coincidir con un bloque disponible, incluidas repeticiones. Es un orden literal: no se expanden variantes.\n\nEjemplo\nIo\nbevo\nun\ncaffè',
-  'exerciseHelp.field.image_word.tokens.body':
-      'Piezas de la palabra mostrada por la imagen.\n\nQué escribir\nUna letra o sílaba literal por línea; repite si aparece varias veces.\n\nComprobaciones\nIncluye solo las piezas necesarias, sin distractores. Escribe el orden en Correct target-language word y elige una imagen de Exercise.\n\nEjemplo\nca\nsa',
   'exerciseHelp.field.image_word.order.body':
-      'Orden de las letras o sílabas.\n\nQué escribir\nUna pieza por línea en el orden correcto. Se unen sin espacios para formar una palabra.\n\nComprobaciones\nUsa cada pieza necesaria una vez, sin distractores, y añade la imagen correspondiente.\n\nEjemplo\nca\nsa\nForman casa.',
+      'Los bloques que forman la palabra, en orden.\n\nQué escribir\nUna letra o sílaba por línea, en el orden de la respuesta; el estudiante recibe exactamente estos bloques, mezclados. Repite una línea para una letra que aparece dos veces. Los bloques se unen sin espacios.\n\nComprobaciones\nAl menos dos bloques y ningún distractor. Spell the word in the picture necesita además una Exercise image.\n\nEjemplo\nca\nsa\nEstos bloques forman casa.',
   'exerciseHelp.field.flashcard.prompt.body':
-      'Material en la lengua de estudio de la Flashcard.\n\nQué escribir\nUna palabra o expresión. El significado, la pronunciación y el ejemplo de uso van en campos separados.\n\nComprobaciones\nEs obligatorio. Flashcard es presentación y no tiene una respuesta puntuada normal.\n\nEjemplo\nbuongiorno',
+      'La palabra o expresión que enseña la tarjeta, en la lengua de estudio.\n\nQué escribir\nUna palabra o expresión en la lengua que se aprende. La traducción va en el campo de abajo; Read aloud, si está activo, lee este texto.\n\nComprobaciones\nObligatoria. Flashcard es presentación y no tiene una respuesta puntuada normal.\n\nEjemplo\nbuongiorno',
   'exerciseHelp.field.flashcard.question.body':
-      'Significado de la palabra de Flashcard.\n\nQué escribir\nUna explicación o traducción en texto; varias líneas siguen siendo una explicación.\n\nComprobaciones\nUn significado vacío genera Warning de Audit. Comprueba que coincida con la palabra.\n\nEjemplo\ngood morning',
-  'exerciseHelp.field.flashcard.tts.body':
-      'Pronunciación hablada de Flashcard.\n\nQué escribir\nLa palabra o expresión que debe pronunciarse. No pongas una ruta de grabación; gestiona MP3 en Course Audio Library.\n\nComprobaciones\nSi falta texto de pronunciación, Audit muestra Warning. Comprueba el modo de audio del curso.\n\nEjemplo\nbuongiorno',
+      'La traducción o el significado, en la lengua base.\n\nQué escribir\nUna traducción o explicación en texto en la lengua de los estudiantes; varias líneas siguen siendo una explicación.\n\nComprobaciones\nUna traducción vacía genera Warning de Audit. Comprueba que coincida con la palabra de arriba.\n\nEjemplo\ngood morning',
   'exerciseHelp.field.flashcard.answers.body':
       'Ejemplo de uso de la palabra de Flashcard.\n\nQué escribir\nPrimera línea no vacía: frase de ejemplo. Segunda línea opcional: traducción. La vista del estudiante añade Usage: automáticamente.\n\nComprobaciones\nSin frase de uso, Audit muestra Warning. Son datos de presentación, no respuestas a elegir.\n\nEjemplo\nBuongiorno, Maria!\nGood morning, Maria!',
 };

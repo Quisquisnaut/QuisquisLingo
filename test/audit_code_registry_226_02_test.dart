@@ -12,7 +12,7 @@ void main() {
     'all known rules have unique, complete definitions and fixed severity',
     () {
       final definitions = AuditCodeRegistry.definitions;
-      expect(definitions.length, 104);
+      expect(definitions.length, 107);
       expect(
         definitions.map((rule) => rule.code).toSet().length,
         definitions.length,
@@ -21,17 +21,17 @@ void main() {
         definitions
             .where((rule) => rule.severity == AuditSeverity.error)
             .length,
-        72,
+        59,
       );
       expect(
         definitions
             .where((rule) => rule.severity == AuditSeverity.warning)
             .length,
-        27,
+        41,
       );
       expect(
         definitions.where((rule) => rule.severity == AuditSeverity.info).length,
-        5,
+        7,
       );
       for (final rule in definitions) {
         expect(rule.code, matches(RegExp(r'^[A-Z][A-Z0-9_]+$')));
@@ -126,7 +126,7 @@ void main() {
         AuditCode.readingPassageRequired,
       ]);
       expect(
-        AuditCodeRegistry.search('reading ERROR'),
+        AuditCodeRegistry.search('reading WARNING'),
         contains(AuditCode.readingPassageRequired),
       );
       expect(
@@ -248,23 +248,31 @@ void main() {
       prompt: '',
       tts: null,
     );
-    final issues = service.auditCourse(_course([reading, listening])).issues;
-    for (final code in [
-      'CHOICE_ANSWERS_REQUIRED',
-      'CHOICE_CORRECT_ANSWER_INVALID',
-      'READING_PASSAGE_REQUIRED',
-      'LISTENING_AUDIO_REQUIRED',
-    ]) {
+    // Build 256 Revision 4: the passage-length information needs a passage
+    // to measure, so a second listening passage is short rather than absent.
+    final short = _exercise(
+      type: 'listening_comprehension',
+      prompt: '',
+      tts: 'ciao',
+    );
+    final issues = service
+        .auditCourse(_course([reading, listening, short]))
+        .issues;
+    // Build 256: the preset rules (a reading preset without a passage, a
+    // listening preset without audio) warn and never block; invalid
+    // canonical data still errors.
+    for (final MapEntry(key: code, value: severity) in {
+      'CHOICE_ANSWERS_REQUIRED': AuditSeverity.error,
+      'CHOICE_CORRECT_ANSWER_INVALID': AuditSeverity.error,
+      'READING_PASSAGE_REQUIRED': AuditSeverity.warning,
+      'LISTENING_AUDIO_REQUIRED': AuditSeverity.warning,
+    }.entries) {
       expect(
         issues,
         contains(
           isA<CourseAuditIssue>()
               .having((issue) => issue.code, 'code', code)
-              .having(
-                (issue) => issue.severity,
-                'severity',
-                AuditSeverity.error,
-              ),
+              .having((issue) => issue.severity, 'severity', severity),
         ),
       );
     }
@@ -288,7 +296,7 @@ void main() {
   test(
     'all supported presets emit registered codes for incomplete content',
     () {
-      for (final type in CourseAuditService.supportedTypes) {
+      for (final type in CourseAuditService.presetKinds.keys) {
         final issues = service.auditExercise(
           _exercise(
             type: type,

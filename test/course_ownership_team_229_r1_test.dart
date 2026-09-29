@@ -121,7 +121,7 @@ void main() {
     'Course Model v9 requires Original Course Creator and Maintainer JSON',
     () {
       final json = _custom().toJson();
-      expect(json['formatVersion'], 11);
+      expect(json['formatVersion'], 12);
       expect(json['originalCourseCreator'], {
         'type': 'qqlUser',
         'id': aliceId,

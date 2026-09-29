@@ -6,17 +6,22 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/models/exercise_authoring.dart';
+import 'package:quisquislingo_app/models/exercise_features.dart';
 import 'package:quisquislingo_app/screens/round_screen.dart';
 import 'package:quisquislingo_app/services/answer_engine.dart';
+import 'package:quisquislingo_app/services/canonical_exercise_draft.dart';
 import 'package:quisquislingo_app/services/course_audit_service.dart';
 import 'package:quisquislingo_app/services/exercise_draft_builder.dart';
 import 'package:quisquislingo_app/services/first_letter_answer_service.dart';
+import 'package:quisquislingo_app/services/preset_recipes.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:quisquislingo_app/services/tts_cache_service.dart';
+import 'package:quisquislingo_app/widgets/course_media_image.dart';
 import 'package:quisquislingo_app/widgets/portable_exercise_image.dart';
 import 'package:quisquislingo_app/widgets/script_recognition_editor.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'support/laboratory_presentation_254.dart';
 import 'support/test_directories.dart';
 
 const _asset = 'assets/courses/exercise_laboratory_en_it.json';
@@ -32,16 +37,26 @@ List<Exercise> _exercises(Course course) => [
 /// Reconstruct the values exposed by the real authoring form. The production
 /// builder, audit and runtime then consume the candidate; no grader is mocked.
 Exercise _author(Exercise exercise) {
+  // An example without a preset (the Assign Lesson, Build 256 Revision 7)
+  // is authored in the Generic Primitive Editor: its draft rebuilds it.
+  if (exercise.editorTemplate.isEmpty) {
+    final draft = CanonicalExerciseDraft.fromExercise(exercise);
+    expect(draft.violations, isEmpty, reason: exercise.id);
+    return draft.toExercise(
+      publicationState: PublicationState.published,
+      updatedAt: exercise.updatedAt,
+    );
+  }
   final hasGaps = exercise.hasArrangeGaps || exercise.hasSelectGaps;
   String valueOf(String id) =>
       exercise.interaction.items.singleWhere((item) => item.id == id).value;
-  final gapLayout = exercise.arrangeLayout
+  final gapLayout = exercise.interaction.layout
       .map((part) {
         if (part.type != 'gap') return part.text;
-        return '{${valueOf(exercise.arrangeGapAssignments[part.text]!)}}';
+        return '{${valueOf(exercise.targetAssignments[part.text]!)}}';
       })
       .join(' ');
-  final used = exercise.arrangeGapAssignments.values.toSet();
+  final used = exercise.targetAssignments.values.toSet();
   final correctNumbers = exercise.evaluation.correctItemIds
       .map(
         (id) =>
@@ -51,16 +66,46 @@ Exercise _author(Exercise exercise) {
   final script = exercise.type == 'script_recognition'
       ? ScriptRecognitionController(exercise)
       : null;
+  // Build 256 Revision 4: the shape hints (first-letter switch, text and
+  // audio roles, Match sides) come from the production decompose, as in the
+  // editor; the field values stay this test's own reconstruction.
+  final hints = PresetRecipes.decompose(exercise, exercise.editorTemplate);
+  // A Dialogue line or a Story cover has no v11 view: its fields are the
+  // recipe's own (Build 256 Revision 5).
+  final canonicalOnly = PresetRecipes.canonicalOnly.contains(
+    exercise.editorTemplate,
+  );
   try {
     final result = ExerciseDraftBuilder.build(
       ExerciseDraftValues(
         original: exercise,
-        type: exercise.type,
+        type: exercise.editorTemplate,
         publicationState: PublicationState.published,
         requireValidAnswer: true,
         useInlineGaps: hasGaps,
         useMultiSelect: exercise.isMultiSelect,
-        prompt: exercise.prompt,
+        revealFirstLetter: hints.revealFirstLetter,
+        textRole: hints.textRole,
+        audioRole: hints.audioRole,
+        matchSides: hints.matchSides,
+        speakerId: hints.speakerId,
+        lineMode: hints.lineMode,
+        lineReadAloud: hints.lineReadAloud,
+        lineTextReveal: hints.lineTextReveal,
+        lineLanguage: hints.lineLanguage,
+        // The Assign presets' fields and a Flashcard's read-aloud (Build
+        // 256 Revision 7 follow-up) come from the production decompose.
+        groups: hints.groups,
+        leftover: hints.leftover,
+        slots: hints.slots,
+        extraWords: hints.extraWords,
+        slotReuse: hints.slotReuse,
+        cardReadAloud: hints.cardReadAloud,
+        prompt: canonicalOnly
+            ? hints.prompt
+            : exercise.type == 'type_missing_word' && exercise.prompt.isEmpty
+            ? exercise.question
+            : exercise.prompt,
         question: exercise.question,
         tts: exercise.tts ?? '',
         hint: exercise.hint,
@@ -91,7 +136,7 @@ Exercise _author(Exercise exercise) {
         requiredSelections: '${exercise.requiredSelectionCount}',
         correctTranslations: exercise.correctTranslationTexts,
         contextMode: exercise.contextMode,
-        imageAsset: exercise.imageAsset,
+        imageAsset: canonicalOnly ? hints.imageAsset : exercise.imageAsset,
         scriptCandidate: script?.build(PublicationState.published),
       ),
     );
@@ -129,17 +174,188 @@ Map<String, Object?> _semantics(Exercise exercise) {
     'missing': exercise.missingWords,
     'minimum': exercise.interaction.minSelections,
     'maximum': exercise.interaction.maxSelections,
-    'layout': exercise.arrangeLayout
+    'layout': exercise.interaction.layout
         .map((part) => '${part.type}:${part.text}')
         .toList(),
-    'gaps': exercise.arrangeGapAssignments.map(
+    'gaps': exercise.targetAssignments.map(
       (gap, id) => MapEntry(gap, valueOf(id)),
     ),
     'dialogue': exercise.dialogueTurns
         .map((turn) => '${turn.speaker}: ${turn.text}')
         .toList(),
     'contextMode': exercise.contextMode,
+    // A Story's lines and covers (Build 256 Revision 5).
+    'speaker': ExerciseFeatures(exercise).speakerId,
+    'lineText': ExerciseFeatures(exercise).lineText,
+    'lineMode': ExerciseFeatures(exercise).lineMode,
+    'lineReadAloud': ExerciseFeatures(exercise).lineReadAloud,
+    'lineLanguage': ExerciseFeatures(exercise).lineLanguage,
+    'textReveal': ExerciseFeatures(exercise).textReveal.name,
+    'coverTitle': ExerciseFeatures(exercise).coverTitle,
+    // Assign (Build 256 Revision 7).
+    'targets': exercise.targets.map((target) => target.id).toList(),
+    'assignments': ExerciseFeatures(exercise).assignmentsByTarget.map(
+      (target, ids) => MapEntry(
+        target,
+        ids
+            .map(
+              (id) => exercise.items.singleWhere((item) => item.id == id).value,
+            )
+            .toList()
+          ..sort(),
+      ),
+    ),
+    'layoutElements': exercise.layout
+        .map(
+          (part) =>
+              part.isText ? 'text:${part.text}' : 'target:${part.targetId}',
+        )
+        .toList(),
   };
+}
+
+/// What the learner sees for one Laboratory example: the heading, the
+/// instruction, the displayed prompt, which panels, audio controls and
+/// answer controls are present, what was spoken by itself and, after the
+/// correct answer, the feedback. Counts and sorted texts only, so the
+/// shuffled option order does not matter. Build 256 Session 3 refactors the
+/// Round screen onto canonical data and must keep every record equal, except
+/// where `laboratoryPresentation` says the change is deliberate.
+Map<String, Object?> _presentation(
+  WidgetTester tester,
+  Exercise exercise,
+  _Speech speech,
+) {
+  int count(Finder finder) => finder.evaluate().length;
+  String? textOf(Key key) {
+    final finder = find.byKey(key);
+    if (finder.evaluate().isEmpty) return null;
+    final widget = tester.widget(finder);
+    return widget is Text ? widget.data : null;
+  }
+
+  List<String> textsContaining(String pattern) =>
+      find
+          .byWidgetPredicate(
+            (widget) => widget is Text && (widget.data ?? '').contains(pattern),
+          )
+          .evaluate()
+          .map((element) => (element.widget as Text).data!)
+          .toList()
+        ..sort();
+  int keyed(String prefix) => count(
+    find.byWidgetPredicate(
+      (widget) =>
+          widget.key is ValueKey<String> &&
+          (widget.key as ValueKey<String>).value.startsWith(prefix),
+    ),
+  );
+  int shown(String text) => text.trim().isEmpty ? 0 : count(find.text(text));
+  List<String> buttonTexts<T extends ButtonStyleButton>() =>
+      find.byType(T).evaluate().map((element) {
+        final child = (element.widget as ButtonStyleButton).child;
+        return child is Text ? (child.data ?? '') : '<${child.runtimeType}>';
+      }).toList()..sort();
+
+  return {
+    'heading': textOf(const Key('exercise-heading')),
+    'instruction':
+        textOf(const Key('exercise-instruction')) ??
+        textOf(const Key('translation-choice-instruction')),
+    'prompt': textOf(const Key('exercise-prompt-text')),
+    'shown': {
+      'question': shown(exercise.question),
+      'prompt': shown(exercise.prompt),
+      'context': shown(exercise.contextText),
+      'translationText': count(
+        find.byKey(const Key('translation-choice-text')),
+      ),
+    },
+    'panels': {
+      'context': count(find.byKey(const Key('contextual-comprehension-text'))),
+      'dialogue': count(
+        find.byKey(const Key('contextual-comprehension-dialogue')),
+      ),
+      'passage': count(find.byKey(const Key('exercise-passage'))),
+      'image': count(find.byKey(const Key('exercise-image'))),
+      'portableImages': count(find.byType(PortableExerciseImage)),
+      'mediaImages': count(find.byType(CourseMediaImage)),
+    },
+    'audio': {
+      'again': count(find.byTooltip('Play audio again')),
+      'play': count(find.byTooltip('Play audio')),
+      'context': count(find.byTooltip('Play context audio')),
+      'sound': count(find.byTooltip('Play sound')),
+      'pronounce': count(find.byTooltip('Pronounce word or phrase')),
+      'usage': count(find.byTooltip('Pronounce usage sentence')),
+      'playLabel': count(find.widgetWithText(FilledButton, 'Play audio')),
+      'contextLabel': count(
+        find.widgetWithText(FilledButton, 'Play context audio'),
+      ),
+      'translation': count(find.byKey(const Key('translation-choice-audio'))),
+      'note': count(find.byKey(const Key('translation-choice-audio-note'))),
+    },
+    'controls': {
+      'filled': buttonTexts<FilledButton>(),
+      'outlined': buttonTexts<OutlinedButton>(),
+      'checkboxes': count(find.byType(CheckboxListTile)),
+      'textFields': count(find.byType(TextField)),
+      'actionChips': count(find.byType(ActionChip)),
+      'inputChips': count(find.byType(InputChip)),
+      'filterChips': count(find.byType(FilterChip)),
+      'choiceChips': count(find.byType(ChoiceChip)),
+      'dropdowns': count(find.byType(DropdownButtonFormField<String>)),
+      'gapSlots': keyed('gap-slot-'),
+      'selectGapSlots': keyed('select-gap-slot-'),
+      'imageButtons': count(
+        find.descendant(
+          of: find.byType(FilledButton),
+          matching: find.byType(PortableExerciseImage),
+        ),
+      ),
+      'iconButtons': count(
+        find.descendant(
+          of: find.byType(FilledButton),
+          matching: find.byType(Icon),
+        ),
+      ),
+    },
+    'texts': {
+      'firstLetter': textOf(const Key('first-letter-sentence')),
+      'gapHint': textOf(const Key('gap-choice-hint')),
+      'hints': textsContaining('Hint:'),
+      'translateFrom': textsContaining('Translate from'),
+      'usage': count(find.text('Usage:')),
+      'blanks': textsContaining('_____'),
+    },
+    'feedback': {
+      'correct': count(find.text('Correct')),
+      'correctAnswer': textsContaining('Correct answer'),
+      'alternativesHeading': textOf(const Key('translation-feedback-heading')),
+      'alternatives': keyed('translation-feedback-answer-'),
+      'correctTranslations': count(find.text('Correct translations:')),
+      'bullets': textsContaining('• ').length,
+      'acceptedDifferences': textsContaining('Accepted difference'),
+      'listenToAnswer': count(find.text('Listen to the answer')),
+      'cardReviewed': count(find.text('Card reviewed.')),
+      'surface': count(find.byKey(const Key('exercise-feedback-surface'))),
+    },
+    // Sorted: Listen and match plays its sounds in the shuffled card order.
+    'spoken': List<String>.of(speech.spoken)..sort(),
+  };
+}
+
+/// Compares the record with the expectation, or writes it as JSON when the
+/// `QQL_RECORD_PRESENTATION` environment variable names a directory (used
+/// once to produce `test/support/laboratory_presentation_254.dart`).
+void _checkPresentation(String id, Map<String, Object?> record) {
+  final directory = Platform.environment['QQL_RECORD_PRESENTATION'];
+  if (directory != null && directory.isNotEmpty) {
+    File('$directory/$id.json').writeAsStringSync(jsonEncode(record));
+    return;
+  }
+  expect(laboratoryPresentation.containsKey(id), isTrue, reason: id);
+  expect(record, laboratoryPresentation[id], reason: id);
 }
 
 class _Speech extends TtsCacheService {
@@ -153,8 +369,10 @@ class _Speech extends TtsCacheService {
     String? targetLanguage,
     double rate = 0.5,
     bool applyLearnerSettings = true,
+    String? voicePreference,
   }) async {
-    expect(language, 'it-IT');
+    // The Story's narrator speaks the source language (Build 256 Revision 5).
+    expect(language, anyOf('it-IT', 'en-GB'));
     spoken.add(text);
     return true;
   }
@@ -224,7 +442,10 @@ Future<_Speech> _show(
       ),
     ),
   );
-  await _until(tester, find.byKey(Key('exercise-renderer-${exercise.type}')));
+  await _until(
+    tester,
+    find.byKey(Key('exercise-renderer-${exercise.primitive.serialized}')),
+  );
   return speech;
 }
 
@@ -234,16 +455,60 @@ Future<void> _answer(
   _Speech speech, {
   int orderIndex = 0,
 }) async {
+  final kind = ExerciseFeatures(exercise).kind;
+  if (kind == LearnerExerciseKind.dialogueLine ||
+      kind == LearnerExerciseKind.storyCover) {
+    // A line or a cover is read (or heard) and continued (Build 256
+    // Revision 5); it is never skipped and never scored.
+    await _tap(
+      tester,
+      find.byKey(
+        Key(
+          kind == LearnerExerciseKind.dialogueLine
+              ? 'story-line-continue'
+              : 'story-cover-continue',
+        ),
+      ),
+    );
+    return;
+  }
+  if (exercise.primitive == ExercisePrimitive.assign) {
+    // Tap an item, then its destination (Build 256 Revision 7); gaps are
+    // slots inside the text, groups and slots are bins.
+    final features = ExerciseFeatures(exercise);
+    final gaps = features.assignTargetMode == AssignTargetMode.gaps;
+    for (final entry in features.assignmentsByTarget.entries) {
+      for (final itemId in entry.value) {
+        await _tap(tester, find.byKey(Key('assign-tile-$itemId')));
+        await _tap(
+          tester,
+          find.byKey(
+            Key('${gaps ? 'assign-slot' : 'assign-target'}-${entry.key}'),
+          ),
+        );
+      }
+    }
+    await _tap(tester, find.byKey(const Key('assign-check')));
+    expect(find.text('Correct'), findsOneWidget, reason: exercise.id);
+    return;
+  }
   if (exercise.type == 'flashcard') {
-    await _tap(tester, find.widgetWithText(FilledButton, 'Got it'));
+    // A vocabulary card is reviewed with Got it; a Note card continues.
+    final reviewable =
+        ExerciseFeatures(exercise).completionMode ==
+        CompletionMode.understoodReview;
+    await _tap(
+      tester,
+      find.widgetWithText(FilledButton, reviewable ? 'Got it' : 'Continue'),
+    );
     expect(find.text('Card reviewed.'), findsOneWidget);
     return;
   }
   if (exercise.hasSelectGaps || exercise.hasArrangeGaps) {
-    for (final gap in exercise.arrangeLayout.where(
+    for (final gap in exercise.interaction.layout.where(
       (part) => part.type == 'gap',
     )) {
-      final id = exercise.arrangeGapAssignments[gap.text]!;
+      final id = exercise.targetAssignments[gap.text]!;
       await _tap(
         tester,
         find.byKey(
@@ -406,12 +671,17 @@ void main() {
         'Arrange',
         'Match',
         'Presentation',
+        'Story',
+        'Assign',
       ]);
       expect(course.createDuels, isFalse);
       expect(course.derivativeWorksPolicy, DerivativeWorksPolicy.allowed);
-      expect(examples, hasLength(80));
+      expect(examples, hasLength(126));
       expect(
-        examples.map((e) => e.editorTemplate).toSet(),
+        examples
+            .map((e) => e.editorTemplate)
+            .where((id) => id.isNotEmpty)
+            .toSet(),
         ExercisePresetRegistry.presets.map((p) => p.id).toSet(),
       );
       for (final lesson in course.lessons) {
@@ -421,8 +691,13 @@ void main() {
           expect(round.exercises, isNotEmpty);
           for (final exercise in round.exercises) {
             expect(exercise.publicationState, PublicationState.published);
+            // The Story Lesson mixes a cover, lines and exercises of several
+            // primitives (Build 256 Revision 5).
+            if (lesson.title == 'Story') continue;
             expect(
-              ExercisePresetRegistry.byId(exercise.editorTemplate)!.model.name,
+              ExercisePresetRegistry.byId(
+                exercise.editorTemplate,
+              )!.primitive.name,
               lesson.title.toLowerCase(),
             );
           }
@@ -515,7 +790,10 @@ void main() {
             isTrue,
           );
         }
-        if (candidate.type == 'type_missing_word') {
+        // The first-letter hint exists only in the inline-gap shape; with the
+        // switch off the exercise is one field under its sentence.
+        if (candidate.type == 'type_missing_word' &&
+            candidate.layout.isNotEmpty) {
           expect(
             FirstLetterAnswerService.display(
               candidate.prompt,
@@ -529,8 +807,15 @@ void main() {
 
     testWidgets('learner completes ${exercise.id}', (tester) async {
       final speech = await _show(tester, course, exercise);
+      final before = _presentation(tester, exercise, speech);
       await _answer(tester, exercise, speech);
-      await _tap(tester, find.widgetWithText(FilledButton, 'Finish round'));
+      final after = _presentation(tester, exercise, speech);
+      _checkPresentation(exercise.id, {'before': before, 'after': after});
+      // A line's or a cover's Continue moves straight on (Build 256
+      // Revision 5), so a one-item Round is already complete.
+      if (find.text('Preview complete').evaluate().isEmpty) {
+        await _tap(tester, find.widgetWithText(FilledButton, 'Finish round'));
+      }
       await _until(tester, find.text('Preview complete'));
       expect(find.textContaining('Temporary result: perfect.'), findsOneWidget);
       expect(tester.takeException(), isNull);
@@ -559,7 +844,7 @@ void main() {
     );
     await _show(tester, course, exercise);
     await _tap(tester, find.widgetWithText(OutlinedButton, 'Review again'));
-    await _tap(tester, find.widgetWithText(FilledButton, 'Next'));
+    await _tap(tester, find.widgetWithText(FilledButton, 'Continue'));
     await _tap(tester, find.widgetWithText(FilledButton, 'Got it'));
     await _tap(tester, find.widgetWithText(FilledButton, 'Finish round'));
     await _until(tester, find.text('Preview complete'));

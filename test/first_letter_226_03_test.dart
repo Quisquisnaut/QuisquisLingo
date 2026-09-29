@@ -288,6 +288,13 @@ void main() {
     testWidgets(
       'real Editor preserves full answer on ${draft ? 'Draft' : 'Published'} Save',
       (tester) async {
+        // The whole form on one page, as the other editor tests do: at the
+        // default 800 × 600 the Save row's centre falls a pixel below the
+        // window after ensureVisible.
+        tester.view.physicalSize = const Size(2400, 12000);
+        tester.view.devicePixelRatio = 3;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
         Exercise? saved;
         await tester.pumpWidget(
           MaterialApp(

@@ -2,6 +2,7 @@ import '../models/course_flag_selection.dart';
 import '../models/course_metadata_options.dart';
 import '../models/course_models.dart';
 import 'course_access_policy.dart';
+import 'audit_code_registry.dart';
 import 'course_audit_service.dart';
 import 'course_editor_service.dart';
 import 'course_file_store.dart';
@@ -211,11 +212,16 @@ class CourseImportReview {
     required this.choices,
     this.receivedUpdate = false,
     this.replaceUnavailableReason,
+    this.notExecutableCount = 0,
   });
 
   final Course course;
   final List<CourseAuditIssue> errors;
   final List<CourseAuditIssue> warnings;
+
+  /// How many exercises this version of QQL cannot play (Build 256 Revision
+  /// 6, plan A.6): imported and kept unchanged, skipped by learners.
+  final int notExecutableCount;
 
   /// The stored Course already using this Course ID, if any.
   final Course? existing;
@@ -327,7 +333,7 @@ class CourseLibraryOperations {
     final personal = await _membership.included(await editor.listUserCourses());
     final bundled = <Course>[
       if (!importOnly)
-        for (final code in CourseService.courseAssets.keys)
+        for (final code in CourseService.bundledAssets.keys)
           await _courses.loadCourse(code),
     ];
     // Home supplies its learner projection, which omits authored Draft content.
@@ -492,6 +498,9 @@ class CourseLibraryOperations {
         for (final issue in audit.issues)
           if (issue.severity == AuditSeverity.warning) issue,
       ],
+      notExecutableCount: audit.issues
+          .where((issue) => issue.code == AuditCode.exerciseNotExecutable.code)
+          .length,
       existing: existing,
       receivedUpdate: receivedDecision?.allowed ?? false,
       replaceUnavailableReason: ordinaryReplace
@@ -654,9 +663,21 @@ abstract final class CourseLibraryReports {
     return 'Course changes confirmed.\n$version$backup';
   }
 
-  static String imported(Course course, int warnings) => warnings == 0
-      ? 'Imported “${course.title}”.'
-      : 'Imported “${course.title}” with $warnings Course Audit warning${warnings == 1 ? '' : 's'}. Review Course Audit.';
+  static String imported(
+    Course course,
+    int warnings, {
+    int notExecutable = 0,
+  }) =>
+      (warnings == 0
+          ? 'Imported “${course.title}”.'
+          : 'Imported “${course.title}” with $warnings Course Audit warning${warnings == 1 ? '' : 's'}. Review Course Audit.') +
+      notExecutableNote(notExecutable);
+
+  /// One line counting the exercises this version cannot play (Build 256
+  /// Revision 6, plan A.6), empty when there are none.
+  static String notExecutableNote(int count) => count == 0
+      ? ''
+      : ' $count exercise${count == 1 ? '' : 's'} cannot be played by this version of QuisquisLingo and ${count == 1 ? 'is' : 'are'} kept unchanged.';
 
   static String publisherInstalled(
     Course course,

@@ -365,11 +365,12 @@ Future<void> _openFixtureLesson(WidgetTester tester) async {
   expect(find.byType(LessonEditorScreen), findsOneWidget);
 }
 
-// Synthetic v9 storage fixture, deliberately written independently of model
+// Synthetic Course Model v12 storage fixture, deliberately written
+// independently of model
 // constructors and toJson. This is not a user's Course or bundled content.
 const _rawDraftLessonCourse = r'''
 {
-  "formatVersion": 11,
+  "formatVersion": 12,
   "publicationState": "published",
   "lessonNumberingMode": "lesson",
   "defaultLessonIconStyle": "monochrome",
@@ -382,7 +383,9 @@ const _rawDraftLessonCourse = r'''
     "id": "12345678-1234-4234-9234-123456789abc",
     "displayName": "Persisted delivery tester"
   },
-  "maintainer": {"profileId": "12345678-1234-4234-9234-123456789abc"},
+  "maintainer": {
+    "profileId": "12345678-1234-4234-9234-123456789abc"
+  },
   "originalCreatedAtUtc": "2026-09-07T10:00:00.000Z",
   "lastVersionEditorProfileId": "12345678-1234-4234-9234-123456789abc",
   "lastVersionEditorDisplayName": "Persisted delivery tester",
@@ -399,44 +402,86 @@ const _rawDraftLessonCourse = r'''
   "textDirection": "ltr",
   "flagCode": "IT",
   "temporarySample": false,
-  "lessons": [{
-    "lessonId": "persisted-published-lesson",
-    "publicationState": "draft",
-    "updatedAt": "2026-09-07T10:00:00.000Z",
-    "title": "Persisted greetings",
-    "section": false,
-    "guidebook": {"content": []},
-    "rounds": [{
-      "id": "persisted-published-round",
-      "publicationState": "published",
-      "updatedAt": "2026-09-07T10:01:00.000Z",
-      "title": "Published words",
-      "visualType": "generic",
-      "content": [{
-        "id": "persisted-published-exercise",
-        "publicationState": "published",
-        "kind": "exercise",
-        "required": false,
-        "editorTemplate": "choice",
-        "exercise": {
-          "updatedAt": "2026-09-07T10:02:00.000Z",
-          "prompt": [
-            {"role": "primary", "type": "text", "text": "Choose the Italian translation."},
-            {"role": "question", "type": "text", "text": "water"}
-          ],
-          "interaction": {
-            "kind": "select", "minSelections": 1, "maxSelections": 1,
-            "items": [
-              {"id": "item_0", "content": [{"role": "primary", "type": "text", "text": "acqua"}]},
-              {"id": "item_1", "content": [{"role": "primary", "type": "text", "text": "libro"}]}
-            ]
-          },
-          "evaluation": {"kind": "selected_items", "correctItemIds": ["item_0"]}
+  "lessons": [
+    {
+      "lessonId": "persisted-published-lesson",
+      "publicationState": "draft",
+      "updatedAt": "2026-09-07T10:00:00.000Z",
+      "title": "Persisted greetings",
+      "section": false,
+      "guidebook": {
+        "content": []
+      },
+      "rounds": [
+        {
+          "id": "persisted-published-round",
+          "publicationState": "published",
+          "updatedAt": "2026-09-07T10:01:00.000Z",
+          "title": "Published words",
+          "visualType": "generic",
+          "content": [
+            {
+              "id": "persisted-published-exercise",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": false,
+              "authoringMetadata": {
+                "presetId": "choice"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-07T10:02:00.000Z",
+                "primitive": "select",
+                "prompt": [
+                  {
+                    "role": "primary",
+                    "type": "text",
+                    "text": "Choose the Italian translation."
+                  },
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "water"
+                  }
+                ],
+                "items": [
+                  {
+                    "id": "item_0",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "acqua"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "item_1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "libro"
+                      }
+                    ]
+                  }
+                ],
+                "evaluation": {
+                  "mode": "exactItem",
+                  "correctItemIds": [
+                    "item_0"
+                  ]
+                }
+              }
+            }
+          ]
         }
-      }]
-    }],
-    "duel": {"id": "persisted-published-lesson_duel", "title": "Duel"}
-  }]
+      ],
+      "duel": {
+        "id": "persisted-published-lesson_duel",
+        "title": "Duel"
+      }
+    }
+  ]
 }
 ''';
 

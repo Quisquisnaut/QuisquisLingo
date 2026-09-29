@@ -9,12 +9,20 @@ const _imageMarker =
 
 const _stamp = '2026-09-11T10:00:00.000Z';
 
-Exercise _exercise(String type, String id) => Exercise.v2(
-  id: id,
-  updatedAt: DateTime.parse(_stamp),
-  editorTemplate: type,
-  promptElements: [
-    PromptElement(type: 'text', text: '$type Prompt Marker'),
+Exercise _exercise(String type, String id) {
+  // Course Model v12 keeps only the fields of an exercise's own primitive, so
+  // each preset is authored in the v11 shape of that primitive.
+  final primitive = ExercisePresetRegistry.byId(type)?.primitive;
+  final missing = const {
+    'missing_word',
+    'complete_text',
+    'missing_letters',
+  }.contains(type);
+  final promptText = missing
+      ? '$type Prompt Marker $type Missing Marker'
+      : '$type Prompt Marker';
+  final prompt = <PromptElement>[
+    PromptElement(type: 'text', text: promptText),
     PromptElement(type: 'audio', text: '$type Audio Marker'),
     PromptElement(
       role: 'dialogue_turn',
@@ -23,32 +31,67 @@ Exercise _exercise(String type, String id) => Exercise.v2(
       speaker: '$type Speaker Marker',
     ),
     const PromptElement(type: 'image', asset: _imageMarker),
-  ],
-  interaction: ExerciseInteraction(
-    kind: 'select',
-    items: [
-      ExerciseItem(
-        id: 'item_internal_marker',
-        content: [PromptElement(type: 'text', text: '$type Item Marker')],
+  ];
+  final items = [
+    ExerciseItem(
+      id: 'item_internal_marker',
+      content: [PromptElement(type: 'text', text: '$type Item Marker')],
+    ),
+    ExerciseItem(
+      id: 'item_internal_marker_2',
+      content: [PromptElement(type: 'text', text: '$type Item Marker two')],
+    ),
+  ];
+  final (interaction, evaluation) = switch (primitive) {
+    ExercisePrimitive.input => (
+      const ExerciseInteraction(kind: 'input'),
+      ExerciseEvaluation(
+        kind: 'text_match',
+        accepted: ['$type Accepted Marker'],
+        normalization: const {'private_internal_marker': true},
       ),
-    ],
-  ),
-  evaluation: ExerciseEvaluation(
-    kind: 'selected_items',
-    correctItemIds: const ['correct_internal_marker'],
-    accepted: ['$type Accepted Marker'],
-    correctOrders: [
-      OrderedAnswer(
-        text: '$type Order Marker',
-        itemIds: const ['item_internal_marker'],
+    ),
+    ExercisePrimitive.arrange => (
+      ExerciseInteraction(kind: 'arrange', items: items),
+      ExerciseEvaluation(
+        kind: 'ordered_items',
+        correctOrders: [
+          OrderedAnswer(
+            text: '$type Order Marker',
+            itemIds: const ['item_internal_marker'],
+          ),
+        ],
       ),
-    ],
-    normalization: const {'private_internal_marker': true},
-  ),
-  hint: '$type Hint Marker',
-  feedback: const {'incorrect': 'Feedback Internal Marker'},
-  missingWords: ['$type Missing Marker'],
-);
+    ),
+    ExercisePrimitive.match => (
+      ExerciseInteraction(kind: 'match', items: items),
+      const ExerciseEvaluation(
+        kind: 'matched_items',
+        pairs: [
+          ['item_internal_marker', 'item_internal_marker_2'],
+        ],
+      ),
+    ),
+    _ => (
+      ExerciseInteraction(kind: 'select', items: items),
+      const ExerciseEvaluation(
+        kind: 'selected_items',
+        correctItemIds: ['correct_internal_marker'],
+      ),
+    ),
+  };
+  return Exercise.v2(
+    id: id,
+    updatedAt: DateTime.parse(_stamp),
+    editorTemplate: type,
+    promptElements: prompt,
+    interaction: interaction,
+    evaluation: evaluation,
+    hint: '$type Hint Marker',
+    feedback: const ExerciseFeedback(incorrect: 'Feedback Internal Marker'),
+    missingWords: missing ? ['$type Missing Marker'] : const [],
+  );
+}
 
 Course _inventoryCourse() {
   final source = _course();
@@ -261,7 +304,7 @@ void main() {
 
     test('type and structural scope filters are authoritative', () {
       expect(
-        service.search(_course(), query: 'come', exerciseType: 'choice'),
+        service.search(_course(), query: 'come', exerciseType: 'choice_target'),
         hasLength(1),
       );
       expect(

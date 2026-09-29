@@ -187,7 +187,7 @@ void main() {
     await store.write(CourseStoreKind.custom, 'a', {'title': 'A'});
 
     final root = await store.rootDirectory();
-    expect(root.path, endsWith('QQL_Courses'));
+    expect(root.path, endsWith('QQL_Courses_v12'));
 
     final file = File(
       '${root.path}${Platform.pathSeparator}Custom${Platform.pathSeparator}'

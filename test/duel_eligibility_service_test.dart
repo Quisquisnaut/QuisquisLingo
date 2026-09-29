@@ -130,20 +130,119 @@ void main() {
     expect(result.isAvailable, isFalse);
   });
 
-  test('the existing seven supported exercise types remain eligible', () {
-    final exercises = [
-      for (final type in DuelEligibilityService.supportedExerciseTypes)
-        _exercise(type, type: type),
+  test('eligibility comes from canonical data, not from the preset', () {
+    // Every single-answer Select whose items are shown as choices qualifies
+    // (Build 256, plan A.10), whichever preset authored it.
+    final singles = [
+      _exercise('plain'),
+      _exercise(
+        'gap',
+        type: 'gap_choice',
+        question: 'Il gatto ___ sul divano.',
+      ),
+      _exercise('listen', type: 'listening_choice', tts: 'Buongiorno'),
+      _exercise(
+        'passage',
+        type: 'listening_comprehension',
+        tts: 'Maria compra',
+      ),
+      _exercise(
+        'read',
+        type: 'reading_comprehension',
+        prompt: 'Anna abita a Roma.',
+      ),
+      _exercise(
+        'dialogue',
+        type: 'dialogue_response',
+        prompt: 'Un amico ti offre acqua.',
+      ),
+      _exercise(
+        'context',
+        type: 'contextual_comprehension',
+        prompt: 'Marco entra in un bar.',
+      ),
+      _exercise('icons', type: 'icon_choice'),
+      _exercise('to-target', type: 'translation_choice_to_target'),
+      _exercise('to-source', type: 'translation_choice_to_source'),
+      Exercise(
+        id: 'characters',
+        type: 'script_recognition',
+        prompt: 'Select the character shown.',
+        question: '',
+        answers: const ['A', 'E'],
+        correct: 0,
+        tts: null,
+        accepted: const [],
+        tokens: const [],
+        orderAnswer: const [],
+        pairs: const [],
+        hint: '',
+        icons: const [],
+        imageAsset: 'assets/exercise_images/apple.webp',
+      ),
     ];
-    final result = service.evaluate(_lesson([exercises]));
-
-    expect(
-      result.candidates.map((candidate) => candidate.exercise.type).toSet(),
-      DuelEligibilityService.supportedExerciseTypes,
-    );
-    expect(result.candidates.map((candidate) => candidate.round.id).toSet(), {
-      'round_0',
+    for (final exercise in singles) {
+      expect(
+        DuelEligibilityService.isEligible(exercise),
+        isTrue,
+        reason: exercise.id,
+      );
+    }
+    final result = service.evaluate(_lesson([singles]));
+    expect(result.candidates.map((c) => c.exercise.id).toSet(), {
+      for (final exercise in singles) exercise.id,
     });
+    expect(result.candidates.map((c) => c.round.id).toSet(), {'round_0'});
+
+    // A multiple-answer Choose, an inline-gap Select and every other
+    // primitive stay out of the pool.
+    final multiple = Exercise.canonical(
+      id: 'multiple',
+      primitive: ExercisePrimitive.select,
+      options: PrimitiveOptions({
+        OptionKey.selectionMode: const EnumOptionValue(SelectionMode.multiple),
+        OptionKey.maximumSelections: const IntOptionValue(2),
+        OptionKey.evaluationTiming: const EnumOptionValue(
+          EvaluationTiming.explicit,
+        ),
+      }),
+      promptElements: const [PromptElement(type: 'text', text: 'Choose two.')],
+      items: const [
+        ExerciseItem(
+          id: 'a',
+          content: [PromptElement(type: 'text', text: 'a')],
+        ),
+        ExerciseItem(
+          id: 'b',
+          content: [PromptElement(type: 'text', text: 'b')],
+        ),
+        ExerciseItem(
+          id: 'c',
+          content: [PromptElement(type: 'text', text: 'c')],
+        ),
+      ],
+      canonicalEvaluation: const CanonicalEvaluation(
+        mode: EvaluationMode.exactSet,
+        correctItemIds: ['a', 'b'],
+      ),
+    );
+    expect(DuelEligibilityService.isEligible(multiple), isFalse);
+    expect(
+      DuelEligibilityService.isEligible(
+        _exercise('typed', type: 'type_translation'),
+      ),
+      isFalse,
+    );
+    expect(
+      service
+          .evaluate(
+            _lesson([
+              [multiple],
+            ]),
+          )
+          .eligibleCount,
+      0,
+    );
   });
 
   test(
