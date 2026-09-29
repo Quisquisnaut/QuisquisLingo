@@ -13,23 +13,35 @@ narrative of Revision 4 is gone (the evidence lives in
 `docs/256_VALIDATION.md`); what follows is state, decisions, requirements,
 open problems and the next step.
 
-## State (29 September 2026, 02:24)
+## State (29 September 2026, 08:33)
 
-- **Build 256 is complete and reviewed once: eight sessions, Revisions
-  0–7, committed locally on `claude/256-exercise-architecture`, NOT
-  pushed. Revision 7 (`2.0.56+256007`) is `07384ef`; its follow-up of 29
-  September 2026 (the owner's review: two Assign presets Sort into groups
-  and Fill the slots, the Match picture to word form, the Flashcard
-  read-aloud, the spelling presets' one field, the Story editor list) is
-  `0a66498` (suite 3238 passed, 1 skipped, 0 failed, 01:56–02:23).
-  Waiting for the owner: push only when asked (`git push` of
-  `claude/256-exercise-architecture`), APK only on request. Parked by the
+- **Build 256 is complete and reviewed twice: eight sessions, Revisions
+  0–7, committed on `claude/256-exercise-architecture`. Revision 7
+  (`2.0.56+256007`) is `07384ef`; the first follow-up of 29 September 2026
+  (the owner's review: two Assign presets, the Match picture to word form,
+  the Flashcard read-aloud, the spelling presets' one field, the Story
+  editor list) is `0a66498` (suite 3238/1/0); the second follow-up (New
+  Round as a bottom-bar button beside Round Wizard and New Story with
+  Title Case for the editor's creation buttons; Choose the answer: Correct
+  answer number 1 on a new single-answer form, the Audit's
+  CHOICE_ALL_ANSWERS_CORRECT, the fields Prompt (optional) and Question or
+  sentence to complete with grammar examples, the authored Prompt drawn as
+  the instruction line; Match: the authored instruction as the line, no
+  guessed "opposite" instruction; Flashcard: Pronunciation TTS (if
+  different) back as an optional field; Missing letters' field label; the
+  switch Play as a sequence) is `2c124a3` (suite 3242 passed, 1 skipped,
+  0 failed, 08:03–08:32). Push, pull request and merge into main follow on
+  the owner's request of 29 September; the remote branch is deleted after
+  the merge and the local main updated. APK only on request. Parked by the
   owner: Adventures (the F block and the video block, see Next step) and
   spoken exercises. Open owner items: the Story Save rule (not blocked
   without a title block or a line), Label the picture (greyed; Assign
   regions), the Speak, Ink and Submit runtimes, regions, cells and drag
   placement for Assign, a preset for Assign gaps (declined: the inline gap
-  presets cover it).** An auto-resume run replies with one line of
+  presets cover it), and whether a Round played as a sequence should keep
+  the Story options (title, log, read-aloud, Add Step), the derived
+  "Story:" label and the Story Audit rules, which still treat it as a
+  Story.** An auto-resume run replies with one line of
   status and does nothing else. Complete suite on the final tree: 3117
   passed, 1 skipped, 0 failed (run 2; run 1 had three count pins fixed in
   tests). No APK built (owner: only on request); the end-of-revision sound
@@ -466,7 +478,7 @@ Plan Part B item 8 and Part D session 6, `2.0.56+256007`. Pre-approved
 | 5 Preset catalogue | 4 | 2.0.56+256004 | committed `eca0cd0` (suite 3053/1/0), pushed |
 | 6 Stories (`docs/256_STORY_PLAN.md`) | 5 | 2.0.56+256005 | committed `4172d98`, follow-ups `7903e9f`, `41a5555`, `32fedfb` |
 | 7 Interoperability | 6 | 2.0.56+256006 | committed `355ad94` (suite 3182/1/0) |
-| 8 Laboratory, Assign, final verification | 7 | 2.0.56+256007 | committed `07384ef` (suite 3229/1/0), follow-up `0a66498` (suite 3238/1/0) |
+| 8 Laboratory, Assign, final verification | 7 | 2.0.56+256007 | committed `07384ef` (suite 3229/1/0), follow-ups `0a66498` (suite 3238/1/0), `2c124a3` (suite 3242/1/0) |
 
 Branch `claude/256-exercise-architecture`, created from `main` at `611a1a1`
 (Build 255 handoff, `2.0.55+255007`).
@@ -658,12 +670,14 @@ Branch `claude/256-exercise-architecture`, created from `main` at `611a1a1`
 
 ## Next step
 
-1. Wait for the owner's next review (the Revision 7 follow-up answered the
-   first: two Assign presets, the Match picture to word form, the Flashcard
-   read-aloud, the spelling presets' one field, the Story editor list);
-   push only when asked. The next work is the owner's choice: further
-   corrections as same-version follow-up commits, the Adventure release
-   (parked), spoken exercises (parked).
+1. Wait for the owner's next review (two follow-ups answered the review
+   of 29 September: Assign presets, the Match picture to word form, the
+   Flashcard read-aloud, the spelling presets' one field, the Story editor
+   list; then the buttons, Choose the answer, Match by meaning, the
+   Flashcard's Pronunciation TTS (if different), Missing letters, Play as
+   a sequence). The next work is the owner's choice: further corrections
+   as same-version follow-up commits, the Adventure release (parked),
+   spoken exercises (parked), the sequence-versus-Story question above.
    **Parked: spoken exercises** (owner, 28 September, 22:00) (an exercise said by a
    speaker: "Said by" in the Wizard and the form, drawn in the speaker's
    bubble with the avatar, instruction "What comes next?" / "What do you
@@ -732,6 +746,19 @@ Branch `claude/256-exercise-architecture`, created from `main` at `611a1a1`
   `preset_recipes_256_test` (default recipe per primitive; every Laboratory
   example represented), `exercise_laboratory_254_test` (example count, the
   `_author` fields), the generators' `--check` messages.
+- Button and field labels are pinned by text in many tests
+  (`find.text('New Round')`, `widgetWithText(FloatingActionButton, 'New
+  Lesson')`, `field('Prompt (optional)')`, the source pin of
+  `course_editor_layout_regression_test`, the Help pins of
+  `localization_catalog_test`, `revision3_followup_256_test` and the two
+  field-help tests, whose dialog finders are scoped to the AlertDialog
+  because the same texts sit on the form's helpers): a renamed label means
+  a sweep of `test/` for the old text. The Rounds page's New Round is found
+  by `rounds-new-round` (no floating button any more).
+- The Round screen draws a plain Choose's or a Match's authored prompt as
+  the instruction line (`_promptAsInstruction`, executable exercises only):
+  a Laboratory record of such an example has `instruction` = the prompt
+  and `prompt` = null.
 - The complete suite launched with the Bash tool in the background (a
   `run_awake.ps1` call, ~26 minutes) survives the tool's ten-minute
   timeout; poll the UTF-16 log with `s44_suite_summary.py`.
