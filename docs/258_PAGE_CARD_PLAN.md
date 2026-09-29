@@ -210,7 +210,7 @@ desktop?"
   Course contains a Page (agreed). The owner added: QQL is a brand-new Beta
   whose earlier builds were never distributed, so legacy compatibility is
   not a concern.
-- **Q10 Share, save, email, print (open):** which actions, and may QQL add
+- **Q10 Share, save, email, print (decided, 30 September: approved):** which actions, and may QQL add
   the `pdf` (pure Dart) and `printing` (native) packages? Claude's
   suggestion (29 September): add `pdf`, skip `printing` for now (its
   Windows and Linux builds are believed to download pdfium at build time;
@@ -224,8 +224,9 @@ desktop?"
   setting is a courtesy, not protection (a screenshot is always possible)
   and is never inferred from the licence text. Claude's default the owner
   may override: the bundled demos follow the default (on).
-- **Q12 Export folder (open):** Save's Quick Export folder `Export/Pages`
-  (added to reset and Inventory).
+- **Q12 Export folder (decided with the go-ahead):** Save's Quick Export
+  folder `Export/Pages` (covered by the Export folder's reset and
+  Inventory).
 
 ## 4. Proposed delivery (after the go-ahead)
 

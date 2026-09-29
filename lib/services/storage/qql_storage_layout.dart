@@ -122,6 +122,7 @@ class QqlStorageLayout {
       QqlFileCategory.lessonIcons => const ['LessonIcons'],
       QqlFileCategory.courseFlags => const ['Flags'],
       QqlFileCategory.auditReports => const ['AuditReports'],
+      QqlFileCategory.pages => const ['Pages'],
       QqlFileCategory.diagnosticLogs => const <String>[],
     },
   ];

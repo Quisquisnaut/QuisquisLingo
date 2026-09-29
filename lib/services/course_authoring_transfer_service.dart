@@ -353,6 +353,7 @@ class CourseAuthoringTransferService {
     defaultLessonIconStyle: source.defaultLessonIconStyle,
     createDuels: source.createDuels,
     useGuidebook: source.useGuidebook,
+    allowPageSharing: source.allowPageSharing,
     sectionNames: source.sectionNames,
     learningLanguage: source.learningLanguage,
     interfaceLanguage: source.interfaceLanguage,

@@ -4,23 +4,19 @@ Resume from this file alone. Plan (approved by the owner on 29 September
 2026): `docs/258_PAGE_CARD_PLAN.md`. Process rules: `docs/256_HANDOFF.md`
 ("Requirements and process"). Previous build: `docs/257_HANDOFF.md`.
 
-## State (29 September 2026, 21:49)
+## State (30 September 2026, 00:34)
 
-- Committed on local branch `claude/258-page-cards` (not pushed):
-  Revision 0 `19de25b` (Page model and learner display), Revision 1
-  `1323eb7` (300 KB Course pictures), Revision 2 `3224523` (the Page
-  form), **Revision 3 `fa368cc` (`2.0.58+258003`, the Laboratory's Page
-  Lesson)**; last complete suite 3335 passed, 1 skipped, 0 failed
-  (21:19–21:49).
-- **Next: Revision 4 (share, save, email, print) waits for the owner's
-  answer to Q10**: add `pdf` (pure Dart), skip `printing` and print in two
-  steps (desktop: save the PDF and open it in the default viewer; iOS: the
-  share sheet's Print; Android: share or save, then print from a viewer)?
-  Q11 (rights) is decided: a Course setting "Learners may share, save and
-  print pages", on by default, a credits footer, a Publisher Course keeps
-  its publisher's choice; bundled demos follow the default. Plan 2.9.
-- Corrections after the owner's review of a build are same-version
-  follow-ups of the revision they concern.
+- Committed (not pushed): Revision 0 `19de25b`, 1 `1323eb7`, 2 `3224523`,
+  3 `fa368cc`.
+- **Revision 4 (`2.0.58+258004`, share, save and print a Page) in the
+  working tree**: `Course.allowPageSharing` and the Course Info switch,
+  `PageActionsBar`/`PageCapture`, `PageExport`, the `pdf` dependency
+  (Q10 approved 30 September), `Export/Pages`, Help, tests, version, Beta
+  expiry 30 October (release 30 September) and docs done; analyze clean;
+  new tests green. The complete suite runs next (started 00:34).
+- After the commit, Build 258's plan is complete; the owner reviews a
+  Windows build. Known limit: a page taller than A4 is cut at a fixed
+  height in the PDF.
 - Do not run `dart format` on files that predate the formatter: in
   Revision 1 it added unrelated whitespace churn to seven files
   (`custom_course_transfer_service.dart`, `exercise_image_service.dart`,

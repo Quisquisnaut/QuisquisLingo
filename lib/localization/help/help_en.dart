@@ -184,10 +184,9 @@ const Map<String, String> helpEn = <String, String>{
   'editorHelp.qa.newExercise.q': r'''How do I add an exercise?''',
   'editorHelp.qa.newExercise.a':
       r'''In a Round, New Exercise opens the preset picker: choose an exercise type, such as Pick the translation or Name what you see, and fill its form. New Canonical opens the canonical editor for any primitive. The preset's name is shown in bold at the top of the form.''',
-  'editorHelp.qa.pageCards.q':
-      r'''How do I make a textbook-like Page?''',
+  'editorHelp.qa.pageCards.q': r'''How do I make a textbook-like Page?''',
   'editorHelp.qa.pageCards.a':
-      r'''In the Round editor press New Exercise and choose Page (Cards and notes). Add blocks with Add block: headings, paragraphs, quotes or examples, bulleted or numbered lists, pictures, audio and video links; order them with the arrows. In body text write **bold** and *italic* (the toolbar wraps the selection). Each text block has an alignment, a colour from the palette and an optional read-aloud; each picture a size, an alignment and a caption. A video link opens an https address in the learner’s browser. The preview under the blocks shows the Page as the learner sees it. Several pages in a row are several Page cards; turn on Play as a sequence to keep their order.''',
+      r'''In the Round editor press New Exercise and choose Page (Cards and notes). Add blocks with Add block: headings, paragraphs, quotes or examples, bulleted or numbered lists, pictures, audio and video links; order them with the arrows. In body text write **bold** and *italic* (the toolbar wraps the selection). Each text block has an alignment, a colour from the palette and an optional read-aloud; each picture a size, an alignment and a caption. A video link opens an https address in the learner’s browser. The preview under the blocks shows the Page as the learner sees it. Several pages in a row are several Page cards; turn on Play as a sequence to keep their order. Under each Page learners find Share, Save PDF and Print (on computers Print opens the PDF in the viewer, which prints it); the PDF credits the Course, its rights holder and licence. Turn them off in Course Info with Learners may share, save and print pages.''',
   'editorHelp.qa.presetOrCanonical.q':
       r'''What is the difference between a preset and the canonical editor?''',
   'editorHelp.qa.presetOrCanonical.a':

@@ -14,6 +14,8 @@ enum QqlFileCategory {
   courseFlags,
   auditReports,
   diagnosticLogs,
+  // Build 258 Revision 4: Pages saved as PDF.
+  pages,
 }
 
 /// One logical QQL user folder, such as "the Quick Import source for
@@ -118,6 +120,13 @@ final class QqlStorageRole {
     'folderAuditReportExports',
   );
 
+  /// A Page's Quick Export PDF writes here (Build 258 Revision 4).
+  static const pageExports = QqlStorageRole._(
+    QqlTransferDirection.exports,
+    QqlFileCategory.pages,
+    'folderPageExports',
+  );
+
   /// Export Diagnostic Log and the Crash Log's Quick Export write their
   /// copies here (Logs).
   static const diagnosticLogExports = QqlStorageRole._(
@@ -139,6 +148,7 @@ final class QqlStorageRole {
     lessonIconImports,
     courseFlagImports,
     auditReportExports,
+    pageExports,
     diagnosticLogExports,
   ];
 

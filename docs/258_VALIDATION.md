@@ -3,6 +3,27 @@
 Evidence for each Build 258 revision. Process: `docs/256_HANDOFF.md`
 ("Requirements and process").
 
+## Revision 4 (2.0.58+258004, 30 September 2026): share, save and print a Page
+
+- New: `test/page_share_258_test.dart` (7): the setting on by default and
+  stored only when off, a wrong type refused; text, credits and file name;
+  a tall page cut into three A4 pages; the bar hidden when the Course does
+  not allow it; Share (a PDF named in `fileNameOverrides`), Print (a PDF
+  file opened) and Quick Export through the seams; the real off-screen
+  capture producing a one-page PDF; Linux sharing text and credits.
+  `course_info_update_service_245_test`: the setting stored and cleared.
+- Updated: the storage role pins (`storage_roles_255_test`: 14 roles;
+  `android_quick_folders_255_test`), the Beta expiry test (30 October,
+  every date one day later), version pins.
+- Complete suite, run 1 (00:35–01:05, 30 September): 3341 passed, 1
+  skipped, 2 failed (`exercise_laboratory_254_test`: the two Page examples'
+  recorded controls now include Share and Print, a deliberate change). The
+  two records were re-recorded (only their outlined-button lists changed)
+  and replaced in the baseline.
+- `flutter analyze --no-pub`: no issues.
+- Complete suite, run 2 (01:08–01:34, 30 September, `--concurrency=1`,
+  keep-awake wrapper): **3343 passed, 1 skipped, 0 failed**.
+
 ## Revision 3 (2.0.58+258003, 29 September 2026): Pages in the Exercise Laboratory
 
 - Generators: the Laboratory 8 Lessons, 28 Rounds, 124 examples, `--check`

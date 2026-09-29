@@ -822,6 +822,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
         ? _course.license
         : 'Other / Custom license';
     var derivativePolicy = _course.derivativeWorksPolicy;
+    var allowPageSharing = _course.allowPageSharing;
     String? mediaCreditError;
     var flagSelection = CourseFlagSelection.fromCourse(_course);
     var coverImage = _course.coverImage;
@@ -1513,6 +1514,20 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                       ),
                     ),
                   ],
+                  // Build 258 Revision 4 (owner decision): on by default.
+                  SwitchListTile(
+                    key: const Key('course-info-page-sharing'),
+                    contentPadding: EdgeInsets.zero,
+                    title: const Text(
+                      'Learners may share, save and print pages',
+                    ),
+                    subtitle: const Text(
+                      'Shows Share, Save PDF and Print under every Page; the PDF credits this Course, its rights holder and licence. A courtesy, not protection: a screenshot is always possible.',
+                    ),
+                    value: allowPageSharing,
+                    onChanged: (value) =>
+                        setLocalState(() => allowPageSharing = value),
+                  ),
                   const SizedBox(height: 12),
                   const Text(
                     'Rights Holder records rights ownership information. It does not control QQL permissions.',
@@ -1939,6 +1954,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                       : CourseMetadataOptions.derivativePolicyForLicense(
                           selected,
                         ),
+                  allowPageSharing: allowPageSharing,
                   variant: variant.text.trim(),
                   startLevel: startLevel.text.trim(),
                   targetLevel: targetLevel.text.trim(),

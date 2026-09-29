@@ -1,6 +1,6 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.58+258003 · Build 258, Revision 3 · Course Model v12 (`formatVersion: 12`).**
+**Current source version: 2.0.58+258004 · Build 258, Revision 4 · Course Model v12 (`formatVersion: 12`).**
 
 **QuisquisLingo 2.0.58 Beta — QQL 258 Page cards (Course Model v12)**
 
@@ -9,8 +9,9 @@ paragraphs with bold and italic, quotes, lists, pictures, audio and video
 links) with alignment and a named colour palette
 ([plan](docs/258_PAGE_CARD_PLAN.md), [change summary](docs/258_CHANGE_SUMMARY.md)).
 Revision 0 brings the model and the learner display, Revision 1 raises
-the Course picture limit to 300 KB, Revision 2 adds the Page form and
-Revision 3 the Exercise Laboratory's Page Lesson.
+the Course picture limit to 300 KB, Revision 2 adds the Page form,
+Revision 3 the Exercise Laboratory's Page Lesson and Revision 4 Share, Save
+PDF and Print under every Page.
 
 Build 257 makes the note a learner reads before a Round starts an ordinary,
 editable card of the Round: the **Before you start** preset (a presentation
@@ -384,7 +385,7 @@ The MPL-2.0 covers the QuisquisLingo software source. Courses, the Image Bank an
 
 ## Beta lifecycle
 
-Version 2.0.58, Build 258, Revision 3 is a time-limited Beta with an expiry of **2026-10-29 23:59:59 local time** (30 days after the 29 September 2026 release date). In its last seven days it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
+Version 2.0.58, Build 258, Revision 4 is a time-limited Beta with an expiry of **2026-10-30 23:59:59 local time** (30 days after the 30 September 2026 release date). In its last seven days it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
 
 ## Core logic
 

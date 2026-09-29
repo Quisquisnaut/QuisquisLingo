@@ -10,6 +10,7 @@
 /// gaps with a clue, no longer translations). Later work must keep every
 /// record equal except where a documented deliberate change says otherwise.
 /// Build 258 Revision 3 added the two Page examples; no existing record changed.
+/// Build 258 Revision 4 re-recorded those two: Share and Print sit under a Page.
 const laboratoryPresentation = <String, Map<String, Object?>>{
   'qql_lab254_arrange_gap_audio': {
     'before': {
@@ -9131,7 +9132,11 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
       },
       'controls': {
         'filled': ['<_FilledButtonWithIconChild>', 'Continue'],
-        'outlined': ['<_OutlinedButtonWithIconChild>'],
+        'outlined': [
+          '<_OutlinedButtonWithIconChild>',
+          '<_OutlinedButtonWithIconChild>',
+          '<_OutlinedButtonWithIconChild>',
+        ],
         'checkboxes': 0,
         'textFields': 0,
         'actionChips': 0,
@@ -9198,7 +9203,11 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
           'Continue',
           'Finishing round…',
         ],
-        'outlined': ['<_OutlinedButtonWithIconChild>'],
+        'outlined': [
+          '<_OutlinedButtonWithIconChild>',
+          '<_OutlinedButtonWithIconChild>',
+          '<_OutlinedButtonWithIconChild>',
+        ],
         'checkboxes': 0,
         'textFields': 0,
         'actionChips': 0,
@@ -9262,7 +9271,10 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
       },
       'controls': {
         'filled': ['Continue'],
-        'outlined': <String>[],
+        'outlined': [
+          '<_OutlinedButtonWithIconChild>',
+          '<_OutlinedButtonWithIconChild>',
+        ],
         'checkboxes': 0,
         'textFields': 0,
         'actionChips': 0,
@@ -9324,7 +9336,10 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
       },
       'controls': {
         'filled': ['Close', 'Continue', 'Finishing round…'],
-        'outlined': <String>[],
+        'outlined': [
+          '<_OutlinedButtonWithIconChild>',
+          '<_OutlinedButtonWithIconChild>',
+        ],
         'checkboxes': 0,
         'textFields': 0,
         'actionChips': 0,

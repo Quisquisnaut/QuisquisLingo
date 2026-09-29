@@ -18,7 +18,12 @@ class PageCardView extends StatelessWidget {
     this.onSpeak,
     this.onOpenLink,
     this.background,
+    this.forExport = false,
   });
+
+  /// Build 258 Revision 4: the page as it goes into a PDF: no audio or
+  /// read-aloud buttons, and each link printed with its address.
+  final bool forExport;
 
   /// The Page's blocks, in order (elements with role `block`).
   final List<PromptElement> blocks;
@@ -252,7 +257,7 @@ class PageCardView extends StatelessWidget {
 
   Widget _audio(PromptElement block, int index) {
     final speak = onSpeak;
-    if (speak == null) return const SizedBox.shrink();
+    if (speak == null || forExport) return const SizedBox.shrink();
     return Align(
       alignment: AlignmentDirectional.centerStart,
       child: FilledButton.tonalIcon(
@@ -265,6 +270,20 @@ class PageCardView extends StatelessWidget {
   }
 
   Widget _link(BuildContext context, PromptElement block, int index) {
+    if (forExport) {
+      final label = block.text.trim().isEmpty
+          ? 'Watch the video'
+          : block.text.trim();
+      return Text(
+        '$label: ${block.url.trim()}',
+        key: ValueKey('page-link-$index'),
+        textAlign: textAlignOf(block.align),
+        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+          color: Theme.of(context).colorScheme.primary,
+          decoration: TextDecoration.underline,
+        ),
+      );
+    }
     final open = onOpenLink;
     final acceptable = PageBlocks.isAcceptableLink(block.url);
     final label = block.text.trim().isEmpty

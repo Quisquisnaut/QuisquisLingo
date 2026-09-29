@@ -189,10 +189,9 @@ const Map<String, String> helpIt = {
   "editorHelp.qa.newExercise.q": "Come aggiungo un esercizio?",
   "editorHelp.qa.newExercise.a":
       "In un Round, New Exercise apre la scelta dei preset: scegli un tipo di esercizio, come Pick the translation o Name what you see, e compila il suo modulo. New Canonical apre l’editor canonico per qualsiasi primitiva. Il nome del preset compare in grassetto in cima al modulo.",
-  "editorHelp.qa.pageCards.q":
-      "Come creo una Page simile a un libro di testo?",
+  "editorHelp.qa.pageCards.q": "Come creo una Page simile a un libro di testo?",
   "editorHelp.qa.pageCards.a":
-      "Nell’editor del Round premi New Exercise e scegli Page (Cards and notes). Aggiungi blocchi con Add block: titoli, paragrafi, citazioni o esempi, elenchi puntati o numerati, immagini, audio e link video; ordinali con le frecce. Nel testo scrivi **grassetto** e *corsivo* (la barra degli strumenti avvolge la selezione). Ogni blocco di testo ha un allineamento, un colore della tavolozza e una lettura ad alta voce facoltativa; ogni immagine una dimensione, un allineamento e una didascalia. Un link video apre un indirizzo https nel browser dello studente. L’anteprima sotto i blocchi mostra la Page come la vede lo studente. Più pagine di seguito sono più schede Page; attiva Play as a sequence per mantenerne l’ordine.",
+      "Nell’editor del Round premi New Exercise e scegli Page (Cards and notes). Aggiungi blocchi con Add block: titoli, paragrafi, citazioni o esempi, elenchi puntati o numerati, immagini, audio e link video; ordinali con le frecce. Nel testo scrivi **grassetto** e *corsivo* (la barra degli strumenti avvolge la selezione). Ogni blocco di testo ha un allineamento, un colore della tavolozza e una lettura ad alta voce facoltativa; ogni immagine una dimensione, un allineamento e una didascalia. Un link video apre un indirizzo https nel browser dello studente. L’anteprima sotto i blocchi mostra la Page come la vede lo studente. Più pagine di seguito sono più schede Page; attiva Play as a sequence per mantenerne l’ordine. Sotto ogni Page gli studenti trovano Share, Save PDF e Print (sui computer Print apre il PDF nel visualizzatore, che lo stampa); il PDF cita il Corso, il titolare dei diritti e la licenza. Puoi disattivarli in Course Info con Learners may share, save and print pages.",
   "editorHelp.qa.presetOrCanonical.q":
       "Che differenza c’è tra un preset e l’editor canonico?",
   "editorHelp.qa.presetOrCanonical.a":

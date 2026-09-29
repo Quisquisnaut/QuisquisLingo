@@ -50,6 +50,27 @@ void main() {
     },
   );
 
+  // Build 258 Revision 4: learners may share, save and print Pages, on by
+  // default; only the off state is stored.
+  test('stores the page sharing setting', () async {
+    final original = _course();
+    expect(original.allowPageSharing, isTrue);
+    final off = (await CourseInfoUpdateService().apply(
+      original,
+      _change(original, allowPageSharing: false),
+      _aliceId,
+    )).course;
+    expect(off.allowPageSharing, isFalse);
+    expect(off.toJson()['allowPageSharing'], isFalse);
+    final on = (await CourseInfoUpdateService().apply(
+      off,
+      _change(off, allowPageSharing: true),
+      _aliceId,
+    )).course;
+    expect(on.allowPageSharing, isTrue);
+    expect(on.toJson().containsKey('allowPageSharing'), isFalse);
+  });
+
   // Build 255 Revision 6: the Course Info Editor sets and removes the cover.
   test('stores and clears the cover', () async {
     final original = _course();
@@ -191,6 +212,7 @@ CourseInfoChange _change(
   String? assignedTeamId,
   String? maintainerProfileId,
   String? coverImage,
+  bool? allowPageSharing,
 }) => (
   title: title ?? course.title,
   authors: course.authors,
@@ -198,6 +220,7 @@ CourseInfoChange _change(
   mediaAttributions: course.mediaAttributions,
   license: course.license,
   derivativePolicy: course.derivativeWorksPolicy,
+  allowPageSharing: allowPageSharing ?? course.allowPageSharing,
   variant: course.languageVariant,
   startLevel: course.startLevel,
   targetLevel: course.targetLevel,

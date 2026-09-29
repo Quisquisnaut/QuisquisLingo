@@ -840,6 +840,11 @@ class Course {
   final bool createDuels;
   final bool useGuidebook;
 
+  /// Build 258 Revision 4 (owner decision, 29 September 2026): whether
+  /// learners may share, save and print this Course's Pages. On by default;
+  /// a courtesy the author sets, never inferred from the licence text.
+  final bool allowPageSharing;
+
   /// Explicit reusable names; legacy Lesson assignments remain available too.
   final List<String> sectionNames;
   final String learningLanguage;
@@ -944,6 +949,7 @@ class Course {
     this.defaultLessonIconStyle = LessonFallbackIconStyle.monochrome,
     this.createDuels = true,
     this.useGuidebook = true,
+    this.allowPageSharing = true,
     List<String> sectionNames = const [],
     required this.learningLanguage,
     required this.interfaceLanguage,
@@ -1336,6 +1342,7 @@ class Course {
     'defaultLessonIconStyle': defaultLessonIconStyle.name,
     if (!createDuels) 'createDuels': false,
     if (!useGuidebook) 'useGuidebook': false,
+    if (!allowPageSharing) 'allowPageSharing': false,
     if (sectionNames.isNotEmpty) 'sectionNames': sectionNames,
     'courseId': courseId,
     'originType': originType.name,
@@ -1420,7 +1427,7 @@ class Course {
   };
 
   factory Course.fromJson(Map<String, dynamic> json) {
-    for (final key in ['createDuels', 'useGuidebook']) {
+    for (final key in ['createDuels', 'useGuidebook', 'allowPageSharing']) {
       if (json.containsKey(key) && json[key] is! bool) {
         throw FormatException('course.$key must be a boolean.');
       }
@@ -1638,6 +1645,7 @@ class Course {
       defaultLessonIconStyle: LessonFallbackIconStyle.parseRequired(json),
       createDuels: json['createDuels'] as bool? ?? true,
       useGuidebook: json['useGuidebook'] as bool? ?? true,
+      allowPageSharing: json['allowPageSharing'] as bool? ?? true,
       sectionNames: _stringList(json, 'sectionNames'),
       learningLanguage: learning,
       interfaceLanguage: interface,

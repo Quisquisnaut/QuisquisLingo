@@ -81,6 +81,7 @@ void main() {
         QqlStorageRole.lessonIconImports: 'Import/LessonIcons',
         QqlStorageRole.courseFlagImports: 'Import/Flags',
         QqlStorageRole.auditReportExports: 'Export/AuditReports',
+        QqlStorageRole.pageExports: 'Export/Pages',
         QqlStorageRole.diagnosticLogExports: 'Logs',
       };
       expect(expected.keys.toSet(), QqlStorageRole.values.toSet());

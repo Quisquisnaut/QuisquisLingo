@@ -10,6 +10,7 @@ import '../widgets/exercise_mascot.dart';
 import '../widgets/exercise_prompt_panels.dart';
 import '../services/inline_marks.dart';
 import '../services/page_blocks.dart';
+import '../widgets/page_actions.dart';
 import '../widgets/page_card.dart';
 import '../widgets/portable_exercise_image.dart';
 import '../services/beta_lifecycle_service.dart';
@@ -3080,21 +3081,20 @@ class _RoundScreenState extends State<RoundScreen> {
         PageCardView(
           blocks: blocks,
           background: _exercisePanelColor,
-          pictureBuilder: (picture, width) => picture.asset.startsWith('media:')
-              ? CourseMediaImage(
-                  courseId: widget.course.courseId,
-                  asset: picture.asset,
-                  width: width,
-                  // Decode at the size shown (the pixel size of a Course
-                  // picture is not bounded by its file size).
-                  cacheWidth: 1024,
-                  semanticLabel: picture.text.isEmpty ? null : picture.text,
-                  missing: _missingImageNotice(picture.asset),
-                )
-              : PortableExerciseImage(asset: picture.asset, width: width),
+          pictureBuilder: _pagePicture,
           onSpeak: _optionalAudioEnabled ? _speakBlock : null,
           onOpenLink: (url) => _openPageLink(url),
         ),
+        // Build 258 Revision 4: Share, Save PDF and Print, when the Course
+        // allows it (on by default).
+        if (widget.course.allowPageSharing) ...[
+          const SizedBox(height: 12),
+          PageActionsBar(
+            course: widget.course,
+            blocks: blocks,
+            pictureBuilder: _pagePicture,
+          ),
+        ],
         const SizedBox(height: 16),
         FilledButton(
           key: const Key('page-continue'),
@@ -3104,6 +3104,22 @@ class _RoundScreenState extends State<RoundScreen> {
       ],
     );
   }
+
+  /// A Page picture at [width]: Course media through the media store, a
+  /// bundled or portable picture as before.
+  Widget _pagePicture(PromptElement picture, double width) =>
+      picture.asset.startsWith('media:')
+      ? CourseMediaImage(
+          courseId: widget.course.courseId,
+          asset: picture.asset,
+          width: width,
+          // Decode at the size shown (the pixel size of a Course picture is
+          // not bounded by its file size).
+          cacheWidth: 1024,
+          semanticLabel: picture.text.isEmpty ? null : picture.text,
+          missing: _missingImageNotice(picture.asset),
+        )
+      : PortableExerciseImage(asset: picture.asset, width: width);
 
   /// Reads a Page's text block (without its marks) or plays its audio
   /// block, in the block's language.

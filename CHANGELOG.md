@@ -1,3 +1,30 @@
+# 2.0.58 (Build 258, Revision 4) - Share, save and print a Page - 2026-09-30
+
+Learners can share, save and print a Page as a PDF, when its Course allows
+it (owner decisions of 29 and 30 September 2026).
+
+- **Share:** the system share sheet on phones and tablets (email,
+  messages, files, and Print on iOS) and the share panel on Windows and
+  macOS; on Linux Share sends the page's text by email.
+- **Save PDF:** Save as… where the system dialog exists, or Quick Export to
+  `QuisquisLingo/Export/Pages`.
+- **Print** (computers): the PDF opens in the default PDF viewer, which
+  prints it; there is no printing plugin.
+- **The PDF** shows the page exactly as the app draws it, in the light
+  theme, cut into A4 pages, with a credits line: the Course, its rights
+  holder and licence, and QuisquisLingo. Links are printed with their
+  address; audio buttons are left out. The text is not selectable (the page
+  is a picture, so every script prints correctly without extra fonts).
+- **Course setting:** Course Info's **Learners may share, save and print
+  pages**, on by default, hides the buttons when off. It is a courtesy, not
+  protection; a Fork or a Copy keeps it, a Merge takes the left Course's.
+- **New dependency:** the `pdf` package (pure Dart, no network).
+
+Scoring, progression and learner data are unchanged. The Course format
+gains the optional `allowPageSharing` (stored only when off). Beta expiry
+`2026-10-30 23:59:59` local time (30 days after this revision's release on
+30 September 2026).
+
 # 2.0.58 (Build 258, Revision 3) - Pages in the Exercise Laboratory - 2026-09-29
 
 The Exercise Laboratory demo gains an eighth Lesson, **Page**, with two

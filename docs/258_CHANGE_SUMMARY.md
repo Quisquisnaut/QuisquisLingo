@@ -4,6 +4,46 @@ Build 258 delivers textbook-like **Page** cards, planned and approved on 29
 September 2026 in `258_PAGE_CARD_PLAN.md` (owner decisions in its section
 3). Evidence: `258_VALIDATION.md`; handoff: `258_HANDOFF.md`.
 
+## Revision 4 (2.0.58+258004, 30 September 2026): share, save and print a Page
+
+Owner decisions: Q10 (add `pdf`, no `printing`, print in two steps;
+approved 30 September), Q11 (a Course setting, on by default, a credits
+footer, a Publisher Course keeps its publisher's choice, never inferred from
+the licence), Q12 (Quick Export to `Export/Pages`).
+
+- `Course.allowPageSharing` (default true; JSON only when false; bool
+  checked like `createDuels`); Course Info's switch **Learners may share,
+  save and print pages** (`course-info-page-sharing`,
+  `CourseInfoChange.allowPageSharing`); kept by Fork and Copy
+  (`AuthoringDuplicationService`) and the transfer copy; a Merge takes the
+  left Course's value (never blocks it).
+- `lib/services/page_export.dart`: `PageExport.pdfFromImage` (the drawn page
+  cut into A4 pages with 36-point margins by `dart:ui`, placed by the `pdf`
+  package; no font to bundle, text not selectable), `plainText`, `credits`
+  (Course · © rights holder, else original creator · licence ·
+  QuisquisLingo), `baseName` (`QQL_page_<course>_<first words>`).
+- `lib/widgets/page_actions.dart`: `PageActionsBar` (keys `page-actions`,
+  `page-share`, `page-save`, `page-save-as`, `page-quick-export`,
+  `page-print`) and `PageCapture` (an off-screen overlay entry, light
+  theme, 560 logical pixels at 2.5×, 600 ms for pictures to load);
+  `PageCardView(forExport: true)` leaves audio buttons out and prints each
+  link with its address. Share: a PDF through `share_plus`, or on Linux the
+  page's text and credits (Linux shares text only). Save PDF: Save as…
+  (`FileDialogService`, artifact `page-pdf`) where available, and Quick
+  Export (`QqlStorageRole.pageExports`, `Export/Pages`). Print: desktops
+  only, the PDF in the temporary folder opened with `launchUrl`.
+- `RoundScreen._pageExercise` shows the bar when the Course allows it;
+  `_pagePicture` is shared by the page and its export.
+- New dependency `pdf` 3.13 (pure Dart; brings `barcode`, `bidi`, `image`,
+  `qr`); no native code, no network at run time.
+- `docs/239_RESET_STORAGE_INVENTORY.md` lists `Export/Pages` (the Export
+  folder's reset and Inventory already cover it).
+- Help EN/IT/ES: the Page question's answer names the buttons and the
+  setting.
+- Known limit: a page taller than one A4 page is cut at a fixed height, so
+  a line of text can be split between two PDF pages.
+- Beta expiry `2026-10-30 23:59:59` (release 30 September).
+
 ## Revision 3 (2.0.58+258003, 29 September 2026): Pages in the Exercise Laboratory
 
 - `tools/qql_course_v12.py`: `page_exercise(blocks, updated_at=)` writes a

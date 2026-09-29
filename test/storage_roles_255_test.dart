@@ -72,6 +72,8 @@ void main() {
         QqlStorageRole.lessonIconImports: 'Import/LessonIcons',
         QqlStorageRole.courseFlagImports: 'Import/Flags',
         QqlStorageRole.auditReportExports: 'Export/AuditReports',
+        // Build 258 Revision 4: Page PDFs.
+        QqlStorageRole.pageExports: 'Export/Pages',
         QqlStorageRole.diagnosticLogExports: 'Logs',
       };
       expect(expected.keys.toSet(), QqlStorageRole.values.toSet());
@@ -99,7 +101,7 @@ void main() {
     test('every role is listed once with its own Help placeholder', () {
       final roles = QqlStorageRole.values;
       expect(roles.toSet(), hasLength(roles.length));
-      expect(roles.map((role) => role.placeholder).toSet(), hasLength(13));
+      expect(roles.map((role) => role.placeholder).toSet(), hasLength(14));
       expect(
         roles.map((role) => (role.direction, role.category)).toSet(),
         hasLength(roles.length),
