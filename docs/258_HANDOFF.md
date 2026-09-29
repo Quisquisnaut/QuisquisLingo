@@ -4,19 +4,21 @@ Resume from this file alone. Plan (approved by the owner on 29 September
 2026): `docs/258_PAGE_CARD_PLAN.md`. Process rules: `docs/256_HANDOFF.md`
 ("Requirements and process"). Previous build: `docs/257_HANDOFF.md`.
 
-## State (29 September 2026, 20:37)
+## State (29 September 2026, 21:07)
 
-- Build 258 Revision 0 `19de25b`, Revision 1 `1323eb7` (handoff
-  `1c018b7`). Not pushed.
-- **Revision 2 (`2.0.58+258002`, the Page form) in the working tree**:
-  preset `page`, `PageBlockEditor`, the editor wiring, field Help, Search,
-  Help EN/IT/ES, tests (`test/page_form_258_test.dart`, pins), version and
-  docs done; analyze clean; focused batch green. The complete suite runs
-  next (started 20:37).
-- Next after the commit: **Revision 3**, the Laboratory Page example
-  (generator, presentation baseline) and removal of the Laboratory coverage
-  exception for `page`; then Revision 4 (share, save, email, print) once
-  the owner answers Q10.
+- Build 258 Revision 0 `19de25b`, Revision 1 `1323eb7`, **Revision 2
+  (`2.0.58+258002`, the Page form) `3224523`** (suite 3328 passed, 1
+  skipped, 0 failed, 20:37–21:06). Not pushed.
+- Next: **Revision 3**, the Laboratory Page example. Research: the Dart v11
+  converter refuses canonical exercises inside v11 Lessons, so the Pages go
+  in a canonical-only Lesson appended after conversion
+  (`start_canonical_lesson`, like Assign): an eighth Lesson "Page" with two
+  examples; the Laboratory test learns `page-continue`, eight Lessons, 124
+  examples and loses the `page` coverage exception; the two new
+  presentation records come from a record run
+  (`QQL_RECORD_PRESENTATION`) and `baseline.py` (the Build 256
+  `s34_baseline.py`, in this session's scratchpad), which reports every
+  record that changed. Then Revision 4 once the owner answers Q10.
 - Do not run `dart format` on files that predate the formatter: in
   Revision 1 it added unrelated whitespace churn to seven files
   (`custom_course_transfer_service.dart`, `exercise_image_service.dart`,
