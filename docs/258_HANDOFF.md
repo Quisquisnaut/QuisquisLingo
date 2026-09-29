@@ -4,11 +4,17 @@ Resume from this file alone. Plan (approved by the owner on 29 September
 2026): `docs/258_PAGE_CARD_PLAN.md`. Process rules: `docs/256_HANDOFF.md`
 ("Requirements and process"). Previous build: `docs/257_HANDOFF.md`.
 
-## State (29 September 2026, 17:51)
+## State (29 September 2026, 18:23)
 
-- Branch `claude/258-page-cards` from `21a47e4` (the approved plan, on top
-  of Build 257 Revision 0 `5e0074b`). **Revision 0 in progress**, nothing
-  committed yet. Target version `2.0.58+258000`.
+- **Build 258 Revision 0 (`2.0.58+258000`) committed as `19de25b`** on
+  local branch `claude/258-page-cards` (not pushed). Complete suite 3318
+  passed, 1 skipped, 0 failed (17:51–18:22).
+- Next: **Revision 1, the 300 KB Course picture limit** (`2.0.58+258001`).
+- Another session works in this checkout too: at 18:19 it created
+  `docs/CONTEXT_AND_HINT_PLAN.md` (a plan for Context and Hint in Complete
+  the text and Put the sentences in order). The first Revision 0 commit
+  swept it in; it was removed with `git rm --cached` and an amend, and it
+  stays untracked in the working tree. Stage only this build's files.
 
 ## Revisions (re-sequenced from the plan's section 4)
 
@@ -69,11 +75,28 @@ Resume from this file alone. Plan (approved by the owner on 29 September
   notes the re-sequencing. Analyze clean; generators and validator pass
   (the validator's new checks were tried on a sample Page).
 
-## Remaining for Revision 0
+## Revision 1 plan (300 KB pictures, researched)
 
-- The complete suite (started 17:52), results in the validation doc, the
-  commit "Build 258 Revision 0: Page cards, model and learner display",
-  this handoff with the hash, the sound. Then Revision 1 (300 KB pictures).
+- `ImageProfile.exerciseImage` (50 KB) is used for Course media pictures,
+  the Shared Image Library, Image Banks and portable `data:` pictures. Split
+  it: Course pictures, the Shared Image Library and Image Banks move to
+  300 KB (`CourseMediaStore.maxImageBytes`,
+  `ExerciseImageService.maxImageBytes`, `ImageBankService.maxImageBytes`,
+  the package checks that read `CourseMediaStore.maxImageBytes`); portable
+  `data:` pictures inside `course.json` keep 50 KB
+  (`PortableExerciseImageService`, the embedded-image check in
+  `custom_course_transfer_service.dart`, Recognize characters' editor and
+  Audit texts).
+- Help to update: the image field's "Maximum 50 KB (51,200 bytes)"
+  (`exercise_field_help.dart` and the EN/IT/ES catalogs), the Shared Image
+  Library's too-large message, the `CourseMediaImage` comment.
+- Tests that pin 50 KB: `course_media_243_test`, `image_bank_service_test`,
+  `image_validator_tranche2_test`, `import_hardening_tranche0_test`,
+  `import_route_matrix_revision19_test`, `media_messages_revision17_test`,
+  `file_dialogs_240_features_test`, `course_cover_255_test`,
+  `exercise_field_help_226_02_test`, `media_attribution_test`,
+  `course_model_v11_243_test`, `portable_exercise_image_226_03_test`,
+  `piedmontais_course_254_test` (to be read one by one).
 
 ## Open questions for the owner
 
