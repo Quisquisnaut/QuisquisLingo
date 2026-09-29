@@ -10,12 +10,15 @@ under the keep-awake wrapper, commit staging); they apply unchanged.
   local branch `claude/257-before-you-start-card` (from `158d18a`, the
   Build 256 Revision 9 handoff; not pushed). Complete suite 3307 passed,
   1 skipped, 0 failed (15:50–16:18).
-- **Next: the owner's answers to the read-only plan
-  `docs/258_PAGE_CARD_PLAN.md`** (textbook-like Page cards: headings, bold,
-  italic, alignment for texts and images, video, a dedicated preset),
-  asked for on 29 September during this revision. Nothing of it is
-  implemented; implement only after the owner answers its questions
-  (Q1–Q8) and says to go ahead.
+- **Next: the read-only plan `docs/258_PAGE_CARD_PLAN.md`** (textbook-like
+  Page cards). The owner answered Q0–Q8 on 29 September (no new primitive:
+  element attributes and a `link` type; justify and a named colour
+  palette; simple marks; 300 KB for every Course picture; external video
+  links; one card per page; Rounds and sequences now, the GuideBook later;
+  read-aloud per block, off by default; Note card kept). **Q9 is open**
+  (raise `minimumAppBuild` automatically so earlier builds refuse a Course
+  with pages instead of dropping their formatting). Implement only after
+  Q9 and an explicit go-ahead; delivery is Build 258 in three revisions.
 - Corrections to Revision 0 after the owner's review of a build are a
   same-version follow-up commit.
 
