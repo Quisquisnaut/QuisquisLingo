@@ -4,23 +4,37 @@ Resume from this file alone. Plan (approved by the owner on 29 September
 2026): `docs/258_PAGE_CARD_PLAN.md`. Process rules: `docs/256_HANDOFF.md`
 ("Requirements and process"). Previous build: `docs/257_HANDOFF.md`.
 
-## State (29 September 2026, 19:53)
+## State (29 September 2026, 20:23)
 
-- Build 258 Revision 0 committed as `19de25b` (handoff `56f3f1d`).
-- **Revision 1 (`2.0.58+258001`, 300 KB Course pictures) in the working
-  tree**: code, Help, tests (`test/picture_limit_258_test.dart` and four
-  updated), version pins and docs done; analyze clean; focused tests 121
-  passed. The complete suite runs next (started 19:54).
-- `dart format` on files that predate the formatter added unrelated
-  whitespace churn to seven files; they were restored and only the
-  intended lines reapplied. Do not run `dart format` on
-  `custom_course_transfer_service.dart`, `exercise_image_service.dart`,
+- Build 258 Revision 0 `19de25b`, **Revision 1 (`2.0.58+258001`, 300 KB
+  Course pictures) committed as `1323eb7`** (suite 3322 passed, 1 skipped,
+  0 failed, 19:53–20:21). Not pushed.
+- Next: **Revision 2, the Page preset form** (`2.0.58+258002`). A draft of
+  the block editor widget is in this session's scratchpad
+  (`page_block_editor.dart`): block list with add, move and remove; per
+  text block style, bold and italic toolbar, alignment, palette, read-aloud
+  and language; per picture `ExerciseImageField` (compact), size,
+  alignment, caption; audio spoken text; link label and https address; a
+  live preview with `PageCardView`. Every block field is a `TextField` with
+  a `blocks` Help control (the field-Help UI test requires one per field).
+  Plan for the rest: preset `page` "Page" (Cards and notes,
+  canonical-only; a new Page starts with an empty heading and paragraph),
+  `ExerciseDraftValues.pageBlocks`, `_buildPage`, `PresetRecipes.kinds`,
+  `PresetVariants.ownForms`/`fits`, `ExerciseFieldHelpRegistry`
+  (`editorFieldKeys('page') == ['blocks']`, no picture field),
+  `ExerciseSearchService` (`_prompt`, `_audio`), Help EN/IT/ES (preset,
+  field, an Editor Help question), count pins (presets 43 → 44, Editor Help
+  67 → 68, the Piedmontese Lesson count, the Laboratory's coverage: Page
+  gets its Laboratory example in Revision 3, so the coverage test excludes
+  `page` until then).
+- Do not run `dart format` on files that predate the formatter: in
+  Revision 1 it added unrelated whitespace churn to seven files
+  (`custom_course_transfer_service.dart`, `exercise_image_service.dart`,
   `image_bank_service.dart`, `course_media_store.dart`,
-  `import/image_validator.dart`, `course_cover_255_test.dart` or
-  `file_dialogs_240_features_test.dart` unless the whole file is meant to
-  be reformatted.
-- `docs/CONTEXT_AND_HINT_PLAN.md` belongs to another (stopped) session:
-  keep it untracked and out of this build's commits.
+  `import/image_validator.dart`, `course_cover_255_test.dart`,
+  `file_dialogs_240_features_test.dart`), which was reverted; format new
+  files and the Build 256+ files only. `docs/CONTEXT_AND_HINT_PLAN.md`
+  belongs to another (stopped) session and stays untracked.
 
 ## Revisions (re-sequenced from the plan's section 4)
 
