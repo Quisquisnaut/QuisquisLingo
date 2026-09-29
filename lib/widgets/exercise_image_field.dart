@@ -36,10 +36,21 @@ class ExerciseImageField extends StatefulWidget {
     this.help,
     this.imageService,
     this.mediaStore,
+    this.title = 'Exercise image',
+    this.compact = false,
   });
 
   /// The Course the Exercise belongs to; images become its own media.
   final Course? course;
+
+  /// The heading of the card: the shared prompt image by default, the
+  /// answer's number and text for a picture on an answer (Build 256
+  /// Revision 7 follow-up).
+  final String title;
+
+  /// Without the guidance paragraph (a picture on an answer: the section
+  /// explains the pickers once).
+  final bool compact;
   final String asset;
   final SharedImageSource? sharedSource;
   final bool readOnly;
@@ -169,7 +180,10 @@ class _ExerciseImageFieldState extends State<ExerciseImageField> {
       }
       // Straight into the Course's own media: nothing is written to the
       // shared image folder.
-      final reference = await _media.addValidated(course.courseId, picked.image);
+      final reference = await _media.addValidated(
+        course.courseId,
+        picked.image,
+      );
       if (!mounted) return;
       _change(reference, null);
       showImageCreditReminder(context);
@@ -211,10 +225,10 @@ class _ExerciseImageFieldState extends State<ExerciseImageField> {
           children: [
             Row(
               children: [
-                const Expanded(
+                Expanded(
                   child: Text(
-                    'Exercise image',
-                    style: TextStyle(fontWeight: FontWeight.w700),
+                    widget.title,
+                    style: const TextStyle(fontWeight: FontWeight.w700),
                   ),
                 ),
                 ?widget.help,
@@ -293,11 +307,13 @@ class _ExerciseImageFieldState extends State<ExerciseImageField> {
                   ),
               ],
             ),
-            const SizedBox(height: 4),
-            Text(
-              'The shared image library (admin-managed) has lightweight flat images. For Import custom image, place exactly one PNG, JPG, JPEG or WEBP file in ${QqlStorageLayout.current.folderLabel(QqlStorageRole.imageImports)}. Image-prompt ordering requires an image; otherwise it is optional and can be changed at any time.',
-              style: TextStyle(fontSize: 12),
-            ),
+            if (!widget.compact) ...[
+              const SizedBox(height: 4),
+              Text(
+                'The shared image library (admin-managed) has lightweight flat images. For Import custom image, place exactly one PNG, JPG, JPEG or WEBP file in ${QqlStorageLayout.current.folderLabel(QqlStorageRole.imageImports)}. Image-prompt ordering requires an image; otherwise it is optional and can be changed at any time.',
+                style: TextStyle(fontSize: 12),
+              ),
+            ],
           ],
         ),
       ),

@@ -187,12 +187,14 @@ def match(kind: str, instruction: str, pairs: list[tuple[str, str]]) -> dict:
 
 
 def flashcard(term: str, meaning: str, usage: str, translation: str) -> dict:
+    """A Flashcard: the read-aloud speaks the term and is optional, never an
+    audio exercise (Build 256 Revision 7 follow-up)."""
     return {
         "publicationState": "published", "kind": "presentation", "required": True,
         "editorTemplate": "flashcard", "presentation": {
             "content": [text(term, "term"), text(meaning, "meaning"),
                         text(usage, "usage"), text(translation, "usage_translation"),
-                        audio(term, "audio")],
+                        audio(term, "audio", required=False)],
             "completion": {"actions": ["understood", "review_later"]},
         },
     }
@@ -542,7 +544,9 @@ def story_lessons() -> list[dict]:
     gets its Lesson here, a Story of three lines; it joins after conversion,
     so the converter fixture (build_course_v11) omits it. The Story cover
     preset has no Lesson of its own: a Story of covers alone belongs to the
-    Edge Case demo (owner decision, 28 September 2026)."""
+    Edge Case demo (owner decision, 28 September 2026). The two Assign
+    presets have none either: the Laboratory's Assign Lesson shows them
+    (Revision 7 follow-up, 29 September 2026)."""
     narrator, gioanin, catlina = "", f"{PREFIX}_character_gioanin", f"{PREFIX}_character_catlina"
 
     def entry(rid: str, index: int, preset: str, exercise: dict) -> dict:
@@ -618,7 +622,7 @@ def main() -> int:
         if not OUTPUT.is_file() or OUTPUT.read_text(encoding="utf-8") != rendered:
             print(f"FAIL: {OUTPUT.relative_to(ROOT)} differs from the authored generator")
             return 1
-        print("PASS: Piedmontese course is reproducible; 40 catalogue presets, 39 Lessons (Story cover has none), 117 examples")
+        print("PASS: Piedmontese course is reproducible; 42 catalogue presets, 39 Lessons (Story cover, Sort into groups and Fill the slots have none), 117 examples")
         return 0
     OUTPUT.write_text(rendered, encoding="utf-8", newline="\n")
     print(f"Wrote {OUTPUT.relative_to(ROOT)}: one Lesson per catalogue preset")

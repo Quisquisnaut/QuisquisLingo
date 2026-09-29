@@ -8487,6 +8487,11 @@ String _exerciseTypeLabel(Exercise e) =>
 String _exerciseSummary(Exercise e) {
   final features = ExerciseFeatures(e);
   for (final text in [
+    // A Story's line and cover keep their text in the line and title roles
+    // (owner report, 29 September 2026: the list showed their IDs).
+    features.lineText,
+    features.lineAudio?.text ?? '',
+    features.coverTitle,
     features.inlineSentence,
     features.contextText,
     features.primaryText,
@@ -8496,6 +8501,14 @@ String _exerciseSummary(Exercise e) {
     features.primaryAudioText ?? '',
   ]) {
     if (text.trim().isNotEmpty) return text.trim();
+  }
+  if (features.kind == LearnerExerciseKind.storyCover ||
+      e.editorTemplate == 'story_cover') {
+    final picture = features.illustrationImages
+        .map((image) => image.text.trim())
+        .where((text) => text.isNotEmpty)
+        .firstOrNull;
+    return picture == null ? 'Title block' : 'Title block · $picture';
   }
   return e.id;
 }
@@ -9363,6 +9376,12 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
   String _lineReadAloud = 'story';
   String _lineTextReveal = 'immediate';
   String _lineLanguage = '';
+  // Fill the slots (Build 256 Revision 7 follow-up): whether a word may
+  // fill more than one slot.
+  bool _slotReuse = false;
+  // A Flashcard's read-aloud: none, manual (on request) or automatic; the
+  // spoken text is the word itself.
+  String _cardReadAloud = 'manual';
   static String labelForType(String type) =>
       ExercisePresetRegistry.byId(type)?.name ?? type.replaceAll('_', ' ');
   late String _type;
@@ -9382,7 +9401,11 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
       _missingWords,
       _context,
       _dialogue,
-      _requiredSelections;
+      _requiredSelections,
+      _groups,
+      _leftover,
+      _slots,
+      _extraWords;
   @override
   void initState() {
     super.initState();
@@ -9414,6 +9437,8 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     _audioRole = draft.audioRole;
     _matchSides = draft.matchSides;
     _readLineFields(draft);
+    _slotReuse = draft.slotReuse;
+    _cardReadAloud = draft.cardReadAloud;
     _tokens = TextEditingController(text: draft.tokens);
     _order = TextEditingController(text: draft.order);
     _gapLayout = TextEditingController(text: draft.gapLayout);
@@ -9428,6 +9453,10 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     _missingWords = TextEditingController(text: draft.missingWords);
     _context = TextEditingController(text: draft.context);
     _dialogue = TextEditingController(text: draft.dialogue);
+    _groups = TextEditingController(text: draft.groups);
+    _leftover = TextEditingController(text: draft.leftover);
+    _slots = TextEditingController(text: draft.slots);
+    _extraWords = TextEditingController(text: draft.extraWords);
     _contextMode = draft.contextMode;
     _imageAsset = draft.imageAsset;
     _selectedSharedSource = draft.selectedSharedSource;
@@ -9448,6 +9477,10 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
       _context,
       _dialogue,
       _requiredSelections,
+      _groups,
+      _leftover,
+      _slots,
+      _extraWords,
     ]) {
       _watchText(controller);
     }
@@ -9522,6 +9555,10 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
       _context,
       _dialogue,
       _requiredSelections,
+      _groups,
+      _leftover,
+      _slots,
+      _extraWords,
     ]) {
       c.dispose();
     }
@@ -9600,51 +9637,58 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
 
   /// One picture per answer (Select the image, Listen and pick the image,
   /// Match picture to word): `_icons` holds one line per answer, in the
-  /// answers' order, a picture reference or a named icon key.
-  Widget _answerPictures({String title = 'Pictures'}) {
-    final answers = _answerLines();
-    final lines = _icons.text.split('\n');
-    String lineAt(int index) => index < lines.length ? lines[index].trim() : '';
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Text(title, style: Theme.of(context).textTheme.titleSmall),
-        const SizedBox(height: 4),
-        if (answers.isEmpty)
-          const Text('Enter the answers above first; each gets a picture here.')
-        else
-          for (var i = 0; i < answers.length; i++)
-            Card(
-              key: ValueKey('answer-picture-$i'),
-              child: Padding(
-                padding: const EdgeInsets.all(8),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text(
-                      '${i + 1}. ${answers[i]}',
-                      style: Theme.of(context).textTheme.labelLarge,
-                    ),
-                    ExerciseImageField(
-                      course: widget.course,
-                      asset: PresetVariants.isImageReference(lineAt(i))
-                          ? lineAt(i)
-                          : '',
-                      sharedSource: null,
-                      readOnly: widget.readOnly,
-                      onChanged: (change) => setState(() {
-                        _setIconLine(i, change.asset, answers.length);
-                        _dirty = true;
-                      }),
-                    ),
-                  ],
-                ),
-              ),
+  /// answers' order, a picture reference or a named icon key. The cards
+  /// follow the answers as they are typed (owner report, 29 September
+  /// 2026: the form rebuilt only on its first change, so a word typed
+  /// later had no card and no number), one compact picture card per
+  /// answer, headed by its number and text.
+  Widget _answerPictures({
+    String title = 'Pictures',
+  }) => ValueListenableBuilder<TextEditingValue>(
+    valueListenable: _answers,
+    builder: (context, value, child) {
+      final answers = _answerLines();
+      final lines = _icons.text.split('\n');
+      String lineAt(int index) =>
+          index < lines.length ? lines[index].trim() : '';
+      return Column(
+        key: const Key('answer-pictures'),
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(title, style: Theme.of(context).textTheme.titleSmall),
+          const SizedBox(height: 4),
+          if (answers.isEmpty)
+            const Text(
+              'Enter the answers above first; each gets a picture here.',
+            )
+          else ...[
+            Text(
+              'One card per answer, in the order above. Choose flat image takes a picture from the Shared Image Library; Import custom image reads the one picture file in ${QqlStorageLayout.current.folderLabel(QqlStorageRole.imageImports)}.',
+              style: const TextStyle(fontSize: 12),
             ),
-        const SizedBox(height: 12),
-      ],
-    );
-  }
+            const SizedBox(height: 4),
+            for (var i = 0; i < answers.length; i++)
+              ExerciseImageField(
+                key: ValueKey('answer-picture-$i'),
+                title: '${i + 1}. ${answers[i]}',
+                compact: true,
+                course: widget.course,
+                asset: PresetVariants.isImageReference(lineAt(i))
+                    ? lineAt(i)
+                    : '',
+                sharedSource: null,
+                readOnly: widget.readOnly,
+                onChanged: (change) => setState(() {
+                  _setIconLine(i, change.asset, answers.length);
+                  _dirty = true;
+                }),
+              ),
+          ],
+          const SizedBox(height: 12),
+        ],
+      );
+    },
+  );
 
   void _setIconLine(int index, String value, int count) {
     final lines = _icons.text.split('\n');
@@ -9793,6 +9837,10 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     _context: 'context',
     _dialogue: 'dialogue',
     _requiredSelections: 'requiredSelections',
+    _groups: 'groups',
+    _leftover: 'leftover',
+    _slots: 'slots',
+    _extraWords: 'extraWords',
   }[controller]!;
 
   Future<void> _showFieldHelp(String fieldKey, {String? title}) {
@@ -9987,16 +10035,40 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
           ),
         ];
       case 'flashcard':
+        // Build 256 Revision 7 follow-up (owner review): the languages of
+        // the two texts are named, the read-aloud speaks the word itself
+        // and is chosen here instead of typed again.
         return [
-          _field(_prompt, 'Word / expression'),
-          _field(_question, 'Translation / meaning'),
-          _field(_tts, 'Pronunciation TTS'),
+          _field(
+            _prompt,
+            'Word or expression (target language)',
+            helper:
+                'In the language being learned, e.g. buongiorno. Read aloud, when on, speaks this text.',
+          ),
+          _field(
+            _question,
+            'Translation or meaning (source language)',
+            helper: 'In the learners’ own language, e.g. good morning.',
+          ),
+          _choiceField(
+            fieldKey: 'readAloud',
+            label: 'Read aloud',
+            value: _cardReadAloud,
+            choices: const {
+              'automatic': 'Automatically, when the card appears',
+              'manual': 'On request (speaker button)',
+              'none': 'No read-aloud',
+            },
+            onChanged: (value) => _cardReadAloud = value,
+            helper:
+                'The word or expression above is spoken with the Course audio mode. Read-aloud never makes the card an audio exercise.',
+          ),
           _field(
             _answers,
             'Usage sentence and optional translation',
             lines: 3,
             helper:
-                'First line = usage sentence. “Usage:” is added automatically in learner mode.',
+                'First line: a sentence using the word (target language). Second line, optional: its translation. “Usage:” is added automatically in learner mode.',
           ),
         ];
       case 'gap_choice':
@@ -10151,6 +10223,9 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
           ),
         ];
       case 'image_word':
+        // One field (Build 256 Revision 7 follow-up, owner review): the
+        // blocks of the word in order are also the blocks the learner gets;
+        // a spelling exercise has no distractors.
         return [
           _field(
             _prompt,
@@ -10159,18 +10234,11 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
             helper: 'Example: Build the word shown in the image.',
           ),
           _field(
-            _tokens,
-            'Available letter / syllable blocks',
-            lines: 5,
-            helper:
-                'One block per line. Do not add distractors: include only the blocks required to build the correct word.',
-          ),
-          _field(
             _order,
-            'Correct target-language word',
+            'Blocks of the word, in order',
             lines: 5,
             helper:
-                'One letter or syllable block per line, in the correct order. An image is required.',
+                'One letter or syllable per line, in the right order; the learner gets exactly these blocks, shuffled. An image is required.',
           ),
         ];
       case 'matching':
@@ -10533,17 +10601,11 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
             helper: 'The word the learner hears and spells.',
           ),
           _field(
-            _tokens,
-            'Available letter / syllable blocks',
+            _order,
+            'Blocks of the word, in order',
             lines: 5,
             helper:
-                'One block per line: letters, or syllables. Include only the blocks needed.',
-          ),
-          _field(
-            _order,
-            'Correct word',
-            lines: 5,
-            helper: 'The blocks in the correct order, one per line.',
+                'One letter or syllable per line, in the right order; the learner gets exactly these blocks, shuffled.',
           ),
         ];
       case 'picture_choice':
@@ -10587,17 +10649,11 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
             helper: 'The word or a definition in the source language.',
           ),
           _field(
-            _tokens,
-            'Available letter / syllable blocks',
+            _order,
+            'Blocks of the word, in order',
             lines: 5,
             helper:
-                'One block per line: letters, or syllables. Include only the blocks needed.',
-          ),
-          _field(
-            _order,
-            'Correct word',
-            lines: 5,
-            helper: 'The blocks in the correct order, one per line.',
+                'One letter or syllable per line, in the right order; the learner gets exactly these blocks, shuffled.',
           ),
         ];
       case 'picture_word_match':
@@ -10613,9 +10669,70 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
             'Words',
             lines: 4,
             helper:
-                'One word per line; each gets a picture below. At least two pairs.',
+                'One word per line, at least two. The pictures below follow this order: the first picture goes with the first word, and so on.',
           ),
-          _answerPictures(title: 'Pictures, one per word'),
+          _answerPictures(title: 'Pictures, in the order of the words'),
+        ];
+      case 'sort_into_groups':
+        return [
+          _field(
+            _question,
+            'Question',
+            lines: 2,
+            helper: 'Example: Sort the words: animals or food?',
+          ),
+          _field(
+            _groups,
+            'Groups',
+            lines: 4,
+            helper:
+                'One group per line: the group name, a colon, then its words separated by commas. Usually two or more groups. Example: Animals: gatto, cane',
+          ),
+          _field(
+            _leftover,
+            'Words that belong nowhere (optional)',
+            lines: 2,
+            helper:
+                'One per line; they are offered too and the learner must leave them in the bank.',
+          ),
+        ];
+      case 'fill_the_slots':
+        return [
+          _field(
+            _question,
+            'Question',
+            lines: 2,
+            helper: 'Example: Which article goes with each noun?',
+          ),
+          _field(
+            _slots,
+            'Slots',
+            lines: 4,
+            helper:
+                'One slot per line: what the learner sees, an equals sign, then the word that fills it. Example: … gatto = il',
+          ),
+          _field(
+            _extraWords,
+            'Extra words (optional)',
+            lines: 2,
+            helper: 'Words offered that fill no slot, one per line.',
+          ),
+          SwitchListTile(
+            key: const Key('slot-reuse'),
+            contentPadding: EdgeInsets.zero,
+            title: const Text('A word may fill more than one slot'),
+            subtitle: const Text(
+              'On: a word stays in the bank after each use, so the same word can be the answer of several slots.',
+            ),
+            secondary: _helpButton('slotReuse'),
+            value: _slotReuse,
+            onChanged: widget.readOnly
+                ? null
+                : (value) => setState(() {
+                    _slotReuse = value;
+                    _dirty = true;
+                  }),
+          ),
         ];
       case 'dialogue_line':
         final characters =
@@ -10999,6 +11116,12 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         lineReadAloud: _lineReadAloud,
         lineTextReveal: _lineTextReveal,
         lineLanguage: _lineLanguage,
+        groups: _groups.text,
+        leftover: _leftover.text,
+        slots: _slots.text,
+        extraWords: _extraWords.text,
+        slotReuse: _slotReuse,
+        cardReadAloud: _cardReadAloud,
         prompt: _prompt.text,
         question: _question.text,
         tts: _tts.text,
@@ -11093,6 +11216,23 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
             'text, e.g. {answer}, not an empty {}.',
       ExerciseDraftErrorCode.scriptCandidateMissing =>
         'Recognize characters: reopen this Exercise to restore its options.',
+      ExerciseDraftErrorCode.groupLine =>
+        'Groups line ${error.line}: write the group name, a colon, then '
+            'its words separated by commas, e.g. Animals: gatto, cane.',
+      ExerciseDraftErrorCode.groupsRequired =>
+        'Groups: enter at least one group with its words.',
+      ExerciseDraftErrorCode.groupWordRepeated =>
+        'Groups: “${error.detail}” is listed more than once. A word can '
+            'be in one group only, or among the words that belong nowhere.',
+      ExerciseDraftErrorCode.slotLine =>
+        'Slots line ${error.line}: write what the learner sees, an equals '
+            'sign, then the word that fills the slot, e.g. … gatto = il.',
+      ExerciseDraftErrorCode.slotsRequired =>
+        'Slots: enter at least one slot with its word.',
+      ExerciseDraftErrorCode.slotWordRepeated =>
+        'Slots: “${error.detail}” is listed more than once. Turn on “A '
+            'word may fill more than one slot” when one word answers '
+            'several slots; an extra word cannot repeat a slot word.',
     };
     final longFeedback =
         error.code == ExerciseDraftErrorCode.translationChoiceAnswers ||
@@ -11360,6 +11500,8 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     _lineReadAloud,
     _lineTextReveal,
     _lineLanguage,
+    _slotReuse,
+    _cardReadAloud,
     _imageAsset,
     _selectedSharedSource?.id ?? '',
     for (final controller in [
@@ -11379,6 +11521,10 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
       _context,
       _dialogue,
       _requiredSelections,
+      _groups,
+      _leftover,
+      _slots,
+      _extraWords,
     ])
       controller.text,
     for (final controller in _correctTranslations) controller.text,
@@ -11482,6 +11628,8 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         _audioRole = draft.audioRole;
         _matchSides = draft.matchSides;
         _readLineFields(draft);
+        _slotReuse = draft.slotReuse;
+        _cardReadAloud = draft.cardReadAloud;
         _tokens.text = draft.tokens;
         _order.text = draft.order;
         _gapLayout.text = draft.gapLayout;
@@ -11491,6 +11639,10 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         _missingWords.text = draft.missingWords;
         _context.text = draft.context;
         _dialogue.text = draft.dialogue;
+        _groups.text = draft.groups;
+        _leftover.text = draft.leftover;
+        _slots.text = draft.slots;
+        _extraWords.text = draft.extraWords;
         _contextMode = draft.contextMode;
         _imageAsset = draft.imageAsset;
         _selectedSharedSource = draft.selectedSharedSource;

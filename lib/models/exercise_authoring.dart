@@ -311,6 +311,26 @@ abstract final class ExercisePresetRegistry {
       primitive: ExercisePrimitive.arrange,
       base: 'word_order',
     ),
+    // The two Assign presets (Build 256 Revision 7 follow-up, owner request
+    // of 29 September 2026): recipes over canonical data with no v11 shape.
+    ExercisePreset(
+      id: 'sort_into_groups',
+      name: 'Sort into groups',
+      description:
+          'Learner sorts words into groups, such as masculine and feminine or animals and food.',
+      category: ExerciseCategory.grammarAndSentences,
+      primitive: ExercisePrimitive.assign,
+      direction: PresetDirection.none,
+    ),
+    ExercisePreset(
+      id: 'fill_the_slots',
+      name: 'Fill the slots',
+      description:
+          'Learner puts the right word into each slot, such as the article before each noun.',
+      category: ExerciseCategory.grammarAndSentences,
+      primitive: ExercisePrimitive.assign,
+      direction: PresetDirection.none,
+    ),
     // ------------------------------------------------------------ Listening
     ExercisePreset(
       id: 'listening_answer_target',
@@ -522,14 +542,6 @@ abstract final class ExercisePresetRegistry {
       action: 'Write',
     ),
     ComingLaterPreset(
-      id: 'sort_into_groups',
-      name: 'Sort into groups',
-      description:
-          'Learner drags words into groups such as masculine and feminine.',
-      reason: 'needs the sorting runtime (Assign).',
-      action: 'Sort',
-    ),
-    ComingLaterPreset(
       id: 'label_the_picture',
       name: 'Label the picture',
       description: 'Learner drags labels onto regions of a picture.',
@@ -580,7 +592,7 @@ abstract final class ExercisePresetRegistry {
     'super_match':
         'The learner matches related target-language items such as synonyms, opposites or a word and its definition. Provide exactly three text pairs, one per line as left = right.',
     'flashcard':
-        'The learner sees a term, meaning, optional usage and optional pronunciation audio, then chooses Understood or Review again. Provide the term and its meaning; usage and its translation are optional.',
+        'The learner sees a target-language word or expression, its source-language translation and an optional usage example, hears the word when read-aloud is on, then chooses Got it or Review again. Choose Automatically, On request or No read-aloud; the spoken text is the word itself. Read-aloud never makes the card an audio exercise.',
     'choice_target':
         'The learner reads a target-language question and chooses the right answer among target-language text alternatives: a translation, but just as well a grammar form, a cultural fact or a meaning. Provide the question, at least two answers and the correct answer number; an optional picture or spoken text may support the question.',
     'choice_source':
@@ -610,9 +622,9 @@ abstract final class ExercisePresetRegistry {
     'script_recognition':
         'Each item pairs a character image with its corresponding text.\n\nImage to text: learners see a character image and choose the matching text.\n\nText to image: learners see the text and choose the matching character image.\n\nThe text can be the character’s name, sound, pronunciation, transliteration or another identifying label.\n\nProvide at least two options; exactly one is correct. Multiple prompt images may show print, handwriting or different fonts. Use bundled images or portable imported images, never absolute local paths. Preview uses the normal Select learner behavior.',
     'image_word':
-        'The learner sees an image and orders letter or syllable blocks to form its word. Provide an image, the blocks and the correct order.',
+        'The learner sees an image and orders letter or syllable blocks to form its word. Provide an image and the blocks of the word in order, one per line; the learner gets exactly those blocks, shuffled.',
     'picture_flashcard':
-        'The learner sees a picture with its word and meaning, an optional usage example with its translation, and can hear the word and the example when audio is available. The picture is required; the audio is optional and never makes it an audio exercise.',
+        'The learner sees a picture with its target-language word and source-language translation, an optional usage example with its translation, and hears the word when read-aloud is on. The picture is required; the read-aloud (Automatically, On request or none) speaks the word itself and never makes the card an audio exercise.',
     'true_false':
         'The learner reads a statement in the target language, optionally hears it, and answers true or false. Provide the statement, the two answers in the source language (prefilled True and False) and the correct one.',
     'gap_choice_inline':
@@ -625,16 +637,20 @@ abstract final class ExercisePresetRegistry {
         'The learner fills the gaps of a fixed sentence by placing word blocks; each block is used once. Write the sentence with each answer inside braces, {answer}, add 0 to 2 distractor blocks and an optional spoken prompt.',
     'sentence_order':
         'The learner puts the lines of a story or a dialogue in order. Enter the lines, one per line, and the correct order; 0, 1 or at most 2 extra distractor lines.',
+    'sort_into_groups':
+        'The learner taps a word, then the group it belongs to, and checks when every word is placed. Enter the question, one group per line as “Group name: word, word, …” (usually two or more) and, optionally, words that belong to no group and must stay in the bank.',
+    'fill_the_slots':
+        'The learner taps a word, then the slot it fills, and checks when every slot is filled. Enter the question and one slot per line as “what the learner sees = the word”, for example “… gatto = il”. Extra words that fill no slot are optional; a switch lets one word fill more than one slot.',
     'listening_image_choice':
         'The learner hears a word or a sentence and picks the matching picture. Provide the spoken text, an optional question, the answer labels and one picture per answer, and the correct answer.',
     'spell_heard':
-        'The learner hears a word and spells it from letter or syllable tiles. Provide the spoken word, the tiles (one per line, split syllables as you like) and the correct order. No picture is needed.',
+        'The learner hears a word and spells it from letter or syllable tiles. Provide the spoken word and its tiles in order, one per line (split the word into letters or syllables as you like). No picture is needed.',
     'picture_choice':
         'The learner sees a picture and picks the word or sentence that names it. Provide the picture, a question, at least two answers and the correct one.',
     'picture_name':
         'The learner sees a picture and types its name. Provide the picture, a question or instruction, one or more accepted answers (the same syntax as Type the translation) and an optional hint.',
     'spell_word':
-        'The learner spells a word from letter or syllable tiles after a clue in the source language: the word itself or a definition. Provide the clue, the tiles and the correct order; a picture is optional.',
+        'The learner spells a word from letter or syllable tiles after a clue in the source language: the word itself or a definition. Provide the clue and the tiles of the word in order, one per line; a picture is optional.',
     'picture_word_match':
         'The learner matches pictures with their words. Provide one picture and one word per pair; at least two pairs.',
     'note_card':

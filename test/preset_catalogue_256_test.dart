@@ -98,7 +98,12 @@ void main() {
 
     test('the coming-later presets are listed but never offered', () {
       final later = ExercisePresetRegistry.comingLater;
-      expect(later, hasLength(7));
+      // Six since the Revision 7 follow-up: Sort into groups is a preset.
+      expect(later, hasLength(6));
+      expect(
+        later.map((preset) => preset.id),
+        isNot(contains('sort_into_groups')),
+      );
       for (final preset in later) {
         expect(preset.reason.trim(), isNotEmpty, reason: preset.id);
         expect(

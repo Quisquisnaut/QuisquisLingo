@@ -129,6 +129,8 @@ B = both, – = none. Action = the word written on the tile.
 | Word order | `word_order` | Arrange | T | kept | Blocks of one sentence, 0–2 distractors. |
 | Drag the blocks into the gaps | `gap_blocks` | Arrange | T | new | Was the Word order / Build the translation switch. |
 | Put the sentences in order | `sentence_order` | Arrange | T | new | Story or dialogue lines. |
+| Sort into groups | `sort_into_groups` | Sort | – | Revision 7 follow-up | Assign categories, capacity unlimited: groups as "Name: word, word", optional words that belong nowhere. |
+| Fill the slots | `fill_the_slots` | Sort | – | Revision 7 follow-up | Assign slots: "what the learner sees = word", optional extra words, a switch for a word filling several slots. |
 
 ### Listening
 
@@ -174,7 +176,7 @@ B = both, – = none. Action = the word written on the tile.
 |---|---|---|
 | Say it / Read aloud | speak | Needs speech recognition. |
 | Write the character / Write the word by hand | ink | Needs the Ink runtime. |
-| Sort into groups | assign | Needs the Assign runtime (Session 7 plans Assign). |
+| Sort into groups | assign | Needs the Assign runtime (Session 7 plans Assign). Moved to the catalogue by the Revision 7 follow-up (29 September 2026), with Fill the slots; no gap preset (the inline gap presets cover gaps). |
 | Label the picture | assign (regions) | Needs the Assign runtime with regions. |
 | Answer in your own words / Describe the picture | submit | Needs the Submit runtime (self-check). |
 | Match picture to sound | match | Needs a tap-to-pair Match layout (the dropdown Match cannot hold audio). |

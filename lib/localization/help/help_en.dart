@@ -360,7 +360,7 @@ Remove from my courses, in the Selector or Course Studio, removes the course onl
       r'''Exercise = primitive + options + prompt[] + items[] + targets[] + layout[] + evaluation + feedback, with an optional hint. Prompt elements are text, audio or image with a role (primary, question, passage, situation, clue, context, dialogue_turn, character, illustration) and the attributes language (source or target), playback (automatic or manual) and required. Items are what the learner chooses, orders, places or pairs; a Match item has a side. Targets are the gaps, slots or regions the learner fills, and the layout places them in the text. Items and targets are named by stable IDs, never by position.''',
   'technical.exercisePrimitives.primitives.title': r'''The nine primitives''',
   'technical.exercisePrimitives.primitives.body':
-      r'''select: the learner selects one or more items. input: the learner types text or a number into a field or into inline gaps. arrange: the learner orders blocks or drags them into gaps. match: the learner pairs left and right items. assign: the learner sorts items into groups, fills slots or the gaps of a text by tapping an item and then its destination (picture regions and grid cells wait for a later version; authored in the canonical editor). speak: the learner speaks (definitions only). ink: the learner writes by hand (definitions only). submit: the learner hands in a free answer for self-check or review (definitions only). presentation: a card or note with nothing to answer, such as a Flashcard. The primitive is locked once an exercise exists.''',
+      r'''select: the learner selects one or more items. input: the learner types text or a number into a field or into inline gaps. arrange: the learner orders blocks or drags them into gaps. match: the learner pairs left and right items. assign: the learner sorts items into groups, fills slots or the gaps of a text by tapping an item and then its destination (the presets Sort into groups and Fill the slots; gaps are authored in the canonical editor; picture regions and grid cells wait for a later version). speak: the learner speaks (definitions only). ink: the learner writes by hand (definitions only). submit: the learner hands in a free answer for self-check or review (definitions only). presentation: a card or note with nothing to answer, such as a Flashcard. The primitive is locked once an exercise exists.''',
   'technical.exercisePrimitives.primitiveOptions.title':
       r'''Primitive options''',
   'technical.exercisePrimitives.primitiveOptions.body':
@@ -804,6 +804,10 @@ Question and Context are separate. Context can be text, audio, or both. Dialogue
       r'''Learner fills the gaps of a fixed sentence with word blocks, each used once.''',
   'exerciseHelp.preset.sentence_order.description':
       r'''Learner puts the lines of a story or a dialogue in the right order.''',
+  'exerciseHelp.preset.sort_into_groups.description':
+      r'''Learner sorts words into groups, such as masculine and feminine; a word may belong to no group.''',
+  'exerciseHelp.preset.fill_the_slots.description':
+      r'''Learner puts the right word into each slot, such as the article before each noun.''',
   'exerciseHelp.preset.listening_image_choice.description':
       r'''Learner hears a word or a sentence and picks the matching picture.''',
   'exerciseHelp.preset.spell_heard.description':
@@ -871,7 +875,7 @@ Question and Context are separate. Context can be text, audio, or both. Dialogue
   'exerciseHelp.preset.build_translation_to_source.body':
       r'''The learner sees target-language text and constructs its source-language translation from word blocks. Provide the text to translate in the target language, the available literal blocks in the source language and one or more complete literal correct translations. Answers can be added, removed and reordered; each must be constructible from distinct block occurrences. Repeated words require repeated blocks, and no more than two blocks may remain unused. Type-the-translation syntax, typo tolerance and similarity matching do not apply.''',
   'exerciseHelp.preset.picture_flashcard.body':
-      r'''The learner sees a picture with its word and meaning, an optional usage example with its translation, and can hear the word and the example when audio is available. Provide the picture (Image), the word, the meaning and optionally the usage lines and the pronunciation text. The audio is optional: the card is never an audio exercise and is shown when Audio Exercises are off. Got it completes the card; Review again schedules it once more.''',
+      r'''The learner sees a picture with its target-language word and source-language translation, an optional usage example with its translation, and hears the word when read-aloud is on. Provide the picture (Image), the word and the translation, optionally the usage lines, and choose Automatically, On request or No read-aloud. The card is never an audio exercise and is shown when Audio Exercises are off. Got it completes the card; Review again schedules it once more.''',
   'exerciseHelp.preset.true_false.body':
       r'''The learner reads a statement in the target language, optionally hears it, and chooses between the word for true and the word for false in the source language. Provide the statement, an optional spoken statement, the two answers (prefilled in the source language when QQL knows it) and the correct answer number: 1 when the statement is true, 2 when it is false.''',
   'exerciseHelp.preset.gap_choice_inline.body':
@@ -884,16 +888,20 @@ Question and Context are separate. Context can be text, audio, or both. Dialogue
       r'''The learner sees a sentence with gaps and drags word blocks into them; each block is used once and must land in the right gap. Write the sentence with each answer inside braces: Io {vorrei} un caffè. Add 0, 1 or at most 2 distractor blocks and an optional spoken prompt. This preset replaces the Inline gaps switch of Word order and Build the translation.''',
   'exerciseHelp.preset.sentence_order.body':
       r'''The learner sees the lines of a short story or dialogue as blocks and puts them in order. Enter the lines, one per line, and the correct order; you may add 0, 1 or at most 2 extra lines that belong nowhere. The instruction says what to order: the sentences of a story, the turns of a dialogue.''',
+  'exerciseHelp.preset.sort_into_groups.body':
+      r'''The learner taps a word, then the group it belongs to; a placed word can be taken back; Check grades every group at once. Enter the question, one group per line as “Group name: word, word, …” (usually two or more, each with at least one word) and, if you like, words that belong to no group: they are offered too and must stay in the bank. A word can be in one group only. Sort into groups is never an audio exercise.''',
+  'exerciseHelp.preset.fill_the_slots.body':
+      r'''The learner taps a word, then the slot it fills; a second word replaces the first; Check grades every slot at once. Enter the question and one slot per line as “what the learner sees = the word that fills it”, for example “… gatto = il”. Extra words that fill no slot are optional. Turn on “A word may fill more than one slot” when the same word is the answer of several slots: it stays in the bank after each use.''',
   'exerciseHelp.preset.listening_image_choice.body':
       r'''The learner hears the spoken text and picks the picture it names. Provide the spoken text, an optional question, the answer labels (one per line) and one picture per answer, chosen with the pickers below the answers; mark the correct answer. The labels are shown under the pictures.''',
   'exerciseHelp.preset.spell_heard.body':
-      r'''The learner hears a word and spells it by ordering letter or syllable tiles. Provide the spoken word, the tiles (one per line; split the word into letters or syllables as you like) and the correct order. No picture is needed; the tiles join without spaces.''',
+      r'''The learner hears a word and spells it by ordering letter or syllable tiles. Provide the spoken word and its tiles in order, one per line (split the word into letters or syllables as you like). No picture is needed; the tiles join without spaces.''',
   'exerciseHelp.preset.picture_choice.body':
       r'''The learner sees a picture and chooses the word or sentence that names it among text answers. Provide the picture (Image), a question such as What is this?, at least two answers and the correct one.''',
   'exerciseHelp.preset.picture_name.body':
       r'''The learner sees a picture and types what it shows. Provide the picture (Image), a question or instruction, one or more accepted answers with the same syntax as Type the translation (optional {}, alternatives [a|b], linked groups, reorder scopes) and an optional hint. Answers are checked with the normal Input normalization and typo tolerance.''',
   'exerciseHelp.preset.spell_word.body':
-      r'''The learner reads a clue in the source language, the word itself or a definition, and spells the target-language word by ordering letter or syllable tiles. Provide the clue, the tiles and the correct order; a picture is optional.''',
+      r'''The learner reads a clue in the source language, the word itself or a definition, and spells the target-language word by ordering letter or syllable tiles. Provide the clue and the tiles of the word in order, one per line; a picture is optional.''',
   'exerciseHelp.preset.picture_word_match.body':
       r'''The learner matches each picture on the left with a word on the right. Provide the words, one per line, and one picture per word with the pickers below; at least two pairs. Pair relationships, not display positions, define correctness.''',
   'exerciseHelp.preset.dialogue_line.body':
@@ -939,9 +947,9 @@ The learner sees target-language text and picks its correct source-language tran
   'exerciseHelp.preset.word_order.body':
       r'''The learner rearranges target-language blocks into their correct order. Provide the available text blocks and correct order. Text is supported. Use no more than two distinct distractors; this preset tests ordering rather than translation.''',
   'exerciseHelp.preset.image_word.body':
-      r'''The learner sees an image and orders letter or syllable blocks to form its word. Provide an image, instruction, blocks and correct order. Image and text are supported. Include only blocks used by the answer; distractors are not allowed.''',
+      r'''The learner sees an image and orders letter or syllable blocks to form its word. Provide an image, an instruction and the blocks of the word in order, one per line; the learner gets exactly those blocks, shuffled. Distractors are not allowed.''',
   'exerciseHelp.preset.flashcard.body':
-      r'''The learner sees a term, meaning, optional usage and optional pronunciation audio, then chooses Understood or Review later. Provide the learning material rather than a scored answer. Text and audio are supported, with optional imagery. Presentation content does not earn base correct-answer XP.''',
+      r'''The learner sees a target-language word or expression, its source-language translation and an optional usage example with its translation, hears the word when read-aloud is on, then chooses Got it or Review again. Provide the learning material rather than a scored answer; choose Automatically, On request or No read-aloud. Read-aloud never makes the card an audio exercise. Presentation content does not earn base correct-answer XP.''',
   'exerciseHelp.field.choice.prompt.body':
       r'''The instruction shown to the learner. Example: How do you say this in Italian?
 
@@ -1189,6 +1197,96 @@ Recommended; a cover without a picture shows the title only.
 
 Example
 A café terrace''',
+  'exerciseHelp.field.sort_into_groups.question.body':
+      r'''What the learner is asked to do.
+
+What to enter
+One line, in the language you prefer; name the groups if that helps.
+
+Checks
+Required.
+
+Example
+Sort the words: animals or food?''',
+  'exerciseHelp.field.sort_into_groups.groups.body':
+      r'''The groups and their words.
+
+What to enter
+One group per line: the group name, a colon, then its words separated by commas. At least one group, usually two or more, each with at least one word.
+
+Checks
+A word can be in one group only; a line without a colon, a name or words is refused before Preview or Save.
+
+Example
+Animals: gatto, cane
+Food: mela, pane''',
+  'exerciseHelp.field.sort_into_groups.leftover.body':
+      r'''Words that belong to no group.
+
+What to enter
+One word per line; leave empty when every word has a group.
+
+Checks
+The learner must leave them in the bank; a word listed here cannot also be in a group.
+
+Example
+tavolo''',
+  'exerciseHelp.field.fill_the_slots.question.body':
+      r'''What the learner is asked to do.
+
+What to enter
+One line, in the language you prefer.
+
+Checks
+Required.
+
+Example
+Which article goes with each noun?''',
+  'exerciseHelp.field.fill_the_slots.slots.body':
+      r'''The slots and the word that fills each one.
+
+What to enter
+One slot per line: what the learner sees, an equals sign, then the word. At least one slot. Use … or ___ for the missing part.
+
+Checks
+Every line needs both sides. The same word in two slots needs “A word may fill more than one slot”.
+
+Example
+… gatto = il
+… casa = la''',
+  'exerciseHelp.field.fill_the_slots.extraWords.body':
+      r'''Words offered that fill no slot.
+
+What to enter
+One word per line; optional.
+
+Checks
+An extra word cannot repeat a slot word.
+
+Example
+lo''',
+  'exerciseHelp.field.fill_the_slots.slotReuse.body':
+      r'''Whether one word may fill several slots.
+
+What to enter
+Off: each word is offered once and fills one slot. On: a word stays in the bank after each use, so the same word can be the answer of several slots.
+
+Checks
+None.
+
+Example
+On, for “… cane = il” and “… libro = il”''',
+  'exerciseHelp.field.flashcard.readAloud.body':
+      r'''Whether and when the word is spoken.
+
+What to enter
+Automatically (when the card appears), On request (the learner taps the speaker) or No read-aloud. The spoken text is the word or expression itself, played with the Course audio mode.
+
+Checks
+None. Read-aloud never makes the card an audio exercise.
+
+Example
+On request''',
   'exerciseHelp.field.note_card.prompt.body': r'''The heading of the note card.
 
 What to enter
@@ -1889,64 +1987,41 @@ Io
 bevo
 un
 caffè''',
-  'exerciseHelp.field.image_word.tokens.body':
-      r'''Supplies the pieces of the word shown in the image.
-
-What to enter
-Enter one literal letter or syllable per line. Blank lines are ignored. Repeat a line if that piece occurs more than once in the word.
-
-Checks
-Include only the pieces needed for the answer: no distractors. Supply their order in Correct target-language word and select an Exercise image.
-
-Example
-ca
-sa''',
   'exerciseHelp.field.image_word.order.body':
-      r'''Defines the order of the letter or syllable blocks.
+      r'''The blocks that spell the word, in order.
 
 What to enter
-Enter one letter or syllable block per line in answer order. The pieces are joined without spaces to form one word; blank lines are ignored.
+One letter or syllable per line, in answer order; the learner gets exactly these blocks, shuffled. Repeat a line for a letter that occurs twice. The blocks are joined without spaces.
 
 Checks
-Use each required available occurrence once, leave no distractors and supply the matching Exercise image.
+At least two blocks and no distractors. Spell the word in the picture also needs an Exercise image.
 
 Example
 ca
 sa
-These pieces form casa.''',
+These blocks form casa.''',
   'exerciseHelp.field.flashcard.prompt.body':
-      r'''Shows the target-language material on a Flashcard.
+      r'''The word or expression the card teaches, in the target language.
 
 What to enter
-Enter one word or expression. Put its meaning, pronunciation text and usage example in the separate fields.
+One word or expression in the language being learned. Its translation goes in the field below; Read aloud, when on, speaks this text.
 
 Checks
-A target word or phrase is required. Flashcard content is presentation and supplies no ordinary scored answer.
+Required. Flashcard content is presentation and supplies no scored answer.
 
 Example
 buongiorno''',
   'exerciseHelp.field.flashcard.question.body':
-      r'''Explains the Flashcard word or expression.
+      r'''The translation or meaning, in the source language.
 
 What to enter
-Enter one plain-text meaning or translation. Multiple lines remain one explanation.
+One plain-text translation or explanation in the learners’ own language. Several lines remain one explanation.
 
 Checks
-An empty meaning produces an Audit warning. Check that it matches the displayed word.
+An empty translation produces an Audit warning. Check that it matches the word above.
 
 Example
 good morning''',
-  'exerciseHelp.field.flashcard.tts.body':
-      r'''Supplies spoken pronunciation for the Flashcard.
-
-What to enter
-Enter the word or expression to pronounce as one text value. Do not enter a recording path; manage recordings in Course Audio Library.
-
-Checks
-Missing pronunciation text produces an Audit warning. Check that the selected course audio mode can play it.
-
-Example
-buongiorno''',
   'exerciseHelp.field.flashcard.answers.body':
       r'''Shows the Flashcard word in context.
 

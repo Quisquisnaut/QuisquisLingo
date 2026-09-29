@@ -35,7 +35,7 @@ void main() {
       ],
       'word_match': ['prompt', 'pairs'],
       'super_match': ['prompt', 'pairs'],
-      'flashcard': ['prompt', 'question', 'tts', 'answers'],
+      'flashcard': ['prompt', 'question', 'readAloud', 'answers'],
       'choice_target': [
         'prompt',
         'question',
@@ -89,8 +89,8 @@ void main() {
         'scriptImageOptions',
         'scriptCorrect',
       ],
-      'image_word': ['prompt', 'tokens', 'order'],
-      'picture_flashcard': ['prompt', 'question', 'tts', 'answers'],
+      'image_word': ['prompt', 'order'],
+      'picture_flashcard': ['prompt', 'question', 'readAloud', 'answers'],
       'true_false': ['question', 'tts', 'answers', 'correct'],
       'gap_choice_inline': ['prompt', 'gapLayout', 'tokens', 'tts'],
       'complete_text': ['prompt', 'missingWords'],
@@ -104,10 +104,10 @@ void main() {
         'correct',
         'icons',
       ],
-      'spell_heard': ['tts', 'tokens', 'order'],
+      'spell_heard': ['tts', 'order'],
       'picture_choice': ['question', 'answers', 'correct'],
       'picture_name': ['question', 'accepted', 'hint'],
-      'spell_word': ['prompt', 'tokens', 'order'],
+      'spell_word': ['prompt', 'order'],
       'picture_word_match': ['prompt', 'answers', 'icons'],
       'note_card': ['prompt', 'question'],
       'dialogue_line': [
@@ -119,6 +119,9 @@ void main() {
         'language',
       ],
       'story_cover': ['prompt', 'image'],
+      // The Assign presets (Build 256 Revision 7 follow-up).
+      'sort_into_groups': ['question', 'groups', 'leftover'],
+      'fill_the_slots': ['question', 'slots', 'extraWords', 'slotReuse'],
     };
     expect(
       fieldsByPreset.keys.toSet(),
@@ -273,7 +276,7 @@ void main() {
       expect(wordOrder.entryRules, contains('joined with spaces'));
       final imageOrder = help('image_word', 'order');
       expect(imageOrder.entryRules, contains('joined without spaces'));
-      expect(imageOrder.validation, contains('leave no distractors'));
+      expect(imageOrder.validation, contains('no distractors'));
     },
   );
 
@@ -292,7 +295,8 @@ void main() {
       translation.entryRules,
       contains('repeated words require repeated lines'),
     );
-    expect(help('image_word', 'tokens').validation, contains('no distractors'));
+    // The spelling presets have one field (Build 256 Revision 7 follow-up).
+    expect(help('image_word', 'order').validation, contains('no distractors'));
   });
 
   test('matching Help preserves ordinary and specialized cardinalities', () {

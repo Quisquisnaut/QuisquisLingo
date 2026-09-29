@@ -35,6 +35,41 @@ scoring, progression, Review and learner data are unchanged.
   scenario stands as the plan's final acceptance.
 - Beta expiry `2026-10-29 23:59:59` local time.
 
+Follow-up in the same version (owner review of the Revision 7 build, 29
+September 2026):
+
+- **Two Assign presets.** Sort into groups (the question, one group per
+  line as "Animals: gatto, cane", optional words that belong nowhere) and
+  Fill the slots (one slot per line as "… gatto = il", optional extra
+  words, a switch letting one word fill several slots) join the Grammar
+  and sentences group as recipes over canonical Assign data; the greyed
+  Sort into groups tile is gone (six greyed presets). The Laboratory's
+  Assign Lesson uses them (four examples in one Round; the gap Round is
+  removed because the inline gap presets already cover gaps: 126 examples,
+  27 Rounds); the Piedmontese demo keeps 39 Lessons (no Lesson for the
+  two Assign presets, as for the Story cover). Recognition compares targets
+  by position, as it did items, so a stored Assign with foreign target IDs
+  still opens in its form. Help (EN/IT/ES), field Help, Search and the
+  Audit's mismatch hints know both presets.
+- **Match picture to word form.** The picture cards follow the words as
+  they are typed (they were rebuilt only on the form's first change, so a
+  word typed later had no card and no number); each word has one compact
+  card headed "N. word", the section says the pictures follow the order of
+  the words, and the long picker guidance is stated once.
+- **Flashcard form.** The fields are "Word or expression (target
+  language)" and "Translation or meaning (source language)"; the separate
+  pronunciation text is gone: Read aloud (Automatically when the card
+  appears, On request, or No read-aloud) speaks the word itself. A
+  Flashcard's read-aloud is optional and never makes the card an audio
+  exercise (as the Picture flashcard's already was); the bundled cards
+  carry `required: false`.
+- **Spelling presets.** Spell the word in the picture, Spell the word and
+  Spell what you hear have one field, "Blocks of the word, in order": the
+  learner gets exactly those blocks, shuffled. A stored spelling exercise
+  with extra blocks opens in the canonical editor.
+- **Story editor list.** A title block and a text-only Dialogue line are
+  named by their text in the Round editor's list (their IDs were shown).
+
 # 2.0.56 (Build 256, Revision 6) - Interoperability - 2026-09-28
 
 Session 7 of the exercise architecture redesign (plan Part B item 7):

@@ -51,8 +51,9 @@ the interoperability catalog maps external exercise types to canonical
 semantics with presets as hints only; and `docs/capabilities_v12.json`, the
 machine-readable capability description, feeds the Python tools. Revision 7
 closes the redesign: **Assign** plays (sort into groups, fill slots, fill
-the gaps of a text, by tapping an item and then its destination; authored in
-the canonical editor), the Exercise Laboratory gains an Assign Lesson and a
+the gaps of a text, by tapping an item and then its destination; the presets
+Sort into groups and Fill the slots since the same-version follow-up of 29
+September, gaps in the canonical editor), the Exercise Laboratory gains an Assign Lesson and a
 test-only fixture of what still waits (Speak, Ink, Submit, branching
 Stories), and the negative and semantic-equality tests close the plan's
 verification list. Scoring and learner data are unchanged. The Beta expiry

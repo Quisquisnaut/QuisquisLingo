@@ -5,14 +5,14 @@ This document and the JSON are generated together by `tools/generate_exercise_la
 - Course: **Exercise Laboratory**, `course_50d68435-d2c2-4b63-9a0b-b23161357f1d`.
 - Direction: English (`en-GB`) → Italian (`it-IT`); TTS `it-IT`.
 - Model 11, official Course version 1.0.0; all Lessons, Rounds and Content are Published.
-- Exactly seven Lessons (six primitives and a Story), 28 Rounds and 128 runnable examples across all 46 authoring presets, plus the Assign examples authored in the canonical editor (Build 256 Revision 7).
+- Exactly seven Lessons (six primitives and a Story), 27 Rounds and 126 runnable examples across all 48 authoring presets (the Assign Lesson uses the presets Sort into groups and Fill the slots since the Build 256 Revision 7 follow-up).
 - Course rights explicitly allow Fork, so the bundled original can be inspected and a derivative can use the ordinary authoring/confirm/export/import paths.
 - Create Duels is off: Presentation is non-evaluable and the Course is not padded to manufacture Duel pools. The required per-Lesson Duel metadata is retained.
 - This Course leaves existing Course identities, learner data and media assets unchanged.
 
 ## Source inventory and supported modes
 
-The authoring registry is `lib/models/exercise_authoring.dart`. Every one of its 46 presets has at least one example below; `canonical:assign` marks the Assign examples, which have no preset.
+The authoring registry is `lib/models/exercise_authoring.dart`. Every one of its 48 presets has at least one example below.
 
 | Lesson | Preset | Examples |
 | --- | --- | ---: |
@@ -64,7 +64,8 @@ The authoring registry is `lib/models/exercise_authoring.dart`. Every one of its
 | Story | `story_cover` | 2 |
 | Story | `dialogue_line` | 10 |
 | Story | `choice_target` | 1 |
-| Assign | `canonical:assign` | 6 |
+| Assign | `sort_into_groups` | 2 |
+| Assign | `fill_the_slots` | 2 |
 
 ## Case matrix and answer keys
 
@@ -194,12 +195,10 @@ The suffix below follows `qql_lab254_` in the stable Content/Exercise ID. Answer
 | Story / The same morning, line by line | options_text_only | dialogue_line | Dialogue line; text only | Continue |
 | Story / The same morning, line by line | options_audio_only | dialogue_line | Dialogue line; audio only, read on request | Continue |
 | Story / The same morning, line by line | options_automatic | dialogue_line | Dialogue line; read aloud automatically although the Story reads on request | Continue |
-| Assign / Groups and slots | assign_groups | canonical:assign | Assign, groups; a group takes several items (capacity multiple), reuse forbidden | Animals: gatto, cane; Food: mela, pane |
-| Assign / Groups and slots | assign_groups_leftover | canonical:assign | Assign, groups; an item that belongs nowhere stays in the bank (capacity unlimited) | Animals: gatto, cane; tavolo stays in the bank |
-| Assign / Groups and slots | assign_slots | canonical:assign | Assign, slots; one item per slot, a second placement replaces the first | … gatto: il; … casa: la |
-| Assign / Groups and slots | assign_slots_reuse | canonical:assign | Assign, slots; reuse allowed, the item stays in the bank | … cane: il; … libro: il; … casa: la |
-| Assign / Gaps | assign_gap_one | canonical:assign | Assign, gaps; one gap inside the text, one distractor | Il gatto dorme sul divano. |
-| Assign / Gaps | assign_gap_two | canonical:assign | Assign, gaps; two gaps, one distractor | Anna beve un caffè. |
+| Assign / Groups and slots | assign_groups | sort_into_groups | Sort into groups; a group takes any number of items (capacity unlimited), reuse forbidden | Animals: gatto, cane; Food: mela, pane |
+| Assign / Groups and slots | assign_groups_leftover | sort_into_groups | Sort into groups; a word that belongs nowhere stays in the bank | Animals: gatto, cane; tavolo stays in the bank |
+| Assign / Groups and slots | assign_slots | fill_the_slots | Fill the slots; one item per slot, a second placement replaces the first | … gatto: il; … casa: la |
+| Assign / Groups and slots | assign_slots_reuse | fill_the_slots | Fill the slots; a word may fill more than one slot (reuse allowed), the item stays in the bank | … cane: il; … libro: il; … casa: la |
 
 ## Boundaries and intentionally excluded combinations
 
@@ -212,7 +211,7 @@ The suffix below follows `qql_lab254_` in the stable Content/Exercise ID. Answer
 - Type the missing word expects a complete word whose first Unicode grapheme is shared by all accepted alternatives. It is not an Input-style character-recognition direction. Listen for missing words uses distinct complete transcript words in displayed order.
 - Build the translation records literal complete answers and distinct block occurrences; expressions, typo tolerance and similarity-ranked acceptance do not apply. Word order and Image-prompt ordering each expose one correct authored order. Image-prompt ordering has no distractors.
 - Match the pairs supports a variable count; the three named specialised Match presets require exactly three pairs. Images as matching operands and arbitrary many-to-many relationships are not exposed by the current authoring/learner paths.
-- Assign (Build 256 Revision 7) plays groups (categories in columns), slots and gaps in a text by tapping an item and then its destination, graded as exact assignments. Groups may take several items or any number; a slot or a gap takes one; a reusable item stays in the bank; an item that belongs nowhere stays in the bank. Picture regions, grid cells, drag placement and the other Assign evaluation modes are readable but not executable. Assign has no catalogue preset: the examples are canonical content and open in the Generic Primitive Editor.
+- Assign (Build 256 Revision 7) plays groups (categories in columns) and slots by tapping an item and then its destination, graded as exact assignments; the Laboratory authors them with Sort into groups and Fill the slots (Revision 7 follow-up, 29 September 2026). A group takes any number of items; a slot takes one; a reusable item stays in the bank; a word that belongs nowhere stays in the bank. Gaps in a text play too but have no preset and no Laboratory example (the owner prefers the inline gap presets); picture regions, grid cells, drag placement and the other Assign evaluation modes stay readable but not executable.
 - Flashcard coverage includes all six meaningful combinations of optional audio, usage, and usage translation (a translation requires usage). The learner buttons currently read Got it / Review again; JSON completion actions remain understood / review_later. Cards are non-evaluable and earn no correct-answer base XP. Optional omissions produce existing informational/warning Audit findings, not invalid content.
 - Flashcard image content is excluded: the current Presentation↔Exercise projection does not preserve images on an authoring round trip. Rich textual explanation/example/vocabulary/text/dialogue kinds share the presentation path but are not additional current Exercise picker presets. GuideBook explanations and Round introductions demonstrate explanatory text through their normal authoring surfaces.
 - Audio mode is On-Device TTS. Every spoken prompt is authored Italian, uses it-IT and needs an available native voice. Learner Enable Audio Exercises and Text-to-speech must be on to include every audio example; Authoring Preview ignores the learner switches. No recording transcript was guessed and no voice or MP3 is fabricated. Course audio modes and recorded-media transport are independent of the exercise primitive and covered by the separate Edge Cases Course.
@@ -222,8 +221,8 @@ The suffix below follows `qql_lab254_` in the stable Content/Exercise ID. Answer
 
 1. `python -X utf8 tools/generate_exercise_laboratory_254.py --check`: deterministic JSON/checksum and coverage-document readback.
 2. `python -X utf8 tools/validate_courses.py`: Course Model structure, timestamps, stable unique IDs, references, publication and official checksum.
-3. `test/exercise_laboratory_254_test.dart` checks the actual asset's Audit and canonical model round trip, then rebuilds all 128 examples through ExerciseDraftBuilder (and ScriptRecognitionController for its image modes), comparing semantic fields and each result's model round trip. Separate preservation assertions cover Flashcard usage and usage translation. Editor route tests include `exercise_authoring_252_characterization_test.dart`, `select_editor_238_test.dart`, `arrange_gap_fill_editor_238_test.dart`, `script_recognition_226_03_test.dart` and `translation_choice_239_test.dart`.
-4. The same Lab suite completes all 128 examples through RoundScreen Preview using actual controls and grading, including repeated blocks, reusable gaps, exact multiple-selection sets and audio matching. Additional cases finish an alternate Build translation answer and a Review again/Got it cycle. Speech is stubbed only at the playback seam; these tests do not establish native voice quality or normal progression persistence.
+3. `test/exercise_laboratory_254_test.dart` checks the actual asset's Audit and canonical model round trip, then rebuilds all 126 examples through ExerciseDraftBuilder (and ScriptRecognitionController for its image modes), comparing semantic fields and each result's model round trip. Separate preservation assertions cover Flashcard usage and usage translation. Editor route tests include `exercise_authoring_252_characterization_test.dart`, `select_editor_238_test.dart`, `arrange_gap_fill_editor_238_test.dart`, `script_recognition_226_03_test.dart` and `translation_choice_239_test.dart`.
+4. The same Lab suite completes all 126 examples through RoundScreen Preview using actual controls and grading, including repeated blocks, reusable gaps, exact multiple-selection sets and audio matching. Additional cases finish an alternate Build translation answer and a Review again/Got it cycle. Speech is stubbed only at the playback seam; these tests do not establish native voice quality or normal progression persistence.
 5. Export/import of the Course through the normal ZIP and embedded-image JSON routes preserves this Course's identity, content wrappers, answers and character PNG bytes. A Fork gets a new identity through the existing rights-aware operation.
 
 These are verification seams, not a claim that commands have been run. Fresh integrated results are recorded in the Build 254 validation document.

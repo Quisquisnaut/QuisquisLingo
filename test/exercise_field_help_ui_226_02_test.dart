@@ -122,21 +122,21 @@ const _formFields = <String, Map<String, String>>{
     'Available word blocks': 'tokens',
     'Correct sentence': 'order',
   },
+  // The spelling presets have one field (Build 256 Revision 7 follow-up).
   'image_word': {
     'Instruction': 'prompt',
-    'Available letter / syllable blocks': 'tokens',
-    'Correct target-language word': 'order',
+    'Blocks of the word, in order': 'order',
   },
+  // A Flashcard's Read aloud is a closed choice with the same Help control
+  // (Build 256 Revision 7 follow-up).
   'flashcard': {
-    'Word / expression': 'prompt',
-    'Translation / meaning': 'question',
-    'Pronunciation TTS': 'tts',
+    'Word or expression (target language)': 'prompt',
+    'Translation or meaning (source language)': 'question',
     'Usage sentence and optional translation': 'answers',
   },
   'picture_flashcard': {
-    'Word / expression': 'prompt',
-    'Translation / meaning': 'question',
-    'Pronunciation TTS': 'tts',
+    'Word or expression (target language)': 'prompt',
+    'Translation or meaning (source language)': 'question',
     'Usage sentence and optional translation': 'answers',
   },
   'true_false': {
@@ -179,8 +179,7 @@ const _formFields = <String, Map<String, String>>{
   },
   'spell_heard': {
     'Spoken word': 'tts',
-    'Available letter / syllable blocks': 'tokens',
-    'Correct word': 'order',
+    'Blocks of the word, in order': 'order',
   },
   'picture_choice': {
     'Question': 'question',
@@ -192,12 +191,20 @@ const _formFields = <String, Map<String, String>>{
     'Accepted answers': 'accepted',
     'Hint (optional)': 'hint',
   },
-  'spell_word': {
-    'Clue': 'prompt',
-    'Available letter / syllable blocks': 'tokens',
-    'Correct word': 'order',
-  },
+  'spell_word': {'Clue': 'prompt', 'Blocks of the word, in order': 'order'},
   'picture_word_match': {'Instruction': 'prompt', 'Words': 'answers'},
+  // The Assign presets (Build 256 Revision 7 follow-up); the reuse switch
+  // is a closed control with its own Help button.
+  'sort_into_groups': {
+    'Question': 'question',
+    'Groups': 'groups',
+    'Words that belong nowhere (optional)': 'leftover',
+  },
+  'fill_the_slots': {
+    'Question': 'question',
+    'Slots': 'slots',
+    'Extra words (optional)': 'extraWords',
+  },
   'note_card': {'Title': 'prompt', 'Note': 'question'},
 };
 

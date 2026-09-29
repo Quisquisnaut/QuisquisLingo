@@ -38,7 +38,7 @@
   ],
   "license": "All rights reserved",
   "derivativeWorksPolicy": "allowed",
-  "courseDescription": "An English-to-Italian laboratory for trying every current Exercise type and its meaningful authoring options. Five Lessons group Select, Input, Arrange, Match and Presentation; a sixth Lesson is a Story. Inspect or Fork the Course in Course Studio to study how the exercises are authored. Enable Audio Exercises and Text-to-speech to include all listening and pronunciation examples; ordinary lesson progression remains in effect.",
+  "courseDescription": "An English-to-Italian laboratory for trying every current Exercise type and its meaningful authoring options. Five Lessons group Select, Input, Arrange, Match and Presentation; a sixth Lesson is a Story and a seventh holds Assign (Sort into groups, Fill the slots). Inspect or Fork the Course in Course Studio to study how the exercises are authored. Enable Audio Exercises and Text-to-speech to include all listening and pronunciation examples; ordinary lesson progression remains in effect.",
   "textDirection": "ltr",
   "temporarySample": true,
   "flagCode": "IT",
@@ -6900,7 +6900,8 @@
                   {
                     "role": "audio",
                     "type": "audio",
-                    "text": "buongiorno"
+                    "text": "buongiorno",
+                    "required": false
                   }
                 ],
                 "completion": {
@@ -6932,7 +6933,8 @@
                   {
                     "role": "audio",
                     "type": "audio",
-                    "text": "libro"
+                    "text": "libro",
+                    "required": false
                   },
                   {
                     "role": "usage",
@@ -6969,7 +6971,8 @@
                   {
                     "role": "audio",
                     "type": "audio",
-                    "text": "acqua"
+                    "text": "acqua",
+                    "required": false
                   },
                   {
                     "role": "usage",
@@ -7150,5 +7153,5 @@
       }
     }
   ],
-  "officialChecksum": "460b6353f1427ffef9dccd9ab2c485ae6d6850af8bea932880e70e4d277ab117"
+  "officialChecksum": "09a672799061b8dd9a576427277cd0cd90960f305836642124c739de38936d18"
 }

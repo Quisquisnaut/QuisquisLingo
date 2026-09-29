@@ -35,6 +35,10 @@ void main() {
       ExercisePresetRegistry.presets.map((preset) => preset.id).toSet(),
     );
     for (final preset in ExercisePresetRegistry.presets) {
+      // Assign has presets (Build 256 Revision 7 follow-up) but no default
+      // recipe: an Assign no preset represents (gaps, regions, cells)
+      // opens in the canonical editor, not in a form that cannot save it.
+      if (preset.primitive == ExercisePrimitive.assign) continue;
       expect(
         PresetRecipes.defaultPresetFor(preset.primitive),
         isNotNull,

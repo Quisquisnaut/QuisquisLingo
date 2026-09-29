@@ -58,10 +58,12 @@ void main() {
     () async {
       final course = await loadCourse();
       final presets = ExercisePresetRegistry.presets;
-      // One Lesson per preset, except Story cover: a Story of covers alone
-      // belongs to the Edge Case demo (owner decision, 28 September 2026).
-      expect(course.lessons, hasLength(presets.length - 1));
-      expect(presets, hasLength(40));
+      // One Lesson per preset, except Story cover (a Story of covers alone
+      // belongs to the Edge Case demo; owner decision, 28 September 2026)
+      // and the two Assign presets (the Laboratory's Assign Lesson shows
+      // them; owner decision, 29 September 2026).
+      expect(course.lessons, hasLength(presets.length - 3));
+      expect(presets, hasLength(42));
       final seenTypes = <String>{};
       for (final lesson in course.lessons) {
         expect(lesson.publicationState, PublicationState.published);
@@ -89,7 +91,8 @@ void main() {
       }
       expect(
         seenTypes,
-        presets.map((preset) => preset.id).toSet()..remove('story_cover'),
+        presets.map((preset) => preset.id).toSet()
+          ..removeAll(['story_cover', 'sort_into_groups', 'fill_the_slots']),
       );
     },
   );

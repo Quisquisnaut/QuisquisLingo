@@ -265,8 +265,9 @@ class Laboratory:
              preset: str = "flashcard", picture: str = "") -> None:
         elements = [text(term, "term"), text(meaning, "meaning")]
         if spoken:
-            # A Picture flashcard's audio is optional: never an audio exercise.
-            elements.append(audio(spoken, "audio", required=False if preset == "picture_flashcard" else None))
+            # A Flashcard's read-aloud is optional: never an audio exercise
+            # (Build 256 Revision 7 follow-up: the plain Flashcard too).
+            elements.append(audio(spoken, "audio", required=False))
         if usage:
             elements.append(text(usage, "usage"))
         if translation:
@@ -292,16 +293,18 @@ class Laboratory:
 
     def start_canonical_lesson(self, title: str, description: str) -> None:
         """A Lesson whose exercises exist only in the canonical shape (no v11
-        recipe, no preset): it joins the Course after the v11 conversion, as
-        the Story Lesson does (Build 256 Revision 7: Assign)."""
+        recipe): it joins the Course after the v11 conversion, as the Story
+        Lesson does (Build 256 Revision 7: Assign)."""
         self.start_story_lesson(title, description)
 
-    def assign(self, key: str, mode: str, question: str, items: list[tuple[str, str]],
+    def assign(self, key: str, preset: str, mode: str, question: str, items: list[tuple[str, str]],
                targets: list[tuple[str, str]], assignments: dict[str, list[str]],
                capability: str, answer: str, *, capacity: str = "single",
                reuse: str = "forbidden", sentence: list | None = None) -> None:
-        """An Assign example (Build 256 Revision 7), authored canonically: no
-        editorTemplate, global item and target IDs."""
+        """An Assign example (Build 256 Revision 7), authored in the canonical
+        shape with global item and target IDs; since the Revision 7
+        follow-up it carries its preset (Sort into groups, Fill the slots),
+        whose recipe represents it."""
         identity = "qql_lab254_" + key
         item_ids = {item_id: f"{identity}_{item_id}" for item_id, _ in items}
         target_ids = {target_id: f"{identity}_{target_id}" for target_id, _ in targets}
@@ -316,10 +319,10 @@ class Laboratory:
         )
         self.round["content"].append({
             "id": identity, "publicationState": "published", "kind": "exercise",
-            "required": True, "exercise": exercise,
+            "required": True, "editorTemplate": preset, "exercise": exercise,
         })
         self.cases.append({"id": identity, "lesson": self.lesson["title"], "round": self.round["title"],
-                           "preset": "canonical:assign", "capability": capability, "answer": answer})
+                           "preset": preset, "capability": capability, "answer": answer})
 
     def start_story(self, key: str, title: str, intro: str, story_title: str, *,
                     read_aloud: str = "automatic") -> None:
@@ -548,39 +551,29 @@ def laboratory() -> Laboratory:
     lab.line("options_audio_only", "No, grazie. Solo il caffè.", "Dialogue line; audio only, read on request", speaker=anna, mode="audio", read_aloud="manual")
     lab.line("options_automatic", "Ecco il suo caffè.", "Dialogue line; read aloud automatically although the Story reads on request", speaker=luca, read_aloud="automatic")
     lab.finish_story()
-    lab.start_canonical_lesson("Assign", "Assign places items into destinations (Build 256 Revision 7): tap an item, then the group, slot or gap that takes it; Check grades every destination at once. A group may take several items, a slot or a gap takes one; a reusable item stays in the bank. Assign has no preset yet, so these examples are authored in the canonical editor. Picture regions, grid cells and drag placement wait for a later version.")
+    lab.start_canonical_lesson("Assign", "Assign places items into destinations (Build 256 Revision 7): tap an item, then the group or slot that takes it; Check grades every destination at once. A group may take any number of items, a slot takes one; a reusable item stays in the bank. The presets Sort into groups and Fill the slots author these examples (Revision 7 follow-up). Gaps in a text are authored in the canonical editor; picture regions, grid cells and drag placement wait for a later version.")
     lab.start_round("assign_bins", "Groups and slots", "Sort the words into their groups, or fill each slot with the right word. Tap a word, then its destination; Check when every word is placed.")
-    lab.assign("assign_groups", "categories", "Sort the words: animals or food?",
+    lab.assign("assign_groups", "sort_into_groups", "categories", "Sort the words: animals or food?",
                [("gatto", "gatto"), ("cane", "cane"), ("mela", "mela"), ("pane", "pane")],
                [("animals", "Animals"), ("food", "Food")],
                {"animals": ["gatto", "cane"], "food": ["mela", "pane"]},
-               "Assign, groups; a group takes several items (capacity multiple), reuse forbidden",
-               "Animals: gatto, cane; Food: mela, pane", capacity="multiple")
-    lab.assign("assign_groups_leftover", "categories", "Put the animals in their group and leave the other word out.",
+               "Sort into groups; a group takes any number of items (capacity unlimited), reuse forbidden",
+               "Animals: gatto, cane; Food: mela, pane", capacity="unlimited")
+    lab.assign("assign_groups_leftover", "sort_into_groups", "categories", "Put the animals in their group and leave the other word out.",
                [("gatto", "gatto"), ("cane", "cane"), ("tavolo", "tavolo")],
                [("animals", "Animals")], {"animals": ["gatto", "cane"]},
-               "Assign, groups; an item that belongs nowhere stays in the bank (capacity unlimited)",
+               "Sort into groups; a word that belongs nowhere stays in the bank",
                "Animals: gatto, cane; tavolo stays in the bank", capacity="unlimited")
-    lab.assign("assign_slots", "slots", "Which article goes with each noun?",
+    lab.assign("assign_slots", "fill_the_slots", "slots", "Which article goes with each noun?",
                [("il", "il"), ("la", "la")], [("s1", "… gatto"), ("s2", "… casa")],
                {"s1": ["il"], "s2": ["la"]},
-               "Assign, slots; one item per slot, a second placement replaces the first",
+               "Fill the slots; one item per slot, a second placement replaces the first",
                "… gatto: il; … casa: la")
-    lab.assign("assign_slots_reuse", "slots", "Which article goes with each noun? An article may serve twice.",
+    lab.assign("assign_slots_reuse", "fill_the_slots", "slots", "Which article goes with each noun? An article may serve twice.",
                [("il", "il"), ("la", "la")], [("s1", "… cane"), ("s2", "… libro"), ("s3", "… casa")],
                {"s1": ["il"], "s2": ["il"], "s3": ["la"]},
-               "Assign, slots; reuse allowed, the item stays in the bank",
+               "Fill the slots; a word may fill more than one slot (reuse allowed), the item stays in the bank",
                "… cane: il; … libro: il; … casa: la", reuse="allowed")
-    lab.start_round("assign_gaps", "Gaps", "Fill each gap of the sentence with the right word. Tap a word, then the gap; Check when every gap is filled.")
-    lab.assign("assign_gap_one", "gaps", "Complete the sentence.",
-               [("dorme", "dorme"), ("mangia", "mangia")], [("g1", "")], {"g1": ["dorme"]},
-               "Assign, gaps; one gap inside the text, one distractor",
-               "Il gatto dorme sul divano.", sentence=["Il gatto", ("g1",), "sul divano."])
-    lab.assign("assign_gap_two", "gaps", "Complete the sentence.",
-               [("beve", "beve"), ("caffe", "caffè"), ("mangia", "mangia")], [("g1", ""), ("g2", "")],
-               {"g1": ["beve"], "g2": ["caffe"]},
-               "Assign, gaps; two gaps, one distractor", "Anna beve un caffè.",
-               sentence=["Anna", ("g1",), "un", ("g2",), "."])
     return lab
 
 
@@ -602,7 +595,7 @@ def course_v11(lab: Laboratory) -> dict:
         "title": "Temporary Demo: Exercise Laboratory", "ttsLanguage": "it-IT", "audioMode": "tts",
         "authors": [{"name": "QuisquisLingo", "roles": ["Author"]}],
         "license": "All rights reserved", "derivativeWorksPolicy": "allowed",
-        "courseDescription": "An English-to-Italian laboratory for trying every current Exercise type and its meaningful authoring options. Five Lessons group Select, Input, Arrange, Match and Presentation; a sixth Lesson is a Story and a seventh holds Assign, which has no preset yet. Inspect or Fork the Course in Course Studio to study how the exercises are authored. Enable Audio Exercises and Text-to-speech to include all listening and pronunciation examples; ordinary lesson progression remains in effect.",
+        "courseDescription": "An English-to-Italian laboratory for trying every current Exercise type and its meaningful authoring options. Five Lessons group Select, Input, Arrange, Match and Presentation; a sixth Lesson is a Story and a seventh holds Assign (Sort into groups, Fill the slots). Inspect or Fork the Course in Course Studio to study how the exercises are authored. Enable Audio Exercises and Text-to-speech to include all listening and pronunciation examples; ordinary lesson progression remains in effect.",
         "textDirection": "ltr", "temporarySample": True, "flagCode": "IT",
         "createDuels": False,
         "mediaAttributions": [{
@@ -782,12 +775,12 @@ def coverage(lab: Laboratory) -> str:
         f"- Course: **Exercise Laboratory**, `{COURSE_ID}`.",
         "- Direction: English (`en-GB`) → Italian (`it-IT`); TTS `it-IT`.",
         "- Model 11, official Course version 1.0.0; all Lessons, Rounds and Content are Published.",
-        f"- Exactly seven Lessons (six primitives and a Story), {sum(len(lesson['rounds']) for lesson in [*lab.lessons, *lab.story_lessons])} Rounds and {len(lab.cases)} runnable examples across all {preset_count} authoring presets, plus the Assign examples authored in the canonical editor (Build 256 Revision 7).",
+        f"- Exactly seven Lessons (six primitives and a Story), {sum(len(lesson['rounds']) for lesson in [*lab.lessons, *lab.story_lessons])} Rounds and {len(lab.cases)} runnable examples across all {preset_count} authoring presets (the Assign Lesson uses the presets Sort into groups and Fill the slots since the Build 256 Revision 7 follow-up).",
         "- Course rights explicitly allow Fork, so the bundled original can be inspected and a derivative can use the ordinary authoring/confirm/export/import paths.",
         "- Create Duels is off: Presentation is non-evaluable and the Course is not padded to manufacture Duel pools. The required per-Lesson Duel metadata is retained.",
         "- This Course leaves existing Course identities, learner data and media assets unchanged.", "",
         "## Source inventory and supported modes", "",
-        f"The authoring registry is `lib/models/exercise_authoring.dart`. Every one of its {preset_count} presets has at least one example below; `canonical:assign` marks the Assign examples, which have no preset.", "",
+        f"The authoring registry is `lib/models/exercise_authoring.dart`. Every one of its {preset_count} presets has at least one example below.", "",
         "| Lesson | Preset | Examples |", "| --- | --- | ---: |",
     ]
     for lesson in ("Select", "Input", "Arrange", "Match", "Presentation", "Story", "Assign"):
@@ -817,7 +810,7 @@ def coverage(lab: Laboratory) -> str:
         "- Type the missing word expects a complete word whose first Unicode grapheme is shared by all accepted alternatives. It is not an Input-style character-recognition direction. Listen for missing words uses distinct complete transcript words in displayed order.",
         "- Build the translation records literal complete answers and distinct block occurrences; expressions, typo tolerance and similarity-ranked acceptance do not apply. Word order and Image-prompt ordering each expose one correct authored order. Image-prompt ordering has no distractors.",
         "- Match the pairs supports a variable count; the three named specialised Match presets require exactly three pairs. Images as matching operands and arbitrary many-to-many relationships are not exposed by the current authoring/learner paths.",
-        "- Assign (Build 256 Revision 7) plays groups (categories in columns), slots and gaps in a text by tapping an item and then its destination, graded as exact assignments. Groups may take several items or any number; a slot or a gap takes one; a reusable item stays in the bank; an item that belongs nowhere stays in the bank. Picture regions, grid cells, drag placement and the other Assign evaluation modes are readable but not executable. Assign has no catalogue preset: the examples are canonical content and open in the Generic Primitive Editor.",
+        "- Assign (Build 256 Revision 7) plays groups (categories in columns) and slots by tapping an item and then its destination, graded as exact assignments; the Laboratory authors them with Sort into groups and Fill the slots (Revision 7 follow-up, 29 September 2026). A group takes any number of items; a slot takes one; a reusable item stays in the bank; a word that belongs nowhere stays in the bank. Gaps in a text play too but have no preset and no Laboratory example (the owner prefers the inline gap presets); picture regions, grid cells, drag placement and the other Assign evaluation modes stay readable but not executable.",
         "- Flashcard coverage includes all six meaningful combinations of optional audio, usage, and usage translation (a translation requires usage). The learner buttons currently read Got it / Review again; JSON completion actions remain understood / review_later. Cards are non-evaluable and earn no correct-answer base XP. Optional omissions produce existing informational/warning Audit findings, not invalid content.",
         "- Flashcard image content is excluded: the current Presentation↔Exercise projection does not preserve images on an authoring round trip. Rich textual explanation/example/vocabulary/text/dialogue kinds share the presentation path but are not additional current Exercise picker presets. GuideBook explanations and Round introductions demonstrate explanatory text through their normal authoring surfaces.",
         "- Audio mode is On-Device TTS. Every spoken prompt is authored Italian, uses it-IT and needs an available native voice. Learner Enable Audio Exercises and Text-to-speech must be on to include every audio example; Authoring Preview ignores the learner switches. No recording transcript was guessed and no voice or MP3 is fabricated. Course audio modes and recorded-media transport are independent of the exercise primitive and covered by the separate Edge Cases Course.",

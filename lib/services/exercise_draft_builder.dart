@@ -45,6 +45,12 @@ class ExerciseDraftValues {
     this.lineReadAloud = 'story',
     this.lineTextReveal = 'immediate',
     this.lineLanguage = '',
+    this.groups = '',
+    this.leftover = '',
+    this.slots = '',
+    this.extraWords = '',
+    this.slotReuse = false,
+    this.cardReadAloud = 'manual',
   }) : correctTranslations = List.unmodifiable(correctTranslations);
 
   final Exercise original;
@@ -109,6 +115,25 @@ class ExerciseDraftValues {
   /// Dialogue line: `source`, `target` or empty for the speaker's language.
   final String lineLanguage;
 
+  /// Sort into groups (Build 256 Revision 7 follow-up): one group per line
+  /// as `Name: word, word`, and the words that belong to no group.
+  final String groups;
+
+  final String leftover;
+
+  /// Fill the slots: one slot per line as `what the learner sees = word`,
+  /// the extra words that fill no slot, and whether a word may fill
+  /// several slots.
+  final String slots;
+
+  final String extraWords;
+
+  final bool slotReuse;
+
+  /// A Flashcard's read-aloud: `none`, `manual` (on request) or
+  /// `automatic`; the spoken text is the word itself.
+  final String cardReadAloud;
+
   ExerciseDraftValues copyWith({
     String? type,
     bool? useInlineGaps,
@@ -163,6 +188,12 @@ class ExerciseDraftValues {
     lineReadAloud: lineReadAloud ?? this.lineReadAloud,
     lineTextReveal: lineTextReveal ?? this.lineTextReveal,
     lineLanguage: lineLanguage ?? this.lineLanguage,
+    groups: groups,
+    leftover: leftover,
+    slots: slots,
+    extraWords: extraWords,
+    slotReuse: slotReuse,
+    cardReadAloud: cardReadAloud,
   );
 
   /// Script recognition already owns its canonical Select construction and
@@ -181,6 +212,8 @@ enum ExerciseDraftField {
   tokens,
   requiredSelections,
   scriptOptions,
+  groups,
+  slots,
 }
 
 enum ExerciseDraftErrorCode {
@@ -202,6 +235,12 @@ enum ExerciseDraftErrorCode {
   selectGapMissing,
   selectGapEmpty,
   scriptCandidateMissing,
+  groupLine,
+  groupsRequired,
+  groupWordRepeated,
+  slotLine,
+  slotsRequired,
+  slotWordRepeated,
 }
 
 class ExerciseDraftFieldError {
@@ -421,6 +460,8 @@ abstract final class ExerciseDraftBuilder {
     final publicationState = draft.publicationState;
     if (type == 'dialogue_line') return _buildDialogueLine(draft);
     if (type == 'story_cover') return _buildStoryCover(draft);
+    if (type == 'sort_into_groups') return _buildSortIntoGroups(draft);
+    if (type == 'fill_the_slots') return _buildFillTheSlots(draft);
     if (type == 'script_recognition') {
       final candidate = draft.scriptCandidate;
       return candidate == null
@@ -703,21 +744,25 @@ abstract final class ExerciseDraftBuilder {
             : '',
         answers: answers,
         correct: correct,
-        tts:
-            const {
-                  'flashcard',
-                  'fill_blank',
-                  'listening_choice',
-                  'listening_comprehension',
-                  'missing_word',
-                  'listening_spelling',
-                  // Listen and pick the image, Spell what you hear, True or
-                  // false (Build 256 Revision 4).
-                  'icon_choice',
-                  'image_word',
-                  'choice',
-                }.contains(type) &&
-                draft.tts.trim().isNotEmpty
+        // A Flashcard's read-aloud speaks the word itself (Build 256
+        // Revision 7 follow-up): no separate pronunciation text.
+        tts: type == 'flashcard'
+            ? (draft.cardReadAloud != 'none' && draft.prompt.trim().isNotEmpty
+                  ? draft.prompt.trim()
+                  : null)
+            : const {
+                    'fill_blank',
+                    'listening_choice',
+                    'listening_comprehension',
+                    'missing_word',
+                    'listening_spelling',
+                    // Listen and pick the image, Spell what you hear, True
+                    // or false (Build 256 Revision 4).
+                    'icon_choice',
+                    'image_word',
+                    'choice',
+                  }.contains(type) &&
+                  draft.tts.trim().isNotEmpty
             ? draft.tts.trim()
             : null,
         accepted: const {'listening_spelling', 'missing_word'}.contains(type)
@@ -725,13 +770,13 @@ abstract final class ExerciseDraftBuilder {
             : const {'fill_blank', 'type_translation'}.contains(type)
             ? _lines(draft.accepted)
             : const [],
-        tokens:
-            const {
-              'word_order',
-              'image_word',
-              'build_translation',
-            }.contains(type)
+        tokens: const {'word_order', 'build_translation'}.contains(type)
             ? _lines(draft.tokens)
+            // Spell the word in the picture, Spell the word and Spell what
+            // you hear offer exactly the blocks of the word (Build 256
+            // Revision 7 follow-up): one field, no distractors.
+            : type == 'image_word'
+            ? _lines(draft.order)
             : const [],
         orderAnswer: const {'word_order', 'image_word'}.contains(type)
             ? _lines(draft.order)
@@ -765,7 +810,272 @@ abstract final class ExerciseDraftBuilder {
             : const [],
       );
     }
-    return ExerciseDraftBuildResult.success(candidate);
+    return ExerciseDraftBuildResult.success(
+      type == 'flashcard' && draft.cardReadAloud == 'automatic'
+          ? _withAutomaticCardAudio(candidate)
+          : candidate,
+    );
+  }
+
+  /// [candidate] with its read-aloud playing when the card appears (a
+  /// Flashcard's Read aloud: Automatically).
+  static Exercise _withAutomaticCardAudio(Exercise candidate) =>
+      candidate.copyWith(
+        promptElements: [
+          for (final element in candidate.promptElements)
+            if (element.isAudio)
+              element.copyWith(playback: AudioPlayback.automatic)
+            else
+              element,
+        ],
+      );
+
+  /// Sort into groups (Build 256 Revision 7 follow-up): the question, one
+  /// group per line as `Name: word, word, …` (at least one) and the words
+  /// that belong to no group. Canonical: an Assign with categories of unlimited capacity,
+  /// each group's name before its target in the layout, exact assignments.
+  static ExerciseDraftBuildResult _buildSortIntoGroups(
+    ExerciseDraftValues draft,
+  ) {
+    final groups = <(String, List<String>)>[];
+    final lines = _lines(draft.groups);
+    for (var i = 0; i < lines.length; i++) {
+      final line = lines[i];
+      final separator = line.indexOf(':');
+      final label = separator < 0 ? '' : line.substring(0, separator).trim();
+      final words = separator < 0
+          ? const <String>[]
+          : line
+                .substring(separator + 1)
+                .split(',')
+                .map((word) => word.trim())
+                .where((word) => word.isNotEmpty)
+                .toList();
+      if (label.isEmpty || words.isEmpty) {
+        return _failure(
+          ExerciseDraftField.groups,
+          ExerciseDraftErrorCode.groupLine,
+          line: i + 1,
+        );
+      }
+      groups.add((label, words));
+    }
+    // One group is enough when words that belong nowhere give the learner
+    // something to leave out (the Laboratory's leftover example).
+    if (_strict(draft) && groups.isEmpty) {
+      return _failure(
+        ExerciseDraftField.groups,
+        ExerciseDraftErrorCode.groupsRequired,
+      );
+    }
+    final leftover = _lines(draft.leftover);
+    final seen = <String>{};
+    for (var i = 0; i < groups.length; i++) {
+      for (final word in groups[i].$2) {
+        if (!seen.add(word)) {
+          return _failure(
+            ExerciseDraftField.groups,
+            ExerciseDraftErrorCode.groupWordRepeated,
+            line: i + 1,
+            detail: word,
+          );
+        }
+      }
+    }
+    for (final word in leftover) {
+      if (!seen.add(word)) {
+        return _failure(
+          ExerciseDraftField.groups,
+          ExerciseDraftErrorCode.groupWordRepeated,
+          detail: word,
+        );
+      }
+    }
+    return ExerciseDraftBuildResult.success(
+      _assignExercise(
+        draft,
+        mode: AssignTargetMode.categories,
+        options: {
+          OptionKey.targetCapacity: const EnumOptionValue(
+            TargetCapacity.unlimited,
+          ),
+        },
+        words: [for (final group in groups) ...group.$2, ...leftover],
+        targets: groups,
+      ),
+    );
+  }
+
+  /// Fill the slots (Build 256 Revision 7 follow-up): the question, one
+  /// slot per line as `what the learner sees = word`, the extra words that
+  /// fill no slot, and whether a word may fill several slots. Canonical:
+  /// an Assign with slots (one item each), each slot's text before its
+  /// target in the layout, item reuse allowed when asked, exact assignments.
+  static ExerciseDraftBuildResult _buildFillTheSlots(
+    ExerciseDraftValues draft,
+  ) {
+    final slots = <(String, String)>[];
+    final lines = _lines(draft.slots);
+    for (var i = 0; i < lines.length; i++) {
+      final line = lines[i];
+      final separator = line.indexOf('=');
+      final label = separator < 0 ? '' : line.substring(0, separator).trim();
+      final word = separator < 0 ? '' : line.substring(separator + 1).trim();
+      if (label.isEmpty || word.isEmpty) {
+        return _failure(
+          ExerciseDraftField.slots,
+          ExerciseDraftErrorCode.slotLine,
+          line: i + 1,
+        );
+      }
+      slots.add((label, word));
+    }
+    if (_strict(draft) && slots.isEmpty) {
+      return _failure(
+        ExerciseDraftField.slots,
+        ExerciseDraftErrorCode.slotsRequired,
+      );
+    }
+    // The words offered: each slot word once, then the extra words.
+    final words = <String>[];
+    for (var i = 0; i < slots.length; i++) {
+      final word = slots[i].$2;
+      if (!words.contains(word)) {
+        words.add(word);
+      } else if (!draft.slotReuse) {
+        return _failure(
+          ExerciseDraftField.slots,
+          ExerciseDraftErrorCode.slotWordRepeated,
+          line: i + 1,
+          detail: word,
+        );
+      }
+    }
+    for (final word in _lines(draft.extraWords)) {
+      if (words.contains(word)) {
+        return _failure(
+          ExerciseDraftField.slots,
+          ExerciseDraftErrorCode.slotWordRepeated,
+          detail: word,
+        );
+      }
+      words.add(word);
+    }
+    return ExerciseDraftBuildResult.success(
+      _assignExercise(
+        draft,
+        mode: AssignTargetMode.slots,
+        options: {
+          if (draft.slotReuse)
+            OptionKey.itemReuse: const EnumOptionValue(ItemReuse.allowed),
+        },
+        words: words,
+        targets: [
+          for (final slot in slots) (slot.$1, [slot.$2]),
+        ],
+      ),
+    );
+  }
+
+  /// Whether empty answers are refused: a Published save, or a Preview
+  /// that asks for a valid answer.
+  static bool _strict(ExerciseDraftValues draft) =>
+      draft.publicationState.isPublished || draft.requireValidAnswer;
+
+  /// An Assign exercise of [draft]: the [words] as items, one target per
+  /// destination of [targets] (its label, then the words it takes) with the
+  /// label before the target in the layout, and the exact assignments. An
+  /// item keeps the original's ID when the original has that word, a target
+  /// keeps the ID at its position; the rest are minted, so an unchanged
+  /// exercise rebuilds equal to itself.
+  static Exercise _assignExercise(
+    ExerciseDraftValues draft, {
+    required AssignTargetMode mode,
+    Map<OptionKey, OptionValue> options = const {},
+    required List<String> words,
+    required List<(String, List<String>)> targets,
+  }) {
+    final original = draft.original;
+    final isAssign = original.primitive == ExercisePrimitive.assign;
+    final originalItems = isAssign ? original.items : const <ExerciseItem>[];
+    final originalTargets = isAssign
+        ? original.targets
+        : const <ExerciseTarget>[];
+    final usedIds = <String>{};
+    String fresh(String prefix) {
+      var n = 0;
+      while (!usedIds.add('${prefix}_$n')) {
+        n++;
+      }
+      return '${prefix}_$n';
+    }
+
+    final itemIdOf = <String, String>{};
+    final items = <ExerciseItem>[];
+    for (final word in words) {
+      final kept = originalItems
+          .where((item) => !usedIds.contains(item.id) && item.value == word)
+          .firstOrNull;
+      final id = kept == null ? fresh('item') : kept.id;
+      usedIds.add(id);
+      itemIdOf[word] = id;
+      items.add(
+        ExerciseItem(
+          id: id,
+          content: [PromptElement(type: 'text', text: word)],
+        ),
+      );
+    }
+    final targetIds = <String>[];
+    for (var i = 0; i < targets.length; i++) {
+      final kept = i < originalTargets.length ? originalTargets[i].id : null;
+      final id = kept == null || !usedIds.add(kept) ? fresh('target') : kept;
+      targetIds.add(id);
+    }
+    return Exercise.canonical(
+      id: original.id,
+      publicationState: draft.publicationState,
+      updatedAt: original.updatedAt,
+      primitive: ExercisePrimitive.assign,
+      options: PrimitiveOptions({
+        OptionKey.targetMode: EnumOptionValue(mode),
+        ...options,
+      }),
+      promptElements: [
+        if (draft.question.trim().isNotEmpty)
+          PromptElement(
+            role: 'question',
+            type: 'text',
+            text: draft.question.trim(),
+          ),
+        if (draft.imageAsset.trim().isNotEmpty)
+          PromptElement(
+            role: 'picture',
+            type: 'image',
+            asset: draft.imageAsset.trim(),
+          ),
+      ],
+      items: items,
+      targets: [for (final id in targetIds) ExerciseTarget(id: id)],
+      layout: [
+        for (var i = 0; i < targets.length; i++) ...[
+          LayoutElement.text(targets[i].$1),
+          LayoutElement.target(targetIds[i]),
+        ],
+      ],
+      canonicalEvaluation: CanonicalEvaluation(
+        mode: EvaluationMode.exactAssignments,
+        assignments: [
+          for (var i = 0; i < targets.length; i++)
+            TargetAssignment(
+              targetId: targetIds[i],
+              itemIds: [for (final word in targets[i].$2) itemIdOf[word]!],
+            ),
+        ],
+      ),
+      feedback: original.feedback,
+      authoringMetadata: original.authoringMetadata,
+    );
   }
 
   static final RegExp _gapBracePattern = RegExp(r'\{([^{}]*)\}');

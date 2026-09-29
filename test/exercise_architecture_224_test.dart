@@ -11,14 +11,12 @@ void main() {
       ExercisePresetRegistry.presets.map((preset) => preset.id).toSet(),
       CourseAuditService.presetKinds.keys.toSet(),
     );
-    // Build 256: presets configure the five primitives QQL plays today; the
-    // other four (Assign, Speak, Ink, Submit) exist without a preset.
-    // Build 256 Revision 7: Assign plays (groups, slots, gaps) but has no
-    // preset yet; it is authored in the canonical editor.
+    // Build 256: presets configure the primitives QQL plays today (Assign
+    // since the Revision 7 follow-up: Sort into groups, Fill the slots);
+    // Speak, Ink and Submit exist without a preset.
     expect(
       ExercisePresetRegistry.presets.map((preset) => preset.primitive).toSet(),
-      ExercisePrimitive.executableToday.toSet()
-        ..remove(ExercisePrimitive.assign),
+      ExercisePrimitive.executableToday.toSet(),
     );
     expect(
       ExercisePresetRegistry.presets

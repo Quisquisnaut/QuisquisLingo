@@ -13,21 +13,35 @@ narrative of Revision 4 is gone (the evidence lives in
 `docs/256_VALIDATION.md`); what follows is state, decisions, requirements,
 open problems and the next step.
 
-## State (29 September 2026, 00:26)
+## State (29 September 2026, 01:52)
 
-- **Build 256 is complete: eight sessions, Revisions 0–7, every one
-  committed locally on `claude/256-exercise-architecture`, NOT pushed.
-  Revision 7 (`2.0.56+256007`, Laboratory, Assign, final verification) is
-  committed as `07384ef` (suite 3229 passed, 1 skipped, 0 failed, 00:25).
-  Waiting for the owner: push only when asked (`git push` of
-  `claude/256-exercise-architecture`), APK only on request. Parked by the
-  owner: Adventures (the F block and the video block, see Next step) and
-  spoken exercises. Open owner items: the Story Save rule (not blocked
-  without a title block or a line), an Assign preset for the catalogue
-  (Sort into groups and Label the picture stay greyed), the Speak, Ink and
-  Submit runtimes, regions, cells and drag placement for Assign. The
-  owner was given a checklist for the next Windows build (follow-up 3,
-  Revision 6, Revision 7 items).** An auto-resume run replies with one line of
+- **Revision 7 follow-up in progress (owner review of the Revision 7
+  build, 29 September 2026; same version 2.0.56+256007, one commit).**
+  Remarks and decisions: (1) the Story editor list showed IDs for the
+  title block and a text-only line: fixed (`_exerciseSummary`); (2) two
+  Assign presets, Sort into groups and Fill the slots, in Grammar and
+  sentences; no gap preset (the inline gap presets suffice); the
+  Laboratory's gap Round removed (126 examples, 27 Rounds), the Piedmontese
+  demo stays at 39 Lessons; (3) the Match picture to word form: the cards
+  follow the words as typed (the form rebuilt only on its first change),
+  one compact card per word titled "N. word"; (4) the Flashcard form names
+  the languages, drops the pronunciation text and offers Read aloud
+  (automatic / on request / none) speaking the word itself; a Flashcard's
+  read-aloud is `required: false`, never an audio exercise (bundled cards
+  regenerated); (5) the "Before you start" card is Round content, no
+  interactive-presentation primitive (answered, no code); (6) the three
+  spelling presets have one field, Blocks of the word, in order. Scripts
+  `s85_a_services.py` … `s85_f_fix.py` applied; generators, validator and
+  v11 fixtures regenerated; analyzer clean; focused batch (34 files)
+  525 passed, 7 failed, all fixed (a "two groups" rule the recipe must not
+  have: the Laboratory's leftover example has one group; three pins);
+  Laboratory recorded for the baseline rebuild. Remaining: rebuild the
+  baseline (`s34_baseline.py <record dir>`), rerun the fixed files and the
+  Laboratory, analyzer, format, one complete suite (`run_awake.ps1`),
+  documents patched with the numbers (`SUITE_RESULT` etc. in
+  `docs/256_VALIDATION.md`), commit (message in `commit_256007_followup.txt`),
+  handoff commit, sound. Push only when asked. Parked by the owner:
+  Adventures and spoken exercises (see Next step).** An auto-resume run replies with one line of
   status and does nothing else. Complete suite on the final tree: 3117
   passed, 1 skipped, 0 failed (run 2; run 1 had three count pins fixed in
   tests). No APK built (owner: only on request); the end-of-revision sound
@@ -574,6 +588,20 @@ Branch `claude/256-exercise-architecture`, created from `main` at `611a1a1`
   type and falls back to a Select interaction otherwise).
 - Beta expiry is 30 days from the revision's release day; Revisions 0–4 are
   all 27 September → `2026-10-27`.
+- Revision 7 follow-up (owner, 29 September): Assign gaps get no preset
+  (the inline gap presets, Pick the words for the gaps and Drag the blocks
+  into the gaps, are the simpler way); the Laboratory's Assign Lesson uses
+  Sort into groups and Fill the slots and has no gap Round; the Piedmontese
+  demo has no Lesson for the two Assign presets (as for the Story cover);
+  `defaultPresetFor(assign)` stays null (an unrepresented Assign opens in
+  the canonical editor); Sort into groups accepts one group when words that
+  belong nowhere exist; a Flashcard's read-aloud is the word itself,
+  optional, never an audio exercise (both flashcards); the spelling
+  presets offer exactly the blocks of the word (no distractors, one field;
+  a stored spelling exercise with extra blocks opens in the canonical
+  editor); the Round's "Before you start" card stays Round content (no
+  interactive-presentation primitive; choices inside a Round are a
+  Presentation step plus a flow's `onChoice`, parked with Adventures).
 
 ## Requirements and process (every session)
 
@@ -642,12 +670,12 @@ Branch `claude/256-exercise-architecture`, created from `main` at `611a1a1`
 
 ## Next step
 
-1. Nothing is in progress. Wait for the owner's review of Revisions 5–7
-   (`4172d98` + follow-ups `7903e9f`, `41a5555`, `32fedfb`; `355ad94`;
-   `07384ef`); push only when asked. The next work is the owner's choice:
-   corrections from the Windows build review as same-version follow-up
-   commits, an Assign preset, the Adventure release (parked), spoken
-   exercises (parked).
+1. Wait for the owner's next review (the Revision 7 follow-up answered the
+   first: two Assign presets, the Match picture to word form, the Flashcard
+   read-aloud, the spelling presets' one field, the Story editor list);
+   push only when asked. The next work is the owner's choice: further
+   corrections as same-version follow-up commits, the Adventure release
+   (parked), spoken exercises (parked).
    **Parked: spoken exercises** (owner, 28 September, 22:00) (an exercise said by a
    speaker: "Said by" in the Wizard and the form, drawn in the speaker's
    bubble with the avatar, instruction "What comes next?" / "What do you
@@ -703,6 +731,19 @@ Branch `claude/256-exercise-architecture`, created from `main` at `611a1a1`
   `piedmontais_course_254_test` (presets, Round IDs, examples in the title),
   `runtime_canonical_256_test` (`_expectedKinds` per preset),
   `tools/validate_courses.py` (Lesson counts).
+- Pins that move when a preset is added (Revision 7 follow-up):
+  `preset_catalogue_256_test` (greyed count), `story_presets_256_test` and
+  `piedmontais_course_254_test` (preset count; Lessons `presets.length -
+  3`, the seen set minus `story_cover` and the two Assign presets),
+  `exercise_field_help_226_02_test` / `exercise_field_help_ui_226_02_test`
+  (field inventories and labels), `localization_catalog_test` (every field
+  key needs `help_structure.dart` and EN/IT/ES bodies),
+  `exercise_help_224_test` / `qql_231_search_service_test` (`helpByPreset`
+  and Search definitions per preset), `exercise_architecture_224_test` /
+  `canonical_primitives_256_test` (presets' primitives = executable ones),
+  `preset_recipes_256_test` (default recipe per primitive; every Laboratory
+  example represented), `exercise_laboratory_254_test` (example count, the
+  `_author` fields), the generators' `--check` messages.
 - The complete suite launched with the Bash tool in the background (a
   `run_awake.ps1` call, ~26 minutes) survives the tool's ten-minute
   timeout; poll the UTF-16 log with `s44_suite_summary.py`.

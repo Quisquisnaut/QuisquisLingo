@@ -360,6 +360,30 @@ void main() {
     );
   });
 
+  testWidgets('the list names the title block and every line by its text', (
+    tester,
+  ) async {
+    // Owner report, 29 September 2026: covers and text-only lines showed
+    // their IDs in the Story editor's list.
+    _bigWindow(tester);
+    await _pumpEditor(tester, _course(_round(_full())));
+    expect(find.text('Una mattina'), findsOneWidget);
+    expect(find.text('Anna walks into the café.'), findsOneWidget);
+    expect(find.text('Un caffè, per favore.'), findsOneWidget);
+    for (final id in ['c1', 'n1', 'a1']) {
+      expect(find.text(id), findsNothing, reason: id);
+    }
+    // A cover without a title line is still named.
+    await _pumpEditor(
+      tester,
+      _course(
+        _round([_cover('c2', ''), _line('n2', 'Anna leaves.')], story: true),
+      ),
+    );
+    expect(find.text('Title block'), findsOneWidget);
+    expect(find.text('c2'), findsNothing);
+  });
+
   testWidgets('Duplicate is greyed out for the title block only', (
     tester,
   ) async {

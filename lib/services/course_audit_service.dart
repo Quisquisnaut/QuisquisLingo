@@ -1302,6 +1302,10 @@ class CourseAuditService {
     'picture_flashcard' => ' ${_presetNameOf(presetId)} needs its picture.',
     'picture_word_match' =>
       ' Match picture to word needs a picture on every left item.',
+    'sort_into_groups' =>
+      ' Sort into groups needs groups (categories): one target per group, named by the text before it, holding its words.',
+    'fill_the_slots' =>
+      ' Fill the slots needs slots: one target per slot, named by the text before it, holding one word.',
     'script_recognition' =>
       ' Recognize characters needs character images in the prompt or the options.',
     'reading_answer_target' || 'reading_answer_source' =>

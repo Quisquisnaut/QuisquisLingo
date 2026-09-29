@@ -413,7 +413,7 @@ const Map<String, String> helpIt = {
       "Exercise = primitive + options + prompt[] + items[] + targets[] + layout[] + evaluation + feedback, con hint facoltativo. Gli elementi del prompt sono text, audio o image con un ruolo (primary, question, passage, situation, clue, context, dialogue_turn, character, illustration) e gli attributi language (source o target), playback (automatic o manual) e required. Gli item sono ciò che lo studente sceglie, ordina, colloca o abbina; un item di Match ha un lato. I target sono gli spazi, le caselle o le regioni che lo studente riempie, e il layout li colloca nel testo. Item e target hanno ID stabili, mai posizioni.",
   "technical.exercisePrimitives.primitives.title": "Le nove primitive",
   "technical.exercisePrimitives.primitives.body":
-      "select: lo studente sceglie uno o più item. input: lo studente scrive testo o un numero in un campo o negli spazi inline. arrange: lo studente ordina blocchi o li trascina negli spazi. match: lo studente abbina item di sinistra e di destra. assign: lo studente smista item in gruppi, riempie caselle o gli spazi di un testo toccando un item e poi la sua destinazione (regioni di un’immagine e celle di una griglia in una versione futura; si crea nell’editor canonico). speak: lo studente parla (solo definizioni). ink: lo studente scrive a mano (solo definizioni). submit: lo studente consegna una risposta libera per autoverifica o revisione (solo definizioni). presentation: una scheda o una nota senza risposta, come una Flashcard. La primitiva è bloccata una volta che l’esercizio esiste.",
+      "select: lo studente sceglie uno o più item. input: lo studente scrive testo o un numero in un campo o negli spazi inline. arrange: lo studente ordina blocchi o li trascina negli spazi. match: lo studente abbina item di sinistra e di destra. assign: lo studente smista item in gruppi, riempie caselle o gli spazi di un testo toccando un item e poi la sua destinazione (i preset Sort into groups e Fill the slots; gli spazi si creano nell’editor canonico; regioni di un’immagine e celle di una griglia in una versione futura). speak: lo studente parla (solo definizioni). ink: lo studente scrive a mano (solo definizioni). submit: lo studente consegna una risposta libera per autoverifica o revisione (solo definizioni). presentation: una scheda o una nota senza risposta, come una Flashcard. La primitiva è bloccata una volta che l’esercizio esiste.",
   "technical.exercisePrimitives.primitiveOptions.title":
       "Opzioni delle primitive",
   "technical.exercisePrimitives.primitiveOptions.body":
@@ -653,7 +653,7 @@ const Map<String, String> helpIt = {
   "exerciseHelp.preset.build_translation_to_source.body":
       "Lo studente vede un testo nella lingua studiata e costruisce la traduzione nella lingua di partenza usando blocchi di parole. Fornisci il testo da tradurre nella lingua studiata, i blocchi letterali disponibili nella lingua di partenza e una o più traduzioni corrette complete e letterali. Puoi aggiungere, rimuovere e riordinare le risposte; ognuna deve poter essere costruita con occorrenze distinte dei blocchi. Parole ripetute richiedono blocchi ripetuti e possono restare inutilizzati al massimo due blocchi. La sintassi di Type the translation, la tolleranza ai refusi e il confronto per somiglianza non si applicano.",
   "exerciseHelp.preset.picture_flashcard.body":
-      "Lo studente vede un’immagine con la sua parola e il significato, un esempio d’uso facoltativo con la traduzione, e può ascoltare la parola e l’esempio quando l’audio è disponibile. Fornisci l’immagine (Image), la parola, il significato e, se vuoi, le righe d’uso e il testo della pronuncia. L’audio è facoltativo: la scheda non è mai un esercizio audio e viene mostrata anche con Audio Exercises spento. Got it completa la scheda; Review again la ripropone una volta.",
+      "Lo studente vede un’immagine con la sua parola nella lingua studiata e la traduzione nella lingua di partenza, un esempio d’uso facoltativo con la traduzione, e ascolta la parola se la lettura ad alta voce è attiva. Fornisci l’immagine (Image), la parola e la traduzione, se vuoi le righe d’uso, e scegli Automatically, On request o No read-aloud. La scheda non è mai un esercizio audio e viene mostrata anche con Audio Exercises spento. Got it completa la scheda; Review again la ripropone una volta.",
   "exerciseHelp.preset.true_false.body":
       "Lo studente legge un’affermazione nella lingua studiata, se vuoi la ascolta, e sceglie tra la parola per vero e quella per falso nella lingua di partenza. Fornisci l’affermazione, un’affermazione parlata facoltativa, le due risposte (precompilate nella lingua di partenza quando QQL la conosce) e il numero della risposta corretta: 1 se l’affermazione è vera, 2 se è falsa.",
   "exerciseHelp.preset.gap_choice_inline.body":
@@ -666,16 +666,20 @@ const Map<String, String> helpIt = {
       "Lo studente vede una frase con spazi e vi trascina blocchi di parole; ogni blocco si usa una volta e deve finire nello spazio giusto. Scrivi la frase con ogni risposta tra parentesi graffe: Io {vorrei} un caffè. Aggiungi 0, 1 o al massimo 2 blocchi distrattori e un audio facoltativo. Questo preset sostituisce l’interruttore Inline gaps di Word order e Build the translation.",
   "exerciseHelp.preset.sentence_order.body":
       "Lo studente vede le righe di una breve storia o di un dialogo come blocchi e le mette in ordine. Inserisci le righe, una per riga, e l’ordine corretto; puoi aggiungere 0, 1 o al massimo 2 righe estranee. L’istruzione dice cosa ordinare: le frasi di una storia, i turni di un dialogo.",
+  "exerciseHelp.preset.sort_into_groups.body":
+      "Lo studente tocca una parola, poi il gruppo a cui appartiene; una parola già messa si può riprendere; Check valuta tutti i gruppi insieme. Inserisci la domanda, un gruppo per riga come “Nome del gruppo: parola, parola, …” (di solito due o più, ognuno con almeno una parola) e, se vuoi, le parole che non appartengono a nessun gruppo: vengono offerte anche loro e devono restare nel mazzo. Una parola può stare in un solo gruppo. Sort into groups non è mai un esercizio audio.",
+  "exerciseHelp.preset.fill_the_slots.body":
+      "Lo studente tocca una parola, poi la casella che riempie; una seconda parola sostituisce la prima; Check valuta tutte le caselle insieme. Inserisci la domanda e una casella per riga come “ciò che lo studente vede = la parola che la riempie”, per esempio “… gatto = il”. Le parole extra che non riempiono nessuna casella sono facoltative. Attiva “A word may fill more than one slot” quando la stessa parola è la risposta di più caselle: resta nel mazzo dopo ogni uso.",
   "exerciseHelp.preset.listening_image_choice.body":
       "Lo studente ascolta il testo parlato e sceglie l’immagine che nomina. Fornisci il testo parlato, una domanda facoltativa, le etichette delle risposte (una per riga) e un’immagine per risposta, scelta con i selettori sotto le risposte; indica la risposta corretta. Le etichette compaiono sotto le immagini.",
   "exerciseHelp.preset.spell_heard.body":
-      "Lo studente ascolta una parola e la compone ordinando tessere di lettere o sillabe. Fornisci la parola parlata, le tessere (una per riga; dividi la parola in lettere o sillabe come preferisci) e l’ordine corretto. Non serve un’immagine; le tessere si uniscono senza spazi.",
+      "Lo studente ascolta una parola e la compone ordinando tessere di lettere o sillabe. Fornisci la parola parlata e le sue tessere in ordine, una per riga (dividi la parola in lettere o sillabe come preferisci). Non serve un’immagine; le tessere si uniscono senza spazi.",
   "exerciseHelp.preset.picture_choice.body":
       "Lo studente vede un’immagine e sceglie tra risposte di testo la parola o la frase che la descrive. Fornisci l’immagine (Image), una domanda come Che cos’è?, almeno due risposte e quella corretta.",
   "exerciseHelp.preset.picture_name.body":
       "Lo studente vede un’immagine e scrive cosa mostra. Fornisci l’immagine (Image), una domanda o un’istruzione, una o più risposte accettate con la stessa sintassi di Type the translation ({} facoltativo, alternative [a|b], gruppi collegati, ambiti di riordino) e un suggerimento facoltativo. Le risposte usano la normale normalizzazione Input e la tolleranza ai refusi.",
   "exerciseHelp.preset.spell_word.body":
-      "Lo studente legge un indizio nella lingua di partenza, la parola stessa o una definizione, e compone la parola nella lingua studiata ordinando tessere di lettere o sillabe. Fornisci l’indizio, le tessere e l’ordine corretto; l’immagine è facoltativa.",
+      "Lo studente legge un indizio nella lingua di partenza, la parola stessa o una definizione, e compone la parola nella lingua studiata ordinando tessere di lettere o sillabe. Fornisci l’indizio e le tessere della parola in ordine, una per riga; l’immagine è facoltativa.",
   "exerciseHelp.preset.picture_word_match.body":
       "Lo studente abbina ogni immagine a sinistra a una parola a destra. Fornisci le parole, una per riga, e un’immagine per parola con i selettori sotto; almeno due coppie. Contano le relazioni tra le coppie, non le posizioni.",
   "exerciseHelp.preset.dialogue_line.body":
@@ -705,10 +709,9 @@ const Map<String, String> helpIt = {
   "exerciseHelp.preset.word_order.body":
       "Lo studente rimette in ordine i blocchi nella lingua studiata. Fornisci i blocchi testuali disponibili e l’ordine corretto. È supportato il testo. Usa non più di due distrattori distinti; questo esercizio verifica l’ordine, non la traduzione.",
   "exerciseHelp.preset.image_word.body":
-      "Lo studente vede un’immagine e mette in ordine lettere o sillabe per formare la parola. Fornisci un’immagine, un’istruzione, i blocchi e l’ordine corretto. Immagine e testo sono supportati. Includi solo i blocchi usati nella risposta; non sono ammessi distrattori.",
+      "Lo studente vede un’immagine e mette in ordine lettere o sillabe per formare la parola. Fornisci un’immagine, un’istruzione e i blocchi della parola in ordine, uno per riga; lo studente riceve esattamente quei blocchi, mescolati. Non sono ammessi distrattori.",
   "exerciseHelp.preset.flashcard.body":
-      "Lo studente vede un termine, il significato, un eventuale esempio d’uso e un eventuale audio della pronuncia, poi sceglie Understood o Review later. Fornisci materiale da studiare, non una risposta valutata. Testo e audio sono supportati, con immagini facoltative. Il Presentation Content non dà gli XP di base di una risposta corretta.",
-  // Publisher signing technical guide.
+      "Lo studente vede una parola o espressione nella lingua studiata, la sua traduzione nella lingua di partenza e un eventuale esempio d’uso con traduzione, ascolta la parola se la lettura ad alta voce è attiva, poi sceglie Got it o Review again. Fornisci materiale da studiare, non una risposta valutata; scegli Automatically, On request o No read-aloud. La lettura ad alta voce non rende mai la scheda un esercizio audio. Il Presentation Content non dà gli XP di base di una risposta corretta.",
   "publisherSigningHelp.title": "Firma e approvazione degli editori",
   "publisherSigningHelp.status.title":
       "Stato: verifica delle firme implementata",
@@ -810,6 +813,22 @@ const Map<String, String> helpIt = {
       "Una riga di titolo facoltativa sulla copertina.\n\nCosa inserire\nUna riga breve; il titolo della Storia (opzioni del Round) appare comunque sopra la copertina.\n\nControlli\nFacoltativa.\n\nEsempio\nAl bar",
   "exerciseHelp.field.story_cover.image.body":
       "L’immagine di copertina.\n\nCosa inserire\nUn’immagine del Corso, della Shared Image Library o un’immagine integrata.\n\nControlli\nConsigliata; una copertina senza immagine mostra solo il titolo.\n\nEsempio\nUn tavolino di caffè",
+  "exerciseHelp.field.sort_into_groups.question.body":
+      "Che cosa deve fare lo studente.\n\nCosa inserire\nUna riga, nella lingua che preferisci; nomina i gruppi se aiuta.\n\nControlli\nObbligatoria.\n\nEsempio\nSort the words: animals or food?",
+  "exerciseHelp.field.sort_into_groups.groups.body":
+      "I gruppi e le loro parole.\n\nCosa inserire\nUn gruppo per riga: il nome del gruppo, i due punti, poi le sue parole separate da virgole. Almeno un gruppo, di solito due o più, ognuno con almeno una parola.\n\nControlli\nUna parola può stare in un solo gruppo; una riga senza due punti, senza nome o senza parole viene rifiutata prima di Preview o Save.\n\nEsempio\nAnimals: gatto, cane\nFood: mela, pane",
+  "exerciseHelp.field.sort_into_groups.leftover.body":
+      "Le parole che non appartengono a nessun gruppo.\n\nCosa inserire\nUna parola per riga; lascia vuoto quando ogni parola ha un gruppo.\n\nControlli\nLo studente deve lasciarle nel mazzo; una parola elencata qui non può stare anche in un gruppo.\n\nEsempio\ntavolo",
+  "exerciseHelp.field.fill_the_slots.question.body":
+      "Che cosa deve fare lo studente.\n\nCosa inserire\nUna riga, nella lingua che preferisci.\n\nControlli\nObbligatoria.\n\nEsempio\nWhich article goes with each noun?",
+  "exerciseHelp.field.fill_the_slots.slots.body":
+      "Le caselle e la parola che riempie ciascuna.\n\nCosa inserire\nUna casella per riga: ciò che lo studente vede, un segno di uguale, poi la parola. Almeno una casella. Usa … o ___ per la parte mancante.\n\nControlli\nOgni riga ha bisogno di entrambe le parti. La stessa parola in due caselle richiede “A word may fill more than one slot”.\n\nEsempio\n… gatto = il\n… casa = la",
+  "exerciseHelp.field.fill_the_slots.extraWords.body":
+      "Parole offerte che non riempiono nessuna casella.\n\nCosa inserire\nUna parola per riga; facoltativo.\n\nControlli\nUna parola extra non può ripetere la parola di una casella.\n\nEsempio\nlo",
+  "exerciseHelp.field.fill_the_slots.slotReuse.body":
+      "Se una parola può riempire più caselle.\n\nCosa inserire\nOff: ogni parola è offerta una volta e riempie una casella. On: la parola resta nel mazzo dopo ogni uso, così la stessa parola può essere la risposta di più caselle.\n\nControlli\nNessuno.\n\nEsempio\nOn, per “… cane = il” e “… libro = il”",
+  "exerciseHelp.field.flashcard.readAloud.body":
+      "Se e quando la parola viene letta ad alta voce.\n\nCosa inserire\nAutomatically (quando la scheda appare), On request (lo studente tocca l’altoparlante) o No read-aloud. Il testo letto è la parola o espressione stessa, con la modalità audio del Course.\n\nControlli\nNessuno. La lettura ad alta voce non rende mai la scheda un esercizio audio.\n\nEsempio\nOn request",
   "exerciseHelp.field.note_card.prompt.body":
       "Il titolo della scheda.\n\nCosa inserire\nUn titolo breve, nella lingua che preferisci.\n\nControlli\nObbligatorio.\n\nEsempio\nTu o Lei?",
   "exerciseHelp.field.note_card.question.body":
@@ -934,16 +953,12 @@ const Map<String, String> helpIt = {
       "Fornisce i blocchi che lo studente mette nell’ordine giusto per formare una frase.\n\nCosa inserire\nScrivi un blocco letterale nella lingua studiata per riga. Le righe vuote vengono ignorate. Ripeti una riga se nella risposta serve un’altra occorrenza di quella parola o blocco. Quando Inline gaps è attivo, questo campo diventa Extra distractor blocks: le risposte agli spazi derivano dalle graffe {answer} in Sentence with gaps e qui aggiungi solo distrattori facoltativi non usati.\n\nControlli\nIncludi ogni occorrenza dei blocchi usati in Correct sentence. Puoi aggiungere zero, uno o al massimo due blocchi distrattori inutilizzati. Mantieni scrittura e punteggiatura interna coerenti con l’ordine corretto.\n\nEsempio\nIo\nbevo\nun\ncaffè\ntè",
   "exerciseHelp.field.word_order.order.body":
       "Definisce l’ordine richiesto dei blocchi di parole disponibili.\n\nCosa inserire\nScrivi un blocco per riga nell’ordine corretto, non tutta la frase su una sola riga. I blocchi vengono uniti con spazi. Le righe vuote vengono ignorate. Il campo non si usa quando Inline gaps è attivo: le risposte agli spazi si scrivono direttamente tra graffe in Sentence with gaps.\n\nControlli\nOgni riga deve corrispondere a un’occorrenza di un blocco disponibile. Parole ripetute richiedono occorrenze disponibili separate. È un solo ordine letterale; la sintassi compatta delle risposte non viene espansa.\n\nEsempio\nIo\nbevo\nun\ncaffè",
-  "exerciseHelp.field.image_word.tokens.body":
-      "Fornisce le parti della parola mostrata nell’immagine.\n\nCosa inserire\nScrivi una lettera o sillaba letterale per riga. Le righe vuote vengono ignorate. Ripeti una riga se quella parte compare più volte nella parola.\n\nControlli\nIncludi solo le parti necessarie alla risposta, senza distrattori. Indica il loro ordine in Correct target-language word e scegli un’Exercise image.\n\nEsempio\nca\nsa",
   "exerciseHelp.field.image_word.order.body":
-      "Definisce l’ordine dei blocchi di lettere o sillabe.\n\nCosa inserire\nScrivi una lettera o sillaba per riga nell’ordine della risposta. Le parti vengono unite senza spazi per formare una parola; le righe vuote vengono ignorate.\n\nControlli\nUsa una volta ogni occorrenza disponibile richiesta, non lasciare distrattori e fornisci l’Exercise image corrispondente.\n\nEsempio\nca\nsa\nQueste parti formano casa.",
+      "I blocchi che compongono la parola, in ordine.\n\nCosa inserire\nUna lettera o sillaba per riga, nell’ordine della risposta; lo studente riceve esattamente questi blocchi, mescolati. Ripeti una riga per una lettera che compare due volte. I blocchi si uniscono senza spazi.\n\nControlli\nAlmeno due blocchi e nessun distrattore. Spell the word in the picture ha bisogno anche di un’Exercise image.\n\nEsempio\nca\nsa\nQuesti blocchi formano casa.",
   "exerciseHelp.field.flashcard.prompt.body":
-      "Mostra il materiale nella lingua studiata su una Flashcard.\n\nCosa inserire\nScrivi una parola o espressione. Metti significato, testo della pronuncia ed esempio d’uso nei campi separati.\n\nControlli\nServe una parola o frase nella lingua studiata. La Flashcard è materiale di presentazione e non ha una normale risposta valutata.\n\nEsempio\nbuongiorno",
+      "La parola o espressione che la scheda insegna, nella lingua studiata.\n\nCosa inserire\nUna parola o espressione nella lingua che si impara. La traduzione va nel campo sotto; Read aloud, se attivo, legge questo testo.\n\nControlli\nObbligatoria. La Flashcard è materiale di presentazione e non ha una normale risposta valutata.\n\nEsempio\nbuongiorno",
   "exerciseHelp.field.flashcard.question.body":
-      "Spiega la parola o espressione della Flashcard.\n\nCosa inserire\nScrivi un significato o una traduzione in testo semplice. Più righe restano una sola spiegazione.\n\nControlli\nUn significato vuoto produce un Warning nell’Audit. Controlla che corrisponda alla parola mostrata.\n\nEsempio\ngood morning",
-  "exerciseHelp.field.flashcard.tts.body":
-      "Fornisce la pronuncia parlata della Flashcard.\n\nCosa inserire\nScrivi la parola o espressione da pronunciare come un unico testo. Non inserire il percorso di una registrazione; gestisci le registrazioni in Course Audio Library.\n\nControlli\nSe manca il testo della pronuncia, l’Audit mostra un Warning. Controlla che la modalità audio selezionata per il Course possa riprodurlo.\n\nEsempio\nbuongiorno",
+      "La traduzione o il significato, nella lingua di partenza.\n\nCosa inserire\nUna traduzione o spiegazione in testo semplice nella lingua degli studenti. Più righe restano una sola spiegazione.\n\nControlli\nUna traduzione vuota produce un Warning nell’Audit. Controlla che corrisponda alla parola sopra.\n\nEsempio\ngood morning",
   "exerciseHelp.field.flashcard.answers.body":
       "Mostra la parola della Flashcard nel suo contesto.\n\nCosa inserire\nPrima riga non vuota: frase d’uso. Seconda riga non vuota facoltativa: sua traduzione. La pagina dello studente aggiunge automaticamente “Usage:”. Le righe vuote vengono ignorate.\n\nControlli\nSe manca la frase d’uso, l’Audit mostra un Warning. Queste righe sono Presentation Content, non risposte tra cui scegliere.\n\nEsempio\nBuongiorno, Maria!\nGood morning, Maria!",
   "exerciseHelp.category.vocabulary": "Vocabulary",
@@ -990,6 +1005,10 @@ const Map<String, String> helpIt = {
       "Lo studente riempie gli spazi di una frase fissa con blocchi di parole, ognuno usato una volta.",
   "exerciseHelp.preset.sentence_order.description":
       "Lo studente mette in ordine le righe di una storia o di un dialogo.",
+  "exerciseHelp.preset.sort_into_groups.description":
+      "Lo studente smista le parole in gruppi, come maschile e femminile; una parola può non appartenere a nessun gruppo.",
+  "exerciseHelp.preset.fill_the_slots.description":
+      "Lo studente mette la parola giusta in ogni casella, per esempio l’articolo davanti a ogni nome.",
   "exerciseHelp.preset.listening_image_choice.description":
       "Lo studente ascolta una parola o una frase e sceglie l’immagine corrispondente.",
   "exerciseHelp.preset.spell_heard.description":

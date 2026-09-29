@@ -13,7 +13,13 @@ import 'preset_variants.dart';
 abstract final class PresetRecipes {
   /// The presets whose recipe has no v11 shape (Build 256 Revision 5): a
   /// blank exercise for them is what the recipe builds from empty fields.
-  static const canonicalOnly = <String>{'dialogue_line', 'story_cover'};
+  static const canonicalOnly = <String>{
+    'dialogue_line',
+    'story_cover',
+    // The Assign presets (Build 256 Revision 7 follow-up).
+    'sort_into_groups',
+    'fill_the_slots',
+  };
 
   /// The learner kind each preset's recipe produces.
   static const kinds = <String, Set<LearnerExerciseKind>>{
@@ -95,6 +101,8 @@ abstract final class PresetRecipes {
     'note_card': {LearnerExerciseKind.presentation},
     'dialogue_line': {LearnerExerciseKind.dialogueLine},
     'story_cover': {LearnerExerciseKind.storyCover},
+    'sort_into_groups': {LearnerExerciseKind.assignGroups},
+    'fill_the_slots': {LearnerExerciseKind.assignSlots},
   };
 
   /// The plainest recipe of [primitive], for an exercise that carries no
@@ -286,6 +294,49 @@ abstract final class PresetRecipes {
         .where((element) => element.isImage && element.asset == imageAsset)
         .firstOrNull
         ?.sharedImageSource;
+    // Assign (Build 256 Revision 7 follow-up): the groups or the slots of
+    // the form, each target named by the layout text before it and holding
+    // its words in the answer's order; the words in no target stay in the
+    // bank (Words that belong nowhere, Extra words).
+    final isAssign = f.primitive == ExercisePrimitive.assign;
+    final byTarget = f.assignmentsByTarget;
+    final assignedIds = {for (final ids in byTarget.values) ...ids};
+    String wordOf(String id) => valueById[id] ?? id;
+    String targetWords(String targetId) =>
+        (byTarget[targetId] ?? const <String>{}).map(wordOf).join(', ');
+    final groups = !isAssign
+        ? ''
+        : [
+            for (final target in exercise.targets)
+              '${f.targetLabel(target.id)}: ${targetWords(target.id)}',
+          ].join('\n');
+    final slots = !isAssign
+        ? ''
+        : [
+            for (final target in exercise.targets)
+              '${f.targetLabel(target.id)} = ${targetWords(target.id)}',
+          ].join('\n');
+    final unassigned = !isAssign
+        ? ''
+        : [
+            for (final item in items)
+              if (!assignedIds.contains(item.id)) wordOf(item.id),
+          ].join('\n');
+    // A Flashcard's read-aloud (Build 256 Revision 7 follow-up): none when
+    // the card has no audio, else as its playback says; a blank card (no
+    // term yet) starts on request.
+    final cardAudio = presentation
+        ? f.audioElements.where((e) => e.role == 'audio').firstOrNull
+        : null;
+    final cardReadAloud = !presentation
+        ? 'manual'
+        : cardAudio != null
+        ? (cardAudio.effectivePlayback == AudioPlayback.automatic
+              ? 'automatic'
+              : 'manual')
+        : f.textOf('term').isEmpty
+        ? 'manual'
+        : 'none';
     final state = publicationState ?? exercise.publicationState;
     final leftLanguage = f.leftItems.isEmpty
         ? null
@@ -312,6 +363,12 @@ abstract final class PresetRecipes {
           ? 'afterAudio'
           : 'immediate',
       lineLanguage: f.lineLanguage,
+      groups: groups,
+      leftover: unassigned,
+      slots: slots,
+      extraWords: unassigned,
+      slotReuse: isAssign && f.assignItemReuse,
+      cardReadAloud: cardReadAloud,
       publicationState: state,
       requireValidAnswer: requireValidAnswer,
       useInlineGaps: inline,
@@ -403,17 +460,24 @@ abstract final class PresetRecipes {
   }
 
   /// [exercise] in the form recognition compares: items renamed `item_0`,
-  /// `item_1`, … in order with every reference rewritten; prompt elements
-  /// in a stable order by role and type (a form lays its fields out in its
-  /// own order; the order of same-role elements, such as dialogue turns,
-  /// still counts); image captions blank (a form keeps them but has no
-  /// field for them).
+  /// `item_1`, … and targets `target_0`, `target_1`, … in order with every
+  /// reference rewritten (a form keeps the IDs it edits and mints the rest;
+  /// Build 256 Revision 7 follow-up: targets too, for the Assign recipes);
+  /// prompt elements in a stable order by role and type (a form lays its
+  /// fields out in its own order; the order of same-role elements, such as
+  /// dialogue turns, still counts); image captions blank (a form keeps them
+  /// but has no field for them).
   static Exercise _comparable(Exercise exercise) {
     final rename = {
       for (var i = 0; i < exercise.items.length; i++)
         exercise.items[i].id: 'item_$i',
     };
     String map(String id) => rename[id] ?? id;
+    final renameTarget = {
+      for (var i = 0; i < exercise.targets.length; i++)
+        exercise.targets[i].id: 'target_$i',
+    };
+    String mapTarget(String id) => renameTarget[id] ?? id;
     List<PromptElement> neutral(List<PromptElement> elements) {
       final indexed = elements.indexed.toList()
         ..sort((a, b) {
@@ -435,19 +499,40 @@ abstract final class PresetRecipes {
         for (final item in exercise.items)
           item.copyWith(id: map(item.id), content: neutral(item.content)),
       ],
+      targets: [
+        for (final target in exercise.targets)
+          ExerciseTarget(
+            id: mapTarget(target.id),
+            reveal: target.reveal,
+            region: target.region,
+          ),
+      ],
+      layout: [
+        for (final element in exercise.layout)
+          element.isTarget
+              ? LayoutElement.target(mapTarget(element.targetId))
+              : element,
+      ],
       canonicalEvaluation: CanonicalEvaluation(
         mode: e.mode,
         correctItemIds: e.correctItemIds.map(map).toList(),
         assignments: [
           for (final assignment in e.assignments)
             TargetAssignment(
-              targetId: assignment.targetId,
+              targetId: mapTarget(assignment.targetId),
               itemIds: assignment.itemIds.map(map).toList(),
             ),
         ],
         answers: e.answers,
         literalAnswers: e.literalAnswers,
-        targetAnswers: e.targetAnswers,
+        targetAnswers: [
+          for (final answers in e.targetAnswers)
+            TargetAnswers(
+              targetId: mapTarget(answers.targetId),
+              answers: answers.answers,
+              literalAnswers: answers.literalAnswers,
+            ),
+        ],
         numeric: e.numeric,
         pattern: e.pattern,
         correctOrders: [
@@ -464,7 +549,7 @@ abstract final class PresetRecipes {
           for (final target in e.acceptedTargets)
             AcceptedTarget(
               itemId: map(target.itemId),
-              targetIds: target.targetIds,
+              targetIds: target.targetIds.map(mapTarget).toList(),
             ),
         ],
       ),

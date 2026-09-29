@@ -173,6 +173,14 @@ abstract final class ExerciseSearchRegistry {
       fields: [_prompt, _items, _orders],
     ),
     ExerciseTypeSearchDefinition(
+      presetId: 'sort_into_groups',
+      fields: [_prompt, _items],
+    ),
+    ExerciseTypeSearchDefinition(
+      presetId: 'fill_the_slots',
+      fields: [_prompt, _items],
+    ),
+    ExerciseTypeSearchDefinition(
       presetId: 'listening_image_choice',
       fields: [_audio, _prompt, _items],
     ),

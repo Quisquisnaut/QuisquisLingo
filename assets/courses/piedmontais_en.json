@@ -2133,7 +2133,8 @@
                   {
                     "role": "audio",
                     "type": "audio",
-                    "text": "lìber"
+                    "text": "lìber",
+                    "required": false
                   }
                 ],
                 "evaluation": {
@@ -2179,7 +2180,8 @@
                   {
                     "role": "audio",
                     "type": "audio",
-                    "text": "grassie"
+                    "text": "grassie",
+                    "required": false
                   }
                 ],
                 "evaluation": {
@@ -2225,7 +2227,8 @@
                   {
                     "role": "audio",
                     "type": "audio",
-                    "text": "eva"
+                    "text": "eva",
+                    "required": false
                   }
                 ],
                 "evaluation": {
@@ -9368,5 +9371,5 @@
       "voice": "female"
     }
   ],
-  "officialChecksum": "c9bf9958c6d0c30f7b4e2997f593536c402c2a5a7d392d3bcb87eca079a7f0ba"
+  "officialChecksum": "5a7b3abb30e541b3384366996f7fdae5c71af79f6fb9dc9ec66c3c640e5b7457"
 }

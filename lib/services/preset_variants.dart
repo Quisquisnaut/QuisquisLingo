@@ -76,6 +76,8 @@ abstract final class PresetVariants {
     'note_card',
     'dialogue_line',
     'story_cover',
+    'sort_into_groups',
+    'fill_the_slots',
   };
 
   /// The form the editor shows for [presetId]: its own or its base's.
@@ -228,6 +230,18 @@ abstract final class PresetVariants {
                 element,
           ],
         );
+      case 'flashcard':
+        // A Flashcard's read-aloud is an aid, never an audio exercise
+        // (Build 256 Revision 7 follow-up, as the Picture flashcard).
+        return exercise.copyWith(
+          promptElements: [
+            for (final element in exercise.promptElements)
+              if (element.isAudio)
+                element.copyWith(required: false)
+              else
+                element,
+          ],
+        );
       case 'picture_flashcard':
         return _withPictureRole(
           exercise.copyWith(
@@ -355,6 +369,9 @@ abstract final class PresetVariants {
       'spell_word' => f.illustrationImages.isEmpty && f.automaticAudio == null,
       'dialogue_line' => f.kind == LearnerExerciseKind.dialogueLine,
       'story_cover' => f.kind == LearnerExerciseKind.storyCover,
+      // The Assign recipes (Build 256 Revision 7 follow-up).
+      'sort_into_groups' => f.kind == LearnerExerciseKind.assignGroups,
+      'fill_the_slots' => f.kind == LearnerExerciseKind.assignSlots,
       _ =>
         exercise.primitive != ExercisePrimitive.input ||
             !hasInWordGap(exercise),

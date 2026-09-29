@@ -68,6 +68,75 @@ negative and semantic-equality tests, the final verification.
 - The Assign bins and gap slots are tap targets without drag; a large item
   bank wraps below the destinations.
 
+### Follow-up in the same version (owner review, 29 September 2026)
+
+- `lib/models/exercise_authoring.dart`: the presets `sort_into_groups`
+  (Sort into groups) and `fill_the_slots` (Fill the slots) in Grammar and
+  sentences (Assign, action Sort, no direction); `sort_into_groups` leaves
+  `comingLater` (six greyed presets); `helpByPreset` for both, and for the
+  two flashcards and the three spelling presets.
+- `lib/services/exercise_draft_builder.dart`: `ExerciseDraftValues.groups`,
+  `leftover`, `slots`, `extraWords`, `slotReuse`, `cardReadAloud`;
+  `_buildSortIntoGroups` (categories, capacity unlimited) and
+  `_buildFillTheSlots` (slots, `itemReuse: allowed` when asked) through
+  `_assignExercise` (items keep the original's ID by text, targets by
+  position; label text before each target in the layout; exact
+  assignments); the errors `groupLine`, `groupsRequired`,
+  `groupWordRepeated`, `slotLine`, `slotsRequired`, `slotWordRepeated`
+  (fields `groups`, `slots`); a Flashcard's `tts` is the word itself when
+  `cardReadAloud` is not `none`, `playback: automatic` stamped by
+  `_withAutomaticCardAudio`; `image_word` tokens are the order lines.
+- `lib/services/preset_recipes.dart`: `canonicalOnly` and `kinds` for the
+  two presets; decompose derives groups/slots from the targets' labels and
+  `assignmentsByTarget`, the unassigned words, `assignItemReuse`, and
+  `cardReadAloud` from the card's audio (a blank card starts On request);
+  `_comparable` renames targets `target_0`, `target_1`, … with every
+  reference (layout, assignments, targetAnswers, acceptedTargets).
+- `lib/services/preset_variants.dart`: `ownForms` and `fits` for both;
+  `_shape('flashcard')` marks the read-aloud `required: false`.
+- `lib/services/exercise_field_help.dart`: fields `cardReadAloud`, `groups`,
+  `leftoverWords`, `slots`, `extraWords`, `slotReuse` (`pronunciationTts`
+  and `availableLetterBlocks` retired); `editorFieldKeys` for the two
+  presets, `readAloud` on the flashcards, one `order` field on the spelling
+  presets; the spelling `correctWordOrder` Help rewritten. Help EN/IT/ES:
+  `exerciseHelp.preset.{sort_into_groups,fill_the_slots}.*`, their field
+  bodies, `flashcard.readAloud`, the flashcard and spelling bodies, the
+  primitives page (`help_structure.dart` keys accordingly).
+- `lib/services/exercise_search_service.dart` (two definitions),
+  `lib/services/course_audit_service.dart` (`_mismatchHint` for both).
+- `lib/screens/course_editor_screen.dart`: the forms `sort_into_groups`
+  (Question, Groups, Words that belong nowhere) and `fill_the_slots`
+  (Question, Slots, Extra words, the `slot-reuse` switch with Help); the
+  Flashcard form (target/source labels, the `readAloud` choice, no
+  pronunciation field); the spelling forms' one field; the Match picture
+  to word helpers; `_answerPictures` as a `ValueListenableBuilder` over the
+  answers with one compact `ExerciseImageField` per answer titled
+  "N. word" (`answer-picture-N`); `_exerciseSummary` names a cover and a
+  text-only line by their text.
+- `lib/widgets/exercise_image_field.dart`: `title` and `compact`.
+- Generators: `Laboratory.assign(key, preset, …)` records the preset; the
+  gap Round is removed (126 examples, 27 Rounds; `assign_groups` capacity
+  unlimited, as the recipe writes); every card's read-aloud
+  `required: false` (Laboratory `card()`, Piedmontese `flashcard()`); the
+  coverage document and the v11 fixtures regenerated; the presentation
+  baseline rebuilt (the two gap records gone, no other change).
+- Tests: `revision7_followup_256_test.dart` (recipes, edits keeping IDs,
+  the Laboratory's foreign target IDs, catalogue/Help/Search/Audit, the
+  Fill the slots form saving, the picture cards following the words, the
+  Flashcard read-aloud and form, the spelling field); the story editor
+  list test in `story_add_step_256_test`; pins moved: 42 presets, 6
+  greyed, Piedmontese `presets.length - 3`, Laboratory 126, the field-help
+  inventories, `exercise_architecture_224_test` and
+  `canonical_primitives_256_test` (presets cover every executable
+  primitive), `preset_recipes_256_test` (Assign has presets but no default
+  recipe), `runtime_canonical_256_test` kinds.
+- Decisions (owner): no preset for Assign gaps (the inline gap presets
+  suffice); the Laboratory drops its gap Round; the Piedmontese demo gets no
+  Lesson for the two Assign presets; the spelling presets have one field
+  (no distractors); a Flashcard's read-aloud is the word itself and never
+  an audio exercise; the Round's "Before you start" card stays Round
+  content (no interactive-presentation primitive).
+
 ## Revision 6 (2.0.56+256006, 28 September 2026): Interoperability
 
 Session 7 (plan Part B item 7). Support states at runtime (A.6), the

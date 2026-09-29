@@ -93,6 +93,14 @@ Exercise _author(Exercise exercise) {
         lineReadAloud: hints.lineReadAloud,
         lineTextReveal: hints.lineTextReveal,
         lineLanguage: hints.lineLanguage,
+        // The Assign presets' fields and a Flashcard's read-aloud (Build
+        // 256 Revision 7 follow-up) come from the production decompose.
+        groups: hints.groups,
+        leftover: hints.leftover,
+        slots: hints.slots,
+        extraWords: hints.extraWords,
+        slotReuse: hints.slotReuse,
+        cardReadAloud: hints.cardReadAloud,
         prompt: canonicalOnly
             ? hints.prompt
             : exercise.type == 'type_missing_word' && exercise.prompt.isEmpty
@@ -668,8 +676,7 @@ void main() {
       ]);
       expect(course.createDuels, isFalse);
       expect(course.derivativeWorksPolicy, DerivativeWorksPolicy.allowed);
-      expect(examples, hasLength(128));
-      // The Assign examples carry no preset (Build 256 Revision 7).
+      expect(examples, hasLength(126));
       expect(
         examples
             .map((e) => e.editorTemplate)
@@ -685,14 +692,8 @@ void main() {
           for (final exercise in round.exercises) {
             expect(exercise.publicationState, PublicationState.published);
             // The Story Lesson mixes a cover, lines and exercises of several
-            // primitives (Build 256 Revision 5); the Assign Lesson has no
-            // preset (Build 256 Revision 7).
+            // primitives (Build 256 Revision 5).
             if (lesson.title == 'Story') continue;
-            if (lesson.title == 'Assign') {
-              expect(exercise.primitive, ExercisePrimitive.assign);
-              expect(exercise.editorTemplate, isEmpty);
-              continue;
-            }
             expect(
               ExercisePresetRegistry.byId(
                 exercise.editorTemplate,

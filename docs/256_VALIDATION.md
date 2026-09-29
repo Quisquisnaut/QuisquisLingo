@@ -39,6 +39,31 @@ held for the run and cleared afterwards).
   based Duel eligibility is `duel_eligibility_service_test` and
   `support_states_256_test`.
 
+## Revision 7 follow-up (same version), 29 September 2026
+
+- Owner review of the Revision 7 build: the Story editor list showing IDs
+  (fixed first, 281 focused tests green), two Assign presets (Sort into
+  groups, Fill the slots; no gap preset, the Laboratory's gap Round
+  removed, the Piedmontese demo unchanged at 39 Lessons), the Match picture
+  to word form (cards following the words; the last picture without its
+  number and name), the Flashcard form (named languages, Read aloud instead
+  of a pronunciation text), one field for the spelling presets. The
+  GuideBook question was answered without code.
+- Generators `--check` and `tools/validate_courses.py`: pass (Laboratory 7
+  Lessons, 27 Rounds, 126 examples, 48 presets in the cases; Piedmontese
+  42 catalogue presets, 39 Lessons, 117 examples); the v11 fixtures
+  rewritten from the generators.
+- `flutter analyze`: no issues on the edited tree (twice).
+- Focused batch (the new test, field Help, catalogue, recipes, Piedmontese,
+  Story presets, runtime-canonical, Help, Search, localization, parity,
+  characterization, Story editor, Assign runtime, future fixture,
+  negative, semantic, Audit, editor forms, end to end, capability
+  description; 34 files): 525 passed, 7 failed, all fixed before the suite: the recipe's "two groups" rule dropped (the Laboratory's leftover example has one group and a word that belongs nowhere), the spelling Help pin (`order` instead of the retired `tokens`), the Piedmontese preset set (minus the two Assign presets), two blanks built as Drafts in the new test; the fixed files and the Laboratory rerun 425 green.
+- Laboratory presentation baseline: recorded for the 126 examples and
+  rebuilt: the two gap records removed, no other record changed (the `true`/`false` lines of the rebuild's report are its parse artifact).
+- `dart format` clean on every changed Dart file.
+- Complete suite on the final tree: **3238 passed, 1 skipped, 0 failed** (01:56–02:23, keep-awake wrapper).
+
 ## Revision 6 (2.0.56+256006): Interoperability, 28 September 2026
 
 - Stage 1 (support states in the model, playability, Duel, Audit, import

@@ -37,7 +37,7 @@ only in preset or editor metadata are semantically equal.
 | 5 (Revision 4) | Done: the preset catalogue (`docs/256_PRESET_CATALOGUE_PLAN.md`): 38 presets in six skill groups, to-target/to-source twins, seven greyed presets, successors for the ten retired IDs, `PresetVariants` over the older recipes with shape hints, the picker's groups, chips and filter, pictures on answers, `arrangeLines`, within-word gaps, the source voice; the Laboratory and the Piedmontese demo regenerated. Not done: the save guard on example content (no form prefills examples). |
 | 6 (Revision 5) | Done: Stories (`docs/256_STORY_PLAN.md`): narrator and reusable characters as Course data (`storyNarrator`, `storyCharacters`, avatars, voice preference), the Dialogue line and Story cover presets (canonical only; `speakerId` on elements, the `textReveal` option), the flow's `title`, `log`, `readAloud` and per-node `requiresAudio`, the Story options in the Round editor, the Story Wizard, lines never skipped and audio-dependent exercises skipped, Story exercises out of the Duel, a Story Lesson in each bundled demo. |
 | 7 (Revision 6) | Done: support states at runtime (A.6: `Exercise.runtimeSupport`, practice Rounds skip, Stories and the Preview show a card, the Duel excludes, `EXERCISE_NOT_EXECUTABLE` and `ROUND_NOT_COMPLETABLE`, the import review count), the stand-alone `FlowEngine` (A.7; not wired to playback), interoperability on canonical semantics (`CanonicalConfiguration`, presets as hints, `NormalizedImportExercise`, `CanonicalExerciseImport`), the capability description (`docs/capabilities_v12.json`, `tools/export_capabilities.dart`, the Python tools reading it), the end-to-end acceptance scenario. Adventures and spoken exercises are parked. |
-| 8 (Revision 7) | Done: the Assign runtime (groups, slots, gaps by tapping; `ASSIGN_STRUCTURE_REQUIRED`; no preset yet), the Laboratory's Assign Lesson (128 examples) and the test-only future fixture written by the same generator (Speak, Ink, Submit, a Story ending on speech, a branching Story), the negative and semantic-equality tests, the final verification. The redesign is complete. |
+| 8 (Revision 7) | Done: the Assign runtime (groups, slots, gaps by tapping; `ASSIGN_STRUCTURE_REQUIRED`; the presets Sort into groups and Fill the slots since the same-version follow-up), the Laboratory's Assign Lesson (126 examples after the follow-up) and the test-only future fixture written by the same generator (Speak, Ink, Submit, a Story ending on speech, a branching Story), the negative and semantic-equality tests, the final verification. The redesign is complete. |
 
 ## The nine primitives
 
@@ -277,9 +277,12 @@ in the bank. `LearnerExerciseKind.assignGroups`, `assignSlots` and
 `assignGaps` key the headings and instructions. The Audit's
 `ASSIGN_STRUCTURE_REQUIRED` asks for items, targets and, with
 exactAssignments, at least one target with items; an Assign's layout may
-carry elements whatever its layout value. Assign has no catalogue preset
-yet: the Generic Primitive Editor authors it. Regions, cells, drag placement
-and the other Assign evaluation modes are readable but not executable.
+carry elements whatever its layout value. The presets Sort into groups
+(categories, capacity unlimited) and Fill the slots (slots, optional item
+reuse) author groups and slots since the Revision 7 follow-up; gaps are
+authored in the Generic Primitive Editor (no gap preset by owner decision:
+the inline gap presets cover that need). Regions, cells, drag placement and
+the other Assign evaluation modes are readable but not executable.
 
 ## Support states at runtime (Session 7)
 

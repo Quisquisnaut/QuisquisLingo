@@ -38,7 +38,7 @@
   ],
   "license": "All rights reserved",
   "derivativeWorksPolicy": "allowed",
-  "courseDescription": "An English-to-Italian laboratory for trying every current Exercise type and its meaningful authoring options. Five Lessons group Select, Input, Arrange, Match and Presentation; a sixth Lesson is a Story and a seventh holds Assign, which has no preset yet. Inspect or Fork the Course in Course Studio to study how the exercises are authored. Enable Audio Exercises and Text-to-speech to include all listening and pronunciation examples; ordinary lesson progression remains in effect.",
+  "courseDescription": "An English-to-Italian laboratory for trying every current Exercise type and its meaningful authoring options. Five Lessons group Select, Input, Arrange, Match and Presentation; a sixth Lesson is a Story and a seventh holds Assign (Sort into groups, Fill the slots). Inspect or Fork the Course in Course Studio to study how the exercises are authored. Enable Audio Exercises and Text-to-speech to include all listening and pronunciation examples; ordinary lesson progression remains in effect.",
   "textDirection": "ltr",
   "temporarySample": true,
   "flagCode": "IT",
@@ -7325,7 +7325,8 @@
                   {
                     "role": "audio",
                     "type": "audio",
-                    "text": "buongiorno"
+                    "text": "buongiorno",
+                    "required": false
                   }
                 ],
                 "evaluation": {
@@ -7361,7 +7362,8 @@
                   {
                     "role": "audio",
                     "type": "audio",
-                    "text": "libro"
+                    "text": "libro",
+                    "required": false
                   },
                   {
                     "role": "usage",
@@ -7402,7 +7404,8 @@
                   {
                     "role": "audio",
                     "type": "audio",
-                    "text": "acqua"
+                    "text": "acqua",
+                    "required": false
                   },
                   {
                     "role": "usage",
@@ -8396,7 +8399,7 @@
             "kind": "explanation",
             "required": false,
             "role": "overview",
-            "text": "Assign places items into destinations (Build 256 Revision 7): tap an item, then the group, slot or gap that takes it; Check grades every destination at once. A group may take several items, a slot or a gap takes one; a reusable item stays in the bank. Assign has no preset yet, so these examples are authored in the canonical editor. Picture regions, grid cells and drag placement wait for a later version."
+            "text": "Assign places items into destinations (Build 256 Revision 7): tap an item, then the group or slot that takes it; Check grades every destination at once. A group may take any number of items, a slot takes one; a reusable item stays in the bank. The presets Sort into groups and Fill the slots author these examples (Revision 7 follow-up). Gaps in a text are authored in the canonical editor; picture regions, grid cells and drag placement wait for a later version."
           }
         ]
       },
@@ -8421,12 +8424,15 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
+              "authoringMetadata": {
+                "presetId": "sort_into_groups"
+              },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
                 "primitive": "assign",
                 "options": {
                   "targetMode": "categories",
-                  "targetCapacity": "multiple"
+                  "targetCapacity": "unlimited"
                 },
                 "prompt": [
                   {
@@ -8529,6 +8535,9 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
+              "authoringMetadata": {
+                "presetId": "sort_into_groups"
+              },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
                 "primitive": "assign",
@@ -8609,6 +8618,9 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
+              "authoringMetadata": {
+                "presetId": "fill_the_slots"
+              },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
                 "primitive": "assign",
@@ -8694,6 +8706,9 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
+              "authoringMetadata": {
+                "presetId": "fill_the_slots"
+              },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
                 "primitive": "assign",
@@ -8793,196 +8808,6 @@
               }
             }
           ]
-        },
-        {
-          "id": "qql_lab254_round_assign_gaps",
-          "publicationState": "published",
-          "updatedAt": "2026-09-25T00:00:00.000Z",
-          "title": "Gaps",
-          "visualType": "generic",
-          "content": [
-            {
-              "id": "qql_lab254_intro_assign_gaps",
-              "publicationState": "published",
-              "kind": "text",
-              "required": false,
-              "role": "lesson_intro",
-              "text": "Fill each gap of the sentence with the right word. Tap a word, then the gap; Check when every gap is filled."
-            },
-            {
-              "id": "qql_lab254_assign_gap_one",
-              "publicationState": "published",
-              "kind": "exercise",
-              "required": true,
-              "exercise": {
-                "updatedAt": "2026-09-25T00:00:00.000Z",
-                "primitive": "assign",
-                "options": {
-                  "layout": "inline",
-                  "targetMode": "gaps"
-                },
-                "prompt": [
-                  {
-                    "role": "question",
-                    "type": "text",
-                    "text": "Complete the sentence."
-                  }
-                ],
-                "items": [
-                  {
-                    "id": "qql_lab254_assign_gap_one_dorme",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "dorme"
-                      }
-                    ]
-                  },
-                  {
-                    "id": "qql_lab254_assign_gap_one_mangia",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "mangia"
-                      }
-                    ]
-                  }
-                ],
-                "targets": [
-                  {
-                    "id": "qql_lab254_assign_gap_one_g1"
-                  }
-                ],
-                "layout": [
-                  {
-                    "type": "text",
-                    "text": "Il gatto"
-                  },
-                  {
-                    "type": "target",
-                    "targetId": "qql_lab254_assign_gap_one_g1"
-                  },
-                  {
-                    "type": "text",
-                    "text": "sul divano."
-                  }
-                ],
-                "evaluation": {
-                  "mode": "exactAssignments",
-                  "assignments": [
-                    {
-                      "targetId": "qql_lab254_assign_gap_one_g1",
-                      "itemIds": [
-                        "qql_lab254_assign_gap_one_dorme"
-                      ]
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "id": "qql_lab254_assign_gap_two",
-              "publicationState": "published",
-              "kind": "exercise",
-              "required": true,
-              "exercise": {
-                "updatedAt": "2026-09-25T00:00:00.000Z",
-                "primitive": "assign",
-                "options": {
-                  "layout": "inline",
-                  "targetMode": "gaps"
-                },
-                "prompt": [
-                  {
-                    "role": "question",
-                    "type": "text",
-                    "text": "Complete the sentence."
-                  }
-                ],
-                "items": [
-                  {
-                    "id": "qql_lab254_assign_gap_two_beve",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "beve"
-                      }
-                    ]
-                  },
-                  {
-                    "id": "qql_lab254_assign_gap_two_caffe",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "caffè"
-                      }
-                    ]
-                  },
-                  {
-                    "id": "qql_lab254_assign_gap_two_mangia",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "mangia"
-                      }
-                    ]
-                  }
-                ],
-                "targets": [
-                  {
-                    "id": "qql_lab254_assign_gap_two_g1"
-                  },
-                  {
-                    "id": "qql_lab254_assign_gap_two_g2"
-                  }
-                ],
-                "layout": [
-                  {
-                    "type": "text",
-                    "text": "Anna"
-                  },
-                  {
-                    "type": "target",
-                    "targetId": "qql_lab254_assign_gap_two_g1"
-                  },
-                  {
-                    "type": "text",
-                    "text": "un"
-                  },
-                  {
-                    "type": "target",
-                    "targetId": "qql_lab254_assign_gap_two_g2"
-                  },
-                  {
-                    "type": "text",
-                    "text": "."
-                  }
-                ],
-                "evaluation": {
-                  "mode": "exactAssignments",
-                  "assignments": [
-                    {
-                      "targetId": "qql_lab254_assign_gap_two_g1",
-                      "itemIds": [
-                        "qql_lab254_assign_gap_two_beve"
-                      ]
-                    },
-                    {
-                      "targetId": "qql_lab254_assign_gap_two_g2",
-                      "itemIds": [
-                        "qql_lab254_assign_gap_two_caffe"
-                      ]
-                    }
-                  ]
-                }
-              }
-            }
-          ]
         }
       ],
       "duel": {
@@ -9011,5 +8836,5 @@
       "voice": "male"
     }
   ],
-  "officialChecksum": "cba01d5934a673dcf6211c68af4c5ab8958f77a9859f6da433dd4c4bf2ba99d1"
+  "officialChecksum": "d6bcc7bfe9bb6d94ce6d2b4830fc28d4d36cce0483b521b462360f8dbaec9b58"
 }
