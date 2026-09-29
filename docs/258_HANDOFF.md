@@ -4,19 +4,19 @@ Resume from this file alone. Plan (approved by the owner on 29 September
 2026): `docs/258_PAGE_CARD_PLAN.md`. Process rules: `docs/256_HANDOFF.md`
 ("Requirements and process"). Previous build: `docs/257_HANDOFF.md`.
 
-## State (30 September 2026, 00:34)
+## State (30 September 2026, 01:34)
 
-- Committed (not pushed): Revision 0 `19de25b`, 1 `1323eb7`, 2 `3224523`,
-  3 `fa368cc`.
-- **Revision 4 (`2.0.58+258004`, share, save and print a Page) in the
-  working tree**: `Course.allowPageSharing` and the Course Info switch,
-  `PageActionsBar`/`PageCapture`, `PageExport`, the `pdf` dependency
-  (Q10 approved 30 September), `Export/Pages`, Help, tests, version, Beta
-  expiry 30 October (release 30 September) and docs done; analyze clean;
-  new tests green. The complete suite runs next (started 00:34).
-- After the commit, Build 258's plan is complete; the owner reviews a
-  Windows build. Known limit: a page taller than A4 is cut at a fixed
-  height in the PDF.
+- **Build 258 is complete** on local branch `claude/258-page-cards` (not
+  pushed): Revision 0 `19de25b` (Page model and learner display), 1
+  `1323eb7` (300 KB Course pictures), 2 `3224523` (the Page form), 3
+  `fa368cc` (the Laboratory's Page Lesson), **4 `b3bbad3`
+  (`2.0.58+258004`, share, save and print a Page)**. Last complete suite
+  3343 passed, 1 skipped, 0 failed (01:08–01:34). Beta expiry
+  `2026-10-30 23:59:59`.
+- Next: the owner reviews a Windows build; corrections are same-version
+  follow-ups of the revision they concern. Known limit: a page taller than
+  A4 is cut at a fixed height in the PDF. Deferred by the plan: the
+  GuideBook reusing Page blocks (a later build).
 - Do not run `dart format` on files that predate the formatter: in
   Revision 1 it added unrelated whitespace churn to seven files
   (`custom_course_transfer_service.dart`, `exercise_image_service.dart`,
