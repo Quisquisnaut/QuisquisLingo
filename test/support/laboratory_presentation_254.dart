@@ -8,15 +8,20 @@
 /// follow-ups, whose Story Lesson holds two Stories (15 examples, 122
 /// records; a line shows no heading), again on 28 September 2026 for
 /// Build 256 Revision 7, whose Assign Lesson adds six examples (128 records;
-/// no other record changed), and again on 29 September 2026 for the
-/// Revision 7 follow-up, whose Assign Lesson keeps four examples through
-/// the presets Sort into groups and Fill the slots (the two gap records
-/// gone: 126 records; no other record changed). Every record of an example
-/// that existed before is equal to its Session 3 record except where
-/// `docs/256_VALIDATION.md` lists a deliberate change (the inline-gap
-/// examples of Build the translation are Drag the blocks into the gaps with
-/// a clue, no longer translations). Later work must keep every record equal
-/// except where a documented deliberate change says otherwise.
+/// no other record changed), again on 29 September 2026 for the Revision 7
+/// follow-up, whose Assign Lesson keeps four examples through the presets
+/// Sort into groups and Fill the slots (the two gap records gone: 126
+/// records; no other record changed), and again on 29 September 2026 for
+/// the second follow-up, in which a plain Choose's or a Match's authored
+/// prompt is drawn as the instruction line and not again as the prompt
+/// (15 records changed deliberately: the Choose examples with a prompt,
+/// including the inline-gap ones, and the Match examples; Match by meaning
+/// no longer gets an "opposite" instruction guessed for it). Every record
+/// of an example that existed before is equal to its Session 3 record
+/// except where `docs/256_VALIDATION.md` lists a deliberate change (the
+/// inline-gap examples of Build the translation are Drag the blocks into the
+/// gaps with a clue, no longer translations). Later work must keep every
+/// record equal except where a documented deliberate change says otherwise.
 const laboratoryPresentation = <String, Map<String, Object?>>{
   'qql_lab254_arrange_gap_audio': {
     'before': {
@@ -7900,8 +7905,8 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
   'qql_lab254_match_four': {
     'before': {
       'heading': 'MATCH',
-      'instruction': 'Match each word with its translation.',
-      'prompt': 'Match each Italian phrase with its English meaning.',
+      'instruction': 'Match each Italian phrase with its English meaning.',
+      'prompt': null,
       'shown': {'question': 0, 'prompt': 1, 'context': 0, 'translationText': 0},
       'panels': {
         'context': 0,
@@ -7962,8 +7967,8 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
     },
     'after': {
       'heading': 'MATCH',
-      'instruction': 'Match each word with its translation.',
-      'prompt': 'Match each Italian phrase with its English meaning.',
+      'instruction': 'Match each Italian phrase with its English meaning.',
+      'prompt': null,
       'shown': {'question': 0, 'prompt': 1, 'context': 0, 'translationText': 0},
       'panels': {
         'context': 0,
@@ -8026,8 +8031,8 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
   'qql_lab254_match_opposites': {
     'before': {
       'heading': 'MATCH',
-      'instruction': 'Match each word with its opposite.',
-      'prompt': 'Abbina ogni parola al suo contrario.',
+      'instruction': 'Abbina ogni parola al suo contrario.',
+      'prompt': null,
       'shown': {'question': 0, 'prompt': 1, 'context': 0, 'translationText': 0},
       'panels': {
         'context': 0,
@@ -8088,8 +8093,8 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
     },
     'after': {
       'heading': 'MATCH',
-      'instruction': 'Match each word with its opposite.',
-      'prompt': 'Abbina ogni parola al suo contrario.',
+      'instruction': 'Abbina ogni parola al suo contrario.',
+      'prompt': null,
       'shown': {'question': 0, 'prompt': 1, 'context': 0, 'translationText': 0},
       'panels': {
         'context': 0,
@@ -8152,8 +8157,8 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
   'qql_lab254_match_single': {
     'before': {
       'heading': 'MATCH',
-      'instruction': 'Match each word with its translation.',
-      'prompt': 'Match the Italian greeting with its English meaning.',
+      'instruction': 'Match the Italian greeting with its English meaning.',
+      'prompt': null,
       'shown': {'question': 0, 'prompt': 1, 'context': 0, 'translationText': 0},
       'panels': {
         'context': 0,
@@ -8214,8 +8219,8 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
     },
     'after': {
       'heading': 'MATCH',
-      'instruction': 'Match each word with its translation.',
-      'prompt': 'Match the Italian greeting with its English meaning.',
+      'instruction': 'Match the Italian greeting with its English meaning.',
+      'prompt': null,
       'shown': {'question': 0, 'prompt': 1, 'context': 0, 'translationText': 0},
       'panels': {
         'context': 0,
@@ -8404,8 +8409,8 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
   'qql_lab254_match_synonyms': {
     'before': {
       'heading': 'MATCH',
-      'instruction': 'Match the corresponding items.',
-      'prompt': 'Abbina ogni parola al suo sinonimo.',
+      'instruction': 'Abbina ogni parola al suo sinonimo.',
+      'prompt': null,
       'shown': {'question': 0, 'prompt': 1, 'context': 0, 'translationText': 0},
       'panels': {
         'context': 0,
@@ -8466,8 +8471,8 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
     },
     'after': {
       'heading': 'MATCH',
-      'instruction': 'Match the corresponding items.',
-      'prompt': 'Abbina ogni parola al suo sinonimo.',
+      'instruction': 'Abbina ogni parola al suo sinonimo.',
+      'prompt': null,
       'shown': {'question': 0, 'prompt': 1, 'context': 0, 'translationText': 0},
       'panels': {
         'context': 0,
@@ -8530,8 +8535,8 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
   'qql_lab254_match_words': {
     'before': {
       'heading': 'MATCH',
-      'instruction': 'Match each word with its translation.',
-      'prompt': 'Match the English words with their Italian translations.',
+      'instruction': 'Match the English words with their Italian translations.',
+      'prompt': null,
       'shown': {'question': 0, 'prompt': 1, 'context': 0, 'translationText': 0},
       'panels': {
         'context': 0,
@@ -8592,8 +8597,8 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
     },
     'after': {
       'heading': 'MATCH',
-      'instruction': 'Match each word with its translation.',
-      'prompt': 'Match the English words with their Italian translations.',
+      'instruction': 'Match the English words with their Italian translations.',
+      'prompt': null,
       'shown': {'question': 0, 'prompt': 1, 'context': 0, 'translationText': 0},
       'panels': {
         'context': 0,
@@ -10420,8 +10425,8 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
   'qql_lab254_picture_word_match': {
     'before': {
       'heading': 'MATCH',
-      'instruction': 'Match the corresponding items.',
-      'prompt': 'Match each picture with its word.',
+      'instruction': 'Match each picture with its word.',
+      'prompt': null,
       'shown': {'question': 0, 'prompt': 1, 'context': 0, 'translationText': 0},
       'panels': {
         'context': 0,
@@ -10482,8 +10487,8 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
     },
     'after': {
       'heading': 'MATCH',
-      'instruction': 'Match the corresponding items.',
-      'prompt': 'Match each picture with its word.',
+      'instruction': 'Match each picture with its word.',
+      'prompt': null,
       'shown': {'question': 0, 'prompt': 1, 'context': 0, 'translationText': 0},
       'panels': {
         'context': 0,
@@ -11311,8 +11316,8 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
   'qql_lab254_select_gap_audio': {
     'before': {
       'heading': 'CHOOSE',
-      'instruction': 'Choose the correct answer.',
-      'prompt': 'Listen and complete the sentence.',
+      'instruction': 'Listen and complete the sentence.',
+      'prompt': null,
       'shown': {'question': 0, 'prompt': 1, 'context': 0, 'translationText': 0},
       'panels': {
         'context': 0,
@@ -11373,8 +11378,8 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
     },
     'after': {
       'heading': 'CHOOSE',
-      'instruction': 'Choose the correct answer.',
-      'prompt': 'Listen and complete the sentence.',
+      'instruction': 'Listen and complete the sentence.',
+      'prompt': null,
       'shown': {'question': 0, 'prompt': 1, 'context': 0, 'translationText': 0},
       'panels': {
         'context': 0,
@@ -11437,8 +11442,8 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
   'qql_lab254_select_gap_distinct': {
     'before': {
       'heading': 'CHOOSE',
-      'instruction': 'Choose the correct answer.',
-      'prompt': 'Complete the sentence about Anna.',
+      'instruction': 'Complete the sentence about Anna.',
+      'prompt': null,
       'shown': {'question': 0, 'prompt': 1, 'context': 0, 'translationText': 0},
       'panels': {
         'context': 0,
@@ -11499,8 +11504,8 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
     },
     'after': {
       'heading': 'CHOOSE',
-      'instruction': 'Choose the correct answer.',
-      'prompt': 'Complete the sentence about Anna.',
+      'instruction': 'Complete the sentence about Anna.',
+      'prompt': null,
       'shown': {'question': 0, 'prompt': 1, 'context': 0, 'translationText': 0},
       'panels': {
         'context': 0,
@@ -11563,8 +11568,8 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
   'qql_lab254_select_gap_one': {
     'before': {
       'heading': 'CHOOSE',
-      'instruction': 'Choose the correct answer.',
-      'prompt': 'Complete the Italian greeting.',
+      'instruction': 'Complete the Italian greeting.',
+      'prompt': null,
       'shown': {'question': 0, 'prompt': 1, 'context': 0, 'translationText': 0},
       'panels': {
         'context': 0,
@@ -11625,8 +11630,8 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
     },
     'after': {
       'heading': 'CHOOSE',
-      'instruction': 'Choose the correct answer.',
-      'prompt': 'Complete the Italian greeting.',
+      'instruction': 'Complete the Italian greeting.',
+      'prompt': null,
       'shown': {'question': 0, 'prompt': 1, 'context': 0, 'translationText': 0},
       'panels': {
         'context': 0,
@@ -11815,8 +11820,9 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
   'qql_lab254_select_gap_reuse': {
     'before': {
       'heading': 'CHOOSE',
-      'instruction': 'Choose the correct answer.',
-      'prompt': 'Complete both sentences. The same word can be used twice.',
+      'instruction':
+          'Complete both sentences. The same word can be used twice.',
+      'prompt': null,
       'shown': {'question': 0, 'prompt': 1, 'context': 0, 'translationText': 0},
       'panels': {
         'context': 0,
@@ -11877,8 +11883,9 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
     },
     'after': {
       'heading': 'CHOOSE',
-      'instruction': 'Choose the correct answer.',
-      'prompt': 'Complete both sentences. The same word can be used twice.',
+      'instruction':
+          'Complete both sentences. The same word can be used twice.',
+      'prompt': null,
       'shown': {'question': 0, 'prompt': 1, 'context': 0, 'translationText': 0},
       'panels': {
         'context': 0,
@@ -11941,8 +11948,8 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
   'qql_lab254_select_image_prompt': {
     'before': {
       'heading': 'CHOOSE',
-      'instruction': 'Choose the correct answer.',
-      'prompt': 'How do you say ‘the apple’ in Italian?',
+      'instruction': 'How do you say ‘the apple’ in Italian?',
+      'prompt': null,
       'shown': {'question': 0, 'prompt': 1, 'context': 0, 'translationText': 0},
       'panels': {
         'context': 0,
@@ -12003,8 +12010,8 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
     },
     'after': {
       'heading': 'CHOOSE',
-      'instruction': 'Choose the correct answer.',
-      'prompt': 'How do you say ‘the apple’ in Italian?',
+      'instruction': 'How do you say ‘the apple’ in Italian?',
+      'prompt': null,
       'shown': {'question': 0, 'prompt': 1, 'context': 0, 'translationText': 0},
       'panels': {
         'context': 0,
@@ -12319,8 +12326,8 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
   'qql_lab254_select_minimum': {
     'before': {
       'heading': 'CHOOSE',
-      'instruction': 'Choose the correct answer.',
-      'prompt': 'Which words name an animal? Select all correct answers.',
+      'instruction': 'Which words name an animal? Select all correct answers.',
+      'prompt': null,
       'shown': {'question': 0, 'prompt': 1, 'context': 0, 'translationText': 0},
       'panels': {
         'context': 0,
@@ -12381,8 +12388,8 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
     },
     'after': {
       'heading': 'CHOOSE',
-      'instruction': 'Choose the correct answer.',
-      'prompt': 'Which words name an animal? Select all correct answers.',
+      'instruction': 'Which words name an animal? Select all correct answers.',
+      'prompt': null,
       'shown': {'question': 0, 'prompt': 1, 'context': 0, 'translationText': 0},
       'panels': {
         'context': 0,
@@ -12445,8 +12452,9 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
   'qql_lab254_select_multiple': {
     'before': {
       'heading': 'CHOOSE',
-      'instruction': 'Choose the correct answer.',
-      'prompt': 'Which words are Italian colours? Select all correct answers.',
+      'instruction':
+          'Which words are Italian colours? Select all correct answers.',
+      'prompt': null,
       'shown': {'question': 0, 'prompt': 1, 'context': 0, 'translationText': 0},
       'panels': {
         'context': 0,
@@ -12507,8 +12515,9 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
     },
     'after': {
       'heading': 'CHOOSE',
-      'instruction': 'Choose the correct answer.',
-      'prompt': 'Which words are Italian colours? Select all correct answers.',
+      'instruction':
+          'Which words are Italian colours? Select all correct answers.',
+      'prompt': null,
       'shown': {'question': 0, 'prompt': 1, 'context': 0, 'translationText': 0},
       'panels': {
         'context': 0,
@@ -12697,9 +12706,9 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
   'qql_lab254_select_one_in_multi': {
     'before': {
       'heading': 'CHOOSE',
-      'instruction': 'Choose the correct answer.',
-      'prompt':
+      'instruction':
           'Which word means ‘yes’? Select the correct answer, then press Check.',
+      'prompt': null,
       'shown': {'question': 0, 'prompt': 1, 'context': 0, 'translationText': 0},
       'panels': {
         'context': 0,
@@ -12760,9 +12769,9 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
     },
     'after': {
       'heading': 'CHOOSE',
-      'instruction': 'Choose the correct answer.',
-      'prompt':
+      'instruction':
           'Which word means ‘yes’? Select the correct answer, then press Check.',
+      'prompt': null,
       'shown': {'question': 0, 'prompt': 1, 'context': 0, 'translationText': 0},
       'panels': {
         'context': 0,
@@ -12951,8 +12960,8 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
   'qql_lab254_select_single': {
     'before': {
       'heading': 'CHOOSE',
-      'instruction': 'Choose the correct answer.',
-      'prompt': 'How do you say ‘thank you’ in Italian?',
+      'instruction': 'How do you say ‘thank you’ in Italian?',
+      'prompt': null,
       'shown': {'question': 0, 'prompt': 1, 'context': 0, 'translationText': 0},
       'panels': {
         'context': 0,
@@ -13013,8 +13022,8 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
     },
     'after': {
       'heading': 'CHOOSE',
-      'instruction': 'Choose the correct answer.',
-      'prompt': 'How do you say ‘thank you’ in Italian?',
+      'instruction': 'How do you say ‘thank you’ in Italian?',
+      'prompt': null,
       'shown': {'question': 0, 'prompt': 1, 'context': 0, 'translationText': 0},
       'panels': {
         'context': 0,

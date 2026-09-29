@@ -344,7 +344,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(FloatingActionButton, 'New lesson'));
+    await tester.tap(find.widgetWithText(FloatingActionButton, 'New Lesson'));
     await tester.pumpAndSettle();
     await tester.enterText(
       find.descendant(
@@ -371,7 +371,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(FloatingActionButton, 'New round'));
+    await tester.tap(find.byKey(const Key('rounds-new-round')));
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(FilledButton, 'Save'));
     await tester.pumpAndSettle();

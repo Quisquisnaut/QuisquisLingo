@@ -2515,27 +2515,55 @@ class _RoundScreenState extends State<RoundScreen> {
   /// The transcript with a blank for every gap.
   /// The gapped text: a gap inside a word (Missing letters) shows one
   /// underscore per missing letter, a whole-word gap a fixed blank.
-  String _missingWordDisplay() {
+  /// Whether each gap target sits inside a word (letters touch it), by
+  /// target ID: Missing letters asks for letters, Complete the text for
+  /// words.
+  Map<String, bool> _gapsInWord() {
     final layout = _exercise.layout;
-    final buffer = StringBuffer();
+    final result = <String, bool>{};
     for (var i = 0; i < layout.length; i++) {
       final element = layout[i];
-      if (!element.isTarget) {
-        buffer.write(element.text);
-        continue;
-      }
+      if (!element.isTarget) continue;
       final before = i > 0 && layout[i - 1].isText ? layout[i - 1].text : '';
       final after = i + 1 < layout.length && layout[i + 1].isText
           ? layout[i + 1].text
           : '';
-      final inWord =
+      result[element.targetId] =
           (before.isNotEmpty && !before.endsWith(' ')) ||
           (after.isNotEmpty && !RegExp(r'^[\s.,;:!?…]').hasMatch(after));
+    }
+    return result;
+  }
+
+  String _missingWordDisplay() {
+    final layout = _exercise.layout;
+    final inWord = _gapsInWord();
+    final buffer = StringBuffer();
+    for (final element in layout) {
+      if (!element.isTarget) {
+        buffer.write(element.text);
+        continue;
+      }
       final answer =
           _features.answersFor(element.targetId)?.answers.firstOrNull ?? '';
-      buffer.write(inWord && answer.isNotEmpty ? '_' * answer.length : '_____');
+      buffer.write(
+        (inWord[element.targetId] ?? false) && answer.isNotEmpty
+            ? '_' * answer.length
+            : '_____',
+      );
     }
     return buffer.toString();
+  }
+
+  /// The label of gap field [i]: "Missing letters" for a gap inside a word
+  /// (owner report, 29 September 2026: "Missing word" misled), "Missing
+  /// word" otherwise, numbered when there are several.
+  String _gapFieldLabel(int i) {
+    final targets = _features.gapFieldTargets;
+    final inWord =
+        i < targets.length && (_gapsInWord()[targets[i].id] ?? false);
+    final noun = inWord ? 'Missing letters' : 'Missing word';
+    return _missingWordControllers.length == 1 ? noun : '$noun ${i + 1}';
   }
 
   void _submitMissingWords(Exercise ex) {
@@ -2599,9 +2627,7 @@ class _RoundScreenState extends State<RoundScreen> {
             onSubmitted: (_) => _submitMissingWords(ex),
             decoration: InputDecoration(
               border: const OutlineInputBorder(),
-              labelText: _missingWordControllers.length == 1
-                  ? 'Missing word'
-                  : 'Missing word ${i + 1}',
+              labelText: _gapFieldLabel(i),
             ),
           ),
           const SizedBox(height: 10),
@@ -3270,6 +3296,26 @@ class _RoundScreenState extends State<RoundScreen> {
     return f.primaryText.isNotEmpty ? f.primaryText : f.clueText;
   }
 
+  /// Whether the authored prompt is shown above the exercise body.
+  bool get _promptShown =>
+      !_features.isTranslationChoice &&
+      _features.kind != LearnerExerciseKind.arrangeWord &&
+      _displayedPrompt.isNotEmpty &&
+      !ExerciseCopyService.isLegacyInstruction(_displayedPrompt);
+
+  /// A plain Choose's authored Prompt (an instruction or some context)
+  /// takes the place of the standard "Choose the correct answer." line under
+  /// the CHOOSE heading, and a Match's authored instruction the place of its
+  /// generic line (owner decisions, 29 September 2026).
+  bool get _promptAsInstruction =>
+      _promptShown &&
+      _exercise.isExecutable &&
+      const {
+        LearnerExerciseKind.select,
+        LearnerExerciseKind.match,
+        LearnerExerciseKind.matchTranslation,
+      }.contains(_features.kind);
+
   Widget _exerciseBody(Exercise ex) {
     final f = _features;
     // Build 256 Revision 6 (plan A.6): a configuration this version cannot
@@ -3864,17 +3910,22 @@ class _RoundScreenState extends State<RoundScreen> {
               ],
               if (ex.isExecutable)
                 Text(
-                  ExerciseCopyService.instructionForExercise(widget.course, ex),
+                  _promptAsInstruction
+                      ? ExerciseCopyService.displayPrompt(
+                          widget.course,
+                          _displayedPrompt,
+                        )
+                      : ExerciseCopyService.instructionForExercise(
+                          widget.course,
+                          ex,
+                        ),
                   key: const Key('exercise-instruction'),
                   style: Theme.of(
                     context,
                   ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
                 ),
             ],
-            if (!_features.isTranslationChoice &&
-                _features.kind != LearnerExerciseKind.arrangeWord &&
-                _displayedPrompt.isNotEmpty &&
-                !ExerciseCopyService.isLegacyInstruction(_displayedPrompt)) ...[
+            if (_promptShown && !_promptAsInstruction) ...[
               const SizedBox(height: 12),
               Text(
                 ExerciseCopyService.displayPrompt(

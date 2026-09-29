@@ -209,10 +209,14 @@ abstract final class PresetRecipes {
             f.primitive == ExercisePrimitive.input
         ? question
         : prompt;
+    // A Flashcard's Pronunciation TTS (if different) stays empty while the
+    // spoken text is the word itself (Build 256 Revision 7 follow-up).
     final tts = story
         ? ''
         : presentation
-        ? f.audioOf('audio')
+        ? (f.audioOf('audio').trim() == f.textOf('term').trim()
+              ? ''
+              : f.audioOf('audio'))
         : (f.primaryAudioText ?? '');
     final rightValues = [
       for (final relation in evaluation.relations)

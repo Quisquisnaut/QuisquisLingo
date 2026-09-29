@@ -406,8 +406,8 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      expect(find.text('New exercise'), findsOneWidget);
-      expect(find.text('New canonical'), findsOneWidget);
+      expect(find.text('New Exercise'), findsOneWidget);
+      expect(find.text('New Canonical'), findsOneWidget);
       // The fork's Exercises are Draft: Save says so instead of counting
       // Audit errors.
       await tester.tap(find.byKey(const Key('round-save')));
@@ -666,11 +666,11 @@ void main() {
       );
       expect(
         catalog['editorHelp.exerciseCreationWizard.body'],
-        contains('New canonical'),
+        contains('New Canonical'),
       );
       expect(
         catalog['exerciseHelp.supplement.canonicalEditor.body'],
-        contains('New exercise'),
+        contains('New Exercise'),
       );
       expect(
         catalog['technical.exercisePrimitives.stories.body'],

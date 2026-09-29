@@ -286,7 +286,7 @@ class AuthoringStatusCard extends StatelessWidget {
 /// the Lessons screen. Returns null when cancelled or left empty.
 Future<String?> askAuthoringName(
   BuildContext context, {
-  String title = 'New lesson',
+  String title = 'New Lesson',
   String initial = '',
   String confirmLabel = 'Create',
   int? maxLength,
@@ -3151,7 +3151,7 @@ class _LessonManagementScreenState extends State<LessonManagementScreen> {
   }
 
   Future<String?> _askName({
-    String title = 'New lesson',
+    String title = 'New Lesson',
     String initial = '',
     String confirmLabel = 'Create',
     int? maxLength,
@@ -3421,7 +3421,7 @@ class _LessonManagementScreenState extends State<LessonManagementScreen> {
             : FloatingActionButton.extended(
                 onPressed: _locked ? null : _addLesson,
                 icon: const Icon(Icons.add),
-                label: const Text('New lesson'),
+                label: const Text('New Lesson'),
               ),
         body: Column(
           children: [
@@ -5758,7 +5758,7 @@ class _StoryWizardScreenState extends State<StoryWizardScreen> {
       MaterialPageRoute(
         builder: (_) => _exerciseEditorFor(
           exercise: _blankExerciseForPreset(presetId, _ids),
-          title: 'New exercise',
+          title: 'New Exercise',
           isNew: true,
           course: _courseForEditing,
           lesson: widget.lesson,
@@ -6364,7 +6364,7 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
 
   Future<void> _add() async {
     if (widget.readOnly) return;
-    final title = await _name('New round', allowEmpty: true);
+    final title = await _name('New Round', allowEmpty: true);
     if (title != null && mounted) {
       _updateRounds([..._rounds, _blankRound(title)]);
     }
@@ -6679,13 +6679,6 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
             const EditorAppBarActions(),
           ],
         ),
-        floatingActionButton: widget.readOnly
-            ? null
-            : FloatingActionButton.extended(
-                onPressed: _add,
-                icon: const Icon(Icons.add),
-                label: const Text('New round'),
-              ),
         bottomNavigationBar: widget.readOnly
             ? null
             : SafeArea(
@@ -6695,6 +6688,16 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
                     spacing: 8,
                     runSpacing: 8,
                     children: [
+                      // New Round sits with Round Wizard and New Story, in
+                      // their size and colour (owner request, 29 September
+                      // 2026; it was a floating button).
+                      FilledButton.icon(
+                        key: const Key('rounds-new-round'),
+                        style: _compactButtonStyle,
+                        onPressed: _add,
+                        icon: const Icon(Icons.add),
+                        label: const Text('New Round'),
+                      ),
                       Tooltip(
                         message: _course.useGuidebook
                             ? 'Generate Rounds from this Lesson\'s GuideBook.'
@@ -7281,7 +7284,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
   }
 
   Future<void> _insert() =>
-      _insertPreset(TranslationChoice.toTarget, title: 'New exercise');
+      _insertPreset(TranslationChoice.toTarget, title: 'New Exercise');
 
   /// A new exercise from a preset's form. A Story's title block (`first`)
   /// goes before every other step.
@@ -7332,18 +7335,18 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
     final lines = _exercises.where(_isLine).length;
     final exercises = _exercises.length - covers - lines;
     final title = switch (covers) {
-      0 => 'No title block yet: add it with Add step',
+      0 => 'No title block yet: add it with Add Step',
       1 => 'Title block: 1',
       _ => 'Title blocks: $covers (a Story has one)',
     };
     final dialogue = lines == 0
-        ? 'no Dialogue line yet: add at least one with Add step'
+        ? 'no Dialogue line yet: add at least one with Add Step'
         : 'Dialogue lines: $lines';
     return '$title · $dialogue · Exercises: $exercises.';
   }
 
-  /// Add step (Build 256 Revision 5, third follow-up): in a Story, one
-  /// button instead of New exercise, New canonical and Exercise Wizard; it
+  /// Add Step (Build 256 Revision 5, third follow-up): in a Story, one
+  /// button instead of New Exercise, New Canonical and Exercise Wizard; it
   /// asks for the block type. The title block is offered once, a Dialogue
   /// line uses the short form New Story uses, an exercise the presets a
   /// Story may use.
@@ -7432,7 +7435,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
       case _StoryStepType.exercise:
         final presetId = await _chooseStoryPreset(context);
         if (presetId == null || !mounted) return;
-        await _insertPreset(presetId, title: 'New exercise');
+        await _insertPreset(presetId, title: 'New Exercise');
     }
   }
 
@@ -7468,7 +7471,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
             id: _ids.next('exercise'),
             updatedAt: _clock().toUtc(),
           ),
-          title: 'New canonical exercise',
+          title: 'New Canonical Exercise',
           isNew: true,
           course: _workingCourse,
           lesson: _lesson,
@@ -8150,14 +8153,14 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
                       style: _compactButtonStyle,
                       onPressed: _insert,
                       icon: const Icon(Icons.add),
-                      label: const Text('New exercise'),
+                      label: const Text('New Exercise'),
                     ),
                     OutlinedButton.icon(
                       key: const Key('new-canonical-exercise'),
                       style: _compactButtonStyle,
                       onPressed: _insertCanonical,
                       icon: const Icon(Icons.tune),
-                      label: const Text('New canonical'),
+                      label: const Text('New Canonical'),
                     ),
                     FilledButton.icon(
                       key: const Key('exercise-creation-wizard'),
@@ -8174,7 +8177,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
                       style: _compactButtonStyle,
                       onPressed: _addStoryStep,
                       icon: const Icon(Icons.add),
-                      label: const Text('Add step'),
+                      label: const Text('Add Step'),
                     ),
                 ],
               ],
@@ -8200,7 +8203,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
               ),
               SwitchListTile(
                 key: const Key('round-story-switch'),
-                title: const Text('Play as a Story'),
+                title: const Text('Play as a sequence'),
                 subtitle: Text(_storyDescription),
                 value: _flow != null,
                 onChanged: widget.readOnly ? null : _setStory,
@@ -8635,12 +8638,12 @@ Exercise _blankExerciseForPreset(String presetId, AuthoringIdGenerator ids) {
   );
 }
 
-/// The block types Add step offers in a Story (Build 256 Revision 5,
+/// The block types Add Step offers in a Story (Build 256 Revision 5,
 /// third follow-up).
 enum _StoryStepType { title, line, exercise }
 
 /// A Dialogue line built from the short line form's values (New Story's Add
-/// line and the Round editor's Add step): a presentation the dialogue_line
+/// line and the Round editor's Add Step): a presentation the dialogue_line
 /// recipe fills, Published as the Wizard makes its steps.
 Exercise _dialogueLineExercise(
   String id,
@@ -8665,7 +8668,7 @@ Exercise _dialogueLineExercise(
 ).candidate!;
 
 /// The sheet that offers the presets a Story may use (`storyWizardPresets`);
-/// New Story's Add exercise and the Round editor's Add step share it.
+/// New Story's Add exercise and the Round editor's Add Step share it.
 Future<String?> _chooseStoryPreset(BuildContext context) =>
     showModalBottomSheet<String>(
       context: context,
@@ -9428,7 +9431,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     _hint = TextEditingController(text: draft.hint);
     _answers = TextEditingController(text: draft.answers);
     _useMultiSelect = draft.useMultiSelect;
-    _correct = TextEditingController(text: draft.correct);
+    _correct = TextEditingController(text: _initialCorrect(e, draft));
     _requiredSelections = TextEditingController(text: draft.requiredSelections);
     _accepted = TextEditingController(text: draft.accepted);
     _useInlineGaps = draft.useInlineGaps;
@@ -9906,6 +9909,19 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     ),
   );
 
+  /// A new single-answer Choose starts with answer 1 marked as correct
+  /// (owner request, 29 September 2026), as Pick the translation did; a
+  /// stored exercise shows what it has.
+  String _initialCorrect(Exercise e, ExerciseDraftValues draft) =>
+      widget.isNew &&
+          draft.correct.trim().isEmpty &&
+          e.primitive == ExercisePrimitive.select &&
+          !draft.useMultiSelect &&
+          !draft.useInlineGaps &&
+          PresetVariants.formFor(_type) != 'script_recognition'
+      ? '1'
+      : draft.correct;
+
   void _readLineFields(ExerciseDraftValues draft) {
     _speakerId = draft.speakerId;
     _lineMode = draft.lineMode;
@@ -10061,7 +10077,13 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
             },
             onChanged: (value) => _cardReadAloud = value,
             helper:
-                'The word or expression above is spoken with the Course audio mode. Read-aloud never makes the card an audio exercise.',
+                'The word or expression above is spoken with the Course audio mode, unless the field below says otherwise. Read-aloud never makes the card an audio exercise.',
+          ),
+          _field(
+            _tts,
+            'Pronunciation TTS (if different)',
+            helper:
+                'Leave empty to read the word or expression above. Enter a text only when what is spoken should differ, e.g. an abbreviation read in full.',
           ),
           _field(
             _answers,
@@ -10832,8 +10854,20 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         ];
       case 'choice':
         return [
-          _field(_prompt, 'Prompt / instruction', lines: 2),
-          _field(_question, 'Question', lines: 2),
+          _field(
+            _prompt,
+            'Prompt (optional)',
+            lines: 2,
+            helper:
+                'An optional line above the question: an instruction or some context, e.g. Pick the verb form that fits. It takes the place of the standard “Choose the correct answer.” line.',
+          ),
+          _field(
+            _question,
+            'Question or sentence to complete',
+            lines: 2,
+            helper:
+                'What the learner answers: a question, or a sentence with a gap the answers complete, e.g. Which article goes with casa?',
+          ),
           _field(_answers, 'Answers', lines: 4),
           SwitchListTile(
             key: const Key('choice-use-multi-select'),
@@ -10872,8 +10906,20 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         ];
       default:
         return [
-          _field(_prompt, 'Prompt / instruction', lines: 2),
-          _field(_question, 'Question', lines: 2),
+          _field(
+            _prompt,
+            'Prompt (optional)',
+            lines: 2,
+            helper:
+                'An optional line above the question: an instruction or some context, e.g. Pick the verb form that fits. It takes the place of the standard “Choose the correct answer.” line.',
+          ),
+          _field(
+            _question,
+            'Question or sentence to complete',
+            lines: 2,
+            helper:
+                'What the learner answers: a question, or a sentence with a gap the answers complete, e.g. Which article goes with casa?',
+          ),
           _field(_answers, 'Answers', lines: 4),
           _field(_correct, 'Correct answer number'),
         ];
@@ -11619,7 +11665,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         _hint.text = draft.hint;
         _answers.text = draft.answers;
         _useMultiSelect = draft.useMultiSelect;
-        _correct.text = draft.correct;
+        _correct.text = _initialCorrect(e, draft);
         _requiredSelections.text = draft.requiredSelections;
         _accepted.text = draft.accepted;
         _useInlineGaps = draft.useInlineGaps;

@@ -159,7 +159,7 @@ void main() {
     await tester.tap(find.text('Open Lessons'));
     await tester.pumpAndSettle();
     await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(FloatingActionButton, 'New lesson'));
+    await tester.tap(find.widgetWithText(FloatingActionButton, 'New Lesson'));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField), 'Third Lesson');
     await tester.tap(find.widgetWithText(FilledButton, 'Create'));

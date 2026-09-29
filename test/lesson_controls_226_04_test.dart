@@ -406,7 +406,7 @@ void main() {
         );
         await tester.pumpAndSettle();
         await tester.tap(
-          find.widgetWithText(FloatingActionButton, 'New lesson'),
+          find.widgetWithText(FloatingActionButton, 'New Lesson'),
         );
         await tester.pumpAndSettle();
         await tester.enterText(

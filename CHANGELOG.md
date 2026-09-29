@@ -70,6 +70,40 @@ September 2026):
 - **Story editor list.** A title block and a text-only Dialogue line are
   named by their text in the Round editor's list (their IDs were shown).
 
+Second follow-up in the same version (owner request, 29 September 2026):
+
+- **One button style on the Rounds page.** New Round is a bottom-bar
+  button beside Round Wizard and New Story, in their size and colour, no
+  longer a floating button. The editor's creation buttons share one
+  capitalization: New Lesson, New Round, New Exercise, New Canonical, Add
+  Step, Round Wizard, Exercise Wizard, New Story; Help names them the same
+  way.
+- **Choose the answer, after the owner's review.** A new single-answer
+  Choose form starts with Correct answer number 1 (as Pick the translation
+  did). The Audit warns (`CHOICE_ALL_ANSWERS_CORRECT`, 107 rules) when a
+  multiple-answer Choose marks every answer correct. The fields are
+  "Prompt (optional)", an instruction or some context above the question,
+  and "Question or sentence to complete", with grammar examples (Pick the
+  verb form that fits. / Which article goes with casa?) instead of a
+  translation. In a Round, the authored Prompt takes the place of the
+  standard "Choose the correct answer." line under the CHOOSE heading, so
+  the two no longer repeat each other; without a Prompt the standard line
+  stays. The same rule holds for Match the words, Match by meaning and
+  Match picture to word: the authored instruction is the line. Match by
+  meaning no longer gets "Match each word with its opposite." guessed
+  from its text (it takes synonyms and more). The Laboratory's
+  presentation baseline records these changes.
+- **Flashcard, revised.** The pronunciation field returns as
+  "Pronunciation TTS (if different)": empty, the read-aloud speaks the
+  word or expression itself; filled, it speaks that text instead. Read
+  aloud keeps its three choices.
+- **Missing letters.** The learner's field says "Missing letters" for a
+  gap inside a word ("Missing word" misled); Complete the text keeps
+  "Missing word".
+- **Play as a sequence.** The Round editor's switch is called Play as a
+  sequence (it was Play as a Story): a Story, with its title block,
+  narrator and characters, is what New Story builds.
+
 # 2.0.56 (Build 256, Revision 6) - Interoperability - 2026-09-28
 
 Session 7 of the exercise architecture redesign (plan Part B item 7):

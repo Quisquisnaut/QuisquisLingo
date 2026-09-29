@@ -8,7 +8,9 @@ import 'package:quisquislingo_app/models/exercise_authoring.dart';
 import 'package:quisquislingo_app/models/exercise_features.dart';
 import 'package:quisquislingo_app/screens/course_editor_screen.dart';
 import 'package:quisquislingo_app/services/audio_exercise_availability_service.dart';
+import 'package:quisquislingo_app/services/audit_code_registry.dart';
 import 'package:quisquislingo_app/services/course_audit_service.dart';
+import 'package:quisquislingo_app/services/exercise_copy_service.dart';
 import 'package:quisquislingo_app/services/exercise_draft_builder.dart';
 import 'package:quisquislingo_app/services/exercise_field_help.dart';
 import 'package:quisquislingo_app/services/exercise_search_service.dart';
@@ -554,7 +556,6 @@ void main() {
         'flashcard',
         prompt: 'buongiorno',
         question: 'good morning',
-        tts: 'ignored',
       );
       final audio = ExerciseFeatures(manual).audioElements.single;
       expect(audio.text, 'buongiorno');
@@ -562,6 +563,18 @@ void main() {
       expect(audio.isRequired, isFalse);
       expect(audio.effectivePlayback, AudioPlayback.manual);
       expect(availability.isAudioExercise(manual), isFalse);
+      // Pronunciation TTS (if different): empty while the spoken text is
+      // the word itself, kept when it differs.
+      expect(PresetRecipes.decompose(manual, 'flashcard').tts, isEmpty);
+      final different = _built(
+        'flashcard',
+        prompt: 'Dott.',
+        question: 'Doctor',
+        tts: 'dottore',
+      );
+      expect(ExerciseFeatures(different).audioElements.single.text, 'dottore');
+      expect(PresetRecipes.decompose(different, 'flashcard').tts, 'dottore');
+      expect(PresetRecipes.represents(different, 'flashcard'), isTrue);
       final automatic = _built(
         'flashcard',
         prompt: 'buongiorno',
@@ -617,8 +630,8 @@ void main() {
         find.text('Translation or meaning (source language)'),
         findsOneWidget,
       );
-      expect(find.text('Pronunciation TTS'), findsNothing);
-      expect(find.byKey(const ValueKey('exercise-field-tts')), findsNothing);
+      expect(find.text('Pronunciation TTS (if different)'), findsOneWidget);
+      expect(find.byKey(const ValueKey('exercise-field-tts')), findsOneWidget);
       final choice = find.byKey(const ValueKey('exercise-choice-readAloud'));
       expect(choice, findsOneWidget);
       await tester.enterText(
@@ -643,6 +656,88 @@ void main() {
       expect(ExerciseFeatures(exercise!).automaticAudio?.text, 'buongiorno');
       expect(ExerciseFeatures(exercise).textOf('term'), 'buongiorno');
       expect(ExerciseFeatures(exercise).textOf('meaning'), 'good morning');
+    });
+  });
+
+  group('Choose the answer (owner review)', () {
+    testWidgets('a new single-answer Choose starts with answer 1', (
+      tester,
+    ) async {
+      _bigWindow(tester);
+      await _mountForm(tester, _formExercise('choice_target'));
+      expect(find.text('Prompt (optional)'), findsOneWidget);
+      expect(find.text('Question or sentence to complete'), findsOneWidget);
+      final correct = find.byKey(const ValueKey('exercise-field-correct'));
+      expect(tester.widget<TextField>(correct).controller!.text, '1');
+    });
+
+    test('a stored Choose without a correct answer keeps its empty field', () {
+      final draft = ExerciseDraftBuilder.build(
+        ExerciseDraftValues(
+          original: _formExercise('choice_target'),
+          type: 'choice_target',
+          publicationState: PublicationState.draft,
+          question: 'Which article goes with casa?',
+          answers: 'la\nil',
+        ),
+      ).candidate!;
+      expect(PresetRecipes.decompose(draft, 'choice_target').correct, isEmpty);
+    });
+
+    test(
+      'the Audit warns when every answer of a multiple Choose is correct',
+      () {
+        Exercise build(String correct) => ExerciseDraftBuilder.build(
+          ExerciseDraftValues(
+            original: _formExercise('choice_target'),
+            type: 'choice_target',
+            publicationState: PublicationState.published,
+            useMultiSelect: true,
+            question: 'Which words are colours?',
+            answers: 'rosso\nblu',
+            correct: correct,
+          ),
+        ).candidate!;
+        List<String> codes(Exercise e) => CourseAuditService()
+            .auditExercise(e)
+            .map((issue) => issue.code)
+            .toList();
+        expect(codes(build('1, 2')), contains('CHOICE_ALL_ANSWERS_CORRECT'));
+        expect(
+          codes(build('1')),
+          isNot(contains('CHOICE_ALL_ANSWERS_CORRECT')),
+        );
+        expect(
+          AuditCodeRegistry.byCode('CHOICE_ALL_ANSWERS_CORRECT')!.severity,
+          AuditSeverity.warning,
+        );
+      },
+    );
+  });
+
+  group('Match by meaning (owner review)', () {
+    test('a Match never gets the "opposite" instruction guessed for it', () {
+      final course = Course.fromJson(
+        jsonDecode(
+              File(
+                'assets/courses/exercise_laboratory_en_it.json',
+              ).readAsStringSync(),
+            )
+            as Map<String, dynamic>,
+      );
+      final opposites = course.lessons
+          .expand((lesson) => lesson.rounds)
+          .expand((round) => round.exercises)
+          .singleWhere((e) => e.id == 'qql_lab254_match_opposites');
+      expect(ExerciseFeatures(opposites).primaryText, contains('contrario'));
+      expect(
+        ExerciseCopyService.instructionForExercise(course, opposites),
+        ExerciseCopyService.instruction(course, LearnerExerciseKind.match),
+      );
+      expect(
+        ExerciseCopyService.instructionForExercise(course, opposites),
+        isNot(contains('opposite')),
+      );
     });
   });
 

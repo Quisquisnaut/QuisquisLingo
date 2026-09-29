@@ -11,8 +11,8 @@ import 'package:quisquislingo_app/services/preset_variants.dart';
 // wrong field as well as a missing control or an unreviewed new preset.
 const _formFields = <String, Map<String, String>>{
   'choice_target': {
-    'Prompt / instruction': 'prompt',
-    'Question': 'question',
+    'Prompt (optional)': 'prompt',
+    'Question or sentence to complete': 'question',
     'Answers': 'answers',
     'Correct answer number': 'correct',
   },
@@ -21,8 +21,8 @@ const _formFields = <String, Map<String, String>>{
   'dialogue_line': {'Line': 'prompt'},
   'story_cover': {'Title line': 'prompt'},
   'choice_source': {
-    'Prompt / instruction': 'prompt',
-    'Question': 'question',
+    'Prompt (optional)': 'prompt',
+    'Question or sentence to complete': 'question',
     'Answers': 'answers',
     'Correct answer number': 'correct',
   },
@@ -132,11 +132,13 @@ const _formFields = <String, Map<String, String>>{
   'flashcard': {
     'Word or expression (target language)': 'prompt',
     'Translation or meaning (source language)': 'question',
+    'Pronunciation TTS (if different)': 'tts',
     'Usage sentence and optional translation': 'answers',
   },
   'picture_flashcard': {
     'Word or expression (target language)': 'prompt',
     'Translation or meaning (source language)': 'question',
+    'Pronunciation TTS (if different)': 'tts',
     'Usage sentence and optional translation': 'answers',
   },
   'true_false': {
@@ -286,11 +288,17 @@ void main() {
     await tester.tap(_help('prompt'));
     await _settle(tester);
     expect(
-      find.textContaining('The instruction shown to the learner.'),
+      find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.textContaining('An optional line above the question'),
+      ),
       findsOneWidget,
     );
     expect(
-      find.textContaining('How do you say this in Italian?'),
+      find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.textContaining('Pick the verb form that fits.'),
+      ),
       findsOneWidget,
     );
     var bounds = tester.getRect(find.byType(AlertDialog));
@@ -303,12 +311,21 @@ void main() {
     await tester.tap(_help('question'));
     await _settle(tester);
     expect(
-      find.textContaining(
-        'The question the learner answers, or the word or phrase to translate.',
+      find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.textContaining(
+          'What the learner answers: a question, or a sentence with a gap',
+        ),
       ),
       findsOneWidget,
     );
-    expect(find.textContaining('Good morning'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.textContaining('Which article goes with casa?'),
+      ),
+      findsOneWidget,
+    );
     bounds = tester.getRect(find.byType(AlertDialog));
     expect(bounds.left, greaterThanOrEqualTo(0));
     expect(bounds.right, lessThanOrEqualTo(320));

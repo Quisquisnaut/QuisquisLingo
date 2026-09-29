@@ -35,7 +35,7 @@ void main() {
       ],
       'word_match': ['prompt', 'pairs'],
       'super_match': ['prompt', 'pairs'],
-      'flashcard': ['prompt', 'question', 'readAloud', 'answers'],
+      'flashcard': ['prompt', 'question', 'readAloud', 'tts', 'answers'],
       'choice_target': [
         'prompt',
         'question',
@@ -90,7 +90,13 @@ void main() {
         'scriptCorrect',
       ],
       'image_word': ['prompt', 'order'],
-      'picture_flashcard': ['prompt', 'question', 'readAloud', 'answers'],
+      'picture_flashcard': [
+        'prompt',
+        'question',
+        'readAloud',
+        'tts',
+        'answers',
+      ],
       'true_false': ['question', 'tts', 'answers', 'correct'],
       'gap_choice_inline': ['prompt', 'gapLayout', 'tokens', 'tts'],
       'complete_text': ['prompt', 'missingWords'],
@@ -149,16 +155,16 @@ void main() {
     final question = help('choice_target', 'question');
     expect(
       prompt.purpose,
-      'The instruction shown to the learner. Example: How do you say this in Italian?',
+      'An optional line above the question: an instruction or some context. Example: Pick the verb form that fits.',
     );
-    expect(prompt.example, 'How do you say this in Italian?');
+    expect(prompt.example, 'Pick the verb form that fits.');
     expect(
       question.purpose,
-      'The question the learner answers, or the word or phrase to translate. Example: Good morning',
+      'What the learner answers: a question, or a sentence with a gap the answers complete. Example: Which article goes with casa?',
     );
-    expect(question.example, 'Good morning');
-    expect(prompt.text, contains('Example\nHow do you say this in Italian?'));
-    expect(question.text, contains('Example\nGood morning'));
+    expect(question.example, 'Which article goes with casa?');
+    expect(prompt.text, contains('Example\nPick the verb form that fits.'));
+    expect(question.text, contains('Example\nWhich article goes with casa?'));
   });
 
   test('concise examples clarify common field formats', () {

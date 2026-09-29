@@ -92,12 +92,11 @@ class ExerciseCopyService {
         prompt.contains('tegenstell') ||
         prompt.contains('vastakoht') ||
         prompt.contains('croes')) {
+      // A Match keeps its generic line (owner decision, 29 September 2026):
+      // Match by meaning takes opposites, synonyms and more, and an authored
+      // instruction is drawn in the line's place anyway.
       if (kind == LearnerExerciseKind.select) {
         return c['instruction.select_opposite'] ?? instruction(course, kind);
-      }
-      if (kind == LearnerExerciseKind.match ||
-          kind == LearnerExerciseKind.matchTranslation) {
-        return c['instruction.match_opposite'] ?? instruction(course, kind);
       }
     }
     return instruction(course, kind);
@@ -187,7 +186,6 @@ class ExerciseCopyService {
     'instruction.selectComplete':
         'Choose the block that best completes the sentence.',
     'instruction.select_opposite': 'Choose the opposite.',
-    'instruction.match_opposite': 'Match each word with its opposite.',
     'instruction.arrangeSentence': 'Put the words in the correct order.',
     'instruction.arrangeLines': 'Put the sentences in the correct order.',
     'instruction.arrangeWord': 'Build the word shown in the image.',
@@ -256,7 +254,6 @@ class ExerciseCopyService {
     'instruction.selectComplete':
         'Elige el bloque que mejor completa la frase.',
     'instruction.select_opposite': 'Elige el contrario.',
-    'instruction.match_opposite': 'Relaciona cada palabra con su contrario.',
     'instruction.arrangeSentence': 'Pon las palabras en el orden correcto.',
     'instruction.arrangeLines': 'Pon las frases en el orden correcto.',
     'instruction.arrangeWord': 'Forma la palabra que aparece en la imagen.',
@@ -329,7 +326,6 @@ class ExerciseCopyService {
     'instruction.selectComplete':
         'Scegli il blocco che completa meglio la frase.',
     'instruction.select_opposite': 'Scegli il contrario.',
-    'instruction.match_opposite': 'Abbina ogni parola al suo contrario.',
     'instruction.arrangeSentence': 'Metti le parole nell’ordine corretto.',
     'instruction.arrangeLines': 'Metti le frasi nell’ordine corretto.',
     'instruction.arrangeWord': 'Componi la parola mostrata nell’immagine.',
@@ -404,7 +400,6 @@ class ExerciseCopyService {
     'instruction.selectComplete':
         'Wähle den Baustein, der den Satz am besten ergänzt.',
     'instruction.select_opposite': 'Wähle das Gegenteil.',
-    'instruction.match_opposite': 'Ordne jedes Wort seinem Gegenteil zu.',
     'instruction.arrangeSentence':
         'Bringe die Wörter in die richtige Reihenfolge.',
     'instruction.arrangeLines': 'Bringe die Sätze in die richtige Reihenfolge.',
@@ -479,7 +474,6 @@ class ExerciseCopyService {
     'instruction.selectComplete':
         'Escolha o bloco que melhor completa a frase.',
     'instruction.select_opposite': 'Escolha o oposto.',
-    'instruction.match_opposite': 'Associe cada palavra ao seu oposto.',
     'instruction.arrangeSentence': 'Coloque as palavras na ordem correta.',
     'instruction.arrangeLines': 'Coloque as frases na ordem correta.',
     'instruction.arrangeWord': 'Forme a palavra mostrada na imagem.',
@@ -550,7 +544,6 @@ class ExerciseCopyService {
     'instruction.inputComplete': 'Kies het woord dat de zin aanvult.',
     'instruction.selectComplete': 'Kies het blok dat de zin het best aanvult.',
     'instruction.select_opposite': 'Kies het tegenovergestelde.',
-    'instruction.match_opposite': 'Koppel elk woord aan het tegenovergestelde.',
     'instruction.arrangeSentence': 'Zet de woorden in de juiste volgorde.',
     'instruction.arrangeLines': 'Zet de zinnen in de juiste volgorde.',
     'instruction.arrangeWord': 'Maak het woord dat op de afbeelding staat.',
@@ -621,7 +614,6 @@ class ExerciseCopyService {
     'instruction.selectComplete':
         'Valitse lohko, joka täydentää lauseen parhaiten.',
     'instruction.select_opposite': 'Valitse vastakohta.',
-    'instruction.match_opposite': 'Yhdistä jokainen sana vastakohtaansa.',
     'instruction.arrangeSentence': 'Laita sanat oikeaan järjestykseen.',
     'instruction.arrangeLines': 'Laita lauseet oikeaan järjestykseen.',
     'instruction.arrangeWord': 'Muodosta kuvassa näkyvä sana.',
@@ -693,7 +685,6 @@ class ExerciseCopyService {
     'instruction.selectComplete':
         'Dewiswch y bloc sy’n cwblhau’r frawddeg orau.',
     'instruction.select_opposite': 'Dewiswch y gwrthwyneb.',
-    'instruction.match_opposite': 'Parwch bob gair â’i wrthwyneb.',
     'instruction.arrangeSentence': 'Rhowch y geiriau yn y drefn gywir.',
     'instruction.arrangeLines': 'Rhowch y brawddegau yn y drefn gywir.',
     'instruction.arrangeWord': 'Ffurfiwch y gair a ddangosir yn y ddelwedd.',

@@ -16,6 +16,7 @@ enum ExerciseAuthoringField {
   listeningTranscript,
   audioText,
   cardReadAloud,
+  pronunciationTts,
   hint,
   choices,
   correctAnswer,
@@ -135,7 +136,7 @@ abstract final class ExerciseFieldHelpRegistry {
       ],
       'word_match': ['prompt', 'pairs'],
       'super_match': ['prompt', 'pairs'],
-      'flashcard': ['prompt', 'question', 'readAloud', 'answers'],
+      'flashcard': ['prompt', 'question', 'readAloud', 'tts', 'answers'],
       'choice_target': [
         'prompt',
         'question',
@@ -190,7 +191,13 @@ abstract final class ExerciseFieldHelpRegistry {
         'scriptCorrect',
       ],
       'image_word': ['prompt', 'order'],
-      'picture_flashcard': ['prompt', 'question', 'readAloud', 'answers'],
+      'picture_flashcard': [
+        'prompt',
+        'question',
+        'readAloud',
+        'tts',
+        'answers',
+      ],
       'true_false': ['question', 'tts', 'answers', 'correct'],
       'gap_choice_inline': ['prompt', 'gapLayout', 'tokens', 'tts'],
       'complete_text': ['prompt', 'missingWords'],
@@ -242,26 +249,26 @@ abstract final class ExerciseFieldHelpRegistry {
   static ExerciseFieldHelp forEditorField(String presetId, String fieldKey) {
     if (_isChoice(presetId) && fieldKey == 'prompt') {
       return const ExerciseFieldHelp(
-        title: 'Prompt',
+        title: 'Prompt (optional)',
         purpose:
-            'The instruction shown to the learner. Example: How do you say this in Italian?',
+            'An optional line above the question: an instruction or some context. Example: Pick the verb form that fits.',
         entryRules:
-            'Enter the instruction here; put the word or phrase to translate in Question.',
+            'One line, or nothing. In a Round it takes the place of the standard “Choose the correct answer.” line under the CHOOSE heading; leave it empty to keep that line. The question or sentence goes in its own field.',
         validation:
-            'Keep the instruction consistent with the question and answer choices.',
-        example: 'How do you say this in Italian?',
+            'Optional. Keep it consistent with the question and the answers.',
+        example: 'Pick the verb form that fits.',
       );
     }
     if (_isChoice(presetId) && fieldKey == 'question') {
       return const ExerciseFieldHelp(
-        title: 'Question',
+        title: 'Question or sentence to complete',
         purpose:
-            'The question the learner answers, or the word or phrase to translate. Example: Good morning',
+            'What the learner answers: a question, or a sentence with a gap the answers complete. Example: Which article goes with casa?',
         entryRules:
-            'Enter the source-language word or phrase separately from the instruction in Prompt.',
+            'Enter one question, or one sentence with ___ where the answer fits; an instruction or context goes in Prompt.',
         validation:
-            'Provide matching target-language answer choices and mark exactly one correct.',
-        example: 'Good morning',
+            'Required. Provide matching answers and mark the correct one (or several with Multiple correct answers).',
+        example: 'Which article goes with casa?',
       );
     }
     if ((presetId.startsWith('listening_answer') ||
@@ -477,6 +484,8 @@ abstract final class ExerciseFieldHelpRegistry {
       _ => ExerciseAuthoringField.question,
     },
     'tts' => switch (presetId) {
+      'flashcard' ||
+      'picture_flashcard' => ExerciseAuthoringField.pronunciationTts,
       'spell_heard' => ExerciseAuthoringField.spokenWord,
       _ => ExerciseAuthoringField.audioText,
     },
@@ -716,11 +725,21 @@ abstract final class ExerciseFieldHelpRegistry {
           'Listening exercises require non-empty audio text. For contextual comprehension, supply the text/audio context selected by Context mode. Preview playback and review missing recorded mappings in Audit.',
       example: 'Vorrei un caffè, per favore.',
     ),
+    ExerciseAuthoringField.pronunciationTts => const ExerciseFieldHelp(
+      title: 'Pronunciation TTS (if different)',
+      purpose:
+          'What the read-aloud speaks when it should differ from the word or expression.',
+      entryRules:
+          'Leave empty: the read-aloud speaks the word or expression above. Enter a text only when the spoken form differs, for example an abbreviation read in full. No recording path; recordings are managed in Course Audio Library.',
+      validation:
+          'Optional. When given, the Course audio mode must be able to play it.',
+      example: 'dottore (for the abbreviation Dott.)',
+    ),
     ExerciseAuthoringField.cardReadAloud => const ExerciseFieldHelp(
       title: 'Read aloud',
       purpose: 'Whether and when the word or expression is spoken.',
       entryRules:
-          'Automatically (when the card appears), On request (the learner taps the speaker) or No read-aloud. The spoken text is the word or expression itself, played with the Course audio mode (On-Device TTS, Recorded MP3 or Hybrid).',
+          'Automatically (when the card appears), On request (the learner taps the speaker) or No read-aloud. The spoken text is the word or expression itself, unless Pronunciation TTS (if different) says otherwise, played with the Course audio mode (On-Device TTS, Recorded MP3 or Hybrid).',
       validation:
           'None. Read-aloud never makes the card an audio exercise: the card is shown when Audio Exercises are off.',
       example: 'On request',

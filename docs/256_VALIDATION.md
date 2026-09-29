@@ -64,6 +64,29 @@ held for the run and cleared afterwards).
 - `dart format` clean on every changed Dart file.
 - Complete suite on the final tree: **3238 passed, 1 skipped, 0 failed** (01:56–02:23, keep-awake wrapper).
 
+## Revision 7 second follow-up (same version), 29 September 2026
+
+- Owner requests: the Rounds page's New round button in the size and
+  colour of Round Wizard and New Story, one capitalization style; then the
+  Choose the answer decisions (Correct answer number 1 on a new single-answer
+  form, the Audit warning when every answer is correct, "Prompt (optional)"
+  and "Question or sentence to complete" with grammar examples, the Prompt
+  replacing the generic "Choose the correct answer." line); Match by
+  meaning without the guessed "opposite" line; the Flashcard's
+  Pronunciation TTS (if different) field; Missing letters' field label;
+  Play as a sequence. The owner asked to stop the first complete suite
+  and apply the changes first.
+- Focused batch, run 1 (38 files): 9 failures, all test pins or the new
+  test itself (the Help texts now also on the form's helpers, so the
+  finders are scoped to the dialog; the Choose default pinned by the
+  Pick the translation test; a not-executable card must still show its
+  prompt; three more files naming the old Prompt label; the multiple-answer
+  field keeps the 1). Run 2: 454 passed, 1 failed (the Preview-roles test still typing into "Question"; its label updated), then the two files green (field guidance, the follow-up test).
+- `flutter analyze`: no issues.
+- Laboratory presentation baseline: recorded for the 126 examples and rebuilt: 15 records changed deliberately (the Choose examples with a prompt, the inline-gap ones included, and the Match examples: the authored prompt is the instruction line and no longer the prompt text; Match by meaning without the guessed opposite line), no other change (the `true`/`false` lines are the rebuild's parse artifact).
+- `dart format` clean on every changed Dart file.
+- Complete suite on the final tree: **3242 passed, 1 skipped, 0 failed** (08:03–08:32, keep-awake wrapper).
+
 ## Revision 6 (2.0.56+256006): Interoperability, 28 September 2026
 
 - Stage 1 (support states in the model, playability, Duel, Audit, import

@@ -391,6 +391,14 @@ enum AuditCode {
     'Options are duplicated after trimming and ignoring case (for Pick the translation, also ignoring extra spaces and final punctuation).',
     'Use distinct options or review any intentional equivalence.',
   ),
+  choiceAllAnswersCorrect(
+    'CHOICE_ALL_ANSWERS_CORRECT',
+    AuditSeverity.warning,
+    'Exercise: Select',
+    'Every answer is correct.',
+    'A Choose with several correct answers marks every answer correct, so the learner has nothing to reject.',
+    'Add at least one wrong answer, or mark fewer answers correct.',
+  ),
   placeholderAnswer(
     'PLACEHOLDER_ANSWER',
     AuditSeverity.error,
@@ -813,7 +821,7 @@ enum AuditCode {
     'Exercise: Dialogue line',
     'A Dialogue line sits in a Round that is not a Story.',
     'The Round has no flow, so the line plays as a plain card.',
-    'Turn on Play as a Story in the Round editor, or use a Note card.',
+    'Turn on Play as a sequence in the Round editor, or use a Note card.',
   ),
   assignStructureRequired(
     'ASSIGN_STRUCTURE_REQUIRED',

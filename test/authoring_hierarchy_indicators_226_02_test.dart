@@ -787,9 +787,9 @@ void main() {
       await tester.tap(find.byKey(const Key('lesson-rounds-navigation')));
       await tester.pumpAndSettle();
       expect(find.byType(LessonRoundsScreen), findsOneWidget);
-      expect(find.text('New round'), findsOneWidget);
+      expect(find.text('New Round'), findsOneWidget);
       expect(find.byKey(const Key('round-draft-indicator')), findsNothing);
-      await tester.tap(find.text('New round'));
+      await tester.tap(find.text('New Round'));
       await tester.pumpAndSettle();
       final titleField = find.descendant(
         of: find.byType(AlertDialog),

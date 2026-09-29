@@ -137,6 +137,68 @@ negative and semantic-equality tests, the final verification.
   an audio exercise; the Round's "Before you start" card stays Round
   content (no interactive-presentation primitive).
 
+### Second follow-up in the same version (owner request, 29 September 2026)
+
+- `lib/screens/course_editor_screen.dart`: the Rounds page's New Round is
+  a `FilledButton.icon` (`rounds-new-round`, `_compactButtonStyle`) first
+  in the bottom bar beside Round Wizard and New Story; the floating button
+  is gone. The editor's creation buttons and their dialog titles share
+  Title Case: New Lesson, New Round, New Exercise, New Canonical, Add Step
+  (the wizards and New Story already were).
+- Help EN/IT/ES: the button names in the Exercise Wizard, Stories,
+  canonical editor and supplement texts.
+- Tests: the finders and pins of `authoring_hierarchy_indicators_226_02_test`,
+  `exercise_workflow_226_02_test`, `lesson_metadata_and_icon_test`,
+  `new_course_structure_226_04_test`, `production_course_transaction_225_04_test`,
+  `course_editor_224_test`, `lesson_controls_226_04_test`,
+  `course_editor_layout_regression_test`, `localization_catalog_test`,
+  `revision3_followup_256_test` (New Round by key; the labels).
+- Not changed: the save buttons (Save, Save as draft, Preview, Confirm
+  course changes) keep their wording.
+- Flashcard, revised on the owner's second reading: the field
+  "Pronunciation TTS (if different)" (`ExerciseAuthoringField.pronunciationTts`
+  again, `editorFieldKeys` `tts` after `readAloud`, Help EN/IT/ES
+  `exerciseHelp.field.flashcard.tts.body`); `_cardSpokenText` in the draft
+  builder speaks the field's text when given, else the word;
+  `PresetRecipes.decompose` shows the field empty while the audio text is
+  the term, so a card whose spoken text differs is represented again.
+- `lib/screens/round_screen.dart` `_gapsInWord` / `_gapFieldLabel`: a gap
+  inside a word is labelled "Missing letters" (numbered when several);
+  `_missingWordDisplay` shares the rule.
+- "Play as a sequence": the Round editor's switch label
+  (`round-story-switch` unchanged), the Help EN/IT/ES, the Audit remedy
+  and the in-editor Help name it so; the Story options under it, the
+  derived "Story:" label and the Story Audit rules are unchanged (open
+  question for the owner: whether a sequence should carry them).
+- Choose the answer (owner decisions of the same day):
+  `lib/screens/course_editor_screen.dart` `_initialCorrect` (a new
+  single-answer Select form starts with `1`; stored exercises and the
+  multiple-answer field unchanged), the `choice` and default forms' labels
+  "Prompt (optional)" / "Question or sentence to complete" with helpers;
+  `lib/services/audit_code_registry.dart` `CHOICE_ALL_ANSWERS_CORRECT`
+  (Warning; 107 rules, 41 Warnings) and `course_audit_service.dart` (a
+  multiple-selection Select whose every item is correct);
+  `lib/services/exercise_field_help.dart` (the Choose prompt and question
+  Help with the grammar examples), `lib/models/exercise_authoring.dart`
+  (`helpByPreset`), Help EN/IT/ES (`exerciseHelp.field.choice.prompt` /
+  `question`, `choice_source.question`, the two preset bodies);
+  `lib/screens/round_screen.dart` `_promptShown` / `_promptAsInstruction`:
+  a plain Choose's or a Match's authored prompt is drawn as the instruction
+  line (`exercise-instruction`) and not again as `exercise-prompt-text`;
+  `lib/services/exercise_copy_service.dart` no longer guesses "Match each
+  word with its opposite." from a Match's text (`instruction.match_opposite`
+  removed in the eight languages; Match by meaning takes synonyms and more;
+  the Choose guess "Choose the opposite." stays for a Choose without a
+  Prompt). Tests:
+  the label pins (`audit_issue_save_propagation`, `canonical_authoring_route_245`,
+  `field_guidance_226_03_r1`, `production_course_transaction_225_04`,
+  `provisional_parent_save_ui`,
+  `course_hierarchy_route_245`, `editor_diagnostics`, `exercise_workflow`,
+  the field-help tests), the registry counts, three checks in
+  `revision7_followup_256_test`; the Laboratory presentation baseline
+  re-recorded (five Choose records change deliberately: their prompt is
+  the instruction).
+
 ## Revision 6 (2.0.56+256006, 28 September 2026): Interoperability
 
 Session 7 (plan Part B item 7). Support states at runtime (A.6), the

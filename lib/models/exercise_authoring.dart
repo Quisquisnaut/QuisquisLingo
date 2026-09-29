@@ -566,7 +566,7 @@ abstract final class ExercisePresetRegistry {
       id: 'adventure',
       name: 'Adventure (branching story)',
       description:
-          'A Round whose next step depends on the answer. Play as a Story in the Round editor already plays a linear story.',
+          'A Round whose next step depends on the answer. Play as a sequence in the Round editor already plays a linear story.',
       reason: 'branching flows are stored and checked but not playable yet.',
       action: 'Story',
     ),
@@ -592,11 +592,11 @@ abstract final class ExercisePresetRegistry {
     'super_match':
         'The learner matches related target-language items such as synonyms, opposites or a word and its definition. Provide exactly three text pairs, one per line as left = right.',
     'flashcard':
-        'The learner sees a target-language word or expression, its source-language translation and an optional usage example, hears the word when read-aloud is on, then chooses Got it or Review again. Choose Automatically, On request or No read-aloud; the spoken text is the word itself. Read-aloud never makes the card an audio exercise.',
+        'The learner sees a target-language word or expression, its source-language translation and an optional usage example, hears the word when read-aloud is on, then chooses Got it or Review again. Choose Automatically, On request or No read-aloud; the spoken text is the word itself unless Pronunciation TTS (if different) says otherwise. Read-aloud never makes the card an audio exercise.',
     'choice_target':
-        'The learner reads a target-language question and chooses the right answer among target-language text alternatives: a translation, but just as well a grammar form, a cultural fact or a meaning. Provide the question, at least two answers and the correct answer number; an optional picture or spoken text may support the question.',
+        'The learner reads a question, or a sentence to complete, and chooses the right answer among target-language text alternatives: a grammar form, a cultural fact, a meaning, a translation. Provide the question, at least two answers and the correct answer number (a new exercise starts with 1); an optional Prompt line, an instruction or some context, is shown above the question instead of the standard “Choose the correct answer.” line; an optional picture or spoken text may support the question.',
     'choice_source':
-        'The learner reads a source-language question and chooses the right answer among source-language text alternatives: grammar, culture or meaning explained in their own language. Provide the question, at least two answers and the correct answer number.',
+        'The learner reads a question, or a sentence to complete, written in the source language and chooses the right answer among source-language text alternatives: grammar, culture or meaning explained in their own language. Provide the question, at least two answers and the correct answer number (a new exercise starts with 1); an optional Prompt line is shown above the question instead of the standard “Choose the correct answer.” line.',
     'gap_choice':
         'The learner sees a sentence containing ___ and chooses the missing word or expression. Provide one text gap, answer blocks and one correct answer. Use exactly one gap where possible and make only one option grammatically and semantically correct.',
     'type_missing_word':
@@ -624,7 +624,7 @@ abstract final class ExercisePresetRegistry {
     'image_word':
         'The learner sees an image and orders letter or syllable blocks to form its word. Provide an image and the blocks of the word in order, one per line; the learner gets exactly those blocks, shuffled.',
     'picture_flashcard':
-        'The learner sees a picture with its target-language word and source-language translation, an optional usage example with its translation, and hears the word when read-aloud is on. The picture is required; the read-aloud (Automatically, On request or none) speaks the word itself and never makes the card an audio exercise.',
+        'The learner sees a picture with its target-language word and source-language translation, an optional usage example with its translation, and hears the word when read-aloud is on. The picture is required; the read-aloud (Automatically, On request or none) speaks the word itself, or Pronunciation TTS (if different), and never makes the card an audio exercise.',
     'true_false':
         'The learner reads a statement in the target language, optionally hears it, and answers true or false. Provide the statement, the two answers in the source language (prefilled True and False) and the correct one.',
     'gap_choice_inline':
@@ -658,6 +658,6 @@ abstract final class ExercisePresetRegistry {
     'dialogue_line':
         'One line of a Story. Choose who speaks (the narrator or a Story character of the Course), write the line, and choose whether the learner reads it, hears it or both; read-aloud follows the Story unless the line overrides it. A line is never skipped: without audio the learner reads it. No answer, no score; Continue moves on.',
     'story_cover':
-        'The first card of a Story: the cover picture and an optional title line under the Story title. Continue moves on. Build Stories with New Story on the Rounds page or with Play as a Story in the Round editor.',
+        'The first card of a Story: the cover picture and an optional title line under the Story title. Continue moves on. Build Stories with New Story on the Rounds page or with Play as a sequence in the Round editor.',
   };
 }

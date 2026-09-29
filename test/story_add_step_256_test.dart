@@ -272,7 +272,7 @@ void main() {
       );
       expect(
         _steps(tester),
-        'No title block yet: add it with Add step · Dialogue lines: 1 · Exercises: 1.',
+        'No title block yet: add it with Add Step · Dialogue lines: 1 · Exercises: 1.',
       );
       await _tap(tester, find.byKey(const Key('round-add-step')));
       expect(_titleChoice(tester).enabled, isTrue);

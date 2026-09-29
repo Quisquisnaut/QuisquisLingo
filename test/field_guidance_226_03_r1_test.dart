@@ -42,10 +42,10 @@ void main() {
       await _hoverHelp(tester, 'choice_target', 'question');
       await _enter(
         tester,
-        'Prompt / instruction',
+        'Prompt (optional)',
         'How do you say this in Italian?',
       );
-      await _enter(tester, 'Question', 'Good morning');
+      await _enter(tester, 'Question or sentence to complete', 'Good morning');
       final original = jsonEncode(source.toJson());
       final preferences = await workflow.preferences();
       await workflow.tapKey(tester, 'exercise-preview');

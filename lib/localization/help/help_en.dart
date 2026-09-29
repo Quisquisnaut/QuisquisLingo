@@ -74,10 +74,10 @@ const Map<String, String> helpEn = <String, String>{
       r'''Open a Lesson's Rounds page and press Round Wizard in its bottom bar, beside New Story (greyed out while Use GuideBook is off in the Course Editor's Lesson Options). The generator uses only vocabulary pairs and examples in that Lesson GuideBook; at least three usable target/source pairs are required. Choose 1–12 Rounds and 1–15 Exercises per Round (defaults: 6 and 8). Review the count, total, normalized progressive-difficulty curve and planned registry presets before generation. Early drafts emphasize guided recognition with fewer distractors, middle drafts add construction and context, and later drafts add freer production. Generated Rounds remain drafts: edit, preview, delete or regenerate them, then explicitly approve them to append fresh-ID copies after existing Rounds. Generation cannot guarantee pedagogical correctness, so every Round and Exercise requires human review.''',
   'editorHelp.exerciseCreationWizard.title': r'''Exercise Wizard''',
   'editorHelp.exerciseCreationWizard.body':
-      r'''In a Round, Exercise Wizard sits beside New exercise and New canonical (in a Story, Add step replaces the three). Choose 1–30 Exercises and select Balanced mix, Random mix, one or more categories, exact exercise types, or an ordered repeating pattern. The reviewed plan creates no Exercise objects. After confirmation, each planned step opens the ordinary preset-specific Exercise editor. Save validates and stays on the step; Preview returns to the same draft without copying or advancing; Next validates and advances one step; Finish returns the created Exercises in plan order. If you cancel after explicitly saving work, confirm whether to keep only those valid saved Exercises. Future and invalid placeholders are never inserted.''',
+      r'''In a Round, Exercise Wizard sits beside New Exercise and New Canonical (in a Story, Add Step replaces the three). Choose 1–30 Exercises and select Balanced mix, Random mix, one or more categories, exact exercise types, or an ordered repeating pattern. The reviewed plan creates no Exercise objects. After confirmation, each planned step opens the ordinary preset-specific Exercise editor. Save validates and stays on the step; Preview returns to the same draft without copying or advancing; Next validates and advances one step; Finish returns the created Exercises in plan order. If you cancel after explicitly saving work, confirm whether to keep only those valid saved Exercises. Future and invalid placeholders are never inserted.''',
   'editorHelp.storiesAndStoryWizard.title': r'''Stories and New Story''',
   'editorHelp.storiesAndStoryWizard.body':
-      r'''A Story is a Round played in order: a cover, dialogue lines said by the narrator or by a character, and exercises about them. On a Lesson's Rounds page, New Story (it needs no GuideBook; beside Round Wizard) asks for the Story title, its cover picture and whether lines are read aloud automatically or on request (A), shows the narrator (B) and the characters of the Course (C), where you add or edit them, then builds the steps: Add line opens a short form (speaker, line, text and audio or one of them, read-aloud, whether the text waits for the audio); Add exercise offers the presets a Story may use and opens the ordinary exercise form, and Save or Cancel returns to the builder. Finish needs at least one line and creates the Round, called “Story: <title>”, in the Course working copy: the Course confirmation still decides. In the Round editor, Play as a Story shows the Story title, Step by step or Scrolling, the scroll log (Dialogue only keeps just the lines; Everything keeps the exercises too) and Read-aloud; “Needs the Story’s audio” in an exercise’s menu marks an exercise that only makes sense with the audio, skipped like the listening exercises when Audio Exercises is off. Lines are never skipped: without audio the learner reads them. In a Story, Add step replaces New exercise, New canonical and Exercise Wizard: choose Title block (the cover, one per Story: greyed out once the Story has it, placed first), Dialogue line (the same short form) or Exercise (the presets a Story may use); a Story has one title block and at least one Dialogue line, and the Story options count its steps. The narrator and the characters are Course data, edited under Story characters on the Course Editor page: name, avatar (a bundled figure, none, or your own picture cropped to a square and stored with the Course), language and voice preference (any, male or female, matched against the device voices; a miss never blocks speech). A character that lines still name cannot be removed. Only the exercises score; a Story keeps the XP, completion and Laurel rules of a practice Round, and its exercises stay out of the Duel.''',
+      r'''A Story is a Round played in order: a cover, dialogue lines said by the narrator or by a character, and exercises about them. On a Lesson's Rounds page, New Story (it needs no GuideBook; beside Round Wizard) asks for the Story title, its cover picture and whether lines are read aloud automatically or on request (A), shows the narrator (B) and the characters of the Course (C), where you add or edit them, then builds the steps: Add line opens a short form (speaker, line, text and audio or one of them, read-aloud, whether the text waits for the audio); Add exercise offers the presets a Story may use and opens the ordinary exercise form, and Save or Cancel returns to the builder. Finish needs at least one line and creates the Round, called “Story: <title>”, in the Course working copy: the Course confirmation still decides. In the Round editor, Play as a sequence shows the Story title, Step by step or Scrolling, the scroll log (Dialogue only keeps just the lines; Everything keeps the exercises too) and Read-aloud; “Needs the Story’s audio” in an exercise’s menu marks an exercise that only makes sense with the audio, skipped like the listening exercises when Audio Exercises is off. Lines are never skipped: without audio the learner reads them. In a Story, Add Step replaces New Exercise, New Canonical and Exercise Wizard: choose Title block (the cover, one per Story: greyed out once the Story has it, placed first), Dialogue line (the same short form) or Exercise (the presets a Story may use); a Story has one title block and at least one Dialogue line, and the Story options count its steps. The narrator and the characters are Course data, edited under Story characters on the Course Editor page: name, avatar (a bundled figure, none, or your own picture cropped to a square and stored with the Course), language and voice preference (any, male or female, matched against the device voices; a miss never blocks speech). A character that lines still name cannot be removed. Only the exercises score; a Story keeps the XP, completion and Laurel rules of a practice Round, and its exercises stay out of the Duel.''',
   'editorHelp.duplicateCopyMoveExercises.title':
       r'''Duplicate, Copy and Move exercises''',
   'editorHelp.duplicateCopyMoveExercises.body':
@@ -385,10 +385,10 @@ Remove from my courses, in the Selector or Course Studio, removes the course onl
   'technical.exercisePrimitives.canonicalEditor.title':
       r'''The canonical editor''',
   'technical.exercisePrimitives.canonicalEditor.body':
-      r'''The canonical editor (Round editor: New canonical; preset picker: Every primitive) shows every canonical field of any primitive with the values the capability registry allows: Primitive, Options, Prompt, Items, Targets, Layout, Evaluation by mode, Feedback and hint. It says whether this version can play the exercise, refuses the combinations the registry refuses, previews with the learner runtime and saves like a preset form (Save as draft, or Save with the Audit). An exercise that no preset represents opens there.''',
+      r'''The canonical editor (Round editor: New Canonical; preset picker: Every primitive) shows every canonical field of any primitive with the values the capability registry allows: Primitive, Options, Prompt, Items, Targets, Layout, Evaluation by mode, Feedback and hint. It says whether this version can play the exercise, refuses the combinations the registry refuses, previews with the learner runtime and saves like a preset form (Save as draft, or Save with the Audit). An exercise that no preset represents opens there.''',
   'technical.exercisePrimitives.stories.title': r'''Stories''',
   'technical.exercisePrimitives.stories.body':
-      r'''A Story is a Round with a content flow. Play as a Story in the Round editor gives the Round a linear flow: its exercises play in the authored order, unshuffled and without a mistake review; XP, completion, Laurels and Review work as in a practice Round. Editing, moving, copying and duplicating a Story keeps its flow. Branching flows (onCorrect, onIncorrect, onChoice, conditional) are stored and checked but are not playable in this version. A Story is shown Step by step (one item per page) or Scrolling (finished items stay on the page with the learner's answer, the next item appears below and the page scrolls to it), chosen under the Story switch. Build 256 Revision 5 adds the Dialogue line and Story cover presets, the Story title, scroll log and read-aloud options, exercises marked as needing the Story’s audio, the narrator and characters as Course data (storyNarrator, storyCharacters, speakerId on elements, the textReveal option) and the Story Wizard; see Stories and the Story Wizard in the Editor Help.''',
+      r'''A Story is a Round with a content flow. Play as a sequence in the Round editor gives the Round a linear flow: its exercises play in the authored order, unshuffled and without a mistake review; XP, completion, Laurels and Review work as in a practice Round. Editing, moving, copying and duplicating a Story keeps its flow. Branching flows (onCorrect, onIncorrect, onChoice, conditional) are stored and checked but are not playable in this version. A Story is shown Step by step (one item per page) or Scrolling (finished items stay on the page with the learner's answer, the next item appears below and the page scrolls to it), chosen under the Story switch. Build 256 Revision 5 adds the Dialogue line and Story cover presets, the Story title, scroll log and read-aloud options, exercises marked as needing the Story’s audio, the narrator and characters as Course data (storyNarrator, storyCharacters, speakerId on elements, the textReveal option) and the Story Wizard; see Stories and the Story Wizard in the Editor Help.''',
   'technical.jsonStructure.title': r'''JSON data structure''',
   'technical.jsonStructure.status.title': r'''Status''',
   'technical.jsonStructure.status.body':
@@ -751,7 +751,7 @@ Dummy testing requires no approval request to a real publisher. All dummy releas
   'exerciseHelp.comingLater': r'''In a later version:''',
   'exerciseHelp.supplement.canonicalEditor.title': r'''Canonical editor''',
   'exerciseHelp.supplement.canonicalEditor.body':
-      r'''Two ways to create an exercise. New exercise: ready preset forms for the most common exercise types; pick one, fill in a few fields, save. New canonical: the basic structure of any exercise, edited directly; powerful, sometimes complex. Every preset form writes ordinary canonical data. The canonical editor (Round editor: New canonical; preset picker: Every primitive) shows all of it for any primitive: options, prompt elements with roles and languages, items, targets, layout, the evaluation mode with its answer data, feedback and hint, and says whether this version can play the result. An exercise that no preset represents exactly opens there; the preset form shows it read-only and offers Open. See Exercise primitives in QQL Guide for the definitions.''',
+      r'''Two ways to create an exercise. New Exercise: ready preset forms for the most common exercise types; pick one, fill in a few fields, save. New Canonical: the basic structure of any exercise, edited directly; powerful, sometimes complex. Every preset form writes ordinary canonical data. The canonical editor (Round editor: New Canonical; preset picker: Every primitive) shows all of it for any primitive: options, prompt elements with roles and languages, items, targets, layout, the evaluation mode with its answer data, feedback and hint, and says whether this version can play the result. An exercise that no preset represents exactly opens there; the preset form shows it read-only and offers Open. See Exercise primitives in QQL Guide for the definitions.''',
   'exerciseHelp.supplement.answerVariants.title': r'''Answer variants''',
   'exerciseHelp.supplement.answerVariants.body':
       r'''Multiple complete equivalent answers may be entered on separate lines. Compact syntax is optional: {Io} makes “Io” optional; [prendo|vorrei] chooses one independent alternative; and (non arrivo <> oggi) swaps only declared phrase parts. Grouped alternatives use *: to link by position: [*:il|i] [*:tuo|tuoi] [*:denaro|soldi] accepts “il tuo denaro” and “i tuoi soldi”, never “il tuoi soldi” or “i tuo denaro”. Two or more linked groups are required and every linked group must have the same number of alternatives. Linked groups compose with {}, ordinary [] and valid <> scopes. During reordering, terminal punctuation stays at the final sentence end. Expansion is deterministic, removes duplicates, and rejects malformed syntax or more than 128 variants instead of truncating.''',
@@ -855,9 +855,9 @@ Question and Context are separate. Context can be text, audio, or both. Dialogue
   'exerciseHelp.preset.flashcard.description':
       r'''Presents learning material without an ordinary scored answer.''',
   'exerciseHelp.preset.choice_target.body':
-      r'''The learner reads a question and chooses the right answer among text alternatives in the target language; the question itself may be in either language. The question can be anything a course needs: a translation, a grammar form, a cultural fact, a meaning. Provide a clear question, at least two text answers and one correct answer (or several, with the several-answers switch). Optional prompt audio or a picture can support the question. Keep distractors plausible but clearly wrong. The twin Choose the answer (to source) asks and answers in the source language.''',
+      r'''The learner reads a question, or a sentence to complete, and chooses the right answer among text alternatives in the target language; the question itself may be in either language. It can be anything a course needs: a grammar form, a cultural fact, a meaning, a translation. Provide the question, at least two text answers and one correct answer (a new exercise starts with answer 1; several are possible with Multiple correct answers, and the Audit warns when every answer is correct). An optional Prompt line, an instruction or some context, is shown above the question instead of the standard “Choose the correct answer.” line. Optional prompt audio or a picture can support the question. Keep distractors plausible but clearly wrong. The twin Choose the answer (to source) asks and answers in the source language.''',
   'exerciseHelp.preset.choice_source.body':
-      r'''The learner reads a question written in the source language and chooses the right answer among alternatives in the source language: a grammar rule, a cultural fact, the meaning of an expression, anything better asked in the language the learner already knows. Provide a clear question, at least two text answers and one correct answer (or several, with the several-answers switch). Optional prompt audio is spoken with the source-language voice, and a picture can support the question. Keep distractors plausible but clearly wrong. The twin Choose the answer (to target) asks and answers in the target language.''',
+      r'''The learner reads a question, or a sentence to complete, written in the source language and chooses the right answer among alternatives in the source language: a grammar rule, a cultural fact, the meaning of an expression, anything better asked in the language the learner already knows. Provide the question, at least two text answers and one correct answer (a new exercise starts with answer 1; several are possible with Multiple correct answers, and the Audit warns when every answer is correct). An optional Prompt line, an instruction or some context, is shown above the question instead of the standard “Choose the correct answer.” line. Optional prompt audio is spoken with the source-language voice, and a picture can support the question. Keep distractors plausible but clearly wrong. The twin Choose the answer (to target) asks and answers in the target language.''',
   'exerciseHelp.preset.listening_answer_target.body':
       r'''The learner hears target-language audio and chooses the answer among written alternatives in the target language. Without a question the learner picks what was heard; with a question the exercise tests comprehension of the passage, so make the passage long enough. Spoken text contains exactly what the learner should hear, for example: Buongiorno, come stai? On-Device TTS sends this text to the device’s native speech engine. Recorded MP3 resolves Course Audio Library text mappings; Hybrid tries a complete MP3 sequence before native TTS. For MP3, open Course Editor > Audio Library, copy files to {folderAudioImports}, press Import MP3, then Associate recording with its Word or expression and select Recorded MP3 only or Hybrid. There is no per-exercise MP3 attachment. Physical files are grouped by learning language; references belong to the Course. Verified Course backups copy referenced files; JSON alone does not transfer MP3 bytes. Provide written alternatives and exactly one correct answer; avoid visible text that gives away the audio. The twin Listen and answer (to source) asks and answers in the source language.''',
   'exerciseHelp.preset.listening_answer_source.body':
@@ -875,7 +875,7 @@ Question and Context are separate. Context can be text, audio, or both. Dialogue
   'exerciseHelp.preset.build_translation_to_source.body':
       r'''The learner sees target-language text and constructs its source-language translation from word blocks. Provide the text to translate in the target language, the available literal blocks in the source language and one or more complete literal correct translations. Answers can be added, removed and reordered; each must be constructible from distinct block occurrences. Repeated words require repeated blocks, and no more than two blocks may remain unused. Type-the-translation syntax, typo tolerance and similarity matching do not apply.''',
   'exerciseHelp.preset.picture_flashcard.body':
-      r'''The learner sees a picture with its target-language word and source-language translation, an optional usage example with its translation, and hears the word when read-aloud is on. Provide the picture (Image), the word and the translation, optionally the usage lines, and choose Automatically, On request or No read-aloud. The card is never an audio exercise and is shown when Audio Exercises are off. Got it completes the card; Review again schedules it once more.''',
+      r'''The learner sees a picture with its target-language word and source-language translation, an optional usage example with its translation, and hears the word when read-aloud is on. Provide the picture (Image), the word and the translation, optionally the usage lines, and choose Automatically, On request or No read-aloud; fill in Pronunciation TTS (if different) only when the spoken text should differ from the word. The card is never an audio exercise and is shown when Audio Exercises are off. Got it completes the card; Review again schedules it once more.''',
   'exerciseHelp.preset.true_false.body':
       r'''The learner reads a statement in the target language, optionally hears it, and chooses between the word for true and the word for false in the source language. Provide the statement, an optional spoken statement, the two answers (prefilled in the source language when QQL knows it) and the correct answer number: 1 when the statement is true, 2 when it is false.''',
   'exerciseHelp.preset.gap_choice_inline.body':
@@ -907,7 +907,7 @@ Question and Context are separate. Context can be text, audio, or both. Dialogue
   'exerciseHelp.preset.dialogue_line.body':
       r'''A line of dialogue in a Story. Choose who speaks (the narrator or a character defined in the Course Editor's Story characters), write the line, and choose whether the learner reads it, hears it, or both. Read-aloud follows the Story's setting unless the line overrides it; with text and audio you may hide the text until the audio has played. A line is never skipped: without audio the learner reads it. There is no answer and no score; Continue moves on.''',
   'exerciseHelp.preset.story_cover.body':
-      r'''The first card of a Story. Choose the cover picture and, if you like, a title line; the Story's title from the Round options is shown above it. The learner presses Continue. Create Stories with the Story Wizard or by turning on Play as a Story in the Round editor.''',
+      r'''The first card of a Story. Choose the cover picture and, if you like, a title line; the Story's title from the Round options is shown above it. The learner presses Continue. Create Stories with the Story Wizard or by turning on Play as a sequence in the Round editor.''',
   'exerciseHelp.preset.note_card.body':
       r'''A card with a title and a note: a tip, a grammar point, a cultural remark. The learner reads it and presses Continue; there is no answer, no score and no audio. Write in the language your learners read best.''',
   'exerciseHelp.preset.gap_choice.body':
@@ -949,18 +949,18 @@ The learner sees target-language text and picks its correct source-language tran
   'exerciseHelp.preset.image_word.body':
       r'''The learner sees an image and orders letter or syllable blocks to form its word. Provide an image, an instruction and the blocks of the word in order, one per line; the learner gets exactly those blocks, shuffled. Distractors are not allowed.''',
   'exerciseHelp.preset.flashcard.body':
-      r'''The learner sees a target-language word or expression, its source-language translation and an optional usage example with its translation, hears the word when read-aloud is on, then chooses Got it or Review again. Provide the learning material rather than a scored answer; choose Automatically, On request or No read-aloud. Read-aloud never makes the card an audio exercise. Presentation content does not earn base correct-answer XP.''',
+      r'''The learner sees a target-language word or expression, its source-language translation and an optional usage example with its translation, hears the word when read-aloud is on, then chooses Got it or Review again. Provide the learning material rather than a scored answer; choose Automatically, On request or No read-aloud; fill in Pronunciation TTS (if different) only when the spoken text should differ from the word. Read-aloud never makes the card an audio exercise. Presentation content does not earn base correct-answer XP.''',
   'exerciseHelp.field.choice.prompt.body':
-      r'''The instruction shown to the learner. Example: How do you say this in Italian?
+      r'''An optional line above the question: an instruction or some context. Example: Pick the verb form that fits.
 
 What to enter
-Enter the instruction here; put the word or phrase to translate in Question.
+One line, or nothing. In a Round it takes the place of the standard “Choose the correct answer.” line under the CHOOSE heading; leave it empty to keep that line. The question or sentence goes in its own field.
 
 Checks
-Keep the instruction consistent with the question and answer choices.
+Optional. Keep it consistent with the question and the answers.
 
 Example
-How do you say this in Italian?''',
+Pick the verb form that fits.''',
   'exerciseHelp.field.build_translation_to_source.correctTranslation.body':
       r'''Defines one complete literal source-language answer for Build the translation (to source).
 
@@ -1002,13 +1002,13 @@ the one before a vowel
 the one before a consonant
 none''',
   'exerciseHelp.field.choice_source.question.body':
-      r'''The question, written in the source language.
+      r'''The question, or the sentence to complete, written in the source language.
 
 What to enter
-Enter one question in the language the learner already knows: a grammar rule, a cultural fact, the meaning of an expression. Keep any instruction separate, in Prompt.
+One question in the language the learner already knows, or a sentence with ___ where the answer fits: a grammar rule, a cultural fact, the meaning of an expression. An instruction or context goes in Prompt.
 
 Checks
-The answers below are in the source language too; mark the correct one (or several with the several-answers switch).
+The answers below are in the source language too; mark the correct one (or several with Multiple correct answers).
 
 Example
 Which Italian article goes with a masculine noun starting with a vowel?''',
@@ -1280,13 +1280,24 @@ On, for “… cane = il” and “… libro = il”''',
       r'''Whether and when the word is spoken.
 
 What to enter
-Automatically (when the card appears), On request (the learner taps the speaker) or No read-aloud. The spoken text is the word or expression itself, played with the Course audio mode.
+Automatically (when the card appears), On request (the learner taps the speaker) or No read-aloud. The spoken text is the word or expression itself, unless Pronunciation TTS (if different) says otherwise, played with the Course audio mode.
 
 Checks
 None. Read-aloud never makes the card an audio exercise.
 
 Example
 On request''',
+  'exerciseHelp.field.flashcard.tts.body':
+      r'''What the read-aloud speaks when it should differ from the word or expression.
+
+What to enter
+Leave empty: the read-aloud speaks the word or expression above. Enter a text only when the spoken form differs, for example an abbreviation read in full. No recording path; recordings are managed in Course Audio Library.
+
+Checks
+Optional. When given, the Course audio mode must be able to play it.
+
+Example
+dottore (for the abbreviation Dott.)''',
   'exerciseHelp.field.note_card.prompt.body': r'''The heading of the note card.
 
 What to enter
@@ -1404,16 +1415,17 @@ Required. The correct answer number is 1 when the statement is true and 2 when i
 Example
 Roma è la capitale d’Italia.''',
   'exerciseHelp.field.choice.question.body':
-      r'''The question the learner answers.
+      r'''What the learner answers: a question, or a sentence with a gap the answers complete.
 
 What to enter
-Enter one question as plain text, separately from any instruction in Prompt: a translation to pick, a form to choose, a fact, a meaning. In Choose the answer (to target) the answers are in the target language and the question may be in either language; in Choose the answer (to source) question and answers are in the source language.
+One question, or one sentence with ___ where the answer fits, as plain text; an instruction or context goes in Prompt. In Choose the answer (to target) the answers are in the target language and the question may be in either language; in Choose the answer (to source) question and answers are in the source language.
 
 Checks
-Provide matching answer choices and mark the correct one (or several with the several-answers switch).
+Required. Provide matching answers and mark the correct one (or several with Multiple correct answers).
 
 Example
-Which form completes the sentence: Ieri ___ al cinema.''',
+Which article goes with casa?
+Ieri ___ al cinema. (with the Prompt: Pick the verb form that fits.)''',
   'exerciseHelp.field.choice.answers.body':
       r'''Defines the alternatives presented to the learner.
 

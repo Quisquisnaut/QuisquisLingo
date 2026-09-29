@@ -209,7 +209,7 @@ void main() {
     expect(status.lessonHasRoundAuditConcern(lesson), isFalse);
     expect(status.hasLessonsAuditConcern, isFalse);
     expect(status.hasCourseAuditConcern, isFalse);
-    expect(AuditCode.values, hasLength(106));
+    expect(AuditCode.values, hasLength(107));
   });
 
   test(

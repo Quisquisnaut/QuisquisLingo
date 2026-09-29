@@ -30,7 +30,7 @@ flow plays as a Story. Revision 3 makes presets **recipes** over that
 data: an exercise opens in the preset that represents it exactly, keeps a
 preset only while one does, and any exercise of any primitive can be
 edited field by field in the **canonical editor**, which shows whether
-this version can play it; the Round editor's **Play as a Story** switch
+this version can play it; the Round editor's **Play as a sequence** switch (Play as a Story until the Revision 7 follow-up)
 authors a linear flow, and Stories now survive every edit, move, copy and
 duplication (they used to lose their flow). Help describes the v12
 architecture in EN/IT/ES. Revision 4 delivers the **preset catalogue**

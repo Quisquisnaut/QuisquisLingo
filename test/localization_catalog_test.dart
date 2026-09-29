@@ -84,7 +84,7 @@ void main() {
         'editorHelp.exerciseCreationWizard.body',
       );
       expect(wizard, contains('Exercise Wizard'));
-      expect(wizard, contains('New exercise'));
+      expect(wizard, contains('New Exercise'));
       expect(wizard, isNot(contains('Creation Wizard')));
       final export = helpText.lookup(
         locale,
@@ -146,10 +146,10 @@ void main() {
 
   test('QQL-Tools Advanced (Admin) Help explains its boundaries', () {
     expect(deviceAdminHelpSectionIds, contains('qqlTools'));
-    expect(
-      deviceAdminHelpSectionShape['qqlTools'],
-      (paragraphs: 2, bullets: 0),
-    );
+    expect(deviceAdminHelpSectionShape['qqlTools'], (
+      paragraphs: 2,
+      bullets: 0,
+    ));
     for (final locale in AppLocale.values) {
       expect(
         helpText.lookup(locale, 'deviceAdminHelp.qqlTools.title'),

@@ -797,7 +797,7 @@ void main() {
       },
     );
 
-    testWidgets('Choose does not get an automatic Correct answer number', (
+    testWidgets('Choose starts with Correct answer number 1 as well', (
       tester,
     ) async {
       _bigWindow(tester);
@@ -830,7 +830,9 @@ void main() {
       final correct = tester.widget<TextField>(
         workflow.field('Correct answer number'),
       );
-      expect(correct.controller!.text, isEmpty);
+      // Build 256 Revision 7 follow-up (owner request): a new single-answer
+      // Choose starts with answer 1, as Pick the translation does.
+      expect(correct.controller!.text, '1');
     });
 
     test('the Exercise Help chapter opens with the Select note', () {

@@ -1402,6 +1402,17 @@ class CourseAuditService {
         add(AuditCode.exerciseSelectionLimits, violation.message);
       }
     }
+    // Every answer correct (owner request, 29 September 2026): the learner
+    // has nothing to reject.
+    if (f.multipleSelection &&
+        !f.selectInline &&
+        ex.items.length >= 2 &&
+        ex.items.every((item) => evaluation.correctItemIds.contains(item.id))) {
+      add(
+        AuditCode.choiceAllAnswersCorrect,
+        'Every answer is correct: add at least one wrong answer.',
+      );
+    }
 
     // 2. Media and references (Errors).
     const promptMedia = {'text', 'audio', 'image'};

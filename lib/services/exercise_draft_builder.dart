@@ -747,9 +747,7 @@ abstract final class ExerciseDraftBuilder {
         // A Flashcard's read-aloud speaks the word itself (Build 256
         // Revision 7 follow-up): no separate pronunciation text.
         tts: type == 'flashcard'
-            ? (draft.cardReadAloud != 'none' && draft.prompt.trim().isNotEmpty
-                  ? draft.prompt.trim()
-                  : null)
+            ? _cardSpokenText(draft)
             : const {
                     'fill_blank',
                     'listening_choice',
@@ -815,6 +813,17 @@ abstract final class ExerciseDraftBuilder {
           ? _withAutomaticCardAudio(candidate)
           : candidate,
     );
+  }
+
+  /// What a Flashcard's read-aloud speaks: the Pronunciation TTS text when
+  /// the author gave one (if different), else the word or expression
+  /// itself; nothing when read-aloud is off.
+  static String? _cardSpokenText(ExerciseDraftValues draft) {
+    if (draft.cardReadAloud == 'none') return null;
+    final own = draft.tts.trim();
+    if (own.isNotEmpty) return own;
+    final word = draft.prompt.trim();
+    return word.isEmpty ? null : word;
   }
 
   /// [candidate] with its read-aloud playing when the card appears (a
