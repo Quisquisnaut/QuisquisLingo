@@ -141,7 +141,7 @@ class ParsedImageBank {
 }
 
 class ImageBankService {
-  static const int maxImageBytes = 50 * 1024;
+  static const int maxImageBytes = ImageProfile.courseImageMaxBytes;
   static const int maxZipBytes = 50 * 1024 * 1024;
   static const int maxManifestBytes = 2 * 1024 * 1024;
   static const int maxArchiveEntries = 5000;

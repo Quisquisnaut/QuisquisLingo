@@ -3466,7 +3466,7 @@ class _RoundScreenState extends State<RoundScreen> {
     final asset = _features.illustrationAsset;
     if (asset.isEmpty) return const SizedBox.shrink();
     // Decode at the size actually shown. Nothing bounds the pixel dimensions
-    // of a course-media image: a 50 KB PNG may declare 30,000 × 30,000 and
+    // of a course-media image: a 300 KB PNG may declare 30,000 × 30,000 and
     // cost gigabytes to rasterize. The portable path already enforces 4096;
     // this bounds the decode for the rest.
     const decodeWidth = 840;

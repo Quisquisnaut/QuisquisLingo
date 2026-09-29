@@ -1,3 +1,22 @@
+# 2.0.58 (Build 258, Revision 1) - Course pictures up to 300 KB - 2026-09-29
+
+A Course picture may now be up to **300 KB** (it was 50 KB), as decided
+for textbook-like Pages on 29 September 2026. The limit applies to every
+picture stored with a Course (exercises and Pages), to the Shared Image
+Library and to Image Banks, and to Course packages, backups, Fork, Copy
+and Merge, which share the same check. The picture check itself is
+unchanged: still PNG, JPEG or WebP, at most 4096 × 4096 pixels, no
+animation, content checked rather than the file name.
+
+- **Unchanged at 50 KB:** pictures embedded inside `course.json` as data
+  (Recognize characters), because they make the Course file itself larger.
+  The Course cover keeps its 1 MB.
+- **Help (EN/IT/ES):** the picture field, the picture import and the Image
+  Bank limits say 300 KB; the too-large message says 300 KB.
+
+Scoring, progression, learner data and the Course format are unchanged.
+Beta expiry `2026-10-29 23:59:59` local time.
+
 # 2.0.58 (Build 258, Revision 0) - Page cards: model and learner display - 2026-09-29
 
 The first revision of textbook-like **Page** cards, planned and approved

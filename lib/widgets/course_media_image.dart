@@ -63,7 +63,7 @@ class _CourseMediaImageState extends State<CourseMediaImage> {
     _bytes = CourseMediaStore.isReference(widget.asset) ? _read() : null;
   }
 
-  /// Course images are at most 50 KB, so they are read into memory rather
+  /// Course images are at most 300 KB, so they are read into memory rather
   /// than shown with Image.file, which maps the file and keeps it open; on
   /// Windows an open file cannot be deleted by the course-media cleanup.
   Future<Uint8List?> _read() async {

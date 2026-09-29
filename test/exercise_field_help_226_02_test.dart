@@ -358,7 +358,8 @@ void main() {
     final image = help('image_word', 'image');
     expect(image.entryRules, contains('exactly one PNG, JPG, JPEG or WebP'));
     expect(image.entryRules, contains('copies the original bytes'));
-    expect(image.validation, contains('50 KB (51,200 bytes)'));
+    // 300 KB since Build 258 Revision 1 (owner decision).
+    expect(image.validation, contains('300 KB (307,200 bytes)'));
     expect(
       image.validation,
       contains('recommendations, not enforced dimensions'),

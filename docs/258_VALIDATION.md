@@ -3,6 +3,20 @@
 Evidence for each Build 258 revision. Process: `docs/256_HANDOFF.md`
 ("Requirements and process").
 
+## Revision 1 (2.0.58+258001, 29 September 2026): Course pictures up to 300 KB
+
+- New: `test/picture_limit_258_test.dart` (4): the one 300 KB constant and
+  the 50 KB `data:` profile; a 180 KB PNG stored as Course media; a 400 KB
+  PNG refused by the store and the validator; the 180 KB PNG refused as an
+  embedded `data:` picture.
+- The 13 test files that name the old limit ran first: 190 passed, 4
+  failed on the old number (a test cover no longer over the limit, the
+  field Help text, the too-large message, the Image Bank constant); updated
+  and rerun: 69 passed.
+- `flutter analyze --no-pub`: no issues; focused 121 passed.
+- Complete suite (19:53–20:21, `--concurrency=1`, keep-awake wrapper):
+  **3322 passed, 1 skipped, 0 failed**.
+
 ## Revision 0 (2.0.58+258000, 29 September 2026): Page model and learner display
 
 ### Generated data and tools

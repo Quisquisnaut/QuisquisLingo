@@ -66,7 +66,7 @@ class ExerciseImageService {
   /// paths.
   static const sharedImagesDirectoryName = 'QQL_SharedImages';
 
-  static const int maxImageBytes = 50 * 1024;
+  static const int maxImageBytes = ImageProfile.courseImageMaxBytes;
   static const int recommendedImageBytes = 15 * 1024;
   static const int recommendedPixels = 256;
   static const Set<String> supportedExtensions = {'png', 'jpg', 'jpeg', 'webp'};
@@ -305,7 +305,7 @@ class ExerciseImageService {
       supportedExtensions.contains(path.toLowerCase().split('.').last);
 
   static const String _tooLarge =
-      'Image is larger than the 50 KB maximum. Compress or resize it before importing.';
+      'Image is larger than the 300 KB maximum. Compress or resize it before importing.';
 
   static String _tooLargeFor(int maxBytes) => maxBytes == maxImageBytes
       ? _tooLarge

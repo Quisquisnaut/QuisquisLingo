@@ -233,7 +233,8 @@ void main() {
   });
 
   test('security limits remain bounded', () {
-    expect(ImageBankService.maxImageBytes, 50 * 1024);
+    // 300 KB per picture since Build 258 Revision 1 (owner decision).
+    expect(ImageBankService.maxImageBytes, 300 * 1024);
     expect(ImageBankService.maxZipBytes, 50 * 1024 * 1024);
     expect(ImageBankService.maxManifestBytes, 2 * 1024 * 1024);
     expect(ImageBankService.maxArchiveEntries, 5000);

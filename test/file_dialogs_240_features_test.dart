@@ -372,7 +372,7 @@ void main() {
       expect(await _diagnosticLog(), isEmpty);
     });
 
-    test('an unsupported type or an image over 50 KB is rejected', () async {
+    test('an unsupported type or an image over 300 KB is rejected', () async {
       backend.onOpen = () async =>
           FileDialogResult.opened('x.gif', Uint8List(10));
       var error = await _thrown(images.readImageFromDialog);
@@ -389,7 +389,7 @@ void main() {
       error = await _thrown(images.readImageFromDialog);
       expect(
         (error as StateError).message,
-        'Image is larger than the 50 KB maximum. Compress or resize it before importing.',
+        'Image is larger than the 300 KB maximum. Compress or resize it before importing.',
       );
       expect(support.existsSync(), isFalse);
     });

@@ -4,6 +4,33 @@ Build 258 delivers textbook-like **Page** cards, planned and approved on 29
 September 2026 in `258_PAGE_CARD_PLAN.md` (owner decisions in its section
 3). Evidence: `258_VALIDATION.md`; handoff: `258_HANDOFF.md`.
 
+## Revision 1 (2.0.58+258001, 29 September 2026): Course pictures up to 300 KB
+
+Owner decision Q3 (plan 2.6): larger pictures, with a limit, for every
+Course picture.
+
+- `lib/services/import/image_validator.dart`: `ImageProfile.courseImageMaxBytes`
+  (300 KB) behind `ImageProfile.exerciseImage` (Course media, the Shared
+  Image Library, Image Banks); the new `ImageProfile.portableImage` (50 KB)
+  for pictures embedded in `course.json` as `data:` URIs.
+- `CourseMediaStore.maxImageBytes`, `ExerciseImageService.maxImageBytes` and
+  `ImageBankService.maxImageBytes` read the one constant, so every path that
+  shares them follows: adding a Course picture, the Shared Image Library,
+  Image Bank import, package export and import, backups, Fork, Copy and
+  Merge, and the avatar pictures `CourseCoverService.storeAvatar` shrinks.
+- `PortableExerciseImageService.fromBytes` and the embedded-image check of
+  `CustomCourseTransferService.courseFromBytes` validate with
+  `portableImage`: Recognize characters' pictures keep 50 KB. The cover
+  keeps its 1 MB (`ImageProfile.courseCover`).
+- Help EN/IT/ES (the picture field, picture import, Image Bank limits), the
+  field Help and the Shared Image Library's too-large message say 300 KB;
+  Recognize characters' Help keeps 50 KB.
+- Tests: new `test/picture_limit_258_test.dart`; four tests updated for the
+  new number (`course_cover_255_test`'s large test picture now has 220
+  noisy rows so it still exceeds the ordinary limit;
+  `exercise_field_help_226_02_test`, `file_dialogs_240_features_test`,
+  `image_bank_service_test`).
+
 ## Revision 0 (2.0.58+258000, 29 September 2026): the Page model and its learner display
 
 No new primitive: a Page is a `presentation` exercise whose prompt elements

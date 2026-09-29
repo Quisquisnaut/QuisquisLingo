@@ -278,7 +278,7 @@ class CustomCourseTransferService {
     for (final asset in CourseImageUsage.usedAssets(course)) {
       if (!asset.startsWith('data:image/')) continue;
       final bytes = PortableExerciseImageService.decode(asset)!;
-      await ImageValidator.validate(bytes, ImageProfile.exerciseImage);
+      await ImageValidator.validate(bytes, ImageProfile.portableImage);
     }
     if (course.originType == CourseOriginType.bundledOfficial) {
       throw const FormatException(

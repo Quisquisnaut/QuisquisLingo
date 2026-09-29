@@ -51,7 +51,9 @@ Future<Uint8List> _detailedCover() async {
   final random = Random(7);
   final pixels = Uint8List(512 * 512 * 4);
   for (var i = 0; i < pixels.length; i += 4) {
-    final noisy = i < 512 * 4 * 160;
+    // Enough noise to pass the ordinary 300 KB limit (Build 258 Revision 1)
+    // and stay under the cover's 1 MB.
+    final noisy = i < 512 * 4 * 220;
     pixels[i] = noisy ? random.nextInt(256) : 40;
     pixels[i + 1] = noisy ? random.nextInt(256) : 120;
     pixels[i + 2] = noisy ? random.nextInt(256) : 200;

@@ -90,7 +90,7 @@ abstract final class PortableExerciseImageService {
     // Courses saved earlier keep working.
     final image = await ImageValidator.validate(
       bytes,
-      ImageProfile.exerciseImage,
+      ImageProfile.portableImage,
     );
     final asset =
         'data:image/${image.format.mime};base64,${base64Encode(bytes)}';

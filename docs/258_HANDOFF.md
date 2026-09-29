@@ -4,17 +4,23 @@ Resume from this file alone. Plan (approved by the owner on 29 September
 2026): `docs/258_PAGE_CARD_PLAN.md`. Process rules: `docs/256_HANDOFF.md`
 ("Requirements and process"). Previous build: `docs/257_HANDOFF.md`.
 
-## State (29 September 2026, 18:23)
+## State (29 September 2026, 19:53)
 
-- **Build 258 Revision 0 (`2.0.58+258000`) committed as `19de25b`** on
-  local branch `claude/258-page-cards` (not pushed). Complete suite 3318
-  passed, 1 skipped, 0 failed (17:51–18:22).
-- Next: **Revision 1, the 300 KB Course picture limit** (`2.0.58+258001`).
-- Another session works in this checkout too: at 18:19 it created
-  `docs/CONTEXT_AND_HINT_PLAN.md` (a plan for Context and Hint in Complete
-  the text and Put the sentences in order). The first Revision 0 commit
-  swept it in; it was removed with `git rm --cached` and an amend, and it
-  stays untracked in the working tree. Stage only this build's files.
+- Build 258 Revision 0 committed as `19de25b` (handoff `56f3f1d`).
+- **Revision 1 (`2.0.58+258001`, 300 KB Course pictures) in the working
+  tree**: code, Help, tests (`test/picture_limit_258_test.dart` and four
+  updated), version pins and docs done; analyze clean; focused tests 121
+  passed. The complete suite runs next (started 19:54).
+- `dart format` on files that predate the formatter added unrelated
+  whitespace churn to seven files; they were restored and only the
+  intended lines reapplied. Do not run `dart format` on
+  `custom_course_transfer_service.dart`, `exercise_image_service.dart`,
+  `image_bank_service.dart`, `course_media_store.dart`,
+  `import/image_validator.dart`, `course_cover_255_test.dart` or
+  `file_dialogs_240_features_test.dart` unless the whole file is meant to
+  be reformatted.
+- `docs/CONTEXT_AND_HINT_PLAN.md` belongs to another (stopped) session:
+  keep it untracked and out of this build's commits.
 
 ## Revisions (re-sequenced from the plan's section 4)
 

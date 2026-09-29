@@ -247,10 +247,10 @@ const Map<String, String> helpEn = <String, String>{
       r'''In the Course Editor’s Image Library, Add images to this Course takes one or more pictures, or a whole Image Bank ZIP, into this Course only. The Shared Image Library, which an Admin manages, takes pictures from {folderImageImports} or with Open image files from… and Open Image Bank ZIP from…. A picture chosen for an exercise from the Shared Image Library is copied into the Course; either way it travels in the Course ZIP.''',
   'editorHelp.qa.pictureRules.q': r'''Which pictures does QQL accept?''',
   'editorHelp.qa.pictureRules.a':
-      r'''Still PNG, JPEG or WebP pictures of at most 4096 × 4096 pixels, undamaged and without oversized metadata; QQL checks the content, not the file name. An exercise image imported from {folderImageImports} may be up to 50 KB; about 256 × 256 pixels and 15 KB is a good size.''',
+      r'''Still PNG, JPEG or WebP pictures of at most 4096 × 4096 pixels, undamaged and without oversized metadata; QQL checks the content, not the file name. An exercise image imported from {folderImageImports} may be up to 300 KB; about 256 × 256 pixels and 15 KB is a good size.''',
   'editorHelp.qa.imageBank.q': r'''What is an Image Bank?''',
   'editorHelp.qa.imageBank.a':
-      r'''A ZIP of pictures with a manifest, image_bank_manifest.json, that lists each picture: an id, a label (primary_term), its file name and, if you like, keywords and an attribution. The ZIP holds only the manifest and the pictures it lists. Import Image Bank ZIP reads the one ZIP in {folderImageImports}; Open Image Bank ZIP from… uses the system dialog. Limits: a 50 MB ZIP, 2500 pictures and 50 KB per picture.''',
+      r'''A ZIP of pictures with a manifest, image_bank_manifest.json, that lists each picture: an id, a label (primary_term), its file name and, if you like, keywords and an attribution. The ZIP holds only the manifest and the pictures it lists. Import Image Bank ZIP reads the one ZIP in {folderImageImports}; Open Image Bank ZIP from… uses the system dialog. Limits: a 50 MB ZIP, 2500 pictures and 300 KB per picture.''',
   'editorHelp.qa.pictureDetails.q': r'''How do I see a picture's details?''',
   'editorHelp.qa.pictureDetails.a':
       r'''Open it full size and hover over the picture on a computer, or long-press it on a phone: file name, size, dimensions, format, added date, Image Bank and attribution.''',
@@ -1697,7 +1697,7 @@ What to enter
 Choose a flat image from the shared image library (managed by admins), or place exactly one PNG, JPG, JPEG or WebP file in {folderImageImports} and press Import custom image. Any course editor can import a custom image; it is not added to the shared library. Import copies the original bytes to local app storage; it does not resize, crop or change transparency.
 
 Checks
-Maximum 50 KB (51,200 bytes). 256 × 256 pixels and 15 KB or less are recommendations, not enforced dimensions. Image-prompt ordering requires an image; other current presets may omit it. Missing or multiple source files and oversized files are rejected. Preview checks that the image displays. Course JSON stores the image path, not these image bytes, so custom exercise images are not portable through course JSON alone.
+Maximum 300 KB (307,200 bytes). 256 × 256 pixels and 15 KB or less are recommendations, not enforced dimensions. Image-prompt ordering requires an image; other current presets may omit it. Missing or multiple source files and oversized files are rejected. Preview checks that the image displays. Course JSON stores the image path, not these image bytes, so custom exercise images are not portable through course JSON alone.
 
 Example
 Bundled path: assets/exercise_images/house.webp
@@ -1995,7 +1995,7 @@ What to enter
 Choose a flat image from the shared image library (managed by admins), or place exactly one PNG, JPG, JPEG or WebP file in {folderImageImports} and press Import custom image. Any course editor can import a custom image; it is not added to the shared library. Import copies the original bytes to local app storage; it does not resize, crop or change transparency.
 
 Checks
-Maximum 50 KB (51,200 bytes). 256 × 256 pixels and 15 KB or less are recommendations, not enforced dimensions. Image-prompt ordering requires an image; other current presets may omit it. Missing or multiple source files and oversized files are rejected. Preview checks that the image displays. Course JSON stores the image path, not these image bytes, so custom exercise images are not portable through course JSON alone.''',
+Maximum 300 KB (307,200 bytes). 256 × 256 pixels and 15 KB or less are recommendations, not enforced dimensions. Image-prompt ordering requires an image; other current presets may omit it. Missing or multiple source files and oversized files are rejected. Preview checks that the image displays. Course JSON stores the image path, not these image bytes, so custom exercise images are not portable through course JSON alone.''',
   'exerciseHelp.field.translation_choice_to_source.question.body':
       r'''The target-language word or phrase the learner translates.
 
