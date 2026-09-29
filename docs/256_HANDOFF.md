@@ -13,72 +13,42 @@ narrative of Revision 4 is gone (the evidence lives in
 `docs/256_VALIDATION.md`); what follows is state, decisions, requirements,
 open problems and the next step.
 
-## State (29 September 2026, 10:15)
+## State (29 September 2026, 12:30)
 
-- **Revision 7 third follow-up committed as `8f1ab83`** (same version
-  2.0.56+256007, local `main`, not pushed; complete suite 3249 passed, 1
-  skipped, 0 failed, 09:47–10:12): sequences are plain ordered Rounds
-  (Story = a flow and `visualType: story`, New Story's; sequence = a flow
-  and any other visual type: Optional sequence title, plain Round buttons,
-  "Sequence: <title>" everywhere, the Audit's Round rules, exercises in the
-  Duel, no mistake review) and Type the missing word (different first
-  letters allowed with Show the first letter off; the form says so).
-- **Owner instruction (10:14): work through the whole backlog below, then
-  Revision 8; at the end of Revision 8 commit, write the handoff, and start
-  a new session (task chip, `spawn_task`) that prepares a plan for an
-  interactive presentation primitive, read-only, waiting for the owner's
-  approval.** Unanswered choices take Claude's recommended defaults,
-  recorded here and in the change summary (owner may override): Sort into
-  groups' Laboratory leftover example replaced by a three-group example
-  (Animals / Plants / Objects) and its Animals/Food example becoming
-  Animals/Plants; Sort into groups needs two groups again (one group is
-  trivial without leftover words); capitals: blocks match regardless of
-  case, the Audit warns (new non-blocking Warning) unless only the
-  answer's first letter differs (owner asked for this clarification at
-  10:13 and was answered with examples), for Build the translation, Put
-  the words in order and Name what you see.
-- **10:45 checkpoint, fourth follow-up in the working tree (uncommitted,
-  analyzer clean on lib):** bold preset name; capitals (case-insensitive
-  block matching in `_resolveOrderedItemIds`, Warning
-  `ARRANGE_ANSWER_CASE_DIFFERS`, 108 rules / 42 Warnings); Sort into groups
-  without leftover words (two groups required, Animals/Plants); Name what
-  you see (`picture_blocks`, canonicalOnly + `presetRecipeBaseOf`
-  word_order; kinds `arrangePictureName`/`inputPictureName`, copy in 8
-  languages) and Type what you see (`picture_name` renamed); Read and
-  answer (`reading_answer_source` retired → successor; context text
-  `language: source`; dialogue audio `role dialogue_turn` per line with
-  playback, `required: false`; `ExerciseDraftValues.dialogueReadAloud`;
-  RoundScreen `_speakDialogue` 1 s pause, Play dialogue button; Duel
-  silent); Round Wizard creates only preset exercises (its context slot is
-  Pick the missing word; test in `guidebook_round_generator_224_test`);
-  generators regenerated (Laboratory 122 examples / 46 presets, Piedmontese
-  39 Lessons / 117 examples, Edge Case e07 an Italian source text with an
-  English question), v11 fixtures rewritten (`s36_fixtures.py` copied to
-  this session's scratchpad; Edge Case fixture edited for e07), validator
-  green. Next: new tests, focused batch, baseline re-record, docs, suite.
-- **Fourth follow-up committed as `7d67d76`** (11:53; complete suite run 2
-  3250 passed, 1 skipped, 0 failed). Revision 8 being applied now from the
-  scratchpad scripts listed below.
-- **11:15 checkpoint:** the fourth follow-up is complete in the working
-  tree (tests written, focused batch fixed, Laboratory presentation
-  baseline re-recorded: 9 records removed, 6 new, Type what you see's
-  heading changed; the Round Wizard creates only preset exercises, its
-  context slot is Pick the missing word). Complete suite run 1 at 10:58
-  (`suite_fourth_a.log`) showed one failure so far, the preset-picker pin
-  of `course_editor_224_test` (label "Text to read (source language)"),
-  fixed after it ran: rerun that file, then the complete suite again,
-  then commit ("Build 256 Revision 7 fourth follow-up: …"). **Revision 8
-  is prepared in this session's scratchpad:** `qa_en.py` (66 questions,
-  7 topics), `qa_it.py`/`qa_es.py` (translation agents, verified; card
-  title localized), `r8_apply.py` (catalogs, structure, content API,
-  screen), `r8_tests.py` (moved pins), `r8_version.py` (2.0.56+256008 and
-  documents), `editor_help_qa_256_test.dart` (copy into test/). After
-  Revision 8: commit, handoff, and the task chip for the interactive
-  presentation primitive plan (read-only, owner approval).
-- **Next: a fourth follow-up at 2.0.56+256007 (one complete suite, one
-  commit)**: bold preset name in the exercise editor (the preset selector
-  card title and the "Exercise type" line), Name what you see / Type what
-  you see, Read and answer, Sort into groups, capitals. Then Revision 8.
+- **Build 256 Revision 8 (`2.0.56+256008`) committed as `7f1b013`** on local
+  `main` (not pushed): Editor Help as questions and answers (66 questions,
+  7 topics, tap to open, a search ignoring capitals and accents, EN/IT/ES,
+  Technical reference card first; Course Studio Help unchanged). Complete
+  suite 3254 passed, 1 skipped, 0 failed (11:59–12:24). The Italian and
+  Spanish texts were drafted by two translation agents from the English
+  and checked by script.
+- **Revision 7 fourth follow-up committed as `7d67d76`** (same version
+  256007; suite run 2 3250 passed, 1 skipped, 0 failed): bold preset name;
+  capitals as the Warning `ARRANGE_ANSWER_CASE_DIFFERS` (any capital,
+  never blocking; 108 rules); Sort into groups without leftover words (two
+  groups; Animals/Plants); Name what you see (`picture_blocks`, word
+  blocks, up to two extra) and Type what you see (`picture_name`); Read
+  and answer with a source-language text, a dialogue read-aloud turn by
+  turn with a one-second pause, "to source" retired; the Round Wizard
+  creates only preset exercises (its context slot is Pick the missing
+  word); Laboratory 122 examples, Piedmontese 39 Lessons.
+- **Revision 7 third follow-up committed as `8f1ab83`**: sequences are
+  plain ordered Rounds (Story = flow + `visualType: story`), Type the
+  missing word accepts different first letters with the hint off.
+- **Next (owner instruction of 29 September, 10:14): a new session prepares
+  a plan for an interactive presentation primitive, read-only, waiting for
+  the owner's approval.** It was offered as a task chip right after this
+  handoff; the owner starts it with one click. No other work is pending.
+- **Claude's defaults the owner may still override** (recorded in the
+  change summary): the Laboratory's leftover Sort into groups example
+  became a three-group example; the Duel stays silent for a Read and
+  answer dialogue read-aloud; Name what you see's typed twin keeps the ID
+  `picture_name`, the block preset is the new `picture_blocks`.
+- **Known limits:** a stored Read and answer in the old shapes (passage,
+  situation, target-language context, spoken text) no longer matches the
+  preset and opens in the canonical editor (no custom Courses exist with
+  them); the Round Wizard's former context exercise is gone from new
+  Rounds only.
 - **Also in the third follow-up (committed in `8f1ab83`): Type the missing
   word** — with Show the first letter off the accepted words may start
   with different letters; the form's helper and note follow the switch
