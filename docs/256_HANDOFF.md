@@ -16,8 +16,8 @@ open problems and the next step.
 ## State (29 September 2026, 14:10)
 
 - **Build 256 Revision 9 (`2.0.56+256009`) committed on local branch
-  `claude/256-revision9-exercise-mascots`** (not pushed; the commit hash is
-  in `git log`): mascots beside the sentence of learner exercises, owner
+  `claude/256-revision9-exercise-mascots` as `1b91674`** (not pushed):
+  mascots beside the sentence of learner exercises, owner
   decisions of 29 September (placement A on the leading side; random
   pictures, not matched to the exercise; the sleeping monkey only on the
   Round path; no picture twice in a Round and never one character twice in
