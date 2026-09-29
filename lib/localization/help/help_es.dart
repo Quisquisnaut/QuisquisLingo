@@ -150,6 +150,10 @@ const Map<String, String> helpEs = {
   'editorHelp.qa.newRound.q': '¿Cómo añado un Round?',
   'editorHelp.qa.newRound.a':
       'En la página Rounds de una Lesson pulsa New Round. Un Round nuevo es un Draft provisional con un ejercicio de muestra (Pick the translation) que debes sustituir. El título puede quedar vacío: entonces el Round se llama Round N según su posición.',
+  'editorHelp.qa.beforeYouStart.q':
+      '¿Cómo escribo la nota Before you start de un Round?',
+  'editorHelp.qa.beforeYouStart.a':
+      'Añade una tarjeta Before you start: New Exercise en el editor del Round y elige Before you start (Cards and notes). Escribe la nota y, si el Curso usa GuideBooks, activa Open GuideBook button. La tarjeta va primero en el Round; los estudiantes la leen en una página propia antes de que empiece el Round, nunca en Review. Edítala, publícala o elimínala como cualquier ejercicio. El Round Wizard añade una tarjeta en Draft al primer Round que crea, y el Audit señala una Lesson cuyo primer Round no tiene ninguna.',
   'editorHelp.qa.roundWizard.q': '¿Cómo crea Rounds el Round Wizard?',
   'editorHelp.qa.roundWizard.a':
       'Pulsa Round Wizard en la página Rounds; necesita Use GuideBook activado. Crea Rounds a partir de los pares de vocabulario y los ejemplos del GuideBook de la Lesson (al menos tres pares). Elige 1–12 Rounds y 1–15 ejercicios por Round (6 y 8 por defecto) y revisa el plan: los primeros Rounds trabajan el reconocimiento; los siguientes, la construcción y la producción. Solo crea ejercicios de preset, y cada uno se abre en el formulario de su preset; sus Rounds siguen en Draft hasta que los revisas y los apruebas.',
@@ -946,6 +950,8 @@ Estas builds muestran TEST ONLY. No las distribuyas como versiones públicas; co
       'El estudiante relaciona cada imagen de la izquierda con una palabra de la derecha. Escribe las palabras, una por línea, y una imagen por palabra con los selectores de abajo; al menos dos pares. Cuentan las relaciones entre pares, no las posiciones.',
   'exerciseHelp.preset.dialogue_line.body':
       'Una línea de diálogo en una Historia. Elige quién habla (el narrador o un personaje definido en Story characters del Course Editor), escribe la línea y elige si el estudiante la lee, la escucha o ambas cosas. La lectura en voz alta sigue el ajuste de la Historia salvo que la línea lo cambie; con texto y audio puedes ocultar el texto hasta que el audio se haya reproducido. Una línea nunca se salta: sin audio el estudiante la lee. No hay respuesta ni puntuación; Continue avanza.',
+  'exerciseHelp.preset.before_you_start.body':
+      'La nota que el estudiante lee antes de que empiece el Round, en una página propia con Continue to Round. Escribe la nota y, si quieres, activa Open GuideBook button: la tarjeta ofrece entonces el GuideBook de la Lesson (los estudiantes ven el botón solo mientras el Curso usa GuideBooks y el GuideBook está publicado). La tarjeta va primero en el Round, nunca es uno de sus pasos y nunca se muestra en Review; no hay respuesta ni puntuación. Una tarjeta por Round: el Audit avisa de una segunda.',
   'exerciseHelp.preset.story_cover.body':
       'La primera tarjeta de una Historia. Elige la imagen de portada y, si quieres, una línea de título; el título de la Historia de las opciones del Round se muestra encima. El estudiante pulsa Continue. Crea Historias con el Story Wizard o activando Play as a sequence en el editor del Round.',
   'exerciseHelp.preset.note_card.body':
@@ -1030,6 +1036,8 @@ Estas builds muestran TEST ONLY. No las distribuyas como versiones públicas; co
       'El estudiante relaciona imágenes con sus palabras.',
   'exerciseHelp.preset.dialogue_line.description':
       'Una línea de una Historia, dicha por el narrador o un personaje como texto, audio o ambos; el estudiante lee o escucha y continúa.',
+  'exerciseHelp.preset.before_you_start.description':
+      'Una nota que se muestra antes de que empiece el Round, con un botón Open GuideBook opcional; nunca se muestra en Review.',
   'exerciseHelp.preset.story_cover.description':
       'La tarjeta de apertura de una Historia: su imagen y una línea de título opcional; el estudiante continúa.',
   'exerciseHelp.preset.note_card.description':
@@ -1112,6 +1120,10 @@ Estas builds muestran TEST ONLY. No las distribuyas como versiones públicas; co
       'Si el texto espera al audio.\n\nQué escribir\nImmediately, o After listening: el texto aparece cuando el audio se ha reproducido (solo con texto y audio).\n\nComprobaciones\nNinguna.\n\nEjemplo\nImmediately',
   'exerciseHelp.field.dialogue_line.language.body':
       'La lengua de la línea.\n\nQué escribir\nLa lengua de quien habla (predeterminada), o Target / Source para cambiarla solo en esta línea.\n\nComprobaciones\nNinguna.\n\nEjemplo\nSpeaker’s',
+  'exerciseHelp.field.before_you_start.prompt.body':
+      'Lo que el estudiante lee antes de que empiece el Round.\n\nQué escribir\nUnas frases: qué practica el Round, un consejo, un recordatorio, en la lengua que tus estudiantes leen mejor.\n\nComprobaciones\nObligatoria: una tarjeta vacía es un error del Audit.\n\nEjemplo\nEste Round practica los saludos.',
+  'exerciseHelp.field.before_you_start.guidebookButton.body':
+      'Si la tarjeta ofrece el GuideBook de la Lesson.\n\nQué escribir\nActivado o no. Los estudiantes ven Open GuideBook solo mientras el Curso usa GuideBooks (Lesson Options) y el GuideBook está publicado; Preview lo muestra también para un GuideBook en Draft.\n\nComprobaciones\nDesactivado mientras el Curso no usa GuideBooks.\n\nEjemplo\nActivado',
   'exerciseHelp.field.story_cover.prompt.body':
       'Una línea de título opcional en la portada.\n\nQué escribir\nUna línea breve; el título de la Historia (opciones del Round) se muestra encima de la portada de todos modos.\n\nComprobaciones\nOpcional.\n\nEjemplo\nEn el café',
   'exerciseHelp.field.story_cover.image.body':

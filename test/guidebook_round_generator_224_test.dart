@@ -109,7 +109,10 @@ void main() {
     final drafts = generator.createDrafts(guidebook, plan);
 
     expect(drafts, hasLength(3));
-    expect(drafts.expand((round) => round.exercises), hasLength(24));
+    // 24 exercises, and the first Round opens with a Draft Before you start
+    // card (Build 257).
+    expect(drafts.expand((round) => round.exercises), hasLength(25));
+    expect(drafts.first.exercises.first.editorTemplate, 'before_you_start');
     final ids = <String>{};
     for (final round in drafts) {
       expect(ids.add(round.id), isTrue);

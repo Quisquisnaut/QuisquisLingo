@@ -90,10 +90,25 @@
             {
               "id": "qql_labfuture_intro_speak",
               "publicationState": "published",
-              "kind": "text",
+              "kind": "exercise",
               "required": false,
-              "role": "lesson_intro",
-              "text": "Speaking exercises wait for a later version: this Round shows how they are stored."
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "Speaking exercises wait for a later version: this Round shows how they are stored."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
             },
             {
               "id": "qql_labfuture_speak_repeat",
@@ -156,10 +171,25 @@
             {
               "id": "qql_labfuture_intro_ink_submit",
               "publicationState": "published",
-              "kind": "text",
+              "kind": "exercise",
               "required": false,
-              "role": "lesson_intro",
-              "text": "Handwriting and hand-in exercises wait for a later version."
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "Handwriting and hand-in exercises wait for a later version."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
             },
             {
               "id": "qql_labfuture_ink_trace",
@@ -219,10 +249,25 @@
             {
               "id": "qql_labfuture_intro_ends",
               "publicationState": "published",
-              "kind": "text",
+              "kind": "exercise",
               "required": false,
-              "role": "lesson_intro",
-              "text": "A Story whose last step this version cannot play ends unrecorded."
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "A Story whose last step this version cannot play ends unrecorded."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
             },
             {
               "id": "qql_labfuture_ends_cover",
@@ -345,10 +390,25 @@
             {
               "id": "qql_labfuture_intro_branching",
               "publicationState": "published",
-              "kind": "text",
+              "kind": "exercise",
               "required": false,
-              "role": "lesson_intro",
-              "text": "A Story whose flow branches on a choice cannot start in this version."
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "A Story whose flow branches on a choice cannot start in this version."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
             },
             {
               "id": "qql_labfuture_branch_cover",
@@ -595,5 +655,5 @@
       "voice": "male"
     }
   ],
-  "officialChecksum": "c42e8f19b6678afd6aa5734ac69702a56d7fe0db76874ff92534b71ff528f8e5"
+  "officialChecksum": "9467dde99982afbbeeed8482ce338506ae034ea4d4108ce050a2bed057d1781c"
 }

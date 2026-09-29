@@ -505,7 +505,10 @@ enum OptionKey {
     MediaPlayback.values,
   ),
   scoring('scoring', OptionValueKind.enumeration, Scoring.values),
-  textReveal('textReveal', OptionValueKind.enumeration, TextReveal.values);
+  textReveal('textReveal', OptionValueKind.enumeration, TextReveal.values),
+
+  /// Build 257: a presentation card offers an Open GuideBook button.
+  guidebookButton('guidebookButton', OptionValueKind.boolean);
 
   const OptionKey(this.serialized, this.kind, [this.vocabulary = const []]);
 

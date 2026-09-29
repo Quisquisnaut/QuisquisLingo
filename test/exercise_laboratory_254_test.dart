@@ -29,9 +29,14 @@ const _asset = 'assets/courses/exercise_laboratory_en_it.json';
 Map<String, dynamic> _json() =>
     jsonDecode(File(_asset).readAsStringSync()) as Map<String, dynamic>;
 
+/// The examples: every exercise but the Before you start card that opens
+/// each Round (Build 257), which is no example of its own.
 List<Exercise> _exercises(Course course) => [
   for (final lesson in course.lessons)
-    for (final round in lesson.rounds) ...round.exercises,
+    for (final round in lesson.rounds)
+      ...round.exercises.where(
+        (e) => ExerciseFeatures(e).kind != LearnerExerciseKind.roundIntro,
+      ),
 ];
 
 /// Reconstruct the values exposed by the real authoring form. The production
@@ -677,20 +682,28 @@ void main() {
       expect(course.createDuels, isFalse);
       expect(course.derivativeWorksPolicy, DerivativeWorksPolicy.allowed);
       expect(examples, hasLength(122));
-      expect(
-        examples
-            .map((e) => e.editorTemplate)
-            .where((id) => id.isNotEmpty)
-            .toSet(),
-        ExercisePresetRegistry.presets.map((p) => p.id).toSet(),
-      );
+      // The examples cover every preset but Before you start, whose card
+      // opens every Round (Build 257).
+      expect({
+        ...examples.map((e) => e.editorTemplate).where((id) => id.isNotEmpty),
+        'before_you_start',
+      }, ExercisePresetRegistry.presets.map((p) => p.id).toSet());
       for (final lesson in course.lessons) {
         expect(lesson.publicationState, PublicationState.published);
         for (final round in lesson.rounds) {
           expect(round.publicationState, PublicationState.published);
           expect(round.exercises, isNotEmpty);
+          expect(
+            ExerciseFeatures(round.exercises.first).kind,
+            LearnerExerciseKind.roundIntro,
+            reason: round.id,
+          );
           for (final exercise in round.exercises) {
             expect(exercise.publicationState, PublicationState.published);
+            if (ExerciseFeatures(exercise).kind ==
+                LearnerExerciseKind.roundIntro) {
+              continue;
+            }
             // The Story Lesson mixes a cover, lines and exercises of several
             // primitives (Build 256 Revision 5).
             if (lesson.title == 'Story') continue;

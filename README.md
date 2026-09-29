@@ -1,8 +1,14 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.56+256009 · Build 256, Revision 9 · Course Model v12 (`formatVersion: 12`).**
+**Current source version: 2.0.57+257000 · Build 257, Revision 0 · Course Model v12 (`formatVersion: 12`).**
 
-**QuisquisLingo 2.0.56 Beta — QQL 256 exercise architecture (Course Model v12)**
+**QuisquisLingo 2.0.57 Beta — QQL 257 Before you start cards (Course Model v12)**
+
+Build 257 makes the note a learner reads before a Round starts an ordinary,
+editable card of the Round: the **Before you start** preset (a presentation
+card with an optional Open GuideBook button), shown on its own page before
+the Round and never in Review. It is the first slice of interactive
+presentation cards ([change summary](docs/257_CHANGE_SUMMARY.md)).
 
 Build 256 redesigns how QQL describes exercises, in six sessions that are its
 Revisions 0 to 5 ([plan](docs/256_EXERCISE_ARCHITECTURE_PLAN.md)). Every
@@ -370,7 +376,7 @@ The MPL-2.0 covers the QuisquisLingo software source. Courses, the Image Bank an
 
 ## Beta lifecycle
 
-Version 2.0.56, Build 256, Revision 9 is a time-limited Beta with an expiry of **2026-10-29 23:59:59 local time** (30 days after the 29 September 2026 release date). In its last seven days it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
+Version 2.0.57, Build 257, Revision 0 is a time-limited Beta with an expiry of **2026-10-29 23:59:59 local time** (30 days after the 29 September 2026 release date). In its last seven days it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
 
 ## Core logic
 

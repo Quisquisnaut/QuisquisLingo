@@ -156,16 +156,27 @@ class GuidebookRoundGenerator {
       );
       exercises.add(duplication.duplicateExercise(template));
     }
+    final introId = plan.index == 0 ? _draftIds.next('intro') : '';
     final content = <LearningContent>[
+      // Build 257: the introduction is a Before you start card, a Draft
+      // the author edits and publishes like any card, offering the GuideBook
+      // the Round was generated from.
       if (plan.index == 0)
         LearningContent(
-          id: _draftIds.next('intro'),
+          id: introId,
           publicationState: PublicationState.draft,
-          kind: 'explanation',
+          kind: 'exercise',
           required: false,
-          role: 'lesson_intro',
-          text:
-              'Before you start: ${material.overview.isEmpty ? 'review the Lesson GuideBook material' : material.overview}.',
+          exercise: Exercise.beforeYouStart(
+            id: introId,
+            publicationState: PublicationState.draft,
+            updatedAt: _now(),
+            text: material.overview.isEmpty
+                ? 'Review the Lesson GuideBook before you start.'
+                : material.overview,
+            guidebookButton: true,
+            authoringMetadata: const {'presetId': 'before_you_start'},
+          ),
           sourceRefs: sourceRefs,
         ),
       for (final exercise in exercises)

@@ -20,7 +20,7 @@ import zlib
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from qql_course_v12 import _ordered_evaluation, _ordered_options, assign_exercise, convert_course_v11_to_v12, story_cover, story_flow, story_line  # noqa: E402
+from qql_course_v12 import _ordered_evaluation, _ordered_options, assign_exercise, becomes_exercise, before_you_start, convert_course_v11_to_v12, story_cover, story_flow, story_line  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 ASSET = ROOT / "assets/courses/exercise_laboratory_en_it.json"
@@ -369,7 +369,7 @@ class Laboratory:
     def finish_story(self) -> None:
         story = self.round.pop("story")
         self.round["flow"] = story_flow(
-            [(content["id"], "exercise" in content) for content in self.round["content"]],
+            [(content["id"], becomes_exercise(content)) for content in self.round["content"]],
             title=story["title"], read_aloud=story["readAloud"],
             requires_audio=set(story["requiresAudio"]))
 
@@ -647,8 +647,10 @@ def _canonical(key: str, exercise: dict) -> dict:
 
 
 def _intro(key: str, text: str) -> dict:
+    # Build 257: a Round's introduction is a Before you start card.
     return {"id": f"qql_labfuture_intro_{key}", "publicationState": "published",
-            "kind": "text", "required": False, "role": "lesson_intro", "text": text}
+            "kind": "exercise", "required": False,
+            "exercise": before_you_start(text, updated_at=STAMP, guidebook_button=True)}
 
 
 def _future_round(key: str, title: str, content: list[dict], *, visual: str = "generic",

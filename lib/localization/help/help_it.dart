@@ -149,6 +149,10 @@ const Map<String, String> helpIt = {
   "editorHelp.qa.newRound.q": "Come aggiungo un Round?",
   "editorHelp.qa.newRound.a":
       "Nella pagina Rounds di una Lesson premi New Round. Un nuovo Round è un Draft provvisorio con un esercizio di esempio (Pick the translation) da sostituire. Il titolo può restare vuoto: in quel caso il Round si chiama Round N, secondo la sua posizione.",
+  "editorHelp.qa.beforeYouStart.q":
+      "Come scrivo la nota Before you start di un Round?",
+  "editorHelp.qa.beforeYouStart.a":
+      "Aggiungi una scheda Before you start: New Exercise nell’editor del Round, poi scegli Before you start (Cards and notes). Scrivi la nota e, se il Corso usa i GuideBook, attiva Open GuideBook button. La scheda va per prima nel Round; gli studenti la leggono su una pagina a sé prima che il Round inizi, mai in Review. Modificala, pubblicala o eliminala come qualsiasi esercizio. Il Round Wizard aggiunge una scheda in Draft al primo Round che crea, e l’Audit segnala una Lesson il cui primo Round non ne ha.",
   "editorHelp.qa.roundWizard.q": "Come crea i Round il Round Wizard?",
   "editorHelp.qa.roundWizard.a":
       "Premi Round Wizard nella pagina Rounds; richiede Use GuideBook attivo. Costruisce i Round a partire dalle coppie di vocaboli e dagli esempi del GuideBook della Lesson (almeno tre coppie). Scegli da 1 a 12 Round e da 1 a 15 esercizi per Round (6 e 8 di partenza) e rivedi il piano: i primi Round puntano sul riconoscimento, i successivi sulla costruzione e sulla produzione. Crea solo esercizi da preset, ciascuno dei quali si apre nel modulo del suo preset, e i suoi Round restano Draft finché non li rivedi e li approvi.",
@@ -823,6 +827,8 @@ const Map<String, String> helpIt = {
       "Lo studente abbina ogni immagine a sinistra a una parola a destra. Fornisci le parole, una per riga, e un’immagine per parola con i selettori sotto; almeno due coppie. Contano le relazioni tra le coppie, non le posizioni.",
   "exerciseHelp.preset.dialogue_line.body":
       "Una battuta di dialogo in una Storia. Scegli chi parla (il narratore o un personaggio definito in Story characters del Course Editor), scrivi la battuta e scegli se lo studente la legge, la ascolta o entrambe le cose. La lettura ad alta voce segue l’impostazione della Storia, salvo che la battuta la sovrascriva; con testo e audio puoi nascondere il testo finché l’audio non è stato riprodotto. Una battuta non viene mai saltata: senza audio lo studente la legge. Non c’è risposta né punteggio; Continue va avanti.",
+  "exerciseHelp.preset.before_you_start.body":
+      "La nota che lo studente legge prima che il Round inizi, su una pagina a sé con Continue to Round. Scrivi la nota e, se vuoi, attiva Open GuideBook button: la scheda offre allora il GuideBook della Lesson (gli studenti vedono il pulsante solo se il Corso usa i GuideBook e il GuideBook è pubblicato). La scheda sta per prima nel Round, non è mai uno dei suoi passi e non appare mai in Review; non c’è risposta né punteggio. Una scheda per Round: l’Audit segnala la seconda.",
   "exerciseHelp.preset.story_cover.body":
       "La prima scheda di una Storia. Scegli l’immagine di copertina e, se vuoi, una riga di titolo; il titolo della Storia dalle opzioni del Round appare sopra. Lo studente preme Continue. Crea le Storie con lo Story Wizard o attivando Play as a sequence nell’editor del Round.",
   "exerciseHelp.preset.note_card.body":
@@ -950,6 +956,10 @@ const Map<String, String> helpIt = {
       "Se il testo aspetta l’audio.\n\nCosa inserire\nImmediately, oppure After listening: il testo appare dopo che l’audio è stato riprodotto (solo con testo e audio).\n\nControlli\nNessuno.\n\nEsempio\nImmediately",
   "exerciseHelp.field.dialogue_line.language.body":
       "La lingua della battuta.\n\nCosa inserire\nLa lingua di chi parla (predefinita), oppure Target / Source per cambiarla solo in questa battuta.\n\nControlli\nNessuno.\n\nEsempio\nSpeaker’s",
+  "exerciseHelp.field.before_you_start.prompt.body":
+      "Ciò che lo studente legge prima che il Round inizi.\n\nCosa inserire\nQualche frase: che cosa esercita il Round, un consiglio, un promemoria, nella lingua che i tuoi studenti leggono meglio.\n\nControlli\nObbligatoria: una scheda vuota è un errore dell’Audit.\n\nEsempio\nQuesto Round esercita i saluti.",
+  "exerciseHelp.field.before_you_start.guidebookButton.body":
+      "Se la scheda offre il GuideBook della Lesson.\n\nCosa inserire\nAttivo o no. Gli studenti vedono Open GuideBook solo se il Corso usa i GuideBook (Lesson Options) e il GuideBook è pubblicato; Preview lo mostra anche per un GuideBook in Draft.\n\nControlli\nDisattivato finché il Corso non usa i GuideBook.\n\nEsempio\nAttivo",
   "exerciseHelp.field.story_cover.prompt.body":
       "Una riga di titolo facoltativa sulla copertina.\n\nCosa inserire\nUna riga breve; il titolo della Storia (opzioni del Round) appare comunque sopra la copertina.\n\nControlli\nFacoltativa.\n\nEsempio\nAl bar",
   "exerciseHelp.field.story_cover.image.body":
@@ -1168,6 +1178,8 @@ const Map<String, String> helpIt = {
       "Lo studente abbina le immagini alle loro parole.",
   "exerciseHelp.preset.dialogue_line.description":
       "Una battuta di una Storia, detta dal narratore o da un personaggio come testo, audio o entrambi; lo studente legge o ascolta e continua.",
+  "exerciseHelp.preset.before_you_start.description":
+      "Una nota mostrata prima che il Round inizi, con un pulsante Open GuideBook facoltativo; mai mostrata in Review.",
   "exerciseHelp.preset.story_cover.description":
       "La scheda di apertura di una Storia: la sua immagine e una riga di titolo facoltativa; lo studente continua.",
   "exerciseHelp.preset.note_card.description":

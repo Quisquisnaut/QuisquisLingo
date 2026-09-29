@@ -61,17 +61,24 @@ void main() {
       // One Lesson per preset, except Story cover (a Story of covers alone
       // belongs to the Edge Case demo; owner decision, 28 September 2026)
       // and the two Assign presets (the Laboratory's Assign Lesson shows
-      // them; owner decision, 29 September 2026).
-      expect(course.lessons, hasLength(presets.length - 3));
-      expect(presets, hasLength(42));
+      // them; owner decision, 29 September 2026). Before you start has no
+      // Lesson either: its card opens every Lesson (Build 257).
+      expect(course.lessons, hasLength(presets.length - 4));
+      expect(presets, hasLength(43));
       final seenTypes = <String>{};
       for (final lesson in course.lessons) {
         expect(lesson.publicationState, PublicationState.published);
         expect(lesson.rounds, hasLength(1));
         final round = lesson.rounds.single;
         expect(round.publicationState, PublicationState.published);
-        expect(round.exercises, hasLength(3));
+        expect(round.exercises, hasLength(4));
+        expect(
+          RoundPlayabilityService.isRoundIntro(round.exercises.first),
+          isTrue,
+          reason: lesson.title,
+        );
         final types = round.exercises
+            .skip(1)
             .map((exercise) => exercise.editorTemplate)
             .toSet();
         expect(types, hasLength(1), reason: lesson.title);
@@ -91,8 +98,12 @@ void main() {
       }
       expect(
         seenTypes,
-        presets.map((preset) => preset.id).toSet()
-          ..removeAll(['story_cover', 'sort_into_groups', 'fill_the_slots']),
+        presets.map((preset) => preset.id).toSet()..removeAll([
+          'story_cover',
+          'sort_into_groups',
+          'fill_the_slots',
+          'before_you_start',
+        ]),
       );
     },
   );
@@ -129,10 +140,11 @@ void main() {
         for (final content in round.content) {
           unique(content.id);
         }
+        // The Before you start card (index 0) is never a step (Build 257).
         expect(playable.playableExerciseIndices(round), [
-          0,
           1,
           2,
+          3,
         ], reason: lesson.title);
         for (final exercise in round.exercises) {
           expect(exercise.publicationState, PublicationState.published);

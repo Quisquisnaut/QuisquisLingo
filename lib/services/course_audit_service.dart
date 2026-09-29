@@ -529,15 +529,18 @@ class CourseAuditService {
         );
       }
       if (t.rounds.isNotEmpty) {
-        final intro = t.rounds.first.content
-            .where((content) => content.role == 'lesson_intro')
+        // Build 257: the introduction is a Before you start card.
+        final intro = t.rounds.first.exercises
+            .where(
+              (ex) =>
+                  ExerciseFeatures(ex).kind == LearnerExerciseKind.roundIntro,
+            )
             .toList();
         if (intro.isEmpty) {
           issues.add(
             CourseAuditIssue.fromCode(
               AuditCode.lessonIntroMissing,
-              message:
-                  'The first Round has no short Lesson introduction drawn from the Lesson Guidebook.',
+              message: 'The first Round has no Before you start card.',
               location: '$tl · Round 1',
             ),
           );
@@ -598,6 +601,24 @@ class CourseAuditService {
               ),
             );
           }
+        }
+        // Build 257: learners see only the first Before you start card.
+        if (roundExercises
+                .where(
+                  (ex) =>
+                      ExerciseFeatures(ex).kind ==
+                      LearnerExerciseKind.roundIntro,
+                )
+                .length >
+            1) {
+          issues.add(
+            CourseAuditIssue.fromCode(
+              AuditCode.roundIntroDuplicate,
+              message: 'Round has more than one Before you start card.',
+              location: rl,
+              roundId: r.id,
+            ),
+          );
         }
         // Build 256 Revision 6 (plan A.6, A.7): what learners of this
         // version cannot complete. Not blocking: the content is valid.
@@ -898,7 +919,12 @@ class CourseAuditService {
   static String? notCompletableReason(LearningRound round) {
     final flow = round.flow;
     final kind = round.isStory ? 'Story' : 'Sequence';
-    final exercises = round.exercises;
+    // A Before you start card is never a step (Build 257).
+    final exercises = round.exercises
+        .where(
+          (ex) => ExerciseFeatures(ex).kind != LearnerExerciseKind.roundIntro,
+        )
+        .toList();
     if (flow == null) {
       if (exercises.isNotEmpty && exercises.every((ex) => !ex.isExecutable)) {
         return 'No exercise of this Round can be played by this version of QuisquisLingo, so learners cannot complete it.';
@@ -1290,6 +1316,8 @@ class CourseAuditService {
       ' A Dialogue line needs its line as text, audio or both (role line).',
     'story_cover' =>
       ' A Story cover needs a picture or a title line and no word or meaning.',
+    'before_you_start' =>
+      ' A Before you start card needs its note (an intro text element).',
     'icon_choice' =>
       ' Select the image needs one icon or image key per answer in Icons / image keys, in the same order as the answers.',
     'listening_answer_target' ||
@@ -1348,6 +1376,7 @@ class CourseAuditService {
     LearnerExerciseKind.presentation => 'a Flashcard',
     LearnerExerciseKind.dialogueLine => 'a Dialogue line',
     LearnerExerciseKind.storyCover => 'a Story cover',
+    LearnerExerciseKind.roundIntro => 'a Before you start card',
     LearnerExerciseKind.assignGroups => 'Sort into groups',
     LearnerExerciseKind.assignSlots => 'Fill the slots',
     LearnerExerciseKind.assignGaps => 'Fill the gaps',
@@ -2132,6 +2161,16 @@ class CourseAuditService {
           break;
         }
         if (kind == LearnerExerciseKind.storyCover) break;
+        // Build 257: a Before you start card needs its note.
+        if (kind == LearnerExerciseKind.roundIntro) {
+          if (f.introText.trim().isEmpty) {
+            add(
+              AuditCode.roundIntroEmpty,
+              'Before you start card has no note.',
+            );
+          }
+          break;
+        }
         // A vocabulary flashcard is reviewed later and has no picture; a
         // Note card (completion `continue`) and a Picture flashcard carry
         // an optional usage sentence and optional pronunciation.

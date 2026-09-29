@@ -20,6 +20,8 @@ const _formFields = <String, Map<String, String>>{
   // closed choices with the same Help control (Build 256 Revision 5).
   'dialogue_line': {'Line': 'prompt'},
   'story_cover': {'Title line': 'prompt'},
+  // The Open GuideBook switch has its own Help control (Build 257).
+  'before_you_start': {'Note': 'prompt'},
   'choice_source': {
     'Prompt (optional)': 'prompt',
     'Question or sentence to complete': 'question',
@@ -240,9 +242,24 @@ void main() {
         );
         await _openAndCheck(tester, button, form.key, field.value);
       }
-      await _reveal(tester, _help('image'));
-      _assertMountedFieldsHaveHelp(tester, form.value);
-      await _openAndCheck(tester, _help('image'), form.key, 'image');
+      // Before you start has no picture but an Open GuideBook switch with
+      // its own Help control (Build 257).
+      if (form.key == 'before_you_start') {
+        await _reveal(tester, _help('guidebookButton'));
+        await _openAndCheck(
+          tester,
+          _help('guidebookButton'),
+          form.key,
+          'guidebookButton',
+        );
+      }
+      if (ExerciseFieldHelpRegistry.editorFieldKeys(
+        form.key,
+      ).contains('image')) {
+        await _reveal(tester, _help('image'));
+        _assertMountedFieldsHaveHelp(tester, form.value);
+        await _openAndCheck(tester, _help('image'), form.key, 'image');
+      }
       expect(tester.takeException(), isNull);
     });
   }

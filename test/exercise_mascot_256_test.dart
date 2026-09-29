@@ -73,6 +73,7 @@ const _neverMascot = {
   'note_card',
   'dialogue_line',
   'story_cover',
+  'before_you_start',
 };
 
 /// Where the mascot of an exercise of each other preset may sit (none when

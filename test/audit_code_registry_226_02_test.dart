@@ -12,7 +12,8 @@ void main() {
     'all known rules have unique, complete definitions and fixed severity',
     () {
       final definitions = AuditCodeRegistry.definitions;
-      expect(definitions.length, 108);
+      // Build 257: ROUND_INTRO_EMPTY (Error), ROUND_INTRO_DUPLICATE (Warning).
+      expect(definitions.length, 110);
       expect(
         definitions.map((rule) => rule.code).toSet().length,
         definitions.length,
@@ -21,13 +22,13 @@ void main() {
         definitions
             .where((rule) => rule.severity == AuditSeverity.error)
             .length,
-        59,
+        60,
       );
       expect(
         definitions
             .where((rule) => rule.severity == AuditSeverity.warning)
             .length,
-        42,
+        43,
       );
       expect(
         definitions.where((rule) => rule.severity == AuditSeverity.info).length,

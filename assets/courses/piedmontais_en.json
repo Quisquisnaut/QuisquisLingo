@@ -86,10 +86,28 @@
             {
               "id": "pms_e5f5585a_l01_r01_intro",
               "publicationState": "published",
-              "kind": "text",
+              "kind": "exercise",
               "required": false,
-              "role": "lesson_intro",
-              "text": "Pick the translation (to target): English to Piedmontese. Three short examples use this exercise type."
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "Pick the translation (to target): English to Piedmontese. Three short examples use this exercise type."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
             },
             {
               "id": "pms_e5f5585a_l01_r01_e01",
@@ -315,10 +333,28 @@
             {
               "id": "pms_e5f5585a_l02_r01_intro",
               "publicationState": "published",
-              "kind": "text",
+              "kind": "exercise",
               "required": false,
-              "role": "lesson_intro",
-              "text": "Pick the translation (to source): Piedmontese to English. Three short examples use this exercise type."
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "Pick the translation (to source): Piedmontese to English. Three short examples use this exercise type."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
             },
             {
               "id": "pms_e5f5585a_l02_r01_e01",
@@ -544,10 +580,28 @@
             {
               "id": "pms_e5f5585a_l03_r01_intro",
               "publicationState": "published",
-              "kind": "text",
+              "kind": "exercise",
               "required": false,
-              "role": "lesson_intro",
-              "text": "Type the translation (to target): Write in Piedmontese. Three short examples use this exercise type."
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "Type the translation (to target): Write in Piedmontese. Three short examples use this exercise type."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
             },
             {
               "id": "pms_e5f5585a_l03_r01_e01",
@@ -687,10 +741,28 @@
             {
               "id": "pms_e5f5585a_l04_r01_intro",
               "publicationState": "published",
-              "kind": "text",
+              "kind": "exercise",
               "required": false,
-              "role": "lesson_intro",
-              "text": "Type the translation (to source): Translate into English. Three short examples use this exercise type."
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "Type the translation (to source): Translate into English. Three short examples use this exercise type."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
             },
             {
               "id": "pms_e5f5585a_l04_r01_e01",
@@ -831,10 +903,28 @@
             {
               "id": "pms_e5f5585a_l05_r01_intro",
               "publicationState": "published",
-              "kind": "text",
+              "kind": "exercise",
               "required": false,
-              "role": "lesson_intro",
-              "text": "Build the translation (to target): Translate with blocks. Three short examples use this exercise type."
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "Build the translation (to target): Translate with blocks. Three short examples use this exercise type."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
             },
             {
               "id": "pms_e5f5585a_l05_r01_e01",
@@ -1099,10 +1189,28 @@
             {
               "id": "pms_e5f5585a_l06_r01_intro",
               "publicationState": "published",
-              "kind": "text",
+              "kind": "exercise",
               "required": false,
-              "role": "lesson_intro",
-              "text": "Build the translation (to source): Translate into English with blocks. Three short examples use this exercise type."
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "Build the translation (to source): Translate into English with blocks. Three short examples use this exercise type."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
             },
             {
               "id": "pms_e5f5585a_l06_r01_e01",
@@ -1356,10 +1464,28 @@
             {
               "id": "pms_e5f5585a_l07_r01_intro",
               "publicationState": "published",
-              "kind": "text",
+              "kind": "exercise",
               "required": false,
-              "role": "lesson_intro",
-              "text": "Match the words: Three translations. Three short examples use this exercise type."
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "Match the words: Three translations. Three short examples use this exercise type."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
             },
             {
               "id": "pms_e5f5585a_l07_r01_e01",
@@ -1732,10 +1858,28 @@
             {
               "id": "pms_e5f5585a_l08_r01_intro",
               "publicationState": "published",
-              "kind": "text",
+              "kind": "exercise",
               "required": false,
-              "role": "lesson_intro",
-              "text": "Match by meaning: Related Piedmontese words. Three short examples use this exercise type."
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "Match by meaning: Related Piedmontese words. Three short examples use this exercise type."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
             },
             {
               "id": "pms_e5f5585a_l08_r01_e01",
@@ -2090,10 +2234,28 @@
             {
               "id": "pms_e5f5585a_l09_r01_intro",
               "publicationState": "published",
-              "kind": "text",
+              "kind": "exercise",
               "required": false,
-              "role": "lesson_intro",
-              "text": "Flashcard: Remember useful words. Three short examples use this exercise type."
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "Flashcard: Remember useful words. Three short examples use this exercise type."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
             },
             {
               "id": "pms_e5f5585a_l09_r01_e01",
@@ -2274,10 +2436,28 @@
             {
               "id": "pms_e5f5585a_l10_r01_intro",
               "publicationState": "published",
-              "kind": "text",
+              "kind": "exercise",
               "required": false,
-              "role": "lesson_intro",
-              "text": "Picture flashcard: Picture cards. Three short examples use this exercise type."
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "Picture flashcard: Picture cards. Three short examples use this exercise type."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
             },
             {
               "id": "pms_e5f5585a_l10_r01_e01",
@@ -2466,10 +2646,28 @@
             {
               "id": "pms_e5f5585a_l11_r01_intro",
               "publicationState": "published",
-              "kind": "text",
+              "kind": "exercise",
               "required": false,
-              "role": "lesson_intro",
-              "text": "Choose the answer (to target): First words. Three short examples use this exercise type."
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "Choose the answer (to target): First words. Three short examples use this exercise type."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
             },
             {
               "id": "pms_e5f5585a_l11_r01_e01",
@@ -2683,10 +2881,28 @@
             {
               "id": "pms_e5f5585a_l12_r01_intro",
               "publicationState": "published",
-              "kind": "text",
+              "kind": "exercise",
               "required": false,
-              "role": "lesson_intro",
-              "text": "Choose the answer (to source): What does it mean?. Three short examples use this exercise type."
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "Choose the answer (to source): What does it mean?. Three short examples use this exercise type."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
             },
             {
               "id": "pms_e5f5585a_l12_r01_e01",
@@ -2912,10 +3128,28 @@
             {
               "id": "pms_e5f5585a_l13_r01_intro",
               "publicationState": "published",
-              "kind": "text",
+              "kind": "exercise",
               "required": false,
-              "role": "lesson_intro",
-              "text": "Pick the missing word: Small phrases. Three short examples use this exercise type."
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "Pick the missing word: Small phrases. Three short examples use this exercise type."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
             },
             {
               "id": "pms_e5f5585a_l13_r01_e01",
@@ -3144,10 +3378,28 @@
             {
               "id": "pms_e5f5585a_l14_r01_intro",
               "publicationState": "published",
-              "kind": "text",
+              "kind": "exercise",
               "required": false,
-              "role": "lesson_intro",
-              "text": "Type the missing word: First-letter help. Three short examples use this exercise type."
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "Type the missing word: First-letter help. Three short examples use this exercise type."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
             },
             {
               "id": "pms_e5f5585a_l14_r01_e01",
@@ -3329,10 +3581,28 @@
             {
               "id": "pms_e5f5585a_l15_r01_intro",
               "publicationState": "published",
-              "kind": "text",
+              "kind": "exercise",
               "required": false,
-              "role": "lesson_intro",
-              "text": "Word order: Put words in order. Three short examples use this exercise type."
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "Word order: Put words in order. Three short examples use this exercise type."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
             },
             {
               "id": "pms_e5f5585a_l15_r01_e01",
@@ -3600,10 +3870,28 @@
             {
               "id": "pms_e5f5585a_l16_r01_intro",
               "publicationState": "published",
-              "kind": "text",
+              "kind": "exercise",
               "required": false,
-              "role": "lesson_intro",
-              "text": "True or false: True or false?. Three short examples use this exercise type."
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "True or false: True or false?. Three short examples use this exercise type."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
             },
             {
               "id": "pms_e5f5585a_l16_r01_e01",
@@ -3798,10 +4086,28 @@
             {
               "id": "pms_e5f5585a_l17_r01_intro",
               "publicationState": "published",
-              "kind": "text",
+              "kind": "exercise",
               "required": false,
-              "role": "lesson_intro",
-              "text": "Pick the words for the gaps: Pick the words for the gaps. Three short examples use this exercise type."
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "Pick the words for the gaps: Pick the words for the gaps. Three short examples use this exercise type."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
             },
             {
               "id": "pms_e5f5585a_l17_r01_e01",
@@ -4127,10 +4433,28 @@
             {
               "id": "pms_e5f5585a_l18_r01_intro",
               "publicationState": "published",
-              "kind": "text",
+              "kind": "exercise",
               "required": false,
-              "role": "lesson_intro",
-              "text": "Complete the text: Complete the text. Three short examples use this exercise type."
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "Complete the text: Complete the text. Three short examples use this exercise type."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
             },
             {
               "id": "pms_e5f5585a_l18_r01_e01",
@@ -4348,10 +4672,28 @@
             {
               "id": "pms_e5f5585a_l19_r01_intro",
               "publicationState": "published",
-              "kind": "text",
+              "kind": "exercise",
               "required": false,
-              "role": "lesson_intro",
-              "text": "Missing letters: Missing letters. Three short examples use this exercise type."
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "Missing letters: Missing letters. Three short examples use this exercise type."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
             },
             {
               "id": "pms_e5f5585a_l19_r01_e01",
@@ -4542,10 +4884,28 @@
             {
               "id": "pms_e5f5585a_l20_r01_intro",
               "publicationState": "published",
-              "kind": "text",
+              "kind": "exercise",
               "required": false,
-              "role": "lesson_intro",
-              "text": "Drag the blocks into the gaps: Drag the blocks into the gaps. Three short examples use this exercise type."
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "Drag the blocks into the gaps: Drag the blocks into the gaps. Three short examples use this exercise type."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
             },
             {
               "id": "pms_e5f5585a_l20_r01_e01",
@@ -4868,10 +5228,28 @@
             {
               "id": "pms_e5f5585a_l21_r01_intro",
               "publicationState": "published",
-              "kind": "text",
+              "kind": "exercise",
               "required": false,
-              "role": "lesson_intro",
-              "text": "Put the sentences in order: Put the sentences in order. Three short examples use this exercise type."
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "Put the sentences in order: Put the sentences in order. Three short examples use this exercise type."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
             },
             {
               "id": "pms_e5f5585a_l21_r01_e01",
@@ -5106,10 +5484,28 @@
             {
               "id": "pms_e5f5585a_l22_r01_intro",
               "publicationState": "published",
-              "kind": "text",
+              "kind": "exercise",
               "required": false,
-              "role": "lesson_intro",
-              "text": "Listen and answer (to target): Hear a greeting. Three short examples use this exercise type."
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "Listen and answer (to target): Hear a greeting. Three short examples use this exercise type."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
             },
             {
               "id": "pms_e5f5585a_l22_r01_e01",
@@ -5341,10 +5737,28 @@
             {
               "id": "pms_e5f5585a_l23_r01_intro",
               "publicationState": "published",
-              "kind": "text",
+              "kind": "exercise",
               "required": false,
-              "role": "lesson_intro",
-              "text": "Listen and answer (to source): Listen for meaning. Three short examples use this exercise type."
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "Listen and answer (to source): Listen for meaning. Three short examples use this exercise type."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
             },
             {
               "id": "pms_e5f5585a_l23_r01_e01",
@@ -5579,10 +5993,28 @@
             {
               "id": "pms_e5f5585a_l24_r01_intro",
               "publicationState": "published",
-              "kind": "text",
+              "kind": "exercise",
               "required": false,
-              "role": "lesson_intro",
-              "text": "Type what you hear: Hear and spell. Three short examples use this exercise type."
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "Type what you hear: Hear and spell. Three short examples use this exercise type."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
             },
             {
               "id": "pms_e5f5585a_l24_r01_e01",
@@ -5718,10 +6150,28 @@
             {
               "id": "pms_e5f5585a_l25_r01_intro",
               "publicationState": "published",
-              "kind": "text",
+              "kind": "exercise",
               "required": false,
-              "role": "lesson_intro",
-              "text": "Listen and fill the gaps: Listen for gaps. Three short examples use this exercise type."
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "Listen and fill the gaps: Listen for gaps. Three short examples use this exercise type."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
             },
             {
               "id": "pms_e5f5585a_l25_r01_e01",
@@ -5952,10 +6402,28 @@
             {
               "id": "pms_e5f5585a_l26_r01_intro",
               "publicationState": "published",
-              "kind": "text",
+              "kind": "exercise",
               "required": false,
-              "role": "lesson_intro",
-              "text": "Listen and match: Match what you hear. Three short examples use this exercise type."
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "Listen and match: Match what you hear. Three short examples use this exercise type."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
             },
             {
               "id": "pms_e5f5585a_l26_r01_e01",
@@ -6310,10 +6778,28 @@
             {
               "id": "pms_e5f5585a_l27_r01_intro",
               "publicationState": "published",
-              "kind": "text",
+              "kind": "exercise",
               "required": false,
-              "role": "lesson_intro",
-              "text": "Listen and pick the image: Hear and pick the picture. Three short examples use this exercise type."
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "Listen and pick the image: Hear and pick the picture. Three short examples use this exercise type."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
             },
             {
               "id": "pms_e5f5585a_l27_r01_e01",
@@ -6575,10 +7061,28 @@
             {
               "id": "pms_e5f5585a_l28_r01_intro",
               "publicationState": "published",
-              "kind": "text",
+              "kind": "exercise",
               "required": false,
-              "role": "lesson_intro",
-              "text": "Spell what you hear: Spell what you hear. Three short examples use this exercise type."
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "Spell what you hear: Spell what you hear. Three short examples use this exercise type."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
             },
             {
               "id": "pms_e5f5585a_l28_r01_e01",
@@ -6817,10 +7321,28 @@
             {
               "id": "pms_e5f5585a_l29_r01_intro",
               "publicationState": "published",
-              "kind": "text",
+              "kind": "exercise",
               "required": false,
-              "role": "lesson_intro",
-              "text": "Read and answer (to target): Read and answer. Three short examples use this exercise type."
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "Read and answer (to target): Read and answer. Three short examples use this exercise type."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
             },
             {
               "id": "pms_e5f5585a_l29_r01_e01",
@@ -7116,10 +7638,28 @@
             {
               "id": "pms_e5f5585a_l30_r01_intro",
               "publicationState": "published",
-              "kind": "text",
+              "kind": "exercise",
               "required": false,
-              "role": "lesson_intro",
-              "text": "Select the image: Words in pictures. Three short examples use this exercise type."
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "Select the image: Words in pictures. Three short examples use this exercise type."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
             },
             {
               "id": "pms_e5f5585a_l30_r01_e01",
@@ -7378,10 +7918,28 @@
             {
               "id": "pms_e5f5585a_l31_r01_intro",
               "publicationState": "published",
-              "kind": "text",
+              "kind": "exercise",
               "required": false,
-              "role": "lesson_intro",
-              "text": "Recognize characters: Accented letters. Three short examples use this exercise type."
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "Recognize characters: Accented letters. Three short examples use this exercise type."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
             },
             {
               "id": "pms_e5f5585a_l31_r01_e01",
@@ -7613,10 +8171,28 @@
             {
               "id": "pms_e5f5585a_l32_r01_intro",
               "publicationState": "published",
-              "kind": "text",
+              "kind": "exercise",
               "required": false,
-              "role": "lesson_intro",
-              "text": "Spell the word in the picture: Build pictured words. Three short examples use this exercise type."
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "Spell the word in the picture: Build pictured words. Three short examples use this exercise type."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
             },
             {
               "id": "pms_e5f5585a_l32_r01_e01",
@@ -7903,10 +8479,28 @@
             {
               "id": "pms_e5f5585a_l33_r01_intro",
               "publicationState": "published",
-              "kind": "text",
+              "kind": "exercise",
               "required": false,
-              "role": "lesson_intro",
-              "text": "What is in the picture: What is in the picture?. Three short examples use this exercise type."
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "What is in the picture: What is in the picture?. Three short examples use this exercise type."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
             },
             {
               "id": "pms_e5f5585a_l33_r01_e01",
@@ -8138,10 +8732,28 @@
             {
               "id": "pms_e5f5585a_l34_r01_intro",
               "publicationState": "published",
-              "kind": "text",
+              "kind": "exercise",
               "required": false,
-              "role": "lesson_intro",
-              "text": "Type what you see: Type what you see. Three short examples use this exercise type."
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "Type what you see: Type what you see. Three short examples use this exercise type."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
             },
             {
               "id": "pms_e5f5585a_l34_r01_e01",
@@ -8278,10 +8890,28 @@
             {
               "id": "pms_e5f5585a_l35_r01_intro",
               "publicationState": "published",
-              "kind": "text",
+              "kind": "exercise",
               "required": false,
-              "role": "lesson_intro",
-              "text": "Name what you see: Name what you see. Three short examples use this exercise type."
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "Name what you see: Name what you see. Three short examples use this exercise type."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
             },
             {
               "id": "pms_e5f5585a_l35_r01_e01",
@@ -8531,10 +9161,28 @@
             {
               "id": "pms_e5f5585a_l36_r01_intro",
               "publicationState": "published",
-              "kind": "text",
+              "kind": "exercise",
               "required": false,
-              "role": "lesson_intro",
-              "text": "Spell the word: Spell the word. Three short examples use this exercise type."
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "Spell the word: Spell the word. Three short examples use this exercise type."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
             },
             {
               "id": "pms_e5f5585a_l36_r01_e01",
@@ -8773,10 +9421,28 @@
             {
               "id": "pms_e5f5585a_l37_r01_intro",
               "publicationState": "published",
-              "kind": "text",
+              "kind": "exercise",
               "required": false,
-              "role": "lesson_intro",
-              "text": "Match picture to word: Pictures and words. Three short examples use this exercise type."
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "Match picture to word: Pictures and words. Three short examples use this exercise type."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
             },
             {
               "id": "pms_e5f5585a_l37_r01_e01",
@@ -9149,10 +9815,28 @@
             {
               "id": "pms_e5f5585a_l38_r01_intro",
               "publicationState": "published",
-              "kind": "text",
+              "kind": "exercise",
               "required": false,
-              "role": "lesson_intro",
-              "text": "Note card: Good to know. Three short examples use this exercise type."
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "Note card: Good to know. Three short examples use this exercise type."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
             },
             {
               "id": "pms_e5f5585a_l38_r01_e01",
@@ -9276,10 +9960,28 @@
             {
               "id": "pms_e5f5585a_l39_r01_intro",
               "publicationState": "published",
-              "kind": "text",
+              "kind": "exercise",
               "required": false,
-              "role": "lesson_intro",
-              "text": "Dialogue line: At the market. Three short examples use this exercise type."
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "Dialogue line: At the market. Three short examples use this exercise type."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
             },
             {
               "id": "pms_e5f5585a_l39_r01_e01",
@@ -9378,7 +10080,7 @@
             "nodes": [
               {
                 "id": "pms_e5f5585a_l39_r01_intro",
-                "kind": "content",
+                "kind": "exercise",
                 "contentId": "pms_e5f5585a_l39_r01_intro",
                 "transitions": [
                   {
@@ -9447,5 +10149,5 @@
       "voice": "female"
     }
   ],
-  "officialChecksum": "b77086996448c43e399eceb6ccaddeeaa568928c4afa3283816c9721507e51d6"
+  "officialChecksum": "953f0cfadb82797e2c7dd885b8e90379bc5254edfd1cee7b6074f49c0d299231"
 }

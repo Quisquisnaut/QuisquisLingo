@@ -142,6 +142,10 @@ const Map<String, String> helpEn = <String, String>{
   'editorHelp.qa.newRound.q': r'''How do I add a Round?''',
   'editorHelp.qa.newRound.a':
       r'''On a Lesson's Rounds page press New Round. A new Round is a provisional Draft with one sample exercise (Pick the translation) to replace. The title may stay empty: the Round is then called Round N after its position.''',
+  'editorHelp.qa.beforeYouStart.q':
+      r'''How do I write the Before you start note of a Round?''',
+  'editorHelp.qa.beforeYouStart.a':
+      r'''Add a Before you start card: New Exercise in the Round editor, then choose Before you start (Cards and notes). Write the note and, if the Course uses GuideBooks, turn on Open GuideBook button. The card goes first in the Round; learners read it on its own page before the Round starts, never in Review. Edit, publish or delete it like any exercise. The Round Wizard adds a Draft card to the first Round it creates, and the Audit notes a Lesson whose first Round has none.''',
   'editorHelp.qa.roundWizard.q':
       r'''How does the Round Wizard create Rounds?''',
   'editorHelp.qa.roundWizard.a':
@@ -965,6 +969,8 @@ Question and Context are separate. Context can be text, audio, or both. Dialogue
       r'''Learner matches pictures with their words.''',
   'exerciseHelp.preset.dialogue_line.description':
       r'''One line of a Story, said by the narrator or a character as text, audio or both; the learner reads or listens and continues.''',
+  'exerciseHelp.preset.before_you_start.description':
+      r'''A note shown before the Round starts, with an optional Open GuideBook button; never shown in Review.''',
   'exerciseHelp.preset.story_cover.description':
       r'''The opening card of a Story: its picture and an optional title line; the learner continues.''',
   'exerciseHelp.preset.note_card.description':
@@ -1049,6 +1055,8 @@ Question and Context are separate. Context can be text, audio, or both. Dialogue
       r'''The learner matches each picture on the left with a word on the right. Provide the words, one per line, and one picture per word with the pickers below; at least two pairs. Pair relationships, not display positions, define correctness.''',
   'exerciseHelp.preset.dialogue_line.body':
       r'''A line of dialogue in a Story. Choose who speaks (the narrator or a character defined in the Course Editor's Story characters), write the line, and choose whether the learner reads it, hears it, or both. Read-aloud follows the Story's setting unless the line overrides it; with text and audio you may hide the text until the audio has played. A line is never skipped: without audio the learner reads it. There is no answer and no score; Continue moves on.''',
+  'exerciseHelp.preset.before_you_start.body':
+      r'''The note the learner reads before the Round starts, on its own page with Continue to Round. Write the note and, if you like, turn on Open GuideBook button: the card then offers the Lesson’s GuideBook (learners see the button only while the Course uses GuideBooks and the GuideBook is published). The card is placed first in the Round, is never one of its steps and is never shown in Review; there is no answer and no score. One card per Round: the Audit warns about a second one.''',
   'exerciseHelp.preset.story_cover.body':
       r'''The first card of a Story. Choose the cover picture and, if you like, a title line; the Story's title from the Round options is shown above it. The learner presses Continue. Create Stories with the Story Wizard or by turning on Play as a sequence in the Round editor.''',
   'exerciseHelp.preset.note_card.body':
@@ -1330,6 +1338,28 @@ None.
 
 Example
 Speaker's''',
+  'exerciseHelp.field.before_you_start.prompt.body':
+      r'''What the learner reads before the Round starts.
+
+What to enter
+A few sentences: what the Round practises, a tip, a reminder, in the language your learners read best.
+
+Checks
+Required: an empty card is an Audit error.
+
+Example
+This Round practises greetings.''',
+  'exerciseHelp.field.before_you_start.guidebookButton.body':
+      r'''Whether the card offers the Lesson’s GuideBook.
+
+What to enter
+On or off. Learners see Open GuideBook only while the Course uses GuideBooks (Lesson Options) and the GuideBook is published; Preview shows it for a Draft GuideBook too.
+
+Checks
+Greyed out while the Course does not use GuideBooks.
+
+Example
+On''',
   'exerciseHelp.field.story_cover.prompt.body':
       r'''An optional title line on the cover.
 

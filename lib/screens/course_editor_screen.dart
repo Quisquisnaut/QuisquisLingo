@@ -7274,7 +7274,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
     _mutateRound(() {
       if (index >= 0) {
         _exercises[index] = exercise;
-      } else if (first) {
+      } else if (first || _isRoundIntro(exercise)) {
         _exercises.insert(0, exercise);
       } else {
         _exercises.add(exercise);
@@ -7333,7 +7333,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
     if (e == null || !mounted) return;
     if (!_exercises.any((item) => item.id == e.id)) {
       _mutateRound(() {
-        if (first) {
+        if (first || _isRoundIntro(e)) {
           _exercises.insert(0, e);
         } else {
           _exercises.add(e);
@@ -7346,6 +7346,11 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
   static bool _isCover(Exercise exercise) =>
       ExerciseFeatures(exercise).kind == LearnerExerciseKind.storyCover;
 
+  /// A Before you start card goes before the Round's other exercises
+  /// (Build 257); the Round screen shows it before the Round starts.
+  static bool _isRoundIntro(Exercise exercise) =>
+      ExerciseFeatures(exercise).kind == LearnerExerciseKind.roundIntro;
+
   static bool _isLine(Exercise exercise) =>
       ExerciseFeatures(exercise).kind == LearnerExerciseKind.dialogueLine;
 
@@ -7354,7 +7359,9 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
   String get _storyStepsSummary {
     final covers = _exercises.where(_isCover).length;
     final lines = _exercises.where(_isLine).length;
-    final exercises = _exercises.length - covers - lines;
+    // A Before you start card is no step of the Story (Build 257).
+    final intros = _exercises.where(_isRoundIntro).length;
+    final exercises = _exercises.length - covers - lines - intros;
     final title = switch (covers) {
       0 => 'No title block yet: add it with Add Step',
       1 => 'Title block: 1',
@@ -8521,6 +8528,7 @@ String _exerciseSummary(Exercise e) {
     features.lineText,
     features.lineAudio?.text ?? '',
     features.coverTitle,
+    features.introText,
     features.inlineSentence,
     features.contextText,
     features.primaryText,
@@ -9408,6 +9416,8 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
   // Fill the slots (Build 256 Revision 7 follow-up): whether a word may
   // fill more than one slot.
   bool _slotReuse = false;
+  // Before you start (Build 257): whether the card offers Open GuideBook.
+  bool _guidebookButton = false;
   // A Flashcard's read-aloud: none, manual (on request) or automatic; the
   // spoken text is the word itself.
   String _cardReadAloud = 'manual';
@@ -9470,6 +9480,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     _matchSides = draft.matchSides;
     _readLineFields(draft);
     _slotReuse = draft.slotReuse;
+    _guidebookButton = draft.guidebookButton;
     _cardReadAloud = draft.cardReadAloud;
     _dialogueReadAloud = draft.dialogueReadAloud;
     _tokens = TextEditingController(text: draft.tokens);
@@ -10907,6 +10918,37 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
                 'Optional: a line under the Story title on the cover. The cover picture is the image below.',
           ),
         ];
+      case 'before_you_start':
+        // Build 257: Open GuideBook only means something while the Course
+        // uses GuideBooks, so the switch is greyed out otherwise.
+        final usesGuidebook = widget.course?.useGuidebook ?? false;
+        return [
+          _field(
+            _prompt,
+            'Note',
+            lines: 5,
+            helper:
+                'What the learner reads before the Round starts. Shown on its own page with Continue to Round, never in Review.',
+          ),
+          SwitchListTile(
+            key: const Key('before-you-start-guidebook-switch'),
+            contentPadding: EdgeInsets.zero,
+            title: const Text('Open GuideBook button'),
+            subtitle: Text(
+              usesGuidebook
+                  ? 'On: the card offers the Lesson’s GuideBook. Learners see the button once the GuideBook is published.'
+                  : 'Turn on Use GuideBook in Lesson Options to offer the Lesson’s GuideBook from this card.',
+            ),
+            secondary: _helpButton('guidebookButton'),
+            value: _guidebookButton,
+            onChanged: widget.readOnly || !usesGuidebook
+                ? null
+                : (value) => setState(() {
+                    _guidebookButton = value;
+                    _dirty = true;
+                  }),
+          ),
+        ];
       case 'note_card':
         return [
           _field(_prompt, 'Title'),
@@ -11232,6 +11274,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         slots: _slots.text,
         extraWords: _extraWords.text,
         slotReuse: _slotReuse,
+        guidebookButton: _guidebookButton,
         cardReadAloud: _cardReadAloud,
         dialogueReadAloud: _dialogueReadAloud,
         prompt: _prompt.text,
@@ -11615,6 +11658,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     _lineTextReveal,
     _lineLanguage,
     _slotReuse,
+    _guidebookButton,
     _cardReadAloud,
     _dialogueReadAloud,
     _imageAsset,
@@ -11743,6 +11787,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         _matchSides = draft.matchSides;
         _readLineFields(draft);
         _slotReuse = draft.slotReuse;
+        _guidebookButton = draft.guidebookButton;
         _cardReadAloud = draft.cardReadAloud;
         _dialogueReadAloud = draft.dialogueReadAloud;
         _tokens.text = draft.tokens;
@@ -11979,7 +12024,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
             const SizedBox(height: 12),
             ..._specificFields(),
             const SizedBox(height: 12),
-            if (_type != 'script_recognition')
+            if (_type != 'script_recognition' && _type != 'before_you_start')
               ExerciseImageField(
                 course: widget.course,
                 asset: _imageAsset,

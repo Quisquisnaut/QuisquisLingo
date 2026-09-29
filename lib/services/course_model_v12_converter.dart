@@ -170,6 +170,36 @@ Map<String, dynamic> _convertContent(
     return out;
   }
 
+  // Build 257: a v11 Lesson introduction (text Content with role
+  // lesson_intro) becomes a Before you start card offering the GuideBook,
+  // as the note did; v12 shows no other introduction.
+  final introText = out['text'];
+  if (out['role'] == 'lesson_intro' &&
+      out['exercise'] == null &&
+      introText is String) {
+    final cardMetadata = <String, Object?>{
+      ...metadata,
+      'presetId': 'before_you_start',
+    };
+    final card = Exercise.beforeYouStart(
+      id: id,
+      publicationState: publicationState,
+      updatedAt: fallbackUpdatedAt is String
+          ? DateTime.tryParse(fallbackUpdatedAt)?.toUtc()
+          : null,
+      text: introText,
+      guidebookButton: true,
+      authoringMetadata: cardMetadata,
+    );
+    out
+      ..remove('role')
+      ..remove('text')
+      ..['kind'] = 'exercise'
+      ..['authoringMetadata'] = cardMetadata
+      ..['exercise'] = card.toJson();
+    return out;
+  }
+
   final rawExercise = out['exercise'];
   if (rawExercise is! Map) return out;
   final ex = Map<String, dynamic>.from(rawExercise);

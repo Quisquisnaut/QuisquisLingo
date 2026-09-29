@@ -300,16 +300,11 @@ class _RoundScreenState extends State<RoundScreen> {
 
   int get _exerciseIndex => _queue[_position];
   Exercise get _exercise => widget.round.exercises[_exerciseIndex];
-  LearningContent? get _lessonIntro {
-    for (final content in widget.round.content) {
-      if (content.role == 'lesson_intro' &&
-          content.text.trim().isNotEmpty &&
-          (widget.previewMode || content.publicationState.isPublished)) {
-        return content;
-      }
-    }
-    return null;
-  }
+
+  /// The Before you start card (Build 257): an ordinary card of the Round,
+  /// shown on its own page before the Round starts and never in Review
+  /// (owner decision, 29 September 2026). Found once the Round is prepared.
+  Exercise? _lessonIntro;
 
   @override
   void initState() {
@@ -412,6 +407,12 @@ class _RoundScreenState extends State<RoundScreen> {
         includeDrafts: widget.previewMode,
       );
       _versionSkipped = widget.previewMode ? 0 : notExecutable.length;
+      _lessonIntro = widget.reviewMode
+          ? null
+          : _roundPlayability.introFor(
+              widget.round,
+              includeDrafts: widget.previewMode,
+            );
       await CrashLogService.instance.recordDebugEvent(
         'Round: audit completed ${widget.round.id}, valid=${valid.length}, '
         'notExecutable=${notExecutable.length}',
@@ -3890,7 +3891,13 @@ class _RoundScreenState extends State<RoundScreen> {
       _autumnBackgrounds[widget.roundIndex % _autumnBackgrounds.length],
     );
     final intro = _lessonIntro;
-    if (_ready && _queue.isNotEmpty && intro != null && !_introAcknowledged) {
+    // The Preview of a card alone shows the card and closes after it.
+    if (_ready &&
+        !_initializationFailed &&
+        (_queue.isNotEmpty || widget.previewMode) &&
+        intro != null &&
+        !_introAcknowledged) {
+      final introFeatures = ExerciseFeatures(intro);
       return Scaffold(
         backgroundColor: background,
         appBar: _simpleRoundAppBar(background),
@@ -3912,11 +3919,15 @@ class _RoundScreenState extends State<RoundScreen> {
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Text(
-                  intro.text,
+                  introFeatures.introText,
                   style: Theme.of(context).textTheme.bodyLarge,
                 ),
               ),
-              if (widget.course.useGuidebook &&
+              // The card's Open GuideBook action (Build 257): asked for by
+              // the card, offered while the Course uses GuideBooks and the
+              // GuideBook is published (any GuideBook in Preview).
+              if (introFeatures.guidebookButton &&
+                  widget.course.useGuidebook &&
                   (widget.previewMode ||
                       widget
                           .lesson
@@ -3925,6 +3936,7 @@ class _RoundScreenState extends State<RoundScreen> {
                           .isPublished)) ...[
                 const SizedBox(height: 16),
                 OutlinedButton.icon(
+                  key: const Key('before-you-start-guidebook'),
                   onPressed: () => Navigator.of(context).push(
                     MaterialPageRoute(
                       builder: (_) => GuidebookScreen(
@@ -3943,7 +3955,12 @@ class _RoundScreenState extends State<RoundScreen> {
               ],
               const SizedBox(height: 8),
               FilledButton(
+                key: const Key('before-you-start-continue'),
                 onPressed: () {
+                  if (_queue.isEmpty) {
+                    Navigator.of(context).maybePop();
+                    return;
+                  }
                   setState(() => _introAcknowledged = true);
                   final exercise = _exercise;
                   final generation = _preparedExerciseGeneration;
@@ -3955,7 +3972,9 @@ class _RoundScreenState extends State<RoundScreen> {
                     );
                   });
                 },
-                child: const Text('Continue to Round'),
+                child: Text(
+                  _queue.isEmpty ? 'Close preview' : 'Continue to Round',
+                ),
               ),
             ],
           ),

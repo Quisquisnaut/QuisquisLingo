@@ -209,7 +209,8 @@ void main() {
     expect(status.lessonHasRoundAuditConcern(lesson), isFalse);
     expect(status.hasLessonsAuditConcern, isFalse);
     expect(status.hasCourseAuditConcern, isFalse);
-    expect(AuditCode.values, hasLength(108));
+    // Build 257: ROUND_INTRO_EMPTY and ROUND_INTRO_DUPLICATE.
+    expect(AuditCode.values, hasLength(110));
   });
 
   test(

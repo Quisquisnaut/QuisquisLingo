@@ -523,9 +523,18 @@ def validate(path: Path, global_ids: dict[str, str]) -> list[str]:
                 issues.append(f"{round_where}: content must be non-empty")
                 continue
             if round_index == 1:
+                # Build 257: a Lesson's first Round opens with a Before you
+                # start card (a presentation with an intro text element).
                 first = content_items[0]
-                if not isinstance(first, dict) or first.get("role") != "lesson_intro" or first.get("kind") == "exercise":
-                    issues.append(f"{round_where}: first Content must be a non-exercise lesson_intro")
+                first_exercise = first.get("exercise") if isinstance(first, dict) else None
+                is_intro_card = (
+                    isinstance(first_exercise, dict)
+                    and first_exercise.get("primitive") == "presentation"
+                    and any(isinstance(e, dict) and e.get("role") == "intro" and e.get("type") == "text"
+                            for e in first_exercise.get("prompt", []))
+                )
+                if not is_intro_card:
+                    issues.append(f"{round_where}: first Content must be a Before you start card")
             for content_index, content in enumerate(content_items, 1):
                 if isinstance(content, dict):
                     validate_content(content, f"{round_where} content {content_index}")

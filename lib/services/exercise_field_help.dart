@@ -64,6 +64,8 @@ enum ExerciseAuthoringField {
   lineLanguage,
   coverTitle,
   coverImage,
+  introText,
+  guidebookButton,
   groups,
   slots,
   extraWords,
@@ -221,6 +223,7 @@ abstract final class ExerciseFieldHelpRegistry {
         'language',
       ],
       'story_cover': ['prompt', 'image'],
+      'before_you_start': ['prompt', 'guidebookButton'],
       'sort_into_groups': ['question', 'groups'],
       'fill_the_slots': ['question', 'slots', 'extraWords', 'slotReuse'],
     };
@@ -232,7 +235,12 @@ abstract final class ExerciseFieldHelpRegistry {
         'Unknown Exercise preset',
       );
     }
-    return [...selected, if (presetId != 'script_recognition') 'image'];
+    // A Before you start card has no picture (Build 257).
+    return [
+      ...selected,
+      if (presetId != 'script_recognition' && presetId != 'before_you_start')
+        'image',
+    ];
   }
 
   /// The two Choose the answer twins share one form.
@@ -460,6 +468,7 @@ abstract final class ExerciseFieldHelpRegistry {
       'note_card' => ExerciseAuthoringField.noteTitle,
       'dialogue_line' => ExerciseAuthoringField.dialogueLine,
       'story_cover' => ExerciseAuthoringField.coverTitle,
+      'before_you_start' => ExerciseAuthoringField.introText,
       'type_translation_to_target' ||
       'type_translation_to_source' ||
       'build_translation_to_target' ||
@@ -543,6 +552,7 @@ abstract final class ExerciseFieldHelpRegistry {
       _ => ExerciseAuthoringField.extraWords,
     },
     'slotReuse' => ExerciseAuthoringField.slotReuse,
+    'guidebookButton' => ExerciseAuthoringField.guidebookButton,
     'textReveal' => ExerciseAuthoringField.lineTextReveal,
     'language' => ExerciseAuthoringField.lineLanguage,
     'image' => switch (presetId) {
@@ -1063,6 +1073,24 @@ abstract final class ExerciseFieldHelpRegistry {
       validation:
           'Read-aloud is optional: the exercise is never an audio exercise and stays silent with Audio Exercises or Text-to-speech off.',
       example: 'Automatically, line by line',
+    ),
+    ExerciseAuthoringField.introText => const ExerciseFieldHelp(
+      title: 'Note',
+      purpose:
+          'What the learner reads before the Round starts: what the Round practises, a tip, a reminder.',
+      entryRules:
+          'A few sentences in the language your learners read best. The learner reads it on its own page and presses Continue to Round.',
+      validation: 'Required: an empty card is an Audit error.',
+      example:
+          'This Round practises greetings. Say buongiorno until the afternoon.',
+    ),
+    ExerciseAuthoringField.guidebookButton => const ExerciseFieldHelp(
+      title: 'Open GuideBook button',
+      purpose: 'Whether the card offers the Lesson’s GuideBook.',
+      entryRules:
+          'On: the card shows Open GuideBook. Learners see the button only while the Course uses GuideBooks (Lesson Options) and the Lesson’s GuideBook is published; Preview shows it for a Draft GuideBook too.',
+      validation: 'Greyed out while the Course does not use GuideBooks.',
+      example: 'On, when the GuideBook explains the Round’s grammar.',
     ),
     ExerciseAuthoringField.slotReuse => const ExerciseFieldHelp(
       title: 'A word may fill more than one slot',

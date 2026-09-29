@@ -3393,6 +3393,33 @@ class Exercise {
     authoringMetadata: authoringMetadata,
   ).exercise;
 
+  /// A Before you start card (Build 257): a presentation whose note is a
+  /// text element with role `intro`, shown before its Round starts, and an
+  /// optional Open GuideBook button. The one shape the form, the Round
+  /// Wizard and the v11 converter build.
+  factory Exercise.beforeYouStart({
+    required String id,
+    PublicationState publicationState = PublicationState.published,
+    DateTime? updatedAt,
+    required String text,
+    bool guidebookButton = false,
+    ExerciseFeedback feedback = ExerciseFeedback.empty,
+    Map<String, Object?>? authoringMetadata,
+  }) => Exercise.canonical(
+    id: id,
+    publicationState: publicationState,
+    updatedAt: updatedAt,
+    primitive: ExercisePrimitive.presentation,
+    options: PrimitiveOptions({
+      if (guidebookButton)
+        OptionKey.guidebookButton: const BoolOptionValue(true),
+    }),
+    promptElements: [PromptElement(role: 'intro', type: 'text', text: text)],
+    canonicalEvaluation: CanonicalEvaluation.none,
+    feedback: feedback,
+    authoringMetadata: authoringMetadata,
+  );
+
   factory Exercise.presentation({
     required String id,
     required String editorTemplate,

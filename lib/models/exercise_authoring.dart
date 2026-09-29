@@ -501,6 +501,17 @@ abstract final class ExercisePresetRegistry {
       primitive: ExercisePrimitive.presentation,
       direction: PresetDirection.none,
     ),
+    // Build 257: the note shown before a Round starts, now an ordinary card
+    // of the Round (owner decisions of 29 September 2026).
+    ExercisePreset(
+      id: 'before_you_start',
+      name: 'Before you start',
+      description:
+          'A note shown before the Round starts, with an optional Open GuideBook button; never shown in Review.',
+      category: ExerciseCategory.cardsAndNotes,
+      primitive: ExercisePrimitive.presentation,
+      direction: PresetDirection.none,
+    ),
   ];
 
   /// The successor of every preset retired by the Build 256 Revision 4
@@ -662,5 +673,7 @@ abstract final class ExercisePresetRegistry {
         'One line of a Story. Choose who speaks (the narrator or a Story character of the Course), write the line, and choose whether the learner reads it, hears it or both; read-aloud follows the Story unless the line overrides it. A line is never skipped: without audio the learner reads it. No answer, no score; Continue moves on.',
     'story_cover':
         'The first card of a Story: the cover picture and an optional title line under the Story title. Continue moves on. Build Stories with New Story on the Rounds page.',
+    'before_you_start':
+        'The note the learner reads before the Round starts, on its own page with Continue to Round. Write the note; turn on Open GuideBook button to offer the Lesson’s GuideBook from the card (the button appears only while the Course uses GuideBooks and the GuideBook is published). One card per Round, placed first; it is never shown in Review, has no answer and no score.',
   };
 }

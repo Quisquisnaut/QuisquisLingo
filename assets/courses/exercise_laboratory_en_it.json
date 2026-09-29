@@ -88,10 +88,28 @@
             {
               "id": "qql_lab254_intro_select_basics",
               "publicationState": "published",
-              "kind": "text",
+              "kind": "exercise",
               "required": false,
-              "role": "lesson_intro",
-              "text": "Read the instruction carefully. Single-answer questions check immediately. Multiple-answer questions wait for Check; select every correct option and no distractor."
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "Read the instruction carefully. Single-answer questions check immediately. Multiple-answer questions wait for Check; select every correct option and no distractor."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
             },
             {
               "id": "qql_lab254_select_single",
@@ -429,10 +447,28 @@
             {
               "id": "qql_lab254_intro_select_gaps",
               "publicationState": "published",
-              "kind": "text",
+              "kind": "exercise",
               "required": false,
-              "role": "lesson_intro",
-              "text": "In Fill in the blank, choose one missing expression. In the fixed-sentence exercises, fill each gap; an option can be used again. You can remove, move and swap answers before Check."
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "In Fill in the blank, choose one missing expression. In the fixed-sentence exercises, fill each gap; an option can be used again. You can remove, move and swap answers before Check."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
             },
             {
               "id": "qql_lab254_select_gap_preset",
@@ -885,10 +921,28 @@
             {
               "id": "qql_lab254_intro_select_visual",
               "publicationState": "published",
-              "kind": "text",
+              "kind": "exercise",
               "required": false,
-              "role": "lesson_intro",
-              "text": "Match words to pictures, then inspect the printed characters. Character images are original portable PNG specimens. Image choices check immediately."
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "Match words to pictures, then inspect the printed characters. Character images are original portable PNG specimens. Image choices check immediately."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
             },
             {
               "id": "qql_lab254_select_named_icons",
@@ -1240,10 +1294,28 @@
             {
               "id": "qql_lab254_intro_select_context",
               "publicationState": "published",
-              "kind": "text",
+              "kind": "exercise",
               "required": false,
-              "role": "lesson_intro",
-              "text": "Read the situation, written in English, and the Italian dialogue, then answer in Italian. Some dialogues are read aloud line by line, automatically or with Play dialogue."
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "Read the situation, written in English, and the Italian dialogue, then answer in Italian. Some dialogues are read aloud line by line, automatically or with Play dialogue."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
             },
             {
               "id": "qql_lab254_reading_situation",
@@ -1577,10 +1649,28 @@
             {
               "id": "qql_lab254_intro_select_listening",
               "publicationState": "published",
-              "kind": "text",
+              "kind": "exercise",
               "required": false,
-              "role": "lesson_intro",
-              "text": "Enable Audio Exercises and Text-to-speech to practise every item here. Use the replay control as needed. Listen for meaning as well as for individual words."
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "Enable Audio Exercises and Text-to-speech to practise every item here. Use the replay control as needed. Listen for meaning as well as for individual words."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
             },
             {
               "id": "qql_lab254_select_listening_word",
@@ -1722,10 +1812,28 @@
             {
               "id": "qql_lab254_intro_select_translation",
               "publicationState": "published",
-              "kind": "text",
+              "kind": "exercise",
               "required": false,
-              "role": "lesson_intro",
-              "text": "Read the language named in the instruction. QQL supplies the instruction for each direction. Pronunciation is optional; these questions remain available with Audio Exercises off."
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "Read the language named in the instruction. QQL supplies the instruction for each direction. Pronunciation is optional; these questions remain available with Audio Exercises off."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
             },
             {
               "id": "qql_lab254_translation_target_two",
@@ -2021,10 +2129,28 @@
             {
               "id": "qql_lab254_intro_select_source",
               "publicationState": "published",
-              "kind": "text",
+              "kind": "exercise",
               "required": false,
-              "role": "lesson_intro",
-              "text": "These Select exercises answer in the source language or with pictures: Choose the answer (to source), True or false, Listen and answer (to source), What is in the picture and Listen and pick the image."
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "These Select exercises answer in the source language or with pictures: Choose the answer (to source), True or false, Listen and answer (to source), What is in the picture and Listen and pick the image."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
             },
             {
               "id": "qql_lab254_choice_source_meaning",
@@ -2498,10 +2624,28 @@
             {
               "id": "qql_lab254_intro_input_answers",
               "publicationState": "published",
-              "kind": "text",
+              "kind": "exercise",
               "required": false,
-              "role": "lesson_intro",
-              "text": "Type a natural Italian translation. These examples demonstrate several ways an author can record equivalent answers; the answer notation is never shown as the learner prompt."
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "Type a natural Italian translation. These examples demonstrate several ways an author can record equivalent answers; the answer notation is never shown as the learner prompt."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
             },
             {
               "id": "qql_lab254_input_literal",
@@ -2682,10 +2826,28 @@
             {
               "id": "qql_lab254_intro_input_ordered_variants",
               "publicationState": "published",
-              "kind": "text",
+              "kind": "exercise",
               "required": false,
-              "role": "lesson_intro",
-              "text": "Translate the complete sentence. Several natural word orders may be accepted. Keep accents and apostrophes, and check repeated letters when you type."
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "Translate the complete sentence. Several natural word orders may be accepted. Keep accents and apostrophes, and check repeated letters when you type."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
             },
             {
               "id": "qql_lab254_input_reorder",
@@ -2866,10 +3028,28 @@
             {
               "id": "qql_lab254_intro_input_gaps",
               "publicationState": "published",
-              "kind": "text",
+              "kind": "exercise",
               "required": false,
-              "role": "lesson_intro",
-              "text": "Type the missing text. Type the missing word gives the first letter as a hint and still expects the complete word. A phrase with pronunciation audio also accepts its complete spoken form."
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "Type the missing text. Type the missing word gives the first letter as a hint and still expects the complete word. A phrase with pronunciation audio also accepts its complete spoken form."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
             },
             {
               "id": "qql_lab254_input_fragment",
@@ -3123,10 +3303,28 @@
             {
               "id": "qql_lab254_intro_input_listening",
               "publicationState": "published",
-              "kind": "text",
+              "kind": "exercise",
               "required": false,
-              "role": "lesson_intro",
-              "text": "Enable Audio Exercises and Text-to-speech. For a transcription, type the whole utterance. For missing words, complete the numbered fields in transcript order."
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "Enable Audio Exercises and Text-to-speech. For a transcription, type the whole utterance. For missing words, complete the numbered fields in transcript order."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
             },
             {
               "id": "qql_lab254_input_listen_word",
@@ -3385,10 +3583,28 @@
             {
               "id": "qql_lab254_intro_input_source_and_pictures",
               "publicationState": "published",
-              "kind": "text",
+              "kind": "exercise",
               "required": false,
-              "role": "lesson_intro",
-              "text": "Type the translation (to source) takes a source-language translation. Complete the text and Missing letters are typed gaps without and with letters inside words. Name what you see names a picture."
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "Type the translation (to source) takes a source-language translation. Complete the text and Missing letters are typed gaps without and with letters inside words. Name what you see names a picture."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
             },
             {
               "id": "qql_lab254_type_source_literal",
@@ -3730,10 +3946,28 @@
             {
               "id": "qql_lab254_intro_arrange_words",
               "publicationState": "published",
-              "kind": "text",
+              "kind": "exercise",
               "required": false,
-              "role": "lesson_intro",
-              "text": "Tap blocks to build the answer. You can remove a chosen block before checking. Repeated words are separate occurrences."
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "Tap blocks to build the answer. You can remove a chosen block before checking. Repeated words are separate occurrences."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
             },
             {
               "id": "qql_lab254_arrange_zero",
@@ -4227,10 +4461,28 @@
             {
               "id": "qql_lab254_intro_arrange_gaps",
               "publicationState": "published",
-              "kind": "text",
+              "kind": "exercise",
               "required": false,
-              "role": "lesson_intro",
-              "text": "Fill each gap using a separate block. Unlike Select, placing a block removes that occurrence from the available bank. Duplicate words need two blocks. Gap contents can be removed, moved or swapped."
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "Fill each gap using a separate block. Unlike Select, placing a block removes that occurrence from the available bank. Duplicate words need two blocks. Gap contents can be removed, moved or swapped."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
             },
             {
               "id": "qql_lab254_arrange_gap_one",
@@ -4616,10 +4868,28 @@
             {
               "id": "qql_lab254_intro_arrange_translations",
               "publicationState": "published",
-              "kind": "text",
+              "kind": "exercise",
               "required": false,
-              "role": "lesson_intro",
-              "text": "Translate the English prompt using the available literal blocks. Some questions accept more than one complete translation. Answer-expression notation and typo tolerance do not apply to this exercise type."
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "Translate the English prompt using the available literal blocks. Some questions accept more than one complete translation. Answer-expression notation and typo tolerance do not apply to this exercise type."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
             },
             {
               "id": "qql_lab254_build_single",
@@ -5176,10 +5446,28 @@
             {
               "id": "qql_lab254_intro_arrange_images",
               "publicationState": "published",
-              "kind": "text",
+              "kind": "exercise",
               "required": false,
-              "role": "lesson_intro",
-              "text": "Use every available block to write the Italian word for the picture. There are no distractors. Each repeated letter is a separate block."
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "Use every available block to write the Italian word for the picture. There are no distractors. Each repeated letter is a separate block."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
             },
             {
               "id": "qql_lab254_image_letters",
@@ -5451,10 +5739,28 @@
             {
               "id": "qql_lab254_intro_arrange_source_and_lines",
               "publicationState": "published",
-              "kind": "text",
+              "kind": "exercise",
               "required": false,
-              "role": "lesson_intro",
-              "text": "Build the translation (to source) uses source-language blocks. Put the sentences in order orders lines. Spell what you hear and Spell the word spell a word from tiles without a picture."
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "Build the translation (to source) uses source-language blocks. Put the sentences in order orders lines. Spell what you hear and Spell the word spell a word from tiles without a picture."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
             },
             {
               "id": "qql_lab254_build_source_single",
@@ -6116,10 +6422,28 @@
             {
               "id": "qql_lab254_intro_match_text",
               "publicationState": "published",
-              "kind": "text",
+              "kind": "exercise",
               "required": false,
-              "role": "lesson_intro",
-              "text": "Match every row before Check. For related words, read whether the task asks for synonyms or opposites."
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "Match every row before Check. For related words, read whether the task asks for synonyms or opposites."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
             },
             {
               "id": "qql_lab254_match_single",
@@ -6543,10 +6867,28 @@
             {
               "id": "qql_lab254_intro_match_pictures",
               "publicationState": "published",
-              "kind": "text",
+              "kind": "exercise",
               "required": false,
-              "role": "lesson_intro",
-              "text": "Match each picture on the left with its Italian word."
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "Match each picture on the left with its Italian word."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
             },
             {
               "id": "qql_lab254_picture_word_match",
@@ -6671,10 +7013,28 @@
             {
               "id": "qql_lab254_intro_match_audio",
               "publicationState": "published",
-              "kind": "text",
+              "kind": "exercise",
               "required": false,
-              "role": "lesson_intro",
-              "text": "Enable Audio Exercises and Text-to-speech. Play each sound and match it to the English meaning. Three sounds have three distinct partners and no distractors."
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "Enable Audio Exercises and Text-to-speech. Play each sound and match it to the English meaning. Three sounds have three distinct partners and no distractors."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
             },
             {
               "id": "qql_lab254_match_sounds",
@@ -6793,10 +7153,28 @@
             {
               "id": "qql_lab254_intro_match_opposites",
               "publicationState": "published",
-              "kind": "text",
+              "kind": "exercise",
               "required": false,
-              "role": "lesson_intro",
-              "text": "Match these familiar Italian words to their opposites."
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "Match these familiar Italian words to their opposites."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
             },
             {
               "id": "qql_lab254_match_opposites",
@@ -6940,10 +7318,28 @@
             {
               "id": "qql_lab254_intro_presentation_text",
               "publicationState": "published",
-              "kind": "text",
+              "kind": "exercise",
               "required": false,
-              "role": "lesson_intro",
-              "text": "Read each card. Try Review again once, then Got it when the card returns. These cards can be studied without audio and do not earn correct-answer base XP."
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "Read each card. Try Review again once, then Got it when the card returns. These cards can be studied without audio and do not earn correct-answer base XP."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
             },
             {
               "id": "qql_lab254_card_minimal",
@@ -7065,10 +7461,28 @@
             {
               "id": "qql_lab254_intro_presentation_audio",
               "publicationState": "published",
-              "kind": "text",
+              "kind": "exercise",
               "required": false,
-              "role": "lesson_intro",
-              "text": "Enable Audio Exercises and Text-to-speech to include these cards. Play the word or the usage sentence, then choose Got it or Review again."
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "Enable Audio Exercises and Text-to-speech to include these cards. Play the word or the usage sentence, then choose Got it or Review again."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
             },
             {
               "id": "qql_lab254_card_audio",
@@ -7208,10 +7622,28 @@
             {
               "id": "qql_lab254_intro_presentation_pictures_notes",
               "publicationState": "published",
-              "kind": "text",
+              "kind": "exercise",
               "required": false,
-              "role": "lesson_intro",
-              "text": "Picture flashcards show a picture with the word; their audio is optional and never makes them audio exercises. Note cards carry a tip or a grammar note."
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "Picture flashcards show a picture with the word; their audio is optional and never makes them audio exercises. Note cards carry a tip or a grammar note."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
             },
             {
               "id": "qql_lab254_picture_card",
@@ -7396,10 +7828,28 @@
             {
               "id": "qql_lab254_intro_story_cafe",
               "publicationState": "published",
-              "kind": "text",
+              "kind": "exercise",
               "required": false,
-              "role": "lesson_intro",
-              "text": "Read or listen to the story and answer the questions between the lines. Continue moves on; the scroll log keeps the dialogue."
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "Read or listen to the story and answer the questions between the lines. Continue moves on; the scroll log keeps the dialogue."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
             },
             {
               "id": "qql_lab254_story_cover",
@@ -7773,7 +8223,7 @@
             "nodes": [
               {
                 "id": "qql_lab254_intro_story_cafe",
-                "kind": "content",
+                "kind": "exercise",
                 "contentId": "qql_lab254_intro_story_cafe",
                 "transitions": [
                   {
@@ -7892,10 +8342,28 @@
             {
               "id": "qql_lab254_intro_story_options",
               "publicationState": "published",
-              "kind": "text",
+              "kind": "exercise",
               "required": false,
-              "role": "lesson_intro",
-              "text": "Each line of this Story shows one option: text after listening, text only, audio only read on request, and audio read aloud although the Story reads on request. Nothing is scored."
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "Each line of this Story shows one option: text after listening, text only, audio only read on request, and audio read aloud although the Story reads on request. Nothing is scored."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
             },
             {
               "id": "qql_lab254_options_cover",
@@ -8076,7 +8544,7 @@
             "nodes": [
               {
                 "id": "qql_lab254_intro_story_options",
-                "kind": "content",
+                "kind": "exercise",
                 "contentId": "qql_lab254_intro_story_options",
                 "transitions": [
                   {
@@ -8187,10 +8655,28 @@
             {
               "id": "qql_lab254_intro_assign_bins",
               "publicationState": "published",
-              "kind": "text",
+              "kind": "exercise",
               "required": false,
-              "role": "lesson_intro",
-              "text": "Sort the words into their groups, or fill each slot with the right word. Tap a word, then its destination; Check when every word is placed."
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "Sort the words into their groups, or fill each slot with the right word. Tap a word, then its destination; Check when every word is placed."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
             },
             {
               "id": "qql_lab254_assign_groups",
@@ -8675,5 +9161,5 @@
       "voice": "male"
     }
   ],
-  "officialChecksum": "6535934ba91af4be1b8de828faf028159ab17149b95d5edd9fb48c5840519387"
+  "officialChecksum": "5fbae76c37f490dcc4071534ef08e098b62a193a636e7d3aa8b84283a21f09a8"
 }

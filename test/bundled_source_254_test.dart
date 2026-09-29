@@ -67,7 +67,8 @@ void main() {
       actual.lessons
           .expand((lesson) => lesson.rounds)
           .expand((round) => round.exercises),
-      hasLength(39),
+      // 39 examples and seven Before you start cards (Build 257).
+      hasLength(46),
     );
     expect(
       CourseBackupService.officialContentChecksum(actual),

@@ -263,7 +263,8 @@ void main() {
     expect(line.primitive, ExercisePrimitive.presentation);
     expect(line.base, 'dialogue_line');
     expect(ExercisePresetRegistry.byId('story_cover')!.base, 'story_cover');
-    expect(ExercisePresetRegistry.presets, hasLength(42));
+    // 43 since Build 257 added Before you start.
+    expect(ExercisePresetRegistry.presets, hasLength(43));
     expect(
       ExercisePresetRegistry.helpByPreset['dialogue_line'],
       contains('narrator'),

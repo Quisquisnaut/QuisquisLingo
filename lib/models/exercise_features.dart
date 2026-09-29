@@ -89,6 +89,10 @@ enum LearnerExerciseKind {
   /// meaning (Build 256 Revision 5).
   storyCover,
 
+  /// A Before you start card: a text element with role `intro`, shown
+  /// before the Round starts and never as one of its steps (Build 257).
+  roundIntro,
+
   /// Assign: items sorted into named groups (Build 256 Revision 7).
   assignGroups,
 
@@ -501,6 +505,20 @@ class ExerciseFeatures {
   /// A Story cover's title line (role `title`).
   String get coverTitle => textOf('title');
 
+  // -------------------------------------------------------- Before you start
+
+  /// The text elements of a Before you start card (role `intro`, Build 257).
+  List<PromptElement> get introElements => prompt
+      .where((e) => e.role == 'intro' && e.isText)
+      .toList(growable: false);
+
+  /// A Before you start card's note.
+  String get introText => textOf('intro');
+
+  /// Whether the card offers an Open GuideBook button (Build 257).
+  bool get guidebookButton =>
+      options.boolValue(OptionKey.guidebookButton) ?? false;
+
   // -------------------------------------------------------------- evaluation
 
   /// Target ID -> the one item it must hold (inline gap grading).
@@ -606,6 +624,7 @@ class ExerciseFeatures {
         return LearnerExerciseKind.match;
       case ExercisePrimitive.presentation:
         if (lineElements.isNotEmpty) return LearnerExerciseKind.dialogueLine;
+        if (introElements.isNotEmpty) return LearnerExerciseKind.roundIntro;
         if (textOf('term').isEmpty &&
             textOf('meaning').isEmpty &&
             (coverTitle.isNotEmpty || illustrationImages.isNotEmpty)) {

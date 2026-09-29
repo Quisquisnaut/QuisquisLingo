@@ -14,7 +14,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from qql_course_v12 import convert_course_v11_to_v12, story_cover, story_flow, story_line  # noqa: E402
+from qql_course_v12 import becomes_exercise, convert_course_v11_to_v12, story_cover, story_flow, story_line  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 OUTPUT = ROOT / "assets/courses/edge_case_it_en.json"
@@ -311,7 +311,7 @@ def build_course() -> dict:
     ]
     story_round = round_case("r11_story", "At the bar", story_content, visual="story")
     story_round["flow"] = story_flow(
-        [(content["id"], "exercise" in content) for content in story_content],
+        [(content["id"], becomes_exercise(content)) for content in story_content],
         title="At the bar", requires_audio={pid("e36_needs_audio")})
     # A Story of covers alone (owner decision, 28 September 2026): nothing to
     # score, no XP, and the intentional Audit warning STORY_WITHOUT_DIALOGUE.
@@ -330,7 +330,7 @@ def build_course() -> dict:
     ]
     covers_round = round_case("r12_covers", "Tre copertine", covers_content, visual="story")
     covers_round["flow"] = story_flow(
-        [(content["id"], "exercise" in content) for content in covers_content],
+        [(content["id"], becomes_exercise(content)) for content in covers_content],
         title="Tre copertine")
     l6 = lesson("l06", "Storia: al bar (a Story)", [story_round, covers_round], ["a coffee = un caffè"],
                 overview="Una Story: copertina, battute (una solo audio) alternate a un esercizio che richiede "

@@ -1,3 +1,45 @@
+# 2.0.57 (Build 257, Revision 0) - Before you start cards - 2026-09-29
+
+The note a learner reads before a Round starts ("Before you start") is now
+an ordinary card of the Round that authors can write, edit, publish and
+delete, the first slice of interactive presentation cards (owner decisions
+of 29 September 2026). Before this build the note was Round content with no
+editor field: only the bundled Courses had one, and the Round Wizard's note
+stayed Draft forever, so learners never saw it.
+
+- **The card:** a new preset, **Before you start** (Cards and notes), with a
+  Note and an **Open GuideBook button** switch. The switch is greyed out
+  while the Course does not use GuideBooks; learners see the button only
+  when the Lesson's GuideBook is published (Preview shows it for a Draft
+  GuideBook). There is no picture, no answer and no score.
+- **Where it plays:** the first published card of a Round is shown on its
+  own page before the Round starts, with Continue to Round, as the note was.
+  It is never one of the Round's steps (it does not count toward the
+  steps, the Laurel or the Duel) and it is **no longer shown in Review**.
+  Previewing the card alone shows it and closes with Close preview.
+- **In the editor:** a new card goes first in the Round and the Round's list
+  names it by its note. Search finds the note.
+- **Model:** no new primitive. The presentation primitive gains the
+  boolean option `guidebookButton`; a card is a presentation whose text
+  element has role `intro` (`LearnerExerciseKind.roundIntro`).
+- **Existing notes (clean cut):** text Content with role `lesson_intro` is
+  no longer shown. The v11 converter (`tools/convert_course_to_v12.dart`
+  and the Python generators) turns a v11 note into a card with the GuideBook
+  button on; the three bundled Courses and the Laboratory's test fixture are
+  regenerated, and every Lesson opens with a card as before.
+- **Round Wizard:** its first Round now opens with a Draft card holding the
+  GuideBook overview, with Open GuideBook on, ready to review and publish.
+- **Audit (110 rules):** `ROUND_INTRO_EMPTY` (Error: a card without a note)
+  and `ROUND_INTRO_DUPLICATE` (Warning: a second card in a Round, of which
+  learners see only the first); `LESSON_INTRO_MISSING` now looks for a card.
+- **Help (EN/IT/ES):** the preset and its two fields, and a new Editor Help
+  question, "How do I write the Before you start note of a Round?" (67
+  questions).
+
+Scoring, progression, learner data and the Course format version are
+unchanged. Beta expiry `2026-10-29 23:59:59` local time (same release day
+as Build 256 Revision 9).
+
 # 2.0.56 (Build 256, Revision 9) - Mascots beside the sentence - 2026-09-29
 
 A QuisquisLingo mascot now keeps the learner company in exercises built

@@ -44,7 +44,8 @@
     "navigation",
     "mediaPlayback",
     "scoring",
-    "textReveal"
+    "textReveal",
+    "guidebookButton"
   ],
   "primitives": [
     {
@@ -1830,6 +1831,13 @@
             "afterAudio"
           ],
           "default": "immediate",
+          "required": false,
+          "description": ""
+        },
+        {
+          "key": "guidebookButton",
+          "type": "boolean",
+          "default": false,
           "required": false,
           "description": ""
         },
