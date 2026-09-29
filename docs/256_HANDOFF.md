@@ -13,27 +13,35 @@ narrative of Revision 4 is gone (the evidence lives in
 `docs/256_VALIDATION.md`); what follows is state, decisions, requirements,
 open problems and the next step.
 
-## State (29 September 2026, 09:35)
+## State (29 September 2026, 10:15)
 
-- **Revision 7 third follow-up in progress (same version 2.0.56+256007,
-  uncommitted on local `main` on top of `71eaa38`).** Owner decisions of
-  29 September: a Round made with New Round and played as a sequence is a
-  plain ordered Round, not a Story. Story = a flow and `visualType: story`
-  (New Story's; `LearningRound.isStory`), sequence = a flow and any other
-  visual type (`isSequence`); Optional sequence title (not prefilled; new
-  sequence Step by step, log Everything); plain Round buttons instead of
-  Add Step; "sequence" in the editor texts; the label "Sequence:
-  <title>" (else the Round's name, else Round N) in every list, the
-  learner's path and the Round screen (Sequence completed, Finish
-  sequence, "Sequence · N steps"); the Audit's Round rules; exercises in
-  the Duel; no mistake review. Code, Help EN/IT/ES, tests
-  (`sequence_round_256_test` + Story fixtures with `visualType: story`),
-  AGENTS, CHANGELOG, CHANGE_SUMMARY, VALIDATION written; focused tests
-  green. Next: `dart format` on the changed files, `flutter analyze`, the
-  complete suite once, fill `RESULT_THIRD_FOLLOWUP` in
-  `docs/256_VALIDATION.md`, local commit "Build 256 Revision 7 third
-  follow-up: sequences are plain ordered Rounds", handoff, sound. No push.
-- **Also in the third follow-up (done, uncommitted): Type the missing
+- **Revision 7 third follow-up committed as `8f1ab83`** (same version
+  2.0.56+256007, local `main`, not pushed; complete suite 3249 passed, 1
+  skipped, 0 failed, 09:47–10:12): sequences are plain ordered Rounds
+  (Story = a flow and `visualType: story`, New Story's; sequence = a flow
+  and any other visual type: Optional sequence title, plain Round buttons,
+  "Sequence: <title>" everywhere, the Audit's Round rules, exercises in the
+  Duel, no mistake review) and Type the missing word (different first
+  letters allowed with Show the first letter off; the form says so).
+- **Owner instruction (10:14): work through the whole backlog below, then
+  Revision 8; at the end of Revision 8 commit, write the handoff, and start
+  a new session (task chip, `spawn_task`) that prepares a plan for an
+  interactive presentation primitive, read-only, waiting for the owner's
+  approval.** Unanswered choices take Claude's recommended defaults,
+  recorded here and in the change summary (owner may override): Sort into
+  groups' Laboratory leftover example replaced by a three-group example
+  (Animals / Plants / Objects) and its Animals/Food example becoming
+  Animals/Plants; Sort into groups needs two groups again (one group is
+  trivial without leftover words); capitals: blocks match regardless of
+  case, the Audit warns (new non-blocking Warning) unless only the
+  answer's first letter differs (owner asked for this clarification at
+  10:13 and was answered with examples), for Build the translation, Put
+  the words in order and Name what you see.
+- **Next: a fourth follow-up at 2.0.56+256007 (one complete suite, one
+  commit)**: bold preset name in the exercise editor (the preset selector
+  card title and the "Exercise type" line), Name what you see / Type what
+  you see, Read and answer, Sort into groups, capitals. Then Revision 8.
+- **Also in the third follow-up (committed in `8f1ab83`): Type the missing
   word** — with Show the first letter off the accepted words may start
   with different letters; the form's helper and note follow the switch
   (builder and Audit were already right). Complete suite run started 09:47
