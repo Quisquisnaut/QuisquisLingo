@@ -11,14 +11,18 @@ import 'preset_variants.dart';
 /// the draft builder rebuilds from them. A preset never changes what plays;
 /// nothing here writes.
 abstract final class PresetRecipes {
-  /// The presets whose recipe has no v11 shape (Build 256 Revision 5): a
-  /// blank exercise for them is what the recipe builds from empty fields.
+  /// The presets whose recipe has no v11 shape (Build 256 Revision 5), or
+  /// whose own recipe builds their exercise (Name what you see, which still
+  /// converts from the Put the words in order shape): a blank exercise for
+  /// them is what the recipe builds from empty fields.
   static const canonicalOnly = <String>{
     'dialogue_line',
     'story_cover',
     // The Assign presets (Build 256 Revision 7 follow-up).
     'sort_into_groups',
     'fill_the_slots',
+    // Name what you see (Revision 7 fourth follow-up).
+    'picture_blocks',
   };
 
   /// The learner kind each preset's recipe produces.
@@ -57,16 +61,7 @@ abstract final class PresetRecipes {
     'listening_spelling': {LearnerExerciseKind.inputListenWrite},
     'missing_word': {LearnerExerciseKind.inputListenGaps},
     'audio_match': {LearnerExerciseKind.matchAudio},
-    'reading_answer_target': {
-      LearnerExerciseKind.selectRead,
-      LearnerExerciseKind.selectContext,
-      LearnerExerciseKind.selectDialogue,
-    },
-    'reading_answer_source': {
-      LearnerExerciseKind.selectRead,
-      LearnerExerciseKind.selectContext,
-      LearnerExerciseKind.selectDialogue,
-    },
+    'reading_answer_target': {LearnerExerciseKind.selectContext},
     'icon_choice': {LearnerExerciseKind.selectImage},
     'script_recognition': {LearnerExerciseKind.selectCharacter},
     'image_word': {LearnerExerciseKind.arrangeWord},
@@ -92,7 +87,8 @@ abstract final class PresetRecipes {
     'listening_image_choice': {LearnerExerciseKind.selectListen},
     'spell_heard': {LearnerExerciseKind.arrangeWord},
     'picture_choice': {LearnerExerciseKind.select},
-    'picture_name': {LearnerExerciseKind.inputComplete},
+    'picture_name': {LearnerExerciseKind.inputPictureName},
+    'picture_blocks': {LearnerExerciseKind.arrangePictureName},
     'spell_word': {LearnerExerciseKind.arrangeWord},
     'picture_word_match': {
       LearnerExerciseKind.matchTranslation,
@@ -301,7 +297,7 @@ abstract final class PresetRecipes {
     // Assign (Build 256 Revision 7 follow-up): the groups or the slots of
     // the form, each target named by the layout text before it and holding
     // its words in the answer's order; the words in no target stay in the
-    // bank (Words that belong nowhere, Extra words).
+    // bank (Fill the slots' Extra words).
     final isAssign = f.primitive == ExercisePrimitive.assign;
     final byTarget = f.assignmentsByTarget;
     final assignedIds = {for (final ids in byTarget.values) ...ids};
@@ -320,12 +316,26 @@ abstract final class PresetRecipes {
             for (final target in exercise.targets)
               '${f.targetLabel(target.id)} = ${targetWords(target.id)}',
           ].join('\n');
+    // Name what you see: the blocks outside the name are its extra blocks.
+    final nameIds = orders.isEmpty
+        ? const <String>{}
+        : orders.first.itemIds.toSet();
+    final extraBlocks = [
+      for (final item in items)
+        if (!nameIds.contains(item.id) && item.value.isNotEmpty) item.value,
+    ].join('\n');
     final unassigned = !isAssign
         ? ''
         : [
             for (final item in items)
               if (!assignedIds.contains(item.id)) wordOf(item.id),
           ].join('\n');
+    // Read and answer's dialogue read-aloud (fourth follow-up): none when
+    // the lines have no audio, else as the first line's audio plays.
+    final dialogueAudio = f.dialogueAudio;
+    final dialogueReadAloud = dialogueAudio.isEmpty
+        ? 'none'
+        : dialogueAudio.first.effectivePlayback.serialized;
     // A Flashcard's read-aloud (Build 256 Revision 7 follow-up): none when
     // the card has no audio, else as its playback says; a blank card (no
     // term yet) starts on request.
@@ -368,11 +378,11 @@ abstract final class PresetRecipes {
           : 'immediate',
       lineLanguage: f.lineLanguage,
       groups: groups,
-      leftover: unassigned,
       slots: slots,
-      extraWords: unassigned,
+      extraWords: presetId == 'picture_blocks' ? extraBlocks : unassigned,
       slotReuse: isAssign && f.assignItemReuse,
       cardReadAloud: cardReadAloud,
+      dialogueReadAloud: dialogueReadAloud,
       publicationState: state,
       requireValidAnswer: requireValidAnswer,
       useInlineGaps: inline,

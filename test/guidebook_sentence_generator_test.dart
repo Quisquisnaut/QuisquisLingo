@@ -120,6 +120,9 @@ void main() {
       final generatedTypes = generatedExercises
           .map((exercise) => exercise.editorTemplate)
           .toSet();
+      // The Round Wizard creates preset exercises only: its context slot is
+      // Pick the missing word (Build 256 Revision 7 fourth follow-up).
+      expect(generatedTypes, isNot(contains('reading_answer_target')));
       expect(
         generatedTypes,
         containsAll({
@@ -129,7 +132,6 @@ void main() {
           'listening_answer_target',
           'word_order',
           'gap_choice',
-          'reading_answer_target',
           'type_translation_to_target',
           'build_translation_to_target',
         }),

@@ -33,11 +33,9 @@ const _expectedKinds = <String, Set<LearnerExerciseKind>>{
     LearnerExerciseKind.selectListen,
     LearnerExerciseKind.selectListenPassage,
   },
-  'reading_answer_target': {
-    LearnerExerciseKind.selectRead,
-    LearnerExerciseKind.selectDialogue,
-    LearnerExerciseKind.selectContext,
-  },
+  // Read and answer: a source-language context and target-language dialogue
+  // (Build 256 Revision 7 fourth follow-up).
+  'reading_answer_target': {LearnerExerciseKind.selectContext},
   'translation_choice_to_target': {LearnerExerciseKind.selectTranslation},
   'translation_choice_to_source': {LearnerExerciseKind.selectTranslation},
   'type_translation_to_target': {LearnerExerciseKind.inputTranslation},
@@ -62,11 +60,6 @@ const _expectedKinds = <String, Set<LearnerExerciseKind>>{
     LearnerExerciseKind.selectListen,
     LearnerExerciseKind.selectListenPassage,
   },
-  'reading_answer_source': {
-    LearnerExerciseKind.selectRead,
-    LearnerExerciseKind.selectDialogue,
-    LearnerExerciseKind.selectContext,
-  },
   'type_translation_to_source': {LearnerExerciseKind.inputTranslation},
   'build_translation_to_source': {LearnerExerciseKind.arrangeTranslation},
   'picture_flashcard': {LearnerExerciseKind.presentation},
@@ -88,7 +81,8 @@ const _expectedKinds = <String, Set<LearnerExerciseKind>>{
   'listening_image_choice': {LearnerExerciseKind.selectListen},
   'spell_heard': {LearnerExerciseKind.arrangeWord},
   'picture_choice': {LearnerExerciseKind.select},
-  'picture_name': {LearnerExerciseKind.inputComplete},
+  'picture_name': {LearnerExerciseKind.inputPictureName},
+  'picture_blocks': {LearnerExerciseKind.arrangePictureName},
   'spell_word': {LearnerExerciseKind.arrangeWord},
   'picture_word_match': {
     LearnerExerciseKind.matchTranslation,
@@ -342,7 +336,6 @@ void main() {
         'picture_choice',
         'choice_source',
         'listening_answer_source',
-        'reading_answer_source',
       };
       var contextual = 0;
       var characters = 0;

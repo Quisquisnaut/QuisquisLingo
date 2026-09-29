@@ -46,11 +46,11 @@ class ExerciseDraftValues {
     this.lineTextReveal = 'immediate',
     this.lineLanguage = '',
     this.groups = '',
-    this.leftover = '',
     this.slots = '',
     this.extraWords = '',
     this.slotReuse = false,
     this.cardReadAloud = 'manual',
+    this.dialogueReadAloud = 'none',
   }) : correctTranslations = List.unmodifiable(correctTranslations);
 
   final Exercise original;
@@ -116,10 +116,9 @@ class ExerciseDraftValues {
   final String lineLanguage;
 
   /// Sort into groups (Build 256 Revision 7 follow-up): one group per line
-  /// as `Name: word, word`, and the words that belong to no group.
+  /// as `Name: word, word` (every word belongs to a group since the third
+  /// follow-up of 29 September 2026).
   final String groups;
-
-  final String leftover;
 
   /// Fill the slots: one slot per line as `what the learner sees = word`,
   /// the extra words that fill no slot, and whether a word may fill
@@ -133,6 +132,11 @@ class ExerciseDraftValues {
   /// A Flashcard's read-aloud: `none`, `manual` (on request) or
   /// `automatic`; the spoken text is the word itself.
   final String cardReadAloud;
+
+  /// Read and answer's dialogue read-aloud (Build 256 Revision 7 fourth
+  /// follow-up): `none`, `manual` (on request) or `automatic`; each line is
+  /// spoken in turn.
+  final String dialogueReadAloud;
 
   ExerciseDraftValues copyWith({
     String? type,
@@ -189,11 +193,11 @@ class ExerciseDraftValues {
     lineTextReveal: lineTextReveal ?? this.lineTextReveal,
     lineLanguage: lineLanguage ?? this.lineLanguage,
     groups: groups,
-    leftover: leftover,
     slots: slots,
     extraWords: extraWords,
     slotReuse: slotReuse,
     cardReadAloud: cardReadAloud,
+    dialogueReadAloud: dialogueReadAloud,
   );
 
   /// Script recognition already owns its canonical Select construction and
@@ -214,6 +218,7 @@ enum ExerciseDraftField {
   scriptOptions,
   groups,
   slots,
+  order,
 }
 
 enum ExerciseDraftErrorCode {
@@ -241,6 +246,7 @@ enum ExerciseDraftErrorCode {
   slotLine,
   slotsRequired,
   slotWordRepeated,
+  nameBlocksRequired,
 }
 
 class ExerciseDraftFieldError {
@@ -461,6 +467,7 @@ abstract final class ExerciseDraftBuilder {
     if (type == 'dialogue_line') return _buildDialogueLine(draft);
     if (type == 'story_cover') return _buildStoryCover(draft);
     if (type == 'sort_into_groups') return _buildSortIntoGroups(draft);
+    if (type == 'picture_blocks') return _buildPictureBlocks(draft);
     if (type == 'fill_the_slots') return _buildFillTheSlots(draft);
     if (type == 'script_recognition') {
       final candidate = draft.scriptCandidate;
@@ -839,10 +846,94 @@ abstract final class ExerciseDraftBuilder {
         ],
       );
 
-  /// Sort into groups (Build 256 Revision 7 follow-up): the question, one
-  /// group per line as `Name: word, word, …` (at least one) and the words
-  /// that belong to no group. Canonical: an Assign with categories of unlimited capacity,
-  /// each group's name before its target in the layout, exact assignments.
+  /// Sort into groups (Build 256 Revision 7 follow-up): the question and one
+  /// group per line as `Name: word, word, …` (at least two; the words that
+  /// belong to no group were removed on 29 September 2026). Canonical: an
+  /// Assign with categories of unlimited capacity, each group's name before
+  /// its target in the layout, exact assignments.
+  /// Name what you see (Build 256 Revision 7 fourth follow-up; owner
+  /// decisions of 29 September 2026): the picture, an optional question, the
+  /// blocks of the name in order and up to two extra blocks. Canonical: an
+  /// Arrange of word blocks under a `picture` with one exact order; the extra
+  /// blocks stay in the bank. Item IDs are kept by text.
+  static ExerciseDraftBuildResult _buildPictureBlocks(
+    ExerciseDraftValues draft,
+  ) {
+    final blocks = _lines(draft.order);
+    final extras = _lines(draft.extraWords);
+    if (_strict(draft) && blocks.isEmpty) {
+      return _failure(
+        ExerciseDraftField.order,
+        ExerciseDraftErrorCode.nameBlocksRequired,
+      );
+    }
+    final original = draft.original;
+    final originalItems = original.primitive == ExercisePrimitive.arrange
+        ? original.items
+        : const <ExerciseItem>[];
+    final usedIds = <String>{};
+    String fresh() {
+      var n = 0;
+      while (!usedIds.add('item_$n')) {
+        n++;
+      }
+      return 'item_$n';
+    }
+
+    final items = <ExerciseItem>[];
+    for (final word in [...blocks, ...extras]) {
+      final kept = originalItems
+          .where((item) => !usedIds.contains(item.id) && item.value == word)
+          .firstOrNull;
+      final id = kept == null ? fresh() : kept.id;
+      usedIds.add(id);
+      items.add(
+        ExerciseItem(
+          id: id,
+          content: [PromptElement(role: 'primary', type: 'text', text: word)],
+        ),
+      );
+    }
+    return ExerciseDraftBuildResult.success(
+      Exercise.canonical(
+        id: original.id,
+        publicationState: draft.publicationState,
+        updatedAt: original.updatedAt,
+        primitive: ExercisePrimitive.arrange,
+        promptElements: [
+          if (draft.question.trim().isNotEmpty)
+            PromptElement(
+              role: 'question',
+              type: 'text',
+              text: draft.question.trim(),
+            ),
+          if (draft.imageAsset.trim().isNotEmpty)
+            PromptElement(
+              role: 'picture',
+              type: 'image',
+              asset: draft.imageAsset.trim(),
+            ),
+        ],
+        items: items,
+        canonicalEvaluation: CanonicalEvaluation(
+          mode: EvaluationMode.exactOrder,
+          correctOrders: [
+            if (blocks.isNotEmpty)
+              OrderedAnswer(
+                text: blocks.join(' '),
+                itemIds: [
+                  for (final item in items.take(blocks.length)) item.id,
+                ],
+              ),
+          ],
+        ),
+        hint: draft.hint.trim(),
+        feedback: original.feedback,
+        authoringMetadata: original.authoringMetadata,
+      ),
+    );
+  }
+
   static ExerciseDraftBuildResult _buildSortIntoGroups(
     ExerciseDraftValues draft,
   ) {
@@ -869,15 +960,14 @@ abstract final class ExerciseDraftBuilder {
       }
       groups.add((label, words));
     }
-    // One group is enough when words that belong nowhere give the learner
-    // something to leave out (the Laboratory's leftover example).
-    if (_strict(draft) && groups.isEmpty) {
+    // Every word belongs to a group, so one group would ask nothing (owner,
+    // 29 September 2026: no words that belong nowhere).
+    if (_strict(draft) && groups.length < 2) {
       return _failure(
         ExerciseDraftField.groups,
         ExerciseDraftErrorCode.groupsRequired,
       );
     }
-    final leftover = _lines(draft.leftover);
     final seen = <String>{};
     for (var i = 0; i < groups.length; i++) {
       for (final word in groups[i].$2) {
@@ -891,15 +981,6 @@ abstract final class ExerciseDraftBuilder {
         }
       }
     }
-    for (final word in leftover) {
-      if (!seen.add(word)) {
-        return _failure(
-          ExerciseDraftField.groups,
-          ExerciseDraftErrorCode.groupWordRepeated,
-          detail: word,
-        );
-      }
-    }
     return ExerciseDraftBuildResult.success(
       _assignExercise(
         draft,
@@ -909,7 +990,7 @@ abstract final class ExerciseDraftBuilder {
             TargetCapacity.unlimited,
           ),
         },
-        words: [for (final group in groups) ...group.$2, ...leftover],
+        words: [for (final group in groups) ...group.$2],
         targets: groups,
       ),
     );

@@ -14,6 +14,7 @@ class ExercisePromptPanels extends StatelessWidget {
     required this.features,
     required this.panelColor,
     this.onPlayContextAudio,
+    this.onPlayDialogue,
   });
 
   final ExerciseFeatures features;
@@ -22,6 +23,10 @@ class ExercisePromptPanels extends StatelessWidget {
   /// Plays the context audio; null hides the button (for instance after the
   /// learner has answered).
   final VoidCallback? onPlayContextAudio;
+
+  /// Reads the dialogue lines aloud (Read and answer, Build 256 Revision 7
+  /// fourth follow-up); null hides the button.
+  final VoidCallback? onPlayDialogue;
 
   @override
   Widget build(BuildContext context) {
@@ -56,6 +61,15 @@ class ExercisePromptPanels extends StatelessWidget {
           const SizedBox(height: 12),
         ],
         if (f.dialogueTurns.isNotEmpty) ...[
+          if (onPlayDialogue != null) ...[
+            FilledButton.tonalIcon(
+              key: const Key('contextual-comprehension-dialogue-play'),
+              onPressed: onPlayDialogue,
+              icon: const Icon(Icons.volume_up_outlined),
+              label: const Text('Play dialogue'),
+            ),
+            const SizedBox(height: 10),
+          ],
           Container(
             key: const Key('contextual-comprehension-dialogue'),
             padding: const EdgeInsets.all(14),

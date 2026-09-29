@@ -50,6 +50,9 @@ enum LearnerExerciseKind {
   /// Inline-gap Input whose target reveals its first grapheme.
   inputMissingWord,
 
+  /// One-field Input under a `picture` (Type what you see).
+  inputPictureName,
+
   /// Arrange joining blocks with spaces.
   arrangeSentence,
 
@@ -62,6 +65,9 @@ enum LearnerExerciseKind {
 
   /// Arrange joining blocks without spaces.
   arrangeWord,
+
+  /// Arrange of word blocks under a `picture` (Name what you see).
+  arrangePictureName,
 
   /// Match with text on both sides.
   match,
@@ -142,6 +148,12 @@ class ExerciseFeatures {
       .where((e) => e.isText && e.role == 'dialogue_turn')
       .toList(growable: false);
 
+  /// The read-aloud of the dialogue lines (Read and answer, Build 256
+  /// Revision 7 fourth follow-up): one audio element per line, in order.
+  List<PromptElement> get dialogueAudio => prompt
+      .where((e) => e.isAudio && e.role == 'dialogue_turn')
+      .toList(growable: false);
+
   /// Every audio element, in order.
   List<PromptElement> get audioElements =>
       prompt.where((e) => e.isAudio).toList(growable: false);
@@ -173,6 +185,12 @@ class ExerciseFeatures {
   /// and `avatar`).
   List<PromptElement> get illustrationImages => prompt
       .where((e) => e.isImage && e.role != 'character' && e.role != 'avatar')
+      .toList(growable: false);
+
+  /// Image elements that are the picture a picture preset names (role
+  /// `picture`): Type what you see and Name what you see ask for its name.
+  List<PromptElement> get pictureImages => prompt
+      .where((e) => e.isImage && e.role == 'picture')
       .toList(growable: false);
 
   /// The first illustration image asset, or an empty string.
@@ -570,9 +588,15 @@ class ExerciseFeatures {
         }
         if (automaticAudio != null) return LearnerExerciseKind.inputListenWrite;
         if (isTranslationClue) return LearnerExerciseKind.inputTranslation;
+        if (pictureImages.isNotEmpty) {
+          return LearnerExerciseKind.inputPictureName;
+        }
         return LearnerExerciseKind.inputComplete;
       case ExercisePrimitive.arrange:
         if (joinsWithoutSpaces) return LearnerExerciseKind.arrangeWord;
+        if (pictureImages.isNotEmpty) {
+          return LearnerExerciseKind.arrangePictureName;
+        }
         if (isTranslationClue) return LearnerExerciseKind.arrangeTranslation;
         if (isLineOrder) return LearnerExerciseKind.arrangeLines;
         return LearnerExerciseKind.arrangeSentence;

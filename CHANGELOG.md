@@ -127,6 +127,46 @@ Third follow-up in the same version (owner decisions, 29 September 2026):
   the Audit already accepted such words; the rule still holds while the
   first letter is shown.
 
+Fourth follow-up in the same version (owner review, 29 September 2026):
+
+- **The preset's name in bold** at the top of the exercise editor (the
+  preset card of a new exercise and the locked Exercise type line).
+- **Capitals never block Save.** Build the translation, Put the words in
+  order and Name what you see match an answer to its blocks whatever the
+  capitals (an answer whose capitals differed from its blocks lost its
+  block order, and the Audit's BUILD_TRANSLATION_INVALID_SEQUENCE Error
+  blocked Save). The Audit now gives a Warning,
+  `ARRANGE_ANSWER_CASE_DIFFERS` (108 rules, 42 Warnings), whenever any
+  capital differs, the first letter included.
+- **Sort into groups** has no "Words that belong nowhere" field: every word
+  belongs to a group, and a Sort into groups needs at least two groups.
+  The examples of the form, the field Help and the Help (EN/IT/ES) use
+  Animals and Plants. The Laboratory's two examples are Animals and Plants
+  and three groups (Animals, Plants, Objects).
+- **Name what you see** builds the name of the picture from word blocks in
+  order, with up to two extra blocks (fields: Question (optional), Blocks
+  of the name, in order, Extra blocks (optional), Hint). The typed version
+  stays as **Type what you see**. Both tell the learner NAME WHAT YOU SEE
+  ("Build the name of what you see." / "Type the name of what you see.")
+  in the eight learner languages; they used to say COMPLETE and "Choose
+  the word that completes the sentence.". The Laboratory and the
+  Piedmontese demo have examples of both.
+- **Read and answer** keeps only its "to target" preset (Read and answer
+  (to source) is retired and opens as to target). The Text to read explains
+  the situation in the source language and is never read aloud; the
+  Spoken text field is gone; the dialogue lines, in the target language,
+  have a read-aloud: no, on request (a Play dialogue button) or
+  automatically, each line spoken in turn with a one-second pause. The
+  read-aloud is optional: the exercise is never an audio exercise and is
+  silent with Audio Exercises or Text-to-speech off, and in the Duel. The
+  Laboratory's reading examples are rebuilt in this shape (the ones with a
+  spoken text and the "to source" one are removed: 122 examples); the
+  Piedmontese demo has one Read and answer Lesson; the Edge Case demo's
+  long text is Italian, its source language.
+- **The Round Wizard creates only preset exercises.** Its "expression in
+  context" exercise is now Pick the missing word; every exercise it creates
+  opens in its preset's form.
+
 # 2.0.56 (Build 256, Revision 6) - Interoperability - 2026-09-28
 
 Session 7 of the exercise architecture redesign (plan Part B item 7):

@@ -5,14 +5,14 @@ This document and the JSON are generated together by `tools/generate_exercise_la
 - Course: **Exercise Laboratory**, `course_50d68435-d2c2-4b63-9a0b-b23161357f1d`.
 - Direction: English (`en-GB`) → Italian (`it-IT`); TTS `it-IT`.
 - Model 11, official Course version 1.0.0; all Lessons, Rounds and Content are Published.
-- Exactly seven Lessons (six primitives and a Story), 27 Rounds and 126 runnable examples across all 48 authoring presets (the Assign Lesson uses the presets Sort into groups and Fill the slots since the Build 256 Revision 7 follow-up).
+- Exactly seven Lessons (six primitives and a Story), 27 Rounds and 122 runnable examples across all 46 authoring presets (the Assign Lesson uses the presets Sort into groups and Fill the slots since the Build 256 Revision 7 follow-up).
 - Course rights explicitly allow Fork, so the bundled original can be inspected and a derivative can use the ordinary authoring/confirm/export/import paths.
 - Create Duels is off: Presentation is non-evaluable and the Course is not padded to manufacture Duel pools. The required per-Lesson Duel metadata is retained.
 - This Course leaves existing Course identities, learner data and media assets unchanged.
 
 ## Source inventory and supported modes
 
-The authoring registry is `lib/models/exercise_authoring.dart`. Every one of its 48 presets has at least one example below.
+The authoring registry is `lib/models/exercise_authoring.dart`. Every one of its 46 presets has at least one example below.
 
 | Lesson | Preset | Examples |
 | --- | --- | ---: |
@@ -21,9 +21,7 @@ The authoring registry is `lib/models/exercise_authoring.dart`. Every one of its
 | Select | `gap_choice_inline` | 4 |
 | Select | `icon_choice` | 2 |
 | Select | `script_recognition` | 3 |
-| Select | `reading_comprehension` | 1 |
-| Select | `dialogue_response` | 1 |
-| Select | `contextual_comprehension` | 6 |
+| Select | `reading_answer_target` | 4 |
 | Select | `listening_choice` | 1 |
 | Select | `listening_comprehension` | 1 |
 | Select | `translation_choice_to_target` | 2 |
@@ -31,7 +29,6 @@ The authoring registry is `lib/models/exercise_authoring.dart`. Every one of its
 | Select | `choice_source` | 2 |
 | Select | `true_false` | 3 |
 | Select | `listening_answer_source` | 1 |
-| Select | `reading_answer_source` | 1 |
 | Select | `picture_choice` | 1 |
 | Select | `listening_image_choice` | 1 |
 | Input | `type_translation` | 10 |
@@ -44,6 +41,7 @@ The authoring registry is `lib/models/exercise_authoring.dart`. Every one of its
 | Input | `missing_letters` | 2 |
 | Input | `picture_name` | 1 |
 | Arrange | `word_order` | 6 |
+| Arrange | `picture_blocks` | 1 |
 | Arrange | `gap_blocks` | 6 |
 | Arrange | `build_translation` | 4 |
 | Arrange | `image_word` | 3 |
@@ -88,16 +86,12 @@ The suffix below follows `qql_lab254_` in the stable Content/Exercise ID. Answer
 | Select / Images and written characters | script_image_text | script_recognition | Recognize characters; one portable image to text | A |
 | Select / Images and written characters | script_multiple_images | script_recognition | Recognize characters; two visual specimens of the same character to text | E |
 | Select / Images and written characters | script_text_image | script_recognition | Recognize characters; text to image-only options; Italian accented character | Image È |
-| Select / Reading and conversations | select_reading | reading_comprehension | Reading comprehension; passage plus separate question | In autobus. |
-| Select / Reading and conversations | select_dialogue | dialogue_response | Dialogue response; exactly two alternatives | Sì, grazie. |
-| Select / Reading and conversations | context_text | contextual_comprehension | Contextual comprehension; Text mode | Alle nove. |
-| Select / Reading and conversations | context_dialogue | contextual_comprehension | Contextual comprehension; structured dialogue without prose context | Vicino al parco. |
-| Select / Reading and conversations | context_text_dialogue_image | contextual_comprehension | Contextual comprehension; text, structured dialogue and supplementary image | Una mela. |
-| Select / Listening and context | select_listening_word | listening_choice | What do you hear; audio prompt and written answers | Buongiorno. |
-| Select / Listening and context | select_listening_passage | listening_comprehension | Listen and choose; passage audio and separate question | Al mercato. |
-| Select / Listening and context | context_audio | contextual_comprehension | Contextual comprehension; Audio mode | Dal binario tre. |
-| Select / Listening and context | context_text_audio | contextual_comprehension | Contextual comprehension; Text and audio mode | Un libro. |
-| Select / Listening and context | context_all | contextual_comprehension | Contextual comprehension; text, audio, structured dialogue and image together | Senza zucchero. |
+| Select / Read and answer | reading_situation | reading_answer_target | Read and answer; a situation in the source language, no dialogue | Buonasera! |
+| Select / Read and answer | reading_dialogue | reading_answer_target | Read and answer; situation, dialogue lines and an image, no read-aloud | Una mela. |
+| Select / Read and answer | reading_dialogue_automatic | reading_answer_target | Read and answer; the dialogue read aloud automatically, line by line | Senza zucchero. |
+| Select / Read and answer | reading_dialogue_manual | reading_answer_target | Read and answer; dialogue lines only, read aloud on request | Vicino al parco. |
+| Select / Listening | select_listening_word | listening_choice | What do you hear; audio prompt and written answers | Buongiorno. |
+| Select / Listening | select_listening_passage | listening_comprehension | Listen and choose; passage audio and separate question | Al mercato. |
 | Select / Two translation directions | translation_target_two | translation_choice_to_target | Pick translation to target; minimum two answers; no image | Buongiorno. |
 | Select / Two translation directions | translation_target_five | translation_choice_to_target | Pick translation to target; maximum five answers; optional image | Il gatto dorme. |
 | Select / Two translation directions | translation_source_two | translation_choice_to_source | Pick translation to source; minimum two answers; no image | Thank you. |
@@ -107,7 +101,6 @@ The suffix below follows `qql_lab254_` in the stable Content/Exercise ID. Answer
 | Select / Source-language answers, pictures and true or false | true_false_true | true_false | True or false; a true statement, answers in the source language | True |
 | Select / Source-language answers, pictures and true or false | true_false_spoken | true_false | True or false; a spoken false statement | False |
 | Select / Source-language answers, pictures and true or false | listening_source | listening_answer_source | Listen and answer (to source); answers in the source language | Thank you very much |
-| Select / Source-language answers, pictures and true or false | reading_source | reading_answer_source | Read and answer (to source); question and answers in the source language | By bus |
 | Select / Source-language answers, pictures and true or false | picture_choice | picture_choice | What is in the picture; picture prompt, text answers | la mela |
 | Select / Source-language answers, pictures and true or false | listening_image | listening_image_choice | Listen and pick the image; captioned picture answers | il gatto |
 | Input / Translations and accepted variants | input_literal | type_translation | One literal accepted translation | grazie |
@@ -136,12 +129,13 @@ The suffix below follows `qql_lab254_` in the stable Content/Exercise ID. Answer
 | Input / Source answers, texts and pictures | complete_text | complete_text | Complete the text; two typed gaps, no audio | caffè / treno |
 | Input / Source answers, texts and pictures | missing_letters | missing_letters | Missing letters; letters inside two words | tt / van |
 | Input / Source answers, texts and pictures | missing_letters_audio | missing_letters | Missing letters; spoken text and two gaps | ren / ove |
-| Input / Source answers, texts and pictures | picture_name | picture_name | Name what you see; picture prompt, typed answers | il pane / pane |
+| Input / Source answers, texts and pictures | picture_name | picture_name | Type what you see; picture prompt, typed answers | il pane / pane |
 | Arrange / Word and phrase blocks | arrange_zero | word_order | Word order; zero distractors | Il gatto dorme |
 | Arrange / Word and phrase blocks | arrange_one | word_order | Word order; one distractor | Anna beve acqua |
 | Arrange / Word and phrase blocks | arrange_two | word_order | Word order; two distinct target-language distractors | Il treno parte oggi |
 | Arrange / Word and phrase blocks | arrange_repeat | word_order | Word order; repeated visible words use separate block occurrences | Anna mangia pane e Luca mangia riso |
 | Arrange / Word and phrase blocks | arrange_phrases | word_order | Word order; multiword phrase blocks | Vado a scuola in autobus |
+| Arrange / Word and phrase blocks | picture_blocks | picture_blocks | Name what you see; picture prompt, word blocks and one extra block | il pane |
 | Arrange / Fixed sentences and consumed blocks | arrange_gap_one | gap_blocks | Inline Arrange; one gap; no distractors | dorme |
 | Arrange / Fixed sentences and consumed blocks | arrange_gap_many | gap_blocks | Inline Arrange; two gaps; one distractor | beve / acqua |
 | Arrange / Fixed sentences and consumed blocks | arrange_gap_repeat | gap_blocks | Inline Arrange; repeated text requires distinct tile IDs; two distractors | è / è |
@@ -195,8 +189,8 @@ The suffix below follows `qql_lab254_` in the stable Content/Exercise ID. Answer
 | Story / The same morning, line by line | options_text_only | dialogue_line | Dialogue line; text only | Continue |
 | Story / The same morning, line by line | options_audio_only | dialogue_line | Dialogue line; audio only, read on request | Continue |
 | Story / The same morning, line by line | options_automatic | dialogue_line | Dialogue line; read aloud automatically although the Story reads on request | Continue |
-| Assign / Groups and slots | assign_groups | sort_into_groups | Sort into groups; a group takes any number of items (capacity unlimited), reuse forbidden | Animals: gatto, cane; Food: mela, pane |
-| Assign / Groups and slots | assign_groups_leftover | sort_into_groups | Sort into groups; a word that belongs nowhere stays in the bank | Animals: gatto, cane; tavolo stays in the bank |
+| Assign / Groups and slots | assign_groups | sort_into_groups | Sort into groups; a group takes any number of items (capacity unlimited), reuse forbidden | Animals: gatto, cane; Plants: rosa, pino |
+| Assign / Groups and slots | assign_groups_three | sort_into_groups | Sort into groups; three groups, every word in one | Animals: gatto, cane; Plants: rosa, pino; Objects: tavolo, sedia |
 | Assign / Groups and slots | assign_slots | fill_the_slots | Fill the slots; one item per slot, a second placement replaces the first | … gatto: il; … casa: la |
 | Assign / Groups and slots | assign_slots_reuse | fill_the_slots | Fill the slots; a word may fill more than one slot (reuse allowed), the item stays in the bank | … cane: il; … libro: il; … casa: la |
 
@@ -221,8 +215,8 @@ The suffix below follows `qql_lab254_` in the stable Content/Exercise ID. Answer
 
 1. `python -X utf8 tools/generate_exercise_laboratory_254.py --check`: deterministic JSON/checksum and coverage-document readback.
 2. `python -X utf8 tools/validate_courses.py`: Course Model structure, timestamps, stable unique IDs, references, publication and official checksum.
-3. `test/exercise_laboratory_254_test.dart` checks the actual asset's Audit and canonical model round trip, then rebuilds all 126 examples through ExerciseDraftBuilder (and ScriptRecognitionController for its image modes), comparing semantic fields and each result's model round trip. Separate preservation assertions cover Flashcard usage and usage translation. Editor route tests include `exercise_authoring_252_characterization_test.dart`, `select_editor_238_test.dart`, `arrange_gap_fill_editor_238_test.dart`, `script_recognition_226_03_test.dart` and `translation_choice_239_test.dart`.
-4. The same Lab suite completes all 126 examples through RoundScreen Preview using actual controls and grading, including repeated blocks, reusable gaps, exact multiple-selection sets and audio matching. Additional cases finish an alternate Build translation answer and a Review again/Got it cycle. Speech is stubbed only at the playback seam; these tests do not establish native voice quality or normal progression persistence.
+3. `test/exercise_laboratory_254_test.dart` checks the actual asset's Audit and canonical model round trip, then rebuilds all 122 examples through ExerciseDraftBuilder (and ScriptRecognitionController for its image modes), comparing semantic fields and each result's model round trip. Separate preservation assertions cover Flashcard usage and usage translation. Editor route tests include `exercise_authoring_252_characterization_test.dart`, `select_editor_238_test.dart`, `arrange_gap_fill_editor_238_test.dart`, `script_recognition_226_03_test.dart` and `translation_choice_239_test.dart`.
+4. The same Lab suite completes all 122 examples through RoundScreen Preview using actual controls and grading, including repeated blocks, reusable gaps, exact multiple-selection sets and audio matching. Additional cases finish an alternate Build translation answer and a Review again/Got it cycle. Speech is stubbed only at the playback seam; these tests do not establish native voice quality or normal progression persistence.
 5. Export/import of the Course through the normal ZIP and embedded-image JSON routes preserves this Course's identity, content wrappers, answers and character PNG bytes. A Fork gets a new identity through the existing rights-aware operation.
 
 These are verification seams, not a claim that commands have been run. Fresh integrated results are recorded in the Build 254 validation document.

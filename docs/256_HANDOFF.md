@@ -37,6 +37,41 @@ open problems and the next step.
   answer's first letter differs (owner asked for this clarification at
   10:13 and was answered with examples), for Build the translation, Put
   the words in order and Name what you see.
+- **10:45 checkpoint, fourth follow-up in the working tree (uncommitted,
+  analyzer clean on lib):** bold preset name; capitals (case-insensitive
+  block matching in `_resolveOrderedItemIds`, Warning
+  `ARRANGE_ANSWER_CASE_DIFFERS`, 108 rules / 42 Warnings); Sort into groups
+  without leftover words (two groups required, Animals/Plants); Name what
+  you see (`picture_blocks`, canonicalOnly + `presetRecipeBaseOf`
+  word_order; kinds `arrangePictureName`/`inputPictureName`, copy in 8
+  languages) and Type what you see (`picture_name` renamed); Read and
+  answer (`reading_answer_source` retired → successor; context text
+  `language: source`; dialogue audio `role dialogue_turn` per line with
+  playback, `required: false`; `ExerciseDraftValues.dialogueReadAloud`;
+  RoundScreen `_speakDialogue` 1 s pause, Play dialogue button; Duel
+  silent); Round Wizard creates only preset exercises (its context slot is
+  Pick the missing word; test in `guidebook_round_generator_224_test`);
+  generators regenerated (Laboratory 122 examples / 46 presets, Piedmontese
+  39 Lessons / 117 examples, Edge Case e07 an Italian source text with an
+  English question), v11 fixtures rewritten (`s36_fixtures.py` copied to
+  this session's scratchpad; Edge Case fixture edited for e07), validator
+  green. Next: new tests, focused batch, baseline re-record, docs, suite.
+- **11:15 checkpoint:** the fourth follow-up is complete in the working
+  tree (tests written, focused batch fixed, Laboratory presentation
+  baseline re-recorded: 9 records removed, 6 new, Type what you see's
+  heading changed; the Round Wizard creates only preset exercises, its
+  context slot is Pick the missing word). Complete suite run 1 at 10:58
+  (`suite_fourth_a.log`) showed one failure so far, the preset-picker pin
+  of `course_editor_224_test` (label "Text to read (source language)"),
+  fixed after it ran: rerun that file, then the complete suite again,
+  then commit ("Build 256 Revision 7 fourth follow-up: …"). **Revision 8
+  is prepared in this session's scratchpad:** `qa_en.py` (66 questions,
+  7 topics), `qa_it.py`/`qa_es.py` (translation agents, verified; card
+  title localized), `r8_apply.py` (catalogs, structure, content API,
+  screen), `r8_tests.py` (moved pins), `r8_version.py` (2.0.56+256008 and
+  documents), `editor_help_qa_256_test.dart` (copy into test/). After
+  Revision 8: commit, handoff, and the task chip for the interactive
+  presentation primitive plan (read-only, owner approval).
 - **Next: a fourth follow-up at 2.0.56+256007 (one complete suite, one
   commit)**: bold preset name in the exercise editor (the preset selector
   card title and the "Exercise type" line), Name what you see / Type what

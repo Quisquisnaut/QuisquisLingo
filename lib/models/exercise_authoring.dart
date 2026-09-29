@@ -93,8 +93,6 @@ class ExercisePreset {
     'build_translation_to_source' => 'build_translation_to_target',
     'listening_answer_target' => 'listening_answer_source',
     'listening_answer_source' => 'listening_answer_target',
-    'reading_answer_target' => 'reading_answer_source',
-    'reading_answer_source' => 'reading_answer_target',
     'translation_choice_to_target' => 'translation_choice_to_source',
     'translation_choice_to_source' => 'translation_choice_to_target',
     _ => null,
@@ -317,7 +315,7 @@ abstract final class ExercisePresetRegistry {
       id: 'sort_into_groups',
       name: 'Sort into groups',
       description:
-          'Learner sorts words into groups, such as masculine and feminine or animals and food.',
+          'Learner sorts words into groups, such as masculine and feminine or animals and plants.',
       category: ExerciseCategory.grammarAndSentences,
       primitive: ExercisePrimitive.assign,
       direction: PresetDirection.none,
@@ -392,23 +390,17 @@ abstract final class ExercisePresetRegistry {
       base: 'image_word',
     ),
     // ------------------------------------------------- Reading and dialogue
+    // Read and answer keeps only its "to target" preset (owner decisions,
+    // 29 September 2026): the text to read explains the situation in the
+    // source language; the dialogue lines, the question and the answers are
+    // in the target language, and the dialogue may be read aloud.
     ExercisePreset(
       id: 'reading_answer_target',
       name: 'Read and answer (to target)',
       description:
-          'Learner reads a text or dialogue lines and answers a target-language question.',
+          'Learner reads a situation in the source language and dialogue lines in the target language, then answers a target-language question.',
       category: ExerciseCategory.readingAndDialogue,
       primitive: ExercisePrimitive.select,
-      base: 'reading_comprehension',
-    ),
-    ExercisePreset(
-      id: 'reading_answer_source',
-      name: 'Read and answer (to source)',
-      description:
-          'Learner reads a text or dialogue lines and answers a source-language question.',
-      category: ExerciseCategory.readingAndDialogue,
-      primitive: ExercisePrimitive.select,
-      direction: PresetDirection.toSource,
       base: 'reading_comprehension',
     ),
     // -------------------------------------------- Pictures and characters
@@ -443,14 +435,25 @@ abstract final class ExercisePresetRegistry {
       primitive: ExercisePrimitive.select,
       base: 'choice',
     ),
+    // The typed preset keeps its ID and is called Type what you see; Name
+    // what you see builds the name from word blocks (owner decisions, 29
+    // September 2026, Build 256 Revision 7 fourth follow-up).
     ExercisePreset(
       id: 'picture_name',
-      name: 'Name what you see',
+      name: 'Type what you see',
       description:
           'Learner sees a picture and types its name; several accepted answers, the same engine as typed translations.',
       category: ExerciseCategory.picturesAndCharacters,
       primitive: ExercisePrimitive.input,
       base: 'fill_blank',
+    ),
+    ExercisePreset(
+      id: 'picture_blocks',
+      name: 'Name what you see',
+      description:
+          'Learner sees a picture and builds its name from word blocks; up to two extra blocks.',
+      category: ExerciseCategory.picturesAndCharacters,
+      primitive: ExercisePrimitive.arrange,
     ),
     ExercisePreset(
       id: 'spell_word',
@@ -566,7 +569,7 @@ abstract final class ExercisePresetRegistry {
       id: 'adventure',
       name: 'Adventure (branching story)',
       description:
-          'A Round whose next step depends on the answer. Play as a sequence in the Round editor already plays a linear story.',
+          'A Round whose next step depends on the answer. New Story already builds a linear story.',
       reason: 'branching flows are stored and checked but not playable yet.',
       action: 'Story',
     ),
@@ -614,9 +617,7 @@ abstract final class ExercisePresetRegistry {
     'audio_match':
         'The learner plays audio items and matches each one to visible text. Provide exactly three audio-text pairs with distinct texts.',
     'reading_answer_target':
-        'The learner reads a text, or dialogue lines written as Speaker: text, then answers a target-language question by choosing. Provide the text or the dialogue, the question, at least two answers and the correct answer number.',
-    'reading_answer_source':
-        'The learner reads a target-language text, or dialogue lines written as Speaker: text, then answers a question in the source language by choosing among source-language answers. Provide the text or the dialogue, the question, at least two answers and the correct answer number.',
+        'The learner reads a short text in the source language that explains the situation, and dialogue lines in the target language written as Speaker: text, then answers a target-language question by choosing. Provide the text, the dialogue or both, the dialogue\'s read-aloud (no, on request or automatic: each line is spoken in turn), the question, at least two answers and the correct answer number. The text to read is never read aloud; the read-aloud is optional, so the exercise also plays with Audio Exercises off.',
     'icon_choice':
         'The learner sees a question and image choices, then selects the matching image. Provide the question, the answers, the correct answer number and one icon or image key per answer in the same order.',
     'script_recognition':
@@ -638,7 +639,7 @@ abstract final class ExercisePresetRegistry {
     'sentence_order':
         'The learner puts the lines of a story or a dialogue in order. Enter the lines, one per line, and the correct order; 0, 1 or at most 2 extra distractor lines.',
     'sort_into_groups':
-        'The learner taps a word, then the group it belongs to, and checks when every word is placed. Enter the question, one group per line as “Group name: word, word, …” (usually two or more) and, optionally, words that belong to no group and must stay in the bank.',
+        'The learner taps a word, then the group it belongs to, and checks when every word is placed. Enter the question and one group per line as “Group name: word, word, …” (at least two groups; every word belongs to one).',
     'fill_the_slots':
         'The learner taps a word, then the slot it fills, and checks when every slot is filled. Enter the question and one slot per line as “what the learner sees = the word”, for example “… gatto = il”. Extra words that fill no slot are optional; a switch lets one word fill more than one slot.',
     'listening_image_choice':
@@ -647,6 +648,8 @@ abstract final class ExercisePresetRegistry {
         'The learner hears a word and spells it from letter or syllable tiles. Provide the spoken word and its tiles in order, one per line (split the word into letters or syllables as you like). No picture is needed.',
     'picture_choice':
         'The learner sees a picture and picks the word or sentence that names it. Provide the picture, a question, at least two answers and the correct one.',
+    'picture_blocks':
+        'The learner sees a picture and builds its name by tapping word blocks in order. Provide the picture (Exercise image), an optional question such as What is this?, the blocks of the name in order (one word per line) and up to two extra blocks that are not part of the name, plus an optional hint.',
     'picture_name':
         'The learner sees a picture and types its name. Provide the picture, a question or instruction, one or more accepted answers (the same syntax as Type the translation) and an optional hint.',
     'spell_word':
@@ -658,6 +661,6 @@ abstract final class ExercisePresetRegistry {
     'dialogue_line':
         'One line of a Story. Choose who speaks (the narrator or a Story character of the Course), write the line, and choose whether the learner reads it, hears it or both; read-aloud follows the Story unless the line overrides it. A line is never skipped: without audio the learner reads it. No answer, no score; Continue moves on.',
     'story_cover':
-        'The first card of a Story: the cover picture and an optional title line under the Story title. Continue moves on. Build Stories with New Story on the Rounds page or with Play as a sequence in the Round editor.',
+        'The first card of a Story: the cover picture and an optional title line under the Story title. Continue moves on. Build Stories with New Story on the Rounds page.',
   };
 }

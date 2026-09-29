@@ -64,18 +64,12 @@ void main() {
       'listening_spelling': ['prompt', 'tts', 'missingWords'],
       'missing_word': ['prompt', 'tts', 'missingWords'],
       'audio_match': ['prompt', 'pairs'],
+      // Read and answer keeps only "to target" and loses Spoken text (Build
+      // 256 Revision 7 fourth follow-up).
       'reading_answer_target': [
         'prompt',
-        'tts',
         'dialogue',
-        'question',
-        'answers',
-        'correct',
-      ],
-      'reading_answer_source': [
-        'prompt',
-        'tts',
-        'dialogue',
+        'dialogueReadAloud',
         'question',
         'answers',
         'correct',
@@ -113,6 +107,7 @@ void main() {
       'spell_heard': ['tts', 'order'],
       'picture_choice': ['question', 'answers', 'correct'],
       'picture_name': ['question', 'accepted', 'hint'],
+      'picture_blocks': ['question', 'order', 'extraWords', 'hint'],
       'spell_word': ['prompt', 'order'],
       'picture_word_match': ['prompt', 'answers', 'icons'],
       'note_card': ['prompt', 'question'],
@@ -126,7 +121,7 @@ void main() {
       ],
       'story_cover': ['prompt', 'image'],
       // The Assign presets (Build 256 Revision 7 follow-up).
-      'sort_into_groups': ['question', 'groups', 'leftover'],
+      'sort_into_groups': ['question', 'groups'],
       'fill_the_slots': ['question', 'slots', 'extraWords', 'slotReuse'],
     };
     expect(
@@ -175,7 +170,7 @@ void main() {
     );
     expect(
       help('reading_answer_target', 'prompt').example,
-      contains('Maria prende il treno.'),
+      'Anna and Luca are in the kitchen after lunch.',
     );
     expect(
       help('type_translation_to_target', 'accepted').example,
@@ -335,22 +330,27 @@ void main() {
     );
   });
 
-  test('Read and answer Help covers the text, its audio and speaker turns', () {
-    final text = help('reading_answer_target', 'prompt');
-    expect(text.title, 'Text to read');
-    expect(text.purpose, contains('situation or context'));
-    expect(text.example, contains('Maria prende il treno.'));
-    final dialogue = help('reading_answer_target', 'dialogue');
-    expect(dialogue.entryRules, contains('one turn per line as Speaker: text'));
-    expect(
-      dialogue.validation,
-      contains('non-empty speaker and non-empty text'),
-    );
-    expect(
-      help('reading_answer_target', 'tts').entryRules,
-      contains('not an MP3 filename or path'),
-    );
-  });
+  test(
+    'Read and answer Help covers the text, the turns and the read-aloud',
+    () {
+      final text = help('reading_answer_target', 'prompt');
+      expect(text.title, 'Text to read (source language)');
+      expect(text.purpose, contains('never read aloud'));
+      expect(text.example, 'Anna and Luca are in the kitchen after lunch.');
+      final dialogue = help('reading_answer_target', 'dialogue');
+      expect(
+        dialogue.entryRules,
+        contains('one turn per line as Speaker: text'),
+      );
+      expect(
+        dialogue.validation,
+        contains('non-empty speaker and non-empty text'),
+      );
+      final readAloud = help('reading_answer_target', 'dialogueReadAloud');
+      expect(readAloud.title, 'Read the dialogue aloud');
+      expect(readAloud.validation, contains('never an audio exercise'));
+    },
+  );
 
   test('image Help separates imported prompt image from choice icon keys', () {
     final image = help('image_word', 'image');

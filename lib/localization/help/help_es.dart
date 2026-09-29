@@ -763,9 +763,7 @@ Estas builds muestran TEST ONLY. No las distribuyas como versiones públicas; co
   'exerciseHelp.preset.listening_answer_source.body':
       'El estudiante escucha audio en la lengua de estudio y elige la respuesta entre alternativas escritas en la lengua base: el significado de lo que oyó, o la respuesta a una pregunta formulada en la lengua base. Escribe Audio text en la lengua de estudio, una pregunta opcional, las alternativas y una respuesta correcta. Audio text, On-Device TTS, Recorded MP3 e Hybrid funcionan como en Listen and answer (to target). No reveles el audio visualmente.',
   'exerciseHelp.preset.reading_answer_target.body':
-      'El estudiante lee un texto en la lengua de estudio y responde una pregunta aparte eligiendo entre alternativas en la lengua de estudio. El texto puede ser un pasaje, una situación o un intercambio breve; las líneas de diálogo opcionales, un turno “Speaker: texto” por línea, se muestran después del texto, que entonces sirve de Context. Escribe el texto o las líneas de diálogo, la pregunta, al menos dos respuestas y una correcta. Haz el texto suficientemente largo para comprobar la comprensión; la puntuación sola no es un texto. Una imagen del Exercise puede acompañarlo. Este preset sustituye a Reading comprehension, Dialogue response y Contextual comprehension; los Exercises creados con ellos se abren aquí. Su gemelo Read and answer (to source) pregunta y responde en la lengua base.',
-  'exerciseHelp.preset.reading_answer_source.body':
-      'El estudiante lee un texto en la lengua de estudio, un pasaje, una situación o líneas de diálogo, y responde una pregunta escrita en la lengua base eligiendo entre alternativas en la lengua base: qué significa el texto, qué pretende un hablante, qué pasa después. Escribe el texto o las líneas de diálogo, la pregunta, al menos dos respuestas y una correcta. Su gemelo Read and answer (to target) pregunta y responde en la lengua de estudio.',
+      'El estudiante lee un texto breve en la lengua base que explica la situación, luego líneas de diálogo en la lengua de estudio (un turno “Speaker: texto” por línea), y responde una pregunta en la lengua de estudio eligiendo entre alternativas en la lengua de estudio. Escribe el texto, el diálogo o ambos, la pregunta, al menos dos respuestas y una correcta. Read the dialogue aloud: Automatically lee cada línea por turno con una breve pausa cuando aparece el ejercicio; On request añade el botón Play dialogue; No read-aloud lo deja en silencio. El texto para leer nunca se lee en voz alta y la lectura nunca convierte el ejercicio en un ejercicio de audio. Una imagen del Exercise puede acompañarlo. Este preset sustituye a Reading comprehension, Dialogue response y Contextual comprehension; Read and answer (to source) se retiró y se abre aquí.',
   'exerciseHelp.preset.type_translation_to_target.body':
       'El estudiante traduce libremente un texto de la lengua base. Escribe el texto y una o más traducciones completas aceptadas; Hint es opcional. Usa minúsculas salvo nombres propios. Se admiten variantes {}, [a|b], grupos enlazados [*:a|b] y cambios de orden <>. Expand answers muestra una vista previa sin guardar; Use expanded answers añade líneas explícitas sin modificar la expresión original. Se rechazan más de 128 variantes sin cambios parciales. El feedback muestra respuestas válidas por similitud, sin cambiar cuáles se aceptan. Se tolera de forma conservadora una letra repetida omitida o duplicada, no palabras ausentes ni sustituciones. Su gemelo Type the translation (to source) muestra un texto en la lengua de estudio y acepta una traducción en la lengua base.',
   'exerciseHelp.preset.type_translation_to_source.body':
@@ -789,7 +787,7 @@ Estas builds muestran TEST ONLY. No las distribuyas como versiones públicas; co
   'exerciseHelp.preset.sentence_order.body':
       'El estudiante ve las líneas de una historia breve o un diálogo como bloques y las ordena. Escribe las líneas, una por línea, y el orden correcto; puedes añadir 0, 1 o como máximo 2 líneas que no pertenecen a nada. La instrucción dice qué ordenar: las frases de una historia, los turnos de un diálogo.',
   'exerciseHelp.preset.sort_into_groups.body':
-      'El estudiante toca una palabra y luego el grupo al que pertenece; una palabra colocada se puede retirar; Check evalúa todos los grupos a la vez. Escribe la pregunta, un grupo por línea como “Nombre del grupo: palabra, palabra, …” (normalmente dos o más, cada uno con al menos una palabra) y, si quieres, palabras que no pertenecen a ningún grupo: también se ofrecen y deben quedarse en el banco. Una palabra solo puede estar en un grupo. Sort into groups nunca es un ejercicio de audio.',
+      'El estudiante toca una palabra y luego el grupo al que pertenece; una palabra colocada se puede retirar; Check evalúa todos los grupos a la vez. Escribe la pregunta, un grupo por línea como “Nombre del grupo: palabra, palabra, …” (al menos dos, cada uno con al menos una palabra). Cada palabra pertenece a un grupo, y solo a uno. Sort into groups nunca es un ejercicio de audio.',
   'exerciseHelp.preset.fill_the_slots.body':
       'El estudiante toca una palabra y luego la casilla que rellena; una segunda palabra sustituye a la primera; Check evalúa todas las casillas a la vez. Escribe la pregunta y una casilla por línea como “lo que ve el estudiante = la palabra que la rellena”, por ejemplo “… gatto = il”. Las palabras extra que no rellenan ninguna casilla son opcionales. Activa “A word may fill more than one slot” cuando la misma palabra es la respuesta de varias casillas: se queda en el banco tras cada uso.',
   'exerciseHelp.preset.listening_image_choice.body':
@@ -800,6 +798,8 @@ Estas builds muestran TEST ONLY. No las distribuyas como versiones públicas; co
       'El estudiante ve una imagen y elige entre respuestas de texto la palabra o la frase que la nombra. Escribe la imagen (Image), una pregunta como ¿Qué es esto?, al menos dos respuestas y la correcta.',
   'exerciseHelp.preset.picture_name.body':
       'El estudiante ve una imagen y escribe lo que muestra. Escribe la imagen (Image), una pregunta o instrucción, una o más respuestas aceptadas con la misma sintaxis que Type the translation ({} opcional, alternativas [a|b], grupos enlazados, ámbitos de reordenación) y una pista opcional. Las respuestas usan la normalización normal de Input y la tolerancia a erratas.',
+  'exerciseHelp.preset.picture_blocks.body':
+      'El estudiante ve una imagen y forma su nombre tocando los bloques de palabras en orden; un bloque colocado se puede retirar; Check evalúa el orden. Escribe la imagen (Exercise image), una pregunta opcional como What is this?, los bloques del nombre en orden (una palabra por línea) y hasta dos bloques de más que no forman parte del nombre, más una pista opcional. Los bloques se unen con espacios. Si las mayúsculas del nombre y de los bloques difieren, el Audit da un aviso. Type what you see es el mismo ejercicio con la respuesta escrita.',
   'exerciseHelp.preset.spell_word.body':
       'El estudiante lee una pista en la lengua base, la palabra misma o una definición, y deletrea la palabra en la lengua de estudio ordenando fichas de letras o sílabas. Escribe la pista y las fichas de la palabra en orden, una por línea; la imagen es opcional.',
   'exerciseHelp.preset.picture_word_match.body':
@@ -847,9 +847,7 @@ Estas builds muestran TEST ONLY. No las distribuyas como versiones públicas; co
   'exerciseHelp.preset.listening_answer_source.description':
       'El estudiante escucha audio en la lengua de estudio y elige la respuesta en la lengua base: el significado, o la respuesta a una pregunta sobre el pasaje.',
   'exerciseHelp.preset.reading_answer_target.description':
-      'El estudiante lee un texto, una situación o un diálogo en la lengua de estudio y responde una pregunta en la lengua de estudio.',
-  'exerciseHelp.preset.reading_answer_source.description':
-      'El estudiante lee un texto, una situación o un diálogo en la lengua de estudio y responde una pregunta formulada en la lengua base.',
+      'El estudiante lee una situación en la lengua base y líneas de diálogo en la lengua de estudio, y responde una pregunta en la lengua de estudio.',
   'exerciseHelp.preset.type_translation_to_target.description':
       'El estudiante escribe una traducción en la lengua de estudio.',
   'exerciseHelp.preset.type_translation_to_source.description':
@@ -873,7 +871,7 @@ Estas builds muestran TEST ONLY. No las distribuyas como versiones públicas; co
   'exerciseHelp.preset.sentence_order.description':
       'El estudiante ordena las líneas de una historia o un diálogo.',
   'exerciseHelp.preset.sort_into_groups.description':
-      'El estudiante clasifica palabras en grupos, como masculino y femenino; una palabra puede no pertenecer a ningún grupo.',
+      'El estudiante clasifica palabras en grupos, como masculino y femenino o animales y plantas.',
   'exerciseHelp.preset.fill_the_slots.description':
       'El estudiante pone la palabra correcta en cada casilla, por ejemplo el artículo delante de cada nombre.',
   'exerciseHelp.preset.listening_image_choice.description':
@@ -884,6 +882,8 @@ Estas builds muestran TEST ONLY. No las distribuyas como versiones públicas; co
       'El estudiante ve una imagen y elige la palabra o la frase que la nombra.',
   'exerciseHelp.preset.picture_name.description':
       'El estudiante ve una imagen y escribe su nombre; varias respuestas aceptadas.',
+  'exerciseHelp.preset.picture_blocks.description':
+      'El estudiante ve una imagen y forma su nombre con bloques de palabras; hasta dos bloques de más.',
   'exerciseHelp.preset.spell_word.description':
       'El estudiante deletrea una palabra con fichas de letras o sílabas tras una pista en la lengua base.',
   'exerciseHelp.preset.picture_word_match.description':
@@ -941,7 +941,9 @@ Estas builds muestran TEST ONLY. No las distribuyas como versiones públicas; co
   'exerciseHelp.field.choice_source.question.body':
       'La pregunta, o la frase que completar, escrita en la lengua base.\n\nQué escribir\nUna pregunta en la lengua que el estudiante ya conoce, o una frase con ___ donde va la respuesta: una regla gramatical, un dato cultural, el significado de una expresión. La instrucción o el contexto van en Prompt.\n\nComprobaciones\nLas respuestas también están en la lengua base; marca la correcta (o varias con Multiple correct answers).\n\nEjemplo\n¿Qué artículo italiano acompaña a un sustantivo masculino que empieza por vocal?',
   'exerciseHelp.field.reading_answer.prompt.body':
-      'El texto que el estudiante lee antes de responder.\n\nQué escribir\nUn pasaje, una situación o un texto breve en la lengua de estudio. Varias líneas o párrafos forman parte del texto. Con líneas de diálogo debajo, este texto es el Context que se muestra antes y puede ser breve.\n\nComprobaciones\nHace falta un texto con palabras o líneas de diálogo; la puntuación sola no basta. Una o dos palabras léxicas producen un aviso; se recomiendan al menos tres. La pregunta debe comprobar la comprensión.\n\nEjemplo\nMaria prende il treno. Va a Roma.',
+      'El texto que explica la situación, en la lengua del estudiante.\n\nQué escribir\nUn texto breve en la lengua base: dónde están los hablantes, quiénes son, qué pasa. Varias líneas o párrafos forman parte del texto. Se muestra antes del diálogo y nunca se lee en voz alta.\n\nComprobaciones\nHace falta un texto con palabras o líneas de diálogo; la puntuación sola no basta.\n\nEjemplo\nAnna and Luca are in the kitchen after lunch.',
+  'exerciseHelp.field.reading_answer.dialogueReadAloud.body':
+      'Si las líneas del diálogo se leen en voz alta.\n\nQué escribir\nAutomatically: cada línea se lee por turno, con una breve pausa, cuando aparece el ejercicio. On request: el botón Play dialogue las lee. No read-aloud: el diálogo solo se lee.\n\nComprobaciones\nLa lectura es opcional: el ejercicio nunca es de audio y queda en silencio con Audio Exercises o Text-to-speech desactivados. Las líneas se leen en la lengua de estudio; los nombres de los hablantes no se leen.\n\nEjemplo\nAutomatically, line by line',
   'exerciseHelp.field.type_missing_word.revealFirstLetter.body':
       'Decide si el hueco muestra la primera letra de la palabra ausente como pista.\n\nQué escribir\nOn: el estudiante ve la primera letra seguida de un espacio y escribe la palabra entera. Off: el hueco está vacío y el estudiante escribe la palabra sin ayuda. En ambos casos, escribe la palabra completa entre las respuestas aceptadas.\n\nComprobaciones\nCon la pista activa, cada palabra aceptada debe empezar por la misma primera letra. El ajuste forma parte del Exercise, así que el Audit lo lee del propio Exercise.\n\nEjemplo\nOn: é______ para école. Off: ______ para école.',
   'exerciseHelp.field.type_translation_to_source.accepted.body':
@@ -975,11 +977,9 @@ Estas builds muestran TEST ONLY. No las distribuyas como versiones públicas; co
   'exerciseHelp.field.story_cover.image.body':
       'La imagen de portada.\n\nQué escribir\nUna imagen del Curso, de la Shared Image Library o una imagen integrada.\n\nComprobaciones\nRecomendada; una portada sin imagen muestra solo el título.\n\nEjemplo\nLa terraza de un café',
   'exerciseHelp.field.sort_into_groups.question.body':
-      'Qué debe hacer el estudiante.\n\nQué escribir\nUna línea, en la lengua que prefieras; nombra los grupos si ayuda.\n\nComprobaciones\nObligatoria.\n\nEjemplo\nSort the words: animals or food?',
+      'Qué debe hacer el estudiante.\n\nQué escribir\nUna línea, en la lengua que prefieras; nombra los grupos si ayuda.\n\nComprobaciones\nObligatoria.\n\nEjemplo\nSort the words: animals or plants?',
   'exerciseHelp.field.sort_into_groups.groups.body':
-      'Los grupos y sus palabras.\n\nQué escribir\nUn grupo por línea: el nombre del grupo, dos puntos y luego sus palabras separadas por comas. Al menos un grupo, normalmente dos o más, cada uno con al menos una palabra.\n\nComprobaciones\nUna palabra solo puede estar en un grupo; una línea sin dos puntos, sin nombre o sin palabras se rechaza antes de Preview o Save.\n\nEjemplo\nAnimals: gatto, cane\nFood: mela, pane',
-  'exerciseHelp.field.sort_into_groups.leftover.body':
-      'Palabras que no pertenecen a ningún grupo.\n\nQué escribir\nUna palabra por línea; déjalo vacío cuando cada palabra tiene su grupo.\n\nComprobaciones\nEl estudiante debe dejarlas en el banco; una palabra de esta lista no puede estar también en un grupo.\n\nEjemplo\ntavolo',
+      'Los grupos y sus palabras.\n\nQué escribir\nUn grupo por línea: el nombre del grupo, dos puntos y luego sus palabras separadas por comas. Al menos dos grupos, cada uno con al menos una palabra.\n\nComprobaciones\nUna palabra solo puede estar en un grupo; una línea sin dos puntos, sin nombre o sin palabras se rechaza antes de Preview o Save.\n\nEjemplo\nAnimals: gatto, cane\nPlants: rosa, pino',
   'exerciseHelp.field.fill_the_slots.question.body':
       'Qué debe hacer el estudiante.\n\nQué escribir\nUna línea, en la lengua que prefieras.\n\nComprobaciones\nObligatoria.\n\nEjemplo\nWhich article goes with each noun?',
   'exerciseHelp.field.fill_the_slots.slots.body':
@@ -998,6 +998,10 @@ Estas builds muestran TEST ONLY. No las distribuyas como versiones públicas; co
       'La nota que el estudiante lee.\n\nQué escribir\nTexto sencillo; varios párrafos están bien.\n\nComprobaciones\nObligatoria. No hay respuesta ni puntuación; Continue cierra la tarjeta.\n\nEjemplo\nUsa Lei con personas que no conoces bien.',
   'exerciseHelp.field.picture_name.accepted.body':
       'Los nombres de lo que muestra la imagen que el estudiante puede escribir.\n\nQué escribir\nRespuestas completas en líneas separadas, con la sintaxis de Type the translation: {} opcional, alternativas [a|b], grupos enlazados [*:a|b], ámbitos <> de reordenación.\n\nComprobaciones\nAl menos una respuesta aceptada. La expansión se limita a 128 respuestas.\n\nEjemplo\n[il|un] gatto\ngatto',
+  'exerciseHelp.field.picture_blocks.order.body':
+      'El nombre de lo que muestra la imagen, en bloques de palabras.\n\nQué escribir\nUna palabra por línea, en el orden correcto; el estudiante recibe estos bloques mezclados, con los bloques de más.\n\nComprobaciones\nObligatorio, con la Exercise image. Los bloques unidos con espacios son la respuesta.\n\nEjemplo\nil\npane',
+  'exerciseHelp.field.picture_blocks.extraWords.body':
+      'Palabras ofrecidas con el nombre que no forman parte de él.\n\nQué escribir\nUna palabra por línea; opcional.\n\nComprobaciones\nComo máximo dos: más bloques de más son un error del Audit. El estudiante debe dejarlos fuera.\n\nEjemplo\nla',
   'exerciseHelp.field.picture_word_match.answers.body':
       'Las palabras de los pares; cada una recibe una imagen debajo.\n\nQué escribir\nUna palabra por línea, en la lengua de estudio. Al menos dos.\n\nComprobaciones\nCada palabra necesita su imagen; las palabras deben ser únicas.\n\nEjemplo\ngatto\ncane\ncasa',
   'exerciseHelp.field.sentence_order.order.body':

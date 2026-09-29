@@ -631,6 +631,14 @@ enum AuditCode {
     'An ordered answer repeats the same Item ID.',
     'Add a separate available block occurrence for each repeated word and use each occurrence once.',
   ),
+  arrangeAnswerCaseDiffers(
+    'ARRANGE_ANSWER_CASE_DIFFERS',
+    AuditSeverity.warning,
+    'Exercise: Arrange',
+    'The answer’s capitals differ from its blocks.',
+    'The ordered blocks build the answer only when capitals are ignored (Build the translation, Put the words in order, Name what you see, the spelling presets).',
+    'Write the answer and its blocks with the same capitals; learners build the answer from the blocks as they are written.',
+  ),
   buildTranslationUnconstructable(
     'BUILD_TRANSLATION_UNCONSTRUCTABLE',
     AuditSeverity.error,

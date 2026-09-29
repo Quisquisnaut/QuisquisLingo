@@ -60,17 +60,11 @@ const _formFields = <String, Map<String, String>>{
     'Answers': 'answers',
     'Correct answer number': 'correct',
   },
+  // Read and answer keeps only "to target"; the read-aloud is a closed
+  // control with its own Help button (Build 256 Revision 7 fourth
+  // follow-up).
   'reading_answer_target': {
-    'Text to read': 'prompt',
-    'Spoken text (optional)': 'tts',
-    'Dialogue lines (optional)': 'dialogue',
-    'Question': 'question',
-    'Answers': 'answers',
-    'Correct answer number': 'correct',
-  },
-  'reading_answer_source': {
-    'Text to read': 'prompt',
-    'Spoken text (optional)': 'tts',
+    'Text to read (source language)': 'prompt',
     'Dialogue lines (optional)': 'dialogue',
     'Question': 'question',
     'Answers': 'answers',
@@ -193,15 +187,17 @@ const _formFields = <String, Map<String, String>>{
     'Accepted answers': 'accepted',
     'Hint (optional)': 'hint',
   },
+  'picture_blocks': {
+    'Question (optional)': 'question',
+    'Blocks of the name, in order': 'order',
+    'Extra blocks (optional)': 'extraWords',
+    'Hint (optional)': 'hint',
+  },
   'spell_word': {'Clue': 'prompt', 'Blocks of the word, in order': 'order'},
   'picture_word_match': {'Instruction': 'prompt', 'Words': 'answers'},
   // The Assign presets (Build 256 Revision 7 follow-up); the reuse switch
   // is a closed control with its own Help button.
-  'sort_into_groups': {
-    'Question': 'question',
-    'Groups': 'groups',
-    'Words that belong nowhere (optional)': 'leftover',
-  },
+  'sort_into_groups': {'Question': 'question', 'Groups': 'groups'},
   'fill_the_slots': {
     'Question': 'question',
     'Slots': 'slots',

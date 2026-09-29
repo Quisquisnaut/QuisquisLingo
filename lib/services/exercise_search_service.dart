@@ -89,10 +89,6 @@ abstract final class ExerciseSearchRegistry {
       fields: [_prompt, _audio, _speaker, _items],
     ),
     ExerciseTypeSearchDefinition(
-      presetId: 'reading_answer_source',
-      fields: [_prompt, _audio, _speaker, _items],
-    ),
-    ExerciseTypeSearchDefinition(
       presetId: 'type_translation_to_target',
       fields: [_prompt, _accepted, _hint],
     ),
@@ -195,6 +191,10 @@ abstract final class ExerciseSearchRegistry {
     ExerciseTypeSearchDefinition(
       presetId: 'picture_name',
       fields: [_prompt, _accepted, _hint],
+    ),
+    ExerciseTypeSearchDefinition(
+      presetId: 'picture_blocks',
+      fields: [_prompt, _items, _orders, _hint],
     ),
     ExerciseTypeSearchDefinition(
       presetId: 'spell_word',

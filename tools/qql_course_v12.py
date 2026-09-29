@@ -48,7 +48,6 @@ PRESET_BASE = {
     "listening_answer_target": "listening_comprehension",
     "listening_answer_source": "listening_comprehension",
     "reading_answer_target": "reading_comprehension",
-    "reading_answer_source": "reading_comprehension",
     "type_translation_to_target": "type_translation",
     "type_translation_to_source": "type_translation",
     "build_translation_to_target": "build_translation",
@@ -60,6 +59,7 @@ PRESET_BASE = {
     "missing_letters": "missing_word",
     "gap_blocks": "word_order",
     "sentence_order": "word_order",
+    "picture_blocks": "word_order",
     "listening_image_choice": "icon_choice",
     "spell_heard": "image_word",
     "picture_choice": "choice",
@@ -382,6 +382,7 @@ PRESET_SUCCESSOR = {
     "reading_comprehension": "reading_answer_target",
     "contextual_comprehension": "reading_answer_target",
     "dialogue_response": "reading_answer_target",
+    "reading_answer_source": "reading_answer_target",
     "type_translation": "type_translation_to_target",
     "build_translation": "build_translation_to_target",
 }

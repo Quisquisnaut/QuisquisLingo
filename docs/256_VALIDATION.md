@@ -64,6 +64,44 @@ held for the run and cleared afterwards).
 - `dart format` clean on every changed Dart file.
 - Complete suite on the final tree: **3238 passed, 1 skipped, 0 failed** (01:56–02:23, keep-awake wrapper).
 
+## Revision 7 fourth follow-up (same version), 29 September 2026
+
+- Owner review of the Windows build: bold preset name; capitals as a
+  Warning (any capital); Sort into groups without leftover words, Animals
+  and Plants; Name what you see as word blocks and Type what you see;
+  Read and answer with a source-language text and a dialogue read-aloud,
+  "to source" retired; the Round Wizard with preset exercises only.
+- The Round Wizard check (`every generated exercise is represented by its
+  own preset`) failed first on `reading_answer_target` only (the context
+  slot), then passed after the slot became Pick the missing word (10
+  tests of the two Round Wizard files green).
+- Generators `--check` and `tools/validate_courses.py`: pass (Laboratory 7
+  Lessons, 27 Rounds, 122 examples, 46 presets in the cases; Piedmontese
+  42 catalogue presets, 39 Lessons, 117 examples; Edge Case reproducible);
+  the v11 fixtures rewritten from the generators (the Edge Case fixture's
+  `e07_long` edited to match).
+- `revision7_fourth_followup_256_test.dart`: 12 passed (after one test fix:
+  the form's blank is built without strict validation).
+- Focused batch (58 files): 18 failures, all pins on the changed
+  behaviour (field inventories, the Read and answer Help texts, the
+  Laboratory's example count and presentation records, the old form's
+  label, the learner kinds per preset), fixed; the Laboratory presentation
+  re-recorded for the 122 examples and the baseline rebuilt: 9 records
+  removed (the old reading examples, Read and answer (to source), the
+  leftover example), 6 new (three groups, Name what you see, four Read and
+  answer), Type what you see's heading and instruction changed, no other
+  change (the `true`/`false` lines are the rebuild's parse artifact); the
+  five files rerun: green after the reading form's hover Help regained its
+  example.
+- `flutter analyze`: no issues; `dart format` clean on every changed file.
+- Complete suite run 1 (10:58–11:27): 3248 passed, 1 skipped, 2 failed,
+  both pins fixed after they ran (`course_editor_224_test`: the label Text
+  to read (source language); `guidebook_sentence_generator_test`: the
+  Round Wizard no longer creates Read and answer); the two files rerun
+  green.
+- Complete suite on the final tree (run 2): **3250 passed, 1 skipped, 0
+  failed** (11:28–11:52, keep-awake wrapper).
+
 ## Revision 7 third follow-up (same version), 29 September 2026
 
 - Owner decisions: a Round made with New Round and played as a sequence is

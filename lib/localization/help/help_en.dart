@@ -779,9 +779,7 @@ Question and Context are separate. Context can be text, audio, or both. Dialogue
   'exerciseHelp.preset.listening_answer_source.description':
       r'''Learner listens to target-language audio and picks the answer in the source language: its meaning, or the answer to a question about it.''',
   'exerciseHelp.preset.reading_answer_target.description':
-      r'''Learner reads a text, a situation or a dialogue in the target language and answers a question in the target language.''',
-  'exerciseHelp.preset.reading_answer_source.description':
-      r'''Learner reads a text, a situation or a dialogue in the target language and answers a question asked in the source language.''',
+      r'''Learner reads a situation in the source language and dialogue lines in the target language, then answers a target-language question.''',
   'exerciseHelp.preset.type_translation_to_target.description':
       r'''Learner types a translation in the target language.''',
   'exerciseHelp.preset.type_translation_to_source.description':
@@ -805,7 +803,7 @@ Question and Context are separate. Context can be text, audio, or both. Dialogue
   'exerciseHelp.preset.sentence_order.description':
       r'''Learner puts the lines of a story or a dialogue in the right order.''',
   'exerciseHelp.preset.sort_into_groups.description':
-      r'''Learner sorts words into groups, such as masculine and feminine; a word may belong to no group.''',
+      r'''Learner sorts words into groups, such as masculine and feminine or animals and plants.''',
   'exerciseHelp.preset.fill_the_slots.description':
       r'''Learner puts the right word into each slot, such as the article before each noun.''',
   'exerciseHelp.preset.listening_image_choice.description':
@@ -816,6 +814,8 @@ Question and Context are separate. Context can be text, audio, or both. Dialogue
       r'''Learner sees a picture and picks the word or sentence that names it.''',
   'exerciseHelp.preset.picture_name.description':
       r'''Learner sees a picture and types its name; several accepted answers.''',
+  'exerciseHelp.preset.picture_blocks.description':
+      r'''Learner sees a picture and builds its name from word blocks; up to two extra blocks.''',
   'exerciseHelp.preset.spell_word.description':
       r'''Learner spells a word from letter or syllable tiles after a clue in the source language.''',
   'exerciseHelp.preset.picture_word_match.description':
@@ -863,9 +863,7 @@ Question and Context are separate. Context can be text, audio, or both. Dialogue
   'exerciseHelp.preset.listening_answer_source.body':
       r'''The learner hears target-language audio and chooses the answer among written alternatives in the source language: the meaning of what was heard, or the answer to a question asked in the source language. Provide the spoken text in the target language, an optional question, the alternatives and one correct answer. Spoken text, On-Device TTS, Recorded MP3 and Hybrid work as in Listen and answer (to target). Avoid visible text that gives away the audio.''',
   'exerciseHelp.preset.reading_answer_target.body':
-      r'''The learner reads a text in the target language and answers a separate question by choosing among alternatives in the target language. The text can be a passage, a situation or a short exchange; optional dialogue lines, one “Speaker: text” turn per line, are shown after the text, which then works as their context. Provide the text or dialogue lines, the question, at least two answers and one correct answer. Keep the text long enough to test comprehension; punctuation alone is not a text. An exercise image may accompany it. This preset replaces Reading comprehension, Dialogue response and Contextual comprehension; exercises made with them open here. The twin Read and answer (to source) asks and answers in the source language.''',
-  'exerciseHelp.preset.reading_answer_source.body':
-      r'''The learner reads target-language text, a passage, a situation or dialogue lines, and answers a question written in the source language by choosing among source-language alternatives: what the text means, what a speaker intends, what happens next. Provide the text or dialogue lines, the question, at least two answers and one correct answer. The twin Read and answer (to target) asks and answers in the target language.''',
+      r'''The learner reads a short text in the source language that explains the situation, then dialogue lines in the target language (one “Speaker: text” turn per line), and answers a question in the target language by choosing among target-language alternatives. Provide the text, the dialogue or both, the question, at least two answers and one correct answer. Read the dialogue aloud: Automatically speaks each line in turn with a short pause when the exercise appears; On request adds a Play dialogue button; No read-aloud keeps it silent. The text to read is never read aloud, and the read-aloud never makes this an audio exercise. An exercise image may accompany it. This preset replaces Reading comprehension, Dialogue response and Contextual comprehension; Read and answer (to source) was retired and opens here.''',
   'exerciseHelp.preset.type_translation_to_target.body':
       r'''The learner sees source text and freely types a target-language translation. Provide the source, one or more complete accepted translations, and an optional hint. Use lowercase except for proper names. Accepted lines may use optional {}, independent [a|b], linked [*:a|b] groups with equal counts, and valid <> reorder scopes. Expand answers opens a selectable, copyable preview without changing content. Use expanded answers adds independent explicit lines; editing or deleting the source expression never changes them. Equivalent explicit answers are not added twice, and overflow beyond 128 answers is rejected without partial changes. Wrong feedback shows up to three valid translations ranked by existing similarity; correct feedback shows up to two other translations, excluding the matched canonical answer. Ties keep author order. Ranking never changes acceptance. One omitted or duplicated repeated letter is tolerated conservatively, but substitutions and missing or extra words are not. The twin Type the translation (to source) shows target-language text and takes a source-language translation.''',
   'exerciseHelp.preset.type_translation_to_source.body':
@@ -889,7 +887,7 @@ Question and Context are separate. Context can be text, audio, or both. Dialogue
   'exerciseHelp.preset.sentence_order.body':
       r'''The learner sees the lines of a short story or dialogue as blocks and puts them in order. Enter the lines, one per line, and the correct order; you may add 0, 1 or at most 2 extra lines that belong nowhere. The instruction says what to order: the sentences of a story, the turns of a dialogue.''',
   'exerciseHelp.preset.sort_into_groups.body':
-      r'''The learner taps a word, then the group it belongs to; a placed word can be taken back; Check grades every group at once. Enter the question, one group per line as “Group name: word, word, …” (usually two or more, each with at least one word) and, if you like, words that belong to no group: they are offered too and must stay in the bank. A word can be in one group only. Sort into groups is never an audio exercise.''',
+      r'''The learner taps a word, then the group it belongs to; a placed word can be taken back; Check grades every group at once. Enter the question, one group per line as “Group name: word, word, …” (at least two, each with at least one word). Every word belongs to one group, and to one group only. Sort into groups is never an audio exercise.''',
   'exerciseHelp.preset.fill_the_slots.body':
       r'''The learner taps a word, then the slot it fills; a second word replaces the first; Check grades every slot at once. Enter the question and one slot per line as “what the learner sees = the word that fills it”, for example “… gatto = il”. Extra words that fill no slot are optional. Turn on “A word may fill more than one slot” when the same word is the answer of several slots: it stays in the bank after each use.''',
   'exerciseHelp.preset.listening_image_choice.body':
@@ -900,6 +898,8 @@ Question and Context are separate. Context can be text, audio, or both. Dialogue
       r'''The learner sees a picture and chooses the word or sentence that names it among text answers. Provide the picture (Image), a question such as What is this?, at least two answers and the correct one.''',
   'exerciseHelp.preset.picture_name.body':
       r'''The learner sees a picture and types what it shows. Provide the picture (Image), a question or instruction, one or more accepted answers with the same syntax as Type the translation (optional {}, alternatives [a|b], linked groups, reorder scopes) and an optional hint. Answers are checked with the normal Input normalization and typo tolerance.''',
+  'exerciseHelp.preset.picture_blocks.body':
+      r'''The learner sees a picture and builds its name by tapping word blocks in order; a placed block can be taken back; Check grades the order. Provide the picture (Exercise image), an optional question such as What is this?, the blocks of the name in order (one word per line) and up to two extra blocks that are not part of the name, plus an optional hint. The blocks join with spaces. Capitals that differ between the name and its blocks get an Audit warning. Type what you see is the same exercise with a typed answer.''',
   'exerciseHelp.preset.spell_word.body':
       r'''The learner reads a clue in the source language, the word itself or a definition, and spells the target-language word by ordering letter or syllable tiles. Provide the clue and the tiles of the word in order, one per line; a picture is optional.''',
   'exerciseHelp.preset.picture_word_match.body':
@@ -1013,16 +1013,27 @@ The answers below are in the source language too; mark the correct one (or sever
 Example
 Which Italian article goes with a masculine noun starting with a vowel?''',
   'exerciseHelp.field.reading_answer.prompt.body':
-      r'''The text the learner reads before answering the question.
+      r'''The text that explains the situation, in the learners’ own language.
 
 What to enter
-Enter a passage, a situation or a short text in the target language. Multiple lines or paragraphs stay part of the text. With dialogue lines below, this text is the context shown before them and may stay short.
+A short text in the source language: where the speakers are, who they are, what is happening. Multiple lines or paragraphs stay part of the text. It is shown before the dialogue and is never read aloud.
 
 Checks
-A text containing words, or dialogue lines, is required; punctuation alone is insufficient. One or two lexical words produce a warning; at least three are recommended. The question should test comprehension.
+A text containing words, or dialogue lines, is required; punctuation alone is insufficient.
 
 Example
-Maria prende il treno. Va a Roma.''',
+Anna and Luca are in the kitchen after lunch.''',
+  'exerciseHelp.field.reading_answer.dialogueReadAloud.body':
+      r'''Whether the dialogue lines are spoken.
+
+What to enter
+Automatically: each line is spoken in turn, with a short pause, when the exercise appears. On request: a Play dialogue button speaks them. No read-aloud: the dialogue is only read.
+
+Checks
+The read-aloud is optional: the exercise is never an audio exercise and stays silent with Audio Exercises or Text-to-speech off. The lines are spoken in the target language; the speaker names are not spoken.
+
+Example
+Automatically, line by line''',
   'exerciseHelp.field.type_missing_word.revealFirstLetter.body':
       r'''Decides whether the gap reveals the first letter of the missing word as a hint.
 
@@ -1207,30 +1218,19 @@ Checks
 Required.
 
 Example
-Sort the words: animals or food?''',
+Sort the words: animals or plants?''',
   'exerciseHelp.field.sort_into_groups.groups.body':
       r'''The groups and their words.
 
 What to enter
-One group per line: the group name, a colon, then its words separated by commas. At least one group, usually two or more, each with at least one word.
+One group per line: the group name, a colon, then its words separated by commas. At least two groups, each with at least one word.
 
 Checks
 A word can be in one group only; a line without a colon, a name or words is refused before Preview or Save.
 
 Example
 Animals: gatto, cane
-Food: mela, pane''',
-  'exerciseHelp.field.sort_into_groups.leftover.body':
-      r'''Words that belong to no group.
-
-What to enter
-One word per line; leave empty when every word has a group.
-
-Checks
-The learner must leave them in the bank; a word listed here cannot also be in a group.
-
-Example
-tavolo''',
+Plants: rosa, pino''',
   'exerciseHelp.field.fill_the_slots.question.body':
       r'''What the learner is asked to do.
 
@@ -1330,6 +1330,29 @@ At least one accepted answer. Expansion is limited to 128 answers.
 Example
 [il|un] gatto
 gatto''',
+  'exerciseHelp.field.picture_blocks.order.body':
+      r'''The name of what the picture shows, as word blocks.
+
+What to enter
+One word per line, in the right order; the learner gets these blocks shuffled, with the extra blocks.
+
+Checks
+Required, with the Exercise image. The blocks joined with spaces are the answer.
+
+Example
+il
+pane''',
+  'exerciseHelp.field.picture_blocks.extraWords.body':
+      r'''Words offered with the name that are not part of it.
+
+What to enter
+One word per line; optional.
+
+Checks
+At most two: more extra blocks is an Audit error. The learner must leave them out.
+
+Example
+la''',
   'exerciseHelp.field.picture_word_match.answers.body':
       r'''The words of the pairs; each gets a picture below.
 

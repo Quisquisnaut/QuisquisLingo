@@ -888,7 +888,33 @@ class _RoundScreenState extends State<RoundScreen> {
     }
   }
 
+  /// The pause between two dialogue lines read aloud (Read and answer,
+  /// Build 256 Revision 7 fourth follow-up; owner decision: a second).
+  static const dialogueLinePause = Duration(seconds: 1);
+
+  /// Reads a Read and answer dialogue aloud, each line in turn with
+  /// [dialogueLinePause] between them, and stops when the learner moves on.
+  /// The read-aloud is optional: with Audio Exercises or Text-to-speech off
+  /// it stays silent and reports nothing.
+  Future<bool> _speakDialogue() async {
+    final lines = _features.dialogueAudio;
+    if (lines.isEmpty || !_optionalAudioEnabled) return false;
+    final exercise = _exercise;
+    var ok = true;
+    for (var i = 0; i < lines.length; i++) {
+      if (i > 0) await Future<void>.delayed(dialogueLinePause);
+      if (!mounted || !identical(_exercise, exercise)) return ok;
+      final line = lines[i];
+      ok = await _playCourseAudio(line.text, language: line.language) && ok;
+    }
+    return ok;
+  }
+
   Future<bool> _speak() async {
+    // A dialogue read aloud automatically plays line by line.
+    if (_features.automaticAudio?.role == 'dialogue_turn') {
+      return _speakDialogue();
+    }
     final text = _features.primaryAudioText;
     if (text == null || text.isEmpty) return false;
     final line = _features.kind == LearnerExerciseKind.dialogueLine;
@@ -1250,7 +1276,7 @@ class _RoundScreenState extends State<RoundScreen> {
     return typed.isEmpty ? null : typed;
   }
 
-  /// "Animals: gatto, cane · Food: mela" for the given placements; targets
+  /// "Animals: gatto, cane · Plants: rosa" for the given placements; targets
   /// are named by their layout label, else by their position.
   String _assignAnswerText(Exercise ex, Map<String, List<String>> placements) {
     final f = ExerciseFeatures(ex);
@@ -1800,7 +1826,11 @@ class _RoundScreenState extends State<RoundScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (automatic != null && automatic.role != 'context') ...[
+        // Context audio and the dialogue's read-aloud have their own
+        // buttons in the panels below.
+        if (automatic != null &&
+            automatic.role != 'context' &&
+            automatic.role != 'dialogue_turn') ...[
           Center(
             child: IconButton.filledTonal(
               tooltip: 'Play audio again',
@@ -1817,6 +1847,9 @@ class _RoundScreenState extends State<RoundScreen> {
           onPlayContextAudio: _answered || contextAudio.isEmpty
               ? null
               : () => _speakText(contextAudio),
+          onPlayDialogue: f.dialogueAudio.isEmpty || !_optionalAudioEnabled
+              ? null
+              : () => _speakDialogue(),
         ),
         if (f.questionText.isNotEmpty && !f.hasInlineTargets) ...[
           Text(

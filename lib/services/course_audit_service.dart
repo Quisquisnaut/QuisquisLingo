@@ -1301,6 +1301,7 @@ class CourseAuditService {
     'audio_match' => ' ${_presetNameOf(presetId)} needs its spoken text.',
     'picture_choice' ||
     'picture_name' ||
+    'picture_blocks' ||
     'picture_flashcard' => ' ${_presetNameOf(presetId)} needs its picture.',
     'picture_word_match' =>
       ' Match picture to word needs a picture on every left item.',
@@ -1310,8 +1311,8 @@ class CourseAuditService {
       ' Fill the slots needs slots: one target per slot, named by the text before it, holding one word.',
     'script_recognition' =>
       ' Recognize characters needs character images in the prompt or the options.',
-    'reading_answer_target' || 'reading_answer_source' =>
-      ' Read and answer needs a text to read or dialogue lines.',
+    'reading_answer_target' =>
+      ' Read and answer needs a text to read (source language, role context) or dialogue lines, and no spoken text.',
     _ => '',
   };
 
@@ -1335,10 +1336,12 @@ class CourseAuditService {
     LearnerExerciseKind.inputListenWrite => 'Type what you hear',
     LearnerExerciseKind.inputListenGaps => 'Listen and fill the gaps',
     LearnerExerciseKind.inputMissingWord => 'Type the missing word',
+    LearnerExerciseKind.inputPictureName => 'Type what you see',
     LearnerExerciseKind.arrangeSentence => 'Build the sentence',
     LearnerExerciseKind.arrangeTranslation => 'Build the translation',
     LearnerExerciseKind.arrangeWord => 'Spell the word in the picture',
     LearnerExerciseKind.arrangeLines => 'Put the sentences in order',
+    LearnerExerciseKind.arrangePictureName => 'Name what you see',
     LearnerExerciseKind.match => 'Match by meaning',
     LearnerExerciseKind.matchAudio => 'Listen and match',
     LearnerExerciseKind.matchTranslation => 'Match the words',
@@ -1550,7 +1553,6 @@ class CourseAuditService {
         }
         switch (presetId) {
           case 'reading_answer_target':
-          case 'reading_answer_source':
             if (f.questionText.trim().isEmpty) {
               add(
                 AuditCode.contextQuestionRequired,
@@ -1627,6 +1629,7 @@ class CourseAuditService {
             }
           case 'picture_choice':
           case 'picture_name':
+          case 'picture_blocks':
           case 'picture_flashcard':
             if (f.illustrationAsset.trim().isEmpty) {
               add(
@@ -1988,6 +1991,14 @@ class CourseAuditService {
               AuditCode.buildTranslationUnconstructable,
               'A correct answer cannot be built from its selected block order. Make the answer text and ordered blocks agree exactly, allowing the existing final sentence punctuation.',
             );
+          } else if (_orderedAnswerComparable(constructed, ignoreCase: false) !=
+              _orderedAnswerComparable(answer.text, ignoreCase: false)) {
+            // Any capital that differs is a Warning, never blocking (owner
+            // decision, 29 September 2026): the blocks still build it.
+            add(
+              AuditCode.arrangeAnswerCaseDiffers,
+              'The answer “${answer.text.trim()}” and its blocks differ in capitals: learners build “${constructed.trim()}”.',
+            );
           }
         }
         final comparisonOrder = translation
@@ -2215,11 +2226,13 @@ class CourseAuditService {
       .trim()
       .toLowerCase();
 
-  String _orderedAnswerComparable(String value) => value
-      .trim()
-      .replaceAll(RegExp(r'[.!?…]+$'), '')
-      .replaceAll(RegExp(r'\s+'), ' ')
-      .toLowerCase();
+  String _orderedAnswerComparable(String value, {bool ignoreCase = true}) {
+    final comparable = value
+        .trim()
+        .replaceAll(RegExp(r'[.!?…]+$'), '')
+        .replaceAll(RegExp(r'\s+'), ' ');
+    return ignoreCase ? comparable.toLowerCase() : comparable;
+  }
 
   void _auditRepeatingHint(
     String hint,

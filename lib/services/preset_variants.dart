@@ -29,18 +29,9 @@ abstract final class PresetVariants {
                 : 'listening_comprehension',
         };
       case 'reading_answer_target':
-      case 'reading_answer_source':
-        // Dialogue lines or audio need the context shape; otherwise an
-        // opened exercise keeps its passage, situation or context shape and
-        // a new one is a passage.
-        if (draft.dialogue.trim().isNotEmpty || draft.tts.trim().isNotEmpty) {
-          return 'contextual_comprehension';
-        }
-        return switch (draft.textRole) {
-          'situation' => 'dialogue_response',
-          'context' => 'contextual_comprehension',
-          _ => 'reading_comprehension',
-        };
+        // The text to read is context in the source language, followed by
+        // the dialogue lines (Build 256 Revision 7 fourth follow-up).
+        return 'contextual_comprehension';
       case 'word_match':
         // The former Matching shape (left target, right source) keeps its
         // sides; a new exercise pairs source words with their translations.
@@ -98,19 +89,14 @@ abstract final class PresetVariants {
   ) {
     final base = baseFor(presetId, draft);
     if (base == 'contextual_comprehension' &&
-        presetId.startsWith('reading_answer')) {
-      // Read and answer in the context shape: the text is the context and
-      // the spoken text, when there is one, its audio.
-      final hasText = draft.prompt.trim().isNotEmpty;
-      final hasAudio = draft.tts.trim().isNotEmpty;
+        presetId == 'reading_answer_target') {
+      // Read and answer in the context shape: the text is the context; there
+      // is no spoken text (the dialogue is read aloud instead).
       return draft.copyWith(
         type: base,
         context: draft.prompt,
-        contextMode: hasAudio && !hasText
-            ? 'audio'
-            : hasAudio
-            ? 'textAndAudio'
-            : 'text',
+        contextMode: 'text',
+        tts: '',
       );
     }
     if (base == 'fill_blank' && presetId == 'type_missing_word') {
@@ -188,6 +174,9 @@ abstract final class PresetVariants {
       exercise = toSource(presetId, exercise);
     }
     exercise = _shape(presetId, exercise);
+    if (presetId == 'reading_answer_target') {
+      exercise = _readAndAnswer(exercise, draft.dialogueReadAloud);
+    }
     // A candidate the base recipe already finished (the script controller's
     // own candidate, for one) crosses unchanged.
     if (identical(exercise, candidate) && exercise.editorTemplate == presetId) {
@@ -197,6 +186,41 @@ abstract final class PresetVariants {
       ...exercise.authoringMetadata,
       'presetId': presetId,
     });
+  }
+
+  /// Read and answer (Build 256 Revision 7 fourth follow-up; owner
+  /// decisions of 29 September 2026): the text to read explains the
+  /// situation in the source language and is never read aloud; when the
+  /// dialogue is read aloud, each line is followed by its optional audio
+  /// (automatic or on request), spoken in turn.
+  static Exercise _readAndAnswer(Exercise exercise, String readAloud) {
+    final playback = switch (readAloud) {
+      'automatic' => AudioPlayback.automatic,
+      'manual' => AudioPlayback.manual,
+      _ => null,
+    };
+    return exercise.copyWith(
+      promptElements: [
+        for (final element in exercise.promptElements)
+          if (element.isAudio && element.role == 'dialogue_turn')
+            ...const <PromptElement>[]
+          else if (element.isText && element.role == 'context')
+            element.copyWith(language: TextLanguage.source)
+          else if (element.isText &&
+              element.role == 'dialogue_turn' &&
+              playback != null) ...[
+            element,
+            PromptElement(
+              role: 'dialogue_turn',
+              type: 'audio',
+              text: element.text,
+              playback: playback,
+              required: false,
+            ),
+          ] else
+            element,
+      ],
+    );
   }
 
   /// What a Stage 3 preset adds to its base recipe's exercise: True or
@@ -340,7 +364,6 @@ abstract final class PresetVariants {
           items: markItems(TextLanguage.source),
         );
       case 'listening_answer_source':
-      case 'reading_answer_source':
         return exercise.copyWith(
           promptElements: mark(
             exercise.promptElements,

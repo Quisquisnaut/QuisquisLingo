@@ -9411,6 +9411,10 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
   // A Flashcard's read-aloud: none, manual (on request) or automatic; the
   // spoken text is the word itself.
   String _cardReadAloud = 'manual';
+
+  /// Read and answer's dialogue read-aloud (Build 256 Revision 7 fourth
+  /// follow-up): none, manual or automatic.
+  String _dialogueReadAloud = 'none';
   static String labelForType(String type) =>
       ExercisePresetRegistry.byId(type)?.name ?? type.replaceAll('_', ' ');
   late String _type;
@@ -9432,7 +9436,6 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
       _dialogue,
       _requiredSelections,
       _groups,
-      _leftover,
       _slots,
       _extraWords;
   @override
@@ -9468,6 +9471,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     _readLineFields(draft);
     _slotReuse = draft.slotReuse;
     _cardReadAloud = draft.cardReadAloud;
+    _dialogueReadAloud = draft.dialogueReadAloud;
     _tokens = TextEditingController(text: draft.tokens);
     _order = TextEditingController(text: draft.order);
     _gapLayout = TextEditingController(text: draft.gapLayout);
@@ -9483,7 +9487,6 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     _context = TextEditingController(text: draft.context);
     _dialogue = TextEditingController(text: draft.dialogue);
     _groups = TextEditingController(text: draft.groups);
-    _leftover = TextEditingController(text: draft.leftover);
     _slots = TextEditingController(text: draft.slots);
     _extraWords = TextEditingController(text: draft.extraWords);
     _contextMode = draft.contextMode;
@@ -9507,7 +9510,6 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
       _dialogue,
       _requiredSelections,
       _groups,
-      _leftover,
       _slots,
       _extraWords,
     ]) {
@@ -9585,7 +9587,6 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
       _dialogue,
       _requiredSelections,
       _groups,
-      _leftover,
       _slots,
       _extraWords,
     ]) {
@@ -9867,7 +9868,6 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     _dialogue: 'dialogue',
     _requiredSelections: 'requiredSelections',
     _groups: 'groups',
-    _leftover: 'leftover',
     _slots: 'slots',
     _extraWords: 'extraWords',
   }[controller]!;
@@ -10392,29 +10392,44 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
           _field(_correct, 'Correct answer number'),
         ];
       case 'reading_comprehension':
+        // Read and answer (Build 256 Revision 7 fourth follow-up; owner
+        // decisions of 29 September 2026): the text explains the situation
+        // in the source language and is never read aloud; the dialogue is in
+        // the target language and may be read aloud line by line.
         return [
           _field(
             _prompt,
-            'Text to read',
+            'Text to read (source language)',
             lines: 5,
             helper:
-                'A passage, a situation or a short text. At least three lexical words are recommended.',
-          ),
-          _field(
-            _tts,
-            'Spoken text (optional)',
-            lines: 3,
-            helper:
-                'Audio the learner listens to before answering, in the target language. With a text above, both are shown.',
+                'In the learners’ own language: the situation or the explanation the dialogue needs. It is never read aloud.',
           ),
           _field(
             _dialogue,
             'Dialogue lines (optional)',
             lines: 4,
             helper:
-                'One line per turn as Speaker: text. With dialogue lines the text above is the context shown before them.',
+                'One line per turn as Speaker: text, in the target language.',
           ),
-          _field(_question, 'Question', lines: 2),
+          _choiceField(
+            fieldKey: 'dialogueReadAloud',
+            label: 'Read the dialogue aloud',
+            value: _dialogueReadAloud,
+            choices: const {
+              'automatic': 'Automatically, line by line',
+              'manual': 'On request (Play dialogue button)',
+              'none': 'No read-aloud',
+            },
+            onChanged: (value) => _dialogueReadAloud = value,
+            helper:
+                'Each line is spoken in turn with a short pause. Read-aloud never makes this an audio exercise.',
+          ),
+          _field(
+            _question,
+            'Question',
+            lines: 2,
+            helper: 'In the target language.',
+          ),
           _field(_answers, 'Answers', lines: 4),
           _field(_correct, 'Correct answer number'),
         ];
@@ -10694,6 +10709,32 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
           const SizedBox(height: 8),
           _field(_hint, 'Hint (optional)'),
         ];
+      case 'picture_blocks':
+        // Name what you see (Revision 7 fourth follow-up): the picture is
+        // the Exercise image below; the name is built from word blocks.
+        return [
+          _field(
+            _question,
+            'Question (optional)',
+            lines: 2,
+            helper: 'Example: What is this?',
+          ),
+          _field(
+            _order,
+            'Blocks of the name, in order',
+            lines: 4,
+            helper:
+                'One word per line, in the right order; the learner builds the name from these blocks, shuffled. An image is required.',
+          ),
+          _field(
+            _extraWords,
+            'Extra blocks (optional)',
+            lines: 2,
+            helper:
+                'At most two words that are not part of the name; the learner must leave them out.',
+          ),
+          _field(_hint, 'Hint (optional)'),
+        ];
       case 'spell_word':
         return [
           _field(
@@ -10733,21 +10774,14 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
             _question,
             'Question',
             lines: 2,
-            helper: 'Example: Sort the words: animals or food?',
+            helper: 'Example: Sort the words: animals or plants?',
           ),
           _field(
             _groups,
             'Groups',
             lines: 4,
             helper:
-                'One group per line: the group name, a colon, then its words separated by commas. Usually two or more groups. Example: Animals: gatto, cane',
-          ),
-          _field(
-            _leftover,
-            'Words that belong nowhere (optional)',
-            lines: 2,
-            helper:
-                'One per line; they are offered too and the learner must leave them in the bank.',
+                'One group per line: the group name, a colon, then its words separated by commas. At least two groups; every word belongs to one. Example: Animals: gatto, cane',
           ),
         ];
       case 'fill_the_slots':
@@ -11195,11 +11229,11 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         lineTextReveal: _lineTextReveal,
         lineLanguage: _lineLanguage,
         groups: _groups.text,
-        leftover: _leftover.text,
         slots: _slots.text,
         extraWords: _extraWords.text,
         slotReuse: _slotReuse,
         cardReadAloud: _cardReadAloud,
+        dialogueReadAloud: _dialogueReadAloud,
         prompt: _prompt.text,
         question: _question.text,
         tts: _tts.text,
@@ -11298,15 +11332,17 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         'Groups line ${error.line}: write the group name, a colon, then '
             'its words separated by commas, e.g. Animals: gatto, cane.',
       ExerciseDraftErrorCode.groupsRequired =>
-        'Groups: enter at least one group with its words.',
+        'Groups: enter at least two groups with their words.',
       ExerciseDraftErrorCode.groupWordRepeated =>
         'Groups: “${error.detail}” is listed more than once. A word can '
-            'be in one group only, or among the words that belong nowhere.',
+            'be in one group only.',
       ExerciseDraftErrorCode.slotLine =>
         'Slots line ${error.line}: write what the learner sees, an equals '
             'sign, then the word that fills the slot, e.g. … gatto = il.',
       ExerciseDraftErrorCode.slotsRequired =>
         'Slots: enter at least one slot with its word.',
+      ExerciseDraftErrorCode.nameBlocksRequired =>
+        'Blocks of the name: enter the name, one word per line.',
       ExerciseDraftErrorCode.slotWordRepeated =>
         'Slots: “${error.detail}” is listed more than once. Turn on “A '
             'word may fill more than one slot” when one word answers '
@@ -11580,6 +11616,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     _lineLanguage,
     _slotReuse,
     _cardReadAloud,
+    _dialogueReadAloud,
     _imageAsset,
     _selectedSharedSource?.id ?? '',
     for (final controller in [
@@ -11600,7 +11637,6 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
       _dialogue,
       _requiredSelections,
       _groups,
-      _leftover,
       _slots,
       _extraWords,
     ])
@@ -11708,6 +11744,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         _readLineFields(draft);
         _slotReuse = draft.slotReuse;
         _cardReadAloud = draft.cardReadAloud;
+        _dialogueReadAloud = draft.dialogueReadAloud;
         _tokens.text = draft.tokens;
         _order.text = draft.order;
         _gapLayout.text = draft.gapLayout;
@@ -11718,7 +11755,6 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         _context.text = draft.context;
         _dialogue.text = draft.dialogue;
         _groups.text = draft.groups;
-        _leftover.text = draft.leftover;
         _slots.text = draft.slots;
         _extraWords.text = draft.extraWords;
         _contextMode = draft.contextMode;
@@ -11899,7 +11935,12 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
               Card(
                 key: const Key('exercise-preset-selector'),
                 child: ListTile(
-                  title: Text(labelForType(_type)),
+                  // The preset's name in bold (owner request, 29 September
+                  // 2026), here and on the locked "Exercise type" line.
+                  title: Text(
+                    labelForType(_type),
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
                   subtitle: Text(
                     '${ExercisePresetRegistry.byId(_type)!.category.label} · ${ExercisePresetRegistry.byId(_type)!.description}',
                   ),
@@ -11911,7 +11952,10 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
               ListTile(
                 contentPadding: EdgeInsets.zero,
                 title: const Text('Exercise type'),
-                subtitle: Text(labelForType(_type)),
+                subtitle: Text(
+                  labelForType(_type),
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
                 trailing: const Icon(Icons.lock_outline),
               ),
             Align(

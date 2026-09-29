@@ -137,6 +137,74 @@ negative and semantic-equality tests, the final verification.
   an audio exercise; the Round's "Before you start" card stays Round
   content (no interactive-presentation primitive).
 
+### Fourth follow-up in the same version (owner review, 29 September 2026)
+
+- `lib/screens/course_editor_screen.dart`: the preset name in bold (preset
+  selector card title, "Exercise type" subtitle); the forms
+  `picture_blocks` (Question (optional), Blocks of the name, in order =
+  `order`, Extra blocks (optional) = `extraWords`, Hint), `sort_into_groups`
+  without `_leftover` (helpers Animals/Plants), `reading_comprehension` (the
+  Read and answer form: Text to read (source language), Dialogue lines,
+  Read the dialogue aloud = `_dialogueReadAloud`, Question; no Spoken
+  text); the error `nameBlocksRequired`.
+- `lib/models/course_models.dart` `_resolveOrderedItemIds`: exact capitals
+  first, then capitals ignored. `lib/services/course_audit_service.dart`:
+  `ARRANGE_ANSWER_CASE_DIFFERS` (Warning) when the blocks build the answer
+  only with capitals ignored; `picture_blocks` needs its picture;
+  `kindLabel` for the two new kinds; Read and answer's hint and rules for
+  the one remaining preset. `lib/services/audit_code_registry.dart`: 108
+  rules, 42 Warnings.
+- `lib/models/exercise_authoring.dart`: `picture_blocks` "Name what you
+  see" (Arrange, own recipe), `picture_name` renamed "Type what you see";
+  `reading_answer_source` removed (no twin for `reading_answer_target`);
+  `helpByPreset`; the Story cover and Adventure texts no longer point to
+  Play as a sequence for Stories. `lib/models/preset_successors.dart`:
+  `reading_answer_source` → `reading_answer_target`; `picture_blocks` →
+  `word_order` in `presetRecipeBaseOf` (the v11 converter), mirrored in
+  `tools/qql_course_v12.py`.
+- `lib/models/exercise_features.dart`: `LearnerExerciseKind.inputPictureName`
+  and `arrangePictureName` (a `picture` image), `pictureImages`,
+  `dialogueAudio`. `lib/services/exercise_copy_service.dart`: headings and
+  instructions in the eight languages.
+- `lib/services/exercise_draft_builder.dart`: `_buildPictureBlocks` (items
+  kept by text, one exact order); Sort into groups without `leftover`, two
+  groups required; `ExerciseDraftValues.dialogueReadAloud`.
+  `lib/services/preset_variants.dart`: Read and answer is always the context
+  shape; `_readAndAnswer` marks the context text source-language and adds
+  after each dialogue line its optional audio (`role: dialogue_turn`,
+  `playback`, `required: false`). `lib/services/preset_recipes.dart`:
+  `picture_blocks` canonical-only recipe, extra blocks and the dialogue
+  read-aloud decomposed, kinds.
+- `lib/screens/round_screen.dart`: `_speakDialogue` (each line in turn,
+  `dialogueLinePause` one second, stops when the learner moves on, silent
+  without optional audio), `_speak` routes an automatic dialogue to it, the
+  Play dialogue button; `lib/widgets/exercise_prompt_panels.dart`
+  `onPlayDialogue`; `lib/screens/duel_screen.dart`: no dialogue read-aloud.
+- `lib/services/guidebook_round_generator.dart`: the context slot is Pick
+  the missing word (`gap_choice`); every generated exercise is represented
+  by its preset (new test in `guidebook_round_generator_224_test`).
+- Field help, Search, Help (EN/IT/ES): the new preset and fields, the
+  Read and answer texts, Sort into groups without leftover words.
+- Generators: the Laboratory (`turn()` helper; Read and answer round
+  rebuilt: situation, dialogue with image, automatic and on-request
+  read-aloud; the passage, situation, context and spoken-text examples and
+  Read and answer (to source) removed; `picture_blocks`; Sort into groups
+  Animals/Plants and three groups: 7 Lessons, 27 Rounds, 122 examples);
+  the Piedmontese demo (Read and answer Lesson rebuilt, the "to source"
+  Lesson removed, a Name what you see Lesson: 39 Lessons, 117 examples);
+  the Edge Case demo's `e07_long` (an Italian source text, an English
+  question); the v11 fixtures rewritten (Edge Case edited for `e07_long`).
+- Tests: `revision7_fourth_followup_256_test.dart` (12); the Round Wizard
+  test; the pins listed in the validation.
+- Decisions (owner, 29 September): the Warning fires for any capital that
+  differs; the typed preset stays as Type what you see; Read and answer
+  keeps only "to target", its text in the source language without
+  read-aloud, the dialogue read turn by turn with a pause, optional; old
+  spoken-text examples removed and new ones generated; the Round Wizard
+  creates preset exercises only. Claude's defaults the owner may override:
+  the Laboratory's leftover example became three groups; the Duel stays
+  silent for a dialogue read-aloud.
+
 ### Third follow-up in the same version (owner decisions, 29 September 2026)
 
 - `lib/models/course_models.dart`: `LearningRound.storyVisualType`,

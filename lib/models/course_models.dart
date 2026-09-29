@@ -4838,7 +4838,10 @@ List<String> _resolveOrderedItemIds(
       .replaceAll(RegExp(r'[.!?…]+$'), '')
       .replaceAll(RegExp(r'\s+'), ' ');
 
-  List<int>? matchEntries(List<String> entries) {
+  List<int>? matchEntries(
+    List<String> entries,
+    String Function(String) comparable,
+  ) {
     final used = <int>{};
     final indexes = <int>[];
     for (final entry in entries) {
@@ -4854,8 +4857,7 @@ List<String> _resolveOrderedItemIds(
     return indexes;
   }
 
-  var indexes = matchEntries(authoredOrder);
-  if (indexes == null) {
+  List<int>? split(String Function(String) comparable) {
     final sentence = comparable(authoredOrder.join(' '));
     List<int>? visit(String remaining, Set<int> used) {
       if (remaining.isEmpty) return const [];
@@ -4875,8 +4877,18 @@ List<String> _resolveOrderedItemIds(
       return null;
     }
 
-    indexes = visit(sentence, const <int>{});
+    return visit(sentence, const <int>{});
   }
+
+  // Exact capitals first; then capitals ignored (owner decision, 29
+  // September 2026: a capital that differs is an Audit Warning,
+  // ARRANGE_ANSWER_CASE_DIFFERS, never an answer without its blocks).
+  String caseless(String value) => comparable(value).toLowerCase();
+  final indexes =
+      matchEntries(authoredOrder, comparable) ??
+      split(comparable) ??
+      matchEntries(authoredOrder, caseless) ??
+      split(caseless);
   if (indexes == null || indexes.isEmpty) return const [];
   return indexes.map((index) => 'item_$index').toList(growable: false);
 }

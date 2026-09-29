@@ -225,7 +225,7 @@ void main() {
       find.byWidgetPredicate(
         (widget) =>
             widget is TextField &&
-            widget.decoration?.labelText == 'Text to read',
+            widget.decoration?.labelText == 'Text to read (source language)',
       ),
       findsOneWidget,
     );

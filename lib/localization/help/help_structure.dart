@@ -199,7 +199,6 @@ const exerciseHelpPresetIds = <String>[
   'missing_word',
   'audio_match',
   'reading_answer_target',
-  'reading_answer_source',
   'icon_choice',
   'script_recognition',
   'image_word',
@@ -216,6 +215,7 @@ const exerciseHelpPresetIds = <String>[
   'spell_heard',
   'picture_choice',
   'picture_name',
+  'picture_blocks',
   'spell_word',
   'picture_word_match',
   'note_card',
@@ -355,25 +355,15 @@ const exerciseHelpFieldKeyByPresetAndField = <String, String>{
   'audio_match.image': 'exerciseHelp.field.choice.image.body',
   'reading_answer_target.prompt':
       'exerciseHelp.field.reading_answer.prompt.body',
-  'reading_answer_target.tts': 'exerciseHelp.field.choice.tts.body',
   'reading_answer_target.dialogue':
       'exerciseHelp.field.contextual_comprehension.dialogue.body',
+  'reading_answer_target.dialogueReadAloud':
+      'exerciseHelp.field.reading_answer.dialogueReadAloud.body',
   'reading_answer_target.question':
       'exerciseHelp.field.icon_choice.question.body',
   'reading_answer_target.answers': 'exerciseHelp.field.choice.answers.body',
   'reading_answer_target.correct': 'exerciseHelp.field.gap_choice.correct.body',
   'reading_answer_target.image': 'exerciseHelp.field.choice.image.body',
-  'reading_answer_source.prompt':
-      'exerciseHelp.field.reading_answer.prompt.body',
-  'reading_answer_source.tts': 'exerciseHelp.field.choice.tts.body',
-  'reading_answer_source.dialogue':
-      'exerciseHelp.field.contextual_comprehension.dialogue.body',
-  'reading_answer_source.question':
-      'exerciseHelp.field.choice_source.question.body',
-  'reading_answer_source.answers':
-      'exerciseHelp.field.choice_source.answers.body',
-  'reading_answer_source.correct': 'exerciseHelp.field.gap_choice.correct.body',
-  'reading_answer_source.image': 'exerciseHelp.field.choice.image.body',
   'icon_choice.question': 'exerciseHelp.field.icon_choice.question.body',
   'icon_choice.answers': 'exerciseHelp.field.choice.answers.body',
   'icon_choice.correct': 'exerciseHelp.field.gap_choice.correct.body',
@@ -446,6 +436,12 @@ const exerciseHelpFieldKeyByPresetAndField = <String, String>{
   'picture_name.accepted': 'exerciseHelp.field.picture_name.accepted.body',
   'picture_name.hint': 'exerciseHelp.field.gap_choice.hint.body',
   'picture_name.image': 'exerciseHelp.field.choice.image.body',
+  'picture_blocks.question': 'exerciseHelp.field.icon_choice.question.body',
+  'picture_blocks.order': 'exerciseHelp.field.picture_blocks.order.body',
+  'picture_blocks.extraWords':
+      'exerciseHelp.field.picture_blocks.extraWords.body',
+  'picture_blocks.hint': 'exerciseHelp.field.gap_choice.hint.body',
+  'picture_blocks.image': 'exerciseHelp.field.choice.image.body',
   'spell_word.prompt': 'exerciseHelp.field.spell_word.prompt.body',
   'spell_word.order': 'exerciseHelp.field.image_word.order.body',
   'spell_word.image': 'exerciseHelp.field.choice.image.body',
@@ -470,8 +466,6 @@ const exerciseHelpFieldKeyByPresetAndField = <String, String>{
   'sort_into_groups.question':
       'exerciseHelp.field.sort_into_groups.question.body',
   'sort_into_groups.groups': 'exerciseHelp.field.sort_into_groups.groups.body',
-  'sort_into_groups.leftover':
-      'exerciseHelp.field.sort_into_groups.leftover.body',
   'sort_into_groups.image': 'exerciseHelp.field.choice.image.body',
   'fill_the_slots.question': 'exerciseHelp.field.fill_the_slots.question.body',
   'fill_the_slots.slots': 'exerciseHelp.field.fill_the_slots.slots.body',

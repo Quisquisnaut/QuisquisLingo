@@ -1234,7 +1234,7 @@
           "id": "qql_lab254_round_select_context",
           "publicationState": "published",
           "updatedAt": "2026-09-25T00:00:00.000Z",
-          "title": "Reading and conversations",
+          "title": "Read and answer",
           "visualType": "story",
           "content": [
             {
@@ -1243,126 +1243,10 @@
               "kind": "text",
               "required": false,
               "role": "lesson_intro",
-              "text": "Read the passage or conversation before choosing an answer. Contextual comprehension can use a passage, labelled speakers, or both."
+              "text": "Read the situation, written in English, and the Italian dialogue, then answer in Italian. Some dialogues are read aloud line by line, automatically or with Play dialogue."
             },
             {
-              "id": "qql_lab254_select_reading",
-              "publicationState": "published",
-              "kind": "exercise",
-              "required": true,
-              "authoringMetadata": {
-                "presetId": "reading_answer_target"
-              },
-              "exercise": {
-                "updatedAt": "2026-09-25T00:00:00.000Z",
-                "primitive": "select",
-                "prompt": [
-                  {
-                    "role": "passage",
-                    "type": "text",
-                    "text": "Anna abita a Roma. Ogni mattina va al lavoro in autobus."
-                  },
-                  {
-                    "role": "question",
-                    "type": "text",
-                    "text": "Come va al lavoro Anna?"
-                  }
-                ],
-                "items": [
-                  {
-                    "id": "qql_lab254_select_reading_item_0",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "In autobus."
-                      }
-                    ]
-                  },
-                  {
-                    "id": "qql_lab254_select_reading_item_1",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "In treno."
-                      }
-                    ]
-                  },
-                  {
-                    "id": "qql_lab254_select_reading_item_2",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "A piedi."
-                      }
-                    ]
-                  }
-                ],
-                "evaluation": {
-                  "mode": "exactItem",
-                  "correctItemIds": [
-                    "qql_lab254_select_reading_item_0"
-                  ]
-                }
-              }
-            },
-            {
-              "id": "qql_lab254_select_dialogue",
-              "publicationState": "published",
-              "kind": "exercise",
-              "required": true,
-              "authoringMetadata": {
-                "presetId": "reading_answer_target"
-              },
-              "exercise": {
-                "updatedAt": "2026-09-25T00:00:00.000Z",
-                "primitive": "select",
-                "prompt": [
-                  {
-                    "role": "situation",
-                    "type": "text",
-                    "text": "Un amico ti offre un bicchiere d'acqua."
-                  },
-                  {
-                    "role": "question",
-                    "type": "text",
-                    "text": "Vuoi accettare. Qual è la risposta adatta?"
-                  }
-                ],
-                "items": [
-                  {
-                    "id": "qql_lab254_select_dialogue_item_0",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "Sì, grazie."
-                      }
-                    ]
-                  },
-                  {
-                    "id": "qql_lab254_select_dialogue_item_1",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "No, grazie."
-                      }
-                    ]
-                  }
-                ],
-                "evaluation": {
-                  "mode": "exactItem",
-                  "correctItemIds": [
-                    "qql_lab254_select_dialogue_item_0"
-                  ]
-                }
-              }
-            },
-            {
-              "id": "qql_lab254_context_text",
+              "id": "qql_lab254_reading_situation",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
@@ -1376,42 +1260,43 @@
                   {
                     "role": "context",
                     "type": "text",
-                    "text": "La biblioteca apre alle nove e chiude alle diciotto."
+                    "text": "You meet your neighbour Anna in the evening.",
+                    "language": "source"
                   },
                   {
                     "role": "question",
                     "type": "text",
-                    "text": "A che ora apre la biblioteca?"
+                    "text": "Che cosa dici?"
                   }
                 ],
                 "items": [
                   {
-                    "id": "qql_lab254_context_text_item_0",
+                    "id": "qql_lab254_reading_situation_item_0",
                     "content": [
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "Alle nove."
+                        "text": "Buonasera!"
                       }
                     ]
                   },
                   {
-                    "id": "qql_lab254_context_text_item_1",
+                    "id": "qql_lab254_reading_situation_item_1",
                     "content": [
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "Alle diciotto."
+                        "text": "Buongiorno!"
                       }
                     ]
                   },
                   {
-                    "id": "qql_lab254_context_text_item_2",
+                    "id": "qql_lab254_reading_situation_item_2",
                     "content": [
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "A mezzogiorno."
+                        "text": "Buonanotte!"
                       }
                     ]
                   }
@@ -1419,13 +1304,185 @@
                 "evaluation": {
                   "mode": "exactItem",
                   "correctItemIds": [
-                    "qql_lab254_context_text_item_0"
+                    "qql_lab254_reading_situation_item_0"
                   ]
                 }
               }
             },
             {
-              "id": "qql_lab254_context_dialogue",
+              "id": "qql_lab254_reading_dialogue",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "authoringMetadata": {
+                "presetId": "reading_answer_target"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "select",
+                "prompt": [
+                  {
+                    "role": "context",
+                    "type": "text",
+                    "text": "Anna and Luca are in the kitchen.",
+                    "language": "source"
+                  },
+                  {
+                    "role": "context",
+                    "type": "image",
+                    "text": "An apple",
+                    "asset": "assets/exercise_images/apple.webp"
+                  },
+                  {
+                    "role": "dialogue_turn",
+                    "type": "text",
+                    "text": "Vuoi una mela?",
+                    "speaker": "Anna"
+                  },
+                  {
+                    "role": "dialogue_turn",
+                    "type": "text",
+                    "text": "Sì, grazie.",
+                    "speaker": "Luca"
+                  },
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "Che cosa offre Anna?"
+                  }
+                ],
+                "items": [
+                  {
+                    "id": "qql_lab254_reading_dialogue_item_0",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "Una mela."
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_lab254_reading_dialogue_item_1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "Un libro."
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_lab254_reading_dialogue_item_2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "Un caffè."
+                      }
+                    ]
+                  }
+                ],
+                "evaluation": {
+                  "mode": "exactItem",
+                  "correctItemIds": [
+                    "qql_lab254_reading_dialogue_item_0"
+                  ]
+                }
+              }
+            },
+            {
+              "id": "qql_lab254_reading_dialogue_automatic",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "authoringMetadata": {
+                "presetId": "reading_answer_target"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "select",
+                "prompt": [
+                  {
+                    "role": "context",
+                    "type": "text",
+                    "text": "Anna and Luca talk after lunch.",
+                    "language": "source"
+                  },
+                  {
+                    "role": "dialogue_turn",
+                    "type": "text",
+                    "text": "Vuoi un caffè?",
+                    "speaker": "Anna"
+                  },
+                  {
+                    "role": "dialogue_turn",
+                    "type": "audio",
+                    "text": "Vuoi un caffè?",
+                    "playback": "automatic",
+                    "required": false
+                  },
+                  {
+                    "role": "dialogue_turn",
+                    "type": "text",
+                    "text": "Sì, senza zucchero.",
+                    "speaker": "Luca"
+                  },
+                  {
+                    "role": "dialogue_turn",
+                    "type": "audio",
+                    "text": "Sì, senza zucchero.",
+                    "playback": "automatic",
+                    "required": false
+                  },
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "Come vuole il caffè Luca?"
+                  }
+                ],
+                "items": [
+                  {
+                    "id": "qql_lab254_reading_dialogue_automatic_item_0",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "Senza zucchero."
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_lab254_reading_dialogue_automatic_item_1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "Con molto zucchero."
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_lab254_reading_dialogue_automatic_item_2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "Con il gelato."
+                      }
+                    ]
+                  }
+                ],
+                "evaluation": {
+                  "mode": "exactItem",
+                  "correctItemIds": [
+                    "qql_lab254_reading_dialogue_automatic_item_0"
+                  ]
+                }
+              }
+            },
+            {
+              "id": "qql_lab254_reading_dialogue_manual",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
@@ -1444,9 +1501,23 @@
                   },
                   {
                     "role": "dialogue_turn",
+                    "type": "audio",
+                    "text": "Dov'è la stazione?",
+                    "playback": "manual",
+                    "required": false
+                  },
+                  {
+                    "role": "dialogue_turn",
                     "type": "text",
                     "text": "È vicino al parco.",
                     "speaker": "Luca"
+                  },
+                  {
+                    "role": "dialogue_turn",
+                    "type": "audio",
+                    "text": "È vicino al parco.",
+                    "playback": "manual",
+                    "required": false
                   },
                   {
                     "role": "question",
@@ -1456,7 +1527,7 @@
                 ],
                 "items": [
                   {
-                    "id": "qql_lab254_context_dialogue_item_0",
+                    "id": "qql_lab254_reading_dialogue_manual_item_0",
                     "content": [
                       {
                         "role": "primary",
@@ -1466,7 +1537,7 @@
                     ]
                   },
                   {
-                    "id": "qql_lab254_context_dialogue_item_1",
+                    "id": "qql_lab254_reading_dialogue_manual_item_1",
                     "content": [
                       {
                         "role": "primary",
@@ -1476,7 +1547,7 @@
                     ]
                   },
                   {
-                    "id": "qql_lab254_context_dialogue_item_2",
+                    "id": "qql_lab254_reading_dialogue_manual_item_2",
                     "content": [
                       {
                         "role": "primary",
@@ -1489,88 +1560,7 @@
                 "evaluation": {
                   "mode": "exactItem",
                   "correctItemIds": [
-                    "qql_lab254_context_dialogue_item_0"
-                  ]
-                }
-              }
-            },
-            {
-              "id": "qql_lab254_context_text_dialogue_image",
-              "publicationState": "published",
-              "kind": "exercise",
-              "required": true,
-              "authoringMetadata": {
-                "presetId": "reading_answer_target"
-              },
-              "exercise": {
-                "updatedAt": "2026-09-25T00:00:00.000Z",
-                "primitive": "select",
-                "prompt": [
-                  {
-                    "role": "context",
-                    "type": "text",
-                    "text": "Anna e Luca sono in cucina."
-                  },
-                  {
-                    "role": "dialogue_turn",
-                    "type": "text",
-                    "text": "Vuoi una mela?",
-                    "speaker": "Anna"
-                  },
-                  {
-                    "role": "dialogue_turn",
-                    "type": "text",
-                    "text": "Sì, grazie.",
-                    "speaker": "Luca"
-                  },
-                  {
-                    "role": "context",
-                    "type": "image",
-                    "text": "An apple",
-                    "asset": "assets/exercise_images/apple.webp"
-                  },
-                  {
-                    "role": "question",
-                    "type": "text",
-                    "text": "Che cosa offre Anna?"
-                  }
-                ],
-                "items": [
-                  {
-                    "id": "qql_lab254_context_text_dialogue_image_item_0",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "Una mela."
-                      }
-                    ]
-                  },
-                  {
-                    "id": "qql_lab254_context_text_dialogue_image_item_1",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "Un libro."
-                      }
-                    ]
-                  },
-                  {
-                    "id": "qql_lab254_context_text_dialogue_image_item_2",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "Un caffè."
-                      }
-                    ]
-                  }
-                ],
-                "evaluation": {
-                  "mode": "exactItem",
-                  "correctItemIds": [
-                    "qql_lab254_context_text_dialogue_image_item_0"
+                    "qql_lab254_reading_dialogue_manual_item_0"
                   ]
                 }
               }
@@ -1581,7 +1571,7 @@
           "id": "qql_lab254_round_select_listening",
           "publicationState": "published",
           "updatedAt": "2026-09-25T00:00:00.000Z",
-          "title": "Listening and context",
+          "title": "Listening",
           "visualType": "listening",
           "content": [
             {
@@ -1716,226 +1706,6 @@
                   "mode": "exactItem",
                   "correctItemIds": [
                     "qql_lab254_select_listening_passage_item_0"
-                  ]
-                }
-              }
-            },
-            {
-              "id": "qql_lab254_context_audio",
-              "publicationState": "published",
-              "kind": "exercise",
-              "required": true,
-              "authoringMetadata": {
-                "presetId": "reading_answer_target"
-              },
-              "exercise": {
-                "updatedAt": "2026-09-25T00:00:00.000Z",
-                "primitive": "select",
-                "prompt": [
-                  {
-                    "role": "context",
-                    "type": "audio",
-                    "text": "Il treno per Roma parte dal binario tre.",
-                    "playback": "automatic"
-                  },
-                  {
-                    "role": "question",
-                    "type": "text",
-                    "text": "Da quale binario parte il treno?"
-                  }
-                ],
-                "items": [
-                  {
-                    "id": "qql_lab254_context_audio_item_0",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "Dal binario tre."
-                      }
-                    ]
-                  },
-                  {
-                    "id": "qql_lab254_context_audio_item_1",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "Dal binario uno."
-                      }
-                    ]
-                  },
-                  {
-                    "id": "qql_lab254_context_audio_item_2",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "Dal binario cinque."
-                      }
-                    ]
-                  }
-                ],
-                "evaluation": {
-                  "mode": "exactItem",
-                  "correctItemIds": [
-                    "qql_lab254_context_audio_item_0"
-                  ]
-                }
-              }
-            },
-            {
-              "id": "qql_lab254_context_text_audio",
-              "publicationState": "published",
-              "kind": "exercise",
-              "required": true,
-              "authoringMetadata": {
-                "presetId": "reading_answer_target"
-              },
-              "exercise": {
-                "updatedAt": "2026-09-25T00:00:00.000Z",
-                "primitive": "select",
-                "prompt": [
-                  {
-                    "role": "context",
-                    "type": "text",
-                    "text": "Luca legge un libro in giardino."
-                  },
-                  {
-                    "role": "context",
-                    "type": "audio",
-                    "text": "Luca legge un libro in giardino.",
-                    "playback": "automatic"
-                  },
-                  {
-                    "role": "question",
-                    "type": "text",
-                    "text": "Che cosa legge Luca?"
-                  }
-                ],
-                "items": [
-                  {
-                    "id": "qql_lab254_context_text_audio_item_0",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "Un libro."
-                      }
-                    ]
-                  },
-                  {
-                    "id": "qql_lab254_context_text_audio_item_1",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "Una lettera."
-                      }
-                    ]
-                  },
-                  {
-                    "id": "qql_lab254_context_text_audio_item_2",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "Un giornale."
-                      }
-                    ]
-                  }
-                ],
-                "evaluation": {
-                  "mode": "exactItem",
-                  "correctItemIds": [
-                    "qql_lab254_context_text_audio_item_0"
-                  ]
-                }
-              }
-            },
-            {
-              "id": "qql_lab254_context_all",
-              "publicationState": "published",
-              "kind": "exercise",
-              "required": true,
-              "authoringMetadata": {
-                "presetId": "reading_answer_target"
-              },
-              "exercise": {
-                "updatedAt": "2026-09-25T00:00:00.000Z",
-                "primitive": "select",
-                "prompt": [
-                  {
-                    "role": "context",
-                    "type": "text",
-                    "text": "Anna e Luca parlano dopo pranzo."
-                  },
-                  {
-                    "role": "context",
-                    "type": "audio",
-                    "text": "Vuoi un caffè? Sì, senza zucchero.",
-                    "playback": "automatic"
-                  },
-                  {
-                    "role": "dialogue_turn",
-                    "type": "text",
-                    "text": "Vuoi un caffè?",
-                    "speaker": "Anna"
-                  },
-                  {
-                    "role": "dialogue_turn",
-                    "type": "text",
-                    "text": "Sì, senza zucchero.",
-                    "speaker": "Luca"
-                  },
-                  {
-                    "role": "context",
-                    "type": "image",
-                    "text": "A cup of coffee",
-                    "asset": "assets/exercise_images/coffee.webp"
-                  },
-                  {
-                    "role": "question",
-                    "type": "text",
-                    "text": "Come vuole il caffè Luca?"
-                  }
-                ],
-                "items": [
-                  {
-                    "id": "qql_lab254_context_all_item_0",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "Senza zucchero."
-                      }
-                    ]
-                  },
-                  {
-                    "id": "qql_lab254_context_all_item_1",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "Con molto zucchero."
-                      }
-                    ]
-                  },
-                  {
-                    "id": "qql_lab254_context_all_item_2",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "Con il gelato."
-                      }
-                    ]
-                  }
-                ],
-                "evaluation": {
-                  "mode": "exactItem",
-                  "correctItemIds": [
-                    "qql_lab254_context_all_item_0"
                   ]
                 }
               }
@@ -2254,7 +2024,7 @@
               "kind": "text",
               "required": false,
               "role": "lesson_intro",
-              "text": "These Select exercises answer in the source language or with pictures: Choose the answer (to source), True or false, Listen and answer (to source), Read and answer (to source), What is in the picture and Listen and pick the image."
+              "text": "These Select exercises answer in the source language or with pictures: Choose the answer (to source), True or false, Listen and answer (to source), What is in the picture and Listen and pick the image."
             },
             {
               "id": "qql_lab254_choice_source_meaning",
@@ -2549,73 +2319,6 @@
                   "mode": "exactItem",
                   "correctItemIds": [
                     "qql_lab254_listening_source_item_0"
-                  ]
-                }
-              }
-            },
-            {
-              "id": "qql_lab254_reading_source",
-              "publicationState": "published",
-              "kind": "exercise",
-              "required": true,
-              "authoringMetadata": {
-                "presetId": "reading_answer_source"
-              },
-              "exercise": {
-                "updatedAt": "2026-09-25T00:00:00.000Z",
-                "primitive": "select",
-                "prompt": [
-                  {
-                    "role": "passage",
-                    "type": "text",
-                    "text": "Anna abita a Roma. Ogni mattina va al lavoro in autobus."
-                  },
-                  {
-                    "role": "question",
-                    "type": "text",
-                    "text": "How does Anna get to work?",
-                    "language": "source"
-                  }
-                ],
-                "items": [
-                  {
-                    "id": "qql_lab254_reading_source_item_0",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "By bus",
-                        "language": "source"
-                      }
-                    ]
-                  },
-                  {
-                    "id": "qql_lab254_reading_source_item_1",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "By train",
-                        "language": "source"
-                      }
-                    ]
-                  },
-                  {
-                    "id": "qql_lab254_reading_source_item_2",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "On foot",
-                        "language": "source"
-                      }
-                    ]
-                  }
-                ],
-                "evaluation": {
-                  "mode": "exactItem",
-                  "correctItemIds": [
-                    "qql_lab254_reading_source_item_0"
                   ]
                 }
               }
@@ -4436,6 +4139,76 @@
                         "qql_lab254_arrange_phrases_item_0",
                         "qql_lab254_arrange_phrases_item_1",
                         "qql_lab254_arrange_phrases_item_2"
+                      ]
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "qql_lab254_picture_blocks",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "authoringMetadata": {
+                "presetId": "picture_blocks"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "arrange",
+                "prompt": [
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "What is this?"
+                  },
+                  {
+                    "role": "picture",
+                    "type": "image",
+                    "text": "Bread",
+                    "asset": "assets/exercise_images/bread.webp"
+                  }
+                ],
+                "items": [
+                  {
+                    "id": "qql_lab254_picture_blocks_item_0",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "il"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_lab254_picture_blocks_item_1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "pane"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_lab254_picture_blocks_item_2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "la"
+                      }
+                    ]
+                  }
+                ],
+                "evaluation": {
+                  "mode": "exactOrder",
+                  "correctOrders": [
+                    {
+                      "text": "il pane",
+                      "itemIds": [
+                        "qql_lab254_picture_blocks_item_0",
+                        "qql_lab254_picture_blocks_item_1"
                       ]
                     }
                   ]
@@ -8438,7 +8211,7 @@
                   {
                     "role": "question",
                     "type": "text",
-                    "text": "Sort the words: animals or food?"
+                    "text": "Sort the words: animals or plants?"
                   }
                 ],
                 "items": [
@@ -8463,22 +8236,22 @@
                     ]
                   },
                   {
-                    "id": "qql_lab254_assign_groups_mela",
+                    "id": "qql_lab254_assign_groups_rosa",
                     "content": [
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "mela"
+                        "text": "rosa"
                       }
                     ]
                   },
                   {
-                    "id": "qql_lab254_assign_groups_pane",
+                    "id": "qql_lab254_assign_groups_pino",
                     "content": [
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "pane"
+                        "text": "pino"
                       }
                     ]
                   }
@@ -8488,7 +8261,7 @@
                     "id": "qql_lab254_assign_groups_animals"
                   },
                   {
-                    "id": "qql_lab254_assign_groups_food"
+                    "id": "qql_lab254_assign_groups_plants"
                   }
                 ],
                 "layout": [
@@ -8502,11 +8275,11 @@
                   },
                   {
                     "type": "text",
-                    "text": "Food"
+                    "text": "Plants"
                   },
                   {
                     "type": "target",
-                    "targetId": "qql_lab254_assign_groups_food"
+                    "targetId": "qql_lab254_assign_groups_plants"
                   }
                 ],
                 "evaluation": {
@@ -8520,10 +8293,10 @@
                       ]
                     },
                     {
-                      "targetId": "qql_lab254_assign_groups_food",
+                      "targetId": "qql_lab254_assign_groups_plants",
                       "itemIds": [
-                        "qql_lab254_assign_groups_mela",
-                        "qql_lab254_assign_groups_pane"
+                        "qql_lab254_assign_groups_rosa",
+                        "qql_lab254_assign_groups_pino"
                       ]
                     }
                   ]
@@ -8531,7 +8304,7 @@
               }
             },
             {
-              "id": "qql_lab254_assign_groups_leftover",
+              "id": "qql_lab254_assign_groups_three",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
@@ -8549,12 +8322,12 @@
                   {
                     "role": "question",
                     "type": "text",
-                    "text": "Put the animals in their group and leave the other word out."
+                    "text": "Sort the words: animal, plant or object?"
                   }
                 ],
                 "items": [
                   {
-                    "id": "qql_lab254_assign_groups_leftover_gatto",
+                    "id": "qql_lab254_assign_groups_three_gatto",
                     "content": [
                       {
                         "role": "primary",
@@ -8564,7 +8337,7 @@
                     ]
                   },
                   {
-                    "id": "qql_lab254_assign_groups_leftover_cane",
+                    "id": "qql_lab254_assign_groups_three_cane",
                     "content": [
                       {
                         "role": "primary",
@@ -8574,7 +8347,27 @@
                     ]
                   },
                   {
-                    "id": "qql_lab254_assign_groups_leftover_tavolo",
+                    "id": "qql_lab254_assign_groups_three_rosa",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "rosa"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_lab254_assign_groups_three_pino",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "pino"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_lab254_assign_groups_three_tavolo",
                     "content": [
                       {
                         "role": "primary",
@@ -8582,11 +8375,27 @@
                         "text": "tavolo"
                       }
                     ]
+                  },
+                  {
+                    "id": "qql_lab254_assign_groups_three_sedia",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "sedia"
+                      }
+                    ]
                   }
                 ],
                 "targets": [
                   {
-                    "id": "qql_lab254_assign_groups_leftover_animals"
+                    "id": "qql_lab254_assign_groups_three_animals"
+                  },
+                  {
+                    "id": "qql_lab254_assign_groups_three_plants"
+                  },
+                  {
+                    "id": "qql_lab254_assign_groups_three_objects"
                   }
                 ],
                 "layout": [
@@ -8596,17 +8405,47 @@
                   },
                   {
                     "type": "target",
-                    "targetId": "qql_lab254_assign_groups_leftover_animals"
+                    "targetId": "qql_lab254_assign_groups_three_animals"
+                  },
+                  {
+                    "type": "text",
+                    "text": "Plants"
+                  },
+                  {
+                    "type": "target",
+                    "targetId": "qql_lab254_assign_groups_three_plants"
+                  },
+                  {
+                    "type": "text",
+                    "text": "Objects"
+                  },
+                  {
+                    "type": "target",
+                    "targetId": "qql_lab254_assign_groups_three_objects"
                   }
                 ],
                 "evaluation": {
                   "mode": "exactAssignments",
                   "assignments": [
                     {
-                      "targetId": "qql_lab254_assign_groups_leftover_animals",
+                      "targetId": "qql_lab254_assign_groups_three_animals",
                       "itemIds": [
-                        "qql_lab254_assign_groups_leftover_gatto",
-                        "qql_lab254_assign_groups_leftover_cane"
+                        "qql_lab254_assign_groups_three_gatto",
+                        "qql_lab254_assign_groups_three_cane"
+                      ]
+                    },
+                    {
+                      "targetId": "qql_lab254_assign_groups_three_plants",
+                      "itemIds": [
+                        "qql_lab254_assign_groups_three_rosa",
+                        "qql_lab254_assign_groups_three_pino"
+                      ]
+                    },
+                    {
+                      "targetId": "qql_lab254_assign_groups_three_objects",
+                      "itemIds": [
+                        "qql_lab254_assign_groups_three_tavolo",
+                        "qql_lab254_assign_groups_three_sedia"
                       ]
                     }
                   ]
@@ -8836,5 +8675,5 @@
       "voice": "male"
     }
   ],
-  "officialChecksum": "d6bcc7bfe9bb6d94ce6d2b4830fc28d4d36cce0483b521b462360f8dbaec9b58"
+  "officialChecksum": "6535934ba91af4be1b8de828faf028159ab17149b95d5edd9fb48c5840519387"
 }
