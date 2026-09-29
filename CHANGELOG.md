@@ -1,3 +1,31 @@
+# 2.0.56 (Build 256, Revision 8) - Editor Help as questions and answers - 2026-09-29
+
+Editor Help is rewritten as questions and answers (owner decisions of 29
+September 2026). Course files, scoring, progression and learner data are
+unchanged.
+
+- **Questions grouped in seven topics:** Getting started, Saving and
+  versions, Course settings, Lessons and Rounds, Exercises, Pictures and
+  sound, Checking the Course; 66 questions such as "Why can't I choose
+  Edit?", "When are my changes saved?" or "What does Play as a sequence
+  do?". Tapping a question opens its answer.
+- **Search** at the top filters the questions and their answers as you
+  type, ignoring capitals and accents; the Technical reference card stays
+  above it.
+- **Rewritten and checked against today's app:** plain language, short
+  answers, nothing current lost; out-of-date statements fixed (Use
+  GuideBook, Create Duels and Lesson numbering live in Lesson Options on
+  the Course Editor page; Course delivery status is on the Course Editor
+  page; the sequence and the Story, Name what you see, Read and answer and
+  the capitals Warning of the fourth follow-up are described as they now
+  work).
+- **English, Italian and Spanish** complete together, with the on-screen
+  names in English as the interface shows them. Course Studio Help keeps
+  its sections, including the four it shares with the Editor (local
+  edits and backups, Course Info Editor and license, Audit severity and
+  codes, Course Audit).
+- Beta expiry `2026-10-29 23:59:59` local time (same release day).
+
 # 2.0.56 (Build 256, Revision 7) - Laboratory, Assign, final verification - 2026-09-29
 
 Session 8, the last of the exercise architecture redesign (plan Part B item

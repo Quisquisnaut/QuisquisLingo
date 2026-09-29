@@ -7,39 +7,6 @@ const Map<String, String> helpEn = <String, String>{
   'editorHelp.courseOrigin.title': r'''Course origin''',
   'editorHelp.courseOrigin.body':
       r'''Bundled official courses are verified immutable source copies supplied with QuisquisLingo. Publisher Course imports require a valid Ed25519 signature from an approved publisher. Stored external courses that cannot be verified are preserved with Verification required and are excluded from learner delivery. Custom courses are created locally or imported without official provenance. Both official origins open Official course - read only: inspect Course Info, Audit, Preview, Version History and Lessons/Rounds/Exercises without an authoring transaction. Course Info shows publisher, official version, verification status and checksum. Only an explicit derivativeWorksPolicy of allowed enables Fork; forbidden or unspecified permission explains why it is unavailable. A Fork has fresh IDs and independent custom history while preserving its source lineage. Copy as New Course is a separate action that begins a new independent lineage.''',
-  'editorHelp.temporarySampleContent.title': r'''Temporary sample content''',
-  'editorHelp.temporarySampleContent.body':
-      r'''Course Editor starts in View only for a course with no saved access choice. Choose Edit only for the course you intend to change. A course may be marked TEMPORARY SAMPLE while it contains development or demonstration material. View Course Info retains that description; the main Course Editor does not repeat it. Replace sample material with reviewed educational content before distribution.''',
-  'editorHelp.courseEditorLockAndStructure.title':
-      r'''Course Editor lock and structure''',
-  'editorHelp.courseEditorLockAndStructure.body':
-      r'''The single access control is on the Course Editor root. Locked uses a closed lock, keeps that root visible and blocks entry into Lessons. View only uses an eye, is the default and opens the ordinary Exercise form read-only while allowing Search, Help, Show/Hide IDs, Preview and Audit. Inspection mode uses the code icon and opens Exercises in their read-only technical presentation by default; their local Inspection toggle can show the ordinary form, which remains read-only. Edit uses the pencil and enables authoring only when the current user already has effective Course Maintainer or assigned-Team permission; the control never grants authorization. Official courses and outsiders offer Locked, View only and Inspection mode, with the Edit authorization reason shown in the Editor. The first View-only entry notice is dismissed per user and Course; Show one-time notices again resets it without changing the access state. For custom courses, Lessons is the first content section. Each Lesson page puts Rounds first, followed by Round / Exercises. A duplicate Lesson, Round or Exercise is inserted after its source with fresh IDs throughout its owned subtree and starts as Draft. Exercise type cannot be changed after creation. Each Lesson retains its GuideBook and stable Lesson-scoped Duel identity.''',
-  'editorHelp.courseEditorSearch.title': r'''Course Editor Search''',
-  'editorHelp.courseEditorSearch.body':
-      r'''The Search icon appears on Lessons, Lesson, Rounds and Round while the Course Editor is unlocked. Lessons searches the whole Course; Lesson and Rounds search their current Lesson; Round searches only that Round. Search accepts complete words, contiguous multi-word phrases and exact or partial Exercise IDs. Text matching ignores case and diacritics. An optional Exercise Type filter defaults to All exercise types. Results show Lesson, Round, friendly Exercise type, a matching excerpt and, while Internal IDs are shown, the Exercise ID. View only opens a result in the ordinary read-only Exercise form, Inspection mode opens its read-only technical presentation, and Edit opens the ordinary editable form. Locked exposes no Search. Search reads the shared exercise-type field inventory and never modifies a Course.''',
-  'editorHelp.optionalLessonLearningPaths.title':
-      r'''Optional Lesson learning paths''',
-  'editorHelp.optionalLessonLearningPaths.body':
-      r'''Use GuideBook and Create Duels are on the Lessons page and both default ON. Use GuideBook OFF preserves all GuideBook content, Draft state and source references. The learner still sees the Lesson identity and book artwork, but no GuideBook tooltip, click or action semantics; the Round introduction also omits its GuideBook action, including in Preview. Only LESSON_GUIDEBOOK_EMPTY is suppressed; malformed existing content still receives canonical findings. Reenabling updates the current canonical Audit and ancestor borders. Create Duels ON uses the shared pool of 25 actual eligible, deduplicated Exercises. Disabled or insufficient Duels have no learner card or reserved Duel spacing. DUEL_UNAVAILABLE is Info only while Create Duels is ON. Neither switch erases content, existing Duel victories, completion or XP.''',
-  'editorHelp.sectionAssignmentsAndNames.title':
-      r'''Section assignments and names''',
-  'editorHelp.sectionAssignmentsAndNames.body':
-      r'''The Lesson Section selector offers No section, existing names, Add new section... and Manage sections.... New names are trimmed and must not be blank. The reusable course catalog also discovers existing Lesson assignments. Removing an assigned name is blocked with its Lesson usage count; change those assignments first. A name selected in the unsaved Lesson is protected too. New Lessons default to the immediately preceding Lesson's Section, or No section if none applies. Selecting No section explicitly clears this Lesson assignment. Consecutive assignments still determine visual Section blocks; Sections own no IDs, progress or unlocks.''',
-  'editorHelp.courseFlagSources.title': r'''Course flag sources''',
-  'editorHelp.courseFlagSources.body':
-      r'''Create new course and Course Info Editor use the same searchable visual flag chooser. It identifies the current source as a QQL FlagPainter Flag, WORLD Flag or Custom Flag, then offers Upload custom flag, the permanent QQL FlagPainter Flags catalog and the complete WORLD Flags catalog. Search includes names, aliases, stable IDs, language codes and territorial codes. QQL FlagPainter Flags are programmatic graphical reinterpretations associated with languages and never depend on installed Courses. Opening, searching or cancelling changes nothing; only choosing a result, Use Automatic or Upload custom flag changes the current working selection. Use Automatic prefers the associated QQL FlagPainter Flag, then the primary associated WORLD Flag, and otherwise leaves no automatic flag. WORLD Flags store only their stable worldFlagId, QQL FlagPainter Flags store flagCode and custom flags store validated normalized PNG bytes in flagImageBase64.''',
-  'editorHelp.oneCourseEditorTransaction.title':
-      r'''One Course Editor transaction''',
-  'editorHelp.oneCourseEditorTransaction.body':
-      r'''Opening a custom course maintains a working copy beside an immutable snapshot of the persisted course. View only and Inspection mode never change that working copy. In Edit, every Course Info Editor, Lesson, Round, Exercise, GuideBook, generator and reorder operation changes only the working copy. Course delivery status is Published or Not published; publishing the Course preserves independent descendant Draft states. Nested Save stores a normal item in the working copy; Save as draft stores a Draft item there. Neither action changes the learner-visible course, creates a backup or increments the course version. Leaving an Exercise with unsaved form changes offers Keep editing, Discard changes, Save as draft or Save. Discard affects only that form; earlier working-copy changes remain. Switching away from Edit with unapplied course changes uses the same authoritative confirm/cancel protection rather than silently discarding them. Other nested pages retain their established Back behavior. Navigation among nested pages never shows the final course confirmation.''',
-  'editorHelp.provisionalAndExplicitParentDrafts.title':
-      r'''Provisional and explicit parent Drafts''',
-  'editorHelp.provisionalAndExplicitParentDrafts.body':
-      r'''Automatically created Lesson and Round Drafts can be provisional. Their blue Draft badges include the container itself, even when every child has a green Audit border. Saving reviewed Exercises as normal content makes a provisional Round eligible to become Published when its complete required content is ready and normal Save validation passes. A provisional Lesson also needs ready Published Rounds and, while Use GuideBook is ON, a Published nonempty GuideBook with its required content ready. Nonblocking Audit guidance remains visible. This reconciliation follows normal working-copy changes, including GuideBook changes, the Use GuideBook switch, deletion and Move; it never publishes an Exercise or GuideBook for you. Explicit Save as draft clears provisional eligibility, even if the container was already Draft. An explicitly Draft Lesson or Round and older Drafts without this eligibility stay Draft until their own normal Save. Imported authoring trees, copies and licensed forks also remain review Drafts. Course delivery stays an explicit Published or Not published choice, and no working-copy change reaches learners until Confirm course changes succeeds.''',
-  'editorHelp.confirmOrCancelCompleteCourse.title':
-      r'''Confirm or cancel the complete course''',
-  'editorHelp.confirmOrCancelCompleteCourse.body':
-      r'''Leaving the top-level Course Editor compares the complete working copy with the original course. If they are semantically identical, the Editor closes directly. Otherwise exactly one dialog offers Confirm course changes or Cancel course changes and an optional multiline version note. Confirm first creates and verifies a complete backup, then increments the separate internal course version by exactly one and atomically applies the whole working copy. Cancel discards the entire working copy without a backup or version increment. A failed backup or persistence keeps the working copy open and leaves the persisted course unchanged.''',
   'editorHelp.localCourseEditsAndBackups.title':
       r'''Local course edits and backups''',
   'editorHelp.localCourseEditsAndBackups.body':
@@ -65,64 +32,9 @@ const Map<String, String> helpEn = <String, String>{
   'editorHelp.exportCustomCourse.title': r'''Export a custom course''',
   'editorHelp.exportCustomCourse.body':
       r'''Quick Export in Export Course saves the complete Course Model v12 authoring JSON and all referenced Course-owned images and recordings in one ZIP under {folderCourseExports}. App-bundled media stay supplied by QQL. Admin-added Shared Image Library images used by the Course travel as Course media with their library ID, label, category, tags, origin and available per-image attribution. An Admin can enter author, license, title and source in the library’s Edit metadata dialog; importing the ZIP does not add images to the destination Shared Image Library. Original Creator, Maintainer, optional Team, authors, rights, License, fork/merge provenance, Draft/Published state and version metadata remain in the JSON. Fork preserves its source lineage; Copy as New Course starts an independent lineage. Save as… can write the same ZIP through the system dialog where available.''',
-  'editorHelp.importCustomFlag.title': r'''Import a custom flag''',
-  'editorHelp.importCustomFlag.body':
-      r'''Copy a valid PNG or JPEG to {folderCourseFlagImports} as flag.png, flag.jpg or flag.jpeg, open the shared Course flag chooser and press Upload custom flag. If several names exist, QQL uses the first in that order. Maximum input: 2 MB (2,097,152 bytes). Minimum dimensions: 64 × 40 pixels; maximum: 4096 pixels on either side. QQL checks the actual PNG/JPEG signature and decodes the image. Images larger than 256 pixels on their longest side are reduced proportionally; smaller accepted images are not enlarged. The first image frame becomes PNG without cropping or a square canvas. Existing PNG transparency is retained; JPEG does not acquire a transparent background. PNG data are embedded in the Course and survive course JSON export/import and duplication. The transfer source is left in place and is no longer needed. Missing, unreadable, unsupported, oversized, too-small or over-resolution input produces an error; failed PNG conversion also stops import.''',
-  'editorHelp.generateRoundsFromLessonGuidebook.title':
-      r'''Round Wizard (Rounds from the Lesson GuideBook)''',
-  'editorHelp.generateRoundsFromLessonGuidebook.body':
-      r'''Open a Lesson's Rounds page and press Round Wizard in its bottom bar, beside New Story (greyed out while Use GuideBook is off in the Course Editor's Lesson Options). The generator uses only vocabulary pairs and examples in that Lesson GuideBook; at least three usable target/source pairs are required. Choose 1–12 Rounds and 1–15 Exercises per Round (defaults: 6 and 8). Review the count, total, normalized progressive-difficulty curve and planned registry presets before generation. Early drafts emphasize guided recognition with fewer distractors, middle drafts add construction and context, and later drafts add freer production. Generated Rounds remain drafts: edit, preview, delete or regenerate them, then explicitly approve them to append fresh-ID copies after existing Rounds. Generation cannot guarantee pedagogical correctness, so every Round and Exercise requires human review.''',
-  'editorHelp.exerciseCreationWizard.title': r'''Exercise Wizard''',
-  'editorHelp.exerciseCreationWizard.body':
-      r'''In a Round, Exercise Wizard sits beside New Exercise and New Canonical (in a Story, Add Step replaces the three). Choose 1–30 Exercises and select Balanced mix, Random mix, one or more categories, exact exercise types, or an ordered repeating pattern. The reviewed plan creates no Exercise objects. After confirmation, each planned step opens the ordinary preset-specific Exercise editor. Save validates and stays on the step; Preview returns to the same draft without copying or advancing; Next validates and advances one step; Finish returns the created Exercises in plan order. If you cancel after explicitly saving work, confirm whether to keep only those valid saved Exercises. Future and invalid placeholders are never inserted.''',
-  'editorHelp.storiesAndStoryWizard.title': r'''Stories and New Story''',
-  'editorHelp.storiesAndStoryWizard.body':
-      r'''A Story is a Round played in order: a cover, dialogue lines said by the narrator or by a character, and exercises about them. On a Lesson's Rounds page, New Story (it needs no GuideBook; beside Round Wizard) asks for the Story title, its cover picture and whether lines are read aloud automatically or on request (A), shows the narrator (B) and the characters of the Course (C), where you add or edit them, then builds the steps: Add line opens a short form (speaker, line, text and audio or one of them, read-aloud, whether the text waits for the audio); Add exercise offers the presets a Story may use and opens the ordinary exercise form, and Save or Cancel returns to the builder. Finish needs at least one line and creates the Round, called “Story: <title>”, in the Course working copy: the Course confirmation still decides. In a Story's Round editor, Play as a sequence shows the Story title, Step by step or Scrolling, the scroll log (Dialogue only keeps just the lines; Everything keeps the exercises too) and Read-aloud; “Needs the Story’s audio” in an exercise’s menu marks an exercise that only makes sense with the audio, skipped like the listening exercises when Audio Exercises is off. Lines are never skipped: without audio the learner reads them. In a Story, Add Step replaces New Exercise, New Canonical and Exercise Wizard: choose Title block (the cover, one per Story: greyed out once the Story has it, placed first), Dialogue line (the same short form) or Exercise (the presets a Story may use); a Story has one title block and at least one Dialogue line, and the Story options count its steps. The narrator and the characters are Course data, edited under Story characters on the Course Editor page: name, avatar (a bundled figure, none, or your own picture cropped to a square and stored with the Course), language and voice preference (any, male or female, matched against the device voices; a miss never blocks speech). A character that lines still name cannot be removed. Only the exercises score; a Story keeps the XP, completion and Laurel rules of a practice Round, and its exercises stay out of the Duel. A sequence is not a Story: Play as a sequence on a Round made with New Round makes it a plain Round played in the authored order, without a mistake review. Its title is optional (Optional sequence title): lists, the learner's path and the Round screen call it “Sequence: <title>”, or “Sequence: <Round name>” without one. It keeps New Exercise, New Canonical and Exercise Wizard, starts Step by step, gets the Audit's Round rules (no title or Dialogue line is asked for) and its exercises join the Duel.''',
-  'editorHelp.duplicateCopyMoveExercises.title':
-      r'''Duplicate, Copy and Move exercises''',
-  'editorHelp.duplicateCopyMoveExercises.body':
-      r'''Duplicate inserts an independent fresh-ID copy immediately after the source. Move Exercise to… and Copy Exercise to… choose an explicit Course > Lesson > Round destination within the current course working copy. Move Round to… and Copy Round to… choose a Lesson there. Move preserves stable identity, content and Draft/Published state and removes the source from its previous parent. Copy allocates fresh IDs throughout the owned subtree and remaps internal references. Following the existing duplication policy, copies and their owned descendants start as Draft. Image and recording references (course media named by content) are copied unchanged, and the files stay in the Course’s media folder. These actions affect only the working copy until Confirm course changes.''',
-  'editorHelp.exercisePreviewAndNavigation.title':
-      r'''Exercise Preview and navigation''',
-  'editorHelp.exercisePreviewAndNavigation.body':
-      r'''Preview beside Inspection and Save uses the complete current unsaved Exercise form, including a new or Draft Exercise. It uses learner rendering without saving content, changing Draft/Published state, creating versions/backups or writing learner progress, XP, Weekly XP, streak, Laurel, Review or Duel state. Inspection is a local presentation toggle only: it shows or hides the technical representation without changing Course Editor access, saving, discarding or creating dirty state. Turning it off returns to the normal form; that form is editable only while the root state remains Edit and the user has actual permission. Existing unsaved Edit values remain intact through the presentation round trip. Insufficient runtime data produces a validation message without losing edits. Returning restores the same field values. Previous and Next follow the current Round order and stop at its boundaries. Back, sibling navigation and safe breadcrumb navigation protect unsaved Exercise changes with Keep editing, Discard changes, Save as draft or Save. Saving here affects only the course working copy. Breadcrumbs show readable Course, Lesson, Round and Exercise context.''',
-  'editorHelp.fieldHelpAndUntitledRounds.title':
-      r'''Field Help and untitled Rounds''',
-  'editorHelp.fieldHelpAndUntitledRounds.body':
-      r'''Use the Help control beside an Exercise field for its purpose, entry count, line rules, format, validation and examples. Context mode, each correct-translation entry and Exercise image have their own Help. Broad Exercise Help remains available beside the preset. Typed answers support the existing answer-expression syntax; Arrange answers and listening gap lists are literal. An empty Round title is intentionally supported in Create and Edit Round. Follow the untitled guidance to keep it blank; its displayed Round N label follows its position without creating a stored title.''',
-  'editorHelp.audioLibrary.title': r'''Audio Library''',
-  'editorHelp.audioLibrary.body':
-      r'''Choose On-Device TTS, Recorded MP3 or Hybrid. On-Device TTS uses this device voice without recordings; Check unused MP3 files, Import MP3 and Open MP3 from... appear only in Recorded MP3 or Hybrid. There are two ways to add recordings, and both apply the same checks and store the file in the same place: copy MP3 files to {folderAudioImports} and press Import MP3 in Audio Library, or use Open from… to pick one or more MP3s (up to 100 files and 250 MB at a time) in the system file dialog; a summary then lists each file's result. Cancelling a dialog changes nothing, and a dialog that cannot open explains the fixed-folder route instead. Every .mp3 file there is copied into the Course’s own media folder, derived from the stable Course ID, and named by its content (media:<fingerprint>.mp3), so identical recordings are stored once, with a maximum of 50 MB (52,428,800 bytes) per file. The metadata and references belong to the Course. No MP3 files or an oversized file produces an error. Every file must be a real MP3: MPEG audio Layer III frames from start to end, optionally with ID3 or APE tags up to 2 MB in total. A file that is something else renamed to .mp3, is damaged or cut short, or carries embedded cover artwork is refused (remove the cover image and try again). From the folder, one refused file means nothing is imported. A recording the Course already has is skipped. The same check applies to the recordings inside a Course ZIP when it is imported. Import does not re-encode recordings or enforce a duration, bitrate or sample-rate rule; preview each recording to check playback. Source files remain in place, so move them out after successful import to avoid importing them again. Associate each recording with the exact word or expression it contains. Recorded playback uses longest-match segmentation and concatenates compatible clips. Hybrid falls back to TTS when a complete recorded sequence cannot be assembled. Course JSON stores clip metadata and these content references, not MP3 bytes; JSON alone does not transfer the recordings to another device. Verified course-version backups copy referenced recordings. Export my data is a separate learner backup and does not include course media; a distributable Audio Pack exporter is not currently available.''',
-  'editorHelp.imageBank.title': r'''Image Bank''',
-  'editorHelp.imageBank.body':
-      r'''Images and Image Bank ZIPs can be added two ways, and both apply the same checks and store the file in the same place: through {folderImageImports}, or with Open image files from… (up to 100 images at once) and Open Image Bank ZIP from… in the system file dialog. Every image is checked by its content, not its name: it must really be a still PNG, JPEG or WebP of at most 4096 × 4096 pixels, undamaged and without oversized embedded metadata, and QQL stores it under a name it chooses. In the Course Editor’s Image Library, anyone editing the Course can also add images, several at once, or a whole Image Bank to that Course’s own library with Add images to this Course: they stay unused until an exercise uses them, travel in the Course ZIP, and never enter the Shared Image Library. For the fixed folder, keep exactly one supported image for a single-image import, or exactly one ZIP for Import Image Bank ZIP. Cancelling a dialog changes nothing, and a dialog that cannot open explains the fixed-folder route instead. A manifest is a small UTF-8 JSON text file that tells QQL which pictures are in the bank and how to label them. Write it in a plain-text editor, save it as image_bank_manifest.json (not .txt), and add it to the ZIP with every image it names. For a minimal example, write [{"id":"apple","primary_term":"apple","keywords":["apple"],"filename":"apple.png"}] and put apple.png in the ZIP too. A bank needs image_bank_manifest.json containing a JSON list, or an object whose images field is that list and whose optional attribution field credits every image that has no credit of its own. Every entry needs a unique id (1–128 letters, digits, dots, hyphens or underscores), primary_term or label (up to 200 characters), and a safe filename referring to a PNG, JPG/JPEG or WebP in the archive; at most 32 keywords of up to 80 characters each. The ZIP may hold only the manifest and the images it lists: a credits or readme file stops the import, because credits belong in the attribution field. Links, encrypted entries, archives inside the archive and unsafe paths are refused. When a bank brings categories this device does not have yet (at most 16), an Admin chooses Add them, Put these images under Other, or Cancel; nothing is stored before that choice. A picture that is already in Shared Images, byte for byte, is skipped without asking, whatever its name. When a bank image has the same id as a different picture already there, the Admin chooses Skip, Replace (never for QQL’s own images) or Keep both (the new one gets a new id), and can apply the answer to all the rest. Limits: 50 MB ZIP, 2 MB manifest, 5000 archive entries, 2500 image entries, 50 KB per image and 50 MB total decompressed image bytes. Missing assets, duplicate/colliding IDs, duplicate filenames, unsafe paths, unsupported extensions and exceeded limits stop import. Image bytes are copied unchanged to local app storage with a local manifest; they are not resized or made transparent. Source ZIPs remain in place. Preview images before selection. In the full-size preview, hover over the picture on a computer or long-press it on a phone to see its file name, approximate size, dimensions, format, added date, Image Bank name and attribution. A missing file says File missing; a merged Course copy is identified there too. Tiles do not show this tooltip. Choosing a library or bank image for an Exercise copies it into the Course’s own media, so later library changes do not affect the Course; Course JSON names it by content and does not embed the image bytes.''',
-  'editorHelp.lessonThemeIconsAndPreview.title':
-      r'''Lesson theme icons and Preview''',
-  'editorHelp.lessonThemeIconsAndPreview.body':
-      r'''Each Lesson can select a Preinstalled icon, a Custom Course icon, or Numbers. The Preinstalled icons show only the current choice until you tap them. For Import custom icon, keep exactly one PNG, JPG/JPEG or WebP in {folderLessonIconImports}. Maximum input: 2 MB (2,097,152 bytes); each dimension must be 1–4096 pixels. QQL decodes the first frame and scales it up or down proportionally, centered on a transparent 256 × 256 PNG canvas without cropping or distortion. Existing transparency is preserved; an opaque source background is not removed. Missing/multiple files, empty or unsupported images, exceeded size/dimensions and failed PNG conversion stop import. The source remains in place. The managed Course-owned asset stores embedded PNG data; its reference survives course JSON export/import and Course duplication, with no external source path required. Lesson duplication within the Course reuses the immutable asset. When a Lesson has no explicit icon, QQL uses the single theme-colored Lesson-number circle in Editor and learner views. Legacy fallback-style values still load but no longer alter this rendering. Explicitly selected icons remain unchanged. Every option uses the established 84 × 84 learner footprint. Preview writes no learner progress.''',
-  'editorHelp.exerciseImageSpecifications.title':
-      r'''Exercise image specifications''',
-  'editorHelp.exerciseImageSpecifications.body':
-      r'''For Import custom image, keep exactly one PNG, JPG/JPEG or WebP in {folderImageImports}. Maximum: 50 KB (51,200 bytes). A 256 × 256 resolution and 15 KB or less are recommendations; this importer imposes no pixel-dimension rule and performs no resizing, cropping or transparency conversion. It checks the filename extension, file count and byte size, then copies the bytes unchanged to local app storage. The source stays in place. Missing/multiple sources or an oversized image stops import; Preview reports missing or unreadable images. The Exercise then uses a copy in the Course’s own media, named by content; Course JSON stores that reference, not the file bytes, so importing the JSON alone elsewhere does not transfer custom exercise images. Built-in asset paths refer to images supplied with QQL. An Exercise image is optional except for Image-prompt ordering.''',
-  'editorHelp.newExerciseTypes.title': r'''New exercise types''',
-  'editorHelp.newExerciseTypes.body':
-      r'''Missing Word plays audio while showing its transcript with one or more words removed. Image Word shows an image and asks the learner to build the corresponding target-language word from letter or syllable blocks. Dialogue Response contains a target-language context sentence, a target-language question and exactly two target-language response options; their display order is randomized. Word Match uses exactly three source-to-target translation pairs. Super Match uses exactly three target-language pairs and an explicit relationship such as synonyms or opposites. Audio Match uses three target-language audio items with exactly three matching texts and no distractors; the matching text may be in the target language or a translation. Listening Spelling / Type what you hear plays target-language audio and requires keyboard input; its prompt is displayed as entered and Return/Enter submits. Sentence Word Order exercises may use 0, 1 or at most 2 distractors. Image Word letter/syllable composition never uses distractors: include only the blocks required for the answer. Gap Choice shows a target-language sentence with one missing element and asks the learner to choose the single block that is correct in both meaning and grammar.''',
-  'editorHelp.languageDuel.title': r'''Language Duel''',
-  'editorHelp.languageDuel.body':
-      r'''Each Lesson owns its Duel. The Duel attached to the final Lesson is presented as Final Duel, with the tooltip Final challenge for the last Lesson. It retains the same mechanics and never claims to unlock another Lesson. A standard Duel selects 25 unique eligible exercises from that Lesson and starts with 4 lives. Each incorrect answer costs one life. There is no score or pass threshold: completing all 25 questions before all four lives are lost wins. Availability is determined from the actual eligible exercise pool, not from the number of Rounds or the total theoretical exercise count. If fewer than 25 eligible exercises exist, the Duel is simply unavailable for that Lesson; this is normal supported behavior, not a course error.''',
   'editorHelp.courseCreationRules.title': r'''Course creation rules''',
   'editorHelp.courseCreationRules.body':
       r'''A Lesson should normally contain at least 6 Rounds, which in typical content may mean roughly 48 exercises. This is author guidance only: it is not a validity requirement and never determines Duel availability. The standard Round contains 15 exercises. Avoid accidental duplicate content inside one Round. Isolated words should normally be lowercase unless the language requires capitalization, as with German nouns or proper names. Opposite exercises belong in later Rounds, after the learner has already met the vocabulary. Sentence Word Order may use 0, 1 or at most 2 distractors; use fewer distractors early in a Lesson and more later. Distractors should be plausible but unambiguously wrong. Learner-facing operational instructions must use the course source language. Early Rounds should introduce and consolidate material; later Rounds can demand harder discrimination and combinations.''',
-  'editorHelp.listeningSpelling.title': r'''Listening Spelling''',
-  'editorHelp.listeningSpelling.body':
-      r'''Type what you hear uses Audio text for playback and the Missing word field for accepted typed answers, one complete word or passage per line. Passage transcript is displayed as entered; this preset does not automatically remove the accepted word from it. Preview the visible prompt so it does not reveal the answer. For automatically hidden words in a complete transcript, the existing Listen for missing words preset supplies that workflow.''',
-  'editorHelp.lessonGuidebook.title': r'''Lesson Guidebook''',
-  'editorHelp.lessonGuidebook.body':
-      r'''Each Lesson has its own Guidebook, available to learners when published and Use GuideBook is ON. Its primary authoring fields are Overview, Usage examples, Vocabulary and Grammar, in that order. Insights opens a second authoring page for ordered Title and Text sections; changes remain in the current GuideBook working copy until Save Guidebook or Save Guidebook as draft, and removing a section requires confirmation. Save Guidebook as draft keeps it out of learner delivery and shows one blue Draft badge on the Guidebook and its visible ancestors. The badge is independent from Audit: an empty Guidebook has a red border while Use GuideBook is ON; any other canonical Guidebook Error or Warning stays red regardless of that preference. A clean Draft Guidebook remains green with its blue badge. The editor can use its vocabulary and examples to propose new exercises.''',
-  'editorHelp.courseMetadataAndAuthors.title':
-      r'''Course metadata and authors''',
-  'editorHelp.courseMetadataAndAuthors.body':
-      r'''Course Info is available in Locked, View only and Inspection mode. Course Info Editor is available only in Edit for users with existing edit permission. It can change the visible Course name without changing the Course ID. Base and Learning language remain read-only and show their authoritative general or regional codes. Original Course Created is immutable lineage provenance; Last Version Editor and Modified describe the current Course version and instance. Opening the editor changes none of them. Automatic Course flag removes every explicit override and uses the language fallback; choosing a built-in, World Flag, uploaded flag or authorized reusable installed-course flag stores only its portable value. Structured Authors / Contributors and Rights Holder metadata are descriptive and never authorize access. Original Course Creator and Course Maintainer use separate stable internal identities. Course Info separately resolves the Assigned Team, Team Leaders and Team Members from Team Manager. Internal IDs additionally reveals their stable IDs and the read-only Course Model version. Fork provenance separately identifies who created a particular fork, when, and its immediate source Course. Official Courses retain publisher identity, official version, release notes, channel, checksum and verification. Lesson numbering is set on the Lessons page in Edit. Its selected term is shared by Editor labels, breadcrumbs and learner presentation; stored Lesson titles and IDs remain unchanged. Lessons without an explicit icon use the single theme-colored number circle. These presentation choices never change lessonId, progression or unlocks. Cover image replaces the flag in Courses, the Course Selector, Course Info and the Course Editor header; the Course flag still appears in the top bar, the Flag Background and the Course entry animation. Create new course can set it too. Choose image takes a picture from the image library, Quick Import reads the one picture in {folderImageImports}, and Open from… uses the system dialog. Any PNG, JPEG or WebP up to 10 MB opens in Crop the cover: drag the square to choose what the cover shows, make it smaller with its corner or Size to zoom in, or Reset it to the centred square. The square is scaled to 512 × 512 pixels; a ready 512 × 512 picture of at most 1 MB, used whole, is kept as it is. The cover belongs to the Course's own media, travels in its ZIP and stays only when the Course changes are confirmed. Remove cover shows the flag again. A picture someone else made needs a credit under Media credits: its author and licence, and where it came from when you know it. When the image library knows who made the picture (a QQL image, or one whose credit is recorded), QQL adds that credit for you, applying to the Course cover. The Audit warns when a Course with a cover or other media of its own has no media credits.''',
   'editorHelp.auditSeverityAndCodes.title': r'''Audit severity and codes''',
   'editorHelp.auditSeverityAndCodes.body':
       r'''Course Audit reports Errors, Warnings and Info. Error blocks publication or import because content is structurally or functionally invalid. Warning marks a likely authoring problem that needs review. Info is guidance or a neutral fact and never blocks publication by itself. Audit can sort by Lesson, friendly Exercise type or Recently modified and can be opened for a whole Course, one Lesson or one Round. Recent order uses updatedAt descending with deterministic ties; findings are numbered progressively inside each severity group after filtering. A red border marks an Audit Error or Warning and propagates through its represented branch. A luminous green border means the current branch has no Error or Warning; Info guidance may remain. One blue Draft indicator independently includes a Lesson or Round's own Draft state and follows Draft Guidebooks and Content through their visible ancestors. A green Audit border does not mean the item is Published. An explicitly Draft Lesson or Round keeps Published children hidden until that container is saved. A Guidebook concern affects its Lesson and Lessons hierarchy, but not the separate Rounds branch. Fewer than 3 Rounds is Info; fewer than 25 eligible Duel Exercises is Info only when Create Duels is ON. Missing Reading- or Listening-comprehension coverage produces no finding; malformed existing comprehension content still receives validation. Drafts are included for author review without making unrelated Published learner content invalid. Course Editor Help > Technical reference > Audit Codes displays the shared rule registry in Errors, Warnings, Info order. All three independently selectable categories start enabled, and text search applies within the selected categories.''',
@@ -132,6 +44,237 @@ const Map<String, String> helpEn = <String, String>{
   'editorHelp.createNewCourse.title': r'''Create a new course''',
   'editorHelp.createNewCourse.body':
       r'''Course Studio creates an independent Course Model v12 project and opens it in Course Editor. New Course restores the same License / Rights, Authors / Contributors, language variant, levels, description and support metadata used by Course Info Editor. The active profile becomes the immutable Original Course Creator and defaults as Course Maintainer; another local individual may instead be selected as Maintainer. Assigned Team remains separate and is not selected during creation. Number of Lessons defaults to 3 (whole numbers 1–100), and Rounds per Lesson defaults to 1 (whole numbers 1–20). Invalid or missing values show inline errors and disable Create. The complete initial hierarchy is created atomically with fresh stable IDs and untitled Rounds, each with exactly one Draft Pick the translation (to target) sample Exercise. Review and explicitly save teaching content before publication. The new Not published Course remains only a working copy until Confirm course changes creates version 1; cancelling creates no stored Course. Imported v11 authoring content must state its provenance, Maintainer, Draft/Published state and required UTC timestamps explicitly; earlier Course Models are neither inferred nor migrated.''',
+  'editorHelp.qa.gettingStarted.title': r'''Getting started''',
+  'editorHelp.qa.accessModes.q':
+      r'''What do Locked, View only, Inspection mode and Edit do?''',
+  'editorHelp.qa.accessModes.a':
+      r'''The access control on the Course Editor page decides what you can do. Locked keeps the Lessons closed. View only, the default, opens every form read-only; Search, Help, the internal IDs, Preview and Audit still work. Inspection mode opens exercises in their technical presentation, also read-only. Edit lets you change the Course, if you have the right to edit it.''',
+  'editorHelp.qa.whyNoEdit.q': r'''Why can't I choose Edit?''',
+  'editorHelp.qa.whyNoEdit.a':
+      r'''Edit needs editing rights: you must be the Course Maintainer or a member of the Team assigned to the Course. Official Courses, bundled with QQL or from a Publisher, are always read-only: to change one, Fork it in Course Studio when its license allows derivative works. The Editor shows why Edit is unavailable. Credits, licenses and Rights Holders never grant editing rights.''',
+  'editorHelp.qa.viewOnlyNotice.q':
+      r'''Why does a notice appear the first time I open a Course in View only?''',
+  'editorHelp.qa.viewOnlyNotice.a':
+      r'''It explains that View only changes nothing. It appears once per user and Course; Show one-time notices again, in Settings, brings it back without changing the access mode.''',
+  'editorHelp.qa.temporarySample.q': r'''What is a TEMPORARY SAMPLE Course?''',
+  'editorHelp.qa.temporarySample.a':
+      r'''A Course with development or demonstration material. The mark is shown in Course Info. Replace the sample material with reviewed educational content before you share the Course.''',
+  'editorHelp.qa.structure.q': r'''How is a Course organized?''',
+  'editorHelp.qa.structure.a':
+      r'''A Course contains Lessons. Each Lesson has a GuideBook, Rounds and a Duel; each Round holds exercises. In the Course Editor open Lessons, then a Lesson, its Rounds and a Round. The breadcrumbs at the top of each page show where you are and take you back.''',
+  'editorHelp.qa.search.q': r'''How do I find an exercise?''',
+  'editorHelp.qa.search.a':
+      r'''Use the Search icon on the Lessons, Lesson, Rounds or Round page. From Lessons it searches the whole Course, from a Lesson or its Rounds that Lesson, from a Round only that Round. It finds whole words, phrases and exercise IDs, ignoring capitals and accents, and can filter by exercise type. A result opens in the form that suits the access mode; Search never changes the Course.''',
+  'editorHelp.qa.internalIds.q': r'''How do I see the internal IDs?''',
+  'editorHelp.qa.internalIds.a':
+      r'''Tap the badge icon in the Editor's app bar. It shows or hides the stable IDs of the Course, Lessons, Rounds and exercises on the Editor pages and in Search results, and changes nothing in the Course.''',
+  'editorHelp.qa.findHelp.q': r'''Where do I find Help while editing?''',
+  'editorHelp.qa.findHelp.a':
+      r'''The Help icon in the app bar opens this page. Each exercise field has its own Help button, and Exercise Help beside the preset explains the whole exercise type. The Technical reference at the top of this page leads to the exercise types, the Audit codes and the Course Model.''',
+  'editorHelp.qa.savingAndVersions.title': r'''Saving and versions''',
+  'editorHelp.qa.workingCopy.q': r'''When are my changes saved?''',
+  'editorHelp.qa.workingCopy.a':
+      r'''While you edit, every change goes into a working copy of the Course. Save and Save as draft on a Lesson, Round or exercise store it in that working copy only. Nothing reaches learners, and no version or backup is made, until you leave the Course Editor and choose Confirm course changes.''',
+  'editorHelp.qa.saveOrDraft.q':
+      r'''What is the difference between Save and Save as draft?''',
+  'editorHelp.qa.saveOrDraft.a':
+      r'''Save stores an item as normal content; Save as draft stores it as a Draft, which learners never see. A blue badge marks a Draft on the item and on its parents. A Draft Lesson or Round hides everything in it, even Published content.''',
+  'editorHelp.qa.provisionalDraft.q':
+      r'''Why is a new Lesson or Round a Draft although I never chose it?''',
+  'editorHelp.qa.provisionalDraft.a':
+      r'''A new Lesson or Round starts as a provisional Draft and becomes Published by itself once its content is complete and saved: for a Round, its exercises saved as normal content; for a Lesson, its Rounds and, while Use GuideBook is on, its GuideBook. Save as draft on the Lesson or Round keeps it Draft until you Save it. Copies, forks and imported Courses stay Draft for your review.''',
+  'editorHelp.qa.leaveEditor.q':
+      r'''What happens when I leave the Course Editor?''',
+  'editorHelp.qa.leaveEditor.a':
+      r'''If the working copy differs from the stored Course, one dialog offers Confirm course changes or Cancel course changes, with an optional note for the version. Confirm first makes and checks a complete backup, then stores the whole Course and raises its version by one. Cancel discards the whole working copy. If the backup or the save fails, the working copy stays open and the stored Course is unchanged.''',
+  'editorHelp.qa.leaveExercise.q':
+      r'''What happens if I leave an exercise without saving?''',
+  'editorHelp.qa.leaveExercise.a':
+      r'''You choose Keep editing, Discard changes, Save as draft or Save. Discard drops only that form's changes; the rest of the working copy stays as it is.''',
+  'editorHelp.qa.publishCourse.q':
+      r'''How do I make a Course available to learners?''',
+  'editorHelp.qa.publishCourse.a':
+      r'''Set Course delivery status to Published on the Course Editor page (Not published keeps it for authoring), then confirm the Course changes. Drafts inside a Published Course stay hidden from learners.''',
+  'editorHelp.qa.backups.q': r'''Where are the earlier versions kept?''',
+  'editorHelp.qa.backups.a':
+      r'''Every confirmed change first archives the previous version in {folderBackups}/Courses, one folder per Course. Backups are never deleted automatically. On Android 7–10 QQL asks once for permission to use that folder; on Android, Version History lists only the backups this installation made.''',
+  'editorHelp.qa.restore.q': r'''How do I go back to an earlier version?''',
+  'editorHelp.qa.restore.a':
+      r'''Open Version History in the Course Editor. It lists the current version and the backups, newest first, with Open backup folder and Export JSON. Restore into working copy loads a backup of a custom Course into the working copy; it replaces the stored Course only when you confirm the Course changes. Official Courses keep their publisher versions only.''',
+  'editorHelp.qa.courseSettings.title': r'''Course settings''',
+  'editorHelp.qa.courseInfo.q':
+      r'''Where do I change the Course name and description?''',
+  'editorHelp.qa.courseInfo.a':
+      r'''In Course Info Editor, available in Edit on the Course Editor page. The name can change; the Course ID never does. The source and learning languages are shown with their codes and cannot be changed there. Nothing is kept until you save the dialog and confirm the Course changes.''',
+  'editorHelp.qa.license.q': r'''Which license can I choose?''',
+  'editorHelp.qa.license.a':
+      r'''All rights reserved, CC0 1.0, CC BY 4.0, CC BY-SA 4.0, CC BY-NC 4.0, CC BY-NC-SA 4.0, or Other / Custom license, which also states whether others may make derivative works. The license covers your Course content, not the QuisquisLingo software (MPL-2.0), and it never grants editing rights in QQL.''',
+  'editorHelp.qa.authors.q': r'''How do I credit authors and rights holders?''',
+  'editorHelp.qa.authors.a':
+      r'''Course Info Editor keeps the Authors / Contributors with their roles, one or more Rights Holders and an optional Buy a Coffee link (HTTPS). They describe the Course and never give anyone editing rights. The Original Course Creator, the Course Maintainer, a Fork's creator and the Last Version Editor are recorded separately.''',
+  'editorHelp.qa.mediaCredits.q':
+      r'''How do I credit pictures and recordings made by others?''',
+  'editorHelp.qa.mediaCredits.a':
+      r'''Add them under Media credits: the author, the license and, when you know it, where the work came from. When the image library knows who made a picture (a QQL image, or one with a recorded credit), QQL adds the credit for you. The Audit warns when a Course with media of its own has no media credits.''',
+  'editorHelp.qa.cover.q': r'''How do I give the Course a cover picture?''',
+  'editorHelp.qa.cover.a':
+      r'''Use Cover image in Course Info Editor or in Create new course. Choose image takes a picture from the image library, Quick Import reads the one picture in {folderImageImports}, and Open from… uses the system dialog. In Crop the cover choose the square the cover shows; it is stored at 512 × 512 pixels. The cover replaces the flag in lists, Course Info and the Editor header; the flag stays in the top bar and the Flag Background. Remove cover shows the flag again.''',
+  'editorHelp.qa.flag.q': r'''How do I choose the Course flag?''',
+  'editorHelp.qa.flag.a':
+      r'''Create new course and Course Info Editor share a searchable flag chooser with QQL FlagPainter flags, WORLD Flags and Upload custom flag. Search by name, alias, ID, language code or territory code. Use Automatic picks the flag of the Course language. Opening or searching changes nothing until you choose.''',
+  'editorHelp.qa.customFlag.q': r'''How do I use my own flag?''',
+  'editorHelp.qa.customFlag.a':
+      r'''Copy one PNG or JPEG named flag.png, flag.jpg or flag.jpeg to {folderCourseFlagImports} and press Upload custom flag in the flag chooser. It may be up to 2 MB and between 64 × 40 and 4096 pixels. QQL reduces it to 256 pixels on its longest side, keeps PNG transparency and stores it inside the Course.''',
+  'editorHelp.qa.lessonOptions.q':
+      r'''Where are Use GuideBook, Create Duels and Lesson numbering?''',
+  'editorHelp.qa.lessonOptions.a':
+      r'''In Lesson Options, under the Lessons tile of the Course Editor page. With Use GuideBook off, learners see no GuideBooks, whose content is kept; with Create Duels off, no Duels. Lesson numbering chooses the word used for Lessons in the Editor and for learners. None of them deletes content, victories, completion or XP.''',
+  'editorHelp.qa.sections.q': r'''How do I group Lessons into Sections?''',
+  'editorHelp.qa.sections.a':
+      r'''In a Lesson, the Section selector offers No section, the existing names, Add new section… and Manage sections…. Consecutive Lessons with the same Section form one block on the learner's path. A new Lesson takes the Section of the Lesson before it. A name still used by a Lesson cannot be removed. Sections have no progress or unlocks of their own.''',
+  'editorHelp.qa.lessonIcon.q': r'''How do I choose a Lesson icon?''',
+  'editorHelp.qa.lessonIcon.a':
+      r'''In the Lesson editor choose a Preinstalled icon, a Custom Course icon, or Numbers. For Import custom icon, keep exactly one PNG, JPG/JPEG or WebP of up to 2 MB and 4096 pixels in {folderLessonIconImports}; QQL centres it on a transparent 256 × 256 square and stores it in the Course. Without an icon, a Lesson shows its number in a theme-colored circle.''',
+  'editorHelp.qa.whoMayEdit.q': r'''Who may edit a Course?''',
+  'editorHelp.qa.whoMayEdit.a':
+      r'''Its Course Maintainer and every member of the Team assigned to it. Only the Maintainer can hand over maintenance or assign or remove the Team, and a Team always keeps at least one Team Leader. Other people can Fork the Course in Course Studio only when its license allows derivative works.''',
+  'editorHelp.qa.lessonsAndRounds.title': r'''Lessons and Rounds''',
+  'editorHelp.qa.newRound.q': r'''How do I add a Round?''',
+  'editorHelp.qa.newRound.a':
+      r'''On a Lesson's Rounds page press New Round. A new Round is a provisional Draft with one sample exercise (Pick the translation) to replace. The title may stay empty: the Round is then called Round N after its position.''',
+  'editorHelp.qa.roundWizard.q':
+      r'''How does the Round Wizard create Rounds?''',
+  'editorHelp.qa.roundWizard.a':
+      r'''Press Round Wizard on the Rounds page; it needs Use GuideBook on. It builds Rounds from the vocabulary pairs and examples of the Lesson GuideBook (at least three pairs). Choose 1–12 Rounds and 1–15 exercises per Round (6 and 8 by default) and review the plan: early Rounds recognize, later ones build and produce. It creates preset exercises only, each opening in its preset's form, and its Rounds stay Draft until you review and approve them.''',
+  'editorHelp.qa.sequence.q': r'''What does Play as a sequence do?''',
+  'editorHelp.qa.sequence.a':
+      r'''In a Round made with New Round, it plays the exercises in the order you set, without shuffling and without the final review of mistakes. The Optional sequence title names it: lists, the learner's path and the Round screen call it “Sequence: <title>”, or “Sequence: <Round name>” without one. It keeps New Exercise, New Canonical and Exercise Wizard, gets the Audit's Round rules and its exercises count toward the Duel. Choose Step by step or Scrolling.''',
+  'editorHelp.qa.story.q': r'''What is a Story?''',
+  'editorHelp.qa.story.a':
+      r'''A Round played in order: a title block (the cover), dialogue lines said by the narrator or by characters, and exercises about them. Lists call it “Story: <title>”. Only the exercises score; it follows the XP, completion and Laurel rules of a practice Round, and its exercises stay out of the Duel.''',
+  'editorHelp.qa.newStory.q': r'''How do I build a Story?''',
+  'editorHelp.qa.newStory.a':
+      r'''Press New Story on the Rounds page (it needs no GuideBook). Give the title, the cover picture and whether lines are read aloud automatically or on request; check the narrator and the Course characters, which you can add or edit; then build the steps with Add line and Add exercise. Finish needs at least one line and adds the Story to the working copy.''',
+  'editorHelp.qa.editStory.q': r'''How do I change a Story afterwards?''',
+  'editorHelp.qa.editStory.a':
+      r'''Open its Round. Add Step offers Title block (one per Story), Dialogue line and Exercise. The Story options set the title, Step by step or Scrolling, what the scrolling log keeps (Dialogue only or Everything) and the read-aloud. “Needs the Story's audio” in an exercise's menu marks one that is skipped with Audio Exercises off; lines are never skipped.''',
+  'editorHelp.qa.characters.q':
+      r'''Where are the narrator and the characters?''',
+  'editorHelp.qa.characters.a':
+      r'''Under Story characters on the Course Editor page: a name, an avatar (a bundled figure, none, or your own picture cropped to a square), a language and a voice preference (any, male or female, matched with the device voices). A character that lines still name cannot be removed.''',
+  'editorHelp.qa.guidebook.q': r'''What goes into a Lesson GuideBook?''',
+  'editorHelp.qa.guidebook.a':
+      r'''Overview, Usage examples, Vocabulary and Grammar, and Insights with titled sections. Learners see it once it is saved as normal content and Use GuideBook is on; Save Guidebook as draft keeps it hidden. Its vocabulary and examples feed the Round Wizard and the learner's Review.''',
+  'editorHelp.qa.duel.q': r'''When is a Lesson's Duel available?''',
+  'editorHelp.qa.duel.a':
+      r'''A Duel draws 25 different eligible exercises from the Lesson (single-answer choices from its Rounds, Stories excluded) and gives four lives; answering all 25 before losing them wins. With fewer than 25 eligible exercises the Duel is simply unavailable: that is normal, not an error. The last Lesson's Duel is shown as Final Duel.''',
+  'editorHelp.qa.copyMove.q':
+      r'''How do I duplicate, copy or move Lessons, Rounds and exercises?''',
+  'editorHelp.qa.copyMove.a':
+      r'''Duplicate puts an independent copy with new IDs right after the original. Copy to… and Move to… choose a Lesson or Round of this Course. Moving keeps IDs and state; a copy gets new IDs and starts as Draft. All of it happens in the working copy until you confirm the Course changes.''',
+  'editorHelp.qa.preview.q':
+      r'''How do I try a Lesson or Round as a learner?''',
+  'editorHelp.qa.preview.a':
+      r'''Preview in the Lesson and Round editors plays the working copy as learners see it, Drafts included. Preview saves nothing and never writes progress, XP, streaks, Laurels, Review or Duel results.''',
+  'editorHelp.qa.exercises.title': r'''Exercises''',
+  'editorHelp.qa.newExercise.q': r'''How do I add an exercise?''',
+  'editorHelp.qa.newExercise.a':
+      r'''In a Round, New Exercise opens the preset picker: choose an exercise type, such as Pick the translation or Name what you see, and fill its form. New Canonical opens the canonical editor for any primitive. The preset's name is shown in bold at the top of the form.''',
+  'editorHelp.qa.presetOrCanonical.q':
+      r'''What is the difference between a preset and the canonical editor?''',
+  'editorHelp.qa.presetOrCanonical.a':
+      r'''A preset is a simple form for one kind of exercise; it writes ordinary exercise data. The canonical editor shows every field of the exercise's primitive (select, input, arrange, match, assign and so on) with its allowed values. An exercise no preset can represent exactly opens in the canonical editor, so nothing is lost.''',
+  'editorHelp.qa.changeType.q': r'''Can I change an exercise's type?''',
+  'editorHelp.qa.changeType.a':
+      r'''No, the type is fixed once the exercise exists. Create an exercise of the other type and delete the old one.''',
+  'editorHelp.qa.exerciseWizard.q': r'''How does the Exercise Wizard work?''',
+  'editorHelp.qa.exerciseWizard.a':
+      r'''In a Round, Exercise Wizard plans 1–30 exercises: a balanced or random mix, some categories, exact types or a repeating pattern. After you confirm the plan, each step opens the ordinary form: Save checks and stays, Next checks and moves on, Finish returns the exercises in plan order. Cancelling after saving asks whether to keep the exercises already saved.''',
+  'editorHelp.qa.previewExercise.q': r'''How do I preview an exercise?''',
+  'editorHelp.qa.previewExercise.a':
+      r'''Preview beside Save plays the current form as learners see it, even for a new or Draft exercise, without saving anything or writing learner progress. Coming back restores the same values.''',
+  'editorHelp.qa.inspection.q': r'''What does Inspection show?''',
+  'editorHelp.qa.inspection.a':
+      r'''The exercise's technical data, its canonical fields. It only shows: it saves nothing and changes nothing.''',
+  'editorHelp.qa.navigate.q': r'''How do I move between exercises?''',
+  'editorHelp.qa.navigate.a':
+      r'''Previous and Next follow the Round's order. Leaving with unsaved changes offers Keep editing, Discard changes, Save as draft or Save; the breadcrumbs lead back to the Round, the Lesson and the Course.''',
+  'editorHelp.qa.fieldHelp.q':
+      r'''What does the Help button beside a field explain?''',
+  'editorHelp.qa.fieldHelp.a':
+      r'''What the field is for, what to enter, how QQL checks it and an example. Exercise Help beside the preset explains the exercise type as a whole.''',
+  'editorHelp.qa.manyAnswers.q': r'''How do I accept several typed answers?''',
+  'editorHelp.qa.manyAnswers.a':
+      r'''Write one complete answer per line. Optional words go in {…}, alternatives in [a|b] and words that may swap places in (a <> b). Answers built from blocks and the answers of listening gaps are literal: write them exactly.''',
+  'editorHelp.qa.capitals.q':
+      r'''Do capitals matter in answers built from blocks?''',
+  'editorHelp.qa.capitals.a':
+      r'''No: QQL matches the answer to its blocks whatever the capitals, so capitals never block Save. The Audit warns (ARRANGE_ANSWER_CASE_DIFFERS) when they differ, because learners build the answer from the blocks as written.''',
+  'editorHelp.qa.distractors.q': r'''How many extra blocks may I add?''',
+  'editorHelp.qa.distractors.a':
+      r'''Put the words in order, Build the translation and Name what you see accept 0, 1 or at most 2 blocks that are not in the answer; the spelling presets use exactly the blocks of the word. Prefer fewer extra blocks in the first Rounds of a Lesson.''',
+  'editorHelp.qa.firstLetter.q':
+      r'''What does Show the first letter do in Type the missing word?''',
+  'editorHelp.qa.firstLetter.a':
+      r'''On, the gap shows the first letter of the word, so every accepted word must start with it. Off, the learner types the whole word and accepted words may start with different letters.''',
+  'editorHelp.qa.readAndAnswer.q':
+      r'''How do I write a Read and answer exercise?''',
+  'editorHelp.qa.readAndAnswer.a':
+      r'''Write the situation in Text to read, in the learners' own language; add dialogue lines in the target language, one “Speaker: text” per line, and choose whether they are read aloud automatically, on request or not at all; then write the question and the answers in the target language. The text to read is never read aloud, and the read-aloud never makes it an audio exercise.''',
+  'editorHelp.qa.pictures.q': r'''Which exercises use a picture?''',
+  'editorHelp.qa.pictures.a':
+      r'''What is in the picture (choose the name), Name what you see (build the name from word blocks), Type what you see (type the name), Spell the word in the picture, Match picture to word and Picture flashcard. Choose the picture under Exercise image.''',
+  'editorHelp.qa.allTypes.q': r'''Where is every exercise type explained?''',
+  'editorHelp.qa.allTypes.a':
+      r'''In Technical reference › Exercise types at the top of this page, and with Exercise Help beside each preset.''',
+  'editorHelp.qa.picturesAndSound.title': r'''Pictures and sound''',
+  'editorHelp.qa.audioModes.q': r'''Which audio modes can a Course use?''',
+  'editorHelp.qa.audioModes.a':
+      r'''In the Audio Library choose On-Device TTS (the device voice, no recordings), Recorded MP3 (your recordings only) or Hybrid (recordings, else the device voice). Import MP3, Open from… and Check unused MP3 files appear only with Recorded MP3 and Hybrid.''',
+  'editorHelp.qa.addRecordings.q': r'''How do I add recordings?''',
+  'editorHelp.qa.addRecordings.a':
+      r'''Copy MP3 files to {folderAudioImports} and press Import MP3, or use Open from… to pick up to 100 files (250 MB) at a time. Each must be a real MP3 of at most 50 MB, without embedded cover art. It is copied into the Course’s own media folder, derived from the stable Course ID, and named by its content, so the same recording is stored once; the metadata and references belong to the Course. Then link each recording to the exact word or phrase it says.''',
+  'editorHelp.qa.recordingsTravel.q':
+      r'''Do recordings travel with the Course?''',
+  'editorHelp.qa.recordingsTravel.a':
+      r'''Yes, in a Course ZIP export. Verified course-version backups copy referenced recordings too. A Course JSON alone stores clip metadata and content references, not MP3 bytes.''',
+  'editorHelp.qa.addPictures.q': r'''How do I add pictures to a Course?''',
+  'editorHelp.qa.addPictures.a':
+      r'''In the Course Editor’s Image Library, Add images to this Course takes one or more pictures, or a whole Image Bank ZIP, into this Course only. The Shared Image Library, which an Admin manages, takes pictures from {folderImageImports} or with Open image files from… and Open Image Bank ZIP from…. A picture chosen for an exercise from the Shared Image Library is copied into the Course; either way it travels in the Course ZIP.''',
+  'editorHelp.qa.pictureRules.q': r'''Which pictures does QQL accept?''',
+  'editorHelp.qa.pictureRules.a':
+      r'''Still PNG, JPEG or WebP pictures of at most 4096 × 4096 pixels, undamaged and without oversized metadata; QQL checks the content, not the file name. An exercise image imported from {folderImageImports} may be up to 50 KB; about 256 × 256 pixels and 15 KB is a good size.''',
+  'editorHelp.qa.imageBank.q': r'''What is an Image Bank?''',
+  'editorHelp.qa.imageBank.a':
+      r'''A ZIP of pictures with a manifest, image_bank_manifest.json, that lists each picture: an id, a label (primary_term), its file name and, if you like, keywords and an attribution. The ZIP holds only the manifest and the pictures it lists. Import Image Bank ZIP reads the one ZIP in {folderImageImports}; Open Image Bank ZIP from… uses the system dialog. Limits: a 50 MB ZIP, 2500 pictures and 50 KB per picture.''',
+  'editorHelp.qa.pictureDetails.q': r'''How do I see a picture's details?''',
+  'editorHelp.qa.pictureDetails.a':
+      r'''Open it full size and hover over the picture on a computer, or long-press it on a phone: file name, size, dimensions, format, added date, Image Bank and attribution.''',
+  'editorHelp.qa.removePicture.q':
+      r'''How do I remove a picture from a Course?''',
+  'editorHelp.qa.removePicture.a':
+      r'''In the Course Editor's Image Library, Remove from this Course clears every use of the picture; the file leaves the Course when the Course changes are confirmed.''',
+  'editorHelp.qa.checkingTheCourse.title': r'''Checking the Course''',
+  'editorHelp.qa.runAudit.q': r'''How do I check a Course?''',
+  'editorHelp.qa.runAudit.a':
+      r'''Run Audit on the Course Editor page for the whole Course, or from the menu (⋮) of a Lesson or a Round on the Lessons and Rounds pages. It lists Errors, Warnings and Info, sorted by Lesson, by exercise type or by most recent change.''',
+  'editorHelp.qa.severities.q':
+      r'''What is the difference between an Error, a Warning and Info?''',
+  'editorHelp.qa.severities.a':
+      r'''An Error marks invalid content: it cannot be saved as normal content, published or imported. A Warning marks a likely problem to review. Info is guidance or a neutral fact and never blocks anything.''',
+  'editorHelp.qa.borders.q':
+      r'''What do the red and green borders and the blue badge mean?''',
+  'editorHelp.qa.borders.a':
+      r'''A red border marks an Error or a Warning somewhere in that branch; a green border means none (Info may remain). The blue badge marks Draft content in the branch. Green does not mean Published.''',
+  'editorHelp.qa.auditCodes.q': r'''Where are all the Audit codes listed?''',
+  'editorHelp.qa.auditCodes.a':
+      r'''In Technical reference › Audit Codes at the top of this page: every rule by severity, with a search.''',
+  'editorHelp.qa.auditLimits.q':
+      r'''Does the Audit check grammar or translations?''',
+  'editorHelp.qa.auditLimits.a':
+      r'''No. It checks structure and authoring: fields, IDs, blocks, audio, pictures and the like. It does not certify grammar, translation accuracy or teaching quality: preview and review your exercises.''',
+  'editorHelp.qa.searchLabel': r'''Search the questions''',
+  'editorHelp.qa.noResults': r'''No question matches your search.''',
   'editorHelp.title': r'''Editor Help''',
   'courseStudioHelp.title': r'''Course Studio Help''',
   'editorHelp.technicalReference.title': r'''Technical reference''',

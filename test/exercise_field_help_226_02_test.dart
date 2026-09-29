@@ -401,9 +401,16 @@ void main() {
   );
 
   test('MP3 Help distinguishes file storage from Course ownership', () {
-    final helpText = editorHelpSections(
-      HelpLanguage.english,
-    ).singleWhere((section) => section.title == 'Audio Library').body;
+    // Build 256 Revision 8: the Editor Help answers about recordings.
+    final helpText = editorHelpTopics(HelpLanguage.english)
+        .expand((topic) => topic.questions)
+        .where(
+          (question) =>
+              question.id == 'addRecordings' ||
+              question.id == 'recordingsTravel',
+        )
+        .map((question) => question.answer)
+        .join('\n');
     for (final entry in {
       'Audio Library Help': helpText,
       'docs/COURSE_EDITOR.md': File('docs/COURSE_EDITOR.md').readAsStringSync(),

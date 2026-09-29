@@ -653,22 +653,14 @@ void main() {
 
   test('Help names the wizards and the two buttons in every language', () {
     for (final catalog in [helpEn, helpIt, helpEs]) {
+      // Build 256 Revision 8: Editor Help is questions and answers.
+      expect(catalog['editorHelp.qa.roundWizard.q'], contains('Round Wizard'));
+      expect(catalog['editorHelp.qa.roundWizard.a'], contains('Round Wizard'));
       expect(
-        catalog['editorHelp.generateRoundsFromLessonGuidebook.title'],
-        contains('Round Wizard'),
+        catalog['editorHelp.qa.exerciseWizard.q'],
+        contains('Exercise Wizard'),
       );
-      expect(
-        catalog['editorHelp.generateRoundsFromLessonGuidebook.body'],
-        contains('Round Wizard'),
-      );
-      expect(
-        catalog['editorHelp.exerciseCreationWizard.title'],
-        'Exercise Wizard',
-      );
-      expect(
-        catalog['editorHelp.exerciseCreationWizard.body'],
-        contains('New Canonical'),
-      );
+      expect(catalog['editorHelp.qa.newExercise.a'], contains('New Canonical'));
       expect(
         catalog['exerciseHelp.supplement.canonicalEditor.body'],
         contains('New Exercise'),

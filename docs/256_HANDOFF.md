@@ -56,6 +56,9 @@ open problems and the next step.
   English question), v11 fixtures rewritten (`s36_fixtures.py` copied to
   this session's scratchpad; Edge Case fixture edited for e07), validator
   green. Next: new tests, focused batch, baseline re-record, docs, suite.
+- **Fourth follow-up committed as `7d67d76`** (11:53; complete suite run 2
+  3250 passed, 1 skipped, 0 failed). Revision 8 being applied now from the
+  scratchpad scripts listed below.
 - **11:15 checkpoint:** the fourth follow-up is complete in the working
   tree (tests written, focused batch fixed, Laboratory presentation
   baseline re-recorded: 9 records removed, 6 new, Type what you see's

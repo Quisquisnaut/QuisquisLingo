@@ -5,6 +5,25 @@ spelling) with Flutter 3.47.4 / Dart 3.13.3 on Windows 10, the complete
 suite through the keep-awake wrapper (`ES_CONTINUOUS | ES_SYSTEM_REQUIRED`
 held for the run and cleared afterwards).
 
+## Revision 8 (2.0.56+256008): Editor Help as questions and answers, 29 September 2026
+
+- The English questions and answers written against the current app (66
+  in seven topics); the Italian and Spanish versions drafted by two agents
+  and checked by script: same topic and question ids, same placeholders
+  and codes, every question ending with "?", the on-screen names the
+  tests require kept in English.
+- Focused batch (16 files: the new `editor_help_qa_256_test`, the moved
+  Help pins, the catalogs, the Help screens reached from other tests and
+  the version pins): 4 failures, fixed: the three widget tests needed a
+  tall window (the questions sit below the Technical reference card), and
+  the recordings answer regained the pinned sentence "Verified
+  course-version backups copy referenced …"; the two files rerun: 18
+  green.
+- `flutter analyze`: no issues; `dart format` clean on every changed Dart
+  file; no stale `256007` pin left.
+- Complete suite on the final tree: **3254 passed, 1 skipped, 0 failed**
+  (11:59–12:24, keep-awake wrapper).
+
 ## Revision 7 (2.0.56+256007): Laboratory, Assign, final verification, 29 September 2026
 
 - Stage 1 (the Assign runtime): `assign_runtime_256_test.dart` (10) with

@@ -101,13 +101,13 @@ void main() {
     expect(imagePreviewTooltip(item: item, missing: true), 'File missing');
   });
 
-  test('the preview gesture guidance is in English Help only', () {
-    final english = editorHelpSections(
-      HelpLanguage.english,
-    ).singleWhere((section) => section.title == 'Image Bank').body;
-    final italian = editorHelpSections(
-      HelpLanguage.italian,
-    ).map((section) => section.body).join(' ');
+  test('the preview gesture guidance is in the Help, translated', () {
+    String answer(HelpLanguage language) => editorHelpTopics(language)
+        .expand((topic) => topic.questions)
+        .singleWhere((question) => question.id == 'pictureDetails')
+        .answer;
+    final english = answer(HelpLanguage.english);
+    final italian = answer(HelpLanguage.italian);
     expect(english, contains('hover over the picture'));
     expect(english, contains('long-press it on a phone'));
     expect(italian, isNot(contains('hover over the picture')));

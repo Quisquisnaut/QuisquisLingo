@@ -4,6 +4,38 @@ Build 256 is the exercise architecture redesign (Course Model v12). Its eight
 sessions are Revisions 0–7, all delivered. Plan: `256_EXERCISE_ARCHITECTURE_PLAN.md`;
 reference: `EXERCISE_ARCHITECTURE_V12.md`; evidence: `256_VALIDATION.md`.
 
+## Revision 8 (2.0.56+256008, 29 September 2026): Editor Help as questions and answers
+
+Owner decisions of 29 September 2026: Editor Help only (Course Studio Help
+keeps its paragraphs), seven task topics, questions that open on tap, a
+search field, text rewritten and checked against the app, EN/IT/ES
+together, the Technical reference card at the top, its own revision.
+
+- `lib/localization/help/help_structure.dart`: `editorHelpQuestionsByTopic`
+  (7 topics, 66 questions) replaces `editorHelpSectionIds`; keys
+  `editorHelp.qa.<topic>.title`, `editorHelp.qa.<id>.q`, `.a`,
+  `editorHelp.qa.searchLabel`, `editorHelp.qa.noResults`.
+- `lib/localization/help/help_en.dart`, `help_it.dart`, `help_es.dart`: the
+  questions and answers; the 25 Editor-only sections removed; the four
+  shared with Course Studio Help kept.
+- `lib/screens/editor_help_content.dart`: `editorHelpTopics(language)`
+  (`EditorHelpTopic`, `EditorHelpQuestion`) replaces `editorHelpSections`.
+- `lib/screens/editor_help_screen.dart`: `EditorHelpScreen` is stateful: the
+  Technical reference card, `editor-help-search` (words matched with
+  `ExerciseSearchService.normalize`, capitals and accents ignored,
+  `editor-help-search-clear`), `editor-help-no-results`, per topic
+  `editor-help-topic-<id>` and per question an `ExpansionTile`
+  `editor-help-question-<id>` with `editor-help-answer-<id>`.
+- Tests: `editor_help_qa_256_test.dart` (structure, translation, search,
+  tap to open, folders filled in); the Help pins moved to the new keys
+  (`editor_help_translation_test`, `localization_catalog_test`,
+  `revision3_followup_256_test`, `image_preview_tooltip_revision18_test`,
+  `exercise_field_help_226_02_test`); the version pins.
+- The Italian and Spanish texts were drafted by two translation agents from
+  the English and reviewed: identical structure, placeholders, codes and
+  on-screen names kept; the Technical reference card named as each
+  language shows it.
+
 ## Revision 7 (2.0.56+256007, 29 September 2026): Laboratory, Assign, final verification
 
 Session 8, the last (plan Part B item 8). The Assign runtime, the

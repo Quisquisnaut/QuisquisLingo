@@ -6,6 +6,8 @@ import '../localization/locale_builder.dart';
 import '../localization/locale_service.dart';
 import '../models/exercise_authoring.dart';
 import '../services/exercise_field_help.dart';
+import '../services/exercise_search_service.dart';
+import 'editor_help_content.dart';
 import '../widgets/app_locale_selector.dart';
 import 'audit_codes_screen.dart';
 import 'publisher_signing_help_screen.dart';
@@ -17,31 +19,134 @@ _HelpSection _localizedSection(AppLocale locale, String key) => _HelpSection(
   body: _t(locale, '$key.body'),
 );
 
-class EditorHelpScreen extends StatelessWidget {
+/// Editor Help as questions and answers (Build 256 Revision 8; owner
+/// decisions of 29 September 2026): the Technical reference card, a search
+/// that filters the questions and their answers (capitals and accents
+/// ignored), then the topics, whose questions open their answers.
+class EditorHelpScreen extends StatefulWidget {
   const EditorHelpScreen({super.key});
 
   @override
+  State<EditorHelpScreen> createState() => _EditorHelpScreenState();
+}
+
+class _EditorHelpScreenState extends State<EditorHelpScreen> {
+  final _search = TextEditingController();
+  List<String> _words = const [];
+
+  @override
+  void dispose() {
+    _search.dispose();
+    super.dispose();
+  }
+
+  void _filter(String value) => setState(
+    () => _words = ExerciseSearchService.normalize(value)
+        .split(RegExp(r'\s+'))
+        .where((word) => word.isNotEmpty)
+        .toList(growable: false),
+  );
+
+  bool _matches(EditorHelpQuestion question) {
+    if (_words.isEmpty) return true;
+    final text = ExerciseSearchService.normalize(
+      '${question.question}\n${question.answer}',
+    );
+    return _words.every(text.contains);
+  }
+
+  @override
   Widget build(BuildContext context) => LocaleBuilder(
-    builder: (context, locale) => Scaffold(
-      appBar: AppBar(
-        title: Text(_t(locale, 'editorHelp.title')),
-        actions: [
-          AppLocaleSelector(
-            key: const Key('editor-help-language-toggle'),
-            locale: locale,
-          ),
-        ],
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          _TechnicalLinks(locale: locale),
-          const SizedBox(height: 12),
-          for (final id in editorHelpSectionIds)
-            _localizedSection(locale, 'editorHelp.$id'),
-        ],
-      ),
-    ),
+    builder: (context, locale) {
+      final topics = [
+        for (final topic in editorHelpTopics(locale))
+          (topic: topic, questions: topic.questions.where(_matches).toList()),
+      ].where((entry) => entry.questions.isNotEmpty).toList();
+      return Scaffold(
+        appBar: AppBar(
+          title: Text(_t(locale, 'editorHelp.title')),
+          actions: [
+            AppLocaleSelector(
+              key: const Key('editor-help-language-toggle'),
+              locale: locale,
+            ),
+          ],
+        ),
+        body: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            _TechnicalLinks(locale: locale),
+            const SizedBox(height: 12),
+            TextField(
+              key: const ValueKey('editor-help-search'),
+              controller: _search,
+              textInputAction: TextInputAction.search,
+              decoration: InputDecoration(
+                labelText: _t(locale, 'editorHelp.qa.searchLabel'),
+                prefixIcon: const Icon(Icons.search),
+                suffixIcon: _search.text.isEmpty
+                    ? null
+                    : IconButton(
+                        key: const ValueKey('editor-help-search-clear'),
+                        tooltip: _t(locale, 'exerciseHelp.clearSearch'),
+                        onPressed: () {
+                          _search.clear();
+                          _filter('');
+                        },
+                        icon: const Icon(Icons.clear),
+                      ),
+              ),
+              onChanged: _filter,
+            ),
+            if (topics.isEmpty)
+              Padding(
+                key: const Key('editor-help-no-results'),
+                padding: const EdgeInsets.all(16),
+                child: Text(_t(locale, 'editorHelp.qa.noResults')),
+              ),
+            for (final entry in topics) ...[
+              Padding(
+                key: ValueKey('editor-help-topic-${entry.topic.id}'),
+                padding: const EdgeInsets.fromLTRB(4, 18, 4, 6),
+                child: Text(
+                  entry.topic.title,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+              Card(
+                child: Column(
+                  children: [
+                    for (final question in entry.questions)
+                      ExpansionTile(
+                        key: ValueKey('editor-help-question-${question.id}'),
+                        title: Text(
+                          question.question,
+                          style: const TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                        expandedCrossAxisAlignment: CrossAxisAlignment.start,
+                        childrenPadding: const EdgeInsets.fromLTRB(
+                          16,
+                          0,
+                          16,
+                          16,
+                        ),
+                        children: [
+                          Text(
+                            question.answer,
+                            key: ValueKey('editor-help-answer-${question.id}'),
+                          ),
+                        ],
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ],
+        ),
+      );
+    },
   );
 }
 
