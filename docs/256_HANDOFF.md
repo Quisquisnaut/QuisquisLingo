@@ -13,35 +13,23 @@ narrative of Revision 4 is gone (the evidence lives in
 `docs/256_VALIDATION.md`); what follows is state, decisions, requirements,
 open problems and the next step.
 
-## State (29 September 2026, 01:52)
+## State (29 September 2026, 02:24)
 
-- **Revision 7 follow-up in progress (owner review of the Revision 7
-  build, 29 September 2026; same version 2.0.56+256007, one commit).**
-  Remarks and decisions: (1) the Story editor list showed IDs for the
-  title block and a text-only line: fixed (`_exerciseSummary`); (2) two
-  Assign presets, Sort into groups and Fill the slots, in Grammar and
-  sentences; no gap preset (the inline gap presets suffice); the
-  Laboratory's gap Round removed (126 examples, 27 Rounds), the Piedmontese
-  demo stays at 39 Lessons; (3) the Match picture to word form: the cards
-  follow the words as typed (the form rebuilt only on its first change),
-  one compact card per word titled "N. word"; (4) the Flashcard form names
-  the languages, drops the pronunciation text and offers Read aloud
-  (automatic / on request / none) speaking the word itself; a Flashcard's
-  read-aloud is `required: false`, never an audio exercise (bundled cards
-  regenerated); (5) the "Before you start" card is Round content, no
-  interactive-presentation primitive (answered, no code); (6) the three
-  spelling presets have one field, Blocks of the word, in order. Scripts
-  `s85_a_services.py` … `s85_f_fix.py` applied; generators, validator and
-  v11 fixtures regenerated; analyzer clean; focused batch (34 files)
-  525 passed, 7 failed, all fixed (a "two groups" rule the recipe must not
-  have: the Laboratory's leftover example has one group; three pins);
-  Laboratory recorded for the baseline rebuild. Remaining: rebuild the
-  baseline (`s34_baseline.py <record dir>`), rerun the fixed files and the
-  Laboratory, analyzer, format, one complete suite (`run_awake.ps1`),
-  documents patched with the numbers (`SUITE_RESULT` etc. in
-  `docs/256_VALIDATION.md`), commit (message in `commit_256007_followup.txt`),
-  handoff commit, sound. Push only when asked. Parked by the owner:
-  Adventures and spoken exercises (see Next step).** An auto-resume run replies with one line of
+- **Build 256 is complete and reviewed once: eight sessions, Revisions
+  0–7, committed locally on `claude/256-exercise-architecture`, NOT
+  pushed. Revision 7 (`2.0.56+256007`) is `07384ef`; its follow-up of 29
+  September 2026 (the owner's review: two Assign presets Sort into groups
+  and Fill the slots, the Match picture to word form, the Flashcard
+  read-aloud, the spelling presets' one field, the Story editor list) is
+  `0a66498` (suite 3238 passed, 1 skipped, 0 failed, 01:56–02:23).
+  Waiting for the owner: push only when asked (`git push` of
+  `claude/256-exercise-architecture`), APK only on request. Parked by the
+  owner: Adventures (the F block and the video block, see Next step) and
+  spoken exercises. Open owner items: the Story Save rule (not blocked
+  without a title block or a line), Label the picture (greyed; Assign
+  regions), the Speak, Ink and Submit runtimes, regions, cells and drag
+  placement for Assign, a preset for Assign gaps (declined: the inline gap
+  presets cover it).** An auto-resume run replies with one line of
   status and does nothing else. Complete suite on the final tree: 3117
   passed, 1 skipped, 0 failed (run 2; run 1 had three count pins fixed in
   tests). No APK built (owner: only on request); the end-of-revision sound
@@ -478,7 +466,7 @@ Plan Part B item 8 and Part D session 6, `2.0.56+256007`. Pre-approved
 | 5 Preset catalogue | 4 | 2.0.56+256004 | committed `eca0cd0` (suite 3053/1/0), pushed |
 | 6 Stories (`docs/256_STORY_PLAN.md`) | 5 | 2.0.56+256005 | committed `4172d98`, follow-ups `7903e9f`, `41a5555`, `32fedfb` |
 | 7 Interoperability | 6 | 2.0.56+256006 | committed `355ad94` (suite 3182/1/0) |
-| 8 Laboratory, Assign, final verification | 7 | 2.0.56+256007 | committed `07384ef` (suite 3229/1/0) |
+| 8 Laboratory, Assign, final verification | 7 | 2.0.56+256007 | committed `07384ef` (suite 3229/1/0), follow-up `0a66498` (suite 3238/1/0) |
 
 Branch `claude/256-exercise-architecture`, created from `main` at `611a1a1`
 (Build 255 handoff, `2.0.55+255007`).
