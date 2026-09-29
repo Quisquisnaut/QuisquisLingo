@@ -33,9 +33,9 @@ void main() {
   });
 
   test('current release metadata uses Build and revision terminology', () {
-    expect(AppMetadata.technicalVersion, '2.0.56+256008');
+    expect(AppMetadata.technicalVersion, '2.0.56+256009');
     expect(AppMetadata.build, '256');
-    expect(AppMetadata.displayLabel, 'Version 2.0.56\nBuild 256, Revision 8');
+    expect(AppMetadata.displayLabel, 'Version 2.0.56\nBuild 256, Revision 9');
   });
 
   testWidgets(

@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/services/beta_lifecycle_service.dart';
 import 'package:quisquislingo_app/widgets/exercise_editor_intro.dart';
+import 'package:quisquislingo_app/widgets/exercise_mascot.dart';
 import 'support/test_directories.dart';
 
 /// Runs once per test file, before its `main()`.
@@ -33,6 +34,10 @@ Future<void> testExecutable(FutureOr<void> Function() testMain) async {
   // The first-time Exercise Editor introduction is a modal dialog; it would
   // block every editor test on its first open. Its own test turns it on.
   ExerciseEditorIntro.enabled = false;
+  // A random mascot beside an exercise's sentence (Build 256 Revision 9)
+  // would make every Round screen test depend on a picture; the mascot
+  // tests turn it on.
+  ExerciseMascot.enabled = false;
   const pathProvider = MethodChannel('plugins.flutter.io/path_provider');
   late Directory root;
   var installedHandler = false;

@@ -5,10 +5,8 @@ import 'available_courses_screen.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
-import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter/services.dart';
 import '../controllers/learner_status_controller.dart';
 import '../services/settings_service.dart';
 import '../services/update_notice_service.dart';
@@ -32,6 +30,7 @@ import '../services/app_errors.dart';
 import '../services/error_presenter.dart';
 import '../services/diagnostic_log_service.dart';
 import '../services/crash_log_service.dart';
+import '../services/learner_mascots.dart';
 import 'settings_screen.dart';
 import 'review_screen.dart';
 import 'course_info_screen.dart';
@@ -3265,61 +3264,6 @@ class _VerticalConnector extends StatelessWidget {
       ),
     ),
   );
-}
-
-const learnerMascotAssetDirectory = 'assets/mascots/';
-
-List<String> learnerMascotAssetsFromManifest(Iterable<String> assets) {
-  final mascots = assets
-      .where(
-        (asset) =>
-            asset.startsWith(learnerMascotAssetDirectory) &&
-            asset.toLowerCase().endsWith('.png'),
-      )
-      .toSet()
-      .toList();
-  mascots.sort();
-  return mascots;
-}
-
-Future<List<String>> loadLearnerMascotAssets(AssetBundle bundle) async {
-  final manifest = await AssetManifest.loadFromAssetBundle(bundle);
-  return loadRenderableLearnerMascotAssets(bundle, manifest.listAssets());
-}
-
-Future<List<String>>? _productionLearnerMascotAssetsFuture;
-
-Future<List<String>> loadProductionLearnerMascotAssets() =>
-    _productionLearnerMascotAssetsFuture ??= loadLearnerMascotAssets(
-      rootBundle,
-    );
-
-Future<List<String>> loadRenderableLearnerMascotAssets(
-  AssetBundle bundle,
-  Iterable<String> assets,
-) async {
-  final renderable = <String>[];
-  for (final asset in learnerMascotAssetsFromManifest(assets)) {
-    ui.Codec? codec;
-    ui.Image? image;
-    try {
-      final data = await bundle.load(asset);
-      codec = await ui.instantiateImageCodec(
-        data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes),
-        targetWidth: 1,
-        targetHeight: 1,
-      );
-      final frame = await codec.getNextFrame();
-      image = frame.image;
-      renderable.add(asset);
-    } catch (_) {
-      // An invalid mascot leaves no slot and never enters the selection cycle.
-    } finally {
-      image?.dispose();
-      codec?.dispose();
-    }
-  }
-  return renderable;
 }
 
 enum LearnerRoundPathSide { left, right }

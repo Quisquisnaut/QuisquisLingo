@@ -1,8 +1,63 @@
 # Build 256 change summary
 
 Build 256 is the exercise architecture redesign (Course Model v12). Its eight
-sessions are Revisions 0–7, all delivered. Plan: `256_EXERCISE_ARCHITECTURE_PLAN.md`;
+sessions are Revisions 0–7, all delivered; Revisions 8 and 9 are owner
+requests made afterwards. Plan: `256_EXERCISE_ARCHITECTURE_PLAN.md`;
 reference: `EXERCISE_ARCHITECTURE_V12.md`; evidence: `256_VALIDATION.md`.
+
+## Revision 9 (2.0.56+256009, 29 September 2026): mascots beside the sentence
+
+Owner decisions of 29 September 2026 (mockups reviewed on a design
+canvas): placement A (leading side, sentence unchanged; not a speech
+bubble, which would look like a Story line, nor the trailing side); random
+pictures, never matched to the exercise; the sleeping monkey only on the
+Round path; within one Round no picture twice and never the same
+character in a row, counted between the mascots actually shown; a mascot
+only beside a sentence of two words or more or ending a sentence; Rounds,
+Review and the Editor Preview, not Stories or the Duel; no learner
+setting.
+
+- `lib/services/learner_mascots.dart`: the mascot loader
+  (`learnerMascotAssetDirectory`, `learnerMascotAssetsFromManifest`,
+  `loadLearnerMascotAssets`, `loadRenderableLearnerMascotAssets`,
+  `loadProductionLearnerMascotAssets`) moved unchanged from
+  `home_screen.dart`, which imports it, so the Round screen shares it.
+- `lib/services/exercise_mascot_policy.dart`: `ExerciseMascotAnchor`
+  (none, question, prompt, gappedText, playButton);
+  `ExerciseMascotPolicy.anchorFor` (rules 1 and 2 on canonical data,
+  following the renderers: the sentence in the body wins over the prompt
+  above it), `wordsAndSoundOnly`, `isSentence`, `sentenceAt`, `fits`
+  (220 pixels of text, three lines, a 560-pixel window), `mascotSize`
+  (72, or 96 from 600 pixels), `characterOf` (the file name's first word
+  after an optional `qql-`), `exercisePool` and `excludedAssets` (the
+  sleeping monkey); `ExerciseMascotSequence.build` (a random order in
+  which neighbours are different characters, every picture once; a pool
+  that cannot alternate stops instead of repeating) and `next`.
+- `lib/widgets/exercise_mascot.dart`: `ExerciseMascot` (decoded at the
+  size shown, `ExcludeSemantics`, `IgnorePointer`, keys `exercise-mascot`
+  and `exercise-mascot-<asset>`), `ExerciseMascot.beside`
+  (`exercise-mascot-row`) and the test seam `ExerciseMascot.enabled`
+  (off in `test/flutter_test_config.dart`).
+- `lib/screens/round_screen.dart`: `mascotAssets` and `mascotRandom`
+  (test seams); the Round's order built in `_initializeRound` (not for a
+  Story; a loading failure is logged and leaves the Round without
+  mascots); `_placeMascot` measures the sentence with `TextPainter` in the
+  width left beside the mascot and takes the next picture only when it
+  fits, kept in `_exerciseMascot` until the next exercise; `_withMascot`
+  and `_besideCentered` wrap the anchors in the translation question, the
+  Select question and replay button, the Input question and first-letter
+  sentence, the listening Play button, the three gapped panels and the
+  header prompt or prompt-as-instruction.
+- Tests: `exercise_mascot_256_test.dart` (the five characters and the
+  pool; the sentence rule; the room thresholds; 500 seeds of the order;
+  a pool that cannot alternate; every exercise of the three bundled
+  Courses against the three rules, and which Laboratory presets show a
+  mascot; on the Round screen the leading side, no mascot without room,
+  in a Story or when off, a sequence showing one, and a Round of eight
+  exercises with no repeated picture, no character twice in a row across
+  exercises without a mascot, and each mascot kept through the
+  feedback); `learner_round_path_test.dart` imports the moved loader; the
+  version pins.
 
 ## Revision 8 (2.0.56+256008, 29 September 2026): Editor Help as questions and answers
 

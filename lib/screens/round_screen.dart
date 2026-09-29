@@ -5,6 +5,7 @@ import 'package:flutter/rendering.dart' show RenderAbstractViewport;
 import '../services/course_language_resolver.dart';
 import '../services/first_letter_answer_service.dart';
 import '../widgets/course_media_image.dart';
+import '../widgets/exercise_mascot.dart';
 import '../widgets/exercise_prompt_panels.dart';
 import '../widgets/portable_exercise_image.dart';
 import '../services/beta_lifecycle_service.dart';
@@ -26,6 +27,8 @@ import '../services/answer_engine.dart';
 import '../services/audio_exercise_availability_service.dart';
 import '../services/audio_diagnostic_service.dart';
 import '../services/translation_choice_service.dart';
+import '../services/exercise_mascot_policy.dart';
+import '../services/learner_mascots.dart';
 import 'guidebook_screen.dart';
 
 class RoundScreen extends StatefulWidget {
@@ -42,6 +45,13 @@ class RoundScreen extends StatefulWidget {
   final TtsCacheService? ttsCacheService;
   final RecordedAudioService? recordedAudioService;
 
+  /// The mascot pictures to choose from (Build 256 Revision 9); null loads
+  /// the bundled `assets/mascots/`. Tests pass their own list.
+  final List<String>? mascotAssets;
+
+  /// The random source of the mascot order; tests pass a seeded one.
+  final Random? mascotRandom;
+
   const RoundScreen({
     super.key,
     required this.course,
@@ -56,6 +66,8 @@ class RoundScreen extends StatefulWidget {
     this.settingsService,
     this.ttsCacheService,
     this.recordedAudioService,
+    this.mascotAssets,
+    this.mascotRandom,
   });
 
   @override
@@ -241,6 +253,14 @@ class _RoundScreenState extends State<RoundScreen> {
   // several gaps.
   final Map<String, String?> _selectGapFill = {};
   String? _selectArmedGapId;
+
+  // Mascots (Build 256 Revision 9): the Round's picture order, null when
+  // this Round shows none; the active exercise's picture, taken from the
+  // order the first time its mascot fits on screen; and where this build
+  // draws it.
+  ExerciseMascotSequence? _mascots;
+  String? _exerciseMascot;
+  ({ExerciseMascotAnchor anchor, String asset, double size})? _mascotPlacement;
 
   static const _autumnBackgrounds = <Color>[
     Color(0xFFF4EBDD), // warm cream
@@ -499,6 +519,26 @@ class _RoundScreenState extends State<RoundScreen> {
       } else {
         _shuffleDifferentInts(_queue);
       }
+      // Mascots (Build 256 Revision 9): never in a Story, whose characters
+      // are its cast. Pictures that cannot be loaded leave the Round without
+      // mascots, never without its exercises.
+      if (ExerciseMascot.enabled && !widget.round.isStory) {
+        try {
+          final assets =
+              widget.mascotAssets ?? await loadProductionLearnerMascotAssets();
+          _mascots = ExerciseMascotSequence.build(
+            ExerciseMascotPolicy.exercisePool(assets),
+            widget.mascotRandom ?? _random,
+          );
+        } catch (error, stackTrace) {
+          _mascots = null;
+          await CrashLogService.instance.record(
+            error,
+            stackTrace,
+            source: 'RoundScreen._initializeRound mascots',
+          );
+        }
+      }
       if (!mounted) return;
       if (_queue.isNotEmpty) {
         await CrashLogService.instance.recordDebugEvent(
@@ -598,6 +638,7 @@ class _RoundScreenState extends State<RoundScreen> {
     final generation = ++_preparedExerciseGeneration;
     final ex = _exercise;
     final f = _features = ExerciseFeatures(ex);
+    _exerciseMascot = null;
     _answered = false;
     _lineAudioPlayed = false;
     _lastAnswerCorrect = false;
@@ -1788,17 +1829,20 @@ class _RoundScreenState extends State<RoundScreen> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (f.questionText.trim().isNotEmpty) ...[
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  f.questionText,
-                  key: const Key('translation-choice-text'),
-                  style: Theme.of(context).textTheme.headlineSmall,
+          _withMascot(
+            ExerciseMascotAnchor.question,
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    f.questionText,
+                    key: const Key('translation-choice-text'),
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
                 ),
-              ),
-              if (spoken != null) _translationAudioButton(spoken),
-            ],
+                if (spoken != null) _translationAudioButton(spoken),
+              ],
+            ),
           ),
           if (spoken != null && !_optionalAudioEnabled) ...[
             const SizedBox(height: 8),
@@ -1832,11 +1876,14 @@ class _RoundScreenState extends State<RoundScreen> {
             automatic.role != 'context' &&
             automatic.role != 'dialogue_turn') ...[
           Center(
-            child: IconButton.filledTonal(
-              tooltip: 'Play audio again',
-              iconSize: 34,
-              onPressed: _speak,
-              icon: const Icon(Icons.volume_up_outlined),
+            child: _besideCentered(
+              ExerciseMascotAnchor.playButton,
+              IconButton.filledTonal(
+                tooltip: 'Play audio again',
+                iconSize: 34,
+                onPressed: _speak,
+                icon: const Icon(Icons.volume_up_outlined),
+              ),
             ),
           ),
           const SizedBox(height: 14),
@@ -1852,9 +1899,12 @@ class _RoundScreenState extends State<RoundScreen> {
               : () => _speakDialogue(),
         ),
         if (f.questionText.isNotEmpty && !f.hasInlineTargets) ...[
-          Text(
-            f.questionText,
-            style: Theme.of(context).textTheme.headlineSmall,
+          _withMascot(
+            ExerciseMascotAnchor.question,
+            Text(
+              f.questionText,
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
           ),
           const SizedBox(height: 16),
         ],
@@ -2040,30 +2090,33 @@ class _RoundScreenState extends State<RoundScreen> {
           ),
           const SizedBox(height: 14),
         ],
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: _exercisePanelColor,
-            borderRadius: BorderRadius.circular(14),
-          ),
-          child: Wrap(
-            crossAxisAlignment: WrapCrossAlignment.center,
-            spacing: 6,
-            runSpacing: 8,
-            children: [
-              for (final segment in ex.layout)
-                if (segment.isText)
-                  Text(
-                    segment.text,
-                    style: Theme.of(context).textTheme.titleMedium,
-                  )
-                else
-                  _selectGapSlot(
-                    gapId: segment.targetId,
-                    label: itemById[_selectGapFill[segment.targetId]]?.value,
-                    armed: _selectArmedGapId == segment.targetId,
-                  ),
-            ],
+        _withMascot(
+          ExerciseMascotAnchor.gappedText,
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: _exercisePanelColor,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 6,
+              runSpacing: 8,
+              children: [
+                for (final segment in ex.layout)
+                  if (segment.isText)
+                    Text(
+                      segment.text,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    )
+                  else
+                    _selectGapSlot(
+                      gapId: segment.targetId,
+                      label: itemById[_selectGapFill[segment.targetId]]?.value,
+                      armed: _selectArmedGapId == segment.targetId,
+                    ),
+              ],
+            ),
           ),
         ),
         const SizedBox(height: 16),
@@ -2104,23 +2157,29 @@ class _RoundScreenState extends State<RoundScreen> {
             style: Theme.of(context).textTheme.titleMedium,
           ),
         ] else if (f.revealTarget != null)
-          Text(
-            _answered
-                ? FirstLetterAnswerService.completedSentence(
-                    f.inlineSentence,
-                    _displayedCorrection,
-                  )
-                : FirstLetterAnswerService.display(
-                    f.inlineSentence,
-                    f.acceptedAnswers,
-                  ),
-            key: const Key('first-letter-sentence'),
-            style: Theme.of(context).textTheme.headlineSmall,
+          _withMascot(
+            ExerciseMascotAnchor.question,
+            Text(
+              _answered
+                  ? FirstLetterAnswerService.completedSentence(
+                      f.inlineSentence,
+                      _displayedCorrection,
+                    )
+                  : FirstLetterAnswerService.display(
+                      f.inlineSentence,
+                      f.acceptedAnswers,
+                    ),
+              key: const Key('first-letter-sentence'),
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
           )
         else
-          Text(
-            f.questionText,
-            style: Theme.of(context).textTheme.headlineSmall,
+          _withMascot(
+            ExerciseMascotAnchor.question,
+            Text(
+              f.questionText,
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
           ),
         const SizedBox(height: 10),
         if (ex.hint.isNotEmpty)
@@ -2165,12 +2224,15 @@ class _RoundScreenState extends State<RoundScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        FilledButton.tonalIcon(
-          onPressed: _answered || audio == null
-              ? null
-              : () => _speakText(audio),
-          icon: const Icon(Icons.volume_up_outlined),
-          label: const Text('Play audio'),
+        _withMascot(
+          ExerciseMascotAnchor.playButton,
+          FilledButton.tonalIcon(
+            onPressed: _answered || audio == null
+                ? null
+                : () => _speakText(audio),
+            icon: const Icon(Icons.volume_up_outlined),
+            label: const Text('Play audio'),
+          ),
         ),
         const SizedBox(height: 14),
         if (f.questionText.trim().isNotEmpty) ...[
@@ -2342,30 +2404,33 @@ class _RoundScreenState extends State<RoundScreen> {
           ),
           const SizedBox(height: 14),
         ],
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: _exercisePanelColor,
-            borderRadius: BorderRadius.circular(14),
-          ),
-          child: Wrap(
-            crossAxisAlignment: WrapCrossAlignment.center,
-            spacing: 6,
-            runSpacing: 8,
-            children: [
-              for (final segment in ex.layout)
-                if (segment.isText)
-                  Text(
-                    segment.text,
-                    style: Theme.of(context).textTheme.titleMedium,
-                  )
-                else
-                  _gapSlot(
-                    gapId: segment.targetId,
-                    label: itemById[_gapFill[segment.targetId]]?.value,
-                    armed: _armedGapId == segment.targetId,
-                  ),
-            ],
+        _withMascot(
+          ExerciseMascotAnchor.gappedText,
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: _exercisePanelColor,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 6,
+              runSpacing: 8,
+              children: [
+                for (final segment in ex.layout)
+                  if (segment.isText)
+                    Text(
+                      segment.text,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    )
+                  else
+                    _gapSlot(
+                      gapId: segment.targetId,
+                      label: itemById[_gapFill[segment.targetId]]?.value,
+                      armed: _armedGapId == segment.targetId,
+                    ),
+              ],
+            ),
           ),
         ),
         const SizedBox(height: 16),
@@ -2649,15 +2714,18 @@ class _RoundScreenState extends State<RoundScreen> {
           label: const Text('Play audio'),
         ),
         const SizedBox(height: 14),
-        Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: _exercisePanelColor,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Text(
-            _missingWordDisplay(),
-            style: Theme.of(context).textTheme.bodyLarge,
+        _withMascot(
+          ExerciseMascotAnchor.gappedText,
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: _exercisePanelColor,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Text(
+              _missingWordDisplay(),
+              style: Theme.of(context).textTheme.bodyLarge,
+            ),
           ),
         ),
         const SizedBox(height: 14),
@@ -3331,6 +3399,99 @@ class _RoundScreenState extends State<RoundScreen> {
     );
   }
 
+  /// Where this build draws the active exercise's mascot, or null (Build 256
+  /// Revision 9). [ExerciseMascotPolicy] names the sentence; the mascot is
+  /// drawn only when the sentence keeps room beside it on this screen. The
+  /// picture is taken from the Round's order the first time the mascot is
+  /// drawn, and kept until the next exercise: so the learner never sees a
+  /// picture twice in one Round, nor the same character twice in a row.
+  ({ExerciseMascotAnchor anchor, String asset, double size})? _placeMascot(
+    BuildContext context,
+    Exercise ex,
+  ) {
+    final mascots = _mascots;
+    if (mascots == null) return null;
+    final anchor = ExerciseMascotPolicy.anchorFor(ex);
+    if (anchor == ExerciseMascotAnchor.none) return null;
+    final media = MediaQuery.of(context);
+    // The Round body is a ListView with 20 pixels on each side.
+    final contentWidth = media.size.width - media.padding.horizontal - 40;
+    final size = ExerciseMascotPolicy.mascotSize(contentWidth);
+    final text = Theme.of(context).textTheme;
+    final (TextStyle? style, double reserved) = switch (anchor) {
+      // A translation question keeps room for its audio button.
+      ExerciseMascotAnchor.question => (
+        text.headlineSmall,
+        _features.isTranslationChoice ? 48.0 : 0.0,
+      ),
+      ExerciseMascotAnchor.prompt => (
+        _promptAsInstruction
+            ? text.bodyMedium?.copyWith(fontWeight: FontWeight.w600)
+            : text.titleMedium,
+        0.0,
+      ),
+      // The gapped sentence sits in a panel with padding on both sides.
+      ExerciseMascotAnchor.gappedText => (
+        ex.primitive == ExercisePrimitive.input
+            ? text.bodyLarge
+            : text.titleMedium,
+        28.0,
+      ),
+      ExerciseMascotAnchor.playButton ||
+      ExerciseMascotAnchor.none => (null, 0.0),
+    };
+    final textWidth = contentWidth - size - ExerciseMascotPolicy.gap - reserved;
+    int? lines;
+    final sentence = ExerciseMascotPolicy.sentenceAt(ex, anchor);
+    if (sentence != null) {
+      if (textWidth <= 0) return null;
+      final painter = TextPainter(
+        text: TextSpan(text: sentence, style: style),
+        textDirection: Directionality.of(context),
+        textScaler: media.textScaler,
+      )..layout(maxWidth: textWidth);
+      lines = painter.computeLineMetrics().length;
+      painter.dispose();
+    }
+    if (!ExerciseMascotPolicy.fits(
+      textWidth: textWidth,
+      lines: lines,
+      viewportHeight: media.size.height,
+    )) {
+      return null;
+    }
+    final asset = _exerciseMascot ??= mascots.next();
+    if (asset == null) return null;
+    return (anchor: anchor, asset: asset, size: size);
+  }
+
+  /// [child] with the active exercise's mascot on its leading side when the
+  /// mascot sits at [anchor]; else [child] alone.
+  Widget _withMascot(ExerciseMascotAnchor anchor, Widget child) {
+    final placement = _mascotPlacement;
+    if (placement == null || placement.anchor != anchor) return child;
+    return ExerciseMascot.beside(
+      asset: placement.asset,
+      size: placement.size,
+      child: child,
+    );
+  }
+
+  /// A centred [child] (the replay button) with the mascot beside it.
+  Widget _besideCentered(ExerciseMascotAnchor anchor, Widget child) {
+    final placement = _mascotPlacement;
+    if (placement == null || placement.anchor != anchor) return child;
+    return Row(
+      key: const Key('exercise-mascot-row'),
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        ExerciseMascot(asset: placement.asset, size: placement.size),
+        const SizedBox(width: ExerciseMascotPolicy.gap),
+        child,
+      ],
+    );
+  }
+
   /// The text shown above the exercise body: the primary or clue text.
   /// Passages, situations, context and the Flashcard's term have their own
   /// place in the body.
@@ -3846,6 +4007,7 @@ class _RoundScreenState extends State<RoundScreen> {
     }
     final ex = _exercise;
     final totalShown = _queue.length;
+    _mascotPlacement = _placeMascot(context, ex);
 
     return Scaffold(
       backgroundColor: background,
@@ -3952,31 +4114,39 @@ class _RoundScreenState extends State<RoundScreen> {
                 const SizedBox(height: 4),
               ],
               if (ex.isExecutable)
-                Text(
+                _withMascot(
                   _promptAsInstruction
-                      ? ExerciseCopyService.displayPrompt(
-                          widget.course,
-                          _displayedPrompt,
-                        )
-                      : ExerciseCopyService.instructionForExercise(
-                          widget.course,
-                          ex,
-                        ),
-                  key: const Key('exercise-instruction'),
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+                      ? ExerciseMascotAnchor.prompt
+                      : ExerciseMascotAnchor.none,
+                  Text(
+                    _promptAsInstruction
+                        ? ExerciseCopyService.displayPrompt(
+                            widget.course,
+                            _displayedPrompt,
+                          )
+                        : ExerciseCopyService.instructionForExercise(
+                            widget.course,
+                            ex,
+                          ),
+                    key: const Key('exercise-instruction'),
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ),
             ],
             if (_promptShown && !_promptAsInstruction) ...[
               const SizedBox(height: 12),
-              Text(
-                ExerciseCopyService.displayPrompt(
-                  widget.course,
-                  _displayedPrompt,
+              _withMascot(
+                ExerciseMascotAnchor.prompt,
+                Text(
+                  ExerciseCopyService.displayPrompt(
+                    widget.course,
+                    _displayedPrompt,
+                  ),
+                  key: const Key('exercise-prompt-text'),
+                  style: Theme.of(context).textTheme.titleMedium,
                 ),
-                key: const Key('exercise-prompt-text'),
-                style: Theme.of(context).textTheme.titleMedium,
               ),
             ],
             const SizedBox(height: 20),

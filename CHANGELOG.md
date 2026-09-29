@@ -1,3 +1,39 @@
+# 2.0.56 (Build 256, Revision 9) - Mascots beside the sentence - 2026-09-29
+
+A QuisquisLingo mascot now keeps the learner company in exercises built
+around a sentence (owner decisions of 29 September 2026). It is decoration
+only: Course files, scoring, progression, Review, the Duel and learner
+data are unchanged, and nothing new is stored.
+
+- **Where:** on the leading side of the one sentence the learner reads or
+  hears: the question (Pick the translation, Choose the answer, Pick the
+  missing word, True or false, Read and answer), the text to translate or
+  the clue (Type and Build the translation, Word order), the sentence with
+  gaps (Complete the text, Missing letters, Pick the words for the gaps,
+  Drag the blocks into the gaps, Listen and fill the gaps, Type the missing
+  word), or the Play button (Listen and answer, Type what you hear).
+- **Only where it fits:** never in an exercise with a picture, an avatar or
+  anything but words and sound, nor beside dialogue lines with named
+  speakers; only beside a sentence (two words or more, or ending in
+  `. ! ? …`: "Grazie." has one, "ciao" does not); only when the sentence
+  keeps at least 220 pixels, three lines at most and the window is at
+  least 560 pixels high (72-pixel mascot, 96 pixels on wide screens).
+  Match, Assign, cards, spelling blocks, Put the sentences in order, Stories
+  and the Duel show none.
+- **Random, without repeats:** each Round draws a random order of the
+  mascot pictures, never matched to the exercise. Within one Round a
+  picture never appears twice, and the next mascot the learner sees is
+  always another character (cat, dog, kid, monkey, robot), however many
+  exercises without a mascot come between. A picture is taken only when
+  the mascot is actually drawn, and kept through answering and feedback;
+  when the pictures run out (nine), later exercises show none. The
+  mistakes review continues the same order; replaying a Round starts a new
+  one.
+- **The sleeping monkey** stays on the Round path and never appears in an
+  exercise.
+- Rounds, Review, View Only and the Editor Preview show mascots.
+- Beta expiry `2026-10-29 23:59:59` local time (same release day).
+
 # 2.0.56 (Build 256, Revision 8) - Editor Help as questions and answers - 2026-09-29
 
 Editor Help is rewritten as questions and answers (owner decisions of 29
