@@ -20,6 +20,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from qql_course_v12 import CONTENT_KINDS, EVALUATION_MODES, OPTIONS, PRIMITIVES  # noqa: E402
+from qql_capabilities import ELEMENT_ATTRIBUTES  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 COURSES = ROOT / "assets" / "courses"
@@ -250,6 +251,29 @@ def validate(path: Path, global_ids: dict[str, str]) -> list[str]:
                 if not isinstance(element, dict):
                     issues.append(f"{where}: prompt element {prompt_index} must be an object")
                     continue
+                # Build 258: the Page attributes of an element.
+                element_type = element.get("type")
+                for key, spec in ELEMENT_ATTRIBUTES.items():
+                    if key not in element:
+                        continue
+                    value = element[key]
+                    label = f"{where}: prompt element {prompt_index} {key}"
+                    if element_type not in spec["types"]:
+                        issues.append(f"{label} does not apply to type {element_type}")
+                    elif spec["values"] and value not in spec["values"]:
+                        issues.append(f"{label} {value!r} is not one of {spec['values']}")
+                    elif spec["type"] == "boolean" and not isinstance(value, bool):
+                        issues.append(f"{label} must be true or false")
+                    elif spec["type"] == "string" and not isinstance(value, str):
+                        issues.append(f"{label} must be a string")
+                    elif value in spec["text_only"] and element_type != "text":
+                        issues.append(f"{label} {value!r} applies to text only")
+                if element_type == "link":
+                    url = element.get("url")
+                    if not (isinstance(url, str) and re.match(r"^https://[^/\s]+", url)):
+                        issues.append(
+                            f"{where}: prompt link {prompt_index} needs an https address"
+                        )
                 if element.get("type") == "image":
                     asset = element.get("asset")
                     if isinstance(asset, str) and _portable_png(asset):

@@ -13,7 +13,9 @@ void main() {
     () {
       final definitions = AuditCodeRegistry.definitions;
       // Build 257: ROUND_INTRO_EMPTY (Error), ROUND_INTRO_DUPLICATE (Warning).
-      expect(definitions.length, 110);
+      // Build 258: PAGE_EMPTY and PAGE_LINK_INVALID (Errors),
+      // PAGE_MARK_UNMATCHED (Warning).
+      expect(definitions.length, 113);
       expect(
         definitions.map((rule) => rule.code).toSet().length,
         definitions.length,
@@ -22,13 +24,13 @@ void main() {
         definitions
             .where((rule) => rule.severity == AuditSeverity.error)
             .length,
-        60,
+        62,
       );
       expect(
         definitions
             .where((rule) => rule.severity == AuditSeverity.warning)
             .length,
-        43,
+        44,
       );
       expect(
         definitions.where((rule) => rule.severity == AuditSeverity.info).length,

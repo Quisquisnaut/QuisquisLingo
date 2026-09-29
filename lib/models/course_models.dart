@@ -2798,6 +2798,31 @@ class PromptElement {
   /// exercise, so the exercise is skipped when audio is unavailable. Absent
   /// means true.
   final bool? required;
+
+  /// Build 258 (Page blocks): how a text element is drawn; absent means a
+  /// paragraph. Text elements only.
+  final BlockTextStyle? textStyle;
+
+  /// Build 258: where a text, picture or link sits across the page; absent
+  /// means start for text and links, center for pictures. Justify is for
+  /// body text only.
+  final BlockAlign? align;
+
+  /// Build 258: a text element's colour from the named palette; absent
+  /// means the theme's text colour.
+  final BlockColor? color;
+
+  /// Build 258: how wide a picture is drawn; absent means medium.
+  final BlockSize? size;
+
+  /// Build 258: whether a text element offers a read-aloud button; absent
+  /// means no.
+  final bool? readAloud;
+
+  /// Build 258: the web address of a `link` element (a video or a page on
+  /// the web, opened in the browser); its label is [text].
+  final String url;
+
   const PromptElement({
     this.role = 'primary',
     required this.type,
@@ -2809,11 +2834,20 @@ class PromptElement {
     this.language,
     this.playback,
     this.required,
+    this.textStyle,
+    this.align,
+    this.color,
+    this.size,
+    this.readAloud,
+    this.url = '',
   });
 
   bool get isAudio => type == 'audio';
   bool get isText => type == 'text';
   bool get isImage => type == 'image';
+
+  /// Build 258: a web link (label in [text], address in [url]).
+  bool get isLink => type == 'link';
 
   /// The effective playback of an audio element.
   AudioPlayback get effectivePlayback => playback ?? AudioPlayback.manual;
@@ -2832,6 +2866,12 @@ class PromptElement {
     TextLanguage? language,
     AudioPlayback? playback,
     bool? required,
+    BlockTextStyle? textStyle,
+    BlockAlign? align,
+    BlockColor? color,
+    BlockSize? size,
+    bool? readAloud,
+    String? url,
   }) => PromptElement(
     role: role ?? this.role,
     type: type ?? this.type,
@@ -2843,6 +2883,12 @@ class PromptElement {
     language: language ?? this.language,
     playback: playback ?? this.playback,
     required: required ?? this.required,
+    textStyle: textStyle ?? this.textStyle,
+    align: align ?? this.align,
+    color: color ?? this.color,
+    size: size ?? this.size,
+    readAloud: readAloud ?? this.readAloud,
+    url: url ?? this.url,
   );
 
   Map<String, dynamic> toJson() => {
@@ -2857,6 +2903,12 @@ class PromptElement {
     if (language != null) 'language': language!.serialized,
     if (playback != null) 'playback': playback!.serialized,
     if (required != null) 'required': required,
+    if (textStyle != null) 'textStyle': textStyle!.serialized,
+    if (align != null) 'align': align!.serialized,
+    if (color != null) 'color': color!.serialized,
+    if (size != null) 'size': size!.serialized,
+    if (readAloud != null) 'readAloud': readAloud,
+    if (url.isNotEmpty) 'url': url,
   };
   factory PromptElement.fromJson(Map<String, dynamic> j) {
     final source = j['sharedImageSource'];
@@ -2892,9 +2944,72 @@ class PromptElement {
     if (j.containsKey('required') && required is! bool) {
       throw const FormatException('element.required must be true or false.');
     }
+    // Build 258 (Page blocks): each attribute belongs to the element types
+    // it can shape, and only a value of its vocabulary is read.
+    final type = _requiredString(j, 'type', 'prompt');
+    T? attribute<T>(
+      String key,
+      T? Function(Object?) parse,
+      Set<String> types,
+      String legal,
+    ) {
+      if (!j.containsKey(key)) return null;
+      if (!types.contains(type)) {
+        throw FormatException(
+          'element.$key does not apply to an element of type $type.',
+        );
+      }
+      final value = parse(j[key]);
+      if (value == null) {
+        throw FormatException('element.$key “${j[key]}” must be $legal.');
+      }
+      return value;
+    }
+
+    final textStyle = attribute(
+      'textStyle',
+      BlockTextStyle.tryParse,
+      pageElementAttributeTypes['textStyle']!,
+      BlockTextStyle.values.map((v) => v.serialized).join(', '),
+    );
+    final align = attribute(
+      'align',
+      BlockAlign.tryParse,
+      pageElementAttributeTypes['align']!,
+      BlockAlign.values.map((v) => v.serialized).join(', '),
+    );
+    if (align == BlockAlign.justify && type != 'text') {
+      throw const FormatException(
+        'element.align justify applies to text elements only.',
+      );
+    }
+    final color = attribute(
+      'color',
+      BlockColor.tryParse,
+      pageElementAttributeTypes['color']!,
+      BlockColor.values.map((v) => v.serialized).join(', '),
+    );
+    final size = attribute(
+      'size',
+      BlockSize.tryParse,
+      pageElementAttributeTypes['size']!,
+      BlockSize.values.map((v) => v.serialized).join(', '),
+    );
+    final readAloud = attribute(
+      'readAloud',
+      (value) => value is bool ? value : null,
+      pageElementAttributeTypes['readAloud']!,
+      'true or false',
+    );
+    final url = attribute(
+      'url',
+      (value) => value is String ? value : null,
+      pageElementAttributeTypes['url']!,
+      'a string',
+    );
     return PromptElement(
       role: _optionalString(j, 'role', 'primary'),
-      type: _requiredString(j, 'type', 'prompt'),
+      type: type,
       text: _optionalString(j, 'text', ''),
       asset: _optionalString(j, 'asset', ''),
       speaker: _optionalString(j, 'speaker', ''),
@@ -2907,6 +3022,12 @@ class PromptElement {
       language: language,
       playback: playback,
       required: required as bool?,
+      textStyle: textStyle,
+      align: align,
+      color: color,
+      size: size,
+      readAloud: readAloud,
+      url: url ?? '',
     );
   }
 }

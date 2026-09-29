@@ -9,6 +9,7 @@ library;
 
 import 'dart:convert';
 
+import '../exercise_canonical.dart';
 import 'evaluation_mode.dart';
 import 'exercise_primitive.dart';
 import 'primitive_capability_registry.dart';
@@ -22,6 +23,31 @@ Map<String, Object?> capabilityDescription() => {
   'primitives': [
     for (final primitive in ExercisePrimitive.values)
       _primitive(PrimitiveCapabilityRegistry.capabilityOf(primitive)),
+  ],
+  // Build 258: the Page attributes of prompt elements.
+  'elementAttributes': [
+    for (final entry in pageElementAttributeTypes.entries)
+      {
+        'key': entry.key,
+        'elementTypes': [...entry.value],
+        ...switch (entry.key) {
+          'textStyle' => {
+            'values': [for (final v in BlockTextStyle.values) v.serialized],
+          },
+          'align' => {
+            'values': [for (final v in BlockAlign.values) v.serialized],
+            'textOnlyValues': [BlockAlign.justify.serialized],
+          },
+          'color' => {
+            'values': [for (final v in BlockColor.values) v.serialized],
+          },
+          'size' => {
+            'values': [for (final v in BlockSize.values) v.serialized],
+          },
+          'readAloud' => {'type': 'boolean'},
+          _ => {'type': 'string'},
+        },
+      },
   ],
 };
 

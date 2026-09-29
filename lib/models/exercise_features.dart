@@ -93,6 +93,10 @@ enum LearnerExerciseKind {
   /// before the Round starts and never as one of its steps (Build 257).
   roundIntro,
 
+  /// A Page: a presentation made of formatted blocks (elements with role
+  /// `block`; Build 258).
+  page,
+
   /// Assign: items sorted into named groups (Build 256 Revision 7).
   assignGroups,
 
@@ -188,7 +192,14 @@ class ExerciseFeatures {
   /// Image elements that illustrate the prompt (any role but `character`
   /// and `avatar`).
   List<PromptElement> get illustrationImages => prompt
-      .where((e) => e.isImage && e.role != 'character' && e.role != 'avatar')
+      .where(
+        (e) =>
+            e.isImage &&
+            e.role != 'character' &&
+            e.role != 'avatar' &&
+            // A Page draws its own pictures among its blocks (Build 258).
+            e.role != 'block',
+      )
       .toList(growable: false);
 
   /// Image elements that are the picture a picture preset names (role
@@ -515,6 +526,11 @@ class ExerciseFeatures {
   /// A Before you start card's note.
   String get introText => textOf('intro');
 
+  /// The blocks of a Page in order: text, picture, audio and link elements
+  /// with role `block` (Build 258).
+  List<PromptElement> get pageBlocks =>
+      prompt.where((e) => e.role == 'block').toList(growable: false);
+
   /// Whether the card offers an Open GuideBook button (Build 257).
   bool get guidebookButton =>
       options.boolValue(OptionKey.guidebookButton) ?? false;
@@ -625,6 +641,7 @@ class ExerciseFeatures {
       case ExercisePrimitive.presentation:
         if (lineElements.isNotEmpty) return LearnerExerciseKind.dialogueLine;
         if (introElements.isNotEmpty) return LearnerExerciseKind.roundIntro;
+        if (pageBlocks.isNotEmpty) return LearnerExerciseKind.page;
         if (textOf('term').isEmpty &&
             textOf('meaning').isEmpty &&
             (coverTitle.isNotEmpty || illustrationImages.isNotEmpty)) {

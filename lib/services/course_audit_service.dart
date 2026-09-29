@@ -6,7 +6,9 @@ import 'first_letter_answer_service.dart';
 import 'portable_exercise_image.dart';
 import 'audit_code_registry.dart';
 import 'duel_eligibility_service.dart';
+import 'inline_marks.dart';
 import 'lesson_icon_catalog.dart';
+import 'page_blocks.dart';
 import 'preset_recipes.dart';
 import 'translation_choice_service.dart';
 
@@ -1377,6 +1379,7 @@ class CourseAuditService {
     LearnerExerciseKind.dialogueLine => 'a Dialogue line',
     LearnerExerciseKind.storyCover => 'a Story cover',
     LearnerExerciseKind.roundIntro => 'a Before you start card',
+    LearnerExerciseKind.page => 'a Page',
     LearnerExerciseKind.assignGroups => 'Sort into groups',
     LearnerExerciseKind.assignSlots => 'Fill the slots',
     LearnerExerciseKind.assignGaps => 'Fill the gaps',
@@ -1454,10 +1457,18 @@ class CourseAuditService {
       ...ex.promptElements,
       for (final item in ex.items) ...item.content,
     ];
-    if (elements.any((element) => !promptMedia.contains(element.type))) {
+    // Build 258: a link is a Page block (role `block` of a presentation).
+    bool pageLink(PromptElement element) =>
+        element.isLink &&
+        element.role == 'block' &&
+        ex.primitive == ExercisePrimitive.presentation &&
+        ex.promptElements.contains(element);
+    if (elements.any(
+      (element) => !promptMedia.contains(element.type) && !pageLink(element),
+    )) {
       add(
         AuditCode.promptMediaUnsupported,
-        'Prompt media must be text, audio or image.',
+        'Prompt media must be text, audio or image; a Page may also hold links.',
       );
     }
     if (elements.any(
@@ -2161,6 +2172,33 @@ class CourseAuditService {
           break;
         }
         if (kind == LearnerExerciseKind.storyCover) break;
+        // Build 258: a Page shows something, its marks close and its links
+        // are https addresses.
+        if (kind == LearnerExerciseKind.page) {
+          final blocks = f.pageBlocks;
+          if (!blocks.any(PageBlocks.hasContent)) {
+            add(AuditCode.pageEmpty, 'Page has no content.');
+          }
+          for (var i = 0; i < blocks.length; i++) {
+            final block = blocks[i];
+            final style = block.textStyle ?? BlockTextStyle.paragraph;
+            if (block.isText &&
+                style.isBody &&
+                InlineMarks.hasUnmatched(block.text)) {
+              add(
+                AuditCode.pageMarkUnmatched,
+                'Page block ${i + 1} has a bold or italic mark without its partner.',
+              );
+            }
+            if (block.isLink && !PageBlocks.isAcceptableLink(block.url)) {
+              add(
+                AuditCode.pageLinkInvalid,
+                'Page block ${i + 1} links to “${block.url}”, which is not an https address.',
+              );
+            }
+          }
+          break;
+        }
         // Build 257: a Before you start card needs its note.
         if (kind == LearnerExerciseKind.roundIntro) {
           if (f.introText.trim().isEmpty) {

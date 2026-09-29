@@ -39,6 +39,7 @@ only in preset or editor metadata are semantically equal.
 | 7 (Revision 6) | Done: support states at runtime (A.6: `Exercise.runtimeSupport`, practice Rounds skip, Stories and the Preview show a card, the Duel excludes, `EXERCISE_NOT_EXECUTABLE` and `ROUND_NOT_COMPLETABLE`, the import review count), the stand-alone `FlowEngine` (A.7; not wired to playback), interoperability on canonical semantics (`CanonicalConfiguration`, presets as hints, `NormalizedImportExercise`, `CanonicalExerciseImport`), the capability description (`docs/capabilities_v12.json`, `tools/export_capabilities.dart`, the Python tools reading it), the end-to-end acceptance scenario. Adventures and spoken exercises are parked. |
 | 8 (Revision 7) | Done: the Assign runtime (groups, slots, gaps by tapping; `ASSIGN_STRUCTURE_REQUIRED`; the presets Sort into groups and Fill the slots since the same-version follow-up), the Laboratory's Assign Lesson (126 examples after the follow-up) and the test-only future fixture written by the same generator (Speak, Ink, Submit, a Story ending on speech, a branching Story), the negative and semantic-equality tests, the final verification. The redesign is complete. |
 | Build 257 (Revision 0) | Done: interactive presentation cards, first slice: the presentation option `guidebookButton` and the **Before you start** card (a presentation whose text element has role `intro`; preset `before_you_start`; `LearnerExerciseKind.roundIntro`), shown on its own page before the Round starts, never a step and never in Review; the v11 converter turns `lesson_intro` notes into cards and v12 shows no other introduction. |
+| Build 258 (Revision 0) | Done: Page cards, model and learner display (`docs/258_PAGE_CARD_PLAN.md`): a presentation whose elements have role `block`; element attributes `textStyle`, `align`, `color`, `size`, `readAloud` and the element type `link` with `url` (`pageElementAttributeTypes`, `elementAttributes` in `docs/capabilities_v12.json`); inline marks `**bold**` and `*italic*`; the Page renderer; `PAGE_EMPTY`, `PAGE_MARK_UNMATCHED`, `PAGE_LINK_INVALID`; a Course with a Page records `minimumAppBuild` 258000. |
 
 ## The nine primitives
 
@@ -442,7 +443,14 @@ are preserved verbatim and never read.
   image), `text`, `asset`, `speaker` and `sharedImageSource`, and gain
   `language` (`source` | `target`, text), `playback` (`automatic` | `manual`,
   audio, default manual) and `required` (boolean, audio, default true).
-  Defaults are omitted.
+  Defaults are omitted. Build 258 (Page blocks, role `block`): `textStyle`
+  (`heading1` | `heading2` | `paragraph` | `quote` | `bulleted` | `numbered`,
+  text), `align` (`start` | `center` | `end`, text, image and link;
+  `justify`, text only), `color` (`default` | `accent` | `red` | `green` |
+  `blue` | `grey`, text), `size` (`small` | `medium` | `large` | `full`,
+  image), `readAloud` (boolean, text) and the element type `link` with
+  `url` (an https address; the label is `text`). An attribute on the wrong
+  element type or an unknown value is a format error.
 - `items` carry `id`, `content` and, for Match, `side` (`left` | `right`).
 - `targets` carry `id` and optional `reveal` (`firstGrapheme`) or `region`
   (`{x, y, width, height}`, fractions of the exercise's image).

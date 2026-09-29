@@ -1,12 +1,16 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/rendering.dart' show RenderAbstractViewport;
 import '../services/course_language_resolver.dart';
 import '../services/first_letter_answer_service.dart';
 import '../widgets/course_media_image.dart';
 import '../widgets/exercise_mascot.dart';
 import '../widgets/exercise_prompt_panels.dart';
+import '../services/inline_marks.dart';
+import '../services/page_blocks.dart';
+import '../widgets/page_card.dart';
 import '../widgets/portable_exercise_image.dart';
 import '../services/beta_lifecycle_service.dart';
 import '../widgets/beta_expired_view.dart';
@@ -32,6 +36,11 @@ import '../services/learner_mascots.dart';
 import 'guidebook_screen.dart';
 
 class RoundScreen extends StatefulWidget {
+  /// Opens a Page link in the browser (Build 258). A test seam: widget
+  /// tests replace it; the app never downloads or plays video itself.
+  static Future<bool> Function(Uri url) openLink = (url) =>
+      launchUrl(url, mode: LaunchMode.externalApplication);
+
   final Course course;
   final Lesson lesson;
   final LearningRound round;
@@ -443,6 +452,8 @@ class _RoundScreenState extends State<RoundScreen> {
           final neverSkipped =
               kind == LearnerExerciseKind.dialogueLine ||
               kind == LearnerExerciseKind.storyCover ||
+              // Build 258: a Page is read; its audio is optional.
+              kind == LearnerExerciseKind.page ||
               (flow != null &&
                   exercise.primitive == ExercisePrimitive.presentation);
           if (neverSkipped) {
@@ -3059,6 +3070,83 @@ class _RoundScreenState extends State<RoundScreen> {
     _next();
   }
 
+  /// A Page (Build 258): its blocks, then Continue. Read-aloud and audio
+  /// blocks follow the learner's Audio Settings; links open in the browser.
+  Widget _pageExercise(Exercise ex) {
+    final blocks = _features.pageBlocks;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        PageCardView(
+          blocks: blocks,
+          background: _exercisePanelColor,
+          pictureBuilder: (picture, width) => picture.asset.startsWith('media:')
+              ? CourseMediaImage(
+                  courseId: widget.course.courseId,
+                  asset: picture.asset,
+                  width: width,
+                  // Decode at the size shown (the pixel size of a Course
+                  // picture is not bounded by its file size).
+                  cacheWidth: 1024,
+                  semanticLabel: picture.text.isEmpty ? null : picture.text,
+                  missing: _missingImageNotice(picture.asset),
+                )
+              : PortableExerciseImage(asset: picture.asset, width: width),
+          onSpeak: _optionalAudioEnabled ? _speakBlock : null,
+          onOpenLink: (url) => _openPageLink(url),
+        ),
+        const SizedBox(height: 16),
+        FilledButton(
+          key: const Key('page-continue'),
+          onPressed: _answered ? null : _continueLine,
+          child: const Text('Continue'),
+        ),
+      ],
+    );
+  }
+
+  /// Reads a Page's text block (without its marks) or plays its audio
+  /// block, in the block's language.
+  Future<void> _speakBlock(PromptElement block) async {
+    final text = block.isText
+        ? block.text
+              .split('\n')
+              .map(InlineMarks.plain)
+              .where((line) => line.trim().isNotEmpty)
+              .join('\n')
+        : block.text;
+    if (text.trim().isEmpty) return;
+    final ok = await _playCourseAudio(text, language: block.language);
+    if (!ok && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          duration: const Duration(seconds: 8),
+          content: Text(_audioFailureDescription),
+        ),
+      );
+    }
+  }
+
+  Future<void> _openPageLink(String url) async {
+    final uri = Uri.tryParse(url);
+    var opened = false;
+    if (uri != null && PageBlocks.isAcceptableLink(url)) {
+      try {
+        opened = await RoundScreen.openLink(uri);
+      } catch (_) {
+        opened = false;
+      }
+    }
+    if (!opened && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          duration: Duration(seconds: 8),
+          content: Text('The link could not be opened.'),
+        ),
+      );
+    }
+  }
+
   /// A Story cover (Build 256 Revision 5): the Story's title, the cover
   /// picture and an optional title line, then Continue.
   Widget _storyCoverExercise(Exercise ex) {
@@ -3550,6 +3638,7 @@ class _RoundScreenState extends State<RoundScreen> {
         if (f.kind == LearnerExerciseKind.storyCover) {
           return _storyCoverExercise(ex);
         }
+        if (f.kind == LearnerExerciseKind.page) return _pageExercise(ex);
         return _flashcardExercise(ex);
       case ExercisePrimitive.assign:
         return _assignExercise(ex);
@@ -4118,6 +4207,7 @@ class _RoundScreenState extends State<RoundScreen> {
               // heading nor instruction (Build 256 Revision 6).
               if (ExerciseFeatures(ex).kind !=
                       LearnerExerciseKind.dialogueLine &&
+                  ExerciseFeatures(ex).kind != LearnerExerciseKind.page &&
                   ex.isExecutable) ...[
                 Text(
                   ExerciseCopyService.typeLabel(
@@ -4132,7 +4222,9 @@ class _RoundScreenState extends State<RoundScreen> {
                 ),
                 const SizedBox(height: 4),
               ],
-              if (ex.isExecutable)
+              // A Page has no instruction line either (Build 258).
+              if (ex.isExecutable &&
+                  ExerciseFeatures(ex).kind != LearnerExerciseKind.page)
                 _withMascot(
                   _promptAsInstruction
                       ? ExerciseMascotAnchor.prompt

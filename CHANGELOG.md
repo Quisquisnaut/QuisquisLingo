@@ -1,3 +1,38 @@
+# 2.0.58 (Build 258, Revision 0) - Page cards: model and learner display - 2026-09-29
+
+The first revision of textbook-like **Page** cards, planned and approved
+on 29 September 2026 (`docs/258_PAGE_CARD_PLAN.md`). A Page is a card the
+learner reads and continues, drawn from formatted blocks; it is never
+scored. This revision adds the data model, the learner display and the
+Audit; the Page form in the editor comes in Revision 2.
+
+- **Blocks:** headings (two levels), paragraphs, quotes, bulleted and
+  numbered lists, pictures, audio and links. Body text takes `**bold**` and
+  `*italic*`; text aligns start, center, end or justified; a named colour
+  palette (default, accent, red, green, blue, grey) stays readable in light
+  and dark themes; pictures come small, medium, large or full width with a
+  caption; a text block may offer a read-aloud button (off by default).
+- **Video links:** a link block opens an https address in the browser
+  ("Watch the video"); QQL never downloads or plays video itself.
+- **In a Round:** a Page shows no heading or instruction line, is never
+  skipped when audio is off (its read-aloud and audio buttons then hide)
+  and ends with Continue.
+- **No new primitive:** the presentation primitive's elements gain the
+  attributes `textStyle`, `align`, `color`, `size`, `readAloud` and the
+  element type `link`; the capability description and the Python tools
+  know them.
+- **Earlier builds:** a Course with a Page records `minimumAppBuild:
+  258000` when saved, so an earlier build refuses it instead of showing the
+  pages unformatted.
+- **Audit (113 rules):** `PAGE_EMPTY` and `PAGE_LINK_INVALID` (Errors),
+  `PAGE_MARK_UNMATCHED` (Warning).
+- **Fix:** the Generic Primitive Editor no longer drops element attributes
+  it has no field for when an element is edited (a Dialogue line's speaker
+  was lost this way).
+
+Scoring, progression, Review, the Duel, learner data and the Course format
+version are unchanged. Beta expiry `2026-10-29 23:59:59` local time.
+
 # 2.0.57 (Build 257, Revision 0) - Before you start cards - 2026-09-29
 
 The note a learner reads before a Round starts ("Before you start") is now

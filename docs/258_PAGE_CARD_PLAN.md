@@ -211,9 +211,19 @@ desktop?"
   whose earlier builds were never distributed, so legacy compatibility is
   not a concern.
 - **Q10 Share, save, email, print (open):** which actions, and may QQL add
-  the `pdf` (pure Dart) and `printing` (native) packages? See 2.9.
-- **Q11 Rights (open):** a Course setting "Learners may share, save and
-  print pages"; its default for new Courses and for the bundled ones.
+  the `pdf` (pure Dart) and `printing` (native) packages? Claude's
+  suggestion (29 September): add `pdf`, skip `printing` for now (its
+  Windows and Linux builds are believed to download pdfium at build time;
+  to verify), and print in two steps (desktop: save the PDF and open it in
+  the default viewer through `url_launcher`; iOS: Print in the share
+  sheet; Android: share or save, then print from a viewer). See 2.9.
+- **Q11 Rights (decided, 29 September):** a Course setting "Learners may
+  share, save and print pages", **on by default**; off hides the buttons;
+  every exported PDF carries a footer with the Course title, rights holder
+  and licence; a signed Publisher Course keeps its publisher's choice; the
+  setting is a courtesy, not protection (a screenshot is always possible)
+  and is never inferred from the licence text. Claude's default the owner
+  may override: the bundled demos follow the default (on).
 - **Q12 Export folder (open):** Save's Quick Export folder `Export/Pages`
   (added to reset and Inventory).
 
@@ -230,3 +240,9 @@ One revision per session (`2.0.58+2580NN`), as in Builds 256 and 257:
 3. **Video links and the Laboratory:** the link block, its Audit, the
    Laboratory Page example and the presentation baseline.
 4. **Share, save, email, print** (section 2.9), after Q10–Q12.
+
+Re-sequenced at the start of Build 258 (Claude, 29 September): Revision 0
+is item 1 without the picture limit; Revision 1 is the 300 KB picture limit
+(it touches the media store, the image profiles, the Shared Image Library,
+Image Banks, packages and about a dozen tests); Revisions 2, 3 and 4 are
+items 2, 3 and 4.

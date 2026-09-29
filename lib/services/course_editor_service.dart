@@ -13,6 +13,7 @@ import 'profile_service.dart';
 import 'authoring_duplication_service.dart';
 import 'course_access_policy.dart';
 import 'course_media_store.dart';
+import 'page_blocks.dart';
 import 'course_package_service.dart';
 import 'course_received_service.dart';
 import 'team_service.dart';
@@ -928,6 +929,8 @@ class CourseEditorService {
     workingCourse = await _materializeDetachedConstructorIdentity(
       workingCourse,
     );
+    // Build 258: a Course with a Page needs a build that draws Pages.
+    workingCourse = PageBlocks.withMinimumAppBuild(workingCourse);
     if (!isNewCourse) Course.fromJson(workingCourse.toJson());
     if (originalCourse.originType.isOfficial ||
         workingCourse.originType.isOfficial) {
