@@ -1,6 +1,8 @@
 # Plan: textbook-like Page cards (read-only, waiting for the go-ahead)
 
-Status: **decided except Q9, not implemented**. Written on 29 September 2026 after
+Status: **approved** (owner, 29 September 2026: "Agree to all"); Build 258
+implements it. Share, save, email and print (section 2.9) are proposed
+and wait for Q10–Q12. Written on 29 September 2026 after
 Build 257 Revision 0 (Before you start cards), at the owner's request: "a
 presentation card with basic formatting style like header, bold, italic,
 aligned, centered, for texts and images; options for streaming a video; a
@@ -159,6 +161,35 @@ pictures.
 - Unchanged: scoring (a page is never scored), progression, the Duel,
   Review selection, learner data, Course Model v12, package format 1.
 
+### 2.9 Share, save, email and print (proposed, Q10–Q12)
+
+Asked by the owner on 29 September: "could a Page have a
+share/print/save/email button (on mobile) and save/print/email on
+desktop?"
+
+- `share_plus` is already a dependency (the Debug screen shares the Crash
+  Log). Share opens the system sheet on Android and iOS (email, messaging,
+  Files or Drive, Print on iOS) and the share panels on Windows and macOS
+  (Mail, OneNote, AirDrop); Linux can share text only (`mailto:`, no
+  attachment).
+- **What is shared or saved:** a PDF made from the page as the app draws
+  it (one image per A4 page, so every script, picture and format looks
+  as on screen, no fonts to bundle; the text is not selectable), with a
+  footer naming the Course, its licence and QuisquisLingo. Needs the `pdf`
+  package (pure Dart).
+- **Save:** Save as… (the existing dialogs) and a Quick Export folder
+  `Export/Pages` (a new user folder: `AppResetService`, `InventoryService`
+  and `docs/239_RESET_STORAGE_INVENTORY.md`).
+- **Email:** through Share (mobile, Windows, macOS); on Linux a `mailto:`
+  with the page's text.
+- **Print:** the system print dialog through the `printing` package
+  (native code on every platform); without it, the learner prints the
+  saved PDF.
+- **Rights:** a Course setting "Learners may share, save and print pages";
+  off hides the buttons. Bundled Courses are "All rights reserved".
+- Delivered as a fourth revision after the three below, once Q10–Q12 are
+  answered.
+
 ## 3. Owner decisions (29 September 2026)
 
 - **Q0 Primitive:** asked whether a Page needs a new primitive or new
@@ -175,10 +206,16 @@ pictures.
   in a later build.
 - **Q7 Read-aloud:** optional per text block, off by default.
 - **Q8 Note card:** kept as it is.
-- **Q9 Earlier builds (open):** raise `minimumAppBuild` automatically when
-  a Course contains a Page, so earlier builds refuse it instead of dropping
-  its formatting (proposed), or accept that earlier builds show pages
-  unformatted?
+- **Q9 Earlier builds:** raise `minimumAppBuild` automatically when a
+  Course contains a Page (agreed). The owner added: QQL is a brand-new Beta
+  whose earlier builds were never distributed, so legacy compatibility is
+  not a concern.
+- **Q10 Share, save, email, print (open):** which actions, and may QQL add
+  the `pdf` (pure Dart) and `printing` (native) packages? See 2.9.
+- **Q11 Rights (open):** a Course setting "Learners may share, save and
+  print pages"; its default for new Courses and for the bundled ones.
+- **Q12 Export folder (open):** Save's Quick Export folder `Export/Pages`
+  (added to reset and Inventory).
 
 ## 4. Proposed delivery (after the go-ahead)
 
@@ -192,3 +229,4 @@ One revision per session (`2.0.58+2580NN`), as in Builds 256 and 257:
    Search, Help.
 3. **Video links and the Laboratory:** the link block, its Audit, the
    Laboratory Page example and the presentation baseline.
+4. **Share, save, email, print** (section 2.9), after Q10–Q12.
