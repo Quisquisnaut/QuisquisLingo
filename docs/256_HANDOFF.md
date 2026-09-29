@@ -15,6 +15,12 @@ open problems and the next step.
 
 ## State (29 September 2026, 12:30)
 
+- **Merged into main through PR #28** (merge commit `2244aa3`, 10:44 UTC,
+  on the owner's request): the Revision 7 third and fourth follow-ups and
+  Revision 8. The remote branch `claude/256-revision8-help-qa` was deleted
+  and local `main` fast-forwarded to `origin/main`; this note is a local
+  commit on main, not pushed, like the PR #26 and #27 notes before it.
+
 - **Build 256 Revision 8 (`2.0.56+256008`) committed as `7f1b013`** on local
   `main` (not pushed): Editor Help as questions and answers (66 questions,
   7 topics, tap to open, a search ignoring capitals and accents, EN/IT/ES,
