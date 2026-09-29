@@ -13,7 +13,7 @@ narrative of Revision 4 is gone (the evidence lives in
 `docs/256_VALIDATION.md`); what follows is state, decisions, requirements,
 open problems and the next step.
 
-## State (29 September 2026, 08:33)
+## State (29 September 2026, 08:35)
 
 - **Build 256 is complete and reviewed twice: eight sessions, Revisions
   0–7, committed on `claude/256-exercise-architecture`. Revision 7
@@ -30,9 +30,12 @@ open problems and the next step.
   guessed "opposite" instruction; Flashcard: Pronunciation TTS (if
   different) back as an optional field; Missing letters' field label; the
   switch Play as a sequence) is `2c124a3` (suite 3242 passed, 1 skipped,
-  0 failed, 08:03–08:32). Push, pull request and merge into main follow on
-  the owner's request of 29 September; the remote branch is deleted after
-  the merge and the local main updated. APK only on request. Parked by the
+  0 failed, 08:03–08:32). On the owner's request of 29 September the
+  branch was pushed and merged into main through PR #27 (merge commit
+  `f1c2e03`, 06:34 UTC), the remote branch deleted, the local main updated
+  (the Build 255 note `611a1a1` is an ancestor of the merge, so main equals
+  origin/main); this note is a local commit on main, not pushed, like the
+  PR #26 note before it. APK only on request. Parked by the
   owner: Adventures (the F block and the video block, see Next step) and
   spoken exercises. Open owner items: the Story Save rule (not blocked
   without a title block or a line), Label the picture (greyed; Assign
