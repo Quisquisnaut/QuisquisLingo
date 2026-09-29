@@ -4,12 +4,20 @@ Resume from this file alone. Build 256's handoff (`docs/256_HANDOFF.md`)
 holds the process rules (version pins, focused batches, the complete suite
 under the keep-awake wrapper, commit staging); they apply unchanged.
 
-## State (29 September 2026, 15:22)
+## State (29 September 2026, 16:19)
 
-- Branch `claude/257-before-you-start-card`, created from
-  `claude/256-revision9-exercise-mascots` at `158d18a` (Revision 9 and its
-  handoff, not pushed). Work in progress, nothing committed yet.
-- Target version `2.0.57+257000`, **QQL Build 257, Revision 0**.
+- **Build 257 Revision 0 (`2.0.57+257000`) committed as `5e0074b`** on
+  local branch `claude/257-before-you-start-card` (from `158d18a`, the
+  Build 256 Revision 9 handoff; not pushed). Complete suite 3307 passed,
+  1 skipped, 0 failed (15:50–16:18).
+- **Next: the owner's answers to the read-only plan
+  `docs/258_PAGE_CARD_PLAN.md`** (textbook-like Page cards: headings, bold,
+  italic, alignment for texts and images, video, a dedicated preset),
+  asked for on 29 September during this revision. Nothing of it is
+  implemented; implement only after the owner answers its questions
+  (Q1–Q8) and says to go ahead.
+- Corrections to Revision 0 after the owner's review of a build are a
+  same-version follow-up commit.
 
 ## Owner decisions (29 September 2026, conversation)
 
@@ -36,7 +44,7 @@ This revises the 29 September Build 256 decision recorded in
 `docs/256_HANDOFF.md` (the card stayed Round content, no interactive
 presentation primitive).
 
-## Design (implemented in the working tree)
+## Design (implemented, commit 5e0074b)
 
 - No new primitive: the `presentation` primitive gains the boolean option
   **`guidebookButton`** (default false; `OptionKey.guidebookButton`,
@@ -92,11 +100,14 @@ presentation primitive).
 - Owner request during the run (29 September): after the commit and the
   handoff, prepare a **read-only plan** for textbook-like page cards
   (headings, bold, italic, alignment for texts and images, video, a
-  dedicated preset). Draft in this session's scratchpad
-  (`258_PAGE_CARD_PLAN.md`), to become `docs/258_PAGE_CARD_PLAN.md`.
+  dedicated preset): `docs/258_PAGE_CARD_PLAN.md`.
 
-## Remaining
+## Known limits
 
-- Batch 2 green, then the complete suite once, the validation results,
-  one local commit "Build 257 Revision 0: Before you start cards", this
-  handoff with the hash, the sound.
+- Stored v12 Courses keep any text `lesson_intro` Content untouched but no
+  longer show it (clean cut); the Publisher test fixtures (signed) and the
+  Korean v12 test fixture still carry such notes.
+- The Round editor's "N exercises" counts include a card (it is an item of
+  the list); the learner-facing counts do not.
+- The Before you start page's texts stay English UI ("Before you start",
+  "Continue to Round", "Open Guidebook"), as before.
