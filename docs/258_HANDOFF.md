@@ -4,19 +4,23 @@ Resume from this file alone. Plan (approved by the owner on 29 September
 2026): `docs/258_PAGE_CARD_PLAN.md`. Process rules: `docs/256_HANDOFF.md`
 ("Requirements and process"). Previous build: `docs/257_HANDOFF.md`.
 
-## State (29 September 2026, 21:19)
+## State (29 September 2026, 21:49)
 
-- Build 258 Revision 0 `19de25b`, Revision 1 `1323eb7`, Revision 2
-  `3224523`. Not pushed.
-- **Revision 3 (`2.0.58+258003`, the Laboratory's Page Lesson) in the
-  working tree**: generator, asset, coverage doc, test updates, two new
-  presentation records (inserted with `baseline_add.py` in this session's
-  scratchpad; the old rebuild script rewrote the whole file and misread
-  keys containing true or false), version and docs done; analyze clean;
-  focused 550 passed. The complete suite runs next (started 21:19).
-- After the commit: **Revision 4 (share, save, email, print)** waits for
-  the owner's answer to Q10 (`pdf` yes, `printing` no, print in two
-  steps?). Rights (Q11) are decided: a Course setting, on by default.
+- Committed on local branch `claude/258-page-cards` (not pushed):
+  Revision 0 `19de25b` (Page model and learner display), Revision 1
+  `1323eb7` (300 KB Course pictures), Revision 2 `3224523` (the Page
+  form), **Revision 3 `fa368cc` (`2.0.58+258003`, the Laboratory's Page
+  Lesson)**; last complete suite 3335 passed, 1 skipped, 0 failed
+  (21:19–21:49).
+- **Next: Revision 4 (share, save, email, print) waits for the owner's
+  answer to Q10**: add `pdf` (pure Dart), skip `printing` and print in two
+  steps (desktop: save the PDF and open it in the default viewer; iOS: the
+  share sheet's Print; Android: share or save, then print from a viewer)?
+  Q11 (rights) is decided: a Course setting "Learners may share, save and
+  print pages", on by default, a credits footer, a Publisher Course keeps
+  its publisher's choice; bundled demos follow the default. Plan 2.9.
+- Corrections after the owner's review of a build are same-version
+  follow-ups of the revision they concern.
 - Do not run `dart format` on files that predate the formatter: in
   Revision 1 it added unrelated whitespace churn to seven files
   (`custom_course_transfer_service.dart`, `exercise_image_service.dart`,
