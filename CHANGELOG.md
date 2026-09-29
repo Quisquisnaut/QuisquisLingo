@@ -1,3 +1,21 @@
+# 2.0.58 (Build 258, Revision 3) - Pages in the Exercise Laboratory - 2026-09-29
+
+The Exercise Laboratory demo gains an eighth Lesson, **Page**, with two
+example Pages to try and to study in Course Studio.
+
+- **A textbook page:** a centred title, a justified paragraph with bold and
+  italic, a quote read aloud, a second heading, a bulleted and a numbered
+  list, and a tip in the accent colour aligned to the end.
+- **A page with media:** a blue heading, a large picture with its caption,
+  a Listen button, red, green and grey text, and a video link that opens
+  in the browser.
+- The Laboratory records `minimumAppBuild: 258000`, as every Course with a
+  Page does; its presentation baseline gains the two examples and no
+  existing record changed.
+
+Scoring, progression, learner data and the Course format are unchanged.
+Beta expiry `2026-10-29 23:59:59` local time.
+
 # 2.0.58 (Build 258, Revision 2) - The Page form - 2026-09-29
 
 Authors can now make textbook-like **Page** cards in the Course Editor:

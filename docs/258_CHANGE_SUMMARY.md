@@ -4,6 +4,30 @@ Build 258 delivers textbook-like **Page** cards, planned and approved on 29
 September 2026 in `258_PAGE_CARD_PLAN.md` (owner decisions in its section
 3). Evidence: `258_VALIDATION.md`; handoff: `258_HANDOFF.md`.
 
+## Revision 3 (2.0.58+258003, 29 September 2026): Pages in the Exercise Laboratory
+
+- `tools/qql_course_v12.py`: `page_exercise(blocks, updated_at=)` writes a
+  Page with its block keys in the order Dart's `PromptElement.toJson`
+  writes them.
+- `tools/generate_exercise_laboratory_254.py`: `Laboratory.page` and an
+  eighth, canonical-only Lesson **Page** (appended after the v11
+  conversion like Assign: the Dart v11 converter refuses canonical
+  exercises inside v11 Lessons) with `qql_lab254_page_textbook` (headings,
+  marks, justify, a quote read aloud, both lists, an accent tip) and
+  `qql_lab254_page_media` (a large captioned picture, a Listen button, red,
+  green and grey text, a video link to `https://www.example.org/…`). The
+  Laboratory records `minimumAppBuild: 258000`; the future fixture pops it
+  (it has no Page). Regenerated: the asset, `docs/254_LABORATORY_COVERAGE.md`
+  (eight Lessons, 124 examples) and the future fixture's checksum.
+- `exercise_laboratory_254_test`: eight Lessons, 124 examples, the Page
+  Lesson skipped by the primitive-name check, `page-continue` in `_answer`,
+  `pageBlocks` in `_author`, no coverage exception for `page`.
+- `test/support/laboratory_presentation_254.dart`: the two new records,
+  inserted in place; a record run compared all 124 records with the old
+  baseline: the 122 existing ones are unchanged. (The Build 256 rebuild
+  script rewrote the whole file and misread keys containing true or false;
+  this revision inserts records instead.)
+
 ## Revision 2 (2.0.58+258002, 29 September 2026): the Page form
 
 - Preset **Page** (`page`, Cards and notes, canonical-only recipe): the

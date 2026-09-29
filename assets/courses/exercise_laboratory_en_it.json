@@ -38,7 +38,7 @@
   ],
   "license": "All rights reserved",
   "derivativeWorksPolicy": "allowed",
-  "courseDescription": "An English-to-Italian laboratory for trying every current Exercise type and its meaningful authoring options. Five Lessons group Select, Input, Arrange, Match and Presentation; a sixth Lesson is a Story and a seventh holds Assign (Sort into groups, Fill the slots). Inspect or Fork the Course in Course Studio to study how the exercises are authored. Enable Audio Exercises and Text-to-speech to include all listening and pronunciation examples; ordinary lesson progression remains in effect.",
+  "courseDescription": "An English-to-Italian laboratory for trying every current Exercise type and its meaningful authoring options. Five Lessons group Select, Input, Arrange, Match and Presentation; a sixth Lesson is a Story, a seventh holds Assign (Sort into groups, Fill the slots) and an eighth shows Pages. Inspect or Fork the Course in Course Studio to study how the exercises are authored. Enable Audio Exercises and Text-to-speech to include all listening and pronunciation examples; ordinary lesson progression remains in effect.",
   "textDirection": "ltr",
   "temporarySample": true,
   "flagCode": "IT",
@@ -9139,6 +9139,196 @@
         "id": "qql_lab254_assign_duel",
         "title": "Assign Duel"
       }
+    },
+    {
+      "lessonId": "qql_lab254_page",
+      "publicationState": "published",
+      "updatedAt": "2026-09-25T00:00:00.000Z",
+      "title": "Page",
+      "section": false,
+      "guidebook": {
+        "content": [
+          {
+            "id": "qql_lab254_page_guide",
+            "publicationState": "published",
+            "kind": "explanation",
+            "required": false,
+            "role": "overview",
+            "text": "A Page is a card the learner reads and continues (Build 258): headings, paragraphs with bold and italic, quotes, lists, pictures, audio and video links, each with its alignment and a colour from a palette that stays readable in light and dark themes. Nothing is scored. The Page preset authors these examples; a video link opens in the browser."
+          }
+        ]
+      },
+      "rounds": [
+        {
+          "id": "qql_lab254_round_pages",
+          "publicationState": "published",
+          "updatedAt": "2026-09-25T00:00:00.000Z",
+          "title": "Pages",
+          "visualType": "generic",
+          "content": [
+            {
+              "id": "qql_lab254_intro_pages",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": false,
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "Read each page and press Continue. The second page has a picture, a Listen button and a video link that opens in your browser."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
+            },
+            {
+              "id": "qql_lab254_page_textbook",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "authoringMetadata": {
+                "presetId": "page"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "prompt": [
+                  {
+                    "role": "block",
+                    "type": "text",
+                    "text": "Il caffè in Italia",
+                    "textStyle": "heading1",
+                    "align": "center"
+                  },
+                  {
+                    "role": "block",
+                    "type": "text",
+                    "text": "In Italy a **caffè** is an espresso. People often drink it *standing* at the bar, in a few sips.",
+                    "align": "justify"
+                  },
+                  {
+                    "role": "block",
+                    "type": "text",
+                    "text": "Un caffè, per favore.",
+                    "language": "target",
+                    "textStyle": "quote",
+                    "align": "center",
+                    "readAloud": true
+                  },
+                  {
+                    "role": "block",
+                    "type": "text",
+                    "text": "Coffee words",
+                    "textStyle": "heading2"
+                  },
+                  {
+                    "role": "block",
+                    "type": "text",
+                    "text": "**espresso**: a small, strong coffee\n**cappuccino**: coffee with foamed milk\n**macchiato**: espresso with a drop of milk",
+                    "textStyle": "bulleted"
+                  },
+                  {
+                    "role": "block",
+                    "type": "text",
+                    "text": "Say *buongiorno*.\nOrder at the counter.\nPay at the till.",
+                    "textStyle": "numbered"
+                  },
+                  {
+                    "role": "block",
+                    "type": "text",
+                    "text": "Tip: a cappuccino is a morning drink.",
+                    "align": "end",
+                    "color": "accent"
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
+            },
+            {
+              "id": "qql_lab254_page_media",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "authoringMetadata": {
+                "presetId": "page"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "prompt": [
+                  {
+                    "role": "block",
+                    "type": "text",
+                    "text": "Al bar",
+                    "textStyle": "heading2",
+                    "color": "blue"
+                  },
+                  {
+                    "role": "block",
+                    "type": "image",
+                    "text": "A cup of coffee on a bar counter",
+                    "asset": "assets/exercise_images/coffee.webp",
+                    "size": "large"
+                  },
+                  {
+                    "role": "block",
+                    "type": "audio",
+                    "text": "Buongiorno! Un caffè, per favore.",
+                    "language": "target",
+                    "required": false
+                  },
+                  {
+                    "role": "block",
+                    "type": "text",
+                    "text": "Careful: *un caffè* is never a large mug of coffee.",
+                    "color": "red"
+                  },
+                  {
+                    "role": "block",
+                    "type": "text",
+                    "text": "**Grazie!** is always welcome.",
+                    "align": "center",
+                    "color": "green"
+                  },
+                  {
+                    "role": "block",
+                    "type": "link",
+                    "text": "Watch how to order a coffee",
+                    "align": "center",
+                    "url": "https://www.example.org/qql/ordering-coffee"
+                  },
+                  {
+                    "role": "block",
+                    "type": "text",
+                    "text": "The video opens in your browser; QuisquisLingo does not play it.",
+                    "color": "grey"
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "duel": {
+        "id": "qql_lab254_page_duel",
+        "title": "Page Duel"
+      }
     }
   ],
   "storyNarrator": {
@@ -9161,5 +9351,6 @@
       "voice": "male"
     }
   ],
-  "officialChecksum": "5fbae76c37f490dcc4071534ef08e098b62a193a636e7d3aa8b84283a21f09a8"
+  "minimumAppBuild": 258000,
+  "officialChecksum": "9dcfa9ac81eea5aacbbbebe4698ef3e0381ac6a48273e112056482699a7a2c3e"
 }

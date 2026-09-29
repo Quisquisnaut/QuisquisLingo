@@ -522,6 +522,25 @@ def before_you_start(text: str, *, updated_at: str, guidebook_button: bool = Fal
     return exercise
 
 
+# Build 258: a Page's blocks in the key order Dart's PromptElement.toJson
+# writes, so the official checksum computed here equals Dart's.
+_BLOCK_KEYS = ("role", "type", "text", "asset", "language", "playback", "required",
+               "textStyle", "align", "color", "size", "readAloud", "url")
+
+
+def page_exercise(blocks: list[dict], *, updated_at: str) -> dict:
+    """A Page (Build 258): a presentation whose prompt elements are blocks
+    (role block) with their Page attributes."""
+    prompt = []
+    for block in blocks:
+        element = {"role": "block", **block}
+        unknown = set(element) - set(_BLOCK_KEYS)
+        assert not unknown, unknown
+        prompt.append({key: element[key] for key in _BLOCK_KEYS if key in element})
+    return {"updatedAt": updated_at, "primitive": "presentation", "prompt": prompt,
+            "evaluation": {"mode": "none"}}
+
+
 def becomes_exercise(content: dict) -> bool:
     """Whether a v11 Content is an exercise once converted: an exercise, a
     presentation or, since Build 257, a Lesson introduction (a Before you

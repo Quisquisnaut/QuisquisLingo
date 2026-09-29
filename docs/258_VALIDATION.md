@@ -3,6 +3,22 @@
 Evidence for each Build 258 revision. Process: `docs/256_HANDOFF.md`
 ("Requirements and process").
 
+## Revision 3 (2.0.58+258003, 29 September 2026): Pages in the Exercise Laboratory
+
+- Generators: the Laboratory 8 Lessons, 28 Rounds, 124 examples, `--check`
+  reproducible; Edge Case and Piedmontese `--check` unchanged;
+  `tools/validate_courses.py` passes.
+- Record run (`QQL_RECORD_PRESENTATION`): 124 records; compared with the
+  baseline by a word-boundary parser: 122 unchanged, 2 new (the Pages).
+  The run itself failed twice ("authoring preserves" the two Pages) until
+  `_author` passed `pageBlocks`.
+- Focused (19 files reading the Laboratory, incl. the converter parity,
+  bundled Courses, demo package round trip, runtime kinds, mascots): 550
+  passed.
+- `flutter analyze --no-pub`: no issues.
+- Complete suite (21:19–21:49, `--concurrency=1`, keep-awake wrapper):
+  **3335 passed, 1 skipped, 0 failed**.
+
 ## Revision 2 (2.0.58+258002, 29 September 2026): the Page form
 
 - New: `test/page_form_258_test.dart` (5): the preset's registration,

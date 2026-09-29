@@ -5,14 +5,14 @@ This document and the JSON are generated together by `tools/generate_exercise_la
 - Course: **Exercise Laboratory**, `course_50d68435-d2c2-4b63-9a0b-b23161357f1d`.
 - Direction: English (`en-GB`) → Italian (`it-IT`); TTS `it-IT`.
 - Model 11, official Course version 1.0.0; all Lessons, Rounds and Content are Published.
-- Exactly seven Lessons (six primitives and a Story), 27 Rounds and 122 runnable examples across all 46 authoring presets (the Assign Lesson uses the presets Sort into groups and Fill the slots since the Build 256 Revision 7 follow-up).
+- Exactly eight Lessons (six primitives, a Story and Pages), 28 Rounds and 124 runnable examples across all 47 authoring presets (the Assign Lesson uses the presets Sort into groups and Fill the slots since the Build 256 Revision 7 follow-up).
 - Course rights explicitly allow Fork, so the bundled original can be inspected and a derivative can use the ordinary authoring/confirm/export/import paths.
 - Create Duels is off: Presentation is non-evaluable and the Course is not padded to manufacture Duel pools. The required per-Lesson Duel metadata is retained.
 - This Course leaves existing Course identities, learner data and media assets unchanged.
 
 ## Source inventory and supported modes
 
-The authoring registry is `lib/models/exercise_authoring.dart`. Every one of its 46 presets has at least one example below.
+The authoring registry is `lib/models/exercise_authoring.dart`. Every one of its 47 presets has at least one example below.
 
 | Lesson | Preset | Examples |
 | --- | --- | ---: |
@@ -193,6 +193,8 @@ The suffix below follows `qql_lab254_` in the stable Content/Exercise ID. Answer
 | Assign / Groups and slots | assign_groups_three | sort_into_groups | Sort into groups; three groups, every word in one | Animals: gatto, cane; Plants: rosa, pino; Objects: tavolo, sedia |
 | Assign / Groups and slots | assign_slots | fill_the_slots | Fill the slots; one item per slot, a second placement replaces the first | … gatto: il; … casa: la |
 | Assign / Groups and slots | assign_slots_reuse | fill_the_slots | Fill the slots; a word may fill more than one slot (reuse allowed), the item stays in the bank | … cane: il; … libro: il; … casa: la |
+| Page / Pages | page_textbook | page | Page; headings, bold and italic, justify, a quote read aloud, bulleted and numbered lists, an accent colour | Continue |
+| Page / Pages | page_media | page | Page; a large picture with its caption, a Listen button, red, green and grey text, and a video link | Continue |
 
 ## Boundaries and intentionally excluded combinations
 
@@ -215,8 +217,8 @@ The suffix below follows `qql_lab254_` in the stable Content/Exercise ID. Answer
 
 1. `python -X utf8 tools/generate_exercise_laboratory_254.py --check`: deterministic JSON/checksum and coverage-document readback.
 2. `python -X utf8 tools/validate_courses.py`: Course Model structure, timestamps, stable unique IDs, references, publication and official checksum.
-3. `test/exercise_laboratory_254_test.dart` checks the actual asset's Audit and canonical model round trip, then rebuilds all 122 examples through ExerciseDraftBuilder (and ScriptRecognitionController for its image modes), comparing semantic fields and each result's model round trip. Separate preservation assertions cover Flashcard usage and usage translation. Editor route tests include `exercise_authoring_252_characterization_test.dart`, `select_editor_238_test.dart`, `arrange_gap_fill_editor_238_test.dart`, `script_recognition_226_03_test.dart` and `translation_choice_239_test.dart`.
-4. The same Lab suite completes all 122 examples through RoundScreen Preview using actual controls and grading, including repeated blocks, reusable gaps, exact multiple-selection sets and audio matching. Additional cases finish an alternate Build translation answer and a Review again/Got it cycle. Speech is stubbed only at the playback seam; these tests do not establish native voice quality or normal progression persistence.
+3. `test/exercise_laboratory_254_test.dart` checks the actual asset's Audit and canonical model round trip, then rebuilds all 124 examples through ExerciseDraftBuilder (and ScriptRecognitionController for its image modes), comparing semantic fields and each result's model round trip. Separate preservation assertions cover Flashcard usage and usage translation. Editor route tests include `exercise_authoring_252_characterization_test.dart`, `select_editor_238_test.dart`, `arrange_gap_fill_editor_238_test.dart`, `script_recognition_226_03_test.dart` and `translation_choice_239_test.dart`.
+4. The same Lab suite completes all 124 examples through RoundScreen Preview using actual controls and grading, including repeated blocks, reusable gaps, exact multiple-selection sets and audio matching. Additional cases finish an alternate Build translation answer and a Review again/Got it cycle. Speech is stubbed only at the playback seam; these tests do not establish native voice quality or normal progression persistence.
 5. Export/import of the Course through the normal ZIP and embedded-image JSON routes preserves this Course's identity, content wrappers, answers and character PNG bytes. A Fork gets a new identity through the existing rights-aware operation.
 
 These are verification seams, not a claim that commands have been run. Fresh integrated results are recorded in the Build 254 validation document.

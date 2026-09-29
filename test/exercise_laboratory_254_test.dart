@@ -105,6 +105,8 @@ Exercise _author(Exercise exercise) {
         slots: hints.slots,
         extraWords: hints.extraWords,
         slotReuse: hints.slotReuse,
+        // A Page's blocks (Build 258 Revision 3) come from decompose too.
+        pageBlocks: hints.pageBlocks,
         cardReadAloud: hints.cardReadAloud,
         prompt: canonicalOnly
             ? hints.prompt
@@ -477,6 +479,11 @@ Future<void> _answer(
     );
     return;
   }
+  if (kind == LearnerExerciseKind.page) {
+    // A Page is read and continued (Build 258); never scored.
+    await _tap(tester, find.byKey(const Key('page-continue')));
+    return;
+  }
   if (exercise.primitive == ExercisePrimitive.assign) {
     // Tap an item, then its destination (Build 256 Revision 7); gaps are
     // slots inside the text, groups and slots are bins.
@@ -678,17 +685,17 @@ void main() {
         'Presentation',
         'Story',
         'Assign',
+        // Build 258 Revision 3: Pages.
+        'Page',
       ]);
       expect(course.createDuels, isFalse);
       expect(course.derivativeWorksPolicy, DerivativeWorksPolicy.allowed);
-      expect(examples, hasLength(122));
+      expect(examples, hasLength(124));
       // The examples cover every preset but Before you start, whose card
       // opens every Round (Build 257).
       expect({
         ...examples.map((e) => e.editorTemplate).where((id) => id.isNotEmpty),
         'before_you_start',
-        // Page gets its Laboratory example in Build 258 Revision 3.
-        'page',
       }, ExercisePresetRegistry.presets.map((p) => p.id).toSet());
       for (final lesson in course.lessons) {
         expect(lesson.publicationState, PublicationState.published);
@@ -709,6 +716,8 @@ void main() {
             // The Story Lesson mixes a cover, lines and exercises of several
             // primitives (Build 256 Revision 5).
             if (lesson.title == 'Story') continue;
+            // Pages are presentations (Build 258 Revision 3).
+            if (lesson.title == 'Page') continue;
             expect(
               ExercisePresetRegistry.byId(
                 exercise.editorTemplate,
