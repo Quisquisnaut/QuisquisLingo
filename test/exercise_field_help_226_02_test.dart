@@ -122,6 +122,8 @@ void main() {
       'story_cover': ['prompt', 'image'],
       // Before you start has no picture (Build 257).
       'before_you_start': ['prompt', 'guidebookButton'],
+      // Every Page block field shares one Help entry (Build 258).
+      'page': ['blocks'],
       // The Assign presets (Build 256 Revision 7 follow-up).
       'sort_into_groups': ['question', 'groups'],
       'fill_the_slots': ['question', 'slots', 'extraWords', 'slotReuse'],

@@ -62,9 +62,10 @@ void main() {
       // belongs to the Edge Case demo; owner decision, 28 September 2026)
       // and the two Assign presets (the Laboratory's Assign Lesson shows
       // them; owner decision, 29 September 2026). Before you start has no
-      // Lesson either: its card opens every Lesson (Build 257).
-      expect(course.lessons, hasLength(presets.length - 4));
-      expect(presets, hasLength(43));
+      // Lesson either: its card opens every Lesson (Build 257). Page has
+      // none: the Laboratory shows it (Build 258).
+      expect(course.lessons, hasLength(presets.length - 5));
+      expect(presets, hasLength(44));
       final seenTypes = <String>{};
       for (final lesson in course.lessons) {
         expect(lesson.publicationState, PublicationState.published);
@@ -103,6 +104,7 @@ void main() {
           'sort_into_groups',
           'fill_the_slots',
           'before_you_start',
+          'page',
         ]),
       );
     },

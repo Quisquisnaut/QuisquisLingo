@@ -3,6 +3,22 @@
 Evidence for each Build 258 revision. Process: `docs/256_HANDOFF.md`
 ("Requirements and process").
 
+## Revision 2 (2.0.58+258002, 29 September 2026): the Page form
+
+- New: `test/page_form_258_test.dart` (5): the preset's registration,
+  Help and Search; represent, decompose and rebuild; the starter heading
+  and paragraph; the form (text, the Bold button wrapping a selection,
+  center alignment, the red swatch, the live preview, a video link refused
+  as http and accepted as https, moving a block, saving); a stored Page
+  opening all its blocks read-only.
+- Focused batch (24 files incl. the Laboratory, the field-Help tables,
+  preset and Help pins): 631 passed, 1 failed (the field-Help UI test found
+  two block fields both labelled Text); headings are labelled Heading text
+  and lists Items, one per line; rerun 59 passed.
+- `flutter analyze --no-pub`: no issues.
+- Complete suite (20:37–21:06, `--concurrency=1`, keep-awake wrapper):
+  **3328 passed, 1 skipped, 0 failed**.
+
 ## Revision 1 (2.0.58+258001, 29 September 2026): Course pictures up to 300 KB
 
 - New: `test/picture_limit_258_test.dart` (4): the one 300 KB constant and

@@ -1,3 +1,29 @@
+# 2.0.58 (Build 258, Revision 2) - The Page form - 2026-09-29
+
+Authors can now make textbook-like **Page** cards in the Course Editor:
+New Exercise, then **Page** (Cards and notes).
+
+- **Blocks:** Add block offers Heading, Paragraph, Quote or example, List,
+  Picture, Audio and Video link; the arrows move a block, the bin removes
+  it. A new Page starts with an empty heading and paragraph.
+- **Text:** a style per block, **Bold** and *Italic* buttons that wrap the
+  selection in `**` or `*`, start, center or end alignment (and justify for
+  paragraphs and quotes), a colour from the palette, and an optional Read
+  aloud in the target or source language.
+- **Pictures:** chosen like any exercise picture (copied into the Course),
+  with a size (small, medium, large, full width), an alignment and a
+  caption that screen readers also say.
+- **Audio and video:** an audio block's spoken text (text-to-speech or the
+  matching recording); a video link's label and address, flagged until it
+  is an https address.
+- **Live preview:** under the blocks, drawn exactly as the learner sees it.
+- **Help (EN/IT/ES):** the preset, its blocks and a new Editor Help
+  question, "How do I make a textbook-like Page?" (68 questions). Search
+  finds a Page by its text.
+
+Scoring, progression, learner data and the Course format are unchanged.
+Beta expiry `2026-10-29 23:59:59` local time.
+
 # 2.0.58 (Build 258, Revision 1) - Course pictures up to 300 KB - 2026-09-29
 
 A Course picture may now be up to **300 KB** (it was 50 KB), as decided

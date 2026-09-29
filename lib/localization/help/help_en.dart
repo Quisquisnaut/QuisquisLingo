@@ -184,6 +184,10 @@ const Map<String, String> helpEn = <String, String>{
   'editorHelp.qa.newExercise.q': r'''How do I add an exercise?''',
   'editorHelp.qa.newExercise.a':
       r'''In a Round, New Exercise opens the preset picker: choose an exercise type, such as Pick the translation or Name what you see, and fill its form. New Canonical opens the canonical editor for any primitive. The preset's name is shown in bold at the top of the form.''',
+  'editorHelp.qa.pageCards.q':
+      r'''How do I make a textbook-like Page?''',
+  'editorHelp.qa.pageCards.a':
+      r'''In the Round editor press New Exercise and choose Page (Cards and notes). Add blocks with Add block: headings, paragraphs, quotes or examples, bulleted or numbered lists, pictures, audio and video links; order them with the arrows. In body text write **bold** and *italic* (the toolbar wraps the selection). Each text block has an alignment, a colour from the palette and an optional read-aloud; each picture a size, an alignment and a caption. A video link opens an https address in the learner’s browser. The preview under the blocks shows the Page as the learner sees it. Several pages in a row are several Page cards; turn on Play as a sequence to keep their order.''',
   'editorHelp.qa.presetOrCanonical.q':
       r'''What is the difference between a preset and the canonical editor?''',
   'editorHelp.qa.presetOrCanonical.a':
@@ -971,6 +975,8 @@ Question and Context are separate. Context can be text, audio, or both. Dialogue
       r'''One line of a Story, said by the narrator or a character as text, audio or both; the learner reads or listens and continues.''',
   'exerciseHelp.preset.before_you_start.description':
       r'''A note shown before the Round starts, with an optional Open GuideBook button; never shown in Review.''',
+  'exerciseHelp.preset.page.description':
+      r'''A textbook-like page: headings, paragraphs with bold and italic, quotes, lists, pictures, audio and video links, with alignment and colours; the learner reads it and continues.''',
   'exerciseHelp.preset.story_cover.description':
       r'''The opening card of a Story: its picture and an optional title line; the learner continues.''',
   'exerciseHelp.preset.note_card.description':
@@ -1057,6 +1063,8 @@ Question and Context are separate. Context can be text, audio, or both. Dialogue
       r'''A line of dialogue in a Story. Choose who speaks (the narrator or a character defined in the Course Editor's Story characters), write the line, and choose whether the learner reads it, hears it, or both. Read-aloud follows the Story's setting unless the line overrides it; with text and audio you may hide the text until the audio has played. A line is never skipped: without audio the learner reads it. There is no answer and no score; Continue moves on.''',
   'exerciseHelp.preset.before_you_start.body':
       r'''The note the learner reads before the Round starts, on its own page with Continue to Round. Write the note and, if you like, turn on Open GuideBook button: the card then offers the Lesson’s GuideBook (learners see the button only while the Course uses GuideBooks and the GuideBook is published). The card is placed first in the Round, is never one of its steps and is never shown in Review; there is no answer and no score. One card per Round: the Audit warns about a second one.''',
+  'exerciseHelp.preset.page.body':
+      r'''A page the learner reads and continues, built from blocks: headings, paragraphs, quotes or examples, bulleted or numbered lists, pictures, audio and video links. Write **bold** and *italic* in body text (the toolbar wraps the selection); choose each block’s alignment (start, center, end, justify for body text) and a colour from a palette that stays readable in light and dark themes; a text block may offer a read-aloud button. Pictures come small, medium, large or full width with a caption; a video link opens an https address in the browser. No answer, no score.''',
   'exerciseHelp.preset.story_cover.body':
       r'''The first card of a Story. Choose the cover picture and, if you like, a title line; the Story's title from the Round options is shown above it. The learner presses Continue. Create Stories with the Story Wizard or by turning on Play as a sequence in the Round editor.''',
   'exerciseHelp.preset.note_card.body':
@@ -1360,6 +1368,17 @@ Greyed out while the Course does not use GuideBooks.
 
 Example
 On''',
+  'exerciseHelp.field.page.blocks.body':
+      r'''The blocks of the Page, top to bottom.
+
+What to enter
+Add blocks with Add block and order them with the arrows. In paragraphs, quotes and lists write **bold** and *italic*; a list takes one item per line; \* shows a star. Choose an alignment and a colour per text block, a size and a caption per picture, the spoken text of an audio block, and the label and https address of a video link.
+
+Checks
+A Page with no content is an Audit error; an unmatched mark is a warning; a link must be an https address.
+
+Example
+Heading 1: Greetings''',
   'exerciseHelp.field.story_cover.prompt.body':
       r'''An optional title line on the cover.
 

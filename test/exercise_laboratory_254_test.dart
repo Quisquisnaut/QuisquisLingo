@@ -687,6 +687,8 @@ void main() {
       expect({
         ...examples.map((e) => e.editorTemplate).where((id) => id.isNotEmpty),
         'before_you_start',
+        // Page gets its Laboratory example in Build 258 Revision 3.
+        'page',
       }, ExercisePresetRegistry.presets.map((p) => p.id).toSet());
       for (final lesson in course.lessons) {
         expect(lesson.publicationState, PublicationState.published);

@@ -22,6 +22,8 @@ const _formFields = <String, Map<String, String>>{
   'story_cover': {'Title line': 'prompt'},
   // The Open GuideBook switch has its own Help control (Build 257).
   'before_you_start': {'Note': 'prompt'},
+  // A new Page's starter heading and paragraph (Build 258).
+  'page': {'Heading text': 'blocks', 'Text': 'blocks'},
   'choice_source': {
     'Prompt (optional)': 'prompt',
     'Question or sentence to complete': 'question',

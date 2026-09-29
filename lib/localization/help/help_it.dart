@@ -189,6 +189,10 @@ const Map<String, String> helpIt = {
   "editorHelp.qa.newExercise.q": "Come aggiungo un esercizio?",
   "editorHelp.qa.newExercise.a":
       "In un Round, New Exercise apre la scelta dei preset: scegli un tipo di esercizio, come Pick the translation o Name what you see, e compila il suo modulo. New Canonical apre l’editor canonico per qualsiasi primitiva. Il nome del preset compare in grassetto in cima al modulo.",
+  "editorHelp.qa.pageCards.q":
+      "Come creo una Page simile a un libro di testo?",
+  "editorHelp.qa.pageCards.a":
+      "Nell’editor del Round premi New Exercise e scegli Page (Cards and notes). Aggiungi blocchi con Add block: titoli, paragrafi, citazioni o esempi, elenchi puntati o numerati, immagini, audio e link video; ordinali con le frecce. Nel testo scrivi **grassetto** e *corsivo* (la barra degli strumenti avvolge la selezione). Ogni blocco di testo ha un allineamento, un colore della tavolozza e una lettura ad alta voce facoltativa; ogni immagine una dimensione, un allineamento e una didascalia. Un link video apre un indirizzo https nel browser dello studente. L’anteprima sotto i blocchi mostra la Page come la vede lo studente. Più pagine di seguito sono più schede Page; attiva Play as a sequence per mantenerne l’ordine.",
   "editorHelp.qa.presetOrCanonical.q":
       "Che differenza c’è tra un preset e l’editor canonico?",
   "editorHelp.qa.presetOrCanonical.a":
@@ -829,6 +833,8 @@ const Map<String, String> helpIt = {
       "Una battuta di dialogo in una Storia. Scegli chi parla (il narratore o un personaggio definito in Story characters del Course Editor), scrivi la battuta e scegli se lo studente la legge, la ascolta o entrambe le cose. La lettura ad alta voce segue l’impostazione della Storia, salvo che la battuta la sovrascriva; con testo e audio puoi nascondere il testo finché l’audio non è stato riprodotto. Una battuta non viene mai saltata: senza audio lo studente la legge. Non c’è risposta né punteggio; Continue va avanti.",
   "exerciseHelp.preset.before_you_start.body":
       "La nota che lo studente legge prima che il Round inizi, su una pagina a sé con Continue to Round. Scrivi la nota e, se vuoi, attiva Open GuideBook button: la scheda offre allora il GuideBook della Lesson (gli studenti vedono il pulsante solo se il Corso usa i GuideBook e il GuideBook è pubblicato). La scheda sta per prima nel Round, non è mai uno dei suoi passi e non appare mai in Review; non c’è risposta né punteggio. Una scheda per Round: l’Audit segnala la seconda.",
+  "exerciseHelp.preset.page.body":
+      "Una pagina che lo studente legge e poi continua, fatta di blocchi: titoli, paragrafi, citazioni o esempi, elenchi puntati o numerati, immagini, audio e link video. Nel testo scrivi **grassetto** e *corsivo* (la barra degli strumenti avvolge la selezione); scegli per ogni blocco l’allineamento (inizio, centro, fine, giustificato per il testo) e un colore da una tavolozza leggibile nel tema chiaro e in quello scuro; un blocco di testo può offrire la lettura ad alta voce. Le immagini sono piccole, medie, grandi o a tutta larghezza, con didascalia; un link video apre un indirizzo https nel browser. Nessuna risposta, nessun punteggio.",
   "exerciseHelp.preset.story_cover.body":
       "La prima scheda di una Storia. Scegli l’immagine di copertina e, se vuoi, una riga di titolo; il titolo della Storia dalle opzioni del Round appare sopra. Lo studente preme Continue. Crea le Storie con lo Story Wizard o attivando Play as a sequence nell’editor del Round.",
   "exerciseHelp.preset.note_card.body":
@@ -960,6 +966,8 @@ const Map<String, String> helpIt = {
       "Ciò che lo studente legge prima che il Round inizi.\n\nCosa inserire\nQualche frase: che cosa esercita il Round, un consiglio, un promemoria, nella lingua che i tuoi studenti leggono meglio.\n\nControlli\nObbligatoria: una scheda vuota è un errore dell’Audit.\n\nEsempio\nQuesto Round esercita i saluti.",
   "exerciseHelp.field.before_you_start.guidebookButton.body":
       "Se la scheda offre il GuideBook della Lesson.\n\nCosa inserire\nAttivo o no. Gli studenti vedono Open GuideBook solo se il Corso usa i GuideBook (Lesson Options) e il GuideBook è pubblicato; Preview lo mostra anche per un GuideBook in Draft.\n\nControlli\nDisattivato finché il Corso non usa i GuideBook.\n\nEsempio\nAttivo",
+  "exerciseHelp.field.page.blocks.body":
+      "I blocchi della Page, dall’alto in basso.\n\nCosa inserire\nAggiungi blocchi con Add block e ordinali con le frecce. In paragrafi, citazioni ed elenchi scrivi **grassetto** e *corsivo*; un elenco ha una voce per riga; \\* mostra un asterisco. Scegli allineamento e colore per ogni blocco di testo, dimensione e didascalia per ogni immagine, il testo parlato di un blocco audio, l’etichetta e l’indirizzo https di un link video.\n\nControlli\nUna Page senza contenuto è un errore dell’Audit; un segno senza chiusura è un avviso; un link deve essere un indirizzo https.\n\nEsempio\nHeading 1: Saluti",
   "exerciseHelp.field.story_cover.prompt.body":
       "Una riga di titolo facoltativa sulla copertina.\n\nCosa inserire\nUna riga breve; il titolo della Storia (opzioni del Round) appare comunque sopra la copertina.\n\nControlli\nFacoltativa.\n\nEsempio\nAl bar",
   "exerciseHelp.field.story_cover.image.body":
@@ -1180,6 +1188,8 @@ const Map<String, String> helpIt = {
       "Una battuta di una Storia, detta dal narratore o da un personaggio come testo, audio o entrambi; lo studente legge o ascolta e continua.",
   "exerciseHelp.preset.before_you_start.description":
       "Una nota mostrata prima che il Round inizi, con un pulsante Open GuideBook facoltativo; mai mostrata in Review.",
+  "exerciseHelp.preset.page.description":
+      "Una pagina simile a un libro di testo: titoli, paragrafi con grassetto e corsivo, citazioni, elenchi, immagini, audio e link video, con allineamento e colori; lo studente la legge e continua.",
   "exerciseHelp.preset.story_cover.description":
       "La scheda di apertura di una Storia: la sua immagine e una riga di titolo facoltativa; lo studente continua.",
   "exerciseHelp.preset.note_card.description":

@@ -512,6 +512,17 @@ abstract final class ExercisePresetRegistry {
       primitive: ExercisePrimitive.presentation,
       direction: PresetDirection.none,
     ),
+    // Build 258 Revision 2: a textbook-like page of formatted blocks
+    // (owner decisions of 29 September 2026, docs/258_PAGE_CARD_PLAN.md).
+    ExercisePreset(
+      id: 'page',
+      name: 'Page',
+      description:
+          'A textbook-like page: headings, paragraphs with bold and italic, quotes, lists, pictures, audio and video links, with alignment and colours; the learner reads it and continues.',
+      category: ExerciseCategory.cardsAndNotes,
+      primitive: ExercisePrimitive.presentation,
+      direction: PresetDirection.none,
+    ),
   ];
 
   /// The successor of every preset retired by the Build 256 Revision 4
@@ -673,6 +684,8 @@ abstract final class ExercisePresetRegistry {
         'One line of a Story. Choose who speaks (the narrator or a Story character of the Course), write the line, and choose whether the learner reads it, hears it or both; read-aloud follows the Story unless the line overrides it. A line is never skipped: without audio the learner reads it. No answer, no score; Continue moves on.',
     'story_cover':
         'The first card of a Story: the cover picture and an optional title line under the Story title. Continue moves on. Build Stories with New Story on the Rounds page.',
+    'page':
+        'A page the learner reads and continues, built from blocks: headings, paragraphs, quotes or examples, bulleted or numbered lists, pictures, audio and video links. Write **bold** and *italic* in body text (the toolbar wraps the selection); choose each block’s alignment (start, center, end, justify for body text) and colour from a palette that stays readable in light and dark themes; a text block may offer a read-aloud button. Pictures come small, medium, large or full width with a caption; a video link opens an https address in the browser. No answer, no score.',
     'before_you_start':
         'The note the learner reads before the Round starts, on its own page with Continue to Round. Write the note; turn on Open GuideBook button to offer the Lesson’s GuideBook from the card (the button appears only while the Course uses GuideBooks and the GuideBook is published). One card per Round, placed first; it is never shown in Review, has no answer and no score.',
   };

@@ -68,6 +68,7 @@ abstract final class PresetVariants {
     'dialogue_line',
     'story_cover',
     'before_you_start',
+    'page',
     'sort_into_groups',
     'fill_the_slots',
   };
@@ -394,6 +395,7 @@ abstract final class PresetVariants {
       'dialogue_line' => f.kind == LearnerExerciseKind.dialogueLine,
       'story_cover' => f.kind == LearnerExerciseKind.storyCover,
       'before_you_start' => f.kind == LearnerExerciseKind.roundIntro,
+      'page' => f.kind == LearnerExerciseKind.page,
       // The Assign recipes (Build 256 Revision 7 follow-up).
       'sort_into_groups' => f.kind == LearnerExerciseKind.assignGroups,
       'fill_the_slots' => f.kind == LearnerExerciseKind.assignSlots,

@@ -41,7 +41,8 @@ void main() {
     ]);
     final ids = [for (final list in editorHelpQuestionsByTopic.values) ...list];
     // Build 257: How do I write the Before you start note of a Round?
-    expect(ids, hasLength(67));
+    // Build 258: How do I make a textbook-like Page?
+    expect(ids, hasLength(68));
     expect(ids.toSet(), hasLength(ids.length));
     for (final catalog in [helpEn, helpIt, helpEs]) {
       for (final topic in editorHelpQuestionsByTopic.keys) {

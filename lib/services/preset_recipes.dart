@@ -25,6 +25,8 @@ abstract final class PresetRecipes {
     'picture_blocks',
     // Before you start (Build 257).
     'before_you_start',
+    // Page (Build 258 Revision 2).
+    'page',
   };
 
   /// The learner kind each preset's recipe produces.
@@ -100,6 +102,7 @@ abstract final class PresetRecipes {
     'dialogue_line': {LearnerExerciseKind.dialogueLine},
     'story_cover': {LearnerExerciseKind.storyCover},
     'before_you_start': {LearnerExerciseKind.roundIntro},
+    'page': {LearnerExerciseKind.page},
     'sort_into_groups': {LearnerExerciseKind.assignGroups},
     'fill_the_slots': {LearnerExerciseKind.assignSlots},
   };
@@ -182,6 +185,8 @@ abstract final class PresetRecipes {
         ? f.coverTitle
         : presetId == 'before_you_start'
         ? f.introText
+        : presetId == 'page'
+        ? ''
         : presentation
         ? f.textOf('term')
         : presetId == 'missing_letters' && f.hasInlineTargets
@@ -198,7 +203,8 @@ abstract final class PresetRecipes {
     final story =
         presetId == 'dialogue_line' ||
         presetId == 'story_cover' ||
-        presetId == 'before_you_start';
+        presetId == 'before_you_start' ||
+        presetId == 'page';
     final question = story
         ? ''
         : presentation
@@ -390,6 +396,7 @@ abstract final class PresetRecipes {
       extraWords: presetId == 'picture_blocks' ? extraBlocks : unassigned,
       slotReuse: isAssign && f.assignItemReuse,
       guidebookButton: f.guidebookButton,
+      pageBlocks: presetId == 'page' ? f.pageBlocks : const [],
       cardReadAloud: cardReadAloud,
       dialogueReadAloud: dialogueReadAloud,
       publicationState: state,

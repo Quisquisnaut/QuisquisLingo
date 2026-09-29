@@ -55,6 +55,7 @@ import '../services/exercise_field_help.dart';
 import '../widgets/editor_breadcrumbs.dart';
 import '../widgets/editor_dialogs.dart';
 import '../widgets/exercise_editor_intro.dart';
+import '../widgets/page_block_editor.dart';
 import '../widgets/authoring_destination_dialog.dart';
 import '../widgets/editor_app_bar_actions.dart';
 import '../services/custom_course_transfer_service.dart';
@@ -8529,6 +8530,8 @@ String _exerciseSummary(Exercise e) {
     features.lineAudio?.text ?? '',
     features.coverTitle,
     features.introText,
+    // A Page is named by its first text block (Build 258 Revision 2).
+    ...features.pageBlocks.where((block) => block.isText).map((b) => b.text),
     features.inlineSentence,
     features.contextText,
     features.primaryText,
@@ -9418,6 +9421,8 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
   bool _slotReuse = false;
   // Before you start (Build 257): whether the card offers Open GuideBook.
   bool _guidebookButton = false;
+  // Page (Build 258 Revision 2): the Page's blocks as the form edits them.
+  List<PromptElement> _pageBlocks = const [];
   // A Flashcard's read-aloud: none, manual (on request) or automatic; the
   // spoken text is the word itself.
   String _cardReadAloud = 'manual';
@@ -9481,6 +9486,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     _readLineFields(draft);
     _slotReuse = draft.slotReuse;
     _guidebookButton = draft.guidebookButton;
+    _pageBlocks = draft.pageBlocks;
     _cardReadAloud = draft.cardReadAloud;
     _dialogueReadAloud = draft.dialogueReadAloud;
     _tokens = TextEditingController(text: draft.tokens);
@@ -10918,6 +10924,24 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
                 'Optional: a line under the Story title on the cover. The cover picture is the image below.',
           ),
         ];
+      case 'page':
+        // Build 258 Revision 2: the Page's blocks and their live preview; a
+        // new Page starts with an empty heading and paragraph.
+        return [
+          PageBlockEditor(
+            key: ValueKey('page-editor-${_exercise.id}'),
+            blocks: _pageBlocks.isEmpty
+                ? ExerciseDraftBuilder.pageStarterBlocks
+                : _pageBlocks,
+            course: widget.course,
+            readOnly: widget.readOnly,
+            helpButton: () => _helpButton('blocks'),
+            onChanged: (blocks) => setState(() {
+              _pageBlocks = blocks;
+              _dirty = true;
+            }),
+          ),
+        ];
       case 'before_you_start':
         // Build 257: Open GuideBook only means something while the Course
         // uses GuideBooks, so the switch is greyed out otherwise.
@@ -11275,6 +11299,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         extraWords: _extraWords.text,
         slotReuse: _slotReuse,
         guidebookButton: _guidebookButton,
+        pageBlocks: _pageBlocks,
         cardReadAloud: _cardReadAloud,
         dialogueReadAloud: _dialogueReadAloud,
         prompt: _prompt.text,
@@ -11659,6 +11684,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     _lineLanguage,
     _slotReuse,
     _guidebookButton,
+    jsonEncode([for (final block in _pageBlocks) block.toJson()]),
     _cardReadAloud,
     _dialogueReadAloud,
     _imageAsset,
@@ -11788,6 +11814,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         _readLineFields(draft);
         _slotReuse = draft.slotReuse;
         _guidebookButton = draft.guidebookButton;
+        _pageBlocks = draft.pageBlocks;
         _cardReadAloud = draft.cardReadAloud;
         _dialogueReadAloud = draft.dialogueReadAloud;
         _tokens.text = draft.tokens;
@@ -12024,7 +12051,9 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
             const SizedBox(height: 12),
             ..._specificFields(),
             const SizedBox(height: 12),
-            if (_type != 'script_recognition' && _type != 'before_you_start')
+            if (_type != 'script_recognition' &&
+                _type != 'before_you_start' &&
+                _type != 'page')
               ExerciseImageField(
                 course: widget.course,
                 asset: _imageAsset,

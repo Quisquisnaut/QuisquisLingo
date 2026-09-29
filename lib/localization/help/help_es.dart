@@ -190,6 +190,10 @@ const Map<String, String> helpEs = {
   'editorHelp.qa.newExercise.q': '¿Cómo añado un ejercicio?',
   'editorHelp.qa.newExercise.a':
       'En un Round, New Exercise abre el selector de presets: elige un tipo de ejercicio, como Pick the translation o Name what you see, y rellena su formulario. New Canonical abre el editor canónico para cualquier primitiva. El nombre del preset aparece en negrita en la parte superior del formulario.',
+  'editorHelp.qa.pageCards.q':
+      '¿Cómo creo una Page como la de un libro de texto?',
+  'editorHelp.qa.pageCards.a':
+      'En el editor del Round pulsa New Exercise y elige Page (Cards and notes). Añade bloques con Add block: títulos, párrafos, citas o ejemplos, listas con viñetas o numeradas, imágenes, audio y enlaces de vídeo; ordénalos con las flechas. En el texto escribe **negrita** y *cursiva* (la barra de herramientas rodea la selección). Cada bloque de texto tiene una alineación, un color de la paleta y una lectura en voz alta opcional; cada imagen un tamaño, una alineación y un pie de foto. Un enlace de vídeo abre una dirección https en el navegador del estudiante. La vista previa bajo los bloques muestra la Page tal como la ve el estudiante. Varias páginas seguidas son varias tarjetas Page; activa Play as a sequence para mantener su orden.',
   'editorHelp.qa.presetOrCanonical.q':
       '¿Qué diferencia hay entre un preset y el editor canónico?',
   'editorHelp.qa.presetOrCanonical.a':
@@ -952,6 +956,8 @@ Estas builds muestran TEST ONLY. No las distribuyas como versiones públicas; co
       'Una línea de diálogo en una Historia. Elige quién habla (el narrador o un personaje definido en Story characters del Course Editor), escribe la línea y elige si el estudiante la lee, la escucha o ambas cosas. La lectura en voz alta sigue el ajuste de la Historia salvo que la línea lo cambie; con texto y audio puedes ocultar el texto hasta que el audio se haya reproducido. Una línea nunca se salta: sin audio el estudiante la lee. No hay respuesta ni puntuación; Continue avanza.',
   'exerciseHelp.preset.before_you_start.body':
       'La nota que el estudiante lee antes de que empiece el Round, en una página propia con Continue to Round. Escribe la nota y, si quieres, activa Open GuideBook button: la tarjeta ofrece entonces el GuideBook de la Lesson (los estudiantes ven el botón solo mientras el Curso usa GuideBooks y el GuideBook está publicado). La tarjeta va primero en el Round, nunca es uno de sus pasos y nunca se muestra en Review; no hay respuesta ni puntuación. Una tarjeta por Round: el Audit avisa de una segunda.',
+  'exerciseHelp.preset.page.body':
+      'Una página que el estudiante lee y luego continúa, hecha de bloques: títulos, párrafos, citas o ejemplos, listas con viñetas o numeradas, imágenes, audio y enlaces de vídeo. En el texto escribe **negrita** y *cursiva* (la barra de herramientas rodea la selección); elige para cada bloque la alineación (inicio, centro, final, justificado para el texto) y un color de una paleta legible en el tema claro y en el oscuro; un bloque de texto puede ofrecer lectura en voz alta. Las imágenes son pequeñas, medianas, grandes o a todo el ancho, con pie de foto; un enlace de vídeo abre una dirección https en el navegador. Sin respuesta ni puntuación.',
   'exerciseHelp.preset.story_cover.body':
       'La primera tarjeta de una Historia. Elige la imagen de portada y, si quieres, una línea de título; el título de la Historia de las opciones del Round se muestra encima. El estudiante pulsa Continue. Crea Historias con el Story Wizard o activando Play as a sequence en el editor del Round.',
   'exerciseHelp.preset.note_card.body':
@@ -1038,6 +1044,8 @@ Estas builds muestran TEST ONLY. No las distribuyas como versiones públicas; co
       'Una línea de una Historia, dicha por el narrador o un personaje como texto, audio o ambos; el estudiante lee o escucha y continúa.',
   'exerciseHelp.preset.before_you_start.description':
       'Una nota que se muestra antes de que empiece el Round, con un botón Open GuideBook opcional; nunca se muestra en Review.',
+  'exerciseHelp.preset.page.description':
+      'Una página como la de un libro de texto: títulos, párrafos con negrita y cursiva, citas, listas, imágenes, audio y enlaces de vídeo, con alineación y colores; el estudiante la lee y continúa.',
   'exerciseHelp.preset.story_cover.description':
       'La tarjeta de apertura de una Historia: su imagen y una línea de título opcional; el estudiante continúa.',
   'exerciseHelp.preset.note_card.description':
@@ -1124,6 +1132,8 @@ Estas builds muestran TEST ONLY. No las distribuyas como versiones públicas; co
       'Lo que el estudiante lee antes de que empiece el Round.\n\nQué escribir\nUnas frases: qué practica el Round, un consejo, un recordatorio, en la lengua que tus estudiantes leen mejor.\n\nComprobaciones\nObligatoria: una tarjeta vacía es un error del Audit.\n\nEjemplo\nEste Round practica los saludos.',
   'exerciseHelp.field.before_you_start.guidebookButton.body':
       'Si la tarjeta ofrece el GuideBook de la Lesson.\n\nQué escribir\nActivado o no. Los estudiantes ven Open GuideBook solo mientras el Curso usa GuideBooks (Lesson Options) y el GuideBook está publicado; Preview lo muestra también para un GuideBook en Draft.\n\nComprobaciones\nDesactivado mientras el Curso no usa GuideBooks.\n\nEjemplo\nActivado',
+  'exerciseHelp.field.page.blocks.body':
+      'Los bloques de la Page, de arriba abajo.\n\nQué escribir\nAñade bloques con Add block y ordénalos con las flechas. En párrafos, citas y listas escribe **negrita** y *cursiva*; una lista lleva un elemento por línea; \\* muestra un asterisco. Elige alineación y color para cada bloque de texto, tamaño y pie de foto para cada imagen, el texto hablado de un bloque de audio, y la etiqueta y la dirección https de un enlace de vídeo.\n\nComprobaciones\nUna Page sin contenido es un error del Audit; una marca sin cierre es un aviso; un enlace debe ser una dirección https.\n\nEjemplo\nHeading 1: Saludos',
   'exerciseHelp.field.story_cover.prompt.body':
       'Una línea de título opcional en la portada.\n\nQué escribir\nUna línea breve; el título de la Historia (opciones del Round) se muestra encima de la portada de todos modos.\n\nComprobaciones\nOpcional.\n\nEjemplo\nEn el café',
   'exerciseHelp.field.story_cover.image.body':

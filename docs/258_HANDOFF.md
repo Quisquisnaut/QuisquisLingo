@@ -4,29 +4,19 @@ Resume from this file alone. Plan (approved by the owner on 29 September
 2026): `docs/258_PAGE_CARD_PLAN.md`. Process rules: `docs/256_HANDOFF.md`
 ("Requirements and process"). Previous build: `docs/257_HANDOFF.md`.
 
-## State (29 September 2026, 20:23)
+## State (29 September 2026, 20:37)
 
-- Build 258 Revision 0 `19de25b`, **Revision 1 (`2.0.58+258001`, 300 KB
-  Course pictures) committed as `1323eb7`** (suite 3322 passed, 1 skipped,
-  0 failed, 19:53–20:21). Not pushed.
-- Next: **Revision 2, the Page preset form** (`2.0.58+258002`). A draft of
-  the block editor widget is in this session's scratchpad
-  (`page_block_editor.dart`): block list with add, move and remove; per
-  text block style, bold and italic toolbar, alignment, palette, read-aloud
-  and language; per picture `ExerciseImageField` (compact), size,
-  alignment, caption; audio spoken text; link label and https address; a
-  live preview with `PageCardView`. Every block field is a `TextField` with
-  a `blocks` Help control (the field-Help UI test requires one per field).
-  Plan for the rest: preset `page` "Page" (Cards and notes,
-  canonical-only; a new Page starts with an empty heading and paragraph),
-  `ExerciseDraftValues.pageBlocks`, `_buildPage`, `PresetRecipes.kinds`,
-  `PresetVariants.ownForms`/`fits`, `ExerciseFieldHelpRegistry`
-  (`editorFieldKeys('page') == ['blocks']`, no picture field),
-  `ExerciseSearchService` (`_prompt`, `_audio`), Help EN/IT/ES (preset,
-  field, an Editor Help question), count pins (presets 43 → 44, Editor Help
-  67 → 68, the Piedmontese Lesson count, the Laboratory's coverage: Page
-  gets its Laboratory example in Revision 3, so the coverage test excludes
-  `page` until then).
+- Build 258 Revision 0 `19de25b`, Revision 1 `1323eb7` (handoff
+  `1c018b7`). Not pushed.
+- **Revision 2 (`2.0.58+258002`, the Page form) in the working tree**:
+  preset `page`, `PageBlockEditor`, the editor wiring, field Help, Search,
+  Help EN/IT/ES, tests (`test/page_form_258_test.dart`, pins), version and
+  docs done; analyze clean; focused batch green. The complete suite runs
+  next (started 20:37).
+- Next after the commit: **Revision 3**, the Laboratory Page example
+  (generator, presentation baseline) and removal of the Laboratory coverage
+  exception for `page`; then Revision 4 (share, save, email, print) once
+  the owner answers Q10.
 - Do not run `dart format` on files that predate the formatter: in
   Revision 1 it added unrelated whitespace churn to seven files
   (`custom_course_transfer_service.dart`, `exercise_image_service.dart`,

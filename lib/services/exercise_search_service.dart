@@ -214,6 +214,7 @@ abstract final class ExerciseSearchRegistry {
       presetId: 'before_you_start',
       fields: [_prompt],
     ),
+    ExerciseTypeSearchDefinition(presetId: 'page', fields: [_prompt, _audio]),
   ];
 
   static ExerciseTypeSearchDefinition? forExercise(Exercise exercise) {

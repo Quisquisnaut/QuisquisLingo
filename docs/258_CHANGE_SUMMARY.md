@@ -4,6 +4,37 @@ Build 258 delivers textbook-like **Page** cards, planned and approved on 29
 September 2026 in `258_PAGE_CARD_PLAN.md` (owner decisions in its section
 3). Evidence: `258_VALIDATION.md`; handoff: `258_HANDOFF.md`.
 
+## Revision 2 (2.0.58+258002, 29 September 2026): the Page form
+
+- Preset **Page** (`page`, Cards and notes, canonical-only recipe): the
+  learner reads it and continues. `ExerciseDraftValues.pageBlocks`,
+  `ExerciseDraftBuilder._buildPage` (every block gets role `block`; a new
+  Page starts with an empty heading and paragraph,
+  `ExerciseDraftBuilder.pageStarterBlocks`), `PresetRecipes` (`kinds`,
+  decompose, rebuild, represents), `PresetVariants` (`ownForms`, `fits`).
+- `lib/widgets/page_block_editor.dart`, `PageBlockEditor`: Add block
+  (Heading, Paragraph, Quote or example, List, Picture, Audio, Video link),
+  move up and down, remove; per text block the style, a Bold and an Italic
+  button that wrap the selection in `**` or `*`, the alignment (justify for
+  paragraphs and quotes), the palette swatches, Read aloud and its
+  language; per picture the compact `ExerciseImageField` (copied into the
+  Course's media, with its Shared Image Library source), size, alignment
+  and caption; the spoken text of an audio block (never required); the
+  label and address of a video link, flagged until it is an https
+  address; a live preview drawn by `PageCardView`. Keys `page-block-*`,
+  `page-add-block`, `page-live-preview`.
+- The exercise editor shows it for `page` (no single picture field), keeps
+  the blocks in `_pageBlocks` (snapshot, navigation, candidate) and names a
+  Page in the Round's list by its first text block.
+- Field Help: every block field has the `blocks` Help control
+  (`ExerciseAuthoringField.pageBlocks`). Search: text and audio blocks.
+  Help EN/IT/ES: the preset, the field and the Editor Help question
+  `pageCards` in Exercises (68 questions).
+- Tests: new `test/page_form_258_test.dart`; pins for 44 presets, 68 Help
+  questions, the Piedmontese Lesson count, the mascot and kind tables, the
+  field Help tables; the Laboratory's preset coverage excludes `page` until
+  its example arrives in Revision 3.
+
 ## Revision 1 (2.0.58+258001, 29 September 2026): Course pictures up to 300 KB
 
 Owner decision Q3 (plan 2.6): larger pictures, with a limit, for every

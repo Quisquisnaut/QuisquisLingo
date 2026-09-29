@@ -94,6 +94,7 @@ const _expectedKinds = <String, Set<LearnerExerciseKind>>{
   'story_cover': {LearnerExerciseKind.storyCover},
   // Build 257: the card that opens a Round.
   'before_you_start': {LearnerExerciseKind.roundIntro},
+  'page': {LearnerExerciseKind.page},
   // Build 256 Revision 7 follow-up: the Assign presets.
   'sort_into_groups': {LearnerExerciseKind.assignGroups},
   'fill_the_slots': {LearnerExerciseKind.assignSlots},

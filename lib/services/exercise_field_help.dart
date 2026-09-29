@@ -66,6 +66,7 @@ enum ExerciseAuthoringField {
   coverImage,
   introText,
   guidebookButton,
+  pageBlocks,
   groups,
   slots,
   extraWords,
@@ -224,6 +225,7 @@ abstract final class ExerciseFieldHelpRegistry {
       ],
       'story_cover': ['prompt', 'image'],
       'before_you_start': ['prompt', 'guidebookButton'],
+      'page': ['blocks'],
       'sort_into_groups': ['question', 'groups'],
       'fill_the_slots': ['question', 'slots', 'extraWords', 'slotReuse'],
     };
@@ -238,7 +240,9 @@ abstract final class ExerciseFieldHelpRegistry {
     // A Before you start card has no picture (Build 257).
     return [
       ...selected,
-      if (presetId != 'script_recognition' && presetId != 'before_you_start')
+      if (presetId != 'script_recognition' &&
+          presetId != 'before_you_start' &&
+          presetId != 'page')
         'image',
     ];
   }
@@ -553,6 +557,7 @@ abstract final class ExerciseFieldHelpRegistry {
     },
     'slotReuse' => ExerciseAuthoringField.slotReuse,
     'guidebookButton' => ExerciseAuthoringField.guidebookButton,
+    'blocks' => ExerciseAuthoringField.pageBlocks,
     'textReveal' => ExerciseAuthoringField.lineTextReveal,
     'language' => ExerciseAuthoringField.lineLanguage,
     'image' => switch (presetId) {
@@ -1091,6 +1096,17 @@ abstract final class ExerciseFieldHelpRegistry {
           'On: the card shows Open GuideBook. Learners see the button only while the Course uses GuideBooks (Lesson Options) and the Lesson’s GuideBook is published; Preview shows it for a Draft GuideBook too.',
       validation: 'Greyed out while the Course does not use GuideBooks.',
       example: 'On, when the GuideBook explains the Round’s grammar.',
+    ),
+    ExerciseAuthoringField.pageBlocks => const ExerciseFieldHelp(
+      title: 'Page blocks',
+      purpose:
+          'The blocks of the Page, top to bottom: headings, paragraphs, quotes, lists, pictures, audio and video links.',
+      entryRules:
+          'Add blocks with Add block and order them with the arrows. In paragraphs, quotes and lists write **bold** and *italic* (the toolbar wraps the selection; \\* shows a star); a list takes one item per line. Choose an alignment and a colour per text block, a size and a caption per picture, the spoken text of an audio block, and the label and https address of a video link. The preview shows the Page as the learner sees it.',
+      validation:
+          'A Page with no content is an Audit error; an unmatched mark is a warning; a link must be an https address.',
+      example:
+          'Heading 1: Greetings\nParagraph: Say **buongiorno** until *noon*.\nVideo link: https://example.org/greetings',
     ),
     ExerciseAuthoringField.slotReuse => const ExerciseFieldHelp(
       title: 'A word may fill more than one slot',
