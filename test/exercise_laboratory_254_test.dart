@@ -96,7 +96,7 @@ Exercise _author(Exercise exercise) {
         // The Assign presets' fields and a Flashcard's read-aloud (Build
         // 256 Revision 7 follow-up) come from the production decompose.
         groups: hints.groups,
-        leftover: hints.leftover,
+        dialogueReadAloud: hints.dialogueReadAloud,
         slots: hints.slots,
         extraWords: hints.extraWords,
         slotReuse: hints.slotReuse,
@@ -676,7 +676,7 @@ void main() {
       ]);
       expect(course.createDuels, isFalse);
       expect(course.derivativeWorksPolicy, DerivativeWorksPolicy.allowed);
-      expect(examples, hasLength(126));
+      expect(examples, hasLength(122));
       expect(
         examples
             .map((e) => e.editorTemplate)

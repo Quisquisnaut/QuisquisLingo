@@ -65,6 +65,8 @@ Exercise _select(String id, String question) => Exercise.canonical(
   updatedAt: _stamp,
 );
 
+/// A Round of this file is a Story's Round (the `story` visual type New
+/// Story gives it), with or without its flow.
 LearningRound _round({ContentFlow? flow, String title = 'Round one'}) {
   final content = [
     for (final exercise in [
@@ -78,6 +80,7 @@ LearningRound _round({ContentFlow? flow, String title = 'Round one'}) {
     id: 'round_one',
     title: title,
     updatedAt: _stamp,
+    visualType: LearningRound.storyVisualType,
     content: content,
     flow: flow,
   );
@@ -148,17 +151,24 @@ LearningRound _roundOf(Course course) => course.lessons.first.rounds.first;
 void main() {
   group('LearningRound.displayTitle', () {
     test(
-      'derives "Story: <title>" from the flow and strips a stored prefix',
+      'derives "Story: <title>" or "Sequence: <title>" from the flow and strips a stored prefix',
       () {
         final content = [LearningContent.fromExercise(_line('n1', 'Ciao.'))];
-        LearningRound round(String title, {String? story}) => LearningRound(
-          id: 'r',
-          title: title,
-          content: content,
-          flow: story == null
-              ? null
-              : RoundFlowAuthoring.linearFor(content, title: story),
-        );
+        LearningRound round(String title, {String? story, String? sequence}) {
+          final flowTitle = story ?? sequence;
+          return LearningRound(
+            id: 'r',
+            title: title,
+            visualType: story != null
+                ? LearningRound.storyVisualType
+                : 'generic',
+            content: content,
+            flow: flowTitle == null
+                ? null
+                : RoundFlowAuthoring.linearFor(content, title: flowTitle),
+          );
+        }
+
         expect(round('Round one').displayTitle(0), 'Round one');
         expect(round('').displayTitle(2), 'Round 3');
         expect(
@@ -172,6 +182,22 @@ void main() {
         expect(round('', story: '').displayTitle(4), 'Story: Round 5');
         expect(round('Story: Al bar').displayTitle(0), 'Story: Al bar');
         expect(round('Story: Al bar', story: 'Al bar').storyTitle, 'Al bar');
+        // A sequence (Build 256 Revision 7, third follow-up): its optional
+        // title, else the Round's name, else "Round N".
+        expect(
+          round('Numbers', sequence: 'Counting').displayTitle(0),
+          'Sequence: Counting',
+        );
+        expect(
+          round('Numbers', sequence: '').displayTitle(0),
+          'Sequence: Numbers',
+        );
+        expect(round('', sequence: '').displayTitle(1), 'Sequence: Round 2');
+        expect(round('Numbers', sequence: '').isSequence, isTrue);
+        expect(round('Numbers', sequence: '').isStory, isFalse);
+        expect(round('Numbers', story: '').isStory, isTrue);
+        expect(round('Numbers').isStory, isFalse);
+        expect(round('Numbers').isSequence, isFalse);
       },
     );
   });
@@ -429,6 +455,7 @@ void main() {
         id: round.id,
         title: round.title,
         updatedAt: round.updatedAt,
+        visualType: LearningRound.storyVisualType,
         content: round.content,
         flow: RoundFlowAuthoring.linearFor(
           round.content,

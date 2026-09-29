@@ -71,110 +71,124 @@ void main() {
       );
     }
 
-    test('Editor keeps editing sections; Manager gets operations sections', () {
-      final english = editorHelpSections(HelpLanguage.english);
-      final italian = editorHelpSections(HelpLanguage.italian);
-      final spanish = editorHelpSections(HelpLanguage.spanish);
-      final managerEnglish = courseManagerHelpSections(HelpLanguage.english);
-      final managerItalian = courseManagerHelpSections(HelpLanguage.italian);
-      final managerSpanish = courseManagerHelpSections(HelpLanguage.spanish);
+    test(
+      'Editor Help is questions and answers; Manager keeps its sections',
+      () {
+        // Build 256 Revision 8: Editor Help is 66 questions in seven topics.
+        final english = editorHelpTopics(HelpLanguage.english);
+        final italian = editorHelpTopics(HelpLanguage.italian);
+        final spanish = editorHelpTopics(HelpLanguage.spanish);
+        final managerEnglish = courseManagerHelpSections(HelpLanguage.english);
+        final managerItalian = courseManagerHelpSections(HelpLanguage.italian);
+        final managerSpanish = courseManagerHelpSections(HelpLanguage.spanish);
 
-      // Build 256 Revision 5 adds Stories and the Story Wizard.
-      expect(english, hasLength(29));
-      expect(italian, hasLength(english.length));
-      expect(spanish, hasLength(english.length));
-      expect(managerEnglish, hasLength(14));
-      expect(managerItalian, hasLength(managerEnglish.length));
-      expect(managerSpanish, hasLength(managerEnglish.length));
-      expect(
-        english.map((section) => section.title),
-        contains('Audio Library'),
-      );
-      expect(
-        english.map((section) => section.title),
-        isNot(contains('Course origin')),
-      );
-      expect(
-        english.map((section) => section.title),
-        isNot(contains('Courses in learner mode')),
-      );
-      expect(
-        managerEnglish.map((section) => section.title),
-        containsAll([
-          'Course origin',
-          'Create a new course',
-          'Course creation rules',
-          'Import a custom course',
-          'Export a custom course',
-          'Course responsibility, permissions and Teams',
-          'Android device backup (technical)',
-          'Course operations',
-        ]),
-      );
-      for (final title in [
-        'Course Audit',
-        'Audit severity and codes',
-        'Local course edits and backups',
-        'Course Info Editor and license',
-      ]) {
-        expect(english.map((section) => section.title), contains(title));
-        expect(managerEnglish.map((section) => section.title), contains(title));
-      }
-      for (var index = 0; index < english.length; index++) {
+        List<String> ids(List<EditorHelpTopic> topics) => [
+          for (final topic in topics)
+            for (final question in topic.questions)
+              '${topic.id}.${question.id}',
+        ];
+        expect(english, hasLength(7));
+        expect(ids(english), hasLength(66));
+        expect(ids(italian), ids(english));
+        expect(ids(spanish), ids(english));
+        expect(managerEnglish, hasLength(14));
+        expect(managerItalian, hasLength(managerEnglish.length));
+        expect(managerSpanish, hasLength(managerEnglish.length));
+        expect(english.map((topic) => topic.title), [
+          'Getting started',
+          'Saving and versions',
+          'Course settings',
+          'Lessons and Rounds',
+          'Exercises',
+          'Pictures and sound',
+          'Checking the Course',
+        ]);
         expect(
-          italian[index].title.trim(),
-          isNotEmpty,
-          reason: 'Italian title missing at $index',
+          managerEnglish.map((section) => section.title),
+          containsAll([
+            'Course origin',
+            'Create a new course',
+            'Course creation rules',
+            'Import a custom course',
+            'Export a custom course',
+            'Course responsibility, permissions and Teams',
+            'Android device backup (technical)',
+            'Course operations',
+          ]),
         );
-        expect(
-          italian[index].body,
-          isNot(english[index].body),
-          reason: '"${english[index].title}" is untranslated',
-        );
-      }
-      for (var index = 0; index < managerEnglish.length; index++) {
-        expect(managerItalian[index].title.trim(), isNotEmpty);
-        expect(
-          managerItalian[index].body,
-          isNot(managerEnglish[index].body),
-          reason: 'Manager section at $index is untranslated',
-        );
-      }
-      final operations = managerEnglish
-          .singleWhere((section) => section.title == 'Course operations')
-          .body;
-      final browsing = managerEnglish
-          .singleWhere((section) => section.title == 'Finding Courses')
-          .body;
-      expect(browsing, contains('Search'));
-      expect(browsing, contains('Favorites'));
-      expect(browsing, contains('Show unavailable'));
-      final italianBrowsing = managerItalian
-          .singleWhere((section) => section.title == 'Trovare i corsi')
-          .body;
-      expect(italianBrowsing, contains('Search'));
-      expect(italianBrowsing, contains('Favorites'));
-      for (final action in [
-        'Copy as New Course',
-        'Fork',
-        'Merge',
-        'Delete course',
-        'Remove Publisher Course from device',
-      ]) {
-        expect(operations, contains(action));
-      }
-    });
+        for (final title in [
+          'Course Audit',
+          'Audit severity and codes',
+          'Local course edits and backups',
+          'Course Info Editor and license',
+        ]) {
+          expect(
+            managerEnglish.map((section) => section.title),
+            contains(title),
+          );
+        }
+        for (final translated in [italian, spanish]) {
+          for (var t = 0; t < english.length; t++) {
+            expect(translated[t].title, isNot(english[t].title));
+            for (var q = 0; q < english[t].questions.length; q++) {
+              final source = english[t].questions[q];
+              final other = translated[t].questions[q];
+              expect(other.question, isNot(source.question), reason: source.id);
+              expect(other.answer, isNot(source.answer), reason: source.id);
+              expect(
+                other.answer,
+                isNot(contains('{folder')),
+                reason: source.id,
+              );
+            }
+          }
+        }
+        for (var index = 0; index < managerEnglish.length; index++) {
+          expect(managerItalian[index].title.trim(), isNotEmpty);
+          expect(
+            managerItalian[index].body,
+            isNot(managerEnglish[index].body),
+            reason: 'Manager section at $index is untranslated',
+          );
+        }
+        final operations = managerEnglish
+            .singleWhere((section) => section.title == 'Course operations')
+            .body;
+        final browsing = managerEnglish
+            .singleWhere((section) => section.title == 'Finding Courses')
+            .body;
+        expect(browsing, contains('Search'));
+        expect(browsing, contains('Favorites'));
+        expect(browsing, contains('Show unavailable'));
+        final italianBrowsing = managerItalian
+            .singleWhere((section) => section.title == 'Trovare i corsi')
+            .body;
+        expect(italianBrowsing, contains('Search'));
+        expect(italianBrowsing, contains('Favorites'));
+        for (final action in [
+          'Copy as New Course',
+          'Fork',
+          'Merge',
+          'Delete course',
+          'Remove Publisher Course from device',
+        ]) {
+          expect(operations, contains(action));
+        }
+      },
+    );
 
     test('media Help describes both import routes in both languages', () {
       // Build 240 added the system file dialog next to the fixed folder, but
       // the media Help entries kept claiming there was no file picker. Assert
       // the dialog route is documented so the two cannot drift apart again.
       for (final language in HelpLanguage.values) {
-        final sections = editorHelpSections(language);
-        for (final title in const ['Audio Library', 'Image Bank']) {
-          final body = sections
-              .firstWhere((section) => section.title == title)
-              .body;
+        final answers = {
+          for (final topic in editorHelpTopics(language))
+            for (final question in topic.questions)
+              question.id: question.answer,
+        };
+        for (final title in const ['addRecordings', 'addPictures']) {
+          final body = answers[title]!;
           expect(
             body,
             contains('from…'),
@@ -233,9 +247,10 @@ void main() {
     });
 
     test('Italian keeps on-screen names in English', () {
-      final italian = editorHelpSections(
-        HelpLanguage.italian,
-      ).map((section) => section.body).join('\n');
+      final italian = [
+        for (final topic in editorHelpTopics(HelpLanguage.italian))
+          for (final question in topic.questions) question.answer,
+      ].join('\n');
       for (final label in const [
         'Save as draft',
         'Confirm course changes',

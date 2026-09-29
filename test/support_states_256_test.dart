@@ -120,6 +120,11 @@ LearningRound _round(
     id: id,
     title: 'Al bar',
     updatedAt: _stamp,
+    // A Round with a flow in this file is a Story's (New Story's visual
+    // type).
+    visualType: story || flow != null
+        ? LearningRound.storyVisualType
+        : 'generic',
     content: content,
     flow:
         flow ??

@@ -39,7 +39,6 @@ void main() {
     'ordered Help sections and Exercise field guides resolve in all three',
     () {
       final sectionGroups = <(String, List<String>)>[
-        ('editorHelp', editorHelpSectionIds),
         ('editorHelp', courseStudioHelpSectionIds),
         ('appInfo', appInfoSectionIds),
         ('allCoursesHelp', allCoursesHelpSectionIds),
@@ -79,12 +78,12 @@ void main() {
 
   test('translated prose retains canonical English QQL commands', () {
     for (final locale in AppLocale.values) {
-      final wizard = helpText.lookup(
-        locale,
-        'editorHelp.exerciseCreationWizard.body',
-      );
+      final wizard = helpText.lookup(locale, 'editorHelp.qa.exerciseWizard.a');
       expect(wizard, contains('Exercise Wizard'));
-      expect(wizard, contains('New Exercise'));
+      expect(
+        helpText.lookup(locale, 'editorHelp.qa.newExercise.a'),
+        contains('New Exercise'),
+      );
       expect(wizard, isNot(contains('Creation Wizard')));
       final export = helpText.lookup(
         locale,
@@ -94,13 +93,13 @@ void main() {
       expect(export, isNot(contains('Export Course ZIP')));
     }
     final commandChecks = <String, List<String>>{
-      'editorHelp.oneCourseEditorTransaction.body': [
-        'View only',
-        'Inspection mode',
-        'Edit',
+      // Build 256 Revision 8: Editor Help is questions and answers.
+      'editorHelp.qa.accessModes.a': ['View only', 'Inspection mode', 'Edit'],
+      'editorHelp.qa.workingCopy.a': [
         'Save as draft',
+        'Confirm course changes',
       ],
-      'editorHelp.confirmOrCancelCompleteCourse.body': [
+      'editorHelp.qa.leaveEditor.a': [
         'Confirm course changes',
         'Cancel course changes',
       ],

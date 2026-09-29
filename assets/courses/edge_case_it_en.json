@@ -651,14 +651,15 @@
                 "primitive": "select",
                 "prompt": [
                   {
-                    "role": "passage",
+                    "role": "context",
                     "type": "text",
-                    "text": "On a rainy afternoon, the librarian opens a small notebook and reads a visitor's message. The visitor writes the names café, naïve, São Tomé, Łódź, 東京, 서울, Αθήνα and القاهرة, then adds a smiling face 🙂 and a musical note ♫. These names are quoted text, not new language lessons. The shelves hold dictionaries, maps, old photographs and books with very long titles. A child asks why the same word can appear twice in a sentence. The librarian answers that repetition can be intentional and that each printed occurrence still has its own place. Outside, the rain stops, a red bicycle leans against a wall, and the clock above the door shows five o'clock. On a rainy afternoon, the librarian opens a small notebook and reads a visitor's message. The visitor writes the names café, naïve, São Tomé, Łódź, 東京, 서울, Αθήνα and القاهرة, then adds a smiling face 🙂 and a musical note ♫. These names are quoted text, not new language lessons. The shelves hold dictionaries, maps, old photographs and books with very long titles. A child asks why the same word can appear twice in a sentence. The librarian answers that repetition can be intentional and that each printed occurrence still has its own place. Outside, the rain stops, a red bicycle leans against a wall, and the clock above the door shows five o'clock. The notebook is blue."
+                    "text": "In un pomeriggio di pioggia, la bibliotecaria apre un piccolo quaderno e legge il messaggio di un visitatore. Il visitatore scrive i nomi café, naïve, São Tomé, Łódź, 東京, 서울, Αθήνα e القاهرة, poi aggiunge una faccina sorridente 🙂 e una nota musicale ♫. Questi nomi sono testo citato, non nuove lezioni di lingua. Gli scaffali contengono dizionari, mappe, vecchie fotografie e libri con titoli lunghissimi. Un bambino chiede perché la stessa parola può comparire due volte in una frase. La bibliotecaria risponde che la ripetizione può essere voluta e che ogni occorrenza stampata ha comunque il suo posto. Fuori smette di piovere, una bicicletta rossa è appoggiata a un muro e l’orologio sopra la porta segna le cinque. In un pomeriggio di pioggia, la bibliotecaria apre un piccolo quaderno e legge il messaggio di un visitatore. Il visitatore scrive i nomi café, naïve, São Tomé, Łódź, 東京, 서울, Αθήνα e القاهرة, poi aggiunge una faccina sorridente 🙂 e una nota musicale ♫. Questi nomi sono testo citato, non nuove lezioni di lingua. Gli scaffali contengono dizionari, mappe, vecchie fotografie e libri con titoli lunghissimi. Un bambino chiede perché la stessa parola può comparire due volte in una frase. La bibliotecaria risponde che la ripetizione può essere voluta e che ogni occorrenza stampata ha comunque il suo posto. Fuori smette di piovere, una bicicletta rossa è appoggiata a un muro e l’orologio sopra la porta segna le cinque. Il quaderno è blu.",
+                    "language": "source"
                   },
                   {
                     "role": "question",
                     "type": "text",
-                    "text": "Di che colore è il quaderno?"
+                    "text": "What colour is the notebook?"
                   }
                 ],
                 "items": [
@@ -3196,5 +3197,5 @@
       }
     }
   ],
-  "officialChecksum": "215f75f13bab1553138c76afa80395cb4411a673adbb8f7f39ec000249aa2896"
+  "officialChecksum": "db8eb77e46162b74a1ce6eb0e5f135618d25bba204b758fd5ffe0151a9232e7d"
 }

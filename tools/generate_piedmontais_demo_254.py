@@ -56,6 +56,17 @@ def audio(value: str, role: str = "primary", required: bool | None = None) -> di
     return element
 
 
+def turn(value: str, speaker: str, read_aloud: str | None = None) -> list[dict]:
+    """A Read and answer dialogue line (target language) and, when read
+    aloud, its optional audio right after it (Build 256 Revision 7 fourth
+    follow-up)."""
+    line = [{**text(value, "dialogue_turn"), "speaker": speaker}]
+    if read_aloud:
+        line.append({"role": "dialogue_turn", "type": "audio", "text": value,
+                     "playback": read_aloud, "required": False})
+    return line
+
+
 def image(name: str, alternative: str, role: str = "clue") -> dict:
     return {
         "role": role, "type": "image", "text": alternative,
@@ -282,15 +293,13 @@ def lesson_specs() -> list[tuple[str, str, str, list[dict]]]:
         choose("listening_answer_source", [audio("I l'hai un gat e un can.", "passage"), text("Which two animals are mentioned?", "question", "source")], ["a cat and a horse", "a cat and a dog", "a dog and a horse"], 1),
         choose("listening_answer_source", [audio("La lista: pan, eva e tre pom.", "passage"), text("How many apples are on the list?", "question", "source")], ["one", "two", "three"], 2),
     ])
-    add("reading_answer_target", "Read a short note", "la lista = the list; pan = bread; eva = water; pom = apple; gat = cat; can = dog; lìber = book; a ca = at home.", [
-        choose("reading_answer_target", [text("La lista: pan, eva e tre pom.", "passage"), text("Which drink is on the list?", "question")], ["water", "coffee", "milk"]),
-        choose("reading_answer_target", [text("I l'hai un gat e un can.", "passage"), text("How many kinds of animal does the speaker have?", "question")], ["one", "two", "three"], 1),
-        choose("reading_answer_target", [text("Mi i son a ca. I l'hai un lìber.", "passage"), text("Where is the speaker?", "question")], ["at school", "at the station", "at home"], 2),
-    ])
-    add("reading_answer_source", "Understand the situation", "bondì = good morning; grassie = thank you; prego = you are welcome; bon-aneuit = good night. Read the situation and answer in English.", [
-        choose("reading_answer_source", [text("Anna: Bondì, Gioann! Gioann: Bondì, Anna!", "passage"), text("What time of day is it?", "question", "source")], ["Morning", "Night", "Noon"], language="source"),
-        choose("reading_answer_source", [text("Anna: Grassie, Gioann! Gioann: Prego, Anna.", "passage"), text("What is Anna doing?", "question", "source")], ["Saying good night", "Thanking you", "Asking for bread"], 1, language="source"),
-        choose("reading_answer_source", [text("Anna: Bon-aneuit, Gioann! Gioann: Bon-aneuit, Anna.", "passage"), text("What is Anna about to do?", "question", "source")], ["Have lunch", "Leave for work", "Go to bed"], 2, language="source"),
+    # Read and answer (Build 256 Revision 7 fourth follow-up): a situation in
+    # English, Piedmontese dialogue lines (read aloud or not), a Piedmontese
+    # question; Read and answer (to source) was retired.
+    add("reading_answer_target", "Read and answer", "bondì = good morning; grassie = thank you; prego = you are welcome; bon-aneuit = good night; lìber = book. Read the situation in English and the Piedmontese dialogue, then answer in Piedmontese.", [
+        choose("reading_answer_target", [text("Anna meets Gioann in the morning.", "context", "source"), *turn("Bondì, Gioann!", "Anna"), *turn("Bondì, Anna!", "Gioann"), text("Còs ch'a dis Anna?", "question")], ["Bondì!", "Bon-aneuit!", "Grassie!"]),
+        choose("reading_answer_target", [text("Gioann gives Anna a book.", "context", "source"), *turn("Ecco un lìber.", "Gioann", "automatic"), *turn("Grassie, Gioann!", "Anna", "automatic"), text("Còs ch'a dà Gioann?", "question")], ["Un pom.", "Un lìber.", "Un gat."], 1),
+        choose("reading_answer_target", [text("Anna and Gioann say goodbye in the evening.", "context", "source"), *turn("Bon-aneuit, Gioann!", "Anna", "manual"), *turn("Bon-aneuit, Anna!", "Gioann", "manual"), text("Còs ch'a dis Gioann?", "question")], ["Bondì!", "Prego!", "Bon-aneuit!"], 2),
     ])
     add("type_translation_to_target", "Write in Piedmontese", "Translate English into Piedmontese. Thank you accepts grassie or mersì. The happy speaker is masculine: i son content; mi is optional. The house is la ca.", [
         enter("type_translation_to_target", [text("thank you")], ["grassie", "mersì"]),
@@ -427,10 +436,15 @@ def lesson_specs() -> list[tuple[str, str, str, list[dict]]]:
         choose("picture_choice", [text("What is this?", "question"), image("bread", "Bread", "picture")], ["pom", "pan", "eva"], 1),
         choose("picture_choice", [text("What is this?", "question"), image("water", "Water", "picture")], ["pan", "pom", "eva"], 2),
     ])
-    add("picture_name", "Name what you see", "Type the Piedmontese word for the picture: gat = cat; pan = bread; eva = water. The article is optional.", [
+    add("picture_name", "Type what you see", "Type the Piedmontese word for the picture: gat = cat; pan = bread; eva = water. The article is optional.", [
         enter("picture_name", [text("What is this?", "question"), image("cat", "A cat", "picture")], ["{ël} gat"]),
         enter("picture_name", [text("What is this?", "question"), image("bread", "Bread", "picture")], ["{ël} pan"]),
         enter("picture_name", [text("What is this?", "question"), image("water", "Water", "picture")], ["{l'} eva", "eva"]),
+    ])
+    add("picture_blocks", "Name what you see", "Build the Piedmontese name of the picture from word blocks: ël gat = the cat; ël pan = the bread; ël pom = the apple. One extra block is not part of the name.", [
+        arrange("picture_blocks", [text("What is this?", "question"), image("cat", "A cat", "picture")], ["ël", "gat", "la"], [[0, 1]]),
+        arrange("picture_blocks", [text("What is this?", "question"), image("bread", "Bread", "picture")], ["ël", "pan", "la"], [[0, 1]]),
+        arrange("picture_blocks", [text("What is this?", "question"), image("apple", "An apple", "picture")], ["ël", "pom", "la"], [[0, 1]]),
     ])
     add("picture_flashcard", "Picture cards", "Look at the picture, read the word and its meaning; the pronunciation is optional. gat = cat; pan = bread; eva = water.", [
         picture_card("gat", "cat", "cat", "I l'hai un gat.", "I have a cat."),

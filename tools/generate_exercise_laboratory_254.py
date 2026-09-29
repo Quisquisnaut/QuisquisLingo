@@ -52,6 +52,17 @@ def audio(value: str, role: str = "primary", required: bool | None = None) -> di
     return element
 
 
+def turn(value: str, speaker: str, read_aloud: str | None = None) -> list[dict]:
+    """A Read and answer dialogue line (target language) and, when read
+    aloud, its optional audio right after it (Build 256 Revision 7 fourth
+    follow-up)."""
+    line = [{**text(value, "dialogue_turn"), "speaker": speaker}]
+    if read_aloud:
+        line.append({"role": "dialogue_turn", "type": "audio", "text": value,
+                     "playback": read_aloud, "required": False})
+    return line
+
+
 def image(name: str, alternative: str, role: str = "clue") -> dict:
     return {
         "role": role, "type": "image", "text": alternative,
@@ -396,19 +407,15 @@ def laboratory() -> Laboratory:
             {"kind": "selected_items", "correctItemIds": ["item_1"]},
             "Recognize characters; text to image-only options; Italian accented character", "Image È")
 
-    lab.start_round("select_context", "Reading and conversations", "Read the passage or conversation before choosing an answer. Contextual comprehension can use a passage, labelled speakers, or both.", "story")
-    lab.choose("select_reading", "reading_comprehension", [text("Anna abita a Roma. Ogni mattina va al lavoro in autobus.", "passage"), text("Come va al lavoro Anna?", "question")], ["In autobus.", "In treno.", "A piedi."], 0, "Reading comprehension; passage plus separate question")
-    lab.choose("select_dialogue", "dialogue_response", [text("Un amico ti offre un bicchiere d'acqua.", "passage"), text("Vuoi accettare. Qual è la risposta adatta?", "question")], ["Sì, grazie.", "No, grazie."], 0, "Dialogue response; exactly two alternatives")
-    lab.choose("context_text", "contextual_comprehension", [text("La biblioteca apre alle nove e chiude alle diciotto.", "context"), text("A che ora apre la biblioteca?", "question")], ["Alle nove.", "Alle diciotto.", "A mezzogiorno."], 0, "Contextual comprehension; Text mode")
-    lab.choose("context_dialogue", "contextual_comprehension", [{**text("Dov'è la stazione?", "dialogue_turn"), "speaker": "Anna"}, {**text("È vicino al parco.", "dialogue_turn"), "speaker": "Luca"}, text("Dov'è la stazione?", "question")], ["Vicino al parco.", "In biblioteca.", "Lontano dalla città."], 0, "Contextual comprehension; structured dialogue without prose context")
-    lab.choose("context_text_dialogue_image", "contextual_comprehension", [text("Anna e Luca sono in cucina.", "context"), {**text("Vuoi una mela?", "dialogue_turn"), "speaker": "Anna"}, {**text("Sì, grazie.", "dialogue_turn"), "speaker": "Luca"}, image("apple", "An apple", "context"), text("Che cosa offre Anna?", "question")], ["Una mela.", "Un libro.", "Un caffè."], 0, "Contextual comprehension; text, structured dialogue and supplementary image")
+    lab.start_round("select_context", "Read and answer", "Read the situation, written in English, and the Italian dialogue, then answer in Italian. Some dialogues are read aloud line by line, automatically or with Play dialogue.", "story")
+    lab.choose("reading_situation", "reading_answer_target", [text("You meet your neighbour Anna in the evening.", "context", "source"), text("Che cosa dici?", "question")], ["Buonasera!", "Buongiorno!", "Buonanotte!"], 0, "Read and answer; a situation in the source language, no dialogue")
+    lab.choose("reading_dialogue", "reading_answer_target", [text("Anna and Luca are in the kitchen.", "context", "source"), image("apple", "An apple", "context"), *turn("Vuoi una mela?", "Anna"), *turn("Sì, grazie.", "Luca"), text("Che cosa offre Anna?", "question")], ["Una mela.", "Un libro.", "Un caffè."], 0, "Read and answer; situation, dialogue lines and an image, no read-aloud")
+    lab.choose("reading_dialogue_automatic", "reading_answer_target", [text("Anna and Luca talk after lunch.", "context", "source"), *turn("Vuoi un caffè?", "Anna", "automatic"), *turn("Sì, senza zucchero.", "Luca", "automatic"), text("Come vuole il caffè Luca?", "question")], ["Senza zucchero.", "Con molto zucchero.", "Con il gelato."], 0, "Read and answer; the dialogue read aloud automatically, line by line")
+    lab.choose("reading_dialogue_manual", "reading_answer_target", [*turn("Dov'è la stazione?", "Anna", "manual"), *turn("È vicino al parco.", "Luca", "manual"), text("Dov'è la stazione?", "question")], ["Vicino al parco.", "In biblioteca.", "Lontano dalla città."], 0, "Read and answer; dialogue lines only, read aloud on request")
 
-    lab.start_round("select_listening", "Listening and context", "Enable Audio Exercises and Text-to-speech to practise every item here. Use the replay control as needed. Listen for meaning as well as for individual words.", "listening")
+    lab.start_round("select_listening", "Listening", "Enable Audio Exercises and Text-to-speech to practise every item here. Use the replay control as needed. Listen for meaning as well as for individual words.", "listening")
     lab.choose("select_listening_word", "listening_choice", [audio("Buongiorno."), text("Choose the greeting you hear.", "question")], ["Buongiorno.", "Buonasera.", "Buonanotte."], 0, "What do you hear; audio prompt and written answers")
     lab.choose("select_listening_passage", "listening_comprehension", [audio("Maria compra due mele e un chilo di pane al mercato.", "passage"), text("Dove fa la spesa Maria?", "question")], ["Al mercato.", "A scuola.", "In stazione."], 0, "Listen and choose; passage audio and separate question")
-    lab.choose("context_audio", "contextual_comprehension", [audio("Il treno per Roma parte dal binario tre.", "context"), text("Da quale binario parte il treno?", "question")], ["Dal binario tre.", "Dal binario uno.", "Dal binario cinque."], 0, "Contextual comprehension; Audio mode")
-    lab.choose("context_text_audio", "contextual_comprehension", [text("Luca legge un libro in giardino.", "context"), audio("Luca legge un libro in giardino.", "context"), text("Che cosa legge Luca?", "question")], ["Un libro.", "Una lettera.", "Un giornale."], 0, "Contextual comprehension; Text and audio mode")
-    lab.choose("context_all", "contextual_comprehension", [text("Anna e Luca parlano dopo pranzo.", "context"), audio("Vuoi un caffè? Sì, senza zucchero.", "context"), {**text("Vuoi un caffè?", "dialogue_turn"), "speaker": "Anna"}, {**text("Sì, senza zucchero.", "dialogue_turn"), "speaker": "Luca"}, image("coffee", "A cup of coffee", "context"), text("Come vuole il caffè Luca?", "question")], ["Senza zucchero.", "Con molto zucchero.", "Con il gelato."], 0, "Contextual comprehension; text, audio, structured dialogue and image together")
 
     lab.start_round("select_translation", "Two translation directions", "Read the language named in the instruction. QQL supplies the instruction for each direction. Pronunciation is optional; these questions remain available with Audio Exercises off.")
     lab.choose("translation_target_two", "translation_choice_to_target", [text("Good morning.", "question")], ["Buongiorno.", "Buonanotte."], 0, "Pick translation to target; minimum two answers; no image")
@@ -416,13 +423,12 @@ def laboratory() -> Laboratory:
     lab.choose("translation_source_two", "translation_choice_to_source", [text("Grazie.", "question")], ["Thank you.", "Goodbye."], 0, "Pick translation to source; minimum two answers; no image")
     lab.choose("translation_source_five", "translation_choice_to_source", [text("La mela è rossa.", "question"), image("apple", "An apple")], ["The apple is red.", "The apple is green.", "The pear is red.", "The apple is small.", "The apple is yellow."], 0, "Pick translation to source; maximum five answers; optional image")
 
-    lab.start_round("select_source", "Source-language answers, pictures and true or false", "These Select exercises answer in the source language or with pictures: Choose the answer (to source), True or false, Listen and answer (to source), Read and answer (to source), What is in the picture and Listen and pick the image.")
+    lab.start_round("select_source", "Source-language answers, pictures and true or false", "These Select exercises answer in the source language or with pictures: Choose the answer (to source), True or false, Listen and answer (to source), What is in the picture and Listen and pick the image.")
     lab.choose("choice_source_meaning", "choice_source", [text("What does “grazie” mean?", "question", "source")], ["thank you", "please", "sorry"], 0, "Choose the answer (to source); question and answers in the source language", language="source")
     lab.choose("choice_source_culture", "choice_source", [text("When do Italians say “buonasera”?", "question", "source")], ["From the afternoon on", "Only at night", "Only in the morning"], 0, "Choose the answer (to source); a culture question", language="source")
     lab.choose("true_false_true", "true_false", [text("Roma è la capitale d’Italia.", "question")], ["True", "False"], 0, "True or false; a true statement, answers in the source language", language="source")
     lab.choose("true_false_spoken", "true_false", [text("Il gatto è un frutto.", "question"), audio("Il gatto è un frutto.")], ["True", "False"], 1, "True or false; a spoken false statement", language="source")
     lab.choose("listening_source", "listening_answer_source", [audio("Grazie mille!"), text("What did you hear?", "question", "source")], ["Thank you very much", "Good night", "See you soon"], 0, "Listen and answer (to source); answers in the source language", language="source")
-    lab.choose("reading_source", "reading_answer_source", [text("Anna abita a Roma. Ogni mattina va al lavoro in autobus.", "passage"), text("How does Anna get to work?", "question", "source")], ["By bus", "By train", "On foot"], 0, "Read and answer (to source); question and answers in the source language", language="source")
     lab.choose("picture_choice", "picture_choice", [text("What is this?", "question"), image("apple", "An apple", "picture")], ["la mela", "la pera", "il pane"], 0, "What is in the picture; picture prompt, text answers")
     lab.choose("listening_image", "listening_image_choice", [audio("il gatto")], ["il gatto", "il cane", "il cavallo"], 0, "Listen and pick the image; captioned picture answers", images=["cat", "dog", "horse"])
 
@@ -461,7 +467,7 @@ def laboratory() -> Laboratory:
     lab.enter("complete_text", "complete_text", [text("Anna beve un caffè al bar. Poi prende il treno.")], [], "Complete the text; two typed gaps, no audio", missing=["caffè", "treno"], answer="caffè / treno")
     lab.enter("missing_letters", "missing_letters", [text("Il gatto dorme sul divano.")], [], "Missing letters; letters inside two words", missing=["tt", "van"], answer="tt / van")
     lab.enter("missing_letters_audio", "missing_letters", [text("Il treno parte alle nove."), audio("Il treno parte alle nove.")], [], "Missing letters; spoken text and two gaps", missing=["ren", "ove"], answer="ren / ove")
-    lab.enter("picture_name", "picture_name", [text("What is this?", "question"), image("bread", "Bread", "picture")], ["il pane", "pane"], "Name what you see; picture prompt, typed answers")
+    lab.enter("picture_name", "picture_name", [text("What is this?", "question"), image("bread", "Bread", "picture")], ["il pane", "pane"], "Type what you see; picture prompt, typed answers")
 
     lab.start_lesson("Arrange", "Build an Italian answer from words, phrases, letters or syllables. Ordinary Arrange consumes each block once; repeated words need repeated blocks. Inline Arrange fills fixed gaps with distinct blocks. Word order and Build the translation allow zero, one or two distractors; Image-prompt ordering allows none.")
     lab.start_round("arrange_words", "Word and phrase blocks", "Tap blocks to build the answer. You can remove a chosen block before checking. Repeated words are separate occurrences.")
@@ -470,6 +476,7 @@ def laboratory() -> Laboratory:
     lab.arrange("arrange_two", "word_order", [text("Put the Italian sentence in order: The train leaves today.", "clue")], ["Il", "treno", "parte", "oggi", "ieri", "dorme"], [[0, 1, 2, 3]], "Word order; two distinct target-language distractors")
     lab.arrange("arrange_repeat", "word_order", [text("Build: Anna eats bread and Luca eats rice.", "clue")], ["Anna", "mangia", "pane", "e", "Luca", "mangia", "riso"], [[0, 1, 2, 3, 4, 5, 6]], "Word order; repeated visible words use separate block occurrences")
     lab.arrange("arrange_phrases", "word_order", [text("Build: I go to school by bus.", "clue")], ["Vado", "a scuola", "in autobus"], [[0, 1, 2]], "Word order; multiword phrase blocks")
+    lab.arrange("picture_blocks", "picture_blocks", [text("What is this?", "question"), image("bread", "Bread", "picture")], ["il", "pane", "la"], [[0, 1]], "Name what you see; picture prompt, word blocks and one extra block")
 
     lab.start_round("arrange_gaps", "Fixed sentences and consumed blocks", "Fill each gap using a separate block. Unlike Select, placing a block removes that occurrence from the available bank. Duplicate words need two blocks. Gap contents can be removed, moved or swapped.")
     lab.gaps("arrange_gap_one", "gap_blocks", "Complete the sentence.", ["Il gatto", ("dorme",), "."], [], "Inline Arrange; one gap; no distractors")
@@ -553,17 +560,18 @@ def laboratory() -> Laboratory:
     lab.finish_story()
     lab.start_canonical_lesson("Assign", "Assign places items into destinations (Build 256 Revision 7): tap an item, then the group or slot that takes it; Check grades every destination at once. A group may take any number of items, a slot takes one; a reusable item stays in the bank. The presets Sort into groups and Fill the slots author these examples (Revision 7 follow-up). Gaps in a text are authored in the canonical editor; picture regions, grid cells and drag placement wait for a later version.")
     lab.start_round("assign_bins", "Groups and slots", "Sort the words into their groups, or fill each slot with the right word. Tap a word, then its destination; Check when every word is placed.")
-    lab.assign("assign_groups", "sort_into_groups", "categories", "Sort the words: animals or food?",
-               [("gatto", "gatto"), ("cane", "cane"), ("mela", "mela"), ("pane", "pane")],
-               [("animals", "Animals"), ("food", "Food")],
-               {"animals": ["gatto", "cane"], "food": ["mela", "pane"]},
+    lab.assign("assign_groups", "sort_into_groups", "categories", "Sort the words: animals or plants?",
+               [("gatto", "gatto"), ("cane", "cane"), ("rosa", "rosa"), ("pino", "pino")],
+               [("animals", "Animals"), ("plants", "Plants")],
+               {"animals": ["gatto", "cane"], "plants": ["rosa", "pino"]},
                "Sort into groups; a group takes any number of items (capacity unlimited), reuse forbidden",
-               "Animals: gatto, cane; Food: mela, pane", capacity="unlimited")
-    lab.assign("assign_groups_leftover", "sort_into_groups", "categories", "Put the animals in their group and leave the other word out.",
-               [("gatto", "gatto"), ("cane", "cane"), ("tavolo", "tavolo")],
-               [("animals", "Animals")], {"animals": ["gatto", "cane"]},
-               "Sort into groups; a word that belongs nowhere stays in the bank",
-               "Animals: gatto, cane; tavolo stays in the bank", capacity="unlimited")
+               "Animals: gatto, cane; Plants: rosa, pino", capacity="unlimited")
+    lab.assign("assign_groups_three", "sort_into_groups", "categories", "Sort the words: animal, plant or object?",
+               [("gatto", "gatto"), ("cane", "cane"), ("rosa", "rosa"), ("pino", "pino"), ("tavolo", "tavolo"), ("sedia", "sedia")],
+               [("animals", "Animals"), ("plants", "Plants"), ("objects", "Objects")],
+               {"animals": ["gatto", "cane"], "plants": ["rosa", "pino"], "objects": ["tavolo", "sedia"]},
+               "Sort into groups; three groups, every word in one",
+               "Animals: gatto, cane; Plants: rosa, pino; Objects: tavolo, sedia", capacity="unlimited")
     lab.assign("assign_slots", "fill_the_slots", "slots", "Which article goes with each noun?",
                [("il", "il"), ("la", "la")], [("s1", "… gatto"), ("s2", "… casa")],
                {"s1": ["il"], "s2": ["la"]},

@@ -4,6 +4,38 @@ Build 256 is the exercise architecture redesign (Course Model v12). Its eight
 sessions are Revisions 0–7, all delivered. Plan: `256_EXERCISE_ARCHITECTURE_PLAN.md`;
 reference: `EXERCISE_ARCHITECTURE_V12.md`; evidence: `256_VALIDATION.md`.
 
+## Revision 8 (2.0.56+256008, 29 September 2026): Editor Help as questions and answers
+
+Owner decisions of 29 September 2026: Editor Help only (Course Studio Help
+keeps its paragraphs), seven task topics, questions that open on tap, a
+search field, text rewritten and checked against the app, EN/IT/ES
+together, the Technical reference card at the top, its own revision.
+
+- `lib/localization/help/help_structure.dart`: `editorHelpQuestionsByTopic`
+  (7 topics, 66 questions) replaces `editorHelpSectionIds`; keys
+  `editorHelp.qa.<topic>.title`, `editorHelp.qa.<id>.q`, `.a`,
+  `editorHelp.qa.searchLabel`, `editorHelp.qa.noResults`.
+- `lib/localization/help/help_en.dart`, `help_it.dart`, `help_es.dart`: the
+  questions and answers; the 25 Editor-only sections removed; the four
+  shared with Course Studio Help kept.
+- `lib/screens/editor_help_content.dart`: `editorHelpTopics(language)`
+  (`EditorHelpTopic`, `EditorHelpQuestion`) replaces `editorHelpSections`.
+- `lib/screens/editor_help_screen.dart`: `EditorHelpScreen` is stateful: the
+  Technical reference card, `editor-help-search` (words matched with
+  `ExerciseSearchService.normalize`, capitals and accents ignored,
+  `editor-help-search-clear`), `editor-help-no-results`, per topic
+  `editor-help-topic-<id>` and per question an `ExpansionTile`
+  `editor-help-question-<id>` with `editor-help-answer-<id>`.
+- Tests: `editor_help_qa_256_test.dart` (structure, translation, search,
+  tap to open, folders filled in); the Help pins moved to the new keys
+  (`editor_help_translation_test`, `localization_catalog_test`,
+  `revision3_followup_256_test`, `image_preview_tooltip_revision18_test`,
+  `exercise_field_help_226_02_test`); the version pins.
+- The Italian and Spanish texts were drafted by two translation agents from
+  the English and reviewed: identical structure, placeholders, codes and
+  on-screen names kept; the Technical reference card named as each
+  language shows it.
+
 ## Revision 7 (2.0.56+256007, 29 September 2026): Laboratory, Assign, final verification
 
 Session 8, the last (plan Part B item 8). The Assign runtime, the
@@ -136,6 +168,124 @@ negative and semantic-equality tests, the final verification.
   (no distractors); a Flashcard's read-aloud is the word itself and never
   an audio exercise; the Round's "Before you start" card stays Round
   content (no interactive-presentation primitive).
+
+### Fourth follow-up in the same version (owner review, 29 September 2026)
+
+- `lib/screens/course_editor_screen.dart`: the preset name in bold (preset
+  selector card title, "Exercise type" subtitle); the forms
+  `picture_blocks` (Question (optional), Blocks of the name, in order =
+  `order`, Extra blocks (optional) = `extraWords`, Hint), `sort_into_groups`
+  without `_leftover` (helpers Animals/Plants), `reading_comprehension` (the
+  Read and answer form: Text to read (source language), Dialogue lines,
+  Read the dialogue aloud = `_dialogueReadAloud`, Question; no Spoken
+  text); the error `nameBlocksRequired`.
+- `lib/models/course_models.dart` `_resolveOrderedItemIds`: exact capitals
+  first, then capitals ignored. `lib/services/course_audit_service.dart`:
+  `ARRANGE_ANSWER_CASE_DIFFERS` (Warning) when the blocks build the answer
+  only with capitals ignored; `picture_blocks` needs its picture;
+  `kindLabel` for the two new kinds; Read and answer's hint and rules for
+  the one remaining preset. `lib/services/audit_code_registry.dart`: 108
+  rules, 42 Warnings.
+- `lib/models/exercise_authoring.dart`: `picture_blocks` "Name what you
+  see" (Arrange, own recipe), `picture_name` renamed "Type what you see";
+  `reading_answer_source` removed (no twin for `reading_answer_target`);
+  `helpByPreset`; the Story cover and Adventure texts no longer point to
+  Play as a sequence for Stories. `lib/models/preset_successors.dart`:
+  `reading_answer_source` → `reading_answer_target`; `picture_blocks` →
+  `word_order` in `presetRecipeBaseOf` (the v11 converter), mirrored in
+  `tools/qql_course_v12.py`.
+- `lib/models/exercise_features.dart`: `LearnerExerciseKind.inputPictureName`
+  and `arrangePictureName` (a `picture` image), `pictureImages`,
+  `dialogueAudio`. `lib/services/exercise_copy_service.dart`: headings and
+  instructions in the eight languages.
+- `lib/services/exercise_draft_builder.dart`: `_buildPictureBlocks` (items
+  kept by text, one exact order); Sort into groups without `leftover`, two
+  groups required; `ExerciseDraftValues.dialogueReadAloud`.
+  `lib/services/preset_variants.dart`: Read and answer is always the context
+  shape; `_readAndAnswer` marks the context text source-language and adds
+  after each dialogue line its optional audio (`role: dialogue_turn`,
+  `playback`, `required: false`). `lib/services/preset_recipes.dart`:
+  `picture_blocks` canonical-only recipe, extra blocks and the dialogue
+  read-aloud decomposed, kinds.
+- `lib/screens/round_screen.dart`: `_speakDialogue` (each line in turn,
+  `dialogueLinePause` one second, stops when the learner moves on, silent
+  without optional audio), `_speak` routes an automatic dialogue to it, the
+  Play dialogue button; `lib/widgets/exercise_prompt_panels.dart`
+  `onPlayDialogue`; `lib/screens/duel_screen.dart`: no dialogue read-aloud.
+- `lib/services/guidebook_round_generator.dart`: the context slot is Pick
+  the missing word (`gap_choice`); every generated exercise is represented
+  by its preset (new test in `guidebook_round_generator_224_test`).
+- Field help, Search, Help (EN/IT/ES): the new preset and fields, the
+  Read and answer texts, Sort into groups without leftover words.
+- Generators: the Laboratory (`turn()` helper; Read and answer round
+  rebuilt: situation, dialogue with image, automatic and on-request
+  read-aloud; the passage, situation, context and spoken-text examples and
+  Read and answer (to source) removed; `picture_blocks`; Sort into groups
+  Animals/Plants and three groups: 7 Lessons, 27 Rounds, 122 examples);
+  the Piedmontese demo (Read and answer Lesson rebuilt, the "to source"
+  Lesson removed, a Name what you see Lesson: 39 Lessons, 117 examples);
+  the Edge Case demo's `e07_long` (an Italian source text, an English
+  question); the v11 fixtures rewritten (Edge Case edited for `e07_long`).
+- Tests: `revision7_fourth_followup_256_test.dart` (12); the Round Wizard
+  test; the pins listed in the validation.
+- Decisions (owner, 29 September): the Warning fires for any capital that
+  differs; the typed preset stays as Type what you see; Read and answer
+  keeps only "to target", its text in the source language without
+  read-aloud, the dialogue read turn by turn with a pause, optional; old
+  spoken-text examples removed and new ones generated; the Round Wizard
+  creates preset exercises only. Claude's defaults the owner may override:
+  the Laboratory's leftover example became three groups; the Duel stays
+  silent for a dialogue read-aloud.
+
+### Third follow-up in the same version (owner decisions, 29 September 2026)
+
+- `lib/models/course_models.dart`: `LearningRound.storyVisualType`,
+  `sequenceTitlePrefix`; `isStory` = a flow and the `story` visual type
+  (New Story's), `isSequence` = a flow and any other visual type;
+  `displayTitle` derives "Sequence: <title>" for a sequence (its flow
+  title, else the Round's name, else "Round N"). No Course file change:
+  every Story in the bundled Courses and fixtures already has the `story`
+  visual type, and every Round QQL's editor creates is `generic`.
+- `lib/screens/course_editor_screen.dart` (Round editor): `_isStory`,
+  `_flowNoun`; Play as a sequence on a Round without the `story` visual
+  type writes a step-by-step flow with log Everything and no title; the
+  title field is "Optional sequence title" with its own helper; the
+  branching dialog, the switch description, the audio note and the menu
+  item say "sequence"; the steps count, Add Step and the greyed Duplicate
+  of the title block are the Story's only; a sequence keeps New Exercise,
+  New Canonical and Exercise Wizard.
+- `lib/screens/round_screen.dart`: `_isStory` renamed `_playsInOrder`
+  (ordered playback, no mistake review, cards for unplayable steps, for a
+  Story and a sequence alike); `_roundNoun` (Story, Sequence or Round)
+  names the completion dialog, "Nothing to score in this …", the Finish /
+  Finishing / Leave buttons, the scrolling marker and the unfinished
+  dialog.
+- `lib/services/course_audit_service.dart`: `STORY_TITLE_MISSING` and
+  `STORY_WITHOUT_DIALOGUE` apply to a Story only; `DIALOGUE_LINE_OUTSIDE_STORY`
+  to a line in any Round that is not a Story; `notCompletableReason` names
+  the Story or the Sequence.
+- `lib/services/duel_eligibility_service.dart`: a Story's and a branching
+  flow's exercises stay out of the pool; a sequence's join it.
+- Help EN/IT/ES: `editorHelp.storiesAndStoryWizard` and
+  `technical.exercisePrimitives.stories` explain sequence versus Story.
+- Tests: `sequence_round_256_test.dart` (model, Round editor for a
+  sequence and a Story, Audit, Duel, Round screen); the Story tests'
+  Rounds carry the `story` visual type (`story_editor_256_test` also pins
+  the sequence labels, `story_add_step_256_test`, `runtime_canonical_256_test`,
+  `revision3_followup_256_test`, `support_states_256_test`,
+  `support/canonical_course_256.dart`).
+- Decisions (owner): the label "Sequence" everywhere a Story would say
+  "Story" (lists, learner's path, Round screen); without a sequence title
+  the Round's name follows "Sequence:"; a sequence's exercises join the
+  Duel; no mistake review at the end of a sequence.
+- Type the missing word (owner, same day): `course_editor_screen.dart`'s
+  form states the same-first-letter rule and the first-letter note only
+  while Show the first letter is on (off: "They may start with different
+  letters." and "The learner types it without a hint."); the English
+  fallback in `exercise_field_help.dart` says the same. The draft builder
+  and the Audit already applied the rule to the first-letter shape only
+  (checked); the localized Help already said "with the hint on". Test:
+  `revision7_third_followup_256_test.dart`.
 
 ### Second follow-up in the same version (owner request, 29 September 2026)
 

@@ -65,10 +65,12 @@ enum ExerciseAuthoringField {
   coverTitle,
   coverImage,
   groups,
-  leftoverWords,
   slots,
   extraWords,
   slotReuse,
+  nameBlocks,
+  extraNameBlocks,
+  dialogueReadAloud,
 }
 
 class ExerciseFieldHelp {
@@ -167,16 +169,8 @@ abstract final class ExerciseFieldHelpRegistry {
       'audio_match': ['prompt', 'pairs'],
       'reading_answer_target': [
         'prompt',
-        'tts',
         'dialogue',
-        'question',
-        'answers',
-        'correct',
-      ],
-      'reading_answer_source': [
-        'prompt',
-        'tts',
-        'dialogue',
+        'dialogueReadAloud',
         'question',
         'answers',
         'correct',
@@ -214,6 +208,7 @@ abstract final class ExerciseFieldHelpRegistry {
       'spell_heard': ['tts', 'order'],
       'picture_choice': ['question', 'answers', 'correct'],
       'picture_name': ['question', 'accepted', 'hint'],
+      'picture_blocks': ['question', 'order', 'extraWords', 'hint'],
       'spell_word': ['prompt', 'order'],
       'picture_word_match': ['prompt', 'answers', 'icons'],
       'note_card': ['prompt', 'question'],
@@ -226,7 +221,7 @@ abstract final class ExerciseFieldHelpRegistry {
         'language',
       ],
       'story_cover': ['prompt', 'image'],
-      'sort_into_groups': ['question', 'groups', 'leftover'],
+      'sort_into_groups': ['question', 'groups'],
       'fill_the_slots': ['question', 'slots', 'extraWords', 'slotReuse'],
     };
     final selected = fields[presetId];
@@ -399,11 +394,11 @@ abstract final class ExerciseFieldHelpRegistry {
       return const ExerciseFieldHelp(
         title: 'Type the missing word',
         purpose:
-            'Enter the complete missing word. The first letter shown is a hint.',
+            'Enter the complete missing word. The first letter is shown as a hint when Show the first letter is on.',
         entryRules:
             'Enter a sentence with exactly one ___ gap and complete accepted words, one per line. The first Unicode grapheme is derived automatically; the learner enters the complete word, including that first grapheme.',
         validation:
-            'All complete accepted words must share exactly the same first grapheme. The complete word entered uses normal Input normalization and supported typo tolerance; the hint is not prepended to the response.',
+            'With Show the first letter on, all complete accepted words must share exactly the same first grapheme; off, they may start with different letters. The complete word entered uses normal Input normalization and supported typo tolerance; the hint is not prepended to the response.',
         example:
             'Je vais à l’___. Answer: école. Learner sees é______ and enters école, not cole.',
       );
@@ -438,13 +433,13 @@ abstract final class ExerciseFieldHelpRegistry {
       return ExerciseFieldHelp(
         title: 'Question',
         purpose: groups
-            ? 'What the learner is asked to sort. Example: Sort the words: animals or food?'
+            ? 'What the learner is asked to sort. Example: Sort the words: animals or plants?'
             : 'What the learner is asked to fill. Example: Which article goes with each noun?',
         entryRules:
             'One line, in the language you prefer. The groups or slots below are what the learner sees under it.',
         validation: 'Required.',
         example: groups
-            ? 'Sort the words: animals or food?'
+            ? 'Sort the words: animals or plants?'
             : 'Which article goes with each noun?',
       );
     }
@@ -469,8 +464,7 @@ abstract final class ExerciseFieldHelpRegistry {
       'type_translation_to_source' ||
       'build_translation_to_target' ||
       'build_translation_to_source' => ExerciseAuthoringField.sourceText,
-      'reading_answer_target' ||
-      'reading_answer_source' => ExerciseAuthoringField.readingPassage,
+      'reading_answer_target' => ExerciseAuthoringField.readingPassage,
       'listening_spelling' => ExerciseAuthoringField.listeningTranscript,
       'missing_word' => ExerciseAuthoringField.transcript,
       _ => ExerciseAuthoringField.instruction,
@@ -515,6 +509,7 @@ abstract final class ExerciseFieldHelpRegistry {
       'spell_heard' ||
       'spell_word' => ExerciseAuthoringField.correctWordOrder,
       'sentence_order' => ExerciseAuthoringField.correctLineOrder,
+      'picture_blocks' => ExerciseAuthoringField.nameBlocks,
       _ => ExerciseAuthoringField.correctBlockOrder,
     },
     'correctTranslation' => ExerciseAuthoringField.correctTranslation,
@@ -533,6 +528,7 @@ abstract final class ExerciseFieldHelpRegistry {
           ? ExerciseAuthoringField.missingWord
           : ExerciseAuthoringField.missingWords,
     'dialogue' => ExerciseAuthoringField.dialogue,
+    'dialogueReadAloud' => ExerciseAuthoringField.dialogueReadAloud,
     'speaker' => ExerciseAuthoringField.speaker,
     'lineMode' => ExerciseAuthoringField.lineMode,
     'readAloud' => switch (presetId) {
@@ -541,9 +537,11 @@ abstract final class ExerciseFieldHelpRegistry {
       _ => ExerciseAuthoringField.lineReadAloud,
     },
     'groups' => ExerciseAuthoringField.groups,
-    'leftover' => ExerciseAuthoringField.leftoverWords,
     'slots' => ExerciseAuthoringField.slots,
-    'extraWords' => ExerciseAuthoringField.extraWords,
+    'extraWords' => switch (presetId) {
+      'picture_blocks' => ExerciseAuthoringField.extraNameBlocks,
+      _ => ExerciseAuthoringField.extraWords,
+    },
     'slotReuse' => ExerciseAuthoringField.slotReuse,
     'textReveal' => ExerciseAuthoringField.lineTextReveal,
     'language' => ExerciseAuthoringField.lineLanguage,
@@ -688,14 +686,14 @@ abstract final class ExerciseFieldHelpRegistry {
       example: 'Vorrei un ___, per favore.',
     ),
     ExerciseAuthoringField.readingPassage => const ExerciseFieldHelp(
-      title: 'Text to read',
+      title: 'Text to read (source language)',
       purpose:
-          'Provides the text, situation or context the learner reads before answering the separate question. Example: Maria prende il treno. Va a Roma.',
+          'Explains the situation in the learners’ own language before the dialogue and the question; it is never read aloud. Example: Anna and Luca are in the kitchen after lunch.',
       entryRules:
-          'Enter one passage, situation or short text in the target language. Multiple lines or paragraphs remain part of the text. With dialogue lines, this text is the context shown before them and may stay short.',
+          'Enter a short text in the source language. Multiple lines or paragraphs remain part of the text. The dialogue lines, the question and the answers are in the target language.',
       validation:
-          'A text containing words, or dialogue lines, is required; punctuation alone is insufficient. One or two lexical words produce a warning; at least three are recommended. The question should test comprehension.',
-      example: 'Maria prende il treno. Va a Roma.',
+          'A text containing words, or dialogue lines, is required; punctuation alone is insufficient.',
+      example: 'Anna and Luca are in the kitchen after lunch.',
     ),
     ExerciseAuthoringField.transcript => const ExerciseFieldHelp(
       title: 'Passage transcript',
@@ -1018,18 +1016,10 @@ abstract final class ExerciseFieldHelpRegistry {
       title: 'Groups',
       purpose: 'The groups and the words each one takes.',
       entryRules:
-          'One group per line: the group name, a colon, then its words separated by commas. At least one group (usually two or more), each with at least one word.',
+          'One group per line: the group name, a colon, then its words separated by commas. At least two groups, each with at least one word; every word belongs to one group.',
       validation:
           'A word can be in one group only. A line without a name or without words is refused before Preview or Save.',
-      example: 'Animals: gatto, cane\nFood: mela, pane',
-    ),
-    ExerciseAuthoringField.leftoverWords => const ExerciseFieldHelp(
-      title: 'Words that belong nowhere',
-      purpose:
-          'Words offered with the others that belong to no group; the learner must leave them in the bank.',
-      entryRules: 'One word per line. Optional.',
-      validation: 'A word listed here cannot also be in a group.',
-      example: 'tavolo',
+      example: 'Animals: gatto, cane\nPlants: rosa, pino',
     ),
     ExerciseAuthoringField.slots => const ExerciseFieldHelp(
       title: 'Slots',
@@ -1046,6 +1036,33 @@ abstract final class ExerciseFieldHelpRegistry {
       entryRules: 'One word per line. Optional.',
       validation: 'An extra word cannot repeat a slot word.',
       example: 'lo',
+    ),
+    ExerciseAuthoringField.nameBlocks => const ExerciseFieldHelp(
+      title: 'Blocks of the name, in order',
+      purpose:
+          'The name of what the picture shows, as the word blocks the learner puts in order.',
+      entryRules:
+          'One word per line, in the right order. The learner gets these blocks shuffled, with any extra blocks.',
+      validation:
+          'Required, with the Exercise image. The blocks joined with spaces are the answer.',
+      example: 'il\npane',
+    ),
+    ExerciseAuthoringField.extraNameBlocks => const ExerciseFieldHelp(
+      title: 'Extra blocks',
+      purpose: 'Words offered with the name that are not part of it.',
+      entryRules: 'One word per line. Optional; at most two.',
+      validation: 'More than two extra blocks is an Audit error.',
+      example: 'la',
+    ),
+    ExerciseAuthoringField.dialogueReadAloud => const ExerciseFieldHelp(
+      title: 'Read the dialogue aloud',
+      purpose:
+          'Whether the dialogue lines are spoken: automatically when the exercise appears, on request with the Play dialogue button, or not at all.',
+      entryRules:
+          'Choose Automatically, On request or No read-aloud. Each line is spoken in turn with a short pause, in the target language.',
+      validation:
+          'Read-aloud is optional: the exercise is never an audio exercise and stays silent with Audio Exercises or Text-to-speech off.',
+      example: 'Automatically, line by line',
     ),
     ExerciseAuthoringField.slotReuse => const ExerciseFieldHelp(
       title: 'A word may fill more than one slot',

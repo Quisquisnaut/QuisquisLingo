@@ -44,7 +44,6 @@ ExerciseDraftBuildResult _build(
   PublicationState state = PublicationState.published,
   String question = '',
   String groups = '',
-  String leftover = '',
   String slots = '',
   String extraWords = '',
   bool slotReuse = false,
@@ -61,7 +60,6 @@ ExerciseDraftBuildResult _build(
     publicationState: state,
     question: question,
     groups: groups,
-    leftover: leftover,
     slots: slots,
     extraWords: extraWords,
     slotReuse: slotReuse,
@@ -80,7 +78,6 @@ Exercise _built(
   PublicationState state = PublicationState.published,
   String question = '',
   String groups = '',
-  String leftover = '',
   String slots = '',
   String extraWords = '',
   bool slotReuse = false,
@@ -97,7 +94,6 @@ Exercise _built(
     state: state,
     question: question,
     groups: groups,
-    leftover: leftover,
     slots: slots,
     extraWords: extraWords,
     slotReuse: slotReuse,
@@ -186,11 +182,12 @@ void main() {
 
   group('Sort into groups and Fill the slots', () {
     test('Sort into groups builds an Assign with groups of any size', () {
+      // Every word belongs to a group (fourth follow-up of 29 September
+      // 2026: the words that belong nowhere were removed).
       final e = _built(
         'sort_into_groups',
-        question: 'Sort the words: animals or food?',
-        groups: 'Animals: gatto, cane\nFood: mela, pane',
-        leftover: 'tavolo',
+        question: 'Sort the words: animals or plants?',
+        groups: 'Animals: gatto, cane\nPlants: rosa, pino',
       );
       final f = ExerciseFeatures(e);
       expect(e.primitive, ExercisePrimitive.assign);
@@ -199,19 +196,18 @@ void main() {
       expect(f.assignTargetMode, AssignTargetMode.categories);
       expect(f.targetCapacity, TargetCapacity.unlimited);
       expect(f.assignItemReuse, isFalse);
-      expect(f.questionText, 'Sort the words: animals or food?');
+      expect(f.questionText, 'Sort the words: animals or plants?');
       expect(e.items.map((item) => item.value), [
         'gatto',
         'cane',
-        'mela',
-        'pane',
-        'tavolo',
+        'rosa',
+        'pino',
       ]);
       expect(e.targets, hasLength(2));
-      expect(e.targets.map((t) => f.targetLabel(t.id)), ['Animals', 'Food']);
+      expect(e.targets.map((t) => f.targetLabel(t.id)), ['Animals', 'Plants']);
       final byTarget = f.assignmentsByTarget;
       expect(_wordsOf(e, byTarget[e.targets[0].id]!), ['gatto', 'cane']);
-      expect(_wordsOf(e, byTarget[e.targets[1].id]!), ['mela', 'pane']);
+      expect(_wordsOf(e, byTarget[e.targets[1].id]!), ['rosa', 'pino']);
       expect(e.isExecutable, isTrue);
       expect(
         CourseAuditService()
@@ -221,9 +217,8 @@ void main() {
       );
       // The form reads its fields back and the recipe represents the result.
       final draft = PresetRecipes.decompose(e, 'sort_into_groups');
-      expect(draft.question, 'Sort the words: animals or food?');
-      expect(draft.groups, 'Animals: gatto, cane\nFood: mela, pane');
-      expect(draft.leftover, 'tavolo');
+      expect(draft.question, 'Sort the words: animals or plants?');
+      expect(draft.groups, 'Animals: gatto, cane\nPlants: rosa, pino');
       expect(PresetRecipes.represents(e, 'sort_into_groups'), isTrue);
       final stripped = e.withAuthoringMetadata(const {});
       expect(PresetRecipes.recognize(stripped), 'sort_into_groups');
@@ -284,21 +279,11 @@ void main() {
       expect(noColon?.code, ExerciseDraftErrorCode.groupLine);
       expect(noColon?.line, 1);
       final twice = error(
-        _build('sort_into_groups', groups: 'Animals: gatto\nFood: gatto'),
+        _build('sort_into_groups', groups: 'Animals: gatto\nPlants: gatto'),
       );
       expect(twice?.code, ExerciseDraftErrorCode.groupWordRepeated);
       expect(twice?.line, 2);
       expect(twice?.detail, 'gatto');
-      expect(
-        error(
-          _build(
-            'sort_into_groups',
-            groups: 'Animals: gatto',
-            leftover: 'gatto',
-          ),
-        )?.code,
-        ExerciseDraftErrorCode.groupWordRepeated,
-      );
       expect(
         error(_build('sort_into_groups'))?.code,
         ExerciseDraftErrorCode.groupsRequired,
@@ -307,9 +292,18 @@ void main() {
         error(_build('sort_into_groups', state: PublicationState.draft)),
         isNull,
       );
-      // One group is enough (the Laboratory's leftover example).
+      // One group asks nothing: at least two (no words that belong nowhere).
       expect(
-        error(_build('sort_into_groups', groups: 'Animals: gatto, cane')),
+        error(_build('sort_into_groups', groups: 'Animals: gatto, cane'))?.code,
+        ExerciseDraftErrorCode.groupsRequired,
+      );
+      expect(
+        error(
+          _build(
+            'sort_into_groups',
+            groups: 'Animals: gatto, cane\nPlants: rosa',
+          ),
+        ),
         isNull,
       );
       expect(
@@ -344,26 +338,26 @@ void main() {
     test('an edit keeps the IDs of the words and targets it keeps', () {
       final first = _built(
         'sort_into_groups',
-        groups: 'Animals: gatto, cane\nFood: mela',
+        groups: 'Animals: gatto, cane\nPlants: rosa',
       );
       final edited = _built(
         'sort_into_groups',
         original: first,
-        groups: 'Animals: cane, gatto\nFood: mela, pane',
+        groups: 'Animals: cane, gatto\nPlants: rosa, pino',
       );
       String idOf(Exercise e, String word) =>
           e.items.singleWhere((item) => item.value == word).id;
-      for (final word in ['gatto', 'cane', 'mela']) {
+      for (final word in ['gatto', 'cane', 'rosa']) {
         expect(idOf(edited, word), idOf(first, word), reason: word);
       }
-      expect(idOf(edited, 'pane'), isNot(isIn(first.items.map((i) => i.id))));
+      expect(idOf(edited, 'pino'), isNot(isIn(first.items.map((i) => i.id))));
       expect(edited.targets.map((t) => t.id), first.targets.map((t) => t.id));
       expect(edited.id, first.id);
       // Unchanged fields rebuild the same exercise.
       final same = _built(
         'sort_into_groups',
         original: first,
-        groups: 'Animals: gatto, cane\nFood: mela',
+        groups: 'Animals: gatto, cane\nPlants: rosa',
       );
       expect(same.semanticallyEquals(first), isTrue);
     });
@@ -439,7 +433,6 @@ void main() {
       expect(ExerciseFieldHelpRegistry.editorFieldKeys('sort_into_groups'), [
         'question',
         'groups',
-        'leftover',
         'image',
       ]);
       expect(ExerciseFieldHelpRegistry.editorFieldKeys('fill_the_slots'), [
@@ -461,7 +454,7 @@ void main() {
           'sort_into_groups',
           'groups',
         ).example,
-        'Animals: gatto, cane\nFood: mela, pane',
+        'Animals: gatto, cane\nPlants: rosa, pino',
       );
       // The Audit names what a mislabelled exercise lacks.
       final slots = _built('fill_the_slots', slots: '… gatto = il');

@@ -291,22 +291,6 @@ class GuidebookRoundGenerator {
           tokens: answer,
           orderAnswer: answer,
         );
-      case 'reading_answer_target':
-        final contextual = material.pairWithExample(position);
-        return select(
-          type: 'contextual_comprehension',
-          prompt: contextual.example,
-          question:
-              'Which expression in this context means “${contextual.pair.source}”?',
-          answers: [
-            contextual.pair.target,
-            ..._distractors(
-              material.pairs.map((item) => item.target),
-              contextual.pair.target,
-              distractorCount,
-            ),
-          ],
-        );
       case 'type_translation_to_target':
         return _legacy(
           type: 'type_translation',
@@ -367,11 +351,13 @@ class GuidebookRoundGenerator {
             'build_translation_to_target',
             if (hasExamples) 'word_order',
             'audio_match',
-            if (hasMatchedExamples) 'reading_answer_target',
+            // The expression in context is Pick the missing word: the Round
+            // Wizard creates preset exercises only (owner, 29 September 2026).
+            if (hasMatchedExamples) 'gap_choice',
           ]
         : [
             'type_translation_to_target',
-            if (hasMatchedExamples) 'reading_answer_target',
+            if (hasMatchedExamples) 'gap_choice',
             'build_translation_to_target',
             if (hasExamples) 'word_order',
           ];

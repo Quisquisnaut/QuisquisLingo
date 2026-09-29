@@ -5,6 +5,25 @@ spelling) with Flutter 3.47.4 / Dart 3.13.3 on Windows 10, the complete
 suite through the keep-awake wrapper (`ES_CONTINUOUS | ES_SYSTEM_REQUIRED`
 held for the run and cleared afterwards).
 
+## Revision 8 (2.0.56+256008): Editor Help as questions and answers, 29 September 2026
+
+- The English questions and answers written against the current app (66
+  in seven topics); the Italian and Spanish versions drafted by two agents
+  and checked by script: same topic and question ids, same placeholders
+  and codes, every question ending with "?", the on-screen names the
+  tests require kept in English.
+- Focused batch (16 files: the new `editor_help_qa_256_test`, the moved
+  Help pins, the catalogs, the Help screens reached from other tests and
+  the version pins): 4 failures, fixed: the three widget tests needed a
+  tall window (the questions sit below the Technical reference card), and
+  the recordings answer regained the pinned sentence "Verified
+  course-version backups copy referenced …"; the two files rerun: 18
+  green.
+- `flutter analyze`: no issues; `dart format` clean on every changed Dart
+  file; no stale `256007` pin left.
+- Complete suite on the final tree: **3254 passed, 1 skipped, 0 failed**
+  (11:59–12:24, keep-awake wrapper).
+
 ## Revision 7 (2.0.56+256007): Laboratory, Assign, final verification, 29 September 2026
 
 - Stage 1 (the Assign runtime): `assign_runtime_256_test.dart` (10) with
@@ -63,6 +82,65 @@ held for the run and cleared afterwards).
   rebuilt: the two gap records removed, no other record changed (the `true`/`false` lines of the rebuild's report are its parse artifact).
 - `dart format` clean on every changed Dart file.
 - Complete suite on the final tree: **3238 passed, 1 skipped, 0 failed** (01:56–02:23, keep-awake wrapper).
+
+## Revision 7 fourth follow-up (same version), 29 September 2026
+
+- Owner review of the Windows build: bold preset name; capitals as a
+  Warning (any capital); Sort into groups without leftover words, Animals
+  and Plants; Name what you see as word blocks and Type what you see;
+  Read and answer with a source-language text and a dialogue read-aloud,
+  "to source" retired; the Round Wizard with preset exercises only.
+- The Round Wizard check (`every generated exercise is represented by its
+  own preset`) failed first on `reading_answer_target` only (the context
+  slot), then passed after the slot became Pick the missing word (10
+  tests of the two Round Wizard files green).
+- Generators `--check` and `tools/validate_courses.py`: pass (Laboratory 7
+  Lessons, 27 Rounds, 122 examples, 46 presets in the cases; Piedmontese
+  42 catalogue presets, 39 Lessons, 117 examples; Edge Case reproducible);
+  the v11 fixtures rewritten from the generators (the Edge Case fixture's
+  `e07_long` edited to match).
+- `revision7_fourth_followup_256_test.dart`: 12 passed (after one test fix:
+  the form's blank is built without strict validation).
+- Focused batch (58 files): 18 failures, all pins on the changed
+  behaviour (field inventories, the Read and answer Help texts, the
+  Laboratory's example count and presentation records, the old form's
+  label, the learner kinds per preset), fixed; the Laboratory presentation
+  re-recorded for the 122 examples and the baseline rebuilt: 9 records
+  removed (the old reading examples, Read and answer (to source), the
+  leftover example), 6 new (three groups, Name what you see, four Read and
+  answer), Type what you see's heading and instruction changed, no other
+  change (the `true`/`false` lines are the rebuild's parse artifact); the
+  five files rerun: green after the reading form's hover Help regained its
+  example.
+- `flutter analyze`: no issues; `dart format` clean on every changed file.
+- Complete suite run 1 (10:58–11:27): 3248 passed, 1 skipped, 2 failed,
+  both pins fixed after they ran (`course_editor_224_test`: the label Text
+  to read (source language); `guidebook_sentence_generator_test`: the
+  Round Wizard no longer creates Read and answer); the two files rerun
+  green.
+- Complete suite on the final tree (run 2): **3250 passed, 1 skipped, 0
+  failed** (11:28–11:52, keep-awake wrapper).
+
+## Revision 7 third follow-up (same version), 29 September 2026
+
+- Owner decisions: a Round made with New Round and played as a sequence is
+  a plain ordered Round (Optional sequence title, "Sequence: <title>" in
+  every list, the learner's path and the Round screen, the Audit's Round
+  rules, exercises in the Duel, no mistake review); a Story is New Story's.
+- Focused run 1 (11 Story and flow files): 14 failures, all tests whose
+  Story Rounds lacked the `story` visual type New Story writes (so they
+  had become sequences); the fixtures now carry it. The seven files rerun:
+  67 passed, 0 failed. `sequence_round_256_test.dart`: 6 passed (after
+  one finder: the Round screen's title has no PREVIEW prefix).
+- Type the missing word: a probe confirmed the draft builder and the
+  Audit accept "casa" / "abitazione" with Show the first letter off (the
+  form's texts were the problem); `revision7_third_followup_256_test.dart`
+  1 passed (after the test stopped assuming the switch's starting state),
+  with `first_letter_226_03_test` and the two field-help tests: 78 passed.
+- `flutter analyze`: no issues; `dart format` clean on every changed Dart
+  file.
+- Complete suite on the final tree: **3249 passed, 1 skipped, 0 failed**
+  (09:47–10:12, keep-awake wrapper).
 
 ## Revision 7 second follow-up (same version), 29 September 2026
 

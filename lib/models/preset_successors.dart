@@ -15,6 +15,9 @@ const presetSuccessorOf = <String, String>{
   'dialogue_response': 'reading_answer_target',
   'type_translation': 'type_translation_to_target',
   'build_translation': 'build_translation_to_target',
+  // Build 256 Revision 7 fourth follow-up (owner, 29 September 2026): Read
+  // and answer keeps only its "to target" preset.
+  'reading_answer_source': 'reading_answer_target',
 };
 
 /// The older recipe a catalogue preset is built on (`ExercisePreset.base`),
@@ -26,7 +29,6 @@ const presetRecipeBaseOf = <String, String>{
   'listening_answer_target': 'listening_comprehension',
   'listening_answer_source': 'listening_comprehension',
   'reading_answer_target': 'reading_comprehension',
-  'reading_answer_source': 'reading_comprehension',
   'type_translation_to_target': 'type_translation',
   'type_translation_to_source': 'type_translation',
   'build_translation_to_target': 'build_translation',
@@ -38,6 +40,9 @@ const presetRecipeBaseOf = <String, String>{
   'missing_letters': 'missing_word',
   'gap_blocks': 'word_order',
   'sentence_order': 'word_order',
+  // Name what you see (Build 256 Revision 7 fourth follow-up) converts from
+  // the Put the words in order shape.
+  'picture_blocks': 'word_order',
   'listening_image_choice': 'icon_choice',
   'spell_heard': 'image_word',
   'picture_choice': 'choice',

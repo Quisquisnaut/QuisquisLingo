@@ -570,10 +570,11 @@ class CourseAuditService {
         }
         // Build 256 Revision 5: Stories. A Story wants a title and at least
         // one dialogue line; a line names an existing character; a line
-        // outside a Story plays as a plain card.
-        final flow = r.flow;
+        // outside a Story plays as a plain card. A sequence gets the Round
+        // rules (Revision 7, third follow-up).
         final roundExercises = r.exercises;
-        if (flow != null) {
+        if (r.isStory) {
+          final flow = r.flow!;
           if (flow.title.trim().isEmpty) {
             issues.add(
               CourseAuditIssue.fromCode(
@@ -627,7 +628,7 @@ class CourseAuditService {
               ),
             );
           }
-          if (flow == null) {
+          if (!r.isStory) {
             issues.add(
               CourseAuditIssue.fromCode(
                 AuditCode.dialogueLineOutsideStory,
@@ -890,12 +891,13 @@ class CourseAuditService {
 
   /// Why learners using this version cannot complete [round], or null
   /// (Build 256 Revision 6, plan A.6 and A.7): a practice Round whose
-  /// exercises are all ones this version cannot play, a Story whose flow
-  /// branches or is not a straight sequence, or a Story whose last step is
-  /// an exercise this version cannot play (learners reach its card and the
-  /// Story ends without being recorded).
+  /// exercises are all ones this version cannot play, a Story or sequence
+  /// whose flow branches or is not a straight sequence, or a Story or
+  /// sequence whose last step is an exercise this version cannot play
+  /// (learners reach its card and it ends without being recorded).
   static String? notCompletableReason(LearningRound round) {
     final flow = round.flow;
+    final kind = round.isStory ? 'Story' : 'Sequence';
     final exercises = round.exercises;
     if (flow == null) {
       if (exercises.isNotEmpty && exercises.every((ex) => !ex.isExecutable)) {
@@ -904,12 +906,12 @@ class CourseAuditService {
       return null;
     }
     if (flow.hasBranching) {
-      return 'The Story’s flow branches; this version plays linear Stories only, so learners cannot start it.';
+      return 'The $kind’s flow branches; this version plays linear ${kind == 'Story' ? 'Stories' : 'sequences'} only, so learners cannot start it.';
     }
     final order = flow.linearNodeIds();
     if (order == null) {
       final problems = flow.check().map((issue) => issue.message).join(' ');
-      return 'The Story’s flow is not a straight sequence, so this version cannot play it. $problems'
+      return 'The $kind’s flow is not a straight sequence, so this version cannot play it. $problems'
           .trim();
     }
     if (order.isEmpty) return null;
@@ -921,7 +923,7 @@ class CourseAuditService {
               .firstOrNull;
     final exercise = content?.exercise;
     if (exercise != null && !exercise.isExecutable) {
-      return 'The Story ends on a step this version of QuisquisLingo cannot play: learners reach its card and the Story ends without being recorded. Move the step earlier or replace it.';
+      return 'The $kind ends on a step this version of QuisquisLingo cannot play: learners reach its card and the $kind ends without being recorded. Move the step earlier or replace it.';
     }
     return null;
   }
@@ -1299,6 +1301,7 @@ class CourseAuditService {
     'audio_match' => ' ${_presetNameOf(presetId)} needs its spoken text.',
     'picture_choice' ||
     'picture_name' ||
+    'picture_blocks' ||
     'picture_flashcard' => ' ${_presetNameOf(presetId)} needs its picture.',
     'picture_word_match' =>
       ' Match picture to word needs a picture on every left item.',
@@ -1308,8 +1311,8 @@ class CourseAuditService {
       ' Fill the slots needs slots: one target per slot, named by the text before it, holding one word.',
     'script_recognition' =>
       ' Recognize characters needs character images in the prompt or the options.',
-    'reading_answer_target' || 'reading_answer_source' =>
-      ' Read and answer needs a text to read or dialogue lines.',
+    'reading_answer_target' =>
+      ' Read and answer needs a text to read (source language, role context) or dialogue lines, and no spoken text.',
     _ => '',
   };
 
@@ -1333,10 +1336,12 @@ class CourseAuditService {
     LearnerExerciseKind.inputListenWrite => 'Type what you hear',
     LearnerExerciseKind.inputListenGaps => 'Listen and fill the gaps',
     LearnerExerciseKind.inputMissingWord => 'Type the missing word',
+    LearnerExerciseKind.inputPictureName => 'Type what you see',
     LearnerExerciseKind.arrangeSentence => 'Build the sentence',
     LearnerExerciseKind.arrangeTranslation => 'Build the translation',
     LearnerExerciseKind.arrangeWord => 'Spell the word in the picture',
     LearnerExerciseKind.arrangeLines => 'Put the sentences in order',
+    LearnerExerciseKind.arrangePictureName => 'Name what you see',
     LearnerExerciseKind.match => 'Match by meaning',
     LearnerExerciseKind.matchAudio => 'Listen and match',
     LearnerExerciseKind.matchTranslation => 'Match the words',
@@ -1548,7 +1553,6 @@ class CourseAuditService {
         }
         switch (presetId) {
           case 'reading_answer_target':
-          case 'reading_answer_source':
             if (f.questionText.trim().isEmpty) {
               add(
                 AuditCode.contextQuestionRequired,
@@ -1625,6 +1629,7 @@ class CourseAuditService {
             }
           case 'picture_choice':
           case 'picture_name':
+          case 'picture_blocks':
           case 'picture_flashcard':
             if (f.illustrationAsset.trim().isEmpty) {
               add(
@@ -1986,6 +1991,14 @@ class CourseAuditService {
               AuditCode.buildTranslationUnconstructable,
               'A correct answer cannot be built from its selected block order. Make the answer text and ordered blocks agree exactly, allowing the existing final sentence punctuation.',
             );
+          } else if (_orderedAnswerComparable(constructed, ignoreCase: false) !=
+              _orderedAnswerComparable(answer.text, ignoreCase: false)) {
+            // Any capital that differs is a Warning, never blocking (owner
+            // decision, 29 September 2026): the blocks still build it.
+            add(
+              AuditCode.arrangeAnswerCaseDiffers,
+              'The answer “${answer.text.trim()}” and its blocks differ in capitals: learners build “${constructed.trim()}”.',
+            );
           }
         }
         final comparisonOrder = translation
@@ -2213,11 +2226,13 @@ class CourseAuditService {
       .trim()
       .toLowerCase();
 
-  String _orderedAnswerComparable(String value) => value
-      .trim()
-      .replaceAll(RegExp(r'[.!?…]+$'), '')
-      .replaceAll(RegExp(r'\s+'), ' ')
-      .toLowerCase();
+  String _orderedAnswerComparable(String value, {bool ignoreCase = true}) {
+    final comparable = value
+        .trim()
+        .replaceAll(RegExp(r'[.!?…]+$'), '')
+        .replaceAll(RegExp(r'\s+'), ' ');
+    return ignoreCase ? comparable.toLowerCase() : comparable;
+  }
 
   void _auditRepeatingHint(
     String hint,

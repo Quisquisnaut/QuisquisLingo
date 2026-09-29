@@ -67,8 +67,12 @@ class DuelEligibilityService {
     for (final round in lesson.rounds) {
       if (!round.publicationState.isPublished) continue;
       // Build 256 Revision 5: a Story's exercises depend on its dialogue
-      // and never enter the Duel pool (owner decision).
-      if (round.flow != null) continue;
+      // and never enter the Duel pool (owner decision). A sequence is a
+      // plain Round played in order, so its exercises do (Revision 7, third
+      // follow-up); a flow that branches is not a sequence.
+      if (round.isStory || (round.flow != null && !round.flow!.isLinear)) {
+        continue;
+      }
       for (final exercise in round.exercises) {
         if (!exercise.publicationState.isPublished) continue;
         if (!isEligible(exercise)) continue;

@@ -149,16 +149,18 @@ def lesson(case: str, title: str, rounds: list, vocabulary: list[str], *,
 
 
 def build_course() -> dict:
+    # Read and answer's text is in the source language, Italian here (Build
+    # 256 Revision 7 fourth follow-up); it stays long for EXERCISE_TEXT_LONG.
     long_passage = (
-        "On a rainy afternoon, the librarian opens a small notebook and reads a visitor's message. "
-        "The visitor writes the names café, naïve, São Tomé, Łódź, 東京, 서울, Αθήνα and القاهرة, "
-        "then adds a smiling face 🙂 and a musical note ♫. These names are quoted text, not new "
-        "language lessons. The shelves hold dictionaries, maps, old photographs and books with "
-        "very long titles. A child asks why the same word can appear twice in a sentence. The "
-        "librarian answers that repetition can be intentional and that each printed occurrence "
-        "still has its own place. Outside, the rain stops, a red bicycle leans against a wall, "
-        "and the clock above the door shows five o'clock. "
-    ) * 2 + "The notebook is blue."
+        "In un pomeriggio di pioggia, la bibliotecaria apre un piccolo quaderno e legge il messaggio di un visitatore. "
+        "Il visitatore scrive i nomi café, naïve, São Tomé, Łódź, 東京, 서울, Αθήνα e القاهرة, "
+        "poi aggiunge una faccina sorridente 🙂 e una nota musicale ♫. Questi nomi sono testo citato, non "
+        "nuove lezioni di lingua. Gli scaffali contengono dizionari, mappe, vecchie fotografie e libri con "
+        "titoli lunghissimi. Un bambino chiede perché la stessa parola può comparire due volte in una frase. "
+        "La bibliotecaria risponde che la ripetizione può essere voluta e che ogni occorrenza stampata ha "
+        "comunque il suo posto. Fuori smette di piovere, una bicicletta rossa è appoggiata a un muro e "
+        "l’orologio sopra la porta segna le cinque. "
+    ) * 2 + "Il quaderno è blu."
     long_answer = (
         "Today I am writing a careful message to my friend because the train is late, "
         "the station is crowded, and I would like to explain that I will arrive after dinner "
@@ -181,8 +183,12 @@ def build_course() -> dict:
                    ["cat", "chair", "dog", "window"], correct_indices=(1, 3)),
         ]),
         round_case("r02", "Passaggi e risposte estese", [
-            select("e07_long", "Di che colore è il quaderno?", ["blue", "red", "green"],
-                   preset="reading_comprehension", before=(text(long_passage, "passage"),)),
+            # Read and answer (Build 256 Revision 7 fourth follow-up): the
+            # long text explains in the source language; the question is in
+            # the target language.
+            select("e07_long", "What colour is the notebook?", ["blue", "red", "green"],
+                   preset="reading_answer_target",
+                   before=({**text(long_passage, "context"), "language": "source"},)),
             input_case("e08_long_answer", "Traduci: Oggi scrivo un messaggio accurato al mio amico perché il treno "
                        "è in ritardo, la stazione è affollata e vorrei spiegare che arriverò dopo cena con una piccola "
                        "valigia blu e un libro sulla storia della nostra città.", [long_answer]),

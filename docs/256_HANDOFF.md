@@ -13,7 +13,97 @@ narrative of Revision 4 is gone (the evidence lives in
 `docs/256_VALIDATION.md`); what follows is state, decisions, requirements,
 open problems and the next step.
 
-## State (29 September 2026, 08:33)
+## State (29 September 2026, 12:30)
+
+- **Build 256 Revision 8 (`2.0.56+256008`) committed as `7f1b013`** on local
+  `main` (not pushed): Editor Help as questions and answers (66 questions,
+  7 topics, tap to open, a search ignoring capitals and accents, EN/IT/ES,
+  Technical reference card first; Course Studio Help unchanged). Complete
+  suite 3254 passed, 1 skipped, 0 failed (11:59–12:24). The Italian and
+  Spanish texts were drafted by two translation agents from the English
+  and checked by script.
+- **Revision 7 fourth follow-up committed as `7d67d76`** (same version
+  256007; suite run 2 3250 passed, 1 skipped, 0 failed): bold preset name;
+  capitals as the Warning `ARRANGE_ANSWER_CASE_DIFFERS` (any capital,
+  never blocking; 108 rules); Sort into groups without leftover words (two
+  groups; Animals/Plants); Name what you see (`picture_blocks`, word
+  blocks, up to two extra) and Type what you see (`picture_name`); Read
+  and answer with a source-language text, a dialogue read-aloud turn by
+  turn with a one-second pause, "to source" retired; the Round Wizard
+  creates only preset exercises (its context slot is Pick the missing
+  word); Laboratory 122 examples, Piedmontese 39 Lessons.
+- **Revision 7 third follow-up committed as `8f1ab83`**: sequences are
+  plain ordered Rounds (Story = flow + `visualType: story`), Type the
+  missing word accepts different first letters with the hint off.
+- **Next (owner instruction of 29 September, 10:14): a new session prepares
+  a plan for an interactive presentation primitive, read-only, waiting for
+  the owner's approval.** It was offered as a task chip right after this
+  handoff; the owner starts it with one click. No other work is pending.
+- **Claude's defaults the owner may still override** (recorded in the
+  change summary): the Laboratory's leftover Sort into groups example
+  became a three-group example; the Duel stays silent for a Read and
+  answer dialogue read-aloud; Name what you see's typed twin keeps the ID
+  `picture_name`, the block preset is the new `picture_blocks`.
+- **Known limits:** a stored Read and answer in the old shapes (passage,
+  situation, target-language context, spoken text) no longer matches the
+  preset and opens in the canonical editor (no custom Courses exist with
+  them); the Round Wizard's former context exercise is gone from new
+  Rounds only.
+- **Also in the third follow-up (committed in `8f1ab83`): Type the missing
+  word** — with Show the first letter off the accepted words may start
+  with different letters; the form's helper and note follow the switch
+  (builder and Audit were already right). Complete suite run started 09:47
+  (`suite_third_a.log` in this session's scratchpad).
+- **Owner backlog of 29 September (review of the Windows build), in
+  order:**
+  1. **Name what you see** (decided, next after the commit): a new preset
+     `picture_blocks` "Name what you see" (Arrange: picture with role
+     `picture`, optional question, "Blocks of the name, in order" =
+     `order`, "Extra blocks (optional, at most 2)" = `extraWords`; base
+     `word_order`; one correct name); the typed preset keeps its ID
+     `picture_name`, renamed **"Type what you see"**; new learner kinds
+     `arrangePictureName` (NAME WHAT YOU SEE / "Build the name of what you
+     see.") and `inputPictureName` (NAME WHAT YOU SEE / "Type the name of
+     what you see.") in the eight copy languages (en es it de pt nl fi cy);
+     Laboratory and Piedmontese gain block examples (Piedmontese Lesson
+     per preset), presentation baseline re-recorded.
+  2. **Read and answer** (answers given 09:55, interpretation to confirm
+     with the owner): keep only `reading_answer_target` (retire
+     `reading_answer_source`); Text to read in the SOURCE language
+     (explained in its helper), no read-aloud; Dialogue (target language)
+     gets Read aloud No / On request / Automatically, spoken turn by turn
+     with a short pause; Spoken text field removed; the read-aloud is
+     optional (never an audio exercise); Laboratory/Piedmontese examples
+     with Spoken text removed and new ones generated.
+  3. **Sort into groups**: remove "Words that belong nowhere"; examples
+     Animals and Food → Animals and Plants in fields and Help. Open: the
+     Laboratory's leftover example (replace with three groups / remove /
+     canonical-only) and whether its Animals/Food example also changes
+     (two popups dismissed; ask again in text).
+- **Under discussion (owner, 29 September, "let's discuss", no edits
+  yet): Build the translation and capitals.** Found: learner grading and
+  the Audit's UNCONSTRUCTABLE check already ignore case; the blocker is
+  `_resolveOrderedItemIds` in `lib/models/course_models.dart` (the form's
+  answer-to-block matching compares case-sensitively), so "Io sono Anna"
+  with block "io" gets no block order and the Audit's
+  `BUILD_TRANSLATION_INVALID_SEQUENCE` Error blocks Save. Proposed:
+  case-insensitive fallback matching (exact match first) and a new
+  non-blocking Warning `BUILD_TRANSLATION_CASE_DIFFERS`. Questions asked:
+  is that the error seen; Warning always / except first letter / Info /
+  nothing (lowercase blocks are a common practice); Put the words in order
+  too; delivered as a same-version follow-up before Revision 8.
+- **Revision 8 decided (owner answers, 29 September): Editor Help as
+  Q&A.** Editor Help only (Course Studio Help keeps its paragraphs and the
+  12 shared `editorHelp.*` sections); 7 task topics (Getting started;
+  Saving and versions; Course settings; Lessons and Rounds; Exercises;
+  Pictures and sound; Checking the Course), questions that open on tap,
+  a search field (case and accents ignored), text rewritten in plain
+  language and checked against today's app (stale statements fixed,
+  e.g. Use GuideBook/Create Duels now in Lesson Options, backups v12),
+  EN/IT/ES complete together (UI names in English), Technical reference
+  card kept at the top, delivered as Revision 8 (`2.0.56+256008`, Beta
+  expiry stays `2026-10-29`). Starts after the sequence commit (and the
+  Build the translation follow-up if the owner approves it first).
 
 - **Build 256 is complete and reviewed twice: eight sessions, Revisions
   0–7, committed on `claude/256-exercise-architecture`. Revision 7
@@ -30,9 +120,12 @@ open problems and the next step.
   guessed "opposite" instruction; Flashcard: Pronunciation TTS (if
   different) back as an optional field; Missing letters' field label; the
   switch Play as a sequence) is `2c124a3` (suite 3242 passed, 1 skipped,
-  0 failed, 08:03–08:32). Push, pull request and merge into main follow on
-  the owner's request of 29 September; the remote branch is deleted after
-  the merge and the local main updated. APK only on request. Parked by the
+  0 failed, 08:03–08:32). On the owner's request of 29 September the
+  branch was pushed and merged into main through PR #27 (merge commit
+  `f1c2e03`, 06:34 UTC), the remote branch deleted, the local main updated
+  (the Build 255 note `611a1a1` is an ancestor of the merge, so main equals
+  origin/main); this note is a local commit on main, not pushed, like the
+  PR #26 note before it. APK only on request. Parked by the
   owner: Adventures (the F block and the video block, see Next step) and
   spoken exercises. Open owner items: the Story Save rule (not blocked
   without a title block or a line), Label the picture (greyed; Assign

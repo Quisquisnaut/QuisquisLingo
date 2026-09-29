@@ -82,12 +82,14 @@ void main() {
       await _mount(tester, source);
       expect(workflow.field('Text'), findsNothing);
       expect(workflow.field('Context text'), findsNothing);
-      expect(workflow.field('Text to read'), findsOneWidget);
+      // The text to read is in the source language (Build 256 Revision 7
+      // fourth follow-up).
+      expect(workflow.field('Text to read (source language)'), findsOneWidget);
       expect(find.byKey(const Key('context-mode-selector')), findsNothing);
       await _hoverHelp(tester, 'reading_answer_target', 'prompt');
       const passage =
           'Marta is describing her daily routine. Marta takes the train to work every morning.';
-      await _enter(tester, 'Text to read', passage);
+      await _enter(tester, 'Text to read (source language)', passage);
       await _enter(tester, 'Question', 'How does Marta travel to work?');
       await workflow.tapKey(tester, 'exercise-preview');
       final exercise = tester

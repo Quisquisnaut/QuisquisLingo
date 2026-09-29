@@ -200,7 +200,11 @@ class _DuelScreenState extends State<DuelScreen> {
     ];
     _shuffleDifferentChoices(_choices);
     final automatic = f.automaticAudio;
-    if (automatic != null && automatic.text.isNotEmpty) {
+    // A Read and answer dialogue's read-aloud is optional and stays silent
+    // in the timed Duel (Build 256 Revision 7 fourth follow-up).
+    if (automatic != null &&
+        automatic.text.isNotEmpty &&
+        automatic.role != 'dialogue_turn') {
       WidgetsBinding.instance.addPostFrameCallback((_) => _speak(ex));
     }
   }
@@ -560,7 +564,8 @@ class _DuelScreenState extends State<DuelScreen> {
                 ),
                 const SizedBox(height: 20),
                 if (_features.automaticAudio != null &&
-                    _features.automaticAudio!.role != 'context') ...[
+                    _features.automaticAudio!.role != 'context' &&
+                    _features.automaticAudio!.role != 'dialogue_turn') ...[
                   Center(
                     child: IconButton.filledTonal(
                       tooltip: 'Play audio again',

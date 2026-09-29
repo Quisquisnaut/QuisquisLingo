@@ -4,6 +4,7 @@ import 'package:quisquislingo_app/models/exercise_authoring.dart';
 import 'package:quisquislingo_app/services/authoring_duplication_service.dart';
 import 'package:quisquislingo_app/services/course_audit_service.dart';
 import 'package:quisquislingo_app/services/guidebook_round_generator.dart';
+import 'package:quisquislingo_app/services/preset_recipes.dart';
 
 void main() {
   test('default plan is 6 by 8 and difficulty rises monotonically', () {
@@ -68,6 +69,34 @@ void main() {
       ),
       throwsA(isA<GuidebookGenerationException>()),
     );
+  });
+
+  // Build 256 Revision 7 fourth follow-up (owner, 29 September 2026): the
+  // Round Wizard creates only preset exercises, each represented by the
+  // preset it carries, so every one opens in its preset's form.
+  test('every generated exercise is represented by its own preset', () {
+    final guidebook = _guidebook();
+    final generator = GuidebookRoundGenerator(
+      randomSeed: 7,
+      draftIds: _SequenceIds('draft'),
+    );
+    final plan = generator.plan(guidebook, roundCount: 6, exercisesPerRound: 8);
+    final seen = <String>{};
+    final unrepresented = <String>{};
+    for (final round in generator.createDrafts(guidebook, plan)) {
+      for (final content in round.content) {
+        final exercise = content.exercise;
+        if (exercise == null) continue;
+        final preset = exercise.editorTemplate;
+        seen.add(preset);
+        expect(ExercisePresetRegistry.byId(preset), isNotNull, reason: preset);
+        if (!PresetRecipes.represents(exercise, preset)) {
+          unrepresented.add(preset);
+        }
+      }
+    }
+    expect(unrepresented, isEmpty);
+    expect(seen, isNot(contains('reading_answer_target')));
   });
 
   test('draft generation is grounded, valid and uses fresh descendant IDs', () {

@@ -10,8 +10,32 @@ EditorHelpSection _section(HelpLanguage language, String prefix, String id) => (
   body: helpText.lookup(language, '$prefix.$id.body'),
 );
 
-List<EditorHelpSection> editorHelpSections(HelpLanguage language) => [
-  for (final id in editorHelpSectionIds) _section(language, 'editorHelp', id),
+/// One question of Editor Help and its answer (Build 256 Revision 8).
+typedef EditorHelpQuestion = ({String id, String question, String answer});
+
+/// One topic of Editor Help with its questions, in reading order.
+typedef EditorHelpTopic = ({
+  String id,
+  String title,
+  List<EditorHelpQuestion> questions,
+});
+
+/// Editor Help as questions and answers: the topics in reading order, their
+/// questions and answers in [language], folders filled in.
+List<EditorHelpTopic> editorHelpTopics(HelpLanguage language) => [
+  for (final entry in editorHelpQuestionsByTopic.entries)
+    (
+      id: entry.key,
+      title: helpText.lookup(language, 'editorHelp.qa.${entry.key}.title'),
+      questions: [
+        for (final id in entry.value)
+          (
+            id: id,
+            question: helpText.lookup(language, 'editorHelp.qa.$id.q'),
+            answer: helpText.lookup(language, 'editorHelp.qa.$id.a'),
+          ),
+      ],
+    ),
 ];
 
 List<EditorHelpSection> courseManagerHelpSections(HelpLanguage language) => [

@@ -6792,7 +6792,7 @@
       "publicationState": "published",
       "updatedAt": "2026-09-25T00:00:00.000Z",
       "section": false,
-      "title": "Read and answer (to target) — Read a short note",
+      "title": "Read and answer (to target) — Read and answer",
       "themeIconAsset": "assets/lesson_icons/speech_bubbles.png",
       "guidebook": {
         "content": [
@@ -6802,7 +6802,7 @@
             "kind": "explanation",
             "required": false,
             "role": "overview",
-            "text": "la lista = the list; pan = bread; eva = water; pom = apple; gat = cat; can = dog; lìber = book; a ca = at home."
+            "text": "bondì = good morning; grassie = thank you; prego = you are welcome; bon-aneuit = good night; lìber = book. Read the situation in English and the Piedmontese dialogue, then answer in Piedmontese."
           }
         ]
       },
@@ -6820,7 +6820,7 @@
               "kind": "text",
               "required": false,
               "role": "lesson_intro",
-              "text": "Read and answer (to target): Read a short note. Three short examples use this exercise type."
+              "text": "Read and answer (to target): Read and answer. Three short examples use this exercise type."
             },
             {
               "id": "pms_e5f5585a_l29_r01_e01",
@@ -6835,14 +6835,27 @@
                 "primitive": "select",
                 "prompt": [
                   {
-                    "role": "passage",
+                    "role": "context",
                     "type": "text",
-                    "text": "La lista: pan, eva e tre pom."
+                    "text": "Anna meets Gioann in the morning.",
+                    "language": "source"
+                  },
+                  {
+                    "role": "dialogue_turn",
+                    "type": "text",
+                    "text": "Bondì, Gioann!",
+                    "speaker": "Anna"
+                  },
+                  {
+                    "role": "dialogue_turn",
+                    "type": "text",
+                    "text": "Bondì, Anna!",
+                    "speaker": "Gioann"
                   },
                   {
                     "role": "question",
                     "type": "text",
-                    "text": "Which drink is on the list?"
+                    "text": "Còs ch'a dis Anna?"
                   }
                 ],
                 "items": [
@@ -6852,7 +6865,7 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "water"
+                        "text": "Bondì!"
                       }
                     ]
                   },
@@ -6862,7 +6875,7 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "coffee"
+                        "text": "Bon-aneuit!"
                       }
                     ]
                   },
@@ -6872,7 +6885,7 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "milk"
+                        "text": "Grassie!"
                       }
                     ]
                   }
@@ -6898,14 +6911,41 @@
                 "primitive": "select",
                 "prompt": [
                   {
-                    "role": "passage",
+                    "role": "context",
                     "type": "text",
-                    "text": "I l'hai un gat e un can."
+                    "text": "Gioann gives Anna a book.",
+                    "language": "source"
+                  },
+                  {
+                    "role": "dialogue_turn",
+                    "type": "text",
+                    "text": "Ecco un lìber.",
+                    "speaker": "Gioann"
+                  },
+                  {
+                    "role": "dialogue_turn",
+                    "type": "audio",
+                    "text": "Ecco un lìber.",
+                    "playback": "automatic",
+                    "required": false
+                  },
+                  {
+                    "role": "dialogue_turn",
+                    "type": "text",
+                    "text": "Grassie, Gioann!",
+                    "speaker": "Anna"
+                  },
+                  {
+                    "role": "dialogue_turn",
+                    "type": "audio",
+                    "text": "Grassie, Gioann!",
+                    "playback": "automatic",
+                    "required": false
                   },
                   {
                     "role": "question",
                     "type": "text",
-                    "text": "How many kinds of animal does the speaker have?"
+                    "text": "Còs ch'a dà Gioann?"
                   }
                 ],
                 "items": [
@@ -6915,7 +6955,7 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "one"
+                        "text": "Un pom."
                       }
                     ]
                   },
@@ -6925,7 +6965,7 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "two"
+                        "text": "Un lìber."
                       }
                     ]
                   },
@@ -6935,7 +6975,7 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "three"
+                        "text": "Un gat."
                       }
                     ]
                   }
@@ -6961,14 +7001,41 @@
                 "primitive": "select",
                 "prompt": [
                   {
-                    "role": "passage",
+                    "role": "context",
                     "type": "text",
-                    "text": "Mi i son a ca. I l'hai un lìber."
+                    "text": "Anna and Gioann say goodbye in the evening.",
+                    "language": "source"
+                  },
+                  {
+                    "role": "dialogue_turn",
+                    "type": "text",
+                    "text": "Bon-aneuit, Gioann!",
+                    "speaker": "Anna"
+                  },
+                  {
+                    "role": "dialogue_turn",
+                    "type": "audio",
+                    "text": "Bon-aneuit, Gioann!",
+                    "playback": "manual",
+                    "required": false
+                  },
+                  {
+                    "role": "dialogue_turn",
+                    "type": "text",
+                    "text": "Bon-aneuit, Anna!",
+                    "speaker": "Gioann"
+                  },
+                  {
+                    "role": "dialogue_turn",
+                    "type": "audio",
+                    "text": "Bon-aneuit, Anna!",
+                    "playback": "manual",
+                    "required": false
                   },
                   {
                     "role": "question",
                     "type": "text",
-                    "text": "Where is the speaker?"
+                    "text": "Còs ch'a dis Gioann?"
                   }
                 ],
                 "items": [
@@ -6978,7 +7045,7 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "at school"
+                        "text": "Bondì!"
                       }
                     ]
                   },
@@ -6988,7 +7055,7 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "at the station"
+                        "text": "Prego!"
                       }
                     ]
                   },
@@ -6998,7 +7065,7 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "at home"
+                        "text": "Bon-aneuit!"
                       }
                     ]
                   }
@@ -7024,7 +7091,7 @@
       "publicationState": "published",
       "updatedAt": "2026-09-25T00:00:00.000Z",
       "section": false,
-      "title": "Read and answer (to source) — Understand the situation",
+      "title": "Select the image — Words in pictures",
       "themeIconAsset": "assets/lesson_icons/speech_bubbles.png",
       "guidebook": {
         "content": [
@@ -7034,7 +7101,7 @@
             "kind": "explanation",
             "required": false,
             "role": "overview",
-            "text": "bondì = good morning; grassie = thank you; prego = you are welcome; bon-aneuit = good night. Read the situation and answer in English."
+            "text": "Look at the pictures: gat = cat; pan = bread; eva = water."
           }
         ]
       },
@@ -7044,7 +7111,7 @@
           "publicationState": "published",
           "updatedAt": "2026-09-25T00:00:00.000Z",
           "visualType": "generic",
-          "title": "Read and answer (to source) practice",
+          "title": "Select the image practice",
           "content": [
             {
               "id": "pms_e5f5585a_l30_r01_intro",
@@ -7052,7 +7119,7 @@
               "kind": "text",
               "required": false,
               "role": "lesson_intro",
-              "text": "Read and answer (to source): Understand the situation. Three short examples use this exercise type."
+              "text": "Select the image: Words in pictures. Three short examples use this exercise type."
             },
             {
               "id": "pms_e5f5585a_l30_r01_e01",
@@ -7060,22 +7127,16 @@
               "kind": "exercise",
               "required": true,
               "authoringMetadata": {
-                "presetId": "reading_answer_source"
+                "presetId": "icon_choice"
               },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
                 "primitive": "select",
                 "prompt": [
                   {
-                    "role": "passage",
+                    "role": "primary",
                     "type": "text",
-                    "text": "Anna: Bondì, Gioann! Gioann: Bondì, Anna!"
-                  },
-                  {
-                    "role": "question",
-                    "type": "text",
-                    "text": "What time of day is it?",
-                    "language": "source"
+                    "text": "Select the image for gat."
                   }
                 ],
                 "items": [
@@ -7085,8 +7146,12 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "Morning",
-                        "language": "source"
+                        "text": "gat"
+                      },
+                      {
+                        "role": "icon",
+                        "type": "text",
+                        "text": "assets/exercise_images/cat.webp"
                       }
                     ]
                   },
@@ -7096,8 +7161,12 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "Night",
-                        "language": "source"
+                        "text": "can"
+                      },
+                      {
+                        "role": "icon",
+                        "type": "text",
+                        "text": "assets/exercise_images/dog.webp"
                       }
                     ]
                   },
@@ -7107,8 +7176,12 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "Noon",
-                        "language": "source"
+                        "text": "caval"
+                      },
+                      {
+                        "role": "icon",
+                        "type": "text",
+                        "text": "assets/exercise_images/horse.webp"
                       }
                     ]
                   }
@@ -7127,22 +7200,16 @@
               "kind": "exercise",
               "required": true,
               "authoringMetadata": {
-                "presetId": "reading_answer_source"
+                "presetId": "icon_choice"
               },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
                 "primitive": "select",
                 "prompt": [
                   {
-                    "role": "passage",
+                    "role": "primary",
                     "type": "text",
-                    "text": "Anna: Grassie, Gioann! Gioann: Prego, Anna."
-                  },
-                  {
-                    "role": "question",
-                    "type": "text",
-                    "text": "What is Anna doing?",
-                    "language": "source"
+                    "text": "Select the image for pan."
                   }
                 ],
                 "items": [
@@ -7152,8 +7219,12 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "Saying good night",
-                        "language": "source"
+                        "text": "pom"
+                      },
+                      {
+                        "role": "icon",
+                        "type": "text",
+                        "text": "assets/exercise_images/apple.webp"
                       }
                     ]
                   },
@@ -7163,8 +7234,12 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "Thanking you",
-                        "language": "source"
+                        "text": "pan"
+                      },
+                      {
+                        "role": "icon",
+                        "type": "text",
+                        "text": "assets/exercise_images/bread.webp"
                       }
                     ]
                   },
@@ -7174,8 +7249,12 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "Asking for bread",
-                        "language": "source"
+                        "text": "eva"
+                      },
+                      {
+                        "role": "icon",
+                        "type": "text",
+                        "text": "assets/exercise_images/water.webp"
                       }
                     ]
                   }
@@ -7194,22 +7273,16 @@
               "kind": "exercise",
               "required": true,
               "authoringMetadata": {
-                "presetId": "reading_answer_source"
+                "presetId": "icon_choice"
               },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
                 "primitive": "select",
                 "prompt": [
                   {
-                    "role": "passage",
+                    "role": "primary",
                     "type": "text",
-                    "text": "Anna: Bon-aneuit, Gioann! Gioann: Bon-aneuit, Anna."
-                  },
-                  {
-                    "role": "question",
-                    "type": "text",
-                    "text": "What is Anna about to do?",
-                    "language": "source"
+                    "text": "Select the image for eva."
                   }
                 ],
                 "items": [
@@ -7219,8 +7292,12 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "Have lunch",
-                        "language": "source"
+                        "text": "pan"
+                      },
+                      {
+                        "role": "icon",
+                        "type": "text",
+                        "text": "assets/exercise_images/bread.webp"
                       }
                     ]
                   },
@@ -7230,8 +7307,12 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "Leave for work",
-                        "language": "source"
+                        "text": "pom"
+                      },
+                      {
+                        "role": "icon",
+                        "type": "text",
+                        "text": "assets/exercise_images/apple.webp"
                       }
                     ]
                   },
@@ -7241,8 +7322,12 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "Go to bed",
-                        "language": "source"
+                        "text": "eva"
+                      },
+                      {
+                        "role": "icon",
+                        "type": "text",
+                        "text": "assets/exercise_images/water.webp"
                       }
                     ]
                   }
@@ -7268,7 +7353,7 @@
       "publicationState": "published",
       "updatedAt": "2026-09-25T00:00:00.000Z",
       "section": false,
-      "title": "Select the image — Words in pictures",
+      "title": "Recognize characters — Accented letters",
       "themeIconAsset": "assets/lesson_icons/speech_bubbles.png",
       "guidebook": {
         "content": [
@@ -7278,7 +7363,7 @@
             "kind": "explanation",
             "required": false,
             "role": "overview",
-            "text": "Look at the pictures: gat = cat; pan = bread; eva = water."
+            "text": "These letter diagrams distinguish ë (e with diaeresis), é (e with acute accent), and ò (o with grave accent). Identify the printed character, not its sound."
           }
         ]
       },
@@ -7288,7 +7373,7 @@
           "publicationState": "published",
           "updatedAt": "2026-09-25T00:00:00.000Z",
           "visualType": "generic",
-          "title": "Select the image practice",
+          "title": "Recognize characters practice",
           "content": [
             {
               "id": "pms_e5f5585a_l31_r01_intro",
@@ -7296,7 +7381,7 @@
               "kind": "text",
               "required": false,
               "role": "lesson_intro",
-              "text": "Select the image: Words in pictures. Three short examples use this exercise type."
+              "text": "Recognize characters: Accented letters. Three short examples use this exercise type."
             },
             {
               "id": "pms_e5f5585a_l31_r01_e01",
@@ -7304,7 +7389,7 @@
               "kind": "exercise",
               "required": true,
               "authoringMetadata": {
-                "presetId": "icon_choice"
+                "presetId": "script_recognition"
               },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
@@ -7313,7 +7398,13 @@
                   {
                     "role": "primary",
                     "type": "text",
-                    "text": "Select the image for gat."
+                    "text": "Identify this printed e-family character."
+                  },
+                  {
+                    "role": "character",
+                    "type": "image",
+                    "text": "A printed accented letter",
+                    "asset": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAG4AAACmCAAAAAAei+X+AAAAgElEQVR42u3ZMQ7AIAgFUI/h/S9K5w422lRDyfsrkTcSsMXRNBwOh8PhcLiPuX7LfA2Hw+Fw1TjjFYfD4XA4HA6Hw43XjqfgcDgcrhq32mT+HQ6Hw+H+zL0NDofD4apx249UOBwOh0vLOcHhcDgcLnzT43A4HA6Hw+FwOBwuH3cB3IUCccMAJ2AAAAAASUVORK5CYII="
                   }
                 ],
                 "items": [
@@ -7323,12 +7414,7 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "gat"
-                      },
-                      {
-                        "role": "icon",
-                        "type": "text",
-                        "text": "assets/exercise_images/cat.webp"
+                        "text": "ë"
                       }
                     ]
                   },
@@ -7338,12 +7424,7 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "can"
-                      },
-                      {
-                        "role": "icon",
-                        "type": "text",
-                        "text": "assets/exercise_images/dog.webp"
+                        "text": "é"
                       }
                     ]
                   },
@@ -7353,12 +7434,7 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "caval"
-                      },
-                      {
-                        "role": "icon",
-                        "type": "text",
-                        "text": "assets/exercise_images/horse.webp"
+                        "text": "e"
                       }
                     ]
                   }
@@ -7377,7 +7453,7 @@
               "kind": "exercise",
               "required": true,
               "authoringMetadata": {
-                "presetId": "icon_choice"
+                "presetId": "script_recognition"
               },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
@@ -7386,7 +7462,13 @@
                   {
                     "role": "primary",
                     "type": "text",
-                    "text": "Select the image for pan."
+                    "text": "Which accented e is printed here?"
+                  },
+                  {
+                    "role": "character",
+                    "type": "image",
+                    "text": "A printed accented letter",
+                    "asset": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAG4AAACmCAAAAAAei+X+AAAAfUlEQVR42u3ZuQ0AIAwDQMZg/0WhpuKRQBDOfXS1nVSOJuFwOBwOh8Md5HITHA6Hw/3EzQI4HA6Hi8opXDgcDvcvl4eDw+FwuGjcau3o3+FwOBzuZW41OBwOh4vGbR+pcDgcDnctZ4LD4XA4XPGmx+FwOBwOh8PhcDjcfVwFX4kCcY7YXVIAAAAASUVORK5CYII="
                   }
                 ],
                 "items": [
@@ -7396,12 +7478,7 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "pom"
-                      },
-                      {
-                        "role": "icon",
-                        "type": "text",
-                        "text": "assets/exercise_images/apple.webp"
+                        "text": "è"
                       }
                     ]
                   },
@@ -7411,12 +7488,7 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "pan"
-                      },
-                      {
-                        "role": "icon",
-                        "type": "text",
-                        "text": "assets/exercise_images/bread.webp"
+                        "text": "é"
                       }
                     ]
                   },
@@ -7426,12 +7498,7 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "eva"
-                      },
-                      {
-                        "role": "icon",
-                        "type": "text",
-                        "text": "assets/exercise_images/water.webp"
+                        "text": "ë"
                       }
                     ]
                   }
@@ -7450,7 +7517,7 @@
               "kind": "exercise",
               "required": true,
               "authoringMetadata": {
-                "presetId": "icon_choice"
+                "presetId": "script_recognition"
               },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
@@ -7459,7 +7526,13 @@
                   {
                     "role": "primary",
                     "type": "text",
-                    "text": "Select the image for eva."
+                    "text": "Which o-family character is shown?"
+                  },
+                  {
+                    "role": "character",
+                    "type": "image",
+                    "text": "A printed accented letter",
+                    "asset": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAG4AAACmCAAAAAAei+X+AAAAdUlEQVR42u3ZMQoAIAwDQJ/h/z+qs1NBimi97OXmpG0cTcPhcDgcDodL5voSHA6Hw/3LZeI4HA6Hq8MpXDgcDmc1ioPD4XC4atxu7YjvcDgcDofD4XA4HA6Hw+Fw73ImOBwOh8MNb3ocDofD4XA4HA6Hw93HTS4OZDi+dmo0AAAAAElFTkSuQmCC"
                   }
                 ],
                 "items": [
@@ -7469,12 +7542,7 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "pan"
-                      },
-                      {
-                        "role": "icon",
-                        "type": "text",
-                        "text": "assets/exercise_images/bread.webp"
+                        "text": "o"
                       }
                     ]
                   },
@@ -7484,12 +7552,7 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "pom"
-                      },
-                      {
-                        "role": "icon",
-                        "type": "text",
-                        "text": "assets/exercise_images/apple.webp"
+                        "text": "ó"
                       }
                     ]
                   },
@@ -7499,12 +7562,7 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "eva"
-                      },
-                      {
-                        "role": "icon",
-                        "type": "text",
-                        "text": "assets/exercise_images/water.webp"
+                        "text": "ò"
                       }
                     ]
                   }
@@ -7530,247 +7588,12 @@
       "publicationState": "published",
       "updatedAt": "2026-09-25T00:00:00.000Z",
       "section": false,
-      "title": "Recognize characters — Accented letters",
-      "themeIconAsset": "assets/lesson_icons/speech_bubbles.png",
-      "guidebook": {
-        "content": [
-          {
-            "id": "pms_e5f5585a_l32_g01",
-            "publicationState": "published",
-            "kind": "explanation",
-            "required": false,
-            "role": "overview",
-            "text": "These letter diagrams distinguish ë (e with diaeresis), é (e with acute accent), and ò (o with grave accent). Identify the printed character, not its sound."
-          }
-        ]
-      },
-      "rounds": [
-        {
-          "id": "pms_e5f5585a_l32_r01",
-          "publicationState": "published",
-          "updatedAt": "2026-09-25T00:00:00.000Z",
-          "visualType": "generic",
-          "title": "Recognize characters practice",
-          "content": [
-            {
-              "id": "pms_e5f5585a_l32_r01_intro",
-              "publicationState": "published",
-              "kind": "text",
-              "required": false,
-              "role": "lesson_intro",
-              "text": "Recognize characters: Accented letters. Three short examples use this exercise type."
-            },
-            {
-              "id": "pms_e5f5585a_l32_r01_e01",
-              "publicationState": "published",
-              "kind": "exercise",
-              "required": true,
-              "authoringMetadata": {
-                "presetId": "script_recognition"
-              },
-              "exercise": {
-                "updatedAt": "2026-09-25T00:00:00.000Z",
-                "primitive": "select",
-                "prompt": [
-                  {
-                    "role": "primary",
-                    "type": "text",
-                    "text": "Identify this printed e-family character."
-                  },
-                  {
-                    "role": "character",
-                    "type": "image",
-                    "text": "A printed accented letter",
-                    "asset": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAG4AAACmCAAAAAAei+X+AAAAgElEQVR42u3ZMQ7AIAgFUI/h/S9K5w422lRDyfsrkTcSsMXRNBwOh8PhcLiPuX7LfA2Hw+Fw1TjjFYfD4XA4HA6Hw43XjqfgcDgcrhq32mT+HQ6Hw+H+zL0NDofD4apx249UOBwOh0vLOcHhcDgcLnzT43A4HA6Hw+FwOBwuH3cB3IUCccMAJ2AAAAAASUVORK5CYII="
-                  }
-                ],
-                "items": [
-                  {
-                    "id": "pms_e5f5585a_l32_r01_e01_i0",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "ë"
-                      }
-                    ]
-                  },
-                  {
-                    "id": "pms_e5f5585a_l32_r01_e01_i1",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "é"
-                      }
-                    ]
-                  },
-                  {
-                    "id": "pms_e5f5585a_l32_r01_e01_i2",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "e"
-                      }
-                    ]
-                  }
-                ],
-                "evaluation": {
-                  "mode": "exactItem",
-                  "correctItemIds": [
-                    "pms_e5f5585a_l32_r01_e01_i0"
-                  ]
-                }
-              }
-            },
-            {
-              "id": "pms_e5f5585a_l32_r01_e02",
-              "publicationState": "published",
-              "kind": "exercise",
-              "required": true,
-              "authoringMetadata": {
-                "presetId": "script_recognition"
-              },
-              "exercise": {
-                "updatedAt": "2026-09-25T00:00:00.000Z",
-                "primitive": "select",
-                "prompt": [
-                  {
-                    "role": "primary",
-                    "type": "text",
-                    "text": "Which accented e is printed here?"
-                  },
-                  {
-                    "role": "character",
-                    "type": "image",
-                    "text": "A printed accented letter",
-                    "asset": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAG4AAACmCAAAAAAei+X+AAAAfUlEQVR42u3ZuQ0AIAwDQMZg/0WhpuKRQBDOfXS1nVSOJuFwOBwOh8Md5HITHA6Hw/3EzQI4HA6Hi8opXDgcDvcvl4eDw+FwuGjcau3o3+FwOBzuZW41OBwOh4vGbR+pcDgcDnctZ4LD4XA4XPGmx+FwOBwOh8PhcDjcfVwFX4kCcY7YXVIAAAAASUVORK5CYII="
-                  }
-                ],
-                "items": [
-                  {
-                    "id": "pms_e5f5585a_l32_r01_e02_i0",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "è"
-                      }
-                    ]
-                  },
-                  {
-                    "id": "pms_e5f5585a_l32_r01_e02_i1",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "é"
-                      }
-                    ]
-                  },
-                  {
-                    "id": "pms_e5f5585a_l32_r01_e02_i2",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "ë"
-                      }
-                    ]
-                  }
-                ],
-                "evaluation": {
-                  "mode": "exactItem",
-                  "correctItemIds": [
-                    "pms_e5f5585a_l32_r01_e02_i1"
-                  ]
-                }
-              }
-            },
-            {
-              "id": "pms_e5f5585a_l32_r01_e03",
-              "publicationState": "published",
-              "kind": "exercise",
-              "required": true,
-              "authoringMetadata": {
-                "presetId": "script_recognition"
-              },
-              "exercise": {
-                "updatedAt": "2026-09-25T00:00:00.000Z",
-                "primitive": "select",
-                "prompt": [
-                  {
-                    "role": "primary",
-                    "type": "text",
-                    "text": "Which o-family character is shown?"
-                  },
-                  {
-                    "role": "character",
-                    "type": "image",
-                    "text": "A printed accented letter",
-                    "asset": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAG4AAACmCAAAAAAei+X+AAAAdUlEQVR42u3ZMQoAIAwDQJ/h/z+qs1NBimi97OXmpG0cTcPhcDgcDodL5voSHA6Hw/3LZeI4HA6Hq8MpXDgcDmc1ioPD4XC4atxu7YjvcDgcDofD4XA4HA6Hw+Fw73ImOBwOh8MNb3ocDofD4XA4HA6Hw93HTS4OZDi+dmo0AAAAAElFTkSuQmCC"
-                  }
-                ],
-                "items": [
-                  {
-                    "id": "pms_e5f5585a_l32_r01_e03_i0",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "o"
-                      }
-                    ]
-                  },
-                  {
-                    "id": "pms_e5f5585a_l32_r01_e03_i1",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "ó"
-                      }
-                    ]
-                  },
-                  {
-                    "id": "pms_e5f5585a_l32_r01_e03_i2",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "ò"
-                      }
-                    ]
-                  }
-                ],
-                "evaluation": {
-                  "mode": "exactItem",
-                  "correctItemIds": [
-                    "pms_e5f5585a_l32_r01_e03_i2"
-                  ]
-                }
-              }
-            }
-          ]
-        }
-      ],
-      "duel": {
-        "id": "pms_e5f5585a_l32_duel",
-        "title": "Duel"
-      }
-    },
-    {
-      "lessonId": "pms_e5f5585a_l33",
-      "publicationState": "published",
-      "updatedAt": "2026-09-25T00:00:00.000Z",
-      "section": false,
       "title": "Spell the word in the picture — Build pictured words",
       "themeIconAsset": "assets/lesson_icons/speech_bubbles.png",
       "guidebook": {
         "content": [
           {
-            "id": "pms_e5f5585a_l33_g01",
+            "id": "pms_e5f5585a_l32_g01",
             "publicationState": "published",
             "kind": "explanation",
             "required": false,
@@ -7781,14 +7604,14 @@
       },
       "rounds": [
         {
-          "id": "pms_e5f5585a_l33_r01",
+          "id": "pms_e5f5585a_l32_r01",
           "publicationState": "published",
           "updatedAt": "2026-09-25T00:00:00.000Z",
           "visualType": "generic",
           "title": "Spell the word in the picture practice",
           "content": [
             {
-              "id": "pms_e5f5585a_l33_r01_intro",
+              "id": "pms_e5f5585a_l32_r01_intro",
               "publicationState": "published",
               "kind": "text",
               "required": false,
@@ -7796,7 +7619,7 @@
               "text": "Spell the word in the picture: Build pictured words. Three short examples use this exercise type."
             },
             {
-              "id": "pms_e5f5585a_l33_r01_e01",
+              "id": "pms_e5f5585a_l32_r01_e01",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
@@ -7825,7 +7648,7 @@
                 ],
                 "items": [
                   {
-                    "id": "pms_e5f5585a_l33_r01_e01_i0",
+                    "id": "pms_e5f5585a_l32_r01_e01_i0",
                     "content": [
                       {
                         "role": "primary",
@@ -7835,7 +7658,7 @@
                     ]
                   },
                   {
-                    "id": "pms_e5f5585a_l33_r01_e01_i1",
+                    "id": "pms_e5f5585a_l32_r01_e01_i1",
                     "content": [
                       {
                         "role": "primary",
@@ -7845,7 +7668,7 @@
                     ]
                   },
                   {
-                    "id": "pms_e5f5585a_l33_r01_e01_i2",
+                    "id": "pms_e5f5585a_l32_r01_e01_i2",
                     "content": [
                       {
                         "role": "primary",
@@ -7861,9 +7684,9 @@
                     {
                       "text": "pan",
                       "itemIds": [
-                        "pms_e5f5585a_l33_r01_e01_i1",
-                        "pms_e5f5585a_l33_r01_e01_i2",
-                        "pms_e5f5585a_l33_r01_e01_i0"
+                        "pms_e5f5585a_l32_r01_e01_i1",
+                        "pms_e5f5585a_l32_r01_e01_i2",
+                        "pms_e5f5585a_l32_r01_e01_i0"
                       ]
                     }
                   ]
@@ -7871,7 +7694,7 @@
               }
             },
             {
-              "id": "pms_e5f5585a_l33_r01_e02",
+              "id": "pms_e5f5585a_l32_r01_e02",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
@@ -7900,7 +7723,7 @@
                 ],
                 "items": [
                   {
-                    "id": "pms_e5f5585a_l33_r01_e02_i0",
+                    "id": "pms_e5f5585a_l32_r01_e02_i0",
                     "content": [
                       {
                         "role": "primary",
@@ -7910,7 +7733,7 @@
                     ]
                   },
                   {
-                    "id": "pms_e5f5585a_l33_r01_e02_i1",
+                    "id": "pms_e5f5585a_l32_r01_e02_i1",
                     "content": [
                       {
                         "role": "primary",
@@ -7920,7 +7743,7 @@
                     ]
                   },
                   {
-                    "id": "pms_e5f5585a_l33_r01_e02_i2",
+                    "id": "pms_e5f5585a_l32_r01_e02_i2",
                     "content": [
                       {
                         "role": "primary",
@@ -7936,9 +7759,9 @@
                     {
                       "text": "gat",
                       "itemIds": [
-                        "pms_e5f5585a_l33_r01_e02_i1",
-                        "pms_e5f5585a_l33_r01_e02_i2",
-                        "pms_e5f5585a_l33_r01_e02_i0"
+                        "pms_e5f5585a_l32_r01_e02_i1",
+                        "pms_e5f5585a_l32_r01_e02_i2",
+                        "pms_e5f5585a_l32_r01_e02_i0"
                       ]
                     }
                   ]
@@ -7946,7 +7769,7 @@
               }
             },
             {
-              "id": "pms_e5f5585a_l33_r01_e03",
+              "id": "pms_e5f5585a_l32_r01_e03",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
@@ -7975,7 +7798,7 @@
                 ],
                 "items": [
                   {
-                    "id": "pms_e5f5585a_l33_r01_e03_i0",
+                    "id": "pms_e5f5585a_l32_r01_e03_i0",
                     "content": [
                       {
                         "role": "primary",
@@ -7985,7 +7808,7 @@
                     ]
                   },
                   {
-                    "id": "pms_e5f5585a_l33_r01_e03_i1",
+                    "id": "pms_e5f5585a_l32_r01_e03_i1",
                     "content": [
                       {
                         "role": "primary",
@@ -7995,7 +7818,7 @@
                     ]
                   },
                   {
-                    "id": "pms_e5f5585a_l33_r01_e03_i2",
+                    "id": "pms_e5f5585a_l32_r01_e03_i2",
                     "content": [
                       {
                         "role": "primary",
@@ -8005,7 +7828,7 @@
                     ]
                   },
                   {
-                    "id": "pms_e5f5585a_l33_r01_e03_i3",
+                    "id": "pms_e5f5585a_l32_r01_e03_i3",
                     "content": [
                       {
                         "role": "primary",
@@ -8015,7 +7838,7 @@
                     ]
                   },
                   {
-                    "id": "pms_e5f5585a_l33_r01_e03_i4",
+                    "id": "pms_e5f5585a_l32_r01_e03_i4",
                     "content": [
                       {
                         "role": "primary",
@@ -8031,11 +7854,11 @@
                     {
                       "text": "caval",
                       "itemIds": [
-                        "pms_e5f5585a_l33_r01_e03_i2",
-                        "pms_e5f5585a_l33_r01_e03_i0",
-                        "pms_e5f5585a_l33_r01_e03_i4",
-                        "pms_e5f5585a_l33_r01_e03_i3",
-                        "pms_e5f5585a_l33_r01_e03_i1"
+                        "pms_e5f5585a_l32_r01_e03_i2",
+                        "pms_e5f5585a_l32_r01_e03_i0",
+                        "pms_e5f5585a_l32_r01_e03_i4",
+                        "pms_e5f5585a_l32_r01_e03_i3",
+                        "pms_e5f5585a_l32_r01_e03_i1"
                       ]
                     }
                   ]
@@ -8046,12 +7869,12 @@
         }
       ],
       "duel": {
-        "id": "pms_e5f5585a_l33_duel",
+        "id": "pms_e5f5585a_l32_duel",
         "title": "Duel"
       }
     },
     {
-      "lessonId": "pms_e5f5585a_l34",
+      "lessonId": "pms_e5f5585a_l33",
       "publicationState": "published",
       "updatedAt": "2026-09-25T00:00:00.000Z",
       "section": false,
@@ -8060,7 +7883,7 @@
       "guidebook": {
         "content": [
           {
-            "id": "pms_e5f5585a_l34_g01",
+            "id": "pms_e5f5585a_l33_g01",
             "publicationState": "published",
             "kind": "explanation",
             "required": false,
@@ -8071,14 +7894,14 @@
       },
       "rounds": [
         {
-          "id": "pms_e5f5585a_l34_r01",
+          "id": "pms_e5f5585a_l33_r01",
           "publicationState": "published",
           "updatedAt": "2026-09-25T00:00:00.000Z",
           "visualType": "generic",
           "title": "What is in the picture practice",
           "content": [
             {
-              "id": "pms_e5f5585a_l34_r01_intro",
+              "id": "pms_e5f5585a_l33_r01_intro",
               "publicationState": "published",
               "kind": "text",
               "required": false,
@@ -8086,7 +7909,7 @@
               "text": "What is in the picture: What is in the picture?. Three short examples use this exercise type."
             },
             {
-              "id": "pms_e5f5585a_l34_r01_e01",
+              "id": "pms_e5f5585a_l33_r01_e01",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
@@ -8111,7 +7934,7 @@
                 ],
                 "items": [
                   {
-                    "id": "pms_e5f5585a_l34_r01_e01_i0",
+                    "id": "pms_e5f5585a_l33_r01_e01_i0",
                     "content": [
                       {
                         "role": "primary",
@@ -8121,7 +7944,7 @@
                     ]
                   },
                   {
-                    "id": "pms_e5f5585a_l34_r01_e01_i1",
+                    "id": "pms_e5f5585a_l33_r01_e01_i1",
                     "content": [
                       {
                         "role": "primary",
@@ -8131,7 +7954,7 @@
                     ]
                   },
                   {
-                    "id": "pms_e5f5585a_l34_r01_e01_i2",
+                    "id": "pms_e5f5585a_l33_r01_e01_i2",
                     "content": [
                       {
                         "role": "primary",
@@ -8144,13 +7967,13 @@
                 "evaluation": {
                   "mode": "exactItem",
                   "correctItemIds": [
-                    "pms_e5f5585a_l34_r01_e01_i0"
+                    "pms_e5f5585a_l33_r01_e01_i0"
                   ]
                 }
               }
             },
             {
-              "id": "pms_e5f5585a_l34_r01_e02",
+              "id": "pms_e5f5585a_l33_r01_e02",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
@@ -8175,7 +7998,7 @@
                 ],
                 "items": [
                   {
-                    "id": "pms_e5f5585a_l34_r01_e02_i0",
+                    "id": "pms_e5f5585a_l33_r01_e02_i0",
                     "content": [
                       {
                         "role": "primary",
@@ -8185,7 +8008,7 @@
                     ]
                   },
                   {
-                    "id": "pms_e5f5585a_l34_r01_e02_i1",
+                    "id": "pms_e5f5585a_l33_r01_e02_i1",
                     "content": [
                       {
                         "role": "primary",
@@ -8195,7 +8018,7 @@
                     ]
                   },
                   {
-                    "id": "pms_e5f5585a_l34_r01_e02_i2",
+                    "id": "pms_e5f5585a_l33_r01_e02_i2",
                     "content": [
                       {
                         "role": "primary",
@@ -8208,13 +8031,13 @@
                 "evaluation": {
                   "mode": "exactItem",
                   "correctItemIds": [
-                    "pms_e5f5585a_l34_r01_e02_i1"
+                    "pms_e5f5585a_l33_r01_e02_i1"
                   ]
                 }
               }
             },
             {
-              "id": "pms_e5f5585a_l34_r01_e03",
+              "id": "pms_e5f5585a_l33_r01_e03",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
@@ -8239,7 +8062,7 @@
                 ],
                 "items": [
                   {
-                    "id": "pms_e5f5585a_l34_r01_e03_i0",
+                    "id": "pms_e5f5585a_l33_r01_e03_i0",
                     "content": [
                       {
                         "role": "primary",
@@ -8249,7 +8072,7 @@
                     ]
                   },
                   {
-                    "id": "pms_e5f5585a_l34_r01_e03_i1",
+                    "id": "pms_e5f5585a_l33_r01_e03_i1",
                     "content": [
                       {
                         "role": "primary",
@@ -8259,7 +8082,7 @@
                     ]
                   },
                   {
-                    "id": "pms_e5f5585a_l34_r01_e03_i2",
+                    "id": "pms_e5f5585a_l33_r01_e03_i2",
                     "content": [
                       {
                         "role": "primary",
@@ -8272,7 +8095,7 @@
                 "evaluation": {
                   "mode": "exactItem",
                   "correctItemIds": [
-                    "pms_e5f5585a_l34_r01_e03_i2"
+                    "pms_e5f5585a_l33_r01_e03_i2"
                   ]
                 }
               }
@@ -8281,21 +8104,21 @@
         }
       ],
       "duel": {
-        "id": "pms_e5f5585a_l34_duel",
+        "id": "pms_e5f5585a_l33_duel",
         "title": "Duel"
       }
     },
     {
-      "lessonId": "pms_e5f5585a_l35",
+      "lessonId": "pms_e5f5585a_l34",
       "publicationState": "published",
       "updatedAt": "2026-09-25T00:00:00.000Z",
       "section": false,
-      "title": "Name what you see — Name what you see",
+      "title": "Type what you see — Type what you see",
       "themeIconAsset": "assets/lesson_icons/speech_bubbles.png",
       "guidebook": {
         "content": [
           {
-            "id": "pms_e5f5585a_l35_g01",
+            "id": "pms_e5f5585a_l34_g01",
             "publicationState": "published",
             "kind": "explanation",
             "required": false,
@@ -8306,22 +8129,22 @@
       },
       "rounds": [
         {
-          "id": "pms_e5f5585a_l35_r01",
+          "id": "pms_e5f5585a_l34_r01",
           "publicationState": "published",
           "updatedAt": "2026-09-25T00:00:00.000Z",
           "visualType": "generic",
-          "title": "Name what you see practice",
+          "title": "Type what you see practice",
           "content": [
             {
-              "id": "pms_e5f5585a_l35_r01_intro",
+              "id": "pms_e5f5585a_l34_r01_intro",
               "publicationState": "published",
               "kind": "text",
               "required": false,
               "role": "lesson_intro",
-              "text": "Name what you see: Name what you see. Three short examples use this exercise type."
+              "text": "Type what you see: Type what you see. Three short examples use this exercise type."
             },
             {
-              "id": "pms_e5f5585a_l35_r01_e01",
+              "id": "pms_e5f5585a_l34_r01_e01",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
@@ -8353,7 +8176,7 @@
               }
             },
             {
-              "id": "pms_e5f5585a_l35_r01_e02",
+              "id": "pms_e5f5585a_l34_r01_e02",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
@@ -8385,7 +8208,7 @@
               }
             },
             {
-              "id": "pms_e5f5585a_l35_r01_e03",
+              "id": "pms_e5f5585a_l34_r01_e03",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
@@ -8413,6 +8236,259 @@
                   "answers": [
                     "{l'} eva",
                     "eva"
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "duel": {
+        "id": "pms_e5f5585a_l34_duel",
+        "title": "Duel"
+      }
+    },
+    {
+      "lessonId": "pms_e5f5585a_l35",
+      "publicationState": "published",
+      "updatedAt": "2026-09-25T00:00:00.000Z",
+      "section": false,
+      "title": "Name what you see — Name what you see",
+      "themeIconAsset": "assets/lesson_icons/speech_bubbles.png",
+      "guidebook": {
+        "content": [
+          {
+            "id": "pms_e5f5585a_l35_g01",
+            "publicationState": "published",
+            "kind": "explanation",
+            "required": false,
+            "role": "overview",
+            "text": "Build the Piedmontese name of the picture from word blocks: ël gat = the cat; ël pan = the bread; ël pom = the apple. One extra block is not part of the name."
+          }
+        ]
+      },
+      "rounds": [
+        {
+          "id": "pms_e5f5585a_l35_r01",
+          "publicationState": "published",
+          "updatedAt": "2026-09-25T00:00:00.000Z",
+          "visualType": "generic",
+          "title": "Name what you see practice",
+          "content": [
+            {
+              "id": "pms_e5f5585a_l35_r01_intro",
+              "publicationState": "published",
+              "kind": "text",
+              "required": false,
+              "role": "lesson_intro",
+              "text": "Name what you see: Name what you see. Three short examples use this exercise type."
+            },
+            {
+              "id": "pms_e5f5585a_l35_r01_e01",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "authoringMetadata": {
+                "presetId": "picture_blocks"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "arrange",
+                "prompt": [
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "What is this?"
+                  },
+                  {
+                    "role": "picture",
+                    "type": "image",
+                    "text": "A cat",
+                    "asset": "assets/exercise_images/cat.webp"
+                  }
+                ],
+                "items": [
+                  {
+                    "id": "pms_e5f5585a_l35_r01_e01_i0",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "ël"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "pms_e5f5585a_l35_r01_e01_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "gat"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "pms_e5f5585a_l35_r01_e01_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "la"
+                      }
+                    ]
+                  }
+                ],
+                "evaluation": {
+                  "mode": "exactOrder",
+                  "correctOrders": [
+                    {
+                      "text": "ël gat",
+                      "itemIds": [
+                        "pms_e5f5585a_l35_r01_e01_i0",
+                        "pms_e5f5585a_l35_r01_e01_i1"
+                      ]
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "pms_e5f5585a_l35_r01_e02",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "authoringMetadata": {
+                "presetId": "picture_blocks"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "arrange",
+                "prompt": [
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "What is this?"
+                  },
+                  {
+                    "role": "picture",
+                    "type": "image",
+                    "text": "Bread",
+                    "asset": "assets/exercise_images/bread.webp"
+                  }
+                ],
+                "items": [
+                  {
+                    "id": "pms_e5f5585a_l35_r01_e02_i0",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "ël"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "pms_e5f5585a_l35_r01_e02_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "pan"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "pms_e5f5585a_l35_r01_e02_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "la"
+                      }
+                    ]
+                  }
+                ],
+                "evaluation": {
+                  "mode": "exactOrder",
+                  "correctOrders": [
+                    {
+                      "text": "ël pan",
+                      "itemIds": [
+                        "pms_e5f5585a_l35_r01_e02_i0",
+                        "pms_e5f5585a_l35_r01_e02_i1"
+                      ]
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "pms_e5f5585a_l35_r01_e03",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "authoringMetadata": {
+                "presetId": "picture_blocks"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "arrange",
+                "prompt": [
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "What is this?"
+                  },
+                  {
+                    "role": "picture",
+                    "type": "image",
+                    "text": "An apple",
+                    "asset": "assets/exercise_images/apple.webp"
+                  }
+                ],
+                "items": [
+                  {
+                    "id": "pms_e5f5585a_l35_r01_e03_i0",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "ël"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "pms_e5f5585a_l35_r01_e03_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "pom"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "pms_e5f5585a_l35_r01_e03_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "la"
+                      }
+                    ]
+                  }
+                ],
+                "evaluation": {
+                  "mode": "exactOrder",
+                  "correctOrders": [
+                    {
+                      "text": "ël pom",
+                      "itemIds": [
+                        "pms_e5f5585a_l35_r01_e03_i0",
+                        "pms_e5f5585a_l35_r01_e03_i1"
+                      ]
+                    }
                   ]
                 }
               }
@@ -9371,5 +9447,5 @@
       "voice": "female"
     }
   ],
-  "officialChecksum": "5a7b3abb30e541b3384366996f7fdae5c71af79f6fb9dc9ec66c3c640e5b7457"
+  "officialChecksum": "b77086996448c43e399eceb6ccaddeeaa568928c4afa3283816c9721507e51d6"
 }
