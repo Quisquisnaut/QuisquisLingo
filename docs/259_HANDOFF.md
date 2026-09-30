@@ -8,13 +8,13 @@ Plan: `docs/CONTEXT_AND_HINT_PLAN.md` (owner decisions of 29 September
 Build 259 has three revisions, one per plan section:
 
 - **Revision 0** (plan §4): an authored Instruction or context replaces
-  the standard line; the prompt and question labels. *Committed (see
-  below); complete suite 3379 passed, 1 skipped, 0 failed.*
+  the standard line; the prompt and question labels. *Committed as
+  `474a313`; complete suite 3379 passed, 1 skipped, 0 failed.*
 - **Revision 1** (plan §5): Complete the text and Put the sentences in
   order (instruction, hint, lines entered once).
 - **Revision 2** (plan §6): the Listen and answer split.
 
-## State at 10:16, 30 September 2026 (Revision 0, not committed)
+## Revision 0 (committed `474a313`, 11:35, 30 September 2026)
 
 Everything in `docs/259_CHANGE_SUMMARY.md` (Revision 0) is done:
 
@@ -42,13 +42,12 @@ Gotchas found:
 
 ## Next
 
-1. The complete suite passes, then commit "Build 259 Revision 0:
-   instructions and questions". Stage with
-   `git add -A -- . ':!devtools_options.yaml' ':!tools/cloud_setup.sh'`
-   after checking `git status` for files another session wrote.
-2. Revision 1 (plan §5): Complete the text gets Instruction or context
+1. Revision 1 (plan §5): Complete the text gets Instruction or context
    and Hint; Put the sentences in order gets lines once + Extra lines +
    Hint (`_buildSentenceOrder`, keep the stored item order); hint panels
    on the gap and order screens; no Play audio button without audio;
    demo content for Piedmontese Lessons 18 and 21 and the Laboratory.
-3. Revision 2 (plan §6): the Listen and answer split.
+2. Revision 2 (plan §6): the Listen and answer split.
+
+Stage with `git add -A -- . ':!devtools_options.yaml' ':!tools/cloud_setup.sh'`
+after checking `git status` for files another session wrote.
