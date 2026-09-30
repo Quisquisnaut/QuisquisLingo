@@ -18,6 +18,10 @@ const presetSuccessorOf = <String, String>{
   // Build 256 Revision 7 fourth follow-up (owner, 29 September 2026): Read
   // and answer keeps only its "to target" preset.
   'reading_answer_source': 'reading_answer_target',
+  // Build 259 Revision 4 (owner, 30 September 2026): the two gap presets
+  // merge into Pick the words for the gaps (gap_blocks), each word filling
+  // one gap.
+  'gap_choice_inline': 'gap_blocks',
 };
 
 /// The older recipe a catalogue preset is built on (`ExercisePreset.base`),
@@ -39,7 +43,9 @@ const presetRecipeBaseOf = <String, String>{
   'build_translation_to_source': 'build_translation',
   'picture_flashcard': 'flashcard',
   'true_false': 'choice',
-  'gap_choice_inline': 'choice',
+  // One word fills all (Build 259 Revision 4) converts from the Pick the
+  // missing word shape.
+  'one_word_fills_all': 'gap_choice',
   'complete_text': 'missing_word',
   'missing_letters': 'missing_word',
   'gap_blocks': 'word_order',

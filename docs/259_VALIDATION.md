@@ -219,3 +219,51 @@ handoff: `259_HANDOFF.md`.
 - `flutter analyze --no-pub`: no issues.
 - **Complete suite** (16:15–16:44, `--concurrency=1`, keep-awake):
   **3435 passed, 1 skipped, 0 failed**.
+
+## Revision 4 (2.0.59+259004, 30 September 2026): the second review
+
+**Generators and validator**
+- Laboratory: 8 Lessons, 28 Rounds, 124 examples, `--check` reproducible.
+- Piedmontese: 41 Lessons, 123 examples, `--check` reproducible.
+- Edge Case: regenerated (e17–e19 fill their gaps with words), `--check`
+  reproducible. Its v11 fixture is updated only for the Lesson's GuideBook
+  line and the gap Round. The fixture was already behind its generator on
+  the Course description, version and date, and its checksum was already
+  stale; both are left as they were, because the parity test compares
+  exercises.
+- v11 fixtures of the Laboratory and the Piedmontese demo rewritten with
+  their checksum.
+- `tools/validate_courses.py`: all three Courses pass.
+
+**Laboratory presentation baseline**
+- Record run: 124 records, rebuilt and formatted. Compared with Revision 3:
+  2 added (`select_gap_all_article`, `select_gap_all_verb`), 4 removed (the
+  reusable-option gaps `select_gap_one`, `_distinct`, `_reuse`, `_audio`),
+  5 changed:
+  - "Build the word you hear." for Spell what you hear (2);
+  - "Build the word that matches the clue." for Spell the word (2);
+  - Name what you see's hint "Include the article.".
+
+**Tests**
+- New: `test/owner_review_259_revision4_test.dart`, 15 tests covering
+  points 1, 2, 3, 4–7, 8 and 9 and the eight learner languages.
+- Updated to the owner's decisions:
+  - the gap editor, builder and characterization tests (`_word_`, Pick the
+    words for the gaps, a word needed twice offered twice);
+  - the Select editor tests: a Select whose option fills two gaps is
+    represented by no preset;
+  - the field Help and form tables, and the mascot, runtime-kind and Duel
+    tables;
+  - the Laboratory test (the `_word_` reconstruction, a picture row found
+    by its picture, 124 examples);
+  - the Edge Case, Revision 0, Revision 1 and Revision 7 tests.
+- **First complete suite** (18:57–19:42): 3444 passed, 1 skipped, 1
+  failed. `select_gap_fill_238_test` expected a converted v11 Choose with
+  gaps to pass the Audit with no issue. The converters still tagged it
+  with the retired `gap_choice_inline`, so the Audit reported a preset that
+  no longer fits it. Both converters (Dart and Python) now record no
+  preset for such a Choose. The generators' output is unchanged; the
+  converter, Select and parity tests pass.
+- `flutter analyze --no-pub`: no issues.
+- **Second complete suite** (19:45–20:22, `--concurrency=1`, keep-awake):
+  **3445 passed, 1 skipped, 0 failed**.

@@ -58,7 +58,8 @@ Exercise _author(Exercise exercise) {
   final gapLayout = exercise.interaction.layout
       .map((part) {
         if (part.type != 'gap') return part.text;
-        return '{${valueOf(exercise.targetAssignments[part.text]!)}}';
+        // A gap is _word_ since Build 259 Revision 4.
+        return '_${valueOf(exercise.targetAssignments[part.text]!)}_';
       })
       .join(' ');
   final used = exercise.targetAssignments.values.toSet();
@@ -621,11 +622,16 @@ Future<void> _answer(
     await _tap(tester, find.widgetWithText(FilledButton, 'Check matches'));
   } else if (exercise.interaction.kind == 'match') {
     for (final pair in exercise.pairs) {
+      // A picture shows no text beside it (Build 259 Revision 4): its row
+      // is found by the picture.
+      final left = pair[0].startsWith('assets/')
+          ? find.byWidgetPredicate(
+              (widget) =>
+                  widget is PortableExerciseImage && widget.asset == pair[0],
+            )
+          : find.text(pair[0]);
       final row = find
-          .ancestor(
-            of: find.text(pair[0]),
-            matching: find.byType(LayoutBuilder),
-          )
+          .ancestor(of: left, matching: find.byType(LayoutBuilder))
           .first;
       await _tap(
         tester,
@@ -703,8 +709,9 @@ void main() {
       expect(course.createDuels, isFalse);
       expect(course.derivativeWorksPolicy, DerivativeWorksPolicy.allowed);
       // 125 with Listen and answer (to source) (Build 259 Revision 2), 126
-      // with the Complete the text alternatives (Revision 3).
-      expect(examples, hasLength(126));
+      // with the Complete the text alternatives (Revision 3), 124 with One
+      // word fills all replacing the four reusable-option gaps (Revision 4).
+      expect(examples, hasLength(124));
       // The examples cover every preset but Before you start, whose card
       // opens every Round (Build 257).
       expect({

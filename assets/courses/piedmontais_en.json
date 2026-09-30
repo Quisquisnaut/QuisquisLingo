@@ -4061,7 +4061,7 @@
       "publicationState": "published",
       "updatedAt": "2026-09-25T00:00:00.000Z",
       "section": false,
-      "title": "Pick the words for the gaps — Pick the words for the gaps",
+      "title": "Pick the words for the gaps — Fill the gaps",
       "themeIconAsset": "assets/lesson_icons/speech_bubbles.png",
       "guidebook": {
         "content": [
@@ -4071,7 +4071,7 @@
             "kind": "explanation",
             "required": false,
             "role": "overview",
-            "text": "Tap the options to fill the gaps of a fixed sentence: mi i son content = I am happy; pan e eva = bread and water; ël gat e ël can = the cat and the dog."
+            "text": "Tap a word for each gap; every word fills one gap: mi i son content = I am happy; pan e eva = bread and water; ël gat e ël can = the cat and the dog."
           }
         ]
       },
@@ -4101,7 +4101,7 @@
                   {
                     "role": "intro",
                     "type": "text",
-                    "text": "Pick the words for the gaps: Pick the words for the gaps. Three short examples use this exercise type."
+                    "text": "Pick the words for the gaps: Fill the gaps. Three short examples use this exercise type."
                   }
                 ],
                 "evaluation": {
@@ -4115,19 +4115,18 @@
               "kind": "exercise",
               "required": true,
               "authoringMetadata": {
-                "presetId": "gap_choice_inline"
+                "presetId": "gap_blocks"
               },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
-                "primitive": "select",
+                "primitive": "arrange",
                 "options": {
-                  "itemReuse": "unlimited",
                   "layout": "inline",
-                  "evaluationTiming": "explicit"
+                  "placementMode": "inlineGaps"
                 },
                 "prompt": [
                   {
-                    "role": "primary",
+                    "role": "clue",
                     "type": "text",
                     "text": "Complete the sentence about being happy."
                   }
@@ -4191,7 +4190,7 @@
                   }
                 ],
                 "evaluation": {
-                  "mode": "exactItem",
+                  "mode": "gapAssignments",
                   "assignments": [
                     {
                       "targetId": "gap_1",
@@ -4215,19 +4214,18 @@
               "kind": "exercise",
               "required": true,
               "authoringMetadata": {
-                "presetId": "gap_choice_inline"
+                "presetId": "gap_blocks"
               },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
-                "primitive": "select",
+                "primitive": "arrange",
                 "options": {
-                  "itemReuse": "unlimited",
                   "layout": "inline",
-                  "evaluationTiming": "explicit"
+                  "placementMode": "inlineGaps"
                 },
                 "prompt": [
                   {
-                    "role": "primary",
+                    "role": "clue",
                     "type": "text",
                     "text": "Complete the phrase meaning bread and water."
                   }
@@ -4287,7 +4285,7 @@
                   }
                 ],
                 "evaluation": {
-                  "mode": "exactItem",
+                  "mode": "gapAssignments",
                   "assignments": [
                     {
                       "targetId": "gap_1",
@@ -4311,21 +4309,20 @@
               "kind": "exercise",
               "required": true,
               "authoringMetadata": {
-                "presetId": "gap_choice_inline"
+                "presetId": "gap_blocks"
               },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
-                "primitive": "select",
+                "primitive": "arrange",
                 "options": {
-                  "itemReuse": "unlimited",
                   "layout": "inline",
-                  "evaluationTiming": "explicit"
+                  "placementMode": "inlineGaps"
                 },
                 "prompt": [
                   {
-                    "role": "primary",
+                    "role": "clue",
                     "type": "text",
-                    "text": "Complete the phrase; the same article fills both gaps."
+                    "text": "Complete the phrase; the article is a separate block each time."
                   }
                 ],
                 "items": [
@@ -4345,7 +4342,7 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "la"
+                        "text": "ël"
                       }
                     ]
                   }
@@ -4377,7 +4374,7 @@
                   }
                 ],
                 "evaluation": {
-                  "mode": "exactItem",
+                  "mode": "gapAssignments",
                   "assignments": [
                     {
                       "targetId": "gap_1",
@@ -4388,7 +4385,7 @@
                     {
                       "targetId": "gap_2",
                       "itemIds": [
-                        "pms_e5f5585a_l17_r01_e03_i0"
+                        "pms_e5f5585a_l17_r01_e03_i1"
                       ]
                     }
                   ]
@@ -4408,12 +4405,247 @@
       "publicationState": "published",
       "updatedAt": "2026-09-25T00:00:00.000Z",
       "section": false,
-      "title": "Complete the text — Complete the text",
+      "title": "One word fills all — One word for every gap",
       "themeIconAsset": "assets/lesson_icons/speech_bubbles.png",
       "guidebook": {
         "content": [
           {
             "id": "pms_e5f5585a_l18_g01",
+            "publicationState": "published",
+            "kind": "explanation",
+            "required": false,
+            "role": "overview",
+            "text": "un = a, one; ël = the; bondì = good morning. One word fills every gap of the sentences."
+          }
+        ]
+      },
+      "rounds": [
+        {
+          "id": "pms_e5f5585a_l18_r01",
+          "publicationState": "published",
+          "updatedAt": "2026-09-25T00:00:00.000Z",
+          "visualType": "generic",
+          "title": "One word fills all practice",
+          "content": [
+            {
+              "id": "pms_e5f5585a_l18_r01_intro",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": false,
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "One word fills all: One word for every gap. Three short examples use this exercise type."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
+            },
+            {
+              "id": "pms_e5f5585a_l18_r01_e01",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "authoringMetadata": {
+                "presetId": "one_word_fills_all"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "select",
+                "prompt": [
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "I l'hai ___ gat e ___ can."
+                  }
+                ],
+                "items": [
+                  {
+                    "id": "pms_e5f5585a_l18_r01_e01_i0",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "un"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "pms_e5f5585a_l18_r01_e01_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "pan"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "pms_e5f5585a_l18_r01_e01_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "eva"
+                      }
+                    ]
+                  }
+                ],
+                "evaluation": {
+                  "mode": "exactItem",
+                  "correctItemIds": [
+                    "pms_e5f5585a_l18_r01_e01_i0"
+                  ]
+                }
+              }
+            },
+            {
+              "id": "pms_e5f5585a_l18_r01_e02",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "authoringMetadata": {
+                "presetId": "one_word_fills_all"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "select",
+                "prompt": [
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "___ gat a l'é n'animal. ___ can a l'é n'animal."
+                  }
+                ],
+                "items": [
+                  {
+                    "id": "pms_e5f5585a_l18_r01_e02_i0",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "La"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "pms_e5f5585a_l18_r01_e02_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "Ël"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "pms_e5f5585a_l18_r01_e02_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "Pan"
+                      }
+                    ]
+                  }
+                ],
+                "evaluation": {
+                  "mode": "exactItem",
+                  "correctItemIds": [
+                    "pms_e5f5585a_l18_r01_e02_i1"
+                  ]
+                }
+              }
+            },
+            {
+              "id": "pms_e5f5585a_l18_r01_e03",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "authoringMetadata": {
+                "presetId": "one_word_fills_all"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "select",
+                "prompt": [
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "___, Anna! ___, Tòni!"
+                  }
+                ],
+                "items": [
+                  {
+                    "id": "pms_e5f5585a_l18_r01_e03_i0",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "Pan"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "pms_e5f5585a_l18_r01_e03_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "Eva"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "pms_e5f5585a_l18_r01_e03_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "Bondì"
+                      }
+                    ]
+                  }
+                ],
+                "evaluation": {
+                  "mode": "exactItem",
+                  "correctItemIds": [
+                    "pms_e5f5585a_l18_r01_e03_i2"
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "duel": {
+        "id": "pms_e5f5585a_l18_duel",
+        "title": "Duel"
+      }
+    },
+    {
+      "lessonId": "pms_e5f5585a_l19",
+      "publicationState": "published",
+      "updatedAt": "2026-09-25T00:00:00.000Z",
+      "section": false,
+      "title": "Complete the text — Complete the text",
+      "themeIconAsset": "assets/lesson_icons/speech_bubbles.png",
+      "guidebook": {
+        "content": [
+          {
+            "id": "pms_e5f5585a_l19_g01",
             "publicationState": "published",
             "kind": "explanation",
             "required": false,
@@ -4424,14 +4656,14 @@
       },
       "rounds": [
         {
-          "id": "pms_e5f5585a_l18_r01",
+          "id": "pms_e5f5585a_l19_r01",
           "publicationState": "published",
           "updatedAt": "2026-09-25T00:00:00.000Z",
           "visualType": "generic",
           "title": "Complete the text practice",
           "content": [
             {
-              "id": "pms_e5f5585a_l18_r01_intro",
+              "id": "pms_e5f5585a_l19_r01_intro",
               "publicationState": "published",
               "kind": "exercise",
               "required": false,
@@ -4457,7 +4689,7 @@
               }
             },
             {
-              "id": "pms_e5f5585a_l18_r01_e01",
+              "id": "pms_e5f5585a_l19_r01_e01",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
@@ -4523,7 +4755,7 @@
               }
             },
             {
-              "id": "pms_e5f5585a_l18_r01_e02",
+              "id": "pms_e5f5585a_l19_r01_e02",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
@@ -4585,11 +4817,11 @@
                     }
                   ]
                 },
-                "hint": "Something to eat and something to drink."
+                "hint": "Bread and water, in Piedmontese."
               }
             },
             {
-              "id": "pms_e5f5585a_l18_r01_e03",
+              "id": "pms_e5f5585a_l19_r01_e03",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
@@ -4647,12 +4879,12 @@
         }
       ],
       "duel": {
-        "id": "pms_e5f5585a_l18_duel",
+        "id": "pms_e5f5585a_l19_duel",
         "title": "Duel"
       }
     },
     {
-      "lessonId": "pms_e5f5585a_l19",
+      "lessonId": "pms_e5f5585a_l20",
       "publicationState": "published",
       "updatedAt": "2026-09-25T00:00:00.000Z",
       "section": false,
@@ -4661,7 +4893,7 @@
       "guidebook": {
         "content": [
           {
-            "id": "pms_e5f5585a_l19_g01",
+            "id": "pms_e5f5585a_l20_g01",
             "publicationState": "published",
             "kind": "explanation",
             "required": false,
@@ -4672,14 +4904,14 @@
       },
       "rounds": [
         {
-          "id": "pms_e5f5585a_l19_r01",
+          "id": "pms_e5f5585a_l20_r01",
           "publicationState": "published",
           "updatedAt": "2026-09-25T00:00:00.000Z",
           "visualType": "generic",
           "title": "Missing letters practice",
           "content": [
             {
-              "id": "pms_e5f5585a_l19_r01_intro",
+              "id": "pms_e5f5585a_l20_r01_intro",
               "publicationState": "published",
               "kind": "exercise",
               "required": false,
@@ -4705,7 +4937,7 @@
               }
             },
             {
-              "id": "pms_e5f5585a_l19_r01_e01",
+              "id": "pms_e5f5585a_l20_r01_e01",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
@@ -4749,11 +4981,12 @@
                       ]
                     }
                   ]
-                }
+                },
+                "hint": "An animal that meows."
               }
             },
             {
-              "id": "pms_e5f5585a_l19_r01_e02",
+              "id": "pms_e5f5585a_l20_r01_e02",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
@@ -4797,11 +5030,12 @@
                       ]
                     }
                   ]
-                }
+                },
+                "hint": "The opposite of small."
               }
             },
             {
-              "id": "pms_e5f5585a_l19_r01_e03",
+              "id": "pms_e5f5585a_l20_r01_e03",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
@@ -4852,351 +5086,8 @@
                       ]
                     }
                   ]
-                }
-              }
-            }
-          ]
-        }
-      ],
-      "duel": {
-        "id": "pms_e5f5585a_l19_duel",
-        "title": "Duel"
-      }
-    },
-    {
-      "lessonId": "pms_e5f5585a_l20",
-      "publicationState": "published",
-      "updatedAt": "2026-09-25T00:00:00.000Z",
-      "section": false,
-      "title": "Drag the blocks into the gaps — Drag the blocks into the gaps",
-      "themeIconAsset": "assets/lesson_icons/speech_bubbles.png",
-      "guidebook": {
-        "content": [
-          {
-            "id": "pms_e5f5585a_l20_g01",
-            "publicationState": "published",
-            "kind": "explanation",
-            "required": false,
-            "role": "overview",
-            "text": "Drag each block into its gap; every block is used once: mi i son content; pan e eva; ël gat e ël can."
-          }
-        ]
-      },
-      "rounds": [
-        {
-          "id": "pms_e5f5585a_l20_r01",
-          "publicationState": "published",
-          "updatedAt": "2026-09-25T00:00:00.000Z",
-          "visualType": "generic",
-          "title": "Drag the blocks into the gaps practice",
-          "content": [
-            {
-              "id": "pms_e5f5585a_l20_r01_intro",
-              "publicationState": "published",
-              "kind": "exercise",
-              "required": false,
-              "authoringMetadata": {
-                "presetId": "before_you_start"
-              },
-              "exercise": {
-                "updatedAt": "2026-09-25T00:00:00.000Z",
-                "primitive": "presentation",
-                "options": {
-                  "guidebookButton": true
                 },
-                "prompt": [
-                  {
-                    "role": "intro",
-                    "type": "text",
-                    "text": "Drag the blocks into the gaps: Drag the blocks into the gaps. Three short examples use this exercise type."
-                  }
-                ],
-                "evaluation": {
-                  "mode": "none"
-                }
-              }
-            },
-            {
-              "id": "pms_e5f5585a_l20_r01_e01",
-              "publicationState": "published",
-              "kind": "exercise",
-              "required": true,
-              "authoringMetadata": {
-                "presetId": "gap_blocks"
-              },
-              "exercise": {
-                "updatedAt": "2026-09-25T00:00:00.000Z",
-                "primitive": "arrange",
-                "options": {
-                  "layout": "inline",
-                  "placementMode": "inlineGaps"
-                },
-                "prompt": [
-                  {
-                    "role": "clue",
-                    "type": "text",
-                    "text": "Complete the sentence about being happy."
-                  }
-                ],
-                "items": [
-                  {
-                    "id": "pms_e5f5585a_l20_r01_e01_i0",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "i"
-                      }
-                    ]
-                  },
-                  {
-                    "id": "pms_e5f5585a_l20_r01_e01_i1",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "son"
-                      }
-                    ]
-                  },
-                  {
-                    "id": "pms_e5f5585a_l20_r01_e01_i2",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "a"
-                      }
-                    ]
-                  }
-                ],
-                "targets": [
-                  {
-                    "id": "gap_1"
-                  },
-                  {
-                    "id": "gap_2"
-                  }
-                ],
-                "layout": [
-                  {
-                    "type": "text",
-                    "text": "Mi"
-                  },
-                  {
-                    "type": "target",
-                    "targetId": "gap_1"
-                  },
-                  {
-                    "type": "target",
-                    "targetId": "gap_2"
-                  },
-                  {
-                    "type": "text",
-                    "text": "content."
-                  }
-                ],
-                "evaluation": {
-                  "mode": "gapAssignments",
-                  "assignments": [
-                    {
-                      "targetId": "gap_1",
-                      "itemIds": [
-                        "pms_e5f5585a_l20_r01_e01_i0"
-                      ]
-                    },
-                    {
-                      "targetId": "gap_2",
-                      "itemIds": [
-                        "pms_e5f5585a_l20_r01_e01_i1"
-                      ]
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "id": "pms_e5f5585a_l20_r01_e02",
-              "publicationState": "published",
-              "kind": "exercise",
-              "required": true,
-              "authoringMetadata": {
-                "presetId": "gap_blocks"
-              },
-              "exercise": {
-                "updatedAt": "2026-09-25T00:00:00.000Z",
-                "primitive": "arrange",
-                "options": {
-                  "layout": "inline",
-                  "placementMode": "inlineGaps"
-                },
-                "prompt": [
-                  {
-                    "role": "clue",
-                    "type": "text",
-                    "text": "Complete the phrase meaning bread and water."
-                  }
-                ],
-                "items": [
-                  {
-                    "id": "pms_e5f5585a_l20_r01_e02_i0",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "pan"
-                      }
-                    ]
-                  },
-                  {
-                    "id": "pms_e5f5585a_l20_r01_e02_i1",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "eva"
-                      }
-                    ]
-                  },
-                  {
-                    "id": "pms_e5f5585a_l20_r01_e02_i2",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "pom"
-                      }
-                    ]
-                  }
-                ],
-                "targets": [
-                  {
-                    "id": "gap_1"
-                  },
-                  {
-                    "id": "gap_2"
-                  }
-                ],
-                "layout": [
-                  {
-                    "type": "target",
-                    "targetId": "gap_1"
-                  },
-                  {
-                    "type": "text",
-                    "text": "e"
-                  },
-                  {
-                    "type": "target",
-                    "targetId": "gap_2"
-                  }
-                ],
-                "evaluation": {
-                  "mode": "gapAssignments",
-                  "assignments": [
-                    {
-                      "targetId": "gap_1",
-                      "itemIds": [
-                        "pms_e5f5585a_l20_r01_e02_i0"
-                      ]
-                    },
-                    {
-                      "targetId": "gap_2",
-                      "itemIds": [
-                        "pms_e5f5585a_l20_r01_e02_i1"
-                      ]
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "id": "pms_e5f5585a_l20_r01_e03",
-              "publicationState": "published",
-              "kind": "exercise",
-              "required": true,
-              "authoringMetadata": {
-                "presetId": "gap_blocks"
-              },
-              "exercise": {
-                "updatedAt": "2026-09-25T00:00:00.000Z",
-                "primitive": "arrange",
-                "options": {
-                  "layout": "inline",
-                  "placementMode": "inlineGaps"
-                },
-                "prompt": [
-                  {
-                    "role": "clue",
-                    "type": "text",
-                    "text": "Complete the phrase; the article is a separate block each time."
-                  }
-                ],
-                "items": [
-                  {
-                    "id": "pms_e5f5585a_l20_r01_e03_i0",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "ël"
-                      }
-                    ]
-                  },
-                  {
-                    "id": "pms_e5f5585a_l20_r01_e03_i1",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "ël"
-                      }
-                    ]
-                  }
-                ],
-                "targets": [
-                  {
-                    "id": "gap_1"
-                  },
-                  {
-                    "id": "gap_2"
-                  }
-                ],
-                "layout": [
-                  {
-                    "type": "target",
-                    "targetId": "gap_1"
-                  },
-                  {
-                    "type": "text",
-                    "text": "gat e"
-                  },
-                  {
-                    "type": "target",
-                    "targetId": "gap_2"
-                  },
-                  {
-                    "type": "text",
-                    "text": "can"
-                  }
-                ],
-                "evaluation": {
-                  "mode": "gapAssignments",
-                  "assignments": [
-                    {
-                      "targetId": "gap_1",
-                      "itemIds": [
-                        "pms_e5f5585a_l20_r01_e03_i0"
-                      ]
-                    },
-                    {
-                      "targetId": "gap_2",
-                      "itemIds": [
-                        "pms_e5f5585a_l20_r01_e03_i1"
-                      ]
-                    }
-                  ]
-                }
+                "hint": "Something you drink."
               }
             }
           ]
@@ -5453,7 +5344,7 @@
                     }
                   ]
                 },
-                "hint": "The last line is what you say before sleeping."
+                "hint": "mangio = I eat; leso = I read. The last line is what you say before sleeping."
               }
             }
           ]
@@ -9500,7 +9391,8 @@
                       ]
                     }
                   ]
-                }
+                },
+                "hint": "Include the article."
               }
             },
             {
@@ -9570,7 +9462,8 @@
                       ]
                     }
                   ]
-                }
+                },
+                "hint": "Include the article."
               }
             },
             {
@@ -9640,7 +9533,8 @@
                       ]
                     }
                   ]
-                }
+                },
+                "hint": "Include the article."
               }
             }
           ]
@@ -10669,5 +10563,5 @@
       "voice": "female"
     }
   ],
-  "officialChecksum": "0c43bc664554af2a841dffdbd560f5a365ea97f8db580d1799dbde0c70a9726d"
+  "officialChecksum": "2ac35fdec02a4b74ac8a5c81242da97296e0387d1806b2aaef708eb1b5c3d3c0"
 }

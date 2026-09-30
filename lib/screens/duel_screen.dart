@@ -290,7 +290,8 @@ class _DuelScreenState extends State<DuelScreen> {
   }
 
   String _correctAnswer(Exercise ex) {
-    final value = _correctItem(ex)?.value ?? '';
+    // Never a picture's file path (Build 259 Revision 4).
+    final value = _correctItem(ex)?.label ?? '';
     return value.isEmpty ? 'See the course answer.' : value;
   }
 
@@ -303,7 +304,7 @@ class _DuelScreenState extends State<DuelScreen> {
   String _answerState(Exercise ex) {
     if (_selected == null) return 'Not answered yet';
     if (_selected! >= 0 && _selected! < _choices.length) {
-      return 'Selected choice ${_selected! + 1}: ${_choices[_selected!].text}';
+      return 'Selected choice ${_selected! + 1}: ${_choices[_selected!].item.label}';
     }
     return 'Choice selected';
   }

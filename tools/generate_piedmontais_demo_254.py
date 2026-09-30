@@ -347,25 +347,20 @@ def lesson_specs() -> list[tuple[str, str, str, list[dict]]]:
         enter("complete_text", [text("I l'hai un gat e un can.")], [], missingWords=["gat", "can"],
               hint="One meows, one barks."),
         enter("complete_text", [text("La lista: pan, eva e tre pom.")], [], missingWords=["pan", "eva"],
-              hint="Something to eat and something to drink."),
+              hint="Bread and water, in Piedmontese."),
         enter("complete_text", [text("You are at home, on the sofa.", "clue"),
                                 text("Mi i son a ca. I l'hai un lìber.")], [], missingWords=["lìber"],
               hint="Something you read."),
     ])
     add("missing_letters", "Missing letters", "Type the letters missing inside the words: gat = cat; granda = big; eva = water.", [
-        enter("missing_letters", [text("I l'hai un gat.")], [], missingWords=["at"]),
-        enter("missing_letters", [text("La ca a l'é granda.")], [], missingWords=["and"]),
-        enter("missing_letters", [text("Pan e eva."), audio("Pan e eva.")], [], missingWords=["va"]),
+        enter("missing_letters", [text("I l'hai un gat.")], [], missingWords=["at"], hint="An animal that meows."),
+        enter("missing_letters", [text("La ca a l'é granda.")], [], missingWords=["and"], hint="The opposite of small."),
+        enter("missing_letters", [text("Pan e eva."), audio("Pan e eva.")], [], missingWords=["va"], hint="Something you drink."),
     ])
     add("type_missing_word", "First-letter help", "Complete each missing word after its first letter is shown. Enter the whole word: gat (cat), ca (house), or lìber (book), including the first letter.", [
         enter("type_missing_word", [text("I l'hai un ___.")], ["gat"], hint="The animal that meows."),
         enter("type_missing_word", [text("la ___")], ["ca"], hint="The place where you live."),
         enter("type_missing_word", [text("ël ___")], ["lìber"], hint="An object with pages to read."),
-    ])
-    add("gap_choice_inline", "Pick the words for the gaps", "Tap the options to fill the gaps of a fixed sentence: mi i son content = I am happy; pan e eva = bread and water; ël gat e ël can = the cat and the dog.", [
-        gaps("gap_choice_inline", "Complete the sentence about being happy.", ["Mi", ("i",), ("son",), "content."], ["a"]),
-        gaps("gap_choice_inline", "Complete the phrase meaning bread and water.", [("pan",), "e", ("eva",)], ["pom"]),
-        gaps("gap_choice_inline", "Complete the phrase; the same article fills both gaps.", [("ël",), "gat e", ("ël",), "can"], ["la"]),
     ])
     add("listening_spelling", "Hear and spell", "Listen and type the whole word. The vocabulary is pan (bread), eva (water), and pom (apple). " + AUDIO_NOTE, [
         # The Audio text is always accepted (Build 259 Revision 3).
@@ -415,17 +410,23 @@ def lesson_specs() -> list[tuple[str, str, str, list[dict]]]:
         arrange("word_order", [text("Put the food first, then the link, then the drink.", "clue")], ["eva", "e", "pan"], [[2, 1, 0]]),
         arrange("word_order", [text("Put the cat first and the dog second, with an article before each.", "clue")], ["can", "ël", "e", "gat", "ël"], [[1, 3, 2, 4, 0]]),
     ])
-    add("gap_blocks", "Drag the blocks into the gaps", "Drag each block into its gap; every block is used once: mi i son content; pan e eva; ël gat e ël can.", [
+    add("gap_blocks", "Fill the gaps", "Tap a word for each gap; every word fills one gap: mi i son content = I am happy; pan e eva = bread and water; ël gat e ël can = the cat and the dog.", [
         gaps("gap_blocks", "Complete the sentence about being happy.", ["Mi", ("i",), ("son",), "content."], ["a"]),
         gaps("gap_blocks", "Complete the phrase meaning bread and water.", [("pan",), "e", ("eva",)], ["pom"]),
         gaps("gap_blocks", "Complete the phrase; the article is a separate block each time.", [("ël",), "gat e", ("ël",), "can"], []),
+    ])
+    # One word fills all (Build 259 Revision 4): one word for every gap.
+    add("one_word_fills_all", "One word for every gap", "un = a, one; ël = the; bondì = good morning. One word fills every gap of the sentences.", [
+        choose("one_word_fills_all", [text("I l'hai ___ gat e ___ can.", "question")], ["un", "pan", "eva"]),
+        choose("one_word_fills_all", [text("___ gat a l'é n'animal. ___ can a l'é n'animal.", "question")], ["La", "Ël", "Pan"], 1),
+        choose("one_word_fills_all", [text("___, Anna! ___, Tòni!", "question")], ["Pan", "Eva", "Bondì"], 2),
     ])
     add("sentence_order", "Put the sentences in order", "Put the lines of each short exchange in order. bondì = good morning; come ch'a va? = how are you?; bin, grassie = well, thank you.", [
         arrange("sentence_order", [text("Tòni meets Anna in the street and greets her first.", "clue")], ["Bondì, Anna!", "Bondì, Tòni! Come ch'a va?", "Bin, grassie."], [[0, 1, 2]]),
         arrange("sentence_order", [text("Anna goes to the market in the morning and is home by noon.", "clue")], ["Anna va al mercà.", "A compra pan e eva.", "A torna a ca."], [[0, 1, 2]]),
         arrange("sentence_order", [text("In the evening you have dinner, then you read in bed.", "clue")],
                 ["I mangio.", "I leso un lìber.", "Bon-aneuit!"], [[0, 1, 2]],
-                hint="The last line is what you say before sleeping."),
+                hint="mangio = I eat; leso = I read. The last line is what you say before sleeping."),
     ])
     add("image_word", "Build pictured words", "Use every letter to spell the Piedmontese word in the picture: pan (bread), gat (cat), caval (horse). The two a letters in caval are separate blocks.", [
         arrange("image_word", [text(instruction, "clue"), image(asset, alternative)], blocks, [order])
@@ -461,9 +462,9 @@ def lesson_specs() -> list[tuple[str, str, str, list[dict]]]:
         enter("picture_name", [text("What is this?"), image("water", "Water", "picture")], ["{l'} eva", "eva"]),
     ])
     add("picture_blocks", "Name what you see", "Build the Piedmontese name of the picture from word blocks: ël gat = the cat; ël pan = the bread; ël pom = the apple. One extra block is not part of the name.", [
-        arrange("picture_blocks", [text("What is this?"), image("cat", "A cat", "picture")], ["ël", "gat", "la"], [[0, 1]]),
-        arrange("picture_blocks", [text("What is this?"), image("bread", "Bread", "picture")], ["ël", "pan", "la"], [[0, 1]]),
-        arrange("picture_blocks", [text("What is this?"), image("apple", "An apple", "picture")], ["ël", "pom", "la"], [[0, 1]]),
+        arrange("picture_blocks", [text("What is this?"), image("cat", "A cat", "picture")], ["ël", "gat", "la"], [[0, 1]], hint="Include the article."),
+        arrange("picture_blocks", [text("What is this?"), image("bread", "Bread", "picture")], ["ël", "pan", "la"], [[0, 1]], hint="Include the article."),
+        arrange("picture_blocks", [text("What is this?"), image("apple", "An apple", "picture")], ["ël", "pom", "la"], [[0, 1]], hint="Include the article."),
     ])
     add("picture_flashcard", "Picture cards", "Look at the picture, read the word and its meaning; the pronunciation is optional. gat = cat; pan = bread; eva = water.", [
         picture_card("gat", "cat", "cat", "I l'hai un gat.", "I have a cat."),

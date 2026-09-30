@@ -3263,6 +3263,10 @@ class ExerciseItem {
       : audio.isNotEmpty
       ? audio
       : image;
+
+  /// What a learner may read for this item: its text, else its spoken text;
+  /// never a picture's asset path (Build 259 Revision 4).
+  String get label => text.isNotEmpty ? text : audio;
 }
 
 class ExerciseInteraction {
@@ -3861,11 +3865,13 @@ class Exercise {
     final preset = editorTemplate.trim();
     final type = _legacyTypeFromTemplate(preset, interaction.kind);
     // A preset the Build 256 Revision 4 catalogue retired is recorded as its
-    // successor; the v11 type above still decides the conversion. A Choose
-    // or Arrange with inline gaps is the inline-gap preset.
+    // successor; the v11 type above still decides the conversion. An Arrange
+    // with inline gaps is Pick the words for the gaps; a Choose with inline
+    // gaps, whose option may fill several gaps, has no preset since Build
+    // 259 Revision 4.
     final hasGaps = interaction.layout.any((element) => element.type == 'gap');
     final presetId = hasGaps && preset == 'choice'
-        ? 'gap_choice_inline'
+        ? ''
         : hasGaps && (preset == 'word_order' || preset == 'build_translation')
         ? 'gap_blocks'
         : presetSuccessorOf[preset] ?? preset;

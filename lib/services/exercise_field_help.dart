@@ -33,6 +33,7 @@ enum ExerciseAuthoringField {
   missingWord,
   missingWords,
   gapAnswers,
+  allGapsSentence,
   dialogue,
   image,
   scriptMode,
@@ -198,7 +199,7 @@ abstract final class ExerciseFieldHelpRegistry {
         'answers',
       ],
       'true_false': ['question', 'tts', 'answers', 'correct'],
-      'gap_choice_inline': ['prompt', 'gapLayout', 'tokens', 'tts'],
+      'one_word_fills_all': ['question', 'answers', 'correct', 'hint'],
       'complete_text': ['question', 'prompt', 'missingWords', 'hint'],
       'missing_letters': ['prompt', 'tts', 'hint'],
       'gap_blocks': ['prompt', 'gapLayout', 'tokens', 'tts'],
@@ -251,9 +252,7 @@ abstract final class ExerciseFieldHelpRegistry {
 
   /// The two Choose the answer twins share one form.
   static bool _isChoice(String presetId) =>
-      presetId == 'choice_target' ||
-      presetId == 'choice_source' ||
-      presetId == 'gap_choice_inline';
+      presetId == 'choice_target' || presetId == 'choice_source';
 
   static ExerciseFieldHelp forEditorField(String presetId, String fieldKey) {
     if ((_isChoice(presetId) || presetId == 'icon_choice') &&
@@ -323,20 +322,17 @@ abstract final class ExerciseFieldHelpRegistry {
             'learner fills, in order, by tapping options from a list.',
         entryRules:
             'Write the sentence and put each answer word or phrase '
-            'directly inside braces: {answer}. Example: I {am} going {to} '
+            'between underscores: _answer_. Example: I _am_ going _to_ '
             'London. Each tap fills the first remaining empty blank, '
             'whichever option is tapped — placement does not check '
             'correctness, so the right words in the wrong blanks are '
-            'still marked incorrect. If the same word answers more than '
-            'one gap, write it inside each of those braces: {Was} she '
-            'happy? {Was} he late? — the learner taps it once per blank '
-            'it needs to fill. Extra options that are not the answer to '
-            'any gap go in Distractor options (optional).',
+            'still marked incorrect. Extra options that are not the '
+            'answer to any gap go in Distractor options (optional).',
         validation:
-            'At least one {…} gap is required, and every gap must contain '
-            'non-empty text. Literal { or } characters cannot appear '
-            'anywhere else in the sentence.',
-        example: 'I {am} going {to} London.',
+            'At least one _…_ gap is required, and every gap must contain '
+            'non-empty text. A lone _ cannot appear anywhere else in the '
+            'sentence.',
+        example: 'I _am_ going _to_ London.',
       );
     }
     if (_isChoice(presetId) && fieldKey == 'tokens') {
@@ -492,6 +488,8 @@ abstract final class ExerciseFieldHelpRegistry {
       'true_false' => ExerciseAuthoringField.statement,
       'note_card' => ExerciseAuthoringField.noteText,
       'gap_choice' => ExerciseAuthoringField.gapSentence,
+      // One word fills all (Build 259 Revision 4).
+      'one_word_fills_all' => ExerciseAuthoringField.allGapsSentence,
       _ => ExerciseAuthoringField.question,
     },
     'tts' => switch (presetId) {
@@ -699,6 +697,16 @@ abstract final class ExerciseFieldHelpRegistry {
           'Contextual comprehension requires a separate question. For Dialogue response, use the target language. Match the question to the declared correct answer.',
       example: 'How are you?',
     ),
+    ExerciseAuthoringField.allGapsSentence => const ExerciseFieldHelp(
+      title: 'Sentences, with ___ for each gap',
+      purpose:
+          'The sentences the learner completes with one word that fits every gap. Example: ___ gatto dorme. ___ cane mangia.',
+      entryRules:
+          'Write the sentences in the target language with ___ (3 underscores) wherever the same word goes; at least two gaps. The chosen word appears in every gap.',
+      validation:
+          'Required: a Published save refuses it without two or more gaps. For one gap, use Pick the missing word.',
+      example: '___ gatto dorme. ___ cane mangia.',
+    ),
     ExerciseAuthoringField.gapSentence => const ExerciseFieldHelp(
       title: 'Sentence',
       purpose: 'Shows the sentence the learner completes by choosing a block.',
@@ -803,7 +811,7 @@ abstract final class ExerciseFieldHelpRegistry {
       title: 'Available word blocks',
       purpose: 'Supplies the blocks the learner puts into sentence order.',
       entryRules:
-          'Enter one literal target-language block per line. Blank lines are ignored. Repeat a line when the answer needs another occurrence of that word or block. When Inline gaps is enabled, this field is relabeled Extra distractor blocks: the gap answers themselves come from the {answer} braces in Sentence with gaps, and this field only adds optional unused distractors.',
+          'Enter one literal target-language block per line. Blank lines are ignored. Repeat a line when the answer needs another occurrence of that word or block. When Inline gaps is enabled, this field is relabeled Extra distractor blocks: the gap answers themselves come from the _answer_ markers in Sentence with gaps, and this field only adds optional unused distractors.',
       validation:
           'Include every block occurrence used in Correct sentence. You may add 0, 1 or at most 2 unused distractor blocks. Keep block spelling and internal punctuation consistent with the correct order.',
       example: 'Io\nbevo\nun\ncaffè\ntè',
@@ -813,7 +821,7 @@ abstract final class ExerciseFieldHelpRegistry {
       purpose:
           'Supplies the blocks used to construct the configured correct translations.',
       entryRules:
-          'Enter one literal block per line. Blank lines are ignored. Include enough distinct occurrences to construct every correct translation; repeated words require repeated lines. When Inline gaps is enabled, this field is relabeled Extra distractor blocks: the gap answers themselves come from the {answer} braces in Target sentence with gaps, and this field only adds optional unused distractors.',
+          'Enter one literal block per line. Blank lines are ignored. Include enough distinct occurrences to construct every correct translation; repeated words require repeated lines. When Inline gaps is enabled, this field is relabeled Extra distractor blocks: the gap answers themselves come from the _answer_ markers in Target sentence with gaps, and this field only adds optional unused distractors.',
       validation:
           'Every correct translation must be constructible from these blocks. At most 2 blocks may be unused by every correct translation. A block used by any configured answer is not an unused distractor. Answer-expression syntax is not expanded.',
       example: 'Io\nprendo\nvorrei\nun\ncaffè',
@@ -842,10 +850,10 @@ abstract final class ExerciseFieldHelpRegistry {
       purpose:
           'Shows the fixed sentence text with one or more inline blanks the learner fills with word or phrase tiles.',
       entryRules:
-          'Write the fixed sentence and put each answer word or phrase directly inside braces: {answer}. Example: I {am} going {to} London. Each {…} segment is both the gap and its correct answer, so no separate Correct answers / Correct sentence field is needed in this mode. Extra distractor blocks that are not used by any gap still go in Available word blocks / Extra distractor blocks (optional).',
+          'Write the fixed sentence and put each answer word or phrase between underscores: _answer_. Example: I _am_ going _to_ London. Each _…_ segment is both the gap and its correct answer, and each word fills one gap. Extra distractor words that fill no gap go in Extra distractor words (optional).',
       validation:
-          'At least one {…} gap is required, and every gap must contain non-empty text. Literal { or } characters cannot appear anywhere else in the sentence — every { must be paired with a matching } directly around one answer. Existing whole-sentence Arrange exercises are unaffected unless Inline gaps is enabled.',
-      example: 'I {am} going {to} London.',
+          'At least one _…_ gap is required, and every gap must contain non-empty text. A lone _ cannot appear anywhere else in the sentence. Existing whole-sentence Arrange exercises are unaffected.',
+      example: 'I _am_ going _to_ London.',
     ),
     ExerciseAuthoringField.selectRequiredSelections => const ExerciseFieldHelp(
       title: 'Required selections',
@@ -900,14 +908,14 @@ abstract final class ExerciseFieldHelpRegistry {
       example: 'caffè\n[il|un] treno',
     ),
     ExerciseAuthoringField.bracketedText => const ExerciseFieldHelp(
-      title: 'Text with the missing letters in brackets',
+      title: 'Text with the missing letters between underscores',
       purpose:
-          'The complete text with the missing letters marked inside square brackets.',
+          'The complete text with the missing letters marked between underscores. Example: dr_ink_',
       entryRules:
-          'Write the complete text and put the letters to hide inside [ and ], one bracket per gap: My cat doesn’t dr[ink] milk. Several gaps are fine.',
+          'Write the complete text and put the letters to hide between underscores, one pair per gap: My cat doesn’t dr_ink_ milk. Several gaps are fine.',
       validation:
-          'At least one bracket is required and no bracket may be empty. The learner sees one underscore per hidden letter and types the letters.',
-      example: 'Il ga[tt]o dor[me] sul divano.',
+          'At least one gap is required and none may be empty. The learner sees one underscore per hidden letter and types the letters.',
+      example: 'Il ga_tt_o dor_me_ sul divano.',
     ),
     ExerciseAuthoringField.distractorBlocks => const ExerciseFieldHelp(
       title: 'Extra distractor blocks (optional)',

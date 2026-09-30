@@ -565,7 +565,8 @@ void main() {
       ];
       expect(completeText.map((e) => e.hint), [
         'One meows, one barks.',
-        'Something to eat and something to drink.',
+        // More precise since Build 259 Revision 4.
+        'Bread and water, in Piedmontese.',
         'Something you read.',
       ]);
       expect(
@@ -584,7 +585,8 @@ void main() {
       ]);
       expect(
         orders.last.hint,
-        'The last line is what you say before sleeping.',
+        'mangio = I eat; leso = I read. The last line is what you say before '
+        'sleeping.',
       );
     });
   });

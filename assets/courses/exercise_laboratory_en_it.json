@@ -441,7 +441,7 @@
           "id": "qql_lab254_round_select_gaps",
           "publicationState": "published",
           "updatedAt": "2026-09-25T00:00:00.000Z",
-          "title": "Fixed sentences and reusable choices",
+          "title": "One missing word, one word for all gaps",
           "visualType": "generic",
           "content": [
             {
@@ -462,7 +462,7 @@
                   {
                     "role": "intro",
                     "type": "text",
-                    "text": "In Fill in the blank, choose one missing expression. In the fixed-sentence exercises, fill each gap; an option can be used again. You can remove, move and swap answers before Check."
+                    "text": "In Pick the missing word, choose the one missing expression. In One word fills all, one word fits every gap: choose it once and it appears in each gap."
                   }
                 ],
                 "evaluation": {
@@ -530,311 +530,94 @@
               }
             },
             {
-              "id": "qql_lab254_select_gap_one",
+              "id": "qql_lab254_select_gap_all_article",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
               "authoringMetadata": {
-                "presetId": "gap_choice_inline"
+                "presetId": "one_word_fills_all"
               },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
                 "primitive": "select",
-                "options": {
-                  "itemReuse": "unlimited",
-                  "layout": "inline",
-                  "evaluationTiming": "explicit"
-                },
                 "prompt": [
                   {
-                    "role": "primary",
+                    "role": "question",
                     "type": "text",
-                    "text": "Complete the Italian greeting."
+                    "text": "___ gatto dorme. ___ cane mangia."
                   }
                 ],
                 "items": [
                   {
-                    "id": "qql_lab254_select_gap_one_item_0",
+                    "id": "qql_lab254_select_gap_all_article_item_0",
                     "content": [
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "giorno"
+                        "text": "Il"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_lab254_select_gap_all_article_item_1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "La"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_lab254_select_gap_all_article_item_2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "Lo"
                       }
                     ]
                   }
                 ],
-                "targets": [
-                  {
-                    "id": "gap_1"
-                  }
-                ],
-                "layout": [
-                  {
-                    "type": "text",
-                    "text": "Buon"
-                  },
-                  {
-                    "type": "target",
-                    "targetId": "gap_1"
-                  },
-                  {
-                    "type": "text",
-                    "text": "!"
-                  }
-                ],
                 "evaluation": {
                   "mode": "exactItem",
-                  "assignments": [
-                    {
-                      "targetId": "gap_1",
-                      "itemIds": [
-                        "qql_lab254_select_gap_one_item_0"
-                      ]
-                    }
+                  "correctItemIds": [
+                    "qql_lab254_select_gap_all_article_item_0"
                   ]
                 }
               }
             },
             {
-              "id": "qql_lab254_select_gap_distinct",
+              "id": "qql_lab254_select_gap_all_verb",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
               "authoringMetadata": {
-                "presetId": "gap_choice_inline"
+                "presetId": "one_word_fills_all"
               },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
                 "primitive": "select",
-                "options": {
-                  "itemReuse": "unlimited",
-                  "layout": "inline",
-                  "evaluationTiming": "explicit"
-                },
                 "prompt": [
                   {
-                    "role": "primary",
+                    "role": "question",
                     "type": "text",
-                    "text": "Complete the sentence about Anna."
+                    "text": "Anna ___ un caffè. Luca ___ un tè."
                   }
                 ],
                 "items": [
                   {
-                    "id": "qql_lab254_select_gap_distinct_item_0",
+                    "id": "qql_lab254_select_gap_all_verb_item_0",
                     "content": [
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "è"
+                        "text": "beve"
                       }
                     ]
                   },
                   {
-                    "id": "qql_lab254_select_gap_distinct_item_1",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "casa"
-                      }
-                    ]
-                  },
-                  {
-                    "id": "qql_lab254_select_gap_distinct_item_2",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "siamo"
-                      }
-                    ]
-                  }
-                ],
-                "targets": [
-                  {
-                    "id": "gap_1"
-                  },
-                  {
-                    "id": "gap_2"
-                  }
-                ],
-                "layout": [
-                  {
-                    "type": "text",
-                    "text": "Anna"
-                  },
-                  {
-                    "type": "target",
-                    "targetId": "gap_1"
-                  },
-                  {
-                    "type": "text",
-                    "text": "a"
-                  },
-                  {
-                    "type": "target",
-                    "targetId": "gap_2"
-                  },
-                  {
-                    "type": "text",
-                    "text": "."
-                  }
-                ],
-                "evaluation": {
-                  "mode": "exactItem",
-                  "assignments": [
-                    {
-                      "targetId": "gap_1",
-                      "itemIds": [
-                        "qql_lab254_select_gap_distinct_item_0"
-                      ]
-                    },
-                    {
-                      "targetId": "gap_2",
-                      "itemIds": [
-                        "qql_lab254_select_gap_distinct_item_1"
-                      ]
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "id": "qql_lab254_select_gap_reuse",
-              "publicationState": "published",
-              "kind": "exercise",
-              "required": true,
-              "authoringMetadata": {
-                "presetId": "gap_choice_inline"
-              },
-              "exercise": {
-                "updatedAt": "2026-09-25T00:00:00.000Z",
-                "primitive": "select",
-                "options": {
-                  "itemReuse": "unlimited",
-                  "layout": "inline",
-                  "evaluationTiming": "explicit"
-                },
-                "prompt": [
-                  {
-                    "role": "primary",
-                    "type": "text",
-                    "text": "Complete both sentences. The same word can be used twice."
-                  }
-                ],
-                "items": [
-                  {
-                    "id": "qql_lab254_select_gap_reuse_item_0",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "è"
-                      }
-                    ]
-                  },
-                  {
-                    "id": "qql_lab254_select_gap_reuse_item_1",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "sono"
-                      }
-                    ]
-                  },
-                  {
-                    "id": "qql_lab254_select_gap_reuse_item_2",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "siamo"
-                      }
-                    ]
-                  }
-                ],
-                "targets": [
-                  {
-                    "id": "gap_1"
-                  },
-                  {
-                    "id": "gap_2"
-                  }
-                ],
-                "layout": [
-                  {
-                    "type": "text",
-                    "text": "Luca"
-                  },
-                  {
-                    "type": "target",
-                    "targetId": "gap_1"
-                  },
-                  {
-                    "type": "text",
-                    "text": "italiano. Anna"
-                  },
-                  {
-                    "type": "target",
-                    "targetId": "gap_2"
-                  },
-                  {
-                    "type": "text",
-                    "text": "italiana."
-                  }
-                ],
-                "evaluation": {
-                  "mode": "exactItem",
-                  "assignments": [
-                    {
-                      "targetId": "gap_1",
-                      "itemIds": [
-                        "qql_lab254_select_gap_reuse_item_0"
-                      ]
-                    },
-                    {
-                      "targetId": "gap_2",
-                      "itemIds": [
-                        "qql_lab254_select_gap_reuse_item_0"
-                      ]
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "id": "qql_lab254_select_gap_audio",
-              "publicationState": "published",
-              "kind": "exercise",
-              "required": true,
-              "authoringMetadata": {
-                "presetId": "gap_choice_inline"
-              },
-              "exercise": {
-                "updatedAt": "2026-09-25T00:00:00.000Z",
-                "primitive": "select",
-                "options": {
-                  "itemReuse": "unlimited",
-                  "layout": "inline",
-                  "evaluationTiming": "explicit"
-                },
-                "prompt": [
-                  {
-                    "role": "primary",
-                    "type": "text",
-                    "text": "Listen and complete the sentence."
-                  },
-                  {
-                    "role": "primary",
-                    "type": "audio",
-                    "text": "Io bevo acqua."
-                  }
-                ],
-                "items": [
-                  {
-                    "id": "qql_lab254_select_gap_audio_item_0",
+                    "id": "qql_lab254_select_gap_all_verb_item_1",
                     "content": [
                       {
                         "role": "primary",
@@ -844,69 +627,23 @@
                     ]
                   },
                   {
-                    "id": "qql_lab254_select_gap_audio_item_1",
+                    "id": "qql_lab254_select_gap_all_verb_item_2",
                     "content": [
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "acqua"
+                        "text": "bevono"
                       }
                     ]
-                  },
-                  {
-                    "id": "qql_lab254_select_gap_audio_item_2",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "mangio"
-                      }
-                    ]
-                  }
-                ],
-                "targets": [
-                  {
-                    "id": "gap_1"
-                  },
-                  {
-                    "id": "gap_2"
-                  }
-                ],
-                "layout": [
-                  {
-                    "type": "text",
-                    "text": "Io"
-                  },
-                  {
-                    "type": "target",
-                    "targetId": "gap_1"
-                  },
-                  {
-                    "type": "target",
-                    "targetId": "gap_2"
-                  },
-                  {
-                    "type": "text",
-                    "text": "."
                   }
                 ],
                 "evaluation": {
                   "mode": "exactItem",
-                  "assignments": [
-                    {
-                      "targetId": "gap_1",
-                      "itemIds": [
-                        "qql_lab254_select_gap_audio_item_0"
-                      ]
-                    },
-                    {
-                      "targetId": "gap_2",
-                      "itemIds": [
-                        "qql_lab254_select_gap_audio_item_1"
-                      ]
-                    }
+                  "correctItemIds": [
+                    "qql_lab254_select_gap_all_verb_item_0"
                   ]
-                }
+                },
+                "hint": "Both subjects are one person."
               }
             }
           ]
@@ -4568,7 +4305,8 @@
                       ]
                     }
                   ]
-                }
+                },
+                "hint": "Include the article."
               }
             }
           ]
@@ -4577,7 +4315,7 @@
           "id": "qql_lab254_round_arrange_gaps",
           "publicationState": "published",
           "updatedAt": "2026-09-25T00:00:00.000Z",
-          "title": "Fixed sentences and consumed blocks",
+          "title": "Pick the words for the gaps",
           "visualType": "generic",
           "content": [
             {
@@ -4598,7 +4336,7 @@
                   {
                     "role": "intro",
                     "type": "text",
-                    "text": "Fill each gap using a separate block. Unlike Select, placing a block removes that occurrence from the available bank. Duplicate words need two blocks. Gap contents can be removed, moved or swapped."
+                    "text": "Tap a word for each gap: each word fills one gap and leaves the bank. A word needed twice is offered twice. Gap contents can be removed, moved or swapped."
                   }
                 ],
                 "evaluation": {
@@ -9485,5 +9223,5 @@
     }
   ],
   "minimumAppBuild": 258000,
-  "officialChecksum": "fe1b2919cc7414296b580e4c05ad8a761c40e58cc0db1787bcd4519fb0b17c69"
+  "officialChecksum": "7ca92d66318a367fbf8a958e9fd9d1ff02d66a38b312ddaf779b796cf7d1e4da"
 }

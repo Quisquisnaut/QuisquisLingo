@@ -55,11 +55,11 @@ abstract final class PresetVariants {
   /// others show their base recipe's form.
   static const ownForms = <String>{
     'true_false',
-    'gap_choice_inline',
     'complete_text',
     'missing_letters',
     'gap_blocks',
     'sentence_order',
+    'one_word_fills_all',
     'listening_image_choice',
     'listening_choose_target',
     'listening_choose_source',
@@ -139,8 +139,6 @@ abstract final class PresetVariants {
         // Their base recipes read the text from the question field; `finish`
         // makes it the Instruction or context (Build 259).
         return draft.copyWith(type: base, question: draft.prompt);
-      case 'gap_choice_inline':
-        return draft.copyWith(type: base, useInlineGaps: true);
       case 'word_order':
       case 'build_translation_to_target':
       case 'build_translation_to_source':
@@ -154,9 +152,10 @@ abstract final class PresetVariants {
         // Its own recipe (Build 259 Revision 3): the gaps are ___.
         return draft.copyWith(type: presetId, tts: '');
       case 'missing_letters':
-        // The bracketed letters become the gaps of the text without them.
+        // The letters between underscores become the gaps of the text
+        // without them (Build 259 Revision 4; square brackets before).
         final letters = <String>[];
-        final text = draft.prompt.replaceAllMapped(RegExp(r'\[([^\[\]]+)\]'), (
+        final text = draft.prompt.replaceAllMapped(RegExp(r'_([^_\s]+)_'), (
           match,
         ) {
           letters.add(match.group(1)!);

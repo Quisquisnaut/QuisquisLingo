@@ -128,6 +128,20 @@ class ExerciseCopyService {
         return c['instruction.$variant'] ?? instruction(course, kind);
       }
     }
+    // Spelling without a picture (Build 259 Revision 4): heard, or from a
+    // clue.
+    if (kind == LearnerExerciseKind.arrangeWord &&
+        features.illustrationImages.isEmpty) {
+      final variant = features.automaticAudio != null
+          ? 'arrangeWordHeard'
+          : 'arrangeWordClue';
+      return c['instruction.$variant'] ?? instruction(course, kind);
+    }
+    // Words picked for the gaps of a sentence (Build 259 Revision 4).
+    if (kind == LearnerExerciseKind.arrangeSentence &&
+        features.hasInlineTargets) {
+      return c['instruction.arrangeGaps'] ?? instruction(course, kind);
+    }
     if (prompt.contains('opposite') ||
         prompt.contains('contrari') ||
         prompt.contains('gegens') ||
@@ -262,6 +276,11 @@ class ExerciseCopyService {
     'instruction.selectListenMeaning': 'Select the meaning of what you heard.',
     'type.selectPicture': 'WHAT IS IN THE PICTURE?',
     'instruction.selectPicture': 'Choose the option that fits best.',
+    'instruction.arrangeWordHeard': 'Build the word you hear.',
+    'instruction.arrangeWordClue': 'Build the word that matches the clue.',
+    'instruction.arrangeGaps': 'Pick a word for each gap.',
+    'type.selectCompleteAll': 'ONE WORD FILLS ALL',
+    'instruction.selectCompleteAll': 'Choose the word that fills every gap.',
   };
 
   static const _es = <String, String>{
@@ -346,6 +365,13 @@ class ExerciseCopyService {
         'Selecciona el significado de lo que has oído.',
     'type.selectPicture': '¿QUÉ HAY EN LA IMAGEN?',
     'instruction.selectPicture': 'Elige la opción más adecuada.',
+    'instruction.arrangeWordHeard': 'Forma la palabra que oyes.',
+    'instruction.arrangeWordClue':
+        'Forma la palabra que corresponde a la pista.',
+    'instruction.arrangeGaps': 'Elige una palabra para cada hueco.',
+    'type.selectCompleteAll': 'UNA PALABRA PARA TODOS',
+    'instruction.selectCompleteAll':
+        'Elige la palabra que completa todos los huecos.',
   };
 
   static const _it = <String, String>{
@@ -430,6 +456,13 @@ class ExerciseCopyService {
         'Seleziona il significato di ciò che hai sentito.',
     'type.selectPicture': 'COSA C’È NELL’IMMAGINE?',
     'instruction.selectPicture': 'Scegli l’opzione più adatta.',
+    'instruction.arrangeWordHeard': 'Componi la parola che senti.',
+    'instruction.arrangeWordClue':
+        'Componi la parola che corrisponde all’indizio.',
+    'instruction.arrangeGaps': 'Scegli una parola per ogni spazio.',
+    'type.selectCompleteAll': 'UNA PAROLA PER TUTTI',
+    'instruction.selectCompleteAll':
+        'Scegli la parola che completa tutti gli spazi.',
   };
 
   static const _de = <String, String>{
@@ -520,6 +553,11 @@ class ExerciseCopyService {
         'Wähle die Bedeutung dessen, was du gehört hast.',
     'type.selectPicture': 'WAS IST AUF DEM BILD?',
     'instruction.selectPicture': 'Wähle die passendste Option.',
+    'instruction.arrangeWordHeard': 'Bilde das Wort, das du hörst.',
+    'instruction.arrangeWordClue': 'Bilde das Wort, das zum Hinweis passt.',
+    'instruction.arrangeGaps': 'Wähle für jede Lücke ein Wort.',
+    'type.selectCompleteAll': 'EIN WORT FÜR ALLE',
+    'instruction.selectCompleteAll': 'Wähle das Wort, das in jede Lücke passt.',
   };
 
   static const _pt = <String, String>{
@@ -603,6 +641,12 @@ class ExerciseCopyService {
     'instruction.selectListenMeaning': 'Selecione o significado do que ouviu.',
     'type.selectPicture': 'O QUE HÁ NA IMAGEM?',
     'instruction.selectPicture': 'Escolha a opção mais adequada.',
+    'instruction.arrangeWordHeard': 'Forme a palavra que ouve.',
+    'instruction.arrangeWordClue': 'Forme a palavra que corresponde à pista.',
+    'instruction.arrangeGaps': 'Escolha uma palavra para cada lacuna.',
+    'type.selectCompleteAll': 'UMA PALAVRA PARA TODAS',
+    'instruction.selectCompleteAll':
+        'Escolha a palavra que preenche todas as lacunas.',
   };
 
   static const _nl = <String, String>{
@@ -685,6 +729,11 @@ class ExerciseCopyService {
         'Kies de betekenis van wat je hebt gehoord.',
     'type.selectPicture': 'WAT IS ER OP DE AFBEELDING?',
     'instruction.selectPicture': 'Kies de optie die het best past.',
+    'instruction.arrangeWordHeard': 'Maak het woord dat je hoort.',
+    'instruction.arrangeWordClue': 'Maak het woord dat bij de hint past.',
+    'instruction.arrangeGaps': 'Kies een woord voor elk gat.',
+    'type.selectCompleteAll': 'ÉÉN WOORD VOOR ALLES',
+    'instruction.selectCompleteAll': 'Kies het woord dat in elk gat past.',
   };
 
   static const _fi = <String, String>{
@@ -765,6 +814,12 @@ class ExerciseCopyService {
     'instruction.selectListenMeaning': 'Valitse sen merkitys, mitä kuulit.',
     'type.selectPicture': 'MITÄ KUVASSA ON?',
     'instruction.selectPicture': 'Valitse parhaiten sopiva vaihtoehto.',
+    'instruction.arrangeWordHeard': 'Muodosta sana, jonka kuulet.',
+    'instruction.arrangeWordClue': 'Muodosta vihjettä vastaava sana.',
+    'instruction.arrangeGaps': 'Valitse sana jokaiseen aukkoon.',
+    'type.selectCompleteAll': 'YKSI SANA KAIKKIIN',
+    'instruction.selectCompleteAll':
+        'Valitse sana, joka sopii jokaiseen aukkoon.',
   };
 
   static const _cy = <String, String>{
@@ -848,5 +903,10 @@ class ExerciseCopyService {
     'instruction.selectListenMeaning': 'Dewiswch ystyr yr hyn a glywsoch.',
     'type.selectPicture': 'BETH SYDD YN Y LLUN?',
     'instruction.selectPicture': 'Dewiswch yr opsiwn sy’n gweddu orau.',
+    'instruction.arrangeWordHeard': 'Ffurfiwch y gair a glywch.',
+    'instruction.arrangeWordClue': 'Ffurfiwch y gair sy’n cyfateb i’r cliw.',
+    'instruction.arrangeGaps': 'Dewiswch air ar gyfer pob bwlch.',
+    'type.selectCompleteAll': 'UN GAIR I BOB UN',
+    'instruction.selectCompleteAll': 'Dewiswch y gair sy’n llenwi pob bwlch.',
   };
 }

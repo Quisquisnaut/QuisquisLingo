@@ -9883,9 +9883,9 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
       .toList();
 
   /// Reconstructs the author-facing "Sentence with gaps" template (fixed
-  /// text plus one `{answer}` block per inline gap, with the literal answer
-  /// text embedded directly inside the braces) from an existing Arrange
-  /// exercise's layout, for display when reopening it in the Editor.
+  /// text plus one `_answer_` block per inline gap, with the literal answer
+  /// text between the underscores) from an existing Arrange exercise's
+  /// layout, for display when reopening it in the Editor.
   String _fieldKey(TextEditingController controller) => {
     _prompt: 'prompt',
     _question: 'question',
@@ -10187,6 +10187,31 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
             lines: 3,
             helper:
                 'First line: a sentence using the word (target language). Second line, optional: its translation. “Usage:” is added automatically in learner mode.',
+          ),
+        ];
+      case 'one_word_fills_all':
+        // One word fills all (Build 259 Revision 4): the sentences hold two
+        // or more ___ gaps that one answer fills.
+        return [
+          _field(
+            _question,
+            'Sentences, with ___ for each gap',
+            lines: 3,
+            helper:
+                'In the target language, with ___ (3 underscores) wherever the same word fits; at least two gaps. Example: ___ gatto dorme. ___ cane mangia.',
+          ),
+          _field(
+            _answers,
+            'Answer words',
+            lines: 4,
+            helper:
+                'Only one word may fit every gap; the others should fail at least one.',
+          ),
+          _field(_correct, 'Correct answer number'),
+          _field(
+            _hint,
+            'Hint (optional)',
+            helper: 'Give a clue without naming the word.',
           ),
         ];
       case 'gap_choice':
@@ -10606,33 +10631,6 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
             helper: '1 when the statement is true, 2 when it is false.',
           ),
         ];
-      case 'gap_choice_inline':
-        return [
-          _instructionField(),
-          _field(
-            _gapLayout,
-            'Sentence with gaps',
-            lines: 3,
-            helper:
-                'Write the sentence and put each answer word or phrase '
-                'directly inside braces: {answer}. Example: I {am} going '
-                '{to} London. Literal { or } characters can\'t appear '
-                'anywhere else.',
-          ),
-          _field(
-            _tokens,
-            'Distractor options (optional)',
-            lines: 3,
-            helper:
-                'One extra option per line that is not the answer to any gap. Include 0, 1 or at most 2 distractors.',
-          ),
-          _field(
-            _tts,
-            'Spoken prompt (optional)',
-            lines: 2,
-            helper: 'Optional audio played before the learner fills the gaps.',
-          ),
-        ];
       case 'complete_text':
         // Build 259 Revision 1: an Instruction or context (the form's
         // question value) and a hint.
@@ -10665,10 +10663,10 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         return [
           _field(
             _prompt,
-            'Text with the missing letters in brackets',
+            'Text with the missing letters between underscores',
             lines: 4,
             helper:
-                'Write the complete text and put the missing letters inside square brackets: My cat doesn\'t dr[ink] milk. The learner sees dr___ milk and types ink.',
+                'Write the complete text and put the missing letters between underscores: My cat doesn\'t dr_ink_ milk. The learner sees dr___ milk and types ink.',
           ),
           _field(
             _tts,
@@ -10686,14 +10684,14 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
             'Sentence with gaps',
             lines: 3,
             helper:
-                'Write the fixed sentence and put each answer word or phrase directly inside braces: {answer}. Literal { or } characters can\'t appear anywhere else. Example: Io {vorrei} un caffè.',
+                'Write the fixed sentence and put each answer word or phrase between underscores: _answer_. Each word fills one gap. Example: Io _vorrei_ un caffè.',
           ),
           _field(
             _tokens,
-            'Extra distractor blocks (optional)',
+            'Extra distractor words (optional)',
             lines: 3,
             helper:
-                'One extra block per line that is not used to fill any gap. Include 0, 1 or at most 2 distractors.',
+                'One extra word per line that fills no gap. Include 0, 1 or at most 2 distractors.',
           ),
           _field(
             _tts,
@@ -11385,14 +11383,14 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
       ExerciseDraftErrorCode.correctAnswerNumber =>
         'Correct answer number: enter the number of an existing answer, starting at 1.',
       ExerciseDraftErrorCode.arrangeGapBraces =>
-        'Sentence with gaps: every { must have a matching } directly '
-            'around one answer word or phrase, e.g. {go}. Literal { or } '
-            "characters can't be used elsewhere in the sentence.",
+        'Sentence with gaps: put each answer word or phrase between two '
+            'underscores, e.g. _go_. A lone _ can\'t be used elsewhere in '
+            'the sentence.',
       ExerciseDraftErrorCode.arrangeGapMissing =>
-        'Sentence with gaps: add at least one gap, e.g. {go}.',
+        'Sentence with gaps: add at least one gap, e.g. _go_.',
       ExerciseDraftErrorCode.arrangeGapEmpty =>
-        'Sentence with gaps: each {…} gap must contain the answer '
-            'text, e.g. {go}, not an empty {}.',
+        'Sentence with gaps: each _…_ gap must contain the answer '
+            'text, e.g. _go_.',
       ExerciseDraftErrorCode.arrangeGapConflict =>
         'Sentence with gaps: could not resolve every gap answer to a '
             'block. Check the extra distractor blocks for a conflict.',
@@ -11408,14 +11406,14 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         'Required selections: enter a number between 1 and the number '
             'of answers, or leave blank.',
       ExerciseDraftErrorCode.selectGapBraces =>
-        'Sentence with gaps: every { must have a matching } directly '
-            'around one answer option, e.g. {answer}. Literal { or } '
-            "characters can't be used elsewhere in the sentence.",
+        'Sentence with gaps: put each answer between two underscores, '
+            'e.g. _answer_. A lone _ can\'t be used elsewhere in the '
+            'sentence.',
       ExerciseDraftErrorCode.selectGapMissing =>
-        'Sentence with gaps: add at least one gap, e.g. {answer}.',
+        'Sentence with gaps: add at least one gap, e.g. _answer_.',
       ExerciseDraftErrorCode.selectGapEmpty =>
-        'Sentence with gaps: each {…} gap must contain the answer '
-            'text, e.g. {answer}, not an empty {}.',
+        'Sentence with gaps: each _…_ gap must contain the answer '
+            'text, e.g. _answer_.',
       ExerciseDraftErrorCode.scriptCandidateMissing =>
         'Recognize characters: reopen this Exercise to restore its options.',
       ExerciseDraftErrorCode.groupLine =>
@@ -11441,6 +11439,9 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         'Picture: required. Choose one, or save as draft.',
       ExerciseDraftErrorCode.gapsRequired =>
         'Text: mark each gap with ___ (three underscores).',
+      ExerciseDraftErrorCode.blanksTooFew =>
+        'Sentences: mark at least two gaps with ___ (three underscores). '
+            'For one gap, use Pick the missing word.',
       ExerciseDraftErrorCode.gapCountMismatch =>
         '${error.detail}: give one line per ___ gap, in order.',
       ExerciseDraftErrorCode.slotWordRepeated =>

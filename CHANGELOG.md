@@ -1,3 +1,36 @@
+# 2.0.59 (Build 259, Revision 4) - Owner review: gaps, pictures, hints - 2026-09-30
+
+Corrections from the owner's second review of 30 September 2026 (points
+1–10).
+
+- **Pictures required:** Type what you see and Name what you see, like
+  What is in the picture, refuse a Published save without their picture.
+- **No file paths for learners:** Match picture to word showed a picture's
+  file path beside it, and a picture answer without a caption could show
+  its path too. Learners now see only the picture.
+- **Spelling lines:** Spell the word no longer says "Build the word shown
+  in the image." without an image. It reads "Build the word that matches
+  the clue."; Spell what you hear reads "Build the word you hear.".
+- **Piedmontese demo hints:** Name what you see asks for the article;
+  the evening story names its verbs; Missing letters has a hint for each
+  exercise; the shopping list names bread and water.
+- **Gaps are written `_word_`:** the Sentence with gaps field and Missing
+  letters (`dr_ink_`) use underscores instead of `{word}` and `[ink]`,
+  which the answer syntax also uses. Stored exercises are unchanged; the
+  form writes and reads the new marks.
+- **Pick the words for the gaps:** each word fills one gap. Drag the
+  blocks into the gaps, which also played by tapping, is merged into it.
+  The Select version whose option could fill several gaps is retired.
+- **One word fills all**, new: sentences with two or more ___ gaps and
+  one word that fits them all; once chosen, it appears in every gap.
+- The new lines are in the eight learner languages; Help EN/IT/ES
+  follows. The Laboratory, the Piedmontese and the Edge Case demos use the
+  merged and the new preset.
+
+Scoring, progression, Review, the Course format and learner data are
+unchanged. Beta expiry `2026-10-30 23:59:59` local time (same release day
+as Revision 0).
+
 # 2.0.59 (Build 259, Revision 3) - Owner review: listening, pictures, gaps - 2026-09-30
 
 Corrections from the owner's review of 30 September 2026 (points A–H).

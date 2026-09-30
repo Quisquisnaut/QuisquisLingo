@@ -348,7 +348,8 @@ void main() {
 
     testWidgets('Spell the word keeps its clue in the body', (tester) async {
       await _pumpRound(tester, _labExercise('qql_lab254_spell_word_clue'));
-      expect(_instructionLine(tester), 'Build the word shown in the image.');
+      // Build 259 Revision 4: no picture, so the line names the clue.
+      expect(_instructionLine(tester), 'Build the word that matches the clue.');
       expect(
         tester.widget<Text>(find.byKey(const Key('exercise-prompt-text'))).data,
         'cat (the animal)',

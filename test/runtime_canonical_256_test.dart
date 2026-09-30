@@ -67,10 +67,9 @@ const _expectedKinds = <String, Set<LearnerExerciseKind>>{
   'build_translation_to_source': {LearnerExerciseKind.arrangeTranslation},
   'picture_flashcard': {LearnerExerciseKind.presentation},
   'true_false': {LearnerExerciseKind.select, LearnerExerciseKind.selectListen},
-  'gap_choice_inline': {
-    LearnerExerciseKind.select,
-    LearnerExerciseKind.selectListen,
-  },
+  // Build 259 Revision 4: One word fills all; gap_choice_inline merged
+  // into gap_blocks.
+  'one_word_fills_all': {LearnerExerciseKind.selectCompleteAll},
   'complete_text': {LearnerExerciseKind.inputComplete},
   'missing_letters': {
     LearnerExerciseKind.inputComplete,
@@ -332,6 +331,7 @@ void main() {
       const selectPresets = {
         'choice_target',
         'gap_choice',
+        'one_word_fills_all',
         'icon_choice',
         'script_recognition',
         'listening_choose_target',

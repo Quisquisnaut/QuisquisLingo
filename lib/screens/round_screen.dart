@@ -734,7 +734,7 @@ class _RoundScreenState extends State<RoundScreen> {
         _matchingLeftPairs.add(
           _MatchPairView(
             leftId: left.id,
-            leftLabel: left.value,
+            leftLabel: left.label,
             leftImage: left.image,
             rightId: right.id,
           ),
@@ -1102,7 +1102,7 @@ class _RoundScreenState extends State<RoundScreen> {
     if (itemId == null) return '';
     return ex.items
             .where((item) => item.id == itemId)
-            .map((item) => item.value)
+            .map((item) => item.label)
             .firstOrNull ??
         '';
   }
@@ -1975,13 +1975,15 @@ class _RoundScreenState extends State<RoundScreen> {
           _withMascot(
             ExerciseMascotAnchor.question,
             Text(
-              f.questionText,
+              _questionShown(f),
+              key: const Key('select-question-text'),
               style: Theme.of(context).textTheme.headlineSmall,
             ),
           ),
           const SizedBox(height: 16),
         ],
-        if (f.kind == LearnerExerciseKind.selectComplete &&
+        if ((f.kind == LearnerExerciseKind.selectComplete ||
+                f.kind == LearnerExerciseKind.selectCompleteAll) &&
             ex.hint.trim().isNotEmpty) ...[
           Text(
             'Hint: ${ex.hint}',
@@ -1993,6 +1995,22 @@ class _RoundScreenState extends State<RoundScreen> {
         _choiceExercise(ex),
       ],
     );
+  }
+
+  /// The question as drawn: once One word fills all is answered, the chosen
+  /// word appears in every gap (Build 259 Revision 4).
+  String _questionShown(ExerciseFeatures f) {
+    final selected = _selected;
+    if (f.kind != LearnerExerciseKind.selectCompleteAll ||
+        !_answered ||
+        selected == null ||
+        selected < 0 ||
+        selected >= _choiceOptions.length) {
+      return f.questionText;
+    }
+    final word =
+        _choiceOptions[selected].item?.label ?? _choiceOptions[selected].text;
+    return f.questionText.replaceAll(RegExp(r'_{3,}'), word);
   }
 
   Widget _choiceExercise(Exercise ex) {
@@ -3428,8 +3446,9 @@ class _RoundScreenState extends State<RoundScreen> {
         // A picture on the item, else an icon key naming a bundled asset
         // (drawn as before), else a named icon.
         final isAsset = image.isEmpty && iconKey.startsWith('assets/');
-        final caption = _choiceOptions[i].text;
-        final showCaption = !isAsset;
+        // Never a picture's file path (Build 259 Revision 4).
+        final caption = _choiceOptions[i].item?.label ?? _choiceOptions[i].text;
+        final showCaption = !isAsset && caption.isNotEmpty;
         return SizedBox(
           width: 112,
           height: image.isNotEmpty ? 150 : 120,

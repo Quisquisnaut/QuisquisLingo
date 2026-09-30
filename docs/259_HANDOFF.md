@@ -86,10 +86,19 @@ The owner's review points A–H (plan and answers in chat, 30 September
 10 deliberate records. `flutter analyze --no-pub`: no issues. Complete
 suite 3435 passed, 1 skipped, 0 failed (16:44).
 
+## Revision 4 (committed, 30 September 2026)
+
+The owner's second review, points 1–10 (answers to three questions in chat),
+in the working tree as `2.0.59+259004`: see `docs/259_CHANGE_SUMMARY.md`
+(Revision 4). New test `test/owner_review_259_revision4_test.dart`;
+Laboratory baseline 2 added, 4 removed, 5 deliberate changes. `flutter
+analyze --no-pub`: no issues. Second complete suite 3445 passed, 1
+skipped, 0 failed (20:22), after a converter fix found by the first.
+
 ## Next
 
-Build 259 is complete after Revision 3. The plan's separate findings (§8:
-C, E, F; D is fixed by Revision 3's point E) are not in this build.
+Build 259 is complete after Revision 4. The plan's separate findings C, E
+and F are not in this build.
 
 Stage with `git add -A -- . ':!devtools_options.yaml' ':!tools/cloud_setup.sh'`
 after checking `git status` for files another session wrote.

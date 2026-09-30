@@ -230,12 +230,14 @@ void main() {
       );
       expect(_exercise(source, 'e02_max_translation').answers, hasLength(5));
       expect(_exercise(source, 'e03_many').answers, hasLength(12));
+      // Build 259 Revision 4: each word fills one gap; a word needed twice
+      // is offered twice.
       final minimum = _exercise(source, 'e17_select_min');
-      expect(minimum.hasSelectGaps, isTrue);
+      expect(minimum.primitive, ExercisePrimitive.arrange);
       expect(minimum.interaction.items, hasLength(1));
       final linked = _exercise(source, 'e18_select_linked');
       expect(linked.evaluation.gapAssignments, hasLength(2));
-      expect(linked.evaluation.gapAssignments.values.toSet(), hasLength(1));
+      expect(linked.evaluation.gapAssignments.values.toSet(), hasLength(2));
       final arrange = _exercise(source, 'e15_arrange_repeat');
       expect(arrange.evaluation.gapAssignments.values.toSet(), hasLength(2));
       expect(_exercise(source, 'e09_accents').accepted, [

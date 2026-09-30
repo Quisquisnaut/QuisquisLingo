@@ -9,6 +9,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/screens/course_editor_screen.dart';
 import 'package:quisquislingo_app/services/authoring_duplication_service.dart';
+import 'package:quisquislingo_app/services/preset_recipes.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -275,7 +276,9 @@ void main() {
   );
 
   testWidgets(
-    'choice: Pick the words for the gaps shows gap fields and Save builds a linked-gap exercise',
+    // Build 259 Revision 4 (owner decision): Pick the words for the gaps is
+    // the former Drag the blocks into the gaps, each word filling one gap.
+    'choice: Pick the words for the gaps shows gap fields and Save builds one word per gap',
     (tester) async {
       _bigWindow(tester);
       Exercise? saved;
@@ -299,10 +302,10 @@ void main() {
 
       await tester.enterText(
         workflow.field('Sentence with gaps'),
-        '{Was} she happy? {Was} he late?',
+        '_Was_ she happy? _Was_ he late?',
       );
       await tester.enterText(
-        workflow.field('Distractor options (optional)'),
+        workflow.field('Extra distractor words (optional)'),
         'Perhaps',
       );
       tester.testTextInput.hide();
@@ -311,71 +314,51 @@ void main() {
       await workflow.tapKey(tester, 'exercise-save');
       expect(saved, isNotNull);
       final exercise = saved!;
-      expect(exercise.hasSelectGaps, isTrue);
+      expect(exercise.primitive, ExercisePrimitive.arrange);
       expect(exercise.targetAssignments.length, 2);
-      expect(exercise.targetAssignments.values.toSet(), hasLength(1));
-      expect(exercise.interaction.items.length, 2);
+      expect(exercise.targetAssignments.values.toSet(), hasLength(2));
+      expect(exercise.interaction.items.length, 3);
       expect(tester.takeException(), isNull);
     },
   );
 
-  testWidgets(
-    'choice: a stray unmatched brace in Sentence with gaps blocks Save',
-    (tester) async {
-      _bigWindow(tester);
-      Exercise? saved;
-      await tester.pumpWidget(
-        MaterialApp(
-          home: ExerciseEditorScreen(
-            exercise: legacyChoice(),
-            title: 'Select authoring',
-            isNew: true,
-            onExerciseSaved: (e) => saved = e,
-          ),
+  testWidgets('choice: a lone underscore in Sentence with gaps blocks Save', (
+    tester,
+  ) async {
+    _bigWindow(tester);
+    Exercise? saved;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ExerciseEditorScreen(
+          exercise: legacyChoice(),
+          title: 'Select authoring',
+          isNew: true,
+          onExerciseSaved: (e) => saved = e,
         ),
-      );
-      await tester.pumpAndSettle();
-      await _pickPreset(tester, 'Pick the words for the gaps');
-      await tester.enterText(
-        workflow.field('Sentence with gaps'),
-        '{Was she happy?',
-      );
-      tester.testTextInput.hide();
-      await tester.pumpAndSettle();
+      ),
+    );
+    await tester.pumpAndSettle();
+    await _pickPreset(tester, 'Pick the words for the gaps');
+    await tester.enterText(
+      workflow.field('Sentence with gaps'),
+      '_Was she happy?',
+    );
+    tester.testTextInput.hide();
+    await tester.pumpAndSettle();
 
-      await workflow.tapKey(tester, 'exercise-save');
-      expect(saved, isNull);
-      expect(tester.takeException(), isNull);
-    },
-  );
+    await workflow.tapKey(tester, 'exercise-save');
+    expect(saved, isNull);
+    expect(tester.takeException(), isNull);
+  });
 
-  testWidgets(
-    'choice: reopening an existing linked-gap exercise opens Pick the words for the gaps',
-    (tester) async {
-      _bigWindow(tester);
-      await tester.pumpWidget(
-        MaterialApp(
-          home: ExerciseEditorScreen(
-            exercise: linkedGapChoice(),
-            title: 'Select authoring',
-            isNew: false,
-          ),
-        ),
-      );
-      await tester.pumpAndSettle();
-      expect(workflow.field('Sentence with gaps'), findsOneWidget);
-      final layoutField = tester.widget<TextField>(
-        workflow.field('Sentence with gaps'),
-      );
-      expect(layoutField.controller!.text, contains('{Was}'));
-      expect(layoutField.controller!.text, contains('she happy?'));
-      expect(layoutField.controller!.text, contains('he late?'));
-      // Build 256 Revision 4: inline gaps are a preset, not a switch.
-      expect(find.byKey(const Key('choice-use-inline-gaps')), findsNothing);
-      expect(workflow.field('Distractor options (optional)'), findsOneWidget);
-      expect(tester.takeException(), isNull);
-    },
-  );
+  // Build 259 Revision 4: no preset authors a Select whose option fills two
+  // gaps any more (Pick the words for the gaps uses each word once), so the
+  // Course Editor opens such a stored exercise in the canonical editor.
+  test('an existing linked-gap Select is represented by no preset', () {
+    final exercise = linkedGapChoice();
+    expect(PresetRecipes.recognize(exercise), isNull);
+    expect(PresetRecipes.represents(exercise, 'gap_blocks'), isFalse);
+  });
 
   test(
     'duplicateExercise preserves multi-select fields and remaps correctItemIds',

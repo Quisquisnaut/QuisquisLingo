@@ -56,7 +56,7 @@ PRESET_BASE = {
     "build_translation_to_source": "build_translation",
     "picture_flashcard": "flashcard",
     "true_false": "choice",
-    "gap_choice_inline": "choice",
+    "one_word_fills_all": "gap_choice",
     "complete_text": "missing_word",
     "missing_letters": "missing_word",
     "gap_blocks": "word_order",
@@ -387,6 +387,7 @@ PRESET_SUCCESSOR = {
     "reading_answer_source": "reading_answer_target",
     "type_translation": "type_translation_to_target",
     "build_translation": "build_translation_to_target",
+    "gap_choice_inline": "gap_blocks",
 }
 
 
@@ -421,11 +422,13 @@ def convert_content(content: dict, round_updated_at: str | None = None) -> dict:
         exercise = copy.deepcopy(content["exercise"])
     elif isinstance(content.get("exercise"), dict):
         exercise = convert_exercise(template, content["exercise"])
-        # A Choose or Arrange with inline gaps is the inline-gap preset.
+        # An Arrange with inline gaps is Pick the words for the gaps; a
+        # Choose with inline gaps has no preset since Build 259 Revision 4
+        # (mirrors Dart).
         layout = (content["exercise"].get("interaction") or {}).get("layout", [])
         if any(e.get("type") == "gap" for e in layout):
             if template == "choice":
-                metadata["presetId"] = "gap_choice_inline"
+                metadata.pop("presetId", None)
             elif template in ("word_order", "build_translation"):
                 metadata["presetId"] = "gap_blocks"
     out = {"id": content["id"], "publicationState": content["publicationState"],

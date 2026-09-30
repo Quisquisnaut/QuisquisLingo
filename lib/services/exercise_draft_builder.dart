@@ -279,6 +279,9 @@ enum ExerciseDraftErrorCode {
   /// Complete the text's gaps and Missing words lines differ in number; the
   /// detail says both (Build 259 Revision 3).
   gapCountMismatch,
+
+  /// One word fills all has fewer than two ___ gaps (Build 259 Revision 4).
+  blanksTooFew,
 }
 
 class ExerciseDraftFieldError {
@@ -321,6 +324,7 @@ abstract final class ExerciseDraftBuilder {
     'choice_source': (ExerciseDraftField.question, 'Question or sentence'),
     'icon_choice': (ExerciseDraftField.question, 'Question or sentence'),
     'gap_choice': (ExerciseDraftField.question, 'Sentence'),
+    'one_word_fills_all': (ExerciseDraftField.question, 'Sentences'),
     'true_false': (ExerciseDraftField.question, 'Sentence'),
     'translation_choice_to_target': (ExerciseDraftField.question, 'Sentence'),
     'translation_choice_to_source': (ExerciseDraftField.question, 'Sentence'),
@@ -353,13 +357,27 @@ abstract final class ExerciseDraftBuilder {
     }
     // A catalogue preset runs its base recipe and is finished as itself
     // (Build 256 Revision 4, PresetVariants).
-    // What is in the picture needs its picture (Build 259 Revision 3).
-    if (draft.type == 'picture_choice' &&
+    // The picture presets need their picture (What is in the picture since
+    // Build 259 Revision 3, Type and Name what you see since Revision 4).
+    if (const {
+          'picture_choice',
+          'picture_name',
+          'picture_blocks',
+        }.contains(draft.type) &&
         _strict(draft) &&
         draft.imageAsset.trim().isEmpty) {
       return _failure(
         ExerciseDraftField.image,
         ExerciseDraftErrorCode.pictureRequired,
+      );
+    }
+    // One word fills all needs two gaps or more (Build 259 Revision 4).
+    if (draft.type == 'one_word_fills_all' &&
+        _strict(draft) &&
+        RegExp(r'_{3,}').allMatches(draft.question).length < 2) {
+      return _failure(
+        ExerciseDraftField.question,
+        ExerciseDraftErrorCode.blanksTooFew,
       );
     }
     final result = _build(PresetVariants.draftFor(draft.type, draft));
@@ -1493,16 +1511,18 @@ abstract final class ExerciseDraftBuilder {
     );
   }
 
-  static final RegExp _gapBracePattern = RegExp(r'\{([^{}]*)\}');
+  /// A gap in a sentence with gaps: `_answer_` (Build 259 Revision 4,
+  /// owner decision; `{answer}` before, which the answer syntax also uses).
+  static final RegExp _gapBracePattern = RegExp(r'_([^_\n]+)_');
 
   static bool _gapBraceCountsBalance(String text) =>
-      !text.replaceAll(_gapBracePattern, '').contains(RegExp(r'[{}]'));
+      !text.replaceAll(_gapBracePattern, '').contains('_');
 
   static ExerciseDraftBuildResult _buildArrangeGapCandidate(
     ExerciseDraftValues draft,
   ) {
     final text = draft.gapLayout;
-    if (text.contains('{') && !_gapBraceCountsBalance(text)) {
+    if (text.contains('_') && !_gapBraceCountsBalance(text)) {
       return _failure(
         ExerciseDraftField.gapLayout,
         ExerciseDraftErrorCode.arrangeGapBraces,
@@ -1672,7 +1692,7 @@ abstract final class ExerciseDraftBuilder {
     ExerciseDraftValues draft,
   ) {
     final text = draft.gapLayout;
-    if (text.contains('{') && !_gapBraceCountsBalance(text)) {
+    if (text.contains('_') && !_gapBraceCountsBalance(text)) {
       return _failure(
         ExerciseDraftField.gapLayout,
         ExerciseDraftErrorCode.selectGapBraces,

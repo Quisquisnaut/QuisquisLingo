@@ -136,7 +136,7 @@ void main() {
   );
 
   testWidgets(
-    'word_order: choosing Drag the blocks into the gaps reveals gap fields and Save builds a valid gap-fill exercise',
+    'word_order: choosing Pick the words for the gaps reveals gap fields and Save builds a valid gap-fill exercise',
     (tester) async {
       _bigWindow(tester);
       Exercise? saved;
@@ -153,20 +153,20 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(workflow.field('Sentence with gaps'), findsNothing);
-      await _pickPreset(tester, 'Drag the blocks into the gaps');
+      await _pickPreset(tester, 'Pick the words for the gaps');
       expect(workflow.field('Sentence with gaps'), findsOneWidget);
       expect(workflow.field('Correct sentence'), findsNothing);
       expect(
-        workflow.field('Extra distractor blocks (optional)'),
+        workflow.field('Extra distractor words (optional)'),
         findsOneWidget,
       );
 
       await tester.enterText(
         workflow.field('Sentence with gaps'),
-        'I {go} {to} school.',
+        'I _go_ _to_ school.',
       );
       await tester.enterText(
-        workflow.field('Extra distractor blocks (optional)'),
+        workflow.field('Extra distractor words (optional)'),
         'goes\nfrom',
       );
       await tester.enterText(
@@ -203,45 +203,7 @@ void main() {
     },
   );
 
-  testWidgets(
-    'word_order: a stray unmatched brace blocks Save with a clear error',
-    (tester) async {
-      _bigWindow(tester);
-      Exercise? saved;
-      await tester.pumpWidget(
-        MaterialApp(
-          home: ExerciseEditorScreen(
-            exercise: legacyWordOrder(),
-            title: 'Gap fill authoring',
-            isNew: true,
-            onExerciseSaved: (e) => saved = e,
-          ),
-        ),
-      );
-      await tester.pumpAndSettle();
-      await _pickPreset(tester, 'Drag the blocks into the gaps');
-      await tester.enterText(
-        workflow.field('Sentence with gaps'),
-        'I {go to school.',
-      );
-      tester.testTextInput.hide();
-      await tester.pumpAndSettle();
-
-      await workflow.tapKey(tester, 'exercise-save');
-      expect(saved, isNull);
-      expect(
-        find.text(
-          'Sentence with gaps: every { must have a matching } directly '
-          'around one answer word or phrase, e.g. {go}. Literal { or } '
-          "characters can't be used elsewhere in the sentence.",
-        ),
-        findsOneWidget,
-      );
-      expect(tester.takeException(), isNull);
-    },
-  );
-
-  testWidgets('word_order: an empty {} gap blocks Save with a clear error', (
+  testWidgets('word_order: a lone underscore blocks Save with a clear error', (
     tester,
   ) async {
     _bigWindow(tester);
@@ -257,10 +219,10 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    await _pickPreset(tester, 'Drag the blocks into the gaps');
+    await _pickPreset(tester, 'Pick the words for the gaps');
     await tester.enterText(
       workflow.field('Sentence with gaps'),
-      'I {go} {} school.',
+      'I _go to school.',
     );
     tester.testTextInput.hide();
     await tester.pumpAndSettle();
@@ -269,8 +231,45 @@ void main() {
     expect(saved, isNull);
     expect(
       find.text(
-        'Sentence with gaps: each {…} gap must contain the answer '
-        'text, e.g. {go}, not an empty {}.',
+        'Sentence with gaps: put each answer word or phrase between two '
+        "underscores, e.g. _go_. A lone _ can't be used elsewhere in "
+        'the sentence.',
+      ),
+      findsOneWidget,
+    );
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('word_order: an empty _ _ gap blocks Save with a clear error', (
+    tester,
+  ) async {
+    _bigWindow(tester);
+    Exercise? saved;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ExerciseEditorScreen(
+          exercise: legacyWordOrder(),
+          title: 'Gap fill authoring',
+          isNew: true,
+          onExerciseSaved: (e) => saved = e,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await _pickPreset(tester, 'Pick the words for the gaps');
+    await tester.enterText(
+      workflow.field('Sentence with gaps'),
+      'I _go_ _ _ school.',
+    );
+    tester.testTextInput.hide();
+    await tester.pumpAndSettle();
+
+    await workflow.tapKey(tester, 'exercise-save');
+    expect(saved, isNull);
+    expect(
+      find.text(
+        'Sentence with gaps: each _…_ gap must contain the answer '
+        'text, e.g. _go_.',
       ),
       findsOneWidget,
     );
@@ -324,12 +323,12 @@ void main() {
       final layoutField = tester.widget<TextField>(
         workflow.field('Sentence with gaps'),
       );
-      expect(layoutField.controller!.text, contains('{go}'));
-      expect(layoutField.controller!.text, contains('{to}'));
+      expect(layoutField.controller!.text, contains('_go_'));
+      expect(layoutField.controller!.text, contains('_to_'));
       expect(layoutField.controller!.text, contains('I'));
       expect(layoutField.controller!.text, contains('school.'));
       final distractorField = tester.widget<TextField>(
-        workflow.field('Extra distractor blocks (optional)'),
+        workflow.field('Extra distractor words (optional)'),
       );
       expect(distractorField.controller!.text.split('\n'), ['goes']);
       expect(workflow.field('Correct sentence'), findsNothing);
@@ -338,7 +337,7 @@ void main() {
   );
 
   testWidgets(
-    'build_translation: choosing Drag the blocks into the gaps hides the translation-variant editor and Save builds a gap-fill exercise',
+    'build_translation: choosing Pick the words for the gaps hides the translation-variant editor and Save builds a gap-fill exercise',
     (tester) async {
       _bigWindow(tester);
       Exercise? saved;
@@ -358,17 +357,17 @@ void main() {
         findsOneWidget,
       );
 
-      await _pickPreset(tester, 'Drag the blocks into the gaps');
+      await _pickPreset(tester, 'Pick the words for the gaps');
       expect(
         find.byKey(const Key('build-translation-correct-translations')),
         findsNothing,
       );
       await tester.enterText(
         workflow.field('Sentence with gaps'),
-        'Io {vorrei} un caffè.',
+        'Io _vorrei_ un caffè.',
       );
       await tester.enterText(
-        workflow.field('Extra distractor blocks (optional)'),
+        workflow.field('Extra distractor words (optional)'),
         'prendo',
       );
       tester.testTextInput.hide();

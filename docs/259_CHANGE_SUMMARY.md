@@ -347,3 +347,84 @@ you hear, Complete the text and What is in the picture.
 
 Scoring, progression, Review, the Course format and learner data are
 unchanged.
+
+## Revision 4 (2.0.59+259004, 30 September 2026): the second review
+
+Owner review of 30 September 2026 (evening), points 1–10, with the answers
+to three questions: Drag the blocks into the gaps merges into Pick the words
+for the gaps, where each word fills one gap ("the drag action does not
+actually work, it also picks"); the new preset is **One word fills all**
+and one tap fills every gap; `_word_` replaces `{word}` in every gap
+sentence, Missing letters included.
+
+**1. Pictures required.** A Published save of Type what you see and Name
+what you see needs the picture, as What is in the picture has since
+Revision 3.
+
+**2. No file paths for learners.** `ExerciseItem.value` falls back to the
+picture's asset path. The Round's Match left label, the captions of
+picture answers, the correct-answer line and the Duel now use the new
+`ExerciseItem.label` (text, else spoken text, never a path). Match picture
+to word showed the path beside every picture.
+
+**3. Spelling lines.** `arrangeWord` without a picture reads "Build the
+word you hear." (automatic audio: Spell what you hear) or "Build the word
+that matches the clue." (Spell the word). With a picture it keeps "Build
+the word shown in the image.".
+
+**4–7. Piedmontese hints.**
+- Name what you see: "Include the article." on the three examples.
+- The evening story: "mangio = I eat; leso = I read. The last line is
+  what you say before sleeping.".
+- Missing letters: "An animal that meows.", "The opposite of small.",
+  "Something you drink.".
+- The shopping list: "Bread and water, in Piedmontese.".
+- The Laboratory's Name what you see also asks for the article.
+
+**8. Gaps written `_word_`.**
+- The Sentence with gaps field reads and writes `_answer_`, and a lone
+  `_` is refused (`ExerciseDraftBuilder._gapBracePattern`).
+- Missing letters reads and writes `dr_ink_` (`PresetVariants.draftFor`,
+  `ExerciseFeatures.markedSentence`, which replaces `bracketedSentence`).
+- `{…}` and `[…]` stay for the answer syntax. Stored exercises are
+  unchanged: only the form's marks change.
+- Field Help, Help EN/IT/ES and the error messages follow.
+
+**9. Pick the words for the gaps and One word fills all.**
+- `gap_blocks` (an Arrange with inline gaps, each word used once) is
+  renamed **Pick the words for the gaps** and takes the former preset's
+  place in the catalogue.
+- The Select-based `gap_choice_inline` is retired to it
+  (`presetSuccessorOf`, `PRESET_SUCCESSOR`). A stored Select whose option
+  fills several gaps still plays, but no preset represents it: the Course
+  Editor opens it in the canonical editor, and the v11 converter (Dart and
+  `tools/qql_course_v12.py`) records no preset for such a Choose.
+- An Arrange with inline gaps reads "Pick a word for each gap."
+  (`instruction.arrangeGaps`).
+- **One word fills all** (`one_word_fills_all`, base Pick the missing
+  word) is new: a Select whose question holds two or more ___
+  (`LearnerExerciseKind.selectCompleteAll`), with the title ONE WORD FILLS
+  ALL and the line "Choose the word that fills every gap.".
+- Once answered, the chosen word appears in every gap
+  (`RoundScreen._questionShown`).
+- A Published save needs two gaps (`blanksTooFew`). A one-gap question
+  stays Pick the missing word. It has its own form (Sentences, Answer
+  words, Correct answer number, Hint), Help and Search.
+
+**Languages and Help.** Five new lines in the eight learner languages
+(`arrangeWordHeard`, `arrangeWordClue`, `arrangeGaps`, the One word fills
+all title and line). Help EN/IT/ES: the merged preset, One word fills all,
+the gap and Missing letters fields, the picture presets.
+
+**Demos.**
+- Laboratory: the four reusable-option gaps of the Select Lesson become two
+  One word fills all examples (124 examples). The Arrange Round is named
+  Pick the words for the gaps.
+- Piedmontese: one Lesson each for Pick the words for the gaps and One
+  word fills all (41 Lessons; Lessons 18–20 renumbered).
+- Edge Case: e17–e19 fill their gaps with words; e18 offers "Was" twice.
+  The Edge Case v11 converter fixture is updated for those items only; its
+  checksum was already stale and is left as it was.
+
+Scoring, progression, Review, the Course format and learner data are
+unchanged.

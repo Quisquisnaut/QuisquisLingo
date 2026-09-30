@@ -266,14 +266,26 @@ abstract final class ExercisePresetRegistry {
       primitive: ExercisePrimitive.select,
       base: 'choice',
     ),
+    // Pick the words for the gaps (Build 259 Revision 4): the former Drag
+    // the blocks into the gaps, each word filling one gap; the Select-based
+    // gap_choice_inline is retired to it.
     ExercisePreset(
-      id: 'gap_choice_inline',
+      id: 'gap_blocks',
       name: 'Pick the words for the gaps',
       description:
-          'Learner fills the gaps of a fixed sentence by tapping options, one per gap; an option can serve several gaps.',
+          'Learner fills the gaps of a fixed sentence by tapping words; each word fills one gap.',
+      category: ExerciseCategory.grammarAndSentences,
+      primitive: ExercisePrimitive.arrange,
+      base: 'word_order',
+    ),
+    ExercisePreset(
+      id: 'one_word_fills_all',
+      name: 'One word fills all',
+      description:
+          'Learner picks the one word that fills every gap of the sentences.',
       category: ExerciseCategory.grammarAndSentences,
       primitive: ExercisePrimitive.select,
-      base: 'choice',
+      base: 'gap_choice',
     ),
     ExercisePreset(
       id: 'complete_text',
@@ -292,15 +304,6 @@ abstract final class ExercisePresetRegistry {
       category: ExerciseCategory.grammarAndSentences,
       primitive: ExercisePrimitive.input,
       base: 'missing_word',
-    ),
-    ExercisePreset(
-      id: 'gap_blocks',
-      name: 'Drag the blocks into the gaps',
-      description:
-          'Learner fills the gaps of a fixed sentence with word blocks, each block used once.',
-      category: ExerciseCategory.grammarAndSentences,
-      primitive: ExercisePrimitive.arrange,
-      base: 'word_order',
     ),
     ExercisePreset(
       id: 'sentence_order',
@@ -677,14 +680,12 @@ abstract final class ExercisePresetRegistry {
         'The learner sees a picture with its target-language word and source-language translation, an optional usage example with its translation, and hears the word when read-aloud is on. The picture is required; the read-aloud (Automatically, On request or none) speaks the word itself, or Pronunciation TTS (if different), and never makes the card an audio exercise.',
     'true_false':
         'The learner reads a statement in the target language, optionally hears it, and answers true or false. Provide the statement, the two answers in the source language (prefilled True and False) and the correct one.',
-    'gap_choice_inline':
-        'The learner fills the gaps of a fixed sentence by tapping options in order; the same option can fill several gaps. Write the sentence with each answer inside braces, {answer}, add 0 to 2 distractor options and an optional spoken prompt.',
     'complete_text':
         'The learner types the words missing from a text with several gaps. Write the text with ___ for each gap and give one line per gap in Missing words, in order ([il|un] gatto accepts both); an optional instruction or context and an optional hint. No audio.',
     'missing_letters':
-        'The learner types the letters missing inside words. Write the complete text and put the missing letters inside square brackets: My cat doesn’t dr[ink] milk. The learner sees dr___ milk. Optional spoken text or picture.',
+        'The learner types the letters missing inside words. Write the complete text and put the missing letters between underscores: My cat doesn’t dr_ink_ milk. The learner sees dr___ milk. Optional spoken text, picture or hint.',
     'gap_blocks':
-        'The learner fills the gaps of a fixed sentence by placing word blocks; each block is used once. Write the sentence with each answer inside braces, {answer}, add 0 to 2 distractor blocks and an optional spoken prompt.',
+        'The learner fills the gaps of a fixed sentence by tapping words; each word fills one gap. Write the sentence with each answer between underscores, _answer_, add 0 to 2 distractor words and an optional spoken prompt.',
     'sentence_order':
         'The learner puts the lines of a story or a dialogue in order. Enter the lines once, in the correct order, 0, 1 or at most 2 extra lines, an optional instruction or context and an optional hint.',
     'sort_into_groups':
@@ -695,12 +696,14 @@ abstract final class ExercisePresetRegistry {
         'The learner hears a word or a sentence and picks the matching picture. Provide the spoken text, an optional instruction or context, the answer labels and one picture per answer, and the correct answer.',
     'spell_heard':
         'The learner hears a word and spells it from letter or syllable tiles. Provide the spoken word and its tiles in order, one per line (split the word into letters or syllables as you like). No picture is needed.',
+    'one_word_fills_all':
+        'The learner reads sentences with two or more ___ gaps and picks the one word that fills them all; it then appears in every gap. Write the sentences with ___ for each gap, the answer words and the correct answer number.',
     'picture_choice':
         'The learner sees a picture and picks the word or sentence that names it. Provide the picture (required), an optional instruction or context, at least two answers and the correct one.',
     'picture_blocks':
-        'The learner sees a picture and builds its name by tapping word blocks in order. Provide the picture (Exercise image), an optional instruction or context such as What is this?, the blocks of the name in order (one word per line) and up to two extra blocks that are not part of the name, plus an optional hint.',
+        'The learner sees a picture and builds its name by tapping word blocks in order. Provide the picture (Exercise image, required), an optional instruction or context such as What is this?, the blocks of the name in order (one word per line) and up to two extra blocks that are not part of the name, plus an optional hint.',
     'picture_name':
-        'The learner sees a picture and types its name. Provide the picture, an optional instruction or context, one or more accepted answers (the same syntax as Type the translation) and an optional hint.',
+        'The learner sees a picture and types its name. Provide the picture (required), an optional instruction or context, one or more accepted answers (the same syntax as Type the translation) and an optional hint.',
     'spell_word':
         'The learner spells a word from letter or syllable tiles after a clue in the source language: the word itself or a definition. Provide the clue and the tiles of the word in order, one per line; a picture is optional.',
     'picture_word_match':

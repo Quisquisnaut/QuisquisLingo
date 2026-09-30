@@ -1288,7 +1288,7 @@
             "kind": "explanation",
             "required": false,
             "role": "overview",
-            "text": "Arrange usa occorrenze separate; Select può riutilizzare una stessa opzione in più gap."
+            "text": "Ogni parola riempie un solo gap; una parola che serve due volte è offerta due volte."
           },
           {
             "id": "qql_edge_254_l02_v1",
@@ -1650,19 +1650,18 @@
               "kind": "exercise",
               "required": true,
               "authoringMetadata": {
-                "presetId": "gap_choice_inline"
+                "presetId": "gap_blocks"
               },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
-                "primitive": "select",
+                "primitive": "arrange",
                 "options": {
-                  "itemReuse": "unlimited",
                   "layout": "inline",
-                  "evaluationTiming": "explicit"
+                  "placementMode": "inlineGaps"
                 },
                 "prompt": [
                   {
-                    "role": "primary",
+                    "role": "clue",
                     "type": "text",
                     "text": "Completa: un gatto."
                   }
@@ -1695,7 +1694,7 @@
                   }
                 ],
                 "evaluation": {
-                  "mode": "exactItem",
+                  "mode": "gapAssignments",
                   "assignments": [
                     {
                       "targetId": "qql_edge_254_e17_select_min_g1",
@@ -1713,21 +1712,20 @@
               "kind": "exercise",
               "required": true,
               "authoringMetadata": {
-                "presetId": "gap_choice_inline"
+                "presetId": "gap_blocks"
               },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
-                "primitive": "select",
+                "primitive": "arrange",
                 "options": {
-                  "itemReuse": "unlimited",
                   "layout": "inline",
-                  "evaluationTiming": "explicit"
+                  "placementMode": "inlineGaps"
                 },
                 "prompt": [
                   {
-                    "role": "primary",
+                    "role": "clue",
                     "type": "text",
-                    "text": "Completa entrambe le domande riutilizzando la stessa opzione."
+                    "text": "Completa entrambe le domande: la stessa parola serve due volte."
                   }
                 ],
                 "items": [
@@ -1747,12 +1745,22 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "Were"
+                        "text": "Was"
                       }
                     ]
                   },
                   {
                     "id": "qql_edge_254_e18_select_linked_i3",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "Were"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e18_select_linked_i4",
                     "content": [
                       {
                         "role": "primary",
@@ -1789,7 +1797,7 @@
                   }
                 ],
                 "evaluation": {
-                  "mode": "exactItem",
+                  "mode": "gapAssignments",
                   "assignments": [
                     {
                       "targetId": "qql_edge_254_e18_select_linked_g1",
@@ -1800,7 +1808,7 @@
                     {
                       "targetId": "qql_edge_254_e18_select_linked_g2",
                       "itemIds": [
-                        "qql_edge_254_e18_select_linked_i1"
+                        "qql_edge_254_e18_select_linked_i2"
                       ]
                     }
                   ]
@@ -1813,21 +1821,20 @@
               "kind": "exercise",
               "required": true,
               "authoringMetadata": {
-                "presetId": "gap_choice_inline"
+                "presetId": "gap_blocks"
               },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
-                "primitive": "select",
+                "primitive": "arrange",
                 "options": {
-                  "itemReuse": "unlimited",
                   "layout": "inline",
-                  "evaluationTiming": "explicit"
+                  "placementMode": "inlineGaps"
                 },
                 "prompt": [
                   {
-                    "role": "primary",
+                    "role": "clue",
                     "type": "text",
-                    "text": "Completa con due opzioni diverse."
+                    "text": "Completa con due parole diverse."
                   }
                 ],
                 "items": [
@@ -1903,7 +1910,7 @@
                   }
                 ],
                 "evaluation": {
-                  "mode": "exactItem",
+                  "mode": "gapAssignments",
                   "assignments": [
                     {
                       "targetId": "qql_edge_254_e19_select_distinct_g1",
@@ -1922,7 +1929,7 @@
               }
             }
           ],
-          "title": "Select: gap singolo e riuso"
+          "title": "Una parola per gap"
         }
       ],
       "duel": {
@@ -3323,5 +3330,5 @@
       }
     }
   ],
-  "officialChecksum": "dd6c6ec2c010da10eb45b0c8dd68b06dc2712546588a62662ced8f7ab6d35d13"
+  "officialChecksum": "dbc24583c6a4f85a19cfdd48687057c64023b9a05ba6288ce633956560f1bb29"
 }

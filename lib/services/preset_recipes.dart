@@ -83,10 +83,8 @@ abstract final class PresetRecipes {
       LearnerExerciseKind.select,
       LearnerExerciseKind.selectListen,
     },
-    'gap_choice_inline': {
-      LearnerExerciseKind.select,
-      LearnerExerciseKind.selectListen,
-    },
+    // One word fills all (Build 259 Revision 4).
+    'one_word_fills_all': {LearnerExerciseKind.selectCompleteAll},
     'complete_text': {LearnerExerciseKind.inputComplete},
     'missing_letters': {
       LearnerExerciseKind.inputComplete,
@@ -199,7 +197,7 @@ abstract final class PresetRecipes {
         : presentation
         ? f.textOf('term')
         : presetId == 'missing_letters' && f.hasInlineTargets
-        ? f.bracketedSentence
+        ? f.markedSentence
         // Complete the text shows each gap as ___ (Build 259 Revision 3).
         : presetId == 'complete_text' && exercise.layout.isNotEmpty
         ? [
@@ -288,7 +286,8 @@ abstract final class PresetRecipes {
     final gapLayout = exercise.layout
         .map(
           (element) => element.isTarget
-              ? '{${valueById[assignments[element.targetId]] ?? ''}}'
+              // A gap is _word_ (Build 259 Revision 4; {word} before).
+              ? '_${valueById[assignments[element.targetId]] ?? ''}_'
               : element.text,
         )
         .join(' ');

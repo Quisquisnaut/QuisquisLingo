@@ -417,12 +417,12 @@ def laboratory() -> Laboratory:
     lab.multi("select_minimum", "Which words name an animal? Select all correct answers.", ["gatto", "cane", "casa", "sole"], [0, 1], 1, "Multiple selection; minimum one permits partial submission but only the exact two-answer set is correct")
     lab.multi("select_one_in_multi", "Which word means ‘yes’? Select the correct answer, then press Check.", ["sì", "no", "mai"], [0], 1, "Multiple-selection presentation with one correct answer and an explicit Check")
 
-    lab.start_round("select_gaps", "Fixed sentences and reusable choices", "In Fill in the blank, choose one missing expression. In the fixed-sentence exercises, fill each gap; an option can be used again. You can remove, move and swap answers before Check.")
+    lab.start_round("select_gaps", "One missing word, one word for all gaps", "In Pick the missing word, choose the one missing expression. In One word fills all, one word fits every gap: choose it once and it appears in each gap.")
     lab.choose("select_gap_preset", "gap_choice", [text("Il gatto ___ sul divano.", "question")], ["dorme", "dormono", "dormire"], 0, "Fill in the blank preset; one ___ gap and non-revealing hint", hint="The subject is one animal.")
-    lab.gaps("select_gap_one", "gap_choice_inline", "Complete the Italian greeting.", ["Buon", ("giorno",), "!"], [], "Inline Select; one gap; zero distractors")
-    lab.gaps("select_gap_distinct", "gap_choice_inline", "Complete the sentence about Anna.", ["Anna", ("è",), "a", ("casa",), "."], ["siamo"], "Inline Select; two distinct options; one distractor")
-    lab.gaps("select_gap_reuse", "gap_choice_inline", "Complete both sentences. The same word can be used twice.", ["Luca", ("è",), "italiano. Anna", ("è",), "italiana."], ["sono", "siamo"], "Inline Select; one reusable option assigned to two gaps; two distractors")
-    lab.gaps("select_gap_audio", "gap_choice_inline", "Listen and complete the sentence.", ["Io", ("bevo",), ("acqua",), "."], ["mangio"], "Inline Select with optional spoken prompt", spoken="Io bevo acqua.")
+    # One word fills all (Build 259 Revision 4) replaces the reusable-option
+    # gaps, which joined Pick the words for the gaps (gap_blocks).
+    lab.choose("select_gap_all_article", "one_word_fills_all", [text("___ gatto dorme. ___ cane mangia.", "question")], ["Il", "La", "Lo"], 0, "One word fills all; one article for two gaps")
+    lab.choose("select_gap_all_verb", "one_word_fills_all", [text("Anna ___ un caffè. Luca ___ un tè.", "question")], ["beve", "bevo", "bevono"], 0, "One word fills all; one verb form for two gaps and a hint", hint="Both subjects are one person.")
 
     lab.start_round("select_visual", "Images and written characters", "Match words to pictures, then inspect the printed characters. Character images are original portable PNG specimens. Image choices check immediately.")
     lab.choose("select_named_icons", "icon_choice", [text("Select ‘sole’.", "question")], ["sole", "luna", "albero"], 0, "Select the image; existing named icon vocabulary", icons=["sun", "moon", "tree"])
@@ -513,9 +513,9 @@ def laboratory() -> Laboratory:
     lab.arrange("arrange_two", "word_order", [text("Put the Italian sentence in order: The train leaves today.", "clue")], ["Il", "treno", "parte", "oggi", "ieri", "dorme"], [[0, 1, 2, 3]], "Word order; two distinct target-language distractors")
     lab.arrange("arrange_repeat", "word_order", [text("Build: Anna eats bread and Luca eats rice.", "clue")], ["Anna", "mangia", "pane", "e", "Luca", "mangia", "riso"], [[0, 1, 2, 3, 4, 5, 6]], "Word order; repeated visible words use separate block occurrences")
     lab.arrange("arrange_phrases", "word_order", [text("Build: I go to school by bus.", "clue")], ["Vado", "a scuola", "in autobus"], [[0, 1, 2]], "Word order; multiword phrase blocks")
-    lab.arrange("picture_blocks", "picture_blocks", [text("What is this?"), image("bread", "Bread", "picture")], ["il", "pane", "la"], [[0, 1]], "Name what you see; picture prompt, word blocks and one extra block")
+    lab.arrange("picture_blocks", "picture_blocks", [text("What is this?"), image("bread", "Bread", "picture")], ["il", "pane", "la"], [[0, 1]], "Name what you see; picture prompt, word blocks, one extra block and a hint", hint="Include the article.")
 
-    lab.start_round("arrange_gaps", "Fixed sentences and consumed blocks", "Fill each gap using a separate block. Unlike Select, placing a block removes that occurrence from the available bank. Duplicate words need two blocks. Gap contents can be removed, moved or swapped.")
+    lab.start_round("arrange_gaps", "Pick the words for the gaps", "Tap a word for each gap: each word fills one gap and leaves the bank. A word needed twice is offered twice. Gap contents can be removed, moved or swapped.")
     lab.gaps("arrange_gap_one", "gap_blocks", "Complete the sentence.", ["Il gatto", ("dorme",), "."], [], "Inline Arrange; one gap; no distractors")
     lab.gaps("arrange_gap_many", "gap_blocks", "Complete the sentence about Anna's drink.", ["Anna", ("beve",), ("acqua",), "."], ["mangia"], "Inline Arrange; two gaps; one distractor")
     lab.gaps("arrange_gap_repeat", "gap_blocks", "Complete the sentences using separate blocks.", ["Luca", ("è",), "italiano. Anna", ("è",), "italiana."], ["sono", "siamo"], "Inline Arrange; repeated text requires distinct tile IDs; two distractors")

@@ -226,15 +226,18 @@ def build_course() -> dict:
                  ["would like", "a cup of tea", "has been", "a glass of milk"],
                  ["I", 1, 2, ", please."], [1, 2]),
         ]),
-        round_case("r05", "Select: gap singolo e riuso", [
-            gaps("e17_select_min", "Completa: un gatto.", ["cat"], ["a", 1], [1], select_mode=True),
-            gaps("e18_select_linked", "Completa entrambe le domande riutilizzando la stessa opzione.",
-                 ["Was", "Were", "Are"], [1, "she happy?", 2, "he late?"], [1, 1], select_mode=True),
-            gaps("e19_select_distinct", "Completa con due opzioni diverse.",
-                 ["am", "to", "is", "from"], ["I", 1, "going", 2, "London."], [1, 2], select_mode=True),
+        # Build 259 Revision 4 (owner decision): Pick the words for the gaps
+        # uses each word once, so the three former Select gap cases fill
+        # their gaps with words; a word needed twice is offered twice.
+        round_case("r05", "Una parola per gap", [
+            gaps("e17_select_min", "Completa: un gatto.", ["cat"], ["a", 1], [1]),
+            gaps("e18_select_linked", "Completa entrambe le domande: la stessa parola serve due volte.",
+                 ["Was", "Was", "Were", "Are"], [1, "she happy?", 2, "he late?"], [1, 2]),
+            gaps("e19_select_distinct", "Completa con due parole diverse.",
+                 ["am", "to", "is", "from"], ["I", 1, "going", 2, "London."], [1, 2]),
         ])
     ], ["tea = tè", "very = molto", "would like = vorrei", "a cup of tea = una tazza di tè"],
-       overview="Arrange usa occorrenze separate; Select può riutilizzare una stessa opzione in più gap.")
+       overview="Ogni parola riempie un solo gap; una parola che serve due volte è offerta due volte.")
     l3 = lesson("l03", "Immagini, MP3 e fallback TTS", [
         round_case("r06", "Con e senza immagini", [
             note("intro03", "Confronta immagini e testo, poi verifica i campioni MP3 e le frasi TTS. "

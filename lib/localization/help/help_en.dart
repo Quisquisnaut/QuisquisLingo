@@ -946,14 +946,14 @@ Question and Context are separate. Context can be text, audio, or both. Dialogue
       r'''Learner reviews a picture with its word, meaning and an optional usage example, with optional read-aloud.''',
   'exerciseHelp.preset.true_false.description':
       r'''Learner reads (or hears) a statement in the target language and answers true or false.''',
-  'exerciseHelp.preset.gap_choice_inline.description':
-      r'''Learner fills the gaps of a fixed sentence by tapping options, one per gap.''',
+  'exerciseHelp.preset.one_word_fills_all.description':
+      r'''Learner picks the one word that fills every gap of the sentences.''',
   'exerciseHelp.preset.complete_text.description':
       r'''Learner types the words missing from a text with several gaps marked ___; no audio, an optional instruction and hint.''',
   'exerciseHelp.preset.missing_letters.description':
       r'''Learner types the letters missing inside words (dr__); optional spoken text or picture.''',
   'exerciseHelp.preset.gap_blocks.description':
-      r'''Learner fills the gaps of a fixed sentence with word blocks, each used once.''',
+      r'''Learner fills the gaps of a fixed sentence by tapping words; each word fills one gap.''',
   'exerciseHelp.preset.sentence_order.description':
       r'''Learner puts the lines of a story or a dialogue in the right order.''',
   'exerciseHelp.preset.sort_into_groups.description':
@@ -1038,14 +1038,14 @@ Question and Context are separate. Context can be text, audio, or both. Dialogue
       r'''The learner sees a picture with its target-language word and source-language translation, an optional usage example with its translation, and hears the word when read-aloud is on. Provide the picture (Image), the word and the translation, optionally the usage lines, and choose Automatically, On request or No read-aloud; fill in Pronunciation TTS (if different) only when the spoken text should differ from the word. The card is never an audio exercise and is shown when Audio Exercises are off. Got it completes the card; Review again schedules it once more.''',
   'exerciseHelp.preset.true_false.body':
       r'''The learner reads a statement in the target language, optionally hears it, and chooses between the word for true and the word for false in the source language. Provide the statement, an optional spoken statement, the two answers (prefilled in the source language when QQL knows it) and the correct answer number: 1 when the statement is true, 2 when it is false.''',
-  'exerciseHelp.preset.gap_choice_inline.body':
-      r'''The learner sees a sentence with one or more gaps and fills them in order by tapping options; the same option can fill several gaps, and a wrong tap can land in the wrong gap. Write the sentence and put each answer inside braces: I {am} going {to} London. Add 0, 1 or at most 2 distractor options and an optional spoken prompt. This preset replaces the Inline gaps switch of Choose the answer.''',
+  'exerciseHelp.preset.one_word_fills_all.body':
+      r'''The learner reads sentences with two or more ___ gaps and picks the one word that fills them all; once chosen it appears in every gap. Write the sentences with ___ (three underscores) for each gap, the answer words and the correct answer number; only one word may fit every gap. For a single gap use Pick the missing word.''',
   'exerciseHelp.preset.complete_text.body':
       r'''The learner reads a text with one or more gaps and types what goes into each. Write the text with ___ (three underscores) for each gap, and give one line per gap in Missing words, in order. A line may accept several answers: [il|un] gatto accepts both il gatto and un gatto. An optional Instruction or context sets the scene and replaces the standard line; an optional hint helps without giving the words away. Answers are checked with the normal Input normalization. There is no audio: for gaps heard from a recording use Listen and fill the gaps.''',
   'exerciseHelp.preset.missing_letters.body':
-      r'''The learner sees words with missing letters and types the letters. Write the complete text and put the missing letters inside square brackets: My cat doesn’t dr[ink] milk. The learner sees dr___ milk, one underscore per letter, and types ink. Several gaps are fine. An optional spoken text reads the whole sentence, an optional picture illustrates it, and an optional hint helps without giving the letters away.''',
+      r'''The learner sees words with missing letters and types the letters. Write the complete text and put the missing letters between underscores: My cat doesn’t dr_ink_ milk. The learner sees dr___ milk, one underscore per letter, and types ink. Several gaps are fine. An optional spoken text reads the whole sentence, an optional picture illustrates it, and an optional hint helps without giving the letters away.''',
   'exerciseHelp.preset.gap_blocks.body':
-      r'''The learner sees a sentence with gaps and drags word blocks into them; each block is used once and must land in the right gap. Write the sentence with each answer inside braces: Io {vorrei} un caffè. Add 0, 1 or at most 2 distractor blocks and an optional spoken prompt. This preset replaces the Inline gaps switch of Word order and Build the translation.''',
+      r'''The learner sees a sentence with gaps and taps a word for each gap; each word fills one gap and leaves the bank, and must land in the right gap. Write the sentence with each answer between underscores: Io _vorrei_ un caffè. A word needed twice is written in both gaps and offered twice. Add 0, 1 or at most 2 distractor words and an optional spoken prompt. This preset joins the former Pick the words for the gaps and Drag the blocks into the gaps.''',
   'exerciseHelp.preset.sentence_order.body':
       r'''The learner sees the lines of a short story or dialogue as blocks and puts them in order. Enter the lines once, in the correct order, and 0, 1 or at most 2 extra lines that belong nowhere. The Instruction or context can give the situation that decides the order; an optional hint helps without giving it away.''',
   'exerciseHelp.preset.sort_into_groups.body':
@@ -1059,9 +1059,9 @@ Question and Context are separate. Context can be text, audio, or both. Dialogue
   'exerciseHelp.preset.picture_choice.body':
       r'''The learner sees a picture and chooses the word or sentence that names it among text answers. Provide the picture (Image, required), an optional instruction or context such as What is this?, at least two answers and the correct one.''',
   'exerciseHelp.preset.picture_name.body':
-      r'''The learner sees a picture and types what it shows. Provide the picture (Image), an optional instruction or context, one or more accepted answers with the same syntax as Type the translation (optional {}, alternatives [a|b], linked groups, reorder scopes) and an optional hint. Answers are checked with the normal Input normalization and typo tolerance.''',
+      r'''The learner sees a picture and types what it shows. Provide the picture (Image, required), an optional instruction or context, one or more accepted answers with the same syntax as Type the translation (optional {}, alternatives [a|b], linked groups, reorder scopes) and an optional hint. Answers are checked with the normal Input normalization and typo tolerance.''',
   'exerciseHelp.preset.picture_blocks.body':
-      r'''The learner sees a picture and builds its name by tapping word blocks in order; a placed block can be taken back; Check grades the order. Provide the picture (Exercise image), an optional instruction or context such as What is this?, the blocks of the name in order (one word per line) and up to two extra blocks that are not part of the name, plus an optional hint. The blocks join with spaces. Capitals that differ between the name and its blocks get an Audit warning. Type what you see is the same exercise with a typed answer.''',
+      r'''The learner sees a picture and builds its name by tapping word blocks in order; a placed block can be taken back; Check grades the order. Provide the picture (Exercise image, required), an optional instruction or context such as What is this?, the blocks of the name in order (one word per line) and up to two extra blocks that are not part of the name, plus an optional hint. The blocks join with spaces. Capitals that differ between the name and its blocks get an Audit warning. Type what you see is the same exercise with a typed answer.''',
   'exerciseHelp.preset.spell_word.body':
       r'''The learner reads a clue in the source language, the word itself or a definition, and spells the target-language word by ordering letter or syllable tiles. Provide the clue and the tiles of the word in order, one per line; a picture is optional.''',
   'exerciseHelp.preset.picture_word_match.body':
@@ -1167,6 +1167,17 @@ Required: a Published save refuses it empty. Make the recording long enough to a
 
 Example
 Dove fa la spesa Maria?''',
+  'exerciseHelp.field.one_word_fills_all.question.body':
+      r'''The sentences the learner completes with one word that fits every gap.
+
+What to enter
+Write the sentences in the target language with ___ (3 underscores) wherever the same word goes; at least two gaps. The chosen word appears in every gap.
+
+Checks
+Required: a Published save refuses it without two or more gaps. For one gap, use Pick the missing word.
+
+Example
+___ gatto dorme. ___ cane mangia.''',
   'exerciseHelp.field.choice_source.question.body':
       r'''The question, or the sentence to complete, written in the source language.
 
@@ -1279,16 +1290,16 @@ A distractor must not repeat the text of any gap answer.
 Example
 sempre''',
   'exerciseHelp.field.missing_letters.prompt.body':
-      r'''The complete text with the missing letters marked in square brackets.
+      r'''The complete text with the missing letters marked between underscores.
 
 What to enter
-Write the text and put the letters to hide inside [ and ], one bracket per gap: My cat doesn’t dr[ink] milk.
+Write the text and put the letters to hide between underscores, one pair per gap: My cat doesn’t dr_ink_ milk.
 
 Checks
-At least one bracket, none empty. The learner sees one underscore per hidden letter and types the letters.
+At least one gap, none empty. The learner sees one underscore per hidden letter and types the letters.
 
 Example
-Il ga[tt]o dor[me] sul divano.''',
+Il ga_tt_o dor_me_ sul divano.''',
   'exerciseHelp.field.dialogue_line.speaker.body': r'''Who says the line.
 
 What to enter
@@ -1660,16 +1671,16 @@ The Check button stays disabled until at least this many options are selected. T
 Example
 2''',
   'exerciseHelp.field.choice.gapLayout.body':
-      r'''Shows the fixed sentence with one or more inline blanks the learner fills, in order, by tapping options from a list.
+      r'''The fixed sentence with one or more inline gaps the learner fills, in order, by tapping options.
 
 What to enter
-Write the sentence and put each answer word or phrase directly inside braces: {answer}. Example: I {am} going {to} London. Each tap fills the first remaining empty blank, whichever option is tapped — placement does not check correctness, so the right words in the wrong blanks are still marked incorrect. If the same word answers more than one gap, write it inside each of those braces: {Was} she happy? {Was} he late? — the learner taps it once per blank it needs to fill. Extra options that are not the answer to any gap go in Distractor options (optional).
+Write the sentence and put each answer word or phrase between underscores: _answer_. Example: I _am_ going _to_ London. Extra options that are not the answer to any gap go in Distractor options (optional).
 
 Checks
-At least one {…} gap is required, and every gap must contain non-empty text. Literal { or } characters cannot appear anywhere else in the sentence.
+At least one _…_ gap is required, and every gap must contain text. A lone _ cannot appear anywhere else in the sentence.
 
 Example
-I {am} going {to} London.''',
+I _am_ going _to_ London.''',
   'exerciseHelp.field.choice.tokens.body':
       r'''Adds options the learner can select that are not the answer to any gap.
 
@@ -1933,7 +1944,7 @@ Example
       r'''Supplies the blocks used to construct the configured correct translations.
 
 What to enter
-Enter one literal block per line. Blank lines are ignored. Include enough distinct occurrences to construct every correct translation; repeated words require repeated lines. When Inline gaps is enabled, this field is relabeled Extra distractor blocks: the gap answers themselves come from the {answer} braces in Target sentence with gaps, and this field only adds optional unused distractors.
+Enter one literal block per line. Blank lines are ignored. Include enough distinct occurrences to construct every correct translation; repeated words require repeated lines. When Inline gaps is enabled, this field is relabeled Extra distractor blocks: the gap answers themselves come from the _answer_ markers in Target sentence with gaps, and this field only adds optional unused distractors.
 
 Checks
 Every correct translation must be constructible from these blocks. At most 2 blocks may be unused by every correct translation. A block used by any configured answer is not an unused distractor. Answer-expression syntax is not expanded.
@@ -1956,16 +1967,16 @@ At least one non-empty answer is required. Answers must be unique after case, sp
 Example
 Io vorrei un caffè.''',
   'exerciseHelp.field.build_translation.gapLayout.body':
-      r'''Shows the fixed sentence text with one or more inline blanks the learner fills with word or phrase tiles.
+      r'''The fixed sentence with one or more inline gaps the learner fills with words, each word filling one gap.
 
 What to enter
-Write the fixed sentence and put each answer word or phrase directly inside braces: {answer}. Example: I {am} going {to} London. Each {…} segment is both the gap and its correct answer, so no separate Correct answers / Correct sentence field is needed in this mode. Extra distractor blocks that are not used by any gap still go in Available word blocks / Extra distractor blocks (optional).
+Write the fixed sentence and put each answer word or phrase between underscores: _answer_. Example: I _am_ going _to_ London. Each _…_ segment is both the gap and its correct answer. Extra distractor words that fill no gap go in Extra distractor words (optional).
 
 Checks
-At least one {…} gap is required, and every gap must contain non-empty text. Literal { or } characters cannot appear anywhere else in the sentence — every { must be paired with a matching } directly around one answer. Existing whole-sentence Arrange exercises are unaffected unless Inline gaps is enabled.
+At least one _…_ gap is required, and every gap must contain text. A lone _ cannot appear anywhere else in the sentence.
 
 Example
-I {am} going {to} London.''',
+I _am_ going _to_ London.''',
   'exerciseHelp.field.translation_choice_to_target.question.body':
       r'''The source-language word or phrase the learner translates.
 
@@ -2161,7 +2172,7 @@ acqua = water''',
       r'''Supplies the blocks the learner puts into sentence order.
 
 What to enter
-Enter one literal target-language block per line. Blank lines are ignored. Repeat a line when the answer needs another occurrence of that word or block. When Inline gaps is enabled, this field is relabeled Extra distractor blocks: the gap answers themselves come from the {answer} braces in Sentence with gaps, and this field only adds optional unused distractors.
+Enter one literal target-language block per line. Blank lines are ignored. Repeat a line when the answer needs another occurrence of that word or block. When Inline gaps is enabled, this field is relabeled Extra distractor blocks: the gap answers themselves come from the _answer_ markers in Sentence with gaps, and this field only adds optional unused distractors.
 
 Checks
 Include every block occurrence used in Correct sentence. You may add 0, 1 or at most 2 unused distractor blocks. Keep block spelling and internal punctuation consistent with the correct order.

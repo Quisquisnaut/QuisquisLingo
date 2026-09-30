@@ -1331,6 +1331,8 @@ class CourseAuditService {
     'listening_spelling' ||
     'missing_word' ||
     'audio_match' => ' ${_presetNameOf(presetId)} needs its spoken text.',
+    'one_word_fills_all' =>
+      ' One word fills all needs two or more ___ gaps in its sentences.',
     'picture_choice' ||
     'picture_name' ||
     'picture_blocks' ||
@@ -1356,6 +1358,7 @@ class CourseAuditService {
     LearnerExerciseKind.select => 'a plain Choose',
     LearnerExerciseKind.selectPicture => 'What is in the picture',
     LearnerExerciseKind.selectComplete => 'Pick the missing word',
+    LearnerExerciseKind.selectCompleteAll => 'One word fills all',
     LearnerExerciseKind.selectImage => 'Select the image',
     LearnerExerciseKind.selectCharacter => 'Recognize characters',
     LearnerExerciseKind.selectListen => 'What do you hear',

@@ -364,10 +364,27 @@ void main() {
     });
 
     test('the Audit asks for the picture and at most two extra blocks', () {
-      final noPicture = _built(
+      // Build 259 Revision 4: a Published save needs the picture; a stored
+      // exercise without one still gets the Audit's mismatch.
+      expect(
+        _build(
+          'picture_blocks',
+          original: _blank('no-picture'),
+          order: 'il\npane',
+        ).error?.code,
+        ExerciseDraftErrorCode.pictureRequired,
+      );
+      final withPicture = _built(
         'picture_blocks',
         original: _blank('no-picture'),
+        imageAsset: 'assets/exercise_images/bread.webp',
         order: 'il\npane',
+      );
+      final noPicture = withPicture.copyWith(
+        promptElements: [
+          for (final element in withPicture.promptElements)
+            if (!element.isImage) element,
+        ],
       );
       expect(_codes(noPicture), contains('PRESET_CANONICAL_MISMATCH'));
       final tooMany = _built(
@@ -379,7 +396,11 @@ void main() {
       );
       expect(_errors(tooMany), contains('WORD_BLOCK_DISTRACTOR_COUNT'));
       expect(
-        _build('picture_blocks', original: _blank('empty')).error?.code,
+        _build(
+          'picture_blocks',
+          original: _blank('empty'),
+          imageAsset: 'assets/exercise_images/bread.webp',
+        ).error?.code,
         ExerciseDraftErrorCode.nameBlocksRequired,
       );
     });

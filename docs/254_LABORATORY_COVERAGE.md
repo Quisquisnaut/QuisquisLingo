@@ -5,7 +5,7 @@ This document and the JSON are generated together by `tools/generate_exercise_la
 - Course: **Exercise Laboratory**, `course_50d68435-d2c2-4b63-9a0b-b23161357f1d`.
 - Direction: English (`en-GB`) → Italian (`it-IT`); TTS `it-IT`.
 - Model 11, official Course version 1.0.0; all Lessons, Rounds and Content are Published.
-- Exactly eight Lessons (six primitives, a Story and Pages), 28 Rounds and 126 runnable examples across all 48 authoring presets (the Assign Lesson uses the presets Sort into groups and Fill the slots since the Build 256 Revision 7 follow-up).
+- Exactly eight Lessons (six primitives, a Story and Pages), 28 Rounds and 124 runnable examples across all 48 authoring presets (the Assign Lesson uses the presets Sort into groups and Fill the slots since the Build 256 Revision 7 follow-up).
 - Course rights explicitly allow Fork, so the bundled original can be inspected and a derivative can use the ordinary authoring/confirm/export/import paths.
 - Create Duels is off: Presentation is non-evaluable and the Course is not padded to manufacture Duel pools. The required per-Lesson Duel metadata is retained.
 - This Course leaves existing Course identities, learner data and media assets unchanged.
@@ -18,7 +18,7 @@ The authoring registry is `lib/models/exercise_authoring.dart`. Every one of its
 | --- | --- | ---: |
 | Select | `choice` | 5 |
 | Select | `gap_choice` | 1 |
-| Select | `gap_choice_inline` | 4 |
+| Select | `one_word_fills_all` | 2 |
 | Select | `icon_choice` | 2 |
 | Select | `script_recognition` | 3 |
 | Select | `reading_answer_target` | 4 |
@@ -77,11 +77,9 @@ The suffix below follows `qql_lab254_` in the stable Content/Exercise ID. Answer
 | Select / Single and multiple answers | select_multiple | choice | Multiple selection; exact correct set; minimum equals two correct answers | rosso + blu |
 | Select / Single and multiple answers | select_minimum | choice | Multiple selection; minimum one permits partial submission but only the exact two-answer set is correct | gatto + cane |
 | Select / Single and multiple answers | select_one_in_multi | choice | Multiple-selection presentation with one correct answer and an explicit Check | sì |
-| Select / Fixed sentences and reusable choices | select_gap_preset | gap_choice | Fill in the blank preset; one ___ gap and non-revealing hint | dorme |
-| Select / Fixed sentences and reusable choices | select_gap_one | gap_choice_inline | Inline Select; one gap; zero distractors | giorno |
-| Select / Fixed sentences and reusable choices | select_gap_distinct | gap_choice_inline | Inline Select; two distinct options; one distractor | è / casa |
-| Select / Fixed sentences and reusable choices | select_gap_reuse | gap_choice_inline | Inline Select; one reusable option assigned to two gaps; two distractors | è / è |
-| Select / Fixed sentences and reusable choices | select_gap_audio | gap_choice_inline | Inline Select with optional spoken prompt | bevo / acqua |
+| Select / One missing word, one word for all gaps | select_gap_preset | gap_choice | Fill in the blank preset; one ___ gap and non-revealing hint | dorme |
+| Select / One missing word, one word for all gaps | select_gap_all_article | one_word_fills_all | One word fills all; one article for two gaps | Il |
+| Select / One missing word, one word for all gaps | select_gap_all_verb | one_word_fills_all | One word fills all; one verb form for two gaps and a hint | beve |
 | Select / Images and written characters | select_named_icons | icon_choice | Select the image; existing named icon vocabulary | sole |
 | Select / Images and written characters | select_asset_options | icon_choice | Select the image; actual bundled image options | gatto |
 | Select / Images and written characters | script_image_text | script_recognition | Recognize characters; one portable image to text | A |
@@ -138,11 +136,11 @@ The suffix below follows `qql_lab254_` in the stable Content/Exercise ID. Answer
 | Arrange / Word and phrase blocks | arrange_two | word_order | Word order; two distinct target-language distractors | Il treno parte oggi |
 | Arrange / Word and phrase blocks | arrange_repeat | word_order | Word order; repeated visible words use separate block occurrences | Anna mangia pane e Luca mangia riso |
 | Arrange / Word and phrase blocks | arrange_phrases | word_order | Word order; multiword phrase blocks | Vado a scuola in autobus |
-| Arrange / Word and phrase blocks | picture_blocks | picture_blocks | Name what you see; picture prompt, word blocks and one extra block | il pane |
-| Arrange / Fixed sentences and consumed blocks | arrange_gap_one | gap_blocks | Inline Arrange; one gap; no distractors | dorme |
-| Arrange / Fixed sentences and consumed blocks | arrange_gap_many | gap_blocks | Inline Arrange; two gaps; one distractor | beve / acqua |
-| Arrange / Fixed sentences and consumed blocks | arrange_gap_repeat | gap_blocks | Inline Arrange; repeated text requires distinct tile IDs; two distractors | è / è |
-| Arrange / Fixed sentences and consumed blocks | arrange_gap_audio | gap_blocks | Inline Arrange; phrase blocks and spoken prompt | a scuola / in autobus |
+| Arrange / Word and phrase blocks | picture_blocks | picture_blocks | Name what you see; picture prompt, word blocks, one extra block and a hint | il pane |
+| Arrange / Pick the words for the gaps | arrange_gap_one | gap_blocks | Inline Arrange; one gap; no distractors | dorme |
+| Arrange / Pick the words for the gaps | arrange_gap_many | gap_blocks | Inline Arrange; two gaps; one distractor | beve / acqua |
+| Arrange / Pick the words for the gaps | arrange_gap_repeat | gap_blocks | Inline Arrange; repeated text requires distinct tile IDs; two distractors | è / è |
+| Arrange / Pick the words for the gaps | arrange_gap_audio | gap_blocks | Inline Arrange; phrase blocks and spoken prompt | a scuola / in autobus |
 | Arrange / Build translations | build_single | build_translation | Build translation; one literal answer and no distractors | Bevo acqua |
 | Arrange / Build translations | build_multiple | build_translation | Build translation; multiple valid orders with optional subject; one block unused by every answer | mangio pane / Io mangio pane |
 | Arrange / Build translations | build_phrase | build_translation | Build translation; phrase blocks and two distractors | Vado a scuola in treno |
@@ -220,8 +218,8 @@ The suffix below follows `qql_lab254_` in the stable Content/Exercise ID. Answer
 
 1. `python -X utf8 tools/generate_exercise_laboratory_254.py --check`: deterministic JSON/checksum and coverage-document readback.
 2. `python -X utf8 tools/validate_courses.py`: Course Model structure, timestamps, stable unique IDs, references, publication and official checksum.
-3. `test/exercise_laboratory_254_test.dart` checks the actual asset's Audit and canonical model round trip, then rebuilds all 126 examples through ExerciseDraftBuilder (and ScriptRecognitionController for its image modes), comparing semantic fields and each result's model round trip. Separate preservation assertions cover Flashcard usage and usage translation. Editor route tests include `exercise_authoring_252_characterization_test.dart`, `select_editor_238_test.dart`, `arrange_gap_fill_editor_238_test.dart`, `script_recognition_226_03_test.dart` and `translation_choice_239_test.dart`.
-4. The same Lab suite completes all 126 examples through RoundScreen Preview using actual controls and grading, including repeated blocks, reusable gaps, exact multiple-selection sets and audio matching. Additional cases finish an alternate Build translation answer and a Review again/Got it cycle. Speech is stubbed only at the playback seam; these tests do not establish native voice quality or normal progression persistence.
+3. `test/exercise_laboratory_254_test.dart` checks the actual asset's Audit and canonical model round trip, then rebuilds all 124 examples through ExerciseDraftBuilder (and ScriptRecognitionController for its image modes), comparing semantic fields and each result's model round trip. Separate preservation assertions cover Flashcard usage and usage translation. Editor route tests include `exercise_authoring_252_characterization_test.dart`, `select_editor_238_test.dart`, `arrange_gap_fill_editor_238_test.dart`, `script_recognition_226_03_test.dart` and `translation_choice_239_test.dart`.
+4. The same Lab suite completes all 124 examples through RoundScreen Preview using actual controls and grading, including repeated blocks, reusable gaps, exact multiple-selection sets and audio matching. Additional cases finish an alternate Build translation answer and a Review again/Got it cycle. Speech is stubbed only at the playback seam; these tests do not establish native voice quality or normal progression persistence.
 5. Export/import of the Course through the normal ZIP and embedded-image JSON routes preserves this Course's identity, content wrappers, answers and character PNG bytes. A Fork gets a new identity through the existing rights-aware operation.
 
 These are verification seams, not a claim that commands have been run. Fresh integrated results are recorded in the Build 254 validation document.

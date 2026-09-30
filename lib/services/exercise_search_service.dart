@@ -69,6 +69,10 @@ abstract final class ExerciseSearchRegistry {
       fields: [_prompt, _items, _hint],
     ),
     ExerciseTypeSearchDefinition(
+      presetId: 'one_word_fills_all',
+      fields: [_prompt, _items, _hint],
+    ),
+    ExerciseTypeSearchDefinition(
       presetId: 'icon_choice',
       fields: [_prompt, _items],
     ),
@@ -154,10 +158,6 @@ abstract final class ExerciseSearchRegistry {
     ),
     ExerciseTypeSearchDefinition(
       presetId: 'true_false',
-      fields: [_prompt, _audio, _items],
-    ),
-    ExerciseTypeSearchDefinition(
-      presetId: 'gap_choice_inline',
       fields: [_prompt, _audio, _items],
     ),
     ExerciseTypeSearchDefinition(

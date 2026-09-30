@@ -94,7 +94,8 @@ void main() {
         'answers',
       ],
       'true_false': ['question', 'tts', 'answers', 'correct'],
-      'gap_choice_inline': ['prompt', 'gapLayout', 'tokens', 'tts'],
+      // Build 259 Revision 4: gap_choice_inline merged into gap_blocks.
+      'one_word_fills_all': ['question', 'answers', 'correct', 'hint'],
       // Build 259 Revision 1: an instruction (question value) and a hint.
       'complete_text': ['question', 'prompt', 'missingWords', 'hint'],
       'missing_letters': ['prompt', 'tts', 'hint'],

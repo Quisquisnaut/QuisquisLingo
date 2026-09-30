@@ -11,6 +11,10 @@ enum LearnerExerciseKind {
   /// Select whose question text contains a `___` blank.
   selectComplete,
 
+  /// Select whose question text has two or more `___` blanks that one
+  /// answer fills (One word fills all, Build 259 Revision 4).
+  selectCompleteAll,
+
   /// Select whose items are images or icons.
   selectImage,
 
@@ -264,6 +268,12 @@ class ExerciseFeatures {
   bool get hasBlankInPrompt =>
       prompt.any((e) => e.isText && RegExp(r'_{3,}').hasMatch(e.text));
 
+  /// How many `___` blanks the prompt's texts hold (Build 259 Revision 4).
+  int get promptBlankCount => [
+    for (final e in prompt)
+      if (e.isText) RegExp(r'_{3,}').allMatches(e.text).length,
+  ].fold(0, (sum, n) => sum + n);
+
   // ------------------------------------------------------------------- items
 
   /// The language stated on the items' text, when all stated items agree.
@@ -435,13 +445,14 @@ class ExerciseFeatures {
   ].join();
 
   /// The inline layout as one text with every gap's first accepted answer
-  /// in square brackets (the Missing letters form): `dr[ink]`.
-  String get bracketedSentence => [
+  /// between underscores (the Missing letters form): `dr_ink_` (Build 259
+  /// Revision 4; square brackets before).
+  String get markedSentence => [
     for (final element in exercise.layout)
       if (element.isText)
         element.text
       else
-        '[${answersFor(element.targetId)?.answers.firstOrNull ?? ''}]',
+        '_${answersFor(element.targetId)?.answers.firstOrNull ?? ''}_',
   ].join();
 
   /// The first target that reveals its first grapheme, or null.
@@ -648,7 +659,9 @@ class ExerciseFeatures {
         }
         if (pictureImages.isNotEmpty) return LearnerExerciseKind.selectPicture;
         if (!hasInlineTargets && hasBlankInPrompt) {
-          return LearnerExerciseKind.selectComplete;
+          return promptBlankCount >= 2
+              ? LearnerExerciseKind.selectCompleteAll
+              : LearnerExerciseKind.selectComplete;
         }
         return LearnerExerciseKind.select;
       case ExercisePrimitive.input:

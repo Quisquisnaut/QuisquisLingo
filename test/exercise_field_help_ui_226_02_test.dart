@@ -165,11 +165,13 @@ const _formFields = <String, Map<String, String>>{
     'Answers': 'answers',
     'Correct answer number': 'correct',
   },
-  'gap_choice_inline': {
-    'Instruction or context (optional)': 'prompt',
-    'Sentence with gaps': 'gapLayout',
-    'Distractor options (optional)': 'tokens',
-    'Spoken prompt (optional)': 'tts',
+  // Build 259 Revision 4: Pick the words for the gaps is gap_blocks;
+  // One word fills all is new.
+  'one_word_fills_all': {
+    'Sentences, with ___ for each gap': 'question',
+    'Answer words': 'answers',
+    'Correct answer number': 'correct',
+    'Hint (optional)': 'hint',
   },
   'complete_text': {
     'Instruction or context (optional)': 'question',
@@ -178,14 +180,14 @@ const _formFields = <String, Map<String, String>>{
     'Hint (optional)': 'hint',
   },
   'missing_letters': {
-    'Text with the missing letters in brackets': 'prompt',
+    'Text with the missing letters between underscores': 'prompt',
     'Spoken text (optional)': 'tts',
     'Hint (optional)': 'hint',
   },
   'gap_blocks': {
     'Instruction or context (optional)': 'prompt',
     'Sentence with gaps': 'gapLayout',
-    'Extra distractor blocks (optional)': 'tokens',
+    'Extra distractor words (optional)': 'tokens',
     'Spoken prompt (optional)': 'tts',
   },
   'sentence_order': {
