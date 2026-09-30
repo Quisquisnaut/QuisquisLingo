@@ -1322,6 +1322,8 @@ class CourseAuditService {
       ' A Before you start card needs its note (an intro text element).',
     'icon_choice' =>
       ' Select the image needs one icon or image key per answer in Icons / image keys, in the same order as the answers.',
+    'listening_choose_target' ||
+    'listening_choose_source' ||
     'listening_answer_target' ||
     'listening_answer_source' ||
     'listening_image_choice' ||
@@ -1609,6 +1611,8 @@ class CourseAuditService {
                 'Read and answer needs a text to read containing words, or dialogue lines.',
               );
             }
+          case 'listening_choose_target':
+          case 'listening_choose_source':
           case 'listening_answer_target':
           case 'listening_answer_source':
           case 'listening_image_choice':

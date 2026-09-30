@@ -164,6 +164,8 @@ abstract final class ExerciseFieldHelpRegistry {
       'gap_choice': ['question', 'answers', 'correct', 'hint'],
       'type_missing_word': ['revealFirstLetter', 'prompt', 'accepted', 'hint'],
       'word_order': ['prompt', 'gapLayout', 'tokens', 'order', 'tts'],
+      'listening_choose_target': ['tts', 'prompt', 'answers', 'correct'],
+      'listening_choose_source': ['tts', 'prompt', 'answers', 'correct'],
       'listening_answer_target': ['tts', 'question', 'answers', 'correct'],
       'listening_answer_source': ['tts', 'question', 'answers', 'correct'],
       'listening_spelling': ['prompt', 'tts', 'missingWords'],
@@ -270,7 +272,20 @@ abstract final class ExerciseFieldHelpRegistry {
         example: choice ? 'Which article goes with casa?' : 'Select ‘gatto’.',
       );
     }
+    if (presetId.startsWith('listening_answer') && fieldKey == 'question') {
+      return const ExerciseFieldHelp(
+        title: 'Question',
+        purpose:
+            'The question the learner answers about what they hear. Example: Dove fa la spesa Maria?',
+        entryRules:
+            'Enter one question about the recording: who, what, where, how many. Listen and answer (to source) asks it in the source language. To let the learner simply pick what was heard, use Listen and choose.',
+        validation:
+            'Required: a Published save refuses it empty. Make the recording long enough to answer it, and mark the correct answer.',
+        example: 'Dove fa la spesa Maria?',
+      );
+    }
     if ((presetId.startsWith('listening_answer') ||
+            presetId.startsWith('listening_choose') ||
             presetId == 'listening_image_choice') &&
         fieldKey == 'tts') {
       return ExerciseFieldHelp(

@@ -262,14 +262,17 @@ class GuidebookRoundGenerator {
             ),
           ],
         );
-      case 'listening_answer_target':
+      case 'listening_choose_target':
+        // Listen and choose (Build 259 Revision 2): the learner picks what
+        // was heard; "What do you hear?" was an instruction, not a question,
+        // and the standard line already says it.
         return select(
           type: 'listening_choice',
           prompt: '',
-          question: 'What do you hear?',
+          question: '',
           answers: [pair.target, ...targetDistractors],
           tts: pair.target,
-        );
+        ).withAuthoringMetadata(const {'presetId': 'listening_choose_target'});
       case 'word_match':
       case 'audio_match':
         final pairs = [
@@ -354,7 +357,7 @@ class GuidebookRoundGenerator {
         ? [
             'choice_target',
             if (hasMatchedExamples) 'gap_choice',
-            'listening_answer_target',
+            'listening_choose_target',
             'word_match',
           ]
         : difficulty < .67

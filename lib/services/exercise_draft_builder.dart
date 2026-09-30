@@ -313,6 +313,9 @@ abstract final class ExerciseDraftBuilder {
     'translation_choice_to_target': (ExerciseDraftField.question, 'Sentence'),
     'translation_choice_to_source': (ExerciseDraftField.question, 'Sentence'),
     'reading_answer_target': (ExerciseDraftField.question, 'Question'),
+    // Listen and answer's question (Build 259 Revision 2).
+    'listening_answer_target': (ExerciseDraftField.question, 'Question'),
+    'listening_answer_source': (ExerciseDraftField.question, 'Question'),
     'type_missing_word': (ExerciseDraftField.prompt, 'Sentence'),
     'type_translation_to_target': (ExerciseDraftField.prompt, 'Sentence'),
     'type_translation_to_source': (ExerciseDraftField.prompt, 'Sentence'),

@@ -14,7 +14,8 @@ Build 259 has three revisions, one per plan section:
   order (instruction, hint, lines entered once). *Committed as
   `b6543a7` (`2.0.59+259001`); complete suite 3395 passed, 1 skipped,
   0 failed.*
-- **Revision 2** (plan §6): the Listen and answer split.
+- **Revision 2** (plan §6): the Listen and answer split. *Committed as
+  `2.0.59+259002`; complete suite 3415 passed, 1 skipped, 0 failed.*
 
 ## Revision 0 (committed `474a313`, 11:35, 30 September 2026)
 
@@ -58,9 +59,28 @@ Gotcha: the keep-awake wrapper needs `[uint32]2147483648`, not
 `[uint32]0x80000000` (PowerShell 5.1 reads the hex literal as a negative
 Int32 and the cast fails).
 
+## Revision 2 (committed, 30 September 2026)
+
+Everything in `docs/259_CHANGE_SUMMARY.md` (Revision 2) is in the working
+tree: the two Listen and choose presets, Listen and answer's required
+Question, forms, field Help, Help EN/IT/ES, Search, the Audit's listening
+cases, the Round Wizard, the Story Wizard, the interoperability hints, the
+demos (Laboratory 125 examples, Piedmontese 41 Lessons), the v11 fixtures,
+the Laboratory baseline (1 new record, 2 deliberate changes), the new test
+`test/listen_and_choose_259_test.dart`, the test pins (registry 46
+presets, field Help tables, mascot and runtime tables, generator pools),
+version `2.0.59+259002`, README, CHANGELOG and AGENTS. `flutter analyze
+--no-pub`: no issues. Complete suite 3415 passed, 1 skipped, 0 failed
+(13:08).
+
+Note: the Piedmontese Lessons after the Listening group are renumbered
+(`l22`… shift by two), because the demo's Lessons follow the registry
+order; demo progress on those Lessons starts over.
+
 ## Next
 
-1. Revision 2 (plan §6): the Listen and answer split.
+Build 259 is complete after Revision 2. The plan's separate findings
+(§8: C, D, E, F) are not in this build.
 
 Stage with `git add -A -- . ':!devtools_options.yaml' ':!tools/cloud_setup.sh'`
 after checking `git status` for files another session wrote.

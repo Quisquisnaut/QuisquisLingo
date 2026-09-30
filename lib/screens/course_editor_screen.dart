@@ -5577,6 +5577,8 @@ const storyWizardPresets = <String>[
   'choice_source',
   'translation_choice_to_target',
   'translation_choice_to_source',
+  'listening_choose_target',
+  'listening_choose_source',
   'listening_answer_target',
   'listening_answer_source',
   'word_order',
@@ -10408,8 +10410,14 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
                 'One per answer, in the same order. Left empty, the answers are plain text and the exercise plays as Choose the answer.',
           ),
         ];
+      case 'listening_choose_target':
+      case 'listening_choose_source':
       case 'listening_choice':
       case 'listening_comprehension':
+        // Listen and choose has no question, only an optional Instruction or
+        // context; Listen and answer's question is required (Build 259
+        // Revision 2).
+        final listeningChoose = _type.startsWith('listening_choose');
         return [
           _field(
             _tts,
@@ -10427,13 +10435,16 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
             'MP3: open Course Editor > Audio Library. Copy MP3 files to ${QqlStorageLayout.current.folderLabel(QqlStorageRole.audioImports)}, press Import MP3, then Associate recording with its Word or expression. Choose Recorded MP3 only or Hybrid. This exercise uses those text mappings.',
           ),
           const SizedBox(height: 12),
-          _field(
-            _question,
-            'Question (optional)',
-            lines: 2,
-            helper:
-                'Leave it empty to ask what was heard; with a question the learner answers it about the passage.',
-          ),
+          if (listeningChoose)
+            _instructionField()
+          else
+            _field(
+              _question,
+              'Question',
+              lines: 2,
+              helper:
+                  'What the learner answers about what they hear, e.g. Dove fa la spesa Maria? To ask only what was heard, use Listen and choose.',
+            ),
           _field(_answers, 'Answers', lines: 4),
           _field(_correct, 'Correct answer number'),
         ];

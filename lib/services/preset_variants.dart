@@ -16,17 +16,19 @@ abstract final class PresetVariants {
   /// The recipe the builder runs for [presetId] with these [draft] fields.
   static String baseFor(String presetId, ExerciseDraftValues draft) {
     switch (presetId) {
+      case 'listening_choose_target':
+      case 'listening_choose_source':
+        // Listen and choose: what was heard, no question (Build 259
+        // Revision 2).
+        return 'listening_choice';
       case 'listening_answer_target':
       case 'listening_answer_source':
-        // An opened exercise keeps its shape; a new one without a question
-        // asks what was heard, with a question it asks about the passage.
+        // An opened exercise keeps its shape; a new one asks its question
+        // about the passage (the question is required since Build 259
+        // Revision 2; Listen and choose asks what was heard).
         return switch (draft.audioRole) {
-          'passage' => 'listening_comprehension',
           'primary' => 'listening_choice',
-          _ =>
-            draft.question.trim().isEmpty
-                ? 'listening_choice'
-                : 'listening_comprehension',
+          _ => 'listening_comprehension',
         };
       case 'reading_answer_target':
         // The text to read is context in the source language, followed by
@@ -59,6 +61,8 @@ abstract final class PresetVariants {
     'gap_blocks',
     'sentence_order',
     'listening_image_choice',
+    'listening_choose_target',
+    'listening_choose_source',
     'spell_heard',
     'picture_choice',
     'picture_name',
@@ -130,6 +134,8 @@ abstract final class PresetVariants {
         );
       case 'listening_image_choice':
       case 'picture_name':
+      case 'listening_choose_target':
+      case 'listening_choose_source':
         // Their base recipes read the text from the question field; `finish`
         // makes it the Instruction or context (Build 259).
         return draft.copyWith(type: base, question: draft.prompt);
@@ -298,6 +304,8 @@ abstract final class PresetVariants {
       case 'picture_name':
         return _withPictureRole(_questionAsInstruction(exercise));
       case 'listening_image_choice':
+      case 'listening_choose_target':
+      case 'listening_choose_source':
         return _questionAsInstruction(exercise);
       case 'note_card':
         // A Note card is read and left with Continue: no review.
@@ -419,6 +427,9 @@ abstract final class PresetVariants {
           ),
           items: markItems(TextLanguage.source),
         );
+      case 'listening_choose_source':
+        // Its instruction states no language (Build 259 Revision 2).
+        return exercise.copyWith(items: markItems(TextLanguage.source));
       default:
         return exercise;
     }

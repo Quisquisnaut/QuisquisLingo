@@ -1,3 +1,32 @@
+# 2.0.59 (Build 259, Revision 2) - Listen and choose, Listen and answer - 2026-09-30
+
+Listen and answer's optional question did two jobs: sometimes it was an
+instruction ("Choose the greeting you hear."), sometimes a real question
+("Dove fa la spesa Maria?"). It splits into two presets (owner decisions of
+29 September 2026, plan `docs/CONTEXT_AND_HINT_PLAN.md` §6):
+
+- **Listen and choose (to target / to source)**, new: the learner hears a
+  word or a sentence and picks what was heard, or its meaning. No
+  question; an optional **Instruction or context** takes the place of the
+  standard line.
+- **Listen and answer (to target / to source)**: its **Question** is now
+  required (a Published save refuses it empty); the learner answers it
+  about what was heard.
+- The recording is unchanged in both. An exercise without a question is
+  recognized as Listen and choose.
+- The Round Wizard's listening exercise is now a Listen and choose without
+  the "What do you hear?" question (the standard line says it), and the
+  Story Wizard offers both presets.
+- **Demo content:** the Laboratory's greeting and "What did you hear?"
+  examples become Listen and choose, and a new example asks a
+  source-language question about a passage; the Piedmontese demo has one
+  Lesson per preset (41 Lessons).
+- **Help EN/IT/ES**, field Help and Search follow.
+
+Scoring, progression, Review, the Course format and learner data are
+unchanged. Beta expiry `2026-10-30 23:59:59` local time (same release day
+as Revision 0).
+
 # 2.0.59 (Build 259, Revision 1) - Complete the text and Put the sentences in order - 2026-09-30
 
 Two exercises whose answer learners could not always work out get context

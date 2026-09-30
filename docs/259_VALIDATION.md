@@ -126,3 +126,46 @@ handoff: `259_HANDOFF.md`.
   runs. PowerShell 5.1 reads `0x80000000` as a negative `Int32`, so the
   cast to `UInt32` failed; the suites ran and completed anyway. The script
   now uses `2147483648`.
+
+## Revision 2 (2.0.59+259002, 30 September 2026): the Listen and answer split
+
+**Generators and validator**
+- Laboratory: 8 Lessons, 28 Rounds, 125 examples (48 generator preset
+  names), `--check` reproducible.
+- Piedmontese: 44 catalogue presets, 41 Lessons, 123 examples, `--check`
+  reproducible.
+- Edge Case: `--check` unchanged.
+- v11 converter fixtures rewritten with their checksum; the future fixture
+  changes only its checksum.
+- `tools/validate_courses.py`: all three Courses pass (Piedmontese expects
+  41 Lessons).
+
+**Laboratory presentation baseline**
+- Record run: 125 records, rebuilt and formatted. Compared with Revision 1:
+  1 added, 2 changed, 122 unchanged; all deliberate:
+  - added `listening_source_question` (Listen and answer (to source));
+  - `select_listening_word` and `listening_source` (now Listen and choose):
+    the authored instruction replaces "Listen and choose the correct
+    answer.", and the text is counted as the prompt instead of the
+    question.
+
+**Tests**
+- New: `test/listen_and_choose_259_test.dart`, 13 tests: the catalogue
+  (order, names, twins, directions, base, kinds, required Question), its
+  form, Search and Help keys in EN/IT/ES; Listen and choose (instruction
+  without a language, the source twin marks only the answers, recognition
+  for an exercise without a question, the Round's instruction line, the
+  form); Listen and answer (Published needs the Question, a draft does
+  not, a new one asks about the passage, the form's label, the Round's
+  standard line and question); the demo content (Laboratory and
+  Piedmontese).
+- First focused run: 17 failures, every one a pin on the old catalogue
+  (registry 44 presets, field Help and mascot tables, the runtime kind and
+  Duel tables, the Round Wizard pools, "Question (optional)", the
+  Piedmontese counts), plus the new test's field list, which gains
+  `image` like every form. Updated; the Duel test's listening helper
+  builds a Listen and choose (a Listen and answer without a question is
+  now refused on a Published save).
+- `flutter analyze --no-pub`: no issues.
+- **Complete suite** (12:39–13:08, `--concurrency=1`, keep-awake wrapper
+  now working): **3415 passed, 1 skipped, 0 failed**.

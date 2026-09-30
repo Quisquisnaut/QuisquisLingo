@@ -77,6 +77,14 @@ abstract final class ExerciseSearchRegistry {
       fields: [_prompt, _items],
     ),
     ExerciseTypeSearchDefinition(
+      presetId: 'listening_choose_target',
+      fields: [_audio, _prompt, _items],
+    ),
+    ExerciseTypeSearchDefinition(
+      presetId: 'listening_choose_source',
+      fields: [_audio, _prompt, _items],
+    ),
+    ExerciseTypeSearchDefinition(
       presetId: 'listening_answer_target',
       fields: [_audio, _prompt, _items],
     ),

@@ -924,10 +924,14 @@ Question and Context are separate. Context can be text, audio, or both. Dialogue
       r'''Learner reads a question and chooses the answer among target-language options: grammar, culture or meaning, not only translations.''',
   'exerciseHelp.preset.choice_source.description':
       r'''Learner reads a question in the source language and chooses the answer: rules, culture and meanings asked in the language the learner already knows.''',
+  'exerciseHelp.preset.listening_choose_target.description':
+      r'''Learner listens to target-language audio and picks what was heard among target-language answers; there is no question.''',
+  'exerciseHelp.preset.listening_choose_source.description':
+      r'''Learner listens to target-language audio and picks its meaning among source-language answers; there is no question.''',
   'exerciseHelp.preset.listening_answer_target.description':
-      r'''Learner listens to target-language audio and picks the answer in the target language: what was heard, or the answer to a question about it.''',
+      r'''Learner listens to target-language audio and answers a question about it, choosing among target-language answers.''',
   'exerciseHelp.preset.listening_answer_source.description':
-      r'''Learner listens to target-language audio and picks the answer in the source language: its meaning, or the answer to a question about it.''',
+      r'''Learner listens to target-language audio and answers a source-language question about it, choosing among source-language answers.''',
   'exerciseHelp.preset.reading_answer_target.description':
       r'''Learner reads a situation in the source language and dialogue lines in the target language, then answers a target-language question.''',
   'exerciseHelp.preset.type_translation_to_target.description':
@@ -1012,10 +1016,14 @@ Question and Context are separate. Context can be text, audio, or both. Dialogue
       r'''The learner reads a question, or a sentence to complete, and chooses the right answer among text alternatives in the target language; the question itself may be in either language. It can be anything a course needs: a grammar form, a cultural fact, a meaning, a translation. Provide the question, at least two text answers and one correct answer (a new exercise starts with answer 1; several are possible with Multiple correct answers, and the Audit warns when every answer is correct). An optional Instruction or context line, in the learners’ language, is shown instead of the standard “Choose the correct answer.” line. Optional prompt audio or a picture can support the question. Keep distractors plausible but clearly wrong. The twin Choose the answer (to source) asks and answers in the source language.''',
   'exerciseHelp.preset.choice_source.body':
       r'''The learner reads a question, or a sentence to complete, written in the source language and chooses the right answer among alternatives in the source language: a grammar rule, a cultural fact, the meaning of an expression, anything better asked in the language the learner already knows. Provide the question, at least two text answers and one correct answer (a new exercise starts with answer 1; several are possible with Multiple correct answers, and the Audit warns when every answer is correct). An optional Instruction or context line, in the learners’ language, is shown instead of the standard “Choose the correct answer.” line. Optional prompt audio is spoken with the source-language voice, and a picture can support the question. Keep distractors plausible but clearly wrong. The twin Choose the answer (to target) asks and answers in the target language.''',
+  'exerciseHelp.preset.listening_choose_target.body':
+      r'''The learner hears target-language audio and picks what was heard among written alternatives in the target language. There is no question; an optional instruction or context sets the scene and replaces the standard line. Spoken text contains exactly what the learner should hear; it plays as in Listen and answer (to target), through On-Device TTS, Recorded MP3 or Hybrid. Provide the alternatives and one correct answer; avoid visible text that gives away the audio. To ask a question about what was heard, use Listen and answer. The twin Listen and choose (to source) answers with the meaning in the source language.''',
+  'exerciseHelp.preset.listening_choose_source.body':
+      r'''The learner hears target-language audio and picks its meaning among written alternatives in the source language. There is no question; an optional instruction or context sets the scene and replaces the standard line. Spoken text, On-Device TTS, Recorded MP3 and Hybrid work as in Listen and answer (to target). Provide the alternatives and one correct answer; avoid visible text that gives away the audio.''',
   'exerciseHelp.preset.listening_answer_target.body':
-      r'''The learner hears target-language audio and chooses the answer among written alternatives in the target language. Without a question the learner picks what was heard; with a question the exercise tests comprehension of the passage, so make the passage long enough. Spoken text contains exactly what the learner should hear, for example: Buongiorno, come stai? On-Device TTS sends this text to the device’s native speech engine. Recorded MP3 resolves Course Audio Library text mappings; Hybrid tries a complete MP3 sequence before native TTS. For MP3, open Course Editor > Audio Library, copy files to {folderAudioImports}, press Import MP3, then Associate recording with its Word or expression and select Recorded MP3 only or Hybrid. There is no per-exercise MP3 attachment. Physical files are grouped by learning language; references belong to the Course. Verified Course backups copy referenced files; JSON alone does not transfer MP3 bytes. Provide written alternatives and exactly one correct answer; avoid visible text that gives away the audio. The twin Listen and answer (to source) asks and answers in the source language.''',
+      r'''The learner hears target-language audio and chooses the answer among written alternatives in the target language. The question is required: the learner answers it about what was heard, so make the passage long enough. To let the learner pick what was heard, with no question, use Listen and choose. Spoken text contains exactly what the learner should hear, for example: Buongiorno, come stai? On-Device TTS sends this text to the device’s native speech engine. Recorded MP3 resolves Course Audio Library text mappings; Hybrid tries a complete MP3 sequence before native TTS. For MP3, open Course Editor > Audio Library, copy files to {folderAudioImports}, press Import MP3, then Associate recording with its Word or expression and select Recorded MP3 only or Hybrid. There is no per-exercise MP3 attachment. Physical files are grouped by learning language; references belong to the Course. Verified Course backups copy referenced files; JSON alone does not transfer MP3 bytes. Provide written alternatives and exactly one correct answer; avoid visible text that gives away the audio. The twin Listen and answer (to source) asks and answers in the source language.''',
   'exerciseHelp.preset.listening_answer_source.body':
-      r'''The learner hears target-language audio and chooses the answer among written alternatives in the source language: the meaning of what was heard, or the answer to a question asked in the source language. Provide the spoken text in the target language, an optional question, the alternatives and one correct answer. Spoken text, On-Device TTS, Recorded MP3 and Hybrid work as in Listen and answer (to target). Avoid visible text that gives away the audio.''',
+      r'''The learner hears target-language audio and answers a question asked in the source language, choosing among written alternatives in the source language. Provide the spoken text in the target language, the question (required), the alternatives and one correct answer. For the meaning alone, with no question, use Listen and choose (to source). Spoken text, On-Device TTS, Recorded MP3 and Hybrid work as in Listen and answer (to target). Avoid visible text that gives away the audio.''',
   'exerciseHelp.preset.reading_answer_target.body':
       r'''The learner reads a short text in the source language that explains the situation, then dialogue lines in the target language (one “Speaker: text” turn per line), and answers a question in the target language by choosing among target-language alternatives. Provide the text, the dialogue or both, the question, at least two answers and one correct answer. Read the dialogue aloud: Automatically speaks each line in turn with a short pause when the exercise appears; On request adds a Play dialogue button; No read-aloud keeps it silent. The text to read is never read aloud, and the read-aloud never makes this an audio exercise. An exercise image may accompany it. This preset replaces Reading comprehension, Dialogue response and Contextual comprehension; Read and answer (to source) was retired and opens here.''',
   'exerciseHelp.preset.type_translation_to_target.body':
@@ -1148,6 +1156,17 @@ Example
 the one before a vowel
 the one before a consonant
 none''',
+  'exerciseHelp.field.listening_answer.question.body':
+      r'''The question the learner answers about what they hear.
+
+What to enter
+One question about the recording: who, what, where, how many. Listen and answer (to source) asks it in the source language. To let the learner simply pick what was heard, with no question, use Listen and choose.
+
+Checks
+Required: a Published save refuses it empty. Make the recording long enough to answer it, and mark the correct answer.
+
+Example
+Dove fa la spesa Maria?''',
   'exerciseHelp.field.choice_source.question.body':
       r'''The question, or the sentence to complete, written in the source language.
 

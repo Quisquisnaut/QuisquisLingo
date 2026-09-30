@@ -1542,7 +1542,7 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "listening_choice",
+              "editorTemplate": "listening_choose_target",
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
                 "prompt": [
@@ -1552,7 +1552,7 @@
                     "text": "Buongiorno."
                   },
                   {
-                    "role": "question",
+                    "role": "primary",
                     "type": "text",
                     "text": "Choose the greeting you hear."
                   }
@@ -1971,7 +1971,7 @@
               "kind": "text",
               "required": false,
               "role": "lesson_intro",
-              "text": "These Select exercises answer in the source language or with pictures: Choose the answer (to source), True or false, Listen and answer (to source), What is in the picture and Listen and pick the image."
+              "text": "These Select exercises answer in the source language or with pictures: Choose the answer (to source), True or false, Listen and choose (to source), Listen and answer (to source), What is in the picture and Listen and pick the image."
             },
             {
               "id": "qql_lab254_choice_source_meaning",
@@ -2215,7 +2215,7 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "listening_answer_source",
+              "editorTemplate": "listening_choose_source",
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
                 "prompt": [
@@ -2225,10 +2225,9 @@
                     "text": "Grazie mille!"
                   },
                   {
-                    "role": "question",
+                    "role": "primary",
                     "type": "text",
-                    "text": "What did you hear?",
-                    "language": "source"
+                    "text": "What did you hear?"
                   }
                 ],
                 "interaction": {
@@ -2275,6 +2274,75 @@
                   "kind": "selected_items",
                   "correctItemIds": [
                     "qql_lab254_listening_source_item_0"
+                  ]
+                }
+              }
+            },
+            {
+              "id": "qql_lab254_listening_source_question",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "listening_answer_source",
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "prompt": [
+                  {
+                    "role": "passage",
+                    "type": "audio",
+                    "text": "Il treno per Roma parte alle nove."
+                  },
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "When does the train leave?",
+                    "language": "source"
+                  }
+                ],
+                "interaction": {
+                  "kind": "select",
+                  "minSelections": 1,
+                  "maxSelections": 1,
+                  "items": [
+                    {
+                      "id": "qql_lab254_listening_source_question_item_0",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "At nine",
+                          "language": "source"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_lab254_listening_source_question_item_1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "At ten",
+                          "language": "source"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_lab254_listening_source_question_item_2",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "At noon",
+                          "language": "source"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "evaluation": {
+                  "kind": "selected_items",
+                  "correctItemIds": [
+                    "qql_lab254_listening_source_question_item_0"
                   ]
                 }
               }
@@ -6936,5 +7004,5 @@
       }
     }
   ],
-  "officialChecksum": "add7786f86335bd07884ef44b47e0b6e066242ee4f62907fb51891ab5e811276"
+  "officialChecksum": "4f1167e9cc7f5b3a84b0ac3e4750a27773a7eb32c1d210aec186122e282fea61"
 }

@@ -178,7 +178,8 @@ void main() {
     await _mount(tester, _exercise('listening_comprehension'));
     expect(workflow.field('Spoken passage'), findsNothing);
     expect(workflow.field('Spoken text'), findsOneWidget);
-    expect(workflow.field('Question (optional)'), findsOneWidget);
+    // The question is required since Build 259 Revision 2.
+    expect(workflow.field('Question'), findsOneWidget);
   });
 
   testWidgets(

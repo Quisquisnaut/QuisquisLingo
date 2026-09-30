@@ -29,6 +29,9 @@ const _expectedKinds = <String, Set<LearnerExerciseKind>>{
   'gap_choice': {LearnerExerciseKind.selectComplete},
   'icon_choice': {LearnerExerciseKind.selectImage},
   'script_recognition': {LearnerExerciseKind.selectCharacter},
+  // Listen and choose (Build 259 Revision 2): what was heard, no question.
+  'listening_choose_target': {LearnerExerciseKind.selectListen},
+  'listening_choose_source': {LearnerExerciseKind.selectListen},
   'listening_answer_target': {
     LearnerExerciseKind.selectListen,
     LearnerExerciseKind.selectListenPassage,
@@ -330,6 +333,8 @@ void main() {
         'gap_choice',
         'icon_choice',
         'script_recognition',
+        'listening_choose_target',
+        'listening_choose_source',
         'listening_answer_target',
         'reading_answer_target',
         'translation_choice_to_target',

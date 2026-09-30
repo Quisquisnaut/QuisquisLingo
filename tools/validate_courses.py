@@ -475,7 +475,8 @@ def validate(path: Path, global_ids: dict[str, str]) -> list[str]:
         # The Page Lesson (Build 258 Revision 3) is the eighth.
         "exercise_laboratory_en_it.json": 8,
         "edge_case_it_en.json": 6,
-        "piedmontais_en.json": 39,
+        # Listen and choose (Build 259 Revision 2) adds two Lessons.
+        "piedmontais_en.json": 41,
     }.get(path.name, 9)
     if len(lessons) != expected_lessons:
         issues.append(

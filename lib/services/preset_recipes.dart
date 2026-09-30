@@ -58,6 +58,8 @@ abstract final class PresetRecipes {
       LearnerExerciseKind.inputComplete,
     },
     'word_order': {LearnerExerciseKind.arrangeSentence},
+    'listening_choose_target': {LearnerExerciseKind.selectListen},
+    'listening_choose_source': {LearnerExerciseKind.selectListen},
     'listening_answer_target': {
       LearnerExerciseKind.selectListen,
       LearnerExerciseKind.selectListenPassage,

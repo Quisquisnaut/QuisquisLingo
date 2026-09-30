@@ -63,9 +63,10 @@ void main() {
       // and the two Assign presets (the Laboratory's Assign Lesson shows
       // them; owner decision, 29 September 2026). Before you start has no
       // Lesson either: its card opens every Lesson (Build 257). Page has
-      // none: the Laboratory shows it (Build 258).
+      // none: the Laboratory shows it (Build 258). Listen and choose adds two
+      // presets and two Lessons (Build 259 Revision 2).
       expect(course.lessons, hasLength(presets.length - 5));
-      expect(presets, hasLength(44));
+      expect(presets, hasLength(46));
       final seenTypes = <String>{};
       for (final lesson in course.lessons) {
         expect(lesson.publicationState, PublicationState.published);
@@ -111,7 +112,7 @@ void main() {
   );
 
   test(
-    'all 117 Piedmontese examples pass Audit and enter the runnable queue',
+    'all 123 Piedmontese examples pass Audit and enter the runnable queue',
     () async {
       final course = await loadCourse();
       final audit = CourseAuditService().auditCourse(course);
@@ -161,7 +162,7 @@ void main() {
       }
       // Rounds of cards or lines only (Flashcard, Picture flashcard, Note
       // card, Dialogue line) can be completed but never earn a Laurel.
-      expect(playable.laurelEligibleRoundIds(course), hasLength(35));
+      expect(playable.laurelEligibleRoundIds(course), hasLength(37));
     },
   );
 

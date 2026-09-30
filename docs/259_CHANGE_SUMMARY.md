@@ -188,3 +188,80 @@ lines" and in "Correct order".
 
 Scoring, progression, Review, the Course format and learner data are
 unchanged.
+
+## Revision 2 (2.0.59+259002, 30 September 2026): the Listen and answer split
+
+Owner decisions: plan §2, decisions 2, 3 and 9; plan §6.
+
+**Why.** Listen and answer's optional question did two jobs. In the demos
+it was sometimes an instruction ("Choose the greeting you hear.", "What
+did you hear?") and sometimes a real question ("Dove fa la spesa
+Maria?"). By decision 3 a preset that needs instances with and without a
+question splits in two.
+
+**The presets.**
+- **Listen and choose (to target)** `listening_choose_target` and **(to
+  source)** `listening_choose_source`, new, first in the Listening group:
+  - the learner hears a word or a sentence and picks what was heard, or
+    its meaning;
+  - no question; an optional Instruction or context, stored as a
+    `primary` text with no language. `PresetVariants.draftFor` gives the
+    form's prompt to the What do you hear recipe's question, and `_shape`
+    turns it into the instruction (`_questionAsInstruction`), as for
+    Listen and pick the image; the source twin marks only its answers;
+  - base `listening_choice` (`presetRecipeBaseOf`, `PRESET_BASE`), kinds
+    `{selectListen}`, twins of each other.
+- **Listen and answer (to target / to source)** keep their IDs. The
+  **Question** is required (`ExerciseDraftBuilder.requiredTexts`, label
+  Question): a Published save refuses it empty. A new one asks about the
+  passage (`listening_comprehension`); a stored primary-audio exercise
+  keeps its shape.
+- The recording is unchanged in both.
+- Recognition follows the registry order, so an exercise without a
+  question and without a recorded preset is Listen and choose; one with a
+  question is Listen and answer.
+- The v11 successors are unchanged: a v11 `listening_choice` still
+  converts to `listening_answer_target` (old exercises are not a concern,
+  decision 9).
+
+**Forms.** The listening form shows Instruction or context (optional)
+for Listen and choose and **Question** for Listen and answer
+("What the learner answers about what they hear…"). Its old label was
+"Question (optional)".
+
+**Also following the split.**
+- The Round Wizard's listening exercise (the GuideBook Round generator)
+  is a Listen and choose. Its "What do you hear?" was an instruction, not
+  a question, and the standard line already says it.
+- The Story Wizard offers both new presets.
+- The four interoperability patterns that tap what was heard ("Listen &
+  Tap", "tap what you hear", "listen and choose", "SpellingPick") hint
+  Listen and choose.
+- The Audit's listening checks and mismatch hint cover the new presets.
+
+**Field Help, Help EN/IT/ES, Search.**
+- Field lists: `tts, prompt, answers, correct` for Listen and choose.
+- Listen and answer's question has its own Help: the inline override and
+  `exerciseHelp.field.listening_answer.question.body`. It borrowed Select
+  the image's and Choose the answer (to source)'s before.
+- Preset descriptions and bodies for the two new presets. Listen and
+  answer's no longer call the question optional.
+- Search covers the new presets.
+
+**Demo content.**
+- Laboratory: the greeting example (`select_listening_word`) is Listen and
+  choose (to target) with the instruction "Choose the greeting you hear.";
+  `listening_source` is Listen and choose (to source) with the instruction
+  "What did you hear?". A new `listening_source_question` asks "When does
+  the train leave?" about "Il treno per Roma parte alle nove.", a Listen
+  and answer (to source). 125 examples.
+- Piedmontese: one Lesson per preset. "Hear a greeting" becomes Listen and
+  choose (to target), plus two new Lessons: "Hear the meaning" (Listen and
+  choose (to source)) and "Listen and answer" (Listen and answer (to
+  target), English questions about Piedmontese passages, Piedmontese
+  answers). 41 Lessons, 123 examples. The Story Lesson is numbered after
+  the preset Lessons instead of a fixed 39.
+- The registry holds 46 presets.
+
+Scoring, progression, Review, the Course format and learner data are
+unchanged.

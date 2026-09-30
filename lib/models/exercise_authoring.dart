@@ -91,6 +91,8 @@ class ExercisePreset {
     'type_translation_to_source' => 'type_translation_to_target',
     'build_translation_to_target' => 'build_translation_to_source',
     'build_translation_to_source' => 'build_translation_to_target',
+    'listening_choose_target' => 'listening_choose_source',
+    'listening_choose_source' => 'listening_choose_target',
     'listening_answer_target' => 'listening_answer_source',
     'listening_answer_source' => 'listening_answer_target',
     'translation_choice_to_target' => 'translation_choice_to_source',
@@ -330,11 +332,32 @@ abstract final class ExercisePresetRegistry {
       direction: PresetDirection.none,
     ),
     // ------------------------------------------------------------ Listening
+    // Listen and choose has no question; Listen and answer's question is
+    // required (Build 259 Revision 2, owner decisions of 29 September 2026).
+    ExercisePreset(
+      id: 'listening_choose_target',
+      name: 'Listen and choose (to target)',
+      description:
+          'Learner listens to a word or a sentence and chooses what was heard among target-language answers; no question.',
+      category: ExerciseCategory.listening,
+      primitive: ExercisePrimitive.select,
+      base: 'listening_choice',
+    ),
+    ExercisePreset(
+      id: 'listening_choose_source',
+      name: 'Listen and choose (to source)',
+      description:
+          'Learner listens to a word or a sentence and chooses its meaning among source-language answers; no question.',
+      category: ExerciseCategory.listening,
+      primitive: ExercisePrimitive.select,
+      direction: PresetDirection.toSource,
+      base: 'listening_choice',
+    ),
     ExercisePreset(
       id: 'listening_answer_target',
       name: 'Listen and answer (to target)',
       description:
-          'Learner listens to a word, a sentence or a passage and chooses the target-language answer; a question is optional.',
+          'Learner listens to a word, a sentence or a passage and answers a question about it among target-language answers.',
       category: ExerciseCategory.listening,
       primitive: ExercisePrimitive.select,
       base: 'listening_comprehension',
@@ -343,7 +366,7 @@ abstract final class ExercisePresetRegistry {
       id: 'listening_answer_source',
       name: 'Listen and answer (to source)',
       description:
-          'Learner listens to a word, a sentence or a passage and chooses the source-language answer; a question is optional.',
+          'Learner listens to a word, a sentence or a passage and answers a source-language question about it among source-language answers.',
       category: ExerciseCategory.listening,
       primitive: ExercisePrimitive.select,
       direction: PresetDirection.toSource,
@@ -628,10 +651,14 @@ abstract final class ExercisePresetRegistry {
         'Enter a sentence with one ___ gap and the complete accepted words for it. Show the first letter turns the gap into a hint that reveals the first letter; off, the learner types the whole word without help.',
     'word_order':
         'The learner rearranges target-language blocks into their correct order. Provide the available text blocks and the correct order; at most two distractor blocks.',
+    'listening_choose_target':
+        'The learner hears a word or a sentence and chooses what was heard among target-language answers. Provide the spoken text, an optional instruction or context, at least two answers and the correct answer number.',
+    'listening_choose_source':
+        'The learner hears a target-language word or sentence and chooses its meaning among source-language answers. Provide the spoken text, an optional instruction or context, at least two source-language answers and the correct answer number.',
     'listening_answer_target':
-        'The learner hears a word, a sentence or a passage and chooses the target-language answer. Provide the spoken text, an optional question (without it the learner picks what was heard), at least two answers and the correct answer number.',
+        'The learner hears a word, a sentence or a passage and answers a question about it among target-language answers. Provide the spoken text, the question, at least two answers and the correct answer number.',
     'listening_answer_source':
-        'The learner hears a word, a sentence or a passage and chooses the source-language answer. Provide the spoken text, an optional question in the source language, at least two source-language answers and the correct answer number.',
+        'The learner hears a word, a sentence or a passage and answers a question in the source language among source-language answers. Provide the spoken text, the question in the source language, at least two source-language answers and the correct answer number.',
     'listening_spelling':
         'The learner hears audio and types what was heard. Provide the audio text and accepted transcription. Audio and accepted text should match exactly except for permitted normalization.',
     'missing_word':

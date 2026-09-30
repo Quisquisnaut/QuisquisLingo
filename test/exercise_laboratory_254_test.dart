@@ -694,7 +694,8 @@ void main() {
       ]);
       expect(course.createDuels, isFalse);
       expect(course.derivativeWorksPolicy, DerivativeWorksPolicy.allowed);
-      expect(examples, hasLength(124));
+      // 125 with Listen and answer (to source) (Build 259 Revision 2).
+      expect(examples, hasLength(125));
       // The examples cover every preset but Before you start, whose card
       // opens every Round (Build 257).
       expect({

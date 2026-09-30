@@ -5,14 +5,14 @@ This document and the JSON are generated together by `tools/generate_exercise_la
 - Course: **Exercise Laboratory**, `course_50d68435-d2c2-4b63-9a0b-b23161357f1d`.
 - Direction: English (`en-GB`) → Italian (`it-IT`); TTS `it-IT`.
 - Model 11, official Course version 1.0.0; all Lessons, Rounds and Content are Published.
-- Exactly eight Lessons (six primitives, a Story and Pages), 28 Rounds and 124 runnable examples across all 47 authoring presets (the Assign Lesson uses the presets Sort into groups and Fill the slots since the Build 256 Revision 7 follow-up).
+- Exactly eight Lessons (six primitives, a Story and Pages), 28 Rounds and 125 runnable examples across all 48 authoring presets (the Assign Lesson uses the presets Sort into groups and Fill the slots since the Build 256 Revision 7 follow-up).
 - Course rights explicitly allow Fork, so the bundled original can be inspected and a derivative can use the ordinary authoring/confirm/export/import paths.
 - Create Duels is off: Presentation is non-evaluable and the Course is not padded to manufacture Duel pools. The required per-Lesson Duel metadata is retained.
 - This Course leaves existing Course identities, learner data and media assets unchanged.
 
 ## Source inventory and supported modes
 
-The authoring registry is `lib/models/exercise_authoring.dart`. Every one of its 47 presets has at least one example below.
+The authoring registry is `lib/models/exercise_authoring.dart`. Every one of its 48 presets has at least one example below.
 
 | Lesson | Preset | Examples |
 | --- | --- | ---: |
@@ -22,12 +22,13 @@ The authoring registry is `lib/models/exercise_authoring.dart`. Every one of its
 | Select | `icon_choice` | 2 |
 | Select | `script_recognition` | 3 |
 | Select | `reading_answer_target` | 4 |
-| Select | `listening_choice` | 1 |
+| Select | `listening_choose_target` | 1 |
 | Select | `listening_comprehension` | 1 |
 | Select | `translation_choice_to_target` | 2 |
 | Select | `translation_choice_to_source` | 2 |
 | Select | `choice_source` | 2 |
 | Select | `true_false` | 3 |
+| Select | `listening_choose_source` | 1 |
 | Select | `listening_answer_source` | 1 |
 | Select | `picture_choice` | 1 |
 | Select | `listening_image_choice` | 1 |
@@ -90,7 +91,7 @@ The suffix below follows `qql_lab254_` in the stable Content/Exercise ID. Answer
 | Select / Read and answer | reading_dialogue | reading_answer_target | Read and answer; situation, dialogue lines and an image, no read-aloud | Una mela. |
 | Select / Read and answer | reading_dialogue_automatic | reading_answer_target | Read and answer; the dialogue read aloud automatically, line by line | Senza zucchero. |
 | Select / Read and answer | reading_dialogue_manual | reading_answer_target | Read and answer; dialogue lines only, read aloud on request | Vicino al parco. |
-| Select / Listening | select_listening_word | listening_choice | What do you hear; audio prompt and written answers | Buongiorno. |
+| Select / Listening | select_listening_word | listening_choose_target | Listen and choose (to target); audio prompt, an instruction and written answers | Buongiorno. |
 | Select / Listening | select_listening_passage | listening_comprehension | Listen and choose; passage audio and separate question | Al mercato. |
 | Select / Two translation directions | translation_target_two | translation_choice_to_target | Pick translation to target; minimum two answers; no image | Buongiorno. |
 | Select / Two translation directions | translation_target_five | translation_choice_to_target | Pick translation to target; maximum five answers; optional image | Il gatto dorme. |
@@ -100,7 +101,8 @@ The suffix below follows `qql_lab254_` in the stable Content/Exercise ID. Answer
 | Select / Source-language answers, pictures and true or false | choice_source_culture | choice_source | Choose the answer (to source); a culture question | From the afternoon on |
 | Select / Source-language answers, pictures and true or false | true_false_true | true_false | True or false; a true statement, answers in the source language | True |
 | Select / Source-language answers, pictures and true or false | true_false_spoken | true_false | True or false; a spoken false statement | False |
-| Select / Source-language answers, pictures and true or false | listening_source | listening_answer_source | Listen and answer (to source); answers in the source language | Thank you very much |
+| Select / Source-language answers, pictures and true or false | listening_source | listening_choose_source | Listen and choose (to source); an instruction, answers in the source language | Thank you very much |
+| Select / Source-language answers, pictures and true or false | listening_source_question | listening_answer_source | Listen and answer (to source); a source-language question about a passage | At nine |
 | Select / Source-language answers, pictures and true or false | picture_choice | picture_choice | What is in the picture; picture prompt, text answers | la mela |
 | Select / Source-language answers, pictures and true or false | listening_image | listening_image_choice | Listen and pick the image; captioned picture answers | il gatto |
 | Input / Translations and accepted variants | input_literal | type_translation | One literal accepted translation | grazie |
@@ -217,8 +219,8 @@ The suffix below follows `qql_lab254_` in the stable Content/Exercise ID. Answer
 
 1. `python -X utf8 tools/generate_exercise_laboratory_254.py --check`: deterministic JSON/checksum and coverage-document readback.
 2. `python -X utf8 tools/validate_courses.py`: Course Model structure, timestamps, stable unique IDs, references, publication and official checksum.
-3. `test/exercise_laboratory_254_test.dart` checks the actual asset's Audit and canonical model round trip, then rebuilds all 124 examples through ExerciseDraftBuilder (and ScriptRecognitionController for its image modes), comparing semantic fields and each result's model round trip. Separate preservation assertions cover Flashcard usage and usage translation. Editor route tests include `exercise_authoring_252_characterization_test.dart`, `select_editor_238_test.dart`, `arrange_gap_fill_editor_238_test.dart`, `script_recognition_226_03_test.dart` and `translation_choice_239_test.dart`.
-4. The same Lab suite completes all 124 examples through RoundScreen Preview using actual controls and grading, including repeated blocks, reusable gaps, exact multiple-selection sets and audio matching. Additional cases finish an alternate Build translation answer and a Review again/Got it cycle. Speech is stubbed only at the playback seam; these tests do not establish native voice quality or normal progression persistence.
+3. `test/exercise_laboratory_254_test.dart` checks the actual asset's Audit and canonical model round trip, then rebuilds all 125 examples through ExerciseDraftBuilder (and ScriptRecognitionController for its image modes), comparing semantic fields and each result's model round trip. Separate preservation assertions cover Flashcard usage and usage translation. Editor route tests include `exercise_authoring_252_characterization_test.dart`, `select_editor_238_test.dart`, `arrange_gap_fill_editor_238_test.dart`, `script_recognition_226_03_test.dart` and `translation_choice_239_test.dart`.
+4. The same Lab suite completes all 125 examples through RoundScreen Preview using actual controls and grading, including repeated blocks, reusable gaps, exact multiple-selection sets and audio matching. Additional cases finish an alternate Build translation answer and a Review again/Got it cycle. Speech is stubbed only at the playback seam; these tests do not establish native voice quality or normal progression persistence.
 5. Export/import of the Course through the normal ZIP and embedded-image JSON routes preserves this Course's identity, content wrappers, answers and character PNG bytes. A Fork gets a new identity through the existing rights-aware operation.
 
 These are verification seams, not a claim that commands have been run. Fresh integrated results are recorded in the Build 254 validation document.

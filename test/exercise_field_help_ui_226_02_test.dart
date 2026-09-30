@@ -52,15 +52,29 @@ const _formFields = <String, Map<String, String>>{
     'Correct answer number': 'correct',
     'Icons / image keys': 'icons',
   },
+  // Listen and choose has no question; Listen and answer's is required
+  // (Build 259 Revision 2).
+  'listening_choose_target': {
+    'Spoken text': 'tts',
+    'Instruction or context (optional)': 'prompt',
+    'Answers': 'answers',
+    'Correct answer number': 'correct',
+  },
+  'listening_choose_source': {
+    'Spoken text': 'tts',
+    'Instruction or context (optional)': 'prompt',
+    'Answers': 'answers',
+    'Correct answer number': 'correct',
+  },
   'listening_answer_target': {
     'Spoken text': 'tts',
-    'Question (optional)': 'question',
+    'Question': 'question',
     'Answers': 'answers',
     'Correct answer number': 'correct',
   },
   'listening_answer_source': {
     'Spoken text': 'tts',
-    'Question (optional)': 'question',
+    'Question': 'question',
     'Answers': 'answers',
     'Correct answer number': 'correct',
   },

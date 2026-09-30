@@ -210,7 +210,7 @@ abstract final class ExerciseInteroperabilityCatalog {
       sourcePattern: 'SpellingPick',
       status: ImportabilityStatus.configurationMapping,
       configuration: _select,
-      presetHint: 'listening_answer_target',
+      presetHint: 'listening_choose_target',
       notes: 'The prompt audio plays automatically and is required.',
     ),
     InteroperabilityMapping(
@@ -283,7 +283,7 @@ abstract final class ExerciseInteroperabilityCatalog {
       sourcePattern: 'Listen & Tap',
       status: ImportabilityStatus.direct,
       configuration: _select,
-      presetHint: 'listening_answer_target',
+      presetHint: 'listening_choose_target',
     ),
     InteroperabilityMapping(
       sourcePattern: 'Match Pairs',
@@ -313,7 +313,7 @@ abstract final class ExerciseInteroperabilityCatalog {
       sourcePattern: 'tap what you hear',
       status: ImportabilityStatus.direct,
       configuration: _select,
-      presetHint: 'listening_answer_target',
+      presetHint: 'listening_choose_target',
     ),
     InteroperabilityMapping(
       sourcePattern: 'type what you hear',
@@ -356,7 +356,7 @@ abstract final class ExerciseInteroperabilityCatalog {
       sourcePattern: 'listen and choose',
       status: ImportabilityStatus.direct,
       configuration: _select,
-      presetHint: 'listening_answer_target',
+      presetHint: 'listening_choose_target',
     ),
     InteroperabilityMapping(
       sourcePattern: 'matching pairs',

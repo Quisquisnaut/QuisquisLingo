@@ -139,7 +139,7 @@ void main() {
           'choice_target',
           'word_match',
           'audio_match',
-          'listening_answer_target',
+          'listening_choose_target',
           'word_order',
           'gap_choice',
           'type_translation_to_target',

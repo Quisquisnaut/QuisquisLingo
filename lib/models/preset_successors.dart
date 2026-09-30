@@ -26,6 +26,10 @@ const presetSuccessorOf = <String, String>{
 const presetRecipeBaseOf = <String, String>{
   'choice_target': 'choice',
   'choice_source': 'choice',
+  // Listen and choose (Build 259 Revision 2) converts from the What do you
+  // hear shape.
+  'listening_choose_target': 'listening_choice',
+  'listening_choose_source': 'listening_choice',
   'listening_answer_target': 'listening_comprehension',
   'listening_answer_source': 'listening_comprehension',
   'reading_answer_target': 'reading_comprehension',

@@ -622,8 +622,9 @@ void main() {
       imageAsset: 'assets/exercise_images/apple.webp',
     ).copyWith(id: 'duel-picture-$index');
 
+    // Listen and choose: no question (Build 259 Revision 2).
     Exercise listening(int index) => _built(
-      'listening_answer_target',
+      'listening_choose_target',
       tts: 'buongiorno $index',
       answers: 'buongiorno $index\nbuonasera $index',
       correct: '1',

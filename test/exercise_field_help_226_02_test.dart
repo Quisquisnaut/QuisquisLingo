@@ -59,6 +59,8 @@ void main() {
       'gap_choice': ['question', 'answers', 'correct', 'hint'],
       'type_missing_word': ['revealFirstLetter', 'prompt', 'accepted', 'hint'],
       'word_order': ['prompt', 'gapLayout', 'tokens', 'order', 'tts'],
+      'listening_choose_target': ['tts', 'prompt', 'answers', 'correct'],
+      'listening_choose_source': ['tts', 'prompt', 'answers', 'correct'],
       'listening_answer_target': ['tts', 'question', 'answers', 'correct'],
       'listening_answer_source': ['tts', 'question', 'answers', 'correct'],
       'listening_spelling': ['prompt', 'tts', 'missingWords'],

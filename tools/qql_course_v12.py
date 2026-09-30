@@ -45,6 +45,8 @@ KIND_TYPE = {"select": "choice", "input": "fill_blank", "arrange": "word_order",
 PRESET_BASE = {
     "choice_target": "choice",
     "choice_source": "choice",
+    "listening_choose_target": "listening_choice",
+    "listening_choose_source": "listening_choice",
     "listening_answer_target": "listening_comprehension",
     "listening_answer_source": "listening_comprehension",
     "reading_answer_target": "reading_comprehension",

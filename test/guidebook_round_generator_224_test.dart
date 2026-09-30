@@ -26,7 +26,7 @@ void main() {
         isIn({
           'choice_target',
           'gap_choice',
-          'listening_answer_target',
+          'listening_choose_target',
           'word_match',
         }),
       ),

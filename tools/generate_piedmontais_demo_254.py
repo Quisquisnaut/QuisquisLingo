@@ -280,13 +280,25 @@ def lesson_specs() -> list[tuple[str, str, str, list[dict]]]:
             ("ò", ["o", "ó", "ò"], 2, "Which o-family character is shown?"),
         ]
     ])
-    add("listening_answer_target", "Hear a greeting", "bondì = good morning; mersì = thank you; ciàu = hello or bye. Choose the exact written word you hear. " + AUDIO_NOTE, [
-        choose("listening_answer_target", [text(instruction), audio(heard)], choices, correct)
+    add("listening_choose_target", "Hear a greeting", "bondì = good morning; mersì = thank you; ciàu = hello or bye. Choose the exact written word you hear. " + AUDIO_NOTE, [
+        choose("listening_choose_target", [text(instruction), audio(heard)], choices, correct)
         for heard, choices, correct, instruction in [
             ("bondì", ["bondì", "mersì", "ciàu"], 0, "Listen to the first greeting."),
             ("mersì", ["ciàu", "mersì", "bondì"], 1, "Listen to the next expression."),
             ("ciàu", ["mersì", "bondì", "ciàu"], 2, "Listen to the final greeting."),
         ]
+    ])
+    # Listen and choose (to source) and Listen and answer (to target), the
+    # Build 259 Revision 2 split: no question, then a required question.
+    add("listening_choose_source", "Hear the meaning", "bondì = good morning; grassie = thank you; bon-aneuit = good night. Listen and choose the English meaning. " + AUDIO_NOTE, [
+        choose("listening_choose_source", [audio("bondì"), text("A neighbour greets you in the morning.")], ["good morning", "good night", "thank you"], language="source"),
+        choose("listening_choose_source", [audio("grassie"), text("You are given a present.")], ["goodbye", "thank you", "good morning"], 1, language="source"),
+        choose("listening_choose_source", [audio("bon-aneuit")], ["good morning", "thank you", "good night"], 2, language="source"),
+    ])
+    add("listening_answer_target", "Listen and answer", "I l'hai = I have; gat = cat; can = dog; pan = bread; eva = water; pom = apples; a ca = at home. Listen to each short passage and answer its question with a Piedmontese word. " + AUDIO_NOTE, [
+        choose("listening_answer_target", [audio("I l'hai un gat e un can.", "passage"), text("Which animal is mentioned first?", "question")], ["gat", "can", "caval"]),
+        choose("listening_answer_target", [audio("La lista: pan, eva e tre pom.", "passage"), text("What is first on the list?", "question")], ["eva", "pan", "pom"], 1),
+        choose("listening_answer_target", [audio("Mi i son a ca. I l'hai un lìber.", "passage"), text("Where is the speaker?", "question")], ["al mercà", "a scòla", "a ca"], 2),
     ])
     add("listening_answer_source", "Listen for meaning", "I l'hai = I have; i son = I am; a ca = at home; lìber = book; un = one; doi = two; tre = three. Listen to each short passage and answer its English question. " + AUDIO_NOTE, [
         choose("listening_answer_source", [audio("Mi i son a ca. I l'hai un lìber.", "passage"), text("What does the speaker have?", "question", "source")], ["a book", "a dog", "an apple"]),
@@ -559,7 +571,7 @@ def build_course_v11() -> dict:
     return course
 
 
-def story_lessons() -> list[dict]:
+def story_lessons(number: int) -> list[dict]:
     """Build 256 Revision 5: the Dialogue line preset has no v11 recipe and
     gets its Lesson here, a Story of three lines; it joins after conversion,
     so the converter fixture (build_course_v11) omits it. The Story cover
@@ -592,7 +604,7 @@ def story_lessons() -> list[dict]:
             "duel": {"id": f"{lid}_duel", "title": "Duel"},
         }
 
-    rid = f"{PREFIX}_l39_r01"
+    rid = f"{PREFIX}_l{number:02d}_r01"
     lines = [
         intro(rid, "Dialogue line", "At the market"),
         entry(rid, 1, "dialogue_line", story_line(
@@ -608,7 +620,7 @@ def story_lessons() -> list[dict]:
         "flow": story_flow([(c["id"], becomes_exercise(c)) for c in lines], title="Al mercà"),
     }
     return [
-        lesson(39, "Dialogue line", "At the market",
+        lesson(number, "Dialogue line", "At the market",
                "A Story: the narrator speaks English, Gioanin and Catlin-a speak Piedmontese. Read or listen to each line and continue; the scroll log keeps the dialogue. bondì = good morning; un pan = a loaf of bread; për piasì = please; grassie = thank you.",
                story),
     ]
@@ -616,7 +628,7 @@ def story_lessons() -> list[dict]:
 
 def build_course() -> dict:
     v11 = build_course_v11()
-    v11["lessons"] = [*v11["lessons"], *story_lessons()]
+    v11["lessons"] = [*v11["lessons"], *story_lessons(len(v11["lessons"]) + 1)]
     course = convert_course_v11_to_v12(v11)
     course["storyNarrator"] = {"name": "Narrator", "language": "source"}
     course["storyCharacters"] = [
@@ -642,7 +654,7 @@ def main() -> int:
         if not OUTPUT.is_file() or OUTPUT.read_text(encoding="utf-8") != rendered:
             print(f"FAIL: {OUTPUT.relative_to(ROOT)} differs from the authored generator")
             return 1
-        print("PASS: Piedmontese course is reproducible; 42 catalogue presets, 39 Lessons (Story cover, Sort into groups and Fill the slots have none), 117 examples")
+        print("PASS: Piedmontese course is reproducible; 44 catalogue presets, 41 Lessons (Story cover, Sort into groups and Fill the slots have none), 123 examples")
         return 0
     OUTPUT.write_text(rendered, encoding="utf-8", newline="\n")
     print(f"Wrote {OUTPUT.relative_to(ROOT)}: one Lesson per catalogue preset")

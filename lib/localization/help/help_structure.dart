@@ -250,6 +250,8 @@ const exerciseHelpPresetIds = <String>[
   'gap_choice',
   'type_missing_word',
   'word_order',
+  'listening_choose_target',
+  'listening_choose_source',
   'listening_answer_target',
   'listening_answer_source',
   'listening_spelling',
@@ -383,16 +385,29 @@ const exerciseHelpFieldKeyByPresetAndField = <String, String>{
   'word_order.order': 'exerciseHelp.field.word_order.order.body',
   'word_order.tts': 'exerciseHelp.field.choice.tts.body',
   'word_order.image': 'exerciseHelp.field.choice.image.body',
+  'listening_choose_target.tts': 'exerciseHelp.field.listening_choice.tts.body',
+  'listening_choose_target.prompt': 'exerciseHelp.field.instruction.body',
+  'listening_choose_target.answers': 'exerciseHelp.field.choice.answers.body',
+  'listening_choose_target.correct':
+      'exerciseHelp.field.gap_choice.correct.body',
+  'listening_choose_target.image': 'exerciseHelp.field.choice.image.body',
+  'listening_choose_source.tts': 'exerciseHelp.field.listening_choice.tts.body',
+  'listening_choose_source.prompt': 'exerciseHelp.field.instruction.body',
+  'listening_choose_source.answers':
+      'exerciseHelp.field.choice_source.answers.body',
+  'listening_choose_source.correct':
+      'exerciseHelp.field.gap_choice.correct.body',
+  'listening_choose_source.image': 'exerciseHelp.field.choice.image.body',
   'listening_answer_target.tts': 'exerciseHelp.field.listening_choice.tts.body',
   'listening_answer_target.question':
-      'exerciseHelp.field.icon_choice.question.body',
+      'exerciseHelp.field.listening_answer.question.body',
   'listening_answer_target.answers': 'exerciseHelp.field.choice.answers.body',
   'listening_answer_target.correct':
       'exerciseHelp.field.gap_choice.correct.body',
   'listening_answer_target.image': 'exerciseHelp.field.choice.image.body',
   'listening_answer_source.tts': 'exerciseHelp.field.listening_choice.tts.body',
   'listening_answer_source.question':
-      'exerciseHelp.field.choice_source.question.body',
+      'exerciseHelp.field.listening_answer.question.body',
   'listening_answer_source.answers':
       'exerciseHelp.field.choice_source.answers.body',
   'listening_answer_source.correct':
