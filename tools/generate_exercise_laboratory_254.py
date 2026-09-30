@@ -20,7 +20,7 @@ import zlib
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from qql_course_v12 import _ordered_evaluation, _ordered_options, assign_exercise, convert_course_v11_to_v12, story_cover, story_flow, story_line  # noqa: E402
+from qql_course_v12 import _ordered_evaluation, _ordered_options, assign_exercise, becomes_exercise, before_you_start, page_exercise, convert_course_v11_to_v12, story_cover, story_flow, story_line  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 ASSET = ROOT / "assets/courses/exercise_laboratory_en_it.json"
@@ -335,6 +335,18 @@ class Laboratory:
         self.cases.append({"id": identity, "lesson": self.lesson["title"], "round": self.round["title"],
                            "preset": preset, "capability": capability, "answer": answer})
 
+    def page(self, key: str, blocks: list[dict], capability: str) -> None:
+        """A Page example (Build 258 Revision 3): canonical content carrying
+        the Page preset, whose recipe represents it."""
+        identity = "qql_lab254_" + key
+        self.round["content"].append({
+            "id": identity, "publicationState": "published", "kind": "exercise",
+            "required": True, "editorTemplate": "page",
+            "exercise": page_exercise(blocks, updated_at=STAMP),
+        })
+        self.cases.append({"id": identity, "lesson": self.lesson["title"], "round": self.round["title"],
+                           "preset": "page", "capability": capability, "answer": "Continue"})
+
     def start_story(self, key: str, title: str, intro: str, story_title: str, *,
                     read_aloud: str = "automatic") -> None:
         """A Story Round: scrolling, dialogue-only log; finish_story writes
@@ -369,7 +381,7 @@ class Laboratory:
     def finish_story(self) -> None:
         story = self.round.pop("story")
         self.round["flow"] = story_flow(
-            [(content["id"], "exercise" in content) for content in self.round["content"]],
+            [(content["id"], becomes_exercise(content)) for content in self.round["content"]],
             title=story["title"], read_aloud=story["readAloud"],
             requires_audio=set(story["requiresAudio"]))
 
@@ -582,6 +594,27 @@ def laboratory() -> Laboratory:
                {"s1": ["il"], "s2": ["il"], "s3": ["la"]},
                "Fill the slots; a word may fill more than one slot (reuse allowed), the item stays in the bank",
                "… cane: il; … libro: il; … casa: la", reuse="allowed")
+    lab.start_canonical_lesson("Page", "A Page is a card the learner reads and continues (Build 258): headings, paragraphs with bold and italic, quotes, lists, pictures, audio and video links, each with its alignment and a colour from a palette that stays readable in light and dark themes. Nothing is scored. The Page preset authors these examples; a video link opens in the browser.")
+    lab.start_round("pages", "Pages", "Read each page and press Continue. The second page has a picture, a Listen button and a video link that opens in your browser.")
+    lab.page("page_textbook", [
+        {"type": "text", "text": "Il caffè in Italia", "textStyle": "heading1", "align": "center"},
+        {"type": "text", "text": "In Italy a **caffè** is an espresso. People often drink it *standing* at the bar, in a few sips.", "align": "justify"},
+        {"type": "text", "text": "Un caffè, per favore.", "language": "target", "textStyle": "quote", "align": "center", "readAloud": True},
+        {"type": "text", "text": "Coffee words", "textStyle": "heading2"},
+        {"type": "text", "text": "**espresso**: a small, strong coffee\n**cappuccino**: coffee with foamed milk\n**macchiato**: espresso with a drop of milk", "textStyle": "bulleted"},
+        {"type": "text", "text": "Say *buongiorno*.\nOrder at the counter.\nPay at the till.", "textStyle": "numbered"},
+        {"type": "text", "text": "Tip: a cappuccino is a morning drink.", "align": "end", "color": "accent"},
+    ], "Page; headings, bold and italic, justify, a quote read aloud, bulleted and numbered lists, an accent colour")
+    lab.page("page_media", [
+        {"type": "text", "text": "Al bar", "textStyle": "heading2", "color": "blue"},
+        {"type": "image", "text": "A cup of coffee on a bar counter", "asset": "assets/exercise_images/coffee.webp", "size": "large"},
+        {"type": "audio", "text": "Buongiorno! Un caffè, per favore.", "language": "target", "required": False},
+        {"type": "text", "text": "Careful: *un caffè* is never a large mug of coffee.", "color": "red"},
+        {"type": "text", "text": "**Grazie!** is always welcome.", "align": "center", "color": "green"},
+        {"type": "link", "text": "Watch how to order a coffee", "align": "center", "url": "https://www.example.org/qql/ordering-coffee"},
+        {"type": "text", "text": "The video opens in your browser; QuisquisLingo does not play it.", "color": "grey"},
+    ], "Page; a large picture with its caption, a Listen button, red, green and grey text, and a video link")
+
     return lab
 
 
@@ -603,7 +636,7 @@ def course_v11(lab: Laboratory) -> dict:
         "title": "Temporary Demo: Exercise Laboratory", "ttsLanguage": "it-IT", "audioMode": "tts",
         "authors": [{"name": "QuisquisLingo", "roles": ["Author"]}],
         "license": "All rights reserved", "derivativeWorksPolicy": "allowed",
-        "courseDescription": "An English-to-Italian laboratory for trying every current Exercise type and its meaningful authoring options. Five Lessons group Select, Input, Arrange, Match and Presentation; a sixth Lesson is a Story and a seventh holds Assign (Sort into groups, Fill the slots). Inspect or Fork the Course in Course Studio to study how the exercises are authored. Enable Audio Exercises and Text-to-speech to include all listening and pronunciation examples; ordinary lesson progression remains in effect.",
+        "courseDescription": "An English-to-Italian laboratory for trying every current Exercise type and its meaningful authoring options. Five Lessons group Select, Input, Arrange, Match and Presentation; a sixth Lesson is a Story, a seventh holds Assign (Sort into groups, Fill the slots) and an eighth shows Pages. Inspect or Fork the Course in Course Studio to study how the exercises are authored. Enable Audio Exercises and Text-to-speech to include all listening and pronunciation examples; ordinary lesson progression remains in effect.",
         "textDirection": "ltr", "temporarySample": True, "flagCode": "IT",
         "createDuels": False,
         "mediaAttributions": [{
@@ -633,6 +666,8 @@ def course(lab: Laboratory) -> dict:
         {"id": "qql_lab254_character_luca", "name": "Luca", "avatar": "assets/avatars/dog.png",
          "language": "target", "voice": "male"},
     ]
+    # Build 258: a Course with a Page needs a build that draws Pages.
+    value["minimumAppBuild"] = 258000
     # The checksum excludes the local verification status.
     checksum_value = dict(value)
     checksum_value.pop("publisherVerificationStatus")
@@ -647,8 +682,10 @@ def _canonical(key: str, exercise: dict) -> dict:
 
 
 def _intro(key: str, text: str) -> dict:
+    # Build 257: a Round's introduction is a Before you start card.
     return {"id": f"qql_labfuture_intro_{key}", "publicationState": "published",
-            "kind": "text", "required": False, "role": "lesson_intro", "text": text}
+            "kind": "exercise", "required": False,
+            "exercise": before_you_start(text, updated_at=STAMP, guidebook_button=True)}
 
 
 def _future_round(key: str, title: str, content: list[dict], *, visual: str = "generic",
@@ -765,6 +802,8 @@ def future(root: dict) -> dict:
     value["courseDescription"] = "A test-only Course beside the Exercise Laboratory: Speak, Ink and Submit exercises, a Story that ends on a Speak step and a Story whose flow branches. Nothing in it plays in this version; the Audit reports each piece as information or a warning, and every service keeps it unchanged."
     value["keywords"] = ["exercise laboratory", "future", "speak", "ink", "submit", "branching"]
     value["lessons"] = [lesson]
+    # No Page here (Build 258): the fixture keeps no build requirement.
+    value.pop("minimumAppBuild", None)
     checksum_value = dict(value)
     checksum_value.pop("publisherVerificationStatus")
     canonical = json.dumps(checksum_value, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
@@ -783,7 +822,7 @@ def coverage(lab: Laboratory) -> str:
         f"- Course: **Exercise Laboratory**, `{COURSE_ID}`.",
         "- Direction: English (`en-GB`) → Italian (`it-IT`); TTS `it-IT`.",
         "- Model 11, official Course version 1.0.0; all Lessons, Rounds and Content are Published.",
-        f"- Exactly seven Lessons (six primitives and a Story), {sum(len(lesson['rounds']) for lesson in [*lab.lessons, *lab.story_lessons])} Rounds and {len(lab.cases)} runnable examples across all {preset_count} authoring presets (the Assign Lesson uses the presets Sort into groups and Fill the slots since the Build 256 Revision 7 follow-up).",
+        f"- Exactly eight Lessons (six primitives, a Story and Pages), {sum(len(lesson['rounds']) for lesson in [*lab.lessons, *lab.story_lessons])} Rounds and {len(lab.cases)} runnable examples across all {preset_count} authoring presets (the Assign Lesson uses the presets Sort into groups and Fill the slots since the Build 256 Revision 7 follow-up).",
         "- Course rights explicitly allow Fork, so the bundled original can be inspected and a derivative can use the ordinary authoring/confirm/export/import paths.",
         "- Create Duels is off: Presentation is non-evaluable and the Course is not padded to manufacture Duel pools. The required per-Lesson Duel metadata is retained.",
         "- This Course leaves existing Course identities, learner data and media assets unchanged.", "",

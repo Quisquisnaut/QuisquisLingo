@@ -39,6 +39,7 @@ const editorHelpQuestionsByTopic = <String, List<String>>{
   ],
   'lessonsAndRounds': [
     'newRound',
+    'beforeYouStart',
     'roundWizard',
     'sequence',
     'story',
@@ -52,6 +53,7 @@ const editorHelpQuestionsByTopic = <String, List<String>>{
   ],
   'exercises': [
     'newExercise',
+    'pageCards',
     'presetOrCanonical',
     'changeType',
     'exerciseWizard',
@@ -276,6 +278,8 @@ const exerciseHelpPresetIds = <String>[
   'note_card',
   'dialogue_line',
   'story_cover',
+  'before_you_start',
+  'page',
 ];
 
 /// Each visible Exercise Help field resolves to one shared guide body.
@@ -518,6 +522,10 @@ const exerciseHelpFieldKeyByPresetAndField = <String, String>{
   'dialogue_line.image': 'exerciseHelp.field.choice.image.body',
   'story_cover.prompt': 'exerciseHelp.field.story_cover.prompt.body',
   'story_cover.image': 'exerciseHelp.field.story_cover.image.body',
+  'before_you_start.prompt': 'exerciseHelp.field.before_you_start.prompt.body',
+  'page.blocks': 'exerciseHelp.field.page.blocks.body',
+  'before_you_start.guidebookButton':
+      'exerciseHelp.field.before_you_start.guidebookButton.body',
   'sort_into_groups.question':
       'exerciseHelp.field.sort_into_groups.question.body',
   'sort_into_groups.groups': 'exerciseHelp.field.sort_into_groups.groups.body',

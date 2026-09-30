@@ -376,10 +376,14 @@ void main() {
         final assign = course.lessons.singleWhere(
           (lesson) => lesson.title == 'Assign',
         );
+        // The Round's Before you start card is no example (Build 257).
         final examples = [
           for (final round in assign.rounds)
             for (final content in round.content)
-              if (content.exercise != null) content,
+              if (content.exercise != null &&
+                  ExerciseFeatures(content.exercise!).kind !=
+                      LearnerExerciseKind.roundIntro)
+                content,
         ];
         expect(examples, hasLength(4));
         expect(assign.rounds, hasLength(1));

@@ -150,6 +150,10 @@ const Map<String, String> helpEs = {
   'editorHelp.qa.newRound.q': '¿Cómo añado un Round?',
   'editorHelp.qa.newRound.a':
       'En la página Rounds de una Lesson pulsa New Round. Un Round nuevo es un Draft provisional con un ejercicio de muestra (Pick the translation) que debes sustituir. El título puede quedar vacío: entonces el Round se llama Round N según su posición.',
+  'editorHelp.qa.beforeYouStart.q':
+      '¿Cómo escribo la nota Before you start de un Round?',
+  'editorHelp.qa.beforeYouStart.a':
+      'Añade una tarjeta Before you start: New Exercise en el editor del Round y elige Before you start (Cards and notes). Escribe la nota y, si el Curso usa GuideBooks, activa Open GuideBook button. La tarjeta va primero en el Round; los estudiantes la leen en una página propia antes de que empiece el Round, nunca en Review. Edítala, publícala o elimínala como cualquier ejercicio. El Round Wizard añade una tarjeta en Draft al primer Round que crea, y el Audit señala una Lesson cuyo primer Round no tiene ninguna.',
   'editorHelp.qa.roundWizard.q': '¿Cómo crea Rounds el Round Wizard?',
   'editorHelp.qa.roundWizard.a':
       'Pulsa Round Wizard en la página Rounds; necesita Use GuideBook activado. Crea Rounds a partir de los pares de vocabulario y los ejemplos del GuideBook de la Lesson (al menos tres pares). Elige 1–12 Rounds y 1–15 ejercicios por Round (6 y 8 por defecto) y revisa el plan: los primeros Rounds trabajan el reconocimiento; los siguientes, la construcción y la producción. Solo crea ejercicios de preset, y cada uno se abre en el formulario de su preset; sus Rounds siguen en Draft hasta que los revisas y los apruebas.',
@@ -186,6 +190,10 @@ const Map<String, String> helpEs = {
   'editorHelp.qa.newExercise.q': '¿Cómo añado un ejercicio?',
   'editorHelp.qa.newExercise.a':
       'En un Round, New Exercise abre el selector de presets: elige un tipo de ejercicio, como Pick the translation o Name what you see, y rellena su formulario. New Canonical abre el editor canónico para cualquier primitiva. El nombre del preset aparece en negrita en la parte superior del formulario.',
+  'editorHelp.qa.pageCards.q':
+      '¿Cómo creo una Page como la de un libro de texto?',
+  'editorHelp.qa.pageCards.a':
+      'En el editor del Round pulsa New Exercise y elige Page (Cards and notes). Añade bloques con Add block: títulos, párrafos, citas o ejemplos, listas con viñetas o numeradas, imágenes, audio y enlaces de vídeo; ordénalos con las flechas. En el texto escribe **negrita** y *cursiva* (la barra de herramientas rodea la selección). Cada bloque de texto tiene una alineación, un color de la paleta y una lectura en voz alta opcional; cada imagen un tamaño, una alineación y un pie de foto. Un enlace de vídeo abre una dirección https en el navegador del estudiante. La vista previa bajo los bloques muestra la Page tal como la ve el estudiante. Varias páginas seguidas son varias tarjetas Page; activa Play as a sequence para mantener su orden. Bajo cada Page los estudiantes encuentran Share, Save PDF y Print (en los ordenadores Print abre el PDF en el visor, que lo imprime); el PDF cita el Curso, el titular de los derechos y la licencia. Puedes desactivarlos en Course Info con Learners may share, save and print pages.',
   'editorHelp.qa.presetOrCanonical.q':
       '¿Qué diferencia hay entre un preset y el editor canónico?',
   'editorHelp.qa.presetOrCanonical.a':
@@ -247,10 +255,10 @@ const Map<String, String> helpEs = {
       'En la Image Library del Course Editor, Add images to this Course añade una o más imágenes, o un Image Bank ZIP completo, solo a este Course. La Shared Image Library, que gestiona un Admin, toma imágenes de {folderImageImports} o con Open image files from… y Open Image Bank ZIP from…. Una imagen elegida para un ejercicio desde la Shared Image Library se copia en el Course; en ambos casos viaja en el Course ZIP.',
   'editorHelp.qa.pictureRules.q': '¿Qué imágenes acepta QQL?',
   'editorHelp.qa.pictureRules.a':
-      'Imágenes fijas PNG, JPEG o WebP de 4096 × 4096 píxeles como máximo, sin daños y sin metadatos excesivos; QQL comprueba el contenido, no el nombre del archivo. Una imagen de ejercicio importada de {folderImageImports} puede ocupar hasta 50 KB; unos 256 × 256 píxeles y 15 KB es un buen tamaño.',
+      'Imágenes fijas PNG, JPEG o WebP de 4096 × 4096 píxeles como máximo, sin daños y sin metadatos excesivos; QQL comprueba el contenido, no el nombre del archivo. Una imagen de ejercicio importada de {folderImageImports} puede ocupar hasta 300 KB; unos 256 × 256 píxeles y 15 KB es un buen tamaño.',
   'editorHelp.qa.imageBank.q': '¿Qué es un Image Bank?',
   'editorHelp.qa.imageBank.a':
-      'Un ZIP de imágenes con un manifiesto, image_bank_manifest.json, que enumera cada imagen: un id, una etiqueta (primary_term), su nombre de archivo y, si quieres, palabras clave y una atribución. El ZIP contiene solo el manifiesto y las imágenes que enumera. Import Image Bank ZIP lee el único ZIP de {folderImageImports}; Open Image Bank ZIP from… usa el diálogo del sistema. Límites: un ZIP de 50 MB, 2500 imágenes y 50 KB por imagen.',
+      'Un ZIP de imágenes con un manifiesto, image_bank_manifest.json, que enumera cada imagen: un id, una etiqueta (primary_term), su nombre de archivo y, si quieres, palabras clave y una atribución. El ZIP contiene solo el manifiesto y las imágenes que enumera. Import Image Bank ZIP lee el único ZIP de {folderImageImports}; Open Image Bank ZIP from… usa el diálogo del sistema. Límites: un ZIP de 50 MB, 2500 imágenes y 300 KB por imagen.',
   'editorHelp.qa.pictureDetails.q': '¿Cómo veo los detalles de una imagen?',
   'editorHelp.qa.pictureDetails.a':
       'Ábrela a tamaño completo y pasa el cursor sobre la imagen en un ordenador, o mantenla pulsada en un teléfono: nombre de archivo, tamaño, dimensiones, formato, fecha en que se añadió, Image Bank y atribución.',
@@ -946,6 +954,10 @@ Estas builds muestran TEST ONLY. No las distribuyas como versiones públicas; co
       'El estudiante relaciona cada imagen de la izquierda con una palabra de la derecha. Escribe las palabras, una por línea, y una imagen por palabra con los selectores de abajo; al menos dos pares. Cuentan las relaciones entre pares, no las posiciones.',
   'exerciseHelp.preset.dialogue_line.body':
       'Una línea de diálogo en una Historia. Elige quién habla (el narrador o un personaje definido en Story characters del Course Editor), escribe la línea y elige si el estudiante la lee, la escucha o ambas cosas. La lectura en voz alta sigue el ajuste de la Historia salvo que la línea lo cambie; con texto y audio puedes ocultar el texto hasta que el audio se haya reproducido. Una línea nunca se salta: sin audio el estudiante la lee. No hay respuesta ni puntuación; Continue avanza.',
+  'exerciseHelp.preset.before_you_start.body':
+      'La nota que el estudiante lee antes de que empiece el Round, en una página propia con Continue to Round. Escribe la nota y, si quieres, activa Open GuideBook button: la tarjeta ofrece entonces el GuideBook de la Lesson (los estudiantes ven el botón solo mientras el Curso usa GuideBooks y el GuideBook está publicado). La tarjeta va primero en el Round, nunca es uno de sus pasos y nunca se muestra en Review; no hay respuesta ni puntuación. Una tarjeta por Round: el Audit avisa de una segunda.',
+  'exerciseHelp.preset.page.body':
+      'Una página que el estudiante lee y luego continúa, hecha de bloques: títulos, párrafos, citas o ejemplos, listas con viñetas o numeradas, imágenes, audio y enlaces de vídeo. En el texto escribe **negrita** y *cursiva* (la barra de herramientas rodea la selección); elige para cada bloque la alineación (inicio, centro, final, justificado para el texto) y un color de una paleta legible en el tema claro y en el oscuro; un bloque de texto puede ofrecer lectura en voz alta. Las imágenes son pequeñas, medianas, grandes o a todo el ancho, con pie de foto; un enlace de vídeo abre una dirección https en el navegador. Sin respuesta ni puntuación.',
   'exerciseHelp.preset.story_cover.body':
       'La primera tarjeta de una Historia. Elige la imagen de portada y, si quieres, una línea de título; el título de la Historia de las opciones del Round se muestra encima. El estudiante pulsa Continue. Crea Historias con el Story Wizard o activando Play as a sequence en el editor del Round.',
   'exerciseHelp.preset.note_card.body':
@@ -1030,6 +1042,10 @@ Estas builds muestran TEST ONLY. No las distribuyas como versiones públicas; co
       'El estudiante relaciona imágenes con sus palabras.',
   'exerciseHelp.preset.dialogue_line.description':
       'Una línea de una Historia, dicha por el narrador o un personaje como texto, audio o ambos; el estudiante lee o escucha y continúa.',
+  'exerciseHelp.preset.before_you_start.description':
+      'Una nota que se muestra antes de que empiece el Round, con un botón Open GuideBook opcional; nunca se muestra en Review.',
+  'exerciseHelp.preset.page.description':
+      'Una página como la de un libro de texto: títulos, párrafos con negrita y cursiva, citas, listas, imágenes, audio y enlaces de vídeo, con alineación y colores; el estudiante la lee y continúa.',
   'exerciseHelp.preset.story_cover.description':
       'La tarjeta de apertura de una Historia: su imagen y una línea de título opcional; el estudiante continúa.',
   'exerciseHelp.preset.note_card.description':
@@ -1112,6 +1128,12 @@ Estas builds muestran TEST ONLY. No las distribuyas como versiones públicas; co
       'Si el texto espera al audio.\n\nQué escribir\nImmediately, o After listening: el texto aparece cuando el audio se ha reproducido (solo con texto y audio).\n\nComprobaciones\nNinguna.\n\nEjemplo\nImmediately',
   'exerciseHelp.field.dialogue_line.language.body':
       'La lengua de la línea.\n\nQué escribir\nLa lengua de quien habla (predeterminada), o Target / Source para cambiarla solo en esta línea.\n\nComprobaciones\nNinguna.\n\nEjemplo\nSpeaker’s',
+  'exerciseHelp.field.before_you_start.prompt.body':
+      'Lo que el estudiante lee antes de que empiece el Round.\n\nQué escribir\nUnas frases: qué practica el Round, un consejo, un recordatorio, en la lengua que tus estudiantes leen mejor.\n\nComprobaciones\nObligatoria: una tarjeta vacía es un error del Audit.\n\nEjemplo\nEste Round practica los saludos.',
+  'exerciseHelp.field.before_you_start.guidebookButton.body':
+      'Si la tarjeta ofrece el GuideBook de la Lesson.\n\nQué escribir\nActivado o no. Los estudiantes ven Open GuideBook solo mientras el Curso usa GuideBooks (Lesson Options) y el GuideBook está publicado; Preview lo muestra también para un GuideBook en Draft.\n\nComprobaciones\nDesactivado mientras el Curso no usa GuideBooks.\n\nEjemplo\nActivado',
+  'exerciseHelp.field.page.blocks.body':
+      'Los bloques de la Page, de arriba abajo.\n\nQué escribir\nAñade bloques con Add block y ordénalos con las flechas. En párrafos, citas y listas escribe **negrita** y *cursiva*; una lista lleva un elemento por línea; \\* muestra un asterisco. Elige alineación y color para cada bloque de texto, tamaño y pie de foto para cada imagen, el texto hablado de un bloque de audio, y la etiqueta y la dirección https de un enlace de vídeo.\n\nComprobaciones\nUna Page sin contenido es un error del Audit; una marca sin cierre es un aviso; un enlace debe ser una dirección https.\n\nEjemplo\nHeading 1: Saludos',
   'exerciseHelp.field.story_cover.prompt.body':
       'Una línea de título opcional en la portada.\n\nQué escribir\nUna línea breve; el título de la Historia (opciones del Round) se muestra encima de la portada de todos modos.\n\nComprobaciones\nOpcional.\n\nEjemplo\nEn el café',
   'exerciseHelp.field.story_cover.image.body':
@@ -1171,7 +1193,7 @@ Estas builds muestran TEST ONLY. No las distribuyas como versiones públicas; co
   'exerciseHelp.field.choice.tts.body':
       'Texto que escucha el estudiante.\n\nQué escribir\nEscribe las palabras habladas, no una ruta ni nombre de MP3. Varias líneas forman un pasaje. Course Audio Library usa On-Device TTS, Recorded MP3 o Hybrid y asocia grabaciones a palabras o expresiones exactas.\n\nComprobaciones\nLos ejercicios de escucha necesitan Audio text. Revisa Preview y los avisos de Audit sobre grabaciones faltantes.\n\nEjemplo\nVorrei un caffè, per favore.',
   'exerciseHelp.field.choice.image.body':
-      'Añade una imagen al prompt o Context.\n\nQué escribir\nElige una imagen de Shared Image Library o deja un PNG, JPEG o WebP en {folderImageImports} y pulsa Import custom image. La importación copia los bytes sin redimensionar ni recortar y no añade la imagen a la biblioteca compartida.\n\nComprobaciones\nMáximo 50 KB; 256 × 256 píxeles y 15 KB son recomendaciones. Solo Image-prompt ordering la exige. Preview comprueba que se vea. Course JSON guarda la ruta, no los bytes.\n\nEjemplo\nassets/exercise_images/house.webp',
+      'Añade una imagen al prompt o Context.\n\nQué escribir\nElige una imagen de Shared Image Library o deja un PNG, JPEG o WebP en {folderImageImports} y pulsa Import custom image. La importación copia los bytes sin redimensionar ni recortar y no añade la imagen a la biblioteca compartida.\n\nComprobaciones\nMáximo 300 KB; 256 × 256 píxeles y 15 KB son recomendaciones. Solo Image-prompt ordering la exige. Preview comprueba que se vea. Course JSON guarda la ruta, no los bytes.\n\nEjemplo\nassets/exercise_images/house.webp',
   'exerciseHelp.field.gap_choice.question.body':
       'Frase que se completa eligiendo un bloque.\n\nQué escribir\nSustituye la palabra o expresión por ___ (tres guiones bajos), por ejemplo Vorrei un ___, per favore. Escribe las opciones en líneas separadas.\n\nComprobaciones\nHace falta al menos un ___; más de uno genera Warning. Con la respuesta correcta, la frase debe tener al menos dos palabras.\n\nEjemplo\nVorrei un ___, per favore.',
   'exerciseHelp.field.gap_choice.correct.body':
@@ -1225,7 +1247,7 @@ Estas builds muestran TEST ONLY. No las distribuyas como versiones públicas; co
   'exerciseHelp.field.translation_choice_to_target.correct.body':
       'Número de la única opción correcta.\n\nQué escribir\nUn entero contando desde 1 las líneas no vacías.\n\nComprobaciones\nDebe estar entre 1 y la cantidad de respuestas. Revísalo al reordenar o borrar líneas.',
   'exerciseHelp.field.translation_choice_to_target.image.body':
-      'Imagen opcional del prompt o Context.\n\nQué escribir\nElige una imagen de Shared Image Library o importa un PNG, JPEG o WebP con Import custom image desde {folderImageImports}. Se copia sin cambiar bytes y no entra en la biblioteca compartida.\n\nComprobaciones\nMáximo 50 KB; 256 × 256 píxeles y 15 KB son recomendaciones. Preview debe mostrarla. Course JSON guarda la ruta, no los bytes.',
+      'Imagen opcional del prompt o Context.\n\nQué escribir\nElige una imagen de Shared Image Library o importa un PNG, JPEG o WebP con Import custom image desde {folderImageImports}. Se copia sin cambiar bytes y no entra en la biblioteca compartida.\n\nComprobaciones\nMáximo 300 KB; 256 × 256 píxeles y 15 KB son recomendaciones. Preview debe mostrarla. Course JSON guarda la ruta, no los bytes.',
   'exerciseHelp.field.translation_choice_to_source.question.body':
       'Texto en la lengua de estudio que se traduce.\n\nQué escribir\nUna palabra, frase u oración. QQL añade Pick the correct [Source language] translation automáticamente. Puede reproducirse con TTS, pero el Exercise no lo requiere.\n\nComprobaciones\nEs obligatorio, con opciones en la lengua base y una correcta.',
   'exerciseHelp.field.translation_choice_to_source.answers.body':

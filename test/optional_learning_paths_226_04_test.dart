@@ -627,11 +627,13 @@ Course _course({
           id: 'optional-round',
           title: 'Optional paths Round',
           content: [
-            const LearningContent(
-              id: 'optional-intro',
-              kind: 'explanation',
-              role: 'lesson_intro',
-              text: 'Optional paths introduction.',
+            // Build 257: the introduction is a Before you start card.
+            LearningContent.fromExercise(
+              Exercise.beforeYouStart(
+                id: 'optional-intro',
+                text: 'Optional paths introduction.',
+                guidebookButton: true,
+              ),
             ),
             for (var index = 0; index < count; index++)
               LearningContent.fromExercise(

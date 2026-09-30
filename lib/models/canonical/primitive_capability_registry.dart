@@ -1870,6 +1870,13 @@ abstract final class PrimitiveCapabilityRegistry {
         legalValues: TextReveal.values,
         defaultValue: EnumOptionValue(TextReveal.immediate),
       ),
+      // Build 257: the first card action beyond Continue. The learner sees
+      // the button only while the Course uses GuideBooks and the Lesson's
+      // GuideBook is published.
+      OptionDefinition(
+        key: OptionKey.guidebookButton,
+        defaultValue: BoolOptionValue(false),
+      ),
       OptionDefinition(
         key: OptionKey.scoring,
         legalValues: Scoring.values,

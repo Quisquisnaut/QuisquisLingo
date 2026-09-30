@@ -232,11 +232,12 @@ _LearnerFixture _roundFixture({bool includeIntro = false}) {
     title: 'QQL 230 Round',
     content: [
       if (includeIntro)
-        LearningContent.textual(
-          id: 'qql_230_intro',
-          kind: 'text',
-          role: 'lesson_intro',
-          text: 'Prepare before starting.',
+        // Build 257: the introduction is a Before you start card.
+        LearningContent.fromExercise(
+          Exercise.beforeYouStart(
+            id: 'qql_230_intro',
+            text: 'Prepare before starting.',
+          ),
         ),
       LearningContent.fromExercise(_choiceExercise('qql_230_exercise')),
     ],

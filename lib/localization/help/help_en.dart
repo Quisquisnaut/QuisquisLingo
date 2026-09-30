@@ -142,6 +142,10 @@ const Map<String, String> helpEn = <String, String>{
   'editorHelp.qa.newRound.q': r'''How do I add a Round?''',
   'editorHelp.qa.newRound.a':
       r'''On a Lesson's Rounds page press New Round. A new Round is a provisional Draft with one sample exercise (Pick the translation) to replace. The title may stay empty: the Round is then called Round N after its position.''',
+  'editorHelp.qa.beforeYouStart.q':
+      r'''How do I write the Before you start note of a Round?''',
+  'editorHelp.qa.beforeYouStart.a':
+      r'''Add a Before you start card: New Exercise in the Round editor, then choose Before you start (Cards and notes). Write the note and, if the Course uses GuideBooks, turn on Open GuideBook button. The card goes first in the Round; learners read it on its own page before the Round starts, never in Review. Edit, publish or delete it like any exercise. The Round Wizard adds a Draft card to the first Round it creates, and the Audit notes a Lesson whose first Round has none.''',
   'editorHelp.qa.roundWizard.q':
       r'''How does the Round Wizard create Rounds?''',
   'editorHelp.qa.roundWizard.a':
@@ -180,6 +184,9 @@ const Map<String, String> helpEn = <String, String>{
   'editorHelp.qa.newExercise.q': r'''How do I add an exercise?''',
   'editorHelp.qa.newExercise.a':
       r'''In a Round, New Exercise opens the preset picker: choose an exercise type, such as Pick the translation or Name what you see, and fill its form. New Canonical opens the canonical editor for any primitive. The preset's name is shown in bold at the top of the form.''',
+  'editorHelp.qa.pageCards.q': r'''How do I make a textbook-like Page?''',
+  'editorHelp.qa.pageCards.a':
+      r'''In the Round editor press New Exercise and choose Page (Cards and notes). Add blocks with Add block: headings, paragraphs, quotes or examples, bulleted or numbered lists, pictures, audio and video links; order them with the arrows. In body text write **bold** and *italic* (the toolbar wraps the selection). Each text block has an alignment, a colour from the palette and an optional read-aloud; each picture a size, an alignment and a caption. A video link opens an https address in the learner’s browser. The preview under the blocks shows the Page as the learner sees it. Several pages in a row are several Page cards; turn on Play as a sequence to keep their order. Under each Page learners find Share, Save PDF and Print (on computers Print opens the PDF in the viewer, which prints it); the PDF credits the Course, its rights holder and licence. Turn them off in Course Info with Learners may share, save and print pages.''',
   'editorHelp.qa.presetOrCanonical.q':
       r'''What is the difference between a preset and the canonical editor?''',
   'editorHelp.qa.presetOrCanonical.a':
@@ -243,10 +250,10 @@ const Map<String, String> helpEn = <String, String>{
       r'''In the Course Editor’s Image Library, Add images to this Course takes one or more pictures, or a whole Image Bank ZIP, into this Course only. The Shared Image Library, which an Admin manages, takes pictures from {folderImageImports} or with Open image files from… and Open Image Bank ZIP from…. A picture chosen for an exercise from the Shared Image Library is copied into the Course; either way it travels in the Course ZIP.''',
   'editorHelp.qa.pictureRules.q': r'''Which pictures does QQL accept?''',
   'editorHelp.qa.pictureRules.a':
-      r'''Still PNG, JPEG or WebP pictures of at most 4096 × 4096 pixels, undamaged and without oversized metadata; QQL checks the content, not the file name. An exercise image imported from {folderImageImports} may be up to 50 KB; about 256 × 256 pixels and 15 KB is a good size.''',
+      r'''Still PNG, JPEG or WebP pictures of at most 4096 × 4096 pixels, undamaged and without oversized metadata; QQL checks the content, not the file name. An exercise image imported from {folderImageImports} may be up to 300 KB; about 256 × 256 pixels and 15 KB is a good size.''',
   'editorHelp.qa.imageBank.q': r'''What is an Image Bank?''',
   'editorHelp.qa.imageBank.a':
-      r'''A ZIP of pictures with a manifest, image_bank_manifest.json, that lists each picture: an id, a label (primary_term), its file name and, if you like, keywords and an attribution. The ZIP holds only the manifest and the pictures it lists. Import Image Bank ZIP reads the one ZIP in {folderImageImports}; Open Image Bank ZIP from… uses the system dialog. Limits: a 50 MB ZIP, 2500 pictures and 50 KB per picture.''',
+      r'''A ZIP of pictures with a manifest, image_bank_manifest.json, that lists each picture: an id, a label (primary_term), its file name and, if you like, keywords and an attribution. The ZIP holds only the manifest and the pictures it lists. Import Image Bank ZIP reads the one ZIP in {folderImageImports}; Open Image Bank ZIP from… uses the system dialog. Limits: a 50 MB ZIP, 2500 pictures and 300 KB per picture.''',
   'editorHelp.qa.pictureDetails.q': r'''How do I see a picture's details?''',
   'editorHelp.qa.pictureDetails.a':
       r'''Open it full size and hover over the picture on a computer, or long-press it on a phone: file name, size, dimensions, format, added date, Image Bank and attribution.''',
@@ -965,6 +972,10 @@ Question and Context are separate. Context can be text, audio, or both. Dialogue
       r'''Learner matches pictures with their words.''',
   'exerciseHelp.preset.dialogue_line.description':
       r'''One line of a Story, said by the narrator or a character as text, audio or both; the learner reads or listens and continues.''',
+  'exerciseHelp.preset.before_you_start.description':
+      r'''A note shown before the Round starts, with an optional Open GuideBook button; never shown in Review.''',
+  'exerciseHelp.preset.page.description':
+      r'''A textbook-like page: headings, paragraphs with bold and italic, quotes, lists, pictures, audio and video links, with alignment and colours; the learner reads it and continues.''',
   'exerciseHelp.preset.story_cover.description':
       r'''The opening card of a Story: its picture and an optional title line; the learner continues.''',
   'exerciseHelp.preset.note_card.description':
@@ -1049,6 +1060,10 @@ Question and Context are separate. Context can be text, audio, or both. Dialogue
       r'''The learner matches each picture on the left with a word on the right. Provide the words, one per line, and one picture per word with the pickers below; at least two pairs. Pair relationships, not display positions, define correctness.''',
   'exerciseHelp.preset.dialogue_line.body':
       r'''A line of dialogue in a Story. Choose who speaks (the narrator or a character defined in the Course Editor's Story characters), write the line, and choose whether the learner reads it, hears it, or both. Read-aloud follows the Story's setting unless the line overrides it; with text and audio you may hide the text until the audio has played. A line is never skipped: without audio the learner reads it. There is no answer and no score; Continue moves on.''',
+  'exerciseHelp.preset.before_you_start.body':
+      r'''The note the learner reads before the Round starts, on its own page with Continue to Round. Write the note and, if you like, turn on Open GuideBook button: the card then offers the Lesson’s GuideBook (learners see the button only while the Course uses GuideBooks and the GuideBook is published). The card is placed first in the Round, is never one of its steps and is never shown in Review; there is no answer and no score. One card per Round: the Audit warns about a second one.''',
+  'exerciseHelp.preset.page.body':
+      r'''A page the learner reads and continues, built from blocks: headings, paragraphs, quotes or examples, bulleted or numbered lists, pictures, audio and video links. Write **bold** and *italic* in body text (the toolbar wraps the selection); choose each block’s alignment (start, center, end, justify for body text) and a colour from a palette that stays readable in light and dark themes; a text block may offer a read-aloud button. Pictures come small, medium, large or full width with a caption; a video link opens an https address in the browser. No answer, no score.''',
   'exerciseHelp.preset.story_cover.body':
       r'''The first card of a Story. Choose the cover picture and, if you like, a title line; the Story's title from the Round options is shown above it. The learner presses Continue. Create Stories with the Story Wizard or by turning on Play as a sequence in the Round editor.''',
   'exerciseHelp.preset.note_card.body':
@@ -1330,6 +1345,39 @@ None.
 
 Example
 Speaker's''',
+  'exerciseHelp.field.before_you_start.prompt.body':
+      r'''What the learner reads before the Round starts.
+
+What to enter
+A few sentences: what the Round practises, a tip, a reminder, in the language your learners read best.
+
+Checks
+Required: an empty card is an Audit error.
+
+Example
+This Round practises greetings.''',
+  'exerciseHelp.field.before_you_start.guidebookButton.body':
+      r'''Whether the card offers the Lesson’s GuideBook.
+
+What to enter
+On or off. Learners see Open GuideBook only while the Course uses GuideBooks (Lesson Options) and the GuideBook is published; Preview shows it for a Draft GuideBook too.
+
+Checks
+Greyed out while the Course does not use GuideBooks.
+
+Example
+On''',
+  'exerciseHelp.field.page.blocks.body':
+      r'''The blocks of the Page, top to bottom.
+
+What to enter
+Add blocks with Add block and order them with the arrows. In paragraphs, quotes and lists write **bold** and *italic*; a list takes one item per line; \* shows a star. Choose an alignment and a colour per text block, a size and a caption per picture, the spoken text of an audio block, and the label and https address of a video link.
+
+Checks
+A Page with no content is an Audit error; an unmatched mark is a warning; a link must be an https address.
+
+Example
+Heading 1: Greetings''',
   'exerciseHelp.field.story_cover.prompt.body':
       r'''An optional title line on the cover.
 
@@ -1667,7 +1715,7 @@ What to enter
 Choose a flat image from the shared image library (managed by admins), or place exactly one PNG, JPG, JPEG or WebP file in {folderImageImports} and press Import custom image. Any course editor can import a custom image; it is not added to the shared library. Import copies the original bytes to local app storage; it does not resize, crop or change transparency.
 
 Checks
-Maximum 50 KB (51,200 bytes). 256 × 256 pixels and 15 KB or less are recommendations, not enforced dimensions. Image-prompt ordering requires an image; other current presets may omit it. Missing or multiple source files and oversized files are rejected. Preview checks that the image displays. Course JSON stores the image path, not these image bytes, so custom exercise images are not portable through course JSON alone.
+Maximum 300 KB (307,200 bytes). 256 × 256 pixels and 15 KB or less are recommendations, not enforced dimensions. Image-prompt ordering requires an image; other current presets may omit it. Missing or multiple source files and oversized files are rejected. Preview checks that the image displays. Course JSON stores the image path, not these image bytes, so custom exercise images are not portable through course JSON alone.
 
 Example
 Bundled path: assets/exercise_images/house.webp
@@ -1965,7 +2013,7 @@ What to enter
 Choose a flat image from the shared image library (managed by admins), or place exactly one PNG, JPG, JPEG or WebP file in {folderImageImports} and press Import custom image. Any course editor can import a custom image; it is not added to the shared library. Import copies the original bytes to local app storage; it does not resize, crop or change transparency.
 
 Checks
-Maximum 50 KB (51,200 bytes). 256 × 256 pixels and 15 KB or less are recommendations, not enforced dimensions. Image-prompt ordering requires an image; other current presets may omit it. Missing or multiple source files and oversized files are rejected. Preview checks that the image displays. Course JSON stores the image path, not these image bytes, so custom exercise images are not portable through course JSON alone.''',
+Maximum 300 KB (307,200 bytes). 256 × 256 pixels and 15 KB or less are recommendations, not enforced dimensions. Image-prompt ordering requires an image; other current presets may omit it. Missing or multiple source files and oversized files are rejected. Preview checks that the image displays. Course JSON stores the image path, not these image bytes, so custom exercise images are not portable through course JSON alone.''',
   'exerciseHelp.field.translation_choice_to_source.question.body':
       r'''The target-language word or phrase the learner translates.
 

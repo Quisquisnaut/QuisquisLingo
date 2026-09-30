@@ -5,6 +5,34 @@ spelling) with Flutter 3.47.4 / Dart 3.13.3 on Windows 10, the complete
 suite through the keep-awake wrapper (`ES_CONTINUOUS | ES_SYSTEM_REQUIRED`
 held for the run and cleared afterwards).
 
+## Revision 9 (2.0.56+256009): mascots beside the sentence, 29 September 2026
+
+- Design reviewed by the owner on a mockup canvas before any code
+  (https://claude.ai/artifact/PTUbeMkTJ6t5xyhYHGASjK): placement A, random
+  pictures, the sleeping monkey left out, the two no-repeat rules.
+- `exercise_mascot_256_test.dart` (9 tests): the ten bundled pictures are
+  five characters and the exercise pool is the nine without the sleeping
+  monkey; the sentence rule; the room thresholds; 500 seeds of the order
+  (nine pictures, all different, no character twice in a row, more than
+  400 different orders); a pool that cannot alternate stops instead of
+  repeating; every exercise of the Laboratory, Edge Case and Piedmontese
+  Courses against the three rules (the Laboratory shows a mascot for 21
+  presets: the 19 planned plus Read and answer without dialogue lines and
+  Type the missing word with a sentence, both as the rules intend); on the
+  Round screen the leading side and `ExcludeSemantics`, no mascot at 330
+  pixels wide, in a 540-pixel window, in a Story or with the seam off, one
+  in a sequence, and a Round of eight exercises (six sentences, a picture,
+  one word) with six different pictures, no character twice in a row and
+  each mascot kept through the feedback.
+- Focused batch (the new test, `learner_round_path_test` for the moved
+  loader, `runtime_canonical_256_test`, `exercise_laboratory_254_test`
+  with its presentation baseline, `translation_choice_239_test`): 346
+  passed.
+- `flutter analyze`: no issues; `dart format` clean on every changed Dart
+  file; no stale `256008` pin left.
+- Complete suite on the final tree: **3265 passed, 1 skipped, 0 failed**
+  (13:40–14:07, keep-awake wrapper).
+
 ## Revision 8 (2.0.56+256008): Editor Help as questions and answers, 29 September 2026
 
 - The English questions and answers written against the current app (66

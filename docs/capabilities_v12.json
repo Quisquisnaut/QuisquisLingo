@@ -44,7 +44,8 @@
     "navigation",
     "mediaPlayback",
     "scoring",
-    "textReveal"
+    "textReveal",
+    "guidebookButton"
   ],
   "primitives": [
     {
@@ -1834,6 +1835,13 @@
           "description": ""
         },
         {
+          "key": "guidebookButton",
+          "type": "boolean",
+          "default": false,
+          "required": false,
+          "description": ""
+        },
+        {
           "key": "scoring",
           "type": "enumeration",
           "values": [
@@ -1892,6 +1900,79 @@
           }
         }
       ]
+    }
+  ],
+  "elementAttributes": [
+    {
+      "key": "textStyle",
+      "elementTypes": [
+        "text"
+      ],
+      "values": [
+        "heading1",
+        "heading2",
+        "paragraph",
+        "quote",
+        "bulleted",
+        "numbered"
+      ]
+    },
+    {
+      "key": "align",
+      "elementTypes": [
+        "text",
+        "image",
+        "link"
+      ],
+      "values": [
+        "start",
+        "center",
+        "end",
+        "justify"
+      ],
+      "textOnlyValues": [
+        "justify"
+      ]
+    },
+    {
+      "key": "color",
+      "elementTypes": [
+        "text"
+      ],
+      "values": [
+        "default",
+        "accent",
+        "red",
+        "green",
+        "blue",
+        "grey"
+      ]
+    },
+    {
+      "key": "size",
+      "elementTypes": [
+        "image"
+      ],
+      "values": [
+        "small",
+        "medium",
+        "large",
+        "full"
+      ]
+    },
+    {
+      "key": "readAloud",
+      "elementTypes": [
+        "text"
+      ],
+      "type": "boolean"
+    },
+    {
+      "key": "url",
+      "elementTypes": [
+        "link"
+      ],
+      "type": "string"
     }
   ]
 }

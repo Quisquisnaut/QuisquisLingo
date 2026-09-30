@@ -7,9 +7,9 @@ import 'package:flutter/foundation.dart';
 /// a future stable build by setting [isBetaBuild] to false.
 class BetaLifecycleService {
   static const bool isBetaBuild = true;
-  // Build 256 Revision 8: 30 local calendar days from the 29 September 2026
-  // release date, ending on 29 October 2026 at 23:59:59 local time.
-  static final DateTime expiryDate = DateTime(2026, 10, 29, 23, 59, 59);
+  // Build 258 Revision 4: 30 local calendar days from the 30 September 2026
+  // release date, ending on 30 October 2026 at 23:59:59 local time.
+  static final DateTime expiryDate = DateTime(2026, 10, 30, 23, 59, 59);
 
   /// The clock the no-argument lifecycle checks read.
   ///

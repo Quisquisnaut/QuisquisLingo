@@ -18,7 +18,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from qql_course_v12 import convert_course_v11_to_v12, story_cover, story_flow, story_line  # noqa: E402
+from qql_course_v12 import becomes_exercise, convert_course_v11_to_v12, story_cover, story_flow, story_line  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 OUTPUT = ROOT / "assets/courses/piedmontais_en.json"
@@ -599,7 +599,7 @@ def story_lessons() -> list[dict]:
     story = {
         "id": rid, "publicationState": "published", "updatedAt": STAMP,
         "visualType": "story", "title": "Dialogue line practice", "content": lines,
-        "flow": story_flow([(c["id"], "exercise" in c) for c in lines], title="Al mercà"),
+        "flow": story_flow([(c["id"], becomes_exercise(c)) for c in lines], title="Al mercà"),
     }
     return [
         lesson(39, "Dialogue line", "At the market",

@@ -621,11 +621,12 @@ _AudioFixture _buildAudioFixture({
     title: 'Audio Round',
     content: [
       if (includeIntro)
-        const LearningContent(
-          id: 'audio-round-intro',
-          kind: 'text',
-          role: 'lesson_intro',
-          text: 'Round introduction.',
+        // Build 257: the introduction is a Before you start card.
+        LearningContent.fromExercise(
+          Exercise.beforeYouStart(
+            id: 'audio-round-intro',
+            text: 'Round introduction.',
+          ),
         ),
       LearningContent.fromExercise(exercise),
     ],

@@ -29,8 +29,18 @@ class ImageProfile {
     this.formats = const {ImageFormat.png, ImageFormat.jpeg, ImageFormat.webp},
   });
 
-  /// Exercise, Shared Image Library, Image Bank and portable images.
-  static const exerciseImage = ImageProfile(maxBytes: 50 * 1024);
+  /// Build 258 Revision 1 (owner decision, 29 September 2026): a Course
+  /// picture may be up to 300 KB (it was 50 KB), for Pages and exercises
+  /// alike.
+  static const courseImageMaxBytes = 300 * 1024;
+
+  /// Course pictures stored as Course media (exercises, Pages), the Shared
+  /// Image Library and Image Banks.
+  static const exerciseImage = ImageProfile(maxBytes: courseImageMaxBytes);
+
+  /// Pictures embedded in `course.json` as `data:` URIs (Recognize
+  /// characters): they live inside the Course file, so they keep 50 KB.
+  static const portableImage = ImageProfile(maxBytes: 50 * 1024);
 
   /// Custom Lesson icons (normalized to a 256 × 256 PNG afterwards).
   static const lessonIcon = ImageProfile(maxBytes: 2 * 1024 * 1024);

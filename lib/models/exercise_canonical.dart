@@ -112,6 +112,102 @@ enum AudioPlayback {
   }
 }
 
+/// Build 258: how a text block of a Page is drawn.
+enum BlockTextStyle {
+  heading1('heading1'),
+  heading2('heading2'),
+  paragraph('paragraph'),
+  quote('quote'),
+  bulleted('bulleted'),
+  numbered('numbered');
+
+  const BlockTextStyle(this.serialized);
+  final String serialized;
+
+  /// A list block: one item per line.
+  bool get isList => this == bulleted || this == numbered;
+
+  /// A block whose text may be justified and carry inline marks.
+  bool get isBody => this != heading1 && this != heading2;
+
+  static BlockTextStyle? tryParse(Object? value) {
+    for (final style in values) {
+      if (style.serialized == value) return style;
+    }
+    return null;
+  }
+}
+
+/// Build 258: where a Page block sits across the page. Start and end
+/// follow the text direction; justify is for body text only.
+enum BlockAlign {
+  start('start'),
+  center('center'),
+  end('end'),
+  justify('justify');
+
+  const BlockAlign(this.serialized);
+  final String serialized;
+
+  static BlockAlign? tryParse(Object? value) {
+    for (final align in values) {
+      if (align.serialized == value) return align;
+    }
+    return null;
+  }
+}
+
+/// Build 258: a Page text colour, a name the renderer maps to a readable
+/// colour in the light and the dark theme (never a free colour code).
+enum BlockColor {
+  normal('default'),
+  accent('accent'),
+  red('red'),
+  green('green'),
+  blue('blue'),
+  grey('grey');
+
+  const BlockColor(this.serialized);
+  final String serialized;
+
+  static BlockColor? tryParse(Object? value) {
+    for (final color in values) {
+      if (color.serialized == value) return color;
+    }
+    return null;
+  }
+}
+
+/// Build 258: how wide a Page picture is drawn.
+enum BlockSize {
+  small('small'),
+  medium('medium'),
+  large('large'),
+  full('full');
+
+  const BlockSize(this.serialized);
+  final String serialized;
+
+  static BlockSize? tryParse(Object? value) {
+    for (final size in values) {
+      if (size.serialized == value) return size;
+    }
+    return null;
+  }
+}
+
+/// Build 258: the Page attributes a prompt element may carry and the
+/// element types each applies to (the parser and the capability description
+/// read this one table). `justify` is an alignment for text only.
+const pageElementAttributeTypes = <String, Set<String>>{
+  'textStyle': {'text'},
+  'align': {'text', 'image', 'link'},
+  'color': {'text'},
+  'size': {'image'},
+  'readAloud': {'text'},
+  'url': {'link'},
+};
+
 /// Which column of a Match an item belongs to.
 enum MatchSide {
   left('left'),

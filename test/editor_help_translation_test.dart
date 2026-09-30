@@ -74,7 +74,9 @@ void main() {
     test(
       'Editor Help is questions and answers; Manager keeps its sections',
       () {
-        // Build 256 Revision 8: Editor Help is 66 questions in seven topics.
+        // Build 256 Revision 8: Editor Help is questions in seven topics (66;
+        // 67 since Build 257's Before you start question, 68 with Build 258's
+        // Page question).
         final english = editorHelpTopics(HelpLanguage.english);
         final italian = editorHelpTopics(HelpLanguage.italian);
         final spanish = editorHelpTopics(HelpLanguage.spanish);
@@ -88,7 +90,7 @@ void main() {
               '${topic.id}.${question.id}',
         ];
         expect(english, hasLength(7));
-        expect(ids(english), hasLength(66));
+        expect(ids(english), hasLength(68));
         expect(ids(italian), ids(english));
         expect(ids(spanish), ids(english));
         expect(managerEnglish, hasLength(14));

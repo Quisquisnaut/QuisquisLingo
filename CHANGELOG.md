@@ -1,3 +1,206 @@
+# 2.0.58 (Build 258, Revision 4) - Share, save and print a Page - 2026-09-30
+
+Learners can share, save and print a Page as a PDF, when its Course allows
+it (owner decisions of 29 and 30 September 2026).
+
+- **Share:** the system share sheet on phones and tablets (email,
+  messages, files, and Print on iOS) and the share panel on Windows and
+  macOS; on Linux Share sends the page's text by email.
+- **Save PDF:** Save as… where the system dialog exists, or Quick Export to
+  `QuisquisLingo/Export/Pages`.
+- **Print** (computers): the PDF opens in the default PDF viewer, which
+  prints it; there is no printing plugin.
+- **The PDF** shows the page exactly as the app draws it, in the light
+  theme, cut into A4 pages, with a credits line: the Course, its rights
+  holder and licence, and QuisquisLingo. Links are printed with their
+  address; audio buttons are left out. The text is not selectable (the page
+  is a picture, so every script prints correctly without extra fonts).
+- **Course setting:** Course Info's **Learners may share, save and print
+  pages**, on by default, hides the buttons when off. It is a courtesy, not
+  protection; a Fork or a Copy keeps it, a Merge takes the left Course's.
+- **New dependency:** the `pdf` package (pure Dart, no network).
+
+Scoring, progression and learner data are unchanged. The Course format
+gains the optional `allowPageSharing` (stored only when off). Beta expiry
+`2026-10-30 23:59:59` local time (30 days after this revision's release on
+30 September 2026).
+
+# 2.0.58 (Build 258, Revision 3) - Pages in the Exercise Laboratory - 2026-09-29
+
+The Exercise Laboratory demo gains an eighth Lesson, **Page**, with two
+example Pages to try and to study in Course Studio.
+
+- **A textbook page:** a centred title, a justified paragraph with bold and
+  italic, a quote read aloud, a second heading, a bulleted and a numbered
+  list, and a tip in the accent colour aligned to the end.
+- **A page with media:** a blue heading, a large picture with its caption,
+  a Listen button, red, green and grey text, and a video link that opens
+  in the browser.
+- The Laboratory records `minimumAppBuild: 258000`, as every Course with a
+  Page does; its presentation baseline gains the two examples and no
+  existing record changed.
+
+Scoring, progression, learner data and the Course format are unchanged.
+Beta expiry `2026-10-29 23:59:59` local time.
+
+# 2.0.58 (Build 258, Revision 2) - The Page form - 2026-09-29
+
+Authors can now make textbook-like **Page** cards in the Course Editor:
+New Exercise, then **Page** (Cards and notes).
+
+- **Blocks:** Add block offers Heading, Paragraph, Quote or example, List,
+  Picture, Audio and Video link; the arrows move a block, the bin removes
+  it. A new Page starts with an empty heading and paragraph.
+- **Text:** a style per block, **Bold** and *Italic* buttons that wrap the
+  selection in `**` or `*`, start, center or end alignment (and justify for
+  paragraphs and quotes), a colour from the palette, and an optional Read
+  aloud in the target or source language.
+- **Pictures:** chosen like any exercise picture (copied into the Course),
+  with a size (small, medium, large, full width), an alignment and a
+  caption that screen readers also say.
+- **Audio and video:** an audio block's spoken text (text-to-speech or the
+  matching recording); a video link's label and address, flagged until it
+  is an https address.
+- **Live preview:** under the blocks, drawn exactly as the learner sees it.
+- **Help (EN/IT/ES):** the preset, its blocks and a new Editor Help
+  question, "How do I make a textbook-like Page?" (68 questions). Search
+  finds a Page by its text.
+
+Scoring, progression, learner data and the Course format are unchanged.
+Beta expiry `2026-10-29 23:59:59` local time.
+
+# 2.0.58 (Build 258, Revision 1) - Course pictures up to 300 KB - 2026-09-29
+
+A Course picture may now be up to **300 KB** (it was 50 KB), as decided
+for textbook-like Pages on 29 September 2026. The limit applies to every
+picture stored with a Course (exercises and Pages), to the Shared Image
+Library and to Image Banks, and to Course packages, backups, Fork, Copy
+and Merge, which share the same check. The picture check itself is
+unchanged: still PNG, JPEG or WebP, at most 4096 × 4096 pixels, no
+animation, content checked rather than the file name.
+
+- **Unchanged at 50 KB:** pictures embedded inside `course.json` as data
+  (Recognize characters), because they make the Course file itself larger.
+  The Course cover keeps its 1 MB.
+- **Help (EN/IT/ES):** the picture field, the picture import and the Image
+  Bank limits say 300 KB; the too-large message says 300 KB.
+
+Scoring, progression, learner data and the Course format are unchanged.
+Beta expiry `2026-10-29 23:59:59` local time.
+
+# 2.0.58 (Build 258, Revision 0) - Page cards: model and learner display - 2026-09-29
+
+The first revision of textbook-like **Page** cards, planned and approved
+on 29 September 2026 (`docs/258_PAGE_CARD_PLAN.md`). A Page is a card the
+learner reads and continues, drawn from formatted blocks; it is never
+scored. This revision adds the data model, the learner display and the
+Audit; the Page form in the editor comes in Revision 2.
+
+- **Blocks:** headings (two levels), paragraphs, quotes, bulleted and
+  numbered lists, pictures, audio and links. Body text takes `**bold**` and
+  `*italic*`; text aligns start, center, end or justified; a named colour
+  palette (default, accent, red, green, blue, grey) stays readable in light
+  and dark themes; pictures come small, medium, large or full width with a
+  caption; a text block may offer a read-aloud button (off by default).
+- **Video links:** a link block opens an https address in the browser
+  ("Watch the video"); QQL never downloads or plays video itself.
+- **In a Round:** a Page shows no heading or instruction line, is never
+  skipped when audio is off (its read-aloud and audio buttons then hide)
+  and ends with Continue.
+- **No new primitive:** the presentation primitive's elements gain the
+  attributes `textStyle`, `align`, `color`, `size`, `readAloud` and the
+  element type `link`; the capability description and the Python tools
+  know them.
+- **Earlier builds:** a Course with a Page records `minimumAppBuild:
+  258000` when saved, so an earlier build refuses it instead of showing the
+  pages unformatted.
+- **Audit (113 rules):** `PAGE_EMPTY` and `PAGE_LINK_INVALID` (Errors),
+  `PAGE_MARK_UNMATCHED` (Warning).
+- **Fix:** the Generic Primitive Editor no longer drops element attributes
+  it has no field for when an element is edited (a Dialogue line's speaker
+  was lost this way).
+
+Scoring, progression, Review, the Duel, learner data and the Course format
+version are unchanged. Beta expiry `2026-10-29 23:59:59` local time.
+
+# 2.0.57 (Build 257, Revision 0) - Before you start cards - 2026-09-29
+
+The note a learner reads before a Round starts ("Before you start") is now
+an ordinary card of the Round that authors can write, edit, publish and
+delete, the first slice of interactive presentation cards (owner decisions
+of 29 September 2026). Before this build the note was Round content with no
+editor field: only the bundled Courses had one, and the Round Wizard's note
+stayed Draft forever, so learners never saw it.
+
+- **The card:** a new preset, **Before you start** (Cards and notes), with a
+  Note and an **Open GuideBook button** switch. The switch is greyed out
+  while the Course does not use GuideBooks; learners see the button only
+  when the Lesson's GuideBook is published (Preview shows it for a Draft
+  GuideBook). There is no picture, no answer and no score.
+- **Where it plays:** the first published card of a Round is shown on its
+  own page before the Round starts, with Continue to Round, as the note was.
+  It is never one of the Round's steps (it does not count toward the
+  steps, the Laurel or the Duel) and it is **no longer shown in Review**.
+  Previewing the card alone shows it and closes with Close preview.
+- **In the editor:** a new card goes first in the Round and the Round's list
+  names it by its note. Search finds the note.
+- **Model:** no new primitive. The presentation primitive gains the
+  boolean option `guidebookButton`; a card is a presentation whose text
+  element has role `intro` (`LearnerExerciseKind.roundIntro`).
+- **Existing notes (clean cut):** text Content with role `lesson_intro` is
+  no longer shown. The v11 converter (`tools/convert_course_to_v12.dart`
+  and the Python generators) turns a v11 note into a card with the GuideBook
+  button on; the three bundled Courses and the Laboratory's test fixture are
+  regenerated, and every Lesson opens with a card as before.
+- **Round Wizard:** its first Round now opens with a Draft card holding the
+  GuideBook overview, with Open GuideBook on, ready to review and publish.
+- **Audit (110 rules):** `ROUND_INTRO_EMPTY` (Error: a card without a note)
+  and `ROUND_INTRO_DUPLICATE` (Warning: a second card in a Round, of which
+  learners see only the first); `LESSON_INTRO_MISSING` now looks for a card.
+- **Help (EN/IT/ES):** the preset and its two fields, and a new Editor Help
+  question, "How do I write the Before you start note of a Round?" (67
+  questions).
+
+Scoring, progression, learner data and the Course format version are
+unchanged. Beta expiry `2026-10-29 23:59:59` local time (same release day
+as Build 256 Revision 9).
+
+# 2.0.56 (Build 256, Revision 9) - Mascots beside the sentence - 2026-09-29
+
+A QuisquisLingo mascot now keeps the learner company in exercises built
+around a sentence (owner decisions of 29 September 2026). It is decoration
+only: Course files, scoring, progression, Review, the Duel and learner
+data are unchanged, and nothing new is stored.
+
+- **Where:** on the leading side of the one sentence the learner reads or
+  hears: the question (Pick the translation, Choose the answer, Pick the
+  missing word, True or false, Read and answer), the text to translate or
+  the clue (Type and Build the translation, Word order), the sentence with
+  gaps (Complete the text, Missing letters, Pick the words for the gaps,
+  Drag the blocks into the gaps, Listen and fill the gaps, Type the missing
+  word), or the Play button (Listen and answer, Type what you hear).
+- **Only where it fits:** never in an exercise with a picture, an avatar or
+  anything but words and sound, nor beside dialogue lines with named
+  speakers; only beside a sentence (two words or more, or ending in
+  `. ! ? …`: "Grazie." has one, "ciao" does not); only when the sentence
+  keeps at least 220 pixels, three lines at most and the window is at
+  least 560 pixels high (72-pixel mascot, 96 pixels on wide screens).
+  Match, Assign, cards, spelling blocks, Put the sentences in order, Stories
+  and the Duel show none.
+- **Random, without repeats:** each Round draws a random order of the
+  mascot pictures, never matched to the exercise. Within one Round a
+  picture never appears twice, and the next mascot the learner sees is
+  always another character (cat, dog, kid, monkey, robot), however many
+  exercises without a mascot come between. A picture is taken only when
+  the mascot is actually drawn, and kept through answering and feedback;
+  when the pictures run out (nine), later exercises show none. The
+  mistakes review continues the same order; replaying a Round starts a new
+  one.
+- **The sleeping monkey** stays on the Round path and never appears in an
+  exercise.
+- Rounds, Review, View Only and the Editor Preview show mascots.
+- Beta expiry `2026-10-29 23:59:59` local time (same release day).
+
 # 2.0.56 (Build 256, Revision 8) - Editor Help as questions and answers - 2026-09-29
 
 Editor Help is rewritten as questions and answers (owner decisions of 29

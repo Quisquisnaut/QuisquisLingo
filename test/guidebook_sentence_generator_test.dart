@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
+import 'package:quisquislingo_app/models/exercise_features.dart';
 import 'package:quisquislingo_app/screens/course_editor_screen.dart';
+import 'package:quisquislingo_app/services/round_playability_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -100,8 +102,16 @@ void main() {
         updated.rounds.skip(1).map((round) => round.title),
         everyElement(isNotEmpty),
       );
+      // Eight exercises per Round; the first also opens with a Before you
+      // start card (Build 257), which is never one of its steps.
       expect(
-        updated.rounds.skip(1).map((round) => round.exercises.length),
+        updated.rounds
+            .skip(1)
+            .map(
+              (round) => round.exercises
+                  .where((e) => !RoundPlayabilityService.isRoundIntro(e))
+                  .length,
+            ),
         everyElement(8),
       );
       expect(
@@ -137,9 +147,14 @@ void main() {
         }),
       );
       final intro = generatedContent.singleWhere(
-        (content) => content.role == 'lesson_intro',
+        (content) =>
+            content.exercise != null &&
+            RoundPlayabilityService.isRoundIntro(content.exercise!),
       );
-      expect(intro.text, contains('Before you start'));
+      expect(updated.rounds[1].content.first.id, intro.id);
+      expect(ExerciseFeatures(intro.exercise!).introText, isNotEmpty);
+      expect(ExerciseFeatures(intro.exercise!).guidebookButton, isTrue);
+      expect(intro.publicationState, PublicationState.draft);
       expect(intro.sourceRefs, isNotEmpty);
 
       final generatedIds = generatedContent

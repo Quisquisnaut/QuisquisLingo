@@ -27,7 +27,7 @@ Everything else under the prefix (identity, avatar, theme, PIN verifier, recover
 ## Files
 | Location | Contents | Scopes that remove it |
 |---|---|---|
-| `<QQL>/Export` (Build 255 Revision 3) | Quick Export files: `Courses`, `UserData` (learner backups), `RecoveryKeys`, `AuditReports` | everything, only when the admin unticks "Keep the Export folder" |
+| `<QQL>/Export` (Build 255 Revision 3) | Quick Export files: `Courses`, `UserData` (learner backups), `RecoveryKeys`, `AuditReports`, `Pages` (Page PDFs, Build 258 Revision 4) | everything, only when the admin unticks "Keep the Export folder" |
 | `<QQL>/Logs` | copies of the Crash Log and the Diagnostic Log made with Quick Export (`QQL_crash_log.txt`, `QQL_diagnostic_log.txt`) | everything, only when the admin unticks "Keep the Logs folder" |
 | `<QQL>/Import` | the original files people copied there for Quick Import: `Courses`, `Audio`, `Images`, `LessonIcons`, `Flags`, `UserData`, `RecoveryKeys` | everything, only when the admin unticks "Keep the Import and ToBeMerged folders" |
 | `<QQL>/ToBeMerged` | `Courses`: the second Course of a Course Merge | everything, with the same tick as `Import` |

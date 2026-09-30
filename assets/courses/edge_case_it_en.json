@@ -160,10 +160,28 @@
             {
               "id": "qql_edge_254_intro01",
               "publicationState": "published",
-              "kind": "explanation",
+              "kind": "exercise",
               "required": false,
-              "role": "lesson_intro",
-              "text": "Demo di collaudo: risposte e avvisi intenzionali sono nella matrice 254. Completa i casi Published; i casi Draft restano nell’Editor."
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "Demo di collaudo: risposte e avvisi intenzionali sono nella matrice 254. Completa i casi Published; i casi Draft restano nell’Editor."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
             },
             {
               "id": "qql_edge_254_e01_min",
@@ -1316,10 +1334,28 @@
             {
               "id": "qql_edge_254_intro02",
               "publicationState": "published",
-              "kind": "explanation",
+              "kind": "exercise",
               "required": false,
-              "role": "lesson_intro",
-              "text": "Completa i gap: Arrange consuma un blocco distinto per ogni occorrenza; Select permette di riutilizzare la stessa opzione."
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "Completa i gap: Arrange consuma un blocco distinto per ogni occorrenza; Select permette di riutilizzare la stessa opzione."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
             },
             {
               "id": "qql_edge_254_e14_arrange_min",
@@ -1954,10 +1990,28 @@
             {
               "id": "qql_edge_254_intro03",
               "publicationState": "published",
-              "kind": "explanation",
+              "kind": "exercise",
               "required": false,
-              "role": "lesson_intro",
-              "text": "Confronta immagini e testo, poi verifica i campioni MP3 e le frasi TTS. Le registrazioni preinstallate sono campioni di riproduzione, senza trascrizione verificata."
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "Confronta immagini e testo, poi verifica i campioni MP3 e le frasi TTS. Le registrazioni preinstallate sono campioni di riproduzione, senza trascrizione verificata."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
             },
             {
               "id": "qql_edge_254_e20_image_letters",
@@ -2502,10 +2556,28 @@
             {
               "id": "qql_edge_254_intro04",
               "publicationState": "published",
-              "kind": "explanation",
+              "kind": "exercise",
               "required": false,
-              "role": "lesson_intro",
-              "text": "Qui il Learner mostra soltanto i contenuti Published. Il GuideBook, un Exercise e il Round successivo sono Draft validi."
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "Qui il Learner mostra soltanto i contenuti Published. Il GuideBook, un Exercise e il Round successivo sono Draft validi."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
             },
             {
               "id": "qql_edge_254_e28_published",
@@ -2704,10 +2776,28 @@
             {
               "id": "qql_edge_254_intro05",
               "publicationState": "published",
-              "kind": "explanation",
+              "kind": "exercise",
               "required": false,
-              "role": "lesson_intro",
-              "text": "Questa Lesson Draft è una struttura completa per ispezione e Preview; il Learner la omette anche se i suoi discendenti sono Published."
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "Questa Lesson Draft è una struttura completa per ispezione e Preview; il Learner la omette anche se i suoi discendenti sono Published."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
             },
             {
               "id": "qql_edge_254_e31_under_draft_lesson",
@@ -2802,10 +2892,28 @@
             {
               "id": "qql_edge_254_intro06",
               "publicationState": "published",
-              "kind": "explanation",
+              "kind": "exercise",
               "required": false,
-              "role": "lesson_intro",
-              "text": "Una Story (Build 256 Revision 5): la copertina, le battute del narratore e di Marta (una solo audio) e un esercizio che richiede l’audio della Story. Le battute non si saltano mai; l’esercizio segnato è saltato con Audio Exercises off."
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "Una Story (Build 256 Revision 5): la copertina, le battute del narratore e di Marta (una solo audio) e un esercizio che richiede l’audio della Story. Le battute non si saltano mai; l’esercizio segnato è saltato con Audio Exercises off."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
             },
             {
               "id": "qql_edge_254_e32_cover",
@@ -2975,7 +3083,7 @@
             "nodes": [
               {
                 "id": "qql_edge_254_intro06",
-                "kind": "content",
+                "kind": "exercise",
                 "contentId": "qql_edge_254_intro06",
                 "transitions": [
                   {
@@ -3049,10 +3157,28 @@
             {
               "id": "qql_edge_254_intro07",
               "publicationState": "published",
-              "kind": "explanation",
+              "kind": "exercise",
               "required": false,
-              "role": "lesson_intro",
-              "text": "Una Story di sole copertine: niente battute, niente esercizi, nessun XP; l’Audit segnala STORY_WITHOUT_DIALOGUE, un avviso intenzionale."
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "Una Story di sole copertine: niente battute, niente esercizi, nessun XP; l’Audit segnala STORY_WITHOUT_DIALOGUE, un avviso intenzionale."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
             },
             {
               "id": "qql_edge_254_e37_cover_market",
@@ -3148,7 +3274,7 @@
             "nodes": [
               {
                 "id": "qql_edge_254_intro07",
-                "kind": "content",
+                "kind": "exercise",
                 "contentId": "qql_edge_254_intro07",
                 "transitions": [
                   {
@@ -3197,5 +3323,5 @@
       }
     }
   ],
-  "officialChecksum": "db8eb77e46162b74a1ce6eb0e5f135618d25bba204b758fd5ffe0151a9232e7d"
+  "officialChecksum": "dd6c6ec2c010da10eb45b0c8dd68b06dc2712546588a62662ced8f7ab6d35d13"
 }

@@ -9,6 +9,8 @@ typedef CourseInfoChange = ({
   List<CourseMediaAttribution> mediaAttributions,
   String license,
   DerivativeWorksPolicy derivativePolicy,
+  // Build 258 Revision 4: learners may share, save and print Pages.
+  bool allowPageSharing,
   String variant,
   String startLevel,
   String targetLevel,
@@ -99,6 +101,7 @@ class CourseInfoUpdateService {
           .toList(),
       'license': change.license,
       'derivativeWorksPolicy': change.derivativePolicy.name,
+      'allowPageSharing': change.allowPageSharing,
       'languageVariant': change.variant,
       'startLevel': change.startLevel,
       'targetLevel': change.targetLevel,

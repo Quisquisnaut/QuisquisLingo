@@ -33,7 +33,7 @@ class CourseMediaStore {
   static const audioExtensions = {'mp3'};
   static const imageExtensions = {'png', 'jpg', 'jpeg', 'webp'};
   static const maxAudioBytes = 50 * 1024 * 1024;
-  static const maxImageBytes = 50 * 1024;
+  static const maxImageBytes = ImageProfile.courseImageMaxBytes;
 
   /// A Course's cover may be larger than its other images (Build 255
   /// Revision 6). Only the file the Course names as its cover is stored,

@@ -20,6 +20,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from qql_course_v12 import CONTENT_KINDS, EVALUATION_MODES, OPTIONS, PRIMITIVES  # noqa: E402
+from qql_capabilities import ELEMENT_ATTRIBUTES  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 COURSES = ROOT / "assets" / "courses"
@@ -250,6 +251,29 @@ def validate(path: Path, global_ids: dict[str, str]) -> list[str]:
                 if not isinstance(element, dict):
                     issues.append(f"{where}: prompt element {prompt_index} must be an object")
                     continue
+                # Build 258: the Page attributes of an element.
+                element_type = element.get("type")
+                for key, spec in ELEMENT_ATTRIBUTES.items():
+                    if key not in element:
+                        continue
+                    value = element[key]
+                    label = f"{where}: prompt element {prompt_index} {key}"
+                    if element_type not in spec["types"]:
+                        issues.append(f"{label} does not apply to type {element_type}")
+                    elif spec["values"] and value not in spec["values"]:
+                        issues.append(f"{label} {value!r} is not one of {spec['values']}")
+                    elif spec["type"] == "boolean" and not isinstance(value, bool):
+                        issues.append(f"{label} must be true or false")
+                    elif spec["type"] == "string" and not isinstance(value, str):
+                        issues.append(f"{label} must be a string")
+                    elif value in spec["text_only"] and element_type != "text":
+                        issues.append(f"{label} {value!r} applies to text only")
+                if element_type == "link":
+                    url = element.get("url")
+                    if not (isinstance(url, str) and re.match(r"^https://[^/\s]+", url)):
+                        issues.append(
+                            f"{where}: prompt link {prompt_index} needs an https address"
+                        )
                 if element.get("type") == "image":
                     asset = element.get("asset")
                     if isinstance(asset, str) and _portable_png(asset):
@@ -523,9 +547,18 @@ def validate(path: Path, global_ids: dict[str, str]) -> list[str]:
                 issues.append(f"{round_where}: content must be non-empty")
                 continue
             if round_index == 1:
+                # Build 257: a Lesson's first Round opens with a Before you
+                # start card (a presentation with an intro text element).
                 first = content_items[0]
-                if not isinstance(first, dict) or first.get("role") != "lesson_intro" or first.get("kind") == "exercise":
-                    issues.append(f"{round_where}: first Content must be a non-exercise lesson_intro")
+                first_exercise = first.get("exercise") if isinstance(first, dict) else None
+                is_intro_card = (
+                    isinstance(first_exercise, dict)
+                    and first_exercise.get("primitive") == "presentation"
+                    and any(isinstance(e, dict) and e.get("role") == "intro" and e.get("type") == "text"
+                            for e in first_exercise.get("prompt", []))
+                )
+                if not is_intro_card:
+                    issues.append(f"{round_where}: first Content must be a Before you start card")
             for content_index, content in enumerate(content_items, 1):
                 if isinstance(content, dict):
                     validate_content(content, f"{round_where} content {content_index}")

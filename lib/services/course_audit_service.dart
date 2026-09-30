@@ -6,7 +6,9 @@ import 'first_letter_answer_service.dart';
 import 'portable_exercise_image.dart';
 import 'audit_code_registry.dart';
 import 'duel_eligibility_service.dart';
+import 'inline_marks.dart';
 import 'lesson_icon_catalog.dart';
+import 'page_blocks.dart';
 import 'preset_recipes.dart';
 import 'translation_choice_service.dart';
 
@@ -529,15 +531,18 @@ class CourseAuditService {
         );
       }
       if (t.rounds.isNotEmpty) {
-        final intro = t.rounds.first.content
-            .where((content) => content.role == 'lesson_intro')
+        // Build 257: the introduction is a Before you start card.
+        final intro = t.rounds.first.exercises
+            .where(
+              (ex) =>
+                  ExerciseFeatures(ex).kind == LearnerExerciseKind.roundIntro,
+            )
             .toList();
         if (intro.isEmpty) {
           issues.add(
             CourseAuditIssue.fromCode(
               AuditCode.lessonIntroMissing,
-              message:
-                  'The first Round has no short Lesson introduction drawn from the Lesson Guidebook.',
+              message: 'The first Round has no Before you start card.',
               location: '$tl · Round 1',
             ),
           );
@@ -598,6 +603,24 @@ class CourseAuditService {
               ),
             );
           }
+        }
+        // Build 257: learners see only the first Before you start card.
+        if (roundExercises
+                .where(
+                  (ex) =>
+                      ExerciseFeatures(ex).kind ==
+                      LearnerExerciseKind.roundIntro,
+                )
+                .length >
+            1) {
+          issues.add(
+            CourseAuditIssue.fromCode(
+              AuditCode.roundIntroDuplicate,
+              message: 'Round has more than one Before you start card.',
+              location: rl,
+              roundId: r.id,
+            ),
+          );
         }
         // Build 256 Revision 6 (plan A.6, A.7): what learners of this
         // version cannot complete. Not blocking: the content is valid.
@@ -898,7 +921,12 @@ class CourseAuditService {
   static String? notCompletableReason(LearningRound round) {
     final flow = round.flow;
     final kind = round.isStory ? 'Story' : 'Sequence';
-    final exercises = round.exercises;
+    // A Before you start card is never a step (Build 257).
+    final exercises = round.exercises
+        .where(
+          (ex) => ExerciseFeatures(ex).kind != LearnerExerciseKind.roundIntro,
+        )
+        .toList();
     if (flow == null) {
       if (exercises.isNotEmpty && exercises.every((ex) => !ex.isExecutable)) {
         return 'No exercise of this Round can be played by this version of QuisquisLingo, so learners cannot complete it.';
@@ -1290,6 +1318,8 @@ class CourseAuditService {
       ' A Dialogue line needs its line as text, audio or both (role line).',
     'story_cover' =>
       ' A Story cover needs a picture or a title line and no word or meaning.',
+    'before_you_start' =>
+      ' A Before you start card needs its note (an intro text element).',
     'icon_choice' =>
       ' Select the image needs one icon or image key per answer in Icons / image keys, in the same order as the answers.',
     'listening_answer_target' ||
@@ -1348,6 +1378,8 @@ class CourseAuditService {
     LearnerExerciseKind.presentation => 'a Flashcard',
     LearnerExerciseKind.dialogueLine => 'a Dialogue line',
     LearnerExerciseKind.storyCover => 'a Story cover',
+    LearnerExerciseKind.roundIntro => 'a Before you start card',
+    LearnerExerciseKind.page => 'a Page',
     LearnerExerciseKind.assignGroups => 'Sort into groups',
     LearnerExerciseKind.assignSlots => 'Fill the slots',
     LearnerExerciseKind.assignGaps => 'Fill the gaps',
@@ -1425,10 +1457,18 @@ class CourseAuditService {
       ...ex.promptElements,
       for (final item in ex.items) ...item.content,
     ];
-    if (elements.any((element) => !promptMedia.contains(element.type))) {
+    // Build 258: a link is a Page block (role `block` of a presentation).
+    bool pageLink(PromptElement element) =>
+        element.isLink &&
+        element.role == 'block' &&
+        ex.primitive == ExercisePrimitive.presentation &&
+        ex.promptElements.contains(element);
+    if (elements.any(
+      (element) => !promptMedia.contains(element.type) && !pageLink(element),
+    )) {
       add(
         AuditCode.promptMediaUnsupported,
-        'Prompt media must be text, audio or image.',
+        'Prompt media must be text, audio or image; a Page may also hold links.',
       );
     }
     if (elements.any(
@@ -2132,6 +2172,43 @@ class CourseAuditService {
           break;
         }
         if (kind == LearnerExerciseKind.storyCover) break;
+        // Build 258: a Page shows something, its marks close and its links
+        // are https addresses.
+        if (kind == LearnerExerciseKind.page) {
+          final blocks = f.pageBlocks;
+          if (!blocks.any(PageBlocks.hasContent)) {
+            add(AuditCode.pageEmpty, 'Page has no content.');
+          }
+          for (var i = 0; i < blocks.length; i++) {
+            final block = blocks[i];
+            final style = block.textStyle ?? BlockTextStyle.paragraph;
+            if (block.isText &&
+                style.isBody &&
+                InlineMarks.hasUnmatched(block.text)) {
+              add(
+                AuditCode.pageMarkUnmatched,
+                'Page block ${i + 1} has a bold or italic mark without its partner.',
+              );
+            }
+            if (block.isLink && !PageBlocks.isAcceptableLink(block.url)) {
+              add(
+                AuditCode.pageLinkInvalid,
+                'Page block ${i + 1} links to “${block.url}”, which is not an https address.',
+              );
+            }
+          }
+          break;
+        }
+        // Build 257: a Before you start card needs its note.
+        if (kind == LearnerExerciseKind.roundIntro) {
+          if (f.introText.trim().isEmpty) {
+            add(
+              AuditCode.roundIntroEmpty,
+              'Before you start card has no note.',
+            );
+          }
+          break;
+        }
         // A vocabulary flashcard is reviewed later and has no picture; a
         // Note card (completion `continue`) and a Picture flashcard carry
         // an optional usage sentence and optional pronunciation.

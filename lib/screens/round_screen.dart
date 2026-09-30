@@ -1,11 +1,17 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/rendering.dart' show RenderAbstractViewport;
 import '../services/course_language_resolver.dart';
 import '../services/first_letter_answer_service.dart';
 import '../widgets/course_media_image.dart';
+import '../widgets/exercise_mascot.dart';
 import '../widgets/exercise_prompt_panels.dart';
+import '../services/inline_marks.dart';
+import '../services/page_blocks.dart';
+import '../widgets/page_actions.dart';
+import '../widgets/page_card.dart';
 import '../widgets/portable_exercise_image.dart';
 import '../services/beta_lifecycle_service.dart';
 import '../widgets/beta_expired_view.dart';
@@ -26,9 +32,16 @@ import '../services/answer_engine.dart';
 import '../services/audio_exercise_availability_service.dart';
 import '../services/audio_diagnostic_service.dart';
 import '../services/translation_choice_service.dart';
+import '../services/exercise_mascot_policy.dart';
+import '../services/learner_mascots.dart';
 import 'guidebook_screen.dart';
 
 class RoundScreen extends StatefulWidget {
+  /// Opens a Page link in the browser (Build 258). A test seam: widget
+  /// tests replace it; the app never downloads or plays video itself.
+  static Future<bool> Function(Uri url) openLink = (url) =>
+      launchUrl(url, mode: LaunchMode.externalApplication);
+
   final Course course;
   final Lesson lesson;
   final LearningRound round;
@@ -41,6 +54,13 @@ class RoundScreen extends StatefulWidget {
   final SettingsService? settingsService;
   final TtsCacheService? ttsCacheService;
   final RecordedAudioService? recordedAudioService;
+
+  /// The mascot pictures to choose from (Build 256 Revision 9); null loads
+  /// the bundled `assets/mascots/`. Tests pass their own list.
+  final List<String>? mascotAssets;
+
+  /// The random source of the mascot order; tests pass a seeded one.
+  final Random? mascotRandom;
 
   const RoundScreen({
     super.key,
@@ -56,6 +76,8 @@ class RoundScreen extends StatefulWidget {
     this.settingsService,
     this.ttsCacheService,
     this.recordedAudioService,
+    this.mascotAssets,
+    this.mascotRandom,
   });
 
   @override
@@ -242,6 +264,14 @@ class _RoundScreenState extends State<RoundScreen> {
   final Map<String, String?> _selectGapFill = {};
   String? _selectArmedGapId;
 
+  // Mascots (Build 256 Revision 9): the Round's picture order, null when
+  // this Round shows none; the active exercise's picture, taken from the
+  // order the first time its mascot fits on screen; and where this build
+  // draws it.
+  ExerciseMascotSequence? _mascots;
+  String? _exerciseMascot;
+  ({ExerciseMascotAnchor anchor, String asset, double size})? _mascotPlacement;
+
   static const _autumnBackgrounds = <Color>[
     Color(0xFFF4EBDD), // warm cream
     Color(0xFFE7E1CF), // oat
@@ -280,16 +310,11 @@ class _RoundScreenState extends State<RoundScreen> {
 
   int get _exerciseIndex => _queue[_position];
   Exercise get _exercise => widget.round.exercises[_exerciseIndex];
-  LearningContent? get _lessonIntro {
-    for (final content in widget.round.content) {
-      if (content.role == 'lesson_intro' &&
-          content.text.trim().isNotEmpty &&
-          (widget.previewMode || content.publicationState.isPublished)) {
-        return content;
-      }
-    }
-    return null;
-  }
+
+  /// The Before you start card (Build 257): an ordinary card of the Round,
+  /// shown on its own page before the Round starts and never in Review
+  /// (owner decision, 29 September 2026). Found once the Round is prepared.
+  Exercise? _lessonIntro;
 
   @override
   void initState() {
@@ -392,6 +417,12 @@ class _RoundScreenState extends State<RoundScreen> {
         includeDrafts: widget.previewMode,
       );
       _versionSkipped = widget.previewMode ? 0 : notExecutable.length;
+      _lessonIntro = widget.reviewMode
+          ? null
+          : _roundPlayability.introFor(
+              widget.round,
+              includeDrafts: widget.previewMode,
+            );
       await CrashLogService.instance.recordDebugEvent(
         'Round: audit completed ${widget.round.id}, valid=${valid.length}, '
         'notExecutable=${notExecutable.length}',
@@ -422,6 +453,8 @@ class _RoundScreenState extends State<RoundScreen> {
           final neverSkipped =
               kind == LearnerExerciseKind.dialogueLine ||
               kind == LearnerExerciseKind.storyCover ||
+              // Build 258: a Page is read; its audio is optional.
+              kind == LearnerExerciseKind.page ||
               (flow != null &&
                   exercise.primitive == ExercisePrimitive.presentation);
           if (neverSkipped) {
@@ -498,6 +531,26 @@ class _RoundScreenState extends State<RoundScreen> {
         ];
       } else {
         _shuffleDifferentInts(_queue);
+      }
+      // Mascots (Build 256 Revision 9): never in a Story, whose characters
+      // are its cast. Pictures that cannot be loaded leave the Round without
+      // mascots, never without its exercises.
+      if (ExerciseMascot.enabled && !widget.round.isStory) {
+        try {
+          final assets =
+              widget.mascotAssets ?? await loadProductionLearnerMascotAssets();
+          _mascots = ExerciseMascotSequence.build(
+            ExerciseMascotPolicy.exercisePool(assets),
+            widget.mascotRandom ?? _random,
+          );
+        } catch (error, stackTrace) {
+          _mascots = null;
+          await CrashLogService.instance.record(
+            error,
+            stackTrace,
+            source: 'RoundScreen._initializeRound mascots',
+          );
+        }
       }
       if (!mounted) return;
       if (_queue.isNotEmpty) {
@@ -598,6 +651,7 @@ class _RoundScreenState extends State<RoundScreen> {
     final generation = ++_preparedExerciseGeneration;
     final ex = _exercise;
     final f = _features = ExerciseFeatures(ex);
+    _exerciseMascot = null;
     _answered = false;
     _lineAudioPlayed = false;
     _lastAnswerCorrect = false;
@@ -1788,17 +1842,20 @@ class _RoundScreenState extends State<RoundScreen> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (f.questionText.trim().isNotEmpty) ...[
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  f.questionText,
-                  key: const Key('translation-choice-text'),
-                  style: Theme.of(context).textTheme.headlineSmall,
+          _withMascot(
+            ExerciseMascotAnchor.question,
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    f.questionText,
+                    key: const Key('translation-choice-text'),
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
                 ),
-              ),
-              if (spoken != null) _translationAudioButton(spoken),
-            ],
+                if (spoken != null) _translationAudioButton(spoken),
+              ],
+            ),
           ),
           if (spoken != null && !_optionalAudioEnabled) ...[
             const SizedBox(height: 8),
@@ -1832,11 +1889,14 @@ class _RoundScreenState extends State<RoundScreen> {
             automatic.role != 'context' &&
             automatic.role != 'dialogue_turn') ...[
           Center(
-            child: IconButton.filledTonal(
-              tooltip: 'Play audio again',
-              iconSize: 34,
-              onPressed: _speak,
-              icon: const Icon(Icons.volume_up_outlined),
+            child: _besideCentered(
+              ExerciseMascotAnchor.playButton,
+              IconButton.filledTonal(
+                tooltip: 'Play audio again',
+                iconSize: 34,
+                onPressed: _speak,
+                icon: const Icon(Icons.volume_up_outlined),
+              ),
             ),
           ),
           const SizedBox(height: 14),
@@ -1852,9 +1912,12 @@ class _RoundScreenState extends State<RoundScreen> {
               : () => _speakDialogue(),
         ),
         if (f.questionText.isNotEmpty && !f.hasInlineTargets) ...[
-          Text(
-            f.questionText,
-            style: Theme.of(context).textTheme.headlineSmall,
+          _withMascot(
+            ExerciseMascotAnchor.question,
+            Text(
+              f.questionText,
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
           ),
           const SizedBox(height: 16),
         ],
@@ -2040,30 +2103,33 @@ class _RoundScreenState extends State<RoundScreen> {
           ),
           const SizedBox(height: 14),
         ],
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: _exercisePanelColor,
-            borderRadius: BorderRadius.circular(14),
-          ),
-          child: Wrap(
-            crossAxisAlignment: WrapCrossAlignment.center,
-            spacing: 6,
-            runSpacing: 8,
-            children: [
-              for (final segment in ex.layout)
-                if (segment.isText)
-                  Text(
-                    segment.text,
-                    style: Theme.of(context).textTheme.titleMedium,
-                  )
-                else
-                  _selectGapSlot(
-                    gapId: segment.targetId,
-                    label: itemById[_selectGapFill[segment.targetId]]?.value,
-                    armed: _selectArmedGapId == segment.targetId,
-                  ),
-            ],
+        _withMascot(
+          ExerciseMascotAnchor.gappedText,
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: _exercisePanelColor,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 6,
+              runSpacing: 8,
+              children: [
+                for (final segment in ex.layout)
+                  if (segment.isText)
+                    Text(
+                      segment.text,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    )
+                  else
+                    _selectGapSlot(
+                      gapId: segment.targetId,
+                      label: itemById[_selectGapFill[segment.targetId]]?.value,
+                      armed: _selectArmedGapId == segment.targetId,
+                    ),
+              ],
+            ),
           ),
         ),
         const SizedBox(height: 16),
@@ -2104,23 +2170,29 @@ class _RoundScreenState extends State<RoundScreen> {
             style: Theme.of(context).textTheme.titleMedium,
           ),
         ] else if (f.revealTarget != null)
-          Text(
-            _answered
-                ? FirstLetterAnswerService.completedSentence(
-                    f.inlineSentence,
-                    _displayedCorrection,
-                  )
-                : FirstLetterAnswerService.display(
-                    f.inlineSentence,
-                    f.acceptedAnswers,
-                  ),
-            key: const Key('first-letter-sentence'),
-            style: Theme.of(context).textTheme.headlineSmall,
+          _withMascot(
+            ExerciseMascotAnchor.question,
+            Text(
+              _answered
+                  ? FirstLetterAnswerService.completedSentence(
+                      f.inlineSentence,
+                      _displayedCorrection,
+                    )
+                  : FirstLetterAnswerService.display(
+                      f.inlineSentence,
+                      f.acceptedAnswers,
+                    ),
+              key: const Key('first-letter-sentence'),
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
           )
         else
-          Text(
-            f.questionText,
-            style: Theme.of(context).textTheme.headlineSmall,
+          _withMascot(
+            ExerciseMascotAnchor.question,
+            Text(
+              f.questionText,
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
           ),
         const SizedBox(height: 10),
         if (ex.hint.isNotEmpty)
@@ -2165,12 +2237,15 @@ class _RoundScreenState extends State<RoundScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        FilledButton.tonalIcon(
-          onPressed: _answered || audio == null
-              ? null
-              : () => _speakText(audio),
-          icon: const Icon(Icons.volume_up_outlined),
-          label: const Text('Play audio'),
+        _withMascot(
+          ExerciseMascotAnchor.playButton,
+          FilledButton.tonalIcon(
+            onPressed: _answered || audio == null
+                ? null
+                : () => _speakText(audio),
+            icon: const Icon(Icons.volume_up_outlined),
+            label: const Text('Play audio'),
+          ),
         ),
         const SizedBox(height: 14),
         if (f.questionText.trim().isNotEmpty) ...[
@@ -2342,30 +2417,33 @@ class _RoundScreenState extends State<RoundScreen> {
           ),
           const SizedBox(height: 14),
         ],
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: _exercisePanelColor,
-            borderRadius: BorderRadius.circular(14),
-          ),
-          child: Wrap(
-            crossAxisAlignment: WrapCrossAlignment.center,
-            spacing: 6,
-            runSpacing: 8,
-            children: [
-              for (final segment in ex.layout)
-                if (segment.isText)
-                  Text(
-                    segment.text,
-                    style: Theme.of(context).textTheme.titleMedium,
-                  )
-                else
-                  _gapSlot(
-                    gapId: segment.targetId,
-                    label: itemById[_gapFill[segment.targetId]]?.value,
-                    armed: _armedGapId == segment.targetId,
-                  ),
-            ],
+        _withMascot(
+          ExerciseMascotAnchor.gappedText,
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: _exercisePanelColor,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 6,
+              runSpacing: 8,
+              children: [
+                for (final segment in ex.layout)
+                  if (segment.isText)
+                    Text(
+                      segment.text,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    )
+                  else
+                    _gapSlot(
+                      gapId: segment.targetId,
+                      label: itemById[_gapFill[segment.targetId]]?.value,
+                      armed: _armedGapId == segment.targetId,
+                    ),
+              ],
+            ),
           ),
         ),
         const SizedBox(height: 16),
@@ -2649,15 +2727,18 @@ class _RoundScreenState extends State<RoundScreen> {
           label: const Text('Play audio'),
         ),
         const SizedBox(height: 14),
-        Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: _exercisePanelColor,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Text(
-            _missingWordDisplay(),
-            style: Theme.of(context).textTheme.bodyLarge,
+        _withMascot(
+          ExerciseMascotAnchor.gappedText,
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: _exercisePanelColor,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Text(
+              _missingWordDisplay(),
+              style: Theme.of(context).textTheme.bodyLarge,
+            ),
           ),
         ),
         const SizedBox(height: 14),
@@ -2990,6 +3071,98 @@ class _RoundScreenState extends State<RoundScreen> {
     _next();
   }
 
+  /// A Page (Build 258): its blocks, then Continue. Read-aloud and audio
+  /// blocks follow the learner's Audio Settings; links open in the browser.
+  Widget _pageExercise(Exercise ex) {
+    final blocks = _features.pageBlocks;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        PageCardView(
+          blocks: blocks,
+          background: _exercisePanelColor,
+          pictureBuilder: _pagePicture,
+          onSpeak: _optionalAudioEnabled ? _speakBlock : null,
+          onOpenLink: (url) => _openPageLink(url),
+        ),
+        // Build 258 Revision 4: Share, Save PDF and Print, when the Course
+        // allows it (on by default).
+        if (widget.course.allowPageSharing) ...[
+          const SizedBox(height: 12),
+          PageActionsBar(
+            course: widget.course,
+            blocks: blocks,
+            pictureBuilder: _pagePicture,
+          ),
+        ],
+        const SizedBox(height: 16),
+        FilledButton(
+          key: const Key('page-continue'),
+          onPressed: _answered ? null : _continueLine,
+          child: const Text('Continue'),
+        ),
+      ],
+    );
+  }
+
+  /// A Page picture at [width]: Course media through the media store, a
+  /// bundled or portable picture as before.
+  Widget _pagePicture(PromptElement picture, double width) =>
+      picture.asset.startsWith('media:')
+      ? CourseMediaImage(
+          courseId: widget.course.courseId,
+          asset: picture.asset,
+          width: width,
+          // Decode at the size shown (the pixel size of a Course picture is
+          // not bounded by its file size).
+          cacheWidth: 1024,
+          semanticLabel: picture.text.isEmpty ? null : picture.text,
+          missing: _missingImageNotice(picture.asset),
+        )
+      : PortableExerciseImage(asset: picture.asset, width: width);
+
+  /// Reads a Page's text block (without its marks) or plays its audio
+  /// block, in the block's language.
+  Future<void> _speakBlock(PromptElement block) async {
+    final text = block.isText
+        ? block.text
+              .split('\n')
+              .map(InlineMarks.plain)
+              .where((line) => line.trim().isNotEmpty)
+              .join('\n')
+        : block.text;
+    if (text.trim().isEmpty) return;
+    final ok = await _playCourseAudio(text, language: block.language);
+    if (!ok && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          duration: const Duration(seconds: 8),
+          content: Text(_audioFailureDescription),
+        ),
+      );
+    }
+  }
+
+  Future<void> _openPageLink(String url) async {
+    final uri = Uri.tryParse(url);
+    var opened = false;
+    if (uri != null && PageBlocks.isAcceptableLink(url)) {
+      try {
+        opened = await RoundScreen.openLink(uri);
+      } catch (_) {
+        opened = false;
+      }
+    }
+    if (!opened && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          duration: Duration(seconds: 8),
+          content: Text('The link could not be opened.'),
+        ),
+      );
+    }
+  }
+
   /// A Story cover (Build 256 Revision 5): the Story's title, the cover
   /// picture and an optional title line, then Continue.
   Widget _storyCoverExercise(Exercise ex) {
@@ -3309,7 +3482,7 @@ class _RoundScreenState extends State<RoundScreen> {
     final asset = _features.illustrationAsset;
     if (asset.isEmpty) return const SizedBox.shrink();
     // Decode at the size actually shown. Nothing bounds the pixel dimensions
-    // of a course-media image: a 50 KB PNG may declare 30,000 × 30,000 and
+    // of a course-media image: a 300 KB PNG may declare 30,000 × 30,000 and
     // cost gigabytes to rasterize. The portable path already enforces 4096;
     // this bounds the decode for the rest.
     const decodeWidth = 840;
@@ -3328,6 +3501,99 @@ class _RoundScreenState extends State<RoundScreen> {
         constraints: const BoxConstraints(maxWidth: 420, maxHeight: 280),
         child: image,
       ),
+    );
+  }
+
+  /// Where this build draws the active exercise's mascot, or null (Build 256
+  /// Revision 9). [ExerciseMascotPolicy] names the sentence; the mascot is
+  /// drawn only when the sentence keeps room beside it on this screen. The
+  /// picture is taken from the Round's order the first time the mascot is
+  /// drawn, and kept until the next exercise: so the learner never sees a
+  /// picture twice in one Round, nor the same character twice in a row.
+  ({ExerciseMascotAnchor anchor, String asset, double size})? _placeMascot(
+    BuildContext context,
+    Exercise ex,
+  ) {
+    final mascots = _mascots;
+    if (mascots == null) return null;
+    final anchor = ExerciseMascotPolicy.anchorFor(ex);
+    if (anchor == ExerciseMascotAnchor.none) return null;
+    final media = MediaQuery.of(context);
+    // The Round body is a ListView with 20 pixels on each side.
+    final contentWidth = media.size.width - media.padding.horizontal - 40;
+    final size = ExerciseMascotPolicy.mascotSize(contentWidth);
+    final text = Theme.of(context).textTheme;
+    final (TextStyle? style, double reserved) = switch (anchor) {
+      // A translation question keeps room for its audio button.
+      ExerciseMascotAnchor.question => (
+        text.headlineSmall,
+        _features.isTranslationChoice ? 48.0 : 0.0,
+      ),
+      ExerciseMascotAnchor.prompt => (
+        _promptAsInstruction
+            ? text.bodyMedium?.copyWith(fontWeight: FontWeight.w600)
+            : text.titleMedium,
+        0.0,
+      ),
+      // The gapped sentence sits in a panel with padding on both sides.
+      ExerciseMascotAnchor.gappedText => (
+        ex.primitive == ExercisePrimitive.input
+            ? text.bodyLarge
+            : text.titleMedium,
+        28.0,
+      ),
+      ExerciseMascotAnchor.playButton ||
+      ExerciseMascotAnchor.none => (null, 0.0),
+    };
+    final textWidth = contentWidth - size - ExerciseMascotPolicy.gap - reserved;
+    int? lines;
+    final sentence = ExerciseMascotPolicy.sentenceAt(ex, anchor);
+    if (sentence != null) {
+      if (textWidth <= 0) return null;
+      final painter = TextPainter(
+        text: TextSpan(text: sentence, style: style),
+        textDirection: Directionality.of(context),
+        textScaler: media.textScaler,
+      )..layout(maxWidth: textWidth);
+      lines = painter.computeLineMetrics().length;
+      painter.dispose();
+    }
+    if (!ExerciseMascotPolicy.fits(
+      textWidth: textWidth,
+      lines: lines,
+      viewportHeight: media.size.height,
+    )) {
+      return null;
+    }
+    final asset = _exerciseMascot ??= mascots.next();
+    if (asset == null) return null;
+    return (anchor: anchor, asset: asset, size: size);
+  }
+
+  /// [child] with the active exercise's mascot on its leading side when the
+  /// mascot sits at [anchor]; else [child] alone.
+  Widget _withMascot(ExerciseMascotAnchor anchor, Widget child) {
+    final placement = _mascotPlacement;
+    if (placement == null || placement.anchor != anchor) return child;
+    return ExerciseMascot.beside(
+      asset: placement.asset,
+      size: placement.size,
+      child: child,
+    );
+  }
+
+  /// A centred [child] (the replay button) with the mascot beside it.
+  Widget _besideCentered(ExerciseMascotAnchor anchor, Widget child) {
+    final placement = _mascotPlacement;
+    if (placement == null || placement.anchor != anchor) return child;
+    return Row(
+      key: const Key('exercise-mascot-row'),
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        ExerciseMascot(asset: placement.asset, size: placement.size),
+        const SizedBox(width: ExerciseMascotPolicy.gap),
+        child,
+      ],
     );
   }
 
@@ -3388,6 +3654,7 @@ class _RoundScreenState extends State<RoundScreen> {
         if (f.kind == LearnerExerciseKind.storyCover) {
           return _storyCoverExercise(ex);
         }
+        if (f.kind == LearnerExerciseKind.page) return _pageExercise(ex);
         return _flashcardExercise(ex);
       case ExercisePrimitive.assign:
         return _assignExercise(ex);
@@ -3729,7 +3996,13 @@ class _RoundScreenState extends State<RoundScreen> {
       _autumnBackgrounds[widget.roundIndex % _autumnBackgrounds.length],
     );
     final intro = _lessonIntro;
-    if (_ready && _queue.isNotEmpty && intro != null && !_introAcknowledged) {
+    // The Preview of a card alone shows the card and closes after it.
+    if (_ready &&
+        !_initializationFailed &&
+        (_queue.isNotEmpty || widget.previewMode) &&
+        intro != null &&
+        !_introAcknowledged) {
+      final introFeatures = ExerciseFeatures(intro);
       return Scaffold(
         backgroundColor: background,
         appBar: _simpleRoundAppBar(background),
@@ -3751,11 +4024,15 @@ class _RoundScreenState extends State<RoundScreen> {
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Text(
-                  intro.text,
+                  introFeatures.introText,
                   style: Theme.of(context).textTheme.bodyLarge,
                 ),
               ),
-              if (widget.course.useGuidebook &&
+              // The card's Open GuideBook action (Build 257): asked for by
+              // the card, offered while the Course uses GuideBooks and the
+              // GuideBook is published (any GuideBook in Preview).
+              if (introFeatures.guidebookButton &&
+                  widget.course.useGuidebook &&
                   (widget.previewMode ||
                       widget
                           .lesson
@@ -3764,6 +4041,7 @@ class _RoundScreenState extends State<RoundScreen> {
                           .isPublished)) ...[
                 const SizedBox(height: 16),
                 OutlinedButton.icon(
+                  key: const Key('before-you-start-guidebook'),
                   onPressed: () => Navigator.of(context).push(
                     MaterialPageRoute(
                       builder: (_) => GuidebookScreen(
@@ -3782,7 +4060,12 @@ class _RoundScreenState extends State<RoundScreen> {
               ],
               const SizedBox(height: 8),
               FilledButton(
+                key: const Key('before-you-start-continue'),
                 onPressed: () {
+                  if (_queue.isEmpty) {
+                    Navigator.of(context).maybePop();
+                    return;
+                  }
                   setState(() => _introAcknowledged = true);
                   final exercise = _exercise;
                   final generation = _preparedExerciseGeneration;
@@ -3794,7 +4077,9 @@ class _RoundScreenState extends State<RoundScreen> {
                     );
                   });
                 },
-                child: const Text('Continue to Round'),
+                child: Text(
+                  _queue.isEmpty ? 'Close preview' : 'Continue to Round',
+                ),
               ),
             ],
           ),
@@ -3846,6 +4131,7 @@ class _RoundScreenState extends State<RoundScreen> {
     }
     final ex = _exercise;
     final totalShown = _queue.length;
+    _mascotPlacement = _placeMascot(context, ex);
 
     return Scaffold(
       backgroundColor: background,
@@ -3937,6 +4223,7 @@ class _RoundScreenState extends State<RoundScreen> {
               // heading nor instruction (Build 256 Revision 6).
               if (ExerciseFeatures(ex).kind !=
                       LearnerExerciseKind.dialogueLine &&
+                  ExerciseFeatures(ex).kind != LearnerExerciseKind.page &&
                   ex.isExecutable) ...[
                 Text(
                   ExerciseCopyService.typeLabel(
@@ -3951,32 +4238,42 @@ class _RoundScreenState extends State<RoundScreen> {
                 ),
                 const SizedBox(height: 4),
               ],
-              if (ex.isExecutable)
-                Text(
+              // A Page has no instruction line either (Build 258).
+              if (ex.isExecutable &&
+                  ExerciseFeatures(ex).kind != LearnerExerciseKind.page)
+                _withMascot(
                   _promptAsInstruction
-                      ? ExerciseCopyService.displayPrompt(
-                          widget.course,
-                          _displayedPrompt,
-                        )
-                      : ExerciseCopyService.instructionForExercise(
-                          widget.course,
-                          ex,
-                        ),
-                  key: const Key('exercise-instruction'),
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+                      ? ExerciseMascotAnchor.prompt
+                      : ExerciseMascotAnchor.none,
+                  Text(
+                    _promptAsInstruction
+                        ? ExerciseCopyService.displayPrompt(
+                            widget.course,
+                            _displayedPrompt,
+                          )
+                        : ExerciseCopyService.instructionForExercise(
+                            widget.course,
+                            ex,
+                          ),
+                    key: const Key('exercise-instruction'),
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ),
             ],
             if (_promptShown && !_promptAsInstruction) ...[
               const SizedBox(height: 12),
-              Text(
-                ExerciseCopyService.displayPrompt(
-                  widget.course,
-                  _displayedPrompt,
+              _withMascot(
+                ExerciseMascotAnchor.prompt,
+                Text(
+                  ExerciseCopyService.displayPrompt(
+                    widget.course,
+                    _displayedPrompt,
+                  ),
+                  key: const Key('exercise-prompt-text'),
+                  style: Theme.of(context).textTheme.titleMedium,
                 ),
-                key: const Key('exercise-prompt-text'),
-                style: Theme.of(context).textTheme.titleMedium,
               ),
             ],
             const SizedBox(height: 20),

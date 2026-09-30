@@ -141,7 +141,8 @@ void main() {
       expect(source.targetLanguageTag, 'en-GB');
       expect(source.lessons, hasLength(6));
       expect(source.lessons.expand((lesson) => lesson.rounds), hasLength(12));
-      expect(_exercises(source), hasLength(39));
+      // 39 examples and, since Build 257, seven Before you start cards.
+      expect(_exercises(source), hasLength(46));
       expect(CourseChecksums.official(source), source.officialChecksum);
       final audit = CourseAuditService().auditCourse(source);
       expect(audit.count(AuditSeverity.error), 0);
@@ -168,7 +169,8 @@ void main() {
       // Build 256 Revision 5 appends a Story Lesson after the Draft Lesson;
       // the fourth learner Lesson is still the one with the Draft GuideBook.
       expect(learner.lessons, hasLength(5));
-      expect(_exercises(learner), hasLength(36));
+      // Six of the seven Before you start cards are in the learner view.
+      expect(_exercises(learner), hasLength(42));
       expect(learner.lessons[3].rounds, hasLength(1));
       expect(learner.lessons[3].rounds.single.title, isEmpty);
       expect(learner.lessons[3].rounds.single.displayTitle(0), 'Round 1');
@@ -434,7 +436,7 @@ void main() {
           merged.mergeProvenance!.rightSourceCourseVersion,
           earlier.course.courseVersion,
         );
-        expect(_exercises(merged), hasLength(39));
+        expect(_exercises(merged), hasLength(46));
         expect(_ownedIds(merged).intersection(_ownedIds(fork)), isEmpty);
         _expectReferencesResolve(merged);
         expect(await editor.listUserCourses(), hasLength(3));
@@ -509,7 +511,7 @@ void main() {
       final installed = (await receiverEditor.listUserCourses()).single;
       expect(installed.courseId, portable.courseId);
       expect(installed.publicationState, portable.publicationState);
-      expect(_exercises(installed), hasLength(39));
+      expect(_exercises(installed), hasLength(46));
       expect(
         await (await receiverMedia.existingFile(
           installed.courseId,

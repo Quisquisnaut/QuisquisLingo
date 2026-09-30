@@ -120,6 +120,10 @@ void main() {
         'language',
       ],
       'story_cover': ['prompt', 'image'],
+      // Before you start has no picture (Build 257).
+      'before_you_start': ['prompt', 'guidebookButton'],
+      // Every Page block field shares one Help entry (Build 258).
+      'page': ['blocks'],
       // The Assign presets (Build 256 Revision 7 follow-up).
       'sort_into_groups': ['question', 'groups'],
       'fill_the_slots': ['question', 'slots', 'extraWords', 'slotReuse'],
@@ -356,7 +360,8 @@ void main() {
     final image = help('image_word', 'image');
     expect(image.entryRules, contains('exactly one PNG, JPG, JPEG or WebP'));
     expect(image.entryRules, contains('copies the original bytes'));
-    expect(image.validation, contains('50 KB (51,200 bytes)'));
+    // 300 KB since Build 258 Revision 1 (owner decision).
+    expect(image.validation, contains('300 KB (307,200 bytes)'));
     expect(
       image.validation,
       contains('recommendations, not enforced dimensions'),

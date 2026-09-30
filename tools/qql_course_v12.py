@@ -403,6 +403,15 @@ def convert_content(content: dict, round_updated_at: str | None = None) -> dict:
             metadata = {"presetId": "flashcard"}
         kind = "exercise"
         exercise = presentation_to_exercise(presentation, round_updated_at or "1970-01-01T00:00:00.000Z")
+    elif (content.get("role") == "lesson_intro" and "exercise" not in content
+          and isinstance(content.get("text"), str)):
+        # Build 257: a v11 Lesson introduction becomes a Before you start
+        # card offering the GuideBook, as the note did (mirrors Dart).
+        metadata["presetId"] = "before_you_start"
+        kind = "exercise"
+        exercise = before_you_start(content.pop("text"), guidebook_button=True,
+                                    updated_at=round_updated_at or "1970-01-01T00:00:00.000Z")
+        content.pop("role")
     elif isinstance(content.get("exercise"), dict) and "primitive" in content["exercise"]:
         # Build 256 Revision 5: a Story's lines and covers have no v11 recipe
         # and are authored in the canonical shape, so they pass through. The
@@ -500,6 +509,44 @@ def story_cover(*, updated_at: str, picture: str = "", alternative: str = "",
         elements.append({"role": "title", "type": "text", "text": title_line})
     return {"updatedAt": updated_at, "primitive": "presentation", "prompt": elements,
             "evaluation": {"mode": "none"}}
+
+
+def before_you_start(text: str, *, updated_at: str, guidebook_button: bool = False) -> dict:
+    """A Before you start card (Build 257): the note shown before its Round
+    starts (role intro) and, when asked, an Open GuideBook button."""
+    exercise = {"updatedAt": updated_at, "primitive": "presentation"}
+    if guidebook_button:
+        exercise["options"] = {"guidebookButton": True}
+    exercise["prompt"] = [{"role": "intro", "type": "text", "text": text}]
+    exercise["evaluation"] = {"mode": "none"}
+    return exercise
+
+
+# Build 258: a Page's blocks in the key order Dart's PromptElement.toJson
+# writes, so the official checksum computed here equals Dart's.
+_BLOCK_KEYS = ("role", "type", "text", "asset", "language", "playback", "required",
+               "textStyle", "align", "color", "size", "readAloud", "url")
+
+
+def page_exercise(blocks: list[dict], *, updated_at: str) -> dict:
+    """A Page (Build 258): a presentation whose prompt elements are blocks
+    (role block) with their Page attributes."""
+    prompt = []
+    for block in blocks:
+        element = {"role": "block", **block}
+        unknown = set(element) - set(_BLOCK_KEYS)
+        assert not unknown, unknown
+        prompt.append({key: element[key] for key in _BLOCK_KEYS if key in element})
+    return {"updatedAt": updated_at, "primitive": "presentation", "prompt": prompt,
+            "evaluation": {"mode": "none"}}
+
+
+def becomes_exercise(content: dict) -> bool:
+    """Whether a v11 Content is an exercise once converted: an exercise, a
+    presentation or, since Build 257, a Lesson introduction (a Before you
+    start card). A Story's flow names such a node `exercise`."""
+    return ("exercise" in content or "presentation" in content
+            or content.get("role") == "lesson_intro")
 
 
 def story_flow(entries: list[tuple[str, bool]], *, title: str, presentation: str = "scroll",

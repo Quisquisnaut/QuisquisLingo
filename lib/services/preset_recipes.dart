@@ -23,6 +23,10 @@ abstract final class PresetRecipes {
     'fill_the_slots',
     // Name what you see (Revision 7 fourth follow-up).
     'picture_blocks',
+    // Before you start (Build 257).
+    'before_you_start',
+    // Page (Build 258 Revision 2).
+    'page',
   };
 
   /// The learner kind each preset's recipe produces.
@@ -97,6 +101,8 @@ abstract final class PresetRecipes {
     'note_card': {LearnerExerciseKind.presentation},
     'dialogue_line': {LearnerExerciseKind.dialogueLine},
     'story_cover': {LearnerExerciseKind.storyCover},
+    'before_you_start': {LearnerExerciseKind.roundIntro},
+    'page': {LearnerExerciseKind.page},
     'sort_into_groups': {LearnerExerciseKind.assignGroups},
     'fill_the_slots': {LearnerExerciseKind.assignSlots},
   };
@@ -177,6 +183,10 @@ abstract final class PresetRecipes {
         ? (f.lineText.isNotEmpty ? f.lineText : (f.lineAudio?.text ?? ''))
         : presetId == 'story_cover'
         ? f.coverTitle
+        : presetId == 'before_you_start'
+        ? f.introText
+        : presetId == 'page'
+        ? ''
         : presentation
         ? f.textOf('term')
         : presetId == 'missing_letters' && f.hasInlineTargets
@@ -190,7 +200,11 @@ abstract final class PresetRecipes {
             f.primaryText,
             f.clueText,
           ].firstWhere((text) => text.isNotEmpty, orElse: () => '');
-    final story = presetId == 'dialogue_line' || presetId == 'story_cover';
+    final story =
+        presetId == 'dialogue_line' ||
+        presetId == 'story_cover' ||
+        presetId == 'before_you_start' ||
+        presetId == 'page';
     final question = story
         ? ''
         : presentation
@@ -381,6 +395,8 @@ abstract final class PresetRecipes {
       slots: slots,
       extraWords: presetId == 'picture_blocks' ? extraBlocks : unassigned,
       slotReuse: isAssign && f.assignItemReuse,
+      guidebookButton: f.guidebookButton,
+      pageBlocks: presetId == 'page' ? f.pageBlocks : const [],
       cardReadAloud: cardReadAloud,
       dialogueReadAloud: dialogueReadAloud,
       publicationState: state,

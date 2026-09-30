@@ -210,6 +210,11 @@ abstract final class ExerciseSearchRegistry {
       fields: [_prompt, _audio],
     ),
     ExerciseTypeSearchDefinition(presetId: 'story_cover', fields: [_prompt]),
+    ExerciseTypeSearchDefinition(
+      presetId: 'before_you_start',
+      fields: [_prompt],
+    ),
+    ExerciseTypeSearchDefinition(presetId: 'page', fields: [_prompt, _audio]),
   ];
 
   static ExerciseTypeSearchDefinition? forExercise(Exercise exercise) {

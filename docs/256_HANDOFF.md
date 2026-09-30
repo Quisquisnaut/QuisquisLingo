@@ -13,7 +13,27 @@ narrative of Revision 4 is gone (the evidence lives in
 `docs/256_VALIDATION.md`); what follows is state, decisions, requirements,
 open problems and the next step.
 
-## State (29 September 2026, 12:30)
+## State (29 September 2026, 14:10)
+
+- **Build 256 Revision 9 (`2.0.56+256009`) committed on local branch
+  `claude/256-revision9-exercise-mascots` as `1b91674`** (not pushed):
+  mascots beside the sentence of learner exercises, owner
+  decisions of 29 September (placement A on the leading side; random
+  pictures, not matched to the exercise; the sleeping monkey only on the
+  Round path; no picture twice in a Round and never one character twice in
+  a row, counted between the mascots actually shown; sentence = two words
+  or more or ending a sentence; Rounds, Review, Preview, not Stories or the
+  Duel; no setting). Mockups:
+  https://claude.ai/artifact/PTUbeMkTJ6t5xyhYHGASjK. Complete suite 3265
+  passed, 1 skipped, 0 failed (13:40–14:07). Next: the owner's review of a
+  Windows build; corrections are a same-version follow-up.
+- (Before Revision 9, 12:30:)
+
+- **Merged into main through PR #28** (merge commit `2244aa3`, 10:44 UTC,
+  on the owner's request): the Revision 7 third and fourth follow-ups and
+  Revision 8. The remote branch `claude/256-revision8-help-qa` was deleted
+  and local `main` fast-forwarded to `origin/main`; this note is a local
+  commit on main, not pushed, like the PR #26 and #27 notes before it.
 
 - **Build 256 Revision 8 (`2.0.56+256008`) committed as `7f1b013`** on local
   `main` (not pushed): Editor Help as questions and answers (66 questions,

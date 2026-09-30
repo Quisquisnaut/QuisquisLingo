@@ -61,3 +61,15 @@ DEFAULTS = {
     for primitive in _DATA["primitives"]
 }
 OPTION_ORDER = list(_DATA["optionKeys"])
+# Build 258: the Page attributes of prompt elements: key -> the element
+# types it applies to, its legal values (or its "boolean" / "string" type)
+# and the values allowed on text elements only.
+ELEMENT_ATTRIBUTES = {
+    attribute["key"]: {
+        "types": set(attribute["elementTypes"]),
+        "values": list(attribute.get("values", [])),
+        "type": attribute.get("type"),
+        "text_only": set(attribute.get("textOnlyValues", [])),
+    }
+    for attribute in _DATA.get("elementAttributes", [])
+}

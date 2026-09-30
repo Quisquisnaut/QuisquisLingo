@@ -223,6 +223,8 @@ class CourseMergeService {
       'publicationState',
       'createDuels',
       'useGuidebook',
+      // Build 258 Revision 4: never blocks a merge; the left Course's value.
+      'allowPageSharing',
       'lessonNumberingMode',
       'customLessonLabel',
       'sectionNames',

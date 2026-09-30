@@ -1608,6 +1608,16 @@ class _ElementRow extends StatelessWidget {
         ? element.playback
         : playback as AudioPlayback?,
     required: identical(required, _keep) ? element.required : required as bool?,
+    // Attributes this row has no field for are kept (Build 258: a Page
+    // block's style, alignment, colour, size, read-aloud and link; the
+    // speaker of a Dialogue line was dropped here before).
+    speakerId: element.speakerId,
+    textStyle: element.textStyle,
+    align: element.align,
+    color: element.color,
+    size: element.size,
+    readAloud: element.readAloud,
+    url: element.url,
   );
 
   static const _keep = Object();

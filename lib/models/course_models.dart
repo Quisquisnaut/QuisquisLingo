@@ -840,6 +840,11 @@ class Course {
   final bool createDuels;
   final bool useGuidebook;
 
+  /// Build 258 Revision 4 (owner decision, 29 September 2026): whether
+  /// learners may share, save and print this Course's Pages. On by default;
+  /// a courtesy the author sets, never inferred from the licence text.
+  final bool allowPageSharing;
+
   /// Explicit reusable names; legacy Lesson assignments remain available too.
   final List<String> sectionNames;
   final String learningLanguage;
@@ -944,6 +949,7 @@ class Course {
     this.defaultLessonIconStyle = LessonFallbackIconStyle.monochrome,
     this.createDuels = true,
     this.useGuidebook = true,
+    this.allowPageSharing = true,
     List<String> sectionNames = const [],
     required this.learningLanguage,
     required this.interfaceLanguage,
@@ -1336,6 +1342,7 @@ class Course {
     'defaultLessonIconStyle': defaultLessonIconStyle.name,
     if (!createDuels) 'createDuels': false,
     if (!useGuidebook) 'useGuidebook': false,
+    if (!allowPageSharing) 'allowPageSharing': false,
     if (sectionNames.isNotEmpty) 'sectionNames': sectionNames,
     'courseId': courseId,
     'originType': originType.name,
@@ -1420,7 +1427,7 @@ class Course {
   };
 
   factory Course.fromJson(Map<String, dynamic> json) {
-    for (final key in ['createDuels', 'useGuidebook']) {
+    for (final key in ['createDuels', 'useGuidebook', 'allowPageSharing']) {
       if (json.containsKey(key) && json[key] is! bool) {
         throw FormatException('course.$key must be a boolean.');
       }
@@ -1638,6 +1645,7 @@ class Course {
       defaultLessonIconStyle: LessonFallbackIconStyle.parseRequired(json),
       createDuels: json['createDuels'] as bool? ?? true,
       useGuidebook: json['useGuidebook'] as bool? ?? true,
+      allowPageSharing: json['allowPageSharing'] as bool? ?? true,
       sectionNames: _stringList(json, 'sectionNames'),
       learningLanguage: learning,
       interfaceLanguage: interface,
@@ -2798,6 +2806,31 @@ class PromptElement {
   /// exercise, so the exercise is skipped when audio is unavailable. Absent
   /// means true.
   final bool? required;
+
+  /// Build 258 (Page blocks): how a text element is drawn; absent means a
+  /// paragraph. Text elements only.
+  final BlockTextStyle? textStyle;
+
+  /// Build 258: where a text, picture or link sits across the page; absent
+  /// means start for text and links, center for pictures. Justify is for
+  /// body text only.
+  final BlockAlign? align;
+
+  /// Build 258: a text element's colour from the named palette; absent
+  /// means the theme's text colour.
+  final BlockColor? color;
+
+  /// Build 258: how wide a picture is drawn; absent means medium.
+  final BlockSize? size;
+
+  /// Build 258: whether a text element offers a read-aloud button; absent
+  /// means no.
+  final bool? readAloud;
+
+  /// Build 258: the web address of a `link` element (a video or a page on
+  /// the web, opened in the browser); its label is [text].
+  final String url;
+
   const PromptElement({
     this.role = 'primary',
     required this.type,
@@ -2809,11 +2842,20 @@ class PromptElement {
     this.language,
     this.playback,
     this.required,
+    this.textStyle,
+    this.align,
+    this.color,
+    this.size,
+    this.readAloud,
+    this.url = '',
   });
 
   bool get isAudio => type == 'audio';
   bool get isText => type == 'text';
   bool get isImage => type == 'image';
+
+  /// Build 258: a web link (label in [text], address in [url]).
+  bool get isLink => type == 'link';
 
   /// The effective playback of an audio element.
   AudioPlayback get effectivePlayback => playback ?? AudioPlayback.manual;
@@ -2832,6 +2874,12 @@ class PromptElement {
     TextLanguage? language,
     AudioPlayback? playback,
     bool? required,
+    BlockTextStyle? textStyle,
+    BlockAlign? align,
+    BlockColor? color,
+    BlockSize? size,
+    bool? readAloud,
+    String? url,
   }) => PromptElement(
     role: role ?? this.role,
     type: type ?? this.type,
@@ -2843,6 +2891,12 @@ class PromptElement {
     language: language ?? this.language,
     playback: playback ?? this.playback,
     required: required ?? this.required,
+    textStyle: textStyle ?? this.textStyle,
+    align: align ?? this.align,
+    color: color ?? this.color,
+    size: size ?? this.size,
+    readAloud: readAloud ?? this.readAloud,
+    url: url ?? this.url,
   );
 
   Map<String, dynamic> toJson() => {
@@ -2857,6 +2911,12 @@ class PromptElement {
     if (language != null) 'language': language!.serialized,
     if (playback != null) 'playback': playback!.serialized,
     if (required != null) 'required': required,
+    if (textStyle != null) 'textStyle': textStyle!.serialized,
+    if (align != null) 'align': align!.serialized,
+    if (color != null) 'color': color!.serialized,
+    if (size != null) 'size': size!.serialized,
+    if (readAloud != null) 'readAloud': readAloud,
+    if (url.isNotEmpty) 'url': url,
   };
   factory PromptElement.fromJson(Map<String, dynamic> j) {
     final source = j['sharedImageSource'];
@@ -2892,9 +2952,72 @@ class PromptElement {
     if (j.containsKey('required') && required is! bool) {
       throw const FormatException('element.required must be true or false.');
     }
+    // Build 258 (Page blocks): each attribute belongs to the element types
+    // it can shape, and only a value of its vocabulary is read.
+    final type = _requiredString(j, 'type', 'prompt');
+    T? attribute<T>(
+      String key,
+      T? Function(Object?) parse,
+      Set<String> types,
+      String legal,
+    ) {
+      if (!j.containsKey(key)) return null;
+      if (!types.contains(type)) {
+        throw FormatException(
+          'element.$key does not apply to an element of type $type.',
+        );
+      }
+      final value = parse(j[key]);
+      if (value == null) {
+        throw FormatException('element.$key “${j[key]}” must be $legal.');
+      }
+      return value;
+    }
+
+    final textStyle = attribute(
+      'textStyle',
+      BlockTextStyle.tryParse,
+      pageElementAttributeTypes['textStyle']!,
+      BlockTextStyle.values.map((v) => v.serialized).join(', '),
+    );
+    final align = attribute(
+      'align',
+      BlockAlign.tryParse,
+      pageElementAttributeTypes['align']!,
+      BlockAlign.values.map((v) => v.serialized).join(', '),
+    );
+    if (align == BlockAlign.justify && type != 'text') {
+      throw const FormatException(
+        'element.align justify applies to text elements only.',
+      );
+    }
+    final color = attribute(
+      'color',
+      BlockColor.tryParse,
+      pageElementAttributeTypes['color']!,
+      BlockColor.values.map((v) => v.serialized).join(', '),
+    );
+    final size = attribute(
+      'size',
+      BlockSize.tryParse,
+      pageElementAttributeTypes['size']!,
+      BlockSize.values.map((v) => v.serialized).join(', '),
+    );
+    final readAloud = attribute(
+      'readAloud',
+      (value) => value is bool ? value : null,
+      pageElementAttributeTypes['readAloud']!,
+      'true or false',
+    );
+    final url = attribute(
+      'url',
+      (value) => value is String ? value : null,
+      pageElementAttributeTypes['url']!,
+      'a string',
+    );
     return PromptElement(
       role: _optionalString(j, 'role', 'primary'),
-      type: _requiredString(j, 'type', 'prompt'),
+      type: type,
       text: _optionalString(j, 'text', ''),
       asset: _optionalString(j, 'asset', ''),
       speaker: _optionalString(j, 'speaker', ''),
@@ -2907,6 +3030,12 @@ class PromptElement {
       language: language,
       playback: playback,
       required: required as bool?,
+      textStyle: textStyle,
+      align: align,
+      color: color,
+      size: size,
+      readAloud: readAloud,
+      url: url ?? '',
     );
   }
 }
@@ -3392,6 +3521,33 @@ class Exercise {
     missingWords: missingWords,
     authoringMetadata: authoringMetadata,
   ).exercise;
+
+  /// A Before you start card (Build 257): a presentation whose note is a
+  /// text element with role `intro`, shown before its Round starts, and an
+  /// optional Open GuideBook button. The one shape the form, the Round
+  /// Wizard and the v11 converter build.
+  factory Exercise.beforeYouStart({
+    required String id,
+    PublicationState publicationState = PublicationState.published,
+    DateTime? updatedAt,
+    required String text,
+    bool guidebookButton = false,
+    ExerciseFeedback feedback = ExerciseFeedback.empty,
+    Map<String, Object?>? authoringMetadata,
+  }) => Exercise.canonical(
+    id: id,
+    publicationState: publicationState,
+    updatedAt: updatedAt,
+    primitive: ExercisePrimitive.presentation,
+    options: PrimitiveOptions({
+      if (guidebookButton)
+        OptionKey.guidebookButton: const BoolOptionValue(true),
+    }),
+    promptElements: [PromptElement(role: 'intro', type: 'text', text: text)],
+    canonicalEvaluation: CanonicalEvaluation.none,
+    feedback: feedback,
+    authoringMetadata: authoringMetadata,
+  );
 
   factory Exercise.presentation({
     required String id,

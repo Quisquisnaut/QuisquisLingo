@@ -28,10 +28,11 @@ void main() {
 
   test('Round fixture remains independently playable', () {
     final round = _course().lessons.single.rounds.single;
-    final issues = CourseAuditService().auditExercise(round.exercises.single);
+    // The Before you start card (index 0) is never a step (Build 257).
+    final issues = CourseAuditService().auditExercise(round.exercises.last);
     expect(
       RoundPlayabilityService().playableExerciseIndices(round),
-      [0],
+      [1],
       reason: issues
           .map((issue) => '${issue.code}: ${issue.message}')
           .join('\n'),
@@ -281,12 +282,14 @@ Course _course({
           id: 'delivery-round',
           title: 'Independent Round',
           content: [
-            LearningContent(
-              id: 'round-introduction',
-              publicationState: introState,
-              kind: 'explanation',
-              role: 'lesson_intro',
-              text: _intro,
+            // Build 257: the introduction is a Before you start card.
+            LearningContent.fromExercise(
+              Exercise.beforeYouStart(
+                id: 'round-introduction',
+                publicationState: introState,
+                text: _intro,
+                guidebookButton: true,
+              ),
             ),
             LearningContent.fromExercise(
               Exercise(

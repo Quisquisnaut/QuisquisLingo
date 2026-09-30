@@ -49,6 +49,8 @@ class ExerciseDraftValues {
     this.slots = '',
     this.extraWords = '',
     this.slotReuse = false,
+    this.guidebookButton = false,
+    this.pageBlocks = const [],
     this.cardReadAloud = 'manual',
     this.dialogueReadAloud = 'none',
   }) : correctTranslations = List.unmodifiable(correctTranslations);
@@ -129,6 +131,13 @@ class ExerciseDraftValues {
 
   final bool slotReuse;
 
+  /// Before you start (Build 257): whether the card offers an Open
+  /// GuideBook button.
+  final bool guidebookButton;
+
+  /// Page (Build 258 Revision 2): the Page's blocks in order.
+  final List<PromptElement> pageBlocks;
+
   /// A Flashcard's read-aloud: `none`, `manual` (on request) or
   /// `automatic`; the spoken text is the word itself.
   final String cardReadAloud;
@@ -196,6 +205,8 @@ class ExerciseDraftValues {
     slots: slots,
     extraWords: extraWords,
     slotReuse: slotReuse,
+    guidebookButton: guidebookButton,
+    pageBlocks: pageBlocks,
     cardReadAloud: cardReadAloud,
     dialogueReadAloud: dialogueReadAloud,
   );
@@ -460,12 +471,67 @@ abstract final class ExerciseDraftBuilder {
     );
   }
 
+  /// A Before you start card (Build 257): the note shown before the Round
+  /// starts and, when asked, an Open GuideBook button.
+  static ExerciseDraftBuildResult _buildBeforeYouStart(
+    ExerciseDraftValues draft,
+  ) {
+    final original = draft.original;
+    return ExerciseDraftBuildResult.success(
+      Exercise.beforeYouStart(
+        id: original.id,
+        publicationState: draft.publicationState,
+        updatedAt: original.updatedAt,
+        text: draft.prompt.trim(),
+        guidebookButton: draft.guidebookButton,
+        feedback: original.feedback,
+        authoringMetadata: original.authoringMetadata,
+      ),
+    );
+  }
+
+  /// A Page (Build 258 Revision 2): its blocks in order, each with role
+  /// `block`. A new Page with no blocks yet starts with an empty heading and
+  /// paragraph, so it is a Page from the start.
+  static ExerciseDraftBuildResult _buildPage(ExerciseDraftValues draft) {
+    final original = draft.original;
+    final blocks = draft.pageBlocks.isEmpty
+        ? pageStarterBlocks
+        : draft.pageBlocks;
+    return ExerciseDraftBuildResult.success(
+      Exercise.canonical(
+        id: original.id,
+        publicationState: draft.publicationState,
+        updatedAt: original.updatedAt,
+        primitive: ExercisePrimitive.presentation,
+        promptElements: [
+          for (final block in blocks) block.copyWith(role: 'block'),
+        ],
+        canonicalEvaluation: CanonicalEvaluation.none,
+        feedback: original.feedback,
+        authoringMetadata: original.authoringMetadata,
+      ),
+    );
+  }
+
+  /// The blocks a new Page starts with: an empty heading and paragraph.
+  static const pageStarterBlocks = [
+    PromptElement(
+      role: 'block',
+      type: 'text',
+      textStyle: BlockTextStyle.heading1,
+    ),
+    PromptElement(role: 'block', type: 'text'),
+  ];
+
   static ExerciseDraftBuildResult _build(ExerciseDraftValues draft) {
     final original = draft.original;
     final type = draft.type;
     final publicationState = draft.publicationState;
     if (type == 'dialogue_line') return _buildDialogueLine(draft);
     if (type == 'story_cover') return _buildStoryCover(draft);
+    if (type == 'before_you_start') return _buildBeforeYouStart(draft);
+    if (type == 'page') return _buildPage(draft);
     if (type == 'sort_into_groups') return _buildSortIntoGroups(draft);
     if (type == 'picture_blocks') return _buildPictureBlocks(draft);
     if (type == 'fill_the_slots') return _buildFillTheSlots(draft);
