@@ -927,13 +927,13 @@ Estas builds muestran TEST ONLY. No las distribuyas como versiones públicas; co
   'exerciseHelp.preset.gap_choice_inline.body':
       'El estudiante ve una frase con uno o más huecos y los rellena en orden tocando opciones; la misma opción puede rellenar varios huecos y un toque equivocado puede caer en el hueco equivocado. Escribe la frase con cada respuesta entre llaves: I {am} going {to} London. Añade 0, 1 o como máximo 2 opciones distractoras y un audio opcional. Este preset sustituye al interruptor Inline gaps de Choose the answer.',
   'exerciseHelp.preset.complete_text.body':
-      'El estudiante lee un texto con uno o más huecos y escribe cada palabra que falta. Escribe el texto completo y enumera las palabras que ocultar, una por línea, en orden; cada una debe aparecer en el texto. Las respuestas usan la normalización normal de Input. No hay audio: para huecos escuchados usa Listen and fill the gaps.',
+      'El estudiante lee un texto con uno o más huecos y escribe cada palabra que falta. Escribe el texto completo y enumera las palabras que ocultar, una por línea, en orden; cada una debe aparecer en el texto. Una Instruction or context opcional describe la escena y sustituye la línea estándar; una pista opcional ayuda sin revelar las palabras. Las respuestas usan la normalización normal de Input. No hay audio: para huecos escuchados usa Listen and fill the gaps.',
   'exerciseHelp.preset.missing_letters.body':
       'El estudiante ve palabras con letras que faltan y las escribe. Escribe el texto completo y pon las letras que faltan entre corchetes: El ga[t]o duerme. El estudiante ve ga_o, un guion por letra, y escribe t. Varios huecos están bien. Un texto hablado opcional lee toda la frase, una imagen opcional la ilustra y una pista opcional ayuda sin revelar las letras.',
   'exerciseHelp.preset.gap_blocks.body':
       'El estudiante ve una frase con huecos y arrastra bloques de palabras a ellos; cada bloque se usa una vez y debe caer en el hueco correcto. Escribe la frase con cada respuesta entre llaves: Io {vorrei} un caffè. Añade 0, 1 o como máximo 2 bloques distractores y un audio opcional. Este preset sustituye al interruptor Inline gaps de Word order y Build the translation.',
   'exerciseHelp.preset.sentence_order.body':
-      'El estudiante ve las líneas de una historia breve o un diálogo como bloques y las ordena. Escribe las líneas, una por línea, y el orden correcto; puedes añadir 0, 1 o como máximo 2 líneas que no pertenecen a nada. La instrucción dice qué ordenar: las frases de una historia, los turnos de un diálogo.',
+      'El estudiante ve las líneas de una historia breve o un diálogo como bloques y las ordena. Escribe las líneas una sola vez, en el orden correcto, y 0, 1 o como máximo 2 líneas que no pertenecen a nada. La Instruction or context puede dar la situación que decide el orden; una pista opcional ayuda sin revelarlo.',
   'exerciseHelp.preset.sort_into_groups.body':
       'El estudiante toca una palabra y luego el grupo al que pertenece; una palabra colocada se puede retirar; Check evalúa todos los grupos a la vez. Escribe una instrucción o un contexto opcionales y un grupo por línea como “Nombre del grupo: palabra, palabra, …” (al menos dos, cada uno con al menos una palabra). Cada palabra pertenece a un grupo, y solo a uno. Sort into groups nunca es un ejercicio de audio.',
   'exerciseHelp.preset.fill_the_slots.body':
@@ -1015,7 +1015,7 @@ Estas builds muestran TEST ONLY. No las distribuyas como versiones públicas; co
   'exerciseHelp.preset.gap_choice_inline.description':
       'El estudiante rellena los huecos de una frase fija tocando opciones, una por hueco.',
   'exerciseHelp.preset.complete_text.description':
-      'El estudiante escribe las palabras que faltan en un texto con varios huecos; sin audio.',
+      'El estudiante escribe las palabras que faltan en un texto con varios huecos; sin audio, con instrucción y pista opcionales.',
   'exerciseHelp.preset.missing_letters.description':
       'El estudiante escribe las letras que faltan dentro de las palabras (be__); texto hablado o imagen opcionales.',
   'exerciseHelp.preset.gap_blocks.description':
@@ -1161,9 +1161,9 @@ Estas builds muestran TEST ONLY. No las distribuyas como versiones públicas; co
   'exerciseHelp.field.picture_word_match.answers.body':
       'Las palabras de los pares; cada una recibe una imagen debajo.\n\nQué escribir\nUna palabra por línea, en la lengua de estudio. Al menos dos.\n\nComprobaciones\nCada palabra necesita su imagen; las palabras deben ser únicas.\n\nEjemplo\ngatto\ncane\ncasa',
   'exerciseHelp.field.sentence_order.order.body':
-      'Las líneas en el orden correcto.\n\nQué escribir\nUna línea por línea, exactamente como arriba, en el orden correcto.\n\nComprobaciones\nCada línea debe coincidir con una de las líneas enumeradas.\n\nEjemplo\nAnna entra nel bar.\nOrdina un caffè.\nPaga e saluta.',
-  'exerciseHelp.field.sentence_order.tokens.body':
-      'Las líneas de la historia o el diálogo que el estudiante ordena.\n\nQué escribir\nUna frase o línea por línea, en cualquier orden. Puedes añadir 0, 1 o como máximo 2 líneas que no pertenecen a nada.\n\nComprobaciones\nCada línea del orden correcto debe estar aquí.\n\nEjemplo\nAnna entra nel bar.\nOrdina un caffè.\nPaga e saluta.',
+      'Las líneas de la historia o el diálogo, en el orden que el estudiante debe encontrar.\n\nQué escribir\nUna frase o línea por línea, en el orden correcto; el estudiante las recibe mezcladas. Las líneas que no pertenecen a nada van en Extra lines.\n\nComprobaciones\nAl menos dos líneas para publicar. El mismo texto dos veces cuenta como dos líneas.\n\nEjemplo\nAnna entra nel bar.\nOrdina un caffè.\nPaga e saluta.',
+  'exerciseHelp.field.sentence_order.extraWords.body':
+      'Líneas ofrecidas con las demás que no pertenecen a nada; el estudiante debe dejarlas fuera.\n\nQué escribir\nUna línea por línea: 0, 1 o como máximo 2.\n\nComprobaciones\nOpcionales. Deben ser plausibles pero claramente fuera de lugar.\n\nEjemplo\nIl treno parte alle nove.',
   'exerciseHelp.field.spell_heard.tts.body':
       'La palabra que el estudiante escucha y deletrea.\n\nQué escribir\nEscribe la palabra como texto; se lee con la voz de la lengua de estudio o se asocia a una grabación del Course.\n\nComprobaciones\nObligatoria. Las fichas deben deletrear exactamente esta palabra.\n\nEjemplo\ngatto',
   'exerciseHelp.field.spell_word.prompt.body':

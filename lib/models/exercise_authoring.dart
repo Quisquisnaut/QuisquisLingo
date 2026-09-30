@@ -277,7 +277,7 @@ abstract final class ExercisePresetRegistry {
       id: 'complete_text',
       name: 'Complete the text',
       description:
-          'Learner types the words missing from a text with several gaps; no audio.',
+          'Learner types the words missing from a text with several gaps; no audio, an optional instruction and hint.',
       category: ExerciseCategory.grammarAndSentences,
       primitive: ExercisePrimitive.input,
       base: 'missing_word',
@@ -653,13 +653,13 @@ abstract final class ExercisePresetRegistry {
     'gap_choice_inline':
         'The learner fills the gaps of a fixed sentence by tapping options in order; the same option can fill several gaps. Write the sentence with each answer inside braces, {answer}, add 0 to 2 distractor options and an optional spoken prompt.',
     'complete_text':
-        'The learner types the words missing from a text with several gaps. Write the complete text and list the words to hide, one per line, in order; each must occur in the text. No audio.',
+        'The learner types the words missing from a text with several gaps. Write the complete text and list the words to hide, one per line, in order; each must occur in the text; an optional instruction or context and an optional hint. No audio.',
     'missing_letters':
         'The learner types the letters missing inside words. Write the complete text and put the missing letters inside square brackets: My cat doesn’t dr[ink] milk. The learner sees dr___ milk. Optional spoken text or picture.',
     'gap_blocks':
         'The learner fills the gaps of a fixed sentence by placing word blocks; each block is used once. Write the sentence with each answer inside braces, {answer}, add 0 to 2 distractor blocks and an optional spoken prompt.',
     'sentence_order':
-        'The learner puts the lines of a story or a dialogue in order. Enter the lines, one per line, and the correct order; 0, 1 or at most 2 extra distractor lines.',
+        'The learner puts the lines of a story or a dialogue in order. Enter the lines once, in the correct order, 0, 1 or at most 2 extra lines, an optional instruction or context and an optional hint.',
     'sort_into_groups':
         'The learner taps a word, then the group it belongs to, and checks when every word is placed. Enter an optional instruction or context and one group per line as “Group name: word, word, …” (at least two groups; every word belongs to one).',
     'fill_the_slots':

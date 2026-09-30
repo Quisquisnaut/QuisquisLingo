@@ -27,6 +27,9 @@ abstract final class PresetRecipes {
     'before_you_start',
     // Page (Build 258 Revision 2).
     'page',
+    // Put the sentences in order builds its lines and extra lines itself
+    // (Build 259 Revision 1); it still converts from the Word order shape.
+    'sentence_order',
   };
 
   /// The learner kind each preset's recipe produces; the first is the one
@@ -210,6 +213,10 @@ abstract final class PresetRecipes {
         ? ''
         : presentation
         ? f.textOf('meaning')
+        // Complete the text keeps its Instruction or context in the form's
+        // question value (Build 259 Revision 1).
+        : presetId == 'complete_text'
+        ? f.authoredInstruction
         : f.questionText;
     // (A Note card keeps its body as the meaning.)
     // The former Fill-in shape keeps its sentence in the question field; the
@@ -331,7 +338,8 @@ abstract final class PresetRecipes {
             for (final target in exercise.targets)
               '${f.targetLabel(target.id)} = ${targetWords(target.id)}',
           ].join('\n');
-    // Name what you see: the blocks outside the name are its extra blocks.
+    // Name what you see and Put the sentences in order: the blocks outside
+    // the answer are its extra blocks (lines).
     final nameIds = orders.isEmpty
         ? const <String>{}
         : orders.first.itemIds.toSet();
@@ -394,7 +402,9 @@ abstract final class PresetRecipes {
       lineLanguage: f.lineLanguage,
       groups: groups,
       slots: slots,
-      extraWords: presetId == 'picture_blocks' ? extraBlocks : unassigned,
+      extraWords: presetId == 'picture_blocks' || presetId == 'sentence_order'
+          ? extraBlocks
+          : unassigned,
       slotReuse: isAssign && f.assignItemReuse,
       guidebookButton: f.guidebookButton,
       pageBlocks: presetId == 'page' ? f.pageBlocks : const [],
@@ -474,7 +484,13 @@ abstract final class PresetRecipes {
       hint: '',
       icons: const [],
     ).copyWith(feedback: exercise.feedback);
-    final draft = decompose(exercise, presetId, original: blank);
+    // Put the sentences in order also borrows the stored items (Build 259
+    // Revision 1): its form keeps their IDs and order but does not show the
+    // order, which the former "in any order" field let an author choose.
+    final original = presetId == 'sentence_order'
+        ? blank.copyWith(items: exercise.items)
+        : blank;
+    final draft = decompose(exercise, presetId, original: original);
     return ExerciseDraftBuilder.build(draft).candidate;
   }
 

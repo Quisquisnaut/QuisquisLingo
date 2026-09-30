@@ -263,6 +263,10 @@ enum ExerciseDraftErrorCode {
 
   /// A required question or sentence is empty; the detail is its label.
   textRequired,
+
+  /// Put the sentences in order needs at least two lines (Build 259
+  /// Revision 1).
+  linesRequired,
 }
 
 class ExerciseDraftFieldError {
@@ -575,6 +579,7 @@ abstract final class ExerciseDraftBuilder {
     if (type == 'sort_into_groups') return _buildSortIntoGroups(draft);
     if (type == 'picture_blocks') return _buildPictureBlocks(draft);
     if (type == 'fill_the_slots') return _buildFillTheSlots(draft);
+    if (type == 'sentence_order') return _buildSentenceOrder(draft);
     if (type == 'script_recognition') {
       final candidate = draft.scriptCandidate;
       return candidate == null
@@ -1167,6 +1172,106 @@ abstract final class ExerciseDraftBuilder {
         targets: [
           for (final slot in slots) (slot.$1, [slot.$2]),
         ],
+      ),
+    );
+  }
+
+  /// Put the sentences in order (Build 259 Revision 1, owner decisions of
+  /// 29 September 2026): the optional Instruction or context, the lines in
+  /// the correct order, up to two extra lines and an optional hint.
+  /// Canonical: an Arrange of line items with one exact order under the
+  /// `clue` instruction. Item IDs are kept by text and the items keep their
+  /// stored order (new lines go at the end), so an unchanged exercise
+  /// rebuilds equal to itself; the runtime shuffles them anyway.
+  static ExerciseDraftBuildResult _buildSentenceOrder(
+    ExerciseDraftValues draft,
+  ) {
+    final lines = _lines(draft.order);
+    final extras = _lines(draft.extraWords);
+    if (_strict(draft) && lines.length < 2) {
+      return _failure(
+        ExerciseDraftField.order,
+        ExerciseDraftErrorCode.linesRequired,
+      );
+    }
+    final original = draft.original;
+    final originalItems = original.primitive == ExercisePrimitive.arrange
+        ? original.items
+        : const <ExerciseItem>[];
+    final wanted = [...lines, ...extras];
+    final ids = List<String?>.filled(wanted.length, null);
+    final usedIds = <String>{};
+    for (var i = 0; i < wanted.length; i++) {
+      final kept = originalItems
+          .where(
+            (item) => !usedIds.contains(item.id) && item.value == wanted[i],
+          )
+          .firstOrNull;
+      if (kept != null) {
+        ids[i] = kept.id;
+        usedIds.add(kept.id);
+      }
+    }
+    for (var i = 0; i < wanted.length; i++) {
+      if (ids[i] != null) continue;
+      var n = 0;
+      while (!usedIds.add('item_$n')) {
+        n++;
+      }
+      ids[i] = 'item_$n';
+    }
+    final position = {
+      for (var i = 0; i < originalItems.length; i++) originalItems[i].id: i,
+    };
+    final order = List<int>.generate(wanted.length, (i) => i)
+      ..sort((a, b) {
+        final pa = position[ids[a]];
+        final pb = position[ids[b]];
+        if (pa != null && pb != null) return pa.compareTo(pb);
+        if (pa != null) return -1;
+        if (pb != null) return 1;
+        return a.compareTo(b);
+      });
+    return ExerciseDraftBuildResult.success(
+      Exercise.canonical(
+        id: original.id,
+        publicationState: draft.publicationState,
+        updatedAt: original.updatedAt,
+        primitive: ExercisePrimitive.arrange,
+        promptElements: [
+          if (draft.prompt.trim().isNotEmpty)
+            PromptElement(
+              role: 'clue',
+              type: 'text',
+              text: draft.prompt.trim(),
+            ),
+          if (draft.imageAsset.trim().isNotEmpty)
+            PromptElement(
+              role: 'clue',
+              type: 'image',
+              asset: draft.imageAsset.trim(),
+            ),
+        ],
+        items: [
+          for (final i in order)
+            ExerciseItem(
+              id: ids[i]!,
+              content: [PromptElement(type: 'text', text: wanted[i])],
+            ),
+        ],
+        canonicalEvaluation: CanonicalEvaluation(
+          mode: EvaluationMode.exactOrder,
+          correctOrders: [
+            if (lines.isNotEmpty)
+              OrderedAnswer(
+                text: lines.join(' '),
+                itemIds: [for (var i = 0; i < lines.length; i++) ids[i]!],
+              ),
+          ],
+        ),
+        hint: draft.hint.trim(),
+        feedback: original.feedback,
+        authoringMetadata: original.authoringMetadata,
       ),
     );
   }

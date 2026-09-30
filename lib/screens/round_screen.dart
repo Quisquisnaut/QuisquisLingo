@@ -2277,6 +2277,21 @@ class _RoundScreenState extends State<RoundScreen> {
     );
   }
 
+  /// The hint of a gap or order exercise (Build 259 Revision 1), drawn as
+  /// Type the missing word draws its own.
+  Widget _hintPanel(Exercise ex, Key key) => Container(
+    key: key,
+    padding: const EdgeInsets.all(12),
+    decoration: BoxDecoration(
+      color: _exercisePanelColor,
+      borderRadius: BorderRadius.circular(14),
+    ),
+    child: Text(
+      'Hint: ${ex.hint.trim()}',
+      style: Theme.of(context).textTheme.bodyLarge,
+    ),
+  );
+
   Widget _wordOrderExercise(Exercise ex) {
     final available = List<String>.from(_tokenOptions);
     for (final token in _builtOrder) {
@@ -2285,6 +2300,10 @@ class _RoundScreenState extends State<RoundScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        if (ex.hint.trim().isNotEmpty) ...[
+          _hintPanel(ex, const Key('order-hint')),
+          const SizedBox(height: 16),
+        ],
         Wrap(
           spacing: 8,
           runSpacing: 8,
@@ -2723,14 +2742,16 @@ class _RoundScreenState extends State<RoundScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        FilledButton.tonalIcon(
-          onPressed: _answered || audio == null
-              ? null
-              : () => _speakText(audio),
-          icon: const Icon(Icons.volume_up_outlined),
-          label: const Text('Play audio'),
-        ),
-        const SizedBox(height: 14),
+        // Play audio only when there is audio (Build 259 Revision 1): a
+        // greyed button made a text-only exercise look like a listening one.
+        if (audio != null) ...[
+          FilledButton.tonalIcon(
+            onPressed: _answered ? null : () => _speakText(audio),
+            icon: const Icon(Icons.volume_up_outlined),
+            label: const Text('Play audio'),
+          ),
+          const SizedBox(height: 14),
+        ],
         _withMascot(
           ExerciseMascotAnchor.gappedText,
           Container(
@@ -2746,6 +2767,10 @@ class _RoundScreenState extends State<RoundScreen> {
           ),
         ),
         const SizedBox(height: 14),
+        if (ex.hint.trim().isNotEmpty) ...[
+          _hintPanel(ex, const Key('gap-fields-hint')),
+          const SizedBox(height: 14),
+        ],
         for (var i = 0; i < _missingWordControllers.length; i++) ...[
           TextField(
             controller: _missingWordControllers[i],

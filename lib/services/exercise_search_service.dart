@@ -154,7 +154,7 @@ abstract final class ExerciseSearchRegistry {
     ),
     ExerciseTypeSearchDefinition(
       presetId: 'complete_text',
-      fields: [_prompt, _missing],
+      fields: [_prompt, _missing, _hint],
     ),
     ExerciseTypeSearchDefinition(
       presetId: 'missing_letters',
@@ -166,7 +166,7 @@ abstract final class ExerciseSearchRegistry {
     ),
     ExerciseTypeSearchDefinition(
       presetId: 'sentence_order',
-      fields: [_prompt, _items, _orders],
+      fields: [_prompt, _items, _orders, _hint],
     ),
     ExerciseTypeSearchDefinition(
       presetId: 'sort_into_groups',

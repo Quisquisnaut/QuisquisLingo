@@ -93,10 +93,11 @@ void main() {
       ],
       'true_false': ['question', 'tts', 'answers', 'correct'],
       'gap_choice_inline': ['prompt', 'gapLayout', 'tokens', 'tts'],
-      'complete_text': ['prompt', 'missingWords'],
+      // Build 259 Revision 1: an instruction (question value) and a hint.
+      'complete_text': ['question', 'prompt', 'missingWords', 'hint'],
       'missing_letters': ['prompt', 'tts', 'hint'],
       'gap_blocks': ['prompt', 'gapLayout', 'tokens', 'tts'],
-      'sentence_order': ['prompt', 'tokens', 'order'],
+      'sentence_order': ['prompt', 'order', 'extraWords', 'hint'],
       'listening_image_choice': [
         'tts',
         'prompt',

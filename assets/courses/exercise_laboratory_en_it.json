@@ -3689,7 +3689,13 @@
                   "layout": "inlineGaps",
                   "cardinality": "multiple"
                 },
-                "prompt": [],
+                "prompt": [
+                  {
+                    "role": "clue",
+                    "type": "text",
+                    "text": "Anna's morning before work."
+                  }
+                ],
                 "targets": [
                   {
                     "id": "gap_1"
@@ -3736,7 +3742,8 @@
                       ]
                     }
                   ]
-                }
+                },
+                "hint": "A drink, then a way to travel."
               }
             },
             {
@@ -5968,7 +5975,7 @@
                   {
                     "role": "clue",
                     "type": "text",
-                    "text": "Put the story in order."
+                    "text": "Anna stops at the bar for a coffee."
                   }
                 ],
                 "items": [
@@ -6033,7 +6040,7 @@
                   {
                     "role": "clue",
                     "type": "text",
-                    "text": "Put the dialogue in order."
+                    "text": "At the bar: a customer orders a coffee."
                   }
                 ],
                 "items": [
@@ -6076,6 +6083,16 @@
                         "text": "Ecco a lei."
                       }
                     ]
+                  },
+                  {
+                    "id": "qql_lab254_sentence_order_dialogue_item_4",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "Il treno parte alle nove."
+                      }
+                    ]
                   }
                 ],
                 "evaluation": {
@@ -6091,7 +6108,8 @@
                       ]
                     }
                   ]
-                }
+                },
+                "hint": "The barista offers sugar before serving."
               }
             },
             {
@@ -9352,5 +9370,5 @@
     }
   ],
   "minimumAppBuild": 258000,
-  "officialChecksum": "e7a9c9425087edb92fb79f007d973e4098588bd8eaf050088df1eac9b60f4e5c"
+  "officialChecksum": "d5aa14c86b367e3a3025f2d6345063ab5b38798a69d6a96ddcf353c7e2cc216a"
 }

@@ -10001,10 +10001,10 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
   /// decisions of 29 September 2026): written in the learners' language and
   /// stored without a language, it takes the place of the standard line the
   /// learner sees under the exercise heading. The helper quotes that line.
-  Widget _instructionField() {
+  Widget _instructionField({TextEditingController? controller}) {
     final standard = _standardInstruction();
     return _field(
-      _prompt,
+      controller ?? _prompt,
       'Instruction or context (optional)',
       lines: 2,
       helper: standard == null
@@ -10612,7 +10612,10 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
           ),
         ];
       case 'complete_text':
+        // Build 259 Revision 1: an Instruction or context (the form's
+        // question value) and a hint.
         return [
+          _instructionField(controller: _question),
           _field(
             _prompt,
             'Text with the words to hide',
@@ -10625,6 +10628,12 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
             'Missing words',
             lines: 4,
             helper: 'One per line, in order; each must occur in the text.',
+          ),
+          _field(
+            _hint,
+            'Hint (optional)',
+            helper:
+                'A clue shown under the text; it must not give the words away.',
           ),
         ];
       case 'missing_letters':
@@ -10669,20 +10678,27 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
           ),
         ];
       case 'sentence_order':
+        // Build 259 Revision 1: the lines are entered once, in order.
         return [
           _instructionField(),
           _field(
-            _tokens,
-            'Sentences or lines',
+            _order,
+            'Lines, in the correct order',
             lines: 6,
             helper:
-                'One sentence per line, in any order. You may add 0, 1 or at most 2 extra distractor lines.',
+                'One line per line, in the order the learner must find. They are shuffled for the learner.',
           ),
           _field(
-            _order,
-            'Correct order',
-            lines: 6,
-            helper: 'The lines in the right order, one per line.',
+            _extraWords,
+            'Extra lines (optional)',
+            lines: 2,
+            helper: 'Lines that belong nowhere: 0, 1 or at most 2.',
+          ),
+          _field(
+            _hint,
+            'Hint (optional)',
+            helper:
+                'A clue shown above the lines; it must not give the order away.',
           ),
         ];
       case 'listening_image_choice':
@@ -11394,6 +11410,8 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         'Blocks of the name: enter the name, one word per line.',
       ExerciseDraftErrorCode.textRequired =>
         '${error.detail}: required. Enter it, or save as draft.',
+      ExerciseDraftErrorCode.linesRequired =>
+        'Lines, in the correct order: enter at least two lines.',
       ExerciseDraftErrorCode.slotWordRepeated =>
         'Slots: “${error.detail}” is listed more than once. Turn on “A '
             'word may fill more than one slot” when one word answers '

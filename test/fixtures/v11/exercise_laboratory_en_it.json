@@ -3350,6 +3350,11 @@
                 "updatedAt": "2026-09-25T00:00:00.000Z",
                 "prompt": [
                   {
+                    "role": "clue",
+                    "type": "text",
+                    "text": "Anna's morning before work."
+                  },
+                  {
                     "role": "primary",
                     "type": "text",
                     "text": "Anna beve un caffè al bar. Poi prende il treno."
@@ -3369,6 +3374,7 @@
                     "accents": "preserve"
                   }
                 },
+                "hint": "A drink, then a way to travel.",
                 "missingWords": [
                   "caffè",
                   "treno"
@@ -5323,7 +5329,7 @@
                   {
                     "role": "clue",
                     "type": "text",
-                    "text": "Put the story in order."
+                    "text": "Anna stops at the bar for a coffee."
                   }
                 ],
                 "interaction": {
@@ -5388,7 +5394,7 @@
                   {
                     "role": "clue",
                     "type": "text",
-                    "text": "Put the dialogue in order."
+                    "text": "At the bar: a customer orders a coffee."
                   }
                 ],
                 "interaction": {
@@ -5433,6 +5439,16 @@
                           "text": "Ecco a lei."
                         }
                       ]
+                    },
+                    {
+                      "id": "qql_lab254_sentence_order_dialogue_item_4",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "Il treno parte alle nove."
+                        }
+                      ]
                     }
                   ]
                 },
@@ -5449,7 +5465,8 @@
                       ]
                     }
                   ]
-                }
+                },
+                "hint": "The barista offers sugar before serving."
               }
             },
             {
@@ -6919,5 +6936,5 @@
       }
     }
   ],
-  "officialChecksum": "c8d5eeceba63d69570db4e41525e0f9d0c99b65677a872c88d96c6a7213f7a4f"
+  "officialChecksum": "add7786f86335bd07884ef44b47e0b6e066242ee4f62907fb51891ab5e811276"
 }

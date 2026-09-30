@@ -1,3 +1,33 @@
+# 2.0.59 (Build 259, Revision 1) - Complete the text and Put the sentences in order - 2026-09-30
+
+Two exercises whose answer learners could not always work out get context
+and hints (owner decisions of 29 September 2026, plan
+`docs/CONTEXT_AND_HINT_PLAN.md` §5).
+
+- **Complete the text:** an optional **Instruction or context** first
+  (it replaces the standard line in the Round) and an optional **Hint**
+  last. The hint shows under the gapped text.
+- **Put the sentences in order:** the lines are entered once, **Lines, in
+  the correct order**, with **Extra lines (optional)** (0, 1 or at most 2)
+  and an optional **Hint**, shown above the lines. "Sentences or lines" and
+  "Correct order" repeated the same lines and are gone. A Published save
+  needs at least two lines. Line IDs follow their text, and the stored
+  order of the lines is kept.
+- **Hints on the gap and order screens:** Missing letters' hint and Name
+  what you see's hint, which learners never saw, now show too.
+- **No Play audio button without audio:** a gap exercise with no audio
+  used to show a greyed Play audio button, as if it were a listening
+  exercise.
+- **Demo content:** Piedmontese Lessons 18 and 21 get hints and
+  instructions that make every answer reachable with audio off; the
+  Laboratory's Complete the text and Put the sentences in order examples
+  show the new fields.
+- **Help EN/IT/ES** and Search (hints) follow.
+
+Scoring, progression, Review, the Course format and learner data are
+unchanged. Beta expiry `2026-10-30 23:59:59` local time (same release day
+as Revision 0).
+
 # 2.0.59 (Build 259, Revision 0) - Instructions and questions - 2026-09-30
 
 Exercise prompts say clearly what they are (owner decisions of 29 September

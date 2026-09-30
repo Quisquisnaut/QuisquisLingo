@@ -113,7 +113,11 @@ Exercise _author(Exercise exercise) {
             : exercise.type == 'type_missing_word' && exercise.prompt.isEmpty
             ? exercise.question
             : exercise.prompt,
-        question: exercise.question,
+        // Complete the text keeps its instruction in the question value
+        // (Build 259 Revision 1).
+        question: exercise.editorTemplate == 'complete_text'
+            ? hints.question
+            : exercise.question,
         tts: exercise.tts ?? '',
         hint: exercise.hint,
         answers: exercise.answers.join('\n'),

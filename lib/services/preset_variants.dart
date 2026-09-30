@@ -138,8 +138,10 @@ abstract final class PresetVariants {
       case 'word_order':
       case 'build_translation_to_target':
       case 'build_translation_to_source':
-      case 'sentence_order':
         return draft.copyWith(type: base, useInlineGaps: false);
+      case 'sentence_order':
+        // Its own recipe (Build 259 Revision 1): the lines once, in order.
+        return draft.copyWith(type: presetId, useInlineGaps: false);
       case 'gap_blocks':
         return draft.copyWith(type: base, useInlineGaps: true);
       case 'complete_text':
@@ -186,6 +188,9 @@ abstract final class PresetVariants {
     exercise = _shape(presetId, exercise);
     if (presetId == 'reading_answer_target') {
       exercise = _readAndAnswer(exercise, draft.dialogueReadAloud);
+    }
+    if (presetId == 'complete_text') {
+      exercise = _withInstruction(exercise, draft.question);
     }
     // A candidate the base recipe already finished (the script controller's
     // own candidate, for one) crosses unchanged.
@@ -316,6 +321,21 @@ abstract final class PresetVariants {
       default:
         return exercise;
     }
+  }
+
+  /// Complete the text's Instruction or context (Build 259 Revision 1): a
+  /// `clue` text with no language, first in the prompt. It is a clue, not a
+  /// primary text, because the Listen-for-missing-words recipe reads its
+  /// primary text as the passage.
+  static Exercise _withInstruction(Exercise exercise, String instruction) {
+    final text = instruction.trim();
+    if (text.isEmpty) return exercise;
+    return exercise.copyWith(
+      promptElements: [
+        PromptElement(role: 'clue', type: 'text', text: text),
+        ...exercise.promptElements,
+      ],
+    );
   }
 
   /// The base recipe's question text as the Instruction or context: a

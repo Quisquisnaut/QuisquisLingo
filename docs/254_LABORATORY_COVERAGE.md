@@ -126,7 +126,7 @@ The suffix below follows `qql_lab254_` in the stable Content/Exercise ID. Answer
 | Input / Transcriptions and missing words | input_missing_many | missing_word | Listen for missing words; three distinct gaps in transcript order | 1 legge; 2 libro; 3 giardino |
 | Input / Source answers, texts and pictures | type_source_literal | type_translation_to_source | Type the translation (to source); target text, source answers | thank you / thanks |
 | Input / Source answers, texts and pictures | type_source_variants | type_translation_to_source | Type the translation (to source); two accepted answers | I would like a coffee / I'd like a coffee |
-| Input / Source answers, texts and pictures | complete_text | complete_text | Complete the text; two typed gaps, no audio | caffè / treno |
+| Input / Source answers, texts and pictures | complete_text | complete_text | Complete the text; two typed gaps, an instruction and a hint, no audio | caffè / treno |
 | Input / Source answers, texts and pictures | missing_letters | missing_letters | Missing letters; letters inside two words | tt / van |
 | Input / Source answers, texts and pictures | missing_letters_audio | missing_letters | Missing letters; spoken text and two gaps | ren / ove |
 | Input / Source answers, texts and pictures | picture_name | picture_name | Type what you see; picture prompt, typed answers | il pane / pane |
@@ -151,8 +151,8 @@ The suffix below follows `qql_lab254_` in the stable Content/Exercise ID. Answer
 | Arrange / Letters and syllables | image_repeated_letters | image_word | Image-prompt ordering; repeated individual letters | banana |
 | Arrange / Source blocks, sentences and spelling | build_source_single | build_translation_to_source | Build the translation (to source); target text, source blocks | I drink water |
 | Arrange / Source blocks, sentences and spelling | build_source_distractor | build_translation_to_source | Build the translation (to source); one unused block | I go to school by train |
-| Arrange / Source blocks, sentences and spelling | sentence_order_story | sentence_order | Put the sentences in order; three lines of a story | Anna entra nel bar. Ordina un caffè. Paga e saluta. |
-| Arrange / Source blocks, sentences and spelling | sentence_order_dialogue | sentence_order | Put the sentences in order; four turns of a dialogue | Buongiorno, un caffè per favore. Subito. Zucchero? No, grazie. Ecco a lei. |
+| Arrange / Source blocks, sentences and spelling | sentence_order_story | sentence_order | Put the sentences in order; three lines of a story under an instruction that sets the scene | Anna entra nel bar. Ordina un caffè. Paga e saluta. |
+| Arrange / Source blocks, sentences and spelling | sentence_order_dialogue | sentence_order | Put the sentences in order; four turns of a dialogue, one extra line and a hint | Buongiorno, un caffè per favore. Subito. Zucchero? No, grazie. Ecco a lei. |
 | Arrange / Source blocks, sentences and spelling | spell_heard_letters | spell_heard | Spell what you hear; letter tiles, no picture | pane |
 | Arrange / Source blocks, sentences and spelling | spell_heard_syllables | spell_heard | Spell what you hear; syllable tiles | gatto |
 | Arrange / Source blocks, sentences and spelling | spell_word_clue | spell_word | Spell the word; a source-language clue and letter tiles | gatto |

@@ -111,3 +111,80 @@ since Build 258 Revision 3 added the eighth, so it failed on `main` too.
 
 Scoring, progression, Review, the Course format and learner data are
 unchanged.
+
+## Revision 1 (2.0.59+259001, 30 September 2026): Complete the text and Put the sentences in order
+
+Owner decisions: plan §2, decisions 1, 2, 5, 6 and 9; plan §5.
+
+**Why.** Piedmontese Lesson 18's Complete the text exercises and Lesson
+21's Put the sentences in order exercises could not be worked out: the
+missing word was only in the audio, which a text exercise does not have,
+and several orders were equally plausible. Complete the text also drew a
+greyed Play audio button, so it looked like a listening exercise. Put the
+sentences in order asked for the same lines twice, in "Sentences or
+lines" and in "Correct order".
+
+**Complete the text.**
+- Form: Instruction or context (optional) first, then the text, the
+  missing words and **Hint (optional)**.
+- The instruction is the form's `question` value
+  (`_instructionField(controller: _question)`). `PresetVariants.finish`
+  writes it as a `clue` text with no language (`_withInstruction`),
+  because the Listen-for-missing-words recipe reads its `primary` text as
+  the passage; `decompose` reads it back through `authoredInstruction`.
+- In the Round the instruction replaces the standard line (Revision 0's
+  rule) and the hint shows under the gapped text.
+
+**Put the sentences in order.**
+- Form: Instruction or context (optional), **Lines, in the correct
+  order**, **Extra lines (optional)** (0, 1 or at most 2) and **Hint
+  (optional)**. "Sentences or lines" and "Correct order" are gone.
+- Recipe: the preset joins `PresetRecipes.canonicalOnly`, built by
+  `ExerciseDraftBuilder._buildSentenceOrder`:
+  - the `clue` instruction;
+  - one item per line and extra line, IDs kept by text;
+  - the stored item order kept, new lines at the end, so an unchanged
+    exercise rebuilds equal to itself (the runtime shuffles anyway);
+  - one `exactOrder` correct order of the lines;
+  - the hint.
+- `decompose` fills `order` from the correct order and `extraWords` from
+  the items outside it, as for Name what you see.
+- `PresetRecipes.rebuild` gives this preset the stored items, so an
+  exercise whose lines were stored out of order (the former "in any
+  order" field allowed it) is still represented by its form.
+- A Published save needs at least two lines
+  (`ExerciseDraftErrorCode.linesRequired`).
+
+**Learner screens.**
+- `RoundScreen._hintPanel` draws the hint as Type the missing word draws
+  its own: under the gapped text (`gap-fields-hint`) and above the blocks
+  (`order-hint`). Missing letters' and Name what you see's hints, which
+  learners never saw, show too. An empty hint draws nothing.
+- A gap exercise draws Play audio only when it has audio.
+
+**Field Help and Help EN/IT/ES.**
+- Field lists: `question, prompt, missingWords, hint` for Complete the
+  text; `prompt, order, extraWords, hint` for Put the sentences in order.
+- `ExerciseAuthoringField.extraLines` replaces `lines`; `correctLineOrder`
+  is retitled **Lines, in the correct order**.
+- Help: the two preset bodies and descriptions, `sentence_order.order`
+  rewritten, `sentence_order.extraWords` new, `sentence_order.tokens`
+  retired; the hints share the Pick the missing word hint body.
+
+**Search.** Both presets search their hint.
+
+**Demo content.**
+- Piedmontese Lesson 18: hints "One meows, one barks.", "Something to
+  eat and something to drink.", "Something you read." and the instruction
+  "You are at home, on the sofa.".
+- Piedmontese Lesson 21: the instructions give the situation ("Tòni
+  meets Anna in the street and greets her first.", "Anna goes to the
+  market in the morning and is home by noon.", "In the evening you have
+  dinner, then you read in bed.") and the last has the hint "The last
+  line is what you say before sleeping.".
+- Laboratory: Complete the text has the instruction "Anna's morning
+  before work." and a hint; the story sets the scene; the dialogue has an
+  instruction, the extra line "Il treno parte alle nove." and a hint.
+
+Scoring, progression, Review, the Course format and learner data are
+unchanged.

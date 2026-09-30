@@ -158,8 +158,10 @@ const _formFields = <String, Map<String, String>>{
     'Spoken prompt (optional)': 'tts',
   },
   'complete_text': {
+    'Instruction or context (optional)': 'question',
     'Text with the words to hide': 'prompt',
     'Missing words': 'missingWords',
+    'Hint (optional)': 'hint',
   },
   'missing_letters': {
     'Text with the missing letters in brackets': 'prompt',
@@ -174,8 +176,9 @@ const _formFields = <String, Map<String, String>>{
   },
   'sentence_order': {
     'Instruction or context (optional)': 'prompt',
-    'Sentences or lines': 'tokens',
-    'Correct order': 'order',
+    'Lines, in the correct order': 'order',
+    'Extra lines (optional)': 'extraWords',
+    'Hint (optional)': 'hint',
   },
   'listening_image_choice': {
     'Spoken text': 'tts',

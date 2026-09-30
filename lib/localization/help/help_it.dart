@@ -803,13 +803,13 @@ const Map<String, String> helpIt = {
   "exerciseHelp.preset.gap_choice_inline.body":
       "Lo studente vede una frase con uno o più spazi e li riempie in ordine toccando le opzioni; la stessa opzione può riempire più spazi e un tocco sbagliato può finire nello spazio sbagliato. Scrivi la frase mettendo ogni risposta tra parentesi graffe: I {am} going {to} London. Aggiungi 0, 1 o al massimo 2 opzioni distrattrici e un audio facoltativo. Questo preset sostituisce l’interruttore Inline gaps di Choose the answer.",
   "exerciseHelp.preset.complete_text.body":
-      "Lo studente legge un testo con uno o più spazi e scrive ogni parola mancante. Scrivi il testo completo ed elenca le parole da nascondere, una per riga, in ordine; ognuna deve comparire nel testo. Le risposte usano la normale normalizzazione Input. Non c’è audio: per spazi ascoltati da una registrazione usa Listen and fill the gaps.",
+      "Lo studente legge un testo con uno o più spazi e scrive ogni parola mancante. Scrivi il testo completo ed elenca le parole da nascondere, una per riga, in ordine; ognuna deve comparire nel testo. Un’Instruction or context facoltativa descrive la scena e sostituisce la riga standard; un suggerimento facoltativo aiuta senza rivelare le parole. Le risposte usano la normale normalizzazione Input. Non c’è audio: per spazi ascoltati da una registrazione usa Listen and fill the gaps.",
   "exerciseHelp.preset.missing_letters.body":
       "Lo studente vede parole con lettere mancanti e le scrive. Scrivi il testo completo e metti le lettere mancanti tra parentesi quadre: Il ga[tt]o dorme. Lo studente vede ga___o, un trattino per lettera, e scrive tt. Più spazi vanno bene. Un testo parlato facoltativo legge tutta la frase, un’immagine facoltativa la illustra e un suggerimento facoltativo aiuta senza rivelare le lettere.",
   "exerciseHelp.preset.gap_blocks.body":
       "Lo studente vede una frase con spazi e vi trascina blocchi di parole; ogni blocco si usa una volta e deve finire nello spazio giusto. Scrivi la frase con ogni risposta tra parentesi graffe: Io {vorrei} un caffè. Aggiungi 0, 1 o al massimo 2 blocchi distrattori e un audio facoltativo. Questo preset sostituisce l’interruttore Inline gaps di Word order e Build the translation.",
   "exerciseHelp.preset.sentence_order.body":
-      "Lo studente vede le righe di una breve storia o di un dialogo come blocchi e le mette in ordine. Inserisci le righe, una per riga, e l’ordine corretto; puoi aggiungere 0, 1 o al massimo 2 righe estranee. L’istruzione dice cosa ordinare: le frasi di una storia, i turni di un dialogo.",
+      "Lo studente vede le righe di una breve storia o di un dialogo come blocchi e le mette in ordine. Inserisci le righe una volta sola, nell’ordine corretto, e 0, 1 o al massimo 2 righe estranee. L’Instruction or context può dare la situazione che decide l’ordine; un suggerimento facoltativo aiuta senza rivelarlo.",
   "exerciseHelp.preset.sort_into_groups.body":
       "Lo studente tocca una parola, poi il gruppo a cui appartiene; una parola già messa si può riprendere; Check valuta tutti i gruppi insieme. Inserisci un’istruzione o un contesto facoltativi e un gruppo per riga come “Nome del gruppo: parola, parola, …” (almeno due, ognuno con almeno una parola). Ogni parola appartiene a un gruppo, e a uno solo. Sort into groups non è mai un esercizio audio.",
   "exerciseHelp.preset.fill_the_slots.body":
@@ -994,9 +994,9 @@ const Map<String, String> helpIt = {
   "exerciseHelp.field.picture_word_match.answers.body":
       "Le parole delle coppie; ognuna riceve un’immagine sotto.\n\nCosa inserire\nUna parola per riga, nella lingua studiata. Almeno due.\n\nControlli\nOgni parola ha bisogno della sua immagine; le parole devono essere uniche.\n\nEsempio\ngatto\ncane\ncasa",
   "exerciseHelp.field.sentence_order.order.body":
-      "Le righe nell’ordine giusto.\n\nCosa inserire\nUna riga per riga, esattamente come scritta sopra, nell’ordine corretto.\n\nControlli\nOgni riga deve corrispondere a una delle righe elencate.\n\nEsempio\nAnna entra nel bar.\nOrdina un caffè.\nPaga e saluta.",
-  "exerciseHelp.field.sentence_order.tokens.body":
-      "Le righe della storia o del dialogo che lo studente mette in ordine.\n\nCosa inserire\nUna frase o riga per riga, in qualsiasi ordine. Puoi aggiungere 0, 1 o al massimo 2 righe estranee.\n\nControlli\nOgni riga dell’ordine corretto deve essere elencata qui.\n\nEsempio\nAnna entra nel bar.\nOrdina un caffè.\nPaga e saluta.",
+      "Le righe della storia o del dialogo, nell’ordine che lo studente deve trovare.\n\nCosa inserire\nUna frase o riga per riga, nell’ordine corretto; lo studente le riceve mescolate. Le righe che non appartengono a nulla vanno in Extra lines.\n\nControlli\nAlmeno due righe per pubblicare. Lo stesso testo due volte vale due righe.\n\nEsempio\nAnna entra nel bar.\nOrdina un caffè.\nPaga e saluta.",
+  "exerciseHelp.field.sentence_order.extraWords.body":
+      "Righe offerte insieme alle altre che non appartengono a nulla; lo studente deve lasciarle fuori.\n\nCosa inserire\nUna riga per riga: 0, 1 o al massimo 2.\n\nControlli\nFacoltative. Devono essere plausibili ma chiaramente fuori posto.\n\nEsempio\nIl treno parte alle nove.",
   "exerciseHelp.field.spell_heard.tts.body":
       "La parola che lo studente ascolta e compone.\n\nCosa inserire\nScrivi la parola come testo; viene letta con la voce della lingua studiata o abbinata a una registrazione del Course.\n\nControlli\nObbligatoria. Le tessere devono comporre esattamente questa parola.\n\nEsempio\ngatto",
   "exerciseHelp.field.spell_word.prompt.body":
@@ -1150,7 +1150,7 @@ const Map<String, String> helpIt = {
   "exerciseHelp.preset.gap_choice_inline.description":
       "Lo studente riempie gli spazi di una frase fissa toccando le opzioni, una per spazio.",
   "exerciseHelp.preset.complete_text.description":
-      "Lo studente scrive le parole mancanti in un testo con più spazi; senza audio.",
+      "Lo studente scrive le parole mancanti in un testo con più spazi; senza audio, con istruzione e suggerimento facoltativi.",
   "exerciseHelp.preset.missing_letters.description":
       "Lo studente scrive le lettere mancanti dentro le parole (be__); testo parlato o immagine facoltativi.",
   "exerciseHelp.preset.gap_blocks.description":

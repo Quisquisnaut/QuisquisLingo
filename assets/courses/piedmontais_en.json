@@ -4518,7 +4518,8 @@
                       ]
                     }
                   ]
-                }
+                },
+                "hint": "One meows, one barks."
               }
             },
             {
@@ -4583,7 +4584,8 @@
                       ]
                     }
                   ]
-                }
+                },
+                "hint": "Something to eat and something to drink."
               }
             },
             {
@@ -4601,7 +4603,13 @@
                   "layout": "inlineGaps",
                   "cardinality": "multiple"
                 },
-                "prompt": [],
+                "prompt": [
+                  {
+                    "role": "clue",
+                    "type": "text",
+                    "text": "You are at home, on the sofa."
+                  }
+                ],
                 "targets": [
                   {
                     "id": "gap_1"
@@ -4631,7 +4639,8 @@
                       ]
                     }
                   ]
-                }
+                },
+                "hint": "Something you read."
               }
             }
           ]
@@ -5266,7 +5275,7 @@
                   {
                     "role": "clue",
                     "type": "text",
-                    "text": "Put the greeting exchange in order."
+                    "text": "Tòni meets Anna in the street and greets her first."
                   }
                 ],
                 "items": [
@@ -5331,7 +5340,7 @@
                   {
                     "role": "clue",
                     "type": "text",
-                    "text": "Put the shopping story in order."
+                    "text": "Anna goes to the market in the morning and is home by noon."
                   }
                 ],
                 "items": [
@@ -5396,7 +5405,7 @@
                   {
                     "role": "clue",
                     "type": "text",
-                    "text": "Put the evening in order."
+                    "text": "In the evening you have dinner, then you read in bed."
                   }
                 ],
                 "items": [
@@ -5443,7 +5452,8 @@
                       ]
                     }
                   ]
-                }
+                },
+                "hint": "The last line is what you say before sleeping."
               }
             }
           ]
@@ -10149,5 +10159,5 @@
       "voice": "female"
     }
   ],
-  "officialChecksum": "7828c6bc867ef879e45415b843b421d969a99d473e2c8c31407a7ccba345d099"
+  "officialChecksum": "3246c8f25e07f7718388d17121184b3c6f34bd3a02c5e1deb0c4403b0ebf32cc"
 }

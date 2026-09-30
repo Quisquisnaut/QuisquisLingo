@@ -11,7 +11,8 @@ Build 259 has three revisions, one per plan section:
   the standard line; the prompt and question labels. *Committed as
   `474a313`; complete suite 3379 passed, 1 skipped, 0 failed.*
 - **Revision 1** (plan §5): Complete the text and Put the sentences in
-  order (instruction, hint, lines entered once).
+  order (instruction, hint, lines entered once). *Committed as
+  `2.0.59+259001`; complete suite 3395 passed, 1 skipped, 0 failed.*
 - **Revision 2** (plan §6): the Listen and answer split.
 
 ## Revision 0 (committed `474a313`, 11:35, 30 September 2026)
@@ -40,14 +41,25 @@ Gotchas found:
   single-quoted with `\'`, `$` escaped), then `dart format`; unchanged
   records come out byte-identical.
 
+## Revision 1 (committed, 30 September 2026)
+
+Everything in `docs/259_CHANGE_SUMMARY.md` (Revision 1) is in the working
+tree: recipes and builder (`_buildSentenceOrder`, `_withInstruction`,
+`rebuild` borrowing the stored items), forms, field Help, Help EN/IT/ES,
+Search, the Round's hint panels and Play audio rule, the demo content,
+regenerated Courses and fixtures, the re-recorded Laboratory baseline
+(4 records changed, all deliberate), the new test file
+`test/complete_text_and_sentence_order_259_test.dart`, version
+`2.0.59+259001`, README, CHANGELOG and AGENTS. `flutter analyze --no-pub`:
+no issues. Complete suite 3395 passed, 1 skipped, 0 failed (12:25).
+
+Gotcha: the keep-awake wrapper needs `[uint32]2147483648`, not
+`[uint32]0x80000000` (PowerShell 5.1 reads the hex literal as a negative
+Int32 and the cast fails).
+
 ## Next
 
-1. Revision 1 (plan §5): Complete the text gets Instruction or context
-   and Hint; Put the sentences in order gets lines once + Extra lines +
-   Hint (`_buildSentenceOrder`, keep the stored item order); hint panels
-   on the gap and order screens; no Play audio button without audio;
-   demo content for Piedmontese Lessons 18 and 21 and the Laboratory.
-2. Revision 2 (plan §6): the Listen and answer split.
+1. Revision 2 (plan §6): the Listen and answer split.
 
 Stage with `git add -A -- . ':!devtools_options.yaml' ':!tools/cloud_setup.sh'`
 after checking `git status` for files another session wrote.

@@ -139,7 +139,7 @@ def enter(kind: str, prompt: list[dict], accepted: list[str], **fields) -> dict:
 
 
 def arrange(kind: str, prompt: list[dict], blocks: list[str],
-            orders: list[list[int]], language: str | None = None) -> dict:
+            orders: list[list[int]], language: str | None = None, **fields) -> dict:
     separator = "" if kind in ("image_word", "spell_heard", "spell_word") else " "
     return exercise(kind, prompt, {
         "kind": "arrange",
@@ -150,7 +150,7 @@ def arrange(kind: str, prompt: list[dict], blocks: list[str],
             {"text": separator.join(blocks[i] for i in order),
              "itemIds": [f"i{i}" for i in order]} for order in orders
         ],
-    })
+    }, **fields)
 
 
 def gaps(kind: str, instruction: str, parts: list, distractors: list[str]) -> dict:
@@ -332,9 +332,13 @@ def lesson_specs() -> list[tuple[str, str, str, list[dict]]]:
         choose("translation_choice_to_source", [text("mi i son content", "question")], ["I have a book", "I am at home", "I am happy"], 2),
     ])
     add("complete_text", "Complete the text", "Type the words missing from each short text: gat = cat; can = dog; pan = bread; eva = water; lìber = book. No audio.", [
-        enter("complete_text", [text("I l'hai un gat e un can.")], [], missingWords=["gat", "can"]),
-        enter("complete_text", [text("La lista: pan, eva e tre pom.")], [], missingWords=["pan", "eva"]),
-        enter("complete_text", [text("Mi i son a ca. I l'hai un lìber.")], [], missingWords=["lìber"]),
+        enter("complete_text", [text("I l'hai un gat e un can.")], [], missingWords=["gat", "can"],
+              hint="One meows, one barks."),
+        enter("complete_text", [text("La lista: pan, eva e tre pom.")], [], missingWords=["pan", "eva"],
+              hint="Something to eat and something to drink."),
+        enter("complete_text", [text("You are at home, on the sofa.", "clue"),
+                                text("Mi i son a ca. I l'hai un lìber.")], [], missingWords=["lìber"],
+              hint="Something you read."),
     ])
     add("missing_letters", "Missing letters", "Type the letters missing inside the words: gat = cat; granda = big; eva = water.", [
         enter("missing_letters", [text("I l'hai un gat.")], [], missingWords=["at"]),
@@ -404,9 +408,11 @@ def lesson_specs() -> list[tuple[str, str, str, list[dict]]]:
         gaps("gap_blocks", "Complete the phrase; the article is a separate block each time.", [("ël",), "gat e", ("ël",), "can"], []),
     ])
     add("sentence_order", "Put the sentences in order", "Put the lines of each short exchange in order. bondì = good morning; come ch'a va? = how are you?; bin, grassie = well, thank you.", [
-        arrange("sentence_order", [text("Put the greeting exchange in order.", "clue")], ["Bondì, Anna!", "Bondì, Tòni! Come ch'a va?", "Bin, grassie."], [[0, 1, 2]]),
-        arrange("sentence_order", [text("Put the shopping story in order.", "clue")], ["Anna va al mercà.", "A compra pan e eva.", "A torna a ca."], [[0, 1, 2]]),
-        arrange("sentence_order", [text("Put the evening in order.", "clue")], ["I mangio.", "I leso un lìber.", "Bon-aneuit!"], [[0, 1, 2]]),
+        arrange("sentence_order", [text("Tòni meets Anna in the street and greets her first.", "clue")], ["Bondì, Anna!", "Bondì, Tòni! Come ch'a va?", "Bin, grassie."], [[0, 1, 2]]),
+        arrange("sentence_order", [text("Anna goes to the market in the morning and is home by noon.", "clue")], ["Anna va al mercà.", "A compra pan e eva.", "A torna a ca."], [[0, 1, 2]]),
+        arrange("sentence_order", [text("In the evening you have dinner, then you read in bed.", "clue")],
+                ["I mangio.", "I leso un lìber.", "Bon-aneuit!"], [[0, 1, 2]],
+                hint="The last line is what you say before sleeping."),
     ])
     add("image_word", "Build pictured words", "Use every letter to spell the Piedmontese word in the picture: pan (bread), gat (cat), caval (horse). The two a letters in caval are separate blocks.", [
         arrange("image_word", [text(instruction, "clue"), image(asset, alternative)], blocks, [order])

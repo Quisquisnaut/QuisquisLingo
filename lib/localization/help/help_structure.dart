@@ -458,9 +458,11 @@ const exerciseHelpFieldKeyByPresetAndField = <String, String>{
   'gap_choice_inline.tokens': 'exerciseHelp.field.choice.tokens.body',
   'gap_choice_inline.tts': 'exerciseHelp.field.choice.tts.body',
   'gap_choice_inline.image': 'exerciseHelp.field.choice.image.body',
+  'complete_text.question': 'exerciseHelp.field.instruction.body',
   'complete_text.prompt': 'exerciseHelp.field.complete_text.prompt.body',
   'complete_text.missingWords':
       'exerciseHelp.field.complete_text.missingWords.body',
+  'complete_text.hint': 'exerciseHelp.field.gap_choice.hint.body',
   'complete_text.image': 'exerciseHelp.field.choice.image.body',
   'missing_letters.prompt': 'exerciseHelp.field.missing_letters.prompt.body',
   'missing_letters.tts': 'exerciseHelp.field.choice.tts.body',
@@ -472,8 +474,10 @@ const exerciseHelpFieldKeyByPresetAndField = <String, String>{
   'gap_blocks.tts': 'exerciseHelp.field.choice.tts.body',
   'gap_blocks.image': 'exerciseHelp.field.choice.image.body',
   'sentence_order.prompt': 'exerciseHelp.field.instruction.body',
-  'sentence_order.tokens': 'exerciseHelp.field.sentence_order.tokens.body',
   'sentence_order.order': 'exerciseHelp.field.sentence_order.order.body',
+  'sentence_order.extraWords':
+      'exerciseHelp.field.sentence_order.extraWords.body',
+  'sentence_order.hint': 'exerciseHelp.field.gap_choice.hint.body',
   'sentence_order.image': 'exerciseHelp.field.choice.image.body',
   'listening_image_choice.tts': 'exerciseHelp.field.listening_choice.tts.body',
   'listening_image_choice.prompt': 'exerciseHelp.field.instruction.body',

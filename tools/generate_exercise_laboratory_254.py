@@ -244,7 +244,7 @@ class Laboratory:
 
     def arrange(self, key: str, preset: str, prompts: list[dict], tokens: list[str],
                 orders: list[list[int]], capability: str, *,
-                language: str | None = None) -> None:
+                language: str | None = None, hint: str = "") -> None:
         separator = "" if preset in ("image_word", "spell_heard", "spell_word") else " "
         correct_orders = [{"text": separator.join(tokens[i] for i in order),
                            "itemIds": [f"item_{i}" for i in order]} for order in orders]
@@ -252,7 +252,7 @@ class Laboratory:
                  {"kind": "arrange", "items": [{"id": f"item_{i}", "content": [text(v, language=language)]}
                                                for i, v in enumerate(tokens)]},
                  {"kind": "ordered_items", "correctOrders": correct_orders},
-                 capability, " / ".join(order["text"] for order in correct_orders))
+                 capability, " / ".join(order["text"] for order in correct_orders), hint=hint)
 
     def match(self, key: str, preset: str, instruction: str, pairs: list[tuple[str, str]], capability: str, *,
               left_images: bool = False) -> None:
@@ -476,7 +476,7 @@ def laboratory() -> Laboratory:
     lab.start_round("input_source_and_pictures", "Source answers, texts and pictures", "Type the translation (to source) takes a source-language translation. Complete the text and Missing letters are typed gaps without and with letters inside words. Name what you see names a picture.")
     lab.enter("type_source_literal", "type_translation_to_source", [text("Grazie.", language="target")], ["thank you", "thanks"], "Type the translation (to source); target text, source answers")
     lab.enter("type_source_variants", "type_translation_to_source", [text("Vorrei un caffè.", language="target")], ["I would like a coffee", "I'd like a coffee"], "Type the translation (to source); two accepted answers")
-    lab.enter("complete_text", "complete_text", [text("Anna beve un caffè al bar. Poi prende il treno.")], [], "Complete the text; two typed gaps, no audio", missing=["caffè", "treno"], answer="caffè / treno")
+    lab.enter("complete_text", "complete_text", [text("Anna's morning before work.", "clue"), text("Anna beve un caffè al bar. Poi prende il treno.")], [], "Complete the text; two typed gaps, an instruction and a hint, no audio", hint="A drink, then a way to travel.", missing=["caffè", "treno"], answer="caffè / treno")
     lab.enter("missing_letters", "missing_letters", [text("Il gatto dorme sul divano.")], [], "Missing letters; letters inside two words", missing=["tt", "van"], answer="tt / van")
     lab.enter("missing_letters_audio", "missing_letters", [text("Il treno parte alle nove."), audio("Il treno parte alle nove.")], [], "Missing letters; spoken text and two gaps", missing=["ren", "ove"], answer="ren / ove")
     lab.enter("picture_name", "picture_name", [text("What is this?"), image("bread", "Bread", "picture")], ["il pane", "pane"], "Type what you see; picture prompt, typed answers")
@@ -512,8 +512,8 @@ def laboratory() -> Laboratory:
     lab.start_round("arrange_source_and_lines", "Source blocks, sentences and spelling", "Build the translation (to source) uses source-language blocks. Put the sentences in order orders lines. Spell what you hear and Spell the word spell a word from tiles without a picture.")
     lab.arrange("build_source_single", "build_translation_to_source", [text("Bevo acqua.", language="target")], ["I", "drink", "water"], [[0, 1, 2]], "Build the translation (to source); target text, source blocks", language="source")
     lab.arrange("build_source_distractor", "build_translation_to_source", [text("Vado a scuola in treno.", language="target")], ["I", "go", "to", "school", "by", "train", "bus"], [[0, 1, 2, 3, 4, 5]], "Build the translation (to source); one unused block", language="source")
-    lab.arrange("sentence_order_story", "sentence_order", [text("Put the story in order.", "clue")], ["Anna entra nel bar.", "Ordina un caffè.", "Paga e saluta."], [[0, 1, 2]], "Put the sentences in order; three lines of a story")
-    lab.arrange("sentence_order_dialogue", "sentence_order", [text("Put the dialogue in order.", "clue")], ["Buongiorno, un caffè per favore.", "Subito. Zucchero?", "No, grazie.", "Ecco a lei."], [[0, 1, 2, 3]], "Put the sentences in order; four turns of a dialogue")
+    lab.arrange("sentence_order_story", "sentence_order", [text("Anna stops at the bar for a coffee.", "clue")], ["Anna entra nel bar.", "Ordina un caffè.", "Paga e saluta."], [[0, 1, 2]], "Put the sentences in order; three lines of a story under an instruction that sets the scene")
+    lab.arrange("sentence_order_dialogue", "sentence_order", [text("At the bar: a customer orders a coffee.", "clue")], ["Buongiorno, un caffè per favore.", "Subito. Zucchero?", "No, grazie.", "Ecco a lei.", "Il treno parte alle nove."], [[0, 1, 2, 3]], "Put the sentences in order; four turns of a dialogue, one extra line and a hint", hint="The barista offers sugar before serving.")
     lab.arrange("spell_heard_letters", "spell_heard", [audio("pane")], ["p", "a", "n", "e"], [[0, 1, 2, 3]], "Spell what you hear; letter tiles, no picture")
     lab.arrange("spell_heard_syllables", "spell_heard", [audio("gatto")], ["gat", "to"], [[0, 1]], "Spell what you hear; syllable tiles")
     lab.arrange("spell_word_clue", "spell_word", [text("cat (the animal)", "clue", "source")], ["g", "a", "t", "t", "o"], [[0, 1, 2, 3, 4]], "Spell the word; a source-language clue and letter tiles")

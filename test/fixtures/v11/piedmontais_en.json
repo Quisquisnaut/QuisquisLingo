@@ -3986,7 +3986,8 @@
                 "missingWords": [
                   "gat",
                   "can"
-                ]
+                ],
+                "hint": "One meows, one barks."
               },
               "id": "pms_e5f5585a_l18_r01_e01"
             },
@@ -4020,7 +4021,8 @@
                 "missingWords": [
                   "pan",
                   "eva"
-                ]
+                ],
+                "hint": "Something to eat and something to drink."
               },
               "id": "pms_e5f5585a_l18_r01_e02"
             },
@@ -4032,6 +4034,11 @@
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
                 "prompt": [
+                  {
+                    "role": "clue",
+                    "type": "text",
+                    "text": "You are at home, on the sofa."
+                  },
                   {
                     "role": "primary",
                     "type": "text",
@@ -4053,7 +4060,8 @@
                 },
                 "missingWords": [
                   "lìber"
-                ]
+                ],
+                "hint": "Something you read."
               },
               "id": "pms_e5f5585a_l18_r01_e03"
             }
@@ -4529,7 +4537,7 @@
                   {
                     "role": "clue",
                     "type": "text",
-                    "text": "Put the greeting exchange in order."
+                    "text": "Tòni meets Anna in the street and greets her first."
                   }
                 ],
                 "interaction": {
@@ -4594,7 +4602,7 @@
                   {
                     "role": "clue",
                     "type": "text",
-                    "text": "Put the shopping story in order."
+                    "text": "Anna goes to the market in the morning and is home by noon."
                   }
                 ],
                 "interaction": {
@@ -4659,7 +4667,7 @@
                   {
                     "role": "clue",
                     "type": "text",
-                    "text": "Put the evening in order."
+                    "text": "In the evening you have dinner, then you read in bed."
                   }
                 ],
                 "interaction": {
@@ -4709,7 +4717,8 @@
                       ]
                     }
                   ]
-                }
+                },
+                "hint": "The last line is what you say before sleeping."
               },
               "id": "pms_e5f5585a_l21_r01_e03"
             }
@@ -8799,5 +8808,5 @@
       }
     }
   ],
-  "officialChecksum": "97498b323b6f59cd63f9a208618dfe0baa6bf07c7d9f71da85b50ea68fd1d935"
+  "officialChecksum": "1ea0dc64f249fa82449030a00f4a096291f0d512140b0f3c2965c4211f31ee22"
 }

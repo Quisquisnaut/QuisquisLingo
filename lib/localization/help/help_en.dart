@@ -945,7 +945,7 @@ Question and Context are separate. Context can be text, audio, or both. Dialogue
   'exerciseHelp.preset.gap_choice_inline.description':
       r'''Learner fills the gaps of a fixed sentence by tapping options, one per gap.''',
   'exerciseHelp.preset.complete_text.description':
-      r'''Learner types the words missing from a text with several gaps; no audio.''',
+      r'''Learner types the words missing from a text with several gaps; no audio, an optional instruction and hint.''',
   'exerciseHelp.preset.missing_letters.description':
       r'''Learner types the letters missing inside words (dr__); optional spoken text or picture.''',
   'exerciseHelp.preset.gap_blocks.description':
@@ -1033,13 +1033,13 @@ Question and Context are separate. Context can be text, audio, or both. Dialogue
   'exerciseHelp.preset.gap_choice_inline.body':
       r'''The learner sees a sentence with one or more gaps and fills them in order by tapping options; the same option can fill several gaps, and a wrong tap can land in the wrong gap. Write the sentence and put each answer inside braces: I {am} going {to} London. Add 0, 1 or at most 2 distractor options and an optional spoken prompt. This preset replaces the Inline gaps switch of Choose the answer.''',
   'exerciseHelp.preset.complete_text.body':
-      r'''The learner reads a text with one or more gaps and types each missing word. Write the complete text and list the words to hide, one per line, in order; each must occur in the text. Answers are checked with the normal Input normalization. There is no audio: for gaps heard from a recording use Listen and fill the gaps.''',
+      r'''The learner reads a text with one or more gaps and types each missing word. Write the complete text and list the words to hide, one per line, in order; each must occur in the text. An optional Instruction or context sets the scene and replaces the standard line; an optional hint helps without giving the words away. Answers are checked with the normal Input normalization. There is no audio: for gaps heard from a recording use Listen and fill the gaps.''',
   'exerciseHelp.preset.missing_letters.body':
       r'''The learner sees words with missing letters and types the letters. Write the complete text and put the missing letters inside square brackets: My cat doesn’t dr[ink] milk. The learner sees dr___ milk, one underscore per letter, and types ink. Several gaps are fine. An optional spoken text reads the whole sentence, an optional picture illustrates it, and an optional hint helps without giving the letters away.''',
   'exerciseHelp.preset.gap_blocks.body':
       r'''The learner sees a sentence with gaps and drags word blocks into them; each block is used once and must land in the right gap. Write the sentence with each answer inside braces: Io {vorrei} un caffè. Add 0, 1 or at most 2 distractor blocks and an optional spoken prompt. This preset replaces the Inline gaps switch of Word order and Build the translation.''',
   'exerciseHelp.preset.sentence_order.body':
-      r'''The learner sees the lines of a short story or dialogue as blocks and puts them in order. Enter the lines, one per line, and the correct order; you may add 0, 1 or at most 2 extra lines that belong nowhere. The instruction says what to order: the sentences of a story, the turns of a dialogue.''',
+      r'''The learner sees the lines of a short story or dialogue as blocks and puts them in order. Enter the lines once, in the correct order, and 0, 1 or at most 2 extra lines that belong nowhere. The Instruction or context can give the situation that decides the order; an optional hint helps without giving it away.''',
   'exerciseHelp.preset.sort_into_groups.body':
       r'''The learner taps a word, then the group it belongs to; a placed word can be taken back; Check grades every group at once. Enter an optional instruction or context and one group per line as “Group name: word, word, …” (at least two, each with at least one word). Every word belongs to one group, and to one group only. Sort into groups is never an audio exercise.''',
   'exerciseHelp.preset.fill_the_slots.body':
@@ -1525,31 +1525,29 @@ gatto
 cane
 casa''',
   'exerciseHelp.field.sentence_order.order.body':
-      r'''The lines in the right order.
+      r'''The lines of the story or dialogue, in the order the learner must find.
 
 What to enter
-One line per line, exactly as written above, in the correct order.
+One sentence or line per line, in the correct order; the learner gets them shuffled. Lines that belong nowhere go in Extra lines.
 
 Checks
-Each line must match one of the listed lines.
+At least two lines to publish. The same text twice is two lines.
 
 Example
 Anna entra nel bar.
 Ordina un caffè.
 Paga e saluta.''',
-  'exerciseHelp.field.sentence_order.tokens.body':
-      r'''The lines of the story or dialogue the learner puts in order.
+  'exerciseHelp.field.sentence_order.extraWords.body':
+      r'''Lines offered with the others that belong nowhere; the learner must leave them out.
 
 What to enter
-One sentence or line per line, in any order. You may add 0, 1 or at most 2 extra lines that belong nowhere.
+One line per line: 0, 1 or at most 2.
 
 Checks
-Every line of the correct order must be listed here.
+Optional. Keep them plausible but clearly out of place.
 
 Example
-Anna entra nel bar.
-Ordina un caffè.
-Paga e saluta.''',
+Il treno parte alle nove.''',
   'exerciseHelp.field.spell_heard.tts.body':
       r'''The word the learner hears and spells.
 

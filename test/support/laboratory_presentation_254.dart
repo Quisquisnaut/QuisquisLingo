@@ -3687,7 +3687,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
   'qql_lab254_complete_text': {
     'before': {
       'heading': 'COMPLETE',
-      'instruction': 'Choose the word that completes the sentence.',
+      'instruction': 'Anna\'s morning before work.',
       'prompt': null,
       'shown': {'question': 0, 'prompt': 0, 'context': 0, 'translationText': 0},
       'panels': {
@@ -3705,13 +3705,13 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
         'sound': 0,
         'pronounce': 0,
         'usage': 0,
-        'playLabel': 1,
+        'playLabel': 0,
         'contextLabel': 0,
         'translation': 0,
         'note': 0,
       },
       'controls': {
-        'filled': ['<_FilledButtonWithIconChild>', 'Check'],
+        'filled': ['Check'],
         'outlined': <String>[],
         'checkboxes': 0,
         'textFields': 2,
@@ -3723,12 +3723,12 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
         'gapSlots': 0,
         'selectGapSlots': 0,
         'imageButtons': 0,
-        'iconButtons': 1,
+        'iconButtons': 0,
       },
       'texts': {
         'firstLetter': null,
         'gapHint': null,
-        'hints': <String>[],
+        'hints': ['Hint: A drink, then a way to travel.'],
         'translateFrom': <String>[],
         'usage': 0,
         'blanks': ['Anna beve un _____ al bar. Poi prende il _____.'],
@@ -3749,7 +3749,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
     },
     'after': {
       'heading': 'COMPLETE',
-      'instruction': 'Choose the word that completes the sentence.',
+      'instruction': 'Anna\'s morning before work.',
       'prompt': null,
       'shown': {'question': 0, 'prompt': 0, 'context': 0, 'translationText': 0},
       'panels': {
@@ -3767,13 +3767,13 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
         'sound': 0,
         'pronounce': 0,
         'usage': 0,
-        'playLabel': 1,
+        'playLabel': 0,
         'contextLabel': 0,
         'translation': 0,
         'note': 0,
       },
       'controls': {
-        'filled': ['<_FilledButtonWithIconChild>', 'Check', 'Finish round'],
+        'filled': ['Check', 'Finish round'],
         'outlined': <String>[],
         'checkboxes': 0,
         'textFields': 2,
@@ -3785,12 +3785,12 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
         'gapSlots': 0,
         'selectGapSlots': 0,
         'imageButtons': 0,
-        'iconButtons': 1,
+        'iconButtons': 0,
       },
       'texts': {
         'firstLetter': null,
         'gapHint': null,
-        'hints': <String>[],
+        'hints': ['Hint: A drink, then a way to travel.'],
         'translateFrom': <String>[],
         'usage': 0,
         'blanks': ['Anna beve un _____ al bar. Poi prende il _____.'],
@@ -7878,13 +7878,13 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
         'sound': 0,
         'pronounce': 0,
         'usage': 0,
-        'playLabel': 1,
+        'playLabel': 0,
         'contextLabel': 0,
         'translation': 0,
         'note': 0,
       },
       'controls': {
-        'filled': ['<_FilledButtonWithIconChild>', 'Check'],
+        'filled': ['Check'],
         'outlined': <String>[],
         'checkboxes': 0,
         'textFields': 2,
@@ -7896,7 +7896,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
         'gapSlots': 0,
         'selectGapSlots': 0,
         'imageButtons': 0,
-        'iconButtons': 1,
+        'iconButtons': 0,
       },
       'texts': {
         'firstLetter': null,
@@ -7940,13 +7940,13 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
         'sound': 0,
         'pronounce': 0,
         'usage': 0,
-        'playLabel': 1,
+        'playLabel': 0,
         'contextLabel': 0,
         'translation': 0,
         'note': 0,
       },
       'controls': {
-        'filled': ['<_FilledButtonWithIconChild>', 'Check', 'Finish round'],
+        'filled': ['Check', 'Finish round'],
         'outlined': <String>[],
         'checkboxes': 0,
         'textFields': 2,
@@ -7958,7 +7958,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
         'gapSlots': 0,
         'selectGapSlots': 0,
         'imageButtons': 0,
-        'iconButtons': 1,
+        'iconButtons': 0,
       },
       'texts': {
         'firstLetter': null,
@@ -12826,7 +12826,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
   'qql_lab254_sentence_order_dialogue': {
     'before': {
       'heading': 'PUT THE SENTENCES IN ORDER',
-      'instruction': 'Put the dialogue in order.',
+      'instruction': 'At the bar: a customer orders a coffee.',
       'prompt': null,
       'shown': {'question': 0, 'prompt': 1, 'context': 0, 'translationText': 0},
       'panels': {
@@ -12854,7 +12854,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
         'outlined': <String>[],
         'checkboxes': 0,
         'textFields': 0,
-        'actionChips': 4,
+        'actionChips': 5,
         'inputChips': 0,
         'filterChips': 0,
         'choiceChips': 0,
@@ -12867,7 +12867,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
       'texts': {
         'firstLetter': null,
         'gapHint': null,
-        'hints': <String>[],
+        'hints': ['Hint: The barista offers sugar before serving.'],
         'translateFrom': <String>[],
         'usage': 0,
         'blanks': <String>[],
@@ -12888,7 +12888,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
     },
     'after': {
       'heading': 'PUT THE SENTENCES IN ORDER',
-      'instruction': 'Put the dialogue in order.',
+      'instruction': 'At the bar: a customer orders a coffee.',
       'prompt': null,
       'shown': {'question': 0, 'prompt': 1, 'context': 0, 'translationText': 0},
       'panels': {
@@ -12916,7 +12916,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
         'outlined': <String>[],
         'checkboxes': 0,
         'textFields': 0,
-        'actionChips': 0,
+        'actionChips': 1,
         'inputChips': 4,
         'filterChips': 0,
         'choiceChips': 0,
@@ -12929,7 +12929,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
       'texts': {
         'firstLetter': null,
         'gapHint': null,
-        'hints': <String>[],
+        'hints': ['Hint: The barista offers sugar before serving.'],
         'translateFrom': <String>[],
         'usage': 0,
         'blanks': <String>[],
@@ -12952,7 +12952,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
   'qql_lab254_sentence_order_story': {
     'before': {
       'heading': 'PUT THE SENTENCES IN ORDER',
-      'instruction': 'Put the story in order.',
+      'instruction': 'Anna stops at the bar for a coffee.',
       'prompt': null,
       'shown': {'question': 0, 'prompt': 1, 'context': 0, 'translationText': 0},
       'panels': {
@@ -13014,7 +13014,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
     },
     'after': {
       'heading': 'PUT THE SENTENCES IN ORDER',
-      'instruction': 'Put the story in order.',
+      'instruction': 'Anna stops at the bar for a coffee.',
       'prompt': null,
       'shown': {'question': 0, 'prompt': 1, 'context': 0, 'translationText': 0},
       'panels': {

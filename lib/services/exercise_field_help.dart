@@ -47,8 +47,8 @@ enum ExerciseAuthoringField {
   textToComplete,
   bracketedText,
   distractorBlocks,
-  lines,
   correctLineOrder,
+  extraLines,
   spokenWord,
   clue,
   acceptedNames,
@@ -196,10 +196,10 @@ abstract final class ExerciseFieldHelpRegistry {
       ],
       'true_false': ['question', 'tts', 'answers', 'correct'],
       'gap_choice_inline': ['prompt', 'gapLayout', 'tokens', 'tts'],
-      'complete_text': ['prompt', 'missingWords'],
+      'complete_text': ['question', 'prompt', 'missingWords', 'hint'],
       'missing_letters': ['prompt', 'tts', 'hint'],
       'gap_blocks': ['prompt', 'gapLayout', 'tokens', 'tts'],
-      'sentence_order': ['prompt', 'tokens', 'order'],
+      'sentence_order': ['prompt', 'order', 'extraWords', 'hint'],
       'listening_image_choice': [
         'tts',
         'prompt',
@@ -471,6 +471,8 @@ abstract final class ExerciseFieldHelpRegistry {
     'question' => switch (presetId) {
       'flashcard' ||
       'picture_flashcard' => ExerciseAuthoringField.translationMeaning,
+      // Complete the text keeps its instruction there (Build 259 Revision 1).
+      'complete_text' => ExerciseAuthoringField.instruction,
       'true_false' => ExerciseAuthoringField.statement,
       'note_card' => ExerciseAuthoringField.noteText,
       'gap_choice' => ExerciseAuthoringField.gapSentence,
@@ -497,7 +499,6 @@ abstract final class ExerciseFieldHelpRegistry {
       _ => ExerciseAuthoringField.acceptedAnswers,
     },
     'tokens' => switch (presetId) {
-      'sentence_order' => ExerciseAuthoringField.lines,
       'gap_blocks' => ExerciseAuthoringField.distractorBlocks,
       'build_translation_to_target' || 'build_translation_to_source' =>
         ExerciseAuthoringField.availableTranslationBlocks,
@@ -539,6 +540,7 @@ abstract final class ExerciseFieldHelpRegistry {
     'slots' => ExerciseAuthoringField.slots,
     'extraWords' => switch (presetId) {
       'picture_blocks' => ExerciseAuthoringField.extraNameBlocks,
+      'sentence_order' => ExerciseAuthoringField.extraLines,
       _ => ExerciseAuthoringField.extraWords,
     },
     'slotReuse' => ExerciseAuthoringField.slotReuse,
@@ -887,22 +889,23 @@ abstract final class ExerciseFieldHelpRegistry {
       validation: 'A distractor must not repeat the text of any gap answer.',
       example: 'sempre',
     ),
-    ExerciseAuthoringField.lines => const ExerciseFieldHelp(
-      title: 'Sentences or lines',
-      purpose: 'The lines of the story or dialogue the learner puts in order.',
+    ExerciseAuthoringField.correctLineOrder => const ExerciseFieldHelp(
+      title: 'Lines, in the correct order',
+      purpose:
+          'The lines of the story or dialogue, in the order the learner must find. Example: Anna entra nel bar.',
       entryRules:
-          'One sentence or line per line, in any order. You may add 0, 1 or at most 2 extra lines that belong nowhere.',
+          'One sentence or line per line, in the correct order; the learner gets them shuffled. Lines that belong nowhere go in Extra lines.',
       validation:
-          'Every line of the correct order must be listed here; at most two lines may stay unused.',
+          'At least two lines to publish. The same text twice is two lines.',
       example: 'Anna entra nel bar.\nOrdina un caffè.\nPaga e saluta.',
     ),
-    ExerciseAuthoringField.correctLineOrder => const ExerciseFieldHelp(
-      title: 'Correct order',
-      purpose: 'The lines in the right order.',
-      entryRules:
-          'One line per line, exactly as written above, in the correct order.',
-      validation: 'Each line must match one of the listed lines.',
-      example: 'Anna entra nel bar.\nOrdina un caffè.\nPaga e saluta.',
+    ExerciseAuthoringField.extraLines => const ExerciseFieldHelp(
+      title: 'Extra lines (optional)',
+      purpose:
+          'Lines offered with the others that belong nowhere; the learner must leave them out.',
+      entryRules: 'One line per line: 0, 1 or at most 2.',
+      validation: 'Optional. Keep them plausible but clearly out of place.',
+      example: 'Il treno parte alle nove.',
     ),
     ExerciseAuthoringField.spokenWord => const ExerciseFieldHelp(
       title: 'Spoken word',
