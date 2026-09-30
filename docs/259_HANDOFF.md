@@ -95,7 +95,7 @@ Laboratory baseline 2 added, 4 removed, 5 deliberate changes. `flutter
 analyze --no-pub`: no issues. Second complete suite 3445 passed, 1
 skipped, 0 failed (20:22), after a converter fix found by the first.
 
-## Revision 5 (implemented, 30 September 2026)
+## Revision 5 (committed `6621c51`, 23:20, 30 September 2026)
 
 The owner's third review, points 1–5 (two answers in chat: the exported Edge
 Case goes to `Import/Courses`; the Course stays in the repository as a
