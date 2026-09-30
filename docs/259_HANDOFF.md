@@ -12,7 +12,8 @@ Build 259 has three revisions, one per plan section:
   `474a313`; complete suite 3379 passed, 1 skipped, 0 failed.*
 - **Revision 1** (plan §5): Complete the text and Put the sentences in
   order (instruction, hint, lines entered once). *Committed as
-  `2.0.59+259001`; complete suite 3395 passed, 1 skipped, 0 failed.*
+  `b6543a7` (`2.0.59+259001`); complete suite 3395 passed, 1 skipped,
+  0 failed.*
 - **Revision 2** (plan §6): the Listen and answer split.
 
 ## Revision 0 (committed `474a313`, 11:35, 30 September 2026)
@@ -41,7 +42,7 @@ Gotchas found:
   single-quoted with `\'`, `$` escaped), then `dart format`; unchanged
   records come out byte-identical.
 
-## Revision 1 (committed, 30 September 2026)
+## Revision 1 (committed `b6543a7`, 12:35, 30 September 2026)
 
 Everything in `docs/259_CHANGE_SUMMARY.md` (Revision 1) is in the working
 tree: recipes and builder (`_buildSentenceOrder`, `_withInstruction`,
