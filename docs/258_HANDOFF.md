@@ -13,6 +13,9 @@ Resume from this file alone. Plan (approved by the owner on 29 September
   (`2.0.58+258004`, share, save and print a Page)**. Last complete suite
   3343 passed, 1 skipped, 0 failed (01:08–01:34). Beta expiry
   `2026-10-30 23:59:59`.
+- 30 September, 09:06: on the owner's request the branch is pushed to
+  `origin/claude/258-page-cards` (with Build 256 Revision 9 and Build 257,
+  which it contains); no pull request yet.
 - Next: the owner reviews a Windows build; corrections are same-version
   follow-ups of the revision they concern. Known limit: a page taller than
   A4 is cut at a fixed height in the PDF. Deferred by the plan: the
@@ -110,4 +113,6 @@ Resume from this file alone. Plan (approved by the owner on 29 September
 
 ## Open questions for the owner
 
-- **Q10** (plan 2.9): add `pdf`, skip `printing`, print in two steps?
+- None. Q10 (add `pdf`, skip `printing`, print in two steps) was approved
+  on 30 September and delivered in Revision 4; Q11 and Q12 are decided
+  (plan section 3).
