@@ -931,7 +931,7 @@ Estas builds muestran TEST ONLY. No las distribuyas como versiones públicas; co
   'exerciseHelp.preset.gap_choice_inline.body':
       'El estudiante ve una frase con uno o más huecos y los rellena en orden tocando opciones; la misma opción puede rellenar varios huecos y un toque equivocado puede caer en el hueco equivocado. Escribe la frase con cada respuesta entre llaves: I {am} going {to} London. Añade 0, 1 o como máximo 2 opciones distractoras y un audio opcional. Este preset sustituye al interruptor Inline gaps de Choose the answer.',
   'exerciseHelp.preset.complete_text.body':
-      'El estudiante lee un texto con uno o más huecos y escribe cada palabra que falta. Escribe el texto completo y enumera las palabras que ocultar, una por línea, en orden; cada una debe aparecer en el texto. Una Instruction or context opcional describe la escena y sustituye la línea estándar; una pista opcional ayuda sin revelar las palabras. Las respuestas usan la normalización normal de Input. No hay audio: para huecos escuchados usa Listen and fill the gaps.',
+      'El estudiante lee un texto con uno o más huecos y escribe lo que va en cada uno. Escribe el texto con ___ (tres guiones bajos) para cada hueco y en Missing words una línea por hueco, en orden. Una línea puede aceptar varias respuestas: [il|un] gatto acepta il gatto y un gatto. Una Instruction or context opcional describe la escena y sustituye la línea estándar; una pista opcional ayuda sin revelar las palabras. Las respuestas usan la normalización normal de Input. No hay audio: para huecos escuchados usa Listen and fill the gaps.',
   'exerciseHelp.preset.missing_letters.body':
       'El estudiante ve palabras con letras que faltan y las escribe. Escribe el texto completo y pon las letras que faltan entre corchetes: El ga[t]o duerme. El estudiante ve ga_o, un guion por letra, y escribe t. Varios huecos están bien. Un texto hablado opcional lee toda la frase, una imagen opcional la ilustra y una pista opcional ayuda sin revelar las letras.',
   'exerciseHelp.preset.gap_blocks.body':
@@ -947,7 +947,7 @@ Estas builds muestran TEST ONLY. No las distribuyas como versiones públicas; co
   'exerciseHelp.preset.spell_heard.body':
       'El estudiante escucha una palabra y la deletrea ordenando fichas de letras o sílabas. Escribe la palabra hablada y sus fichas en orden, una por línea (divide la palabra en letras o sílabas como prefieras). No hace falta imagen; las fichas se unen sin espacios.',
   'exerciseHelp.preset.picture_choice.body':
-      'El estudiante ve una imagen y elige entre respuestas de texto la palabra o la frase que la nombra. Escribe la imagen (Image), una instrucción o un contexto opcionales como ¿Qué es esto?, al menos dos respuestas y la correcta.',
+      'El estudiante ve una imagen y elige entre respuestas de texto la palabra o la frase que la nombra. Escribe la imagen (Image, obligatoria), una instrucción o un contexto opcionales como ¿Qué es esto?, al menos dos respuestas y la correcta.',
   'exerciseHelp.preset.picture_name.body':
       'El estudiante ve una imagen y escribe lo que muestra. Escribe la imagen (Image), una instrucción o un contexto opcionales, una o más respuestas aceptadas con la misma sintaxis que Type the translation ({} opcional, alternativas [a|b], grupos enlazados, ámbitos de reordenación) y una pista opcional. Las respuestas usan la normalización normal de Input y la tolerancia a erratas.',
   'exerciseHelp.preset.picture_blocks.body':
@@ -979,7 +979,7 @@ Estas builds muestran TEST ONLY. No las distribuyas como versiones públicas; co
   'exerciseHelp.preset.type_missing_word.body':
       'Escribe una frase con un hueco ___ y las palabras completas aceptadas. Con Show the first letter activo, el hueco muestra la primera letra como pista: QQL obtiene automáticamente el primer grafema Unicode y todas las respuestas deben empezar por el mismo. Con el interruptor apagado, el hueco está vacío y el estudiante escribe la palabra sin ayuda. En ambos casos el estudiante escribe la palabra completa, con la normalización y el feedback normales de Input. Ejemplo: con la pista, el estudiante ve é______ y escribe école, no cole. Tras comprobar se muestra la frase completa. Los Exercises creados con el antiguo preset Fill-in se abren aquí.',
   'exerciseHelp.preset.listening_spelling.body':
-      'El estudiante oye audio y escribe lo que escuchó. Introduce Audio text y una transcripción aceptada. Return o Enter envía la respuesta.',
+      'El estudiante oye audio y escribe lo que escuchó. Introduce Audio text: siempre se acepta como respuesta. Other accepted spellings (optional) enumera otras formas de escribir las mismas palabras, como alle 9 por alle nove. Return o Enter envía la respuesta.',
   'exerciseHelp.preset.missing_word.body':
       'El estudiante escucha audio y lee una transcripción con uno o más huecos, luego escribe las palabras ausentes. Introduce la transcripción y Audio text completos, y cada Missing word en orden. Todas deben aparecer en la transcripción.',
   'exerciseHelp.preset.word_match.body':
@@ -1023,7 +1023,7 @@ Estas builds muestran TEST ONLY. No las distribuyas como versiones públicas; co
   'exerciseHelp.preset.gap_choice_inline.description':
       'El estudiante rellena los huecos de una frase fija tocando opciones, una por hueco.',
   'exerciseHelp.preset.complete_text.description':
-      'El estudiante escribe las palabras que faltan en un texto con varios huecos; sin audio, con instrucción y pista opcionales.',
+      'El estudiante escribe las palabras que faltan en un texto con huecos marcados con ___; sin audio, con instrucción y pista opcionales.',
   'exerciseHelp.preset.missing_letters.description':
       'El estudiante escribe las letras que faltan dentro de las palabras (be__); texto hablado o imagen opcionales.',
   'exerciseHelp.preset.gap_blocks.description':
@@ -1117,9 +1117,9 @@ Estas builds muestran TEST ONLY. No las distribuyas como versiones públicas; co
   'exerciseHelp.field.answer_pictures.body':
       'Una imagen por respuesta.\n\nQué escribir\nUsa el selector bajo cada respuesta: una imagen plana de la biblioteca compartida, una imagen importada o una imagen del Course. Las imágenes se copian al Course.\n\nComprobaciones\nCada respuesta necesita su imagen; si no, el Audit avisa. Las imágenes del Course viajan con el paquete del Course.\n\nEjemplo\n1. gatto: la imagen de un gato',
   'exerciseHelp.field.complete_text.missingWords.body':
-      'Las palabras ocultas del texto.\n\nQué escribir\nUna palabra o expresión por línea, en el orden en que aparecen en el texto.\n\nComprobaciones\nCada entrada debe aparecer en el texto; se oculta la primera aparición tras el hueco anterior. Las respuestas usan la normalización normal de Input.\n\nEjemplo\ncaffè\ntreno',
+      'Lo que va en cada hueco, en orden.\n\nQué escribir\nUna línea por cada hueco ___, en el orden en que aparecen. Una línea puede aceptar varias respuestas: [il|un] gatto acepta il gatto y un gatto; {il} gatto acepta gatto con o sin il.\n\nComprobaciones\nTantas líneas como huecos. Se rechazan alternativas malformadas. Las respuestas usan la normalización normal de Input.\n\nEjemplo\ncaffè\n[il|un] treno',
   'exerciseHelp.field.complete_text.prompt.body':
-      'El texto completo; las palabras enumeradas debajo se convierten en huecos.\n\nQué escribir\nEscribe todo el texto, incluidas las palabras que ocultar. Varias frases están bien.\n\nComprobaciones\nCada palabra que falta debe aparecer en el texto, en orden.\n\nEjemplo\nAnna beve un caffè al bar. Poi prende il treno.',
+      'El texto que completa el estudiante; cada ___ es un hueco.\n\nQué escribir\nEscribe el texto y pon ___ (tres guiones bajos) donde va cada palabra o expresión que falta. Varias frases están bien.\n\nComprobaciones\nAl menos un hueco, y tantos huecos como líneas en Missing words.\n\nEjemplo\nAnna beve un ___ al bar. Poi prende ___.',
   'exerciseHelp.field.gap_blocks.tokens.body':
       'Bloques que no rellenan ningún hueco, ofrecidos junto a las respuestas.\n\nQué escribir\nUn bloque extra por línea. Incluye 0, 1 o como máximo 2 distractores.\n\nComprobaciones\nUn distractor no debe repetir el texto de ninguna respuesta.\n\nEjemplo\nsempre',
   'exerciseHelp.field.missing_letters.prompt.body':
@@ -1265,7 +1265,7 @@ Estas builds muestran TEST ONLY. No las distribuyas como versiones públicas; co
   'exerciseHelp.field.type_missing_word.prompt.body':
       'La palabra ausente completa; la primera letra se muestra como pista cuando Show the first letter está activo.\n\nQué escribir\nUna frase con exactamente un hueco ___ y palabras completas aceptadas, una por línea. QQL obtiene automáticamente el primer grafema Unicode; el estudiante escribe la palabra completa.\n\nComprobaciones\nCon la pista activa, todas las respuestas deben compartir exactamente ese primer grafema. La pista no se añade a la respuesta.\n\nEjemplo\nJe vais à l’___. Respuesta: école. El estudiante ve é______ y escribe école.',
   'exerciseHelp.field.listening_spelling.missingWords.body':
-      'Respuestas escritas aceptadas por Type what you hear.\n\nQué escribir\nCada línea es una palabra o pasaje completo, no texto que deba ocultarse. Puedes usar {Io}, [prendo|vorrei], grupos enlazados [*:il|i] [*:tuo|tuoi] y reordenación (non arrivo <> oggi).\n\nComprobaciones\nSe necesita al menos una respuesta. Se rechazan expresiones inválidas o más de 128 variantes. Deben corresponder a Audio text; comprueba el prompt visible en Preview.\n\nEjemplo\ncaffè',
+      'Otras formas de escribir lo que oye el estudiante; Audio text siempre se acepta.\n\nQué escribir\nDéjalo vacío cuando Audio text solo se escribe de una manera. Si no, una grafía completa por línea: todo el texto oído, no una sola palabra. Alternativas dentro de una línea: alle [9|nove]. Mayúsculas, puntuación y espacios se ignoran de todos modos.\n\nComprobaciones\nOpcional. Cada línea debe tener las mismas palabras que se oyen; no aceptes palabras que no se oyen. Se rechazan alternativas malformadas.\n\nEjemplo\narrivo alle 8',
   'exerciseHelp.field.missing_word.prompt.body':
       'Transcripción completa desde la que se crean huecos.\n\nQué escribir\nIncluye las palabras que se ocultarán. Usa texto normal, sin puntos o guiones de hueco; los saltos de línea forman el mismo pasaje.\n\nComprobaciones\nCada Missing word debe aparecer en Passage transcript. Audio text debe coincidir con lo que se oye.\n\nEjemplo\nVorrei un caffè, per favore.\nMissing word: caffè',
   'exerciseHelp.field.missing_word.missingWords.body':

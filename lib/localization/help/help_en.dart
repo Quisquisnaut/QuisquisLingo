@@ -949,7 +949,7 @@ Question and Context are separate. Context can be text, audio, or both. Dialogue
   'exerciseHelp.preset.gap_choice_inline.description':
       r'''Learner fills the gaps of a fixed sentence by tapping options, one per gap.''',
   'exerciseHelp.preset.complete_text.description':
-      r'''Learner types the words missing from a text with several gaps; no audio, an optional instruction and hint.''',
+      r'''Learner types the words missing from a text with several gaps marked ___; no audio, an optional instruction and hint.''',
   'exerciseHelp.preset.missing_letters.description':
       r'''Learner types the letters missing inside words (dr__); optional spoken text or picture.''',
   'exerciseHelp.preset.gap_blocks.description':
@@ -1041,7 +1041,7 @@ Question and Context are separate. Context can be text, audio, or both. Dialogue
   'exerciseHelp.preset.gap_choice_inline.body':
       r'''The learner sees a sentence with one or more gaps and fills them in order by tapping options; the same option can fill several gaps, and a wrong tap can land in the wrong gap. Write the sentence and put each answer inside braces: I {am} going {to} London. Add 0, 1 or at most 2 distractor options and an optional spoken prompt. This preset replaces the Inline gaps switch of Choose the answer.''',
   'exerciseHelp.preset.complete_text.body':
-      r'''The learner reads a text with one or more gaps and types each missing word. Write the complete text and list the words to hide, one per line, in order; each must occur in the text. An optional Instruction or context sets the scene and replaces the standard line; an optional hint helps without giving the words away. Answers are checked with the normal Input normalization. There is no audio: for gaps heard from a recording use Listen and fill the gaps.''',
+      r'''The learner reads a text with one or more gaps and types what goes into each. Write the text with ___ (three underscores) for each gap, and give one line per gap in Missing words, in order. A line may accept several answers: [il|un] gatto accepts both il gatto and un gatto. An optional Instruction or context sets the scene and replaces the standard line; an optional hint helps without giving the words away. Answers are checked with the normal Input normalization. There is no audio: for gaps heard from a recording use Listen and fill the gaps.''',
   'exerciseHelp.preset.missing_letters.body':
       r'''The learner sees words with missing letters and types the letters. Write the complete text and put the missing letters inside square brackets: My cat doesn’t dr[ink] milk. The learner sees dr___ milk, one underscore per letter, and types ink. Several gaps are fine. An optional spoken text reads the whole sentence, an optional picture illustrates it, and an optional hint helps without giving the letters away.''',
   'exerciseHelp.preset.gap_blocks.body':
@@ -1057,7 +1057,7 @@ Question and Context are separate. Context can be text, audio, or both. Dialogue
   'exerciseHelp.preset.spell_heard.body':
       r'''The learner hears a word and spells it by ordering letter or syllable tiles. Provide the spoken word and its tiles in order, one per line (split the word into letters or syllables as you like). No picture is needed; the tiles join without spaces.''',
   'exerciseHelp.preset.picture_choice.body':
-      r'''The learner sees a picture and chooses the word or sentence that names it among text answers. Provide the picture (Image), an optional instruction or context such as What is this?, at least two answers and the correct one.''',
+      r'''The learner sees a picture and chooses the word or sentence that names it among text answers. Provide the picture (Image, required), an optional instruction or context such as What is this?, at least two answers and the correct one.''',
   'exerciseHelp.preset.picture_name.body':
       r'''The learner sees a picture and types what it shows. Provide the picture (Image), an optional instruction or context, one or more accepted answers with the same syntax as Type the translation (optional {}, alternatives [a|b], linked groups, reorder scopes) and an optional hint. Answers are checked with the normal Input normalization and typo tolerance.''',
   'exerciseHelp.preset.picture_blocks.body':
@@ -1101,7 +1101,7 @@ The learner sees target-language text and picks its correct source-language tran
   'exerciseHelp.preset.type_missing_word.body':
       r'''Enter a sentence with one ___ gap and the complete accepted words. With Show the first letter on, the gap reveals the first letter as a hint: QQL derives the first Unicode grapheme automatically and all accepted words must share exactly that first grapheme. With the switch off, the gap is empty and the learner types the word without help. Either way the learner enters the complete word, which uses normal Input normalization and feedback. Example: with the hint, the learner sees é______ and enters école, not cole. The complete sentence is shown after checking. Exercises made with the former Fill-in preset open here.''',
   'exerciseHelp.preset.listening_spelling.body':
-      r'''The learner hears audio and types what was heard. Provide the audio text and accepted transcription. Audio and text are supported. Return or Enter submits the answer.''',
+      r'''The learner hears audio and types what was heard. Provide the Audio text: it is always accepted as the answer. Other accepted spellings (optional) lists other ways to write the same words, such as alle 9 for alle nove. Return or Enter submits the answer.''',
   'exerciseHelp.preset.missing_word.body':
       r'''The learner hears audio while reading a transcript with one or more gaps, then types each missing word. Provide the complete transcript/audio and every missing item in order. Audio and text are supported. Every missing item must occur in the transcript.''',
   'exerciseHelp.preset.word_match.body':
@@ -1245,28 +1245,28 @@ Every answer needs a picture; the Audit warns otherwise. Course pictures travel 
 Example
 1. gatto: a picture of a cat''',
   'exerciseHelp.field.complete_text.missingWords.body':
-      r'''The words hidden from the text.
+      r'''What goes into each gap, in order.
 
 What to enter
-One word or expression per line, in the order they appear in the text.
+One line per ___ gap, in the order the gaps appear. A line may accept several answers: [il|un] gatto accepts il gatto and un gatto; {il} gatto accepts gatto with or without il.
 
 Checks
-Each entry must occur in the text; the first occurrence after the previous gap is hidden. Answers are checked with the normal Input normalization.
+As many lines as gaps. Malformed alternatives are rejected. Answers are checked with the normal Input normalization.
 
 Example
 caffè
-treno''',
+[il|un] treno''',
   'exerciseHelp.field.complete_text.prompt.body':
-      r'''The complete text; the words listed below become gaps.
+      r'''The text the learner completes; each ___ is a gap.
 
 What to enter
-Write the whole text including the words to hide. Several sentences are fine.
+Write the text and put ___ (three underscores) where each missing word or phrase goes. Several sentences are fine.
 
 Checks
-Every missing word must occur in the text, in order.
+At least one gap, and as many gaps as lines in Missing words.
 
 Example
-Anna beve un caffè al bar. Poi prende il treno.''',
+Anna beve un ___ al bar. Poi prende ___.''',
   'exerciseHelp.field.gap_blocks.tokens.body':
       r'''Blocks that fill no gap, offered beside the answers.
 
@@ -2061,16 +2061,16 @@ With the hint on, all complete accepted words must share exactly the same first 
 Example
 Je vais à l’___. Answer: école. Learner sees é______ and enters école, not cole.''',
   'exerciseHelp.field.listening_spelling.missingWords.body':
-      r'''Defines accepted typed responses for Type what you hear.
+      r'''Other ways to write what the learner hears; the Audio text itself is always accepted.
 
 What to enter
-Despite the compact field label, each entry is a complete accepted word or passage, not an instruction to remove text from the transcript. Enter complete equivalent answers on separate lines. Blank lines are ignored. Optional text: {Io} prendo un cappuccino. Alternatives: [prendo|vorrei] un cappuccino. Linked alternatives: [*:il|i] [*:tuo|tuoi] [*:denaro|soldi] pairs alternatives by position; use at least two linked groups with equal alternative counts. Scoped reordering: (non arrivo <> oggi). Without parentheses, a casa <> domani reorders the whole expression. Terminal punctuation stays at the sentence end; generated sentence starts are capitalized. Use lowercase except for proper names.
+Leave it empty when the Audio text is the only way to write it. Otherwise enter one complete spelling per line: the whole text heard, not a single missing word. Alternatives inside a line: alle [9|nove]. Capitals, punctuation and spacing are ignored anyway.
 
 Checks
-At least one accepted answer is required. Malformed expressions are rejected. Expansion is deterministic, duplicate results are removed, and the combined limit is 128 answers; simplify an expression that exceeds it. Declare equivalent answers explicitly: syntax does not invent translations. Match the accepted responses to Audio text and check the visible prompt in Preview.
+Optional. Every line must be the same words the learner hears; do not accept words that are not heard. Malformed alternatives are rejected.
 
 Example
-caffè''',
+arrivo alle 8''',
   'exerciseHelp.field.missing_word.prompt.body':
       r'''Supplies the complete text from which the learner view creates listening gaps.
 

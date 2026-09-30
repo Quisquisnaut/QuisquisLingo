@@ -1,3 +1,40 @@
+# 2.0.59 (Build 259, Revision 3) - Owner review: listening, pictures, gaps - 2026-09-30
+
+Corrections from the owner's review of 30 September 2026 (points A–H).
+
+- **Type what you hear:** the Audio text is always accepted. The box once
+  labelled "Missing word" is now **Other accepted spellings (optional)**,
+  for another way to write the same words (alle 9 for alle nove). A
+  Published save needs nothing in it. The Laboratory's example no longer
+  accepts a word that is not heard.
+- **Listening lines:** Listen and answer shows "Listen and answer the
+  question."; Listen and choose shows "Select the sentence that you heard."
+  (to target) or "Select the meaning of what you heard." (to source).
+  Listen and pick the image keeps its line.
+- **What is in the picture:** the learner title is **WHAT IS IN THE
+  PICTURE?** with the line "Choose the option that fits best.", and a
+  Published save needs the picture.
+- **Feedback in view:** after an answer the page scrolls down to the
+  feedback and its Continue or Finish round button. In a short window a
+  tall exercise such as Sort into groups left it below the screen, where it
+  was not even drawn.
+- **Typed gaps:** "Choose the word that completes the sentence." was wrong
+  for a typed exercise. It is now "Type the words that complete the
+  sentence.", "Type the word that completes the sentence." for one gap and
+  "Type the missing letters." for Missing letters.
+- **Complete the text:** the text marks each gap with ___. Missing words
+  gives one line per gap, in order, and a line may accept several answers
+  (`[il|un] gatto`). A Published save checks that the gaps and lines match.
+  The Laboratory has an example with alternatives.
+- **Put the sentences in order:** "Arrange the lines in a logical order."
+  no longer repeats the title.
+- The new and changed lines are in the eight learner languages; Help
+  EN/IT/ES follows.
+
+Scoring, progression, Review, the Course format and learner data are
+unchanged. Beta expiry `2026-10-30 23:59:59` local time (same release day
+as Revision 0).
+
 # 2.0.59 (Build 259, Revision 2) - Listen and choose, Listen and answer - 2026-09-30
 
 Listen and answer's optional question did two jobs: sometimes it was an

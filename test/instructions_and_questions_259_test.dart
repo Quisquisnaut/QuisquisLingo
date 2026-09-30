@@ -545,7 +545,7 @@ void main() {
       expect(find.text('Instruction or context (optional)'), findsOneWidget);
       expect(
         find.textContaining(
-          'instead of the standard line “Put the sentences in the correct order.”',
+          'instead of the standard line “Arrange the lines in a logical order.”',
         ),
         findsOneWidget,
       );

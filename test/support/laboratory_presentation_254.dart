@@ -3810,6 +3810,132 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
       'spoken': <String>[],
     },
   },
+  'qql_lab254_complete_text_alternatives': {
+    'before': {
+      'heading': 'COMPLETE',
+      'instruction': 'Luca goes to work.',
+      'prompt': null,
+      'shown': {'question': 0, 'prompt': 0, 'context': 0, 'translationText': 0},
+      'panels': {
+        'context': 0,
+        'dialogue': 0,
+        'passage': 0,
+        'image': 0,
+        'portableImages': 0,
+        'mediaImages': 0,
+      },
+      'audio': {
+        'again': 0,
+        'play': 0,
+        'context': 0,
+        'sound': 0,
+        'pronounce': 0,
+        'usage': 0,
+        'playLabel': 0,
+        'contextLabel': 0,
+        'translation': 0,
+        'note': 0,
+      },
+      'controls': {
+        'filled': ['Check'],
+        'outlined': <String>[],
+        'checkboxes': 0,
+        'textFields': 1,
+        'actionChips': 0,
+        'inputChips': 0,
+        'filterChips': 0,
+        'choiceChips': 0,
+        'dropdowns': 0,
+        'gapSlots': 0,
+        'selectGapSlots': 0,
+        'imageButtons': 0,
+        'iconButtons': 0,
+      },
+      'texts': {
+        'firstLetter': null,
+        'gapHint': null,
+        'hints': ['Hint: A way to travel, with its article.'],
+        'translateFrom': <String>[],
+        'usage': 0,
+        'blanks': ['Luca prende _____ alle otto.'],
+      },
+      'feedback': {
+        'correct': 0,
+        'correctAnswer': <String>[],
+        'alternativesHeading': null,
+        'alternatives': 0,
+        'correctTranslations': 0,
+        'bullets': 0,
+        'acceptedDifferences': <String>[],
+        'listenToAnswer': 0,
+        'cardReviewed': 0,
+        'surface': 0,
+      },
+      'spoken': <String>[],
+    },
+    'after': {
+      'heading': 'COMPLETE',
+      'instruction': 'Luca goes to work.',
+      'prompt': null,
+      'shown': {'question': 0, 'prompt': 0, 'context': 0, 'translationText': 0},
+      'panels': {
+        'context': 0,
+        'dialogue': 0,
+        'passage': 0,
+        'image': 0,
+        'portableImages': 0,
+        'mediaImages': 0,
+      },
+      'audio': {
+        'again': 0,
+        'play': 0,
+        'context': 0,
+        'sound': 0,
+        'pronounce': 0,
+        'usage': 0,
+        'playLabel': 0,
+        'contextLabel': 0,
+        'translation': 0,
+        'note': 0,
+      },
+      'controls': {
+        'filled': ['Check', 'Finish round'],
+        'outlined': <String>[],
+        'checkboxes': 0,
+        'textFields': 1,
+        'actionChips': 0,
+        'inputChips': 0,
+        'filterChips': 0,
+        'choiceChips': 0,
+        'dropdowns': 0,
+        'gapSlots': 0,
+        'selectGapSlots': 0,
+        'imageButtons': 0,
+        'iconButtons': 0,
+      },
+      'texts': {
+        'firstLetter': null,
+        'gapHint': null,
+        'hints': ['Hint: A way to travel, with its article.'],
+        'translateFrom': <String>[],
+        'usage': 0,
+        'blanks': ['Luca prende _____ alle otto.'],
+      },
+      'feedback': {
+        'correct': 1,
+        'correctAnswer': <String>[],
+        'alternativesHeading': null,
+        'alternatives': 0,
+        'correctTranslations': 0,
+        'bullets': 0,
+        'acceptedDifferences': <String>[],
+        'listenToAnswer': 0,
+        'cardReviewed': 0,
+        'surface': 1,
+      },
+      'spoken': <String>[],
+    },
+  },
   'qql_lab254_image_letters': {
     'before': {
       'heading': 'BUILD THE WORD',
@@ -5081,7 +5207,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
   'qql_lab254_input_fragment': {
     'before': {
       'heading': 'COMPLETE',
-      'instruction': 'Choose the word that completes the sentence.',
+      'instruction': 'Type the word that completes the sentence.',
       'prompt': null,
       'shown': {'question': 1, 'prompt': 0, 'context': 0, 'translationText': 0},
       'panels': {
@@ -5143,7 +5269,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
     },
     'after': {
       'heading': 'COMPLETE',
-      'instruction': 'Choose the word that completes the sentence.',
+      'instruction': 'Type the word that completes the sentence.',
       'prompt': null,
       'shown': {'question': 1, 'prompt': 0, 'context': 0, 'translationText': 0},
       'panels': {
@@ -5207,7 +5333,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
   'qql_lab254_input_fragment_audio': {
     'before': {
       'heading': 'COMPLETE',
-      'instruction': 'Choose the word that completes the sentence.',
+      'instruction': 'Type the word that completes the sentence.',
       'prompt': null,
       'shown': {'question': 1, 'prompt': 0, 'context': 0, 'translationText': 0},
       'panels': {
@@ -5269,7 +5395,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
     },
     'after': {
       'heading': 'COMPLETE',
-      'instruction': 'Choose the word that completes the sentence.',
+      'instruction': 'Type the word that completes the sentence.',
       'prompt': null,
       'shown': {'question': 1, 'prompt': 0, 'context': 0, 'translationText': 0},
       'panels': {
@@ -5333,7 +5459,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
   'qql_lab254_input_gap_variants': {
     'before': {
       'heading': 'COMPLETE',
-      'instruction': 'Choose the word that completes the sentence.',
+      'instruction': 'Type the word that completes the sentence.',
       'prompt': null,
       'shown': {'question': 1, 'prompt': 0, 'context': 0, 'translationText': 0},
       'panels': {
@@ -5395,7 +5521,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
     },
     'after': {
       'heading': 'COMPLETE',
-      'instruction': 'Choose the word that completes the sentence.',
+      'instruction': 'Type the word that completes the sentence.',
       'prompt': null,
       'shown': {'question': 1, 'prompt': 0, 'context': 0, 'translationText': 0},
       'panels': {
@@ -5695,7 +5821,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
       },
       'feedback': {
         'correct': 1,
-        'correctAnswer': ['Correct answer: il treno parte alle nove'],
+        'correctAnswer': ['Correct answer: Il treno parte alle nove.'],
         'alternativesHeading': null,
         'alternatives': 0,
         'correctTranslations': 0,
@@ -5711,7 +5837,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
   'qql_lab254_input_listen_variants': {
     'before': {
       'heading': 'WRITE WHAT YOU HEAR',
-      'instruction': 'Type the short statement about a feeling.',
+      'instruction': 'Anna tells you when she arrives.',
       'prompt': null,
       'shown': {'question': 0, 'prompt': 1, 'context': 0, 'translationText': 0},
       'panels': {
@@ -5769,11 +5895,11 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
         'cardReviewed': 0,
         'surface': 0,
       },
-      'spoken': ['Sono felice.'],
+      'spoken': ['Arrivo alle otto.'],
     },
     'after': {
       'heading': 'WRITE WHAT YOU HEAR',
-      'instruction': 'Type the short statement about a feeling.',
+      'instruction': 'Anna tells you when she arrives.',
       'prompt': null,
       'shown': {'question': 0, 'prompt': 1, 'context': 0, 'translationText': 0},
       'panels': {
@@ -5821,7 +5947,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
       },
       'feedback': {
         'correct': 1,
-        'correctAnswer': ['Correct answer: sono felice'],
+        'correctAnswer': ['Correct answer: arrivo alle 8'],
         'alternativesHeading': null,
         'alternatives': 0,
         'correctTranslations': 0,
@@ -5831,7 +5957,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
         'cardReviewed': 0,
         'surface': 1,
       },
-      'spoken': ['Sono felice.'],
+      'spoken': ['Arrivo alle otto.'],
     },
   },
   'qql_lab254_input_listen_word': {
@@ -5947,7 +6073,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
       },
       'feedback': {
         'correct': 1,
-        'correctAnswer': ['Correct answer: grazie'],
+        'correctAnswer': ['Correct answer: Grazie.'],
         'alternativesHeading': null,
         'alternatives': 0,
         'correctTranslations': 0,
@@ -7102,7 +7228,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
   'qql_lab254_listening_source_question': {
     'before': {
       'heading': 'LISTENING',
-      'instruction': 'Listen and choose the correct answer.',
+      'instruction': 'Listen and answer the question.',
       'prompt': null,
       'shown': {'question': 1, 'prompt': 0, 'context': 0, 'translationText': 0},
       'panels': {
@@ -7164,7 +7290,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
     },
     'after': {
       'heading': 'LISTENING',
-      'instruction': 'Listen and choose the correct answer.',
+      'instruction': 'Listen and answer the question.',
       'prompt': null,
       'shown': {'question': 1, 'prompt': 0, 'context': 0, 'translationText': 0},
       'panels': {
@@ -7986,7 +8112,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
   'qql_lab254_missing_letters': {
     'before': {
       'heading': 'COMPLETE',
-      'instruction': 'Choose the word that completes the sentence.',
+      'instruction': 'Type the missing letters.',
       'prompt': null,
       'shown': {'question': 0, 'prompt': 0, 'context': 0, 'translationText': 0},
       'panels': {
@@ -8048,7 +8174,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
     },
     'after': {
       'heading': 'COMPLETE',
-      'instruction': 'Choose the word that completes the sentence.',
+      'instruction': 'Type the missing letters.',
       'prompt': null,
       'shown': {'question': 0, 'prompt': 0, 'context': 0, 'translationText': 0},
       'panels': {
@@ -9894,7 +10020,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
   },
   'qql_lab254_picture_choice': {
     'before': {
-      'heading': 'CHOOSE',
+      'heading': 'WHAT IS IN THE PICTURE?',
       'instruction': 'What is this?',
       'prompt': null,
       'shown': {'question': 0, 'prompt': 1, 'context': 0, 'translationText': 0},
@@ -9956,7 +10082,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
       'spoken': <String>[],
     },
     'after': {
-      'heading': 'CHOOSE',
+      'heading': 'WHAT IS IN THE PICTURE?',
       'instruction': 'What is this?',
       'prompt': null,
       'shown': {'question': 0, 'prompt': 1, 'context': 0, 'translationText': 0},
@@ -12070,7 +12196,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
   'qql_lab254_select_listening_passage': {
     'before': {
       'heading': 'LISTENING',
-      'instruction': 'Listen and choose the correct answer.',
+      'instruction': 'Listen and answer the question.',
       'prompt': null,
       'shown': {'question': 1, 'prompt': 0, 'context': 0, 'translationText': 0},
       'panels': {
@@ -12132,7 +12258,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
     },
     'after': {
       'heading': 'LISTENING',
-      'instruction': 'Listen and choose the correct answer.',
+      'instruction': 'Listen and answer the question.',
       'prompt': null,
       'shown': {'question': 1, 'prompt': 0, 'context': 0, 'translationText': 0},
       'panels': {

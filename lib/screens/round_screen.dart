@@ -229,6 +229,11 @@ class _RoundScreenState extends State<RoundScreen> {
   bool _storyScrolls = false;
   final List<_StoryEntry> _storyLog = [];
   final ScrollController _storyScroll = ScrollController();
+
+  /// The exercise page's scroll (Build 259 Revision 3): after an answer the
+  /// page scrolls down to the feedback panel and its Continue or Finish
+  /// button, which a tall exercise (Sort into groups) left below the screen.
+  final ScrollController _pageScroll = ScrollController();
   final GlobalKey _storyNowKey = GlobalKey();
   final List<TextEditingController> _missingWordControllers = [];
   final Map<String, String> _matchingSelections = {};
@@ -604,6 +609,7 @@ class _RoundScreenState extends State<RoundScreen> {
     }
     _textController.dispose();
     _storyScroll.dispose();
+    _pageScroll.dispose();
     _textFocusNode.dispose();
     for (final c in _missingWordControllers) {
       c.dispose();
@@ -998,6 +1004,32 @@ class _RoundScreenState extends State<RoundScreen> {
       : _ttsCache.lastFailureDescription ??
             'Audio unavailable. Enable Text-to-speech in Settings and check the system voice for this course language. On Linux, install eSpeak NG or eSpeak.';
 
+  /// The first answer an answer expression accepts, else the expression.
+  /// The expansion capitalizes a sentence start; a gap keeps the author's
+  /// small first letter.
+  String _firstVariant(String expression) {
+    String variant;
+    try {
+      variant =
+          _answerEngine.validAnswers([expression]).firstOrNull ?? expression;
+    } on AnswerExpressionException {
+      return expression;
+    }
+    final letter = RegExp(r'\p{L}', unicode: true);
+    final authored = letter.firstMatch(expression)?.group(0);
+    final first = letter.firstMatch(variant);
+    if (authored == null ||
+        first == null ||
+        authored != authored.toLowerCase()) {
+      return variant;
+    }
+    return variant.replaceRange(
+      first.start,
+      first.end,
+      first.group(0)!.toLowerCase(),
+    );
+  }
+
   String _correctAnswerText(Exercise ex) {
     final f = _features;
     switch (ex.primitive) {
@@ -1013,9 +1045,12 @@ class _RoundScreenState extends State<RoundScreen> {
         return 'Review the flashcard.';
       case ExercisePrimitive.input:
         if (f.gapFieldTargets.isNotEmpty) {
+          // The first answer each gap accepts, written out: a gap answer
+          // may use the answer syntax, such as [il|un] gatto (Build 259
+          // Revision 3).
           final words = [
             for (final target in f.gapFieldTargets)
-              ...?f.answersFor(target.id)?.answers.take(1),
+              ...?f.answersFor(target.id)?.answers.take(1).map(_firstVariant),
           ];
           if (words.isNotEmpty) return words.join(' / ');
           break;
@@ -1211,6 +1246,30 @@ class _RoundScreenState extends State<RoundScreen> {
         }
       }
     });
+    _revealFeedback();
+  }
+
+  /// Scrolls the page down to the feedback panel, the last thing on it,
+  /// once it is drawn (Build 259 Revision 3). A scrolling Story keeps its
+  /// own scroll.
+  void _revealFeedback() {
+    if (_storyScrolls) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted || !_pageScroll.hasClients) return;
+      final position = _pageScroll.position;
+      if (position.pixels >= position.maxScrollExtent) return;
+      await _pageScroll.animateTo(
+        position.maxScrollExtent,
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOut,
+      );
+      // The list builds lazily: its end may have grown on the way down.
+      if (mounted &&
+          _pageScroll.hasClients &&
+          _pageScroll.position.pixels < _pageScroll.position.maxScrollExtent) {
+        _pageScroll.jumpTo(_pageScroll.position.maxScrollExtent);
+      }
+    });
   }
 
   void _flashcardResult({required bool reviewAgain}) {
@@ -1225,6 +1284,7 @@ class _RoundScreenState extends State<RoundScreen> {
         _feedback = 'Card reviewed.';
       }
     });
+    _revealFeedback();
   }
 
   void _answerChoice(int displayedIndex) {
@@ -2662,26 +2722,9 @@ class _RoundScreenState extends State<RoundScreen> {
   /// Whether each gap target sits inside a word (letters touch it), by
   /// target ID: Missing letters asks for letters, Complete the text for
   /// words.
-  Map<String, bool> _gapsInWord() {
-    final layout = _exercise.layout;
-    final result = <String, bool>{};
-    for (var i = 0; i < layout.length; i++) {
-      final element = layout[i];
-      if (!element.isTarget) continue;
-      final before = i > 0 && layout[i - 1].isText ? layout[i - 1].text : '';
-      final after = i + 1 < layout.length && layout[i + 1].isText
-          ? layout[i + 1].text
-          : '';
-      result[element.targetId] =
-          (before.isNotEmpty && !before.endsWith(' ')) ||
-          (after.isNotEmpty && !RegExp(r'^[\s.,;:!?…]').hasMatch(after));
-    }
-    return result;
-  }
-
   String _missingWordDisplay() {
     final layout = _exercise.layout;
-    final inWord = _gapsInWord();
+    final inWord = _features.gapsInWord;
     final buffer = StringBuffer();
     for (final element in layout) {
       if (!element.isTarget) {
@@ -2705,7 +2748,7 @@ class _RoundScreenState extends State<RoundScreen> {
   String _gapFieldLabel(int i) {
     final targets = _features.gapFieldTargets;
     final inWord =
-        i < targets.length && (_gapsInWord()[targets[i].id] ?? false);
+        i < targets.length && (_features.gapsInWord[targets[i].id] ?? false);
     final noun = inWord ? 'Missing letters' : 'Missing word';
     return _missingWordControllers.length == 1 ? noun : '$noun ${i + 1}';
   }
@@ -3989,6 +4032,7 @@ class _RoundScreenState extends State<RoundScreen> {
       _lastAnswerCorrect = true; // Nothing was asked.
       _feedback = 'Not playable in this version.';
     });
+    _revealFeedback();
   }
 
   Widget _versionSkippedLine() => Text(
@@ -4215,7 +4259,7 @@ class _RoundScreenState extends State<RoundScreen> {
       body: SafeArea(
         child: ListView(
           key: _storyScrolls ? const Key('story-scroll') : null,
-          controller: _storyScrolls ? _storyScroll : null,
+          controller: _storyScrolls ? _storyScroll : _pageScroll,
           padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
           children: [
             if (_storyScrolls) ...[

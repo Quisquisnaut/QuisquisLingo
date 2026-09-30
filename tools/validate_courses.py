@@ -430,7 +430,11 @@ def validate(path: Path, global_ids: dict[str, str]) -> list[str]:
                         issues.append(f"{where}: every Input target needs targetAnswers")
                     elif any(not isinstance(t.get("answers"), list) or not any(isinstance(a, str) and a.strip() for a in t["answers"]) for t in target_answers):
                         issues.append(f"{where}: every Input target needs a non-empty answer")
-                elif not isinstance(answers, list) or not any(isinstance(a, str) and a.strip() for a in answers):
+                # A literal answer counts (Build 259 Revision 3): Type what
+                # you hear accepts its Audio text without another line.
+                elif not any(isinstance(a, str) and a.strip()
+                             for a in [*(answers if isinstance(answers, list) else []),
+                                       *evaluation.get("literalAnswers", [])]):
                     issues.append(f"{where}: Input needs non-empty answers")
             if primitive == "arrange" and mode in {"exactOrder", "acceptedOrders"}:
                 orders = evaluation.get("correctOrders")

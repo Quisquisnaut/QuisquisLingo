@@ -5749,9 +5749,6 @@
                 },
                 "evaluation": {
                   "kind": "text_match",
-                  "acceptedAnswers": [
-                    "pan"
-                  ],
                   "normalization": {
                     "case": "ignore",
                     "punctuation": "ignore",
@@ -5787,9 +5784,6 @@
                 },
                 "evaluation": {
                   "kind": "text_match",
-                  "acceptedAnswers": [
-                    "eva"
-                  ],
                   "normalization": {
                     "case": "ignore",
                     "punctuation": "ignore",
@@ -5825,9 +5819,6 @@
                 },
                 "evaluation": {
                   "kind": "text_match",
-                  "acceptedAnswers": [
-                    "pom"
-                  ],
                   "normalization": {
                     "case": "ignore",
                     "punctuation": "ignore",
@@ -9288,5 +9279,5 @@
       }
     }
   ],
-  "officialChecksum": "3c55957af392951d9941b309da99800c095bbb91daa559eb252fa2d99be186a2"
+  "officialChecksum": "d4d73967623b24b3ba4a7cfe1e8caf9a1dd7cf0854f1a10ebdaa3c54803381d3"
 }

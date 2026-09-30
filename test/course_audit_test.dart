@@ -754,9 +754,11 @@ void main() {
     expect(StatusService.thresholds.last, 140000);
   });
 
-  test('listening spelling requires an accepted text answer', () {
-    final ex = Exercise(
-      id: 'ls1',
+  test('listening spelling requires an answer; its Audio text is one', () {
+    // Build 259 Revision 3: the Audio text is accepted as a literal answer,
+    // so only an exercise without audio and without answers is refused.
+    final withAudio = Exercise(
+      id: 'ls0',
       type: 'listening_spelling',
       prompt: '',
       question: 'Type what you hear.',
@@ -769,6 +771,16 @@ void main() {
       pairs: const [],
       hint: '',
       icons: const [],
+    );
+    expect(
+      CourseAuditService().auditExercise(withAudio).map((issue) => issue.code),
+      isNot(contains('LISTENING_SPELLING_NO_ANSWER')),
+    );
+    // Without any answer, not even the literal Audio text.
+    final ex = withAudio.copyWith(
+      canonicalEvaluation: const CanonicalEvaluation(
+        mode: EvaluationMode.expression,
+      ),
     );
     final issues = CourseAuditService().auditExercise(ex);
     expect(

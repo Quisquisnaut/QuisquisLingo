@@ -243,7 +243,6 @@ void main() {
     for (final definition in [
       help('type_translation_to_target', 'accepted'),
       help('type_translation_to_source', 'accepted'),
-      help('listening_spelling', 'missingWords'),
     ]) {
       expect(
         definition.entryRules,
@@ -254,6 +253,14 @@ void main() {
         contains('Malformed expressions are rejected'),
       );
     }
+    // Type what you hear lists only other spellings, with alternatives
+    // (Build 259 Revision 3).
+    final spellings = help('listening_spelling', 'missingWords');
+    expect(spellings.entryRules, contains('alle [9|nove]'));
+    expect(
+      spellings.validation,
+      contains('Malformed alternatives are rejected'),
+    );
     final gaps = help('missing_word', 'missingWords');
     expect(gaps.entryRules, contains('Multiple lines select multiple gaps'));
     expect(
@@ -411,7 +418,7 @@ void main() {
     );
     expect(
       help('listening_spelling', 'missingWords').purpose,
-      contains('accepted typed responses'),
+      contains('the Audio text itself is always accepted'),
     );
     expect(
       help('missing_word', 'prompt').entryRules,

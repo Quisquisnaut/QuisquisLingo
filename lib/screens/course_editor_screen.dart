@@ -10021,7 +10021,16 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     final course = widget.course;
     final kind = PresetRecipes.kinds[_type]?.firstOrNull;
     if (course == null || kind == null) return null;
-    return ExerciseCopyService.instruction(course, kind);
+    // Listen and choose always gets its own listening line (Build 259
+    // Revision 3).
+    final variant = switch (_type) {
+      'listening_choose_target' => 'selectListenHeard',
+      'listening_choose_source' => 'selectListenMeaning',
+      _ => null,
+    };
+    return variant == null
+        ? ExerciseCopyService.instruction(course, kind)
+        : ExerciseCopyService.instructionVariant(course, variant, kind);
   }
 
   Widget _field(
@@ -10494,12 +10503,14 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         return [
           _instructionField(),
           _field(_tts, 'Audio text', lines: 5),
+          // The Audio text is always accepted (Build 259 Revision 3): this
+          // box holds only other ways to write it.
           _field(
             _missingWords,
-            'Missing word',
+            'Other accepted spellings (optional)',
             lines: 2,
             helper:
-                'The learner types this word from the keyboard. Return/Enter submits the answer.',
+                'The Audio text is always accepted. Add a line only for another way to write the same thing, e.g. alle 9 for alle nove.',
           ),
         ];
       case 'missing_word':
@@ -10627,18 +10638,21 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         // question value) and a hint.
         return [
           _instructionField(controller: _question),
+          // Build 259 Revision 3: ___ marks each gap; a line may accept
+          // several answers.
           _field(
             _prompt,
-            'Text with the words to hide',
+            'Text, with ___ for each gap',
             lines: 5,
             helper:
-                'Write the complete text; the words listed below become gaps.',
+                'Write ___ (three underscores) where each missing word or phrase goes.',
           ),
           _field(
             _missingWords,
             'Missing words',
             lines: 4,
-            helper: 'One per line, in order; each must occur in the text.',
+            helper:
+                'One line per gap, in order. [il|un] gatto accepts both il gatto and un gatto.',
           ),
           _field(
             _hint,
@@ -11423,6 +11437,12 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         '${error.detail}: required. Enter it, or save as draft.',
       ExerciseDraftErrorCode.linesRequired =>
         'Lines, in the correct order: enter at least two lines.',
+      ExerciseDraftErrorCode.pictureRequired =>
+        'Picture: required. Choose one, or save as draft.',
+      ExerciseDraftErrorCode.gapsRequired =>
+        'Text: mark each gap with ___ (three underscores).',
+      ExerciseDraftErrorCode.gapCountMismatch =>
+        '${error.detail}: give one line per ___ gap, in order.',
       ExerciseDraftErrorCode.slotWordRepeated =>
         'Slots: “${error.detail}” is listed more than once. Turn on “A '
             'word may fill more than one slot” when one word answers '

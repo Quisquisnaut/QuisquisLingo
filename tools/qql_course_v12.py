@@ -543,6 +543,35 @@ def page_exercise(blocks: list[dict], *, updated_at: str) -> dict:
             "evaluation": {"mode": "none"}}
 
 
+def complete_text_exercise(text: str, answers: list[str], *, updated_at: str,
+                           instruction: str = "", hint: str = "") -> dict:
+    """Complete the text in its canonical shape (Build 259 Revision 3): the
+    text marks each gap with ___ and `answers` gives one answer expression
+    per gap, in order, such as "[il|un] gatto". Mirrors the Dart recipe
+    (ExerciseDraftBuilder._buildCompleteText)."""
+    pieces = re.split(r"_{3,}", text.strip())
+    gaps = len(pieces) - 1
+    assert gaps > 0 and gaps == len(answers), (text, answers)
+    layout = []
+    for index, piece in enumerate(pieces):
+        if piece:
+            layout.append({"type": "text", "text": piece})
+        if index < gaps:
+            layout.append({"type": "target", "targetId": f"gap_{index + 1}"})
+    value = {
+        "updatedAt": updated_at, "primitive": "input",
+        "options": _ordered_options({"layout": "inlineGaps", "cardinality": "multiple"}),
+        "prompt": [{"role": "clue", "type": "text", "text": instruction}] if instruction else [],
+        "targets": [{"id": f"gap_{i + 1}"} for i in range(gaps)],
+        "layout": layout,
+        "evaluation": _ordered_evaluation({"mode": "expression", "targetAnswers": [
+            {"targetId": f"gap_{i + 1}", "answers": [answer]} for i, answer in enumerate(answers)]}),
+    }
+    if hint:
+        value["hint"] = hint
+    return value
+
+
 def becomes_exercise(content: dict) -> bool:
     """Whether a v11 Content is an exercise once converted: an exercise, a
     presentation or, since Build 257, a Lesson introduction (a Before you

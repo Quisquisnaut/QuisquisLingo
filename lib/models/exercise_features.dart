@@ -14,6 +14,10 @@ enum LearnerExerciseKind {
   /// Select whose items are images or icons.
   selectImage,
 
+  /// Select with text items under a `picture` (What is in the picture,
+  /// Build 259 Revision 3).
+  selectPicture,
+
   /// Select showing or offering character specimens (`character` images).
   selectCharacter,
 
@@ -362,6 +366,27 @@ class ExerciseFeatures {
       ? exercise.targets
       : const [];
 
+  /// Whether each inline gap sits inside a word (Missing letters): a text
+  /// run touches it without a space. The Round screen draws such a gap with
+  /// one underscore per letter and the standard line asks for letters
+  /// (moved from the Round screen, Build 259 Revision 3).
+  Map<String, bool> get gapsInWord {
+    final layout = exercise.layout;
+    final result = <String, bool>{};
+    for (var i = 0; i < layout.length; i++) {
+      final element = layout[i];
+      if (!element.isTarget) continue;
+      final before = i > 0 && layout[i - 1].isText ? layout[i - 1].text : '';
+      final after = i + 1 < layout.length && layout[i + 1].isText
+          ? layout[i + 1].text
+          : '';
+      result[element.targetId] =
+          (before.isNotEmpty && !before.endsWith(' ')) ||
+          (after.isNotEmpty && !RegExp(r'^[\s.,;:!?…]').hasMatch(after));
+    }
+    return result;
+  }
+
   /// The text the exercise's audio speaks: the automatic element's, else
   /// the first audio element's; null when there is no audio or no text.
   String? get primaryAudioText {
@@ -621,6 +646,7 @@ class ExerciseFeatures {
         if (hasImageItems || hasIconItems) {
           return LearnerExerciseKind.selectImage;
         }
+        if (pictureImages.isNotEmpty) return LearnerExerciseKind.selectPicture;
         if (!hasInlineTargets && hasBlankInPrompt) {
           return LearnerExerciseKind.selectComplete;
         }

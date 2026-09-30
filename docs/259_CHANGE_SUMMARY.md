@@ -265,3 +265,85 @@ for Listen and choose and **Question** for Listen and answer
 
 Scoring, progression, Review, the Course format and learner data are
 unchanged.
+
+## Revision 3 (2.0.59+259003, 30 September 2026): the owner's review
+
+Owner review of 30 September 2026, points A–H, with the answers to the four
+open questions: to-source line "Select the meaning of what you heard.";
+title "What is in the picture?" with the line "Choose the option that fits
+best."; the three typed-gap lines; "Arrange the lines in a logical order.".
+
+**A. Type what you hear.**
+- The v11 converter already stored the Audio text as a literal answer, so
+  the "Missing word" box only repeated it. The box is now **Other accepted
+  spellings (optional)**: another way to write the same words, one line per
+  spelling, alternatives such as `alle [9|nove]`.
+- A Published save needs nothing in it. The Audit's missing-answer rule
+  and `tools/validate_courses.py` count a literal answer.
+- Field Help and Help EN/IT/ES drop the syntax a dictation does not need
+  (reordering, optional words, linked alternatives).
+- The Laboratory: the variants example accepted "io sono felice" for
+  "Sono felice." ("io" is never heard). It now plays "Arrivo alle otto."
+  and also accepts "arrivo alle 8". The word and sentence examples, and the
+  Piedmontese dictations, no longer repeat their Audio text.
+
+**B and H. Listening lines.** `ExerciseCopyService.instructionForExercise`
+picks the line from the exercise:
+- a question: "Listen and answer the question." (both Listen and answer
+  shapes);
+- no question, answers in the language studied: "Select the sentence that
+  you heard.";
+- no question, answers in the source language: "Select the meaning of what
+  you heard.";
+- picture answers (Listen and pick the image) and gaps keep "Listen and
+  choose the correct answer.".
+
+The Instruction or context helper of Listen and choose quotes its line
+(`instructionVariant`).
+
+**C. What is in the picture.**
+- A new learner kind, `selectPicture` (a Select under a `picture`),
+  gives the title **WHAT IS IN THE PICTURE?** and the line "Choose the
+  option that fits best.".
+- A Published save needs the picture (`pictureRequired`).
+
+**D. The feedback comes into view.**
+- In a short window, the feedback panel of a tall exercise (Sort into
+  groups) fell below the screen after Check. The list builds lazily, so
+  the panel, with its Finish round button, was not even drawn.
+- A test at 800 × 450 reproduced it: no Finish round without the change.
+  Now `RoundScreen._revealFeedback` scrolls the page to the panel after an
+  answer, a card result or a skipped exercise. A scrolling Story keeps its
+  own scroll.
+
+**E. Typed gaps.** "Choose the word that completes the sentence." was
+wrong for a typed exercise. The kind `inputComplete` now reads:
+- "Type the words that complete the sentence.";
+- "Type the word that completes the sentence." with one gap or one field;
+- "Type the missing letters." when the gaps are inside words
+  (`ExerciseFeatures.gapsInWord`, moved from the Round screen).
+
+**F. Complete the text with ___.**
+- The text marks each gap with ___. Missing words gives one line per gap,
+  in order; a line may accept several answers (`[il|un] gatto`).
+- The preset has its own recipe (`_buildCompleteText`). The stored shape
+  is unchanged (inline gap targets `gap_1`…, `targetAnswers`), so existing
+  exercises reopen in the form.
+- A Published save checks that there are gaps, that their number matches
+  the lines, and that each line is a valid expression. A draft keeps its
+  text even without gaps.
+- The correct-answer line shows the first accepted answer ("il treno"),
+  keeping the author's small letter.
+- The Laboratory's `complete_text_alternatives` ("Luca prende ___ alle
+  otto.", `[il|un] treno`) joins its Round in the canonical shape after
+  the v11 conversion; the v11 fixture omits it.
+
+**G. Put the sentences in order.** "Arrange the lines in a logical order."
+no longer repeats the title.
+
+**Languages and Help.** The new and changed lines are in the eight learner
+languages (EN, ES, IT, DE, PT, NL, FI, CY). Help EN/IT/ES covers Type what
+you hear, Complete the text and What is in the picture.
+
+Scoring, progression, Review, the Course format and learner data are
+unchanged.

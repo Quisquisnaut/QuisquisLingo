@@ -374,7 +374,7 @@ void main() {
       expect(find.text('Instruction or context (optional)'), findsOneWidget);
       expect(
         find.textContaining(
-          'instead of the standard line “Listen and choose the correct answer.”',
+          'instead of the standard line “Select the sentence that you heard.”',
         ),
         findsOneWidget,
       );
@@ -436,7 +436,7 @@ void main() {
           answers: 'Al mercato.\nA scuola.\nIn stazione.',
         ),
       );
-      expect(_instructionLine(tester), 'Listen and choose the correct answer.');
+      expect(_instructionLine(tester), 'Listen and answer the question.');
       expect(find.text('Dove fa la spesa Maria?'), findsOneWidget);
     });
   });

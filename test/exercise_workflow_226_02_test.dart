@@ -324,7 +324,10 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(
-        tester.widget<TextField>(field('Missing word')).controller!.text,
+        tester
+            .widget<TextField>(field('Other accepted spellings (optional)'))
+            .controller!
+            .text,
         'Ciao',
       );
       await tapKey(tester, 'exercise-preview');

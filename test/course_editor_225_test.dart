@@ -369,7 +369,10 @@ void main() {
     await tester.pumpAndSettle();
     await tester.enterText(_field('Instruction or context (optional)'), 'casa');
     await tester.enterText(_field('Audio text'), 'casa');
-    await tester.enterText(_field('Missing word'), 'casa');
+    await tester.enterText(
+      _field('Other accepted spellings (optional)'),
+      'casa',
+    );
     tester.testTextInput.hide();
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(

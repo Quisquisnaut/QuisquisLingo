@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import argparse
 import base64
+import copy
 import hashlib
 import json
 import struct
@@ -20,7 +21,7 @@ import zlib
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from qql_course_v12 import _ordered_evaluation, _ordered_options, assign_exercise, becomes_exercise, before_you_start, page_exercise, convert_course_v11_to_v12, story_cover, story_flow, story_line  # noqa: E402
+from qql_course_v12 import _ordered_evaluation, _ordered_options, assign_exercise, becomes_exercise, before_you_start, complete_text_exercise, page_exercise, convert_course_v11_to_v12, story_cover, story_flow, story_line  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 ASSET = ROOT / "assets/courses/exercise_laboratory_en_it.json"
@@ -112,6 +113,10 @@ class Laboratory:
         # several primitives, and its lines and covers have no v11 shape, so
         # the converter fixture (course_v11) omits it.
         self.story_lessons: list[dict] = []
+        # Canonical examples that join a v11 Round in course(), after the
+        # content they follow (Build 259 Revision 3); the v11 fixture omits
+        # them.
+        self.canonical_extras: list[tuple[str, dict]] = []
         self.cases: list[dict] = []
         self.lesson: dict = {}
         self.round: dict = {}
@@ -298,6 +303,22 @@ class Laboratory:
                            "preset": preset, "capability": capability,
                            "answer": "Got it; or Review again, then Got it on the repeated card"})
 
+    def complete_text_canonical(self, key: str, after: str, text: str, answers: list[str],
+                                capability: str, answer: str, *, instruction: str = "",
+                                hint: str = "") -> None:
+        """Complete the text with an answer expression per gap (Build 259
+        Revision 3): the v11 shape cannot express alternatives, so the example
+        joins its Round in the canonical shape, after `after`."""
+        identity = "qql_lab254_" + key
+        self.canonical_extras.append(("qql_lab254_" + after, {
+            "id": identity, "publicationState": "published", "kind": "exercise",
+            "required": True, "editorTemplate": "complete_text",
+            "exercise": complete_text_exercise(text, answers, updated_at=STAMP,
+                                               instruction=instruction, hint=hint),
+        }))
+        self.cases.append({"id": identity, "lesson": self.lesson["title"], "round": self.round["title"],
+                           "preset": "complete_text", "capability": capability, "answer": answer})
+
     def start_story_lesson(self, title: str, description: str) -> None:
         self.start_lesson(title, description)
         self.story_lessons.append(self.lessons.pop())
@@ -468,9 +489,11 @@ def laboratory() -> Laboratory:
     lab.enter("input_first_unicode", "type_missing_word", [text("Il mio amico francese si chiama ___.")], ["Émile", "Étienne"], "Type the missing word; accented first Unicode grapheme and proper names", hint="Two traditional French male names are accepted.")
 
     lab.start_round("input_listening", "Transcriptions and missing words", "Enable Audio Exercises and Text-to-speech. For a transcription, type the whole utterance. For missing words, complete the numbered fields in transcript order.", "listening")
-    lab.enter("input_listen_word", "listening_spelling", [audio("Grazie.")], ["grazie"], "Type what you hear; one word")
-    lab.enter("input_listen_sentence", "listening_spelling", [text("Type the sentence about the train."), audio("Il treno parte alle nove.")], ["il treno parte alle nove"], "Type what you hear; complete sentence and normal punctuation handling")
-    lab.enter("input_listen_variants", "listening_spelling", [text("Type the short statement about a feeling."), audio("Sono felice.")], ["sono felice", "io sono felice"], "Type what you hear; more than one explicitly accepted transcription")
+    # Build 259 Revision 3: the Audio text is always accepted; other
+    # spellings are listed only when there is one.
+    lab.enter("input_listen_word", "listening_spelling", [audio("Grazie.")], [], "Type what you hear; one word, the Audio text is the answer", answer="Grazie.")
+    lab.enter("input_listen_sentence", "listening_spelling", [text("Type the sentence about the train."), audio("Il treno parte alle nove.")], [], "Type what you hear; complete sentence and normal punctuation handling", answer="Il treno parte alle nove.")
+    lab.enter("input_listen_variants", "listening_spelling", [text("Anna tells you when she arrives."), audio("Arrivo alle otto.")], ["arrivo alle 8"], "Type what you hear; another accepted spelling (the hour in digits)", answer="Arrivo alle otto. / arrivo alle 8")
     lab.enter("input_missing_one", "missing_word", [text("Anna mangia una mela."), audio("Anna mangia una mela.")], ["mela"], "Listen for missing words; one transcript gap", missing=["mela"])
     lab.enter("input_missing_many", "missing_word", [text("Luca legge un libro in giardino."), audio("Luca legge un libro in giardino.")], ["legge", "libro", "giardino"], "Listen for missing words; three distinct gaps in transcript order", missing=["legge", "libro", "giardino"], answer="1 legge; 2 libro; 3 giardino")
 
@@ -478,6 +501,7 @@ def laboratory() -> Laboratory:
     lab.enter("type_source_literal", "type_translation_to_source", [text("Grazie.", language="target")], ["thank you", "thanks"], "Type the translation (to source); target text, source answers")
     lab.enter("type_source_variants", "type_translation_to_source", [text("Vorrei un caffè.", language="target")], ["I would like a coffee", "I'd like a coffee"], "Type the translation (to source); two accepted answers")
     lab.enter("complete_text", "complete_text", [text("Anna's morning before work.", "clue"), text("Anna beve un caffè al bar. Poi prende il treno.")], [], "Complete the text; two typed gaps, an instruction and a hint, no audio", hint="A drink, then a way to travel.", missing=["caffè", "treno"], answer="caffè / treno")
+    lab.complete_text_canonical("complete_text_alternatives", "complete_text", "Luca prende ___ alle otto.", ["[il|un] treno"], "Complete the text; one gap with two accepted answers, [il|un] treno", "il treno / un treno", instruction="Luca goes to work.", hint="A way to travel, with its article.")
     lab.enter("missing_letters", "missing_letters", [text("Il gatto dorme sul divano.")], [], "Missing letters; letters inside two words", missing=["tt", "van"], answer="tt / van")
     lab.enter("missing_letters_audio", "missing_letters", [text("Il treno parte alle nove."), audio("Il treno parte alle nove.")], [], "Missing letters; spoken text and two gaps", missing=["ren", "ove"], answer="ren / ove")
     lab.enter("picture_name", "picture_name", [text("What is this?"), image("bread", "Bread", "picture")], ["il pane", "pane"], "Type what you see; picture prompt, typed answers")
@@ -658,7 +682,17 @@ def course(lab: Laboratory) -> dict:
     # shape; the fixture written from course_v11 omits it, and the Dart
     # parity test skips it.
     v11 = course_v11(lab)
-    v11["lessons"] = [*lab.lessons, *lab.story_lessons]
+    lessons = copy.deepcopy(lab.lessons)
+    for after, content in lab.canonical_extras:
+        placed = False
+        for lesson in lessons:
+            for round_ in lesson["rounds"]:
+                ids = [item["id"] for item in round_["content"]]
+                if after in ids:
+                    round_["content"].insert(ids.index(after) + 1, content)
+                    placed = True
+        assert placed, after
+    v11["lessons"] = [*lessons, *lab.story_lessons]
     value = convert_course_v11_to_v12(v11)
     value["storyNarrator"] = {"name": "Narrator", "language": "source"}
     value["storyCharacters"] = [

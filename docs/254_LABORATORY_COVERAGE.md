@@ -5,7 +5,7 @@ This document and the JSON are generated together by `tools/generate_exercise_la
 - Course: **Exercise Laboratory**, `course_50d68435-d2c2-4b63-9a0b-b23161357f1d`.
 - Direction: English (`en-GB`) → Italian (`it-IT`); TTS `it-IT`.
 - Model 11, official Course version 1.0.0; all Lessons, Rounds and Content are Published.
-- Exactly eight Lessons (six primitives, a Story and Pages), 28 Rounds and 125 runnable examples across all 48 authoring presets (the Assign Lesson uses the presets Sort into groups and Fill the slots since the Build 256 Revision 7 follow-up).
+- Exactly eight Lessons (six primitives, a Story and Pages), 28 Rounds and 126 runnable examples across all 48 authoring presets (the Assign Lesson uses the presets Sort into groups and Fill the slots since the Build 256 Revision 7 follow-up).
 - Course rights explicitly allow Fork, so the bundled original can be inspected and a derivative can use the ordinary authoring/confirm/export/import paths.
 - Create Duels is off: Presentation is non-evaluable and the Course is not padded to manufacture Duel pools. The required per-Lesson Duel metadata is retained.
 - This Course leaves existing Course identities, learner data and media assets unchanged.
@@ -38,7 +38,7 @@ The authoring registry is `lib/models/exercise_authoring.dart`. Every one of its
 | Input | `listening_spelling` | 3 |
 | Input | `missing_word` | 2 |
 | Input | `type_translation_to_source` | 2 |
-| Input | `complete_text` | 1 |
+| Input | `complete_text` | 2 |
 | Input | `missing_letters` | 2 |
 | Input | `picture_name` | 1 |
 | Arrange | `word_order` | 6 |
@@ -121,14 +121,15 @@ The suffix below follows `qql_lab254_` in the stable Content/Exercise ID. Answer
 | Input / Fragments and first letters | input_first_letter | type_missing_word | Type the missing word; one ___ gap and full accepted word | gatto |
 | Input / Fragments and first letters | input_first_alternatives | type_missing_word | Type the missing word; multiple complete words sharing the first grapheme | cane / cavallo |
 | Input / Fragments and first letters | input_first_unicode | type_missing_word | Type the missing word; accented first Unicode grapheme and proper names | Émile / Étienne |
-| Input / Transcriptions and missing words | input_listen_word | listening_spelling | Type what you hear; one word | grazie |
-| Input / Transcriptions and missing words | input_listen_sentence | listening_spelling | Type what you hear; complete sentence and normal punctuation handling | il treno parte alle nove |
-| Input / Transcriptions and missing words | input_listen_variants | listening_spelling | Type what you hear; more than one explicitly accepted transcription | sono felice / io sono felice |
+| Input / Transcriptions and missing words | input_listen_word | listening_spelling | Type what you hear; one word, the Audio text is the answer | Grazie. |
+| Input / Transcriptions and missing words | input_listen_sentence | listening_spelling | Type what you hear; complete sentence and normal punctuation handling | Il treno parte alle nove. |
+| Input / Transcriptions and missing words | input_listen_variants | listening_spelling | Type what you hear; another accepted spelling (the hour in digits) | Arrivo alle otto. / arrivo alle 8 |
 | Input / Transcriptions and missing words | input_missing_one | missing_word | Listen for missing words; one transcript gap | mela |
 | Input / Transcriptions and missing words | input_missing_many | missing_word | Listen for missing words; three distinct gaps in transcript order | 1 legge; 2 libro; 3 giardino |
 | Input / Source answers, texts and pictures | type_source_literal | type_translation_to_source | Type the translation (to source); target text, source answers | thank you / thanks |
 | Input / Source answers, texts and pictures | type_source_variants | type_translation_to_source | Type the translation (to source); two accepted answers | I would like a coffee / I'd like a coffee |
 | Input / Source answers, texts and pictures | complete_text | complete_text | Complete the text; two typed gaps, an instruction and a hint, no audio | caffè / treno |
+| Input / Source answers, texts and pictures | complete_text_alternatives | complete_text | Complete the text; one gap with two accepted answers, [il\|un] treno | il treno / un treno |
 | Input / Source answers, texts and pictures | missing_letters | missing_letters | Missing letters; letters inside two words | tt / van |
 | Input / Source answers, texts and pictures | missing_letters_audio | missing_letters | Missing letters; spoken text and two gaps | ren / ove |
 | Input / Source answers, texts and pictures | picture_name | picture_name | Type what you see; picture prompt, typed answers | il pane / pane |
@@ -219,8 +220,8 @@ The suffix below follows `qql_lab254_` in the stable Content/Exercise ID. Answer
 
 1. `python -X utf8 tools/generate_exercise_laboratory_254.py --check`: deterministic JSON/checksum and coverage-document readback.
 2. `python -X utf8 tools/validate_courses.py`: Course Model structure, timestamps, stable unique IDs, references, publication and official checksum.
-3. `test/exercise_laboratory_254_test.dart` checks the actual asset's Audit and canonical model round trip, then rebuilds all 125 examples through ExerciseDraftBuilder (and ScriptRecognitionController for its image modes), comparing semantic fields and each result's model round trip. Separate preservation assertions cover Flashcard usage and usage translation. Editor route tests include `exercise_authoring_252_characterization_test.dart`, `select_editor_238_test.dart`, `arrange_gap_fill_editor_238_test.dart`, `script_recognition_226_03_test.dart` and `translation_choice_239_test.dart`.
-4. The same Lab suite completes all 125 examples through RoundScreen Preview using actual controls and grading, including repeated blocks, reusable gaps, exact multiple-selection sets and audio matching. Additional cases finish an alternate Build translation answer and a Review again/Got it cycle. Speech is stubbed only at the playback seam; these tests do not establish native voice quality or normal progression persistence.
+3. `test/exercise_laboratory_254_test.dart` checks the actual asset's Audit and canonical model round trip, then rebuilds all 126 examples through ExerciseDraftBuilder (and ScriptRecognitionController for its image modes), comparing semantic fields and each result's model round trip. Separate preservation assertions cover Flashcard usage and usage translation. Editor route tests include `exercise_authoring_252_characterization_test.dart`, `select_editor_238_test.dart`, `arrange_gap_fill_editor_238_test.dart`, `script_recognition_226_03_test.dart` and `translation_choice_239_test.dart`.
+4. The same Lab suite completes all 126 examples through RoundScreen Preview using actual controls and grading, including repeated blocks, reusable gaps, exact multiple-selection sets and audio matching. Additional cases finish an alternate Build translation answer and a Review again/Got it cycle. Speech is stubbed only at the playback seam; these tests do not establish native voice quality or normal progression persistence.
 5. Export/import of the Course through the normal ZIP and embedded-image JSON routes preserves this Course's identity, content wrappers, answers and character PNG bytes. A Fork gets a new identity through the existing rights-aware operation.
 
 These are verification seams, not a claim that commands have been run. Fresh integrated results are recorded in the Build 254 validation document.

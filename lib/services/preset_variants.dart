@@ -151,7 +151,8 @@ abstract final class PresetVariants {
       case 'gap_blocks':
         return draft.copyWith(type: base, useInlineGaps: true);
       case 'complete_text':
-        return draft.copyWith(type: base, tts: '');
+        // Its own recipe (Build 259 Revision 3): the gaps are ___.
+        return draft.copyWith(type: presetId, tts: '');
       case 'missing_letters':
         // The bracketed letters become the gaps of the text without them.
         final letters = <String>[];
@@ -194,9 +195,6 @@ abstract final class PresetVariants {
     exercise = _shape(presetId, exercise);
     if (presetId == 'reading_answer_target') {
       exercise = _readAndAnswer(exercise, draft.dialogueReadAloud);
-    }
-    if (presetId == 'complete_text') {
-      exercise = _withInstruction(exercise, draft.question);
     }
     // A candidate the base recipe already finished (the script controller's
     // own candidate, for one) crosses unchanged.
@@ -331,21 +329,6 @@ abstract final class PresetVariants {
     }
   }
 
-  /// Complete the text's Instruction or context (Build 259 Revision 1): a
-  /// `clue` text with no language, first in the prompt. It is a clue, not a
-  /// primary text, because the Listen-for-missing-words recipe reads its
-  /// primary text as the passage.
-  static Exercise _withInstruction(Exercise exercise, String instruction) {
-    final text = instruction.trim();
-    if (text.isEmpty) return exercise;
-    return exercise.copyWith(
-      promptElements: [
-        PromptElement(role: 'clue', type: 'text', text: text),
-        ...exercise.promptElements,
-      ],
-    );
-  }
-
   /// The base recipe's question text as the Instruction or context: a
   /// primary text with no language (Build 259, owner decisions of
   /// 29 September 2026), for the presets whose form has no question.
@@ -445,6 +428,7 @@ abstract final class PresetVariants {
     final f = ExerciseFeatures(exercise);
     return switch (presetId) {
       'missing_letters' => hasInWordGap(exercise),
+      'complete_text' => !hasInWordGap(exercise),
       'image_word' => f.illustrationImages.isNotEmpty,
       'spell_heard' => f.illustrationImages.isEmpty && f.automaticAudio != null,
       'spell_word' => f.illustrationImages.isEmpty && f.automaticAudio == null,

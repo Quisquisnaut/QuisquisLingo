@@ -189,6 +189,16 @@ void main() {
             }
           }
         } else if (exercise.interaction.kind == 'input') {
+          // Type what you hear accepts its Audio text as a literal answer,
+          // without another line (Build 259 Revision 3).
+          if (exercise.accepted.isEmpty) {
+            expect(
+              exercise.canonicalEvaluation.literalAnswers,
+              isNotEmpty,
+              reason: exercise.id,
+            );
+            continue;
+          }
           final answers = engine.validAnswers(exercise.accepted);
           expect(answers, isNotEmpty, reason: exercise.id);
           for (final answer in answers) {

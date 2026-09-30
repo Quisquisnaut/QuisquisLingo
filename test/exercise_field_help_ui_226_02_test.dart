@@ -116,7 +116,7 @@ const _formFields = <String, Map<String, String>>{
   'listening_spelling': {
     'Instruction or context (optional)': 'prompt',
     'Audio text': 'tts',
-    'Missing word': 'missingWords',
+    'Other accepted spellings (optional)': 'missingWords',
   },
   'missing_word': {
     'Passage transcript': 'prompt',
@@ -173,7 +173,7 @@ const _formFields = <String, Map<String, String>>{
   },
   'complete_text': {
     'Instruction or context (optional)': 'question',
-    'Text with the words to hide': 'prompt',
+    'Text, with ___ for each gap': 'prompt',
     'Missing words': 'missingWords',
     'Hint (optional)': 'hint',
   },

@@ -575,13 +575,21 @@ Future<void> _answer(
   } else if (exercise.interaction.kind == 'input') {
     if (exercise.type == 'missing_word') {
       for (var index = 0; index < exercise.missingWords.length; index++) {
+        // A gap may accept an answer expression, such as [il|un] treno
+        // (Build 259 Revision 3): type its first answer.
         await tester.enterText(
           find.byType(TextField).at(index),
-          exercise.missingWords[index],
+          AnswerExpressionParser.expandAll([
+            exercise.missingWords[index],
+          ]).first,
         );
       }
     } else {
-      final answer = AnswerExpressionParser.expandAll(exercise.accepted).first;
+      // Type what you hear accepts its Audio text without another line
+      // (Build 259 Revision 3).
+      final answer = exercise.accepted.isEmpty
+          ? ExerciseFeatures(exercise).literalAnswers.first
+          : AnswerExpressionParser.expandAll(exercise.accepted).first;
       await tester.enterText(find.byType(TextField), answer);
     }
     await tester.pump(); // Rebuild the Check button after TextField.onChanged.
@@ -694,8 +702,9 @@ void main() {
       ]);
       expect(course.createDuels, isFalse);
       expect(course.derivativeWorksPolicy, DerivativeWorksPolicy.allowed);
-      // 125 with Listen and answer (to source) (Build 259 Revision 2).
-      expect(examples, hasLength(125));
+      // 125 with Listen and answer (to source) (Build 259 Revision 2), 126
+      // with the Complete the text alternatives (Revision 3).
+      expect(examples, hasLength(126));
       // The examples cover every preset but Before you start, whose card
       // opens every Round (Build 257).
       expect({
@@ -803,8 +812,11 @@ void main() {
         jsonDecode(jsonEncode(content.toJson())) as Map<String, dynamic>,
       );
       expect(_semantics(restored.asRunnableExercise()!), _semantics(candidate));
+      // Type what you hear may accept only its Audio text, a literal answer
+      // (Build 259 Revision 3).
       if (candidate.interaction.kind == 'input' &&
-          candidate.type != 'missing_word') {
+          candidate.type != 'missing_word' &&
+          candidate.accepted.isNotEmpty) {
         for (final answer in AnswerExpressionParser.expandAll(
           candidate.accepted,
         )) {

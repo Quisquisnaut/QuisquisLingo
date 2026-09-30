@@ -30,6 +30,9 @@ abstract final class PresetRecipes {
     // Put the sentences in order builds its lines and extra lines itself
     // (Build 259 Revision 1); it still converts from the Word order shape.
     'sentence_order',
+    // Complete the text reads its gaps from ___ (Build 259 Revision 3); it
+    // still converts from the Listen-for-missing-words shape.
+    'complete_text',
   };
 
   /// The learner kind each preset's recipe produces; the first is the one
@@ -96,7 +99,7 @@ abstract final class PresetRecipes {
     },
     'listening_image_choice': {LearnerExerciseKind.selectListen},
     'spell_heard': {LearnerExerciseKind.arrangeWord},
-    'picture_choice': {LearnerExerciseKind.select},
+    'picture_choice': {LearnerExerciseKind.selectPicture},
     'picture_name': {LearnerExerciseKind.inputPictureName},
     'picture_blocks': {LearnerExerciseKind.arrangePictureName},
     'spell_word': {LearnerExerciseKind.arrangeWord},
@@ -197,6 +200,12 @@ abstract final class PresetRecipes {
         ? f.textOf('term')
         : presetId == 'missing_letters' && f.hasInlineTargets
         ? f.bracketedSentence
+        // Complete the text shows each gap as ___ (Build 259 Revision 3).
+        : presetId == 'complete_text' && exercise.layout.isNotEmpty
+        ? [
+            for (final element in exercise.layout)
+              element.isTarget ? '___' : element.text,
+          ].join()
         : f.primitive == ExercisePrimitive.input && f.hasInlineTargets
         ? f.inlineSentence
         : [

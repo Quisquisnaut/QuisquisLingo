@@ -232,6 +232,8 @@ enum ExerciseDraftField {
   order,
   question,
   prompt,
+  missingWords,
+  image,
 }
 
 enum ExerciseDraftErrorCode {
@@ -267,6 +269,16 @@ enum ExerciseDraftErrorCode {
   /// Put the sentences in order needs at least two lines (Build 259
   /// Revision 1).
   linesRequired,
+
+  /// What is in the picture needs its picture (Build 259 Revision 3).
+  pictureRequired,
+
+  /// Complete the text has no ___ gap (Build 259 Revision 3).
+  gapsRequired,
+
+  /// Complete the text's gaps and Missing words lines differ in number; the
+  /// detail says both (Build 259 Revision 3).
+  gapCountMismatch,
 }
 
 class ExerciseDraftFieldError {
@@ -341,6 +353,15 @@ abstract final class ExerciseDraftBuilder {
     }
     // A catalogue preset runs its base recipe and is finished as itself
     // (Build 256 Revision 4, PresetVariants).
+    // What is in the picture needs its picture (Build 259 Revision 3).
+    if (draft.type == 'picture_choice' &&
+        _strict(draft) &&
+        draft.imageAsset.trim().isEmpty) {
+      return _failure(
+        ExerciseDraftField.image,
+        ExerciseDraftErrorCode.pictureRequired,
+      );
+    }
     final result = _build(PresetVariants.draftFor(draft.type, draft));
     var candidate = result.candidate;
     if (candidate == null) return result;
@@ -583,6 +604,7 @@ abstract final class ExerciseDraftBuilder {
     if (type == 'picture_blocks') return _buildPictureBlocks(draft);
     if (type == 'fill_the_slots') return _buildFillTheSlots(draft);
     if (type == 'sentence_order') return _buildSentenceOrder(draft);
+    if (type == 'complete_text') return _buildCompleteText(draft);
     if (type == 'script_recognition') {
       final candidate = draft.scriptCandidate;
       return candidate == null
@@ -1269,6 +1291,100 @@ abstract final class ExerciseDraftBuilder {
               OrderedAnswer(
                 text: lines.join(' '),
                 itemIds: [for (var i = 0; i < lines.length; i++) ids[i]!],
+              ),
+          ],
+        ),
+        hint: draft.hint.trim(),
+        feedback: original.feedback,
+        authoringMetadata: original.authoringMetadata,
+      ),
+    );
+  }
+
+  /// Complete the text (Build 259 Revision 3, owner decision of
+  /// 30 September 2026): the text marks each gap with ___ and Missing words
+  /// gives one line per gap, in order; a line may use the answer syntax,
+  /// such as [il|un] gatto. Canonical: an Input with inline gap targets
+  /// gap_1, gap_2, … (as the Listen-for-missing-words recipe writes them),
+  /// the optional Instruction or context as a `clue` text with no language,
+  /// and the optional hint. A draft keeps text without gaps as its layout.
+  static ExerciseDraftBuildResult _buildCompleteText(
+    ExerciseDraftValues draft,
+  ) {
+    final pieces = draft.prompt.trim().split(RegExp(r'_{3,}'));
+    final gaps = pieces.length - 1;
+    final answers = _lines(draft.missingWords);
+    if (_strict(draft)) {
+      if (gaps == 0) {
+        return _failure(
+          ExerciseDraftField.prompt,
+          ExerciseDraftErrorCode.gapsRequired,
+        );
+      }
+      if (answers.length != gaps) {
+        String count(int n, String noun) => n == 1 ? '1 $noun' : '$n ${noun}s';
+        return _failure(
+          ExerciseDraftField.missingWords,
+          ExerciseDraftErrorCode.gapCountMismatch,
+          detail:
+              'The text has ${count(gaps, 'gap')} and Missing words has '
+              '${count(answers.length, 'line')}',
+        );
+      }
+      for (var i = 0; i < answers.length; i++) {
+        try {
+          AnswerExpressionParser.expand(answers[i]);
+        } on AnswerExpressionException catch (error) {
+          return _failure(
+            ExerciseDraftField.missingWords,
+            ExerciseDraftErrorCode.answerExpression,
+            detail: 'Missing words line ${i + 1}: ${error.message}',
+            line: i + 1,
+          );
+        }
+      }
+    }
+    final original = draft.original;
+    return ExerciseDraftBuildResult.success(
+      Exercise.canonical(
+        id: original.id,
+        publicationState: draft.publicationState,
+        updatedAt: original.updatedAt,
+        primitive: ExercisePrimitive.input,
+        options: PrimitiveOptions({
+          OptionKey.cardinality: const EnumOptionValue(Cardinality.multiple),
+          OptionKey.layout: const EnumOptionValue(LayoutValue.inlineGaps),
+        }),
+        promptElements: [
+          if (draft.question.trim().isNotEmpty)
+            PromptElement(
+              role: 'clue',
+              type: 'text',
+              text: draft.question.trim(),
+            ),
+          if (draft.imageAsset.trim().isNotEmpty)
+            PromptElement(
+              role: 'clue',
+              type: 'image',
+              asset: draft.imageAsset.trim(),
+            ),
+        ],
+        targets: [
+          for (var i = 0; i < gaps; i++) ExerciseTarget(id: 'gap_${i + 1}'),
+        ],
+        layout: [
+          for (var i = 0; i < pieces.length; i++) ...[
+            if (pieces[i].isNotEmpty) LayoutElement.text(pieces[i]),
+            if (i < gaps) LayoutElement.target('gap_${i + 1}'),
+          ],
+        ],
+        canonicalEvaluation: CanonicalEvaluation(
+          mode: EvaluationMode.expression,
+          targetAnswers: [
+            for (var i = 0; i < gaps; i++)
+              TargetAnswers(
+                targetId: 'gap_${i + 1}',
+                answers: [if (i < answers.length) answers[i]],
               ),
           ],
         ),

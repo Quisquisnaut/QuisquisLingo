@@ -368,7 +368,8 @@ def lesson_specs() -> list[tuple[str, str, str, list[dict]]]:
         gaps("gap_choice_inline", "Complete the phrase; the same article fills both gaps.", [("ël",), "gat e", ("ël",), "can"], ["la"]),
     ])
     add("listening_spelling", "Hear and spell", "Listen and type the whole word. The vocabulary is pan (bread), eva (water), and pom (apple). " + AUDIO_NOTE, [
-        enter("listening_spelling", [text(instruction), audio(word)], [word])
+        # The Audio text is always accepted (Build 259 Revision 3).
+        enter("listening_spelling", [text(instruction), audio(word)], [])
         for word, instruction in [
             ("pan", "Transcribe the first food word."),
             ("eva", "Type the drink you hear."),

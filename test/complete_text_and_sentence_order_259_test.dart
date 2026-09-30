@@ -222,7 +222,8 @@ void main() {
     Exercise text({String question = '', String hint = ''}) => _built(
       'complete_text',
       question: question,
-      prompt: 'Anna beve un caffè al bar. Poi prende il treno.',
+      // The gaps are ___ since Build 259 Revision 3.
+      prompt: 'Anna beve un ___ al bar. Poi prende il ___.',
       missingWords: 'caffè\ntreno',
       hint: hint,
     );
@@ -244,7 +245,7 @@ void main() {
       expect(PresetRecipes.represents(exercise, 'complete_text'), isTrue);
       final draft = PresetRecipes.decompose(exercise, 'complete_text');
       expect(draft.question, 'Anna’s morning before work.');
-      expect(draft.prompt, 'Anna beve un caffè al bar. Poi prende il treno.');
+      expect(draft.prompt, 'Anna beve un ___ al bar. Poi prende il ___.');
       expect(draft.hint, 'A drink, then a way to travel.');
       // Without an instruction nothing is added.
       expect(ExerciseFeatures(text()).clueText, isEmpty);
@@ -330,7 +331,7 @@ void main() {
       );
       await tester.enterText(
         find.byKey(const ValueKey('exercise-field-prompt')),
-        'Anna beve un caffè al bar. Poi prende il treno.',
+        'Anna beve un ___ al bar. Poi prende il ___.',
       );
       await tester.enterText(
         find.byKey(const ValueKey('exercise-field-missingWords')),

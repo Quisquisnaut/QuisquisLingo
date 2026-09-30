@@ -32,6 +32,7 @@ enum ExerciseAuthoringField {
   iconKeys,
   missingWord,
   missingWords,
+  gapAnswers,
   dialogue,
   image,
   scriptMode,
@@ -538,10 +539,12 @@ abstract final class ExerciseFieldHelpRegistry {
       _ => ExerciseAuthoringField.translationPairs,
     },
     'icons' => ExerciseAuthoringField.iconKeys,
-    'missingWords' =>
-      presetId == 'listening_spelling'
-          ? ExerciseAuthoringField.missingWord
-          : ExerciseAuthoringField.missingWords,
+    'missingWords' => switch (presetId) {
+      'listening_spelling' => ExerciseAuthoringField.missingWord,
+      // Complete the text: one line per ___ gap (Build 259 Revision 3).
+      'complete_text' => ExerciseAuthoringField.gapAnswers,
+      _ => ExerciseAuthoringField.missingWords,
+    },
     'dialogue' => ExerciseAuthoringField.dialogue,
     'dialogueReadAloud' => ExerciseAuthoringField.dialogueReadAloud,
     'speaker' => ExerciseAuthoringField.speaker,
@@ -878,13 +881,23 @@ abstract final class ExerciseFieldHelpRegistry {
       example: 'Roma è la capitale d’Italia.',
     ),
     ExerciseAuthoringField.textToComplete => const ExerciseFieldHelp(
-      title: 'Text with the words to hide',
-      purpose: 'The complete text; the missing words listed below become gaps.',
+      title: 'Text, with ___ for each gap',
+      purpose:
+          'The text the learner completes; each ___ is a gap. Example: Anna beve un ___ al bar.',
       entryRules:
-          'Write the whole text including the words to hide, as plain text. Several sentences are fine.',
+          'Write the text and put ___ (three underscores) where each missing word or phrase goes. Several sentences are fine.',
       validation:
-          'Every missing word must occur in the text, in order; the first occurrence after the previous gap is hidden.',
-      example: 'Anna beve un caffè al bar. Poi prende il treno.',
+          'At least one gap, and as many gaps as lines in Missing words.',
+      example: 'Anna beve un ___ al bar. Poi prende ___.',
+    ),
+    ExerciseAuthoringField.gapAnswers => const ExerciseFieldHelp(
+      title: 'Missing words',
+      purpose: 'What goes into each gap, in order. Example: caffè',
+      entryRules:
+          'One line per ___ gap, in the order the gaps appear. A line may accept several answers: [il|un] gatto accepts il gatto and un gatto; {il} gatto accepts gatto with or without il.',
+      validation:
+          'As many lines as gaps. Malformed alternatives are rejected. Answers are checked with the normal Input normalization.',
+      example: 'caffè\n[il|un] treno',
     ),
     ExerciseAuthoringField.bracketedText => const ExerciseFieldHelp(
       title: 'Text with the missing letters in brackets',
@@ -1171,13 +1184,14 @@ abstract final class ExerciseFieldHelpRegistry {
       example: 'coffee\nwater\nassets/exercise_images/house.webp',
     ),
     ExerciseAuthoringField.missingWord => const ExerciseFieldHelp(
-      title: 'Missing word',
-      purpose: 'Defines accepted typed responses for Type what you hear.',
+      title: 'Other accepted spellings (optional)',
+      purpose:
+          'Other ways to write what the learner hears; the Audio text itself is always accepted. Example: alle 9 for alle nove.',
       entryRules:
-          'Despite the compact field label, each entry is a complete accepted word or passage, not an instruction to remove text from the transcript. $answerSyntax',
+          'Leave it empty when the Audio text is the only way to write it. Otherwise enter one complete spelling per line: the whole text heard, not a single missing word. Alternatives inside a line: alle [9|nove]. Capitals, punctuation and spacing are ignored anyway.',
       validation:
-          '$expressionChecks Match the accepted responses to Audio text and check the visible prompt in Preview.',
-      example: 'caffè',
+          'Optional. Every line must be the same words the learner hears; do not accept words that are not heard. Malformed alternatives are rejected.',
+      example: 'arrivo alle 8',
     ),
     ExerciseAuthoringField.missingWords => const ExerciseFieldHelp(
       title: 'Missing word(s)',

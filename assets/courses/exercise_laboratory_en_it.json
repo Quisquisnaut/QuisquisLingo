@@ -3414,9 +3414,6 @@
                 ],
                 "evaluation": {
                   "mode": "expression",
-                  "answers": [
-                    "grazie"
-                  ],
                   "literalAnswers": [
                     "Grazie."
                   ]
@@ -3449,9 +3446,6 @@
                 ],
                 "evaluation": {
                   "mode": "expression",
-                  "answers": [
-                    "il treno parte alle nove"
-                  ],
                   "literalAnswers": [
                     "Il treno parte alle nove."
                   ]
@@ -3473,23 +3467,22 @@
                   {
                     "role": "primary",
                     "type": "text",
-                    "text": "Type the short statement about a feeling."
+                    "text": "Anna tells you when she arrives."
                   },
                   {
                     "role": "primary",
                     "type": "audio",
-                    "text": "Sono felice.",
+                    "text": "Arrivo alle otto.",
                     "playback": "automatic"
                   }
                 ],
                 "evaluation": {
                   "mode": "expression",
                   "answers": [
-                    "sono felice",
-                    "io sono felice"
+                    "arrivo alle 8"
                   ],
                   "literalAnswers": [
-                    "Sono felice."
+                    "Arrivo alle otto."
                   ]
                 }
               }
@@ -3811,6 +3804,61 @@
                   ]
                 },
                 "hint": "A drink, then a way to travel."
+              }
+            },
+            {
+              "id": "qql_lab254_complete_text_alternatives",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "authoringMetadata": {
+                "presetId": "complete_text"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "input",
+                "options": {
+                  "layout": "inlineGaps",
+                  "cardinality": "multiple"
+                },
+                "prompt": [
+                  {
+                    "role": "clue",
+                    "type": "text",
+                    "text": "Luca goes to work."
+                  }
+                ],
+                "targets": [
+                  {
+                    "id": "gap_1"
+                  }
+                ],
+                "layout": [
+                  {
+                    "type": "text",
+                    "text": "Luca prende "
+                  },
+                  {
+                    "type": "target",
+                    "targetId": "gap_1"
+                  },
+                  {
+                    "type": "text",
+                    "text": " alle otto."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "expression",
+                  "targetAnswers": [
+                    {
+                      "targetId": "gap_1",
+                      "answers": [
+                        "[il|un] treno"
+                      ]
+                    }
+                  ]
+                },
+                "hint": "A way to travel, with its article."
               }
             },
             {
@@ -9437,5 +9485,5 @@
     }
   ],
   "minimumAppBuild": 258000,
-  "officialChecksum": "ad57eda73351db02876cb2675c2fc9d1dc9c2d684fd076f4a5caf814e07d58db"
+  "officialChecksum": "fe1b2919cc7414296b580e4c05ad8a761c40e58cc0db1787bcd4519fb0b17c69"
 }

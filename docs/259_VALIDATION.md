@@ -169,3 +169,53 @@ handoff: `259_HANDOFF.md`.
 - `flutter analyze --no-pub`: no issues.
 - **Complete suite** (12:39–13:08, `--concurrency=1`, keep-awake wrapper
   now working): **3415 passed, 1 skipped, 0 failed**.
+
+## Revision 3 (2.0.59+259003, 30 September 2026): the owner's review
+
+**Generators and validator**
+- Laboratory: 8 Lessons, 28 Rounds, 126 examples, `--check` reproducible.
+  `complete_text_alternatives` joins its Round after the v11 conversion.
+- Piedmontese: 41 Lessons, 123 examples, `--check` reproducible.
+- Edge Case: `--check` unchanged.
+- v11 converter fixtures rewritten with their checksum; the future fixture
+  changes only its checksum.
+- `tools/validate_courses.py`: all three Courses pass. It flagged the
+  Piedmontese dictations once their redundant answer line was gone: it
+  wanted an expression answer. It now counts a literal answer, as the
+  Audit does.
+
+**Laboratory presentation baseline**
+- Record run: 126 records, rebuilt and formatted. Compared with Revision 2:
+  1 added, 10 changed, 115 unchanged, all deliberate:
+  - added `complete_text_alternatives`;
+  - "Type the word that completes the sentence." for the three one-gap
+    typed examples (`input_fragment`, `input_fragment_audio`,
+    `input_gap_variants`) and "Type the missing letters." for Missing
+    letters;
+  - "Listen and answer the question." for the two Listen and answer
+    examples;
+  - WHAT IS IN THE PICTURE? for What is in the picture;
+  - Type what you hear: the correct-answer line shows the Audio text
+    ("Grazie.", "Il treno parte alle nove.") now that the redundant
+    lowercase lines are gone; the variants example plays "Arrivo alle
+    otto." under the instruction "Anna tells you when she arrives.".
+
+**Tests**
+- New: `test/owner_review_259_revision3_test.dart`, 17 tests, one or more
+  per point A–G plus the eight learner languages.
+- Point D was confirmed with a test before the fix. At 800 × 600 the Lab's
+  small Sort into groups still showed Finish round. At 800 × 450, with
+  Check scrolled to the bottom as a learner would, Finish round was not
+  even built. The test runs at 800 × 450 and passes with the scroll.
+- A wrong answer showed "Correct answer: Il treno": the expansion
+  capitalizes a sentence start. The gap now keeps the author's small
+  letter. A draft Complete the text without ___ reopened empty; it now
+  keeps its text.
+- Updated: the Revision 0–2 test files (the ___ text, the listening and
+  arranging lines), the field Help and form tables, the editor and
+  workflow tests (the box label), the Audit test (a literal answer
+  counts), the runtime kind table, the Laboratory test (literal-only
+  answers, expression gaps, 126 examples) and the Piedmontese test.
+- `flutter analyze --no-pub`: no issues.
+- **Complete suite** (16:15–16:44, `--concurrency=1`, keep-awake):
+  **3435 passed, 1 skipped, 0 failed**.

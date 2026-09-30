@@ -3146,9 +3146,7 @@
                 },
                 "evaluation": {
                   "kind": "text_match",
-                  "acceptedAnswers": [
-                    "grazie"
-                  ],
+                  "acceptedAnswers": [],
                   "normalization": {
                     "case": "ignore",
                     "punctuation": "ignore",
@@ -3184,9 +3182,7 @@
                 },
                 "evaluation": {
                   "kind": "text_match",
-                  "acceptedAnswers": [
-                    "il treno parte alle nove"
-                  ],
+                  "acceptedAnswers": [],
                   "normalization": {
                     "case": "ignore",
                     "punctuation": "ignore",
@@ -3208,12 +3204,12 @@
                   {
                     "role": "primary",
                     "type": "text",
-                    "text": "Type the short statement about a feeling."
+                    "text": "Anna tells you when she arrives."
                   },
                   {
                     "role": "primary",
                     "type": "audio",
-                    "text": "Sono felice."
+                    "text": "Arrivo alle otto."
                   }
                 ],
                 "interaction": {
@@ -3223,8 +3219,7 @@
                 "evaluation": {
                   "kind": "text_match",
                   "acceptedAnswers": [
-                    "sono felice",
-                    "io sono felice"
+                    "arrivo alle 8"
                   ],
                   "normalization": {
                     "case": "ignore",
@@ -7004,5 +6999,5 @@
       }
     }
   ],
-  "officialChecksum": "4f1167e9cc7f5b3a84b0ac3e4750a27773a7eb32c1d210aec186122e282fea61"
+  "officialChecksum": "96db9164a209365880a37a78f7f2e7bb59b19fc1fb2ea5136a160271f0a5f6eb"
 }

@@ -6562,7 +6562,7 @@
                 ],
                 "evaluation": {
                   "mode": "expression",
-                  "answers": [
+                  "literalAnswers": [
                     "pan"
                   ]
                 }
@@ -6594,7 +6594,7 @@
                 ],
                 "evaluation": {
                   "mode": "expression",
-                  "answers": [
+                  "literalAnswers": [
                     "eva"
                   ]
                 }
@@ -6626,7 +6626,7 @@
                 ],
                 "evaluation": {
                   "mode": "expression",
-                  "answers": [
+                  "literalAnswers": [
                     "pom"
                   ]
                 }
@@ -10669,5 +10669,5 @@
       "voice": "female"
     }
   ],
-  "officialChecksum": "8c85f891ee4ae5df5f7de5aa39915fdb321fdd41d41bfa13a0e1f012b72b4b09"
+  "officialChecksum": "0c43bc664554af2a841dffdbd560f5a365ea97f8db580d1799dbde0c70a9726d"
 }

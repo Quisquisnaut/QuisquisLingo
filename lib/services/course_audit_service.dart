@@ -1354,6 +1354,7 @@ class CourseAuditService {
   /// The friendly English name of a learner kind, for messages and lists.
   static String kindLabel(LearnerExerciseKind kind) => switch (kind) {
     LearnerExerciseKind.select => 'a plain Choose',
+    LearnerExerciseKind.selectPicture => 'What is in the picture',
     LearnerExerciseKind.selectComplete => 'Pick the missing word',
     LearnerExerciseKind.selectImage => 'Select the image',
     LearnerExerciseKind.selectCharacter => 'Recognize characters',
@@ -1905,7 +1906,10 @@ class CourseAuditService {
         // numeric, pattern or manual evaluation keeps its answer elsewhere
         // (Build 256 Revision 6: such an Input is valid, just not playable
         // yet).
+        // A literal answer counts (Build 259 Revision 3): Type what you
+        // hear accepts its Audio text without another line.
         if (answers.isEmpty &&
+            f.literalAnswers.isEmpty &&
             const {
               EvaluationMode.exactText,
               EvaluationMode.acceptedTexts,

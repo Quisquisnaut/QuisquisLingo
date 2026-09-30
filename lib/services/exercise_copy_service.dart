@@ -57,6 +57,15 @@ class ExerciseCopyService {
     return c['instruction.${kind.name}'] ?? c['instruction.default']!;
   }
 
+  /// The instruction [variant] (a key such as `selectListenHeard`), else
+  /// [kind]'s. The Exercise editor quotes a variant for the presets whose
+  /// exercises always get it (Build 259 Revision 3).
+  static String instructionVariant(
+    Course course,
+    String variant,
+    LearnerExerciseKind kind,
+  ) => _copy(course)['instruction.$variant'] ?? instruction(course, kind);
+
   /// The instruction for [exercise]: its kind's, or the "opposites" variant
   /// when the exercise's own text says so. Both come from canonical data;
   /// nothing here reads a preset (Build 256, plan A.3).
@@ -83,6 +92,41 @@ class ExerciseCopyService {
           ? 'dialogueLineAfterAudio'
           : 'dialogueLine';
       return c['instruction.$variant'] ?? instruction(course, kind);
+    }
+    // Typed gaps (Build 259 Revision 3, owner decision of 30 September
+    // 2026): letters inside words, one word, or several words.
+    if (kind == LearnerExerciseKind.inputComplete) {
+      final targets = features.gapFieldTargets;
+      final inWord = features.gapsInWord;
+      final variant =
+          targets.isNotEmpty &&
+              targets.every((target) => inWord[target.id] ?? false)
+          ? 'inputCompleteLetters'
+          : targets.length <= 1
+          ? 'inputCompleteOne'
+          : null;
+      if (variant != null) {
+        return c['instruction.$variant'] ?? instruction(course, kind);
+      }
+    }
+    // Listening (Build 259 Revision 3): a question is answered; without one
+    // the learner picks the sentence heard, or its meaning among
+    // source-language answers. Picture answers and gaps keep their line.
+    if (kind == LearnerExerciseKind.selectListen ||
+        kind == LearnerExerciseKind.selectListenPassage) {
+      final variant = features.questionText.isNotEmpty
+          ? 'selectListenQuestion'
+          : kind == LearnerExerciseKind.selectListen &&
+                !features.hasInlineTargets &&
+                !features.hasImageItems &&
+                !features.hasIconItems
+          ? (features.itemLanguage == TextLanguage.source
+                ? 'selectListenMeaning'
+                : 'selectListenHeard')
+          : null;
+      if (variant != null) {
+        return c['instruction.$variant'] ?? instruction(course, kind);
+      }
     }
     if (prompt.contains('opposite') ||
         prompt.contains('contrari') ||
@@ -184,12 +228,12 @@ class ExerciseCopyService {
     'instruction.dialogueLineAfterAudio':
         'Listen first; the text appears after.',
     'instruction.storyCover': 'A story begins. Continue when you are ready.',
-    'instruction.inputComplete': 'Choose the word that completes the sentence.',
+    'instruction.inputComplete': 'Type the words that complete the sentence.',
     'instruction.selectComplete':
         'Choose the block that best completes the sentence.',
     'instruction.select_opposite': 'Choose the opposite.',
     'instruction.arrangeSentence': 'Put the words in the correct order.',
-    'instruction.arrangeLines': 'Put the sentences in the correct order.',
+    'instruction.arrangeLines': 'Arrange the lines in a logical order.',
     'instruction.arrangeWord': 'Build the word shown in the image.',
     'instruction.inputPictureName': 'Type the name of what you see.',
     'instruction.arrangePictureName': 'Build the name of what you see.',
@@ -210,6 +254,14 @@ class ExerciseCopyService {
         'Build the translation from the word blocks.',
     'instruction.selectContext':
         'Use the context to choose the correct answer.',
+    'instruction.inputCompleteOne':
+        'Type the word that completes the sentence.',
+    'instruction.inputCompleteLetters': 'Type the missing letters.',
+    'instruction.selectListenQuestion': 'Listen and answer the question.',
+    'instruction.selectListenHeard': 'Select the sentence that you heard.',
+    'instruction.selectListenMeaning': 'Select the meaning of what you heard.',
+    'type.selectPicture': 'WHAT IS IN THE PICTURE?',
+    'instruction.selectPicture': 'Choose the option that fits best.',
   };
 
   static const _es = <String, String>{
@@ -256,12 +308,12 @@ class ExerciseCopyService {
         'Escucha primero; el texto aparece después.',
     'instruction.storyCover':
         'Empieza una historia. Continúa cuando estés listo.',
-    'instruction.inputComplete': 'Elige la palabra que completa la frase.',
+    'instruction.inputComplete': 'Escribe las palabras que completan la frase.',
     'instruction.selectComplete':
         'Elige el bloque que mejor completa la frase.',
     'instruction.select_opposite': 'Elige el contrario.',
     'instruction.arrangeSentence': 'Pon las palabras en el orden correcto.',
-    'instruction.arrangeLines': 'Pon las frases en el orden correcto.',
+    'instruction.arrangeLines': 'Ordena las líneas de forma lógica.',
     'instruction.arrangeWord': 'Forma la palabra que aparece en la imagen.',
     'instruction.inputPictureName': 'Escribe el nombre de lo que ves.',
     'instruction.arrangePictureName': 'Forma el nombre de lo que ves.',
@@ -286,6 +338,14 @@ class ExerciseCopyService {
         'Forma la traducción con los bloques de palabras.',
     'instruction.selectContext':
         'Usa el contexto para elegir la respuesta correcta.',
+    'instruction.inputCompleteOne': 'Escribe la palabra que completa la frase.',
+    'instruction.inputCompleteLetters': 'Escribe las letras que faltan.',
+    'instruction.selectListenQuestion': 'Escucha y responde a la pregunta.',
+    'instruction.selectListenHeard': 'Selecciona la frase que has oído.',
+    'instruction.selectListenMeaning':
+        'Selecciona el significado de lo que has oído.',
+    'type.selectPicture': '¿QUÉ HAY EN LA IMAGEN?',
+    'instruction.selectPicture': 'Elige la opción más adecuada.',
   };
 
   static const _it = <String, String>{
@@ -332,12 +392,12 @@ class ExerciseCopyService {
     'instruction.dialogueLineAfterAudio':
         'Ascolta prima; il testo compare dopo.',
     'instruction.storyCover': 'Inizia una storia. Continua quando sei pronto.',
-    'instruction.inputComplete': 'Scegli la parola che completa la frase.',
+    'instruction.inputComplete': 'Scrivi le parole che completano la frase.',
     'instruction.selectComplete':
         'Scegli il blocco che completa meglio la frase.',
     'instruction.select_opposite': 'Scegli il contrario.',
     'instruction.arrangeSentence': 'Metti le parole nell’ordine corretto.',
-    'instruction.arrangeLines': 'Metti le frasi nell’ordine corretto.',
+    'instruction.arrangeLines': 'Metti le righe in un ordine logico.',
     'instruction.arrangeWord': 'Componi la parola mostrata nell’immagine.',
     'instruction.inputPictureName': 'Scrivi il nome di ciò che vedi.',
     'instruction.arrangePictureName': 'Componi il nome di ciò che vedi.',
@@ -362,6 +422,14 @@ class ExerciseCopyService {
         'Componi la traduzione con i blocchi di parole.',
     'instruction.selectContext':
         'Usa il contesto per scegliere la risposta corretta.',
+    'instruction.inputCompleteOne': 'Scrivi la parola che completa la frase.',
+    'instruction.inputCompleteLetters': 'Scrivi le lettere mancanti.',
+    'instruction.selectListenQuestion': 'Ascolta e rispondi alla domanda.',
+    'instruction.selectListenHeard': 'Seleziona la frase che hai sentito.',
+    'instruction.selectListenMeaning':
+        'Seleziona il significato di ciò che hai sentito.',
+    'type.selectPicture': 'COSA C’È NELL’IMMAGINE?',
+    'instruction.selectPicture': 'Scegli l’opzione più adatta.',
   };
 
   static const _de = <String, String>{
@@ -410,13 +478,14 @@ class ExerciseCopyService {
     'instruction.storyCover':
         'Eine Geschichte beginnt. Weiter, wenn du bereit bist.',
     'instruction.inputComplete':
-        'Wähle das Wort, das den Satz vervollständigt.',
+        'Schreibe die Wörter, die den Satz vervollständigen.',
     'instruction.selectComplete':
         'Wähle den Baustein, der den Satz am besten ergänzt.',
     'instruction.select_opposite': 'Wähle das Gegenteil.',
     'instruction.arrangeSentence':
         'Bringe die Wörter in die richtige Reihenfolge.',
-    'instruction.arrangeLines': 'Bringe die Sätze in die richtige Reihenfolge.',
+    'instruction.arrangeLines':
+        'Bringe die Zeilen in eine logische Reihenfolge.',
     'instruction.arrangeWord': 'Bilde das Wort auf dem Bild.',
     'instruction.inputPictureName': 'Schreibe den Namen dessen, was du siehst.',
     'instruction.arrangePictureName': 'Bilde den Namen dessen, was du siehst.',
@@ -442,6 +511,15 @@ class ExerciseCopyService {
         'Bilde die Übersetzung aus den Wortbausteinen.',
     'instruction.selectContext':
         'Nutze den Kontext, um die richtige Antwort auszuwählen.',
+    'instruction.inputCompleteOne':
+        'Schreibe das Wort, das den Satz vervollständigt.',
+    'instruction.inputCompleteLetters': 'Schreibe die fehlenden Buchstaben.',
+    'instruction.selectListenQuestion': 'Höre zu und beantworte die Frage.',
+    'instruction.selectListenHeard': 'Wähle den Satz, den du gehört hast.',
+    'instruction.selectListenMeaning':
+        'Wähle die Bedeutung dessen, was du gehört hast.',
+    'type.selectPicture': 'WAS IST AUF DEM BILD?',
+    'instruction.selectPicture': 'Wähle die passendste Option.',
   };
 
   static const _pt = <String, String>{
@@ -488,12 +566,12 @@ class ExerciseCopyService {
         'Ouça primeiro; o texto aparece depois.',
     'instruction.storyCover':
         'Começa uma história. Continue quando estiver pronto.',
-    'instruction.inputComplete': 'Escolha a palavra que completa a frase.',
+    'instruction.inputComplete': 'Escreva as palavras que completam a frase.',
     'instruction.selectComplete':
         'Escolha o bloco que melhor completa a frase.',
     'instruction.select_opposite': 'Escolha o oposto.',
     'instruction.arrangeSentence': 'Coloque as palavras na ordem correta.',
-    'instruction.arrangeLines': 'Coloque as frases na ordem correta.',
+    'instruction.arrangeLines': 'Coloque as linhas numa ordem lógica.',
     'instruction.arrangeWord': 'Forme a palavra mostrada na imagem.',
     'instruction.inputPictureName': 'Escreva o nome do que vê.',
     'instruction.arrangePictureName': 'Forme o nome do que vê.',
@@ -518,6 +596,13 @@ class ExerciseCopyService {
         'Forme a tradução com os blocos de palavras.',
     'instruction.selectContext':
         'Use o contexto para escolher a resposta correta.',
+    'instruction.inputCompleteOne': 'Escreva a palavra que completa a frase.',
+    'instruction.inputCompleteLetters': 'Escreva as letras que faltam.',
+    'instruction.selectListenQuestion': 'Ouça e responda à pergunta.',
+    'instruction.selectListenHeard': 'Selecione a frase que ouviu.',
+    'instruction.selectListenMeaning': 'Selecione o significado do que ouviu.',
+    'type.selectPicture': 'O QUE HÁ NA IMAGEM?',
+    'instruction.selectPicture': 'Escolha a opção mais adequada.',
   };
 
   static const _nl = <String, String>{
@@ -563,11 +648,11 @@ class ExerciseCopyService {
         'Luister eerst; de tekst verschijnt daarna.',
     'instruction.storyCover':
         'Er begint een verhaal. Ga verder als je klaar bent.',
-    'instruction.inputComplete': 'Kies het woord dat de zin aanvult.',
+    'instruction.inputComplete': 'Typ de woorden die de zin aanvullen.',
     'instruction.selectComplete': 'Kies het blok dat de zin het best aanvult.',
     'instruction.select_opposite': 'Kies het tegenovergestelde.',
     'instruction.arrangeSentence': 'Zet de woorden in de juiste volgorde.',
-    'instruction.arrangeLines': 'Zet de zinnen in de juiste volgorde.',
+    'instruction.arrangeLines': 'Zet de regels in een logische volgorde.',
     'instruction.arrangeWord': 'Maak het woord dat op de afbeelding staat.',
     'instruction.inputPictureName': 'Typ de naam van wat je ziet.',
     'instruction.arrangePictureName': 'Maak de naam van wat je ziet.',
@@ -592,6 +677,14 @@ class ExerciseCopyService {
     'instruction.arrangeTranslation': 'Maak de vertaling met de woordblokken.',
     'instruction.selectContext':
         'Gebruik de context om het juiste antwoord te kiezen.',
+    'instruction.inputCompleteOne': 'Typ het woord dat de zin aanvult.',
+    'instruction.inputCompleteLetters': 'Typ de ontbrekende letters.',
+    'instruction.selectListenQuestion': 'Luister en beantwoord de vraag.',
+    'instruction.selectListenHeard': 'Kies de zin die je hebt gehoord.',
+    'instruction.selectListenMeaning':
+        'Kies de betekenis van wat je hebt gehoord.',
+    'type.selectPicture': 'WAT IS ER OP DE AFBEELDING?',
+    'instruction.selectPicture': 'Kies de optie die het best past.',
   };
 
   static const _fi = <String, String>{
@@ -636,12 +729,12 @@ class ExerciseCopyService {
     'instruction.dialogueLineAfterAudio':
         'Kuuntele ensin; teksti tulee näkyviin sen jälkeen.',
     'instruction.storyCover': 'Tarina alkaa. Jatka, kun olet valmis.',
-    'instruction.inputComplete': 'Valitse sana, joka täydentää lauseen.',
+    'instruction.inputComplete': 'Kirjoita sanat, jotka täydentävät lauseen.',
     'instruction.selectComplete':
         'Valitse lohko, joka täydentää lauseen parhaiten.',
     'instruction.select_opposite': 'Valitse vastakohta.',
     'instruction.arrangeSentence': 'Laita sanat oikeaan järjestykseen.',
-    'instruction.arrangeLines': 'Laita lauseet oikeaan järjestykseen.',
+    'instruction.arrangeLines': 'Järjestä rivit loogiseen järjestykseen.',
     'instruction.arrangeWord': 'Muodosta kuvassa näkyvä sana.',
     'instruction.inputPictureName': 'Kirjoita näkemäsi asian nimi.',
     'instruction.arrangePictureName': 'Muodosta näkemäsi asian nimi.',
@@ -665,6 +758,13 @@ class ExerciseCopyService {
     'instruction.inputTranslation': 'Kirjoita käännös.',
     'instruction.arrangeTranslation': 'Muodosta käännös sanalohkoista.',
     'instruction.selectContext': 'Valitse oikea vastaus kontekstin avulla.',
+    'instruction.inputCompleteOne': 'Kirjoita sana, joka täydentää lauseen.',
+    'instruction.inputCompleteLetters': 'Kirjoita puuttuvat kirjaimet.',
+    'instruction.selectListenQuestion': 'Kuuntele ja vastaa kysymykseen.',
+    'instruction.selectListenHeard': 'Valitse lause, jonka kuulit.',
+    'instruction.selectListenMeaning': 'Valitse sen merkitys, mitä kuulit.',
+    'type.selectPicture': 'MITÄ KUVASSA ON?',
+    'instruction.selectPicture': 'Valitse parhaiten sopiva vaihtoehto.',
   };
 
   static const _cy = <String, String>{
@@ -711,12 +811,12 @@ class ExerciseCopyService {
         'Gwrandewch yn gyntaf; mae’r testun yn ymddangos wedyn.',
     'instruction.storyCover':
         'Mae stori yn dechrau. Parhewch pan fyddwch yn barod.',
-    'instruction.inputComplete': 'Dewiswch y gair sy’n cwblhau’r frawddeg.',
+    'instruction.inputComplete': 'Teipiwch y geiriau sy’n cwblhau’r frawddeg.',
     'instruction.selectComplete':
         'Dewiswch y bloc sy’n cwblhau’r frawddeg orau.',
     'instruction.select_opposite': 'Dewiswch y gwrthwyneb.',
     'instruction.arrangeSentence': 'Rhowch y geiriau yn y drefn gywir.',
-    'instruction.arrangeLines': 'Rhowch y brawddegau yn y drefn gywir.',
+    'instruction.arrangeLines': 'Rhowch y llinellau mewn trefn resymegol.',
     'instruction.arrangeWord': 'Ffurfiwch y gair a ddangosir yn y ddelwedd.',
     'instruction.inputPictureName': 'Teipiwch enw’r hyn a welwch.',
     'instruction.arrangePictureName': 'Ffurfiwch enw’r hyn a welwch.',
@@ -741,5 +841,12 @@ class ExerciseCopyService {
         'Ffurfiwch y cyfieithiad gyda’r blociau geiriau.',
     'instruction.selectContext':
         'Defnyddiwch y cyd-destun i ddewis yr ateb cywir.',
+    'instruction.inputCompleteOne': 'Teipiwch y gair sy’n cwblhau’r frawddeg.',
+    'instruction.inputCompleteLetters': 'Teipiwch y llythrennau coll.',
+    'instruction.selectListenQuestion': 'Gwrandewch ac atebwch y cwestiwn.',
+    'instruction.selectListenHeard': 'Dewiswch y frawddeg a glywsoch.',
+    'instruction.selectListenMeaning': 'Dewiswch ystyr yr hyn a glywsoch.',
+    'type.selectPicture': 'BETH SYDD YN Y LLUN?',
+    'instruction.selectPicture': 'Dewiswch yr opsiwn sy’n gweddu orau.',
   };
 }

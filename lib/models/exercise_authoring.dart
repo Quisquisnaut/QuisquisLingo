@@ -279,7 +279,7 @@ abstract final class ExercisePresetRegistry {
       id: 'complete_text',
       name: 'Complete the text',
       description:
-          'Learner types the words missing from a text with several gaps; no audio, an optional instruction and hint.',
+          'Learner types the words missing from a text with several gaps marked ___; no audio, an optional instruction and hint.',
       category: ExerciseCategory.grammarAndSentences,
       primitive: ExercisePrimitive.input,
       base: 'missing_word',
@@ -660,7 +660,7 @@ abstract final class ExercisePresetRegistry {
     'listening_answer_source':
         'The learner hears a word, a sentence or a passage and answers a question in the source language among source-language answers. Provide the spoken text, the question in the source language, at least two source-language answers and the correct answer number.',
     'listening_spelling':
-        'The learner hears audio and types what was heard. Provide the audio text and accepted transcription. Audio and accepted text should match exactly except for permitted normalization.',
+        'The learner hears audio and types what was heard. Provide the audio text, which is always accepted, and optionally other accepted spellings of the same words.',
     'missing_word':
         'The learner hears audio while reading a transcript with one or more gaps, then types each missing word. Provide the transcript with ___ gaps and the missing words in order.',
     'audio_match':
@@ -680,7 +680,7 @@ abstract final class ExercisePresetRegistry {
     'gap_choice_inline':
         'The learner fills the gaps of a fixed sentence by tapping options in order; the same option can fill several gaps. Write the sentence with each answer inside braces, {answer}, add 0 to 2 distractor options and an optional spoken prompt.',
     'complete_text':
-        'The learner types the words missing from a text with several gaps. Write the complete text and list the words to hide, one per line, in order; each must occur in the text; an optional instruction or context and an optional hint. No audio.',
+        'The learner types the words missing from a text with several gaps. Write the text with ___ for each gap and give one line per gap in Missing words, in order ([il|un] gatto accepts both); an optional instruction or context and an optional hint. No audio.',
     'missing_letters':
         'The learner types the letters missing inside words. Write the complete text and put the missing letters inside square brackets: My cat doesn’t dr[ink] milk. The learner sees dr___ milk. Optional spoken text or picture.',
     'gap_blocks':
@@ -696,7 +696,7 @@ abstract final class ExercisePresetRegistry {
     'spell_heard':
         'The learner hears a word and spells it from letter or syllable tiles. Provide the spoken word and its tiles in order, one per line (split the word into letters or syllables as you like). No picture is needed.',
     'picture_choice':
-        'The learner sees a picture and picks the word or sentence that names it. Provide the picture, an optional instruction or context, at least two answers and the correct one.',
+        'The learner sees a picture and picks the word or sentence that names it. Provide the picture (required), an optional instruction or context, at least two answers and the correct one.',
     'picture_blocks':
         'The learner sees a picture and builds its name by tapping word blocks in order. Provide the picture (Exercise image), an optional instruction or context such as What is this?, the blocks of the name in order (one word per line) and up to two extra blocks that are not part of the name, plus an optional hint.',
     'picture_name':
