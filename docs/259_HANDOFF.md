@@ -77,7 +77,7 @@ Note: the Piedmontese Lessons after the Listening group are renumbered
 (`l22`… shift by two), because the demo's Lessons follow the registry
 order; demo progress on those Lessons starts over.
 
-## Revision 3 (committed, 30 September 2026)
+## Revision 3 (committed `f64be87`, 16:50, 30 September 2026)
 
 The owner's review points A–H (plan and answers in chat, 30 September
 2026), in the working tree as `2.0.59+259003`: see
