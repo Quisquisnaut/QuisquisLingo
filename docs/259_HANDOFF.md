@@ -15,7 +15,7 @@ Build 259 has three revisions, one per plan section:
   `b6543a7` (`2.0.59+259001`); complete suite 3395 passed, 1 skipped,
   0 failed.*
 - **Revision 2** (plan §6): the Listen and answer split. *Committed as
-  `2.0.59+259002`; complete suite 3415 passed, 1 skipped, 0 failed.*
+  `684d29e` (`2.0.59+259002`); complete suite 3415 passed, 1 skipped, 0 failed.*
 
 ## Revision 0 (committed `474a313`, 11:35, 30 September 2026)
 
@@ -59,7 +59,7 @@ Gotcha: the keep-awake wrapper needs `[uint32]2147483648`, not
 `[uint32]0x80000000` (PowerShell 5.1 reads the hex literal as a negative
 Int32 and the cast fails).
 
-## Revision 2 (committed, 30 September 2026)
+## Revision 2 (committed `684d29e`, 13:10, 30 September 2026)
 
 Everything in `docs/259_CHANGE_SUMMARY.md` (Revision 2) is in the working
 tree: the two Listen and choose presets, Listen and answer's required
