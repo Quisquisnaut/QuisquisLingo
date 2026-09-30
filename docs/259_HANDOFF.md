@@ -86,7 +86,7 @@ The owner's review points A–H (plan and answers in chat, 30 September
 10 deliberate records. `flutter analyze --no-pub`: no issues. Complete
 suite 3435 passed, 1 skipped, 0 failed (16:44).
 
-## Revision 4 (committed, 30 September 2026)
+## Revision 4 (committed `a1d8f4f`, 20:30, 30 September 2026)
 
 The owner's second review, points 1–10 (answers to three questions in chat),
 in the working tree as `2.0.59+259004`: see `docs/259_CHANGE_SUMMARY.md`
