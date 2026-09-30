@@ -634,12 +634,17 @@ class _DuelScreenState extends State<DuelScreen> {
                     ),
                     const SizedBox(height: 8),
                   ],
-                  Text(
-                    _features.questionText.isEmpty
-                        ? 'Listen and choose the meaning.'
-                        : _features.questionText,
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
+                  // Without a question, the fallback line suits a listening
+                  // exercise only; a picture asks through its instruction
+                  // (Build 259).
+                  if (_features.questionText.isNotEmpty ||
+                      _features.audioElements.isNotEmpty)
+                    Text(
+                      _features.questionText.isEmpty
+                          ? 'Listen and choose the meaning.'
+                          : _features.questionText,
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
                 ],
                 const SizedBox(height: 18),
                 ...List.generate(

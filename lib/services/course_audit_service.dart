@@ -1715,7 +1715,8 @@ class CourseAuditService {
               );
             }
             if (imageItems) {
-              if (f.primaryText.trim().isEmpty ||
+              // The character to find is named by the question (Build 259).
+              if (f.questionText.trim().isEmpty ||
                   f.characterImages.isNotEmpty ||
                   ex.items.any(
                     (item) =>
@@ -1724,7 +1725,7 @@ class CourseAuditService {
                   )) {
                 add(
                   AuditCode.presetCanonicalMismatch,
-                  'Text to image requires a nonempty text prompt and at least two image-only options.',
+                  'Text to image requires a question or sentence and at least two image-only options.',
                 );
               }
             } else if (f.characterImages.isEmpty ||

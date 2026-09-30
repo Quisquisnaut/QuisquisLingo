@@ -1,8 +1,15 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.58+258004 · Build 258, Revision 4 · Course Model v12 (`formatVersion: 12`).**
+**Current source version: 2.0.59+259000 · Build 259, Revision 0 · Course Model v12 (`formatVersion: 12`).**
 
-**QuisquisLingo 2.0.58 Beta — QQL 258 Page cards (Course Model v12)**
+**QuisquisLingo 2.0.59 Beta — QQL 259 Instructions and questions (Course Model v12)**
+
+Build 259 makes exercise prompts unambiguous
+([plan](docs/CONTEXT_AND_HINT_PLAN.md), [change summary](docs/259_CHANGE_SUMMARY.md)).
+Revision 0: an optional **Instruction or context**, written in the
+learners' language, takes the place of the standard instruction line in
+every exercise; a question or sentence is never optional; the form labels
+say which is which.
 
 Build 258 adds textbook-like **Page** cards: formatted blocks (headings,
 paragraphs with bold and italic, quotes, lists, pictures, audio and video
@@ -385,7 +392,7 @@ The MPL-2.0 covers the QuisquisLingo software source. Courses, the Image Bank an
 
 ## Beta lifecycle
 
-Version 2.0.58, Build 258, Revision 4 is a time-limited Beta with an expiry of **2026-10-30 23:59:59 local time** (30 days after the 30 September 2026 release date). In its last seven days it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
+Version 2.0.59, Build 259, Revision 0 is a time-limited Beta with an expiry of **2026-10-30 23:59:59 local time** (30 days after the 30 September 2026 release date). In its last seven days it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
 
 ## Core logic
 

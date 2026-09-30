@@ -28,16 +28,25 @@ void main() {
       await tester.tap(issue);
       await tester.pumpAndSettle();
       expect(find.byType(ExerciseEditorScreen), findsOneWidget);
-      expect(_text(tester, 'Prompt (optional)'), 'Choose greeting 1.');
+      expect(
+        _text(tester, 'Instruction or context (optional)'),
+        'Choose greeting 1.',
+      );
 
       await tester.enterText(_field('Correct answer number'), '1');
       await _navigateAndSave(tester, 'exercise-next', draft: false);
-      expect(_text(tester, 'Prompt (optional)'), 'Choose greeting 2.');
+      expect(
+        _text(tester, 'Instruction or context (optional)'),
+        'Choose greeting 2.',
+      );
       _expectCourseConcern(tester, false);
 
       await tester.enterText(_field('Correct answer number'), '99');
       await _navigateAndSave(tester, 'exercise-previous', draft: true);
-      expect(_text(tester, 'Prompt (optional)'), 'Choose greeting 1.');
+      expect(
+        _text(tester, 'Instruction or context (optional)'),
+        'Choose greeting 1.',
+      );
       _expectCourseConcern(tester, true);
 
       await tester.tap(find.byKey(const Key('exercise-next')));
@@ -46,7 +55,10 @@ void main() {
       await tester.enterText(_field('Correct answer number'), '1');
       await _navigateAndSave(tester, 'exercise-previous', draft: false);
       _expectCourseConcern(tester, false);
-      expect(_text(tester, 'Prompt (optional)'), 'Choose greeting 1.');
+      expect(
+        _text(tester, 'Instruction or context (optional)'),
+        'Choose greeting 1.',
+      );
       expect(_text(tester, 'Correct answer number'), '1');
 
       await tester.pageBack();

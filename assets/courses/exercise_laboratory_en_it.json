@@ -124,7 +124,7 @@
                 "primitive": "select",
                 "prompt": [
                   {
-                    "role": "primary",
+                    "role": "question",
                     "type": "text",
                     "text": "How do you say ‘thank you’ in Italian?"
                   }
@@ -172,7 +172,7 @@
                 "primitive": "select",
                 "prompt": [
                   {
-                    "role": "primary",
+                    "role": "question",
                     "type": "text",
                     "text": "How do you say ‘the apple’ in Italian?"
                   },
@@ -242,7 +242,7 @@
                 },
                 "prompt": [
                   {
-                    "role": "primary",
+                    "role": "question",
                     "type": "text",
                     "text": "Which words are Italian colours? Select all correct answers."
                   }
@@ -316,7 +316,7 @@
                 },
                 "prompt": [
                   {
-                    "role": "primary",
+                    "role": "question",
                     "type": "text",
                     "text": "Which words name an animal? Select all correct answers."
                   }
@@ -390,7 +390,7 @@
                 },
                 "prompt": [
                   {
-                    "role": "primary",
+                    "role": "question",
                     "type": "text",
                     "text": "Which word means ‘yes’? Select the correct answer, then press Check."
                   }
@@ -1237,7 +1237,7 @@
                 "primitive": "select",
                 "prompt": [
                   {
-                    "role": "primary",
+                    "role": "question",
                     "type": "text",
                     "text": "Select the image of È (E with a grave accent)."
                   }
@@ -2462,7 +2462,7 @@
                 "primitive": "select",
                 "prompt": [
                   {
-                    "role": "question",
+                    "role": "primary",
                     "type": "text",
                     "text": "What is this?"
                   },
@@ -3889,7 +3889,7 @@
                 "primitive": "input",
                 "prompt": [
                   {
-                    "role": "question",
+                    "role": "primary",
                     "type": "text",
                     "text": "What is this?"
                   },
@@ -4392,7 +4392,7 @@
                 "primitive": "arrange",
                 "prompt": [
                   {
-                    "role": "question",
+                    "role": "primary",
                     "type": "text",
                     "text": "What is this?"
                   },
@@ -6765,7 +6765,7 @@
                   {
                     "role": "primary",
                     "type": "text",
-                    "text": "Abbina ogni parola al suo sinonimo."
+                    "text": "Match each word with its synonym."
                   }
                 ],
                 "items": [
@@ -7191,7 +7191,7 @@
                   {
                     "role": "primary",
                     "type": "text",
-                    "text": "Abbina ogni parola al suo contrario."
+                    "text": "Match each word with its opposite."
                   }
                 ],
                 "items": [
@@ -8695,7 +8695,7 @@
                 },
                 "prompt": [
                   {
-                    "role": "question",
+                    "role": "primary",
                     "type": "text",
                     "text": "Sort the words: animals or plants?"
                   }
@@ -8806,7 +8806,7 @@
                 },
                 "prompt": [
                   {
-                    "role": "question",
+                    "role": "primary",
                     "type": "text",
                     "text": "Sort the words: animal, plant or object?"
                   }
@@ -8954,7 +8954,7 @@
                 },
                 "prompt": [
                   {
-                    "role": "question",
+                    "role": "primary",
                     "type": "text",
                     "text": "Which article goes with each noun?"
                   }
@@ -9043,7 +9043,7 @@
                 },
                 "prompt": [
                   {
-                    "role": "question",
+                    "role": "primary",
                     "type": "text",
                     "text": "Which article goes with each noun? An article may serve twice."
                   }
@@ -9352,5 +9352,5 @@
     }
   ],
   "minimumAppBuild": 258000,
-  "officialChecksum": "9dcfa9ac81eea5aacbbbebe4698ef3e0381ac6a48273e112056482699a7a2c3e"
+  "officialChecksum": "e7a9c9425087edb92fb79f007d973e4098588bd8eaf050088df1eac9b60f4e5c"
 }

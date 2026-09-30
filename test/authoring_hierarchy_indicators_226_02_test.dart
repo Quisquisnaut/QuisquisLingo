@@ -1044,6 +1044,9 @@ Future<void> _savePublishedExercise(
     350,
     scrollable: find.byType(Scrollable).last,
   );
+  // A scroll step can stop with Save just below the window.
+  await tester.ensureVisible(save);
+  await tester.pumpAndSettle();
   await tester.tap(save);
   await tester.pumpAndSettle();
   if (warningCode != null) {

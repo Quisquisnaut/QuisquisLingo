@@ -60,7 +60,7 @@ void main() {
 
       await _openExercise(tester);
       await tester.enterText(
-        _field('Prompt (optional)'),
+        _field('Instruction or context (optional)'),
         'Working-copy prompt',
       );
       await tester.scrollUntilVisible(
@@ -183,7 +183,10 @@ void main() {
     (tester) async {
       await _openEditor(tester, course, service);
       await _openExercise(tester);
-      await tester.enterText(_field('Prompt (optional)'), 'Unstaged prompt');
+      await tester.enterText(
+        _field('Instruction or context (optional)'),
+        'Unstaged prompt',
+      );
       await tester.tap(find.byType(BackButton).last);
       await _settle(tester);
       expect(find.text('Unsaved Exercise changes'), findsOneWidget);
@@ -197,7 +200,10 @@ void main() {
       await tester.tap(find.text('Edit').last);
       await _settle(tester);
       expect(
-        tester.widget<TextField>(_field('Prompt (optional)')).controller!.text,
+        tester
+            .widget<TextField>(_field('Instruction or context (optional)'))
+            .controller!
+            .text,
         'Original prompt',
       );
     },
@@ -209,7 +215,7 @@ void main() {
     await _openEditor(tester, course, service);
     await _openExercise(tester);
     await tester.enterText(
-      _field('Prompt (optional)'),
+      _field('Instruction or context (optional)'),
       'Published working-copy prompt',
     );
     await tester.scrollUntilVisible(
@@ -484,7 +490,10 @@ void main() {
       await _settle(tester);
       await tester.tap(find.text('Edit').last);
       await _settle(tester);
-      await tester.enterText(_field('Prompt (optional)'), 'Mixed edit');
+      await tester.enterText(
+        _field('Instruction or context (optional)'),
+        'Mixed edit',
+      );
       await tester.scrollUntilVisible(
         find.byKey(const Key('exercise-save')),
         350,
@@ -505,7 +514,7 @@ void main() {
       await tester.tap(find.byKey(const Key('new-exercise')));
       await _settle(tester);
       // New exercise starts as Pick the translation (to target).
-      await tester.enterText(_field('Text to translate'), 'Created draft');
+      await tester.enterText(_field('Sentence'), 'Created draft');
       await tester.enterText(_field('Answer options'), 'Yes\nNo');
       await tester.enterText(_field('Correct answer number'), '1');
       await tester.scrollUntilVisible(
@@ -689,7 +698,10 @@ void main() {
     await _settle(tester);
     await tester.tap(find.text('Edit').last);
     await _settle(tester);
-    await tester.enterText(_field('Prompt (optional)'), 'Cancelled exercise');
+    await tester.enterText(
+      _field('Instruction or context (optional)'),
+      'Cancelled exercise',
+    );
     await tester.scrollUntilVisible(
       find.byKey(const Key('exercise-save-draft')),
       350,

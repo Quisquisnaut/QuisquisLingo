@@ -152,6 +152,10 @@ class ScriptRecognitionController extends ChangeNotifier {
   Exercise build(PublicationState publicationState) {
     final elements = <PromptElement>[];
     var imageIndex = 0;
+    // Text to image names the character to find in its question; image to
+    // text may carry an instruction (Build 259, owner decisions of
+    // 29 September 2026).
+    final textToImage = _mode == ScriptRecognitionMode.textToImage;
     for (var index = 0; index < _original.promptElements.length; index++) {
       final original = _original.promptElements[index];
       if (original.type == 'image') {
@@ -163,7 +167,11 @@ class ScriptRecognitionController extends ChangeNotifier {
       } else if (index == _textPrompt) {
         elements.add(
           PromptElement(
-            role: original.role,
+            role: textToImage
+                ? 'question'
+                : original.role == 'question'
+                ? 'primary'
+                : original.role,
             type: original.type,
             text: prompt.text,
             asset: original.asset,
@@ -174,10 +182,14 @@ class ScriptRecognitionController extends ChangeNotifier {
         elements.add(original);
       }
     }
-    if (_textPrompt < 0 &&
-        (prompt.text.isNotEmpty ||
-            _mode == ScriptRecognitionMode.textToImage)) {
-      elements.add(PromptElement(type: 'text', text: prompt.text));
+    if (_textPrompt < 0 && (prompt.text.isNotEmpty || textToImage)) {
+      elements.add(
+        PromptElement(
+          role: textToImage ? 'question' : 'primary',
+          type: 'text',
+          text: prompt.text,
+        ),
+      );
     }
     if (_mode == ScriptRecognitionMode.imageToText) {
       elements.addAll(_promptImages.skip(imageIndex));
@@ -528,8 +540,9 @@ class ScriptRecognitionEditor extends StatelessWidget {
           controller.mode == ScriptRecognitionMode.imageToText
               ? 'Show one or more images of the same character or syllable, '
                     'with at least two text options and exactly one correct option.'
-              : 'Enter a text prompt and choose at least two image options, '
-                    'with exactly one correct option.',
+              : 'Enter the question or sentence that names the character, '
+                    'and choose at least two image options, with exactly one '
+                    'correct option.',
         ),
         const Text(
           'Switching modes keeps both sets of fields for this editing session. '
@@ -543,7 +556,7 @@ class ScriptRecognitionEditor extends StatelessWidget {
             controller: controller.prompt,
             readOnly: readOnly,
             decoration: InputDecoration(
-              labelText: 'Text prompt',
+              labelText: 'Question or sentence',
               suffixIcon: _help(context, 'scriptPrompt'),
             ),
             minLines: 1,

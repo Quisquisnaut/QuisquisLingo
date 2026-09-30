@@ -2682,7 +2682,7 @@
                 "primitive": "select",
                 "prompt": [
                   {
-                    "role": "primary",
+                    "role": "question",
                     "type": "text",
                     "text": "How do you say bread in Piedmontese?"
                   }
@@ -2740,7 +2740,7 @@
                 "primitive": "select",
                 "prompt": [
                   {
-                    "role": "primary",
+                    "role": "question",
                     "type": "text",
                     "text": "How do you say cat in Piedmontese?"
                   }
@@ -2798,7 +2798,7 @@
                 "primitive": "select",
                 "prompt": [
                   {
-                    "role": "primary",
+                    "role": "question",
                     "type": "text",
                     "text": "How do you say water in Piedmontese?"
                   }
@@ -7674,7 +7674,7 @@
                 "primitive": "select",
                 "prompt": [
                   {
-                    "role": "primary",
+                    "role": "question",
                     "type": "text",
                     "text": "Select the image for gat."
                   }
@@ -7747,7 +7747,7 @@
                 "primitive": "select",
                 "prompt": [
                   {
-                    "role": "primary",
+                    "role": "question",
                     "type": "text",
                     "text": "Select the image for pan."
                   }
@@ -7820,7 +7820,7 @@
                 "primitive": "select",
                 "prompt": [
                   {
-                    "role": "primary",
+                    "role": "question",
                     "type": "text",
                     "text": "Select the image for eva."
                   }
@@ -8515,7 +8515,7 @@
                 "primitive": "select",
                 "prompt": [
                   {
-                    "role": "question",
+                    "role": "primary",
                     "type": "text",
                     "text": "What is this?"
                   },
@@ -8579,7 +8579,7 @@
                 "primitive": "select",
                 "prompt": [
                   {
-                    "role": "question",
+                    "role": "primary",
                     "type": "text",
                     "text": "What is this?"
                   },
@@ -8643,7 +8643,7 @@
                 "primitive": "select",
                 "prompt": [
                   {
-                    "role": "question",
+                    "role": "primary",
                     "type": "text",
                     "text": "What is this?"
                   },
@@ -8768,7 +8768,7 @@
                 "primitive": "input",
                 "prompt": [
                   {
-                    "role": "question",
+                    "role": "primary",
                     "type": "text",
                     "text": "What is this?"
                   },
@@ -8800,7 +8800,7 @@
                 "primitive": "input",
                 "prompt": [
                   {
-                    "role": "question",
+                    "role": "primary",
                     "type": "text",
                     "text": "What is this?"
                   },
@@ -8832,7 +8832,7 @@
                 "primitive": "input",
                 "prompt": [
                   {
-                    "role": "question",
+                    "role": "primary",
                     "type": "text",
                     "text": "What is this?"
                   },
@@ -8926,7 +8926,7 @@
                 "primitive": "arrange",
                 "prompt": [
                   {
-                    "role": "question",
+                    "role": "primary",
                     "type": "text",
                     "text": "What is this?"
                   },
@@ -8996,7 +8996,7 @@
                 "primitive": "arrange",
                 "prompt": [
                   {
-                    "role": "question",
+                    "role": "primary",
                     "type": "text",
                     "text": "What is this?"
                   },
@@ -9066,7 +9066,7 @@
                 "primitive": "arrange",
                 "prompt": [
                   {
-                    "role": "question",
+                    "role": "primary",
                     "type": "text",
                     "text": "What is this?"
                   },
@@ -10149,5 +10149,5 @@
       "voice": "female"
     }
   ],
-  "officialChecksum": "953f0cfadb82797e2c7dd885b8e90379bc5254edfd1cee7b6074f49c0d299231"
+  "officialChecksum": "7828c6bc867ef879e45415b843b421d969a99d473e2c8c31407a7ccba345d099"
 }

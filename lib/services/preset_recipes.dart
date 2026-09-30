@@ -29,7 +29,8 @@ abstract final class PresetRecipes {
     'page',
   };
 
-  /// The learner kind each preset's recipe produces.
+  /// The learner kind each preset's recipe produces; the first is the one
+  /// whose standard instruction the form quotes (Build 259).
   static const kinds = <String, Set<LearnerExerciseKind>>{
     'translation_choice_to_target': {LearnerExerciseKind.selectTranslation},
     'translation_choice_to_source': {LearnerExerciseKind.selectTranslation},
@@ -85,8 +86,8 @@ abstract final class PresetRecipes {
     },
     'gap_blocks': {LearnerExerciseKind.arrangeSentence},
     'sentence_order': {
-      LearnerExerciseKind.arrangeSentence,
       LearnerExerciseKind.arrangeLines,
+      LearnerExerciseKind.arrangeSentence,
     },
     'listening_image_choice': {LearnerExerciseKind.selectListen},
     'spell_heard': {LearnerExerciseKind.arrangeWord},
@@ -95,8 +96,8 @@ abstract final class PresetRecipes {
     'picture_blocks': {LearnerExerciseKind.arrangePictureName},
     'spell_word': {LearnerExerciseKind.arrangeWord},
     'picture_word_match': {
-      LearnerExerciseKind.matchTranslation,
       LearnerExerciseKind.match,
+      LearnerExerciseKind.matchTranslation,
     },
     'note_card': {LearnerExerciseKind.presentation},
     'dialogue_line': {LearnerExerciseKind.dialogueLine},

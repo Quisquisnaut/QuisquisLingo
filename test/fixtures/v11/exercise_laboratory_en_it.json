@@ -38,7 +38,7 @@
   ],
   "license": "All rights reserved",
   "derivativeWorksPolicy": "allowed",
-  "courseDescription": "An English-to-Italian laboratory for trying every current Exercise type and its meaningful authoring options. Five Lessons group Select, Input, Arrange, Match and Presentation; a sixth Lesson is a Story and a seventh holds Assign (Sort into groups, Fill the slots). Inspect or Fork the Course in Course Studio to study how the exercises are authored. Enable Audio Exercises and Text-to-speech to include all listening and pronunciation examples; ordinary lesson progression remains in effect.",
+  "courseDescription": "An English-to-Italian laboratory for trying every current Exercise type and its meaningful authoring options. Five Lessons group Select, Input, Arrange, Match and Presentation; a sixth Lesson is a Story, a seventh holds Assign (Sort into groups, Fill the slots) and an eighth shows Pages. Inspect or Fork the Course in Course Studio to study how the exercises are authored. Enable Audio Exercises and Text-to-speech to include all listening and pronunciation examples; ordinary lesson progression remains in effect.",
   "textDirection": "ltr",
   "temporarySample": true,
   "flagCode": "IT",
@@ -103,7 +103,7 @@
                 "updatedAt": "2026-09-25T00:00:00.000Z",
                 "prompt": [
                   {
-                    "role": "primary",
+                    "role": "question",
                     "type": "text",
                     "text": "How do you say ‘thank you’ in Italian?"
                   }
@@ -153,7 +153,7 @@
                 "updatedAt": "2026-09-25T00:00:00.000Z",
                 "prompt": [
                   {
-                    "role": "primary",
+                    "role": "question",
                     "type": "text",
                     "text": "How do you say ‘the apple’ in Italian?"
                   },
@@ -219,7 +219,7 @@
                 "updatedAt": "2026-09-25T00:00:00.000Z",
                 "prompt": [
                   {
-                    "role": "primary",
+                    "role": "question",
                     "type": "text",
                     "text": "Which words are Italian colours? Select all correct answers."
                   }
@@ -290,7 +290,7 @@
                 "updatedAt": "2026-09-25T00:00:00.000Z",
                 "prompt": [
                   {
-                    "role": "primary",
+                    "role": "question",
                     "type": "text",
                     "text": "Which words name an animal? Select all correct answers."
                   }
@@ -361,7 +361,7 @@
                 "updatedAt": "2026-09-25T00:00:00.000Z",
                 "prompt": [
                   {
-                    "role": "primary",
+                    "role": "question",
                     "type": "text",
                     "text": "Which word means ‘yes’? Select the correct answer, then press Check."
                   }
@@ -1125,7 +1125,7 @@
                 "updatedAt": "2026-09-25T00:00:00.000Z",
                 "prompt": [
                   {
-                    "role": "primary",
+                    "role": "question",
                     "type": "text",
                     "text": "Select the image of È (E with a grave accent)."
                   }
@@ -2289,7 +2289,7 @@
                 "updatedAt": "2026-09-25T00:00:00.000Z",
                 "prompt": [
                   {
-                    "role": "question",
+                    "role": "primary",
                     "type": "text",
                     "text": "What is this?"
                   },
@@ -3460,7 +3460,7 @@
                 "updatedAt": "2026-09-25T00:00:00.000Z",
                 "prompt": [
                   {
-                    "role": "question",
+                    "role": "primary",
                     "type": "text",
                     "text": "What is this?"
                   },
@@ -3952,7 +3952,7 @@
                 "updatedAt": "2026-09-25T00:00:00.000Z",
                 "prompt": [
                   {
-                    "role": "question",
+                    "role": "primary",
                     "type": "text",
                     "text": "What is this?"
                   },
@@ -6052,7 +6052,7 @@
                   {
                     "role": "primary",
                     "type": "text",
-                    "text": "Abbina ogni parola al suo sinonimo."
+                    "text": "Match each word with its synonym."
                   }
                 ],
                 "interaction": {
@@ -6403,7 +6403,7 @@
                   {
                     "role": "primary",
                     "type": "text",
-                    "text": "Abbina ogni parola al suo contrario."
+                    "text": "Match each word with its opposite."
                   }
                 ],
                 "interaction": {
@@ -6919,5 +6919,5 @@
       }
     }
   ],
-  "officialChecksum": "92cee89fa0dcb2572d6c14512c0172fc006c7defcd1370ebc3647543bfe715f3"
+  "officialChecksum": "c8d5eeceba63d69570db4e41525e0f9d0c99b65677a872c88d96c6a7213f7a4f"
 }

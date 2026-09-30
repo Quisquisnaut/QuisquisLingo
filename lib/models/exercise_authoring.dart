@@ -615,13 +615,13 @@ abstract final class ExercisePresetRegistry {
     'word_match':
         'The learner matches target-language words (left) with their source-language meanings (right). Provide at least two text pairs, one per line as left = right, with a short instruction.',
     'super_match':
-        'The learner matches related target-language items such as synonyms, opposites or a word and its definition. Provide exactly three text pairs, one per line as left = right.',
+        'The learner matches related target-language items such as synonyms, opposites or a word and its definition. Provide exactly three text pairs, one per line as left = right, and an optional instruction or context naming the relationship, in the learners’ language.',
     'flashcard':
         'The learner sees a target-language word or expression, its source-language translation and an optional usage example, hears the word when read-aloud is on, then chooses Got it or Review again. Choose Automatically, On request or No read-aloud; the spoken text is the word itself unless Pronunciation TTS (if different) says otherwise. Read-aloud never makes the card an audio exercise.',
     'choice_target':
-        'The learner reads a question, or a sentence to complete, and chooses the right answer among target-language text alternatives: a grammar form, a cultural fact, a meaning, a translation. Provide the question, at least two answers and the correct answer number (a new exercise starts with 1); an optional Prompt line, an instruction or some context, is shown above the question instead of the standard “Choose the correct answer.” line; an optional picture or spoken text may support the question.',
+        'The learner reads a question, or a sentence to complete, and chooses the right answer among target-language text alternatives: a grammar form, a cultural fact, a meaning, a translation. Provide the question, at least two answers and the correct answer number (a new exercise starts with 1); an optional Instruction or context line, in the learners’ language, is shown instead of the standard “Choose the correct answer.” line; an optional picture or spoken text may support the question.',
     'choice_source':
-        'The learner reads a question, or a sentence to complete, written in the source language and chooses the right answer among source-language text alternatives: grammar, culture or meaning explained in their own language. Provide the question, at least two answers and the correct answer number (a new exercise starts with 1); an optional Prompt line is shown above the question instead of the standard “Choose the correct answer.” line.',
+        'The learner reads a question, or a sentence to complete, written in the source language and chooses the right answer among source-language text alternatives: grammar, culture or meaning explained in their own language. Provide the question, at least two answers and the correct answer number (a new exercise starts with 1); an optional Instruction or context line is shown instead of the standard “Choose the correct answer.” line.',
     'gap_choice':
         'The learner sees a sentence containing ___ and chooses the missing word or expression. Provide one text gap, answer blocks and one correct answer. Use exactly one gap where possible and make only one option grammatically and semantically correct.',
     'type_missing_word':
@@ -641,7 +641,7 @@ abstract final class ExercisePresetRegistry {
     'reading_answer_target':
         'The learner reads a short text in the source language that explains the situation, and dialogue lines in the target language written as Speaker: text, then answers a target-language question by choosing. Provide the text, the dialogue or both, the dialogue\'s read-aloud (no, on request or automatic: each line is spoken in turn), the question, at least two answers and the correct answer number. The text to read is never read aloud; the read-aloud is optional, so the exercise also plays with Audio Exercises off.',
     'icon_choice':
-        'The learner sees a question and image choices, then selects the matching image. Provide the question, the answers, the correct answer number and one icon or image key per answer in the same order.',
+        'The learner sees a question and image choices, then selects the matching image. Provide the question or sentence (it names what to find), the answers, the correct answer number and one icon or image key per answer in the same order.',
     'script_recognition':
         'Each item pairs a character image with its corresponding text.\n\nImage to text: learners see a character image and choose the matching text.\n\nText to image: learners see the text and choose the matching character image.\n\nThe text can be the character’s name, sound, pronunciation, transliteration or another identifying label.\n\nProvide at least two options; exactly one is correct. Multiple prompt images may show print, handwriting or different fonts. Use bundled images or portable imported images, never absolute local paths. Preview uses the normal Select learner behavior.',
     'image_word':
@@ -661,19 +661,19 @@ abstract final class ExercisePresetRegistry {
     'sentence_order':
         'The learner puts the lines of a story or a dialogue in order. Enter the lines, one per line, and the correct order; 0, 1 or at most 2 extra distractor lines.',
     'sort_into_groups':
-        'The learner taps a word, then the group it belongs to, and checks when every word is placed. Enter the question and one group per line as “Group name: word, word, …” (at least two groups; every word belongs to one).',
+        'The learner taps a word, then the group it belongs to, and checks when every word is placed. Enter an optional instruction or context and one group per line as “Group name: word, word, …” (at least two groups; every word belongs to one).',
     'fill_the_slots':
-        'The learner taps a word, then the slot it fills, and checks when every slot is filled. Enter the question and one slot per line as “what the learner sees = the word”, for example “… gatto = il”. Extra words that fill no slot are optional; a switch lets one word fill more than one slot.',
+        'The learner taps a word, then the slot it fills, and checks when every slot is filled. Enter an optional instruction or context and one slot per line as “what the learner sees = the word”, for example “… gatto = il”. Extra words that fill no slot are optional; a switch lets one word fill more than one slot.',
     'listening_image_choice':
-        'The learner hears a word or a sentence and picks the matching picture. Provide the spoken text, an optional question, the answer labels and one picture per answer, and the correct answer.',
+        'The learner hears a word or a sentence and picks the matching picture. Provide the spoken text, an optional instruction or context, the answer labels and one picture per answer, and the correct answer.',
     'spell_heard':
         'The learner hears a word and spells it from letter or syllable tiles. Provide the spoken word and its tiles in order, one per line (split the word into letters or syllables as you like). No picture is needed.',
     'picture_choice':
-        'The learner sees a picture and picks the word or sentence that names it. Provide the picture, a question, at least two answers and the correct one.',
+        'The learner sees a picture and picks the word or sentence that names it. Provide the picture, an optional instruction or context, at least two answers and the correct one.',
     'picture_blocks':
-        'The learner sees a picture and builds its name by tapping word blocks in order. Provide the picture (Exercise image), an optional question such as What is this?, the blocks of the name in order (one word per line) and up to two extra blocks that are not part of the name, plus an optional hint.',
+        'The learner sees a picture and builds its name by tapping word blocks in order. Provide the picture (Exercise image), an optional instruction or context such as What is this?, the blocks of the name in order (one word per line) and up to two extra blocks that are not part of the name, plus an optional hint.',
     'picture_name':
-        'The learner sees a picture and types its name. Provide the picture, a question or instruction, one or more accepted answers (the same syntax as Type the translation) and an optional hint.',
+        'The learner sees a picture and types its name. Provide the picture, an optional instruction or context, one or more accepted answers (the same syntax as Type the translation) and an optional hint.',
     'spell_word':
         'The learner spells a word from letter or syllable tiles after a clue in the source language: the word itself or a definition. Provide the clue and the tiles of the word in order, one per line; a picture is optional.',
     'picture_word_match':

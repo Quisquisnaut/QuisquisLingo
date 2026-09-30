@@ -200,7 +200,7 @@ void main() {
       );
       // The New Course sample is Pick the translation (to target): it has no
       // authored prompt, only the text to translate and its answer options.
-      await tester.enterText(_field('Text to translate'), 'hello');
+      await tester.enterText(_field('Sentence'), 'hello');
       await tester.enterText(_field('Answer options'), 'ciao\narrivederci');
       await tester.enterText(_field('Correct answer number'), '1');
       final exerciseSave = find.byKey(const Key('exercise-save'));

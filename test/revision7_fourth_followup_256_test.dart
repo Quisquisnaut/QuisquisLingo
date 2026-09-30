@@ -323,7 +323,8 @@ void main() {
       final e = _built(
         'picture_blocks',
         original: _blank('picture-blocks'),
-        question: 'What is this?',
+        // Its optional Instruction or context (Build 259).
+        prompt: 'What is this?',
         imageAsset: 'assets/exercise_images/bread.webp',
         order: 'il\npane',
         extraWords: 'la',
@@ -336,6 +337,8 @@ void main() {
       expect(order.itemIds, [e.items[0].id, e.items[1].id]);
       expect(f.kind, LearnerExerciseKind.arrangePictureName);
       expect(f.pictureImages, hasLength(1));
+      expect(f.authoredInstruction, 'What is this?');
+      expect(f.questionText, isEmpty);
       expect(_errors(e), isEmpty);
       final course = _course([e]);
       expect(
@@ -437,7 +440,7 @@ void main() {
       expect(find.text('Blocks of the name, in order'), findsOneWidget);
       expect(find.text('Extra blocks (optional)'), findsOneWidget);
       await tester.enterText(
-        find.byKey(const ValueKey('exercise-field-question')),
+        find.byKey(const ValueKey('exercise-field-prompt')),
         'What is this?',
       );
       await tester.enterText(

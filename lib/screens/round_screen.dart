@@ -2186,7 +2186,9 @@ class _RoundScreenState extends State<RoundScreen> {
               style: Theme.of(context).textTheme.headlineSmall,
             ),
           )
-        else
+        // Type what you see asks with its instruction line and has no
+        // question of its own (Build 259).
+        else if (f.questionText.isNotEmpty)
           _withMascot(
             ExerciseMascotAnchor.question,
             Text(
@@ -2568,8 +2570,7 @@ class _RoundScreenState extends State<RoundScreen> {
   }
 
   Widget _imageWordExercise(Exercise ex) {
-    final f = _features;
-    final prompt = f.primaryText.isNotEmpty ? f.primaryText : f.clueText;
+    final prompt = _features.displayedPrompt;
     final available = List<String>.from(_tokenOptions);
     for (final token in _builtOrder) {
       available.remove(token);
@@ -2577,7 +2578,10 @@ class _RoundScreenState extends State<RoundScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        // A spelling clue (with its language) stays here; an instruction
+        // is drawn in the instruction line (Build 259).
         if (prompt.isNotEmpty &&
+            !_promptAsInstruction &&
             !ExerciseCopyService.isLegacyInstruction(prompt)) ...[
           Text(
             ExerciseCopyService.displayPrompt(widget.course, prompt),
@@ -3600,30 +3604,29 @@ class _RoundScreenState extends State<RoundScreen> {
   /// The text shown above the exercise body: the primary or clue text.
   /// Passages, situations, context and the Flashcard's term have their own
   /// place in the body.
-  String get _displayedPrompt {
-    final f = _features;
-    return f.primaryText.isNotEmpty ? f.primaryText : f.clueText;
+  String get _displayedPrompt => _features.displayedPrompt;
+
+  /// An authored Instruction or context (a prompt with no language) takes
+  /// the place of the standard instruction line under the heading, in every
+  /// exercise (Build 259, owner decisions of 29 September 2026; Choose and
+  /// Match did so since Build 256).
+  bool get _promptAsInstruction {
+    final instruction = _features.authoredInstruction;
+    return _exercise.isExecutable &&
+        !_features.isTranslationChoice &&
+        instruction.isNotEmpty &&
+        !ExerciseCopyService.isLegacyInstruction(instruction);
   }
 
-  /// Whether the authored prompt is shown above the exercise body.
+  /// Whether the authored prompt has a line of its own above the exercise
+  /// body: material with a language, such as a text to translate. A
+  /// spelling exercise draws its clue in its body.
   bool get _promptShown =>
+      !_promptAsInstruction &&
       !_features.isTranslationChoice &&
       _features.kind != LearnerExerciseKind.arrangeWord &&
       _displayedPrompt.isNotEmpty &&
       !ExerciseCopyService.isLegacyInstruction(_displayedPrompt);
-
-  /// A plain Choose's authored Prompt (an instruction or some context)
-  /// takes the place of the standard "Choose the correct answer." line under
-  /// the CHOOSE heading, and a Match's authored instruction the place of its
-  /// generic line (owner decisions, 29 September 2026).
-  bool get _promptAsInstruction =>
-      _promptShown &&
-      _exercise.isExecutable &&
-      const {
-        LearnerExerciseKind.select,
-        LearnerExerciseKind.match,
-        LearnerExerciseKind.matchTranslation,
-      }.contains(_features.kind);
 
   Widget _exerciseBody(Exercise ex) {
     final f = _features;

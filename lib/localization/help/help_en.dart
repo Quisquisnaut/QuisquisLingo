@@ -507,7 +507,7 @@ Remove from my courses, in the Selector or Course Studio, removes the course onl
       r'''Course Model v12 (Build 256). Every exercise is one of nine primitives with typed options, prompt elements, items, targets, an inline layout, an evaluation mode and optional feedback. Presets are recipes over this data and never change what learners see.''',
   'technical.exercisePrimitives.exerciseAnatomy.title': r'''Exercise anatomy''',
   'technical.exercisePrimitives.exerciseAnatomy.body':
-      r'''Exercise = primitive + options + prompt[] + items[] + targets[] + layout[] + evaluation + feedback, with an optional hint. Prompt elements are text, audio or image with a role (primary, question, passage, situation, clue, context, dialogue_turn, character, illustration) and the attributes language (source or target), playback (automatic or manual) and required. Items are what the learner chooses, orders, places or pairs; a Match item has a side. Targets are the gaps, slots or regions the learner fills, and the layout places them in the text. Items and targets are named by stable IDs, never by position.''',
+      r'''Exercise = primitive + options + prompt[] + items[] + targets[] + layout[] + evaluation + feedback, with an optional hint. Prompt elements are text, audio or image with a role (primary, question, passage, situation, clue, context, dialogue_turn, character, illustration) and the attributes language (source or target), playback (automatic or manual) and required. A primary text (else a clue) that states no language is the Instruction or context: the learner sees it in place of the standard instruction line under the heading; one with a language is material, such as a text to translate. Items are what the learner chooses, orders, places or pairs; a Match item has a side. Targets are the gaps, slots or regions the learner fills, and the layout places them in the text. Items and targets are named by stable IDs, never by position.''',
   'technical.exercisePrimitives.primitives.title': r'''The nine primitives''',
   'technical.exercisePrimitives.primitives.body':
       r'''select: the learner selects one or more items. input: the learner types text or a number into a field or into inline gaps. arrange: the learner orders blocks or drags them into gaps. match: the learner pairs left and right items. assign: the learner sorts items into groups, fills slots or the gaps of a text by tapping an item and then its destination (the presets Sort into groups and Fill the slots; gaps are authored in the canonical editor; picture regions and grid cells wait for a later version). speak: the learner speaks (definitions only). ink: the learner writes by hand (definitions only). submit: the learner hands in a free answer for self-check or review (definitions only). presentation: a card or note with nothing to answer, such as a Flashcard. The primitive is locked once an exercise exists.''',
@@ -1009,9 +1009,9 @@ Question and Context are separate. Context can be text, audio, or both. Dialogue
   'exerciseHelp.preset.flashcard.description':
       r'''Presents learning material without an ordinary scored answer.''',
   'exerciseHelp.preset.choice_target.body':
-      r'''The learner reads a question, or a sentence to complete, and chooses the right answer among text alternatives in the target language; the question itself may be in either language. It can be anything a course needs: a grammar form, a cultural fact, a meaning, a translation. Provide the question, at least two text answers and one correct answer (a new exercise starts with answer 1; several are possible with Multiple correct answers, and the Audit warns when every answer is correct). An optional Prompt line, an instruction or some context, is shown above the question instead of the standard “Choose the correct answer.” line. Optional prompt audio or a picture can support the question. Keep distractors plausible but clearly wrong. The twin Choose the answer (to source) asks and answers in the source language.''',
+      r'''The learner reads a question, or a sentence to complete, and chooses the right answer among text alternatives in the target language; the question itself may be in either language. It can be anything a course needs: a grammar form, a cultural fact, a meaning, a translation. Provide the question, at least two text answers and one correct answer (a new exercise starts with answer 1; several are possible with Multiple correct answers, and the Audit warns when every answer is correct). An optional Instruction or context line, in the learners’ language, is shown instead of the standard “Choose the correct answer.” line. Optional prompt audio or a picture can support the question. Keep distractors plausible but clearly wrong. The twin Choose the answer (to source) asks and answers in the source language.''',
   'exerciseHelp.preset.choice_source.body':
-      r'''The learner reads a question, or a sentence to complete, written in the source language and chooses the right answer among alternatives in the source language: a grammar rule, a cultural fact, the meaning of an expression, anything better asked in the language the learner already knows. Provide the question, at least two text answers and one correct answer (a new exercise starts with answer 1; several are possible with Multiple correct answers, and the Audit warns when every answer is correct). An optional Prompt line, an instruction or some context, is shown above the question instead of the standard “Choose the correct answer.” line. Optional prompt audio is spoken with the source-language voice, and a picture can support the question. Keep distractors plausible but clearly wrong. The twin Choose the answer (to target) asks and answers in the target language.''',
+      r'''The learner reads a question, or a sentence to complete, written in the source language and chooses the right answer among alternatives in the source language: a grammar rule, a cultural fact, the meaning of an expression, anything better asked in the language the learner already knows. Provide the question, at least two text answers and one correct answer (a new exercise starts with answer 1; several are possible with Multiple correct answers, and the Audit warns when every answer is correct). An optional Instruction or context line, in the learners’ language, is shown instead of the standard “Choose the correct answer.” line. Optional prompt audio is spoken with the source-language voice, and a picture can support the question. Keep distractors plausible but clearly wrong. The twin Choose the answer (to target) asks and answers in the target language.''',
   'exerciseHelp.preset.listening_answer_target.body':
       r'''The learner hears target-language audio and chooses the answer among written alternatives in the target language. Without a question the learner picks what was heard; with a question the exercise tests comprehension of the passage, so make the passage long enough. Spoken text contains exactly what the learner should hear, for example: Buongiorno, come stai? On-Device TTS sends this text to the device’s native speech engine. Recorded MP3 resolves Course Audio Library text mappings; Hybrid tries a complete MP3 sequence before native TTS. For MP3, open Course Editor > Audio Library, copy files to {folderAudioImports}, press Import MP3, then Associate recording with its Word or expression and select Recorded MP3 only or Hybrid. There is no per-exercise MP3 attachment. Physical files are grouped by learning language; references belong to the Course. Verified Course backups copy referenced files; JSON alone does not transfer MP3 bytes. Provide written alternatives and exactly one correct answer; avoid visible text that gives away the audio. The twin Listen and answer (to source) asks and answers in the source language.''',
   'exerciseHelp.preset.listening_answer_source.body':
@@ -1041,19 +1041,19 @@ Question and Context are separate. Context can be text, audio, or both. Dialogue
   'exerciseHelp.preset.sentence_order.body':
       r'''The learner sees the lines of a short story or dialogue as blocks and puts them in order. Enter the lines, one per line, and the correct order; you may add 0, 1 or at most 2 extra lines that belong nowhere. The instruction says what to order: the sentences of a story, the turns of a dialogue.''',
   'exerciseHelp.preset.sort_into_groups.body':
-      r'''The learner taps a word, then the group it belongs to; a placed word can be taken back; Check grades every group at once. Enter the question, one group per line as “Group name: word, word, …” (at least two, each with at least one word). Every word belongs to one group, and to one group only. Sort into groups is never an audio exercise.''',
+      r'''The learner taps a word, then the group it belongs to; a placed word can be taken back; Check grades every group at once. Enter an optional instruction or context and one group per line as “Group name: word, word, …” (at least two, each with at least one word). Every word belongs to one group, and to one group only. Sort into groups is never an audio exercise.''',
   'exerciseHelp.preset.fill_the_slots.body':
-      r'''The learner taps a word, then the slot it fills; a second word replaces the first; Check grades every slot at once. Enter the question and one slot per line as “what the learner sees = the word that fills it”, for example “… gatto = il”. Extra words that fill no slot are optional. Turn on “A word may fill more than one slot” when the same word is the answer of several slots: it stays in the bank after each use.''',
+      r'''The learner taps a word, then the slot it fills; a second word replaces the first; Check grades every slot at once. Enter an optional instruction or context and one slot per line as “what the learner sees = the word that fills it”, for example “… gatto = il”. Extra words that fill no slot are optional. Turn on “A word may fill more than one slot” when the same word is the answer of several slots: it stays in the bank after each use.''',
   'exerciseHelp.preset.listening_image_choice.body':
-      r'''The learner hears the spoken text and picks the picture it names. Provide the spoken text, an optional question, the answer labels (one per line) and one picture per answer, chosen with the pickers below the answers; mark the correct answer. The labels are shown under the pictures.''',
+      r'''The learner hears the spoken text and picks the picture it names. Provide the spoken text, an optional instruction or context, the answer labels (one per line) and one picture per answer, chosen with the pickers below the answers; mark the correct answer. The labels are shown under the pictures.''',
   'exerciseHelp.preset.spell_heard.body':
       r'''The learner hears a word and spells it by ordering letter or syllable tiles. Provide the spoken word and its tiles in order, one per line (split the word into letters or syllables as you like). No picture is needed; the tiles join without spaces.''',
   'exerciseHelp.preset.picture_choice.body':
-      r'''The learner sees a picture and chooses the word or sentence that names it among text answers. Provide the picture (Image), a question such as What is this?, at least two answers and the correct one.''',
+      r'''The learner sees a picture and chooses the word or sentence that names it among text answers. Provide the picture (Image), an optional instruction or context such as What is this?, at least two answers and the correct one.''',
   'exerciseHelp.preset.picture_name.body':
-      r'''The learner sees a picture and types what it shows. Provide the picture (Image), a question or instruction, one or more accepted answers with the same syntax as Type the translation (optional {}, alternatives [a|b], linked groups, reorder scopes) and an optional hint. Answers are checked with the normal Input normalization and typo tolerance.''',
+      r'''The learner sees a picture and types what it shows. Provide the picture (Image), an optional instruction or context, one or more accepted answers with the same syntax as Type the translation (optional {}, alternatives [a|b], linked groups, reorder scopes) and an optional hint. Answers are checked with the normal Input normalization and typo tolerance.''',
   'exerciseHelp.preset.picture_blocks.body':
-      r'''The learner sees a picture and builds its name by tapping word blocks in order; a placed block can be taken back; Check grades the order. Provide the picture (Exercise image), an optional question such as What is this?, the blocks of the name in order (one word per line) and up to two extra blocks that are not part of the name, plus an optional hint. The blocks join with spaces. Capitals that differ between the name and its blocks get an Audit warning. Type what you see is the same exercise with a typed answer.''',
+      r'''The learner sees a picture and builds its name by tapping word blocks in order; a placed block can be taken back; Check grades the order. Provide the picture (Exercise image), an optional instruction or context such as What is this?, the blocks of the name in order (one word per line) and up to two extra blocks that are not part of the name, plus an optional hint. The blocks join with spaces. Capitals that differ between the name and its blocks get an Audit warning. Type what you see is the same exercise with a typed answer.''',
   'exerciseHelp.preset.spell_word.body':
       r'''The learner reads a clue in the source language, the word itself or a definition, and spells the target-language word by ordering letter or syllable tiles. Provide the clue and the tiles of the word in order, one per line; a picture is optional.''',
   'exerciseHelp.preset.picture_word_match.body':
@@ -1099,7 +1099,7 @@ The learner sees target-language text and picks its correct source-language tran
   'exerciseHelp.preset.word_match.body':
       r'''The learner matches source-language words with their target-language translations. Provide at least two text pairs; three is the usual number. Text is supported. Each visible item must be unique after ordinary normalization. Exercises made with the former Matching preset open here.''',
   'exerciseHelp.preset.super_match.body':
-      r'''The learner matches related target-language items such as synonyms or opposites. Provide exactly three text pairs and an instruction naming the relationship. Text is supported. Do not mix unrelated relationship rules.''',
+      r'''The learner matches related target-language items such as synonyms or opposites. Provide exactly three text pairs and an optional instruction or context naming the relationship, in the learners’ language. Text is supported. Do not mix unrelated relationship rules.''',
   'exerciseHelp.preset.audio_match.body':
       r'''The learner plays audio items and matches each one to visible text. Provide exactly three audio-text pairs with no distractors. Audio and text are supported. Each audio and visible answer must be unique.''',
   'exerciseHelp.preset.word_order.body':
@@ -1108,17 +1108,6 @@ The learner sees target-language text and picks its correct source-language tran
       r'''The learner sees an image and orders letter or syllable blocks to form its word. Provide an image, an instruction and the blocks of the word in order, one per line; the learner gets exactly those blocks, shuffled. Distractors are not allowed.''',
   'exerciseHelp.preset.flashcard.body':
       r'''The learner sees a target-language word or expression, its source-language translation and an optional usage example with its translation, hears the word when read-aloud is on, then chooses Got it or Review again. Provide the learning material rather than a scored answer; choose Automatically, On request or No read-aloud; fill in Pronunciation TTS (if different) only when the spoken text should differ from the word. Read-aloud never makes the card an audio exercise. Presentation content does not earn base correct-answer XP.''',
-  'exerciseHelp.field.choice.prompt.body':
-      r'''An optional line above the question: an instruction or some context. Example: Pick the verb form that fits.
-
-What to enter
-One line, or nothing. In a Round it takes the place of the standard “Choose the correct answer.” line under the CHOOSE heading; leave it empty to keep that line. The question or sentence goes in its own field.
-
-Checks
-Optional. Keep it consistent with the question and the answers.
-
-Example
-Pick the verb form that fits.''',
   'exerciseHelp.field.build_translation_to_source.correctTranslation.body':
       r'''Defines one complete literal source-language answer for Build the translation (to source).
 
@@ -1163,7 +1152,7 @@ none''',
       r'''The question, or the sentence to complete, written in the source language.
 
 What to enter
-One question in the language the learner already knows, or a sentence with ___ where the answer fits: a grammar rule, a cultural fact, the meaning of an expression. An instruction or context goes in Prompt.
+One question in the language the learner already knows, or a sentence with ___ where the answer fits: a grammar rule, a cultural fact, the meaning of an expression. An instruction or context goes in Instruction or context.
 
 Checks
 The answers below are in the source language too; mark the correct one (or several with Multiple correct answers).
@@ -1399,17 +1388,6 @@ Recommended; a cover without a picture shows the title only.
 
 Example
 A café terrace''',
-  'exerciseHelp.field.sort_into_groups.question.body':
-      r'''What the learner is asked to do.
-
-What to enter
-One line, in the language you prefer; name the groups if that helps.
-
-Checks
-Required.
-
-Example
-Sort the words: animals or plants?''',
   'exerciseHelp.field.sort_into_groups.groups.body':
       r'''The groups and their words.
 
@@ -1422,17 +1400,6 @@ A word can be in one group only; a line without a colon, a name or words is refu
 Example
 Animals: gatto, cane
 Plants: rosa, pino''',
-  'exerciseHelp.field.fill_the_slots.question.body':
-      r'''What the learner is asked to do.
-
-What to enter
-One line, in the language you prefer.
-
-Checks
-Required.
-
-Example
-Which article goes with each noun?''',
   'exerciseHelp.field.fill_the_slots.slots.body':
       r'''The slots and the word that fills each one.
 
@@ -1632,14 +1599,14 @@ Roma è la capitale d’Italia.''',
       r'''What the learner answers: a question, or a sentence with a gap the answers complete.
 
 What to enter
-One question, or one sentence with ___ where the answer fits, as plain text; an instruction or context goes in Prompt. In Choose the answer (to target) the answers are in the target language and the question may be in either language; in Choose the answer (to source) question and answers are in the source language.
+One question, or one sentence with ___ where the answer fits, as plain text; an instruction or context goes in Instruction or context. In Choose the answer (to target) the answers are in the target language and the question may be in either language; in Choose the answer (to source) question and answers are in the source language.
 
 Checks
 Required. Provide matching answers and mark the correct one (or several with Multiple correct answers).
 
 Example
 Which article goes with casa?
-Ieri ___ al cinema. (with the Prompt: Pick the verb form that fits.)''',
+Ieri ___ al cinema. (with the Instruction or context: Pick the verb form that fits.)''',
   'exerciseHelp.field.choice.answers.body':
       r'''Defines the alternatives presented to the learner.
 
@@ -1789,13 +1756,13 @@ Both modes use normal Select with at least two options and exactly one correct o
 Example
 Show several handwritten forms of 가 and ask the learner to choose ga.''',
   'exerciseHelp.field.script_recognition.scriptPrompt.body':
-      r'''Supplies the text that the learner matches to an image.
+      r'''The question or sentence that names the character the learner finds among the images.
 
 What to enter
-Enter the character, syllable, sound transcription or instruction as plain text. Keep the image answers in their separate option fields.
+Enter the character, syllable or sound transcription, as a question or a sentence. Keep the image answers in their separate option fields.
 
 Checks
-Text to image requires a nonempty text prompt, at least two image-only options and exactly one correct option.
+Text to image requires a question or sentence, at least two image-only options and exactly one correct option.
 
 Example
 Choose the character pronounced ga.''',
@@ -2076,17 +2043,6 @@ With the hint on, all complete accepted words must share exactly the same first 
 
 Example
 Je vais à l’___. Answer: école. Learner sees é______ and enters école, not cole.''',
-  'exerciseHelp.field.listening_spelling.prompt.body':
-      r'''Supplies the visible prompt text for Type what you hear.
-
-What to enter
-Enter one text value. This preset displays the text as entered; it does not automatically remove the accepted answer from the transcript. Audio text controls what the learner hears.
-
-Checks
-Preview the prompt to make sure it does not reveal the answer you want the learner to type. Put accepted typed responses in Missing word.
-
-Example
-Listen and type the word you hear.''',
   'exerciseHelp.field.listening_spelling.missingWords.body':
       r'''Defines accepted typed responses for Type what you hear.
 
@@ -2122,17 +2078,17 @@ At least one entry is required and each entry must occur in Passage transcript, 
 Example
 caffè
 per favore''',
-  'exerciseHelp.field.matching.prompt.body':
-      r'''The instruction or context shown to the learner.
+  'exerciseHelp.field.instruction.body':
+      r'''An optional line in the learners’ language: what to do, the situation, or the meaning the exercise needs.
 
 What to enter
-Enter one instruction or prompt as plain text. Line breaks remain part of that text; they do not create separate answers. Use the course source language for operational instructions.
+One line in the learners’ language, or nothing. In a Round it takes the place of the standard instruction line under the heading; leave it empty to keep that line. It may set the scene (Anna goes to the market in the morning) or give the meaning (Anna reads a book). The question, the sentence and the answers go in their own fields.
 
 Checks
-Keep it consistent with the selected exercise and the separately entered question, pairs or blocks. For Match by meaning, state the relationship in the target language.
+Optional. It is stored without a language, so it never turns the exercise into a translation. Keep it consistent with the rest of the exercise, and do not give the answer away.
 
 Example
-Build the sentence.''',
+Put the dialogue at the bar in order.''',
   'exerciseHelp.field.matching.pairs.body':
       r'''Defines items that the learner matches across two columns.
 
@@ -2162,7 +2118,7 @@ water = acqua''',
       r'''Matches related words, such as synonyms or opposites.
 
 What to enter
-Enter exactly three non-empty lines as left = right, with both sides in the target language. State the relationship in Match type / instruction.
+Enter exactly three non-empty lines as left = right, with both sides in the target language. Name the relationship in Instruction or context, in the learners’ language.
 
 Checks
 All three pairs need both sides and a usable equals separator. Check that every pair follows the stated relationship and that matching is unambiguous.

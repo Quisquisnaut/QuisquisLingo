@@ -472,7 +472,7 @@ void main() {
       );
       await tester.tap(find.text('Open'));
       await tester.pumpAndSettle();
-      await tester.enterText(workflow.field('Source text'), 'Unsaved source');
+      await tester.enterText(workflow.field('Sentence'), 'Unsaved source');
       await workflow.tapKey(tester, 'exercise-preview');
       expect(find.byType(RoundScreen), findsOneWidget);
       expect(

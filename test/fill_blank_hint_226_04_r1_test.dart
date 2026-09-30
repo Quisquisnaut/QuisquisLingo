@@ -42,7 +42,7 @@ void main() {
     await _open(tester, course, saves: saves, previewOnly: true);
     expect(
       find.text(
-        'Use ___ (3 underscores) for the missing word. Example: The cat ___ black.',
+        'In the target language, with ___ (3 underscores) for the missing word. Example: The cat ___ black.',
       ),
       findsOneWidget,
     );

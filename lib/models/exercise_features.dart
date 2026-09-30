@@ -222,6 +222,23 @@ class ExerciseFeatures {
   TextLanguage? get promptLanguage =>
       _languageOf(_texts('primary')) ?? _languageOf(_texts('clue'));
 
+  /// The authored prompt shown above the exercise: the primary text, else
+  /// the clue.
+  String get displayedPrompt => primaryText.isNotEmpty ? primaryText : clueText;
+
+  /// The authored Instruction or context (Build 259, owner decisions of
+  /// 29 September 2026): the displayed prompt when it states no language.
+  /// It is written in the learners' language and takes the place of the
+  /// standard instruction line; a prompt with a language is material (a
+  /// text to translate, a spelling clue) and keeps its own place.
+  String get authoredInstruction {
+    final element = primaryText.isNotEmpty
+        ? _texts('primary').first
+        : _texts('clue').firstOrNull;
+    if (element == null || element.language != null) return '';
+    return element.text;
+  }
+
   /// A translation exercise: the text the learner translates has an
   /// explicit language, either way round (`clue` in the source language for
   /// "to target", in the target language for "to source"; a plain `primary`

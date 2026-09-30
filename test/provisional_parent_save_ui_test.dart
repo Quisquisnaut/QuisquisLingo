@@ -244,7 +244,7 @@ Future<void> _saveExercise(WidgetTester tester, {bool draft = false}) async {
   await _tapEntry(tester, 'exercise-status-indicator-provisional-exercise');
   expect(find.byType(ExerciseEditorScreen), findsOneWidget);
   await tester.enterText(
-    workflow.field('Prompt (optional)'),
+    workflow.field('Instruction or context (optional)'),
     'Choose the greeting.',
   );
   await workflow.tapKey(

@@ -119,12 +119,20 @@ abstract final class PresetVariants {
           useMultiSelect: false,
         );
       case 'picture_choice':
+        // Its Instruction or context is the Choose recipe's primary text;
+        // it has no question (Build 259).
         return draft.copyWith(
           type: base,
           useInlineGaps: false,
           useMultiSelect: false,
           tts: '',
+          question: '',
         );
+      case 'listening_image_choice':
+      case 'picture_name':
+        // Their base recipes read the text from the question field; `finish`
+        // makes it the Instruction or context (Build 259).
+        return draft.copyWith(type: base, question: draft.prompt);
       case 'gap_choice_inline':
         return draft.copyWith(type: base, useInlineGaps: true);
       case 'word_order':
@@ -281,8 +289,11 @@ abstract final class PresetVariants {
           ),
         );
       case 'picture_choice':
-      case 'picture_name':
         return _withPictureRole(exercise);
+      case 'picture_name':
+        return _withPictureRole(_questionAsInstruction(exercise));
+      case 'listening_image_choice':
+        return _questionAsInstruction(exercise);
       case 'note_card':
         // A Note card is read and left with Continue: no review.
         return exercise.copyWith(options: PrimitiveOptions.empty);
@@ -306,6 +317,20 @@ abstract final class PresetVariants {
         return exercise;
     }
   }
+
+  /// The base recipe's question text as the Instruction or context: a
+  /// primary text with no language (Build 259, owner decisions of
+  /// 29 September 2026), for the presets whose form has no question.
+  static Exercise _questionAsInstruction(Exercise exercise) =>
+      exercise.copyWith(
+        promptElements: [
+          for (final element in exercise.promptElements)
+            if (element.isText && element.role == 'question')
+              element.copyWith(role: 'primary')
+            else
+              element,
+        ],
+      );
 
   /// The picture presets carry their picture as `picture`, not as the
   /// generic `clue` illustration, so their base recipes do not represent
@@ -338,12 +363,12 @@ abstract final class PresetVariants {
     ];
     switch (presetId) {
       case 'choice_source':
+        // The Instruction or context stays without a language (Build 259):
+        // only the question and the answers are marked.
         return exercise.copyWith(
           promptElements: mark(
             exercise.promptElements,
-            (e) =>
-                (e.isText || e.isAudio) &&
-                (e.role == 'primary' || e.role == 'question'),
+            (e) => (e.isText || e.isAudio) && e.role == 'question',
             TextLanguage.source,
           ),
           items: markItems(TextLanguage.source),

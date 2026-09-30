@@ -245,9 +245,9 @@ def lesson_specs() -> list[tuple[str, str, str, list[dict]]]:
         specs.append((kind, topic, guide, examples))
 
     add("choice_target", "First words", "pan = bread; gat = cat; eva = water. Choose the Piedmontese word.", [
-        choose("choice_target", [text("How do you say bread in Piedmontese?")], ["pan", "gat", "eva"]),
-        choose("choice_target", [text("How do you say cat in Piedmontese?")], ["can", "gat", "pan"], 1),
-        choose("choice_target", [text("How do you say water in Piedmontese?")], ["pom", "pan", "eva"], 2),
+        choose("choice_target", [text("How do you say bread in Piedmontese?", "question")], ["pan", "gat", "eva"]),
+        choose("choice_target", [text("How do you say cat in Piedmontese?", "question")], ["can", "gat", "pan"], 1),
+        choose("choice_target", [text("How do you say water in Piedmontese?", "question")], ["pom", "pan", "eva"], 2),
     ])
     add("choice_source", "What does it mean?", "grassie and mersì = thank you; ciàu = hello or bye; bondì = good morning. The questions and the answers are in English.", [
         choose("choice_source", [text("What does “grassie” mean?", "question", "source")], ["thank you", "good morning", "goodbye"], language="source"),
@@ -265,9 +265,9 @@ def lesson_specs() -> list[tuple[str, str, str, list[dict]]]:
         choose("gap_choice", [text("Complete the greeting meaning good morning."), text("bon-a ___", "question")], ["ca", "eva", "matin"], 2),
     ])
     add("icon_choice", "Words in pictures", "Look at the pictures: gat = cat; pan = bread; eva = water.", [
-        choose("icon_choice", [text("Select the image for gat.")], ["gat", "can", "caval"], pictures=["cat", "dog", "horse"]),
-        choose("icon_choice", [text("Select the image for pan.")], ["pom", "pan", "eva"], 1, ["apple", "bread", "water"]),
-        choose("icon_choice", [text("Select the image for eva.")], ["pan", "pom", "eva"], 2, ["bread", "apple", "water"]),
+        choose("icon_choice", [text("Select the image for gat.", "question")], ["gat", "can", "caval"], pictures=["cat", "dog", "horse"]),
+        choose("icon_choice", [text("Select the image for pan.", "question")], ["pom", "pan", "eva"], 1, ["apple", "bread", "water"]),
+        choose("icon_choice", [text("Select the image for eva.", "question")], ["pan", "pom", "eva"], 2, ["bread", "apple", "water"]),
     ])
     add("script_recognition", "Accented letters", "These letter diagrams distinguish ë (e with diaeresis), é (e with acute accent), and ò (o with grave accent). Identify the printed character, not its sound.", [
         choose("script_recognition", [text(instruction), {
@@ -432,19 +432,19 @@ def lesson_specs() -> list[tuple[str, str, str, list[dict]]]:
         choose("listening_image_choice", [audio("eva")], ["pan", "pom", "eva"], 2, ["bread", "apple", "water"]),
     ])
     add("picture_choice", "What is in the picture?", "Look at the picture and pick its Piedmontese word: gat = cat; pan = bread; eva = water.", [
-        choose("picture_choice", [text("What is this?", "question"), image("cat", "A cat", "picture")], ["gat", "can", "caval"]),
-        choose("picture_choice", [text("What is this?", "question"), image("bread", "Bread", "picture")], ["pom", "pan", "eva"], 1),
-        choose("picture_choice", [text("What is this?", "question"), image("water", "Water", "picture")], ["pan", "pom", "eva"], 2),
+        choose("picture_choice", [text("What is this?"), image("cat", "A cat", "picture")], ["gat", "can", "caval"]),
+        choose("picture_choice", [text("What is this?"), image("bread", "Bread", "picture")], ["pom", "pan", "eva"], 1),
+        choose("picture_choice", [text("What is this?"), image("water", "Water", "picture")], ["pan", "pom", "eva"], 2),
     ])
     add("picture_name", "Type what you see", "Type the Piedmontese word for the picture: gat = cat; pan = bread; eva = water. The article is optional.", [
-        enter("picture_name", [text("What is this?", "question"), image("cat", "A cat", "picture")], ["{ël} gat"]),
-        enter("picture_name", [text("What is this?", "question"), image("bread", "Bread", "picture")], ["{ël} pan"]),
-        enter("picture_name", [text("What is this?", "question"), image("water", "Water", "picture")], ["{l'} eva", "eva"]),
+        enter("picture_name", [text("What is this?"), image("cat", "A cat", "picture")], ["{ël} gat"]),
+        enter("picture_name", [text("What is this?"), image("bread", "Bread", "picture")], ["{ël} pan"]),
+        enter("picture_name", [text("What is this?"), image("water", "Water", "picture")], ["{l'} eva", "eva"]),
     ])
     add("picture_blocks", "Name what you see", "Build the Piedmontese name of the picture from word blocks: ël gat = the cat; ël pan = the bread; ël pom = the apple. One extra block is not part of the name.", [
-        arrange("picture_blocks", [text("What is this?", "question"), image("cat", "A cat", "picture")], ["ël", "gat", "la"], [[0, 1]]),
-        arrange("picture_blocks", [text("What is this?", "question"), image("bread", "Bread", "picture")], ["ël", "pan", "la"], [[0, 1]]),
-        arrange("picture_blocks", [text("What is this?", "question"), image("apple", "An apple", "picture")], ["ël", "pom", "la"], [[0, 1]]),
+        arrange("picture_blocks", [text("What is this?"), image("cat", "A cat", "picture")], ["ël", "gat", "la"], [[0, 1]]),
+        arrange("picture_blocks", [text("What is this?"), image("bread", "Bread", "picture")], ["ël", "pan", "la"], [[0, 1]]),
+        arrange("picture_blocks", [text("What is this?"), image("apple", "An apple", "picture")], ["ël", "pom", "la"], [[0, 1]]),
     ])
     add("picture_flashcard", "Picture cards", "Look at the picture, read the word and its meaning; the pronunciation is optional. gat = cat; pan = bread; eva = water.", [
         picture_card("gat", "cat", "cat", "I l'hai un gat.", "I have a cat."),

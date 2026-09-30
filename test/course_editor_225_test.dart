@@ -59,7 +59,7 @@ void main() {
       await tester.tap(find.text('Open'));
       await tester.pumpAndSettle();
 
-      await tester.enterText(_field('Source sentence'), 'How are you?');
+      await tester.enterText(_field('Sentence'), 'How are you?');
       await tester.enterText(
         _field('Available target-language blocks'),
         'Come\nstai\nva\nte\nla\npassi',
@@ -367,7 +367,7 @@ void main() {
     );
     await tester.tap(find.text('Open'));
     await tester.pumpAndSettle();
-    await tester.enterText(_field('Passage transcript'), 'casa');
+    await tester.enterText(_field('Instruction or context (optional)'), 'casa');
     await tester.enterText(_field('Audio text'), 'casa');
     await tester.enterText(_field('Missing word'), 'casa');
     tester.testTextInput.hide();

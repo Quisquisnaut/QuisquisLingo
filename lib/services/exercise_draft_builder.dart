@@ -230,6 +230,8 @@ enum ExerciseDraftField {
   groups,
   slots,
   order,
+  question,
+  prompt,
 }
 
 enum ExerciseDraftErrorCode {
@@ -258,6 +260,9 @@ enum ExerciseDraftErrorCode {
   slotsRequired,
   slotWordRepeated,
   nameBlocksRequired,
+
+  /// A required question or sentence is empty; the detail is its label.
+  textRequired,
 }
 
 class ExerciseDraftFieldError {
@@ -291,7 +296,42 @@ class ExerciseDraftBuildResult {
 
 /// The screen's former candidate construction, without UI feedback or writes.
 abstract final class ExerciseDraftBuilder {
+  /// The question or sentence each preset's form requires, with the form
+  /// field that holds it and its label (Build 259, owner decisions of
+  /// 29 September 2026: a question or sentence is never optional). A
+  /// Published save refuses it empty.
+  static const requiredTexts = <String, (ExerciseDraftField, String)>{
+    'choice_target': (ExerciseDraftField.question, 'Question or sentence'),
+    'choice_source': (ExerciseDraftField.question, 'Question or sentence'),
+    'icon_choice': (ExerciseDraftField.question, 'Question or sentence'),
+    'gap_choice': (ExerciseDraftField.question, 'Sentence'),
+    'true_false': (ExerciseDraftField.question, 'Sentence'),
+    'translation_choice_to_target': (ExerciseDraftField.question, 'Sentence'),
+    'translation_choice_to_source': (ExerciseDraftField.question, 'Sentence'),
+    'reading_answer_target': (ExerciseDraftField.question, 'Question'),
+    'type_missing_word': (ExerciseDraftField.prompt, 'Sentence'),
+    'type_translation_to_target': (ExerciseDraftField.prompt, 'Sentence'),
+    'type_translation_to_source': (ExerciseDraftField.prompt, 'Sentence'),
+    'build_translation_to_target': (ExerciseDraftField.prompt, 'Sentence'),
+    'build_translation_to_source': (ExerciseDraftField.prompt, 'Sentence'),
+    'spell_word': (ExerciseDraftField.prompt, 'Clue (source language)'),
+  };
+
   static ExerciseDraftBuildResult build(ExerciseDraftValues draft) {
+    final required = requiredTexts[draft.type];
+    if (required != null && _strict(draft)) {
+      final (field, label) = required;
+      final value = field == ExerciseDraftField.question
+          ? draft.question
+          : draft.prompt;
+      if (value.trim().isEmpty) {
+        return _failure(
+          field,
+          ExerciseDraftErrorCode.textRequired,
+          detail: label,
+        );
+      }
+    }
     // A catalogue preset runs its base recipe and is finished as itself
     // (Build 256 Revision 4, PresetVariants).
     final result = _build(PresetVariants.draftFor(draft.type, draft));
@@ -912,14 +952,15 @@ abstract final class ExerciseDraftBuilder {
         ],
       );
 
-  /// Sort into groups (Build 256 Revision 7 follow-up): the question and one
+  /// Sort into groups (Build 256 Revision 7 follow-up): an optional
+  /// Instruction or context (Build 259; a question before) and one
   /// group per line as `Name: word, word, …` (at least two; the words that
   /// belong to no group were removed on 29 September 2026). Canonical: an
   /// Assign with categories of unlimited capacity, each group's name before
   /// its target in the layout, exact assignments.
   /// Name what you see (Build 256 Revision 7 fourth follow-up; owner
-  /// decisions of 29 September 2026): the picture, an optional question, the
-  /// blocks of the name in order and up to two extra blocks. Canonical: an
+  /// decisions of 29 September 2026): the picture, an optional Instruction
+  /// or context (Build 259; a question before), the blocks of the name in order and up to two extra blocks. Canonical: an
   /// Arrange of word blocks under a `picture` with one exact order; the extra
   /// blocks stay in the bank. Item IDs are kept by text.
   static ExerciseDraftBuildResult _buildPictureBlocks(
@@ -967,12 +1008,9 @@ abstract final class ExerciseDraftBuilder {
         updatedAt: original.updatedAt,
         primitive: ExercisePrimitive.arrange,
         promptElements: [
-          if (draft.question.trim().isNotEmpty)
-            PromptElement(
-              role: 'question',
-              type: 'text',
-              text: draft.question.trim(),
-            ),
+          // Its optional Instruction or context (Build 259): no question.
+          if (draft.prompt.trim().isNotEmpty)
+            PromptElement(type: 'text', text: draft.prompt.trim()),
           if (draft.imageAsset.trim().isNotEmpty)
             PromptElement(
               role: 'picture',
@@ -1062,8 +1100,8 @@ abstract final class ExerciseDraftBuilder {
     );
   }
 
-  /// Fill the slots (Build 256 Revision 7 follow-up): the question, one
-  /// slot per line as `what the learner sees = word`, the extra words that
+  /// Fill the slots (Build 256 Revision 7 follow-up): an optional
+  /// Instruction or context (Build 259; a question before), one slot per line as `what the learner sees = word`, the extra words that
   /// fill no slot, and whether a word may fill several slots. Canonical:
   /// an Assign with slots (one item each), each slot's text before its
   /// target in the layout, item reuse allowed when asked, exact assignments.
@@ -1198,12 +1236,9 @@ abstract final class ExerciseDraftBuilder {
         ...options,
       }),
       promptElements: [
-        if (draft.question.trim().isNotEmpty)
-          PromptElement(
-            role: 'question',
-            type: 'text',
-            text: draft.question.trim(),
-          ),
+        // The optional Instruction or context (Build 259): no question.
+        if (draft.prompt.trim().isNotEmpty)
+          PromptElement(type: 'text', text: draft.prompt.trim()),
         if (draft.imageAsset.trim().isNotEmpty)
           PromptElement(
             role: 'picture',

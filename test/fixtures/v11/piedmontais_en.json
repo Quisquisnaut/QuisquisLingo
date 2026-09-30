@@ -2372,7 +2372,7 @@
                 "updatedAt": "2026-09-25T00:00:00.000Z",
                 "prompt": [
                   {
-                    "role": "primary",
+                    "role": "question",
                     "type": "text",
                     "text": "How do you say bread in Piedmontese?"
                   }
@@ -2432,7 +2432,7 @@
                 "updatedAt": "2026-09-25T00:00:00.000Z",
                 "prompt": [
                   {
-                    "role": "primary",
+                    "role": "question",
                     "type": "text",
                     "text": "How do you say cat in Piedmontese?"
                   }
@@ -2492,7 +2492,7 @@
                 "updatedAt": "2026-09-25T00:00:00.000Z",
                 "prompt": [
                   {
-                    "role": "primary",
+                    "role": "question",
                     "type": "text",
                     "text": "How do you say water in Piedmontese?"
                   }
@@ -6700,7 +6700,7 @@
                 "updatedAt": "2026-09-25T00:00:00.000Z",
                 "prompt": [
                   {
-                    "role": "primary",
+                    "role": "question",
                     "type": "text",
                     "text": "Select the image for gat."
                   }
@@ -6775,7 +6775,7 @@
                 "updatedAt": "2026-09-25T00:00:00.000Z",
                 "prompt": [
                   {
-                    "role": "primary",
+                    "role": "question",
                     "type": "text",
                     "text": "Select the image for pan."
                   }
@@ -6850,7 +6850,7 @@
                 "updatedAt": "2026-09-25T00:00:00.000Z",
                 "prompt": [
                   {
-                    "role": "primary",
+                    "role": "question",
                     "type": "text",
                     "text": "Select the image for eva."
                   }
@@ -7487,7 +7487,7 @@
                 "updatedAt": "2026-09-25T00:00:00.000Z",
                 "prompt": [
                   {
-                    "role": "question",
+                    "role": "primary",
                     "type": "text",
                     "text": "What is this?"
                   },
@@ -7553,7 +7553,7 @@
                 "updatedAt": "2026-09-25T00:00:00.000Z",
                 "prompt": [
                   {
-                    "role": "question",
+                    "role": "primary",
                     "type": "text",
                     "text": "What is this?"
                   },
@@ -7619,7 +7619,7 @@
                 "updatedAt": "2026-09-25T00:00:00.000Z",
                 "prompt": [
                   {
-                    "role": "question",
+                    "role": "primary",
                     "type": "text",
                     "text": "What is this?"
                   },
@@ -7728,7 +7728,7 @@
                 "updatedAt": "2026-09-25T00:00:00.000Z",
                 "prompt": [
                   {
-                    "role": "question",
+                    "role": "primary",
                     "type": "text",
                     "text": "What is this?"
                   },
@@ -7767,7 +7767,7 @@
                 "updatedAt": "2026-09-25T00:00:00.000Z",
                 "prompt": [
                   {
-                    "role": "question",
+                    "role": "primary",
                     "type": "text",
                     "text": "What is this?"
                   },
@@ -7806,7 +7806,7 @@
                 "updatedAt": "2026-09-25T00:00:00.000Z",
                 "prompt": [
                   {
-                    "role": "question",
+                    "role": "primary",
                     "type": "text",
                     "text": "What is this?"
                   },
@@ -7889,7 +7889,7 @@
                 "updatedAt": "2026-09-25T00:00:00.000Z",
                 "prompt": [
                   {
-                    "role": "question",
+                    "role": "primary",
                     "type": "text",
                     "text": "What is this?"
                   },
@@ -7959,7 +7959,7 @@
                 "updatedAt": "2026-09-25T00:00:00.000Z",
                 "prompt": [
                   {
-                    "role": "question",
+                    "role": "primary",
                     "type": "text",
                     "text": "What is this?"
                   },
@@ -8029,7 +8029,7 @@
                 "updatedAt": "2026-09-25T00:00:00.000Z",
                 "prompt": [
                   {
-                    "role": "question",
+                    "role": "primary",
                     "type": "text",
                     "text": "What is this?"
                   },
@@ -8799,5 +8799,5 @@
       }
     }
   ],
-  "officialChecksum": "7844c2833654480f55b8520332ce357311b511b5de6a8f7378b7c2fddc29cbf0"
+  "officialChecksum": "97498b323b6f59cd63f9a208618dfe0baa6bf07c7d9f71da85b50ea68fd1d935"
 }

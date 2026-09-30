@@ -66,8 +66,9 @@ void main() {
     id: 'legacy-choice',
     updatedAt: DateTime.utc(2026, 9, 20),
     type: 'choice',
-    prompt: 'Good morning',
-    question: '',
+    prompt: '',
+    // A question is never optional (Build 259).
+    question: 'Good morning',
     answers: const ['Buongiorno', 'Buonanotte', 'Ciao'],
     correct: 0,
     tts: null,

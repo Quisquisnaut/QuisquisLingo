@@ -176,7 +176,7 @@ void main() {
     final prompt = find.byWidgetPredicate(
       (widget) =>
           widget is TextField &&
-          widget.decoration?.labelText == 'Prompt (optional)',
+          widget.decoration?.labelText == 'Instruction or context (optional)',
     );
     await tester.enterText(prompt, 'Unsaved prompt survives Help');
     await tester.tap(find.byKey(const Key('editor-help-action')));

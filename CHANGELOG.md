@@ -1,3 +1,39 @@
+# 2.0.59 (Build 259, Revision 0) - Instructions and questions - 2026-09-30
+
+Exercise prompts say clearly what they are (owner decisions of 29 September
+2026, plan `docs/CONTEXT_AND_HINT_PLAN.md`).
+
+- **Instruction or context:** every optional prompt in the learners'
+  language is labelled **Instruction or context (optional)**. In a Round it
+  takes the place of the standard instruction line under the heading, in
+  every exercise (until now only Choose and Match did so), and its helper
+  quotes the line it replaces. It is stored without a language; a prompt
+  with a language (a text to translate, a spelling clue) keeps its own
+  line.
+- **Questions and sentences are never optional:** they are labelled
+  **Question or sentence**, **Sentence** or **Question**, stay in the
+  exercise body, and a Published save refuses them empty.
+- **Fields that were really instructions:** the optional questions of What
+  is in the picture, Type what you see, Name what you see, Listen and pick
+  the image, Sort into groups and Fill the slots become Instruction or
+  context. The questions of the Assign presets and of Name what you see
+  were never shown to learners; they now are.
+- **Type what you hear:** its "Passage transcript" was shown to the
+  learner; it is now its Instruction or context, so the label no longer
+  invites the answer.
+- **Match by meaning:** its instruction is in the learners' language (it
+  asked for the target language by mistake).
+- **Recognize characters:** in text-to-image mode the text naming the
+  character is its question.
+- **Duel:** "Listen and choose the meaning." appears only for an exercise
+  with audio.
+- **Help EN/IT/ES** and the demo Courses follow; reading and listening
+  material is unchanged.
+
+Scoring, progression, Review, the Course format and learner data are
+unchanged. Beta expiry `2026-10-30 23:59:59` local time (30 days after this
+revision's release on 30 September 2026).
+
 # 2.0.58 (Build 258, Revision 4) - Share, save and print a Page - 2026-09-30
 
 Learners can share, save and print a Page as a PDF, when its Course allows

@@ -575,7 +575,7 @@ def story_flow(entries: list[tuple[str, bool]], *, title: str, presentation: str
     return flow
 
 
-def assign_exercise(*, updated_at: str, mode: str, question: str,
+def assign_exercise(*, updated_at: str, mode: str, instruction: str,
                     items: list[tuple[str, str]], targets: list[tuple[str, str]],
                     assignments: dict[str, list[str]], capacity: str = "single",
                     reuse: str = "forbidden", shuffle: bool = True,
@@ -585,7 +585,9 @@ def assign_exercise(*, updated_at: str, mode: str, question: str,
     the layout is a label text before each target (an empty label gives a
     bare target); for gaps, `sentence` lists the text runs and (target id,)
     tuples in reading order and the layout option is inline. Exact
-    assignments: `assignments` maps a target ID to the item IDs it holds."""
+    assignments: `assignments` maps a target ID to the item IDs it holds.
+    `instruction` is the Instruction or context, a primary text with no
+    language (Build 259)."""
     options = {"targetMode": mode}
     if capacity != "single":
         options["targetCapacity"] = capacity
@@ -610,7 +612,7 @@ def assign_exercise(*, updated_at: str, mode: str, question: str,
     return {
         "updatedAt": updated_at, "primitive": "assign",
         "options": _ordered_options(options),
-        "prompt": [{"role": "question", "type": "text", "text": question}],
+        "prompt": [{"role": "primary", "type": "text", "text": instruction}],
         "items": [{"id": item_id, "content": [{"role": "primary", "type": "text", "text": text}]}
                   for item_id, text in items],
         "targets": [{"id": target_id} for target_id, _ in targets],
