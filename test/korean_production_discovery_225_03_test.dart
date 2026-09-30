@@ -1,3 +1,4 @@
+import 'support/edge_case_fixture.dart';
 import 'support/korean_fixture.dart';
 import 'support/test_directories.dart';
 import 'package:flutter/material.dart';
@@ -23,6 +24,7 @@ void main() {
 
   setUp(() async {
     registerKoreanFixture();
+    registerEdgeCaseFixture();
     for (final asset in CourseService.courseAssets.values) {
       rootBundle.evict(asset);
     }

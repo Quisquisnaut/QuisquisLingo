@@ -282,6 +282,10 @@ enum ExerciseDraftErrorCode {
 
   /// One word fills all has fewer than two ___ gaps (Build 259 Revision 4).
   blanksTooFew,
+
+  /// Match pictures to words has fewer than two words (Build 259
+  /// Revision 5).
+  wordsTooFew,
 }
 
 class ExerciseDraftFieldError {
@@ -369,6 +373,23 @@ abstract final class ExerciseDraftBuilder {
       return _failure(
         ExerciseDraftField.image,
         ExerciseDraftErrorCode.pictureRequired,
+      );
+    }
+    // Match pictures to words needs two words or more (Build 259
+    // Revision 5). The form sends one "picture = word" line per word.
+    if (draft.type == 'picture_word_match' &&
+        _strict(draft) &&
+        _lines(draft.pairs)
+                .where(
+                  (line) =>
+                      line.contains('=') &&
+                      line.substring(line.indexOf('=') + 1).trim().isNotEmpty,
+                )
+                .length <
+            2) {
+      return _failure(
+        ExerciseDraftField.answers,
+        ExerciseDraftErrorCode.wordsTooFew,
       );
     }
     // One word fills all needs two gaps or more (Build 259 Revision 4).

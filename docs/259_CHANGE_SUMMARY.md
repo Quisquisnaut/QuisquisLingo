@@ -428,3 +428,55 @@ the gap and Missing letters fields, the picture presets.
 
 Scoring, progression, Review, the Course format and learner data are
 unchanged.
+
+## Revision 5 (2.0.59+259005, 30 September 2026): the third review
+
+Owner review of 30 September 2026 (night), points 1–5, with two answers in
+chat: the exported Edge Case goes to the Quick Import folder
+`Import/Courses`, and the Course stays in the repository as a Course ready
+to import.
+
+**1. Match pictures to words.** The preset `picture_word_match` was "Match
+picture to word". The name changes in the registry, Help EN/IT/ES, the
+Audit messages and the Piedmontese demo's Lesson.
+
+**2. At least two words.** A Published save with one word was accepted
+(a Match with one pair). It is now refused with "Words: enter at least two
+words, one per line." (`ExerciseDraftErrorCode.wordsTooFew`). The builder
+counts the words in the `picture = word` lines the form sends. A Draft
+keeps what it has.
+
+**3. No Exercise image.** The form offered the shared Exercise image above
+the pictures of the words. It is gone from the form, from the field list
+and from the field Help map. The editor Help's "Which exercises use a
+picture?" says Match pictures to words has one picture per word instead.
+
+**4. Stories.**
+- A scrolling Story showed "Story · N steps" above the title block, then
+  "Now · step k of N" above every later step. The step count now stays
+  above the title block and no "Now" line appears. An invisible anchor
+  still marks the active item, which the page scrolls to the top.
+- A Dialogue line showed an instruction under the bubble ("Read or listen,
+  then continue.", "Read, then continue.", "Listen, then continue.",
+  "Listen first; the text appears after."). No line is shown now; the
+  bubble and its Continue button say what to do.
+
+**5. The Edge Case leaves the bundle.**
+- `CourseService.courseAssets` holds the Exercise Laboratory and the
+  Piedmontese demo. The Edge Case's bundled identity stays reserved, as the
+  earlier demos' do. Progress recorded on it stays on the device, unused.
+- A bundled official Course is never imported, so the Course to import is
+  a custom Course with its own identity: `demo_courses/edge_case_it_en.json`
+  (Course version 1, QQL-user Maintainer, derivative works allowed, so an
+  importer can Fork it). Its content is the former bundled Course's.
+- The Edge Case generator writes it and the official test fixture
+  `test/fixtures/v12/edge_case_it_en.json` (the former asset, moved), which
+  the tests that need a bundled Course with Draft content, the shared
+  English code or a third Selector row register
+  (`test/support/edge_case_fixture.dart`).
+- The ZIP made by the app's Course export was written to the owner's
+  `Documents/QuisquisLingo/Import/Courses` for Quick Import. It is not in
+  the repository.
+
+Scoring, progression, Review, the Course format and learner data are
+unchanged.

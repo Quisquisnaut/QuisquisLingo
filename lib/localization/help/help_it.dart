@@ -234,7 +234,7 @@ const Map<String, String> helpIt = {
       "Scrivi la situazione in Text to read, nella lingua degli studenti; aggiungi le battute nella lingua studiata, una “Speaker: testo” per riga, e scegli se vengono lette ad alta voce automaticamente, a richiesta o per niente; poi scrivi la domanda e le risposte nella lingua studiata. Il testo da leggere non viene mai letto ad alta voce, e la lettura ad alta voce non ne fa mai un esercizio audio.",
   "editorHelp.qa.pictures.q": "Quali esercizi usano un’immagine?",
   "editorHelp.qa.pictures.a":
-      "What is in the picture (scegli il nome), Name what you see (componi il nome con blocchi di parole), Type what you see (scrivi il nome), Spell the word in the picture, Match picture to word e Picture flashcard. Scegli l’immagine in Exercise image.",
+      "What is in the picture (scegli il nome), Name what you see (componi il nome con blocchi di parole), Type what you see (scrivi il nome), Spell the word in the picture e Picture flashcard: scegli l’immagine in Exercise image. Match pictures to words ha invece un’immagine per parola, scelta sotto le sue parole.",
   "editorHelp.qa.allTypes.q": "Dove è spiegato ogni tipo di esercizio?",
   "editorHelp.qa.allTypes.a":
       "In Riferimento tecnico › Exercise types, in cima a questa pagina, e con Exercise Help accanto a ogni preset.",

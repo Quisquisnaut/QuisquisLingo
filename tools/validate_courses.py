@@ -26,7 +26,6 @@ ROOT = Path(__file__).resolve().parents[1]
 COURSES = ROOT / "assets" / "courses"
 EXPECTED_TTS = {
     "exercise_laboratory_en_it.json": "it-IT",
-    "edge_case_it_en.json": "en-GB",
     "piedmontais_en.json": "pms-IT",
 }
 TEXT_MODES = {"exactText", "acceptedTexts", "expression"}
@@ -478,7 +477,6 @@ def validate(path: Path, global_ids: dict[str, str]) -> list[str]:
     expected_lessons = {
         # The Page Lesson (Build 258 Revision 3) is the eighth.
         "exercise_laboratory_en_it.json": 8,
-        "edge_case_it_en.json": 6,
         # Listen and choose (Build 259 Revision 2) adds two Lessons.
         "piedmontais_en.json": 41,
     }.get(path.name, 9)

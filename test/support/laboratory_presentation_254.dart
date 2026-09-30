@@ -16,6 +16,8 @@
 /// examples ask in their question, the picture and Assign examples show their
 /// instruction, Recognize characters text to image asks in its question, and
 /// Match by meaning's instructions are in English.
+/// Build 259 Revision 5 re-recorded the ten Dialogue lines: a line shows no
+/// instruction.
 const laboratoryPresentation = <String, Map<String, Object?>>{
   'qql_lab254_arrange_gap_audio': {
     'before': {
@@ -8616,7 +8618,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
   'qql_lab254_options_after_audio': {
     'before': {
       'heading': null,
-      'instruction': 'Listen first; the text appears after.',
+      'instruction': null,
       'prompt': null,
       'shown': {'question': 0, 'prompt': 0, 'context': 0, 'translationText': 0},
       'panels': {
@@ -8678,7 +8680,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
     },
     'after': {
       'heading': null,
-      'instruction': 'Listen first; the text appears after.',
+      'instruction': null,
       'prompt': null,
       'shown': {'question': 0, 'prompt': 0, 'context': 0, 'translationText': 0},
       'panels': {
@@ -8742,7 +8744,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
   'qql_lab254_options_audio_only': {
     'before': {
       'heading': null,
-      'instruction': 'Listen, then continue.',
+      'instruction': null,
       'prompt': null,
       'shown': {'question': 0, 'prompt': 0, 'context': 0, 'translationText': 0},
       'panels': {
@@ -8804,7 +8806,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
     },
     'after': {
       'heading': null,
-      'instruction': 'Listen, then continue.',
+      'instruction': null,
       'prompt': null,
       'shown': {'question': 0, 'prompt': 0, 'context': 0, 'translationText': 0},
       'panels': {
@@ -8868,7 +8870,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
   'qql_lab254_options_automatic': {
     'before': {
       'heading': null,
-      'instruction': 'Read or listen, then continue.',
+      'instruction': null,
       'prompt': null,
       'shown': {'question': 0, 'prompt': 0, 'context': 0, 'translationText': 0},
       'panels': {
@@ -8930,7 +8932,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
     },
     'after': {
       'heading': null,
-      'instruction': 'Read or listen, then continue.',
+      'instruction': null,
       'prompt': null,
       'shown': {'question': 0, 'prompt': 0, 'context': 0, 'translationText': 0},
       'panels': {
@@ -9120,7 +9122,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
   'qql_lab254_options_narrator': {
     'before': {
       'heading': null,
-      'instruction': 'Read or listen, then continue.',
+      'instruction': null,
       'prompt': null,
       'shown': {'question': 0, 'prompt': 0, 'context': 0, 'translationText': 0},
       'panels': {
@@ -9182,7 +9184,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
     },
     'after': {
       'heading': null,
-      'instruction': 'Read or listen, then continue.',
+      'instruction': null,
       'prompt': null,
       'shown': {'question': 0, 'prompt': 0, 'context': 0, 'translationText': 0},
       'panels': {
@@ -9246,7 +9248,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
   'qql_lab254_options_text_only': {
     'before': {
       'heading': null,
-      'instruction': 'Read, then continue.',
+      'instruction': null,
       'prompt': null,
       'shown': {'question': 0, 'prompt': 0, 'context': 0, 'translationText': 0},
       'panels': {
@@ -9308,7 +9310,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
     },
     'after': {
       'heading': null,
-      'instruction': 'Read, then continue.',
+      'instruction': null,
       'prompt': null,
       'shown': {'question': 0, 'prompt': 0, 'context': 0, 'translationText': 0},
       'panels': {
@@ -13580,7 +13582,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
   'qql_lab254_story_anna_no': {
     'before': {
       'heading': null,
-      'instruction': 'Read or listen, then continue.',
+      'instruction': null,
       'prompt': null,
       'shown': {'question': 0, 'prompt': 0, 'context': 0, 'translationText': 0},
       'panels': {
@@ -13642,7 +13644,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
     },
     'after': {
       'heading': null,
-      'instruction': 'Read or listen, then continue.',
+      'instruction': null,
       'prompt': null,
       'shown': {'question': 0, 'prompt': 0, 'context': 0, 'translationText': 0},
       'panels': {
@@ -13706,7 +13708,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
   'qql_lab254_story_anna_order': {
     'before': {
       'heading': null,
-      'instruction': 'Read or listen, then continue.',
+      'instruction': null,
       'prompt': null,
       'shown': {'question': 0, 'prompt': 0, 'context': 0, 'translationText': 0},
       'panels': {
@@ -13768,7 +13770,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
     },
     'after': {
       'heading': null,
-      'instruction': 'Read or listen, then continue.',
+      'instruction': null,
       'prompt': null,
       'shown': {'question': 0, 'prompt': 0, 'context': 0, 'translationText': 0},
       'panels': {
@@ -14084,7 +14086,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
   'qql_lab254_story_luca_offer': {
     'before': {
       'heading': null,
-      'instruction': 'Read or listen, then continue.',
+      'instruction': null,
       'prompt': null,
       'shown': {'question': 0, 'prompt': 0, 'context': 0, 'translationText': 0},
       'panels': {
@@ -14146,7 +14148,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
     },
     'after': {
       'heading': null,
-      'instruction': 'Read or listen, then continue.',
+      'instruction': null,
       'prompt': null,
       'shown': {'question': 0, 'prompt': 0, 'context': 0, 'translationText': 0},
       'panels': {
@@ -14210,7 +14212,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
   'qql_lab254_story_luca_serves': {
     'before': {
       'heading': null,
-      'instruction': 'Read or listen, then continue.',
+      'instruction': null,
       'prompt': null,
       'shown': {'question': 0, 'prompt': 0, 'context': 0, 'translationText': 0},
       'panels': {
@@ -14272,7 +14274,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
     },
     'after': {
       'heading': null,
-      'instruction': 'Read or listen, then continue.',
+      'instruction': null,
       'prompt': null,
       'shown': {'question': 0, 'prompt': 0, 'context': 0, 'translationText': 0},
       'panels': {
@@ -14336,7 +14338,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
   'qql_lab254_story_narrator': {
     'before': {
       'heading': null,
-      'instruction': 'Read or listen, then continue.',
+      'instruction': null,
       'prompt': null,
       'shown': {'question': 0, 'prompt': 0, 'context': 0, 'translationText': 0},
       'panels': {
@@ -14398,7 +14400,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
     },
     'after': {
       'heading': null,
-      'instruction': 'Read or listen, then continue.',
+      'instruction': null,
       'prompt': null,
       'shown': {'question': 0, 'prompt': 0, 'context': 0, 'translationText': 0},
       'panels': {

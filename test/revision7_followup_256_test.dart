@@ -23,7 +23,7 @@ import 'support/test_directories.dart';
 
 /// Build 256 Revision 7 follow-up (owner review, 29 September 2026): the
 /// Assign presets Sort into groups and Fill the slots (recipes over
-/// canonical data, forms, Help, Search, Audit), the Match picture to word
+/// canonical data, forms, Help, Search, Audit), the Match pictures to words
 /// form whose cards follow the words as they are typed, the Flashcard form
 /// with named languages and a Read aloud choice instead of a pronunciation
 /// field, and the spelling presets' single field.
@@ -509,7 +509,7 @@ void main() {
     });
   });
 
-  group('Match picture to word form', () {
+  group('Match pictures to words form', () {
     testWidgets('the picture cards follow the words as they are typed', (
       tester,
     ) async {
@@ -530,14 +530,37 @@ void main() {
       await tester.pump();
       expect(find.text('3. casa'), findsOneWidget);
       expect(find.byKey(const ValueKey('answer-picture-2')), findsOneWidget);
-      // One shared prompt image card; the per-word cards carry the word.
-      expect(find.text('Exercise image'), findsOneWidget);
+      // Only the per-word cards, which carry the word: no Exercise image
+      // (Build 259 Revision 5, owner decision).
+      expect(find.text('Exercise image'), findsNothing);
       expect(find.text('Pictures, in the order of the words'), findsOneWidget);
       await tester.enterText(words, 'gatto');
       await tester.pump();
       expect(find.text('2. cane'), findsNothing);
       expect(find.byKey(const ValueKey('answer-picture-1')), findsNothing);
     });
+
+    testWidgets(
+      'a Published save refuses a single word (Build 259 Revision 5)',
+      (tester) async {
+        _bigWindow(tester);
+        final saved = await _mountForm(
+          tester,
+          _formExercise('picture_word_match'),
+        );
+        await tester.enterText(
+          find.byKey(const ValueKey('exercise-field-answers')),
+          'gatto',
+        );
+        await tester.pump();
+        await _tap(tester, find.byKey(const Key('exercise-save')));
+        expect(saved(), isNull);
+        expect(
+          find.textContaining('enter at least two words, one per line'),
+          findsWidgets,
+        );
+      },
+    );
   });
 
   group('Flashcard read-aloud', () {

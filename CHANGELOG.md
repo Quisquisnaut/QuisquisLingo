@@ -1,3 +1,26 @@
+# 2.0.59 (Build 259, Revision 5) - Owner review: pictures, Stories, Edge Case - 2026-09-30
+
+Corrections from the owner's third review of 30 September 2026 (points
+1–5).
+
+- **Match pictures to words:** the preset "Match picture to word" is renamed
+  in the plural. A Published save needs at least two words (a single word
+  was accepted). The form no longer offers an Exercise image: only the
+  picture of each word.
+- **Stories:** the scrolling Story shows its step count ("Story · N
+  steps") once, above the title block; the "Now · step k of N" line under
+  each step is gone. A Dialogue line no longer shows an instruction such as
+  "Read or listen, then continue.".
+- **The Edge Case Course leaves the bundle.** QuisquisLingo now ships the
+  Exercise Laboratory and the Piedmontese demo. The Edge Case is a Course to
+  import: `demo_courses/edge_case_it_en.json`, a custom Course with its own
+  identity (the bundled one stays reserved) that anyone can Fork. Progress
+  on the former bundled Edge Case stays on the device but is not shown.
+
+Scoring, progression, Review, the Course format and learner data are
+unchanged. Beta expiry `2026-10-30 23:59:59` local time (same release day
+as Revision 0).
+
 # 2.0.59 (Build 259, Revision 4) - Owner review: gaps, pictures, hints - 2026-09-30
 
 Corrections from the owner's second review of 30 September 2026 (points

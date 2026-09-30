@@ -1,3 +1,4 @@
+import 'support/edge_case_fixture.dart';
 import 'support/korean_fixture.dart';
 import 'support/test_directories.dart';
 import 'support/pump_file_io.dart';
@@ -2929,6 +2930,8 @@ void main() {
   testWidgets(
     'course selector offers Review only on Current course and preserves Home scroll',
     (tester) async {
+      // The Edge Case is a test fixture since Build 259 Revision 5.
+      registerEdgeCaseFixture();
       final italianCourse = await _loadItalianCourse(tester);
       await SettingsService().setIddqdMode(
         italianCourse.courseId,
@@ -2992,6 +2995,12 @@ void main() {
         260,
         scrollable: selectorScroll,
       );
+      // The Edge Case fixture is the last Course of the list since Build 259
+      // Revision 5: bring its whole row into view before tapping.
+      await tester.ensureVisible(
+        find.byKey(const Key('course-selector-actions-bundled-EN_EDGE')),
+      );
+      await tester.pump();
       await tester.tap(
         find.byKey(const Key('course-selector-actions-bundled-EN_EDGE')),
       );
@@ -3112,6 +3121,8 @@ void main() {
   testWidgets('course picker places three other recent courses before Other', (
     tester,
   ) async {
+    // The Edge Case is a test fixture since Build 259 Revision 5.
+    registerEdgeCaseFixture();
     tester.view.devicePixelRatio = 1;
     tester.view.physicalSize = const Size(1200, 1400);
     addTearDown(tester.view.resetDevicePixelRatio);
@@ -3274,6 +3285,8 @@ void main() {
   testWidgets(
     'Favorites may repeat Current and Recent; Hide removes a noncurrent row only',
     (tester) async {
+      // The Edge Case is a test fixture since Build 259 Revision 5.
+      registerEdgeCaseFixture();
       tester.view.devicePixelRatio = 1;
       tester.view.physicalSize = const Size(1200, 2000);
       addTearDown(tester.view.resetDevicePixelRatio);

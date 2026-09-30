@@ -267,3 +267,52 @@ handoff: `259_HANDOFF.md`.
 - `flutter analyze --no-pub`: no issues.
 - **Second complete suite** (19:45–20:22, `--concurrency=1`, keep-awake):
   **3445 passed, 1 skipped, 0 failed**.
+
+## Revision 5 (2.0.59+259005, 30 September 2026): the third review
+
+**Generators and validator**
+- Edge Case: the generator writes `demo_courses/edge_case_it_en.json` (the
+  custom Course to import) and `test/fixtures/v12/edge_case_it_en.json`
+  (the former asset, moved with `git mv` and byte-identical); `--check`
+  reproducible for both.
+- Laboratory: `--check` reproducible (8 Lessons, 28 Rounds, 124 examples);
+  only the coverage document's "Match pictures to words" label changed.
+- Piedmontese: regenerated for the renamed Lesson (title, Round title and
+  Before you start card, new checksum); `--check` reproducible (41 Lessons,
+  123 examples). Its v11 fixture rewritten with its checksum (the same
+  three texts).
+- `tools/validate_courses.py`: the two bundled Courses pass.
+
+**The exported Course**
+- The app's own export (`buildCourseExport`) of the Course to import was
+  written by a throwaway test, deleted afterwards, to the owner's
+  `Documents/QuisquisLingo/Import/Courses/QQL_IT_EN_temporary_demo_edge_case_course.zip`
+  (12,614 bytes). It is not in the repository.
+
+**Laboratory presentation baseline**
+- Record run: 124 records, rebuilt and formatted. Compared with Revision 4:
+  none added or removed, 10 changed, all Dialogue lines, whose instruction
+  line is gone (`options_*` and `story_*`).
+
+**Tests**
+- New: `test/owner_review_259_revision5_test.dart` (the name, two words,
+  no Exercise image, the bundle); the Edge Case test imports the Course to
+  import as JSON and as the exported ZIP (custom, same Lessons, the three
+  intentional warnings, Fork allowed, installed); the Match form test
+  refuses a single word and shows no Exercise image.
+- Updated: the Story tests (no "Now · step", no line instruction), and
+  every test that read the Edge Case as a bundled Course. Those that need
+  it bundled register the fixture (`registerEdgeCaseFixture`); the rest
+  read the Course to import or the fixture file.
+- `leaderboard_navigation_test` registers the fixture only in its three
+  Edge Case tests. Registered for the whole file, the extra Course made
+  "Home reloads the selected custom course after returning from Settings"
+  fail (reproducible alone, passing without the fixture). As the last
+  Selector row, the Edge Case needed `ensureVisible` before its tap.
+- Focused run: 428 tests, 4 failures fixed as above (the Piedmontese v11
+  fixture, the Story "Listen first" line, the two Selector tests); then
+  the Laboratory authoring test found the two-word check reading the wrong
+  field (the form sends the words as `picture = word` lines), fixed.
+- `flutter analyze --no-pub`: no issues.
+- **Complete suite** (22:45–23:12, `--concurrency=1`, keep-awake):
+  **3451 passed, 1 skipped, 0 failed**.

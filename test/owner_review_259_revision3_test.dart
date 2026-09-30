@@ -29,8 +29,15 @@ import 'support/test_directories.dart';
 
 final _stamp = DateTime.utc(2026, 9, 30);
 
+// The Edge Case is the Course to import since Build 259 Revision 5.
 Course _load(String file) => Course.fromJson(
-  jsonDecode(File('assets/courses/$file').readAsStringSync())
+  jsonDecode(
+        File(
+          file == 'edge_case_it_en.json'
+              ? 'demo_courses/$file'
+              : 'assets/courses/$file',
+        ).readAsStringSync(),
+      )
       as Map<String, dynamic>,
 );
 

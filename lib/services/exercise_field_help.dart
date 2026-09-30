@@ -240,12 +240,14 @@ abstract final class ExerciseFieldHelpRegistry {
         'Unknown Exercise preset',
       );
     }
-    // A Before you start card has no picture (Build 257).
+    // A Before you start card has no picture (Build 257); Match pictures to
+    // words has only the pictures of its words (Build 259 Revision 5).
     return [
       ...selected,
       if (presetId != 'script_recognition' &&
           presetId != 'before_you_start' &&
-          presetId != 'page')
+          presetId != 'page' &&
+          presetId != 'picture_word_match')
         'image',
     ];
   }

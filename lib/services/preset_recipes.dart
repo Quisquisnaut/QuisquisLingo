@@ -158,7 +158,7 @@ abstract final class PresetRecipes {
     final items = exercise.items;
     final evaluation = exercise.canonicalEvaluation;
     final assignments = f.targetAssignments;
-    // A picture item (Match picture to word) is named by its picture.
+    // A picture item (Match pictures to words) is named by its picture.
     final valueById = {
       for (final item in items)
         item.id: item.value.isNotEmpty ? item.value : item.image,

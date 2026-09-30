@@ -16,12 +16,14 @@ import 'course_language_resolver.dart';
 class CourseService {
   final DiagnosticLogService _log = DiagnosticLogService();
   // Build 255 Revision 6 removed the German, Spanish, English-from-Spanish,
-  // Welsh, Portuguese and Neapolitan demos and Build 256 Revision 5 the
-  // Korean one (owner request). Their Course IDs stay reserved in
-  // CourseEditorService, as the demos removed in Build 254 do.
+  // Welsh, Portuguese and Neapolitan demos, Build 256 Revision 5 the Korean
+  // one and Build 259 Revision 5 the Edge Case (owner requests). Their
+  // Course IDs stay reserved in CourseEditorService, as the demos removed
+  // in Build 254 do. The Edge Case is an importable custom Course in
+  // demo_courses/ and, for the tests, the fixture
+  // test/fixtures/v12/edge_case_it_en.json.
   static const Map<String, String> courseAssets = {
     'IT': 'assets/courses/exercise_laboratory_en_it.json',
-    'EN_EDGE': 'assets/courses/edge_case_it_en.json',
     'PMS': 'assets/courses/piedmontais_en.json',
   };
 
@@ -47,13 +49,11 @@ class CourseService {
 
   static const Map<String, String> targetLabels = {
     'IT': 'Italian',
-    'EN_EDGE': 'English',
     'PMS': 'Piedmontese',
   };
 
   static const Map<String, String> sourceLabels = {
     'IT': 'English',
-    'EN_EDGE': 'Italian',
     'PMS': 'English',
   };
 
@@ -89,6 +89,8 @@ class CourseService {
   static String bundledCodeForCourse(Course course) =>
       _additionalBundledCodes[course.courseId] ?? codeForCourse(course);
 
+  // The Edge Case test fixture (registered by the tests since Build 259
+  // Revision 5) keeps its own reference beside the English language code.
   static const _additionalBundledCodes = {
     'course_6f6a1fa3-b834-4936-b324-92fb57f73502': 'EN_EDGE',
   };

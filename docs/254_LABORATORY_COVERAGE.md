@@ -162,7 +162,7 @@ The suffix below follows `qql_lab254_` in the stable Content/Exercise ID. Answer
 | Match / Words, meanings and relationships | match_four | matching | Match the pairs; variable four-pair form with phrases | a domani = see you tomorrow; per favore = please; buon viaggio = have a good trip; a presto = see you soon |
 | Match / Words, meanings and relationships | match_words | word_match | Match the words; exactly three source-to-target pairs | water = acqua; bread = pane; book = libro |
 | Match / Words, meanings and relationships | match_synonyms | super_match | Match related words; exactly three target-language synonym pairs | felice = contento; veloce = rapido; grande = ampio |
-| Match / Pictures and words | picture_word_match | picture_word_match | Match picture to word; picture left items | cat = il gatto; dog = il cane; house = la casa |
+| Match / Pictures and words | picture_word_match | picture_word_match | Match pictures to words; picture left items | cat = il gatto; dog = il cane; house = la casa |
 | Match / Listen and match | match_sounds | audio_match | Listen and match; three audio-to-text pairs with distinct sound and answer labels | acqua = water; pane = bread; libro = book |
 | Match / Opposites | match_opposites | super_match | Match related words; exactly three target-language opposite pairs | caldo = freddo; alto = basso; aperto = chiuso |
 | Presentation / Cards without pronunciation | card_minimal | flashcard | Term and meaning only; no usage or pronunciation | Got it; or Review again, then Got it on the repeated card |

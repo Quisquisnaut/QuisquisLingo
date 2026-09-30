@@ -26,7 +26,8 @@ import 'package:quisquislingo_app/services/round_playability_service.dart';
 import 'package:quisquislingo_app/services/vocabulary_review_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-const _asset = 'assets/courses/edge_case_it_en.json';
+// The former bundled Course, a test fixture since Build 259 Revision 5.
+const _asset = 'test/fixtures/v12/edge_case_it_en.json';
 const _courseId = 'course_6f6a1fa3-b834-4936-b324-92fb57f73502';
 const _actor = '12345678-1234-4234-9234-123456789abc';
 const _prefix = 'qql_edge_254_';
@@ -112,7 +113,7 @@ void main() {
     });
     source = Course.fromJson(
       Map<String, dynamic>.from(
-        jsonDecode(await rootBundle.loadString(_asset)) as Map,
+        jsonDecode(await File(_asset).readAsString()) as Map,
       ),
     );
     media = CourseMediaStore(supportDirectory: () async => support);
@@ -134,7 +135,7 @@ void main() {
   test(
     'shipped demo round-trips with exactly its two intentional warnings',
     () async {
-      final raw = jsonDecode(await rootBundle.loadString(_asset));
+      final raw = jsonDecode(await File(_asset).readAsString());
       expect(source.toJson(), raw);
       expect(source.courseId, _courseId);
       expect(source.sourceLanguageTag, 'it-IT');
@@ -342,6 +343,59 @@ void main() {
       );
     },
   );
+
+  // Build 259 Revision 5 (owner request): the Edge Case left the bundle and
+  // is imported, as a custom Course with its own identity, from
+  // demo_courses/.
+  test('the Course to import is the same Course as a custom Course', () async {
+    final imported = await transfer.courseFromBytes(
+      await File('demo_courses/edge_case_it_en.json').readAsBytes(),
+      'edge_case_it_en.json',
+    );
+    expect(imported.originType, CourseOriginType.custom);
+    expect(imported.courseId, isNot(_courseId));
+    expect(imported.maintainer!.profileId, isNot(_actor));
+    expect(imported.courseVersion, '1');
+    expect(imported.title, source.title);
+    expect(imported.derivativeWorksPolicy, DerivativeWorksPolicy.allowed);
+    expect(
+      jsonEncode([for (final lesson in imported.lessons) lesson.toJson()]),
+      jsonEncode([for (final lesson in source.lessons) lesson.toJson()]),
+    );
+    final audit = CourseAuditService().auditCourse(imported);
+    expect(audit.count(AuditSeverity.error), 0);
+    expect(
+      audit.issues
+          .where((issue) => issue.severity == AuditSeverity.warning)
+          .map((issue) => '${issue.code}:${issue.exerciseId}'),
+      unorderedEquals([
+        'CHOICE_ANSWER_DUPLICATE:${_prefix}e04_duplicate',
+        'EXERCISE_TEXT_LONG:${_prefix}e07_long',
+        'STORY_WITHOUT_DIALOGUE:null',
+      ]),
+    );
+    final rights = CourseAccessPolicy.evaluate(imported, profileId: _actor);
+    expect(rights.canEditOriginal, isFalse);
+    expect(rights.canFork, isTrue);
+    // Its Course ZIP carries no media (bundled paths stay bundled) and
+    // installs through the ordinary custom import.
+    final payload = await transfer.buildCourseExport(imported);
+    expect(payload.fileName, 'QQL_IT_EN_temporary_demo_edge_case_course.zip');
+    final file = File('${support.path}/${payload.fileName}');
+    await file.writeAsBytes(payload.bytes);
+    final parsed = await packages.parseFile(file, transfer.courseFromBytes);
+    try {
+      expect(parsed.course.toJson(), imported.toJson());
+      expect(parsed.mediaReferences, isEmpty);
+      await editor.installImportedCustomCourse(parsed.course, package: parsed);
+    } finally {
+      await parsed.discard();
+    }
+    expect(
+      (await editor.listUserCourses()).map((course) => course.courseId),
+      contains(imported.courseId),
+    );
+  });
 
   test(
     'Fork and Copy persist fresh identities and compatible revisions Merge',

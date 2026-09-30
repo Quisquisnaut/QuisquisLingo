@@ -3,7 +3,15 @@
 
 The Course identity was allocated once with Course.newCourseId(). Regeneration
 preserves it and every authored ID. Existing bundled media are referenced without
-copying, renaming or changing them. Run --check to detect asset drift without writes.
+copying, renaming or changing them. Run --check to detect drift without writes.
+
+Build 259 Revision 5 (owner request) took the Course out of the bundle. The
+generator writes two files with the same content:
+- demo_courses/edge_case_it_en.json, the Course to import (Import or Open
+  from...): a custom Course with its own identity, since a bundled official
+  Course is never imported and the bundled identity stays reserved;
+- test/fixtures/v12/edge_case_it_en.json, the former bundled Course, which the
+  tests register as a bundled fixture (test/support/edge_case_fixture.dart).
 """
 from __future__ import annotations
 
@@ -17,8 +25,18 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from qql_course_v12 import becomes_exercise, convert_course_v11_to_v12, story_cover, story_flow, story_line  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
-OUTPUT = ROOT / "assets/courses/edge_case_it_en.json"
+OUTPUT = ROOT / "test/fixtures/v12/edge_case_it_en.json"
+EXTERNAL_OUTPUT = ROOT / "demo_courses/edge_case_it_en.json"
 COURSE_ID = "course_6f6a1fa3-b834-4936-b324-92fb57f73502"
+# The importable Course's identity and its QQL-user Maintainer, allocated once
+# (UUIDv4) in Build 259 Revision 5.
+EXTERNAL_COURSE_ID = "course_ef03d1b5-dccc-4fbb-88da-100473cddaad"
+EXTERNAL_MAINTAINER = "afb065f8-701c-48d2-85f7-c80d44abecb9"
+OFFICIAL_ONLY_KEYS = (
+    "publisherId", "publisherName", "officialCourseVersion", "officialReleaseDateUtc",
+    "officialReleaseNotes", "distributionChannel", "publisherVerificationStatus",
+    "officialChecksum", "publisherSignature",
+)
 STAMP = "2026-09-25T00:00:00.000Z"
 # Build 255 Revision 6 released version 1.1.0: the license text now says only
 # "All rights reserved"; derivative works stay allowed for this test Course.
@@ -381,20 +399,46 @@ def build_course() -> dict:
     return course
 
 
+def build_external_course() -> dict:
+    """The same Course as a custom Course ready to import: its own identity,
+    a QQL-user creator and Maintainer, a Course version and no publisher
+    provenance. Derivative works stay allowed, so an importer can Fork it."""
+    course = {key: value for key, value in build_course().items() if key not in OFFICIAL_ONLY_KEYS}
+    creator = {"type": "qqlUser", "id": EXTERNAL_MAINTAINER, "displayName": "QuisquisLingo"}
+    rest = {key: value for key, value in course.items()
+            if key not in {"courseId", "originType", "originalCourseCreator", "originalCreatedAtUtc"}}
+    return {
+        "formatVersion": rest.pop("formatVersion"),
+        "courseId": EXTERNAL_COURSE_ID,
+        "originType": "custom",
+        "originalCourseCreator": creator,
+        "maintainer": {"profileId": EXTERNAL_MAINTAINER},
+        "originalCreatedAtUtc": STAMP,
+        "courseVersion": "1",
+        "lastVersionEditorProfileId": EXTERNAL_MAINTAINER,
+        "lastVersionEditorDisplayName": "QuisquisLingo",
+        **rest,
+    }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check", action="store_true", help="Check reproducibility without writing")
     args = parser.parse_args()
-    encoded = json.dumps(build_course(), ensure_ascii=False, indent=2) + "\n"
-    if args.check:
-        if not OUTPUT.is_file() or OUTPUT.read_text(encoding="utf-8") != encoded:
-            print(f"OUT OF DATE: {OUTPUT.relative_to(ROOT)}")
-            return 1
-        print(f"OK: {OUTPUT.relative_to(ROOT)} matches its deterministic generator")
-    else:
-        OUTPUT.write_text(encoded, encoding="utf-8", newline="\n")
-        print(f"Wrote {OUTPUT.relative_to(ROOT)}")
-    return 0
+    outputs = [(OUTPUT, build_course()), (EXTERNAL_OUTPUT, build_external_course())]
+    stale = False
+    for path, course in outputs:
+        encoded = json.dumps(course, ensure_ascii=False, indent=2) + "\n"
+        if args.check:
+            if not path.is_file() or path.read_text(encoding="utf-8") != encoded:
+                print(f"OUT OF DATE: {path.relative_to(ROOT)}")
+                stale = True
+            else:
+                print(f"OK: {path.relative_to(ROOT)} matches its deterministic generator")
+        else:
+            path.write_text(encoded, encoding="utf-8", newline="\n")
+            print(f"Wrote {path.relative_to(ROOT)}")
+    return 1 if stale else 0
 
 
 if __name__ == "__main__":

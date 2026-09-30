@@ -230,7 +230,7 @@ const Map<String, String> helpEn = <String, String>{
       r'''Write the situation in Text to read, in the learners' own language; add dialogue lines in the target language, one “Speaker: text” per line, and choose whether they are read aloud automatically, on request or not at all; then write the question and the answers in the target language. The text to read is never read aloud, and the read-aloud never makes it an audio exercise.''',
   'editorHelp.qa.pictures.q': r'''Which exercises use a picture?''',
   'editorHelp.qa.pictures.a':
-      r'''What is in the picture (choose the name), Name what you see (build the name from word blocks), Type what you see (type the name), Spell the word in the picture, Match picture to word and Picture flashcard. Choose the picture under Exercise image.''',
+      r'''What is in the picture (choose the name), Name what you see (build the name from word blocks), Type what you see (type the name), Spell the word in the picture and Picture flashcard: choose the picture under Exercise image. Match pictures to words has one picture per word instead, chosen below its words.''',
   'editorHelp.qa.allTypes.q': r'''Where is every exercise type explained?''',
   'editorHelp.qa.allTypes.a':
       r'''In Technical reference › Exercise types at the top of this page, and with Exercise Help beside each preset.''',

@@ -771,8 +771,16 @@ Map<String, dynamic> _v11Custom() => {
   ],
 };
 
+// The Edge Case is a test fixture since Build 259 Revision 5.
 Map<String, dynamic> _bundled(String file) => Map<String, dynamic>.from(
-  jsonDecode(File('assets/courses/$file').readAsStringSync()) as Map,
+  jsonDecode(
+        File(
+          file == 'edge_case_it_en.json'
+              ? 'test/fixtures/v12/$file'
+              : 'assets/courses/$file',
+        ).readAsStringSync(),
+      )
+      as Map,
 );
 
 Map<String, dynamic> _fixture(String file) => Map<String, dynamic>.from(

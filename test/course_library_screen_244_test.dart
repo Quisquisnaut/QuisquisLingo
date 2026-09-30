@@ -13,6 +13,7 @@ import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'support/course_library_fixtures.dart';
+import 'support/edge_case_fixture.dart';
 import 'support/pump_file_io.dart';
 
 const _alice = '11111111-1111-4111-8111-111111111111';
@@ -45,6 +46,7 @@ void main() {
   );
 
   setUp(() async {
+    registerEdgeCaseFixture();
     SharedPreferences.setMockInitialValues({'sound_effects_enabled': false});
     await ProfileService().createProfile(
       'Alice',
@@ -187,8 +189,8 @@ void main() {
         findsOneWidget,
       );
     }
-    // Three bundled demos since Build 256 Revision 5 (the Korean demo left).
-    expect(CourseService.courseAssets, hasLength(3));
+    // Two bundled demos since Build 259 Revision 5 and the Edge Case fixture.
+    expect(CourseService.bundledAssets, hasLength(3));
     expect(count(tester, 0), ' · 2 of 3 shown');
     final edge = (await tester.runAsync(
       () => CourseService().loadCourse('EN_EDGE'),
@@ -304,7 +306,7 @@ void main() {
     'bundled roots are Published and only EN_EDGE has authored Drafts',
     () async {
       final withDraftContent = <String>[];
-      for (final code in CourseService.courseAssets.keys) {
+      for (final code in CourseService.bundledAssets.keys) {
         final course = await CourseService().loadCourse(code);
         expect(course.publicationState.isPublished, isTrue, reason: code);
         if (CourseDraftStatus.courseHasDraft(course)) {

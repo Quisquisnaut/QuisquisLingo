@@ -526,7 +526,6 @@ const exerciseHelpFieldKeyByPresetAndField = <String, String>{
   'picture_word_match.answers':
       'exerciseHelp.field.picture_word_match.answers.body',
   'picture_word_match.icons': 'exerciseHelp.field.answer_pictures.body',
-  'picture_word_match.image': 'exerciseHelp.field.choice.image.body',
   'note_card.prompt': 'exerciseHelp.field.note_card.prompt.body',
   'note_card.question': 'exerciseHelp.field.note_card.question.body',
   'note_card.image': 'exerciseHelp.field.choice.image.body',

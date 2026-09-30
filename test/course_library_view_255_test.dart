@@ -11,6 +11,7 @@ import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'support/course_library_fixtures.dart';
+import 'support/edge_case_fixture.dart';
 import 'support/pump_file_io.dart';
 
 const _alice = '11111111-1111-4111-8111-111111111111';
@@ -35,6 +36,7 @@ void main() {
   final clean = draftStatusCourse(courseId: 'user_clean', title: 'Clean');
 
   setUp(() async {
+    registerEdgeCaseFixture();
     SharedPreferences.setMockInitialValues({'sound_effects_enabled': false});
     final profiles = ProfileService();
     for (final (id, name) in [(_alice, 'Alice'), (_bob, 'Bob')]) {

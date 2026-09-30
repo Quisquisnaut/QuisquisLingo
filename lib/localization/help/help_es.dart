@@ -236,7 +236,7 @@ const Map<String, String> helpEs = {
       'Escribe la situación en Text to read, en la lengua base de los estudiantes; añade líneas de diálogo en la lengua de estudio, un “Speaker: texto” por línea, y elige si se leen en voz alta automáticamente, a petición o nunca; luego escribe la pregunta y las respuestas en la lengua de estudio. El texto para leer nunca se lee en voz alta, y la lectura en voz alta nunca lo convierte en un ejercicio de audio.',
   'editorHelp.qa.pictures.q': '¿Qué ejercicios usan una imagen?',
   'editorHelp.qa.pictures.a':
-      'What is in the picture (elegir el nombre), Name what you see (formar el nombre con bloques de palabras), Type what you see (escribir el nombre), Spell the word in the picture, Match picture to word y Picture flashcard. Elige la imagen en Exercise image.',
+      'What is in the picture (elegir el nombre), Name what you see (formar el nombre con bloques de palabras), Type what you see (escribir el nombre), Spell the word in the picture y Picture flashcard: elige la imagen en Exercise image. Match pictures to words tiene en cambio una imagen por palabra, elegida debajo de sus palabras.',
   'editorHelp.qa.allTypes.q': '¿Dónde se explica cada tipo de ejercicio?',
   'editorHelp.qa.allTypes.a':
       'En Referencia técnica › Exercise types, al principio de esta página, y con Exercise Help junto a cada preset.',

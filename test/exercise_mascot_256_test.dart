@@ -34,8 +34,15 @@ final _bundledMascots = [
 
 const _sleepingMonkey = 'assets/mascots/qql-monkey-sleeping.png';
 
+// The Edge Case is the Course to import since Build 259 Revision 5.
 Course _load(String file) => Course.fromJson(
-  jsonDecode(File('assets/courses/$file').readAsStringSync())
+  jsonDecode(
+        File(
+          file == 'edge_case_it_en.json'
+              ? 'demo_courses/$file'
+              : 'assets/courses/$file',
+        ).readAsStringSync(),
+      )
       as Map<String, dynamic>,
 );
 

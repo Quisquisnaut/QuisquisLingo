@@ -492,7 +492,7 @@ abstract final class ExercisePresetRegistry {
     ),
     ExercisePreset(
       id: 'picture_word_match',
-      name: 'Match picture to word',
+      name: 'Match pictures to words',
       description: 'Learner matches pictures with their words.',
       category: ExerciseCategory.picturesAndCharacters,
       primitive: ExercisePrimitive.match,

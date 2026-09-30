@@ -95,9 +95,22 @@ Laboratory baseline 2 added, 4 removed, 5 deliberate changes. `flutter
 analyze --no-pub`: no issues. Second complete suite 3445 passed, 1
 skipped, 0 failed (20:22), after a converter fix found by the first.
 
+## Revision 5 (implemented, 30 September 2026)
+
+The owner's third review, points 1–5 (two answers in chat: the exported Edge
+Case goes to `Import/Courses`; the Course stays in the repository as a
+Course to import), in the working tree as `2.0.59+259005`: see
+`docs/259_CHANGE_SUMMARY.md` (Revision 5). New tests
+`test/owner_review_259_revision5_test.dart` and the import test in
+`edge_case_course_254_test.dart`; new helper
+`test/support/edge_case_fixture.dart`; Laboratory baseline: the ten Dialogue
+lines re-recorded. `flutter analyze --no-pub`: no issues. The ZIP made by
+the app's export is in `Documents/QuisquisLingo/Import/Courses` (not
+committed). Complete suite 3451 passed, 1 skipped, 0 failed (23:12).
+
 ## Next
 
-Build 259 is complete after Revision 4. The plan's separate findings C, E
+Build 259 is complete after Revision 5. The plan's separate findings C, E
 and F are not in this build.
 
 Stage with `git add -A -- . ':!devtools_options.yaml' ':!tools/cloud_setup.sh'`

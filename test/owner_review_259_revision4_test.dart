@@ -282,7 +282,7 @@ void main() {
       expect(picture.label, isEmpty);
     });
 
-    testWidgets('Match picture to word shows the pictures without paths', (
+    testWidgets('Match pictures to words shows the pictures without paths', (
       tester,
     ) async {
       await _pumpRound(tester, _lab('picture_word_match'));

@@ -7,6 +7,8 @@ import 'package:quisquislingo_app/services/settings_service.dart';
 import 'package:quisquislingo_app/services/world_flag_repository.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'support/edge_case_fixture.dart';
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   setUp(() => SharedPreferences.setMockInitialValues({}));
@@ -39,6 +41,7 @@ void main() {
             fail('${course.title} has no drawable flag.');
         }
       }
+      registerEdgeCaseFixture();
       final edge = await courses.loadBundledCourse('EN_EDGE');
       expect(edge.flagCode, 'EN');
     },
@@ -55,10 +58,9 @@ void main() {
       CourseService.courseAssets['PMS'],
       'assets/courses/piedmontais_en.json',
     );
-    expect(
-      CourseService.courseAssets['EN_EDGE'],
-      'assets/courses/edge_case_it_en.json',
-    );
+    // Build 259 Revision 5: the Edge Case left the bundle; it is imported
+    // from demo_courses/.
+    expect(CourseService.courseAssets.containsKey('EN_EDGE'), isFalse);
     // Build 255 Revision 6 removed the Spanish-to-English demo.
     expect(CourseService.hasCourse('EN'), isFalse);
   });
@@ -66,6 +68,7 @@ void main() {
   test(
     'the Edge Course keeps its own selection reference and shares English',
     () async {
+      registerEdgeCaseFixture();
       final service = CourseService();
       final italianToEnglish = await service.loadBundledCourse('EN_EDGE');
       expect(CourseService.bundledCodeForCourse(italianToEnglish), 'EN_EDGE');
@@ -78,6 +81,7 @@ void main() {
   );
 
   test('current Edge Course protection does not hide another bundle', () async {
+    registerEdgeCaseFixture();
     await ProfileService().addProfile('Demo learner');
     await SettingsService().setLastSelectedCourseCode('EN_EDGE');
     final service = CourseService();

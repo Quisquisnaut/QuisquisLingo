@@ -9702,7 +9702,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
       .toList(growable: false);
 
   /// One picture per answer (Select the image, Listen and pick the image,
-  /// Match picture to word): `_icons` holds one line per answer, in the
+  /// Match pictures to words): `_icons` holds one line per answer, in the
   /// answers' order, a picture reference or a named icon key. The cards
   /// follow the answers as they are typed (owner report, 29 September
   /// 2026: the form rebuilt only on its first change, so a word typed
@@ -9765,7 +9765,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     _icons.text = lines.take(count).join('\n');
   }
 
-  /// Match picture to word keeps its pairs as words (`_answers`) and
+  /// Match pictures to words keeps its pairs as words (`_answers`) and
   /// pictures (`_icons`) in the form and as `picture = word` lines in the
   /// draft.
   String _picturePairsText() {
@@ -11439,6 +11439,8 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         'Picture: required. Choose one, or save as draft.',
       ExerciseDraftErrorCode.gapsRequired =>
         'Text: mark each gap with ___ (three underscores).',
+      ExerciseDraftErrorCode.wordsTooFew =>
+        'Words: enter at least two words, one per line.',
       ExerciseDraftErrorCode.blanksTooFew =>
         'Sentences: mark at least two gaps with ___ (three underscores). '
             'For one gap, use Pick the missing word.',
@@ -12084,9 +12086,12 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
             const SizedBox(height: 12),
             ..._specificFields(),
             const SizedBox(height: 12),
+            // Match pictures to words has only the pictures of its words
+            // (Build 259 Revision 5).
             if (_type != 'script_recognition' &&
                 _type != 'before_you_start' &&
-                _type != 'page')
+                _type != 'page' &&
+                _type != 'picture_word_match')
               ExerciseImageField(
                 course: widget.course,
                 asset: _imageAsset,

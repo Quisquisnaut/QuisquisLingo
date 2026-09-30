@@ -8765,7 +8765,7 @@
       "publicationState": "published",
       "updatedAt": "2026-09-25T00:00:00.000Z",
       "section": false,
-      "title": "Match picture to word — Pictures and words",
+      "title": "Match pictures to words — Pictures and words",
       "themeIconAsset": "assets/lesson_icons/speech_bubbles.png",
       "guidebook": {
         "content": [
@@ -8785,7 +8785,7 @@
           "publicationState": "published",
           "updatedAt": "2026-09-25T00:00:00.000Z",
           "visualType": "generic",
-          "title": "Match picture to word practice",
+          "title": "Match pictures to words practice",
           "content": [
             {
               "id": "pms_e5f5585a_l39_r01_intro",
@@ -8793,7 +8793,7 @@
               "kind": "text",
               "required": false,
               "role": "lesson_intro",
-              "text": "Match picture to word: Pictures and words. Three short examples use this exercise type."
+              "text": "Match pictures to words: Pictures and words. Three short examples use this exercise type."
             },
             {
               "publicationState": "published",
@@ -9231,5 +9231,5 @@
       }
     }
   ],
-  "officialChecksum": "7d826d0c9c7d846454ae6cd9eee4781a8c32ad44e1bf628ea924de59ffa9081c"
+  "officialChecksum": "8b851412a7adc7d4fcb432c449cc96623d28314c7b64569a9d0ad73785f916e5"
 }

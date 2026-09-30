@@ -1522,8 +1522,16 @@ class _RoundScreenState extends State<RoundScreen> {
   }
 
   /// The marker above the active item of a scrolling Story.
-  Widget _storyNowMarker() => Padding(
-    key: _storyNowKey,
+  /// The step count, once, above the title block; after the first step
+  /// only an invisible anchor marks the active item, which the page scrolls
+  /// to the top (Build 259 Revision 5, owner decision: no "Now · step k of
+  /// N" line).
+  Widget _storyNowMarker() => _storyLog.isEmpty
+      ? _storyStepsLine(key: _storyNowKey)
+      : SizedBox(key: _storyNowKey, width: double.infinity);
+
+  Widget _storyStepsLine({Key? key}) => Padding(
+    key: key,
     padding: const EdgeInsets.only(bottom: 10),
     child: Row(
       children: [
@@ -1534,9 +1542,7 @@ class _RoundScreenState extends State<RoundScreen> {
         ),
         const SizedBox(width: 4),
         Text(
-          _storyLog.isEmpty
-              ? '$_roundNoun · ${_queue.length} steps'
-              : 'Now · step ${_storyLog.length + 1} of ${_queue.length}',
+          '$_roundNoun · ${_queue.length} steps',
           key: const Key('story-now'),
           style: Theme.of(context).textTheme.labelLarge?.copyWith(
             color: Theme.of(context).colorScheme.primary,
@@ -2857,7 +2863,7 @@ class _RoundScreenState extends State<RoundScreen> {
   }
 
   /// A Match left item: its text, or its picture with the text beside it
-  /// (Match picture to word).
+  /// (Match pictures to words).
   Widget _matchLeftContent(_MatchPairView pair) {
     if (pair.leftImage.isEmpty) return Text(pair.leftLabel, softWrap: true);
     return Row(
@@ -4282,6 +4288,7 @@ class _RoundScreenState extends State<RoundScreen> {
           padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
           children: [
             if (_storyScrolls) ...[
+              if (_storyLog.isNotEmpty) _storyStepsLine(),
               for (var i = 0; i < _storyLog.length; i++)
                 _storyEntryCard(_storyLog[i], i),
               _storyNowMarker(),
@@ -4329,9 +4336,12 @@ class _RoundScreenState extends State<RoundScreen> {
                 ),
                 const SizedBox(height: 4),
               ],
-              // A Page has no instruction line either (Build 258).
+              // A Page has no instruction line either (Build 258), nor a
+              // Dialogue line (Build 259 Revision 5, owner decision: no
+              // "Read or listen, then continue.").
               if (ex.isExecutable &&
-                  ExerciseFeatures(ex).kind != LearnerExerciseKind.page)
+                  ExerciseFeatures(ex).kind != LearnerExerciseKind.page &&
+                  ExerciseFeatures(ex).kind != LearnerExerciseKind.dialogueLine)
                 _withMascot(
                   _promptAsInstruction
                       ? ExerciseMascotAnchor.prompt

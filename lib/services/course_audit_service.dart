@@ -1338,7 +1338,7 @@ class CourseAuditService {
     'picture_blocks' ||
     'picture_flashcard' => ' ${_presetNameOf(presetId)} needs its picture.',
     'picture_word_match' =>
-      ' Match picture to word needs a picture on every left item.',
+      ' Match pictures to words needs a picture on every left item.',
     'sort_into_groups' =>
       ' Sort into groups needs groups (categories): one target per group, named by the text before it, holding its words.',
     'fill_the_slots' =>
@@ -1689,7 +1689,7 @@ class CourseAuditService {
             if (f.leftItems.any((item) => item.image.isEmpty)) {
               add(
                 AuditCode.presetCanonicalMismatch,
-                'Match picture to word needs a picture on every left item.',
+                'Match pictures to words needs a picture on every left item.',
               );
             }
           case 'super_match':
