@@ -126,7 +126,7 @@ in the working tree as `2.0.59+259007`: see `docs/259_CHANGE_SUMMARY.md`
 Laboratory baseline 41 records. Complete suite 3462 passed, 1 skipped, 0
 failed (08:55).
 
-## Revision 8 (implemented, 1 October 2026)
+## Revision 8 (committed `253ca6b`, 10:05, 1 October 2026)
 
 Private courses and three Laboratory fixes, in the working tree as
 `2.0.59+259008`: see `docs/259_CHANGE_SUMMARY.md` (Revision 8). New
