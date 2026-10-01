@@ -108,7 +108,7 @@ lines re-recorded. `flutter analyze --no-pub`: no issues. The ZIP made by
 the app's export is in `Documents/QuisquisLingo/Import/Courses` (not
 committed). Complete suite 3451 passed, 1 skipped, 0 failed (23:12).
 
-## Revision 6 (implemented, 1 October 2026)
+## Revision 6 (committed `e44d829`, 02:50, 1 October 2026)
 
 QQL Demo: Piedmontese, the Piedmontese demo renamed, the Temporary Sample
 Help question removed, in the working tree as `2.0.59+259006`: see
