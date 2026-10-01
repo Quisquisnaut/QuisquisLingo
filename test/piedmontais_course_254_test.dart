@@ -40,7 +40,8 @@ void main() {
       expect(course.sourceLanguageTag, 'en-GB');
       expect(course.targetLanguageTag, 'pms-IT');
       expect(course.worldFlagId, 'piedmontese');
-      expect(course.temporarySample, isTrue);
+      // Not a Private course (Build 259 Revision 8).
+      expect(course.temporarySample, isFalse);
       expect(course.courseDescription, contains('UNREVIEWED AI-GENERATED'));
       expect(course.courseDescription, contains('no recorded'));
       expect(course.audioMode, 'tts');

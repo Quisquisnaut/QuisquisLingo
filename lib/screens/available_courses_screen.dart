@@ -8,6 +8,7 @@ import '../localization/locale_builder.dart';
 import '../localization/locale_service.dart';
 import '../models/course_draft_status.dart';
 import '../models/course_models.dart';
+import '../services/course_access_policy.dart';
 import '../services/course_library_categories.dart';
 import '../services/course_editor_service.dart';
 import '../services/course_favorite_service.dart';
@@ -17,6 +18,7 @@ import '../services/course_library_presentation.dart';
 import '../services/course_library_service.dart';
 import '../services/course_library_view_service.dart';
 import '../services/course_media_store.dart';
+import '../services/course_privacy.dart';
 import '../services/course_service.dart';
 import '../services/progress_service.dart';
 import '../widgets/app_locale_selector.dart';
@@ -212,11 +214,16 @@ class _AvailableCoursesScreenState extends State<AvailableCoursesScreen> {
   Future<void> _load() async {
     try {
       final editor = widget.editorService ?? CourseEditorService();
-      final courses = <Course>[
-        for (final code in CourseService.bundledAssets.keys)
-          await CourseService().loadCourse(code),
-        ...await editor.listUserCourses(),
-      ];
+      // Other people's Private courses are not listed (Build 259 Revision
+      // 8).
+      final courses =
+          await CoursePrivacy(
+            accessPolicy: CourseAccessPolicy(profileService: _library.profiles),
+          ).visible([
+            for (final code in CourseService.bundledAssets.keys)
+              await CourseService().loadCourse(code),
+            ...await editor.listUserCourses(),
+          ]);
       final added = (await _library.included(
         courses,
       )).map((c) => c.courseId).toSet();

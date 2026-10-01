@@ -54,7 +54,7 @@
   "targetLanguageTag": "pms-IT",
   "textDirection": "ltr",
   "worldFlagId": "piedmontese",
-  "temporarySample": true,
+  "temporarySample": false,
   "lessons": [
     {
       "lessonId": "pmsmix_69ff369e_l01",
@@ -9169,5 +9169,5 @@
       "voice": "female"
     }
   ],
-  "officialChecksum": "18bb2a5f594b28f123f2c3a02977838aa0f87f89b0a3be68157d0a8cc95b40c9"
+  "officialChecksum": "bcba5fe6e00e71d2f25a5bf1fd9f70dc6dcf6810c772febfef7dcdc08e066ec5"
 }

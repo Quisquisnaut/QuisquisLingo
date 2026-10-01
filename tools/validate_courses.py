@@ -187,6 +187,10 @@ def validate(path: Path, global_ids: dict[str, str]) -> list[str]:
                 issues.append(f"root: author {index} roles must be a list")
     if not isinstance(data.get("temporarySample"), bool):
         issues.append("root: temporarySample must be a boolean")
+    elif data.get("temporarySample"):
+        # Build 259 Revision 8: the flag means Private course; a bundled demo
+        # is for everyone.
+        issues.append("root: a bundled course must not be a Private course (temporarySample)")
     if data.get("ttsLanguage") != EXPECTED_TTS[path.name]:
         issues.append(f"root: expected TTS locale {EXPECTED_TTS[path.name]}, found {data.get('ttsLanguage')!r}")
     add_id(data.get("courseId"), "root")

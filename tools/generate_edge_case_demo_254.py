@@ -379,7 +379,8 @@ def build_course() -> dict:
             "(opzioni duplicate, testo lungo e una Story di sole copertine). Hybrid prova MP3 preinstallati e fallback TTS; i campioni MP3 "
             "non hanno una trascrizione verificata e sono solo prove di riproduzione. Fork abilita i collaudi "
             "Copy as New Course e Merge su copie personali. Non è un percorso didattico revisionato.",
-        "textDirection": "ltr", "flagCode": "EN", "temporarySample": True,
+        # Build 259 Revision 8: temporarySample is the Private course flag; a demo is for everyone.
+        "textDirection": "ltr", "flagCode": "EN", "temporarySample": False,
         "keywords": ["demo", "edge cases", "Unicode", "audio", "Draft"],
         "audioLibrary": [
             {"id": pid("audio_01"), "text": "recorded sample one", "filePath": "assets/audio/en_sample/sample_1.mp3"},

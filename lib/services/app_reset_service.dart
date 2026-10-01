@@ -3,10 +3,13 @@ import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../models/course_models.dart';
+import 'course_access_policy.dart';
 import 'course_editor_storage.dart';
 import 'course_file_store.dart';
 import 'course_received_service.dart';
 import 'course_media_store.dart';
+import 'course_privacy.dart';
 import 'diagnostic_log_service.dart';
 import 'exercise_image_service.dart';
 import 'image_bank_service.dart';
@@ -46,6 +49,16 @@ class AppResetPreview {
   /// image file exists.
   final bool hasImageLibraryRecords;
 
+  /// How many stored Private courses the active admin cannot see (Build 259
+  /// Revision 8): removing custom courses removes them too.
+  final int hiddenPrivateCourseCount;
+
+  /// The Courses a non-admin learner maintains, named for the active admin
+  /// (another learner's Private course is "a Private course"): removing the
+  /// non-admin learners is refused while there are any (Build 259 Revision
+  /// 8).
+  final List<String> coursesMaintainedByNonAdmins;
+
   int get mediaFileCount => imageFileCount + audioFileCount;
 
   const AppResetPreview({
@@ -55,6 +68,8 @@ class AppResetPreview {
     required this.audioFileCount,
     required this.hasCustomCourses,
     required this.hasImageLibraryRecords,
+    this.hiddenPrivateCourseCount = 0,
+    this.coursesMaintainedByNonAdmins = const [],
   });
 }
 
@@ -167,6 +182,7 @@ class AppResetService {
     // One pass over course media counts both kinds.
     final courseMedia = await _courseMediaFiles(images: true, audio: true);
     final audio = courseMedia.where(_isCourseAudio).length;
+    final courses = await _storedCustomCourses();
     final images =
         await _countFiles(await _directories(_imageFolders)) +
         courseMedia.length -
@@ -190,6 +206,15 @@ class AppResetService {
               ) >
               0,
       hasImageLibraryRecords: _mediaKeys.any(prefs.containsKey),
+      hiddenPrivateCourseCount: await _hiddenPrivateCourseCount(courses),
+      coursesMaintainedByNonAdmins: await _maintainedCourseNames(
+        courses,
+        learners
+            .where((learner) => !admins.contains(learner.learnerProfileId))
+            .map((learner) => learner.learnerProfileId)
+            .toSet(),
+        await _profiles.getActiveProfileId(),
+      ),
     );
   }
 
@@ -218,7 +243,7 @@ class AppResetService {
       case AppResetScope.learnerProgress:
         await _resetLearnerProgress();
       case AppResetScope.nonAdminLearners:
-        await _removeNonAdminLearners();
+        await _removeNonAdminLearners(actorProfileId);
       case AppResetScope.importedMedia:
         await _removeImportedMedia(images: removeImages, audio: removeAudio);
       case AppResetScope.customCourses:
@@ -266,7 +291,53 @@ class AppResetService {
     }
   }
 
-  Future<void> _removeNonAdminLearners() async {
+  /// The stored custom Courses that can be read. An unreadable file names
+  /// no Maintainer and is listed by nobody anyway, so it is skipped.
+  Future<List<Course>> _storedCustomCourses() async {
+    final records = (await CourseFileStore(
+      supportDirectory: _support,
+    ).readReadable(CourseStoreKind.custom)).records;
+    return [
+      for (final record in records.values)
+        if (record is Map && record['course'] is Map)
+          Course.fromJson(Map<String, dynamic>.from(record['course'] as Map)),
+    ];
+  }
+
+  Future<int> _hiddenPrivateCourseCount(List<Course> courses) async {
+    final privacy = CoursePrivacy(
+      accessPolicy: CourseAccessPolicy(profileService: _profiles),
+    );
+    var count = 0;
+    for (final course in courses) {
+      if (CoursePrivacy.isPrivate(course) && !await privacy.isVisible(course)) {
+        count++;
+      }
+    }
+    return count;
+  }
+
+  /// The Courses maintained by [maintainers], by title, except another
+  /// learner's Private course, which [viewerProfileId] cannot see.
+  Future<List<String>> _maintainedCourseNames(
+    List<Course> courses,
+    Set<String> maintainers,
+    String? viewerProfileId,
+  ) async {
+    final privacy = CoursePrivacy(
+      accessPolicy: CourseAccessPolicy(profileService: _profiles),
+    );
+    return [
+      for (final course in courses)
+        if (course.originType == CourseOriginType.custom &&
+            maintainers.contains(course.maintainer?.profileId))
+          await privacy.isVisibleTo(course, viewerProfileId)
+              ? '“${course.title}”'
+              : 'a Private course',
+    ];
+  }
+
+  Future<void> _removeNonAdminLearners(String actorProfileId) async {
     final prefs = await SharedPreferences.getInstance();
     final learners = await _profiles.getProfileRecords();
     final admins = await _profiles.getAdminProfileIds();
@@ -275,6 +346,19 @@ class AppResetService {
         .map((learner) => learner.learnerProfileId)
         .toSet();
     if (removed.isEmpty) return;
+    // Like deleting one profile (CourseMaintainerGuard): a learner who
+    // maintains a Course is not removed, or their Private course would stay
+    // on the device seen by nobody (Build 259 Revision 8, owner decision).
+    final maintained = await _maintainedCourseNames(
+      await _storedCustomCourses(),
+      removed,
+      actorProfileId,
+    );
+    if (maintained.isNotEmpty) {
+      throw AppResetException(
+        'These learners maintain ${maintained.join(', ')}. Change the Course Maintainer or delete those Courses first. Nothing was changed.',
+      );
+    }
     for (final id in removed) {
       final prefix = ProfileService.prefixForProfileId(id);
       for (final key in prefs.getKeys().where((k) => k.startsWith(prefix))) {

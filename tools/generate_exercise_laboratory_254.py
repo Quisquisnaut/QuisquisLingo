@@ -485,8 +485,10 @@ def laboratory() -> Laboratory:
     lab.enter("input_fragment_audio", "fill_blank", [text("Buon____", "question"), audio("Buongiorno")], ["giorno"], "Type a missing word; audio supplements the clue and accepts a literal full phrase", answer="giorno / buongiorno")
     lab.enter("input_gap_variants", "fill_blank", [text("Il bambino è ___.", "question")], ["[felice|contento]"], "Type a missing word; accepted-answer expression", hint="Choose an adjective meaning happy.", answer="felice / contento")
     lab.enter("input_first_letter", "type_missing_word", [text("Il ___ miagola.")], ["gatto"], "Type the missing word; one ___ gap and full accepted word", hint="Think of a common household animal.")
-    lab.enter("input_first_alternatives", "type_missing_word", [text("In fattoria vive un ___.")], ["cane", "cavallo"], "Type the missing word; multiple complete words sharing the first grapheme", hint="Both accepted animals begin with the same letter.")
-    lab.enter("input_first_unicode", "type_missing_word", [text("Il mio amico francese si chiama ___.")], ["Émile", "Étienne"], "Type the missing word; accented first Unicode grapheme and proper names", hint="Two traditional French male names are accepted.")
+    lab.enter("input_first_alternatives", "type_missing_word", [text("In fattoria vive un ___.")], ["cane", "cavallo"], "Type the missing word; multiple complete words sharing the first grapheme", hint="One barks; you can ride the other.")
+    # Build 259 Revision 8 (owner review): an Italian proper name; the
+    # French names were not about Italian.
+    lab.enter("input_first_unicode", "type_missing_word", [text("Il David di Michelangelo è a ___.")], ["Firenze"], "Type the missing word; a proper name with its capital first letter", hint="The capital of Tuscany.")
 
     lab.start_round("input_listening", "Transcriptions and missing words", "Enable Audio Exercises and Text-to-speech. For a transcription, type the whole utterance. For missing words, complete the numbered fields in transcript order.", "listening")
     # Build 259 Revision 3: the Audio text is always accepted; other
@@ -516,7 +518,9 @@ def laboratory() -> Laboratory:
     lab.arrange("picture_blocks", "picture_blocks", [text("What is this?"), image("bread", "Bread", "picture")], ["il", "pane", "la"], [[0, 1]], "Name what you see; picture prompt, word blocks, one extra block and a hint", hint="Include the article.")
 
     lab.start_round("arrange_gaps", "Pick the words for the gaps", "Tap a word for each gap: each word fills one gap and leaves the bank. A word needed twice is offered twice. Gap contents can be removed, moved or swapped.")
-    lab.gaps("arrange_gap_one", "gap_blocks", "Complete the sentence.", ["Il gatto", ("dorme",), "."], [], "Inline Arrange; one gap; no distractors")
+    # Build 259 Revision 8 (owner review): at least two blocks to choose
+    # from; the plural form does not agree with il gatto.
+    lab.gaps("arrange_gap_one", "gap_blocks", "Complete the sentence.", ["Il gatto", ("dorme",), "."], ["dormono"], "Inline Arrange; one gap; one distractor")
     lab.gaps("arrange_gap_many", "gap_blocks", "Complete the sentence about Anna's drink.", ["Anna", ("beve",), ("acqua",), "."], ["mangia"], "Inline Arrange; two gaps; one distractor")
     lab.gaps("arrange_gap_repeat", "gap_blocks", "Complete the sentences using separate blocks.", ["Luca", ("è",), "italiano. Anna", ("è",), "italiana."], ["sono", "siamo"], "Inline Arrange; repeated text requires distinct tile IDs; two distractors")
     lab.gaps("arrange_gap_audio", "gap_blocks", "Listen and complete the sentence.", ["Io vado", ("a scuola",), ("in autobus",), "."], [], "Inline Arrange; phrase blocks and spoken prompt", spoken="Io vado a scuola in autobus.")
@@ -662,7 +666,8 @@ def course_v11(lab: Laboratory) -> dict:
         "authors": [{"name": "QuisquisLingo", "roles": ["Author"]}],
         "license": "All rights reserved", "derivativeWorksPolicy": "allowed",
         "courseDescription": "An English-to-Italian laboratory for trying every current Exercise type and its meaningful authoring options. Five Lessons group Select, Input, Arrange, Match and Presentation; a sixth Lesson is a Story, a seventh holds Assign (Sort into groups, Fill the slots) and an eighth shows Pages. Inspect or Fork the Course in Course Studio to study how the exercises are authored. Enable Audio Exercises and Text-to-speech to include all listening and pronunciation examples; ordinary lesson progression remains in effect.",
-        "textDirection": "ltr", "temporarySample": True, "flagCode": "IT",
+        # Build 259 Revision 8: temporarySample is the Private course flag; a demo is for everyone.
+        "textDirection": "ltr", "temporarySample": False, "flagCode": "IT",
         "createDuels": False,
         "mediaAttributions": [{
             "author": "QuisquisLingo", "license": "All rights reserved",

@@ -19,7 +19,8 @@ void main() {
       final raw = jsonDecode(await rootBundle.loadString(entry.value));
       final course = Course.fromJson(Map<String, dynamic>.from(raw as Map));
       expect(course.originType, CourseOriginType.bundledOfficial);
-      expect(course.temporarySample, isTrue);
+      // Not a Private course (Build 259 Revision 8).
+      expect(course.temporarySample, isFalse);
       // Revision 6 titles: Demo: … and QQL Demo: … (owner decision).
       expect(course.title, contains('Demo: '));
       titles.add(course.title);

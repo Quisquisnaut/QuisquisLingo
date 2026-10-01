@@ -40,7 +40,7 @@
   "derivativeWorksPolicy": "allowed",
   "courseDescription": "An English-to-Italian laboratory for trying every current Exercise type and its meaningful authoring options. Five Lessons group Select, Input, Arrange, Match and Presentation; a sixth Lesson is a Story, a seventh holds Assign (Sort into groups, Fill the slots) and an eighth shows Pages. Inspect or Fork the Course in Course Studio to study how the exercises are authored. Enable Audio Exercises and Text-to-speech to include all listening and pronunciation examples; ordinary lesson progression remains in effect.",
   "textDirection": "ltr",
-  "temporarySample": true,
+  "temporarySample": false,
   "flagCode": "IT",
   "createDuels": false,
   "mediaAttributions": [
@@ -3041,7 +3041,7 @@
                     }
                   ]
                 },
-                "hint": "Both accepted animals begin with the same letter."
+                "hint": "One barks; you can ride the other."
               }
             },
             {
@@ -3069,7 +3069,7 @@
                 "layout": [
                   {
                     "type": "text",
-                    "text": "Il mio amico francese si chiama "
+                    "text": "Il David di Michelangelo è a "
                   },
                   {
                     "type": "target",
@@ -3086,13 +3086,12 @@
                     {
                       "targetId": "gap_1",
                       "answers": [
-                        "Émile",
-                        "Étienne"
+                        "Firenze"
                       ]
                     }
                   ]
                 },
-                "hint": "Two traditional French male names are accepted."
+                "hint": "The capital of Tuscany."
               }
             }
           ]
@@ -4374,6 +4373,16 @@
                         "role": "primary",
                         "type": "text",
                         "text": "dorme"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_lab254_arrange_gap_one_item_1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "dormono"
                       }
                     ]
                   }
@@ -9223,5 +9232,5 @@
     }
   ],
   "minimumAppBuild": 258000,
-  "officialChecksum": "7ca92d66318a367fbf8a958e9fd9d1ff02d66a38b312ddaf779b796cf7d1e4da"
+  "officialChecksum": "a64dea91715af113c8020ff2437de460028035be335022440d62409833eff895"
 }

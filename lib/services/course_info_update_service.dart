@@ -11,6 +11,9 @@ typedef CourseInfoChange = ({
   DerivativeWorksPolicy derivativePolicy,
   // Build 258 Revision 4: learners may share, save and print Pages.
   bool allowPageSharing,
+  // Build 259 Revision 8: a Private course (stored as temporarySample) is
+  // visible only to its Maintainer and assigned Team.
+  bool privateCourse,
   String variant,
   String startLevel,
   String targetLevel,
@@ -102,6 +105,7 @@ class CourseInfoUpdateService {
       'license': change.license,
       'derivativeWorksPolicy': change.derivativePolicy.name,
       'allowPageSharing': change.allowPageSharing,
+      'temporarySample': change.privateCourse,
       'languageVariant': change.variant,
       'startLevel': change.startLevel,
       'targetLevel': change.targetLevel,

@@ -40,7 +40,7 @@
   "derivativeWorksPolicy": "allowed",
   "courseDescription": "An English-to-Italian laboratory for trying every current Exercise type and its meaningful authoring options. Five Lessons group Select, Input, Arrange, Match and Presentation; a sixth Lesson is a Story, a seventh holds Assign (Sort into groups, Fill the slots) and an eighth shows Pages. Inspect or Fork the Course in Course Studio to study how the exercises are authored. Enable Audio Exercises and Text-to-speech to include all listening and pronunciation examples; ordinary lesson progression remains in effect.",
   "textDirection": "ltr",
-  "temporarySample": true,
+  "temporarySample": false,
   "flagCode": "IT",
   "createDuels": false,
   "mediaAttributions": [
@@ -2870,7 +2870,7 @@
                     "accents": "preserve"
                   }
                 },
-                "hint": "Both accepted animals begin with the same letter."
+                "hint": "One barks; you can ride the other."
               }
             },
             {
@@ -2885,7 +2885,7 @@
                   {
                     "role": "primary",
                     "type": "text",
-                    "text": "Il mio amico francese si chiama ___."
+                    "text": "Il David di Michelangelo è a ___."
                   }
                 ],
                 "interaction": {
@@ -2895,8 +2895,7 @@
                 "evaluation": {
                   "kind": "text_match",
                   "acceptedAnswers": [
-                    "Émile",
-                    "Étienne"
+                    "Firenze"
                   ],
                   "normalization": {
                     "case": "ignore",
@@ -2905,7 +2904,7 @@
                     "accents": "preserve"
                   }
                 },
-                "hint": "Two traditional French male names are accepted."
+                "hint": "The capital of Tuscany."
               }
             }
           ]
@@ -3924,6 +3923,16 @@
                           "role": "primary",
                           "type": "text",
                           "text": "dorme"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_lab254_arrange_gap_one_item_1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "dormono"
                         }
                       ]
                     }
@@ -6800,5 +6809,5 @@
       }
     }
   ],
-  "officialChecksum": "cb9d75d0f78cc865d45f05ae39dd93558d3b556473eb39d04b60a686b7e3452f"
+  "officialChecksum": "112ca2ff16450abfbd7774033e86c99951667e1d4530e2ee64d7b5b2f557cf86"
 }

@@ -375,3 +375,39 @@ handoff: `259_HANDOFF.md`.
 - `flutter analyze --no-pub`: no issues.
 - **Complete suite** (08:27–08:55, `--concurrency=1`, keep-awake):
   **3462 passed, 1 skipped, 0 failed**.
+
+## Revision 8 (2.0.59+259008, 1 October 2026): Private courses, Laboratory fixes
+
+**Generators and validator**
+- The Laboratory, Piedmontese, QQL Demo: Piedmontese and Edge Case
+  generators write `temporarySample: false`; `--check` reproducible for all.
+  The v11 fixtures of the Laboratory and the Piedmontese demo rewritten
+  with their checksum.
+- `tools/validate_courses.py`: the three bundled Courses pass; it now
+  refuses a bundled Course whose `temporarySample` is true.
+
+**Laboratory presentation baseline**
+- Record run: 124 records; 3 changed (`input_first_unicode`,
+  `input_first_alternatives`, `arrange_gap_one`), none added or removed.
+
+**Tests**
+- New: `test/private_course_259_test.dart` (only custom Courses are
+  private; the Maintainer and the assigned Team see one, an admin does not,
+  even after adding it; Course Info's box; Fork and Copy start
+  non-private; someone else's Private course is refused by import and
+  Merge, its Maintainer imports it; the reset preview counts and names
+  without a title; removing non-admin learners is refused while they
+  maintain a Course; removing custom courses removes Private ones).
+- `course_info_update_service_245_test` turns Private course on and off.
+- Updated: the bundled-course flag (`release_053`, Piedmontese, official
+  provenance), the Editor Help count (68), and the Revision 3 Course Info
+  test (an official Course shows no Private course box).
+- Focused run: 2 failures fixed. The Course Info test above, and
+  `app_reset_service_239_test`: with an unreadable Course file the
+  maintainer check (a strict read) stopped "Remove all learners except
+  admins"; it now skips unreadable files, which name no Maintainer and are
+  listed by nobody.
+- `flutter analyze --no-pub`: no issues.
+- **Complete suite** (09:15–09:58, `--concurrency=1`, keep-awake; slower
+  than usual under other load on the PC): **3472 passed, 1 skipped, 0
+  failed**.

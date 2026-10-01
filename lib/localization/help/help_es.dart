@@ -106,6 +106,9 @@ const Map<String, String> helpEs = {
   'editorHelp.qa.restore.a':
       'Abre Version History en el Course Editor. Muestra la versión actual y los backups, del más nuevo al más antiguo, con Open backup folder y Export JSON. Restore into working copy carga el backup de un Custom Course en la copia de trabajo; solo sustituye el Course guardado cuando confirmas los cambios del Course. Los Courses oficiales conservan solo las versiones de su editor.',
   'editorHelp.qa.courseSettings.title': 'Ajustes del Course',
+  'editorHelp.qa.privateCourse.q': '¿Qué es un Private course?',
+  'editorHelp.qa.privateCourse.a':
+      'Un Course personalizado visible en QQL solo para su Course Maintainer y los miembros de su Team asignado: nadie más en este dispositivo lo ve en Course Library, el Course Selector o Course Studio, ni siquiera los admins. Activa o desactiva Private course en Course Info Editor. Un archivo exportado sigue siendo privado, así que en otro dispositivo solo su Maintainer y su Team pueden importarlo; QQL rechaza importar el Private course de otra persona o usarlo en un Merge. Fork y Copy as New Course empiezan como no privados. Un estudiante que es Maintainer de un Course no se puede eliminar hasta que cambie su Maintainer; Remove custom courses y Wipe out everything también eliminan los Private course, y su confirmación cuenta los que no ves.',
   'editorHelp.qa.courseInfo.q':
       '¿Dónde cambio el nombre y la descripción del Course?',
   'editorHelp.qa.courseInfo.a':
@@ -455,9 +458,9 @@ const Map<String, String> helpEs = {
   'courseInfo.internalCourseData': 'Datos internos del curso',
   'courseInfo.enlargeImage': 'Ampliar la imagen del curso',
   'courseInfo.courseModel': 'Course Model: v{value}',
-  'courseInfo.temporarySample.title': 'Temporary Sample',
+  'courseInfo.temporarySample.title': 'Private course',
   'courseInfo.temporarySample.body':
-      'Este curso está marcado TEMPORARY SAMPLE. El contenido precargado solo sirve para demostrar y probar el editor. Sustitúyelo por contenido revisado antes de publicar o distribuir el curso.',
+      'Este curso solo es visible en QQL para su Course Maintainer y los miembros de su Team asignado. Desactiva Private course en Course Info para mostrarlo a todos en este dispositivo.',
   'courseInfo.authorshipAndDescriptiveCredits':
       'Autoría y créditos descriptivos',
   'courseInfo.teamLeaderTooltip':
@@ -721,11 +724,11 @@ const Map<String, String> helpEs = {
   'deviceAdminHelp.resetOptions.bullet1':
       'Reset learner progress: borra XP, streaks y Lessons completadas de todos. Conserva estudiantes, PIN, ajustes y cursos.',
   'deviceAdminHelp.resetOptions.bullet2':
-      'Remove all learners except admins: elimina perfiles no Admin y sus datos; quita la lista de Team si nombra a alguno.',
+      'Remove all learners except admins: elimina perfiles no Admin y sus datos; quita la lista de Team si nombra a alguno. Se rechaza mientras alguno sea Maintainer de un Course: cambia antes el Course Maintainer o borra el Course.',
   'deviceAdminHelp.resetOptions.bullet3':
       'Remove imported media: elige imágenes, MP3 o ambos; al principio no hay nada marcado. Solo borra copias creadas por QQL. Los medios incluidos con la app siguen y los originales externos no se tocan. Las etiquetas y categorías de imágenes compartidas vuelven a sus valores iniciales.',
   'deviceAdminHelp.resetOptions.bullet4':
-      'Remove custom courses: borra cursos custom e instalados, Teams y todos los medios importados. Conserva estudiantes.',
+      'Remove custom courses: borra cursos custom e instalados, Teams y todos los medios importados. También borra los Private course de otros estudiantes, que no ves; la confirmación los cuenta. Conserva estudiantes.',
   'deviceAdminHelp.resetOptions.bullet5':
       'Wipe out everything: devuelve QQL al estado de una instalación nueva, incluidos estudiantes y Admin. Puedes conservar la carpeta Export, la carpeta Logs, las carpetas Import y ToBeMerged y la carpeta Backups; todas vienen marcadas para conservarse. Backups contiene los Course Backups automáticos.',
   'deviceAdminHelp.beforeResetBackups.title': 'Backups antes de Reset',

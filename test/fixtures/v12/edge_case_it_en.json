@@ -42,7 +42,7 @@
   "courseDescription": "TEMPORARY AI-GENERATED TEST COURSE. Italiano → inglese. Per trovarlo abilita Show unavailable: contiene strutture Draft valide, omesse nel Learner. Include tre avvisi Audit intenzionali (opzioni duplicate, testo lungo e una Story di sole copertine). Hybrid prova MP3 preinstallati e fallback TTS; i campioni MP3 non hanno una trascrizione verificata e sono solo prove di riproduzione. Fork abilita i collaudi Copy as New Course e Merge su copie personali. Non è un percorso didattico revisionato.",
   "textDirection": "ltr",
   "flagCode": "EN",
-  "temporarySample": true,
+  "temporarySample": false,
   "keywords": [
     "demo",
     "edge cases",
@@ -3330,5 +3330,5 @@
       }
     }
   ],
-  "officialChecksum": "dbc24583c6a4f85a19cfdd48687057c64023b9a05ba6288ce633956560f1bb29"
+  "officialChecksum": "7a2cd818d53666cb9be3c757f9dacb129e631fac9a7803c5cf8a78ee4e3bba5c"
 }

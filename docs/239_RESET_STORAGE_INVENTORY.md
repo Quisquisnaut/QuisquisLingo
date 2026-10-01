@@ -83,3 +83,12 @@ An update through this path requires that the importing profile include the Cour
 ### Course covers (Build 255 Revision 6)
 
 A Course's cover is ordinary Course media in `QQL_CourseMedia`, so the scopes that remove a Course's media remove it too. The Course Info Editor can now set one, and the cover alone may be up to 1 MB (other Course images stay at 50 KB). No key or folder is added.
+
+## Build 259 Revision 8: Private courses
+
+- Remove all learners except admins is refused while a learner it would
+  remove maintains a custom Course (as deleting one profile is); nothing
+  changes until the Maintainer is changed or the Course deleted.
+- Remove custom courses and Wipe out everything remove Private courses with
+  every other custom Course; the explanation counts those the admin cannot
+  see. No new key or folder: the flag is the Course's own `temporarySample`.

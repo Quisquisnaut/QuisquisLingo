@@ -20,6 +20,8 @@
 /// instruction. Revision 7 re-recorded 41 records: the standard lines no
 /// longer repeat their title, and Type / Build the translation name the
 /// language of the answer instead of a fixed "Translate from … into …" line.
+/// Revision 8 re-recorded 3 records: the Firenze gap, the farm-animal hint
+/// and the second block of "Il gatto ___.".
 const laboratoryPresentation = <String, Map<String, Object?>>{
   'qql_lab254_arrange_gap_audio': {
     'before': {
@@ -304,7 +306,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
         'outlined': <String>[],
         'checkboxes': 0,
         'textFields': 0,
-        'actionChips': 1,
+        'actionChips': 2,
         'inputChips': 0,
         'filterChips': 0,
         'choiceChips': 0,
@@ -366,7 +368,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
         'outlined': <String>[],
         'checkboxes': 0,
         'textFields': 0,
-        'actionChips': 0,
+        'actionChips': 1,
         'inputChips': 0,
         'filterChips': 0,
         'choiceChips': 0,
@@ -4868,7 +4870,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
       'texts': {
         'firstLetter': 'In fattoria vive un c______.',
         'gapHint': null,
-        'hints': ['Hint: Both accepted animals begin with the same letter.'],
+        'hints': ['Hint: One barks; you can ride the other.'],
         'translateFrom': <String>[],
         'usage': 0,
         'blanks': ['In fattoria vive un c______.'],
@@ -4930,7 +4932,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
       'texts': {
         'firstLetter': 'In fattoria vive un cane.',
         'gapHint': null,
-        'hints': ['Hint: Both accepted animals begin with the same letter.'],
+        'hints': ['Hint: One barks; you can ride the other.'],
         'translateFrom': <String>[],
         'usage': 0,
         'blanks': <String>[],
@@ -5118,12 +5120,12 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
         'iconButtons': 0,
       },
       'texts': {
-        'firstLetter': 'Il mio amico francese si chiama É______.',
+        'firstLetter': 'Il David di Michelangelo è a F______.',
         'gapHint': null,
-        'hints': ['Hint: Two traditional French male names are accepted.'],
+        'hints': ['Hint: The capital of Tuscany.'],
         'translateFrom': <String>[],
         'usage': 0,
-        'blanks': ['Il mio amico francese si chiama É______.'],
+        'blanks': ['Il David di Michelangelo è a F______.'],
       },
       'feedback': {
         'correct': 0,
@@ -5180,16 +5182,16 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
         'iconButtons': 0,
       },
       'texts': {
-        'firstLetter': 'Il mio amico francese si chiama Émile.',
+        'firstLetter': 'Il David di Michelangelo è a Firenze.',
         'gapHint': null,
-        'hints': ['Hint: Two traditional French male names are accepted.'],
+        'hints': ['Hint: The capital of Tuscany.'],
         'translateFrom': <String>[],
         'usage': 0,
         'blanks': <String>[],
       },
       'feedback': {
         'correct': 1,
-        'correctAnswer': ['Correct answer: Émile'],
+        'correctAnswer': ['Correct answer: Firenze'],
         'alternativesHeading': null,
         'alternatives': 0,
         'correctTranslations': 0,

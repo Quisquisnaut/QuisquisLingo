@@ -572,3 +572,56 @@ vocabulary.
 
 Scoring, progression, Review rules, the Course format and learner data
 are unchanged.
+
+## Revision 8 (2.0.59+259008, 1 October 2026): Private courses, Laboratory fixes
+
+Owner decisions of 1 October 2026 (answers in chat): the flag stays and is
+shown as **Private course**, a course visible in QQL only to its creator
+and Team, set from the editor; visible to the Maintainer and the assigned
+Team; custom Courses only, the demos off; an export keeps it, Fork and Copy
+start non-private; admins are not excepted; importing someone else's
+Private course is refused; the resets remove Private courses and say so;
+removing non-admin learners is refused while they maintain a Course.
+
+**Who sees a Private course.** A custom Course whose `temporarySample`
+flag is on is listed only for its Course Maintainer and the members of its
+assigned Team, the people who can edit it, in Course Library, the Course
+Selector and Course Studio; a learner who could no longer see the Course
+they had open gets the usual fallback. Admins see only their own and their
+Teams' Private courses. Official Courses are never private.
+
+**Setting it.** Course Info Editor has a Private course switch. Course
+Info shows a Private course box with who can see it. The bundled demos and
+the Edge Case Course to import are not private.
+
+**Copies and imports.** An exported file stays private: on another device
+only its Maintainer and Team (the same profile IDs) can import it. QQL
+refuses to import someone else's Private course, or to use it as the
+second Course of a Merge, with a message saying why. Fork and Copy as New
+Course start non-private. A Merge keeps the left Course's value; the flag
+no longer makes two Courses incompatible.
+
+**Resets.** "Remove all learners except admins" deleted learners without
+checking whether they maintained a Course, unlike deleting one profile. It
+is now refused while one of them maintains a custom Course; the
+explanation names the Courses first (another learner's Private course as
+"a Private course", never by title). "Remove custom courses" and "Wipe out
+everything" still remove every Course, Private ones included, and their
+explanation counts the Private courses the admin cannot see.
+
+**Exercise Laboratory.**
+- The French friend's name was not about Italian: Type the missing word
+  now asks "Il David di Michelangelo è a ___." (Firenze, hint "The capital
+  of Tuscany."). Italian has almost no word starting with an accented
+  letter, so the example no longer shows one.
+- The farm-animal hint repeated what the first letter already shows; it
+  is now "One barks; you can ride the other." (cane, cavallo).
+- Pick the words for the gaps, "Il gatto ___.", offered one block; it now
+  offers "dorme" and "dormono".
+
+**Help EN/IT/ES.** The Editor Help question "What is a Private course?"
+(68 questions), the reset options of Advanced (Admin) Help, and the
+Course Info box.
+
+Scoring, progression, Review, the Course format and learner data are
+unchanged.

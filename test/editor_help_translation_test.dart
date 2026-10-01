@@ -91,7 +91,8 @@ void main() {
         ];
         expect(english, hasLength(7));
         // Build 259 Revision 6 removed the Temporary Sample question.
-        expect(ids(english), hasLength(67));
+        // Revision 8 added What is a Private course?
+        expect(ids(english), hasLength(68));
         expect(ids(italian), ids(english));
         expect(ids(spanish), ids(english));
         expect(managerEnglish, hasLength(14));

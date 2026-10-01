@@ -824,6 +824,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
         : 'Other / Custom license';
     var derivativePolicy = _course.derivativeWorksPolicy;
     var allowPageSharing = _course.allowPageSharing;
+    var privateCourse = _course.temporarySample;
     String? mediaCreditError;
     var flagSelection = CourseFlagSelection.fromCourse(_course);
     var coverImage = _course.coverImage;
@@ -1529,6 +1530,19 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                     onChanged: (value) =>
                         setLocalState(() => allowPageSharing = value),
                   ),
+                  // Build 259 Revision 8 (owner decisions): the flag stored as
+                  // temporarySample, shown as Private course.
+                  SwitchListTile(
+                    key: const Key('course-info-private'),
+                    contentPadding: EdgeInsets.zero,
+                    title: const Text('Private course'),
+                    subtitle: const Text(
+                      'Visible in QQL only to the Course Maintainer and the members of its assigned Team; nobody else on this device sees it, admins included. An exported file stays private; Fork and Copy as New Course start non-private.',
+                    ),
+                    value: privateCourse,
+                    onChanged: (value) =>
+                        setLocalState(() => privateCourse = value),
+                  ),
                   const SizedBox(height: 12),
                   const Text(
                     'Rights Holder records rights ownership information. It does not control QQL permissions.',
@@ -1956,6 +1970,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                           selected,
                         ),
                   allowPageSharing: allowPageSharing,
+                  privateCourse: privateCourse,
                   variant: variant.text.trim(),
                   startLevel: startLevel.text.trim(),
                   targetLevel: targetLevel.text.trim(),

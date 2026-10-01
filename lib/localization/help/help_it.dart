@@ -105,6 +105,9 @@ const Map<String, String> helpIt = {
   "editorHelp.qa.restore.a":
       "Apri Version History nel Course Editor. Elenca la versione attuale e i backup, dal più recente, con Open backup folder ed Export JSON. Restore into working copy carica il backup di un Course custom nella copia di lavoro; sostituisce il Course salvato solo quando confermi le modifiche del Course. I Course ufficiali conservano solo le versioni dell’editore.",
   "editorHelp.qa.courseSettings.title": "Impostazioni del Course",
+  "editorHelp.qa.privateCourse.q": "Che cos’è un Private course?",
+  "editorHelp.qa.privateCourse.a":
+      "Un Course personalizzato visibile in QQL solo al suo Course Maintainer e ai membri del Team assegnato: nessun altro su questo dispositivo lo vede in Course Library, nel Course Selector o in Course Studio, admin compresi. Attiva o disattiva Private course in Course Info Editor. Un file esportato resta privato, quindi su un altro dispositivo solo il Maintainer e il Team possono importarlo; QQL rifiuta di importare il Private course di un’altra persona o di usarlo in un Merge. Fork e Copy as New Course partono non privati. Uno studente che fa da Maintainer a un Course non può essere rimosso finché il Maintainer non cambia; Remove custom courses e Wipe out everything rimuovono anche i Private course, e la loro conferma conta quelli che non vedi.",
   "editorHelp.qa.courseInfo.q":
       "Dove cambio il nome e la descrizione del Course?",
   "editorHelp.qa.courseInfo.a":
@@ -456,9 +459,9 @@ const Map<String, String> helpIt = {
   "courseInfo.internalCourseData": "Dati interni del corso",
   "courseInfo.enlargeImage": "Ingrandisci l’immagine del corso",
   "courseInfo.courseModel": "Course Model: v{value}",
-  "courseInfo.temporarySample.title": "Temporary Sample",
+  "courseInfo.temporarySample.title": "Private course",
   "courseInfo.temporarySample.body":
-      "Questo corso è contrassegnato TEMPORARY SAMPLE. Il materiale precaricato serve solo a mostrare e provare l’Editor. Sostituiscilo con contenuti didattici revisionati prima di pubblicare o distribuire il corso.",
+      "Questo corso è visibile in QQL solo al suo Course Maintainer e ai membri del Team assegnato. Disattiva Private course in Course Info per mostrarlo a tutti su questo dispositivo.",
   "courseInfo.authorshipAndDescriptiveCredits": "Autori e riconoscimenti",
   "courseInfo.teamLeaderTooltip":
       "Queste informazioni sono solo descrittive. Per assegnare o cambiare i ruoli Team Leader in QQL, usa Team Manager.",
@@ -727,11 +730,11 @@ const Map<String, String> helpIt = {
   "deviceAdminHelp.resetOptions.bullet1":
       "Reset learner progress: cancella XP, streak e Lessons completate di tutti gli studenti. Studenti, PIN, impostazioni e Courses restano.",
   "deviceAdminHelp.resetOptions.bullet2":
-      "Remove all learners except admins: elimina ogni studente non admin con i suoi dati e rimuove l’elenco Team se contiene uno di loro.",
+      "Remove all learners except admins: elimina ogni studente non admin con i suoi dati e rimuove l’elenco Team se contiene uno di loro. Viene rifiutato finché uno di loro fa da Maintainer a un Course: cambia prima il Course Maintainer o elimina il Course.",
   "deviceAdminHelp.resetOptions.bullet3":
       "Remove imported media: scegli se rimuovere le immagini importate, i file audio MP3 importati o entrambi; all’inizio non è selezionato nulla. Elimina solo le copie create da QQL nella sua memoria. I media inclusi in QQL, come immagini, bandiere, icone e registrazioni dei Bundled Courses, fanno parte dell’app e non vengono mai rimossi. Tag ed etichette della libreria immagini condivisa tornano ai valori predefiniti. I file originali non vengono toccati.",
   "deviceAdminHelp.resetOptions.bullet4":
-      "Remove custom courses: elimina tutti i Custom e Installed Courses, tutti i Teams e tutti i media importati: immagini e registrazioni MP3. Gli studenti restano.",
+      "Remove custom courses: elimina tutti i Custom e Installed Courses, tutti i Teams e tutti i media importati: immagini e registrazioni MP3. Anche i Private course di altri studenti, che non vedi, vengono rimossi; la conferma li conta. Gli studenti restano.",
   "deviceAdminHelp.resetOptions.bullet5":
       "Wipe out everything: riporta QQL allo stato di una nuova installazione, eliminando studenti e admin. Puoi conservare la cartella Export, la cartella Logs, le cartelle Import e ToBeMerged e la cartella Backups; restano tutte se non le deselezioni nel primo passaggio. Import e ToBeMerged contengono i file originali che hai copiato lì; Backups contiene i Course Backups automatici.",
   "deviceAdminHelp.beforeResetBackups.title": "Prima del reset: backup",

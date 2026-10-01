@@ -1,5 +1,7 @@
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/course_models.dart';
+import 'course_access_policy.dart';
+import 'course_privacy.dart';
 import 'profile_service.dart';
 import 'progress_service.dart';
 import 'learner_status_events.dart';
@@ -16,6 +18,14 @@ class CourseLibraryService {
 
   Future<bool> contains(Course course, {String? profileId}) async {
     final id = profileId ?? await profiles.getActiveProfileId();
+    // A Private course belongs to nobody else's library, whatever was added
+    // before (Build 259 Revision 8).
+    if (CoursePrivacy.isPrivate(course) &&
+        !await CoursePrivacy(
+          accessPolicy: CourseAccessPolicy(profileService: profiles),
+        ).isVisibleTo(course, id)) {
+      return false;
+    }
     if (id == null) return true;
     final prefs = await SharedPreferences.getInstance();
     final explicit = prefs.getBool(

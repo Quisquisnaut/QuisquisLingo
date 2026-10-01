@@ -25,6 +25,8 @@ const editorHelpQuestionsByTopic = <String, List<String>>{
   ],
   'courseSettings': [
     'courseInfo',
+    // Build 259 Revision 8.
+    'privateCourse',
     'license',
     'authors',
     'mediaCredits',

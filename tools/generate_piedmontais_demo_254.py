@@ -567,7 +567,8 @@ def build_course_v11() -> dict:
         "startLevel": "Beginner", "targetLevel": "Beginner",
         "courseDescription": "TEMPORARY UNREVIEWED AI-GENERATED SAMPLE. English to Piedmontese, with one Lesson per current named Exercise type. The content is for testing and requires native-speaker review before language-teaching use. Basic spellings were checked against Claudio Panero's English-Piedmontese dictionary; examples and letter diagrams are newly authored. " + AUDIO_NOTE,
         "sourceLanguageTag": "en-GB", "targetLanguageTag": "pms-IT",
-        "textDirection": "ltr", "worldFlagId": "piedmontese", "temporarySample": True,
+        # Build 259 Revision 8: temporarySample is the Private course flag; a demo is for everyone.
+        "textDirection": "ltr", "worldFlagId": "piedmontese", "temporarySample": False,
         "lessons": lessons,
     }
     return course

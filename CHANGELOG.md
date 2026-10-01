@@ -1,3 +1,35 @@
+# 2.0.59 (Build 259, Revision 8) - Private courses, Laboratory fixes - 2026-10-01
+
+Owner decisions of 1 October 2026.
+
+- **Private course.** The Course flag shown until now as "Temporary Sample"
+  is a Private course: a custom Course visible in QQL only to its Course
+  Maintainer and the members of its assigned Team. Nobody else on the
+  device sees it in Course Library, the Course Selector or Course Studio,
+  admins included. Course Info Editor has a **Private course** switch, and
+  Course Info shows a Private course box. The included demos and the Edge
+  Case Course to import are not private.
+- An exported file stays private. QQL refuses to import someone else's
+  Private course, or to use it in a Merge, because it would stay hidden
+  for the importer. Fork and Copy as New Course start non-private; a Merge
+  keeps the left Course's value and no longer stops when the two differ.
+- **Resets.** "Remove all learners except admins" is refused while one of
+  them maintains a Course, as deleting one profile already is; the
+  explanation names the Courses (another learner's Private course as "a
+  Private course"). "Remove custom courses" and "Wipe out everything"
+  still remove every Course and say how many are Private courses the admin
+  cannot see.
+- **Exercise Laboratory.** The French friend's name becomes "Il David di
+  Michelangelo è a ___." (Firenze); the farm-animal hint no longer repeats
+  the first letter ("One barks; you can ride the other."); "Il gatto ___."
+  offers two blocks (dorme, dormono).
+- Help EN/IT/ES: "What is a Private course?" (68 Editor Help questions)
+  and the reset options.
+
+Scoring, progression, Review, the Course format and learner data are
+unchanged; the flag keeps its JSON key `temporarySample`. Beta expiry
+`2026-10-31 23:59:59` local time (same release day as Revision 6).
+
 # 2.0.59 (Build 259, Revision 7) - Translation lines, plainer instructions, GuideBooks - 2026-10-01
 
 Owner review of 1 October 2026.

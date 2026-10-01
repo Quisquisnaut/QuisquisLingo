@@ -118,7 +118,7 @@ The suffix below follows `qql_lab254_` in the stable Content/Exercise ID. Answer
 | Input / Fragments and first letters | input_gap_variants | fill_blank | Type a missing word; accepted-answer expression | felice / contento |
 | Input / Fragments and first letters | input_first_letter | type_missing_word | Type the missing word; one ___ gap and full accepted word | gatto |
 | Input / Fragments and first letters | input_first_alternatives | type_missing_word | Type the missing word; multiple complete words sharing the first grapheme | cane / cavallo |
-| Input / Fragments and first letters | input_first_unicode | type_missing_word | Type the missing word; accented first Unicode grapheme and proper names | Émile / Étienne |
+| Input / Fragments and first letters | input_first_unicode | type_missing_word | Type the missing word; a proper name with its capital first letter | Firenze |
 | Input / Transcriptions and missing words | input_listen_word | listening_spelling | Type what you hear; one word, the Audio text is the answer | Grazie. |
 | Input / Transcriptions and missing words | input_listen_sentence | listening_spelling | Type what you hear; complete sentence and normal punctuation handling | Il treno parte alle nove. |
 | Input / Transcriptions and missing words | input_listen_variants | listening_spelling | Type what you hear; another accepted spelling (the hour in digits) | Arrivo alle otto. / arrivo alle 8 |
@@ -137,7 +137,7 @@ The suffix below follows `qql_lab254_` in the stable Content/Exercise ID. Answer
 | Arrange / Word and phrase blocks | arrange_repeat | word_order | Word order; repeated visible words use separate block occurrences | Anna mangia pane e Luca mangia riso |
 | Arrange / Word and phrase blocks | arrange_phrases | word_order | Word order; multiword phrase blocks | Vado a scuola in autobus |
 | Arrange / Word and phrase blocks | picture_blocks | picture_blocks | Name what you see; picture prompt, word blocks, one extra block and a hint | il pane |
-| Arrange / Pick the words for the gaps | arrange_gap_one | gap_blocks | Inline Arrange; one gap; no distractors | dorme |
+| Arrange / Pick the words for the gaps | arrange_gap_one | gap_blocks | Inline Arrange; one gap; one distractor | dorme |
 | Arrange / Pick the words for the gaps | arrange_gap_many | gap_blocks | Inline Arrange; two gaps; one distractor | beve / acqua |
 | Arrange / Pick the words for the gaps | arrange_gap_repeat | gap_blocks | Inline Arrange; repeated text requires distinct tile IDs; two distractors | è / è |
 | Arrange / Pick the words for the gaps | arrange_gap_audio | gap_blocks | Inline Arrange; phrase blocks and spoken prompt | a scuola / in autobus |

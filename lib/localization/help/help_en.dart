@@ -99,6 +99,9 @@ const Map<String, String> helpEn = <String, String>{
   'editorHelp.qa.restore.a':
       r'''Open Version History in the Course Editor. It lists the current version and the backups, newest first, with Open backup folder and Export JSON. Restore into working copy loads a backup of a custom Course into the working copy; it replaces the stored Course only when you confirm the Course changes. Official Courses keep their publisher versions only.''',
   'editorHelp.qa.courseSettings.title': r'''Course settings''',
+  'editorHelp.qa.privateCourse.q': r'''What is a Private course?''',
+  'editorHelp.qa.privateCourse.a':
+      r'''A custom Course visible in QQL only to its Course Maintainer and the members of its assigned Team: nobody else on this device sees it in Course Library, the Course Selector or Course Studio, admins included. Turn Private course on or off in Course Info Editor. An exported file stays private, so on another device only its Maintainer and Team can import it; QQL refuses to import someone else's Private course, or to use it in a Merge. Fork and Copy as New Course start non-private. A learner who maintains a Course cannot be removed until its Maintainer changes; Remove custom courses and Wipe out everything remove Private courses too, and their confirmation counts the ones you cannot see.''',
   'editorHelp.qa.courseInfo.q':
       r'''Where do I change the Course name and description?''',
   'editorHelp.qa.courseInfo.a':
@@ -662,11 +665,11 @@ If the Crash Log file is deleted, QuisquisLingo recreates it automatically at th
   'deviceAdminHelp.resetOptions.bullet1':
       r'''Reset learner progress: clears XP, streaks and completed lessons for every learner. Learners, PINs, settings and courses stay.''',
   'deviceAdminHelp.resetOptions.bullet2':
-      r'''Remove all learners except admins: deletes every non-admin learner and their data, and removes the Team list if it names any of them.''',
+      r'''Remove all learners except admins: deletes every non-admin learner and their data, and removes the Team list if it names any of them. It is refused while one of them maintains a Course: change the Course Maintainer or delete the Course first.''',
   'deviceAdminHelp.resetOptions.bullet3':
       r'''Remove imported media: you choose whether to remove the imported images, the imported audio files (recorded MP3 files), or both; nothing is ticked at first. It deletes only the copies QQL made in its own storage. Media that comes with QQL itself (the built-in image library, flags, icons and the bundled courses’ recordings) is part of the app and is never removed; edits to the shared image library’s tags and labels go back to the defaults. Your original files are not touched.''',
   'deviceAdminHelp.resetOptions.bullet4':
-      r'''Remove custom courses: deletes all custom and installed courses, all Teams and all imported media, meaning every imported image and every imported recorded MP3 audio file. Learners stay.''',
+      r'''Remove custom courses: deletes all custom and installed courses, all Teams and all imported media, meaning every imported image and every imported recorded MP3 audio file. Private courses of other learners, which you cannot see, go too; the confirmation counts them. Learners stay.''',
   'deviceAdminHelp.resetOptions.bullet5':
       r'''Wipe out everything: returns QQL to a brand-new installation, including all learners and admins. You can keep the Export folder, the Logs folder, the Import and ToBeMerged folders, and the Backups folder; all are kept unless you untick them in the first step. Import and ToBeMerged hold the original files you copied there yourself; Backups holds the automatic Course Backups.''',
   'deviceAdminHelp.beforeResetBackups.title': r'''Before you reset: backups''',
@@ -2276,9 +2279,9 @@ Good morning, Maria!''',
   'courseInfo.internalCourseData': r'''Internal course data''',
   'courseInfo.enlargeImage': r'''Enlarge Course image''',
   'courseInfo.courseModel': r'''Course Model: v{value}''',
-  'courseInfo.temporarySample.title': r'''Temporary Sample''',
+  'courseInfo.temporarySample.title': r'''Private course''',
   'courseInfo.temporarySample.body':
-      r'''This course is marked TEMPORARY SAMPLE. The preloaded material is provided only to demonstrate and test the editor. Replace sample material with reviewed content before publishing or distributing the course.''',
+      r'''This course is visible in QQL only to its Course Maintainer and the members of its assigned Team. Turn Private course off in Course Info to show it to everyone on this device.''',
   'courseInfo.authorshipAndDescriptiveCredits':
       r'''Authorship and descriptive credits''',
   'courseInfo.teamLeaderTooltip':

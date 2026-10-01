@@ -43,7 +43,8 @@ void main() {
     // Build 257: How do I write the Before you start note of a Round?
     // Build 258: How do I make a textbook-like Page?
     // Build 259 Revision 6: What is a TEMPORARY SAMPLE Course? is gone.
-    expect(ids, hasLength(67));
+    // Build 259 Revision 8: What is a Private course?
+    expect(ids, hasLength(68));
     expect(ids.toSet(), hasLength(ids.length));
     for (final catalog in [helpEn, helpIt, helpEs]) {
       for (final topic in editorHelpQuestionsByTopic.keys) {

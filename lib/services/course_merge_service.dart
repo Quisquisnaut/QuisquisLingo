@@ -225,6 +225,8 @@ class CourseMergeService {
       'useGuidebook',
       // Build 258 Revision 4: never blocks a merge; the left Course's value.
       'allowPageSharing',
+      // Private course (Build 259 Revision 8): the left Course's value too.
+      'temporarySample',
       'lessonNumberingMode',
       'customLessonLabel',
       'sectionNames',

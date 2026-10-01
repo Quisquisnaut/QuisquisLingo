@@ -126,10 +126,20 @@ in the working tree as `2.0.59+259007`: see `docs/259_CHANGE_SUMMARY.md`
 Laboratory baseline 41 records. Complete suite 3462 passed, 1 skipped, 0
 failed (08:55).
 
+## Revision 8 (implemented, 1 October 2026)
+
+Private courses and three Laboratory fixes, in the working tree as
+`2.0.59+259008`: see `docs/259_CHANGE_SUMMARY.md` (Revision 8). New
+`lib/services/course_privacy.dart` and `test/private_course_259_test.dart`. Complete suite 3472 passed, 1
+skipped, 0 failed (09:58).
+
 ## Next
 
-Build 259 is complete after Revision 7. The plan's separate findings C and
-E are not in this build.
+Build 259 is complete after Revision 8. The plan's separate findings C and
+E are not in this build. Offered and not asked for: the learner-line
+language follows English language names only (`ExerciseCopyService.
+_languageCode`); a Course whose base language is written "Español" gets
+the English lines.
 
 Stage with `git add -A -- . ':!devtools_options.yaml' ':!tools/cloud_setup.sh'`
 after checking `git status` for files another session wrote.
