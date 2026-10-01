@@ -251,3 +251,39 @@ completion and the Laurel are unchanged.
 
 **Help EN/IT/ES**: App Info's progress page and the Editor Help answer
 about the difficulty bars. AGENTS.md's Round XP rules gain the rule.
+
+## Revision 7 (2.0.60+260007, 1 October 2026): the QQL Demos along a difficulty curve
+
+Owner decisions of 1 October 2026 (point A of the progressive-difficulty
+discussion: "a larger share of the harder types later, variety kept,
+picture exercises preferred").
+
+**QQL Demo: English from Italian.** The 36 exercises of its six ordinary
+Rounds follow `PLAN` in `tools/generate_english_from_italian_260.py`: each
+Round draws its five exercises that need no audio from given difficulty
+levels (Pratica 1: a card, three of level 1, one of level 2 … Pratica 6:
+two of level 3, three of level 4), at random within a level (fixed seed)
+and never two of a type, plus one exercise that needs audio, the easier
+ones first (Listen and pick the image in Pratica 1 … Listen for missing
+words in Pratica 6). Round averages rise from about 1.2 to 3.7. Picture
+exercises are preferred: 15 of the 36 show a picture (Select the image,
+Match pictures to words, What is in the picture, Spell the word in the
+picture, Name what you see and Type what you see come twice, with a second
+Picture flashcard); Choose the answer (to source), Missing letters, Match
+related words, Put the sentences in order, Spell the word, One word fills
+all and the Note card leave the ordinary Rounds (Choose the answer to
+source stays in the Story). The GuideBook gains "l'uovo = the egg".
+
+**QQL Demo: Piedmontese.** Its 120 exercises are dealt along the curve by
+`curve()` in `tools/generate_piedmontese_mixed_259.py`: each exercise's key
+is its level plus a random offset (fixed seed); the nine cards introduce
+the words one per Round in Rounds 1–9; the exercises that need audio are
+spread evenly in key order (at most two in a Round, never two of a type);
+each Round then takes, from the rest in key order, the first exercise of a
+type it does not have; a type left twice swaps with an earlier Round.
+Round averages rise from 1.0 to 3.8, every Round has six types.
+
+Both generators carry a `LEVEL` table matching `ExerciseDifficulty`; the
+Dart test checks the curve with the levels the app computes. The cards and
+descriptions say "from easier to harder". Scoring, progression and learner
+data are unchanged.

@@ -12,8 +12,13 @@ whose lines stay in order) is the second Lesson. Exercises keep their
 content and time stamps; their IDs take this Course's prefix. Build 259
 Revision 7 (owner request) gives both Lessons a GuideBook: an overview,
 notes and the vocabulary the exercises use, gathered from the source
-GuideBooks; every card offers Open GuideBook. Run --check to verify without
-writing.
+GuideBooks; every card offers Open GuideBook. Build 260 Revision 7 (owner decisions) orders the mix along a
+difficulty curve: each exercise's level (LEVEL, as ExerciseDifficulty
+computes it) plus a random offset (fixed seed) sets its place, so later
+Rounds hold a larger share of the harder types; no type repeats within a
+Round, the exercises that need audio are spread evenly (at most two in a
+Round), and the cards come one to a Round in the first Rounds. Run --check
+to verify without writing.
 """
 from __future__ import annotations
 
@@ -39,13 +44,32 @@ SEED = 259006
 ROUNDS = 20
 PER_ROUND = 6
 SOURCE_PRACTICE_LESSONS = 40
+# The difficulty level of each preset's exercises here, as ExerciseDifficulty
+# computes it from canonical data (checked by the Dart test).
+LEVEL = {
+    "flashcard": 0, "picture_flashcard": 0, "note_card": 0,
+    "choice_source": 1, "true_false": 1, "icon_choice": 1, "script_recognition": 2,
+    "listening_choose_source": 1, "listening_answer_source": 1, "translation_choice_to_source": 1,
+    "word_match": 1, "picture_word_match": 1, "audio_match": 1, "listening_image_choice": 1,
+    "choice_target": 2, "gap_choice": 2, "one_word_fills_all": 2, "listening_choose_target": 2,
+    "listening_answer_target": 2, "reading_answer_target": 2, "translation_choice_to_target": 2,
+    "super_match": 2, "picture_choice": 2,
+    "build_translation_to_target": 3, "build_translation_to_source": 3, "word_order": 3, "gap_blocks": 3,
+    "sentence_order": 3, "image_word": 3, "spell_word": 3, "spell_heard": 3, "picture_blocks": 3,
+    "type_translation_to_target": 4, "type_translation_to_source": 4, "complete_text": 4,
+    "missing_letters": 4, "type_missing_word": 4, "listening_spelling": 4, "missing_word": 4,
+    "picture_name": 4,
+}
+# How far a random offset may move an exercise along the curve, in levels.
+SPREAD = 1.0
+MAX_AUDIO_PER_ROUND = 2
 
 # Build 259 Revision 7: the GuideBooks. The vocabulary (English = Piedmontese)
 # is what the source Lessons' GuideBooks taught, without repetitions.
 PRACTICE_OVERVIEW = (
-    "Mixed practice: the exercises of the Piedmontese demo, every type mixed at random, six to a "
-    "Round. The notes explain three things that come back often; the words are the ones the "
-    "exercises use.")
+    "Mixed practice: the exercises of the Piedmontese demo, every type mixed, six to a Round, from "
+    "the easier ones (recognize the meaning) to the harder ones (build and write). The notes explain "
+    "three things that come back often; the words are the ones the exercises use.")
 PRACTICE_NOTES = [
     "Subject pronouns. Piedmontese puts a short subject pronoun before the verb: i son content = "
     "I am happy. Written Piedmontese does not leave it out, as Italian leaves out io. The full "
@@ -134,10 +158,77 @@ def card(round_number: int) -> dict:
             "options": {"guidebookButton": True},
             "prompt": [{"role": "intro", "type": "text",
                         "text": f"Mixed practice: {ROUNDS} Rounds of {PER_ROUND} exercises of different "
-                                "types. Open the GuideBook for the notes and the words."}],
+                                "types, from easier to harder. Open the GuideBook for the notes and the "
+                                "words."}],
             "evaluation": {"mode": "none"},
         },
     }
+
+
+def needs_audio(content: dict) -> bool:
+    """Whether the exercise cannot be solved without its audio (an audio
+    element that is not optional), as ExerciseFeatures.requiresAudio says."""
+    exercise = content["exercise"]
+    elements = list(exercise.get("prompt", []))
+    for item in exercise.get("items", []):
+        elements.extend(item.get("content", []))
+    return any(e.get("type") == "audio" and e.get("required", True) is not False for e in elements)
+
+
+def curve(exercises: list[dict]) -> list[list[dict]]:
+    """The exercises in Rounds along the difficulty curve. Every exercise's
+    key is its level plus a random offset. The cards (level 0) introduce the
+    words: one in each of the first Rounds. The exercises that need audio
+    are spread next, in key order, evenly over the Rounds (at most
+    MAX_AUDIO_PER_ROUND each, never two of a type). Then each Round in turn
+    takes, from the others in key order, the first one of a type it does not
+    have yet."""
+    generator = random.Random(SEED)
+
+    def preset(content: dict) -> str:
+        return content["authoringMetadata"]["presetId"]
+
+    def types(members: list[dict]) -> set[str]:
+        return {preset(x) for x in members}
+
+    keyed = sorted(((LEVEL[preset(c)] + generator.uniform(-SPREAD, SPREAD), c) for c in exercises),
+                   key=lambda kc: kc[0])
+    cards = [c for _, c in keyed if LEVEL[preset(c)] == 0]
+    heard = [c for _, c in keyed if LEVEL[preset(c)] > 0 and needs_audio(c)]
+    queue = [c for _, c in keyed if LEVEL[preset(c)] > 0 and not needs_audio(c)]
+    assert len(heard) <= ROUNDS * MAX_AUDIO_PER_ROUND
+    generator.shuffle(cards)
+    rounds = [[card] for card in cards] + [[] for _ in range(ROUNDS - len(cards))]
+    for index, content in enumerate(heard):
+        home = index * ROUNDS // len(heard)
+        nearby = sorted(range(ROUNDS), key=lambda r: (abs(r - home), r < home))
+        target = next(r for r in nearby
+                      if sum(needs_audio(x) for x in rounds[r]) < MAX_AUDIO_PER_ROUND
+                      and preset(content) not in types(rounds[r]))
+        rounds[target].append(content)
+    for members in rounds:
+        while len(members) < PER_ROUND:
+            pick = next((c for c in queue if preset(c) not in types(members)), queue[0])
+            queue.remove(pick)
+            members.append(pick)
+    assert not queue
+    # A type left twice in a Round (the last ones take what remains) swaps
+    # with an exercise of the nearest earlier Round that clashes with
+    # neither Round, and has the same need for audio.
+    for index, members in enumerate(rounds):
+        for twin in [c for c in members if [preset(x) for x in members].count(preset(c)) > 1][1:]:
+            for earlier in reversed(rounds[:index]):
+                swap = next((c for c in earlier
+                             if LEVEL[preset(c)] > 0 and needs_audio(c) == needs_audio(twin)
+                             and preset(c) not in types(members)
+                             and preset(twin) not in types(earlier)), None)
+                if swap is not None:
+                    earlier[earlier.index(swap)] = twin
+                    members[members.index(twin)] = swap
+                    break
+    for members in rounds:
+        generator.shuffle(members)
+    return rounds
 
 
 def mixed_lesson(source_lessons: list[dict]) -> dict:
@@ -148,14 +239,12 @@ def mixed_lesson(source_lessons: list[dict]) -> dict:
             # card, which names one exercise type.
             exercises.extend(round_data["content"][1:])
     assert len(exercises) == ROUNDS * PER_ROUND, len(exercises)
-    random.Random(SEED).shuffle(exercises)
     rounds = []
-    for number in range(1, ROUNDS + 1):
+    for number, members in enumerate(curve(exercises), 1):
         # Only the Lesson's first Round opens with a card (Build 260
         # Revision 3).
         content = [card(number)] if number == 1 else []
-        for position, exercise in enumerate(
-                exercises[(number - 1) * PER_ROUND:number * PER_ROUND], 1):
+        for position, exercise in enumerate(members, 1):
             new_id = f"{PREFIX}l01_r{number:02d}_e{position:02d}"
             content.append(renamed(exercise, exercise["id"], new_id))
         # Every Round keeps at least one exercise that is scored.
@@ -207,15 +296,16 @@ def build_course() -> dict:
         "courseId": COURSE_ID,
         "officialCourseVersion": "1.0.0",
         "officialReleaseDateUtc": STAMP,
-        "officialReleaseNotes": "QQL Build 259 Revisions 6 and 7: the exercises of the Piedmontese demo mixed "
-                                "at random in one Lesson of 20 Rounds, then its Story; each Lesson has a "
-                                "GuideBook.",
+        "officialReleaseNotes": "QQL Build 259 Revisions 6 and 7 and Build 260 Revision 7: the exercises of "
+                                "the Piedmontese demo mixed in one Lesson of 20 Rounds from easier to harder, "
+                                "then its Story; each Lesson has a GuideBook.",
         "originalCreatedAtUtc": STAMP,
         "modifiedAtUtc": STAMP,
         "title": "QQL Demo: Piedmontese",
         "courseDescription": (
             "TEMPORARY UNREVIEWED AI-GENERATED SAMPLE. English to Piedmontese: the 120 exercises of the "
-            "Piedmontese demo, mixed at random in 20 Rounds of six instead of one Lesson per exercise type, "
+            "Piedmontese demo, mixed in 20 Rounds of six from easier to harder instead of one Lesson per "
+            "exercise type, "
             "followed by its Story at the market. The content is for testing and requires native-speaker "
             "review before language-teaching use. Audio uses On-Device TTS with pms-IT; listening examples "
             "require a suitable device voice."),

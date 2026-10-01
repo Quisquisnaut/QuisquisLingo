@@ -10,7 +10,7 @@
   "publisherName": "QuisquisLingo",
   "officialCourseVersion": "1.0.0",
   "officialReleaseDateUtc": "2026-10-01T00:00:00.000Z",
-  "officialReleaseNotes": "QQL Build 260 Revision 2: one Lesson with a GuideBook, six Rounds of six exercises of different types mixed at random and two Stories.",
+  "officialReleaseNotes": "QQL Build 260 Revisions 2 and 7: one Lesson with a GuideBook, six Rounds of six exercises of different types along a difficulty curve, more pictures, and two Stories.",
   "distributionChannel": "bundled",
   "publisherVerificationStatus": "verified",
   "originalCourseCreator": {
@@ -40,7 +40,7 @@
   "languageVariant": "British English; introductory AI-authored examples awaiting review",
   "startLevel": "Beginner",
   "targetLevel": "Beginner",
-  "courseDescription": "ESEMPIO TEMPORANEO GENERATO DALL'IA, NON REVISIONATO. Dall'italiano all'inglese: una Lezione con GuideBook, sei Round di sei esercizi di tipi diversi mescolati a caso e due Story, al bar e alla stazione. I contenuti servono per le prove e vanno revisionati prima di usarli per insegnare. L'audio usa la sintesi vocale del dispositivo con en-GB: gli esercizi di ascolto richiedono una voce inglese sul dispositivo.",
+  "courseDescription": "ESEMPIO TEMPORANEO GENERATO DALL'IA, NON REVISIONATO. Dall'italiano all'inglese: una Lezione con GuideBook, sei Round di sei esercizi di tipi diversi, dai più facili ai più difficili, e due Story, al bar e alla stazione. I contenuti servono per le prove e vanno revisionati prima di usarli per insegnare. L'audio usa la sintesi vocale del dispositivo con en-GB: gli esercizi di ascolto richiedono una voce inglese sul dispositivo.",
   "sourceLanguageTag": "it-IT",
   "targetLanguageTag": "en-GB",
   "textDirection": "ltr",
@@ -358,7 +358,7 @@
             "kind": "vocabulary",
             "required": false,
             "role": "vocabulary",
-            "text": "il treno = the train"
+            "text": "l'uovo = the egg"
           },
           {
             "id": "enit_65dce83b_l01_g39",
@@ -366,10 +366,18 @@
             "kind": "vocabulary",
             "required": false,
             "role": "vocabulary",
-            "text": "il binario = the platform"
+            "text": "il treno = the train"
           },
           {
             "id": "enit_65dce83b_l01_g40",
+            "publicationState": "published",
+            "kind": "vocabulary",
+            "required": false,
+            "role": "vocabulary",
+            "text": "il binario = the platform"
+          },
+          {
+            "id": "enit_65dce83b_l01_g41",
             "publicationState": "published",
             "kind": "vocabulary",
             "required": false,
@@ -404,7 +412,7 @@
                   {
                     "role": "intro",
                     "type": "text",
-                    "text": "Primi passi: 6 Round di esercizi di tipi diversi e due Story. Apri il GuideBook per le note e le parole."
+                    "text": "Primi passi: 6 Round di esercizi di tipi diversi, dai più facili ai più difficili, e due Story. Apri il GuideBook per le note e le parole."
                   }
                 ],
                 "evaluation": {
@@ -418,625 +426,55 @@
               "kind": "exercise",
               "required": true,
               "authoringMetadata": {
-                "presetId": "translation_choice_to_source"
+                "presetId": "picture_flashcard"
               },
               "exercise": {
                 "updatedAt": "2026-10-01T00:00:00.000Z",
-                "primitive": "select",
+                "primitive": "presentation",
+                "options": {
+                  "completionMode": "understoodReview"
+                },
                 "prompt": [
                   {
-                    "role": "question",
+                    "role": "term",
                     "type": "text",
-                    "text": "see you tomorrow",
-                    "language": "target"
-                  }
-                ],
-                "items": [
-                  {
-                    "id": "enit_65dce83b_l01_r01_e01_i0",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "buonanotte",
-                        "language": "source"
-                      }
-                    ]
+                    "text": "coffee"
                   },
                   {
-                    "id": "enit_65dce83b_l01_r01_e01_i1",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "a domani",
-                        "language": "source"
-                      }
-                    ]
+                    "role": "meaning",
+                    "type": "text",
+                    "text": "caffè"
                   },
                   {
-                    "id": "enit_65dce83b_l01_r01_e01_i2",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "per favore",
-                        "language": "source"
-                      }
-                    ]
+                    "role": "usage",
+                    "type": "text",
+                    "text": "A coffee, please."
+                  },
+                  {
+                    "role": "usage_translation",
+                    "type": "text",
+                    "text": "Un caffè, per favore."
+                  },
+                  {
+                    "role": "picture",
+                    "type": "image",
+                    "text": "caffè",
+                    "asset": "assets/exercise_images/coffee.webp"
+                  },
+                  {
+                    "role": "audio",
+                    "type": "audio",
+                    "text": "coffee",
+                    "required": false
                   }
                 ],
                 "evaluation": {
-                  "mode": "exactItem",
-                  "correctItemIds": [
-                    "enit_65dce83b_l01_r01_e01_i1"
-                  ]
+                  "mode": "none"
                 }
               }
             },
             {
               "id": "enit_65dce83b_l01_r01_e02",
-              "publicationState": "published",
-              "kind": "exercise",
-              "required": true,
-              "authoringMetadata": {
-                "presetId": "spell_word"
-              },
-              "exercise": {
-                "updatedAt": "2026-10-01T00:00:00.000Z",
-                "primitive": "arrange",
-                "options": {
-                  "unusedItems": "forbidden",
-                  "joiner": "none"
-                },
-                "prompt": [
-                  {
-                    "role": "clue",
-                    "type": "text",
-                    "text": "gatto",
-                    "language": "source"
-                  }
-                ],
-                "items": [
-                  {
-                    "id": "enit_65dce83b_l01_r01_e02_i0",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "c"
-                      }
-                    ]
-                  },
-                  {
-                    "id": "enit_65dce83b_l01_r01_e02_i1",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "a"
-                      }
-                    ]
-                  },
-                  {
-                    "id": "enit_65dce83b_l01_r01_e02_i2",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "t"
-                      }
-                    ]
-                  }
-                ],
-                "evaluation": {
-                  "mode": "exactOrder",
-                  "correctOrders": [
-                    {
-                      "text": "cat",
-                      "itemIds": [
-                        "enit_65dce83b_l01_r01_e02_i0",
-                        "enit_65dce83b_l01_r01_e02_i1",
-                        "enit_65dce83b_l01_r01_e02_i2"
-                      ]
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "id": "enit_65dce83b_l01_r01_e03",
-              "publicationState": "published",
-              "kind": "exercise",
-              "required": true,
-              "authoringMetadata": {
-                "presetId": "picture_name"
-              },
-              "exercise": {
-                "updatedAt": "2026-10-01T00:00:00.000Z",
-                "primitive": "input",
-                "prompt": [
-                  {
-                    "role": "primary",
-                    "type": "text",
-                    "text": "Che cos'è?"
-                  },
-                  {
-                    "role": "picture",
-                    "type": "image",
-                    "text": "Pane",
-                    "asset": "assets/exercise_images/bread.webp"
-                  }
-                ],
-                "evaluation": {
-                  "mode": "expression",
-                  "answers": [
-                    "{the} bread"
-                  ]
-                }
-              }
-            },
-            {
-              "id": "enit_65dce83b_l01_r01_e04",
-              "publicationState": "published",
-              "kind": "exercise",
-              "required": true,
-              "authoringMetadata": {
-                "presetId": "missing_word"
-              },
-              "exercise": {
-                "updatedAt": "2026-10-01T00:00:00.000Z",
-                "primitive": "input",
-                "options": {
-                  "layout": "inlineGaps",
-                  "cardinality": "multiple"
-                },
-                "prompt": [
-                  {
-                    "role": "primary",
-                    "type": "audio",
-                    "text": "Good morning, how are you?",
-                    "playback": "automatic"
-                  }
-                ],
-                "targets": [
-                  {
-                    "id": "gap_1"
-                  },
-                  {
-                    "id": "gap_2"
-                  }
-                ],
-                "layout": [
-                  {
-                    "type": "text",
-                    "text": "Good "
-                  },
-                  {
-                    "type": "target",
-                    "targetId": "gap_1"
-                  },
-                  {
-                    "type": "text",
-                    "text": ", how are "
-                  },
-                  {
-                    "type": "target",
-                    "targetId": "gap_2"
-                  },
-                  {
-                    "type": "text",
-                    "text": "?"
-                  }
-                ],
-                "evaluation": {
-                  "mode": "expression",
-                  "targetAnswers": [
-                    {
-                      "targetId": "gap_1",
-                      "answers": [
-                        "morning"
-                      ]
-                    },
-                    {
-                      "targetId": "gap_2",
-                      "answers": [
-                        "you"
-                      ]
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "id": "enit_65dce83b_l01_r01_e05",
-              "publicationState": "published",
-              "kind": "exercise",
-              "required": true,
-              "authoringMetadata": {
-                "presetId": "icon_choice"
-              },
-              "exercise": {
-                "updatedAt": "2026-10-01T00:00:00.000Z",
-                "primitive": "select",
-                "prompt": [
-                  {
-                    "role": "question",
-                    "type": "text",
-                    "text": "Seleziona l'immagine di «dog»."
-                  }
-                ],
-                "items": [
-                  {
-                    "id": "enit_65dce83b_l01_r01_e05_i0",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "cat"
-                      },
-                      {
-                        "role": "icon",
-                        "type": "text",
-                        "text": "assets/exercise_images/cat.webp"
-                      }
-                    ]
-                  },
-                  {
-                    "id": "enit_65dce83b_l01_r01_e05_i1",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "horse"
-                      },
-                      {
-                        "role": "icon",
-                        "type": "text",
-                        "text": "assets/exercise_images/horse.webp"
-                      }
-                    ]
-                  },
-                  {
-                    "id": "enit_65dce83b_l01_r01_e05_i2",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "dog"
-                      },
-                      {
-                        "role": "icon",
-                        "type": "text",
-                        "text": "assets/exercise_images/dog.webp"
-                      }
-                    ]
-                  }
-                ],
-                "evaluation": {
-                  "mode": "exactItem",
-                  "correctItemIds": [
-                    "enit_65dce83b_l01_r01_e05_i2"
-                  ]
-                }
-              }
-            },
-            {
-              "id": "enit_65dce83b_l01_r01_e06",
-              "publicationState": "published",
-              "kind": "exercise",
-              "required": true,
-              "authoringMetadata": {
-                "presetId": "build_translation_to_target"
-              },
-              "exercise": {
-                "updatedAt": "2026-10-01T00:00:00.000Z",
-                "primitive": "arrange",
-                "prompt": [
-                  {
-                    "role": "primary",
-                    "type": "text",
-                    "text": "il libro rosso",
-                    "language": "source"
-                  }
-                ],
-                "items": [
-                  {
-                    "id": "enit_65dce83b_l01_r01_e06_i0",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "book"
-                      }
-                    ]
-                  },
-                  {
-                    "id": "enit_65dce83b_l01_r01_e06_i1",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "red"
-                      }
-                    ]
-                  },
-                  {
-                    "id": "enit_65dce83b_l01_r01_e06_i2",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "the"
-                      }
-                    ]
-                  },
-                  {
-                    "id": "enit_65dce83b_l01_r01_e06_i3",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "a"
-                      }
-                    ]
-                  }
-                ],
-                "evaluation": {
-                  "mode": "exactOrder",
-                  "correctOrders": [
-                    {
-                      "text": "the red book",
-                      "itemIds": [
-                        "enit_65dce83b_l01_r01_e06_i2",
-                        "enit_65dce83b_l01_r01_e06_i1",
-                        "enit_65dce83b_l01_r01_e06_i0"
-                      ]
-                    }
-                  ]
-                },
-                "feedback": {
-                  "showAlternatives": "all"
-                }
-              }
-            }
-          ]
-        },
-        {
-          "id": "enit_65dce83b_l01_r02",
-          "publicationState": "published",
-          "updatedAt": "2026-10-01T00:00:00.000Z",
-          "visualType": "generic",
-          "title": "Pratica 2",
-          "content": [
-            {
-              "id": "enit_65dce83b_l01_r02_e01",
-              "publicationState": "published",
-              "kind": "exercise",
-              "required": true,
-              "authoringMetadata": {
-                "presetId": "missing_letters"
-              },
-              "exercise": {
-                "updatedAt": "2026-10-01T00:00:00.000Z",
-                "primitive": "input",
-                "options": {
-                  "layout": "inlineGaps",
-                  "cardinality": "multiple"
-                },
-                "prompt": [],
-                "targets": [
-                  {
-                    "id": "gap_1"
-                  }
-                ],
-                "layout": [
-                  {
-                    "type": "text",
-                    "text": "I like a"
-                  },
-                  {
-                    "type": "target",
-                    "targetId": "gap_1"
-                  },
-                  {
-                    "type": "text",
-                    "text": "es."
-                  }
-                ],
-                "evaluation": {
-                  "mode": "expression",
-                  "targetAnswers": [
-                    {
-                      "targetId": "gap_1",
-                      "answers": [
-                        "ppl"
-                      ]
-                    }
-                  ]
-                },
-                "hint": "Un frutto rosso o verde."
-              }
-            },
-            {
-              "id": "enit_65dce83b_l01_r02_e02",
-              "publicationState": "published",
-              "kind": "exercise",
-              "required": true,
-              "authoringMetadata": {
-                "presetId": "picture_word_match"
-              },
-              "exercise": {
-                "updatedAt": "2026-10-01T00:00:00.000Z",
-                "primitive": "match",
-                "prompt": [
-                  {
-                    "role": "primary",
-                    "type": "text",
-                    "text": "Abbina ogni animale alla sua parola."
-                  }
-                ],
-                "items": [
-                  {
-                    "id": "enit_65dce83b_l01_r02_e02_i0",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "image",
-                        "text": "cow",
-                        "asset": "assets/exercise_images/cow.webp"
-                      }
-                    ],
-                    "side": "left"
-                  },
-                  {
-                    "id": "enit_65dce83b_l01_r02_e02_i1",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "cow",
-                        "language": "target"
-                      }
-                    ],
-                    "side": "right"
-                  },
-                  {
-                    "id": "enit_65dce83b_l01_r02_e02_i2",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "image",
-                        "text": "pig",
-                        "asset": "assets/exercise_images/pig.webp"
-                      }
-                    ],
-                    "side": "left"
-                  },
-                  {
-                    "id": "enit_65dce83b_l01_r02_e02_i3",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "pig",
-                        "language": "target"
-                      }
-                    ],
-                    "side": "right"
-                  },
-                  {
-                    "id": "enit_65dce83b_l01_r02_e02_i4",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "image",
-                        "text": "sheep",
-                        "asset": "assets/exercise_images/sheep.webp"
-                      }
-                    ],
-                    "side": "left"
-                  },
-                  {
-                    "id": "enit_65dce83b_l01_r02_e02_i5",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "sheep",
-                        "language": "target"
-                      }
-                    ],
-                    "side": "right"
-                  }
-                ],
-                "evaluation": {
-                  "mode": "exactRelations",
-                  "relations": [
-                    [
-                      "enit_65dce83b_l01_r02_e02_i0",
-                      "enit_65dce83b_l01_r02_e02_i1"
-                    ],
-                    [
-                      "enit_65dce83b_l01_r02_e02_i2",
-                      "enit_65dce83b_l01_r02_e02_i3"
-                    ],
-                    [
-                      "enit_65dce83b_l01_r02_e02_i4",
-                      "enit_65dce83b_l01_r02_e02_i5"
-                    ]
-                  ]
-                }
-              }
-            },
-            {
-              "id": "enit_65dce83b_l01_r02_e03",
-              "publicationState": "published",
-              "kind": "exercise",
-              "required": true,
-              "authoringMetadata": {
-                "presetId": "complete_text"
-              },
-              "exercise": {
-                "updatedAt": "2026-10-01T00:00:00.000Z",
-                "primitive": "input",
-                "options": {
-                  "layout": "inlineGaps",
-                  "cardinality": "multiple"
-                },
-                "prompt": [],
-                "targets": [
-                  {
-                    "id": "gap_1"
-                  },
-                  {
-                    "id": "gap_2"
-                  }
-                ],
-                "layout": [
-                  {
-                    "type": "text",
-                    "text": "I have a "
-                  },
-                  {
-                    "type": "target",
-                    "targetId": "gap_1"
-                  },
-                  {
-                    "type": "text",
-                    "text": " and a "
-                  },
-                  {
-                    "type": "target",
-                    "targetId": "gap_2"
-                  },
-                  {
-                    "type": "text",
-                    "text": "."
-                  }
-                ],
-                "evaluation": {
-                  "mode": "expression",
-                  "targetAnswers": [
-                    {
-                      "targetId": "gap_1",
-                      "answers": [
-                        "cat"
-                      ]
-                    },
-                    {
-                      "targetId": "gap_2",
-                      "answers": [
-                        "dog"
-                      ]
-                    }
-                  ]
-                },
-                "hint": "Uno miagola, l'altro abbaia."
-              }
-            },
-            {
-              "id": "enit_65dce83b_l01_r02_e04",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
@@ -1056,7 +494,7 @@
                 ],
                 "items": [
                   {
-                    "id": "enit_65dce83b_l01_r02_e04_i0",
+                    "id": "enit_65dce83b_l01_r01_e02_i0",
                     "content": [
                       {
                         "role": "primary",
@@ -1071,7 +509,7 @@
                     ]
                   },
                   {
-                    "id": "enit_65dce83b_l01_r02_e04_i1",
+                    "id": "enit_65dce83b_l01_r01_e02_i1",
                     "content": [
                       {
                         "role": "primary",
@@ -1086,7 +524,7 @@
                     ]
                   },
                   {
-                    "id": "enit_65dce83b_l01_r02_e04_i2",
+                    "id": "enit_65dce83b_l01_r01_e02_i2",
                     "content": [
                       {
                         "role": "primary",
@@ -1104,46 +542,18 @@
                 "evaluation": {
                   "mode": "exactItem",
                   "correctItemIds": [
-                    "enit_65dce83b_l01_r02_e04_i1"
+                    "enit_65dce83b_l01_r01_e02_i1"
                   ]
                 }
               }
             },
             {
-              "id": "enit_65dce83b_l01_r02_e05",
+              "id": "enit_65dce83b_l01_r01_e03",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
               "authoringMetadata": {
-                "presetId": "note_card"
-              },
-              "exercise": {
-                "updatedAt": "2026-10-01T00:00:00.000Z",
-                "primitive": "presentation",
-                "prompt": [
-                  {
-                    "role": "term",
-                    "type": "text",
-                    "text": "A o an?"
-                  },
-                  {
-                    "role": "meaning",
-                    "type": "text",
-                    "text": "A davanti a un suono consonantico: a cat, a dog. An davanti a un suono vocalico: an apple, an egg."
-                  }
-                ],
-                "evaluation": {
-                  "mode": "none"
-                }
-              }
-            },
-            {
-              "id": "enit_65dce83b_l01_r02_e06",
-              "publicationState": "published",
-              "kind": "exercise",
-              "required": true,
-              "authoringMetadata": {
-                "presetId": "translation_choice_to_target"
+                "presetId": "icon_choice"
               },
               "exercise": {
                 "updatedAt": "2026-10-01T00:00:00.000Z",
@@ -1152,41 +562,52 @@
                   {
                     "role": "question",
                     "type": "text",
-                    "text": "il cane",
-                    "language": "source"
+                    "text": "Seleziona l'immagine di «dog»."
                   }
                 ],
                 "items": [
                   {
-                    "id": "enit_65dce83b_l01_r02_e06_i0",
+                    "id": "enit_65dce83b_l01_r01_e03_i0",
                     "content": [
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "the dog",
-                        "language": "target"
+                        "text": "cat"
+                      },
+                      {
+                        "role": "icon",
+                        "type": "text",
+                        "text": "assets/exercise_images/cat.webp"
                       }
                     ]
                   },
                   {
-                    "id": "enit_65dce83b_l01_r02_e06_i1",
+                    "id": "enit_65dce83b_l01_r01_e03_i1",
                     "content": [
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "the cat",
-                        "language": "target"
+                        "text": "horse"
+                      },
+                      {
+                        "role": "icon",
+                        "type": "text",
+                        "text": "assets/exercise_images/horse.webp"
                       }
                     ]
                   },
                   {
-                    "id": "enit_65dce83b_l01_r02_e06_i2",
+                    "id": "enit_65dce83b_l01_r01_e03_i2",
                     "content": [
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "the horse",
-                        "language": "target"
+                        "text": "dog"
+                      },
+                      {
+                        "role": "icon",
+                        "type": "text",
+                        "text": "assets/exercise_images/dog.webp"
                       }
                     ]
                   }
@@ -1194,162 +615,124 @@
                 "evaluation": {
                   "mode": "exactItem",
                   "correctItemIds": [
-                    "enit_65dce83b_l01_r02_e06_i0"
-                  ]
-                }
-              }
-            }
-          ]
-        },
-        {
-          "id": "enit_65dce83b_l01_r03",
-          "publicationState": "published",
-          "updatedAt": "2026-10-01T00:00:00.000Z",
-          "visualType": "generic",
-          "title": "Pratica 3",
-          "content": [
-            {
-              "id": "enit_65dce83b_l01_r03_e01",
-              "publicationState": "published",
-              "kind": "exercise",
-              "required": true,
-              "authoringMetadata": {
-                "presetId": "image_word"
-              },
-              "exercise": {
-                "updatedAt": "2026-10-01T00:00:00.000Z",
-                "primitive": "arrange",
-                "options": {
-                  "unusedItems": "forbidden",
-                  "joiner": "none"
-                },
-                "prompt": [
-                  {
-                    "role": "clue",
-                    "type": "text",
-                    "text": "Scrivi in inglese l'animale della foto."
-                  },
-                  {
-                    "role": "clue",
-                    "type": "image",
-                    "text": "Un cane",
-                    "asset": "assets/exercise_images/dog.webp"
-                  }
-                ],
-                "items": [
-                  {
-                    "id": "enit_65dce83b_l01_r03_e01_i0",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "d"
-                      }
-                    ]
-                  },
-                  {
-                    "id": "enit_65dce83b_l01_r03_e01_i1",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "o"
-                      }
-                    ]
-                  },
-                  {
-                    "id": "enit_65dce83b_l01_r03_e01_i2",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "g"
-                      }
-                    ]
-                  }
-                ],
-                "evaluation": {
-                  "mode": "exactOrder",
-                  "correctOrders": [
-                    {
-                      "text": "dog",
-                      "itemIds": [
-                        "enit_65dce83b_l01_r03_e01_i0",
-                        "enit_65dce83b_l01_r03_e01_i1",
-                        "enit_65dce83b_l01_r03_e01_i2"
-                      ]
-                    }
+                    "enit_65dce83b_l01_r01_e03_i2"
                   ]
                 }
               }
             },
             {
-              "id": "enit_65dce83b_l01_r03_e02",
+              "id": "enit_65dce83b_l01_r01_e04",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
               "authoringMetadata": {
-                "presetId": "sentence_order"
+                "presetId": "word_match"
               },
               "exercise": {
                 "updatedAt": "2026-10-01T00:00:00.000Z",
-                "primitive": "arrange",
+                "primitive": "match",
                 "prompt": [
                   {
-                    "role": "clue",
+                    "role": "primary",
                     "type": "text",
-                    "text": "Tom incontra Anna per strada e la saluta per primo."
+                    "text": "Abbina le parole italiane a quelle inglesi."
                   }
                 ],
                 "items": [
                   {
-                    "id": "enit_65dce83b_l01_r03_e02_i0",
+                    "id": "enit_65dce83b_l01_r01_e04_i0",
                     "content": [
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "Hello, Anna!"
+                        "text": "pane",
+                        "language": "source"
                       }
-                    ]
+                    ],
+                    "side": "left"
                   },
                   {
-                    "id": "enit_65dce83b_l01_r03_e02_i1",
+                    "id": "enit_65dce83b_l01_r01_e04_i1",
                     "content": [
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "Hi, Tom! How are you?"
+                        "text": "bread",
+                        "language": "target"
                       }
-                    ]
+                    ],
+                    "side": "right"
                   },
                   {
-                    "id": "enit_65dce83b_l01_r03_e02_i2",
+                    "id": "enit_65dce83b_l01_r01_e04_i2",
                     "content": [
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "Fine, thanks."
+                        "text": "acqua",
+                        "language": "source"
                       }
-                    ]
+                    ],
+                    "side": "left"
+                  },
+                  {
+                    "id": "enit_65dce83b_l01_r01_e04_i3",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "water",
+                        "language": "target"
+                      }
+                    ],
+                    "side": "right"
+                  },
+                  {
+                    "id": "enit_65dce83b_l01_r01_e04_i4",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "latte",
+                        "language": "source"
+                      }
+                    ],
+                    "side": "left"
+                  },
+                  {
+                    "id": "enit_65dce83b_l01_r01_e04_i5",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "milk",
+                        "language": "target"
+                      }
+                    ],
+                    "side": "right"
                   }
                 ],
                 "evaluation": {
-                  "mode": "exactOrder",
-                  "correctOrders": [
-                    {
-                      "text": "Hello, Anna! Hi, Tom! How are you? Fine, thanks.",
-                      "itemIds": [
-                        "enit_65dce83b_l01_r03_e02_i0",
-                        "enit_65dce83b_l01_r03_e02_i1",
-                        "enit_65dce83b_l01_r03_e02_i2"
-                      ]
-                    }
+                  "mode": "exactRelations",
+                  "relations": [
+                    [
+                      "enit_65dce83b_l01_r01_e04_i0",
+                      "enit_65dce83b_l01_r01_e04_i1"
+                    ],
+                    [
+                      "enit_65dce83b_l01_r01_e04_i2",
+                      "enit_65dce83b_l01_r01_e04_i3"
+                    ],
+                    [
+                      "enit_65dce83b_l01_r01_e04_i4",
+                      "enit_65dce83b_l01_r01_e04_i5"
+                    ]
                   ]
                 }
               }
             },
             {
-              "id": "enit_65dce83b_l01_r03_e03",
+              "id": "enit_65dce83b_l01_r01_e05",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
@@ -1374,7 +757,7 @@
                 ],
                 "items": [
                   {
-                    "id": "enit_65dce83b_l01_r03_e03_i0",
+                    "id": "enit_65dce83b_l01_r01_e05_i0",
                     "content": [
                       {
                         "role": "primary",
@@ -1384,7 +767,7 @@
                     ]
                   },
                   {
-                    "id": "enit_65dce83b_l01_r03_e03_i1",
+                    "id": "enit_65dce83b_l01_r01_e05_i1",
                     "content": [
                       {
                         "role": "primary",
@@ -1394,7 +777,7 @@
                     ]
                   },
                   {
-                    "id": "enit_65dce83b_l01_r03_e03_i2",
+                    "id": "enit_65dce83b_l01_r01_e05_i2",
                     "content": [
                       {
                         "role": "primary",
@@ -1407,94 +790,380 @@
                 "evaluation": {
                   "mode": "exactItem",
                   "correctItemIds": [
-                    "enit_65dce83b_l01_r03_e03_i2"
+                    "enit_65dce83b_l01_r01_e05_i2"
                   ]
                 }
               }
             },
             {
-              "id": "enit_65dce83b_l01_r03_e04",
+              "id": "enit_65dce83b_l01_r01_e06",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
               "authoringMetadata": {
-                "presetId": "spell_heard"
+                "presetId": "true_false"
               },
               "exercise": {
                 "updatedAt": "2026-10-01T00:00:00.000Z",
-                "primitive": "arrange",
-                "options": {
-                  "unusedItems": "forbidden",
-                  "joiner": "none"
-                },
+                "primitive": "select",
                 "prompt": [
                   {
-                    "role": "primary",
-                    "type": "audio",
-                    "text": "milk",
-                    "playback": "automatic"
+                    "role": "question",
+                    "type": "text",
+                    "text": "A cat is an animal."
                   }
                 ],
                 "items": [
                   {
-                    "id": "enit_65dce83b_l01_r03_e04_i0",
+                    "id": "enit_65dce83b_l01_r01_e06_i0",
                     "content": [
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "m"
+                        "text": "Vero",
+                        "language": "source"
                       }
                     ]
                   },
                   {
-                    "id": "enit_65dce83b_l01_r03_e04_i1",
+                    "id": "enit_65dce83b_l01_r01_e06_i1",
                     "content": [
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "i"
-                      }
-                    ]
-                  },
-                  {
-                    "id": "enit_65dce83b_l01_r03_e04_i2",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "l"
-                      }
-                    ]
-                  },
-                  {
-                    "id": "enit_65dce83b_l01_r03_e04_i3",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "k"
+                        "text": "Falso",
+                        "language": "source"
                       }
                     ]
                   }
                 ],
                 "evaluation": {
-                  "mode": "exactOrder",
-                  "correctOrders": [
-                    {
-                      "text": "milk",
-                      "itemIds": [
-                        "enit_65dce83b_l01_r03_e04_i0",
-                        "enit_65dce83b_l01_r03_e04_i1",
-                        "enit_65dce83b_l01_r03_e04_i2",
-                        "enit_65dce83b_l01_r03_e04_i3"
-                      ]
-                    }
+                  "mode": "exactItem",
+                  "correctItemIds": [
+                    "enit_65dce83b_l01_r01_e06_i0"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "enit_65dce83b_l01_r02",
+          "publicationState": "published",
+          "updatedAt": "2026-10-01T00:00:00.000Z",
+          "visualType": "generic",
+          "title": "Pratica 2",
+          "content": [
+            {
+              "id": "enit_65dce83b_l01_r02_e01",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "authoringMetadata": {
+                "presetId": "translation_choice_to_target"
+              },
+              "exercise": {
+                "updatedAt": "2026-10-01T00:00:00.000Z",
+                "primitive": "select",
+                "prompt": [
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "il cane",
+                    "language": "source"
+                  }
+                ],
+                "items": [
+                  {
+                    "id": "enit_65dce83b_l01_r02_e01_i0",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "the dog",
+                        "language": "target"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "enit_65dce83b_l01_r02_e01_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "the cat",
+                        "language": "target"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "enit_65dce83b_l01_r02_e01_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "the horse",
+                        "language": "target"
+                      }
+                    ]
+                  }
+                ],
+                "evaluation": {
+                  "mode": "exactItem",
+                  "correctItemIds": [
+                    "enit_65dce83b_l01_r02_e01_i0"
                   ]
                 }
               }
             },
             {
-              "id": "enit_65dce83b_l01_r03_e05",
+              "id": "enit_65dce83b_l01_r02_e02",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "authoringMetadata": {
+                "presetId": "listening_choose_target"
+              },
+              "exercise": {
+                "updatedAt": "2026-10-01T00:00:00.000Z",
+                "primitive": "select",
+                "prompt": [
+                  {
+                    "role": "primary",
+                    "type": "text",
+                    "text": "Ascolta il saluto."
+                  },
+                  {
+                    "role": "primary",
+                    "type": "audio",
+                    "text": "good morning",
+                    "playback": "automatic"
+                  }
+                ],
+                "items": [
+                  {
+                    "id": "enit_65dce83b_l01_r02_e02_i0",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "good night"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "enit_65dce83b_l01_r02_e02_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "good morning"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "enit_65dce83b_l01_r02_e02_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "goodbye"
+                      }
+                    ]
+                  }
+                ],
+                "evaluation": {
+                  "mode": "exactItem",
+                  "correctItemIds": [
+                    "enit_65dce83b_l01_r02_e02_i1"
+                  ]
+                }
+              }
+            },
+            {
+              "id": "enit_65dce83b_l01_r02_e03",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "authoringMetadata": {
+                "presetId": "icon_choice"
+              },
+              "exercise": {
+                "updatedAt": "2026-10-01T00:00:00.000Z",
+                "primitive": "select",
+                "prompt": [
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "Seleziona l'immagine di «milk»."
+                  }
+                ],
+                "items": [
+                  {
+                    "id": "enit_65dce83b_l01_r02_e03_i0",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "water"
+                      },
+                      {
+                        "role": "icon",
+                        "type": "text",
+                        "text": "assets/exercise_images/water.webp"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "enit_65dce83b_l01_r02_e03_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "milk"
+                      },
+                      {
+                        "role": "icon",
+                        "type": "text",
+                        "text": "assets/exercise_images/milk.webp"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "enit_65dce83b_l01_r02_e03_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "tea"
+                      },
+                      {
+                        "role": "icon",
+                        "type": "text",
+                        "text": "assets/exercise_images/tea.webp"
+                      }
+                    ]
+                  }
+                ],
+                "evaluation": {
+                  "mode": "exactItem",
+                  "correctItemIds": [
+                    "enit_65dce83b_l01_r02_e03_i1"
+                  ]
+                }
+              }
+            },
+            {
+              "id": "enit_65dce83b_l01_r02_e04",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "authoringMetadata": {
+                "presetId": "flashcard"
+              },
+              "exercise": {
+                "updatedAt": "2026-10-01T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "completionMode": "understoodReview"
+                },
+                "prompt": [
+                  {
+                    "role": "term",
+                    "type": "text",
+                    "text": "thank you"
+                  },
+                  {
+                    "role": "meaning",
+                    "type": "text",
+                    "text": "grazie"
+                  },
+                  {
+                    "role": "usage",
+                    "type": "text",
+                    "text": "Thank you, Anna!"
+                  },
+                  {
+                    "role": "usage_translation",
+                    "type": "text",
+                    "text": "Grazie, Anna!"
+                  },
+                  {
+                    "role": "audio",
+                    "type": "audio",
+                    "text": "thank you",
+                    "required": false
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
+            },
+            {
+              "id": "enit_65dce83b_l01_r02_e05",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "authoringMetadata": {
+                "presetId": "translation_choice_to_source"
+              },
+              "exercise": {
+                "updatedAt": "2026-10-01T00:00:00.000Z",
+                "primitive": "select",
+                "prompt": [
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "see you tomorrow",
+                    "language": "target"
+                  }
+                ],
+                "items": [
+                  {
+                    "id": "enit_65dce83b_l01_r02_e05_i0",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "buonanotte",
+                        "language": "source"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "enit_65dce83b_l01_r02_e05_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "a domani",
+                        "language": "source"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "enit_65dce83b_l01_r02_e05_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "per favore",
+                        "language": "source"
+                      }
+                    ]
+                  }
+                ],
+                "evaluation": {
+                  "mode": "exactItem",
+                  "correctItemIds": [
+                    "enit_65dce83b_l01_r02_e05_i1"
+                  ]
+                }
+              }
+            },
+            {
+              "id": "enit_65dce83b_l01_r02_e06",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
@@ -1514,7 +1183,7 @@
                 ],
                 "items": [
                   {
-                    "id": "enit_65dce83b_l01_r03_e05_i0",
+                    "id": "enit_65dce83b_l01_r02_e06_i0",
                     "content": [
                       {
                         "role": "primary",
@@ -1525,7 +1194,7 @@
                     ]
                   },
                   {
-                    "id": "enit_65dce83b_l01_r03_e05_i1",
+                    "id": "enit_65dce83b_l01_r02_e06_i1",
                     "content": [
                       {
                         "role": "primary",
@@ -1536,7 +1205,7 @@
                     ]
                   },
                   {
-                    "id": "enit_65dce83b_l01_r03_e05_i2",
+                    "id": "enit_65dce83b_l01_r02_e06_i2",
                     "content": [
                       {
                         "role": "primary",
@@ -1547,7 +1216,7 @@
                     ]
                   },
                   {
-                    "id": "enit_65dce83b_l01_r03_e05_i3",
+                    "id": "enit_65dce83b_l01_r02_e06_i3",
                     "content": [
                       {
                         "role": "primary",
@@ -1564,15 +1233,386 @@
                     {
                       "text": "il gatto bianco",
                       "itemIds": [
-                        "enit_65dce83b_l01_r03_e05_i2",
-                        "enit_65dce83b_l01_r03_e05_i0",
-                        "enit_65dce83b_l01_r03_e05_i1"
+                        "enit_65dce83b_l01_r02_e06_i2",
+                        "enit_65dce83b_l01_r02_e06_i0",
+                        "enit_65dce83b_l01_r02_e06_i1"
                       ]
                     }
                   ]
                 },
                 "feedback": {
                   "showAlternatives": "all"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "enit_65dce83b_l01_r03",
+          "publicationState": "published",
+          "updatedAt": "2026-10-01T00:00:00.000Z",
+          "visualType": "generic",
+          "title": "Pratica 3",
+          "content": [
+            {
+              "id": "enit_65dce83b_l01_r03_e01",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "authoringMetadata": {
+                "presetId": "choice_target"
+              },
+              "exercise": {
+                "updatedAt": "2026-10-01T00:00:00.000Z",
+                "primitive": "select",
+                "prompt": [
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "Come si dice «pane» in inglese?"
+                  }
+                ],
+                "items": [
+                  {
+                    "id": "enit_65dce83b_l01_r03_e01_i0",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "bread"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "enit_65dce83b_l01_r03_e01_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "water"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "enit_65dce83b_l01_r03_e01_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "milk"
+                      }
+                    ]
+                  }
+                ],
+                "evaluation": {
+                  "mode": "exactItem",
+                  "correctItemIds": [
+                    "enit_65dce83b_l01_r03_e01_i0"
+                  ]
+                }
+              }
+            },
+            {
+              "id": "enit_65dce83b_l01_r03_e02",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "authoringMetadata": {
+                "presetId": "picture_flashcard"
+              },
+              "exercise": {
+                "updatedAt": "2026-10-01T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "completionMode": "understoodReview"
+                },
+                "prompt": [
+                  {
+                    "role": "term",
+                    "type": "text",
+                    "text": "egg"
+                  },
+                  {
+                    "role": "meaning",
+                    "type": "text",
+                    "text": "uovo"
+                  },
+                  {
+                    "role": "usage",
+                    "type": "text",
+                    "text": "I eat an egg."
+                  },
+                  {
+                    "role": "usage_translation",
+                    "type": "text",
+                    "text": "Mangio un uovo."
+                  },
+                  {
+                    "role": "picture",
+                    "type": "image",
+                    "text": "uovo",
+                    "asset": "assets/exercise_images/egg.webp"
+                  },
+                  {
+                    "role": "audio",
+                    "type": "audio",
+                    "text": "egg",
+                    "required": false
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
+            },
+            {
+              "id": "enit_65dce83b_l01_r03_e03",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "authoringMetadata": {
+                "presetId": "picture_word_match"
+              },
+              "exercise": {
+                "updatedAt": "2026-10-01T00:00:00.000Z",
+                "primitive": "match",
+                "prompt": [
+                  {
+                    "role": "primary",
+                    "type": "text",
+                    "text": "Abbina ogni animale alla sua parola."
+                  }
+                ],
+                "items": [
+                  {
+                    "id": "enit_65dce83b_l01_r03_e03_i0",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "image",
+                        "text": "cow",
+                        "asset": "assets/exercise_images/cow.webp"
+                      }
+                    ],
+                    "side": "left"
+                  },
+                  {
+                    "id": "enit_65dce83b_l01_r03_e03_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "cow",
+                        "language": "target"
+                      }
+                    ],
+                    "side": "right"
+                  },
+                  {
+                    "id": "enit_65dce83b_l01_r03_e03_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "image",
+                        "text": "pig",
+                        "asset": "assets/exercise_images/pig.webp"
+                      }
+                    ],
+                    "side": "left"
+                  },
+                  {
+                    "id": "enit_65dce83b_l01_r03_e03_i3",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "pig",
+                        "language": "target"
+                      }
+                    ],
+                    "side": "right"
+                  },
+                  {
+                    "id": "enit_65dce83b_l01_r03_e03_i4",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "image",
+                        "text": "sheep",
+                        "asset": "assets/exercise_images/sheep.webp"
+                      }
+                    ],
+                    "side": "left"
+                  },
+                  {
+                    "id": "enit_65dce83b_l01_r03_e03_i5",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "sheep",
+                        "language": "target"
+                      }
+                    ],
+                    "side": "right"
+                  }
+                ],
+                "evaluation": {
+                  "mode": "exactRelations",
+                  "relations": [
+                    [
+                      "enit_65dce83b_l01_r03_e03_i0",
+                      "enit_65dce83b_l01_r03_e03_i1"
+                    ],
+                    [
+                      "enit_65dce83b_l01_r03_e03_i2",
+                      "enit_65dce83b_l01_r03_e03_i3"
+                    ],
+                    [
+                      "enit_65dce83b_l01_r03_e03_i4",
+                      "enit_65dce83b_l01_r03_e03_i5"
+                    ]
+                  ]
+                }
+              }
+            },
+            {
+              "id": "enit_65dce83b_l01_r03_e04",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "authoringMetadata": {
+                "presetId": "reading_answer_target"
+              },
+              "exercise": {
+                "updatedAt": "2026-10-01T00:00:00.000Z",
+                "primitive": "select",
+                "prompt": [
+                  {
+                    "role": "context",
+                    "type": "text",
+                    "text": "Anna incontra Tom la mattina.",
+                    "language": "source"
+                  },
+                  {
+                    "role": "dialogue_turn",
+                    "type": "text",
+                    "text": "Good morning, Tom!",
+                    "speaker": "Anna"
+                  },
+                  {
+                    "role": "dialogue_turn",
+                    "type": "text",
+                    "text": "Good morning, Anna! How are you?",
+                    "speaker": "Tom"
+                  },
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "What does Tom ask?"
+                  }
+                ],
+                "items": [
+                  {
+                    "id": "enit_65dce83b_l01_r03_e04_i0",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "How are you?"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "enit_65dce83b_l01_r03_e04_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "Good night!"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "enit_65dce83b_l01_r03_e04_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "Thank you!"
+                      }
+                    ]
+                  }
+                ],
+                "evaluation": {
+                  "mode": "exactItem",
+                  "correctItemIds": [
+                    "enit_65dce83b_l01_r03_e04_i0"
+                  ]
+                }
+              }
+            },
+            {
+              "id": "enit_65dce83b_l01_r03_e05",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "authoringMetadata": {
+                "presetId": "listening_answer_target"
+              },
+              "exercise": {
+                "updatedAt": "2026-10-01T00:00:00.000Z",
+                "primitive": "select",
+                "prompt": [
+                  {
+                    "role": "passage",
+                    "type": "audio",
+                    "text": "I have a cat and a dog.",
+                    "playback": "automatic"
+                  },
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "Which animal comes first?"
+                  }
+                ],
+                "items": [
+                  {
+                    "id": "enit_65dce83b_l01_r03_e05_i0",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "a dog"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "enit_65dce83b_l01_r03_e05_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "a cat"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "enit_65dce83b_l01_r03_e05_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "a horse"
+                      }
+                    ]
+                  }
+                ],
+                "evaluation": {
+                  "mode": "exactItem",
+                  "correctItemIds": [
+                    "enit_65dce83b_l01_r03_e05_i1"
+                  ]
                 }
               }
             },
@@ -1582,22 +1622,20 @@
               "kind": "exercise",
               "required": true,
               "authoringMetadata": {
-                "presetId": "picture_blocks"
+                "presetId": "gap_blocks"
               },
               "exercise": {
                 "updatedAt": "2026-10-01T00:00:00.000Z",
                 "primitive": "arrange",
+                "options": {
+                  "layout": "inline",
+                  "placementMode": "inlineGaps"
+                },
                 "prompt": [
                   {
-                    "role": "primary",
+                    "role": "clue",
                     "type": "text",
-                    "text": "Che cos'è?"
-                  },
-                  {
-                    "role": "picture",
-                    "type": "image",
-                    "text": "Un gatto",
-                    "asset": "assets/exercise_images/cat.webp"
+                    "text": "Completa la presentazione."
                   }
                 ],
                 "items": [
@@ -1607,7 +1645,7 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "a"
+                        "text": "name"
                       }
                     ]
                   },
@@ -1617,7 +1655,7 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "cat"
+                        "text": "is"
                       }
                     ]
                   },
@@ -1627,24 +1665,54 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "an"
+                        "text": "are"
                       }
                     ]
                   }
                 ],
+                "targets": [
+                  {
+                    "id": "gap_1"
+                  },
+                  {
+                    "id": "gap_2"
+                  }
+                ],
+                "layout": [
+                  {
+                    "type": "text",
+                    "text": "My"
+                  },
+                  {
+                    "type": "target",
+                    "targetId": "gap_1"
+                  },
+                  {
+                    "type": "target",
+                    "targetId": "gap_2"
+                  },
+                  {
+                    "type": "text",
+                    "text": "Anna."
+                  }
+                ],
                 "evaluation": {
-                  "mode": "exactOrder",
-                  "correctOrders": [
+                  "mode": "gapAssignments",
+                  "assignments": [
                     {
-                      "text": "a cat",
+                      "targetId": "gap_1",
                       "itemIds": [
-                        "enit_65dce83b_l01_r03_e06_i0",
+                        "enit_65dce83b_l01_r03_e06_i0"
+                      ]
+                    },
+                    {
+                      "targetId": "gap_2",
+                      "itemIds": [
                         "enit_65dce83b_l01_r03_e06_i1"
                       ]
                     }
                   ]
-                },
-                "hint": "Ricorda l'articolo."
+                }
               }
             }
           ]
@@ -2109,16 +2177,21 @@
               "kind": "exercise",
               "required": true,
               "authoringMetadata": {
-                "presetId": "true_false"
+                "presetId": "spell_heard"
               },
               "exercise": {
                 "updatedAt": "2026-10-01T00:00:00.000Z",
-                "primitive": "select",
+                "primitive": "arrange",
+                "options": {
+                  "unusedItems": "forbidden",
+                  "joiner": "none"
+                },
                 "prompt": [
                   {
-                    "role": "question",
-                    "type": "text",
-                    "text": "A cat is an animal."
+                    "role": "primary",
+                    "type": "audio",
+                    "text": "milk",
+                    "playback": "automatic"
                   }
                 ],
                 "items": [
@@ -2128,8 +2201,7 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "Vero",
-                        "language": "source"
+                        "text": "m"
                       }
                     ]
                   },
@@ -2139,16 +2211,43 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "Falso",
-                        "language": "source"
+                        "text": "i"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "enit_65dce83b_l01_r05_e01_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "l"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "enit_65dce83b_l01_r05_e01_i3",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "k"
                       }
                     ]
                   }
                 ],
                 "evaluation": {
-                  "mode": "exactItem",
-                  "correctItemIds": [
-                    "enit_65dce83b_l01_r05_e01_i0"
+                  "mode": "exactOrder",
+                  "correctOrders": [
+                    {
+                      "text": "milk",
+                      "itemIds": [
+                        "enit_65dce83b_l01_r05_e01_i0",
+                        "enit_65dce83b_l01_r05_e01_i1",
+                        "enit_65dce83b_l01_r05_e01_i2",
+                        "enit_65dce83b_l01_r05_e01_i3"
+                      ]
+                    }
                   ]
                 }
               }
@@ -2159,44 +2258,61 @@
               "kind": "exercise",
               "required": true,
               "authoringMetadata": {
-                "presetId": "flashcard"
+                "presetId": "picture_choice"
               },
               "exercise": {
                 "updatedAt": "2026-10-01T00:00:00.000Z",
-                "primitive": "presentation",
-                "options": {
-                  "completionMode": "understoodReview"
-                },
+                "primitive": "select",
                 "prompt": [
                   {
-                    "role": "term",
+                    "role": "primary",
                     "type": "text",
-                    "text": "thank you"
+                    "text": "Che animale è?"
                   },
                   {
-                    "role": "meaning",
-                    "type": "text",
-                    "text": "grazie"
+                    "role": "picture",
+                    "type": "image",
+                    "text": "Un cavallo",
+                    "asset": "assets/exercise_images/horse.webp"
+                  }
+                ],
+                "items": [
+                  {
+                    "id": "enit_65dce83b_l01_r05_e02_i0",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "a cow"
+                      }
+                    ]
                   },
                   {
-                    "role": "usage",
-                    "type": "text",
-                    "text": "Thank you, Anna!"
+                    "id": "enit_65dce83b_l01_r05_e02_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "a horse"
+                      }
+                    ]
                   },
                   {
-                    "role": "usage_translation",
-                    "type": "text",
-                    "text": "Grazie, Anna!"
-                  },
-                  {
-                    "role": "audio",
-                    "type": "audio",
-                    "text": "thank you",
-                    "required": false
+                    "id": "enit_65dce83b_l01_r05_e02_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "a sheep"
+                      }
+                    ]
                   }
                 ],
                 "evaluation": {
-                  "mode": "none"
+                  "mode": "exactItem",
+                  "correctItemIds": [
+                    "enit_65dce83b_l01_r05_e02_i1"
+                  ]
                 }
               }
             },
@@ -2206,7 +2322,7 @@
               "kind": "exercise",
               "required": true,
               "authoringMetadata": {
-                "presetId": "listening_spelling"
+                "presetId": "picture_name"
               },
               "exercise": {
                 "updatedAt": "2026-10-01T00:00:00.000Z",
@@ -2215,19 +2331,20 @@
                   {
                     "role": "primary",
                     "type": "text",
-                    "text": "Scrivi la parola che senti."
+                    "text": "Che cos'è?"
                   },
                   {
-                    "role": "primary",
-                    "type": "audio",
-                    "text": "apple",
-                    "playback": "automatic"
+                    "role": "picture",
+                    "type": "image",
+                    "text": "Un'arancia",
+                    "asset": "assets/exercise_images/orange.webp"
                   }
                 ],
                 "evaluation": {
                   "mode": "expression",
-                  "literalAnswers": [
-                    "apple"
+                  "answers": [
+                    "{an} orange",
+                    "the orange"
                   ]
                 }
               }
@@ -2238,32 +2355,69 @@
               "kind": "exercise",
               "required": true,
               "authoringMetadata": {
-                "presetId": "type_translation_to_source"
+                "presetId": "picture_blocks"
               },
               "exercise": {
                 "updatedAt": "2026-10-01T00:00:00.000Z",
-                "primitive": "input",
-                "options": {
-                  "typoTolerance": "conservative"
-                },
+                "primitive": "arrange",
                 "prompt": [
                   {
                     "role": "primary",
                     "type": "text",
-                    "text": "good night",
-                    "language": "target"
+                    "text": "Che cos'è?"
+                  },
+                  {
+                    "role": "picture",
+                    "type": "image",
+                    "text": "Un gatto",
+                    "asset": "assets/exercise_images/cat.webp"
+                  }
+                ],
+                "items": [
+                  {
+                    "id": "enit_65dce83b_l01_r05_e04_i0",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "a"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "enit_65dce83b_l01_r05_e04_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "cat"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "enit_65dce83b_l01_r05_e04_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "an"
+                      }
+                    ]
                   }
                 ],
                 "evaluation": {
-                  "mode": "expression",
-                  "answers": [
-                    "buonanotte",
-                    "buona notte"
+                  "mode": "exactOrder",
+                  "correctOrders": [
+                    {
+                      "text": "a cat",
+                      "itemIds": [
+                        "enit_65dce83b_l01_r05_e04_i0",
+                        "enit_65dce83b_l01_r05_e04_i1"
+                      ]
+                    }
                   ]
                 },
-                "feedback": {
-                  "showAlternatives": "ranked"
-                }
+                "hint": "Ricorda l'articolo."
               }
             },
             {
@@ -2272,7 +2426,7 @@
               "kind": "exercise",
               "required": true,
               "authoringMetadata": {
-                "presetId": "word_match"
+                "presetId": "picture_word_match"
               },
               "exercise": {
                 "updatedAt": "2026-10-01T00:00:00.000Z",
@@ -2281,7 +2435,7 @@
                   {
                     "role": "primary",
                     "type": "text",
-                    "text": "Abbina le parole italiane a quelle inglesi."
+                    "text": "Abbina ogni cibo alla sua parola."
                   }
                 ],
                 "items": [
@@ -2290,9 +2444,9 @@
                     "content": [
                       {
                         "role": "primary",
-                        "type": "text",
-                        "text": "pane",
-                        "language": "source"
+                        "type": "image",
+                        "text": "bread",
+                        "asset": "assets/exercise_images/bread.webp"
                       }
                     ],
                     "side": "left"
@@ -2314,9 +2468,9 @@
                     "content": [
                       {
                         "role": "primary",
-                        "type": "text",
-                        "text": "acqua",
-                        "language": "source"
+                        "type": "image",
+                        "text": "orange",
+                        "asset": "assets/exercise_images/orange.webp"
                       }
                     ],
                     "side": "left"
@@ -2327,7 +2481,7 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "water",
+                        "text": "orange",
                         "language": "target"
                       }
                     ],
@@ -2338,9 +2492,9 @@
                     "content": [
                       {
                         "role": "primary",
-                        "type": "text",
-                        "text": "latte",
-                        "language": "source"
+                        "type": "image",
+                        "text": "egg",
+                        "asset": "assets/exercise_images/egg.webp"
                       }
                     ],
                     "side": "left"
@@ -2351,7 +2505,7 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "milk",
+                        "text": "egg",
                         "language": "target"
                       }
                     ],
@@ -2383,31 +2537,72 @@
               "kind": "exercise",
               "required": true,
               "authoringMetadata": {
-                "presetId": "type_translation_to_target"
+                "presetId": "image_word"
               },
               "exercise": {
                 "updatedAt": "2026-10-01T00:00:00.000Z",
-                "primitive": "input",
+                "primitive": "arrange",
                 "options": {
-                  "typoTolerance": "conservative"
+                  "unusedItems": "forbidden",
+                  "joiner": "none"
                 },
                 "prompt": [
                   {
-                    "role": "primary",
+                    "role": "clue",
                     "type": "text",
-                    "text": "grazie",
-                    "language": "source"
+                    "text": "Scrivi in inglese l'animale della foto."
+                  },
+                  {
+                    "role": "clue",
+                    "type": "image",
+                    "text": "Un cane",
+                    "asset": "assets/exercise_images/dog.webp"
+                  }
+                ],
+                "items": [
+                  {
+                    "id": "enit_65dce83b_l01_r05_e06_i0",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "d"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "enit_65dce83b_l01_r05_e06_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "o"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "enit_65dce83b_l01_r05_e06_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "g"
+                      }
+                    ]
                   }
                 ],
                 "evaluation": {
-                  "mode": "expression",
-                  "answers": [
-                    "thank you",
-                    "thanks"
+                  "mode": "exactOrder",
+                  "correctOrders": [
+                    {
+                      "text": "dog",
+                      "itemIds": [
+                        "enit_65dce83b_l01_r05_e06_i0",
+                        "enit_65dce83b_l01_r05_e06_i1",
+                        "enit_65dce83b_l01_r05_e06_i2"
+                      ]
+                    }
                   ]
-                },
-                "feedback": {
-                  "showAlternatives": "ranked"
                 }
               }
             }
@@ -2426,22 +2621,17 @@
               "kind": "exercise",
               "required": true,
               "authoringMetadata": {
-                "presetId": "listening_choose_target"
+                "presetId": "build_translation_to_target"
               },
               "exercise": {
                 "updatedAt": "2026-10-01T00:00:00.000Z",
-                "primitive": "select",
+                "primitive": "arrange",
                 "prompt": [
                   {
                     "role": "primary",
                     "type": "text",
-                    "text": "Ascolta il saluto."
-                  },
-                  {
-                    "role": "primary",
-                    "type": "audio",
-                    "text": "good morning",
-                    "playback": "automatic"
+                    "text": "il libro rosso",
+                    "language": "source"
                   }
                 ],
                 "items": [
@@ -2451,7 +2641,7 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "good night"
+                        "text": "book"
                       }
                     ]
                   },
@@ -2461,7 +2651,7 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "good morning"
+                        "text": "red"
                       }
                     ]
                   },
@@ -2471,16 +2661,36 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "goodbye"
+                        "text": "the"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "enit_65dce83b_l01_r06_e01_i3",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "a"
                       }
                     ]
                   }
                 ],
                 "evaluation": {
-                  "mode": "exactItem",
-                  "correctItemIds": [
-                    "enit_65dce83b_l01_r06_e01_i1"
+                  "mode": "exactOrder",
+                  "correctOrders": [
+                    {
+                      "text": "the red book",
+                      "itemIds": [
+                        "enit_65dce83b_l01_r06_e01_i2",
+                        "enit_65dce83b_l01_r06_e01_i1",
+                        "enit_65dce83b_l01_r06_e01_i0"
+                      ]
+                    }
                   ]
+                },
+                "feedback": {
+                  "showAlternatives": "all"
                 }
               }
             },
@@ -2490,16 +2700,21 @@
               "kind": "exercise",
               "required": true,
               "authoringMetadata": {
-                "presetId": "super_match"
+                "presetId": "gap_choice"
               },
               "exercise": {
                 "updatedAt": "2026-10-01T00:00:00.000Z",
-                "primitive": "match",
+                "primitive": "select",
                 "prompt": [
                   {
                     "role": "primary",
                     "type": "text",
-                    "text": "Abbina gli opposti."
+                    "text": "Scegli la forma giusta di to be."
+                  },
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "I ___ a student."
                   }
                 ],
                 "items": [
@@ -2509,10 +2724,9 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "hot"
+                        "text": "is"
                       }
-                    ],
-                    "side": "left"
+                    ]
                   },
                   {
                     "id": "enit_65dce83b_l01_r06_e02_i1",
@@ -2520,10 +2734,9 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "cold"
+                        "text": "am"
                       }
-                    ],
-                    "side": "right"
+                    ]
                   },
                   {
                     "id": "enit_65dce83b_l01_r06_e02_i2",
@@ -2531,60 +2744,15 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "big"
+                        "text": "are"
                       }
-                    ],
-                    "side": "left"
-                  },
-                  {
-                    "id": "enit_65dce83b_l01_r06_e02_i3",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "small"
-                      }
-                    ],
-                    "side": "right"
-                  },
-                  {
-                    "id": "enit_65dce83b_l01_r06_e02_i4",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "black"
-                      }
-                    ],
-                    "side": "left"
-                  },
-                  {
-                    "id": "enit_65dce83b_l01_r06_e02_i5",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "white"
-                      }
-                    ],
-                    "side": "right"
+                    ]
                   }
                 ],
                 "evaluation": {
-                  "mode": "exactRelations",
-                  "relations": [
-                    [
-                      "enit_65dce83b_l01_r06_e02_i0",
-                      "enit_65dce83b_l01_r06_e02_i1"
-                    ],
-                    [
-                      "enit_65dce83b_l01_r06_e02_i2",
-                      "enit_65dce83b_l01_r06_e02_i3"
-                    ],
-                    [
-                      "enit_65dce83b_l01_r06_e02_i4",
-                      "enit_65dce83b_l01_r06_e02_i5"
-                    ]
+                  "mode": "exactItem",
+                  "correctItemIds": [
+                    "enit_65dce83b_l01_r06_e02_i1"
                   ]
                 }
               }
@@ -2595,54 +2763,16 @@
               "kind": "exercise",
               "required": true,
               "authoringMetadata": {
-                "presetId": "gap_blocks"
+                "presetId": "complete_text"
               },
               "exercise": {
                 "updatedAt": "2026-10-01T00:00:00.000Z",
-                "primitive": "arrange",
+                "primitive": "input",
                 "options": {
-                  "layout": "inline",
-                  "placementMode": "inlineGaps"
+                  "layout": "inlineGaps",
+                  "cardinality": "multiple"
                 },
-                "prompt": [
-                  {
-                    "role": "clue",
-                    "type": "text",
-                    "text": "Completa la presentazione."
-                  }
-                ],
-                "items": [
-                  {
-                    "id": "enit_65dce83b_l01_r06_e03_i0",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "name"
-                      }
-                    ]
-                  },
-                  {
-                    "id": "enit_65dce83b_l01_r06_e03_i1",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "is"
-                      }
-                    ]
-                  },
-                  {
-                    "id": "enit_65dce83b_l01_r06_e03_i2",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "are"
-                      }
-                    ]
-                  }
-                ],
+                "prompt": [],
                 "targets": [
                   {
                     "id": "gap_1"
@@ -2654,11 +2784,15 @@
                 "layout": [
                   {
                     "type": "text",
-                    "text": "My"
+                    "text": "I have a "
                   },
                   {
                     "type": "target",
                     "targetId": "gap_1"
+                  },
+                  {
+                    "type": "text",
+                    "text": " and a "
                   },
                   {
                     "type": "target",
@@ -2666,26 +2800,27 @@
                   },
                   {
                     "type": "text",
-                    "text": "Anna."
+                    "text": "."
                   }
                 ],
                 "evaluation": {
-                  "mode": "gapAssignments",
-                  "assignments": [
+                  "mode": "expression",
+                  "targetAnswers": [
                     {
                       "targetId": "gap_1",
-                      "itemIds": [
-                        "enit_65dce83b_l01_r06_e03_i0"
+                      "answers": [
+                        "cat"
                       ]
                     },
                     {
                       "targetId": "gap_2",
-                      "itemIds": [
-                        "enit_65dce83b_l01_r06_e03_i1"
+                      "answers": [
+                        "dog"
                       ]
                     }
                   ]
-                }
+                },
+                "hint": "Uno miagola, l'altro abbaia."
               }
             },
             {
@@ -2694,50 +2829,29 @@
               "kind": "exercise",
               "required": true,
               "authoringMetadata": {
-                "presetId": "picture_flashcard"
+                "presetId": "listening_spelling"
               },
               "exercise": {
                 "updatedAt": "2026-10-01T00:00:00.000Z",
-                "primitive": "presentation",
-                "options": {
-                  "completionMode": "understoodReview"
-                },
+                "primitive": "input",
                 "prompt": [
                   {
-                    "role": "term",
+                    "role": "primary",
                     "type": "text",
-                    "text": "coffee"
+                    "text": "Scrivi la parola che senti."
                   },
                   {
-                    "role": "meaning",
-                    "type": "text",
-                    "text": "caffè"
-                  },
-                  {
-                    "role": "usage",
-                    "type": "text",
-                    "text": "A coffee, please."
-                  },
-                  {
-                    "role": "usage_translation",
-                    "type": "text",
-                    "text": "Un caffè, per favore."
-                  },
-                  {
-                    "role": "picture",
-                    "type": "image",
-                    "text": "caffè",
-                    "asset": "assets/exercise_images/coffee.webp"
-                  },
-                  {
-                    "role": "audio",
+                    "role": "primary",
                     "type": "audio",
-                    "text": "coffee",
-                    "required": false
+                    "text": "apple",
+                    "playback": "automatic"
                   }
                 ],
                 "evaluation": {
-                  "mode": "none"
+                  "mode": "expression",
+                  "literalAnswers": [
+                    "apple"
+                  ]
                 }
               }
             },
@@ -2747,72 +2861,28 @@
               "kind": "exercise",
               "required": true,
               "authoringMetadata": {
-                "presetId": "reading_answer_target"
+                "presetId": "picture_name"
               },
               "exercise": {
                 "updatedAt": "2026-10-01T00:00:00.000Z",
-                "primitive": "select",
+                "primitive": "input",
                 "prompt": [
                   {
-                    "role": "context",
+                    "role": "primary",
                     "type": "text",
-                    "text": "Anna incontra Tom la mattina.",
-                    "language": "source"
+                    "text": "Che cos'è?"
                   },
                   {
-                    "role": "dialogue_turn",
-                    "type": "text",
-                    "text": "Good morning, Tom!",
-                    "speaker": "Anna"
-                  },
-                  {
-                    "role": "dialogue_turn",
-                    "type": "text",
-                    "text": "Good morning, Anna! How are you?",
-                    "speaker": "Tom"
-                  },
-                  {
-                    "role": "question",
-                    "type": "text",
-                    "text": "What does Tom ask?"
-                  }
-                ],
-                "items": [
-                  {
-                    "id": "enit_65dce83b_l01_r06_e05_i0",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "How are you?"
-                      }
-                    ]
-                  },
-                  {
-                    "id": "enit_65dce83b_l01_r06_e05_i1",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "Good night!"
-                      }
-                    ]
-                  },
-                  {
-                    "id": "enit_65dce83b_l01_r06_e05_i2",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "Thank you!"
-                      }
-                    ]
+                    "role": "picture",
+                    "type": "image",
+                    "text": "Pane",
+                    "asset": "assets/exercise_images/bread.webp"
                   }
                 ],
                 "evaluation": {
-                  "mode": "exactItem",
-                  "correctItemIds": [
-                    "enit_65dce83b_l01_r06_e05_i0"
+                  "mode": "expression",
+                  "answers": [
+                    "{the} bread"
                   ]
                 }
               }
@@ -2823,16 +2893,16 @@
               "kind": "exercise",
               "required": true,
               "authoringMetadata": {
-                "presetId": "choice_target"
+                "presetId": "word_order"
               },
               "exercise": {
                 "updatedAt": "2026-10-01T00:00:00.000Z",
-                "primitive": "select",
+                "primitive": "arrange",
                 "prompt": [
                   {
-                    "role": "question",
+                    "role": "clue",
                     "type": "text",
-                    "text": "Come si dice «pane» in inglese?"
+                    "text": "Metti in ordine la domanda per chiedere come sta qualcuno."
                   }
                 ],
                 "items": [
@@ -2842,7 +2912,7 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "bread"
+                        "text": "are"
                       }
                     ]
                   },
@@ -2852,7 +2922,7 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "water"
+                        "text": "How"
                       }
                     ]
                   },
@@ -2862,15 +2932,22 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "milk"
+                        "text": "you"
                       }
                     ]
                   }
                 ],
                 "evaluation": {
-                  "mode": "exactItem",
-                  "correctItemIds": [
-                    "enit_65dce83b_l01_r06_e06_i0"
+                  "mode": "exactOrder",
+                  "correctOrders": [
+                    {
+                      "text": "How are you",
+                      "itemIds": [
+                        "enit_65dce83b_l01_r06_e06_i1",
+                        "enit_65dce83b_l01_r06_e06_i0",
+                        "enit_65dce83b_l01_r06_e06_i2"
+                      ]
+                    }
                   ]
                 }
               }
@@ -2886,190 +2963,6 @@
           "content": [
             {
               "id": "enit_65dce83b_l01_r07_e01",
-              "publicationState": "published",
-              "kind": "exercise",
-              "required": true,
-              "authoringMetadata": {
-                "presetId": "listening_answer_target"
-              },
-              "exercise": {
-                "updatedAt": "2026-10-01T00:00:00.000Z",
-                "primitive": "select",
-                "prompt": [
-                  {
-                    "role": "passage",
-                    "type": "audio",
-                    "text": "I have a cat and a dog.",
-                    "playback": "automatic"
-                  },
-                  {
-                    "role": "question",
-                    "type": "text",
-                    "text": "Which animal comes first?"
-                  }
-                ],
-                "items": [
-                  {
-                    "id": "enit_65dce83b_l01_r07_e01_i0",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "a dog"
-                      }
-                    ]
-                  },
-                  {
-                    "id": "enit_65dce83b_l01_r07_e01_i1",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "a cat"
-                      }
-                    ]
-                  },
-                  {
-                    "id": "enit_65dce83b_l01_r07_e01_i2",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "a horse"
-                      }
-                    ]
-                  }
-                ],
-                "evaluation": {
-                  "mode": "exactItem",
-                  "correctItemIds": [
-                    "enit_65dce83b_l01_r07_e01_i1"
-                  ]
-                }
-              }
-            },
-            {
-              "id": "enit_65dce83b_l01_r07_e02",
-              "publicationState": "published",
-              "kind": "exercise",
-              "required": true,
-              "authoringMetadata": {
-                "presetId": "choice_source"
-              },
-              "exercise": {
-                "updatedAt": "2026-10-01T00:00:00.000Z",
-                "primitive": "select",
-                "prompt": [
-                  {
-                    "role": "question",
-                    "type": "text",
-                    "text": "Che cosa significa «you're welcome»?",
-                    "language": "source"
-                  }
-                ],
-                "items": [
-                  {
-                    "id": "enit_65dce83b_l01_r07_e02_i0",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "grazie",
-                        "language": "source"
-                      }
-                    ]
-                  },
-                  {
-                    "id": "enit_65dce83b_l01_r07_e02_i1",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "prego",
-                        "language": "source"
-                      }
-                    ]
-                  },
-                  {
-                    "id": "enit_65dce83b_l01_r07_e02_i2",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "per favore",
-                        "language": "source"
-                      }
-                    ]
-                  }
-                ],
-                "evaluation": {
-                  "mode": "exactItem",
-                  "correctItemIds": [
-                    "enit_65dce83b_l01_r07_e02_i1"
-                  ]
-                }
-              }
-            },
-            {
-              "id": "enit_65dce83b_l01_r07_e03",
-              "publicationState": "published",
-              "kind": "exercise",
-              "required": true,
-              "authoringMetadata": {
-                "presetId": "one_word_fills_all"
-              },
-              "exercise": {
-                "updatedAt": "2026-10-01T00:00:00.000Z",
-                "primitive": "select",
-                "prompt": [
-                  {
-                    "role": "question",
-                    "type": "text",
-                    "text": "I have ___ cat and ___ dog."
-                  }
-                ],
-                "items": [
-                  {
-                    "id": "enit_65dce83b_l01_r07_e03_i0",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "an"
-                      }
-                    ]
-                  },
-                  {
-                    "id": "enit_65dce83b_l01_r07_e03_i1",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "a"
-                      }
-                    ]
-                  },
-                  {
-                    "id": "enit_65dce83b_l01_r07_e03_i2",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "is"
-                      }
-                    ]
-                  }
-                ],
-                "evaluation": {
-                  "mode": "exactItem",
-                  "correctItemIds": [
-                    "enit_65dce83b_l01_r07_e03_i1"
-                  ]
-                }
-              }
-            },
-            {
-              "id": "enit_65dce83b_l01_r07_e04",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
@@ -3119,51 +3012,61 @@
               }
             },
             {
-              "id": "enit_65dce83b_l01_r07_e05",
+              "id": "enit_65dce83b_l01_r07_e02",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
               "authoringMetadata": {
-                "presetId": "word_order"
+                "presetId": "image_word"
               },
               "exercise": {
                 "updatedAt": "2026-10-01T00:00:00.000Z",
                 "primitive": "arrange",
+                "options": {
+                  "unusedItems": "forbidden",
+                  "joiner": "none"
+                },
                 "prompt": [
                   {
                     "role": "clue",
                     "type": "text",
-                    "text": "Metti in ordine la domanda per chiedere come sta qualcuno."
+                    "text": "Scrivi in inglese la bevanda della foto."
+                  },
+                  {
+                    "role": "clue",
+                    "type": "image",
+                    "text": "Un tè",
+                    "asset": "assets/exercise_images/tea.webp"
                   }
                 ],
                 "items": [
                   {
-                    "id": "enit_65dce83b_l01_r07_e05_i0",
+                    "id": "enit_65dce83b_l01_r07_e02_i0",
                     "content": [
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "are"
+                        "text": "t"
                       }
                     ]
                   },
                   {
-                    "id": "enit_65dce83b_l01_r07_e05_i1",
+                    "id": "enit_65dce83b_l01_r07_e02_i1",
                     "content": [
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "How"
+                        "text": "e"
                       }
                     ]
                   },
                   {
-                    "id": "enit_65dce83b_l01_r07_e05_i2",
+                    "id": "enit_65dce83b_l01_r07_e02_i2",
                     "content": [
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "you"
+                        "text": "a"
                       }
                     ]
                   }
@@ -3172,11 +3075,188 @@
                   "mode": "exactOrder",
                   "correctOrders": [
                     {
-                      "text": "How are you",
+                      "text": "tea",
                       "itemIds": [
-                        "enit_65dce83b_l01_r07_e05_i1",
-                        "enit_65dce83b_l01_r07_e05_i0",
-                        "enit_65dce83b_l01_r07_e05_i2"
+                        "enit_65dce83b_l01_r07_e02_i0",
+                        "enit_65dce83b_l01_r07_e02_i1",
+                        "enit_65dce83b_l01_r07_e02_i2"
+                      ]
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "enit_65dce83b_l01_r07_e03",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "authoringMetadata": {
+                "presetId": "picture_blocks"
+              },
+              "exercise": {
+                "updatedAt": "2026-10-01T00:00:00.000Z",
+                "primitive": "arrange",
+                "prompt": [
+                  {
+                    "role": "primary",
+                    "type": "text",
+                    "text": "Che animale è?"
+                  },
+                  {
+                    "role": "picture",
+                    "type": "image",
+                    "text": "Una pecora",
+                    "asset": "assets/exercise_images/sheep.webp"
+                  }
+                ],
+                "items": [
+                  {
+                    "id": "enit_65dce83b_l01_r07_e03_i0",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "a"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "enit_65dce83b_l01_r07_e03_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "sheep"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "enit_65dce83b_l01_r07_e03_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "an"
+                      }
+                    ]
+                  }
+                ],
+                "evaluation": {
+                  "mode": "exactOrder",
+                  "correctOrders": [
+                    {
+                      "text": "a sheep",
+                      "itemIds": [
+                        "enit_65dce83b_l01_r07_e03_i0",
+                        "enit_65dce83b_l01_r07_e03_i1"
+                      ]
+                    }
+                  ]
+                },
+                "hint": "Ricorda l'articolo."
+              }
+            },
+            {
+              "id": "enit_65dce83b_l01_r07_e04",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "authoringMetadata": {
+                "presetId": "type_translation_to_target"
+              },
+              "exercise": {
+                "updatedAt": "2026-10-01T00:00:00.000Z",
+                "primitive": "input",
+                "options": {
+                  "typoTolerance": "conservative"
+                },
+                "prompt": [
+                  {
+                    "role": "primary",
+                    "type": "text",
+                    "text": "grazie",
+                    "language": "source"
+                  }
+                ],
+                "evaluation": {
+                  "mode": "expression",
+                  "answers": [
+                    "thank you",
+                    "thanks"
+                  ]
+                },
+                "feedback": {
+                  "showAlternatives": "ranked"
+                }
+              }
+            },
+            {
+              "id": "enit_65dce83b_l01_r07_e05",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "authoringMetadata": {
+                "presetId": "missing_word"
+              },
+              "exercise": {
+                "updatedAt": "2026-10-01T00:00:00.000Z",
+                "primitive": "input",
+                "options": {
+                  "layout": "inlineGaps",
+                  "cardinality": "multiple"
+                },
+                "prompt": [
+                  {
+                    "role": "primary",
+                    "type": "audio",
+                    "text": "Good morning, how are you?",
+                    "playback": "automatic"
+                  }
+                ],
+                "targets": [
+                  {
+                    "id": "gap_1"
+                  },
+                  {
+                    "id": "gap_2"
+                  }
+                ],
+                "layout": [
+                  {
+                    "type": "text",
+                    "text": "Good "
+                  },
+                  {
+                    "type": "target",
+                    "targetId": "gap_1"
+                  },
+                  {
+                    "type": "text",
+                    "text": ", how are "
+                  },
+                  {
+                    "type": "target",
+                    "targetId": "gap_2"
+                  },
+                  {
+                    "type": "text",
+                    "text": "?"
+                  }
+                ],
+                "evaluation": {
+                  "mode": "expression",
+                  "targetAnswers": [
+                    {
+                      "targetId": "gap_1",
+                      "answers": [
+                        "morning"
+                      ]
+                    },
+                    {
+                      "targetId": "gap_2",
+                      "answers": [
+                        "you"
                       ]
                     }
                   ]
@@ -3189,60 +3269,31 @@
               "kind": "exercise",
               "required": true,
               "authoringMetadata": {
-                "presetId": "gap_choice"
+                "presetId": "type_translation_to_source"
               },
               "exercise": {
                 "updatedAt": "2026-10-01T00:00:00.000Z",
-                "primitive": "select",
+                "primitive": "input",
+                "options": {
+                  "typoTolerance": "conservative"
+                },
                 "prompt": [
                   {
                     "role": "primary",
                     "type": "text",
-                    "text": "Scegli la forma giusta di to be."
-                  },
-                  {
-                    "role": "question",
-                    "type": "text",
-                    "text": "I ___ a student."
-                  }
-                ],
-                "items": [
-                  {
-                    "id": "enit_65dce83b_l01_r07_e06_i0",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "is"
-                      }
-                    ]
-                  },
-                  {
-                    "id": "enit_65dce83b_l01_r07_e06_i1",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "am"
-                      }
-                    ]
-                  },
-                  {
-                    "id": "enit_65dce83b_l01_r07_e06_i2",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "are"
-                      }
-                    ]
+                    "text": "good night",
+                    "language": "target"
                   }
                 ],
                 "evaluation": {
-                  "mode": "exactItem",
-                  "correctItemIds": [
-                    "enit_65dce83b_l01_r07_e06_i1"
+                  "mode": "expression",
+                  "answers": [
+                    "buonanotte",
+                    "buona notte"
                   ]
+                },
+                "feedback": {
+                  "showAlternatives": "ranked"
                 }
               }
             }
@@ -3736,5 +3787,5 @@
       "voice": "male"
     }
   ],
-  "officialChecksum": "609e8baa12a25e0768209f01d50c715184332211117d7219e2a774e0d217f2ec"
+  "officialChecksum": "1470e5c45eb09a90a5d0cc9bcad0407af5708dd822bf45ee5b2b9f70a526ae9f"
 }

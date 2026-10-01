@@ -1,6 +1,6 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.60+260006 · Build 260, Revision 6 · Course Model v12 (`formatVersion: 12`).**
+**Current source version: 2.0.60+260007 · Build 260, Revision 7 · Course Model v12 (`formatVersion: 12`).**
 
 **QuisquisLingo 2.0.60 Beta — QQL 260 Course languages (Course Model v12)**
 
@@ -18,7 +18,8 @@ the Before you start card on each Lesson's first Round in the QQL Demos.
 Revision 4 titles every bundled Course "QQL Demo: …". Revision 5 shows
 each exercise's computed difficulty (0 read to 4 write) in the editor;
 Revision 6 adds 1 XP per level for each exercise answered correctly at the
-first attempt, on a Round's first completion.
+first attempt, on a Round's first completion; Revision 7 orders the two
+QQL Demo Courses from easier to harder.
 
 **QQL 259 Instructions and questions**
 
@@ -432,7 +433,7 @@ The MPL-2.0 covers the QuisquisLingo software source. Courses, the Image Bank an
 
 ## Beta lifecycle
 
-Version 2.0.60, Build 260, Revision 6 is a time-limited Beta with an expiry of **2026-10-31 23:59:59 local time** (30 days after the 1 October 2026 release date). In its last seven days it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
+Version 2.0.60, Build 260, Revision 7 is a time-limited Beta with an expiry of **2026-10-31 23:59:59 local time** (30 days after the 1 October 2026 release date). In its last seven days it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
 
 ## Core logic
 

@@ -86,8 +86,10 @@ void main() {
         reason: round.id,
       );
     }
-    // 36 exercises of 36 types, not in the catalogue's order.
-    expect(presets.toSet(), hasLength(36));
+    // 36 exercises; since Build 260 Revision 7 picture types come twice,
+    // so 29 types, not in the catalogue's order.
+    expect(presets, hasLength(36));
+    expect(presets.toSet(), hasLength(29));
     final catalogue = [
       for (final preset in ExercisePresetRegistry.presets) preset.id,
     ];
@@ -137,7 +139,8 @@ void main() {
     expect(content.first.role, 'overview');
     expect(content.where((c) => c.role == 'grammar'), hasLength(4));
     final words = VocabularyReviewService().resolveEntries(course, lesson);
-    expect(words, hasLength(35));
+    // Build 260 Revision 7 adds the egg.
+    expect(words, hasLength(36));
     expect(
       words.singleWhere((entry) => entry.prompt == 'grazie').answer,
       'thank you',

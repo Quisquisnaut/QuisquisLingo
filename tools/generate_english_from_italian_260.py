@@ -3,13 +3,17 @@
 request of 1 October 2026).
 
 One Lesson with a GuideBook: three ordinary Rounds, the Story "Al bar",
-three more ordinary Rounds, the Story "Alla stazione". The 36 exercises of
-the ordinary Rounds are of 36 different types and are mixed at random with a
-fixed seed, six to a Round; the Lesson's first Round opens with a Before
-you start card that offers the GuideBook (Build 260 Revision 3: the only
-card). The mix keeps one exercise that needs audio and
-at most one card (flashcard or note) per Round, so every Round still plays
-with Audio Exercises off. The Course is Italian-based, so its learner panel
+three more ordinary Rounds, the Story "Alla stazione". The Lesson's first
+Round opens with a Before you start card that offers the GuideBook (Build
+260 Revision 3: the only card). Build 260 Revision 7 (owner decisions of 1
+October 2026) gives the 36 exercises of the ordinary Rounds a difficulty
+curve: each Round draws its exercises from the difficulty levels of PLAN
+(1 recognize the meaning … 4 write, as ExerciseDifficulty computes them),
+so later Rounds hold a larger share of the harder types; inside a level the
+draw is random (fixed seed) and no type repeats within a Round, so the
+variety stays. Picture exercises are preferred: 15 of the 36 show a
+picture. Each Round keeps one exercise that needs audio, the easier ones
+first, so every Round still plays with Audio Exercises off. The Course is Italian-based, so its learner panel
 is in Italian (Build 260 Revisions 0 and 1). The Course ID was allocated
 once (UUIDv4); regeneration keeps every ID. Uses only stdlib. Run --check to
 verify without writing.
@@ -43,6 +47,29 @@ PRACTICE_ROUNDS = 6
 AUDIO_PRESETS = {"listening_choose_target", "listening_answer_target", "listening_spelling",
                  "missing_word", "spell_heard", "listening_image_choice"}
 CARD_PRESETS = {"flashcard", "picture_flashcard", "note_card"}
+# The difficulty level of each preset's exercises here, as ExerciseDifficulty
+# computes it from canonical data (checked by the Dart test).
+LEVEL = {
+    "flashcard": 0, "picture_flashcard": 0,
+    "translation_choice_to_source": 1, "true_false": 1, "icon_choice": 1, "word_match": 1,
+    "picture_word_match": 1, "listening_image_choice": 1,
+    "choice_target": 2, "gap_choice": 2, "reading_answer_target": 2, "translation_choice_to_target": 2,
+    "picture_choice": 2, "listening_choose_target": 2, "listening_answer_target": 2,
+    "word_order": 3, "build_translation_to_target": 3, "build_translation_to_source": 3, "gap_blocks": 3,
+    "image_word": 3, "picture_blocks": 3, "spell_heard": 3,
+    "type_translation_to_target": 4, "type_translation_to_source": 4, "type_missing_word": 4,
+    "complete_text": 4, "picture_name": 4, "listening_spelling": 4, "missing_word": 4,
+}
+# Per ordinary Round: the levels of its five exercises that need no audio
+# (0 is a card); the sixth is its audio exercise, easier ones first.
+PLAN = [
+    [0, 1, 1, 1, 2],
+    [0, 1, 1, 2, 3],
+    [0, 1, 2, 2, 3],
+    [1, 2, 3, 3, 4],
+    [2, 3, 3, 4, 4],
+    [3, 3, 4, 4, 4],
+]
 AUDIO_NOTE = (
     "L'audio usa la sintesi vocale del dispositivo con en-GB: gli esercizi di ascolto richiedono "
     "una voce inglese sul dispositivo."
@@ -95,6 +122,7 @@ VOCABULARY = [
     "freddo = cold",
     "grande = big",
     "piccolo = small",
+    "l'uovo = the egg",
     "il treno = the train",
     "il binario = the platform",
     "che ore sono? = what time is it?",
@@ -106,8 +134,6 @@ def practice_exercises() -> list[dict]:
     return [
         choose("choice_target", [text("Come si dice «pane» in inglese?", "question")],
                ["bread", "water", "milk"]),
-        choose("choice_source", [text("Che cosa significa «you're welcome»?", "question", "source")],
-               ["grazie", "prego", "per favore"], 1, language="source"),
         choose("true_false", [text("A cat is an animal.", "question")], ["Vero", "Falso"], 0,
                language="source"),
         # Pick the missing word has an Instruction or context since Build 260
@@ -116,6 +142,8 @@ def practice_exercises() -> list[dict]:
                ["is", "am", "are"], 1),
         choose("icon_choice", [text("Seleziona l'immagine di «dog».", "question")], ["cat", "horse", "dog"], 2,
                pictures=["cat", "horse", "dog"]),
+        choose("icon_choice", [text("Seleziona l'immagine di «milk».", "question")], ["water", "milk", "tea"], 1,
+               pictures=["water", "milk", "tea"]),
         choose("listening_choose_target", [text("Ascolta il saluto."), audio("good morning")],
                ["good night", "good morning", "goodbye"], 1),
         choose("listening_answer_target", [audio("I have a cat and a dog.", "passage"),
@@ -139,8 +167,6 @@ def practice_exercises() -> list[dict]:
                ["buonanotte", "a domani", "per favore"], 1),
         enter("complete_text", [text("I have a cat and a dog.")], [], missingWords=["cat", "dog"],
               hint="Uno miagola, l'altro abbaia."),
-        enter("missing_letters", [text("I like apples.")], [], missingWords=["ppl"],
-              hint="Un frutto rosso o verde."),
         enter("type_missing_word", [text("I drink ___ every day.")], ["water"],
               hint="La bevi quando hai sete."),
         enter("listening_spelling", [text("Scrivi la parola che senti."), audio("apple")], []),
@@ -148,31 +174,35 @@ def practice_exercises() -> list[dict]:
               missingWords=["morning", "you"]),
         match("word_match", "Abbina le parole italiane a quelle inglesi.",
               [("pane", "bread"), ("acqua", "water"), ("latte", "milk")]),
-        match("super_match", "Abbina gli opposti.", [("hot", "cold"), ("big", "small"), ("black", "white")]),
         match("picture_word_match", "Abbina ogni animale alla sua parola.",
               [("cow", "cow"), ("pig", "pig"), ("sheep", "sheep")]),
+        match("picture_word_match", "Abbina ogni cibo alla sua parola.",
+              [("bread", "bread"), ("orange", "orange"), ("egg", "egg")]),
         arrange("word_order", [text("Metti in ordine la domanda per chiedere come sta qualcuno.", "clue")],
                 ["are", "How", "you"], [[1, 0, 2]]),
         gaps("gap_blocks", "Completa la presentazione.", ["My", ("name",), ("is",), "Anna."], ["are"]),
-        choose("one_word_fills_all", [text("I have ___ cat and ___ dog.", "question")], ["an", "a", "is"], 1),
-        arrange("sentence_order", [text("Tom incontra Anna per strada e la saluta per primo.", "clue")],
-                ["Hello, Anna!", "Hi, Tom! How are you?", "Fine, thanks."], [[0, 1, 2]]),
         arrange("image_word", [text("Scrivi in inglese l'animale della foto.", "clue"), image("dog", "Un cane")],
                 # The spelling presets store the blocks in the word's order; the
                 # Round shuffles them.
                 ["d", "o", "g"], [[0, 1, 2]]),
-        arrange("spell_word", [text("gatto", "clue", "source")], ["c", "a", "t"], [[0, 1, 2]]),
+        arrange("image_word", [text("Scrivi in inglese la bevanda della foto.", "clue"), image("tea", "Un tè")],
+                ["t", "e", "a"], [[0, 1, 2]]),
         arrange("spell_heard", [audio("milk")], ["m", "i", "l", "k"], [[0, 1, 2, 3]]),
         choose("listening_image_choice", [audio("horse")], ["cow", "horse", "pig"], 1,
                pictures=["cow", "horse", "pig"]),
         choose("picture_choice", [text("Che cos'è?"), image("apple", "Una mela", "picture")],
                ["an orange", "an egg", "an apple"], 2),
+        choose("picture_choice", [text("Che animale è?"), image("horse", "Un cavallo", "picture")],
+               ["a cow", "a horse", "a sheep"], 1),
         enter("picture_name", [text("Che cos'è?"), image("bread", "Pane", "picture")], ["{the} bread"]),
+        enter("picture_name", [text("Che cos'è?"), image("orange", "Un'arancia", "picture")],
+              ["{an} orange", "the orange"]),
         arrange("picture_blocks", [text("Che cos'è?"), image("cat", "Un gatto", "picture")], ["a", "cat", "an"],
                 [[0, 1]], hint="Ricorda l'articolo."),
+        arrange("picture_blocks", [text("Che animale è?"), image("sheep", "Una pecora", "picture")],
+                ["a", "sheep", "an"], [[0, 1]], hint="Ricorda l'articolo."),
         picture_card("coffee", "caffè", "coffee", "A coffee, please.", "Un caffè, per favore."),
-        note("A o an?", "A davanti a un suono consonantico: a cat, a dog. An davanti a un suono vocalico: "
-                        "an apple, an egg."),
+        picture_card("egg", "uovo", "egg", "I eat an egg.", "Mangio un uovo."),
         flashcard("thank you", "grazie", "Thank you, Anna!", "Grazie, Anna!"),
     ]
 
@@ -182,22 +212,37 @@ def preset_of(content: dict) -> str:
 
 
 def mixed_rounds(exercises: list[dict]) -> list[list[dict]]:
-    """Six Rounds of six, mixed at random: one audio exercise in each Round
-    and never two cards in one."""
-    audio_ones = [c for c in exercises if preset_of(c) in AUDIO_PRESETS]
+    """Six Rounds of six along the difficulty curve of PLAN: each slot takes
+    a random exercise of its level whose type the Round does not have yet;
+    each Round's sixth exercise is one that needs audio, easier ones first."""
+    audio_ones = sorted((c for c in exercises if preset_of(c) in AUDIO_PRESETS),
+                        key=lambda c: LEVEL[preset_of(c)])
     others = [c for c in exercises if preset_of(c) not in AUDIO_PRESETS]
-    assert len(audio_ones) == PRACTICE_ROUNDS and len(others) == PRACTICE_ROUNDS * (PER_ROUND - 1)
+    assert len(audio_ones) == PRACTICE_ROUNDS
+    assert sorted(LEVEL[preset_of(c)] for c in others) == sorted(level for plan in PLAN for level in plan)
     for attempt in range(1000):
         generator = random.Random(SEED + attempt)
-        heard, rest = audio_ones[:], others[:]
-        generator.shuffle(heard)
-        generator.shuffle(rest)
-        rounds = []
-        for number in range(PRACTICE_ROUNDS):
-            members = rest[number * (PER_ROUND - 1):(number + 1) * (PER_ROUND - 1)] + [heard[number]]
+        pools = {}
+        for content in others:
+            pools.setdefault(LEVEL[preset_of(content)], []).append(content)
+        for pool in pools.values():
+            generator.shuffle(pool)
+        rounds, stuck = [], False
+        for number, plan in enumerate(PLAN):
+            members = [audio_ones[number]]
+            for level in plan:
+                choice = next((c for c in pools[level]
+                               if preset_of(c) not in {preset_of(m) for m in members}), None)
+                if choice is None:
+                    stuck = True
+                    break
+                pools[level].remove(choice)
+                members.append(choice)
+            if stuck:
+                break
             generator.shuffle(members)
             rounds.append(members)
-        if all(sum(preset_of(c) in CARD_PRESETS for c in members) <= 1 for members in rounds):
+        if not stuck:
             return rounds
     raise AssertionError("no mix met the rules")
 
@@ -237,8 +282,8 @@ def introduction(round_id: str, text_value: str) -> dict:
 def practice_round(number: int, round_id: str, members: list[dict]) -> dict:
     # Only the Lesson's first Round opens with a card (Build 260 Revision 3).
     content = [introduction(round_id, (
-        f"Primi passi: {PRACTICE_ROUNDS} Round di esercizi di tipi diversi e due Story. Apri il GuideBook "
-        "per le note e le parole."))] if number == 1 else []
+        f"Primi passi: {PRACTICE_ROUNDS} Round di esercizi di tipi diversi, dai più facili ai più difficili, "
+        "e due Story. Apri il GuideBook per le note e le parole."))] if number == 1 else []
     content += [with_ids(member, f"{round_id}_e{index:02d}") for index, member in enumerate(members, 1)]
     return {"id": round_id, "publicationState": "published", "updatedAt": STAMP,
             "visualType": "generic", "title": f"Pratica {number}", "content": content}
@@ -319,8 +364,9 @@ def guidebook(lesson_id: str) -> dict:
 def build_course_v11() -> dict:
     lesson_id = f"{PREFIX}_l01"
     exercises = practice_exercises()
-    presets = [preset_of(c) for c in exercises]
-    assert len(exercises) == PRACTICE_ROUNDS * PER_ROUND and len(set(presets)) == len(presets), presets
+    assert len(exercises) == PRACTICE_ROUNDS * PER_ROUND, len(exercises)
+    # Picture exercises are preferred (Build 260 Revision 7).
+    assert sum("image" in json.dumps(c) for c in exercises) >= 15
     groups = mixed_rounds(exercises)
     rounds = []
 
@@ -346,8 +392,9 @@ def build_course_v11() -> dict:
         "createDuels": False, "courseId": COURSE_ID, "originType": "bundledOfficial",
         "publisherId": "org.quisquislingo", "publisherName": "QuisquisLingo",
         "officialCourseVersion": "1.0.0", "officialReleaseDateUtc": STAMP,
-        "officialReleaseNotes": "QQL Build 260 Revision 2: one Lesson with a GuideBook, six Rounds of six "
-                                "exercises of different types mixed at random and two Stories.",
+        "officialReleaseNotes": "QQL Build 260 Revisions 2 and 7: one Lesson with a GuideBook, six Rounds of "
+                                "six exercises of different types along a difficulty curve, more pictures, and "
+                                "two Stories.",
         "distributionChannel": "bundled", "publisherVerificationStatus": "verified",
         "originalCourseCreator": {"type": "publisher", "id": "org.quisquislingo", "displayName": "QuisquisLingo"},
         "originalCreatedAtUtc": STAMP, "modifiedAtUtc": STAMP,
@@ -362,8 +409,8 @@ def build_course_v11() -> dict:
         "startLevel": "Beginner", "targetLevel": "Beginner",
         "courseDescription": (
             "ESEMPIO TEMPORANEO GENERATO DALL'IA, NON REVISIONATO. Dall'italiano all'inglese: una Lezione "
-            "con GuideBook, sei Round di sei esercizi di tipi diversi mescolati a caso e due Story, al bar "
-            "e alla stazione. I contenuti servono per le prove e vanno revisionati prima di usarli per "
+            "con GuideBook, sei Round di sei esercizi di tipi diversi, dai più facili ai più difficili, e due "
+            "Story, al bar e alla stazione. I contenuti servono per le prove e vanno revisionati prima di usarli per "
             "insegnare. " + AUDIO_NOTE),
         "sourceLanguageTag": "it-IT", "targetLanguageTag": "en-GB",
         # Build 259 Revision 8: temporarySample is the Private course flag; a demo is for everyone.

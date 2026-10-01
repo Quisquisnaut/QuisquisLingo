@@ -88,7 +88,8 @@ void main() {
       expect(card.kind, LearnerExerciseKind.roundIntro);
       expect(
         card.introText,
-        'Mixed practice: 20 Rounds of 6 exercises of different types. '
+        // Build 260 Revision 7: the Rounds go from easier to harder.
+        'Mixed practice: 20 Rounds of 6 exercises of different types, from easier to harder. '
         'Open the GuideBook for the notes and the words.',
       );
       expect(card.guidebookButton, isTrue);

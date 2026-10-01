@@ -1,3 +1,18 @@
+# 2.0.60 (Build 260, Revision 7) - QQL Demos along a difficulty curve - 2026-10-01
+
+Owner decisions of 1 October 2026.
+
+- **QQL Demo: English from Italian** goes from easier to harder: its first
+  Rounds hold mostly recognition, its last ones mostly writing, with every
+  Round's types different and one listening exercise each. 15 of its 36
+  exercises show a picture.
+- **QQL Demo: Piedmontese** deals its 120 exercises the same way: cards
+  first, harder types later, six types in every Round, at most two
+  listening exercises.
+
+Scoring, progression and learner data are unchanged. Beta expiry
+`2026-10-31 23:59:59` local time (same release day as Revision 0).
+
 # 2.0.60 (Build 260, Revision 6) - Difficulty bonus XP - 2026-10-01
 
 Owner decisions of 1 October 2026.

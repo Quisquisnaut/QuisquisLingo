@@ -201,3 +201,33 @@
 - `flutter analyze --no-pub`: no issues.
 - **Complete suite** (`--concurrency=1`, keep-awake, 26 min 30 s):
   **3511 passed, 1 skipped, 0 failed**.
+
+## Revision 7 (2.0.60+260007, 1 October 2026): the QQL Demos along a difficulty curve
+
+**Generators and validator**
+- The English from Italian and QQL Demo: Piedmontese generators rewrite
+  their Courses; all five generators: `--check` reproducible;
+  `tools/validate_courses.py`: the four bundled Courses pass.
+- Round averages (levels 1–4): English from Italian 1.2, 1.8, 2.0, 2.7,
+  3.3, 3.7; QQL Demo: Piedmontese from 1.0 (Rounds 1–3) to 3.8 (Rounds
+  19–20), six types in every Round, at most two audio exercises. Three
+  earlier drafts of the Piedmontese dealing were rejected while authoring:
+  cards bunched in the first Rounds, then leftovers (easy listening
+  exercises, a twin type) collecting in the last Round.
+
+**Tests**
+- New: `test/difficulty_curve_260_test.dart` (for both Courses, with the
+  levels the app computes: the first third of the Rounds is easier than
+  the middle and the middle than the last; the last Round is at least 60 %
+  build or write and harder than the first; six types in every Round; at
+  most two audio exercises and at least three others; English from
+  Italian: at least 15 picture exercises and its audio exercises in rising
+  order).
+- Updated: `english_from_italian_260_test` (36 exercises of 29 types, 36
+  words) and `piedmontese_mixed_259_test` (the card's "from easier to
+  harder").
+- Focused run (the new test and the six that read the bundled Courses): 1
+  failure, the card text above, fixed and re-run.
+- `flutter analyze --no-pub`: no issues.
+- **Complete suite** (`--concurrency=1`, keep-awake, 27 min 1 s):
+  **3518 passed, 1 skipped, 0 failed**.
