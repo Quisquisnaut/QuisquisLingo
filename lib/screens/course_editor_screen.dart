@@ -8,6 +8,7 @@ import '../services/answer_materialization_service.dart';
 import '../services/file_dialog_service.dart';
 import '../services/portable_exercise_image.dart';
 import '../widgets/script_recognition_editor.dart';
+import '../widgets/difficulty_badge.dart';
 import '../widgets/exercise_image_field.dart';
 import 'package:audioplayers/audioplayers.dart';
 
@@ -63,6 +64,7 @@ import '../services/authoring_duplication_service.dart';
 import '../services/exercise_creation_planner.dart';
 import '../services/exercise_draft_builder.dart';
 import '../services/exercise_copy_service.dart';
+import '../services/exercise_difficulty.dart';
 import '../services/language_catalog.dart';
 import '../widgets/language_field.dart';
 import '../services/canonical_exercise_draft.dart';
@@ -6905,7 +6907,20 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
                       child: const Icon(Icons.drag_handle),
                     ),
                     title: Text(round.displayTitle(index)),
-                    subtitle: Text(_exerciseCountLabel(round.exercises.length)),
+                    // Build 260 Revision 5: the Round's average difficulty
+                    // beside its count, so a Lesson's curve shows.
+                    subtitle: Wrap(
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        Text(_exerciseCountLabel(round.exercises.length)),
+                        if (ExerciseDifficulty.averageOf(round)
+                            case final average?)
+                          DifficultyBadge.average(
+                            key: ValueKey('round-difficulty-${round.id}'),
+                            average: average,
+                          ),
+                      ],
+                    ),
                     onTap: () => _open(index),
                     trailing: PopupMenuButton<String>(
                       key: ValueKey('round-actions-${round.id}'),
@@ -8527,7 +8542,17 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
                       enabled: !widget.readOnly,
                       child: CircleAvatar(child: Text('${i + 1}')),
                     ),
-                    title: Text(_exerciseTypeLabel(e)),
+                    // Build 260 Revision 5: the exercise's difficulty.
+                    title: Row(
+                      children: [
+                        Flexible(child: Text(_exerciseTypeLabel(e))),
+                        if (ExerciseDifficulty.of(e) case final level?)
+                          DifficultyBadge(
+                            key: ValueKey('exercise-difficulty-${e.id}'),
+                            level: level,
+                          ),
+                      ],
+                    ),
                     subtitle: Text(
                       _summary(e),
                       maxLines: 2,

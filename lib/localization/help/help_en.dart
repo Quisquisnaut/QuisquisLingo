@@ -224,6 +224,9 @@ const Map<String, String> helpEn = <String, String>{
   'editorHelp.qa.distractors.q': r'''How many extra blocks may I add?''',
   'editorHelp.qa.distractors.a':
       r'''Put the words in order, Build the translation and Name what you see accept 0, 1 or at most 2 blocks that are not in the answer; the spelling presets use exactly the blocks of the word. Prefer fewer extra blocks in the first Rounds of a Lesson.''',
+  'editorHelp.qa.difficulty.q': r'''What do the difficulty bars mean?''',
+  'editorHelp.qa.difficulty.a':
+      r'''QQL computes each exercise's difficulty from what the learner does, from 0 to 4: 0 a card to read (Flashcard, Note card, Page); 1 recognize the meaning (pick or pair a source-language answer or a picture); 2 recognize the language (pick, pair or sort target-language forms); 3 build with blocks (put blocks in order or into slots); 4 write (type the answer). The Round editor shows four bars beside each exercise, filled up to its level; the Rounds page shows each Round's average. Before you start cards, Story covers and Dialogue lines have no level. The level is never stored: changing an exercise changes it. A Lesson usually works best from easier to harder Rounds: start with recognition and keep writing for later Rounds, while mixing the types within each Round.''',
   'editorHelp.qa.firstLetter.q':
       r'''What does Show the first letter do in Type the missing word?''',
   'editorHelp.qa.firstLetter.a':

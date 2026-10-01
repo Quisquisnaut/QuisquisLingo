@@ -186,3 +186,39 @@ bundles all begin with "QQL Demo:".
   checksum follow; the credits page says "The bundled courses titled QQL
   Demo are AI-generated…". Test fixtures and importable demos keep their
   titles. Course IDs, content and learner data are unchanged.
+
+## Revision 5 (2.0.60+260005, 1 October 2026): exercise difficulty
+
+Owner decision of 1 October 2026 (point C of the progressive-difficulty
+discussion).
+
+**A computed level.** `ExerciseDifficulty.of(exercise)`
+(`lib/services/exercise_difficulty.dart`) gives every exercise a
+`DifficultyLevel` from what the learner does, read from its canonical data
+through `ExerciseFeatures.kind` (never a preset ID) and never stored:
+- 0 Read: Flashcard, Picture flashcard, Note card, Page;
+- 1 Recognize the meaning: a Select whose answers are in the source
+  language or are pictures (Pick the translation to source, Choose the
+  answer to source, True or false, Select the image, Listen and pick the
+  image), a Match across languages, of sounds or of pictures;
+- 2 Recognize the language: a Select of target-language answers (Choose,
+  Pick the missing word, Listen and choose, What is in the picture), a
+  Match within the target language (opposites, plurals), Sort into groups;
+- 3 Build with blocks: every Arrange (Word order, Build the translation,
+  the spelling presets, Pick the words for the gaps, Put the sentences in
+  order, Name what you see), Fill the slots;
+- 4 Write: every Input (Type the translation, Complete the text, Missing
+  letters, Type what you hear, Type what you see…).
+Before you start cards, Story covers, Dialogue lines and primitives this
+version does not play have none. `ExerciseDifficulty.averageOf(round)`
+averages a Round's answered exercises (levels 1–4).
+
+**In the editor.** The Round editor shows four bars beside each exercise's
+type (`DifficultyBadge`, key `exercise-difficulty-<id>`, tooltip
+"Difficulty 3 of 4: Build with blocks"); the Rounds page shows each
+Round's average beside its count (`round-difficulty-<id>`), so a Lesson's
+curve shows. Help EN/IT/ES: Editor Help question "What do the difficulty
+bars mean?" (70 questions).
+
+Nothing learners see, scoring, progression, the Course format and learner
+data change in this revision; Revision 6 adds the Difficulty bonus XP.

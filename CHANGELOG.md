@@ -1,3 +1,17 @@
+# 2.0.60 (Build 260, Revision 5) - Exercise difficulty - 2026-10-01
+
+Owner decision of 1 October 2026.
+
+- **Difficulty levels.** QQL computes each exercise's difficulty from what
+  the learner does: 0 read a card, 1 recognize the meaning, 2 recognize the
+  language, 3 build with blocks, 4 write. It is never stored.
+- **In the editor**: four bars beside each exercise in the Round editor and
+  each Round's average on the Rounds page, so a Lesson's curve shows.
+- Help EN/IT/ES: "What do the difficulty bars mean?".
+
+Scoring, progression, Review and learner data are unchanged. Beta expiry
+`2026-10-31 23:59:59` local time (same release day as Revision 0).
+
 # 2.0.60 (Build 260, Revision 4) - QQL Demo titles - 2026-10-01
 
 Owner decision of 1 October 2026.

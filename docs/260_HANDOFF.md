@@ -48,12 +48,15 @@ Complete suite: 3500 passed, 1 skipped.
 QQL Demo titles: QQL Demo: Exercise Laboratory, QQL Demo: Piedmontese
 (sorted by exercise type). Complete suite: 3500 passed, 1 skipped.
 
+## Revision 5 (implemented, 1 October 2026)
+
+Exercise difficulty: `ExerciseDifficulty` (0 read … 4 write, computed,
+never stored), `DifficultyBadge` in the Round editor and on the Rounds
+page, Editor Help question `difficulty`. Test
+`test/exercise_difficulty_260_test.dart`.
+
 ## Next (owner decisions of 1 October 2026)
 
-- Revision 5: a computed difficulty level 0–4 per exercise (present,
-  recognize meaning, recognize in the target language, build with blocks,
-  type), from canonical data, never stored; a badge in the Round editor and
-  a curve per Lesson.
 - Revision 6: Difficulty bonus XP, 1 XP per level for each exercise answered
   correctly at the first attempt, on a Round's first completion only; a
   line in the end-of-Round summary (seven languages); XpCalculator.

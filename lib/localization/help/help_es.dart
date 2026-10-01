@@ -229,6 +229,9 @@ const Map<String, String> helpEs = {
   'editorHelp.qa.distractors.q': '¿Cuántos bloques extra puedo añadir?',
   'editorHelp.qa.distractors.a':
       'Put the words in order, Build the translation y Name what you see aceptan 0, 1 o como máximo 2 bloques que no están en la respuesta; los presets de deletreo usan exactamente los bloques de la palabra. Usa menos bloques extra en los primeros Rounds de una Lesson.',
+  'editorHelp.qa.difficulty.q': '¿Qué indican las barras de dificultad?',
+  'editorHelp.qa.difficulty.a':
+      'QQL calcula la dificultad de cada ejercicio a partir de lo que hace quien estudia, de 0 a 4: 0 una tarjeta para leer (Flashcard, Note card, Page); 1 reconocer el significado (elegir o emparejar una respuesta en la lengua de partida o una imagen); 2 reconocer la lengua (elegir, emparejar o clasificar formas de la lengua meta); 3 construir con bloques (poner bloques en orden o en huecos); 4 escribir (teclear la respuesta). El Round editor muestra cuatro barras junto a cada ejercicio, llenas hasta su nivel; la página Rounds muestra la media de cada Round. Las tarjetas Before you start, las portadas de las Story y las Dialogue line no tienen nivel. El nivel nunca se guarda: si cambias un ejercicio, cambia también su nivel. Normalmente una Lesson funciona mejor de los Round más fáciles a los más difíciles: empieza por el reconocimiento y deja la escritura para los Round posteriores, mezclando de todos modos los tipos en cada Round.',
   'editorHelp.qa.firstLetter.q':
       '¿Qué hace Show the first letter en Type the missing word?',
   'editorHelp.qa.firstLetter.a':

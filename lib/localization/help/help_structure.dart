@@ -67,6 +67,8 @@ const editorHelpQuestionsByTopic = <String, List<String>>{
     'manyAnswers',
     'capitals',
     'distractors',
+    // Build 260 Revision 5.
+    'difficulty',
     'firstLetter',
     'readAndAnswer',
     'pictures',

@@ -154,3 +154,24 @@
 - `flutter analyze --no-pub`: no issues.
 - **Complete suite** (`--concurrency=1`, keep-awake, 30 min 13 s):
   **3500 passed, 1 skipped, 0 failed**.
+
+## Revision 5 (2.0.60+260005, 1 October 2026): exercise difficulty
+
+**Generators and validator**
+- No Course file changes; `tools/validate_courses.py` passes.
+
+**Tests**
+- New: `test/exercise_difficulty_260_test.dart` (the level of every
+  Laboratory example, for all its presets, matches the expected level;
+  Recognize characters is 1 or 2 by direction; a Round's average counts
+  its answered exercises only; the badge's tooltips; the Editor Help
+  question in EN, IT and ES).
+- Updated: the Editor Help counts (70) in `editor_help_qa_256_test` and
+  `editor_help_translation_test`.
+- Focused run (the new test and the two Help tests): 19 passed. The Round
+  editor's and Rounds page's rows keep their texts as separate widgets, so
+  no test reading them needed a change (checked by search before the
+  suite).
+- `flutter analyze --no-pub`: no issues.
+- **Complete suite** (`--concurrency=1`, keep-awake, 29 min 25 s):
+  **3505 passed, 1 skipped, 0 failed**.
