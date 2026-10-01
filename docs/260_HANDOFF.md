@@ -61,11 +61,11 @@ Difficulty bonus XP: 1 XP per level for each exercise answered correctly at
 the first attempt, on a Round's first completion only; a summary line in
 the seven languages. Test `test/difficulty_bonus_260_test.dart`. Complete suite: 3511 passed, 1 skipped.
 
-## Revision 7 (implemented, 1 October 2026)
+## Revision 7 (committed `01ae86f`, 1 October 2026)
 
 The QQL Demo Courses along a difficulty curve: English from Italian by
 `PLAN` (15 picture exercises of 36), Piedmontese by `curve()`. Test
-`test/difficulty_curve_260_test.dart`.
+`test/difficulty_curve_260_test.dart`. Complete suite: 3518 passed, 1 skipped.
 
 ## Next
 
