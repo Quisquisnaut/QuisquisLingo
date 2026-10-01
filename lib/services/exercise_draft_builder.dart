@@ -905,6 +905,9 @@ abstract final class ExerciseDraftBuilder {
               'missing_word',
               'listening_spelling',
               'dialogue_response',
+              // Pick the missing word and One word fills all: an optional
+              // Instruction or context (Build 260 Revision 3).
+              'gap_choice',
             }.contains(type)
             ? draft.prompt.trim()
             : '',

@@ -41,6 +41,8 @@ const _formFields = <String, Map<String, String>>{
     'Correct answer number': 'correct',
   },
   'gap_choice': {
+    // Build 260 Revision 3.
+    'Instruction or context (optional)': 'prompt',
     'Sentence': 'question',
     'Answer blocks': 'answers',
     'Correct answer number': 'correct',
@@ -168,6 +170,8 @@ const _formFields = <String, Map<String, String>>{
   // Build 259 Revision 4: Pick the words for the gaps is gap_blocks;
   // One word fills all is new.
   'one_word_fills_all': {
+    // Build 260 Revision 3.
+    'Instruction or context (optional)': 'prompt',
     'Sentences, with ___ for each gap': 'question',
     'Answer words': 'answers',
     'Correct answer number': 'correct',

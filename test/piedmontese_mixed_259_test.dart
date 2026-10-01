@@ -51,8 +51,12 @@ void main() {
         for (final round in lesson.rounds) ...round.content.skip(1),
     ];
     final practice = mixed.lessons.first;
+    // Build 260 Revision 3: only the first Round opens with a card.
     final mixedExercises = [
-      for (final round in practice.rounds) ...round.content.skip(1),
+      for (final round in practice.rounds)
+        ...round.content.where(
+          (content) => content.editorTemplate != 'before_you_start',
+        ),
     ];
     expect(mixedExercises, hasLength(120));
     expect(
@@ -62,53 +66,71 @@ void main() {
     // No Round is one exercise type, as in the source.
     for (final round in practice.rounds) {
       final types = round.content
-          .skip(1)
+          .where((content) => content.editorTemplate != 'before_you_start')
           .map((content) => content.editorTemplate)
           .toSet();
       expect(types.length, greaterThan(2), reason: round.id);
     }
   });
 
-  test('one Lesson of 20 Rounds of six, each with a card, then the Story', () {
-    // Revision 7: both Lessons have a GuideBook, and every card offers it.
-    expect(mixed.useGuidebook, isTrue);
-    expect(mixed.lessons, hasLength(2));
-    final practice = mixed.lessons.first;
-    expect(practice.title, 'Mixed practice');
-    expect(practice.rounds, hasLength(20));
-    for (final round in practice.rounds) {
-      expect(round.flow, isNull);
-      expect(round.content, hasLength(7));
-      final card = ExerciseFeatures(round.exercises.first);
+  test(
+    'one Lesson of 20 Rounds of six, the first with a card, then the Story',
+    () {
+      // Revision 7: both Lessons have a GuideBook, and every card offers it.
+      expect(mixed.useGuidebook, isTrue);
+      expect(mixed.lessons, hasLength(2));
+      final practice = mixed.lessons.first;
+      expect(practice.title, 'Mixed practice');
+      expect(practice.rounds, hasLength(20));
+      // Build 260 Revision 3 (owner decision): the Lesson's first Round alone
+      // opens with a Before you start card.
+      final card = ExerciseFeatures(practice.rounds.first.exercises.first);
       expect(card.kind, LearnerExerciseKind.roundIntro);
-      expect(card.introText, 'Mixed practice: 6 exercises of different types.');
-      expect(card.guidebookButton, isTrue);
       expect(
-        round.exercises
-            .skip(1)
-            .any(
-              (exercise) =>
-                  exercise.canonicalEvaluation.mode != EvaluationMode.none,
-            ),
-        isTrue,
-        reason: round.id,
+        card.introText,
+        'Mixed practice: 20 Rounds of 6 exercises of different types. '
+        'Open the GuideBook for the notes and the words.',
       );
-    }
-    final story = mixed.lessons.last;
-    expect(story.rounds.single.isStory, isTrue);
-    expect(
-      story.rounds.single.content.map(_withoutIds).skip(1),
-      source.lessons.last.rounds.single.content
-          .map(_withoutIds)
-          .skip(1)
-          .map(
-            (text) => text.replaceAll(
-              'pms_e5f5585a_character_',
-              'pmsmix_69ff369e_character_',
-            ),
+      expect(card.guidebookButton, isTrue);
+      for (final (index, round) in practice.rounds.indexed) {
+        expect(round.flow, isNull);
+        expect(round.content, hasLength(index == 0 ? 7 : 6));
+        expect(
+          round.exercises
+              .skip(index == 0 ? 1 : 0)
+              .any(
+                (exercise) =>
+                    ExerciseFeatures(exercise).kind ==
+                    LearnerExerciseKind.roundIntro,
+              ),
+          isFalse,
+          reason: round.id,
+        );
+        expect(
+          round.exercises.any(
+            (exercise) =>
+                exercise.canonicalEvaluation.mode != EvaluationMode.none,
           ),
-    );
-  });
+          isTrue,
+          reason: round.id,
+        );
+      }
+      final story = mixed.lessons.last;
+      expect(story.rounds.single.isStory, isTrue);
+      expect(
+        story.rounds.single.content.map(_withoutIds).skip(1),
+        source.lessons.last.rounds.single.content
+            .map(_withoutIds)
+            .skip(1)
+            .map(
+              (text) => text.replaceAll(
+                'pms_e5f5585a_character_',
+                'pmsmix_69ff369e_character_',
+              ),
+            ),
+      );
+    },
+  );
 
   test('each Lesson has a GuideBook with notes and vocabulary', () {
     final practice = mixed.lessons.first.guidebook.content;

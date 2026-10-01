@@ -103,3 +103,33 @@
 - `flutter analyze --no-pub`: no issues.
 - **Complete suite** (`--concurrency=1`, keep-awake, 29 min 41 s):
   **3493 passed, 1 skipped, 0 failed**.
+
+## Revision 3 (2.0.60+260003, 1 October 2026): Piedmontese showcase and Before you start
+
+**Generators and validator**
+- The Piedmontese, QQL Demo: Piedmontese and QQL Demo: English from Italian
+  generators rewrite their Courses; the v11 fixture of the Piedmontese demo
+  is rewritten from `build_course_v11()` (the Laboratory's is unchanged).
+  All five generators: `--check` reproducible.
+- `tools/validate_courses.py`: the four bundled Courses pass.
+
+**Tests**
+- New: `test/owner_review_260_revision3_test.dart` (Pick the missing word
+  and One word fills all keep an Instruction or context through the
+  builder, Recognition and the form's values, and store nothing without
+  one; every exercise of the four bundled Courses is represented by its
+  preset; the Piedmontese demo's instructions, source answers and ordered
+  blocks; the QQL Demo Courses open only each Lesson's first Round with a
+  card).
+- Updated: `piedmontese_mixed_259_test` and `english_from_italian_260_test`
+  (the first Round's card only), `exercise_field_help_ui_226_02_test` (the
+  two forms' new field).
+- Focused run (the 38 files that read these presets, the Piedmontese
+  Courses, the field Help or the cards): 15 failures. 13 came from a gap
+  this revision opened: the Exercise Help page (and its search) looks up
+  every form field in `exerciseHelpFieldKeyByPresetAndField`, which had no
+  entry for the new field, so it threw; the two entries were added. The
+  other two were the field list above. The four files re-run: 124 passed.
+- `flutter analyze --no-pub`: no issues.
+- **Complete suite** (`--concurrency=1`, keep-awake, 29 min 38 s):
+  **3500 passed, 1 skipped, 0 failed**.

@@ -369,6 +369,9 @@ const exerciseHelpFieldKeyByPresetAndField = <String, String>{
   'choice_source.tokens': 'exerciseHelp.field.choice.tokens.body',
   'choice_source.tts': 'exerciseHelp.field.choice.tts.body',
   'choice_source.image': 'exerciseHelp.field.choice.image.body',
+  // Build 260 Revision 3: an Instruction or context, as the other presets.
+  'gap_choice.prompt': 'exerciseHelp.field.instruction.body',
+  'one_word_fills_all.prompt': 'exerciseHelp.field.instruction.body',
   'gap_choice.question': 'exerciseHelp.field.gap_choice.question.body',
   'one_word_fills_all.question':
       'exerciseHelp.field.one_word_fills_all.question.body',

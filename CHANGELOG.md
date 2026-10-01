@@ -1,3 +1,22 @@
+# 2.0.60 (Build 260, Revision 3) - Piedmontese showcase, first-Round cards - 2026-10-01
+
+Owner review of 1 October 2026.
+
+- **Pick the missing word** and **One word fills all** have an optional
+  Instruction or context, such as the meaning of a short phrase; the
+  learner sees it in place of the standard line.
+- **Demo: Piedmontese** opens every exercise in its preset's form again:
+  its Pick the missing word instructions are kept, its Listen and answer
+  (to source) answers are marked as English, its Spell the word in the
+  picture blocks are stored in the word's order. QQL Demo: Piedmontese
+  follows.
+- **QQL Demo Courses**: only the first Round of each Lesson opens with a
+  Before you start card.
+- Help EN/IT/ES name the new field.
+
+Scoring, progression, Review and learner data are unchanged. Beta expiry
+`2026-10-31 23:59:59` local time (same release day as Revision 0).
+
 # 2.0.60 (Build 260, Revision 2) - QQL Demo: English from Italian - 2026-10-01
 
 Owner request of 1 October 2026.

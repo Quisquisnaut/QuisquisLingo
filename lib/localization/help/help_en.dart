@@ -1043,7 +1043,7 @@ Question and Context are separate. Context can be text, audio, or both. Dialogue
   'exerciseHelp.preset.true_false.body':
       r'''The learner reads a statement in the target language, optionally hears it, and chooses between the word for true and the word for false in the source language. Provide the statement, an optional spoken statement, the two answers (prefilled in the source language when QQL knows it) and the correct answer number: 1 when the statement is true, 2 when it is false.''',
   'exerciseHelp.preset.one_word_fills_all.body':
-      r'''The learner reads sentences with two or more ___ gaps and picks the one word that fills them all; once chosen it appears in every gap. Write the sentences with ___ (three underscores) for each gap, the answer words and the correct answer number; only one word may fit every gap. For a single gap use Pick the missing word.''',
+      r'''The learner reads sentences with two or more ___ gaps and picks the one word that fills them all; once chosen it appears in every gap. Write the sentences with ___ (three underscores) for each gap, the answer words and the correct answer number; only one word may fit every gap. For a single gap use Pick the missing word. An optional Instruction or context takes the place of the standard line.''',
   'exerciseHelp.preset.complete_text.body':
       r'''The learner reads a text with one or more gaps and types what goes into each. Write the text with ___ (three underscores) for each gap, and give one line per gap in Missing words, in order. A line may accept several answers: [il|un] gatto accepts both il gatto and un gatto. An optional Instruction or context sets the scene and replaces the standard line; an optional hint helps without giving the words away. Answers are checked with the normal Input normalization. There is no audio: for gaps heard from a recording use Listen and fill the gaps.''',
   'exerciseHelp.preset.missing_letters.body':
@@ -1081,7 +1081,7 @@ Question and Context are separate. Context can be text, audio, or both. Dialogue
   'exerciseHelp.preset.note_card.body':
       r'''A card with a title and a note: a tip, a grammar point, a cultural remark. The learner reads it and presses Continue; there is no answer, no score and no audio. Write in the language your learners read best.''',
   'exerciseHelp.preset.gap_choice.body':
-      r'''The learner sees a sentence containing ___ and chooses the missing word or expression. Provide one text gap, answer blocks and one correct answer. Text is supported. Use exactly one gap where possible and make only one option grammatically and semantically correct.''',
+      r'''The learner sees a sentence containing ___ and chooses the missing word or expression. Provide one text gap, answer blocks and one correct answer. Text is supported. Use exactly one gap where possible and make only one option grammatically and semantically correct. An optional Instruction or context, such as the meaning of a short phrase (Complete the phrase meaning the dog.), takes the place of the standard line.''',
   'exerciseHelp.preset.icon_choice.body':
       r'''The learner sees a question and image choices, then selects the matching image. Provide one answer and image/icon entry per option plus the correct answer number. Text and images are supported. Every option needs a corresponding visual.''',
   'exerciseHelp.preset.script_recognition.body':

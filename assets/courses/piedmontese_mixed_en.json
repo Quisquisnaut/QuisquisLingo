@@ -381,7 +381,7 @@
                   {
                     "role": "intro",
                     "type": "text",
-                    "text": "Mixed practice: 6 exercises of different types."
+                    "text": "Mixed practice: 20 Rounds of 6 exercises of different types. Open the GuideBook for the notes and the words."
                   }
                 ],
                 "evaluation": {
@@ -479,7 +479,8 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "a book"
+                        "text": "a book",
+                        "language": "source"
                       }
                     ]
                   },
@@ -489,7 +490,8 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "a dog"
+                        "text": "a dog",
+                        "language": "source"
                       }
                     ]
                   },
@@ -499,7 +501,8 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "an apple"
+                        "text": "an apple",
+                        "language": "source"
                       }
                     ]
                   }
@@ -780,32 +783,6 @@
           "title": "Mixed practice 2",
           "content": [
             {
-              "id": "pmsmix_69ff369e_l01_r02_intro",
-              "publicationState": "published",
-              "kind": "exercise",
-              "required": false,
-              "authoringMetadata": {
-                "presetId": "before_you_start"
-              },
-              "exercise": {
-                "updatedAt": "2026-10-01T00:00:00.000Z",
-                "primitive": "presentation",
-                "options": {
-                  "guidebookButton": true
-                },
-                "prompt": [
-                  {
-                    "role": "intro",
-                    "type": "text",
-                    "text": "Mixed practice: 6 exercises of different types."
-                  }
-                ],
-                "evaluation": {
-                  "mode": "none"
-                }
-              }
-            },
-            {
               "id": "pmsmix_69ff369e_l01_r02_e01",
               "publicationState": "published",
               "kind": "exercise",
@@ -1012,7 +989,8 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "a cat and a horse"
+                        "text": "a cat and a horse",
+                        "language": "source"
                       }
                     ]
                   },
@@ -1022,7 +1000,8 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "a cat and a dog"
+                        "text": "a cat and a dog",
+                        "language": "source"
                       }
                     ]
                   },
@@ -1032,7 +1011,8 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "a dog and a horse"
+                        "text": "a dog and a horse",
+                        "language": "source"
                       }
                     ]
                   }
@@ -1191,32 +1171,6 @@
           "visualType": "generic",
           "title": "Mixed practice 3",
           "content": [
-            {
-              "id": "pmsmix_69ff369e_l01_r03_intro",
-              "publicationState": "published",
-              "kind": "exercise",
-              "required": false,
-              "authoringMetadata": {
-                "presetId": "before_you_start"
-              },
-              "exercise": {
-                "updatedAt": "2026-10-01T00:00:00.000Z",
-                "primitive": "presentation",
-                "options": {
-                  "guidebookButton": true
-                },
-                "prompt": [
-                  {
-                    "role": "intro",
-                    "type": "text",
-                    "text": "Mixed practice: 6 exercises of different types."
-                  }
-                ],
-                "evaluation": {
-                  "mode": "none"
-                }
-              }
-            },
             {
               "id": "pmsmix_69ff369e_l01_r03_e01",
               "publicationState": "published",
@@ -1580,32 +1534,6 @@
           "visualType": "generic",
           "title": "Mixed practice 4",
           "content": [
-            {
-              "id": "pmsmix_69ff369e_l01_r04_intro",
-              "publicationState": "published",
-              "kind": "exercise",
-              "required": false,
-              "authoringMetadata": {
-                "presetId": "before_you_start"
-              },
-              "exercise": {
-                "updatedAt": "2026-10-01T00:00:00.000Z",
-                "primitive": "presentation",
-                "options": {
-                  "guidebookButton": true
-                },
-                "prompt": [
-                  {
-                    "role": "intro",
-                    "type": "text",
-                    "text": "Mixed practice: 6 exercises of different types."
-                  }
-                ],
-                "evaluation": {
-                  "mode": "none"
-                }
-              }
-            },
             {
               "id": "pmsmix_69ff369e_l01_r04_e01",
               "publicationState": "published",
@@ -1993,32 +1921,6 @@
           "title": "Mixed practice 5",
           "content": [
             {
-              "id": "pmsmix_69ff369e_l01_r05_intro",
-              "publicationState": "published",
-              "kind": "exercise",
-              "required": false,
-              "authoringMetadata": {
-                "presetId": "before_you_start"
-              },
-              "exercise": {
-                "updatedAt": "2026-10-01T00:00:00.000Z",
-                "primitive": "presentation",
-                "options": {
-                  "guidebookButton": true
-                },
-                "prompt": [
-                  {
-                    "role": "intro",
-                    "type": "text",
-                    "text": "Mixed practice: 6 exercises of different types."
-                  }
-                ],
-                "evaluation": {
-                  "mode": "none"
-                }
-              }
-            },
-            {
               "id": "pmsmix_69ff369e_l01_r05_e01",
               "publicationState": "published",
               "kind": "exercise",
@@ -2405,32 +2307,6 @@
           "title": "Mixed practice 6",
           "content": [
             {
-              "id": "pmsmix_69ff369e_l01_r06_intro",
-              "publicationState": "published",
-              "kind": "exercise",
-              "required": false,
-              "authoringMetadata": {
-                "presetId": "before_you_start"
-              },
-              "exercise": {
-                "updatedAt": "2026-10-01T00:00:00.000Z",
-                "primitive": "presentation",
-                "options": {
-                  "guidebookButton": true
-                },
-                "prompt": [
-                  {
-                    "role": "intro",
-                    "type": "text",
-                    "text": "Mixed practice: 6 exercises of different types."
-                  }
-                ],
-                "evaluation": {
-                  "mode": "none"
-                }
-              }
-            },
-            {
               "id": "pmsmix_69ff369e_l01_r06_e01",
               "publicationState": "published",
               "kind": "exercise",
@@ -2743,7 +2619,7 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "n"
+                        "text": "p"
                       }
                     ]
                   },
@@ -2753,7 +2629,7 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "p"
+                        "text": "a"
                       }
                     ]
                   },
@@ -2763,7 +2639,7 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "a"
+                        "text": "n"
                       }
                     ]
                   }
@@ -2774,9 +2650,9 @@
                     {
                       "text": "pan",
                       "itemIds": [
+                        "pmsmix_69ff369e_l01_r06_e05_i0",
                         "pmsmix_69ff369e_l01_r06_e05_i1",
-                        "pmsmix_69ff369e_l01_r06_e05_i2",
-                        "pmsmix_69ff369e_l01_r06_e05_i0"
+                        "pmsmix_69ff369e_l01_r06_e05_i2"
                       ]
                     }
                   ]
@@ -2863,32 +2739,6 @@
           "visualType": "generic",
           "title": "Mixed practice 7",
           "content": [
-            {
-              "id": "pmsmix_69ff369e_l01_r07_intro",
-              "publicationState": "published",
-              "kind": "exercise",
-              "required": false,
-              "authoringMetadata": {
-                "presetId": "before_you_start"
-              },
-              "exercise": {
-                "updatedAt": "2026-10-01T00:00:00.000Z",
-                "primitive": "presentation",
-                "options": {
-                  "guidebookButton": true
-                },
-                "prompt": [
-                  {
-                    "role": "intro",
-                    "type": "text",
-                    "text": "Mixed practice: 6 exercises of different types."
-                  }
-                ],
-                "evaluation": {
-                  "mode": "none"
-                }
-              }
-            },
             {
               "id": "pmsmix_69ff369e_l01_r07_e01",
               "publicationState": "published",
@@ -3268,7 +3118,8 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "one"
+                        "text": "one",
+                        "language": "source"
                       }
                     ]
                   },
@@ -3278,7 +3129,8 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "two"
+                        "text": "two",
+                        "language": "source"
                       }
                     ]
                   },
@@ -3288,7 +3140,8 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "three"
+                        "text": "three",
+                        "language": "source"
                       }
                     ]
                   }
@@ -3310,32 +3163,6 @@
           "visualType": "generic",
           "title": "Mixed practice 8",
           "content": [
-            {
-              "id": "pmsmix_69ff369e_l01_r08_intro",
-              "publicationState": "published",
-              "kind": "exercise",
-              "required": false,
-              "authoringMetadata": {
-                "presetId": "before_you_start"
-              },
-              "exercise": {
-                "updatedAt": "2026-10-01T00:00:00.000Z",
-                "primitive": "presentation",
-                "options": {
-                  "guidebookButton": true
-                },
-                "prompt": [
-                  {
-                    "role": "intro",
-                    "type": "text",
-                    "text": "Mixed practice: 6 exercises of different types."
-                  }
-                ],
-                "evaluation": {
-                  "mode": "none"
-                }
-              }
-            },
             {
               "id": "pmsmix_69ff369e_l01_r08_e01",
               "publicationState": "published",
@@ -3678,32 +3505,6 @@
           "visualType": "generic",
           "title": "Mixed practice 9",
           "content": [
-            {
-              "id": "pmsmix_69ff369e_l01_r09_intro",
-              "publicationState": "published",
-              "kind": "exercise",
-              "required": false,
-              "authoringMetadata": {
-                "presetId": "before_you_start"
-              },
-              "exercise": {
-                "updatedAt": "2026-10-01T00:00:00.000Z",
-                "primitive": "presentation",
-                "options": {
-                  "guidebookButton": true
-                },
-                "prompt": [
-                  {
-                    "role": "intro",
-                    "type": "text",
-                    "text": "Mixed practice: 6 exercises of different types."
-                  }
-                ],
-                "evaluation": {
-                  "mode": "none"
-                }
-              }
-            },
             {
               "id": "pmsmix_69ff369e_l01_r09_e01",
               "publicationState": "published",
@@ -4101,32 +3902,6 @@
           "visualType": "generic",
           "title": "Mixed practice 10",
           "content": [
-            {
-              "id": "pmsmix_69ff369e_l01_r10_intro",
-              "publicationState": "published",
-              "kind": "exercise",
-              "required": false,
-              "authoringMetadata": {
-                "presetId": "before_you_start"
-              },
-              "exercise": {
-                "updatedAt": "2026-10-01T00:00:00.000Z",
-                "primitive": "presentation",
-                "options": {
-                  "guidebookButton": true
-                },
-                "prompt": [
-                  {
-                    "role": "intro",
-                    "type": "text",
-                    "text": "Mixed practice: 6 exercises of different types."
-                  }
-                ],
-                "evaluation": {
-                  "mode": "none"
-                }
-              }
-            },
             {
               "id": "pmsmix_69ff369e_l01_r10_e01",
               "publicationState": "published",
@@ -4555,32 +4330,6 @@
           "visualType": "generic",
           "title": "Mixed practice 11",
           "content": [
-            {
-              "id": "pmsmix_69ff369e_l01_r11_intro",
-              "publicationState": "published",
-              "kind": "exercise",
-              "required": false,
-              "authoringMetadata": {
-                "presetId": "before_you_start"
-              },
-              "exercise": {
-                "updatedAt": "2026-10-01T00:00:00.000Z",
-                "primitive": "presentation",
-                "options": {
-                  "guidebookButton": true
-                },
-                "prompt": [
-                  {
-                    "role": "intro",
-                    "type": "text",
-                    "text": "Mixed practice: 6 exercises of different types."
-                  }
-                ],
-                "evaluation": {
-                  "mode": "none"
-                }
-              }
-            },
             {
               "id": "pmsmix_69ff369e_l01_r11_e01",
               "publicationState": "published",
@@ -5040,32 +4789,6 @@
           "title": "Mixed practice 12",
           "content": [
             {
-              "id": "pmsmix_69ff369e_l01_r12_intro",
-              "publicationState": "published",
-              "kind": "exercise",
-              "required": false,
-              "authoringMetadata": {
-                "presetId": "before_you_start"
-              },
-              "exercise": {
-                "updatedAt": "2026-10-01T00:00:00.000Z",
-                "primitive": "presentation",
-                "options": {
-                  "guidebookButton": true
-                },
-                "prompt": [
-                  {
-                    "role": "intro",
-                    "type": "text",
-                    "text": "Mixed practice: 6 exercises of different types."
-                  }
-                ],
-                "evaluation": {
-                  "mode": "none"
-                }
-              }
-            },
-            {
               "id": "pmsmix_69ff369e_l01_r12_e01",
               "publicationState": "published",
               "kind": "exercise",
@@ -5399,7 +5122,7 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "t"
+                        "text": "g"
                       }
                     ]
                   },
@@ -5409,7 +5132,7 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "g"
+                        "text": "a"
                       }
                     ]
                   },
@@ -5419,7 +5142,7 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "a"
+                        "text": "t"
                       }
                     ]
                   }
@@ -5430,9 +5153,9 @@
                     {
                       "text": "gat",
                       "itemIds": [
+                        "pmsmix_69ff369e_l01_r12_e06_i0",
                         "pmsmix_69ff369e_l01_r12_e06_i1",
-                        "pmsmix_69ff369e_l01_r12_e06_i2",
-                        "pmsmix_69ff369e_l01_r12_e06_i0"
+                        "pmsmix_69ff369e_l01_r12_e06_i2"
                       ]
                     }
                   ]
@@ -5448,32 +5171,6 @@
           "visualType": "generic",
           "title": "Mixed practice 13",
           "content": [
-            {
-              "id": "pmsmix_69ff369e_l01_r13_intro",
-              "publicationState": "published",
-              "kind": "exercise",
-              "required": false,
-              "authoringMetadata": {
-                "presetId": "before_you_start"
-              },
-              "exercise": {
-                "updatedAt": "2026-10-01T00:00:00.000Z",
-                "primitive": "presentation",
-                "options": {
-                  "guidebookButton": true
-                },
-                "prompt": [
-                  {
-                    "role": "intro",
-                    "type": "text",
-                    "text": "Mixed practice: 6 exercises of different types."
-                  }
-                ],
-                "evaluation": {
-                  "mode": "none"
-                }
-              }
-            },
             {
               "id": "pmsmix_69ff369e_l01_r13_e01",
               "publicationState": "published",
@@ -5918,32 +5615,6 @@
           "title": "Mixed practice 14",
           "content": [
             {
-              "id": "pmsmix_69ff369e_l01_r14_intro",
-              "publicationState": "published",
-              "kind": "exercise",
-              "required": false,
-              "authoringMetadata": {
-                "presetId": "before_you_start"
-              },
-              "exercise": {
-                "updatedAt": "2026-10-01T00:00:00.000Z",
-                "primitive": "presentation",
-                "options": {
-                  "guidebookButton": true
-                },
-                "prompt": [
-                  {
-                    "role": "intro",
-                    "type": "text",
-                    "text": "Mixed practice: 6 exercises of different types."
-                  }
-                ],
-                "evaluation": {
-                  "mode": "none"
-                }
-              }
-            },
-            {
               "id": "pmsmix_69ff369e_l01_r14_e01",
               "publicationState": "published",
               "kind": "exercise",
@@ -6285,32 +5956,6 @@
           "visualType": "generic",
           "title": "Mixed practice 15",
           "content": [
-            {
-              "id": "pmsmix_69ff369e_l01_r15_intro",
-              "publicationState": "published",
-              "kind": "exercise",
-              "required": false,
-              "authoringMetadata": {
-                "presetId": "before_you_start"
-              },
-              "exercise": {
-                "updatedAt": "2026-10-01T00:00:00.000Z",
-                "primitive": "presentation",
-                "options": {
-                  "guidebookButton": true
-                },
-                "prompt": [
-                  {
-                    "role": "intro",
-                    "type": "text",
-                    "text": "Mixed practice: 6 exercises of different types."
-                  }
-                ],
-                "evaluation": {
-                  "mode": "none"
-                }
-              }
-            },
             {
               "id": "pmsmix_69ff369e_l01_r15_e01",
               "publicationState": "published",
@@ -6757,32 +6402,6 @@
           "title": "Mixed practice 16",
           "content": [
             {
-              "id": "pmsmix_69ff369e_l01_r16_intro",
-              "publicationState": "published",
-              "kind": "exercise",
-              "required": false,
-              "authoringMetadata": {
-                "presetId": "before_you_start"
-              },
-              "exercise": {
-                "updatedAt": "2026-10-01T00:00:00.000Z",
-                "primitive": "presentation",
-                "options": {
-                  "guidebookButton": true
-                },
-                "prompt": [
-                  {
-                    "role": "intro",
-                    "type": "text",
-                    "text": "Mixed practice: 6 exercises of different types."
-                  }
-                ],
-                "evaluation": {
-                  "mode": "none"
-                }
-              }
-            },
-            {
               "id": "pmsmix_69ff369e_l01_r16_e01",
               "publicationState": "published",
               "kind": "exercise",
@@ -7201,32 +6820,6 @@
           "title": "Mixed practice 17",
           "content": [
             {
-              "id": "pmsmix_69ff369e_l01_r17_intro",
-              "publicationState": "published",
-              "kind": "exercise",
-              "required": false,
-              "authoringMetadata": {
-                "presetId": "before_you_start"
-              },
-              "exercise": {
-                "updatedAt": "2026-10-01T00:00:00.000Z",
-                "primitive": "presentation",
-                "options": {
-                  "guidebookButton": true
-                },
-                "prompt": [
-                  {
-                    "role": "intro",
-                    "type": "text",
-                    "text": "Mixed practice: 6 exercises of different types."
-                  }
-                ],
-                "evaluation": {
-                  "mode": "none"
-                }
-              }
-            },
-            {
               "id": "pmsmix_69ff369e_l01_r17_e01",
               "publicationState": "published",
               "kind": "exercise",
@@ -7570,7 +7163,7 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "a"
+                        "text": "c"
                       }
                     ]
                   },
@@ -7580,7 +7173,7 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "l"
+                        "text": "a"
                       }
                     ]
                   },
@@ -7590,7 +7183,7 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "c"
+                        "text": "v"
                       }
                     ]
                   },
@@ -7610,7 +7203,7 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "v"
+                        "text": "l"
                       }
                     ]
                   }
@@ -7621,11 +7214,11 @@
                     {
                       "text": "caval",
                       "itemIds": [
-                        "pmsmix_69ff369e_l01_r17_e06_i2",
                         "pmsmix_69ff369e_l01_r17_e06_i0",
-                        "pmsmix_69ff369e_l01_r17_e06_i4",
+                        "pmsmix_69ff369e_l01_r17_e06_i1",
+                        "pmsmix_69ff369e_l01_r17_e06_i2",
                         "pmsmix_69ff369e_l01_r17_e06_i3",
-                        "pmsmix_69ff369e_l01_r17_e06_i1"
+                        "pmsmix_69ff369e_l01_r17_e06_i4"
                       ]
                     }
                   ]
@@ -7641,32 +7234,6 @@
           "visualType": "generic",
           "title": "Mixed practice 18",
           "content": [
-            {
-              "id": "pmsmix_69ff369e_l01_r18_intro",
-              "publicationState": "published",
-              "kind": "exercise",
-              "required": false,
-              "authoringMetadata": {
-                "presetId": "before_you_start"
-              },
-              "exercise": {
-                "updatedAt": "2026-10-01T00:00:00.000Z",
-                "primitive": "presentation",
-                "options": {
-                  "guidebookButton": true
-                },
-                "prompt": [
-                  {
-                    "role": "intro",
-                    "type": "text",
-                    "text": "Mixed practice: 6 exercises of different types."
-                  }
-                ],
-                "evaluation": {
-                  "mode": "none"
-                }
-              }
-            },
             {
               "id": "pmsmix_69ff369e_l01_r18_e01",
               "publicationState": "published",
@@ -8027,32 +7594,6 @@
           "visualType": "generic",
           "title": "Mixed practice 19",
           "content": [
-            {
-              "id": "pmsmix_69ff369e_l01_r19_intro",
-              "publicationState": "published",
-              "kind": "exercise",
-              "required": false,
-              "authoringMetadata": {
-                "presetId": "before_you_start"
-              },
-              "exercise": {
-                "updatedAt": "2026-10-01T00:00:00.000Z",
-                "primitive": "presentation",
-                "options": {
-                  "guidebookButton": true
-                },
-                "prompt": [
-                  {
-                    "role": "intro",
-                    "type": "text",
-                    "text": "Mixed practice: 6 exercises of different types."
-                  }
-                ],
-                "evaluation": {
-                  "mode": "none"
-                }
-              }
-            },
             {
               "id": "pmsmix_69ff369e_l01_r19_e01",
               "publicationState": "published",
@@ -8481,32 +8022,6 @@
           "visualType": "generic",
           "title": "Mixed practice 20",
           "content": [
-            {
-              "id": "pmsmix_69ff369e_l01_r20_intro",
-              "publicationState": "published",
-              "kind": "exercise",
-              "required": false,
-              "authoringMetadata": {
-                "presetId": "before_you_start"
-              },
-              "exercise": {
-                "updatedAt": "2026-10-01T00:00:00.000Z",
-                "primitive": "presentation",
-                "options": {
-                  "guidebookButton": true
-                },
-                "prompt": [
-                  {
-                    "role": "intro",
-                    "type": "text",
-                    "text": "Mixed practice: 6 exercises of different types."
-                  }
-                ],
-                "evaluation": {
-                  "mode": "none"
-                }
-              }
-            },
             {
               "id": "pmsmix_69ff369e_l01_r20_e01",
               "publicationState": "published",
@@ -9169,5 +8684,5 @@
       "voice": "female"
     }
   ],
-  "officialChecksum": "bcba5fe6e00e71d2f25a5bf1fd9f70dc6dcf6810c772febfef7dcdc08e066ec5"
+  "officialChecksum": "bf30a1940db35326c082fdc3868ef35e643cf867ae0b1a7c2674b0d95a31ff98"
 }

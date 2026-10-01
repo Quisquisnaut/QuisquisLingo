@@ -62,12 +62,14 @@ void main() {
     final practice = lesson.rounds.where((round) => !round.isStory).toList();
     expect(practice, hasLength(6));
     final presets = <String>[];
-    for (final round in practice) {
+    // Build 260 Revision 3 (owner decision): only the Lesson's first Round
+    // opens with a Before you start card, which offers the GuideBook.
+    final card = ExerciseFeatures(practice.first.exercises.first);
+    expect(card.kind, LearnerExerciseKind.roundIntro);
+    expect(card.guidebookButton, isTrue);
+    for (final (index, round) in practice.indexed) {
       expect(round.flow, isNull);
-      final card = ExerciseFeatures(round.exercises.first);
-      expect(card.kind, LearnerExerciseKind.roundIntro);
-      expect(card.guidebookButton, isTrue);
-      final exercises = round.content.skip(1).toList();
+      final exercises = round.content.skip(index == 0 ? 1 : 0).toList();
       expect(exercises, hasLength(6), reason: round.id);
       final types = exercises.map((content) => content.editorTemplate);
       // Mixed: never two of a type in a Round.
@@ -93,7 +95,7 @@ void main() {
     expect(positions, isNot(orderedEquals([...positions]..sort())));
     // Every exercise is still represented by its preset.
     for (final round in practice) {
-      for (final content in round.content.skip(1)) {
+      for (final content in round.content) {
         expect(
           PresetRecipes.represents(content.exercise!, content.editorTemplate),
           isTrue,
@@ -105,9 +107,9 @@ void main() {
 
   test('the Stories alternate dialogue lines and questions', () {
     for (final story in [lesson.rounds[3], lesson.rounds.last]) {
+      // No card: a Story inside the Lesson starts with its cover.
       final kinds = [
-        for (final exercise in story.exercises.skip(1))
-          ExerciseFeatures(exercise).kind,
+        for (final exercise in story.exercises) ExerciseFeatures(exercise).kind,
       ];
       expect(kinds.first, LearnerExerciseKind.storyCover);
       expect(

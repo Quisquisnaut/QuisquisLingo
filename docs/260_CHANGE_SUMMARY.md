@@ -133,3 +133,41 @@ fourth file (en-GB, one Lesson).
 
 Scoring, progression, Review, the Course format and learner data are
 unchanged.
+
+## Revision 3 (2.0.60+260003, 1 October 2026): Piedmontese showcase and Before you start
+
+Owner review of 1 October 2026 (decisions: the mixed fix, the first Round's
+card only).
+
+**Pick the missing word and One word fills all** have an optional
+**Instruction or context** (`_instructionField()`, first in the form;
+`ExerciseFieldHelpRegistry.editorFieldKeys` starts with `prompt`; the
+draft builder writes it as a `primary` text for the `gap_choice` recipe,
+and `decompose` already read it back). The Round already drew such a text
+in place of the standard line; until now the form could not keep it, so an
+exercise with one opened in the canonical editor. Help EN/IT/ES name the
+field in both presets; `exerciseHelpFieldKeyByPresetAndField` maps
+`gap_choice.prompt` and `one_word_fills_all.prompt` to the shared
+`exerciseHelp.field.instruction.body`.
+
+**The Piedmontese demo showcases every preset again.** Nine of its
+exercises were not represented by their preset and opened in the canonical
+editor:
+- Lesson 13, Pick the missing word: their instructions ("Complete the
+  phrase meaning the dog.") are now a field of the preset (above);
+- Lesson 25, Listen and answer (to source): the English answers are now
+  marked source, as the preset writes them and the Laboratory has them;
+- Lesson 34, Spell the word in the picture: the blocks are stored in the
+  word's order, as the preset writes them (the Round shuffles them).
+The same nine exercises in QQL Demo: Piedmontese follow. The v11 converter
+fixture of the Piedmontese demo is rewritten from `build_course_v11()`.
+
+**Before you start on the first Round only.** In QQL Demo: Piedmontese and
+QQL Demo: English from Italian only the first Round of each Lesson opens
+with a Before you start card (Open GuideBook), with a text that says what
+the Lesson holds; the other Rounds and the Stories inside a Lesson start at
+once. QQL Demo: English from Italian gets back the instruction of its Pick
+the missing word ("Scegli la forma giusta di to be.").
+
+Scoring, progression, Review, the Course format and learner data are
+unchanged.

@@ -301,9 +301,11 @@ def lesson_specs() -> list[tuple[str, str, str, list[dict]]]:
         choose("listening_answer_target", [audio("Mi i son a ca. I l'hai un lìber.", "passage"), text("Where is the speaker?", "question")], ["al mercà", "a scòla", "a ca"], 2),
     ])
     add("listening_answer_source", "Listen for meaning", "I l'hai = I have; i son = I am; a ca = at home; lìber = book; un = one; doi = two; tre = three. Listen to each short passage and answer its English question. " + AUDIO_NOTE, [
-        choose("listening_answer_source", [audio("Mi i son a ca. I l'hai un lìber.", "passage"), text("What does the speaker have?", "question", "source")], ["a book", "a dog", "an apple"]),
-        choose("listening_answer_source", [audio("I l'hai un gat e un can.", "passage"), text("Which two animals are mentioned?", "question", "source")], ["a cat and a horse", "a cat and a dog", "a dog and a horse"], 1),
-        choose("listening_answer_source", [audio("La lista: pan, eva e tre pom.", "passage"), text("How many apples are on the list?", "question", "source")], ["one", "two", "three"], 2),
+        # The English answers are marked source, as the preset writes them
+        # (Build 260 Revision 3).
+        choose("listening_answer_source", [audio("Mi i son a ca. I l'hai un lìber.", "passage"), text("What does the speaker have?", "question", "source")], ["a book", "a dog", "an apple"], language="source"),
+        choose("listening_answer_source", [audio("I l'hai un gat e un can.", "passage"), text("Which two animals are mentioned?", "question", "source")], ["a cat and a horse", "a cat and a dog", "a dog and a horse"], 1, language="source"),
+        choose("listening_answer_source", [audio("La lista: pan, eva e tre pom.", "passage"), text("How many apples are on the list?", "question", "source")], ["one", "two", "three"], 2, language="source"),
     ])
     # Read and answer (Build 256 Revision 7 fourth follow-up): a situation in
     # English, Piedmontese dialogue lines (read aloud or not), a Piedmontese
@@ -430,10 +432,12 @@ def lesson_specs() -> list[tuple[str, str, str, list[dict]]]:
     ])
     add("image_word", "Build pictured words", "Use every letter to spell the Piedmontese word in the picture: pan (bread), gat (cat), caval (horse). The two a letters in caval are separate blocks.", [
         arrange("image_word", [text(instruction, "clue"), image(asset, alternative)], blocks, [order])
+        # The blocks are stored in the word's order, as the preset writes them;
+        # the Round shuffles them (Build 260 Revision 3).
         for asset, alternative, blocks, order, instruction in [
-            ("bread", "Bread", ["n", "p", "a"], [1, 2, 0], "Spell the pictured food in Piedmontese."),
-            ("cat", "A cat", ["t", "g", "a"], [1, 2, 0], "Spell the pictured pet in Piedmontese."),
-            ("horse", "A horse", ["a", "l", "c", "a", "v"], [2, 0, 4, 3, 1], "Spell the pictured farm animal in Piedmontese."),
+            ("bread", "Bread", ["p", "a", "n"], [0, 1, 2], "Spell the pictured food in Piedmontese."),
+            ("cat", "A cat", ["g", "a", "t"], [0, 1, 2], "Spell the pictured pet in Piedmontese."),
+            ("horse", "A horse", ["c", "a", "v", "a", "l"], [0, 1, 2, 3, 4], "Spell the pictured farm animal in Piedmontese."),
         ]
     ])
     add("spell_word", "Spell the word", "Spell the Piedmontese word from its English clue with letter or syllable tiles: gat = cat; pan = bread; eva = water.", [

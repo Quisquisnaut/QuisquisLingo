@@ -10320,8 +10320,10 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         ];
       case 'one_word_fills_all':
         // One word fills all (Build 259 Revision 4): the sentences hold two
-        // or more ___ gaps that one answer fills.
+        // or more ___ gaps that one answer fills. Build 260 Revision 3: an
+        // optional Instruction or context, as Pick the missing word.
         return [
+          _instructionField(),
           _field(
             _question,
             'Sentences, with ___ for each gap',
@@ -10344,7 +10346,10 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
           ),
         ];
       case 'gap_choice':
+        // Build 260 Revision 3 (owner decision): an optional Instruction or
+        // context, such as the meaning a short phrase needs.
         return [
+          _instructionField(),
           _field(
             _question,
             'Sentence',

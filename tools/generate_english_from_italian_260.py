@@ -5,8 +5,9 @@ request of 1 October 2026).
 One Lesson with a GuideBook: three ordinary Rounds, the Story "Al bar",
 three more ordinary Rounds, the Story "Alla stazione". The 36 exercises of
 the ordinary Rounds are of 36 different types and are mixed at random with a
-fixed seed, six to a Round, each Round opening with a Before you start card
-that offers the GuideBook. The mix keeps one exercise that needs audio and
+fixed seed, six to a Round; the Lesson's first Round opens with a Before
+you start card that offers the GuideBook (Build 260 Revision 3: the only
+card). The mix keeps one exercise that needs audio and
 at most one card (flashcard or note) per Round, so every Round still plays
 with Audio Exercises off. The Course is Italian-based, so its learner panel
 is in Italian (Build 260 Revisions 0 and 1). The Course ID was allocated
@@ -109,8 +110,10 @@ def practice_exercises() -> list[dict]:
                ["grazie", "prego", "per favore"], 1, language="source"),
         choose("true_false", [text("A cat is an animal.", "question")], ["Vero", "Falso"], 0,
                language="source"),
-        # Pick the missing word has no instruction field.
-        choose("gap_choice", [text("I ___ a student.", "question")], ["is", "am", "are"], 1),
+        # Pick the missing word has an Instruction or context since Build 260
+        # Revision 3.
+        choose("gap_choice", [text("Scegli la forma giusta di to be."), text("I ___ a student.", "question")],
+               ["is", "am", "are"], 1),
         choose("icon_choice", [text("Seleziona l'immagine di «dog».", "question")], ["cat", "horse", "dog"], 2,
                pictures=["cat", "horse", "dog"]),
         choose("listening_choose_target", [text("Ascolta il saluto."), audio("good morning")],
@@ -232,7 +235,10 @@ def introduction(round_id: str, text_value: str) -> dict:
 
 
 def practice_round(number: int, round_id: str, members: list[dict]) -> dict:
-    content = [introduction(round_id, f"Pratica {number}: {PER_ROUND} esercizi di tipi diversi.")]
+    # Only the Lesson's first Round opens with a card (Build 260 Revision 3).
+    content = [introduction(round_id, (
+        f"Primi passi: {PRACTICE_ROUNDS} Round di esercizi di tipi diversi e due Story. Apri il GuideBook "
+        "per le note e le parole."))] if number == 1 else []
     content += [with_ids(member, f"{round_id}_e{index:02d}") for index, member in enumerate(members, 1)]
     return {"id": round_id, "publicationState": "published", "updatedAt": STAMP,
             "visualType": "generic", "title": f"Pratica {number}", "content": content}
@@ -242,11 +248,12 @@ TOM, EMMA, ANNA, BEN = (f"{PREFIX}_character_{name}" for name in ("tom", "emma",
 NARRATOR = ""
 
 
-def story_round(round_id: str, title: str, intro: str, cover: tuple[str, str, str],
+def story_round(round_id: str, title: str, cover: tuple[str, str, str],
                 steps: list[tuple[str, object]]) -> dict:
-    """A Story: its card, its cover, then lines (speaker, text) and
-    exercises (a v11 exercise Content) in order."""
-    content = [introduction(round_id, intro)]
+    """A Story: its cover, then lines (speaker, text) and exercises (a v11
+    exercise Content) in order; no card, as it is not the Lesson's first
+    Round."""
+    content = []
     picture, alternative, title_line = cover
     content.append({"id": f"{round_id}_cover", "publicationState": "published", "kind": "exercise",
                     "required": True, "editorTemplate": "story_cover",
@@ -266,8 +273,7 @@ def story_round(round_id: str, title: str, intro: str, cover: tuple[str, str, st
 
 
 def cafe_story(round_id: str) -> dict:
-    return story_round(round_id, "Al bar", "Una Story al bar: leggi o ascolta ogni battuta, poi continua.",
-                       ("coffee", "Un caffè", "At the café"), [
+    return story_round(round_id, "Al bar", ("coffee", "Un caffè", "At the café"), [
         (NARRATOR, "Tom entra in un bar di Londra."),
         (EMMA, "Good morning! What would you like?"),
         (TOM, "A coffee, please."),
@@ -282,9 +288,7 @@ def cafe_story(round_id: str) -> dict:
 
 
 def station_story(round_id: str) -> dict:
-    return story_round(round_id, "Alla stazione",
-                       "Una Story alla stazione: leggi o ascolta ogni battuta, poi continua.",
-                       ("train", "Un treno", "At the station"), [
+    return story_round(round_id, "Alla stazione", ("train", "Un treno", "At the station"), [
         (NARRATOR, "Anna è alla stazione: vuole andare a Oxford."),
         (ANNA, "Excuse me, where is the train to Oxford?"),
         (BEN, "It's on platform two."),

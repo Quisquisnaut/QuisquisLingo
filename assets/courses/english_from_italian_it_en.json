@@ -404,7 +404,7 @@
                   {
                     "role": "intro",
                     "type": "text",
-                    "text": "Pratica 1: 6 esercizi di tipi diversi."
+                    "text": "Primi passi: 6 Round di esercizi di tipi diversi e due Story. Apri il GuideBook per le note e le parole."
                   }
                 ],
                 "evaluation": {
@@ -810,32 +810,6 @@
           "title": "Pratica 2",
           "content": [
             {
-              "id": "enit_65dce83b_l01_r02_intro",
-              "publicationState": "published",
-              "kind": "exercise",
-              "required": false,
-              "authoringMetadata": {
-                "presetId": "before_you_start"
-              },
-              "exercise": {
-                "updatedAt": "2026-10-01T00:00:00.000Z",
-                "primitive": "presentation",
-                "options": {
-                  "guidebookButton": true
-                },
-                "prompt": [
-                  {
-                    "role": "intro",
-                    "type": "text",
-                    "text": "Pratica 2: 6 esercizi di tipi diversi."
-                  }
-                ],
-                "evaluation": {
-                  "mode": "none"
-                }
-              }
-            },
-            {
               "id": "enit_65dce83b_l01_r02_e01",
               "publicationState": "published",
               "kind": "exercise",
@@ -1234,32 +1208,6 @@
           "visualType": "generic",
           "title": "Pratica 3",
           "content": [
-            {
-              "id": "enit_65dce83b_l01_r03_intro",
-              "publicationState": "published",
-              "kind": "exercise",
-              "required": false,
-              "authoringMetadata": {
-                "presetId": "before_you_start"
-              },
-              "exercise": {
-                "updatedAt": "2026-10-01T00:00:00.000Z",
-                "primitive": "presentation",
-                "options": {
-                  "guidebookButton": true
-                },
-                "prompt": [
-                  {
-                    "role": "intro",
-                    "type": "text",
-                    "text": "Pratica 3: 6 esercizi di tipi diversi."
-                  }
-                ],
-                "evaluation": {
-                  "mode": "none"
-                }
-              }
-            },
             {
               "id": "enit_65dce83b_l01_r03_e01",
               "publicationState": "published",
@@ -1709,32 +1657,6 @@
           "title": "Al bar",
           "content": [
             {
-              "id": "enit_65dce83b_l01_r04_intro",
-              "publicationState": "published",
-              "kind": "exercise",
-              "required": false,
-              "authoringMetadata": {
-                "presetId": "before_you_start"
-              },
-              "exercise": {
-                "updatedAt": "2026-10-01T00:00:00.000Z",
-                "primitive": "presentation",
-                "options": {
-                  "guidebookButton": true
-                },
-                "prompt": [
-                  {
-                    "role": "intro",
-                    "type": "text",
-                    "text": "Una Story al bar: leggi o ascolta ogni battuta, poi continua."
-                  }
-                ],
-                "evaluation": {
-                  "mode": "none"
-                }
-              }
-            },
-            {
               "id": "enit_65dce83b_l01_r04_cover",
               "publicationState": "published",
               "kind": "exercise",
@@ -2073,19 +1995,8 @@
             }
           ],
           "flow": {
-            "start": "enit_65dce83b_l01_r04_intro",
+            "start": "enit_65dce83b_l01_r04_cover",
             "nodes": [
-              {
-                "id": "enit_65dce83b_l01_r04_intro",
-                "kind": "exercise",
-                "contentId": "enit_65dce83b_l01_r04_intro",
-                "transitions": [
-                  {
-                    "trigger": "next",
-                    "target": "enit_65dce83b_l01_r04_cover"
-                  }
-                ]
-              },
               {
                 "id": "enit_65dce83b_l01_r04_cover",
                 "kind": "exercise",
@@ -2192,32 +2103,6 @@
           "visualType": "generic",
           "title": "Pratica 4",
           "content": [
-            {
-              "id": "enit_65dce83b_l01_r05_intro",
-              "publicationState": "published",
-              "kind": "exercise",
-              "required": false,
-              "authoringMetadata": {
-                "presetId": "before_you_start"
-              },
-              "exercise": {
-                "updatedAt": "2026-10-01T00:00:00.000Z",
-                "primitive": "presentation",
-                "options": {
-                  "guidebookButton": true
-                },
-                "prompt": [
-                  {
-                    "role": "intro",
-                    "type": "text",
-                    "text": "Pratica 4: 6 esercizi di tipi diversi."
-                  }
-                ],
-                "evaluation": {
-                  "mode": "none"
-                }
-              }
-            },
             {
               "id": "enit_65dce83b_l01_r05_e01",
               "publicationState": "published",
@@ -2535,32 +2420,6 @@
           "visualType": "generic",
           "title": "Pratica 5",
           "content": [
-            {
-              "id": "enit_65dce83b_l01_r06_intro",
-              "publicationState": "published",
-              "kind": "exercise",
-              "required": false,
-              "authoringMetadata": {
-                "presetId": "before_you_start"
-              },
-              "exercise": {
-                "updatedAt": "2026-10-01T00:00:00.000Z",
-                "primitive": "presentation",
-                "options": {
-                  "guidebookButton": true
-                },
-                "prompt": [
-                  {
-                    "role": "intro",
-                    "type": "text",
-                    "text": "Pratica 5: 6 esercizi di tipi diversi."
-                  }
-                ],
-                "evaluation": {
-                  "mode": "none"
-                }
-              }
-            },
             {
               "id": "enit_65dce83b_l01_r06_e01",
               "publicationState": "published",
@@ -3026,32 +2885,6 @@
           "title": "Pratica 6",
           "content": [
             {
-              "id": "enit_65dce83b_l01_r07_intro",
-              "publicationState": "published",
-              "kind": "exercise",
-              "required": false,
-              "authoringMetadata": {
-                "presetId": "before_you_start"
-              },
-              "exercise": {
-                "updatedAt": "2026-10-01T00:00:00.000Z",
-                "primitive": "presentation",
-                "options": {
-                  "guidebookButton": true
-                },
-                "prompt": [
-                  {
-                    "role": "intro",
-                    "type": "text",
-                    "text": "Pratica 6: 6 esercizi di tipi diversi."
-                  }
-                ],
-                "evaluation": {
-                  "mode": "none"
-                }
-              }
-            },
-            {
               "id": "enit_65dce83b_l01_r07_e01",
               "publicationState": "published",
               "kind": "exercise",
@@ -3363,6 +3196,11 @@
                 "primitive": "select",
                 "prompt": [
                   {
+                    "role": "primary",
+                    "type": "text",
+                    "text": "Scegli la forma giusta di to be."
+                  },
+                  {
                     "role": "question",
                     "type": "text",
                     "text": "I ___ a student."
@@ -3417,32 +3255,6 @@
           "visualType": "story",
           "title": "Alla stazione",
           "content": [
-            {
-              "id": "enit_65dce83b_l01_r08_intro",
-              "publicationState": "published",
-              "kind": "exercise",
-              "required": false,
-              "authoringMetadata": {
-                "presetId": "before_you_start"
-              },
-              "exercise": {
-                "updatedAt": "2026-10-01T00:00:00.000Z",
-                "primitive": "presentation",
-                "options": {
-                  "guidebookButton": true
-                },
-                "prompt": [
-                  {
-                    "role": "intro",
-                    "type": "text",
-                    "text": "Una Story alla stazione: leggi o ascolta ogni battuta, poi continua."
-                  }
-                ],
-                "evaluation": {
-                  "mode": "none"
-                }
-              }
-            },
             {
               "id": "enit_65dce83b_l01_r08_cover",
               "publicationState": "published",
@@ -3782,19 +3594,8 @@
             }
           ],
           "flow": {
-            "start": "enit_65dce83b_l01_r08_intro",
+            "start": "enit_65dce83b_l01_r08_cover",
             "nodes": [
-              {
-                "id": "enit_65dce83b_l01_r08_intro",
-                "kind": "exercise",
-                "contentId": "enit_65dce83b_l01_r08_intro",
-                "transitions": [
-                  {
-                    "trigger": "next",
-                    "target": "enit_65dce83b_l01_r08_cover"
-                  }
-                ]
-              },
               {
                 "id": "enit_65dce83b_l01_r08_cover",
                 "kind": "exercise",
@@ -3935,5 +3736,5 @@
       "voice": "male"
     }
   ],
-  "officialChecksum": "55f2c776fb59a22f81d803828bf9013bad68c24dff8358c0f69bef27474564b0"
+  "officialChecksum": "609e8baa12a25e0768209f01d50c715184332211117d7219e2a774e0d217f2ec"
 }

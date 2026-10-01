@@ -808,7 +808,7 @@ const Map<String, String> helpIt = {
   "exerciseHelp.preset.true_false.body":
       "Lo studente legge un’affermazione nella lingua studiata, se vuoi la ascolta, e sceglie tra la parola per vero e quella per falso nella lingua di partenza. Fornisci l’affermazione, un’affermazione parlata facoltativa, le due risposte (precompilate nella lingua di partenza quando QQL la conosce) e il numero della risposta corretta: 1 se l’affermazione è vera, 2 se è falsa.",
   "exerciseHelp.preset.one_word_fills_all.body":
-      "Lo studente legge frasi con due o più spazi ___ e sceglie l’unica parola che li riempie tutti; una volta scelta compare in ogni spazio. Scrivi le frasi con ___ (tre trattini bassi) per ogni spazio, le parole di risposta e il numero della risposta corretta; una sola parola deve andare bene in ogni spazio. Per un solo spazio usa Pick the missing word.",
+      "Lo studente legge frasi con due o più spazi ___ e sceglie l’unica parola che li riempie tutti; una volta scelta compare in ogni spazio. Scrivi le frasi con ___ (tre trattini bassi) per ogni spazio, le parole di risposta e il numero della risposta corretta; una sola parola deve andare bene in ogni spazio. Per un solo spazio usa Pick the missing word. Un’Instruction or context facoltativa prende il posto della riga standard.",
   "exerciseHelp.preset.complete_text.body":
       "Lo studente legge un testo con uno o più spazi e scrive ciò che va in ognuno. Scrivi il testo con ___ (tre trattini bassi) per ogni spazio e in Missing words una riga per spazio, in ordine. Una riga può accettare più risposte: [il|un] gatto accetta sia il gatto sia un gatto. Un’Instruction or context facoltativa descrive la scena e sostituisce la riga standard; un suggerimento facoltativo aiuta senza rivelare le parole. Le risposte usano la normale normalizzazione Input. Non c’è audio: per spazi ascoltati da una registrazione usa Listen and fill the gaps.",
   "exerciseHelp.preset.missing_letters.body":
@@ -846,7 +846,7 @@ const Map<String, String> helpIt = {
   "exerciseHelp.preset.note_card.body":
       "Una scheda con un titolo e una nota: un consiglio, un punto di grammatica, un’osservazione culturale. Lo studente la legge e preme Continue; non c’è risposta, punteggio né audio. Scrivi nella lingua che i tuoi studenti leggono meglio.",
   "exerciseHelp.preset.gap_choice.body":
-      "Lo studente vede una frase con ___ e sceglie la parola o l’espressione mancante. Fornisci uno spazio nel testo, blocchi di risposta e una sola risposta corretta. È supportato il testo. Quando possibile, usa un solo spazio e fai in modo che una sola opzione sia corretta per grammatica e significato.",
+      "Lo studente vede una frase con ___ e sceglie la parola o l’espressione mancante. Fornisci uno spazio nel testo, blocchi di risposta e una sola risposta corretta. È supportato il testo. Quando possibile, usa un solo spazio e fai in modo che una sola opzione sia corretta per grammatica e significato. Un’Instruction or context facoltativa, come il significato di una frase breve (Completa la frase che significa il cane.), prende il posto della riga standard.",
   "exerciseHelp.preset.icon_choice.body":
       "Lo studente vede una domanda e alcune immagini; sceglie quella corrispondente. Fornisci una risposta e un’immagine o un’icona per ogni opzione, più il numero della risposta corretta. Testo e immagini sono supportati. Ogni opzione deve avere un elemento visivo.",
   "exerciseHelp.preset.translation_choice_to_target.body":

@@ -932,7 +932,7 @@ Estas builds muestran TEST ONLY. No las distribuyas como versiones públicas; co
   'exerciseHelp.preset.true_false.body':
       'El estudiante lee una afirmación en la lengua de estudio, opcionalmente la escucha, y elige entre la palabra para verdadero y la palabra para falso en la lengua base. Escribe la afirmación, una afirmación hablada opcional, las dos respuestas (prellenadas en la lengua base cuando QQL la conoce) y el número de la respuesta correcta: 1 si la afirmación es verdadera, 2 si es falsa.',
   'exerciseHelp.preset.one_word_fills_all.body':
-      'El estudiante lee frases con dos o más huecos ___ y elige la única palabra que los rellena todos; una vez elegida aparece en cada hueco. Escribe las frases con ___ (tres guiones bajos) para cada hueco, las palabras de respuesta y el número de la respuesta correcta; solo una palabra debe encajar en todos los huecos. Para un solo hueco usa Pick the missing word.',
+      'El estudiante lee frases con dos o más huecos ___ y elige la única palabra que los rellena todos; una vez elegida aparece en cada hueco. Escribe las frases con ___ (tres guiones bajos) para cada hueco, las palabras de respuesta y el número de la respuesta correcta; solo una palabra debe encajar en todos los huecos. Para un solo hueco usa Pick the missing word. Una Instruction or context opcional ocupa el lugar de la línea estándar.',
   'exerciseHelp.preset.complete_text.body':
       'El estudiante lee un texto con uno o más huecos y escribe lo que va en cada uno. Escribe el texto con ___ (tres guiones bajos) para cada hueco y en Missing words una línea por hueco, en orden. Una línea puede aceptar varias respuestas: [il|un] gatto acepta il gatto y un gatto. Una Instruction or context opcional describe la escena y sustituye la línea estándar; una pista opcional ayuda sin revelar las palabras. Las respuestas usan la normalización normal de Input. No hay audio: para huecos escuchados usa Listen and fill the gaps.',
   'exerciseHelp.preset.missing_letters.body':
@@ -970,7 +970,7 @@ Estas builds muestran TEST ONLY. No las distribuyas como versiones públicas; co
   'exerciseHelp.preset.note_card.body':
       'Una tarjeta con un título y una nota: un consejo, un punto gramatical, una observación cultural. El estudiante la lee y pulsa Continue; no hay respuesta, puntuación ni audio. Escribe en la lengua que tus estudiantes leen mejor.',
   'exerciseHelp.preset.gap_choice.body':
-      'El estudiante ve una frase con ___ y elige la palabra o expresión que falta. Escribe un hueco, bloques de respuesta y una respuesta correcta. Procura que solo una opción sea correcta en significado y gramática.',
+      'El estudiante ve una frase con ___ y elige la palabra o expresión que falta. Escribe un hueco, bloques de respuesta y una respuesta correcta. Procura que solo una opción sea correcta en significado y gramática. Una Instruction or context opcional, como el significado de una frase breve (Completa la frase que significa el perro.), ocupa el lugar de la línea estándar.',
   'exerciseHelp.preset.icon_choice.body':
       'El estudiante ve una pregunta y varias imágenes, y elige la que corresponde. Añade texto o icono para cada opción y el número de la respuesta correcta. Todas las opciones necesitan imagen.',
   'exerciseHelp.preset.script_recognition.body':

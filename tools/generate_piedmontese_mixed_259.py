@@ -5,8 +5,9 @@ exercise type but mixed at random.
 
 The source is the Piedmontese demo as tools/generate_piedmontais_demo_254.py
 builds it. Its Lessons 1-40 (one exercise type each, three examples) give 120
-exercises; a fixed seed mixes them into one Lesson of 20 Rounds of six, each
-Round opening with a Before you start card. The Story (the market dialogue,
+exercises; a fixed seed mixes them into one Lesson of 20 Rounds of six, the
+first opening with a Before you start card (each Round had one until Build
+260 Revision 3, owner decision). The Story (the market dialogue,
 whose lines stay in order) is the second Lesson. Exercises keep their
 content and time stamps; their IDs take this Course's prefix. Build 259
 Revision 7 (owner request) gives both Lessons a GuideBook: an overview,
@@ -132,7 +133,8 @@ def card(round_number: int) -> dict:
             "primitive": "presentation",
             "options": {"guidebookButton": True},
             "prompt": [{"role": "intro", "type": "text",
-                        "text": f"Mixed practice: {PER_ROUND} exercises of different types."}],
+                        "text": f"Mixed practice: {ROUNDS} Rounds of {PER_ROUND} exercises of different "
+                                "types. Open the GuideBook for the notes and the words."}],
             "evaluation": {"mode": "none"},
         },
     }
@@ -149,7 +151,9 @@ def mixed_lesson(source_lessons: list[dict]) -> dict:
     random.Random(SEED).shuffle(exercises)
     rounds = []
     for number in range(1, ROUNDS + 1):
-        content = [card(number)]
+        # Only the Lesson's first Round opens with a card (Build 260
+        # Revision 3).
+        content = [card(number)] if number == 1 else []
         for position, exercise in enumerate(
                 exercises[(number - 1) * PER_ROUND:number * PER_ROUND], 1):
             new_id = f"{PREFIX}l01_r{number:02d}_e{position:02d}"
