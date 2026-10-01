@@ -34,13 +34,14 @@ Reported to the owner, not changed: nine exercises of the Piedmontese
 demo (Lessons 13, 25, 34) are not represented by their preset and open
 in the canonical editor.
 
-## Revision 3 (implemented, 1 October 2026)
+## Revision 3 (committed `ad13f3f`, 1 October 2026)
 
 Owner review: Pick the missing word and One word fills all have an
 Instruction or context; the Piedmontese demo (and QQL Demo: Piedmontese)
 has every exercise represented by its preset again (Lessons 13, 25, 34);
 the QQL Demo Courses keep the Before you start card on each Lesson's first
 Round only. Test `test/owner_review_260_revision3_test.dart`.
+Complete suite: 3500 passed, 1 skipped.
 
 ## Next
 
