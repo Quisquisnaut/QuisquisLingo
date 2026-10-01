@@ -12,13 +12,14 @@ tags and the learners' name of the language, seven instruction languages
 New test `test/course_languages_260_test.dart`.
 Complete suite: 3481 passed, 1 skipped.
 
-## Revision 1 (implemented, 1 October 2026)
+## Revision 1 (committed `05c2319`, 1 October 2026)
 
 The learner panel's buttons and messages (plan point 6): 107 keys in
 seven languages (`lib/localization/learner_panel/`, `LearnerPanelText`),
 used by the Round, the Duel and the Review page; error, audio-setup,
 version and author Preview messages, Report a problem, Reset Word List and
 Review Help stay in English. New test `test/learner_panel_260_test.dart`.
+Complete suite: 3486 passed, 1 skipped.
 
 ## Next
 
