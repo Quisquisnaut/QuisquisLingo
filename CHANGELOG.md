@@ -1,3 +1,29 @@
+# 2.0.59 (Build 259, Revision 7) - Translation lines, plainer instructions, GuideBooks - 2026-10-01
+
+Owner review of 1 October 2026.
+
+- **Type the translation, to source:** a Piedmontese word to translate into
+  English showed "Translate from English into Piedmontese:". That fixed
+  line is gone; the instruction line now names the language of the answer:
+  "Translate into English." or "Translate into Piedmontese.". Build the
+  translation does the same ("Translate into … with the word blocks.").
+- **Instruction lines that repeated their title** are reworded in the eight
+  learner languages, for example CHOOSE: "Find the correct answer.",
+  MATCH: "Pair each word with its translation.", BUILD THE WORD: "Spell
+  what the picture shows.", TYPE THE MISSING WORD: "The first letter is
+  given: type the whole word.".
+- **QQL Demo: Piedmontese** has GuideBooks: the mixed practice Lesson has an
+  overview, three notes (subject pronouns, articles, spelling) and 32
+  words; the Story at the market has an overview and 5 words. Every card
+  offers Open GuideBook, and the words join the Review.
+- "Son content" stays refused for "I am happy": written Piedmontese needs
+  the subject pronoun i; "i son content" and "mi i son content" are
+  accepted, as before.
+
+Scoring, progression, Review rules, the Course format and learner data are
+unchanged. Beta expiry `2026-10-31 23:59:59` local time (same release day
+as Revision 6).
+
 # 2.0.59 (Build 259, Revision 6) - QQL Demo: Piedmontese - 2026-10-01
 
 Owner requests of 1 October 2026.

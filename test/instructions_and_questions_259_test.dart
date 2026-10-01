@@ -321,7 +321,8 @@ void main() {
 
     testWidgets('a text to translate keeps its own line', (tester) async {
       await _pumpRound(tester, _labExercise('qql_lab254_input_explicit'));
-      expect(_instructionLine(tester), 'Type the translation.');
+      // Build 259 Revision 7: the line names the language of the answer.
+      expect(_instructionLine(tester), 'Translate into Italian.');
       expect(
         tester.widget<Text>(find.byKey(const Key('exercise-prompt-text'))).data,
         'Hello.',
@@ -330,7 +331,7 @@ void main() {
 
     testWidgets('without one the standard line shows', (tester) async {
       await _pumpRound(tester, _labExercise('qql_lab254_select_single'));
-      expect(_instructionLine(tester), 'Choose the correct answer.');
+      expect(_instructionLine(tester), 'Find the correct answer.');
       expect(find.text('How do you say ‘thank you’ in Italian?'), findsOne);
     });
 
@@ -349,7 +350,7 @@ void main() {
     testWidgets('Spell the word keeps its clue in the body', (tester) async {
       await _pumpRound(tester, _labExercise('qql_lab254_spell_word_clue'));
       // Build 259 Revision 4: no picture, so the line names the clue.
-      expect(_instructionLine(tester), 'Build the word that matches the clue.');
+      expect(_instructionLine(tester), 'Spell the word the clue describes.');
       expect(
         tester.widget<Text>(find.byKey(const Key('exercise-prompt-text'))).data,
         'cat (the animal)',

@@ -118,9 +118,17 @@ Help question removed, in the working tree as `2.0.59+259006`: see
 remove Course Info's "Temporary Sample" box. Complete suite 3455 passed,
 1 skipped, 0 failed (02:42).
 
+## Revision 7 (implemented, 1 October 2026)
+
+Translation lines, plainer instructions and the new course's GuideBooks,
+in the working tree as `2.0.59+259007`: see `docs/259_CHANGE_SUMMARY.md`
+(Revision 7). New test `test/owner_review_259_revision7_test.dart`;
+Laboratory baseline 41 records. Complete suite 3462 passed, 1 skipped, 0
+failed (08:55).
+
 ## Next
 
-Build 259 is complete after Revision 6. The plan's separate findings C and
+Build 259 is complete after Revision 7. The plan's separate findings C and
 E are not in this build.
 
 Stage with `git add -A -- . ':!devtools_options.yaml' ':!tools/cloud_setup.sh'`

@@ -4,14 +4,13 @@
   "lessonNumberingMode": "lesson",
   "defaultLessonIconStyle": "monochrome",
   "createDuels": false,
-  "useGuidebook": false,
   "courseId": "course_69ff369e-bb4f-46a3-85f0-57ff9d51b453",
   "originType": "bundledOfficial",
   "publisherId": "org.quisquislingo",
   "publisherName": "QuisquisLingo",
   "officialCourseVersion": "1.0.0",
   "officialReleaseDateUtc": "2026-10-01T00:00:00.000Z",
-  "officialReleaseNotes": "QQL Build 259 Revision 6: the exercises of the Piedmontese demo mixed at random in one Lesson of 20 Rounds, then its Story.",
+  "officialReleaseNotes": "QQL Build 259 Revisions 6 and 7: the exercises of the Piedmontese demo mixed at random in one Lesson of 20 Rounds, then its Story; each Lesson has a GuideBook.",
   "distributionChannel": "bundled",
   "publisherVerificationStatus": "verified",
   "originalCourseCreator": {
@@ -65,7 +64,296 @@
       "title": "Mixed practice",
       "themeIconAsset": "assets/lesson_icons/school.png",
       "guidebook": {
-        "content": []
+        "content": [
+          {
+            "id": "pmsmix_69ff369e_l01_g01",
+            "publicationState": "published",
+            "kind": "explanation",
+            "required": false,
+            "role": "overview",
+            "text": "Mixed practice: the exercises of the Piedmontese demo, every type mixed at random, six to a Round. The notes explain three things that come back often; the words are the ones the exercises use."
+          },
+          {
+            "id": "pmsmix_69ff369e_l01_g02",
+            "publicationState": "published",
+            "kind": "explanation",
+            "required": false,
+            "role": "grammar",
+            "text": "Subject pronouns. Piedmontese puts a short subject pronoun before the verb: i son content = I am happy. Written Piedmontese does not leave it out, as Italian leaves out io. The full pronoun mi adds emphasis and is optional: mi i son content."
+          },
+          {
+            "id": "pmsmix_69ff369e_l01_g03",
+            "publicationState": "published",
+            "kind": "explanation",
+            "required": false,
+            "role": "grammar",
+            "text": "Articles. ël goes before a masculine noun (ël can, ël pan), la before a feminine one (la ca), l' before a vowel (l'eva). un means a or one."
+          },
+          {
+            "id": "pmsmix_69ff369e_l01_g04",
+            "publicationState": "published",
+            "kind": "explanation",
+            "required": false,
+            "role": "grammar",
+            "text": "Spelling. o sounds like the oo in food and ò like the o in hot; ë is a short, neutral vowel, as in ël; eu and u sound like the French eu and u."
+          },
+          {
+            "id": "pmsmix_69ff369e_l01_g05",
+            "publicationState": "published",
+            "kind": "vocabulary",
+            "required": false,
+            "role": "vocabulary",
+            "text": "hello, bye = ciàu"
+          },
+          {
+            "id": "pmsmix_69ff369e_l01_g06",
+            "publicationState": "published",
+            "kind": "vocabulary",
+            "required": false,
+            "role": "vocabulary",
+            "text": "good morning = bondì, bon-a matin"
+          },
+          {
+            "id": "pmsmix_69ff369e_l01_g07",
+            "publicationState": "published",
+            "kind": "vocabulary",
+            "required": false,
+            "role": "vocabulary",
+            "text": "good night = bon-aneuit"
+          },
+          {
+            "id": "pmsmix_69ff369e_l01_g08",
+            "publicationState": "published",
+            "kind": "vocabulary",
+            "required": false,
+            "role": "vocabulary",
+            "text": "how are you? = come ch'a va?"
+          },
+          {
+            "id": "pmsmix_69ff369e_l01_g09",
+            "publicationState": "published",
+            "kind": "vocabulary",
+            "required": false,
+            "role": "vocabulary",
+            "text": "well, thank you = bin, grassie"
+          },
+          {
+            "id": "pmsmix_69ff369e_l01_g10",
+            "publicationState": "published",
+            "kind": "vocabulary",
+            "required": false,
+            "role": "vocabulary",
+            "text": "thank you = grassie, mersì"
+          },
+          {
+            "id": "pmsmix_69ff369e_l01_g11",
+            "publicationState": "published",
+            "kind": "vocabulary",
+            "required": false,
+            "role": "vocabulary",
+            "text": "you are welcome = prego"
+          },
+          {
+            "id": "pmsmix_69ff369e_l01_g12",
+            "publicationState": "published",
+            "kind": "vocabulary",
+            "required": false,
+            "role": "vocabulary",
+            "text": "I am = i son"
+          },
+          {
+            "id": "pmsmix_69ff369e_l01_g13",
+            "publicationState": "published",
+            "kind": "vocabulary",
+            "required": false,
+            "role": "vocabulary",
+            "text": "I am happy = i son content"
+          },
+          {
+            "id": "pmsmix_69ff369e_l01_g14",
+            "publicationState": "published",
+            "kind": "vocabulary",
+            "required": false,
+            "role": "vocabulary",
+            "text": "I have = i l'hai"
+          },
+          {
+            "id": "pmsmix_69ff369e_l01_g15",
+            "publicationState": "published",
+            "kind": "vocabulary",
+            "required": false,
+            "role": "vocabulary",
+            "text": "the house = la ca"
+          },
+          {
+            "id": "pmsmix_69ff369e_l01_g16",
+            "publicationState": "published",
+            "kind": "vocabulary",
+            "required": false,
+            "role": "vocabulary",
+            "text": "at home = a ca"
+          },
+          {
+            "id": "pmsmix_69ff369e_l01_g17",
+            "publicationState": "published",
+            "kind": "vocabulary",
+            "required": false,
+            "role": "vocabulary",
+            "text": "big (feminine) = granda"
+          },
+          {
+            "id": "pmsmix_69ff369e_l01_g18",
+            "publicationState": "published",
+            "kind": "vocabulary",
+            "required": false,
+            "role": "vocabulary",
+            "text": "the book = ël lìber"
+          },
+          {
+            "id": "pmsmix_69ff369e_l01_g19",
+            "publicationState": "published",
+            "kind": "vocabulary",
+            "required": false,
+            "role": "vocabulary",
+            "text": "bread = pan"
+          },
+          {
+            "id": "pmsmix_69ff369e_l01_g20",
+            "publicationState": "published",
+            "kind": "vocabulary",
+            "required": false,
+            "role": "vocabulary",
+            "text": "the bread = ël pan"
+          },
+          {
+            "id": "pmsmix_69ff369e_l01_g21",
+            "publicationState": "published",
+            "kind": "vocabulary",
+            "required": false,
+            "role": "vocabulary",
+            "text": "water = eva"
+          },
+          {
+            "id": "pmsmix_69ff369e_l01_g22",
+            "publicationState": "published",
+            "kind": "vocabulary",
+            "required": false,
+            "role": "vocabulary",
+            "text": "bread and water = pan e eva"
+          },
+          {
+            "id": "pmsmix_69ff369e_l01_g23",
+            "publicationState": "published",
+            "kind": "vocabulary",
+            "required": false,
+            "role": "vocabulary",
+            "text": "water is for drinking = l'eva a l'é da bèive"
+          },
+          {
+            "id": "pmsmix_69ff369e_l01_g24",
+            "publicationState": "published",
+            "kind": "vocabulary",
+            "required": false,
+            "role": "vocabulary",
+            "text": "apple, apples = pom"
+          },
+          {
+            "id": "pmsmix_69ff369e_l01_g25",
+            "publicationState": "published",
+            "kind": "vocabulary",
+            "required": false,
+            "role": "vocabulary",
+            "text": "the apple = ël pom"
+          },
+          {
+            "id": "pmsmix_69ff369e_l01_g26",
+            "publicationState": "published",
+            "kind": "vocabulary",
+            "required": false,
+            "role": "vocabulary",
+            "text": "cat = gat"
+          },
+          {
+            "id": "pmsmix_69ff369e_l01_g27",
+            "publicationState": "published",
+            "kind": "vocabulary",
+            "required": false,
+            "role": "vocabulary",
+            "text": "the cat = ël gat"
+          },
+          {
+            "id": "pmsmix_69ff369e_l01_g28",
+            "publicationState": "published",
+            "kind": "vocabulary",
+            "required": false,
+            "role": "vocabulary",
+            "text": "dog = can"
+          },
+          {
+            "id": "pmsmix_69ff369e_l01_g29",
+            "publicationState": "published",
+            "kind": "vocabulary",
+            "required": false,
+            "role": "vocabulary",
+            "text": "the dog = ël can"
+          },
+          {
+            "id": "pmsmix_69ff369e_l01_g30",
+            "publicationState": "published",
+            "kind": "vocabulary",
+            "required": false,
+            "role": "vocabulary",
+            "text": "horse = caval"
+          },
+          {
+            "id": "pmsmix_69ff369e_l01_g31",
+            "publicationState": "published",
+            "kind": "vocabulary",
+            "required": false,
+            "role": "vocabulary",
+            "text": "the cat and the dog = ël gat e ël can"
+          },
+          {
+            "id": "pmsmix_69ff369e_l01_g32",
+            "publicationState": "published",
+            "kind": "vocabulary",
+            "required": false,
+            "role": "vocabulary",
+            "text": "the cat is an animal = ël gat a l'é n'animal"
+          },
+          {
+            "id": "pmsmix_69ff369e_l01_g33",
+            "publicationState": "published",
+            "kind": "vocabulary",
+            "required": false,
+            "role": "vocabulary",
+            "text": "a, one = un"
+          },
+          {
+            "id": "pmsmix_69ff369e_l01_g34",
+            "publicationState": "published",
+            "kind": "vocabulary",
+            "required": false,
+            "role": "vocabulary",
+            "text": "two = doi"
+          },
+          {
+            "id": "pmsmix_69ff369e_l01_g35",
+            "publicationState": "published",
+            "kind": "vocabulary",
+            "required": false,
+            "role": "vocabulary",
+            "text": "three = tre"
+          },
+          {
+            "id": "pmsmix_69ff369e_l01_g36",
+            "publicationState": "published",
+            "kind": "vocabulary",
+            "required": false,
+            "role": "vocabulary",
+            "text": "red = ross"
+          }
+        ]
       },
       "rounds": [
         {
@@ -86,6 +374,9 @@
               "exercise": {
                 "updatedAt": "2026-10-01T00:00:00.000Z",
                 "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
                 "prompt": [
                   {
                     "role": "intro",
@@ -499,6 +790,9 @@
               "exercise": {
                 "updatedAt": "2026-10-01T00:00:00.000Z",
                 "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
                 "prompt": [
                   {
                     "role": "intro",
@@ -908,6 +1202,9 @@
               "exercise": {
                 "updatedAt": "2026-10-01T00:00:00.000Z",
                 "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
                 "prompt": [
                   {
                     "role": "intro",
@@ -1294,6 +1591,9 @@
               "exercise": {
                 "updatedAt": "2026-10-01T00:00:00.000Z",
                 "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
                 "prompt": [
                   {
                     "role": "intro",
@@ -1703,6 +2003,9 @@
               "exercise": {
                 "updatedAt": "2026-10-01T00:00:00.000Z",
                 "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
                 "prompt": [
                   {
                     "role": "intro",
@@ -2112,6 +2415,9 @@
               "exercise": {
                 "updatedAt": "2026-10-01T00:00:00.000Z",
                 "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
                 "prompt": [
                   {
                     "role": "intro",
@@ -2568,6 +2874,9 @@
               "exercise": {
                 "updatedAt": "2026-10-01T00:00:00.000Z",
                 "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
                 "prompt": [
                   {
                     "role": "intro",
@@ -3012,6 +3321,9 @@
               "exercise": {
                 "updatedAt": "2026-10-01T00:00:00.000Z",
                 "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
                 "prompt": [
                   {
                     "role": "intro",
@@ -3377,6 +3689,9 @@
               "exercise": {
                 "updatedAt": "2026-10-01T00:00:00.000Z",
                 "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
                 "prompt": [
                   {
                     "role": "intro",
@@ -3797,6 +4112,9 @@
               "exercise": {
                 "updatedAt": "2026-10-01T00:00:00.000Z",
                 "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
                 "prompt": [
                   {
                     "role": "intro",
@@ -4248,6 +4566,9 @@
               "exercise": {
                 "updatedAt": "2026-10-01T00:00:00.000Z",
                 "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
                 "prompt": [
                   {
                     "role": "intro",
@@ -4729,6 +5050,9 @@
               "exercise": {
                 "updatedAt": "2026-10-01T00:00:00.000Z",
                 "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
                 "prompt": [
                   {
                     "role": "intro",
@@ -5135,6 +5459,9 @@
               "exercise": {
                 "updatedAt": "2026-10-01T00:00:00.000Z",
                 "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
                 "prompt": [
                   {
                     "role": "intro",
@@ -5601,6 +5928,9 @@
               "exercise": {
                 "updatedAt": "2026-10-01T00:00:00.000Z",
                 "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
                 "prompt": [
                   {
                     "role": "intro",
@@ -5966,6 +6296,9 @@
               "exercise": {
                 "updatedAt": "2026-10-01T00:00:00.000Z",
                 "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
                 "prompt": [
                   {
                     "role": "intro",
@@ -6434,6 +6767,9 @@
               "exercise": {
                 "updatedAt": "2026-10-01T00:00:00.000Z",
                 "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
                 "prompt": [
                   {
                     "role": "intro",
@@ -6875,6 +7211,9 @@
               "exercise": {
                 "updatedAt": "2026-10-01T00:00:00.000Z",
                 "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
                 "prompt": [
                   {
                     "role": "intro",
@@ -7313,6 +7652,9 @@
               "exercise": {
                 "updatedAt": "2026-10-01T00:00:00.000Z",
                 "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
                 "prompt": [
                   {
                     "role": "intro",
@@ -7696,6 +8038,9 @@
               "exercise": {
                 "updatedAt": "2026-10-01T00:00:00.000Z",
                 "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
                 "prompt": [
                   {
                     "role": "intro",
@@ -8147,6 +8492,9 @@
               "exercise": {
                 "updatedAt": "2026-10-01T00:00:00.000Z",
                 "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
                 "prompt": [
                   {
                     "role": "intro",
@@ -8570,7 +8918,56 @@
       "title": "At the market",
       "themeIconAsset": "assets/lesson_icons/speech_bubbles.png",
       "guidebook": {
-        "content": []
+        "content": [
+          {
+            "id": "pmsmix_69ff369e_l02_g01",
+            "publicationState": "published",
+            "kind": "explanation",
+            "required": false,
+            "role": "overview",
+            "text": "A Story at the market: the narrator speaks English, Gioanin and Catlin-a speak Piedmontese. Read or listen to each line, then continue; the scrolling log keeps the dialogue."
+          },
+          {
+            "id": "pmsmix_69ff369e_l02_g02",
+            "publicationState": "published",
+            "kind": "vocabulary",
+            "required": false,
+            "role": "vocabulary",
+            "text": "good morning = bondì"
+          },
+          {
+            "id": "pmsmix_69ff369e_l02_g03",
+            "publicationState": "published",
+            "kind": "vocabulary",
+            "required": false,
+            "role": "vocabulary",
+            "text": "a loaf of bread = un pan"
+          },
+          {
+            "id": "pmsmix_69ff369e_l02_g04",
+            "publicationState": "published",
+            "kind": "vocabulary",
+            "required": false,
+            "role": "vocabulary",
+            "text": "please = për piasì"
+          },
+          {
+            "id": "pmsmix_69ff369e_l02_g05",
+            "publicationState": "published",
+            "kind": "vocabulary",
+            "required": false,
+            "role": "vocabulary",
+            "text": "thank you = grassie"
+          },
+          {
+            "id": "pmsmix_69ff369e_l02_g06",
+            "publicationState": "published",
+            "kind": "vocabulary",
+            "required": false,
+            "role": "vocabulary",
+            "text": "have a good day = bon-a giornà"
+          }
+        ]
       },
       "rounds": [
         {
@@ -8591,6 +8988,9 @@
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
                 "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
                 "prompt": [
                   {
                     "role": "intro",
@@ -8769,5 +9169,5 @@
       "voice": "female"
     }
   ],
-  "officialChecksum": "07d9c06dd3422a63c39b2512612431501a42c4f1c8ef409606863e2987500892"
+  "officialChecksum": "18bb2a5f594b28f123f2c3a02977838aa0f87f89b0a3be68157d0a8cc95b40c9"
 }

@@ -2248,12 +2248,13 @@ class _RoundScreenState extends State<RoundScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (f.kind == LearnerExerciseKind.inputTranslation) ...[
-          Text(
-            'Translate from ${widget.course.sourceLanguage} into ${widget.course.targetLanguage}:',
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-        ] else if (f.revealTarget != null)
+        // Type the translation names the language of the answer in its
+        // instruction line (Build 259 Revision 7): the fixed "Translate from
+        // <source> into <target>:" line here was wrong for a "to source"
+        // exercise.
+        if (f.kind == LearnerExerciseKind.inputTranslation)
+          ...const <Widget>[]
+        else if (f.revealTarget != null)
           _withMascot(
             ExerciseMascotAnchor.question,
             Text(

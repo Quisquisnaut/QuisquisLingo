@@ -341,7 +341,8 @@ void main() {
       // Picture answers keep their line.
       expect(
         _line(_lab('listening_image')),
-        'Listen and choose the correct answer.',
+        // Build 259 Revision 7: no line repeats its title.
+        'Find the answer that matches what you hear.',
       );
     });
 

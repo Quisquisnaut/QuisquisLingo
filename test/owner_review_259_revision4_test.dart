@@ -293,18 +293,16 @@ void main() {
 
   group('3. Spelling lines follow what the learner has', () {
     test('a clue, a recording or a picture', () {
+      // Revision 7 wording: the lines no longer repeat BUILD THE WORD.
       expect(
         _line(_lab('spell_word_clue')),
-        'Build the word that matches the clue.',
+        'Spell the word the clue describes.',
       );
-      expect(_line(_lab('spell_heard_letters')), 'Build the word you hear.');
-      expect(
-        _line(_lab('image_letters')),
-        'Build the word shown in the image.',
-      );
+      expect(_line(_lab('spell_heard_letters')), 'Spell the word you hear.');
+      expect(_line(_lab('image_letters')), 'Spell what the picture shows.');
       expect(
         _line(_piedmontese('spell_word').first, course: _piedmonteseCourse),
-        'Build the word that matches the clue.',
+        'Spell the word the clue describes.',
       );
     });
   });

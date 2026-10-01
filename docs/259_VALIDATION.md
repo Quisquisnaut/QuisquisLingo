@@ -347,3 +347,31 @@ handoff: `259_HANDOFF.md`.
   left it.
 - **Second complete suite** (02:15–02:42): **3455 passed, 1 skipped, 0
   failed**.
+
+## Revision 7 (2.0.59+259007, 1 October 2026): translation lines, plainer instructions, GuideBooks
+
+**Generators and validator**
+- `tools/generate_piedmontese_mixed_259.py --check`: reproducible with the
+  GuideBooks (Lesson 1: overview, 3 notes, 32 words; Lesson 2: overview, 5
+  words). The generator asserts each word has one " = " and none of the
+  Review's other separators.
+- Piedmontese, Laboratory and Edge Case: `--check` reproducible, unchanged.
+- `tools/validate_courses.py`: the three bundled Courses pass.
+
+**Laboratory presentation baseline**
+- Record run: 124 records; 41 changed, none added or removed. Every change
+  is an instruction line (the reworded lines; "Translate into Italian." /
+  "Translate into English." for 12 Type the translation and 6 Build the
+  translation examples) or the removed "Translate from … into …" line.
+
+**Tests**
+- New: `test/owner_review_259_revision7_test.dart` (both directions of Type
+  and Build the translation in both Piedmontese Courses, the target name
+  without an exercise, the approved English lines, Italian and Spanish).
+- `test/piedmontese_mixed_259_test.dart` checks the GuideBooks through the
+  Review's vocabulary reader.
+- Updated to the new lines: the copy service, first-letter, instruction,
+  Revision 3/4, Revision 7 fourth follow-up and text-entry tests.
+- `flutter analyze --no-pub`: no issues.
+- **Complete suite** (08:27–08:55, `--concurrency=1`, keep-awake):
+  **3462 passed, 1 skipped, 0 failed**.

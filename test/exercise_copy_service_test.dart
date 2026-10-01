@@ -26,7 +26,8 @@ void main() {
     );
     expect(
       ExerciseCopyService.instruction(course, LearnerExerciseKind.matchAudio),
-      'Listen and match each sound with the correct word.',
+      // Build 259 Revision 7: no line repeats its title.
+      'Pair each sound with its word.',
     );
   });
 
@@ -38,7 +39,7 @@ void main() {
     );
     expect(
       ExerciseCopyService.instruction(course, LearnerExerciseKind.matchAudio),
-      'Escucha y relaciona cada audio con la palabra correcta.',
+      'Empareja cada audio con su palabra.',
     );
   });
 

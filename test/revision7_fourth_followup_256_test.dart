@@ -347,7 +347,8 @@ void main() {
       );
       expect(
         ExerciseCopyService.instruction(course, f.kind),
-        'Build the name of what you see.',
+        // Build 259 Revision 7 wording.
+        'Put the blocks in order to name the picture.',
       );
       final draft = PresetRecipes.decompose(e, 'picture_blocks');
       expect(draft.order, 'il\npane');
@@ -433,7 +434,7 @@ void main() {
       expect(ExerciseCopyService.typeLabel(course, kind), 'NAME WHAT YOU SEE');
       expect(
         ExerciseCopyService.instruction(course, kind),
-        'Type the name of what you see.',
+        'Type the name of the picture.',
       );
     });
 

@@ -51,10 +51,36 @@ class ExerciseCopyService {
     return c['type.${kind.name}'] ?? c['type.default']!;
   }
 
-  /// The learner instruction for an exercise of [kind].
+  /// The learner instruction for an exercise of [kind]. Without an
+  /// exercise, a translation line names the target language.
   static String instruction(Course course, LearnerExerciseKind kind) {
     final c = _copy(course);
-    return c['instruction.${kind.name}'] ?? c['instruction.default']!;
+    return _withLanguage(
+      course,
+      c['instruction.${kind.name}'] ?? c['instruction.default']!,
+    );
+  }
+
+  /// [text] with `{language}` replaced by the Course's name for the
+  /// language a translation is written in: the source language when the
+  /// text to translate is in the target language, else the target language
+  /// (Build 259 Revision 7; the names are the Course's own, as Pick the
+  /// translation's line uses them).
+  static String _withLanguage(
+    Course course,
+    String text, [
+    ExerciseFeatures? features,
+  ]) {
+    if (!text.contains('{language}')) return text;
+    final intoSource = features?.promptLanguage == TextLanguage.target;
+    final name = intoSource ? course.sourceLanguage : course.targetLanguage;
+    final fallback = intoSource
+        ? course.interfaceLanguage
+        : course.learningLanguage;
+    return text.replaceAll(
+      '{language}',
+      name.trim().isEmpty ? fallback.trim() : name.trim(),
+    );
   }
 
   /// The instruction [variant] (a key such as `selectListenHeard`), else
@@ -157,7 +183,12 @@ class ExerciseCopyService {
         return c['instruction.select_opposite'] ?? instruction(course, kind);
       }
     }
-    return instruction(course, kind);
+    // Type and Build the translation name the language of the answer.
+    return _withLanguage(
+      course,
+      c['instruction.${kind.name}'] ?? c['instruction.default']!,
+      features,
+    );
   }
 
   /// Old demo courses sometimes stored a generic instruction in `prompt`.
@@ -225,16 +256,16 @@ class ExerciseCopyService {
     'type.selectContext': 'CONTEXT',
     'instruction.default': 'Complete the exercise.',
     'instruction.inputMissingWord':
-        'Enter the complete missing word. The first letter shown is a hint.',
+        'The first letter is given: type the whole word.',
     'instruction.selectCharacter':
         'Choose the option that matches the character.',
-    'instruction.select': 'Choose the correct answer.',
-    'instruction.selectListen': 'Listen and choose the correct answer.',
+    'instruction.select': 'Find the correct answer.',
+    'instruction.selectListen': 'Find the answer that matches what you hear.',
     'instruction.selectListenPassage': 'Listen and choose the correct answer.',
     'instruction.selectRead': 'Read and choose the correct answer.',
     'instruction.selectDialogue':
         'Read the dialogue and choose the best response.',
-    'instruction.selectImage': 'Choose the image that matches.',
+    'instruction.selectImage': 'Find the matching picture.',
     'instruction.presentation': 'Study the word and its usage.',
     'instruction.dialogueLine': 'Read or listen, then continue.',
     'instruction.dialogueLineText': 'Read, then continue.',
@@ -243,16 +274,16 @@ class ExerciseCopyService {
         'Listen first; the text appears after.',
     'instruction.storyCover': 'A story begins. Continue when you are ready.',
     'instruction.inputComplete': 'Type the words that complete the sentence.',
-    'instruction.selectComplete':
-        'Choose the block that best completes the sentence.',
-    'instruction.select_opposite': 'Choose the opposite.',
+    'instruction.selectComplete': 'Pick the block that fits the gap.',
+    'instruction.select_opposite': 'Find the opposite.',
     'instruction.arrangeSentence': 'Put the words in the correct order.',
     'instruction.arrangeLines': 'Arrange the lines in a logical order.',
-    'instruction.arrangeWord': 'Build the word shown in the image.',
-    'instruction.inputPictureName': 'Type the name of what you see.',
-    'instruction.arrangePictureName': 'Build the name of what you see.',
-    'instruction.matchTranslation': 'Match each word with its translation.',
-    'instruction.match': 'Match the corresponding items.',
+    'instruction.arrangeWord': 'Spell what the picture shows.',
+    'instruction.inputPictureName': 'Type the name of the picture.',
+    'instruction.arrangePictureName':
+        'Put the blocks in order to name the picture.',
+    'instruction.matchTranslation': 'Pair each word with its translation.',
+    'instruction.match': 'Pair the items that belong together.',
     'type.assignGroups': 'SORT INTO GROUPS',
     'type.assignSlots': 'FILL THE SLOTS',
     'type.assignGaps': 'FILL THE GAPS',
@@ -260,12 +291,11 @@ class ExerciseCopyService {
     'instruction.assignSlots': 'Tap an item, then its slot.',
     'instruction.assignGaps': 'Tap a word, then the gap it fills.',
     'instruction.inputListenGaps': 'Listen and complete the missing word.',
-    'instruction.inputListenWrite': 'Listen and write what you hear.',
-    'instruction.matchAudio':
-        'Listen and match each sound with the correct word.',
-    'instruction.inputTranslation': 'Type the translation.',
+    'instruction.inputListenWrite': 'Type every word you hear.',
+    'instruction.matchAudio': 'Pair each sound with its word.',
+    'instruction.inputTranslation': 'Translate into {language}.',
     'instruction.arrangeTranslation':
-        'Build the translation from the word blocks.',
+        'Translate into {language} with the word blocks.',
     'instruction.selectContext':
         'Use the context to choose the correct answer.',
     'instruction.inputCompleteOne':
@@ -276,8 +306,8 @@ class ExerciseCopyService {
     'instruction.selectListenMeaning': 'Select the meaning of what you heard.',
     'type.selectPicture': 'WHAT IS IN THE PICTURE?',
     'instruction.selectPicture': 'Choose the option that fits best.',
-    'instruction.arrangeWordHeard': 'Build the word you hear.',
-    'instruction.arrangeWordClue': 'Build the word that matches the clue.',
+    'instruction.arrangeWordHeard': 'Spell the word you hear.',
+    'instruction.arrangeWordClue': 'Spell the word the clue describes.',
     'instruction.arrangeGaps': 'Pick a word for each gap.',
     'type.selectCompleteAll': 'ONE WORD FILLS ALL',
     'instruction.selectCompleteAll': 'Choose the word that fills every gap.',
@@ -310,15 +340,16 @@ class ExerciseCopyService {
     'type.matchAudio': 'RELACIONA EL AUDIO',
     'instruction.default': 'Completa el ejercicio.',
     'instruction.inputMissingWord':
-        'Escribe la palabra completa que falta. La primera letra mostrada es una pista.',
+        'La primera letra ya está: escribe la palabra entera.',
     'instruction.selectCharacter':
         'Elige la opción que corresponde al carácter.',
-    'instruction.select': 'Elige la respuesta correcta.',
-    'instruction.selectListen': 'Escucha y elige la respuesta correcta.',
+    'instruction.select': 'Encuentra la respuesta correcta.',
+    'instruction.selectListen':
+        'Encuentra la respuesta que corresponde a lo que oyes.',
     'instruction.selectListenPassage': 'Escucha y elige la respuesta correcta.',
     'instruction.selectRead': 'Lee y elige la respuesta correcta.',
     'instruction.selectDialogue': 'Lee el diálogo y elige la mejor respuesta.',
-    'instruction.selectImage': 'Elige la imagen correcta.',
+    'instruction.selectImage': 'Encuentra la imagen correspondiente.',
     'instruction.presentation': 'Estudia la palabra y su uso.',
     'instruction.dialogueLine': 'Lee o escucha, luego continúa.',
     'instruction.dialogueLineText': 'Lee, luego continúa.',
@@ -328,16 +359,16 @@ class ExerciseCopyService {
     'instruction.storyCover':
         'Empieza una historia. Continúa cuando estés listo.',
     'instruction.inputComplete': 'Escribe las palabras que completan la frase.',
-    'instruction.selectComplete':
-        'Elige el bloque que mejor completa la frase.',
-    'instruction.select_opposite': 'Elige el contrario.',
+    'instruction.selectComplete': 'Elige el bloque que encaja en el hueco.',
+    'instruction.select_opposite': 'Encuentra el contrario.',
     'instruction.arrangeSentence': 'Pon las palabras en el orden correcto.',
     'instruction.arrangeLines': 'Ordena las líneas de forma lógica.',
-    'instruction.arrangeWord': 'Forma la palabra que aparece en la imagen.',
-    'instruction.inputPictureName': 'Escribe el nombre de lo que ves.',
-    'instruction.arrangePictureName': 'Forma el nombre de lo que ves.',
-    'instruction.matchTranslation': 'Relaciona cada palabra con su traducción.',
-    'instruction.match': 'Relaciona los elementos correspondientes.',
+    'instruction.arrangeWord': 'Deletrea lo que muestra la imagen.',
+    'instruction.inputPictureName': 'Escribe el nombre de la imagen.',
+    'instruction.arrangePictureName':
+        'Ordena los bloques para nombrar la imagen.',
+    'instruction.matchTranslation': 'Empareja cada palabra con su traducción.',
+    'instruction.match': 'Empareja los elementos que van juntos.',
     'type.assignGroups': 'ORDENA EN GRUPOS',
     'type.assignSlots': 'RELLENA LAS CASILLAS',
     'type.assignGaps': 'RELLENA LOS HUECOS',
@@ -346,15 +377,14 @@ class ExerciseCopyService {
     'instruction.assignSlots': 'Toca un elemento y luego su casilla.',
     'instruction.assignGaps': 'Toca una palabra y luego el hueco que rellena.',
     'instruction.inputListenGaps': 'Escucha y completa la palabra que falta.',
-    'instruction.inputListenWrite': 'Escucha y escribe lo que oyes.',
-    'instruction.matchAudio':
-        'Escucha y relaciona cada audio con la palabra correcta.',
+    'instruction.inputListenWrite': 'Escribe cada palabra que oyes.',
+    'instruction.matchAudio': 'Empareja cada audio con su palabra.',
     'type.inputTranslation': 'ESCRIBE LA TRADUCCIÓN',
     'type.arrangeTranslation': 'FORMA LA TRADUCCIÓN',
     'type.selectContext': 'CONTEXTO',
-    'instruction.inputTranslation': 'Escribe la traducción.',
+    'instruction.inputTranslation': 'Traduce al {language}.',
     'instruction.arrangeTranslation':
-        'Forma la traducción con los bloques de palabras.',
+        'Traduce al {language} con los bloques de palabras.',
     'instruction.selectContext':
         'Usa el contexto para elegir la respuesta correcta.',
     'instruction.inputCompleteOne': 'Escribe la palabra que completa la frase.',
@@ -365,9 +395,8 @@ class ExerciseCopyService {
         'Selecciona el significado de lo que has oído.',
     'type.selectPicture': '¿QUÉ HAY EN LA IMAGEN?',
     'instruction.selectPicture': 'Elige la opción más adecuada.',
-    'instruction.arrangeWordHeard': 'Forma la palabra que oyes.',
-    'instruction.arrangeWordClue':
-        'Forma la palabra que corresponde a la pista.',
+    'instruction.arrangeWordHeard': 'Deletrea la palabra que oyes.',
+    'instruction.arrangeWordClue': 'Deletrea la palabra que describe la pista.',
     'instruction.arrangeGaps': 'Elige una palabra para cada hueco.',
     'type.selectCompleteAll': 'UNA PALABRA PARA TODOS',
     'instruction.selectCompleteAll':
@@ -401,16 +430,17 @@ class ExerciseCopyService {
     'type.matchAudio': 'ABBINA L’AUDIO',
     'instruction.default': 'Completa l’esercizio.',
     'instruction.inputMissingWord':
-        'Scrivi la parola mancante completa. La prima lettera mostrata è un suggerimento.',
+        'La prima lettera è data: scrivi la parola intera.',
     'instruction.selectCharacter':
         'Scegli l’opzione che corrisponde al carattere.',
-    'instruction.select': 'Scegli la risposta corretta.',
-    'instruction.selectListen': 'Ascolta e scegli la risposta corretta.',
+    'instruction.select': 'Trova la risposta corretta.',
+    'instruction.selectListen':
+        'Trova la risposta che corrisponde a ciò che senti.',
     'instruction.selectListenPassage': 'Ascolta e scegli la risposta corretta.',
     'instruction.selectRead': 'Leggi e scegli la risposta corretta.',
     'instruction.selectDialogue':
         'Leggi il dialogo e scegli la risposta migliore.',
-    'instruction.selectImage': 'Scegli l’immagine corretta.',
+    'instruction.selectImage': 'Trova l’immagine corrispondente.',
     'instruction.presentation': 'Studia la parola e il suo uso.',
     'instruction.dialogueLine': 'Leggi o ascolta, poi continua.',
     'instruction.dialogueLineText': 'Leggi, poi continua.',
@@ -419,16 +449,16 @@ class ExerciseCopyService {
         'Ascolta prima; il testo compare dopo.',
     'instruction.storyCover': 'Inizia una storia. Continua quando sei pronto.',
     'instruction.inputComplete': 'Scrivi le parole che completano la frase.',
-    'instruction.selectComplete':
-        'Scegli il blocco che completa meglio la frase.',
-    'instruction.select_opposite': 'Scegli il contrario.',
+    'instruction.selectComplete': 'Scegli il blocco adatto allo spazio vuoto.',
+    'instruction.select_opposite': 'Trova il contrario.',
     'instruction.arrangeSentence': 'Metti le parole nell’ordine corretto.',
     'instruction.arrangeLines': 'Metti le righe in un ordine logico.',
-    'instruction.arrangeWord': 'Componi la parola mostrata nell’immagine.',
-    'instruction.inputPictureName': 'Scrivi il nome di ciò che vedi.',
-    'instruction.arrangePictureName': 'Componi il nome di ciò che vedi.',
-    'instruction.matchTranslation': 'Abbina ogni parola alla sua traduzione.',
-    'instruction.match': 'Abbina gli elementi corrispondenti.',
+    'instruction.arrangeWord': 'Compita ciò che mostra l’immagine.',
+    'instruction.inputPictureName': 'Scrivi il nome dell’immagine.',
+    'instruction.arrangePictureName':
+        'Metti in ordine i blocchi per dare il nome all’immagine.',
+    'instruction.matchTranslation': 'Accoppia ogni parola alla sua traduzione.',
+    'instruction.match': 'Accoppia gli elementi che vanno insieme.',
     'type.assignGroups': 'SMISTA IN GRUPPI',
     'type.assignSlots': 'RIEMPI LE CASELLE',
     'type.assignGaps': 'RIEMPI GLI SPAZI',
@@ -437,15 +467,14 @@ class ExerciseCopyService {
     'instruction.assignSlots': 'Tocca un elemento, poi la sua casella.',
     'instruction.assignGaps': 'Tocca una parola, poi lo spazio che riempie.',
     'instruction.inputListenGaps': 'Ascolta e completa la parola mancante.',
-    'instruction.inputListenWrite': 'Ascolta e scrivi ciò che senti.',
-    'instruction.matchAudio':
-        'Ascolta e abbina ogni audio alla parola corretta.',
+    'instruction.inputListenWrite': 'Scrivi ogni parola che senti.',
+    'instruction.matchAudio': 'Accoppia ogni audio alla sua parola.',
     'type.inputTranslation': 'SCRIVI LA TRADUZIONE',
     'type.arrangeTranslation': 'COMPONI LA TRADUZIONE',
     'type.selectContext': 'CONTESTO',
-    'instruction.inputTranslation': 'Scrivi la traduzione.',
+    'instruction.inputTranslation': 'Traduci in {language}.',
     'instruction.arrangeTranslation':
-        'Componi la traduzione con i blocchi di parole.',
+        'Traduci in {language} con i blocchi di parole.',
     'instruction.selectContext':
         'Usa il contesto per scegliere la risposta corretta.',
     'instruction.inputCompleteOne': 'Scrivi la parola che completa la frase.',
@@ -456,9 +485,8 @@ class ExerciseCopyService {
         'Seleziona il significato di ciò che hai sentito.',
     'type.selectPicture': 'COSA C’È NELL’IMMAGINE?',
     'instruction.selectPicture': 'Scegli l’opzione più adatta.',
-    'instruction.arrangeWordHeard': 'Componi la parola che senti.',
-    'instruction.arrangeWordClue':
-        'Componi la parola che corrisponde all’indizio.',
+    'instruction.arrangeWordHeard': 'Compita la parola che senti.',
+    'instruction.arrangeWordClue': 'Compita la parola descritta dall’indizio.',
     'instruction.arrangeGaps': 'Scegli una parola per ogni spazio.',
     'type.selectCompleteAll': 'UNA PAROLA PER TUTTI',
     'instruction.selectCompleteAll':
@@ -492,16 +520,17 @@ class ExerciseCopyService {
     'type.matchAudio': 'AUDIO ZUORDNEN',
     'instruction.default': 'Bearbeite die Übung.',
     'instruction.inputMissingWord':
-        'Schreibe das vollständige fehlende Wort. Der angezeigte erste Buchstabe ist ein Hinweis.',
+        'Der erste Buchstabe ist vorgegeben: Schreibe das ganze Wort.',
     'instruction.selectCharacter': 'Wähle die Option, die zum Zeichen passt.',
-    'instruction.select': 'Wähle die richtige Antwort.',
-    'instruction.selectListen': 'Höre zu und wähle die richtige Antwort.',
+    'instruction.select': 'Finde die richtige Antwort.',
+    'instruction.selectListen':
+        'Finde die Antwort, die zu dem passt, was du hörst.',
     'instruction.selectListenPassage':
         'Höre zu und wähle die richtige Antwort.',
     'instruction.selectRead': 'Lies und wähle die richtige Antwort.',
     'instruction.selectDialogue':
         'Lies den Dialog und wähle die beste Antwort.',
-    'instruction.selectImage': 'Wähle das passende Bild.',
+    'instruction.selectImage': 'Finde das passende Bild.',
     'instruction.presentation': 'Lerne das Wort und seine Verwendung.',
     'instruction.dialogueLine': 'Lies oder höre zu, dann weiter.',
     'instruction.dialogueLineText': 'Lies, dann weiter.',
@@ -512,18 +541,19 @@ class ExerciseCopyService {
         'Eine Geschichte beginnt. Weiter, wenn du bereit bist.',
     'instruction.inputComplete':
         'Schreibe die Wörter, die den Satz vervollständigen.',
-    'instruction.selectComplete':
-        'Wähle den Baustein, der den Satz am besten ergänzt.',
-    'instruction.select_opposite': 'Wähle das Gegenteil.',
+    'instruction.selectComplete': 'Wähle den Baustein, der in die Lücke passt.',
+    'instruction.select_opposite': 'Finde das Gegenteil.',
     'instruction.arrangeSentence':
         'Bringe die Wörter in die richtige Reihenfolge.',
     'instruction.arrangeLines':
         'Bringe die Zeilen in eine logische Reihenfolge.',
-    'instruction.arrangeWord': 'Bilde das Wort auf dem Bild.',
-    'instruction.inputPictureName': 'Schreibe den Namen dessen, was du siehst.',
-    'instruction.arrangePictureName': 'Bilde den Namen dessen, was du siehst.',
-    'instruction.matchTranslation': 'Ordne jedes Wort seiner Übersetzung zu.',
-    'instruction.match': 'Ordne die passenden Elemente einander zu.',
+    'instruction.arrangeWord': 'Buchstabiere, was das Bild zeigt.',
+    'instruction.inputPictureName': 'Schreibe den Namen des Bildes.',
+    'instruction.arrangePictureName':
+        'Ordne die Bausteine, um das Bild zu benennen.',
+    'instruction.matchTranslation':
+        'Bilde Paare aus jedem Wort und seiner Übersetzung.',
+    'instruction.match': 'Bilde Paare aus den Elementen, die zusammengehören.',
     'type.assignGroups': 'IN GRUPPEN SORTIEREN',
     'type.assignSlots': 'FELDER FÜLLEN',
     'type.assignGaps': 'LÜCKEN FÜLLEN',
@@ -533,15 +563,14 @@ class ExerciseCopyService {
     'instruction.assignGaps':
         'Tippe auf ein Wort und dann auf die Lücke, die es füllt.',
     'instruction.inputListenGaps': 'Höre zu und ergänze das fehlende Wort.',
-    'instruction.inputListenWrite': 'Höre zu und schreibe, was du hörst.',
-    'instruction.matchAudio':
-        'Höre zu und ordne jeden Ton dem richtigen Wort zu.',
+    'instruction.inputListenWrite': 'Schreibe jedes Wort, das du hörst.',
+    'instruction.matchAudio': 'Bilde Paare aus jedem Ton und seinem Wort.',
     'type.inputTranslation': 'ÜBERSETZUNG EINGEBEN',
     'type.arrangeTranslation': 'ÜBERSETZUNG BILDEN',
     'type.selectContext': 'KONTEXT',
-    'instruction.inputTranslation': 'Gib die Übersetzung ein.',
+    'instruction.inputTranslation': 'Übersetze auf {language}.',
     'instruction.arrangeTranslation':
-        'Bilde die Übersetzung aus den Wortbausteinen.',
+        'Übersetze mit den Wortbausteinen auf {language}.',
     'instruction.selectContext':
         'Nutze den Kontext, um die richtige Antwort auszuwählen.',
     'instruction.inputCompleteOne':
@@ -553,8 +582,9 @@ class ExerciseCopyService {
         'Wähle die Bedeutung dessen, was du gehört hast.',
     'type.selectPicture': 'WAS IST AUF DEM BILD?',
     'instruction.selectPicture': 'Wähle die passendste Option.',
-    'instruction.arrangeWordHeard': 'Bilde das Wort, das du hörst.',
-    'instruction.arrangeWordClue': 'Bilde das Wort, das zum Hinweis passt.',
+    'instruction.arrangeWordHeard': 'Buchstabiere das Wort, das du hörst.',
+    'instruction.arrangeWordClue':
+        'Buchstabiere das Wort, das der Hinweis beschreibt.',
     'instruction.arrangeGaps': 'Wähle für jede Lücke ein Wort.',
     'type.selectCompleteAll': 'EIN WORT FÜR ALLE',
     'instruction.selectCompleteAll': 'Wähle das Wort, das in jede Lücke passt.',
@@ -587,15 +617,16 @@ class ExerciseCopyService {
     'type.matchAudio': 'ASSOCIAR O ÁUDIO',
     'instruction.default': 'Complete o exercício.',
     'instruction.inputMissingWord':
-        'Escreve a palavra em falta completa. A primeira letra apresentada é uma pista.',
+        'A primeira letra é dada: escreva a palavra inteira.',
     'instruction.selectCharacter':
         'Escolhe a opção que corresponde ao carácter.',
-    'instruction.select': 'Escolha a resposta correta.',
-    'instruction.selectListen': 'Ouça e escolha a resposta correta.',
+    'instruction.select': 'Encontre a resposta correta.',
+    'instruction.selectListen':
+        'Encontre a resposta que corresponde ao que ouve.',
     'instruction.selectListenPassage': 'Ouça e escolha a resposta correta.',
     'instruction.selectRead': 'Leia e escolha a resposta correta.',
     'instruction.selectDialogue': 'Leia o diálogo e escolha a melhor resposta.',
-    'instruction.selectImage': 'Escolha a imagem correta.',
+    'instruction.selectImage': 'Encontre a imagem correspondente.',
     'instruction.presentation': 'Estude a palavra e o seu uso.',
     'instruction.dialogueLine': 'Leia ou ouça, depois continue.',
     'instruction.dialogueLineText': 'Leia, depois continue.',
@@ -605,16 +636,16 @@ class ExerciseCopyService {
     'instruction.storyCover':
         'Começa uma história. Continue quando estiver pronto.',
     'instruction.inputComplete': 'Escreva as palavras que completam a frase.',
-    'instruction.selectComplete':
-        'Escolha o bloco que melhor completa a frase.',
-    'instruction.select_opposite': 'Escolha o oposto.',
+    'instruction.selectComplete': 'Escolha o bloco que encaixa na lacuna.',
+    'instruction.select_opposite': 'Encontre o oposto.',
     'instruction.arrangeSentence': 'Coloque as palavras na ordem correta.',
     'instruction.arrangeLines': 'Coloque as linhas numa ordem lógica.',
-    'instruction.arrangeWord': 'Forme a palavra mostrada na imagem.',
-    'instruction.inputPictureName': 'Escreva o nome do que vê.',
-    'instruction.arrangePictureName': 'Forme o nome do que vê.',
-    'instruction.matchTranslation': 'Associe cada palavra à sua tradução.',
-    'instruction.match': 'Associe os elementos correspondentes.',
+    'instruction.arrangeWord': 'Soletre o que a imagem mostra.',
+    'instruction.inputPictureName': 'Escreva o nome da imagem.',
+    'instruction.arrangePictureName': 'Ordene os blocos para nomear a imagem.',
+    'instruction.matchTranslation':
+        'Emparelhe cada palavra com a sua tradução.',
+    'instruction.match': 'Emparelhe os elementos que andam juntos.',
     'type.assignGroups': 'ORDENAR EM GRUPOS',
     'type.assignSlots': 'PREENCHER AS CASAS',
     'type.assignGaps': 'PREENCHER AS LACUNAS',
@@ -624,14 +655,14 @@ class ExerciseCopyService {
     'instruction.assignGaps':
         'Toque numa palavra e depois na lacuna que ela preenche.',
     'instruction.inputListenGaps': 'Ouça e complete a palavra em falta.',
-    'instruction.inputListenWrite': 'Ouça e escreva o que ouve.',
-    'instruction.matchAudio': 'Ouça e associe cada áudio à palavra correta.',
+    'instruction.inputListenWrite': 'Escreva cada palavra que ouve.',
+    'instruction.matchAudio': 'Emparelhe cada áudio com a sua palavra.',
     'type.inputTranslation': 'ESCREVER A TRADUÇÃO',
     'type.arrangeTranslation': 'FORMAR A TRADUÇÃO',
     'type.selectContext': 'CONTEXTO',
-    'instruction.inputTranslation': 'Escreva a tradução.',
+    'instruction.inputTranslation': 'Traduza para {language}.',
     'instruction.arrangeTranslation':
-        'Forme a tradução com os blocos de palavras.',
+        'Traduza para {language} com os blocos de palavras.',
     'instruction.selectContext':
         'Use o contexto para escolher a resposta correta.',
     'instruction.inputCompleteOne': 'Escreva a palavra que completa a frase.',
@@ -641,8 +672,8 @@ class ExerciseCopyService {
     'instruction.selectListenMeaning': 'Selecione o significado do que ouviu.',
     'type.selectPicture': 'O QUE HÁ NA IMAGEM?',
     'instruction.selectPicture': 'Escolha a opção mais adequada.',
-    'instruction.arrangeWordHeard': 'Forme a palavra que ouve.',
-    'instruction.arrangeWordClue': 'Forme a palavra que corresponde à pista.',
+    'instruction.arrangeWordHeard': 'Soletre a palavra que ouve.',
+    'instruction.arrangeWordClue': 'Soletre a palavra que a pista descreve.',
     'instruction.arrangeGaps': 'Escolha uma palavra para cada lacuna.',
     'type.selectCompleteAll': 'UMA PALAVRA PARA TODAS',
     'instruction.selectCompleteAll':
@@ -676,14 +707,14 @@ class ExerciseCopyService {
     'type.matchAudio': 'KOPPEL DE AUDIO',
     'instruction.default': 'Maak de oefening.',
     'instruction.inputMissingWord':
-        'Typ het volledige ontbrekende woord. De getoonde eerste letter is een aanwijzing.',
+        'De eerste letter staat er al: typ het hele woord.',
     'instruction.selectCharacter': 'Kies de optie die bij het teken hoort.',
-    'instruction.select': 'Kies het juiste antwoord.',
-    'instruction.selectListen': 'Luister en kies het juiste antwoord.',
+    'instruction.select': 'Zoek het juiste antwoord.',
+    'instruction.selectListen': 'Zoek het antwoord dat past bij wat je hoort.',
     'instruction.selectListenPassage': 'Luister en kies het juiste antwoord.',
     'instruction.selectRead': 'Lees en kies het juiste antwoord.',
     'instruction.selectDialogue': 'Lees de dialoog en kies het beste antwoord.',
-    'instruction.selectImage': 'Kies de juiste afbeelding.',
+    'instruction.selectImage': 'Zoek de bijpassende afbeelding.',
     'instruction.presentation': 'Bestudeer het woord en het gebruik ervan.',
     'instruction.dialogueLine': 'Lees of luister, en ga dan verder.',
     'instruction.dialogueLineText': 'Lees, en ga dan verder.',
@@ -693,15 +724,16 @@ class ExerciseCopyService {
     'instruction.storyCover':
         'Er begint een verhaal. Ga verder als je klaar bent.',
     'instruction.inputComplete': 'Typ de woorden die de zin aanvullen.',
-    'instruction.selectComplete': 'Kies het blok dat de zin het best aanvult.',
-    'instruction.select_opposite': 'Kies het tegenovergestelde.',
+    'instruction.selectComplete': 'Kies het blok dat in het gat past.',
+    'instruction.select_opposite': 'Zoek het tegenovergestelde.',
     'instruction.arrangeSentence': 'Zet de woorden in de juiste volgorde.',
     'instruction.arrangeLines': 'Zet de regels in een logische volgorde.',
-    'instruction.arrangeWord': 'Maak het woord dat op de afbeelding staat.',
-    'instruction.inputPictureName': 'Typ de naam van wat je ziet.',
-    'instruction.arrangePictureName': 'Maak de naam van wat je ziet.',
-    'instruction.matchTranslation': 'Koppel elk woord aan de vertaling.',
-    'instruction.match': 'Koppel de bijbehorende items.',
+    'instruction.arrangeWord': 'Spel wat de afbeelding toont.',
+    'instruction.inputPictureName': 'Typ de naam van de afbeelding.',
+    'instruction.arrangePictureName':
+        'Zet de blokken op volgorde om de afbeelding te benoemen.',
+    'instruction.matchTranslation': 'Zet elk woord bij zijn vertaling.',
+    'instruction.match': 'Zet de items bij elkaar die bij elkaar horen.',
     'type.assignGroups': 'IN GROEPEN SORTEREN',
     'type.assignSlots': 'VAKJES VULLEN',
     'type.assignGaps': 'GATEN VULLEN',
@@ -711,14 +743,14 @@ class ExerciseCopyService {
     'instruction.assignGaps':
         'Tik op een woord en dan op het gat dat het vult.',
     'instruction.inputListenGaps': 'Luister en vul het ontbrekende woord aan.',
-    'instruction.inputListenWrite': 'Luister en schrijf wat je hoort.',
-    'instruction.matchAudio':
-        'Luister en koppel elk geluid aan het juiste woord.',
+    'instruction.inputListenWrite': 'Typ elk woord dat je hoort.',
+    'instruction.matchAudio': 'Zet elk geluid bij zijn woord.',
     'type.inputTranslation': 'TYPE DE VERTALING',
     'type.arrangeTranslation': 'MAAK DE VERTALING',
     'type.selectContext': 'CONTEXT',
-    'instruction.inputTranslation': 'Typ de vertaling.',
-    'instruction.arrangeTranslation': 'Maak de vertaling met de woordblokken.',
+    'instruction.inputTranslation': 'Vertaal naar het {language}.',
+    'instruction.arrangeTranslation':
+        'Vertaal naar het {language} met de woordblokken.',
     'instruction.selectContext':
         'Gebruik de context om het juiste antwoord te kiezen.',
     'instruction.inputCompleteOne': 'Typ het woord dat de zin aanvult.',
@@ -729,8 +761,8 @@ class ExerciseCopyService {
         'Kies de betekenis van wat je hebt gehoord.',
     'type.selectPicture': 'WAT IS ER OP DE AFBEELDING?',
     'instruction.selectPicture': 'Kies de optie die het best past.',
-    'instruction.arrangeWordHeard': 'Maak het woord dat je hoort.',
-    'instruction.arrangeWordClue': 'Maak het woord dat bij de hint past.',
+    'instruction.arrangeWordHeard': 'Spel het woord dat je hoort.',
+    'instruction.arrangeWordClue': 'Spel het woord dat de hint beschrijft.',
     'instruction.arrangeGaps': 'Kies een woord voor elk gat.',
     'type.selectCompleteAll': 'ÉÉN WOORD VOOR ALLES',
     'instruction.selectCompleteAll': 'Kies het woord dat in elk gat past.',
@@ -763,14 +795,14 @@ class ExerciseCopyService {
     'type.matchAudio': 'YHDISTÄ ÄÄNI',
     'instruction.default': 'Tee harjoitus.',
     'instruction.inputMissingWord':
-        'Kirjoita puuttuva sana kokonaan. Näytetty ensimmäinen kirjain on vihje.',
+        'Ensimmäinen kirjain on annettu: kirjoita koko sana.',
     'instruction.selectCharacter': 'Valitse merkkiä vastaava vaihtoehto.',
-    'instruction.select': 'Valitse oikea vastaus.',
-    'instruction.selectListen': 'Kuuntele ja valitse oikea vastaus.',
+    'instruction.select': 'Etsi oikea vastaus.',
+    'instruction.selectListen': 'Etsi vastaus, joka vastaa kuulemaasi.',
     'instruction.selectListenPassage': 'Kuuntele ja valitse oikea vastaus.',
     'instruction.selectRead': 'Lue ja valitse oikea vastaus.',
     'instruction.selectDialogue': 'Lue dialogi ja valitse paras vastaus.',
-    'instruction.selectImage': 'Valitse oikea kuva.',
+    'instruction.selectImage': 'Etsi sopiva kuva.',
     'instruction.presentation': 'Opiskele sanaa ja sen käyttöä.',
     'instruction.dialogueLine': 'Lue tai kuuntele, sitten jatka.',
     'instruction.dialogueLineText': 'Lue, sitten jatka.',
@@ -779,16 +811,16 @@ class ExerciseCopyService {
         'Kuuntele ensin; teksti tulee näkyviin sen jälkeen.',
     'instruction.storyCover': 'Tarina alkaa. Jatka, kun olet valmis.',
     'instruction.inputComplete': 'Kirjoita sanat, jotka täydentävät lauseen.',
-    'instruction.selectComplete':
-        'Valitse lohko, joka täydentää lauseen parhaiten.',
-    'instruction.select_opposite': 'Valitse vastakohta.',
+    'instruction.selectComplete': 'Valitse lohko, joka sopii aukkoon.',
+    'instruction.select_opposite': 'Etsi vastakohta.',
     'instruction.arrangeSentence': 'Laita sanat oikeaan järjestykseen.',
     'instruction.arrangeLines': 'Järjestä rivit loogiseen järjestykseen.',
-    'instruction.arrangeWord': 'Muodosta kuvassa näkyvä sana.',
-    'instruction.inputPictureName': 'Kirjoita näkemäsi asian nimi.',
-    'instruction.arrangePictureName': 'Muodosta näkemäsi asian nimi.',
-    'instruction.matchTranslation': 'Yhdistä jokainen sana sen käännökseen.',
-    'instruction.match': 'Yhdistä toisiaan vastaavat kohteet.',
+    'instruction.arrangeWord': 'Tavaa, mitä kuva esittää.',
+    'instruction.inputPictureName': 'Kirjoita kuvan nimi.',
+    'instruction.arrangePictureName': 'Järjestä lohkot nimetäksesi kuvan.',
+    'instruction.matchTranslation':
+        'Yhdistä pariksi jokainen sana ja sen käännös.',
+    'instruction.match': 'Yhdistä pariksi yhteen kuuluvat kohteet.',
     'type.assignGroups': 'LAJITTELE RYHMIIN',
     'type.assignSlots': 'TÄYTÄ PAIKAT',
     'type.assignGaps': 'TÄYTÄ AUKOT',
@@ -798,14 +830,14 @@ class ExerciseCopyService {
     'instruction.assignGaps':
         'Napauta sanaa ja sitten aukkoa, jonka se täyttää.',
     'instruction.inputListenGaps': 'Kuuntele ja täydennä puuttuva sana.',
-    'instruction.inputListenWrite': 'Kuuntele ja kirjoita kuulemasi.',
-    'instruction.matchAudio':
-        'Kuuntele ja yhdistä jokainen ääni oikeaan sanaan.',
+    'instruction.inputListenWrite': 'Kirjoita jokainen kuulemasi sana.',
+    'instruction.matchAudio': 'Yhdistä pariksi jokainen ääni ja sen sana.',
     'type.inputTranslation': 'KIRJOITA KÄÄNNÖS',
     'type.arrangeTranslation': 'MUODOSTA KÄÄNNÖS',
     'type.selectContext': 'KONTEKSTI',
-    'instruction.inputTranslation': 'Kirjoita käännös.',
-    'instruction.arrangeTranslation': 'Muodosta käännös sanalohkoista.',
+    'instruction.inputTranslation': 'Käännä kielelle {language}.',
+    'instruction.arrangeTranslation':
+        'Käännä kielelle {language} sanalohkoilla.',
     'instruction.selectContext': 'Valitse oikea vastaus kontekstin avulla.',
     'instruction.inputCompleteOne': 'Kirjoita sana, joka täydentää lauseen.',
     'instruction.inputCompleteLetters': 'Kirjoita puuttuvat kirjaimet.',
@@ -814,8 +846,8 @@ class ExerciseCopyService {
     'instruction.selectListenMeaning': 'Valitse sen merkitys, mitä kuulit.',
     'type.selectPicture': 'MITÄ KUVASSA ON?',
     'instruction.selectPicture': 'Valitse parhaiten sopiva vaihtoehto.',
-    'instruction.arrangeWordHeard': 'Muodosta sana, jonka kuulet.',
-    'instruction.arrangeWordClue': 'Muodosta vihjettä vastaava sana.',
+    'instruction.arrangeWordHeard': 'Tavaa sana, jonka kuulet.',
+    'instruction.arrangeWordClue': 'Tavaa sana, jota vihje kuvaa.',
     'instruction.arrangeGaps': 'Valitse sana jokaiseen aukkoon.',
     'type.selectCompleteAll': 'YKSI SANA KAIKKIIN',
     'instruction.selectCompleteAll':
@@ -849,15 +881,16 @@ class ExerciseCopyService {
     'type.matchAudio': 'PARU’R SAIN',
     'instruction.default': 'Cwblhewch yr ymarfer.',
     'instruction.inputMissingWord':
-        'Teipiwch y gair coll yn llawn. Mae’r llythyren gyntaf a ddangosir yn gliw.',
+        'Mae’r llythyren gyntaf wedi’i rhoi: teipiwch y gair cyfan.',
     'instruction.selectCharacter': 'Dewiswch yr opsiwn sy’n cyfateb i’r nod.',
-    'instruction.select': 'Dewiswch yr ateb cywir.',
-    'instruction.selectListen': 'Gwrandewch a dewiswch yr ateb cywir.',
+    'instruction.select': 'Dewch o hyd i’r ateb cywir.',
+    'instruction.selectListen':
+        'Dewch o hyd i’r ateb sy’n cyfateb i’r hyn a glywch.',
     'instruction.selectListenPassage': 'Gwrandewch a dewiswch yr ateb cywir.',
     'instruction.selectRead': 'Darllenwch a dewiswch yr ateb cywir.',
     'instruction.selectDialogue':
         'Darllenwch y deialog a dewiswch yr ateb gorau.',
-    'instruction.selectImage': 'Dewiswch y ddelwedd gywir.',
+    'instruction.selectImage': 'Dewch o hyd i’r llun cyfatebol.',
     'instruction.presentation': 'Astudiwch y gair a’i ddefnydd.',
     'instruction.dialogueLine': 'Darllenwch neu gwrandewch, yna parhewch.',
     'instruction.dialogueLineText': 'Darllenwch, yna parhewch.',
@@ -867,16 +900,16 @@ class ExerciseCopyService {
     'instruction.storyCover':
         'Mae stori yn dechrau. Parhewch pan fyddwch yn barod.',
     'instruction.inputComplete': 'Teipiwch y geiriau sy’n cwblhau’r frawddeg.',
-    'instruction.selectComplete':
-        'Dewiswch y bloc sy’n cwblhau’r frawddeg orau.',
-    'instruction.select_opposite': 'Dewiswch y gwrthwyneb.',
+    'instruction.selectComplete': 'Dewiswch y bloc sy’n ffitio’r bwlch.',
+    'instruction.select_opposite': 'Dewch o hyd i’r gwrthwyneb.',
     'instruction.arrangeSentence': 'Rhowch y geiriau yn y drefn gywir.',
     'instruction.arrangeLines': 'Rhowch y llinellau mewn trefn resymegol.',
-    'instruction.arrangeWord': 'Ffurfiwch y gair a ddangosir yn y ddelwedd.',
-    'instruction.inputPictureName': 'Teipiwch enw’r hyn a welwch.',
-    'instruction.arrangePictureName': 'Ffurfiwch enw’r hyn a welwch.',
-    'instruction.matchTranslation': 'Parwch bob gair â’i gyfieithiad.',
-    'instruction.match': 'Parwch yr eitemau cyfatebol.',
+    'instruction.arrangeWord': 'Sillafwch yr hyn y mae’r llun yn ei ddangos.',
+    'instruction.inputPictureName': 'Teipiwch enw’r llun.',
+    'instruction.arrangePictureName':
+        'Rhowch y blociau mewn trefn i enwi’r llun.',
+    'instruction.matchTranslation': 'Rhowch bob gair gyda’i gyfieithiad.',
+    'instruction.match': 'Rhowch yr eitemau sy’n perthyn gyda’i gilydd.',
     'type.assignGroups': 'DIDOLI I GRWPIAU',
     'type.assignSlots': 'LLENWI’R SLOTIAU',
     'type.assignGaps': 'LLENWI’R BYLCHAU',
@@ -885,15 +918,14 @@ class ExerciseCopyService {
     'instruction.assignSlots': 'Tapiwch eitem, yna ei slot.',
     'instruction.assignGaps': 'Tapiwch air, yna’r bwlch y mae’n ei lenwi.',
     'instruction.inputListenGaps': 'Gwrandewch a chwblhewch y gair coll.',
-    'instruction.inputListenWrite':
-        'Gwrandewch ac ysgrifennwch yr hyn a glywch.',
-    'instruction.matchAudio': 'Gwrandewch a pharwch bob sain â’r gair cywir.',
+    'instruction.inputListenWrite': 'Teipiwch bob gair a glywch.',
+    'instruction.matchAudio': 'Rhowch bob sain gyda’i air.',
     'type.inputTranslation': 'TEIPIO’R CYFIEITHIAD',
     'type.arrangeTranslation': 'FFURFIO’R CYFIEITHIAD',
     'type.selectContext': 'CYD-DESTUN',
-    'instruction.inputTranslation': 'Teipiwch y cyfieithiad.',
+    'instruction.inputTranslation': 'Cyfieithwch i’r {language}.',
     'instruction.arrangeTranslation':
-        'Ffurfiwch y cyfieithiad gyda’r blociau geiriau.',
+        'Cyfieithwch i’r {language} gyda’r blociau geiriau.',
     'instruction.selectContext':
         'Defnyddiwch y cyd-destun i ddewis yr ateb cywir.',
     'instruction.inputCompleteOne': 'Teipiwch y gair sy’n cwblhau’r frawddeg.',
@@ -903,8 +935,9 @@ class ExerciseCopyService {
     'instruction.selectListenMeaning': 'Dewiswch ystyr yr hyn a glywsoch.',
     'type.selectPicture': 'BETH SYDD YN Y LLUN?',
     'instruction.selectPicture': 'Dewiswch yr opsiwn sy’n gweddu orau.',
-    'instruction.arrangeWordHeard': 'Ffurfiwch y gair a glywch.',
-    'instruction.arrangeWordClue': 'Ffurfiwch y gair sy’n cyfateb i’r cliw.',
+    'instruction.arrangeWordHeard': 'Sillafwch y gair a glywch.',
+    'instruction.arrangeWordClue':
+        'Sillafwch y gair y mae’r cliw yn ei ddisgrifio.',
     'instruction.arrangeGaps': 'Dewiswch air ar gyfer pob bwlch.',
     'type.selectCompleteAll': 'UN GAIR I BOB UN',
     'instruction.selectCompleteAll': 'Dewiswch y gair sy’n llenwi pob bwlch.',

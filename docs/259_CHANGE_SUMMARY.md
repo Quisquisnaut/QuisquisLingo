@@ -523,3 +523,52 @@ empty, as the Audit already allows.
 
 Scoring, progression, Review, the Course format and learner data are
 unchanged.
+
+## Revision 7 (2.0.59+259007, 1 October 2026): translation lines, plainer instructions, GuideBooks
+
+Owner review of 1 October 2026, points 2–5, each approved in chat (point 1
+was a question).
+
+**2. Type the translation, to source.** The Round screen drew a fixed line
+"Translate from <source> into <target>:" above every Type the translation
+exercise, so a Piedmontese word to translate into English read "Translate
+from English into Piedmontese". The line is gone. The instruction line
+names the language of the answer instead: "Translate into English." when
+the text to translate is in the target language, else "Translate into
+Piedmontese.". Build the translation does the same ("Translate into …
+with the word blocks."). The names are the Course's own, as in Pick the
+translation's line.
+
+**3. Lines that repeated their title.** Reworded in the eight learner
+languages:
+
+| Title | Before | Now |
+|---|---|---|
+| CHOOSE | Choose the correct answer. | Find the correct answer. |
+| CHOOSE (opposites) | Choose the opposite. | Find the opposite. |
+| TYPE THE TRANSLATION | Type the translation. | Translate into English / Piedmontese. |
+| BUILD THE TRANSLATION | Build the translation from the word blocks. | Translate into … with the word blocks. |
+| LISTEN AND CHOOSE (pictures, gaps) | Listen and choose the correct answer. | Find the answer that matches what you hear. |
+| CHOOSE THE IMAGE | Choose the image that matches. | Find the matching picture. |
+| MATCH | Match each word with its translation. / Match the corresponding items. | Pair each word with its translation. / Pair the items that belong together. |
+| MATCH THE AUDIO | Listen and match each sound with the correct word. | Pair each sound with its word. |
+| BUILD THE WORD | Build the word shown in the image. / you hear. / that matches the clue. | Spell what the picture shows. / Spell the word you hear. / Spell the word the clue describes. |
+| NAME WHAT YOU SEE | Type / Build the name of what you see. | Type the name of the picture. / Put the blocks in order to name the picture. |
+| WRITE WHAT YOU HEAR | Listen and write what you hear. | Type every word you hear. |
+| TYPE THE MISSING WORD | Enter the complete missing word. The first letter shown is a hint. | The first letter is given: type the whole word. |
+| COMPLETE THE SENTENCE | Choose the block that best completes the sentence. | Pick the block that fits the gap. |
+
+**4. "Son content".** Checked: written Piedmontese requires the subject
+clitic (i son), while the full pronoun mi is optional. The answer
+`{mi} i son content` already accepts "i son content" and "mi i son
+content"; "son content" stays refused.
+
+**5. GuideBooks for QQL Demo: Piedmontese.** Use GuideBook is on and every
+card offers Open GuideBook. Mixed practice: an overview, three notes
+(subject pronouns, articles, spelling) and 32 words (English = Piedmontese)
+gathered from the source Lessons' GuideBooks without repetitions. At the
+market: an overview and 5 words. The words also join the Review's
+vocabulary.
+
+Scoring, progression, Review rules, the Course format and learner data
+are unchanged.

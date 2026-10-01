@@ -1,6 +1,6 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.59+259006 · Build 259, Revision 6 · Course Model v12 (`formatVersion: 12`).**
+**Current source version: 2.0.59+259007 · Build 259, Revision 7 · Course Model v12 (`formatVersion: 12`).**
 
 **QuisquisLingo 2.0.59 Beta — QQL 259 Instructions and questions (Course Model v12)**
 
@@ -26,7 +26,9 @@ its title block and no line under a Dialogue line, and the Edge Case Course
 leaves the bundle for `demo_courses/`, as a Course to import. Revision 6
 adds **QQL Demo: Piedmontese** (the Piedmontese exercises mixed at random
 in 20 Rounds, then the Story) and renames the other demo Demo: Piedmontese
-(sorted by exercise type).
+(sorted by exercise type). Revision 7 names the language of the answer in
+Type and Build the translation, rewords the instruction lines that repeated
+their exercise title, and gives QQL Demo: Piedmontese its GuideBooks.
 
 Build 258 adds textbook-like **Page** cards: formatted blocks (headings,
 paragraphs with bold and italic, quotes, lists, pictures, audio and video
@@ -409,7 +411,7 @@ The MPL-2.0 covers the QuisquisLingo software source. Courses, the Image Bank an
 
 ## Beta lifecycle
 
-Version 2.0.59, Build 259, Revision 6 is a time-limited Beta with an expiry of **2026-10-31 23:59:59 local time** (30 days after the 1 October 2026 release date). In its last seven days it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
+Version 2.0.59, Build 259, Revision 7 is a time-limited Beta with an expiry of **2026-10-31 23:59:59 local time** (30 days after the 1 October 2026 release date). In its last seven days it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
 
 ## Core logic
 

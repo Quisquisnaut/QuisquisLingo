@@ -200,9 +200,7 @@ void main() {
         expect(find.text('I would like a c______.'), findsOneWidget);
         expect(find.text('I would like a ___.'), findsNothing);
         expect(
-          find.text(
-            'Enter the complete missing word. The first letter shown is a hint.',
-          ),
+          find.text('The first letter is given: type the whole word.'),
           findsOneWidget,
         );
         await tester.enterText(

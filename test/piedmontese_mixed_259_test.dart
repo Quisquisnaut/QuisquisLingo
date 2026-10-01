@@ -7,12 +7,13 @@ import 'package:quisquislingo_app/models/exercise_features.dart';
 import 'package:quisquislingo_app/services/course_audit_service.dart';
 import 'package:quisquislingo_app/services/course_checksums.dart';
 import 'package:quisquislingo_app/services/course_service.dart';
+import 'package:quisquislingo_app/services/vocabulary_review_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Build 259 Revision 6 (owner request of 1 October 2026): QQL Demo:
 /// Piedmontese holds the Piedmontese demo's exercises mixed at random in
 /// one Lesson of 20 Rounds of six, each opening with a Before you start
-/// card, then the Story; no GuideBook.
+/// card, then the Story; since Revision 7 each Lesson has a GuideBook.
 
 const _asset = 'assets/courses/piedmontese_mixed_en.json';
 
@@ -69,7 +70,8 @@ void main() {
   });
 
   test('one Lesson of 20 Rounds of six, each with a card, then the Story', () {
-    expect(mixed.useGuidebook, isFalse);
+    // Revision 7: both Lessons have a GuideBook, and every card offers it.
+    expect(mixed.useGuidebook, isTrue);
     expect(mixed.lessons, hasLength(2));
     final practice = mixed.lessons.first;
     expect(practice.title, 'Mixed practice');
@@ -80,7 +82,7 @@ void main() {
       final card = ExerciseFeatures(round.exercises.first);
       expect(card.kind, LearnerExerciseKind.roundIntro);
       expect(card.introText, 'Mixed practice: 6 exercises of different types.');
-      expect(card.guidebookButton, isFalse);
+      expect(card.guidebookButton, isTrue);
       expect(
         round.exercises
             .skip(1)
@@ -106,9 +108,31 @@ void main() {
             ),
           ),
     );
-    for (final lesson in mixed.lessons) {
-      expect(lesson.guidebook.content, isEmpty);
-    }
+  });
+
+  test('each Lesson has a GuideBook with notes and vocabulary', () {
+    final practice = mixed.lessons.first.guidebook.content;
+    expect(practice.first.role, 'overview');
+    expect(practice.where((c) => c.role == 'grammar'), hasLength(3));
+    final vocabulary = VocabularyReviewService();
+    final words = vocabulary.resolveEntries(mixed, mixed.lessons.first);
+    expect(words, hasLength(32));
+    expect(
+      words.singleWhere((entry) => entry.prompt == 'I am happy').answer,
+      'i son content',
+    );
+    final story = vocabulary.resolveEntries(mixed, mixed.lessons.last);
+    expect(story.map((entry) => entry.answer), [
+      'bondì',
+      'un pan',
+      'për piasì',
+      'grassie',
+      'bon-a giornà',
+    ]);
+    final storyCard = ExerciseFeatures(
+      mixed.lessons.last.rounds.single.exercises.first,
+    );
+    expect(storyCard.guidebookButton, isTrue);
   });
 
   test('passes the Audit with no error', () {
