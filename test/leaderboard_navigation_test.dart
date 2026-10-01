@@ -1,3 +1,4 @@
+import 'support/edge_case_fixture.dart';
 import 'support/korean_fixture.dart';
 import 'support/test_directories.dart';
 import 'support/pump_file_io.dart';
@@ -2757,9 +2758,20 @@ void main() {
     expect(find.text('Current course'), findsOneWidget);
     expect(find.text('Other courses'), findsOneWidget);
     expect(find.text(italianCourse.title), findsWidgets);
-    tester
-        .widget<ListTile>(find.byKey(const ValueKey('bundled-course-KO')))
-        .onTap!();
+    // Build 260 Revision 2: a fourth bundled Course moves the Korean row
+    // below the picker's first screen.
+    final koreanTile = find.byKey(const ValueKey('bundled-course-KO'));
+    await tester.scrollUntilVisible(
+      koreanTile,
+      120,
+      scrollable: find
+          .descendant(
+            of: find.byType(BottomSheet),
+            matching: find.byType(Scrollable),
+          )
+          .first,
+    );
+    tester.widget<ListTile>(koreanTile).onTap!();
     await tester.pump();
     await _pumpUntilWithIo(
       tester,
@@ -2929,6 +2941,8 @@ void main() {
   testWidgets(
     'course selector offers Review only on Current course and preserves Home scroll',
     (tester) async {
+      // The Edge Case is a test fixture since Build 259 Revision 5.
+      registerEdgeCaseFixture();
       final italianCourse = await _loadItalianCourse(tester);
       await SettingsService().setIddqdMode(
         italianCourse.courseId,
@@ -2992,6 +3006,12 @@ void main() {
         260,
         scrollable: selectorScroll,
       );
+      // The Edge Case fixture is the last Course of the list since Build 259
+      // Revision 5: bring its whole row into view before tapping.
+      await tester.ensureVisible(
+        find.byKey(const Key('course-selector-actions-bundled-EN_EDGE')),
+      );
+      await tester.pump();
       await tester.tap(
         find.byKey(const Key('course-selector-actions-bundled-EN_EDGE')),
       );
@@ -3112,6 +3132,8 @@ void main() {
   testWidgets('course picker places three other recent courses before Other', (
     tester,
   ) async {
+    // The Edge Case is a test fixture since Build 259 Revision 5.
+    registerEdgeCaseFixture();
     tester.view.devicePixelRatio = 1;
     tester.view.physicalSize = const Size(1200, 1400);
     addTearDown(tester.view.resetDevicePixelRatio);
@@ -3172,7 +3194,7 @@ void main() {
     expect(recentTiles, hasLength(3));
 
     final recentTitles = [
-      'Temporary Demo: Piedmontese',
+      'QQL Demo: Piedmontese (sorted by exercise type)',
       'Temporary Demo: Edge Case Course',
       'AI-Slop Demo: Korean for English Speakers',
     ];
@@ -3274,6 +3296,8 @@ void main() {
   testWidgets(
     'Favorites may repeat Current and Recent; Hide removes a noncurrent row only',
     (tester) async {
+      // The Edge Case is a test fixture since Build 259 Revision 5.
+      registerEdgeCaseFixture();
       tester.view.devicePixelRatio = 1;
       tester.view.physicalSize = const Size(1200, 2000);
       addTearDown(tester.view.resetDevicePixelRatio);

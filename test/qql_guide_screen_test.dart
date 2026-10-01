@@ -101,7 +101,7 @@ void main() {
       ).map((destination) => destination.titleFor(AppLocale.english)),
     ]);
     expect(
-      find.text('Help and Course Info language for this learner.'),
+      find.textContaining('Help and Course Info language for this learner.'),
       findsOneWidget,
     );
     expect(

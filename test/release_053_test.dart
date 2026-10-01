@@ -13,7 +13,8 @@ void main() {
       final json = jsonDecode(raw) as Map<String, dynamic>;
       final course = Course.fromJson(json);
       expect(course.formatVersion, Course.currentFormatVersion, reason: asset);
-      expect(course.temporarySample, isTrue, reason: asset);
+      // Build 259 Revision 8: the flag means Private course; demos are not.
+      expect(course.temporarySample, isFalse, reason: asset);
       if (asset.endsWith('japanese_en.json')) {
         expect(course.lessons, isEmpty, reason: asset);
       } else {

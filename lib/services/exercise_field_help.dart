@@ -13,7 +13,6 @@ enum ExerciseAuthoringField {
   gapSentence,
   readingPassage,
   transcript,
-  listeningTranscript,
   audioText,
   cardReadAloud,
   pronunciationTts,
@@ -33,6 +32,8 @@ enum ExerciseAuthoringField {
   iconKeys,
   missingWord,
   missingWords,
+  gapAnswers,
+  allGapsSentence,
   dialogue,
   image,
   scriptMode,
@@ -48,8 +49,8 @@ enum ExerciseAuthoringField {
   textToComplete,
   bracketedText,
   distractorBlocks,
-  lines,
   correctLineOrder,
+  extraLines,
   spokenWord,
   clue,
   acceptedNames,
@@ -162,9 +163,11 @@ abstract final class ExerciseFieldHelpRegistry {
         'tokens',
         'tts',
       ],
-      'gap_choice': ['question', 'answers', 'correct', 'hint'],
+      'gap_choice': ['prompt', 'question', 'answers', 'correct', 'hint'],
       'type_missing_word': ['revealFirstLetter', 'prompt', 'accepted', 'hint'],
       'word_order': ['prompt', 'gapLayout', 'tokens', 'order', 'tts'],
+      'listening_choose_target': ['tts', 'prompt', 'answers', 'correct'],
+      'listening_choose_source': ['tts', 'prompt', 'answers', 'correct'],
       'listening_answer_target': ['tts', 'question', 'answers', 'correct'],
       'listening_answer_source': ['tts', 'question', 'answers', 'correct'],
       'listening_spelling': ['prompt', 'tts', 'missingWords'],
@@ -196,22 +199,28 @@ abstract final class ExerciseFieldHelpRegistry {
         'answers',
       ],
       'true_false': ['question', 'tts', 'answers', 'correct'],
-      'gap_choice_inline': ['prompt', 'gapLayout', 'tokens', 'tts'],
-      'complete_text': ['prompt', 'missingWords'],
+      'one_word_fills_all': [
+        'prompt',
+        'question',
+        'answers',
+        'correct',
+        'hint',
+      ],
+      'complete_text': ['question', 'prompt', 'missingWords', 'hint'],
       'missing_letters': ['prompt', 'tts', 'hint'],
       'gap_blocks': ['prompt', 'gapLayout', 'tokens', 'tts'],
-      'sentence_order': ['prompt', 'tokens', 'order'],
+      'sentence_order': ['prompt', 'order', 'extraWords', 'hint'],
       'listening_image_choice': [
         'tts',
-        'question',
+        'prompt',
         'answers',
         'correct',
         'icons',
       ],
       'spell_heard': ['tts', 'order'],
-      'picture_choice': ['question', 'answers', 'correct'],
-      'picture_name': ['question', 'accepted', 'hint'],
-      'picture_blocks': ['question', 'order', 'extraWords', 'hint'],
+      'picture_choice': ['prompt', 'answers', 'correct'],
+      'picture_name': ['prompt', 'accepted', 'hint'],
+      'picture_blocks': ['prompt', 'order', 'extraWords', 'hint'],
       'spell_word': ['prompt', 'order'],
       'picture_word_match': ['prompt', 'answers', 'icons'],
       'note_card': ['prompt', 'question'],
@@ -226,8 +235,8 @@ abstract final class ExerciseFieldHelpRegistry {
       'story_cover': ['prompt', 'image'],
       'before_you_start': ['prompt', 'guidebookButton'],
       'page': ['blocks'],
-      'sort_into_groups': ['question', 'groups'],
-      'fill_the_slots': ['question', 'slots', 'extraWords', 'slotReuse'],
+      'sort_into_groups': ['prompt', 'groups'],
+      'fill_the_slots': ['prompt', 'slots', 'extraWords', 'slotReuse'],
     };
     final selected = fields[presetId];
     if (selected == null) {
@@ -237,48 +246,54 @@ abstract final class ExerciseFieldHelpRegistry {
         'Unknown Exercise preset',
       );
     }
-    // A Before you start card has no picture (Build 257).
+    // A Before you start card has no picture (Build 257); Match pictures to
+    // words has only the pictures of its words (Build 259 Revision 5).
     return [
       ...selected,
       if (presetId != 'script_recognition' &&
           presetId != 'before_you_start' &&
-          presetId != 'page')
+          presetId != 'page' &&
+          presetId != 'picture_word_match')
         'image',
     ];
   }
 
   /// The two Choose the answer twins share one form.
   static bool _isChoice(String presetId) =>
-      presetId == 'choice_target' ||
-      presetId == 'choice_source' ||
-      presetId == 'gap_choice_inline';
+      presetId == 'choice_target' || presetId == 'choice_source';
 
   static ExerciseFieldHelp forEditorField(String presetId, String fieldKey) {
-    if (_isChoice(presetId) && fieldKey == 'prompt') {
-      return const ExerciseFieldHelp(
-        title: 'Prompt (optional)',
-        purpose:
-            'An optional line above the question: an instruction or some context. Example: Pick the verb form that fits.',
-        entryRules:
-            'One line, or nothing. In a Round it takes the place of the standard “Choose the correct answer.” line under the CHOOSE heading; leave it empty to keep that line. The question or sentence goes in its own field.',
-        validation:
-            'Optional. Keep it consistent with the question and the answers.',
-        example: 'Pick the verb form that fits.',
+    if ((_isChoice(presetId) || presetId == 'icon_choice') &&
+        fieldKey == 'question') {
+      final choice = presetId != 'icon_choice';
+      return ExerciseFieldHelp(
+        title: 'Question or sentence',
+        purpose: choice
+            ? 'What the learner answers: a question, or a sentence with a gap the answers complete. Example: Which article goes with casa?'
+            : 'What the learner looks for among the pictures: a question, or a sentence naming it. Example: Select ‘gatto’.',
+        entryRules: choice
+            ? 'Enter one question, or one sentence with ___ where the answer fits. An instruction or context goes in Instruction or context.'
+            : 'Enter one question or sentence that names the word the right picture shows. An instruction or context has no field here.',
+        validation: choice
+            ? 'Required: a Published save refuses it empty. Provide matching answers and mark the correct one (or several with Multiple correct answers).'
+            : 'Required: a Published save refuses it empty. Give every answer its picture and mark the correct one.',
+        example: choice ? 'Which article goes with casa?' : 'Select ‘gatto’.',
       );
     }
-    if (_isChoice(presetId) && fieldKey == 'question') {
+    if (presetId.startsWith('listening_answer') && fieldKey == 'question') {
       return const ExerciseFieldHelp(
-        title: 'Question or sentence to complete',
+        title: 'Question',
         purpose:
-            'What the learner answers: a question, or a sentence with a gap the answers complete. Example: Which article goes with casa?',
+            'The question the learner answers about what they hear. Example: Dove fa la spesa Maria?',
         entryRules:
-            'Enter one question, or one sentence with ___ where the answer fits; an instruction or context goes in Prompt.',
+            'Enter one question about the recording: who, what, where, how many. Listen and answer (to source) asks it in the source language. To let the learner simply pick what was heard, use Listen and choose.',
         validation:
-            'Required. Provide matching answers and mark the correct one (or several with Multiple correct answers).',
-        example: 'Which article goes with casa?',
+            'Required: a Published save refuses it empty. Make the recording long enough to answer it, and mark the correct answer.',
+        example: 'Dove fa la spesa Maria?',
       );
     }
     if ((presetId.startsWith('listening_answer') ||
+            presetId.startsWith('listening_choose') ||
             presetId == 'listening_image_choice') &&
         fieldKey == 'tts') {
       return ExerciseFieldHelp(
@@ -315,20 +330,17 @@ abstract final class ExerciseFieldHelpRegistry {
             'learner fills, in order, by tapping options from a list.',
         entryRules:
             'Write the sentence and put each answer word or phrase '
-            'directly inside braces: {answer}. Example: I {am} going {to} '
+            'between underscores: _answer_. Example: I _am_ going _to_ '
             'London. Each tap fills the first remaining empty blank, '
             'whichever option is tapped — placement does not check '
             'correctness, so the right words in the wrong blanks are '
-            'still marked incorrect. If the same word answers more than '
-            'one gap, write it inside each of those braces: {Was} she '
-            'happy? {Was} he late? — the learner taps it once per blank '
-            'it needs to fill. Extra options that are not the answer to '
-            'any gap go in Distractor options (optional).',
+            'still marked incorrect. Extra options that are not the '
+            'answer to any gap go in Distractor options (optional).',
         validation:
-            'At least one {…} gap is required, and every gap must contain '
-            'non-empty text. Literal { or } characters cannot appear '
-            'anywhere else in the sentence.',
-        example: 'I {am} going {to} London.',
+            'At least one _…_ gap is required, and every gap must contain '
+            'non-empty text. A lone _ cannot appear anywhere else in the '
+            'sentence.',
+        example: 'I _am_ going _to_ London.',
       );
     }
     if (_isChoice(presetId) && fieldKey == 'tokens') {
@@ -353,7 +365,7 @@ abstract final class ExerciseFieldHelpRegistry {
       switch (fieldKey) {
         case 'question':
           return ExerciseFieldHelp(
-            title: 'Text to translate',
+            title: 'Sentence',
             purpose:
                 'The $textLanguage-language word or phrase the learner translates.',
             entryRules:
@@ -401,8 +413,19 @@ abstract final class ExerciseFieldHelpRegistry {
           );
       }
     }
-    if (presetId == 'type_missing_word' &&
-        const {'prompt', 'accepted'}.contains(fieldKey)) {
+    if (presetId == 'type_missing_word' && fieldKey == 'prompt') {
+      return const ExerciseFieldHelp(
+        title: 'Sentence',
+        purpose:
+            'The target-language sentence the learner completes, with one ___ gap where the word goes.',
+        entryRules:
+            'Enter one sentence with exactly one ___ gap. The complete accepted words go in their own field; the first letter, when shown, is derived from them.',
+        validation:
+            'Required: a Published save refuses it empty. With Show the first letter on, the sentence needs its ___ gap.',
+        example: 'Je vais à l’___.',
+      );
+    }
+    if (presetId == 'type_missing_word' && fieldKey == 'accepted') {
       return const ExerciseFieldHelp(
         title: 'Type the missing word',
         purpose:
@@ -419,7 +442,7 @@ abstract final class ExerciseFieldHelpRegistry {
             presetId == 'build_translation_to_source') &&
         fieldKey == 'prompt') {
       return const ExerciseFieldHelp(
-        title: 'Text to translate',
+        title: 'Sentence',
         purpose:
             'Supplies the target-language text the learner translates into the source language.',
         entryRules:
@@ -437,22 +460,6 @@ abstract final class ExerciseFieldHelpRegistry {
         entryRules: answerSyntax,
         validation: expressionChecks,
         example: 'I would like a coffee.\nI’d like a coffee.',
-      );
-    }
-    if ((presetId == 'sort_into_groups' || presetId == 'fill_the_slots') &&
-        fieldKey == 'question') {
-      final groups = presetId == 'sort_into_groups';
-      return ExerciseFieldHelp(
-        title: 'Question',
-        purpose: groups
-            ? 'What the learner is asked to sort. Example: Sort the words: animals or plants?'
-            : 'What the learner is asked to fill. Example: Which article goes with each noun?',
-        entryRules:
-            'One line, in the language you prefer. The groups or slots below are what the learner sees under it.',
-        validation: 'Required.',
-        example: groups
-            ? 'Sort the words: animals or plants?'
-            : 'Which article goes with each noun?',
       );
     }
     return forField(fieldForEditor(presetId, fieldKey));
@@ -478,16 +485,19 @@ abstract final class ExerciseFieldHelpRegistry {
       'build_translation_to_target' ||
       'build_translation_to_source' => ExerciseAuthoringField.sourceText,
       'reading_answer_target' => ExerciseAuthoringField.readingPassage,
-      'listening_spelling' => ExerciseAuthoringField.listeningTranscript,
       'missing_word' => ExerciseAuthoringField.transcript,
       _ => ExerciseAuthoringField.instruction,
     },
     'question' => switch (presetId) {
       'flashcard' ||
       'picture_flashcard' => ExerciseAuthoringField.translationMeaning,
+      // Complete the text keeps its instruction there (Build 259 Revision 1).
+      'complete_text' => ExerciseAuthoringField.instruction,
       'true_false' => ExerciseAuthoringField.statement,
       'note_card' => ExerciseAuthoringField.noteText,
       'gap_choice' => ExerciseAuthoringField.gapSentence,
+      // One word fills all (Build 259 Revision 4).
+      'one_word_fills_all' => ExerciseAuthoringField.allGapsSentence,
       _ => ExerciseAuthoringField.question,
     },
     'tts' => switch (presetId) {
@@ -511,7 +521,6 @@ abstract final class ExerciseFieldHelpRegistry {
       _ => ExerciseAuthoringField.acceptedAnswers,
     },
     'tokens' => switch (presetId) {
-      'sentence_order' => ExerciseAuthoringField.lines,
       'gap_blocks' => ExerciseAuthoringField.distractorBlocks,
       'build_translation_to_target' || 'build_translation_to_source' =>
         ExerciseAuthoringField.availableTranslationBlocks,
@@ -536,10 +545,12 @@ abstract final class ExerciseFieldHelpRegistry {
       _ => ExerciseAuthoringField.translationPairs,
     },
     'icons' => ExerciseAuthoringField.iconKeys,
-    'missingWords' =>
-      presetId == 'listening_spelling'
-          ? ExerciseAuthoringField.missingWord
-          : ExerciseAuthoringField.missingWords,
+    'missingWords' => switch (presetId) {
+      'listening_spelling' => ExerciseAuthoringField.missingWord,
+      // Complete the text: one line per ___ gap (Build 259 Revision 3).
+      'complete_text' => ExerciseAuthoringField.gapAnswers,
+      _ => ExerciseAuthoringField.missingWords,
+    },
     'dialogue' => ExerciseAuthoringField.dialogue,
     'dialogueReadAloud' => ExerciseAuthoringField.dialogueReadAloud,
     'speaker' => ExerciseAuthoringField.speaker,
@@ -553,6 +564,7 @@ abstract final class ExerciseFieldHelpRegistry {
     'slots' => ExerciseAuthoringField.slots,
     'extraWords' => switch (presetId) {
       'picture_blocks' => ExerciseAuthoringField.extraNameBlocks,
+      'sentence_order' => ExerciseAuthoringField.extraLines,
       _ => ExerciseAuthoringField.extraWords,
     },
     'slotReuse' => ExerciseAuthoringField.slotReuse,
@@ -591,10 +603,11 @@ abstract final class ExerciseFieldHelpRegistry {
           'Show several handwritten forms of 가 and ask the learner to choose ga.',
     ),
     ExerciseAuthoringField.scriptPrompt => const ExerciseFieldHelp(
-      title: 'Character text prompt',
-      purpose: 'Supplies the text that the learner matches to an image.',
+      title: 'Question or sentence',
+      purpose:
+          'Names the character the learner finds among the images: a question or a sentence.',
       entryRules:
-          'Enter the character, syllable, sound transcription or instruction as plain text. Keep the image answers in their separate option fields.',
+          'Enter the character, syllable or sound transcription, as a question or a sentence. Keep the image answers in their separate option fields.',
       validation:
           'Text to image requires a nonempty text prompt, at least two image-only options and exactly one correct option.',
       example: 'Choose the character pronounced ga.',
@@ -638,16 +651,17 @@ abstract final class ExerciseFieldHelpRegistry {
       example: 'Mark ga correct for an image of 가.',
     ),
     ExerciseAuthoringField.instruction => const ExerciseFieldHelp(
-      title: 'Prompt / instruction',
-      purpose: 'The instruction or context shown to the learner.',
+      title: 'Instruction or context (optional)',
+      purpose:
+          'An optional line in the learners’ language: what to do, the situation, or the meaning the exercise needs. Example: Put the dialogue at the bar in order.',
       entryRules:
-          'Enter one instruction or prompt as plain text. Line breaks remain part of that text; they do not create separate answers. Use the course source language for operational instructions.',
+          'Write one line in the learners’ language, or nothing. In a Round it takes the place of the standard instruction line under the heading; leave it empty to keep that line. It may set the scene (Anna goes to the market in the morning) or give the meaning (Anna reads a book). The question, the sentence and the answers go in their own fields.',
       validation:
-          'Keep it consistent with the selected exercise and the separately entered question, pairs or blocks. For Match related words, state the relationship in the target language.',
-      example: 'Build the sentence.',
+          'Optional. It is stored without a language, so it never turns the exercise into a translation. Keep it consistent with the rest of the exercise, and do not give the answer away.',
+      example: 'Put the dialogue at the bar in order.',
     ),
     ExerciseAuthoringField.sourceText => const ExerciseFieldHelp(
-      title: 'Source text',
+      title: 'Sentence',
       purpose: 'Supplies the text that the learner translates.',
       entryRules:
           'Enter one source-language sentence or passage. Line breaks belong to the same prompt; accepted answers or correct translations go in their own fields.',
@@ -691,8 +705,18 @@ abstract final class ExerciseFieldHelpRegistry {
           'Contextual comprehension requires a separate question. For Dialogue response, use the target language. Match the question to the declared correct answer.',
       example: 'How are you?',
     ),
+    ExerciseAuthoringField.allGapsSentence => const ExerciseFieldHelp(
+      title: 'Sentences, with ___ for each gap',
+      purpose:
+          'The sentences the learner completes with one word that fits every gap. Example: ___ gatto dorme. ___ cane mangia.',
+      entryRules:
+          'Write the sentences in the target language with ___ (3 underscores) wherever the same word goes; at least two gaps. The chosen word appears in every gap.',
+      validation:
+          'Required: a Published save refuses it without two or more gaps. For one gap, use Pick the missing word.',
+      example: '___ gatto dorme. ___ cane mangia.',
+    ),
     ExerciseAuthoringField.gapSentence => const ExerciseFieldHelp(
-      title: 'Target-language sentence with one gap',
+      title: 'Sentence',
       purpose: 'Shows the sentence the learner completes by choosing a block.',
       entryRules:
           'Use ___ (3 underscores) for the missing word. Example: The cat ___ black. Enter one target-language sentence with the missing word or expression replaced by that gap. Enter possible replacements as separate answer lines.',
@@ -719,15 +743,6 @@ abstract final class ExerciseFieldHelpRegistry {
       validation:
           'For Listen for missing words, every missing entry must occur in the transcript. Match Audio text to what the learner should hear.',
       example: 'Vorrei un caffè, per favore.\nMissing word: caffè',
-    ),
-    ExerciseAuthoringField.listeningTranscript => const ExerciseFieldHelp(
-      title: 'Passage transcript',
-      purpose: 'Supplies the visible prompt text for Type what you hear.',
-      entryRules:
-          'Enter one text value. This preset displays the text as entered; it does not automatically remove the accepted answer from the transcript. Audio text controls what the learner hears.',
-      validation:
-          'Preview the prompt to make sure it does not reveal the answer you want the learner to type. Put accepted typed responses in Missing word.',
-      example: 'Listen and type the word you hear.',
     ),
     ExerciseAuthoringField.audioText => const ExerciseFieldHelp(
       title: 'Audio text',
@@ -804,7 +819,7 @@ abstract final class ExerciseFieldHelpRegistry {
       title: 'Available word blocks',
       purpose: 'Supplies the blocks the learner puts into sentence order.',
       entryRules:
-          'Enter one literal target-language block per line. Blank lines are ignored. Repeat a line when the answer needs another occurrence of that word or block. When Inline gaps is enabled, this field is relabeled Extra distractor blocks: the gap answers themselves come from the {answer} braces in Sentence with gaps, and this field only adds optional unused distractors.',
+          'Enter one literal target-language block per line. Blank lines are ignored. Repeat a line when the answer needs another occurrence of that word or block. When Inline gaps is enabled, this field is relabeled Extra distractor blocks: the gap answers themselves come from the _answer_ markers in Sentence with gaps, and this field only adds optional unused distractors.',
       validation:
           'Include every block occurrence used in Correct sentence. You may add 0, 1 or at most 2 unused distractor blocks. Keep block spelling and internal punctuation consistent with the correct order.',
       example: 'Io\nbevo\nun\ncaffè\ntè',
@@ -814,7 +829,7 @@ abstract final class ExerciseFieldHelpRegistry {
       purpose:
           'Supplies the blocks used to construct the configured correct translations.',
       entryRules:
-          'Enter one literal block per line. Blank lines are ignored. Include enough distinct occurrences to construct every correct translation; repeated words require repeated lines. When Inline gaps is enabled, this field is relabeled Extra distractor blocks: the gap answers themselves come from the {answer} braces in Target sentence with gaps, and this field only adds optional unused distractors.',
+          'Enter one literal block per line. Blank lines are ignored. Include enough distinct occurrences to construct every correct translation; repeated words require repeated lines. When Inline gaps is enabled, this field is relabeled Extra distractor blocks: the gap answers themselves come from the _answer_ markers in Target sentence with gaps, and this field only adds optional unused distractors.',
       validation:
           'Every correct translation must be constructible from these blocks. At most 2 blocks may be unused by every correct translation. A block used by any configured answer is not an unused distractor. Answer-expression syntax is not expanded.',
       example: 'Io\nprendo\nvorrei\nun\ncaffè',
@@ -843,10 +858,10 @@ abstract final class ExerciseFieldHelpRegistry {
       purpose:
           'Shows the fixed sentence text with one or more inline blanks the learner fills with word or phrase tiles.',
       entryRules:
-          'Write the fixed sentence and put each answer word or phrase directly inside braces: {answer}. Example: I {am} going {to} London. Each {…} segment is both the gap and its correct answer, so no separate Correct answers / Correct sentence field is needed in this mode. Extra distractor blocks that are not used by any gap still go in Available word blocks / Extra distractor blocks (optional).',
+          'Write the fixed sentence and put each answer word or phrase between underscores: _answer_. Example: I _am_ going _to_ London. Each _…_ segment is both the gap and its correct answer, and each word fills one gap. Extra distractor words that fill no gap go in Extra distractor words (optional).',
       validation:
-          'At least one {…} gap is required, and every gap must contain non-empty text. Literal { or } characters cannot appear anywhere else in the sentence — every { must be paired with a matching } directly around one answer. Existing whole-sentence Arrange exercises are unaffected unless Inline gaps is enabled.',
-      example: 'I {am} going {to} London.',
+          'At least one _…_ gap is required, and every gap must contain non-empty text. A lone _ cannot appear anywhere else in the sentence. Existing whole-sentence Arrange exercises are unaffected.',
+      example: 'I _am_ going _to_ London.',
     ),
     ExerciseAuthoringField.selectRequiredSelections => const ExerciseFieldHelp(
       title: 'Required selections',
@@ -872,7 +887,7 @@ abstract final class ExerciseFieldHelpRegistry {
       example: 'On: é______ for école. Off: ______ for école.',
     ),
     ExerciseAuthoringField.statement => const ExerciseFieldHelp(
-      title: 'Statement',
+      title: 'Sentence',
       purpose:
           'The sentence in the target language the learner judges true or false.',
       entryRules:
@@ -882,23 +897,33 @@ abstract final class ExerciseFieldHelpRegistry {
       example: 'Roma è la capitale d’Italia.',
     ),
     ExerciseAuthoringField.textToComplete => const ExerciseFieldHelp(
-      title: 'Text with the words to hide',
-      purpose: 'The complete text; the missing words listed below become gaps.',
+      title: 'Text, with ___ for each gap',
+      purpose:
+          'The text the learner completes; each ___ is a gap. Example: Anna beve un ___ al bar.',
       entryRules:
-          'Write the whole text including the words to hide, as plain text. Several sentences are fine.',
+          'Write the text and put ___ (three underscores) where each missing word or phrase goes. Several sentences are fine.',
       validation:
-          'Every missing word must occur in the text, in order; the first occurrence after the previous gap is hidden.',
-      example: 'Anna beve un caffè al bar. Poi prende il treno.',
+          'At least one gap, and as many gaps as lines in Missing words.',
+      example: 'Anna beve un ___ al bar. Poi prende ___.',
+    ),
+    ExerciseAuthoringField.gapAnswers => const ExerciseFieldHelp(
+      title: 'Missing words',
+      purpose: 'What goes into each gap, in order. Example: caffè',
+      entryRules:
+          'One line per ___ gap, in the order the gaps appear. A line may accept several answers: [il|un] gatto accepts il gatto and un gatto; {il} gatto accepts gatto with or without il.',
+      validation:
+          'As many lines as gaps. Malformed alternatives are rejected. Answers are checked with the normal Input normalization.',
+      example: 'caffè\n[il|un] treno',
     ),
     ExerciseAuthoringField.bracketedText => const ExerciseFieldHelp(
-      title: 'Text with the missing letters in brackets',
+      title: 'Text with the missing letters between underscores',
       purpose:
-          'The complete text with the missing letters marked inside square brackets.',
+          'The complete text with the missing letters marked between underscores. Example: dr_ink_',
       entryRules:
-          'Write the complete text and put the letters to hide inside [ and ], one bracket per gap: My cat doesn’t dr[ink] milk. Several gaps are fine.',
+          'Write the complete text and put the letters to hide between underscores, one pair per gap: My cat doesn’t dr_ink_ milk. Several gaps are fine.',
       validation:
-          'At least one bracket is required and no bracket may be empty. The learner sees one underscore per hidden letter and types the letters.',
-      example: 'Il ga[tt]o dor[me] sul divano.',
+          'At least one gap is required and none may be empty. The learner sees one underscore per hidden letter and types the letters.',
+      example: 'Il ga_tt_o dor_me_ sul divano.',
     ),
     ExerciseAuthoringField.distractorBlocks => const ExerciseFieldHelp(
       title: 'Extra distractor blocks (optional)',
@@ -908,22 +933,23 @@ abstract final class ExerciseFieldHelpRegistry {
       validation: 'A distractor must not repeat the text of any gap answer.',
       example: 'sempre',
     ),
-    ExerciseAuthoringField.lines => const ExerciseFieldHelp(
-      title: 'Sentences or lines',
-      purpose: 'The lines of the story or dialogue the learner puts in order.',
+    ExerciseAuthoringField.correctLineOrder => const ExerciseFieldHelp(
+      title: 'Lines, in the correct order',
+      purpose:
+          'The lines of the story or dialogue, in the order the learner must find. Example: Anna entra nel bar.',
       entryRules:
-          'One sentence or line per line, in any order. You may add 0, 1 or at most 2 extra lines that belong nowhere.',
+          'One sentence or line per line, in the correct order; the learner gets them shuffled. Lines that belong nowhere go in Extra lines.',
       validation:
-          'Every line of the correct order must be listed here; at most two lines may stay unused.',
+          'At least two lines to publish. The same text twice is two lines.',
       example: 'Anna entra nel bar.\nOrdina un caffè.\nPaga e saluta.',
     ),
-    ExerciseAuthoringField.correctLineOrder => const ExerciseFieldHelp(
-      title: 'Correct order',
-      purpose: 'The lines in the right order.',
-      entryRules:
-          'One line per line, exactly as written above, in the correct order.',
-      validation: 'Each line must match one of the listed lines.',
-      example: 'Anna entra nel bar.\nOrdina un caffè.\nPaga e saluta.',
+    ExerciseAuthoringField.extraLines => const ExerciseFieldHelp(
+      title: 'Extra lines (optional)',
+      purpose:
+          'Lines offered with the others that belong nowhere; the learner must leave them out.',
+      entryRules: 'One line per line: 0, 1 or at most 2.',
+      validation: 'Optional. Keep them plausible but clearly out of place.',
+      example: 'Il treno parte alle nove.',
     ),
     ExerciseAuthoringField.spokenWord => const ExerciseFieldHelp(
       title: 'Spoken word',
@@ -934,7 +960,7 @@ abstract final class ExerciseFieldHelpRegistry {
       example: 'gatto',
     ),
     ExerciseAuthoringField.clue => const ExerciseFieldHelp(
-      title: 'Clue',
+      title: 'Clue (source language)',
       purpose:
           'What names the word to spell: the word itself or a definition in the source language.',
       entryRules: 'Enter one short clue in the source language.',
@@ -1174,13 +1200,14 @@ abstract final class ExerciseFieldHelpRegistry {
       example: 'coffee\nwater\nassets/exercise_images/house.webp',
     ),
     ExerciseAuthoringField.missingWord => const ExerciseFieldHelp(
-      title: 'Missing word',
-      purpose: 'Defines accepted typed responses for Type what you hear.',
+      title: 'Other accepted spellings (optional)',
+      purpose:
+          'Other ways to write what the learner hears; the Audio text itself is always accepted. Example: alle 9 for alle nove.',
       entryRules:
-          'Despite the compact field label, each entry is a complete accepted word or passage, not an instruction to remove text from the transcript. $answerSyntax',
+          'Leave it empty when the Audio text is the only way to write it. Otherwise enter one complete spelling per line: the whole text heard, not a single missing word. Alternatives inside a line: alle [9|nove]. Capitals, punctuation and spacing are ignored anyway.',
       validation:
-          '$expressionChecks Match the accepted responses to Audio text and check the visible prompt in Preview.',
-      example: 'caffè',
+          'Optional. Every line must be the same words the learner hears; do not accept words that are not heard. Malformed alternatives are rejected.',
+      example: 'arrivo alle 8',
     ),
     ExerciseAuthoringField.missingWords => const ExerciseFieldHelp(
       title: 'Missing word(s)',

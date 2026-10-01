@@ -8,6 +8,7 @@ import '../services/answer_materialization_service.dart';
 import '../services/file_dialog_service.dart';
 import '../services/portable_exercise_image.dart';
 import '../widgets/script_recognition_editor.dart';
+import '../widgets/difficulty_badge.dart';
 import '../widgets/exercise_image_field.dart';
 import 'package:audioplayers/audioplayers.dart';
 
@@ -62,6 +63,10 @@ import '../services/custom_course_transfer_service.dart';
 import '../services/authoring_duplication_service.dart';
 import '../services/exercise_creation_planner.dart';
 import '../services/exercise_draft_builder.dart';
+import '../services/exercise_copy_service.dart';
+import '../services/exercise_difficulty.dart';
+import '../services/language_catalog.dart';
+import '../widgets/language_field.dart';
 import '../services/canonical_exercise_draft.dart';
 import '../services/round_flow_authoring.dart';
 import '../services/preset_recipes.dart';
@@ -660,6 +665,57 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
     }
   }
 
+  static String _tagHelper(String tag) =>
+      tag.isEmpty ? 'Read-only · no language tag' : 'Read-only · tag $tag';
+
+  /// The tags of the Course's own languages (Build 260 Revision 0, owner
+  /// decision: a Course's languages never change). A written name QQL
+  /// recognizes gives its tag; otherwise the author picks the language from
+  /// the list, and a learning language tag is kept only when it leaves the
+  /// language code of XP and streaks as it is.
+  Future<(String, String)> _languageTagsFromList(
+    BuildContext context, {
+    required String sourceTag,
+    required String targetTag,
+  }) async {
+    Future<String> tagFor(String written) async {
+      final known = LanguageCatalog.resolve(written);
+      if (known != null) return known.tag;
+      final picked = await showLanguagePicker(
+        context,
+        initialQuery: written,
+        title: 'Which language is “$written”?',
+      );
+      return picked?.tag ?? '';
+    }
+
+    var source = sourceTag;
+    var target = targetTag;
+    if (source.isEmpty) source = await tagFor(_course.sourceLanguage);
+    if (target.isEmpty) {
+      final candidate = await tagFor(_course.targetLanguage);
+      if (candidate.isNotEmpty) {
+        final tagged = Course.fromJson({
+          ..._course.toJson(),
+          'targetLanguageTag': candidate,
+        });
+        if (CourseService.codeForCourse(tagged) ==
+            CourseService.codeForCourse(_course)) {
+          target = candidate;
+        } else if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                '“${LanguageCatalog.byTag(candidate)?.englishName ?? candidate}” is not “${_course.targetLanguage}”: the learning language of a Course cannot change.',
+              ),
+            ),
+          );
+        }
+      }
+    }
+    return (source, target);
+  }
+
   Future<void> _editCourseInfo() async {
     final resolvedGovernance = await CourseGovernanceResolver(
       profileService: _profiles,
@@ -823,6 +879,21 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
         : 'Other / Custom license';
     var derivativePolicy = _course.derivativeWorksPolicy;
     var allowPageSharing = _course.allowPageSharing;
+    var privateCourse = _course.temporarySample;
+    // Build 260 Revision 0: an earlier Course may gain the tags of its own
+    // languages, and its learners' name of the learning language.
+    var sourceTag = _course.sourceLanguageTag;
+    var targetTag = _course.targetLanguageTag;
+    final learnerLanguageName = TextEditingController(
+      text: _course.targetLanguageNameForLearners,
+    );
+    final defaultLearnerLanguageName = ExerciseCopyService.languageName(
+      Course.fromJson({
+        ..._course.toJson(),
+        'targetLanguageNameForLearners': '',
+      }),
+      intoSource: false,
+    );
     String? mediaCreditError;
     var flagSelection = CourseFlagSelection.fromCourse(_course);
     var coverImage = _course.coverImage;
@@ -1090,11 +1161,16 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                   ),
                   const SizedBox(height: 8),
                   if (narrowCourseInfo) ...[
-                    readOnlyField('Base language', baseLanguage.displayLabel),
+                    readOnlyField(
+                      'Base language',
+                      baseLanguage.displayLabel,
+                      helperText: _tagHelper(sourceTag),
+                    ),
                     const SizedBox(height: 8),
                     readOnlyField(
                       'Learning language',
                       learningLanguage.displayLabel,
+                      helperText: _tagHelper(targetTag),
                     ),
                   ] else
                     Row(
@@ -1104,6 +1180,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                           child: readOnlyField(
                             'Base language',
                             baseLanguage.displayLabel,
+                            helperText: _tagHelper(sourceTag),
                           ),
                         ),
                         const SizedBox(width: 8),
@@ -1111,10 +1188,47 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                           child: readOnlyField(
                             'Learning language',
                             learningLanguage.displayLabel,
+                            helperText: _tagHelper(targetTag),
                           ),
                         ),
                       ],
                     ),
+                  if (sourceTag.isEmpty || targetTag.isEmpty)
+                    Align(
+                      alignment: AlignmentDirectional.centerStart,
+                      child: TextButton.icon(
+                        key: const Key('course-info-language-tags'),
+                        icon: const Icon(Icons.sell_outlined),
+                        label: const Text(
+                          'Add the language tags from the list',
+                        ),
+                        onPressed: () async {
+                          final tags = await _languageTagsFromList(
+                            ctx,
+                            sourceTag: sourceTag,
+                            targetTag: targetTag,
+                          );
+                          setLocalState(() {
+                            sourceTag = tags.$1;
+                            targetTag = tags.$2;
+                          });
+                        },
+                      ),
+                    ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    key: const Key('course-info-learner-language-name'),
+                    controller: learnerLanguageName,
+                    maxLength: 60,
+                    decoration: InputDecoration(
+                      border: const OutlineInputBorder(),
+                      labelText: 'Learning language name for learners',
+                      hintText: defaultLearnerLanguageName,
+                      helper: Text(
+                        'How this Course’s learners call the language they learn, in lines such as “Translate into …”. Leave it empty for “$defaultLearnerLanguageName”.',
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 14),
                   const Text(
                     'Course flag',
@@ -1527,6 +1641,19 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                     value: allowPageSharing,
                     onChanged: (value) =>
                         setLocalState(() => allowPageSharing = value),
+                  ),
+                  // Build 259 Revision 8 (owner decisions): the flag stored as
+                  // temporarySample, shown as Private course.
+                  SwitchListTile(
+                    key: const Key('course-info-private'),
+                    contentPadding: EdgeInsets.zero,
+                    title: const Text('Private course'),
+                    subtitle: const Text(
+                      'Visible in QQL only to the Course Maintainer and the members of its assigned Team; nobody else on this device sees it, admins included. An exported file stays private; Fork and Copy as New Course start non-private.',
+                    ),
+                    value: privateCourse,
+                    onChanged: (value) =>
+                        setLocalState(() => privateCourse = value),
                   ),
                   const SizedBox(height: 12),
                   const Text(
@@ -1955,6 +2082,11 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                           selected,
                         ),
                   allowPageSharing: allowPageSharing,
+                  privateCourse: privateCourse,
+                  sourceLanguageTag: sourceTag,
+                  targetLanguageTag: targetTag,
+                  targetLanguageNameForLearners: learnerLanguageName.text
+                      .trim(),
                   variant: variant.text.trim(),
                   startLevel: startLevel.text.trim(),
                   targetLevel: targetLevel.text.trim(),
@@ -5576,6 +5708,8 @@ const storyWizardPresets = <String>[
   'choice_source',
   'translation_choice_to_target',
   'translation_choice_to_source',
+  'listening_choose_target',
+  'listening_choose_source',
   'listening_answer_target',
   'listening_answer_source',
   'word_order',
@@ -6773,7 +6907,20 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
                       child: const Icon(Icons.drag_handle),
                     ),
                     title: Text(round.displayTitle(index)),
-                    subtitle: Text(_exerciseCountLabel(round.exercises.length)),
+                    // Build 260 Revision 5: the Round's average difficulty
+                    // beside its count, so a Lesson's curve shows.
+                    subtitle: Wrap(
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        Text(_exerciseCountLabel(round.exercises.length)),
+                        if (ExerciseDifficulty.averageOf(round)
+                            case final average?)
+                          DifficultyBadge.average(
+                            key: ValueKey('round-difficulty-${round.id}'),
+                            average: average,
+                          ),
+                      ],
+                    ),
                     onTap: () => _open(index),
                     trailing: PopupMenuButton<String>(
                       key: ValueKey('round-actions-${round.id}'),
@@ -8395,7 +8542,17 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
                       enabled: !widget.readOnly,
                       child: CircleAvatar(child: Text('${i + 1}')),
                     ),
-                    title: Text(_exerciseTypeLabel(e)),
+                    // Build 260 Revision 5: the exercise's difficulty.
+                    title: Row(
+                      children: [
+                        Flexible(child: Text(_exerciseTypeLabel(e))),
+                        if (ExerciseDifficulty.of(e) case final level?)
+                          DifficultyBadge(
+                            key: ValueKey('exercise-difficulty-${e.id}'),
+                            level: level,
+                          ),
+                      ],
+                    ),
                     subtitle: Text(
                       _summary(e),
                       maxLines: 2,
@@ -9699,7 +9856,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
       .toList(growable: false);
 
   /// One picture per answer (Select the image, Listen and pick the image,
-  /// Match picture to word): `_icons` holds one line per answer, in the
+  /// Match pictures to words): `_icons` holds one line per answer, in the
   /// answers' order, a picture reference or a named icon key. The cards
   /// follow the answers as they are typed (owner report, 29 September
   /// 2026: the form rebuilt only on its first change, so a word typed
@@ -9762,7 +9919,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     _icons.text = lines.take(count).join('\n');
   }
 
-  /// Match picture to word keeps its pairs as words (`_answers`) and
+  /// Match pictures to words keeps its pairs as words (`_answers`) and
   /// pictures (`_icons`) in the form and as `picture = word` lines in the
   /// draft.
   String _picturePairsText() {
@@ -9880,9 +10037,9 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
       .toList();
 
   /// Reconstructs the author-facing "Sentence with gaps" template (fixed
-  /// text plus one `{answer}` block per inline gap, with the literal answer
-  /// text embedded directly inside the braces) from an existing Arrange
-  /// exercise's layout, for display when reopening it in the Editor.
+  /// text plus one `_answer_` block per inline gap, with the literal answer
+  /// text between the underscores) from an existing Arrange exercise's
+  /// layout, for display when reopening it in the Editor.
   String _fieldKey(TextEditingController controller) => {
     _prompt: 'prompt',
     _question: 'question',
@@ -9995,6 +10152,40 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     onPressed: () => _showFieldHelp(fieldKey),
     icon: const Icon(Icons.help_outline),
   );
+
+  /// A preset form's optional Instruction or context (Build 259, owner
+  /// decisions of 29 September 2026): written in the learners' language and
+  /// stored without a language, it takes the place of the standard line the
+  /// learner sees under the exercise heading. The helper quotes that line.
+  Widget _instructionField({TextEditingController? controller}) {
+    final standard = _standardInstruction();
+    return _field(
+      controller ?? _prompt,
+      'Instruction or context (optional)',
+      lines: 2,
+      helper: standard == null
+          ? 'In the learners’ language. The learner sees it instead of the standard instruction.'
+          : 'In the learners’ language. The learner sees it instead of the standard line “$standard”',
+    );
+  }
+
+  /// The standard instruction the learner sees for this preset, in the
+  /// Course's source language; null without a Course.
+  String? _standardInstruction() {
+    final course = widget.course;
+    final kind = PresetRecipes.kinds[_type]?.firstOrNull;
+    if (course == null || kind == null) return null;
+    // Listen and choose always gets its own listening line (Build 259
+    // Revision 3).
+    final variant = switch (_type) {
+      'listening_choose_target' => 'selectListenHeard',
+      'listening_choose_source' => 'selectListenMeaning',
+      _ => null,
+    };
+    return variant == null
+        ? ExerciseCopyService.instruction(course, kind)
+        : ExerciseCopyService.instructionVariant(course, variant, kind);
+  }
 
   Widget _field(
     TextEditingController c,
@@ -10152,14 +10343,44 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
                 'First line: a sentence using the word (target language). Second line, optional: its translation. “Usage:” is added automatically in learner mode.',
           ),
         ];
-      case 'gap_choice':
+      case 'one_word_fills_all':
+        // One word fills all (Build 259 Revision 4): the sentences hold two
+        // or more ___ gaps that one answer fills. Build 260 Revision 3: an
+        // optional Instruction or context, as Pick the missing word.
         return [
+          _instructionField(),
           _field(
             _question,
-            'Target-language sentence with one gap',
+            'Sentences, with ___ for each gap',
             lines: 3,
             helper:
-                'Use ___ (3 underscores) for the missing word. Example: The cat ___ black.',
+                'In the target language, with ___ (3 underscores) wherever the same word fits; at least two gaps. Example: ___ gatto dorme. ___ cane mangia.',
+          ),
+          _field(
+            _answers,
+            'Answer words',
+            lines: 4,
+            helper:
+                'Only one word may fit every gap; the others should fail at least one.',
+          ),
+          _field(_correct, 'Correct answer number'),
+          _field(
+            _hint,
+            'Hint (optional)',
+            helper: 'Give a clue without naming the word.',
+          ),
+        ];
+      case 'gap_choice':
+        // Build 260 Revision 3 (owner decision): an optional Instruction or
+        // context, such as the meaning a short phrase needs.
+        return [
+          _instructionField(),
+          _field(
+            _question,
+            'Sentence',
+            lines: 3,
+            helper:
+                'In the target language, with ___ (3 underscores) for the missing word. Example: The cat ___ black.',
           ),
           _field(
             _answers,
@@ -10187,11 +10408,11 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         return [
           _field(
             _prompt,
-            _type.endsWith('_to_source') ? 'Text to translate' : 'Source text',
+            'Sentence',
             lines: 3,
             helper: _type.endsWith('_to_source')
-                ? 'Enter the target-language text the learner translates into the source language.'
-                : 'Enter the text the learner must translate.',
+                ? 'In the target language: the text the learner translates into the source language.'
+                : 'In the source language: the text the learner translates into the target language.',
           ),
           _field(
             _accepted,
@@ -10245,10 +10466,10 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
           ),
           _field(
             _prompt,
-            'Sentence with one ___ gap',
+            'Sentence',
             lines: 3,
             helper:
-                'The first letter, when shown, is derived automatically from the complete accepted word.',
+                'In the target language, with one ___ gap for the word. The first letter, when shown, is derived automatically from the complete accepted word.',
           ),
           // The same-first-letter rule holds only while the first letter is
           // shown (owner, 29 September 2026): off, the accepted words may
@@ -10272,13 +10493,11 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         return [
           _field(
             _prompt,
-            _type.endsWith('_to_source')
-                ? 'Sentence to translate'
-                : 'Source sentence',
+            'Sentence',
             lines: 3,
             helper: _type.endsWith('_to_source')
-                ? 'Enter the complete target-language sentence the learner translates into the source language.'
-                : 'Enter the complete sentence the learner must translate.',
+                ? 'In the target language: the complete sentence the learner translates into the source language.'
+                : 'In the source language: the complete sentence the learner translates into the target language.',
           ),
           _field(
             _tokens,
@@ -10293,7 +10512,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         ];
       case 'word_order':
         return [
-          _field(_prompt, 'Translation prompt / instruction', lines: 2),
+          _instructionField(),
           _field(
             _tokens,
             'Available word blocks',
@@ -10314,12 +10533,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         // blocks of the word in order are also the blocks the learner gets;
         // a spelling exercise has no distractors.
         return [
-          _field(
-            _prompt,
-            'Instruction',
-            lines: 2,
-            helper: 'Example: Build the word shown in the image.',
-          ),
+          _instructionField(),
           _field(
             _order,
             'Blocks of the word, in order',
@@ -10340,12 +10554,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         ];
       case 'word_match':
         return [
-          _field(
-            _prompt,
-            'Instruction',
-            lines: 2,
-            helper: 'Source → target translation match.',
-          ),
+          _instructionField(),
           _field(
             _pairs,
             'Translation pairs',
@@ -10356,13 +10565,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         ];
       case 'super_match':
         return [
-          _field(
-            _prompt,
-            'Match type / instruction',
-            lines: 2,
-            helper:
-                'Everything must be in the target language. Examples: Match the synonyms; Match the opposites.',
-          ),
+          _instructionField(),
           _field(
             _pairs,
             'Three target-language pairs',
@@ -10372,7 +10575,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         ];
       case 'audio_match':
         return [
-          _field(_prompt, 'Instruction', lines: 2),
+          _instructionField(),
           _field(
             _pairs,
             'Three sound matches',
@@ -10383,7 +10586,12 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         ];
       case 'icon_choice':
         return [
-          _field(_question, 'Question', lines: 2),
+          _field(
+            _question,
+            'Question or sentence',
+            lines: 2,
+            helper: 'It names what the learner looks for, e.g. Select ‘gatto’.',
+          ),
           _field(_answers, 'Target-language options', lines: 4),
           _field(_correct, 'Correct answer number'),
           _answerPictures(),
@@ -10395,8 +10603,14 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
                 'One per answer, in the same order. Left empty, the answers are plain text and the exercise plays as Choose the answer.',
           ),
         ];
+      case 'listening_choose_target':
+      case 'listening_choose_source':
       case 'listening_choice':
       case 'listening_comprehension':
+        // Listen and choose has no question, only an optional Instruction or
+        // context; Listen and answer's question is required (Build 259
+        // Revision 2).
+        final listeningChoose = _type.startsWith('listening_choose');
         return [
           _field(
             _tts,
@@ -10414,13 +10628,16 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
             'MP3: open Course Editor > Audio Library. Copy MP3 files to ${QqlStorageLayout.current.folderLabel(QqlStorageRole.audioImports)}, press Import MP3, then Associate recording with its Word or expression. Choose Recorded MP3 only or Hybrid. This exercise uses those text mappings.',
           ),
           const SizedBox(height: 12),
-          _field(
-            _question,
-            'Question (optional)',
-            lines: 2,
-            helper:
-                'Leave it empty to ask what was heard; with a question the learner answers it about the passage.',
-          ),
+          if (listeningChoose)
+            _instructionField()
+          else
+            _field(
+              _question,
+              'Question',
+              lines: 2,
+              helper:
+                  'What the learner answers about what they hear, e.g. Dove fa la spesa Maria? To ask only what was heard, use Listen and choose.',
+            ),
           _field(_answers, 'Answers', lines: 4),
           _field(_correct, 'Correct answer number'),
         ];
@@ -10468,14 +10685,16 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         ];
       case 'listening_spelling':
         return [
-          _field(_prompt, 'Passage transcript', lines: 5),
+          _instructionField(),
           _field(_tts, 'Audio text', lines: 5),
+          // The Audio text is always accepted (Build 259 Revision 3): this
+          // box holds only other ways to write it.
           _field(
             _missingWords,
-            'Missing word',
+            'Other accepted spellings (optional)',
             lines: 2,
             helper:
-                'The learner types this word from the keyboard. Return/Enter submits the answer.',
+                'The Audio text is always accepted. Add a line only for another way to write the same thing, e.g. alle 9 for alle nove.',
           ),
         ];
       case 'missing_word':
@@ -10508,7 +10727,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         return [
           _field(
             _question,
-            'Text to translate',
+            'Sentence',
             lines: 2,
             helper: toTarget
                 ? 'One word, phrase or sentence in the course source '
@@ -10547,7 +10766,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         return [
           _field(
             _question,
-            'Statement',
+            'Sentence',
             lines: 2,
             helper: 'A sentence in the target language that is true or false.',
           ),
@@ -10571,57 +10790,42 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
             helper: '1 when the statement is true, 2 when it is false.',
           ),
         ];
-      case 'gap_choice_inline':
-        return [
-          _field(_prompt, 'Instruction (optional)', lines: 2),
-          _field(
-            _gapLayout,
-            'Sentence with gaps',
-            lines: 3,
-            helper:
-                'Write the sentence and put each answer word or phrase '
-                'directly inside braces: {answer}. Example: I {am} going '
-                '{to} London. Literal { or } characters can\'t appear '
-                'anywhere else.',
-          ),
-          _field(
-            _tokens,
-            'Distractor options (optional)',
-            lines: 3,
-            helper:
-                'One extra option per line that is not the answer to any gap. Include 0, 1 or at most 2 distractors.',
-          ),
-          _field(
-            _tts,
-            'Spoken prompt (optional)',
-            lines: 2,
-            helper: 'Optional audio played before the learner fills the gaps.',
-          ),
-        ];
       case 'complete_text':
+        // Build 259 Revision 1: an Instruction or context (the form's
+        // question value) and a hint.
         return [
+          _instructionField(controller: _question),
+          // Build 259 Revision 3: ___ marks each gap; a line may accept
+          // several answers.
           _field(
             _prompt,
-            'Text with the words to hide',
+            'Text, with ___ for each gap',
             lines: 5,
             helper:
-                'Write the complete text; the words listed below become gaps.',
+                'Write ___ (three underscores) where each missing word or phrase goes.',
           ),
           _field(
             _missingWords,
             'Missing words',
             lines: 4,
-            helper: 'One per line, in order; each must occur in the text.',
+            helper:
+                'One line per gap, in order. [il|un] gatto accepts both il gatto and un gatto.',
+          ),
+          _field(
+            _hint,
+            'Hint (optional)',
+            helper:
+                'A clue shown under the text; it must not give the words away.',
           ),
         ];
       case 'missing_letters':
         return [
           _field(
             _prompt,
-            'Text with the missing letters in brackets',
+            'Text with the missing letters between underscores',
             lines: 4,
             helper:
-                'Write the complete text and put the missing letters inside square brackets: My cat doesn\'t dr[ink] milk. The learner sees dr___ milk and types ink.',
+                'Write the complete text and put the missing letters between underscores: My cat doesn\'t dr_ink_ milk. The learner sees dr___ milk and types ink.',
           ),
           _field(
             _tts,
@@ -10633,20 +10837,20 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         ];
       case 'gap_blocks':
         return [
-          _field(_prompt, 'Instruction (optional)', lines: 2),
+          _instructionField(),
           _field(
             _gapLayout,
             'Sentence with gaps',
             lines: 3,
             helper:
-                'Write the fixed sentence and put each answer word or phrase directly inside braces: {answer}. Literal { or } characters can\'t appear anywhere else. Example: Io {vorrei} un caffè.',
+                'Write the fixed sentence and put each answer word or phrase between underscores: _answer_. Each word fills one gap. Example: Io _vorrei_ un caffè.',
           ),
           _field(
             _tokens,
-            'Extra distractor blocks (optional)',
+            'Extra distractor words (optional)',
             lines: 3,
             helper:
-                'One extra block per line that is not used to fill any gap. Include 0, 1 or at most 2 distractors.',
+                'One extra word per line that fills no gap. Include 0, 1 or at most 2 distractors.',
           ),
           _field(
             _tts,
@@ -10656,25 +10860,27 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
           ),
         ];
       case 'sentence_order':
+        // Build 259 Revision 1: the lines are entered once, in order.
         return [
-          _field(
-            _prompt,
-            'Instruction',
-            lines: 2,
-            helper: 'Example: Put the lines of the dialogue in order.',
-          ),
-          _field(
-            _tokens,
-            'Sentences or lines',
-            lines: 6,
-            helper:
-                'One sentence per line, in any order. You may add 0, 1 or at most 2 extra distractor lines.',
-          ),
+          _instructionField(),
           _field(
             _order,
-            'Correct order',
+            'Lines, in the correct order',
             lines: 6,
-            helper: 'The lines in the right order, one per line.',
+            helper:
+                'One line per line, in the order the learner must find. They are shuffled for the learner.',
+          ),
+          _field(
+            _extraWords,
+            'Extra lines (optional)',
+            lines: 2,
+            helper: 'Lines that belong nowhere: 0, 1 or at most 2.',
+          ),
+          _field(
+            _hint,
+            'Hint (optional)',
+            helper:
+                'A clue shown above the lines; it must not give the order away.',
           ),
         ];
       case 'listening_image_choice':
@@ -10685,7 +10891,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
             lines: 2,
             helper: 'The word or sentence the learner hears.',
           ),
-          _field(_question, 'Question (optional)', lines: 2),
+          _instructionField(),
           _field(
             _answers,
             'Answers',
@@ -10712,25 +10918,13 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         ];
       case 'picture_choice':
         return [
-          _field(
-            _question,
-            'Question',
-            lines: 2,
-            helper:
-                'Example: What is this? Choose the picture below, in Image.',
-          ),
+          _instructionField(),
           _field(_answers, 'Answers', lines: 4),
           _field(_correct, 'Correct answer number'),
         ];
       case 'picture_name':
         return [
-          _field(
-            _question,
-            'Question / instruction',
-            lines: 2,
-            helper:
-                'Example: What is this? Choose the picture below, in Image.',
-          ),
+          _instructionField(),
           _field(
             _accepted,
             'Accepted answers',
@@ -10746,12 +10940,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         // Name what you see (Revision 7 fourth follow-up): the picture is
         // the Exercise image below; the name is built from word blocks.
         return [
-          _field(
-            _question,
-            'Question (optional)',
-            lines: 2,
-            helper: 'Example: What is this?',
-          ),
+          _instructionField(),
           _field(
             _order,
             'Blocks of the name, in order',
@@ -10772,9 +10961,10 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         return [
           _field(
             _prompt,
-            'Clue',
+            'Clue (source language)',
             lines: 2,
-            helper: 'The word or a definition in the source language.',
+            helper:
+                'The word or a definition in the source language, e.g. cat (the animal).',
           ),
           _field(
             _order,
@@ -10786,12 +10976,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         ];
       case 'picture_word_match':
         return [
-          _field(
-            _prompt,
-            'Instruction',
-            lines: 2,
-            helper: 'Example: Match each picture with its word.',
-          ),
+          _instructionField(),
           _field(
             _answers,
             'Words',
@@ -10803,12 +10988,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         ];
       case 'sort_into_groups':
         return [
-          _field(
-            _question,
-            'Question',
-            lines: 2,
-            helper: 'Example: Sort the words: animals or plants?',
-          ),
+          _instructionField(),
           _field(
             _groups,
             'Groups',
@@ -10819,12 +10999,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         ];
       case 'fill_the_slots':
         return [
-          _field(
-            _question,
-            'Question',
-            lines: 2,
-            helper: 'Example: Which article goes with each noun?',
-          ),
+          _instructionField(),
           _field(
             _slots,
             'Slots',
@@ -11002,19 +11177,13 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         ];
       case 'choice':
         return [
-          _field(
-            _prompt,
-            'Prompt (optional)',
-            lines: 2,
-            helper:
-                'An optional line above the question: an instruction or some context, e.g. Pick the verb form that fits. It takes the place of the standard “Choose the correct answer.” line.',
-          ),
+          _instructionField(),
           _field(
             _question,
-            'Question or sentence to complete',
+            'Question or sentence',
             lines: 2,
             helper:
-                'What the learner answers: a question, or a sentence with a gap the answers complete, e.g. Which article goes with casa?',
+                'What the learner answers: a question, or a sentence with ___ where the answer fits, e.g. Which article goes with casa?',
           ),
           _field(_answers, 'Answers', lines: 4),
           SwitchListTile(
@@ -11054,19 +11223,13 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         ];
       default:
         return [
-          _field(
-            _prompt,
-            'Prompt (optional)',
-            lines: 2,
-            helper:
-                'An optional line above the question: an instruction or some context, e.g. Pick the verb form that fits. It takes the place of the standard “Choose the correct answer.” line.',
-          ),
+          _instructionField(),
           _field(
             _question,
-            'Question or sentence to complete',
+            'Question or sentence',
             lines: 2,
             helper:
-                'What the learner answers: a question, or a sentence with a gap the answers complete, e.g. Which article goes with casa?',
+                'What the learner answers: a question, or a sentence with ___ where the answer fits, e.g. Which article goes with casa?',
           ),
           _field(_answers, 'Answers', lines: 4),
           _field(_correct, 'Correct answer number'),
@@ -11379,14 +11542,14 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
       ExerciseDraftErrorCode.correctAnswerNumber =>
         'Correct answer number: enter the number of an existing answer, starting at 1.',
       ExerciseDraftErrorCode.arrangeGapBraces =>
-        'Sentence with gaps: every { must have a matching } directly '
-            'around one answer word or phrase, e.g. {go}. Literal { or } '
-            "characters can't be used elsewhere in the sentence.",
+        'Sentence with gaps: put each answer word or phrase between two '
+            'underscores, e.g. _go_. A lone _ can\'t be used elsewhere in '
+            'the sentence.',
       ExerciseDraftErrorCode.arrangeGapMissing =>
-        'Sentence with gaps: add at least one gap, e.g. {go}.',
+        'Sentence with gaps: add at least one gap, e.g. _go_.',
       ExerciseDraftErrorCode.arrangeGapEmpty =>
-        'Sentence with gaps: each {…} gap must contain the answer '
-            'text, e.g. {go}, not an empty {}.',
+        'Sentence with gaps: each _…_ gap must contain the answer '
+            'text, e.g. _go_.',
       ExerciseDraftErrorCode.arrangeGapConflict =>
         'Sentence with gaps: could not resolve every gap answer to a '
             'block. Check the extra distractor blocks for a conflict.',
@@ -11402,14 +11565,14 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         'Required selections: enter a number between 1 and the number '
             'of answers, or leave blank.',
       ExerciseDraftErrorCode.selectGapBraces =>
-        'Sentence with gaps: every { must have a matching } directly '
-            'around one answer option, e.g. {answer}. Literal { or } '
-            "characters can't be used elsewhere in the sentence.",
+        'Sentence with gaps: put each answer between two underscores, '
+            'e.g. _answer_. A lone _ can\'t be used elsewhere in the '
+            'sentence.',
       ExerciseDraftErrorCode.selectGapMissing =>
-        'Sentence with gaps: add at least one gap, e.g. {answer}.',
+        'Sentence with gaps: add at least one gap, e.g. _answer_.',
       ExerciseDraftErrorCode.selectGapEmpty =>
-        'Sentence with gaps: each {…} gap must contain the answer '
-            'text, e.g. {answer}, not an empty {}.',
+        'Sentence with gaps: each _…_ gap must contain the answer '
+            'text, e.g. _answer_.',
       ExerciseDraftErrorCode.scriptCandidateMissing =>
         'Recognize characters: reopen this Exercise to restore its options.',
       ExerciseDraftErrorCode.groupLine =>
@@ -11427,6 +11590,21 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         'Slots: enter at least one slot with its word.',
       ExerciseDraftErrorCode.nameBlocksRequired =>
         'Blocks of the name: enter the name, one word per line.',
+      ExerciseDraftErrorCode.textRequired =>
+        '${error.detail}: required. Enter it, or save as draft.',
+      ExerciseDraftErrorCode.linesRequired =>
+        'Lines, in the correct order: enter at least two lines.',
+      ExerciseDraftErrorCode.pictureRequired =>
+        'Picture: required. Choose one, or save as draft.',
+      ExerciseDraftErrorCode.gapsRequired =>
+        'Text: mark each gap with ___ (three underscores).',
+      ExerciseDraftErrorCode.wordsTooFew =>
+        'Words: enter at least two words, one per line.',
+      ExerciseDraftErrorCode.blanksTooFew =>
+        'Sentences: mark at least two gaps with ___ (three underscores). '
+            'For one gap, use Pick the missing word.',
+      ExerciseDraftErrorCode.gapCountMismatch =>
+        '${error.detail}: give one line per ___ gap, in order.',
       ExerciseDraftErrorCode.slotWordRepeated =>
         'Slots: “${error.detail}” is listed more than once. Turn on “A '
             'word may fill more than one slot” when one word answers '
@@ -12067,9 +12245,12 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
             const SizedBox(height: 12),
             ..._specificFields(),
             const SizedBox(height: 12),
+            // Match pictures to words has only the pictures of its words
+            // (Build 259 Revision 5).
             if (_type != 'script_recognition' &&
                 _type != 'before_you_start' &&
-                _type != 'page')
+                _type != 'page' &&
+                _type != 'picture_word_match')
               ExerciseImageField(
                 course: widget.course,
                 asset: _imageAsset,

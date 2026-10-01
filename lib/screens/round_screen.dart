@@ -18,6 +18,8 @@ import '../widgets/beta_expired_view.dart';
 import '../models/course_models.dart';
 import '../models/exercise_features.dart';
 import '../services/progress_service.dart';
+import '../services/exercise_difficulty.dart';
+import '../services/learner_panel_text.dart';
 import '../services/learning_completion_service.dart';
 import '../services/report_service.dart';
 import '../services/tts_cache_service.dart';
@@ -143,7 +145,7 @@ class _RoundScreenState extends State<RoundScreen> {
       : widget.viewOnlyMode
       ? 'VIEW ONLY · $_roundTitle'
       : widget.reviewMode
-      ? 'Review · $_roundTitle'
+      ? _t('reviewOfRound', {'round': _roundTitle})
       : _roundTitle;
   int get _lessonIndex => widget.course.lessons.indexWhere(
     (lesson) => lesson.lessonId == widget.lesson.lessonId,
@@ -153,8 +155,8 @@ class _RoundScreenState extends State<RoundScreen> {
         ? widget.round.displayTitle(widget.roundIndex)
         : widget.round.title.trim();
     return '${widget.course.title} · ${widget.course.targetLanguage} · '
-        'Lesson ${_lessonIndex + 1}: ${widget.lesson.title} · '
-        'Round ${widget.roundIndex + 1}'
+        '${_t('review.lesson', {'n': _lessonIndex + 1, 'title': widget.lesson.title})} · '
+        '${_t('review.round', {'n': widget.roundIndex + 1})}'
         '${roundTitle.isEmpty ? '' : ': $roundTitle'}';
   }
 
@@ -192,6 +194,10 @@ class _RoundScreenState extends State<RoundScreen> {
   final Set<int> _wrongFirstPass = {};
   int _position = 0;
   int _firstPassCorrect = 0;
+
+  /// The sum of the difficulty levels of the exercises answered correctly at
+  /// the first attempt: the Difficulty bonus (Build 260 Revision 6).
+  int _firstPassDifficulty = 0;
   int _evaluableExerciseCount = 0;
   int _errorsThisAttempt = 0;
   bool _reviewPhase = false;
@@ -207,6 +213,14 @@ class _RoundScreenState extends State<RoundScreen> {
       : widget.round.isStory
       ? 'Story'
       : 'Sequence';
+
+  /// The same, as the suffix of the learner panel keys (Build 260 Revision
+  /// 1): `round`, `story` or `sequence`.
+  String get _nounKey => _roundNoun.toLowerCase();
+
+  /// The learner panel text of [key] in the Course's instruction language.
+  String _t(String key, [Map<String, Object> values = const {}]) =>
+      LearnerPanelText.of(widget.course, key, values);
   late ExerciseFeatures _features;
   bool _answered = false;
   bool _lastAnswerCorrect = false;
@@ -229,6 +243,11 @@ class _RoundScreenState extends State<RoundScreen> {
   bool _storyScrolls = false;
   final List<_StoryEntry> _storyLog = [];
   final ScrollController _storyScroll = ScrollController();
+
+  /// The exercise page's scroll (Build 259 Revision 3): after an answer the
+  /// page scrolls down to the feedback panel and its Continue or Finish
+  /// button, which a tall exercise (Sort into groups) left below the screen.
+  final ScrollController _pageScroll = ScrollController();
   final GlobalKey _storyNowKey = GlobalKey();
   final List<TextEditingController> _missingWordControllers = [];
   final Map<String, String> _matchingSelections = {};
@@ -604,6 +623,7 @@ class _RoundScreenState extends State<RoundScreen> {
     }
     _textController.dispose();
     _storyScroll.dispose();
+    _pageScroll.dispose();
     _textFocusNode.dispose();
     for (final c in _missingWordControllers) {
       c.dispose();
@@ -728,7 +748,7 @@ class _RoundScreenState extends State<RoundScreen> {
         _matchingLeftPairs.add(
           _MatchPairView(
             leftId: left.id,
-            leftLabel: left.value,
+            leftLabel: left.label,
             leftImage: left.image,
             rightId: right.id,
           ),
@@ -998,6 +1018,32 @@ class _RoundScreenState extends State<RoundScreen> {
       : _ttsCache.lastFailureDescription ??
             'Audio unavailable. Enable Text-to-speech in Settings and check the system voice for this course language. On Linux, install eSpeak NG or eSpeak.';
 
+  /// The first answer an answer expression accepts, else the expression.
+  /// The expansion capitalizes a sentence start; a gap keeps the author's
+  /// small first letter.
+  String _firstVariant(String expression) {
+    String variant;
+    try {
+      variant =
+          _answerEngine.validAnswers([expression]).firstOrNull ?? expression;
+    } on AnswerExpressionException {
+      return expression;
+    }
+    final letter = RegExp(r'\p{L}', unicode: true);
+    final authored = letter.firstMatch(expression)?.group(0);
+    final first = letter.firstMatch(variant);
+    if (authored == null ||
+        first == null ||
+        authored != authored.toLowerCase()) {
+      return variant;
+    }
+    return variant.replaceRange(
+      first.start,
+      first.end,
+      first.group(0)!.toLowerCase(),
+    );
+  }
+
   String _correctAnswerText(Exercise ex) {
     final f = _features;
     switch (ex.primitive) {
@@ -1008,14 +1054,17 @@ class _RoundScreenState extends State<RoundScreen> {
           ex,
           ex.canonicalEvaluation.correctItemIds.firstOrNull,
         );
-        return value.isEmpty ? 'See the course answer.' : value;
+        return value.isEmpty ? _t('seeCourseAnswer') : value;
       case ExercisePrimitive.presentation:
-        return 'Review the flashcard.';
+        return _t('reviewTheFlashcard');
       case ExercisePrimitive.input:
         if (f.gapFieldTargets.isNotEmpty) {
+          // The first answer each gap accepts, written out: a gap answer
+          // may use the answer syntax, such as [il|un] gatto (Build 259
+          // Revision 3).
           final words = [
             for (final target in f.gapFieldTargets)
-              ...?f.answersFor(target.id)?.answers.take(1),
+              ...?f.answersFor(target.id)?.answers.take(1).map(_firstVariant),
           ];
           if (words.isNotEmpty) return words.join(' / ');
           break;
@@ -1060,14 +1109,14 @@ class _RoundScreenState extends State<RoundScreen> {
       case ExercisePrimitive.submit:
         break;
     }
-    return 'See the course answer.';
+    return _t('seeCourseAnswer');
   }
 
   String _itemValue(Exercise ex, String? itemId) {
     if (itemId == null) return '';
     return ex.items
             .where((item) => item.id == itemId)
-            .map((item) => item.value)
+            .map((item) => item.label)
             .firstOrNull ??
         '';
   }
@@ -1087,7 +1136,7 @@ class _RoundScreenState extends State<RoundScreen> {
 
   String _gapAnswerText(Exercise ex) {
     final assignments = _features.targetAssignments;
-    if (assignments.isEmpty) return 'See the course answer.';
+    if (assignments.isEmpty) return _t('seeCourseAnswer');
     return assignments.entries
         .map((entry) => _itemValue(ex, entry.value))
         .where((value) => value.isNotEmpty)
@@ -1101,7 +1150,7 @@ class _RoundScreenState extends State<RoundScreen> {
         .map((item) => item.value)
         .where((value) => value.isNotEmpty)
         .toList();
-    return values.isEmpty ? 'See the course answer.' : values.join(' / ');
+    return values.isEmpty ? _t('seeCourseAnswer') : values.join(' / ');
   }
 
   String _answerState() {
@@ -1201,14 +1250,39 @@ class _RoundScreenState extends State<RoundScreen> {
     setState(() {
       _answered = true;
       _lastAnswerCorrect = correct;
-      _feedback = correct ? 'Correct' : 'Incorrect';
+      _feedback = correct ? _t('correct') : _t('incorrect');
       if (!correct) _errorsThisAttempt++;
       if (!_reviewPhase) {
         if (correct) {
           _firstPassCorrect++;
+          _firstPassDifficulty += ExerciseDifficulty.of(_exercise)?.value ?? 0;
         } else {
           _wrongFirstPass.add(_exerciseIndex);
         }
+      }
+    });
+    _revealFeedback();
+  }
+
+  /// Scrolls the page down to the feedback panel, the last thing on it,
+  /// once it is drawn (Build 259 Revision 3). A scrolling Story keeps its
+  /// own scroll.
+  void _revealFeedback() {
+    if (_storyScrolls) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted || !_pageScroll.hasClients) return;
+      final position = _pageScroll.position;
+      if (position.pixels >= position.maxScrollExtent) return;
+      await _pageScroll.animateTo(
+        position.maxScrollExtent,
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOut,
+      );
+      // The list builds lazily: its end may have grown on the way down.
+      if (mounted &&
+          _pageScroll.hasClients &&
+          _pageScroll.position.pixels < _pageScroll.position.maxScrollExtent) {
+        _pageScroll.jumpTo(_pageScroll.position.maxScrollExtent);
       }
     });
   }
@@ -1219,12 +1293,13 @@ class _RoundScreenState extends State<RoundScreen> {
       _answered = true;
       _lastAnswerCorrect = true; // Flashcards have no correct/incorrect answer.
       if (reviewAgain) {
-        _feedback = 'This card will be shown again later in this round.';
+        _feedback = _t('cardAgainLater');
         _queue.add(_exerciseIndex);
       } else {
-        _feedback = 'Card reviewed.';
+        _feedback = _t('cardReviewed');
       }
     });
+    _revealFeedback();
   }
 
   void _answerChoice(int displayedIndex) {
@@ -1352,9 +1427,9 @@ class _RoundScreenState extends State<RoundScreen> {
 
   String _assignTargetFallbackLabel(ExerciseFeatures f, int index) =>
       switch (f.assignTargetMode) {
-        AssignTargetMode.slots => 'Slot ${index + 1}',
-        AssignTargetMode.gaps => 'Gap ${index + 1}',
-        _ => 'Group ${index + 1}',
+        AssignTargetMode.slots => _t('slotNumber', {'n': index + 1}),
+        AssignTargetMode.gaps => _t('gapNumber', {'n': index + 1}),
+        _ => _t('groupNumber', {'n': index + 1}),
       };
 
   void _logStoryItem() {
@@ -1462,8 +1537,16 @@ class _RoundScreenState extends State<RoundScreen> {
   }
 
   /// The marker above the active item of a scrolling Story.
-  Widget _storyNowMarker() => Padding(
-    key: _storyNowKey,
+  /// The step count, once, above the title block; after the first step
+  /// only an invisible anchor marks the active item, which the page scrolls
+  /// to the top (Build 259 Revision 5, owner decision: no "Now · step k of
+  /// N" line).
+  Widget _storyNowMarker() => _storyLog.isEmpty
+      ? _storyStepsLine(key: _storyNowKey)
+      : SizedBox(key: _storyNowKey, width: double.infinity);
+
+  Widget _storyStepsLine({Key? key}) => Padding(
+    key: key,
     padding: const EdgeInsets.only(bottom: 10),
     child: Row(
       children: [
@@ -1474,9 +1557,7 @@ class _RoundScreenState extends State<RoundScreen> {
         ),
         const SizedBox(width: 4),
         Text(
-          _storyLog.isEmpty
-              ? '$_roundNoun · ${_queue.length} steps'
-              : 'Now · step ${_storyLog.length + 1} of ${_queue.length}',
+          _t('steps.$_nounKey', {'n': _queue.length}),
           key: const Key('story-now'),
           style: Theme.of(context).textTheme.labelLarge?.copyWith(
             color: Theme.of(context).colorScheme.primary,
@@ -1598,12 +1679,12 @@ class _RoundScreenState extends State<RoundScreen> {
         context: context,
         barrierDismissible: false,
         builder: (dialogContext) => AlertDialog(
-          title: const Text('Review your mistakes'),
-          content: const Text("Let's try again the exercises you got wrong."),
+          title: Text(_t('reviewMistakesTitle')),
+          content: Text(_t('reviewMistakesBody')),
           actions: [
             FilledButton(
               onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('Continue'),
+              child: Text(_t('continue')),
             ),
           ],
         ),
@@ -1677,6 +1758,7 @@ class _RoundScreenState extends State<RoundScreen> {
             evaluableExerciseCount: _evaluableExerciseCount,
             wasCompletedAtStart: _wasCompleted,
             ttsWasSkipped: _ttsWasSkipped,
+            firstPassDifficulty: _firstPassDifficulty,
           ),
         ),
         onNewLaurel: () async {
@@ -1692,7 +1774,7 @@ class _RoundScreenState extends State<RoundScreen> {
         context: context,
         barrierDismissible: false,
         builder: (ctx) => AlertDialog(
-          title: Text('$_roundNoun completed'),
+          title: Text(_t('completed.$_nounKey')),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1702,43 +1784,60 @@ class _RoundScreenState extends State<RoundScreen> {
             children: completion.evaluableExerciseCount == 0
                 ? [
                     Text(
-                      'Nothing to score in this $_roundNoun.',
+                      _t('nothingToScore.$_nounKey'),
                       key: const Key('round-completed-unscored'),
                     ),
                     if (completion.lessonCompletionXp > 0) ...[
                       Text(
-                        'Lesson completed: +${completion.lessonCompletionXp} XP',
+                        _t('summary.lessonCompleted', {
+                          'xp': completion.lessonCompletionXp,
+                        }),
                       ),
-                      Text('Total: ${completion.awardedXp} XP'),
+                      Text(_t('summary.total', {'xp': completion.awardedXp})),
                     ],
                     if (_versionSkipped > 0) _versionSkippedLine(),
                   ]
                 : [
                     Text(
-                      'Correct answers: ${completion.firstPassCorrect}/'
-                      '${completion.evaluableExerciseCount} — '
-                      '${completion.roundXp.correctAnswerXp} XP',
+                      _t('summary.correctAnswers', {
+                        'correct': completion.firstPassCorrect,
+                        'total': completion.evaluableExerciseCount,
+                        'xp': completion.roundXp.correctAnswerXp,
+                      }),
                     ),
+                    if (completion.roundXp.difficultyBonusXp > 0)
+                      Text(
+                        _t('summary.difficultyBonus', {
+                          'xp': completion.roundXp.difficultyBonusXp,
+                        }),
+                        key: const Key('round-completed-difficulty-bonus'),
+                      ),
                     if (completion.roundXp.perfectBonusXp > 0)
                       Text(
-                        'Perfect bonus: +${completion.roundXp.perfectBonusXp} XP',
+                        _t('summary.perfectBonus', {
+                          'xp': completion.roundXp.perfectBonusXp,
+                        }),
                       ),
                     if (completion.roundXp.laurelBonusXp > 0)
                       Text(
-                        'First Laurel: +${completion.roundXp.laurelBonusXp} XP',
+                        _t('summary.firstLaurel', {
+                          'xp': completion.roundXp.laurelBonusXp,
+                        }),
                       ),
                     if (completion.lessonCompletionXp > 0)
                       Text(
-                        'Lesson completed: +${completion.lessonCompletionXp} XP',
+                        _t('summary.lessonCompleted', {
+                          'xp': completion.lessonCompletionXp,
+                        }),
                       ),
-                    Text('Total: ${completion.awardedXp} XP'),
+                    Text(_t('summary.total', {'xp': completion.awardedXp})),
                     if (_versionSkipped > 0) _versionSkippedLine(),
                   ],
           ),
           actions: [
             FilledButton(
               onPressed: () => Navigator.pop(ctx),
-              child: const Text('Continue'),
+              child: Text(_t('continue')),
             ),
           ],
         ),
@@ -1753,14 +1852,14 @@ class _RoundScreenState extends State<RoundScreen> {
         await showDialog<void>(
           context: context,
           builder: (ctx) => AlertDialog(
-            title: const Text('Weekly goal reached!'),
+            title: Text(_t('weeklyGoalReached')),
             content: Text(
               '${completion.weeklyXpAfter} / ${completion.weeklyXpTarget} XP',
             ),
             actions: [
               FilledButton(
                 onPressed: () => Navigator.pop(ctx),
-                child: const Text('Continue'),
+                child: Text(_t('continue')),
               ),
             ],
           ),
@@ -1797,7 +1896,7 @@ class _RoundScreenState extends State<RoundScreen> {
   /// the exercise) when the learner turned audio or TTS off.
   Widget _translationAudioButton(String text) => IconButton.filledTonal(
     key: const Key('translation-choice-audio'),
-    tooltip: _optionalAudioEnabled ? 'Play audio' : 'Audio unavailable',
+    tooltip: _optionalAudioEnabled ? _t('playAudio') : _t('audioUnavailable'),
     onPressed: _optionalAudioEnabled ? () => _speakText(text) : null,
     icon: const Icon(Icons.volume_up_outlined),
   );
@@ -1805,7 +1904,7 @@ class _RoundScreenState extends State<RoundScreen> {
   Widget _translationAudioUnavailableNote() => Padding(
     padding: const EdgeInsets.only(bottom: 12),
     child: Text(
-      'Audio is turned off or unavailable. The exercise still works.',
+      _t('audioOffNote'),
       key: const Key('translation-choice-audio-note'),
       style: Theme.of(context).textTheme.bodySmall,
     ),
@@ -1825,7 +1924,7 @@ class _RoundScreenState extends State<RoundScreen> {
       const SizedBox(height: 8),
       Row(
         children: [
-          const Expanded(child: Text('Listen to the answer')),
+          Expanded(child: Text(_t('listenToAnswer'))),
           _translationAudioButton(spoken),
         ],
       ),
@@ -1892,7 +1991,7 @@ class _RoundScreenState extends State<RoundScreen> {
             child: _besideCentered(
               ExerciseMascotAnchor.playButton,
               IconButton.filledTonal(
-                tooltip: 'Play audio again',
+                tooltip: _t('playAudioAgain'),
                 iconSize: 34,
                 onPressed: _speak,
                 icon: const Icon(Icons.volume_up_outlined),
@@ -1915,16 +2014,18 @@ class _RoundScreenState extends State<RoundScreen> {
           _withMascot(
             ExerciseMascotAnchor.question,
             Text(
-              f.questionText,
+              _questionShown(f),
+              key: const Key('select-question-text'),
               style: Theme.of(context).textTheme.headlineSmall,
             ),
           ),
           const SizedBox(height: 16),
         ],
-        if (f.kind == LearnerExerciseKind.selectComplete &&
+        if ((f.kind == LearnerExerciseKind.selectComplete ||
+                f.kind == LearnerExerciseKind.selectCompleteAll) &&
             ex.hint.trim().isNotEmpty) ...[
           Text(
-            'Hint: ${ex.hint}',
+            _t('hint', {'hint': ex.hint}),
             key: const Key('gap-choice-hint'),
             style: Theme.of(context).textTheme.bodyLarge,
           ),
@@ -1933,6 +2034,22 @@ class _RoundScreenState extends State<RoundScreen> {
         _choiceExercise(ex),
       ],
     );
+  }
+
+  /// The question as drawn: once One word fills all is answered, the chosen
+  /// word appears in every gap (Build 259 Revision 4).
+  String _questionShown(ExerciseFeatures f) {
+    final selected = _selected;
+    if (f.kind != LearnerExerciseKind.selectCompleteAll ||
+        !_answered ||
+        selected == null ||
+        selected < 0 ||
+        selected >= _choiceOptions.length) {
+      return f.questionText;
+    }
+    final word =
+        _choiceOptions[selected].item?.label ?? _choiceOptions[selected].text;
+    return f.questionText.replaceAll(RegExp(r'_{3,}'), word);
   }
 
   Widget _choiceExercise(Exercise ex) {
@@ -2000,7 +2117,7 @@ class _RoundScreenState extends State<RoundScreen> {
               _answered || _multiSelected.length < _features.minimumSelections
               ? null
               : () => _submitMultiChoice(ex),
-          child: const Text('Check'),
+          child: Text(_t('check')),
         ),
       ],
     );
@@ -2098,7 +2215,7 @@ class _RoundScreenState extends State<RoundScreen> {
             child: FilledButton.tonalIcon(
               onPressed: () => _speakText(audio),
               icon: const Icon(Icons.volume_up_outlined),
-              label: const Text('Play audio'),
+              label: Text(_t('playAudio')),
             ),
           ),
           const SizedBox(height: 14),
@@ -2153,7 +2270,7 @@ class _RoundScreenState extends State<RoundScreen> {
           onPressed: _answered || !allGapsFilled
               ? null
               : () => _submitSelectGaps(ex),
-          child: const Text('Check'),
+          child: Text(_t('check')),
         ),
       ],
     );
@@ -2164,12 +2281,13 @@ class _RoundScreenState extends State<RoundScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (f.kind == LearnerExerciseKind.inputTranslation) ...[
-          Text(
-            'Translate from ${widget.course.sourceLanguage} into ${widget.course.targetLanguage}:',
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-        ] else if (f.revealTarget != null)
+        // Type the translation names the language of the answer in its
+        // instruction line (Build 259 Revision 7): the fixed "Translate from
+        // <source> into <target>:" line here was wrong for a "to source"
+        // exercise.
+        if (f.kind == LearnerExerciseKind.inputTranslation)
+          ...const <Widget>[]
+        else if (f.revealTarget != null)
           _withMascot(
             ExerciseMascotAnchor.question,
             Text(
@@ -2186,7 +2304,9 @@ class _RoundScreenState extends State<RoundScreen> {
               style: Theme.of(context).textTheme.headlineSmall,
             ),
           )
-        else
+        // Type what you see asks with its instruction line and has no
+        // question of its own (Build 259).
+        else if (f.questionText.isNotEmpty)
           _withMascot(
             ExerciseMascotAnchor.question,
             Text(
@@ -2203,7 +2323,7 @@ class _RoundScreenState extends State<RoundScreen> {
               borderRadius: BorderRadius.circular(14),
             ),
             child: Text(
-              'Hint: ${ex.hint}',
+              _t('hint', {'hint': ex.hint}),
               style: Theme.of(context).textTheme.bodyLarge,
             ),
           ),
@@ -2215,9 +2335,9 @@ class _RoundScreenState extends State<RoundScreen> {
           autofocus: true,
           onChanged: (_) => setState(() {}),
           onSubmitted: (_) => _submitFill(),
-          decoration: const InputDecoration(
-            border: OutlineInputBorder(),
-            labelText: 'Your answer',
+          decoration: InputDecoration(
+            border: const OutlineInputBorder(),
+            labelText: _t('yourAnswer'),
           ),
         ),
         const SizedBox(height: 12),
@@ -2225,7 +2345,7 @@ class _RoundScreenState extends State<RoundScreen> {
           onPressed: _answered || _textController.text.trim().isEmpty
               ? null
               : _submitFill,
-          child: const Text('Check'),
+          child: Text(_t('check')),
         ),
       ],
     );
@@ -2244,7 +2364,7 @@ class _RoundScreenState extends State<RoundScreen> {
                 ? null
                 : () => _speakText(audio),
             icon: const Icon(Icons.volume_up_outlined),
-            label: const Text('Play audio'),
+            label: Text(_t('playAudio')),
           ),
         ),
         const SizedBox(height: 14),
@@ -2259,9 +2379,9 @@ class _RoundScreenState extends State<RoundScreen> {
           autofocus: true,
           onChanged: (_) => setState(() {}),
           onSubmitted: (_) => _submitFill(),
-          decoration: const InputDecoration(
-            border: OutlineInputBorder(),
-            labelText: 'Your answer',
+          decoration: InputDecoration(
+            border: const OutlineInputBorder(),
+            labelText: _t('yourAnswer'),
           ),
         ),
         const SizedBox(height: 12),
@@ -2269,11 +2389,26 @@ class _RoundScreenState extends State<RoundScreen> {
           onPressed: _answered || _textController.text.trim().isEmpty
               ? null
               : _submitFill,
-          child: const Text('Check'),
+          child: Text(_t('check')),
         ),
       ],
     );
   }
+
+  /// The hint of a gap or order exercise (Build 259 Revision 1), drawn as
+  /// Type the missing word draws its own.
+  Widget _hintPanel(Exercise ex, Key key) => Container(
+    key: key,
+    padding: const EdgeInsets.all(12),
+    decoration: BoxDecoration(
+      color: _exercisePanelColor,
+      borderRadius: BorderRadius.circular(14),
+    ),
+    child: Text(
+      _t('hint', {'hint': ex.hint.trim()}),
+      style: Theme.of(context).textTheme.bodyLarge,
+    ),
+  );
 
   Widget _wordOrderExercise(Exercise ex) {
     final available = List<String>.from(_tokenOptions);
@@ -2283,6 +2418,10 @@ class _RoundScreenState extends State<RoundScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        if (ex.hint.trim().isNotEmpty) ...[
+          _hintPanel(ex, const Key('order-hint')),
+          const SizedBox(height: 16),
+        ],
         Wrap(
           spacing: 8,
           runSpacing: 8,
@@ -2315,7 +2454,7 @@ class _RoundScreenState extends State<RoundScreen> {
         const SizedBox(height: 16),
         FilledButton(
           onPressed: _answered || _builtOrder.isEmpty ? null : _submitOrder,
-          child: const Text('Check'),
+          child: Text(_t('check')),
         ),
       ],
     );
@@ -2412,7 +2551,7 @@ class _RoundScreenState extends State<RoundScreen> {
             child: FilledButton.tonalIcon(
               onPressed: () => _speakText(audio),
               icon: const Icon(Icons.volume_up_outlined),
-              label: const Text('Play audio'),
+              label: Text(_t('playAudio')),
             ),
           ),
           const SizedBox(height: 14),
@@ -2462,7 +2601,7 @@ class _RoundScreenState extends State<RoundScreen> {
         const SizedBox(height: 16),
         FilledButton(
           onPressed: _answered || !allGapsFilled ? null : _submitArrangeGaps,
-          child: const Text('Check'),
+          child: Text(_t('check')),
         ),
       ],
     );
@@ -2568,8 +2707,7 @@ class _RoundScreenState extends State<RoundScreen> {
   }
 
   Widget _imageWordExercise(Exercise ex) {
-    final f = _features;
-    final prompt = f.primaryText.isNotEmpty ? f.primaryText : f.clueText;
+    final prompt = _features.displayedPrompt;
     final available = List<String>.from(_tokenOptions);
     for (final token in _builtOrder) {
       available.remove(token);
@@ -2577,7 +2715,10 @@ class _RoundScreenState extends State<RoundScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        // A spelling clue (with its language) stays here; an instruction
+        // is drawn in the instruction line (Build 259).
         if (prompt.isNotEmpty &&
+            !_promptAsInstruction &&
             !ExerciseCopyService.isLegacyInstruction(prompt)) ...[
           Text(
             ExerciseCopyService.displayPrompt(widget.course, prompt),
@@ -2627,7 +2768,7 @@ class _RoundScreenState extends State<RoundScreen> {
         const SizedBox(height: 16),
         FilledButton(
           onPressed: _answered || _builtOrder.isEmpty ? null : _submitOrder,
-          child: const Text('Check'),
+          child: Text(_t('check')),
         ),
       ],
     );
@@ -2639,26 +2780,9 @@ class _RoundScreenState extends State<RoundScreen> {
   /// Whether each gap target sits inside a word (letters touch it), by
   /// target ID: Missing letters asks for letters, Complete the text for
   /// words.
-  Map<String, bool> _gapsInWord() {
-    final layout = _exercise.layout;
-    final result = <String, bool>{};
-    for (var i = 0; i < layout.length; i++) {
-      final element = layout[i];
-      if (!element.isTarget) continue;
-      final before = i > 0 && layout[i - 1].isText ? layout[i - 1].text : '';
-      final after = i + 1 < layout.length && layout[i + 1].isText
-          ? layout[i + 1].text
-          : '';
-      result[element.targetId] =
-          (before.isNotEmpty && !before.endsWith(' ')) ||
-          (after.isNotEmpty && !RegExp(r'^[\s.,;:!?…]').hasMatch(after));
-    }
-    return result;
-  }
-
   String _missingWordDisplay() {
     final layout = _exercise.layout;
-    final inWord = _gapsInWord();
+    final inWord = _features.gapsInWord;
     final buffer = StringBuffer();
     for (final element in layout) {
       if (!element.isTarget) {
@@ -2682,8 +2806,8 @@ class _RoundScreenState extends State<RoundScreen> {
   String _gapFieldLabel(int i) {
     final targets = _features.gapFieldTargets;
     final inWord =
-        i < targets.length && (_gapsInWord()[targets[i].id] ?? false);
-    final noun = inWord ? 'Missing letters' : 'Missing word';
+        i < targets.length && (_features.gapsInWord[targets[i].id] ?? false);
+    final noun = inWord ? _t('missingLetters') : _t('missingWord');
     return _missingWordControllers.length == 1 ? noun : '$noun ${i + 1}';
   }
 
@@ -2719,14 +2843,16 @@ class _RoundScreenState extends State<RoundScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        FilledButton.tonalIcon(
-          onPressed: _answered || audio == null
-              ? null
-              : () => _speakText(audio),
-          icon: const Icon(Icons.volume_up_outlined),
-          label: const Text('Play audio'),
-        ),
-        const SizedBox(height: 14),
+        // Play audio only when there is audio (Build 259 Revision 1): a
+        // greyed button made a text-only exercise look like a listening one.
+        if (audio != null) ...[
+          FilledButton.tonalIcon(
+            onPressed: _answered ? null : () => _speakText(audio),
+            icon: const Icon(Icons.volume_up_outlined),
+            label: Text(_t('playAudio')),
+          ),
+          const SizedBox(height: 14),
+        ],
         _withMascot(
           ExerciseMascotAnchor.gappedText,
           Container(
@@ -2742,6 +2868,10 @@ class _RoundScreenState extends State<RoundScreen> {
           ),
         ),
         const SizedBox(height: 14),
+        if (ex.hint.trim().isNotEmpty) ...[
+          _hintPanel(ex, const Key('gap-fields-hint')),
+          const SizedBox(height: 14),
+        ],
         for (var i = 0; i < _missingWordControllers.length; i++) ...[
           TextField(
             controller: _missingWordControllers[i],
@@ -2760,14 +2890,14 @@ class _RoundScreenState extends State<RoundScreen> {
           onPressed: _answered || !anyTyped
               ? null
               : () => _submitMissingWords(ex),
-          child: const Text('Check'),
+          child: Text(_t('check')),
         ),
       ],
     );
   }
 
   /// A Match left item: its text, or its picture with the text beside it
-  /// (Match picture to word).
+  /// (Match pictures to words).
   Widget _matchLeftContent(_MatchPairView pair) {
     if (pair.leftImage.isEmpty) return Text(pair.leftLabel, softWrap: true);
     return Row(
@@ -2852,7 +2982,7 @@ class _RoundScreenState extends State<RoundScreen> {
                   _matchingSelections.length != _matchingLeftPairs.length
               ? null
               : _submitMatching,
-          child: const Text('Check'),
+          child: Text(_t('check')),
         ),
       ],
     );
@@ -2927,7 +3057,7 @@ class _RoundScreenState extends State<RoundScreen> {
               ),
               const SizedBox(height: 8),
               IconButton.filledTonal(
-                tooltip: 'Pronounce word or phrase',
+                tooltip: _t('pronounceWord'),
                 onPressed: audio.isEmpty ? null : () => _speakText(audio),
                 icon: const Icon(Icons.volume_up_outlined),
               ),
@@ -2940,7 +3070,7 @@ class _RoundScreenState extends State<RoundScreen> {
               if (usage.isNotEmpty) ...[
                 const Divider(height: 28),
                 Text(
-                  'Usage:',
+                  _t('usage'),
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.labelLarge,
                 ),
@@ -2955,7 +3085,7 @@ class _RoundScreenState extends State<RoundScreen> {
                   Text(usageTranslation, textAlign: TextAlign.center),
                 const SizedBox(height: 6),
                 IconButton(
-                  tooltip: 'Pronounce usage sentence',
+                  tooltip: _t('pronounceUsage'),
                   onPressed: () => _speakText(usage),
                   icon: const Icon(Icons.record_voice_over_outlined),
                 ),
@@ -2969,7 +3099,7 @@ class _RoundScreenState extends State<RoundScreen> {
             onPressed: _answered
                 ? null
                 : () => _flashcardResult(reviewAgain: true),
-            child: const Text('Review again'),
+            child: Text(_t('reviewAgain')),
           ),
           const SizedBox(height: 8),
         ],
@@ -2977,7 +3107,7 @@ class _RoundScreenState extends State<RoundScreen> {
           onPressed: _answered
               ? null
               : () => _flashcardResult(reviewAgain: false),
-          child: Text(reviewable ? 'Got it' : 'Continue'),
+          child: Text(reviewable ? _t('gotIt') : _t('continue')),
         ),
       ],
     );
@@ -3008,13 +3138,13 @@ class _RoundScreenState extends State<RoundScreen> {
           speaker: speaker,
           text: showsText ? transcript : null,
           placeholder: hidden
-              ? 'Listen first…'
-              : (audio != null && !showsText ? 'Listen…' : null),
+              ? _t('listenFirst')
+              : (audio != null && !showsText ? _t('listen') : null),
           trailing: audio == null
               ? null
               : IconButton.filledTonal(
                   key: const Key('story-line-play'),
-                  tooltip: audioPlayable ? 'Play' : 'Audio unavailable',
+                  tooltip: audioPlayable ? _t('play') : _t('audioUnavailable'),
                   onPressed: audioPlayable ? () => _playLine(f) : null,
                   icon: const Icon(Icons.volume_up_outlined),
                 ),
@@ -3023,7 +3153,7 @@ class _RoundScreenState extends State<RoundScreen> {
           Padding(
             padding: const EdgeInsets.only(top: 8),
             child: Text(
-              'Audio not available on this device.',
+              _t('audioNotOnDevice'),
               key: const Key('story-line-audio-note'),
               style: Theme.of(context).textTheme.bodySmall,
             ),
@@ -3032,7 +3162,7 @@ class _RoundScreenState extends State<RoundScreen> {
         FilledButton(
           key: const Key('story-line-continue'),
           onPressed: _answered ? null : _continueLine,
-          child: const Text('Continue'),
+          child: Text(_t('continue')),
         ),
       ],
     );
@@ -3099,7 +3229,7 @@ class _RoundScreenState extends State<RoundScreen> {
         FilledButton(
           key: const Key('page-continue'),
           onPressed: _answered ? null : _continueLine,
-          child: const Text('Continue'),
+          child: Text(_t('continue')),
         ),
       ],
     );
@@ -3155,9 +3285,9 @@ class _RoundScreenState extends State<RoundScreen> {
     }
     if (!opened && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          duration: Duration(seconds: 8),
-          content: Text('The link could not be opened.'),
+        SnackBar(
+          duration: const Duration(seconds: 8),
+          content: Text(_t('linkNotOpened')),
         ),
       );
     }
@@ -3179,7 +3309,7 @@ class _RoundScreenState extends State<RoundScreen> {
         FilledButton(
           key: const Key('story-cover-continue'),
           onPressed: _answered ? null : _continueLine,
-          child: const Text('Continue'),
+          child: Text(_t('continue')),
         ),
       ],
     );
@@ -3356,8 +3486,9 @@ class _RoundScreenState extends State<RoundScreen> {
         // A picture on the item, else an icon key naming a bundled asset
         // (drawn as before), else a named icon.
         final isAsset = image.isEmpty && iconKey.startsWith('assets/');
-        final caption = _choiceOptions[i].text;
-        final showCaption = !isAsset;
+        // Never a picture's file path (Build 259 Revision 4).
+        final caption = _choiceOptions[i].item?.label ?? _choiceOptions[i].text;
+        final showCaption = !isAsset && caption.isNotEmpty;
         return SizedBox(
           width: 112,
           height: image.isNotEmpty ? 150 : 120,
@@ -3416,7 +3547,7 @@ class _RoundScreenState extends State<RoundScreen> {
               child: Column(
                 children: [
                   IconButton.filledTonal(
-                    tooltip: 'Play sound',
+                    tooltip: _t('playSound'),
                     onPressed: () => _speakText(sound),
                     icon: const Icon(Icons.volume_up_outlined),
                   ),
@@ -3457,7 +3588,7 @@ class _RoundScreenState extends State<RoundScreen> {
                   );
                   _mark(ok);
                 },
-          child: const Text('Check matches'),
+          child: Text(_t('checkMatches')),
         ),
       ],
     );
@@ -3600,30 +3731,29 @@ class _RoundScreenState extends State<RoundScreen> {
   /// The text shown above the exercise body: the primary or clue text.
   /// Passages, situations, context and the Flashcard's term have their own
   /// place in the body.
-  String get _displayedPrompt {
-    final f = _features;
-    return f.primaryText.isNotEmpty ? f.primaryText : f.clueText;
+  String get _displayedPrompt => _features.displayedPrompt;
+
+  /// An authored Instruction or context (a prompt with no language) takes
+  /// the place of the standard instruction line under the heading, in every
+  /// exercise (Build 259, owner decisions of 29 September 2026; Choose and
+  /// Match did so since Build 256).
+  bool get _promptAsInstruction {
+    final instruction = _features.authoredInstruction;
+    return _exercise.isExecutable &&
+        !_features.isTranslationChoice &&
+        instruction.isNotEmpty &&
+        !ExerciseCopyService.isLegacyInstruction(instruction);
   }
 
-  /// Whether the authored prompt is shown above the exercise body.
+  /// Whether the authored prompt has a line of its own above the exercise
+  /// body: material with a language, such as a text to translate. A
+  /// spelling exercise draws its clue in its body.
   bool get _promptShown =>
+      !_promptAsInstruction &&
       !_features.isTranslationChoice &&
       _features.kind != LearnerExerciseKind.arrangeWord &&
       _displayedPrompt.isNotEmpty &&
       !ExerciseCopyService.isLegacyInstruction(_displayedPrompt);
-
-  /// A plain Choose's authored Prompt (an instruction or some context)
-  /// takes the place of the standard "Choose the correct answer." line under
-  /// the CHOOSE heading, and a Match's authored instruction the place of its
-  /// generic line (owner decisions, 29 September 2026).
-  bool get _promptAsInstruction =>
-      _promptShown &&
-      _exercise.isExecutable &&
-      const {
-        LearnerExerciseKind.select,
-        LearnerExerciseKind.match,
-        LearnerExerciseKind.matchTranslation,
-      }.contains(_features.kind);
 
   Widget _exerciseBody(Exercise ex) {
     final f = _features;
@@ -3711,7 +3841,7 @@ class _RoundScreenState extends State<RoundScreen> {
         FilledButton(
           key: const Key('assign-check'),
           onPressed: _answered || placed.isEmpty ? null : _submitAssign,
-          child: const Text('Check'),
+          child: Text(_t('check')),
         ),
       ],
     );
@@ -3776,8 +3906,8 @@ class _RoundScreenState extends State<RoundScreen> {
                           .isEmpty)
                         Text(
                           f.assignTargetMode == AssignTargetMode.slots
-                              ? 'Empty'
-                              : 'Nothing here yet',
+                              ? _t('empty')
+                              : _t('nothingHereYet'),
                           style: Theme.of(context).textTheme.bodySmall,
                         ),
                     ],
@@ -3948,7 +4078,7 @@ class _RoundScreenState extends State<RoundScreen> {
         FilledButton(
           key: const Key('not-executable-continue'),
           onPressed: _answered ? null : _skipNotExecutable,
-          child: const Text('Continue'),
+          child: Text(_t('continue')),
         ),
       ],
     );
@@ -3961,6 +4091,7 @@ class _RoundScreenState extends State<RoundScreen> {
       _lastAnswerCorrect = true; // Nothing was asked.
       _feedback = 'Not playable in this version.';
     });
+    _revealFeedback();
   }
 
   Widget _versionSkippedLine() => Text(
@@ -4011,7 +4142,7 @@ class _RoundScreenState extends State<RoundScreen> {
             padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
             children: [
               Text(
-                'Before you start',
+                _t('beforeYouStart'),
                 style: Theme.of(
                   context,
                 ).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w900),
@@ -4055,7 +4186,7 @@ class _RoundScreenState extends State<RoundScreen> {
                     ),
                   ),
                   icon: const Icon(Icons.menu_book_outlined),
-                  label: const Text('Open Guidebook'),
+                  label: Text(_t('openGuidebook')),
                 ),
               ],
               const SizedBox(height: 8),
@@ -4078,7 +4209,7 @@ class _RoundScreenState extends State<RoundScreen> {
                   });
                 },
                 child: Text(
-                  _queue.isEmpty ? 'Close preview' : 'Continue to Round',
+                  _queue.isEmpty ? 'Close preview' : _t('continueToRound'),
                 ),
               ),
             ],
@@ -4151,13 +4282,21 @@ class _RoundScreenState extends State<RoundScreen> {
               ),
               if (_reviewPhase)
                 Text(
-                  'Reviewing exercises you missed',
+                  _t('reviewingMissed'),
                   style: Theme.of(context).textTheme.labelSmall,
                 ),
             ] else ...[
-              Text(_reviewPhase ? '$_roundTitle · Review' : _roundTitle),
               Text(
-                '${widget.course.targetLanguage} · Lesson ${_lessonIndex + 1} · ${widget.lesson.title}',
+                _reviewPhase
+                    ? _t('roundInReview', {'round': _roundTitle})
+                    : _roundTitle,
+              ),
+              Text(
+                _t('lessonLine', {
+                  'language': widget.course.targetLanguage,
+                  'n': _lessonIndex + 1,
+                  'title': widget.lesson.title,
+                }),
                 style: Theme.of(context).textTheme.labelSmall,
               ),
             ],
@@ -4169,7 +4308,7 @@ class _RoundScreenState extends State<RoundScreen> {
               !(ex.primitive == ExercisePrimitive.select &&
                   _features.automaticAudio != null))
             IconButton(
-              tooltip: 'Play audio',
+              tooltip: _t('playAudio'),
               icon: const Icon(Icons.volume_up_outlined),
               onPressed: _speak,
             ),
@@ -4187,10 +4326,11 @@ class _RoundScreenState extends State<RoundScreen> {
       body: SafeArea(
         child: ListView(
           key: _storyScrolls ? const Key('story-scroll') : null,
-          controller: _storyScrolls ? _storyScroll : null,
+          controller: _storyScrolls ? _storyScroll : _pageScroll,
           padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
           children: [
             if (_storyScrolls) ...[
+              if (_storyLog.isNotEmpty) _storyStepsLine(),
               for (var i = 0; i < _storyLog.length; i++)
                 _storyEntryCard(_storyLog[i], i),
               _storyNowMarker(),
@@ -4199,7 +4339,7 @@ class _RoundScreenState extends State<RoundScreen> {
               Padding(
                 padding: const EdgeInsets.only(bottom: 10),
                 child: Text(
-                  'Reviewing exercises you missed',
+                  _t('reviewingMissed'),
                   style: Theme.of(context).textTheme.labelLarge,
                 ),
               ),
@@ -4238,9 +4378,12 @@ class _RoundScreenState extends State<RoundScreen> {
                 ),
                 const SizedBox(height: 4),
               ],
-              // A Page has no instruction line either (Build 258).
+              // A Page has no instruction line either (Build 258), nor a
+              // Dialogue line (Build 259 Revision 5, owner decision: no
+              // "Read or listen, then continue.").
               if (ex.isExecutable &&
-                  ExerciseFeatures(ex).kind != LearnerExerciseKind.page)
+                  ExerciseFeatures(ex).kind != LearnerExerciseKind.page &&
+                  ExerciseFeatures(ex).kind != LearnerExerciseKind.dialogueLine)
                 _withMascot(
                   _promptAsInstruction
                       ? ExerciseMascotAnchor.prompt
@@ -4320,9 +4463,11 @@ class _RoundScreenState extends State<RoundScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
-                              'Correct translations:',
-                              style: TextStyle(fontWeight: FontWeight.w700),
+                            Text(
+                              _t('correctTranslations'),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w700,
+                              ),
                             ),
                             const SizedBox(height: 4),
                             for (final answer
@@ -4337,7 +4482,7 @@ class _RoundScreenState extends State<RoundScreen> {
                     ] else if (_features.kind ==
                             LearnerExerciseKind.selectCharacter &&
                         !_lastAnswerCorrect) ...[
-                      const Text('Correct answer:'),
+                      Text(_t('correctAnswerLabel')),
                       for (final item in ex.items.where(
                         (item) => ex.canonicalEvaluation.correctItemIds
                             .contains(item.id),
@@ -4356,10 +4501,10 @@ class _RoundScreenState extends State<RoundScreen> {
                         const SizedBox(height: 8),
                         Text(
                           _lastAnswerCorrect
-                              ? 'Other correct translations:'
+                              ? _t('otherCorrectTranslations')
                               : _translationFeedbackPartial
-                              ? 'Some possible translations:'
-                              : 'Correct translations:',
+                              ? _t('somePossibleTranslations')
+                              : _t('correctTranslations'),
                           key: const Key('translation-feedback-heading'),
                         ),
                         for (var i = 0; i < _translationFeedback.length; i++)
@@ -4373,13 +4518,20 @@ class _RoundScreenState extends State<RoundScreen> {
                             (ex.primitive == ExercisePrimitive.input &&
                                 _features.gapFieldTargets.isEmpty))) ...[
                       const SizedBox(height: 5),
-                      Text('Correct answer: ${_correctAnswerText(ex)}'),
+                      Text(
+                        _t('correctAnswer', {'answer': _correctAnswerText(ex)}),
+                      ),
                     ],
                     if (_lastAnswerCorrect &&
                         _acceptedDifferences.isNotEmpty) ...[
                       const SizedBox(height: 5),
                       Text(
-                        '${_acceptedDifferences.length == 1 ? 'Accepted difference' : 'Accepted differences'}: ${_acceptedDifferences.join(', ')}',
+                        _t(
+                          _acceptedDifferences.length == 1
+                              ? 'acceptedDifference'
+                              : 'acceptedDifferences',
+                          {'list': _acceptedDifferences.join(', ')},
+                        ),
                       ),
                     ],
                   ],
@@ -4393,19 +4545,19 @@ class _RoundScreenState extends State<RoundScreen> {
                 // labels stay.
                 child: Text(
                   _finishing
-                      ? 'Finishing ${_roundNoun.toLowerCase()}…'
+                      ? _t('finishing.$_nounKey')
                       : !_reviewPhase &&
                             !_playsInOrder &&
                             _position + 1 == _queue.length &&
                             _wrongFirstPass.isNotEmpty
-                      ? 'Review mistakes'
+                      ? _t('reviewMistakes')
                       : (_position + 1 == _queue.length
                             ? (_playsInOrder &&
                                       !widget.previewMode &&
                                       !_exercise.isExecutable
-                                  ? 'Leave ${_roundNoun.toLowerCase()}'
-                                  : 'Finish ${_roundNoun.toLowerCase()}')
-                            : 'Continue'),
+                                  ? _t('leave.$_nounKey')
+                                  : _t('finish.$_nounKey'))
+                            : _t('continue')),
                 ),
               ),
             ],

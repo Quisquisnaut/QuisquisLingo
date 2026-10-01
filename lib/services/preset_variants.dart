@@ -16,17 +16,19 @@ abstract final class PresetVariants {
   /// The recipe the builder runs for [presetId] with these [draft] fields.
   static String baseFor(String presetId, ExerciseDraftValues draft) {
     switch (presetId) {
+      case 'listening_choose_target':
+      case 'listening_choose_source':
+        // Listen and choose: what was heard, no question (Build 259
+        // Revision 2).
+        return 'listening_choice';
       case 'listening_answer_target':
       case 'listening_answer_source':
-        // An opened exercise keeps its shape; a new one without a question
-        // asks what was heard, with a question it asks about the passage.
+        // An opened exercise keeps its shape; a new one asks its question
+        // about the passage (the question is required since Build 259
+        // Revision 2; Listen and choose asks what was heard).
         return switch (draft.audioRole) {
-          'passage' => 'listening_comprehension',
           'primary' => 'listening_choice',
-          _ =>
-            draft.question.trim().isEmpty
-                ? 'listening_choice'
-                : 'listening_comprehension',
+          _ => 'listening_comprehension',
         };
       case 'reading_answer_target':
         // The text to read is context in the source language, followed by
@@ -53,12 +55,14 @@ abstract final class PresetVariants {
   /// others show their base recipe's form.
   static const ownForms = <String>{
     'true_false',
-    'gap_choice_inline',
     'complete_text',
     'missing_letters',
     'gap_blocks',
     'sentence_order',
+    'one_word_fills_all',
     'listening_image_choice',
+    'listening_choose_target',
+    'listening_choose_source',
     'spell_heard',
     'picture_choice',
     'picture_name',
@@ -119,27 +123,39 @@ abstract final class PresetVariants {
           useMultiSelect: false,
         );
       case 'picture_choice':
+        // Its Instruction or context is the Choose recipe's primary text;
+        // it has no question (Build 259).
         return draft.copyWith(
           type: base,
           useInlineGaps: false,
           useMultiSelect: false,
           tts: '',
+          question: '',
         );
-      case 'gap_choice_inline':
-        return draft.copyWith(type: base, useInlineGaps: true);
+      case 'listening_image_choice':
+      case 'picture_name':
+      case 'listening_choose_target':
+      case 'listening_choose_source':
+        // Their base recipes read the text from the question field; `finish`
+        // makes it the Instruction or context (Build 259).
+        return draft.copyWith(type: base, question: draft.prompt);
       case 'word_order':
       case 'build_translation_to_target':
       case 'build_translation_to_source':
-      case 'sentence_order':
         return draft.copyWith(type: base, useInlineGaps: false);
+      case 'sentence_order':
+        // Its own recipe (Build 259 Revision 1): the lines once, in order.
+        return draft.copyWith(type: presetId, useInlineGaps: false);
       case 'gap_blocks':
         return draft.copyWith(type: base, useInlineGaps: true);
       case 'complete_text':
-        return draft.copyWith(type: base, tts: '');
+        // Its own recipe (Build 259 Revision 3): the gaps are ___.
+        return draft.copyWith(type: presetId, tts: '');
       case 'missing_letters':
-        // The bracketed letters become the gaps of the text without them.
+        // The letters between underscores become the gaps of the text
+        // without them (Build 259 Revision 4; square brackets before).
         final letters = <String>[];
-        final text = draft.prompt.replaceAllMapped(RegExp(r'\[([^\[\]]+)\]'), (
+        final text = draft.prompt.replaceAllMapped(RegExp(r'_([^_\s]+)_'), (
           match,
         ) {
           letters.add(match.group(1)!);
@@ -281,8 +297,13 @@ abstract final class PresetVariants {
           ),
         );
       case 'picture_choice':
-      case 'picture_name':
         return _withPictureRole(exercise);
+      case 'picture_name':
+        return _withPictureRole(_questionAsInstruction(exercise));
+      case 'listening_image_choice':
+      case 'listening_choose_target':
+      case 'listening_choose_source':
+        return _questionAsInstruction(exercise);
       case 'note_card':
         // A Note card is read and left with Continue: no review.
         return exercise.copyWith(options: PrimitiveOptions.empty);
@@ -306,6 +327,20 @@ abstract final class PresetVariants {
         return exercise;
     }
   }
+
+  /// The base recipe's question text as the Instruction or context: a
+  /// primary text with no language (Build 259, owner decisions of
+  /// 29 September 2026), for the presets whose form has no question.
+  static Exercise _questionAsInstruction(Exercise exercise) =>
+      exercise.copyWith(
+        promptElements: [
+          for (final element in exercise.promptElements)
+            if (element.isText && element.role == 'question')
+              element.copyWith(role: 'primary')
+            else
+              element,
+        ],
+      );
 
   /// The picture presets carry their picture as `picture`, not as the
   /// generic `clue` illustration, so their base recipes do not represent
@@ -338,12 +373,12 @@ abstract final class PresetVariants {
     ];
     switch (presetId) {
       case 'choice_source':
+        // The Instruction or context stays without a language (Build 259):
+        // only the question and the answers are marked.
         return exercise.copyWith(
           promptElements: mark(
             exercise.promptElements,
-            (e) =>
-                (e.isText || e.isAudio) &&
-                (e.role == 'primary' || e.role == 'question'),
+            (e) => (e.isText || e.isAudio) && e.role == 'question',
             TextLanguage.source,
           ),
           items: markItems(TextLanguage.source),
@@ -374,6 +409,9 @@ abstract final class PresetVariants {
           ),
           items: markItems(TextLanguage.source),
         );
+      case 'listening_choose_source':
+        // Its instruction states no language (Build 259 Revision 2).
+        return exercise.copyWith(items: markItems(TextLanguage.source));
       default:
         return exercise;
     }
@@ -389,6 +427,7 @@ abstract final class PresetVariants {
     final f = ExerciseFeatures(exercise);
     return switch (presetId) {
       'missing_letters' => hasInWordGap(exercise),
+      'complete_text' => !hasInWordGap(exercise),
       'image_word' => f.illustrationImages.isNotEmpty,
       'spell_heard' => f.illustrationImages.isEmpty && f.automaticAudio != null,
       'spell_word' => f.illustrationImages.isEmpty && f.automaticAudio == null,

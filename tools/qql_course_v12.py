@@ -45,6 +45,8 @@ KIND_TYPE = {"select": "choice", "input": "fill_blank", "arrange": "word_order",
 PRESET_BASE = {
     "choice_target": "choice",
     "choice_source": "choice",
+    "listening_choose_target": "listening_choice",
+    "listening_choose_source": "listening_choice",
     "listening_answer_target": "listening_comprehension",
     "listening_answer_source": "listening_comprehension",
     "reading_answer_target": "reading_comprehension",
@@ -54,7 +56,7 @@ PRESET_BASE = {
     "build_translation_to_source": "build_translation",
     "picture_flashcard": "flashcard",
     "true_false": "choice",
-    "gap_choice_inline": "choice",
+    "one_word_fills_all": "gap_choice",
     "complete_text": "missing_word",
     "missing_letters": "missing_word",
     "gap_blocks": "word_order",
@@ -385,6 +387,7 @@ PRESET_SUCCESSOR = {
     "reading_answer_source": "reading_answer_target",
     "type_translation": "type_translation_to_target",
     "build_translation": "build_translation_to_target",
+    "gap_choice_inline": "gap_blocks",
 }
 
 
@@ -419,11 +422,13 @@ def convert_content(content: dict, round_updated_at: str | None = None) -> dict:
         exercise = copy.deepcopy(content["exercise"])
     elif isinstance(content.get("exercise"), dict):
         exercise = convert_exercise(template, content["exercise"])
-        # A Choose or Arrange with inline gaps is the inline-gap preset.
+        # An Arrange with inline gaps is Pick the words for the gaps; a
+        # Choose with inline gaps has no preset since Build 259 Revision 4
+        # (mirrors Dart).
         layout = (content["exercise"].get("interaction") or {}).get("layout", [])
         if any(e.get("type") == "gap" for e in layout):
             if template == "choice":
-                metadata["presetId"] = "gap_choice_inline"
+                metadata.pop("presetId", None)
             elif template in ("word_order", "build_translation"):
                 metadata["presetId"] = "gap_blocks"
     out = {"id": content["id"], "publicationState": content["publicationState"],
@@ -541,6 +546,35 @@ def page_exercise(blocks: list[dict], *, updated_at: str) -> dict:
             "evaluation": {"mode": "none"}}
 
 
+def complete_text_exercise(text: str, answers: list[str], *, updated_at: str,
+                           instruction: str = "", hint: str = "") -> dict:
+    """Complete the text in its canonical shape (Build 259 Revision 3): the
+    text marks each gap with ___ and `answers` gives one answer expression
+    per gap, in order, such as "[il|un] gatto". Mirrors the Dart recipe
+    (ExerciseDraftBuilder._buildCompleteText)."""
+    pieces = re.split(r"_{3,}", text.strip())
+    gaps = len(pieces) - 1
+    assert gaps > 0 and gaps == len(answers), (text, answers)
+    layout = []
+    for index, piece in enumerate(pieces):
+        if piece:
+            layout.append({"type": "text", "text": piece})
+        if index < gaps:
+            layout.append({"type": "target", "targetId": f"gap_{index + 1}"})
+    value = {
+        "updatedAt": updated_at, "primitive": "input",
+        "options": _ordered_options({"layout": "inlineGaps", "cardinality": "multiple"}),
+        "prompt": [{"role": "clue", "type": "text", "text": instruction}] if instruction else [],
+        "targets": [{"id": f"gap_{i + 1}"} for i in range(gaps)],
+        "layout": layout,
+        "evaluation": _ordered_evaluation({"mode": "expression", "targetAnswers": [
+            {"targetId": f"gap_{i + 1}", "answers": [answer]} for i, answer in enumerate(answers)]}),
+    }
+    if hint:
+        value["hint"] = hint
+    return value
+
+
 def becomes_exercise(content: dict) -> bool:
     """Whether a v11 Content is an exercise once converted: an exercise, a
     presentation or, since Build 257, a Lesson introduction (a Before you
@@ -575,7 +609,7 @@ def story_flow(entries: list[tuple[str, bool]], *, title: str, presentation: str
     return flow
 
 
-def assign_exercise(*, updated_at: str, mode: str, question: str,
+def assign_exercise(*, updated_at: str, mode: str, instruction: str,
                     items: list[tuple[str, str]], targets: list[tuple[str, str]],
                     assignments: dict[str, list[str]], capacity: str = "single",
                     reuse: str = "forbidden", shuffle: bool = True,
@@ -585,7 +619,9 @@ def assign_exercise(*, updated_at: str, mode: str, question: str,
     the layout is a label text before each target (an empty label gives a
     bare target); for gaps, `sentence` lists the text runs and (target id,)
     tuples in reading order and the layout option is inline. Exact
-    assignments: `assignments` maps a target ID to the item IDs it holds."""
+    assignments: `assignments` maps a target ID to the item IDs it holds.
+    `instruction` is the Instruction or context, a primary text with no
+    language (Build 259)."""
     options = {"targetMode": mode}
     if capacity != "single":
         options["targetCapacity"] = capacity
@@ -610,7 +646,7 @@ def assign_exercise(*, updated_at: str, mode: str, question: str,
     return {
         "updatedAt": updated_at, "primitive": "assign",
         "options": _ordered_options(options),
-        "prompt": [{"role": "question", "type": "text", "text": question}],
+        "prompt": [{"role": "primary", "type": "text", "text": instruction}],
         "items": [{"id": item_id, "content": [{"role": "primary", "type": "text", "text": text}]}
                   for item_id, text in items],
         "targets": [{"id": target_id} for target_id, _ in targets],

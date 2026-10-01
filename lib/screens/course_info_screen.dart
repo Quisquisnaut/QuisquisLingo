@@ -13,6 +13,7 @@ import '../services/course_language_resolver.dart';
 import '../services/course_governance_resolver.dart';
 import '../services/course_service.dart';
 import '../services/editor_display_preferences.dart';
+import '../services/course_privacy.dart';
 import '../widgets/course_artwork.dart';
 import '../widgets/editor_app_bar_actions.dart';
 import '../widgets/flag_art.dart';
@@ -266,7 +267,9 @@ class CourseInfoScreen extends StatefulWidget {
           Text(course.courseDescription.trim()),
         ],
         const SizedBox(height: 18),
-        if (course.temporarySample)
+        // The flag is shown as Private course (Build 259 Revision 8); it has
+        // no effect on an official Course.
+        if (CoursePrivacy.isPrivate(course))
           _InfoCard(
             title: _t(locale, 'temporarySample.title'),
             body: _t(locale, 'temporarySample.body'),

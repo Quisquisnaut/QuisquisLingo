@@ -268,13 +268,13 @@ void main() {
     );
     Exercise? saved;
     await _mount(tester, original, (value) => saved = value);
-    await _pickPreset(tester, 'Drag the blocks into the gaps');
+    await _pickPreset(tester, 'Pick the words for the gaps');
     await tester.enterText(
       workflow.field('Sentence with gaps'),
-      'I {go} {to} school.',
+      'I _go_ _to_ school.',
     );
     await tester.enterText(
-      workflow.field('Extra distractor blocks (optional)'),
+      workflow.field('Extra distractor words (optional)'),
       'goes\nfrom',
     );
     await workflow.tapKey(tester, 'exercise-save-draft');
@@ -299,34 +299,35 @@ void main() {
     _expectV12RoundTrip(saved!);
   });
 
-  testWidgets('linked-gap Select reuses an option ID across two gaps', (
-    tester,
-  ) async {
-    final original = workflow.modelExercise('choice', PublicationState.draft);
+  // Build 259 Revision 4 (owner decision): each word fills one gap, so a
+  // word needed twice is offered twice; the Select option that served two
+  // gaps is gone with the merged preset.
+  testWidgets('a word needed in two gaps is offered twice', (tester) async {
+    final original = workflow.modelExercise(
+      'word_order',
+      PublicationState.draft,
+    );
     Exercise? saved;
     await _mount(tester, original, (value) => saved = value);
     await _pickPreset(tester, 'Pick the words for the gaps');
     await tester.enterText(
       workflow.field('Sentence with gaps'),
-      '{Was} she happy? {Was} he late?',
+      '_Was_ she happy? _Was_ he late?',
     );
     await tester.enterText(
-      workflow.field('Distractor options (optional)'),
+      workflow.field('Extra distractor words (optional)'),
       'Perhaps',
     );
     await workflow.tapKey(tester, 'exercise-save-draft');
     expect(saved, isNotNull);
-    expect(saved!.interaction.items.map((item) => item.id), [
-      'item_0',
-      'item_1',
-    ]);
     expect(saved!.interaction.items.map((item) => item.value), [
+      'Was',
       'Was',
       'Perhaps',
     ]);
     expect(saved!.evaluation.gapAssignments, {
       'gap_1': 'item_0',
-      'gap_2': 'item_0',
+      'gap_2': 'item_1',
     });
     _expectV12RoundTrip(saved!);
   });
@@ -472,7 +473,7 @@ void main() {
       );
       await tester.tap(find.text('Open'));
       await tester.pumpAndSettle();
-      await tester.enterText(workflow.field('Source text'), 'Unsaved source');
+      await tester.enterText(workflow.field('Sentence'), 'Unsaved source');
       await workflow.tapKey(tester, 'exercise-preview');
       expect(find.byType(RoundScreen), findsOneWidget);
       expect(

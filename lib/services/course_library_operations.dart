@@ -12,6 +12,7 @@ import 'course_learner_visibility_service.dart';
 import 'course_library_service.dart';
 import 'course_merge_service.dart';
 import 'course_package_import.dart';
+import 'course_privacy.dart';
 import 'course_service.dart';
 import 'custom_course_transfer_service.dart';
 import 'file_dialog_service.dart';
@@ -412,6 +413,7 @@ class CourseLibraryOperations {
     required CourseMergeOptions options,
     required CourseManagerLibrary library,
   }) async {
+    await _refuseHiddenPrivate(right);
     final merged = await _merge.createMergedCourse(
       left: left,
       right: right,
@@ -457,6 +459,17 @@ class CourseLibraryOperations {
 
   /// What the read package in [attempt] may do. A Bundled Course package is
   /// refused; the chosen action still runs through [attempt] itself.
+  /// Someone else's Private course is neither imported nor merged (Build 259
+  /// Revision 8, owner decision): it would stay hidden for this profile.
+  Future<void> _refuseHiddenPrivate(Course course) async {
+    if (CoursePrivacy.isPrivate(course) &&
+        !await CoursePrivacy(
+          accessPolicy: CourseAccessPolicy(profileService: profiles),
+        ).isVisible(course)) {
+      throw FormatException(CourseLibraryReports.privateCourseRefused(course));
+    }
+  }
+
   Future<CourseImportReview> reviewImport(
     CoursePackageImport attempt,
     CourseManagerLibrary library,
@@ -467,6 +480,7 @@ class CourseLibraryOperations {
         'Bundled official courses are installed only with QuisquisLingo application builds.',
       );
     }
+    await _refuseHiddenPrivate(course);
     final installed = await editor.listUserCourses();
     final audit = CourseAuditService().auditCourse(course);
     final existing = installed
@@ -564,6 +578,10 @@ class CourseLibraryOperations {
     required String title,
     required String sourceLanguage,
     required String targetLanguage,
+    // Build 260 Revision 0: the tags of listed languages ('' for a language
+    // typed by hand without one).
+    String sourceLanguageTag = '',
+    String targetLanguageTag = '',
     required List<NewCourseCredit> credits,
     required String license,
     required DerivativeWorksPolicy derivativeWorksPolicy,
@@ -600,9 +618,12 @@ class CourseLibraryOperations {
       interfaceLanguage: sourceLanguage,
       sourceLanguage: sourceLanguage,
       targetLanguage: targetLanguage,
+      sourceLanguageTag: sourceLanguageTag,
+      targetLanguageTag: targetLanguageTag,
       title: title,
-      ttsLanguage:
-          CourseLanguageResolver.codeFromMetadata([targetLanguage]) ?? 'und',
+      ttsLanguage: targetLanguageTag.isNotEmpty
+          ? targetLanguageTag
+          : CourseLanguageResolver.codeFromMetadata([targetLanguage]) ?? 'und',
       originType: CourseOriginType.custom,
       courseVersion: '',
       authors: [
@@ -675,6 +696,10 @@ abstract final class CourseLibraryReports {
 
   /// One line counting the exercises this version cannot play (Build 256
   /// Revision 6, plan A.6), empty when there are none.
+  /// Why someone else's Private course is refused (Build 259 Revision 8).
+  static String privateCourseRefused(Course course) =>
+      '“${course.title}” is a Private course: only its Course Maintainer and the members of its assigned Team can import it or use it in a Merge. Ask its Maintainer for a copy that is not private.';
+
   static String notExecutableNote(int count) => count == 0
       ? ''
       : ' $count exercise${count == 1 ? '' : 's'} cannot be played by this version of QuisquisLingo and ${count == 1 ? 'is' : 'are'} kept unchanged.';

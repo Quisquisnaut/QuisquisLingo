@@ -139,7 +139,7 @@ def enter(kind: str, prompt: list[dict], accepted: list[str], **fields) -> dict:
 
 
 def arrange(kind: str, prompt: list[dict], blocks: list[str],
-            orders: list[list[int]], language: str | None = None) -> dict:
+            orders: list[list[int]], language: str | None = None, **fields) -> dict:
     separator = "" if kind in ("image_word", "spell_heard", "spell_word") else " "
     return exercise(kind, prompt, {
         "kind": "arrange",
@@ -150,7 +150,7 @@ def arrange(kind: str, prompt: list[dict], blocks: list[str],
             {"text": separator.join(blocks[i] for i in order),
              "itemIds": [f"i{i}" for i in order]} for order in orders
         ],
-    })
+    }, **fields)
 
 
 def gaps(kind: str, instruction: str, parts: list, distractors: list[str]) -> dict:
@@ -245,9 +245,9 @@ def lesson_specs() -> list[tuple[str, str, str, list[dict]]]:
         specs.append((kind, topic, guide, examples))
 
     add("choice_target", "First words", "pan = bread; gat = cat; eva = water. Choose the Piedmontese word.", [
-        choose("choice_target", [text("How do you say bread in Piedmontese?")], ["pan", "gat", "eva"]),
-        choose("choice_target", [text("How do you say cat in Piedmontese?")], ["can", "gat", "pan"], 1),
-        choose("choice_target", [text("How do you say water in Piedmontese?")], ["pom", "pan", "eva"], 2),
+        choose("choice_target", [text("How do you say bread in Piedmontese?", "question")], ["pan", "gat", "eva"]),
+        choose("choice_target", [text("How do you say cat in Piedmontese?", "question")], ["can", "gat", "pan"], 1),
+        choose("choice_target", [text("How do you say water in Piedmontese?", "question")], ["pom", "pan", "eva"], 2),
     ])
     add("choice_source", "What does it mean?", "grassie and mersì = thank you; ciàu = hello or bye; bondì = good morning. The questions and the answers are in English.", [
         choose("choice_source", [text("What does “grassie” mean?", "question", "source")], ["thank you", "good morning", "goodbye"], language="source"),
@@ -265,9 +265,9 @@ def lesson_specs() -> list[tuple[str, str, str, list[dict]]]:
         choose("gap_choice", [text("Complete the greeting meaning good morning."), text("bon-a ___", "question")], ["ca", "eva", "matin"], 2),
     ])
     add("icon_choice", "Words in pictures", "Look at the pictures: gat = cat; pan = bread; eva = water.", [
-        choose("icon_choice", [text("Select the image for gat.")], ["gat", "can", "caval"], pictures=["cat", "dog", "horse"]),
-        choose("icon_choice", [text("Select the image for pan.")], ["pom", "pan", "eva"], 1, ["apple", "bread", "water"]),
-        choose("icon_choice", [text("Select the image for eva.")], ["pan", "pom", "eva"], 2, ["bread", "apple", "water"]),
+        choose("icon_choice", [text("Select the image for gat.", "question")], ["gat", "can", "caval"], pictures=["cat", "dog", "horse"]),
+        choose("icon_choice", [text("Select the image for pan.", "question")], ["pom", "pan", "eva"], 1, ["apple", "bread", "water"]),
+        choose("icon_choice", [text("Select the image for eva.", "question")], ["pan", "pom", "eva"], 2, ["bread", "apple", "water"]),
     ])
     add("script_recognition", "Accented letters", "These letter diagrams distinguish ë (e with diaeresis), é (e with acute accent), and ò (o with grave accent). Identify the printed character, not its sound.", [
         choose("script_recognition", [text(instruction), {
@@ -280,18 +280,32 @@ def lesson_specs() -> list[tuple[str, str, str, list[dict]]]:
             ("ò", ["o", "ó", "ò"], 2, "Which o-family character is shown?"),
         ]
     ])
-    add("listening_answer_target", "Hear a greeting", "bondì = good morning; mersì = thank you; ciàu = hello or bye. Choose the exact written word you hear. " + AUDIO_NOTE, [
-        choose("listening_answer_target", [text(instruction), audio(heard)], choices, correct)
+    add("listening_choose_target", "Hear a greeting", "bondì = good morning; mersì = thank you; ciàu = hello or bye. Choose the exact written word you hear. " + AUDIO_NOTE, [
+        choose("listening_choose_target", [text(instruction), audio(heard)], choices, correct)
         for heard, choices, correct, instruction in [
             ("bondì", ["bondì", "mersì", "ciàu"], 0, "Listen to the first greeting."),
             ("mersì", ["ciàu", "mersì", "bondì"], 1, "Listen to the next expression."),
             ("ciàu", ["mersì", "bondì", "ciàu"], 2, "Listen to the final greeting."),
         ]
     ])
+    # Listen and choose (to source) and Listen and answer (to target), the
+    # Build 259 Revision 2 split: no question, then a required question.
+    add("listening_choose_source", "Hear the meaning", "bondì = good morning; grassie = thank you; bon-aneuit = good night. Listen and choose the English meaning. " + AUDIO_NOTE, [
+        choose("listening_choose_source", [audio("bondì"), text("A neighbour greets you in the morning.")], ["good morning", "good night", "thank you"], language="source"),
+        choose("listening_choose_source", [audio("grassie"), text("You are given a present.")], ["goodbye", "thank you", "good morning"], 1, language="source"),
+        choose("listening_choose_source", [audio("bon-aneuit")], ["good morning", "thank you", "good night"], 2, language="source"),
+    ])
+    add("listening_answer_target", "Listen and answer", "I l'hai = I have; gat = cat; can = dog; pan = bread; eva = water; pom = apples; a ca = at home. Listen to each short passage and answer its question with a Piedmontese word. " + AUDIO_NOTE, [
+        choose("listening_answer_target", [audio("I l'hai un gat e un can.", "passage"), text("Which animal is mentioned first?", "question")], ["gat", "can", "caval"]),
+        choose("listening_answer_target", [audio("La lista: pan, eva e tre pom.", "passage"), text("What is first on the list?", "question")], ["eva", "pan", "pom"], 1),
+        choose("listening_answer_target", [audio("Mi i son a ca. I l'hai un lìber.", "passage"), text("Where is the speaker?", "question")], ["al mercà", "a scòla", "a ca"], 2),
+    ])
     add("listening_answer_source", "Listen for meaning", "I l'hai = I have; i son = I am; a ca = at home; lìber = book; un = one; doi = two; tre = three. Listen to each short passage and answer its English question. " + AUDIO_NOTE, [
-        choose("listening_answer_source", [audio("Mi i son a ca. I l'hai un lìber.", "passage"), text("What does the speaker have?", "question", "source")], ["a book", "a dog", "an apple"]),
-        choose("listening_answer_source", [audio("I l'hai un gat e un can.", "passage"), text("Which two animals are mentioned?", "question", "source")], ["a cat and a horse", "a cat and a dog", "a dog and a horse"], 1),
-        choose("listening_answer_source", [audio("La lista: pan, eva e tre pom.", "passage"), text("How many apples are on the list?", "question", "source")], ["one", "two", "three"], 2),
+        # The English answers are marked source, as the preset writes them
+        # (Build 260 Revision 3).
+        choose("listening_answer_source", [audio("Mi i son a ca. I l'hai un lìber.", "passage"), text("What does the speaker have?", "question", "source")], ["a book", "a dog", "an apple"], language="source"),
+        choose("listening_answer_source", [audio("I l'hai un gat e un can.", "passage"), text("Which two animals are mentioned?", "question", "source")], ["a cat and a horse", "a cat and a dog", "a dog and a horse"], 1, language="source"),
+        choose("listening_answer_source", [audio("La lista: pan, eva e tre pom.", "passage"), text("How many apples are on the list?", "question", "source")], ["one", "two", "three"], 2, language="source"),
     ])
     # Read and answer (Build 256 Revision 7 fourth follow-up): a situation in
     # English, Piedmontese dialogue lines (read aloud or not), a Piedmontese
@@ -332,27 +346,27 @@ def lesson_specs() -> list[tuple[str, str, str, list[dict]]]:
         choose("translation_choice_to_source", [text("mi i son content", "question")], ["I have a book", "I am at home", "I am happy"], 2),
     ])
     add("complete_text", "Complete the text", "Type the words missing from each short text: gat = cat; can = dog; pan = bread; eva = water; lìber = book. No audio.", [
-        enter("complete_text", [text("I l'hai un gat e un can.")], [], missingWords=["gat", "can"]),
-        enter("complete_text", [text("La lista: pan, eva e tre pom.")], [], missingWords=["pan", "eva"]),
-        enter("complete_text", [text("Mi i son a ca. I l'hai un lìber.")], [], missingWords=["lìber"]),
+        enter("complete_text", [text("I l'hai un gat e un can.")], [], missingWords=["gat", "can"],
+              hint="One meows, one barks."),
+        enter("complete_text", [text("La lista: pan, eva e tre pom.")], [], missingWords=["pan", "eva"],
+              hint="Bread and water, in Piedmontese."),
+        enter("complete_text", [text("You are at home, on the sofa.", "clue"),
+                                text("Mi i son a ca. I l'hai un lìber.")], [], missingWords=["lìber"],
+              hint="Something you read."),
     ])
     add("missing_letters", "Missing letters", "Type the letters missing inside the words: gat = cat; granda = big; eva = water.", [
-        enter("missing_letters", [text("I l'hai un gat.")], [], missingWords=["at"]),
-        enter("missing_letters", [text("La ca a l'é granda.")], [], missingWords=["and"]),
-        enter("missing_letters", [text("Pan e eva."), audio("Pan e eva.")], [], missingWords=["va"]),
+        enter("missing_letters", [text("I l'hai un gat.")], [], missingWords=["at"], hint="An animal that meows."),
+        enter("missing_letters", [text("La ca a l'é granda.")], [], missingWords=["and"], hint="The opposite of small."),
+        enter("missing_letters", [text("Pan e eva."), audio("Pan e eva.")], [], missingWords=["va"], hint="Something you drink."),
     ])
     add("type_missing_word", "First-letter help", "Complete each missing word after its first letter is shown. Enter the whole word: gat (cat), ca (house), or lìber (book), including the first letter.", [
         enter("type_missing_word", [text("I l'hai un ___.")], ["gat"], hint="The animal that meows."),
         enter("type_missing_word", [text("la ___")], ["ca"], hint="The place where you live."),
         enter("type_missing_word", [text("ël ___")], ["lìber"], hint="An object with pages to read."),
     ])
-    add("gap_choice_inline", "Pick the words for the gaps", "Tap the options to fill the gaps of a fixed sentence: mi i son content = I am happy; pan e eva = bread and water; ël gat e ël can = the cat and the dog.", [
-        gaps("gap_choice_inline", "Complete the sentence about being happy.", ["Mi", ("i",), ("son",), "content."], ["a"]),
-        gaps("gap_choice_inline", "Complete the phrase meaning bread and water.", [("pan",), "e", ("eva",)], ["pom"]),
-        gaps("gap_choice_inline", "Complete the phrase; the same article fills both gaps.", [("ël",), "gat e", ("ël",), "can"], ["la"]),
-    ])
     add("listening_spelling", "Hear and spell", "Listen and type the whole word. The vocabulary is pan (bread), eva (water), and pom (apple). " + AUDIO_NOTE, [
-        enter("listening_spelling", [text(instruction), audio(word)], [word])
+        # The Audio text is always accepted (Build 259 Revision 3).
+        enter("listening_spelling", [text(instruction), audio(word)], [])
         for word, instruction in [
             ("pan", "Transcribe the first food word."),
             ("eva", "Type the drink you hear."),
@@ -398,22 +412,32 @@ def lesson_specs() -> list[tuple[str, str, str, list[dict]]]:
         arrange("word_order", [text("Put the food first, then the link, then the drink.", "clue")], ["eva", "e", "pan"], [[2, 1, 0]]),
         arrange("word_order", [text("Put the cat first and the dog second, with an article before each.", "clue")], ["can", "ël", "e", "gat", "ël"], [[1, 3, 2, 4, 0]]),
     ])
-    add("gap_blocks", "Drag the blocks into the gaps", "Drag each block into its gap; every block is used once: mi i son content; pan e eva; ël gat e ël can.", [
+    add("gap_blocks", "Fill the gaps", "Tap a word for each gap; every word fills one gap: mi i son content = I am happy; pan e eva = bread and water; ël gat e ël can = the cat and the dog.", [
         gaps("gap_blocks", "Complete the sentence about being happy.", ["Mi", ("i",), ("son",), "content."], ["a"]),
         gaps("gap_blocks", "Complete the phrase meaning bread and water.", [("pan",), "e", ("eva",)], ["pom"]),
         gaps("gap_blocks", "Complete the phrase; the article is a separate block each time.", [("ël",), "gat e", ("ël",), "can"], []),
     ])
+    # One word fills all (Build 259 Revision 4): one word for every gap.
+    add("one_word_fills_all", "One word for every gap", "un = a, one; ël = the; bondì = good morning. One word fills every gap of the sentences.", [
+        choose("one_word_fills_all", [text("I l'hai ___ gat e ___ can.", "question")], ["un", "pan", "eva"]),
+        choose("one_word_fills_all", [text("___ gat a l'é n'animal. ___ can a l'é n'animal.", "question")], ["La", "Ël", "Pan"], 1),
+        choose("one_word_fills_all", [text("___, Anna! ___, Tòni!", "question")], ["Pan", "Eva", "Bondì"], 2),
+    ])
     add("sentence_order", "Put the sentences in order", "Put the lines of each short exchange in order. bondì = good morning; come ch'a va? = how are you?; bin, grassie = well, thank you.", [
-        arrange("sentence_order", [text("Put the greeting exchange in order.", "clue")], ["Bondì, Anna!", "Bondì, Tòni! Come ch'a va?", "Bin, grassie."], [[0, 1, 2]]),
-        arrange("sentence_order", [text("Put the shopping story in order.", "clue")], ["Anna va al mercà.", "A compra pan e eva.", "A torna a ca."], [[0, 1, 2]]),
-        arrange("sentence_order", [text("Put the evening in order.", "clue")], ["I mangio.", "I leso un lìber.", "Bon-aneuit!"], [[0, 1, 2]]),
+        arrange("sentence_order", [text("Tòni meets Anna in the street and greets her first.", "clue")], ["Bondì, Anna!", "Bondì, Tòni! Come ch'a va?", "Bin, grassie."], [[0, 1, 2]]),
+        arrange("sentence_order", [text("Anna goes to the market in the morning and is home by noon.", "clue")], ["Anna va al mercà.", "A compra pan e eva.", "A torna a ca."], [[0, 1, 2]]),
+        arrange("sentence_order", [text("In the evening you have dinner, then you read in bed.", "clue")],
+                ["I mangio.", "I leso un lìber.", "Bon-aneuit!"], [[0, 1, 2]],
+                hint="mangio = I eat; leso = I read. The last line is what you say before sleeping."),
     ])
     add("image_word", "Build pictured words", "Use every letter to spell the Piedmontese word in the picture: pan (bread), gat (cat), caval (horse). The two a letters in caval are separate blocks.", [
         arrange("image_word", [text(instruction, "clue"), image(asset, alternative)], blocks, [order])
+        # The blocks are stored in the word's order, as the preset writes them;
+        # the Round shuffles them (Build 260 Revision 3).
         for asset, alternative, blocks, order, instruction in [
-            ("bread", "Bread", ["n", "p", "a"], [1, 2, 0], "Spell the pictured food in Piedmontese."),
-            ("cat", "A cat", ["t", "g", "a"], [1, 2, 0], "Spell the pictured pet in Piedmontese."),
-            ("horse", "A horse", ["a", "l", "c", "a", "v"], [2, 0, 4, 3, 1], "Spell the pictured farm animal in Piedmontese."),
+            ("bread", "Bread", ["p", "a", "n"], [0, 1, 2], "Spell the pictured food in Piedmontese."),
+            ("cat", "A cat", ["g", "a", "t"], [0, 1, 2], "Spell the pictured pet in Piedmontese."),
+            ("horse", "A horse", ["c", "a", "v", "a", "l"], [0, 1, 2, 3, 4], "Spell the pictured farm animal in Piedmontese."),
         ]
     ])
     add("spell_word", "Spell the word", "Spell the Piedmontese word from its English clue with letter or syllable tiles: gat = cat; pan = bread; eva = water.", [
@@ -432,19 +456,19 @@ def lesson_specs() -> list[tuple[str, str, str, list[dict]]]:
         choose("listening_image_choice", [audio("eva")], ["pan", "pom", "eva"], 2, ["bread", "apple", "water"]),
     ])
     add("picture_choice", "What is in the picture?", "Look at the picture and pick its Piedmontese word: gat = cat; pan = bread; eva = water.", [
-        choose("picture_choice", [text("What is this?", "question"), image("cat", "A cat", "picture")], ["gat", "can", "caval"]),
-        choose("picture_choice", [text("What is this?", "question"), image("bread", "Bread", "picture")], ["pom", "pan", "eva"], 1),
-        choose("picture_choice", [text("What is this?", "question"), image("water", "Water", "picture")], ["pan", "pom", "eva"], 2),
+        choose("picture_choice", [text("What is this?"), image("cat", "A cat", "picture")], ["gat", "can", "caval"]),
+        choose("picture_choice", [text("What is this?"), image("bread", "Bread", "picture")], ["pom", "pan", "eva"], 1),
+        choose("picture_choice", [text("What is this?"), image("water", "Water", "picture")], ["pan", "pom", "eva"], 2),
     ])
     add("picture_name", "Type what you see", "Type the Piedmontese word for the picture: gat = cat; pan = bread; eva = water. The article is optional.", [
-        enter("picture_name", [text("What is this?", "question"), image("cat", "A cat", "picture")], ["{ël} gat"]),
-        enter("picture_name", [text("What is this?", "question"), image("bread", "Bread", "picture")], ["{ël} pan"]),
-        enter("picture_name", [text("What is this?", "question"), image("water", "Water", "picture")], ["{l'} eva", "eva"]),
+        enter("picture_name", [text("What is this?"), image("cat", "A cat", "picture")], ["{ël} gat"]),
+        enter("picture_name", [text("What is this?"), image("bread", "Bread", "picture")], ["{ël} pan"]),
+        enter("picture_name", [text("What is this?"), image("water", "Water", "picture")], ["{l'} eva", "eva"]),
     ])
     add("picture_blocks", "Name what you see", "Build the Piedmontese name of the picture from word blocks: ël gat = the cat; ël pan = the bread; ël pom = the apple. One extra block is not part of the name.", [
-        arrange("picture_blocks", [text("What is this?", "question"), image("cat", "A cat", "picture")], ["ël", "gat", "la"], [[0, 1]]),
-        arrange("picture_blocks", [text("What is this?", "question"), image("bread", "Bread", "picture")], ["ël", "pan", "la"], [[0, 1]]),
-        arrange("picture_blocks", [text("What is this?", "question"), image("apple", "An apple", "picture")], ["ël", "pom", "la"], [[0, 1]]),
+        arrange("picture_blocks", [text("What is this?"), image("cat", "A cat", "picture")], ["ël", "gat", "la"], [[0, 1]], hint="Include the article."),
+        arrange("picture_blocks", [text("What is this?"), image("bread", "Bread", "picture")], ["ël", "pan", "la"], [[0, 1]], hint="Include the article."),
+        arrange("picture_blocks", [text("What is this?"), image("apple", "An apple", "picture")], ["ël", "pom", "la"], [[0, 1]], hint="Include the article."),
     ])
     add("picture_flashcard", "Picture cards", "Look at the picture, read the word and its meaning; the pronunciation is optional. gat = cat; pan = bread; eva = water.", [
         picture_card("gat", "cat", "cat", "I l'hai un gat.", "I have a cat."),
@@ -532,7 +556,7 @@ def build_course_v11() -> dict:
         "originalCreatedAtUtc": STAMP, "modifiedAtUtc": RELEASE_STAMP,
         "learningLanguage": "Piedmontese", "interfaceLanguage": "English",
         "sourceLanguage": "English", "targetLanguage": "Piedmontese",
-        "title": "Temporary Demo: Piedmontese", "ttsLanguage": "pms-IT", "audioMode": "tts",
+        "title": "QQL Demo: Piedmontese (sorted by exercise type)", "ttsLanguage": "pms-IT", "audioMode": "tts",
         "authors": [{"name": "OpenAI Codex (AI-generated sample; not linguistically reviewed)", "roles": ["Author"]}],
         "license": "All rights reserved",
         "derivativeWorksPolicy": "forbidden",
@@ -547,13 +571,14 @@ def build_course_v11() -> dict:
         "startLevel": "Beginner", "targetLevel": "Beginner",
         "courseDescription": "TEMPORARY UNREVIEWED AI-GENERATED SAMPLE. English to Piedmontese, with one Lesson per current named Exercise type. The content is for testing and requires native-speaker review before language-teaching use. Basic spellings were checked against Claudio Panero's English-Piedmontese dictionary; examples and letter diagrams are newly authored. " + AUDIO_NOTE,
         "sourceLanguageTag": "en-GB", "targetLanguageTag": "pms-IT",
-        "textDirection": "ltr", "worldFlagId": "piedmontese", "temporarySample": True,
+        # Build 259 Revision 8: temporarySample is the Private course flag; a demo is for everyone.
+        "textDirection": "ltr", "worldFlagId": "piedmontese", "temporarySample": False,
         "lessons": lessons,
     }
     return course
 
 
-def story_lessons() -> list[dict]:
+def story_lessons(number: int) -> list[dict]:
     """Build 256 Revision 5: the Dialogue line preset has no v11 recipe and
     gets its Lesson here, a Story of three lines; it joins after conversion,
     so the converter fixture (build_course_v11) omits it. The Story cover
@@ -586,7 +611,7 @@ def story_lessons() -> list[dict]:
             "duel": {"id": f"{lid}_duel", "title": "Duel"},
         }
 
-    rid = f"{PREFIX}_l39_r01"
+    rid = f"{PREFIX}_l{number:02d}_r01"
     lines = [
         intro(rid, "Dialogue line", "At the market"),
         entry(rid, 1, "dialogue_line", story_line(
@@ -602,7 +627,7 @@ def story_lessons() -> list[dict]:
         "flow": story_flow([(c["id"], becomes_exercise(c)) for c in lines], title="Al mercà"),
     }
     return [
-        lesson(39, "Dialogue line", "At the market",
+        lesson(number, "Dialogue line", "At the market",
                "A Story: the narrator speaks English, Gioanin and Catlin-a speak Piedmontese. Read or listen to each line and continue; the scroll log keeps the dialogue. bondì = good morning; un pan = a loaf of bread; për piasì = please; grassie = thank you.",
                story),
     ]
@@ -610,7 +635,7 @@ def story_lessons() -> list[dict]:
 
 def build_course() -> dict:
     v11 = build_course_v11()
-    v11["lessons"] = [*v11["lessons"], *story_lessons()]
+    v11["lessons"] = [*v11["lessons"], *story_lessons(len(v11["lessons"]) + 1)]
     course = convert_course_v11_to_v12(v11)
     course["storyNarrator"] = {"name": "Narrator", "language": "source"}
     course["storyCharacters"] = [
@@ -636,7 +661,7 @@ def main() -> int:
         if not OUTPUT.is_file() or OUTPUT.read_text(encoding="utf-8") != rendered:
             print(f"FAIL: {OUTPUT.relative_to(ROOT)} differs from the authored generator")
             return 1
-        print("PASS: Piedmontese course is reproducible; 42 catalogue presets, 39 Lessons (Story cover, Sort into groups and Fill the slots have none), 117 examples")
+        print("PASS: Piedmontese course is reproducible; 44 catalogue presets, 41 Lessons (Story cover, Sort into groups and Fill the slots have none), 123 examples")
         return 0
     OUTPUT.write_text(rendered, encoding="utf-8", newline="\n")
     print(f"Wrote {OUTPUT.relative_to(ROOT)}: one Lesson per catalogue preset")

@@ -1,3 +1,4 @@
+import 'support/edge_case_fixture.dart';
 import 'support/korean_fixture.dart';
 import 'support/test_directories.dart';
 import 'package:flutter/material.dart';
@@ -23,6 +24,7 @@ void main() {
 
   setUp(() async {
     registerKoreanFixture();
+    registerEdgeCaseFixture();
     for (final asset in CourseService.courseAssets.values) {
       rootBundle.evict(asset);
     }
@@ -91,7 +93,7 @@ void main() {
     await _expectCourseTile(
       tester,
       const ValueKey('bundled-course-PMS'),
-      'Temporary Demo: Piedmontese',
+      'QQL Demo: Piedmontese (sorted by exercise type)',
       selected: false,
     );
     await tester.tap(find.byKey(const ValueKey('bundled-course-PMS')));
@@ -288,11 +290,11 @@ void main() {
           await _expectCourseTile(
             tester,
             const Key('current-course'),
-            selectCustom ? custom.title : 'Temporary Demo: Exercise Laboratory',
+            selectCustom ? custom.title : 'QQL Demo: Exercise Laboratory',
             selected: true,
           );
           for (final entry in {
-            'PMS': 'Temporary Demo: Piedmontese',
+            'PMS': 'QQL Demo: Piedmontese (sorted by exercise type)',
             'EN_EDGE': 'Temporary Demo: Edge Case Course',
             'custom:${otherCustom.courseId}': otherCustom.title,
           }.entries) {
@@ -309,14 +311,14 @@ void main() {
             await _expectCourseTile(
               tester,
               const ValueKey('bundled-course-IT'),
-              'Temporary Demo: Exercise Laboratory',
+              'QQL Demo: Exercise Laboratory',
               selected: false,
             );
           }
           await _expectCourseTile(
             tester,
             const ValueKey('recent-course-PMS'),
-            'Temporary Demo: Piedmontese',
+            'QQL Demo: Piedmontese (sorted by exercise type)',
             selected: false,
           );
           await _expectCourseTile(
@@ -430,7 +432,9 @@ Future<void> _pumpUntilWithIo(WidgetTester tester, Finder finder) async {
 }
 
 Future<void> _expectEveryBundledTile(WidgetTester tester) async {
-  expect(CourseService.bundledAssets, hasLength(4));
+  // IT, PMS, PMS_MIX (Build 259 Revision 6), EN_IT (Build 260 Revision 2),
+  // KO and EN_EDGE fixtures.
+  expect(CourseService.bundledAssets, hasLength(6));
   final settings = SettingsService();
   final selected = await settings.getLastSelectedCourseCode();
   final recent = (await settings.getRecentCourseRefs())

@@ -69,12 +69,24 @@ abstract final class ExerciseSearchRegistry {
       fields: [_prompt, _items, _hint],
     ),
     ExerciseTypeSearchDefinition(
+      presetId: 'one_word_fills_all',
+      fields: [_prompt, _items, _hint],
+    ),
+    ExerciseTypeSearchDefinition(
       presetId: 'icon_choice',
       fields: [_prompt, _items],
     ),
     ExerciseTypeSearchDefinition(
       presetId: 'script_recognition',
       fields: [_prompt, _items],
+    ),
+    ExerciseTypeSearchDefinition(
+      presetId: 'listening_choose_target',
+      fields: [_audio, _prompt, _items],
+    ),
+    ExerciseTypeSearchDefinition(
+      presetId: 'listening_choose_source',
+      fields: [_audio, _prompt, _items],
     ),
     ExerciseTypeSearchDefinition(
       presetId: 'listening_answer_target',
@@ -149,12 +161,8 @@ abstract final class ExerciseSearchRegistry {
       fields: [_prompt, _audio, _items],
     ),
     ExerciseTypeSearchDefinition(
-      presetId: 'gap_choice_inline',
-      fields: [_prompt, _audio, _items],
-    ),
-    ExerciseTypeSearchDefinition(
       presetId: 'complete_text',
-      fields: [_prompt, _missing],
+      fields: [_prompt, _missing, _hint],
     ),
     ExerciseTypeSearchDefinition(
       presetId: 'missing_letters',
@@ -166,7 +174,7 @@ abstract final class ExerciseSearchRegistry {
     ),
     ExerciseTypeSearchDefinition(
       presetId: 'sentence_order',
-      fields: [_prompt, _items, _orders],
+      fields: [_prompt, _items, _orders, _hint],
     ),
     ExerciseTypeSearchDefinition(
       presetId: 'sort_into_groups',

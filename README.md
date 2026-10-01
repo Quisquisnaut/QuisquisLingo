@@ -1,8 +1,56 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.58+258004 · Build 258, Revision 4 · Course Model v12 (`formatVersion: 12`).**
+**Current source version: 2.0.60+260007 · Build 260, Revision 7 · Course Model v12 (`formatVersion: 12`).**
 
-**QuisquisLingo 2.0.58 Beta — QQL 258 Page cards (Course Model v12)**
+**QuisquisLingo 2.0.60 Beta — QQL 260 Course languages (Course Model v12)**
+
+Build 260 lets New Course choose its languages from a list of 227 (or type
+one by hand), stores each language's tag, and shows the learner panel
+(its lines, and since Revision 1 its buttons and messages) in the
+Course's base language when QQL has it (English, Spanish, Italian,
+German, Portuguese, Dutch, French), naming languages in that language
+([plan](docs/260_LANGUAGES_PLAN.md), [change summary](docs/260_CHANGE_SUMMARY.md)).
+Revision 2 adds a bundled **QQL Demo: English from Italian**: one Lesson
+with a GuideBook, six Rounds of exercises mixed at random and two Stories.
+Revision 3 gives Pick the missing word an Instruction or context, makes the
+Piedmontese demo open every exercise in its preset's form again and keeps
+the Before you start card on each Lesson's first Round in the QQL Demos.
+Revision 4 titles every bundled Course "QQL Demo: …". Revision 5 shows
+each exercise's computed difficulty (0 read to 4 write) in the editor;
+Revision 6 adds 1 XP per level for each exercise answered correctly at the
+first attempt, on a Round's first completion; Revision 7 orders the two
+QQL Demo Courses from easier to harder.
+
+**QQL 259 Instructions and questions**
+
+Build 259 makes exercise prompts unambiguous
+([plan](docs/CONTEXT_AND_HINT_PLAN.md), [change summary](docs/259_CHANGE_SUMMARY.md)).
+Revision 0: an optional **Instruction or context**, written in the
+learners' language, takes the place of the standard instruction line in
+every exercise; a question or sentence is never optional; the form labels
+say which is which. Revision 1: Complete the text gets an Instruction or
+context and a hint, Put the sentences in order takes its lines once with
+extra lines and a hint, and a gap exercise without audio no longer shows
+a Play audio button. Revision 2: Listen and answer splits into **Listen and
+choose** (no question, an optional Instruction or context) and **Listen and
+answer** (a required question). Revision 3 applies the owner's review:
+Type what you hear accepts its Audio text, clearer listening, picture and
+gap lines, Complete the text with ___ gaps and alternative answers, and the
+feedback scrolled into view. Revision 4 applies the second review: gaps
+written `_word_`, Pick the words for the gaps with one word per gap, the
+new One word fills all, required pictures and clearer demo hints.
+Revision 5 applies the third review: Match pictures to words needs two
+words and has no Exercise image, a Story shows its step count only above
+its title block and no line under a Dialogue line, and the Edge Case Course
+leaves the bundle for `demo_courses/`, as a Course to import. Revision 6
+adds **QQL Demo: Piedmontese** (the Piedmontese exercises mixed at random
+in 20 Rounds, then the Story) and renames the other demo Demo: Piedmontese
+(sorted by exercise type). Revision 7 names the language of the answer in
+Type and Build the translation, rewords the instruction lines that repeated
+their exercise title, and gives QQL Demo: Piedmontese its GuideBooks.
+Revision 8 makes the course flag shown as Temporary Sample a **Private
+course** (visible only to its Maintainer and Team; set in Course Info
+Editor) and fixes three Exercise Laboratory examples.
 
 Build 258 adds textbook-like **Page** cards: formatted blocks (headings,
 paragraphs with bold and italic, quotes, lists, pictures, audio and video
@@ -385,7 +433,7 @@ The MPL-2.0 covers the QuisquisLingo software source. Courses, the Image Bank an
 
 ## Beta lifecycle
 
-Version 2.0.58, Build 258, Revision 4 is a time-limited Beta with an expiry of **2026-10-30 23:59:59 local time** (30 days after the 30 September 2026 release date). In its last seven days it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
+Version 2.0.60, Build 260, Revision 7 is a time-limited Beta with an expiry of **2026-10-31 23:59:59 local time** (30 days after the 1 October 2026 release date). In its last seven days it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
 
 ## Core logic
 
@@ -418,7 +466,7 @@ On Android, the platform's own Auto Backup is deliberately left enabled, because
 - Local daily quest
 - XP
 - Local TTS service with generated-file caching
-- Three bundled sample courses, titled Temporary Demo: Exercise Laboratory, Edge Case Course and Piedmontese
+- Four bundled sample courses, titled QQL Demo: Exercise Laboratory, QQL Demo: Piedmontese (sorted by exercise type), QQL Demo: Piedmontese and QQL Demo: English from Italian; the Edge Case Course is in `demo_courses/`, to import
 - Local authoring Teams with stable profile-ID membership and one or more Team Leaders
 - No account
 - Local offline leaderboard for the previous completed week, based on each participating learner’s XP across all courses

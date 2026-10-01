@@ -71,6 +71,25 @@ void main() {
     expect(on.toJson().containsKey('allowPageSharing'), isFalse);
   });
 
+  // Build 259 Revision 8: Private course is the temporarySample flag.
+  test('turns Private course on and off', () async {
+    final original = _course();
+    expect(original.temporarySample, isFalse);
+    final private = (await CourseInfoUpdateService().apply(
+      original,
+      _change(original, privateCourse: true),
+      _aliceId,
+    )).course;
+    expect(private.temporarySample, isTrue);
+    expect(private.toJson()['temporarySample'], isTrue);
+    final open = (await CourseInfoUpdateService().apply(
+      private,
+      _change(private, privateCourse: false),
+      _aliceId,
+    )).course;
+    expect(open.temporarySample, isFalse);
+  });
+
   // Build 255 Revision 6: the Course Info Editor sets and removes the cover.
   test('stores and clears the cover', () async {
     final original = _course();
@@ -213,6 +232,7 @@ CourseInfoChange _change(
   String? maintainerProfileId,
   String? coverImage,
   bool? allowPageSharing,
+  bool? privateCourse,
 }) => (
   title: title ?? course.title,
   authors: course.authors,
@@ -221,6 +241,10 @@ CourseInfoChange _change(
   license: course.license,
   derivativePolicy: course.derivativeWorksPolicy,
   allowPageSharing: allowPageSharing ?? course.allowPageSharing,
+  privateCourse: privateCourse ?? course.temporarySample,
+  sourceLanguageTag: course.sourceLanguageTag,
+  targetLanguageTag: course.targetLanguageTag,
+  targetLanguageNameForLearners: course.targetLanguageNameForLearners,
   variant: course.languageVariant,
   startLevel: course.startLevel,
   targetLevel: course.targetLevel,

@@ -33,9 +33,9 @@ void main() {
   });
 
   test('current release metadata uses Build and revision terminology', () {
-    expect(AppMetadata.technicalVersion, '2.0.58+258004');
-    expect(AppMetadata.build, '258');
-    expect(AppMetadata.displayLabel, 'Version 2.0.58\nBuild 258, Revision 4');
+    expect(AppMetadata.technicalVersion, '2.0.60+260007');
+    expect(AppMetadata.build, '260');
+    expect(AppMetadata.displayLabel, 'Version 2.0.60\nBuild 260, Revision 7');
   });
 
   testWidgets(
@@ -149,10 +149,12 @@ void main() {
       expect(find.textContaining('Replace sample material'), findsNothing);
       await tester.tap(find.text('Course Info'));
       await tester.pumpAndSettle();
-      expect(find.text('Temporary Sample'), findsOneWidget);
+      // Build 259 Revision 8: the flag is shown as Private course, and an
+      // official Course is never private, so its Course Info has no box.
+      expect(find.text('Private course'), findsNothing);
       expect(
         find.textContaining('Replace sample material with reviewed content'),
-        findsOneWidget,
+        findsNothing,
       );
     },
   );

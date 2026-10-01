@@ -1322,6 +1322,8 @@ class CourseAuditService {
       ' A Before you start card needs its note (an intro text element).',
     'icon_choice' =>
       ' Select the image needs one icon or image key per answer in Icons / image keys, in the same order as the answers.',
+    'listening_choose_target' ||
+    'listening_choose_source' ||
     'listening_answer_target' ||
     'listening_answer_source' ||
     'listening_image_choice' ||
@@ -1329,12 +1331,14 @@ class CourseAuditService {
     'listening_spelling' ||
     'missing_word' ||
     'audio_match' => ' ${_presetNameOf(presetId)} needs its spoken text.',
+    'one_word_fills_all' =>
+      ' One word fills all needs two or more ___ gaps in its sentences.',
     'picture_choice' ||
     'picture_name' ||
     'picture_blocks' ||
     'picture_flashcard' => ' ${_presetNameOf(presetId)} needs its picture.',
     'picture_word_match' =>
-      ' Match picture to word needs a picture on every left item.',
+      ' Match pictures to words needs a picture on every left item.',
     'sort_into_groups' =>
       ' Sort into groups needs groups (categories): one target per group, named by the text before it, holding its words.',
     'fill_the_slots' =>
@@ -1352,7 +1356,9 @@ class CourseAuditService {
   /// The friendly English name of a learner kind, for messages and lists.
   static String kindLabel(LearnerExerciseKind kind) => switch (kind) {
     LearnerExerciseKind.select => 'a plain Choose',
+    LearnerExerciseKind.selectPicture => 'What is in the picture',
     LearnerExerciseKind.selectComplete => 'Pick the missing word',
+    LearnerExerciseKind.selectCompleteAll => 'One word fills all',
     LearnerExerciseKind.selectImage => 'Select the image',
     LearnerExerciseKind.selectCharacter => 'Recognize characters',
     LearnerExerciseKind.selectListen => 'What do you hear',
@@ -1609,6 +1615,8 @@ class CourseAuditService {
                 'Read and answer needs a text to read containing words, or dialogue lines.',
               );
             }
+          case 'listening_choose_target':
+          case 'listening_choose_source':
           case 'listening_answer_target':
           case 'listening_answer_source':
           case 'listening_image_choice':
@@ -1681,7 +1689,7 @@ class CourseAuditService {
             if (f.leftItems.any((item) => item.image.isEmpty)) {
               add(
                 AuditCode.presetCanonicalMismatch,
-                'Match picture to word needs a picture on every left item.',
+                'Match pictures to words needs a picture on every left item.',
               );
             }
           case 'super_match':
@@ -1715,7 +1723,8 @@ class CourseAuditService {
               );
             }
             if (imageItems) {
-              if (f.primaryText.trim().isEmpty ||
+              // The character to find is named by the question (Build 259).
+              if (f.questionText.trim().isEmpty ||
                   f.characterImages.isNotEmpty ||
                   ex.items.any(
                     (item) =>
@@ -1724,7 +1733,7 @@ class CourseAuditService {
                   )) {
                 add(
                   AuditCode.presetCanonicalMismatch,
-                  'Text to image requires a nonempty text prompt and at least two image-only options.',
+                  'Text to image requires a question or sentence and at least two image-only options.',
                 );
               }
             } else if (f.characterImages.isEmpty ||
@@ -1900,7 +1909,10 @@ class CourseAuditService {
         // numeric, pattern or manual evaluation keeps its answer elsewhere
         // (Build 256 Revision 6: such an Input is valid, just not playable
         // yet).
+        // A literal answer counts (Build 259 Revision 3): Type what you
+        // hear accepts its Audio text without another line.
         if (answers.isEmpty &&
+            f.literalAnswers.isEmpty &&
             const {
               EvaluationMode.exactText,
               EvaluationMode.acceptedTexts,

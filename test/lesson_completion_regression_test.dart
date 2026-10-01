@@ -36,8 +36,10 @@ void main() {
 
     final progress = ProgressService();
     expect(await progress.getCompletedLessons(courseId: courseId), isEmpty);
-    expect(await progress.getXp(courseCode: courseCode), 35);
-    expect(await progress.getWeeklyXp(), 35);
+    // 5 for the answer, 2 Difficulty bonus (a Choose is level 2; Build 260
+    // Revision 6), 5 perfect, 25 first Laurel.
+    expect(await progress.getXp(courseCode: courseCode), 37);
+    expect(await progress.getWeeklyXp(), 37);
     expect(find.text('Lesson completed: +25 XP'), findsNothing);
   });
 
@@ -56,16 +58,18 @@ void main() {
       );
 
       expect(find.text('Correct answers: 1/1 — 5 XP'), findsOneWidget);
+      // Build 260 Revision 6: a Choose is level 2.
+      expect(find.text('Difficulty bonus: +2 XP'), findsOneWidget);
       expect(find.text('Perfect bonus: +5 XP'), findsOneWidget);
       expect(find.text('First Laurel: +25 XP'), findsOneWidget);
       expect(find.text('Lesson completed: +25 XP'), findsOneWidget);
-      expect(find.text('Total: 60 XP'), findsOneWidget);
+      expect(find.text('Total: 62 XP'), findsOneWidget);
 
       expect(await progress.getCompletedLessons(courseId: courseId), {
         fixture.lesson.lessonId,
       });
-      expect(await progress.getXp(courseCode: courseCode), 60);
-      expect(await progress.getWeeklyXp(), 60);
+      expect(await progress.getXp(courseCode: courseCode), 62);
+      expect(await progress.getWeeklyXp(), 62);
       await _tapAndPump(tester, 'Continue');
       await _pumpUntilText(tester, '2/2 rounds completed');
       expect(find.text('Lesson completed: +25 XP'), findsNothing);
@@ -88,7 +92,8 @@ void main() {
       fixture.firstRound.id,
     });
     expect(await progress.getCompletedLessons(courseId: courseId), isEmpty);
-    expect(await progress.getXp(courseCode: courseCode), 35);
+    // With the Difficulty bonus of a level-2 Choose (Build 260 Revision 6).
+    expect(await progress.getXp(courseCode: courseCode), 37);
     expect(find.text('Lesson completed: +25 XP'), findsNothing);
   });
 
@@ -107,11 +112,11 @@ void main() {
         fixture.finalRound,
         closeCompletionDialog: false,
       );
-      expect(find.text('Total: 60 XP'), findsOneWidget);
+      expect(find.text('Total: 62 XP'), findsOneWidget);
       await _tapAndPump(tester, 'Continue');
       await _pumpUntilText(tester, 'Weekly goal reached!');
 
-      expect(await progress.getWeeklyXp(), 60);
+      expect(await progress.getWeeklyXp(), 62);
       expect(await progress.isWeeklyGoalCelebrated(), isTrue);
       await _tapAndPump(tester, 'Continue');
       await _pumpUntilText(tester, '2/2 rounds completed');

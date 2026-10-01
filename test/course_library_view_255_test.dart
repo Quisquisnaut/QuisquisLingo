@@ -11,6 +11,7 @@ import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'support/course_library_fixtures.dart';
+import 'support/edge_case_fixture.dart';
 import 'support/pump_file_io.dart';
 
 const _alice = '11111111-1111-4111-8111-111111111111';
@@ -35,6 +36,7 @@ void main() {
   final clean = draftStatusCourse(courseId: 'user_clean', title: 'Clean');
 
   setUp(() async {
+    registerEdgeCaseFixture();
     SharedPreferences.setMockInitialValues({'sound_effects_enabled': false});
     final profiles = ProfileService();
     for (final (id, name) in [(_alice, 'Alice'), (_bob, 'Bob')]) {
@@ -227,11 +229,12 @@ void main() {
         await tester.tap(toggle(0));
         await tester.pump();
       }
-      // The Edge Case demo has Draft content, so it is unavailable.
-      expect(count(tester, 0), ' · 2 of 3 shown');
+      // The Edge Case demo has Draft content, so it is unavailable (four
+      // bundled demos and the fixture since Build 260 Revision 2).
+      expect(count(tester, 0), ' · 4 of 5 shown');
       await tester.tap(find.byKey(const Key('show-unavailable-courses')));
       await tester.pump();
-      expect(count(tester, 0), ' · 3 of 3 shown');
+      expect(count(tester, 0), ' · 5 of 5 shown');
       expect(
         find.byKey(
           const ValueKey(

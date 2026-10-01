@@ -40,7 +40,7 @@
   "derivativeWorksPolicy": "allowed",
   "courseDescription": "A test-only Course beside the Exercise Laboratory: Speak, Ink and Submit exercises, a Story that ends on a Speak step and a Story whose flow branches. Nothing in it plays in this version; the Audit reports each piece as information or a warning, and every service keeps it unchanged.",
   "textDirection": "ltr",
-  "temporarySample": true,
+  "temporarySample": false,
   "flagCode": "IT",
   "createDuels": false,
   "mediaAttributions": [
@@ -655,5 +655,5 @@
       "voice": "male"
     }
   ],
-  "officialChecksum": "a86d0e32f479c9f7070ac9b6f617fba479c38ef3785cc3d702cedca319ad129a"
+  "officialChecksum": "51973905ffabfeed9f3a9529b59713ead11e3552aa4999c77917feb82b761863"
 }

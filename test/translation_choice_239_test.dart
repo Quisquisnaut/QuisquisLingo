@@ -576,7 +576,7 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        expect(workflow.field('Text to translate'), findsOneWidget);
+        expect(workflow.field('Sentence'), findsOneWidget);
         expect(workflow.field('Answer options'), findsOneWidget);
         expect(workflow.field('Correct answer number'), findsOneWidget);
         expect(find.text('Exercise image'), findsOneWidget);
@@ -597,10 +597,7 @@ void main() {
         expect(find.text('Source language'), findsNothing);
         expect(find.text('Target language'), findsNothing);
 
-        await tester.enterText(
-          workflow.field('Text to translate'),
-          'Some text',
-        );
+        await tester.enterText(workflow.field('Sentence'), 'Some text');
         await tester.enterText(
           workflow.field('Answer options'),
           'One\nTwo\nThree',
@@ -640,7 +637,7 @@ void main() {
           ),
         );
         await tester.pumpAndSettle();
-        await tester.enterText(workflow.field('Text to translate'), 'Some');
+        await tester.enterText(workflow.field('Sentence'), 'Some');
         await tester.enterText(
           workflow.field('Answer options'),
           entry.value.$1,
@@ -668,7 +665,7 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      await tester.enterText(workflow.field('Text to translate'), 'Some');
+      await tester.enterText(workflow.field('Sentence'), 'Some');
       await tester.enterText(workflow.field('Answer options'), 'A\nB\nC\nD\nE');
       await tester.enterText(workflow.field('Correct answer number'), '1');
       tester.testTextInput.hide();
@@ -932,7 +929,7 @@ void main() {
         await tester.tap(find.byKey(const Key('new-exercise')));
         await tester.pumpAndSettle();
         expect(find.text('Pick the translation (to target)'), findsWidgets);
-        expect(workflow.field('Text to translate'), findsOneWidget);
+        expect(workflow.field('Sentence'), findsOneWidget);
         final correct = tester.widget<TextField>(
           workflow.field('Correct answer number'),
         );

@@ -25,7 +25,7 @@
   "sourceLanguageTag": "en-GB",
   "targetLanguage": "Italian",
   "targetLanguageTag": "it-IT",
-  "title": "Temporary Demo: Exercise Laboratory",
+  "title": "QQL Demo: Exercise Laboratory",
   "ttsLanguage": "it-IT",
   "audioMode": "tts",
   "authors": [
@@ -38,9 +38,9 @@
   ],
   "license": "All rights reserved",
   "derivativeWorksPolicy": "allowed",
-  "courseDescription": "An English-to-Italian laboratory for trying every current Exercise type and its meaningful authoring options. Five Lessons group Select, Input, Arrange, Match and Presentation; a sixth Lesson is a Story and a seventh holds Assign (Sort into groups, Fill the slots). Inspect or Fork the Course in Course Studio to study how the exercises are authored. Enable Audio Exercises and Text-to-speech to include all listening and pronunciation examples; ordinary lesson progression remains in effect.",
+  "courseDescription": "An English-to-Italian laboratory for trying every current Exercise type and its meaningful authoring options. Five Lessons group Select, Input, Arrange, Match and Presentation; a sixth Lesson is a Story, a seventh holds Assign (Sort into groups, Fill the slots) and an eighth shows Pages. Inspect or Fork the Course in Course Studio to study how the exercises are authored. Enable Audio Exercises and Text-to-speech to include all listening and pronunciation examples; ordinary lesson progression remains in effect.",
   "textDirection": "ltr",
-  "temporarySample": true,
+  "temporarySample": false,
   "flagCode": "IT",
   "createDuels": false,
   "mediaAttributions": [
@@ -103,7 +103,7 @@
                 "updatedAt": "2026-09-25T00:00:00.000Z",
                 "prompt": [
                   {
-                    "role": "primary",
+                    "role": "question",
                     "type": "text",
                     "text": "How do you say ‘thank you’ in Italian?"
                   }
@@ -153,7 +153,7 @@
                 "updatedAt": "2026-09-25T00:00:00.000Z",
                 "prompt": [
                   {
-                    "role": "primary",
+                    "role": "question",
                     "type": "text",
                     "text": "How do you say ‘the apple’ in Italian?"
                   },
@@ -219,7 +219,7 @@
                 "updatedAt": "2026-09-25T00:00:00.000Z",
                 "prompt": [
                   {
-                    "role": "primary",
+                    "role": "question",
                     "type": "text",
                     "text": "Which words are Italian colours? Select all correct answers."
                   }
@@ -290,7 +290,7 @@
                 "updatedAt": "2026-09-25T00:00:00.000Z",
                 "prompt": [
                   {
-                    "role": "primary",
+                    "role": "question",
                     "type": "text",
                     "text": "Which words name an animal? Select all correct answers."
                   }
@@ -361,7 +361,7 @@
                 "updatedAt": "2026-09-25T00:00:00.000Z",
                 "prompt": [
                   {
-                    "role": "primary",
+                    "role": "question",
                     "type": "text",
                     "text": "Which word means ‘yes’? Select the correct answer, then press Check."
                   }
@@ -417,7 +417,7 @@
           "id": "qql_lab254_round_select_gaps",
           "publicationState": "published",
           "updatedAt": "2026-09-25T00:00:00.000Z",
-          "title": "Fixed sentences and reusable choices",
+          "title": "One missing word, one word for all gaps",
           "visualType": "generic",
           "content": [
             {
@@ -426,7 +426,7 @@
               "kind": "text",
               "required": false,
               "role": "lesson_intro",
-              "text": "In Fill in the blank, choose one missing expression. In the fixed-sentence exercises, fill each gap; an option can be used again. You can remove, move and swap answers before Check."
+              "text": "In Pick the missing word, choose the one missing expression. In One word fills all, one word fits every gap: choose it once and it appears in each gap."
             },
             {
               "id": "qql_lab254_select_gap_preset",
@@ -490,263 +490,97 @@
               }
             },
             {
-              "id": "qql_lab254_select_gap_one",
+              "id": "qql_lab254_select_gap_all_article",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "gap_choice_inline",
+              "editorTemplate": "one_word_fills_all",
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
                 "prompt": [
                   {
-                    "role": "primary",
+                    "role": "question",
                     "type": "text",
-                    "text": "Complete the Italian greeting."
+                    "text": "___ gatto dorme. ___ cane mangia."
                   }
                 ],
                 "interaction": {
                   "kind": "select",
+                  "minSelections": 1,
+                  "maxSelections": 1,
                   "items": [
                     {
-                      "id": "qql_lab254_select_gap_one_item_0",
+                      "id": "qql_lab254_select_gap_all_article_item_0",
                       "content": [
                         {
                           "role": "primary",
                           "type": "text",
-                          "text": "giorno"
+                          "text": "Il"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_lab254_select_gap_all_article_item_1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "La"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_lab254_select_gap_all_article_item_2",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "Lo"
                         }
                       ]
                     }
-                  ],
-                  "layout": [
-                    {
-                      "role": "primary",
-                      "type": "text",
-                      "text": "Buon"
-                    },
-                    {
-                      "role": "primary",
-                      "type": "gap",
-                      "text": "gap_1"
-                    },
-                    {
-                      "role": "primary",
-                      "type": "text",
-                      "text": "!"
-                    }
-                  ],
-                  "minSelections": 1,
-                  "maxSelections": 1
+                  ]
                 },
                 "evaluation": {
                   "kind": "selected_items",
-                  "gapAssignments": {
-                    "gap_1": "qql_lab254_select_gap_one_item_0"
-                  }
+                  "correctItemIds": [
+                    "qql_lab254_select_gap_all_article_item_0"
+                  ]
                 }
               }
             },
             {
-              "id": "qql_lab254_select_gap_distinct",
+              "id": "qql_lab254_select_gap_all_verb",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "gap_choice_inline",
+              "editorTemplate": "one_word_fills_all",
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
                 "prompt": [
                   {
-                    "role": "primary",
+                    "role": "question",
                     "type": "text",
-                    "text": "Complete the sentence about Anna."
+                    "text": "Anna ___ un caffè. Luca ___ un tè."
                   }
                 ],
                 "interaction": {
                   "kind": "select",
-                  "items": [
-                    {
-                      "id": "qql_lab254_select_gap_distinct_item_0",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "è"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_lab254_select_gap_distinct_item_1",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "casa"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_lab254_select_gap_distinct_item_2",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "siamo"
-                        }
-                      ]
-                    }
-                  ],
-                  "layout": [
-                    {
-                      "role": "primary",
-                      "type": "text",
-                      "text": "Anna"
-                    },
-                    {
-                      "role": "primary",
-                      "type": "gap",
-                      "text": "gap_1"
-                    },
-                    {
-                      "role": "primary",
-                      "type": "text",
-                      "text": "a"
-                    },
-                    {
-                      "role": "primary",
-                      "type": "gap",
-                      "text": "gap_2"
-                    },
-                    {
-                      "role": "primary",
-                      "type": "text",
-                      "text": "."
-                    }
-                  ],
                   "minSelections": 1,
-                  "maxSelections": 1
-                },
-                "evaluation": {
-                  "kind": "selected_items",
-                  "gapAssignments": {
-                    "gap_1": "qql_lab254_select_gap_distinct_item_0",
-                    "gap_2": "qql_lab254_select_gap_distinct_item_1"
-                  }
-                }
-              }
-            },
-            {
-              "id": "qql_lab254_select_gap_reuse",
-              "publicationState": "published",
-              "kind": "exercise",
-              "required": true,
-              "editorTemplate": "gap_choice_inline",
-              "exercise": {
-                "updatedAt": "2026-09-25T00:00:00.000Z",
-                "prompt": [
-                  {
-                    "role": "primary",
-                    "type": "text",
-                    "text": "Complete both sentences. The same word can be used twice."
-                  }
-                ],
-                "interaction": {
-                  "kind": "select",
+                  "maxSelections": 1,
                   "items": [
                     {
-                      "id": "qql_lab254_select_gap_reuse_item_0",
+                      "id": "qql_lab254_select_gap_all_verb_item_0",
                       "content": [
                         {
                           "role": "primary",
                           "type": "text",
-                          "text": "è"
+                          "text": "beve"
                         }
                       ]
                     },
                     {
-                      "id": "qql_lab254_select_gap_reuse_item_1",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "sono"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_lab254_select_gap_reuse_item_2",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "siamo"
-                        }
-                      ]
-                    }
-                  ],
-                  "layout": [
-                    {
-                      "role": "primary",
-                      "type": "text",
-                      "text": "Luca"
-                    },
-                    {
-                      "role": "primary",
-                      "type": "gap",
-                      "text": "gap_1"
-                    },
-                    {
-                      "role": "primary",
-                      "type": "text",
-                      "text": "italiano. Anna"
-                    },
-                    {
-                      "role": "primary",
-                      "type": "gap",
-                      "text": "gap_2"
-                    },
-                    {
-                      "role": "primary",
-                      "type": "text",
-                      "text": "italiana."
-                    }
-                  ],
-                  "minSelections": 1,
-                  "maxSelections": 1
-                },
-                "evaluation": {
-                  "kind": "selected_items",
-                  "gapAssignments": {
-                    "gap_1": "qql_lab254_select_gap_reuse_item_0",
-                    "gap_2": "qql_lab254_select_gap_reuse_item_0"
-                  }
-                }
-              }
-            },
-            {
-              "id": "qql_lab254_select_gap_audio",
-              "publicationState": "published",
-              "kind": "exercise",
-              "required": true,
-              "editorTemplate": "gap_choice_inline",
-              "exercise": {
-                "updatedAt": "2026-09-25T00:00:00.000Z",
-                "prompt": [
-                  {
-                    "role": "primary",
-                    "type": "text",
-                    "text": "Listen and complete the sentence."
-                  },
-                  {
-                    "role": "primary",
-                    "type": "audio",
-                    "text": "Io bevo acqua."
-                  }
-                ],
-                "interaction": {
-                  "kind": "select",
-                  "items": [
-                    {
-                      "id": "qql_lab254_select_gap_audio_item_0",
+                      "id": "qql_lab254_select_gap_all_verb_item_1",
                       "content": [
                         {
                           "role": "primary",
@@ -756,58 +590,24 @@
                       ]
                     },
                     {
-                      "id": "qql_lab254_select_gap_audio_item_1",
+                      "id": "qql_lab254_select_gap_all_verb_item_2",
                       "content": [
                         {
                           "role": "primary",
                           "type": "text",
-                          "text": "acqua"
-                        }
-                      ]
-                    },
-                    {
-                      "id": "qql_lab254_select_gap_audio_item_2",
-                      "content": [
-                        {
-                          "role": "primary",
-                          "type": "text",
-                          "text": "mangio"
+                          "text": "bevono"
                         }
                       ]
                     }
-                  ],
-                  "layout": [
-                    {
-                      "role": "primary",
-                      "type": "text",
-                      "text": "Io"
-                    },
-                    {
-                      "role": "primary",
-                      "type": "gap",
-                      "text": "gap_1"
-                    },
-                    {
-                      "role": "primary",
-                      "type": "gap",
-                      "text": "gap_2"
-                    },
-                    {
-                      "role": "primary",
-                      "type": "text",
-                      "text": "."
-                    }
-                  ],
-                  "minSelections": 1,
-                  "maxSelections": 1
+                  ]
                 },
                 "evaluation": {
                   "kind": "selected_items",
-                  "gapAssignments": {
-                    "gap_1": "qql_lab254_select_gap_audio_item_0",
-                    "gap_2": "qql_lab254_select_gap_audio_item_1"
-                  }
-                }
+                  "correctItemIds": [
+                    "qql_lab254_select_gap_all_verb_item_0"
+                  ]
+                },
+                "hint": "Both subjects are one person."
               }
             }
           ]
@@ -1125,7 +925,7 @@
                 "updatedAt": "2026-09-25T00:00:00.000Z",
                 "prompt": [
                   {
-                    "role": "primary",
+                    "role": "question",
                     "type": "text",
                     "text": "Select the image of È (E with a grave accent)."
                   }
@@ -1542,7 +1342,7 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "listening_choice",
+              "editorTemplate": "listening_choose_target",
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
                 "prompt": [
@@ -1552,7 +1352,7 @@
                     "text": "Buongiorno."
                   },
                   {
-                    "role": "question",
+                    "role": "primary",
                     "type": "text",
                     "text": "Choose the greeting you hear."
                   }
@@ -1971,7 +1771,7 @@
               "kind": "text",
               "required": false,
               "role": "lesson_intro",
-              "text": "These Select exercises answer in the source language or with pictures: Choose the answer (to source), True or false, Listen and answer (to source), What is in the picture and Listen and pick the image."
+              "text": "These Select exercises answer in the source language or with pictures: Choose the answer (to source), True or false, Listen and choose (to source), Listen and answer (to source), What is in the picture and Listen and pick the image."
             },
             {
               "id": "qql_lab254_choice_source_meaning",
@@ -2215,7 +2015,7 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "listening_answer_source",
+              "editorTemplate": "listening_choose_source",
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
                 "prompt": [
@@ -2225,10 +2025,9 @@
                     "text": "Grazie mille!"
                   },
                   {
-                    "role": "question",
+                    "role": "primary",
                     "type": "text",
-                    "text": "What did you hear?",
-                    "language": "source"
+                    "text": "What did you hear?"
                   }
                 ],
                 "interaction": {
@@ -2280,6 +2079,75 @@
               }
             },
             {
+              "id": "qql_lab254_listening_source_question",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "editorTemplate": "listening_answer_source",
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "prompt": [
+                  {
+                    "role": "passage",
+                    "type": "audio",
+                    "text": "Il treno per Roma parte alle nove."
+                  },
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "When does the train leave?",
+                    "language": "source"
+                  }
+                ],
+                "interaction": {
+                  "kind": "select",
+                  "minSelections": 1,
+                  "maxSelections": 1,
+                  "items": [
+                    {
+                      "id": "qql_lab254_listening_source_question_item_0",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "At nine",
+                          "language": "source"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_lab254_listening_source_question_item_1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "At ten",
+                          "language": "source"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_lab254_listening_source_question_item_2",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "At noon",
+                          "language": "source"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "evaluation": {
+                  "kind": "selected_items",
+                  "correctItemIds": [
+                    "qql_lab254_listening_source_question_item_0"
+                  ]
+                }
+              }
+            },
+            {
               "id": "qql_lab254_picture_choice",
               "publicationState": "published",
               "kind": "exercise",
@@ -2289,7 +2157,7 @@
                 "updatedAt": "2026-09-25T00:00:00.000Z",
                 "prompt": [
                   {
-                    "role": "question",
+                    "role": "primary",
                     "type": "text",
                     "text": "What is this?"
                   },
@@ -3002,7 +2870,7 @@
                     "accents": "preserve"
                   }
                 },
-                "hint": "Both accepted animals begin with the same letter."
+                "hint": "One barks; you can ride the other."
               }
             },
             {
@@ -3017,7 +2885,7 @@
                   {
                     "role": "primary",
                     "type": "text",
-                    "text": "Il mio amico francese si chiama ___."
+                    "text": "Il David di Michelangelo è a ___."
                   }
                 ],
                 "interaction": {
@@ -3027,8 +2895,7 @@
                 "evaluation": {
                   "kind": "text_match",
                   "acceptedAnswers": [
-                    "Émile",
-                    "Étienne"
+                    "Firenze"
                   ],
                   "normalization": {
                     "case": "ignore",
@@ -3037,7 +2904,7 @@
                     "accents": "preserve"
                   }
                 },
-                "hint": "Two traditional French male names are accepted."
+                "hint": "The capital of Tuscany."
               }
             }
           ]
@@ -3078,9 +2945,7 @@
                 },
                 "evaluation": {
                   "kind": "text_match",
-                  "acceptedAnswers": [
-                    "grazie"
-                  ],
+                  "acceptedAnswers": [],
                   "normalization": {
                     "case": "ignore",
                     "punctuation": "ignore",
@@ -3116,9 +2981,7 @@
                 },
                 "evaluation": {
                   "kind": "text_match",
-                  "acceptedAnswers": [
-                    "il treno parte alle nove"
-                  ],
+                  "acceptedAnswers": [],
                   "normalization": {
                     "case": "ignore",
                     "punctuation": "ignore",
@@ -3140,12 +3003,12 @@
                   {
                     "role": "primary",
                     "type": "text",
-                    "text": "Type the short statement about a feeling."
+                    "text": "Anna tells you when she arrives."
                   },
                   {
                     "role": "primary",
                     "type": "audio",
-                    "text": "Sono felice."
+                    "text": "Arrivo alle otto."
                   }
                 ],
                 "interaction": {
@@ -3155,8 +3018,7 @@
                 "evaluation": {
                   "kind": "text_match",
                   "acceptedAnswers": [
-                    "sono felice",
-                    "io sono felice"
+                    "arrivo alle 8"
                   ],
                   "normalization": {
                     "case": "ignore",
@@ -3350,6 +3212,11 @@
                 "updatedAt": "2026-09-25T00:00:00.000Z",
                 "prompt": [
                   {
+                    "role": "clue",
+                    "type": "text",
+                    "text": "Anna's morning before work."
+                  },
+                  {
                     "role": "primary",
                     "type": "text",
                     "text": "Anna beve un caffè al bar. Poi prende il treno."
@@ -3369,6 +3236,7 @@
                     "accents": "preserve"
                   }
                 },
+                "hint": "A drink, then a way to travel.",
                 "missingWords": [
                   "caffè",
                   "treno"
@@ -3460,7 +3328,7 @@
                 "updatedAt": "2026-09-25T00:00:00.000Z",
                 "prompt": [
                   {
-                    "role": "question",
+                    "role": "primary",
                     "type": "text",
                     "text": "What is this?"
                   },
@@ -3952,7 +3820,7 @@
                 "updatedAt": "2026-09-25T00:00:00.000Z",
                 "prompt": [
                   {
-                    "role": "question",
+                    "role": "primary",
                     "type": "text",
                     "text": "What is this?"
                   },
@@ -4009,7 +3877,8 @@
                       ]
                     }
                   ]
-                }
+                },
+                "hint": "Include the article."
               }
             }
           ]
@@ -4018,7 +3887,7 @@
           "id": "qql_lab254_round_arrange_gaps",
           "publicationState": "published",
           "updatedAt": "2026-09-25T00:00:00.000Z",
-          "title": "Fixed sentences and consumed blocks",
+          "title": "Pick the words for the gaps",
           "visualType": "generic",
           "content": [
             {
@@ -4027,7 +3896,7 @@
               "kind": "text",
               "required": false,
               "role": "lesson_intro",
-              "text": "Fill each gap using a separate block. Unlike Select, placing a block removes that occurrence from the available bank. Duplicate words need two blocks. Gap contents can be removed, moved or swapped."
+              "text": "Tap a word for each gap: each word fills one gap and leaves the bank. A word needed twice is offered twice. Gap contents can be removed, moved or swapped."
             },
             {
               "id": "qql_lab254_arrange_gap_one",
@@ -4054,6 +3923,16 @@
                           "role": "primary",
                           "type": "text",
                           "text": "dorme"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_lab254_arrange_gap_one_item_1",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "dormono"
                         }
                       ]
                     }
@@ -5323,7 +5202,7 @@
                   {
                     "role": "clue",
                     "type": "text",
-                    "text": "Put the story in order."
+                    "text": "Anna stops at the bar for a coffee."
                   }
                 ],
                 "interaction": {
@@ -5388,7 +5267,7 @@
                   {
                     "role": "clue",
                     "type": "text",
-                    "text": "Put the dialogue in order."
+                    "text": "At the bar: a customer orders a coffee."
                   }
                 ],
                 "interaction": {
@@ -5433,6 +5312,16 @@
                           "text": "Ecco a lei."
                         }
                       ]
+                    },
+                    {
+                      "id": "qql_lab254_sentence_order_dialogue_item_4",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "Il treno parte alle nove."
+                        }
+                      ]
                     }
                   ]
                 },
@@ -5449,7 +5338,8 @@
                       ]
                     }
                   ]
-                }
+                },
+                "hint": "The barista offers sugar before serving."
               }
             },
             {
@@ -6052,7 +5942,7 @@
                   {
                     "role": "primary",
                     "type": "text",
-                    "text": "Abbina ogni parola al suo sinonimo."
+                    "text": "Match each word with its synonym."
                   }
                 ],
                 "interaction": {
@@ -6403,7 +6293,7 @@
                   {
                     "role": "primary",
                     "type": "text",
-                    "text": "Abbina ogni parola al suo contrario."
+                    "text": "Match each word with its opposite."
                   }
                 ],
                 "interaction": {
@@ -6919,5 +6809,5 @@
       }
     }
   ],
-  "officialChecksum": "92cee89fa0dcb2572d6c14512c0172fc006c7defcd1370ebc3647543bfe715f3"
+  "officialChecksum": "f0cb30d8dc1618c3ab2b3af9bd477d1e5d408fe3e8303cb0635efb741c38b2a8"
 }

@@ -16,13 +16,20 @@ import 'course_language_resolver.dart';
 class CourseService {
   final DiagnosticLogService _log = DiagnosticLogService();
   // Build 255 Revision 6 removed the German, Spanish, English-from-Spanish,
-  // Welsh, Portuguese and Neapolitan demos and Build 256 Revision 5 the
-  // Korean one (owner request). Their Course IDs stay reserved in
-  // CourseEditorService, as the demos removed in Build 254 do.
+  // Welsh, Portuguese and Neapolitan demos, Build 256 Revision 5 the Korean
+  // one and Build 259 Revision 5 the Edge Case (owner requests). Their
+  // Course IDs stay reserved in CourseEditorService, as the demos removed
+  // in Build 254 do. The Edge Case is an importable custom Course in
+  // demo_courses/ and, for the tests, the fixture
+  // test/fixtures/v12/edge_case_it_en.json. Build 259 Revision 6 adds
+  // QQL Demo: Piedmontese, the Piedmontese demo's exercises mixed at random
+  // (owner request). Build 260 Revision 2 adds QQL Demo: English from
+  // Italian (owner request).
   static const Map<String, String> courseAssets = {
     'IT': 'assets/courses/exercise_laboratory_en_it.json',
-    'EN_EDGE': 'assets/courses/edge_case_it_en.json',
     'PMS': 'assets/courses/piedmontais_en.json',
+    'PMS_MIX': 'assets/courses/piedmontese_mixed_en.json',
+    'EN_IT': 'assets/courses/english_from_italian_it_en.json',
   };
 
   /// Test-only: Courses registered by a test beside the bundle, such as the
@@ -47,14 +54,16 @@ class CourseService {
 
   static const Map<String, String> targetLabels = {
     'IT': 'Italian',
-    'EN_EDGE': 'English',
     'PMS': 'Piedmontese',
+    'PMS_MIX': 'Piedmontese',
+    'EN_IT': 'English',
   };
 
   static const Map<String, String> sourceLabels = {
     'IT': 'English',
-    'EN_EDGE': 'Italian',
     'PMS': 'English',
+    'PMS_MIX': 'English',
+    'EN_IT': 'Italian',
   };
 
   Future<Course> loadItalianCourse() => loadCourse('IT');
@@ -89,8 +98,15 @@ class CourseService {
   static String bundledCodeForCourse(Course course) =>
       _additionalBundledCodes[course.courseId] ?? codeForCourse(course);
 
+  // The Edge Case test fixture (registered by the tests since Build 259
+  // Revision 5) keeps its own reference beside the English language code,
+  // and QQL Demo: Piedmontese (Revision 6) beside the Piedmontese demo;
+  // QQL Demo: English from Italian (Build 260 Revision 2) is another English
+  // Course.
   static const _additionalBundledCodes = {
     'course_6f6a1fa3-b834-4936-b324-92fb57f73502': 'EN_EDGE',
+    'course_69ff369e-bb4f-46a3-85f0-57ff9d51b453': 'PMS_MIX',
+    'course_65dce83b-fd0a-4b83-a5a1-8f8b97a58d05': 'EN_IT',
   };
 
   static String codeForCourse(Course course) {

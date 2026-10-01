@@ -11,8 +11,16 @@ enum LearnerExerciseKind {
   /// Select whose question text contains a `___` blank.
   selectComplete,
 
+  /// Select whose question text has two or more `___` blanks that one
+  /// answer fills (One word fills all, Build 259 Revision 4).
+  selectCompleteAll,
+
   /// Select whose items are images or icons.
   selectImage,
+
+  /// Select with text items under a `picture` (What is in the picture,
+  /// Build 259 Revision 3).
+  selectPicture,
 
   /// Select showing or offering character specimens (`character` images).
   selectCharacter,
@@ -222,6 +230,23 @@ class ExerciseFeatures {
   TextLanguage? get promptLanguage =>
       _languageOf(_texts('primary')) ?? _languageOf(_texts('clue'));
 
+  /// The authored prompt shown above the exercise: the primary text, else
+  /// the clue.
+  String get displayedPrompt => primaryText.isNotEmpty ? primaryText : clueText;
+
+  /// The authored Instruction or context (Build 259, owner decisions of
+  /// 29 September 2026): the displayed prompt when it states no language.
+  /// It is written in the learners' language and takes the place of the
+  /// standard instruction line; a prompt with a language is material (a
+  /// text to translate, a spelling clue) and keeps its own place.
+  String get authoredInstruction {
+    final element = primaryText.isNotEmpty
+        ? _texts('primary').first
+        : _texts('clue').firstOrNull;
+    if (element == null || element.language != null) return '';
+    return element.text;
+  }
+
   /// A translation exercise: the text the learner translates has an
   /// explicit language, either way round (`clue` in the source language for
   /// "to target", in the target language for "to source"; a plain `primary`
@@ -242,6 +267,12 @@ class ExerciseFeatures {
   /// Whether any prompt text contains a `___` blank.
   bool get hasBlankInPrompt =>
       prompt.any((e) => e.isText && RegExp(r'_{3,}').hasMatch(e.text));
+
+  /// How many `___` blanks the prompt's texts hold (Build 259 Revision 4).
+  int get promptBlankCount => [
+    for (final e in prompt)
+      if (e.isText) RegExp(r'_{3,}').allMatches(e.text).length,
+  ].fold(0, (sum, n) => sum + n);
 
   // ------------------------------------------------------------------- items
 
@@ -345,6 +376,27 @@ class ExerciseFeatures {
       ? exercise.targets
       : const [];
 
+  /// Whether each inline gap sits inside a word (Missing letters): a text
+  /// run touches it without a space. The Round screen draws such a gap with
+  /// one underscore per letter and the standard line asks for letters
+  /// (moved from the Round screen, Build 259 Revision 3).
+  Map<String, bool> get gapsInWord {
+    final layout = exercise.layout;
+    final result = <String, bool>{};
+    for (var i = 0; i < layout.length; i++) {
+      final element = layout[i];
+      if (!element.isTarget) continue;
+      final before = i > 0 && layout[i - 1].isText ? layout[i - 1].text : '';
+      final after = i + 1 < layout.length && layout[i + 1].isText
+          ? layout[i + 1].text
+          : '';
+      result[element.targetId] =
+          (before.isNotEmpty && !before.endsWith(' ')) ||
+          (after.isNotEmpty && !RegExp(r'^[\s.,;:!?…]').hasMatch(after));
+    }
+    return result;
+  }
+
   /// The text the exercise's audio speaks: the automatic element's, else
   /// the first audio element's; null when there is no audio or no text.
   String? get primaryAudioText {
@@ -393,13 +445,14 @@ class ExerciseFeatures {
   ].join();
 
   /// The inline layout as one text with every gap's first accepted answer
-  /// in square brackets (the Missing letters form): `dr[ink]`.
-  String get bracketedSentence => [
+  /// between underscores (the Missing letters form): `dr_ink_` (Build 259
+  /// Revision 4; square brackets before).
+  String get markedSentence => [
     for (final element in exercise.layout)
       if (element.isText)
         element.text
       else
-        '[${answersFor(element.targetId)?.answers.firstOrNull ?? ''}]',
+        '_${answersFor(element.targetId)?.answers.firstOrNull ?? ''}_',
   ].join();
 
   /// The first target that reveals its first grapheme, or null.
@@ -604,8 +657,11 @@ class ExerciseFeatures {
         if (hasImageItems || hasIconItems) {
           return LearnerExerciseKind.selectImage;
         }
+        if (pictureImages.isNotEmpty) return LearnerExerciseKind.selectPicture;
         if (!hasInlineTargets && hasBlankInPrompt) {
-          return LearnerExerciseKind.selectComplete;
+          return promptBlankCount >= 2
+              ? LearnerExerciseKind.selectCompleteAll
+              : LearnerExerciseKind.selectComplete;
         }
         return LearnerExerciseKind.select;
       case ExercisePrimitive.input:

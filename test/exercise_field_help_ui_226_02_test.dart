@@ -11,8 +11,8 @@ import 'package:quisquislingo_app/services/preset_variants.dart';
 // wrong field as well as a missing control or an unreviewed new preset.
 const _formFields = <String, Map<String, String>>{
   'choice_target': {
-    'Prompt (optional)': 'prompt',
-    'Question or sentence to complete': 'question',
+    'Instruction or context (optional)': 'prompt',
+    'Question or sentence': 'question',
     'Answers': 'answers',
     'Correct answer number': 'correct',
   },
@@ -25,42 +25,58 @@ const _formFields = <String, Map<String, String>>{
   // A new Page's starter heading and paragraph (Build 258).
   'page': {'Heading text': 'blocks', 'Text': 'blocks'},
   'choice_source': {
-    'Prompt (optional)': 'prompt',
-    'Question or sentence to complete': 'question',
+    'Instruction or context (optional)': 'prompt',
+    'Question or sentence': 'question',
     'Answers': 'answers',
     'Correct answer number': 'correct',
   },
   'translation_choice_to_target': {
-    'Text to translate': 'question',
+    'Sentence': 'question',
     'Answer options': 'answers',
     'Correct answer number': 'correct',
   },
   'translation_choice_to_source': {
-    'Text to translate': 'question',
+    'Sentence': 'question',
     'Answer options': 'answers',
     'Correct answer number': 'correct',
   },
   'gap_choice': {
-    'Target-language sentence with one gap': 'question',
+    // Build 260 Revision 3.
+    'Instruction or context (optional)': 'prompt',
+    'Sentence': 'question',
     'Answer blocks': 'answers',
     'Correct answer number': 'correct',
     'Hint (optional)': 'hint',
   },
   'icon_choice': {
-    'Question': 'question',
+    'Question or sentence': 'question',
     'Target-language options': 'answers',
     'Correct answer number': 'correct',
     'Icons / image keys': 'icons',
   },
+  // Listen and choose has no question; Listen and answer's is required
+  // (Build 259 Revision 2).
+  'listening_choose_target': {
+    'Spoken text': 'tts',
+    'Instruction or context (optional)': 'prompt',
+    'Answers': 'answers',
+    'Correct answer number': 'correct',
+  },
+  'listening_choose_source': {
+    'Spoken text': 'tts',
+    'Instruction or context (optional)': 'prompt',
+    'Answers': 'answers',
+    'Correct answer number': 'correct',
+  },
   'listening_answer_target': {
     'Spoken text': 'tts',
-    'Question (optional)': 'question',
+    'Question': 'question',
     'Answers': 'answers',
     'Correct answer number': 'correct',
   },
   'listening_answer_source': {
     'Spoken text': 'tts',
-    'Question (optional)': 'question',
+    'Question': 'question',
     'Answers': 'answers',
     'Correct answer number': 'correct',
   },
@@ -75,54 +91,60 @@ const _formFields = <String, Map<String, String>>{
     'Correct answer number': 'correct',
   },
   'type_translation_to_target': {
-    'Source text': 'prompt',
+    'Sentence': 'prompt',
     'Accepted translations': 'accepted',
     'Hint (optional)': 'hint',
   },
   'type_translation_to_source': {
-    'Text to translate': 'prompt',
+    'Sentence': 'prompt',
     'Accepted translations': 'accepted',
     'Hint (optional)': 'hint',
   },
   'type_missing_word': {
-    'Sentence with one ___ gap': 'prompt',
+    'Sentence': 'prompt',
     'Complete accepted words': 'accepted',
     'Hint (optional)': 'hint',
   },
   'build_translation_to_target': {
-    'Source sentence': 'prompt',
+    'Sentence': 'prompt',
     'Available target-language blocks': 'tokens',
     'Correct translation 1': 'correctTranslation',
   },
   'build_translation_to_source': {
-    'Sentence to translate': 'prompt',
+    'Sentence': 'prompt',
     'Available source-language blocks': 'tokens',
     'Correct translation 1': 'correctTranslation',
   },
   'listening_spelling': {
-    'Passage transcript': 'prompt',
+    'Instruction or context (optional)': 'prompt',
     'Audio text': 'tts',
-    'Missing word': 'missingWords',
+    'Other accepted spellings (optional)': 'missingWords',
   },
   'missing_word': {
     'Passage transcript': 'prompt',
     'Audio text': 'tts',
     'Missing word(s)': 'missingWords',
   },
-  'word_match': {'Instruction': 'prompt', 'Translation pairs': 'pairs'},
+  'word_match': {
+    'Instruction or context (optional)': 'prompt',
+    'Translation pairs': 'pairs',
+  },
   'super_match': {
-    'Match type / instruction': 'prompt',
+    'Instruction or context (optional)': 'prompt',
     'Three target-language pairs': 'pairs',
   },
-  'audio_match': {'Instruction': 'prompt', 'Three sound matches': 'pairs'},
+  'audio_match': {
+    'Instruction or context (optional)': 'prompt',
+    'Three sound matches': 'pairs',
+  },
   'word_order': {
-    'Translation prompt / instruction': 'prompt',
+    'Instruction or context (optional)': 'prompt',
     'Available word blocks': 'tokens',
     'Correct sentence': 'order',
   },
   // The spelling presets have one field (Build 256 Revision 7 follow-up).
   'image_word': {
-    'Instruction': 'prompt',
+    'Instruction or context (optional)': 'prompt',
     'Blocks of the word, in order': 'order',
   },
   // A Flashcard's Read aloud is a closed choice with the same Help control
@@ -140,40 +162,47 @@ const _formFields = <String, Map<String, String>>{
     'Usage sentence and optional translation': 'answers',
   },
   'true_false': {
-    'Statement': 'question',
+    'Sentence': 'question',
     'Spoken statement (optional)': 'tts',
     'Answers': 'answers',
     'Correct answer number': 'correct',
   },
-  'gap_choice_inline': {
-    'Instruction (optional)': 'prompt',
-    'Sentence with gaps': 'gapLayout',
-    'Distractor options (optional)': 'tokens',
-    'Spoken prompt (optional)': 'tts',
+  // Build 259 Revision 4: Pick the words for the gaps is gap_blocks;
+  // One word fills all is new.
+  'one_word_fills_all': {
+    // Build 260 Revision 3.
+    'Instruction or context (optional)': 'prompt',
+    'Sentences, with ___ for each gap': 'question',
+    'Answer words': 'answers',
+    'Correct answer number': 'correct',
+    'Hint (optional)': 'hint',
   },
   'complete_text': {
-    'Text with the words to hide': 'prompt',
+    'Instruction or context (optional)': 'question',
+    'Text, with ___ for each gap': 'prompt',
     'Missing words': 'missingWords',
+    'Hint (optional)': 'hint',
   },
   'missing_letters': {
-    'Text with the missing letters in brackets': 'prompt',
+    'Text with the missing letters between underscores': 'prompt',
     'Spoken text (optional)': 'tts',
     'Hint (optional)': 'hint',
   },
   'gap_blocks': {
-    'Instruction (optional)': 'prompt',
+    'Instruction or context (optional)': 'prompt',
     'Sentence with gaps': 'gapLayout',
-    'Extra distractor blocks (optional)': 'tokens',
+    'Extra distractor words (optional)': 'tokens',
     'Spoken prompt (optional)': 'tts',
   },
   'sentence_order': {
-    'Instruction': 'prompt',
-    'Sentences or lines': 'tokens',
-    'Correct order': 'order',
+    'Instruction or context (optional)': 'prompt',
+    'Lines, in the correct order': 'order',
+    'Extra lines (optional)': 'extraWords',
+    'Hint (optional)': 'hint',
   },
   'listening_image_choice': {
     'Spoken text': 'tts',
-    'Question (optional)': 'question',
+    'Instruction or context (optional)': 'prompt',
     'Answers': 'answers',
     'Correct answer number': 'correct',
   },
@@ -182,28 +211,37 @@ const _formFields = <String, Map<String, String>>{
     'Blocks of the word, in order': 'order',
   },
   'picture_choice': {
-    'Question': 'question',
+    'Instruction or context (optional)': 'prompt',
     'Answers': 'answers',
     'Correct answer number': 'correct',
   },
   'picture_name': {
-    'Question / instruction': 'question',
+    'Instruction or context (optional)': 'prompt',
     'Accepted answers': 'accepted',
     'Hint (optional)': 'hint',
   },
   'picture_blocks': {
-    'Question (optional)': 'question',
+    'Instruction or context (optional)': 'prompt',
     'Blocks of the name, in order': 'order',
     'Extra blocks (optional)': 'extraWords',
     'Hint (optional)': 'hint',
   },
-  'spell_word': {'Clue': 'prompt', 'Blocks of the word, in order': 'order'},
-  'picture_word_match': {'Instruction': 'prompt', 'Words': 'answers'},
+  'spell_word': {
+    'Clue (source language)': 'prompt',
+    'Blocks of the word, in order': 'order',
+  },
+  'picture_word_match': {
+    'Instruction or context (optional)': 'prompt',
+    'Words': 'answers',
+  },
   // The Assign presets (Build 256 Revision 7 follow-up); the reuse switch
   // is a closed control with its own Help button.
-  'sort_into_groups': {'Question': 'question', 'Groups': 'groups'},
+  'sort_into_groups': {
+    'Instruction or context (optional)': 'prompt',
+    'Groups': 'groups',
+  },
   'fill_the_slots': {
-    'Question': 'question',
+    'Instruction or context (optional)': 'prompt',
     'Slots': 'slots',
     'Extra words (optional)': 'extraWords',
   },
@@ -294,58 +332,61 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('Prompt and Question Help stay distinct and fit at 320 px', (
-    tester,
-  ) async {
-    await _mount(tester, 'choice_target', size: const Size(320, 700));
+  testWidgets(
+    'Instruction or context and Question Help stay distinct and fit at 320 px',
+    (tester) async {
+      await _mount(tester, 'choice_target', size: const Size(320, 700));
 
-    await _reveal(tester, _help('prompt'));
-    await tester.tap(_help('prompt'));
-    await _settle(tester);
-    expect(
-      find.descendant(
-        of: find.byType(AlertDialog),
-        matching: find.textContaining('An optional line above the question'),
-      ),
-      findsOneWidget,
-    );
-    expect(
-      find.descendant(
-        of: find.byType(AlertDialog),
-        matching: find.textContaining('Pick the verb form that fits.'),
-      ),
-      findsOneWidget,
-    );
-    var bounds = tester.getRect(find.byType(AlertDialog));
-    expect(bounds.left, greaterThanOrEqualTo(0));
-    expect(bounds.right, lessThanOrEqualTo(320));
-    await tester.tap(find.widgetWithText(TextButton, 'Close'));
-    await _settle(tester);
-
-    await _reveal(tester, _help('question'));
-    await tester.tap(_help('question'));
-    await _settle(tester);
-    expect(
-      find.descendant(
-        of: find.byType(AlertDialog),
-        matching: find.textContaining(
-          'What the learner answers: a question, or a sentence with a gap',
+      await _reveal(tester, _help('prompt'));
+      await tester.tap(_help('prompt'));
+      await _settle(tester);
+      expect(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.textContaining('An optional line in the learners'),
         ),
-      ),
-      findsOneWidget,
-    );
-    expect(
-      find.descendant(
-        of: find.byType(AlertDialog),
-        matching: find.textContaining('Which article goes with casa?'),
-      ),
-      findsOneWidget,
-    );
-    bounds = tester.getRect(find.byType(AlertDialog));
-    expect(bounds.left, greaterThanOrEqualTo(0));
-    expect(bounds.right, lessThanOrEqualTo(320));
-    expect(tester.takeException(), isNull);
-  });
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.textContaining(
+            'Put the dialogue at the bar in order.',
+          ),
+        ),
+        findsOneWidget,
+      );
+      var bounds = tester.getRect(find.byType(AlertDialog));
+      expect(bounds.left, greaterThanOrEqualTo(0));
+      expect(bounds.right, lessThanOrEqualTo(320));
+      await tester.tap(find.widgetWithText(TextButton, 'Close'));
+      await _settle(tester);
+
+      await _reveal(tester, _help('question'));
+      await tester.tap(_help('question'));
+      await _settle(tester);
+      expect(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.textContaining(
+            'What the learner answers: a question, or a sentence with a gap',
+          ),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.textContaining('Which article goes with casa?'),
+        ),
+        findsOneWidget,
+      );
+      bounds = tester.getRect(find.byType(AlertDialog));
+      expect(bounds.left, greaterThanOrEqualTo(0));
+      expect(bounds.right, lessThanOrEqualTo(320));
+      expect(tester.takeException(), isNull);
+    },
+  );
 
   for (final brightness in Brightness.values) {
     for (final width in [320.0, 375.0, 430.0, 1100.0]) {

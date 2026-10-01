@@ -90,7 +90,11 @@ void main() {
               '${topic.id}.${question.id}',
         ];
         expect(english, hasLength(7));
-        expect(ids(english), hasLength(68));
+        // Build 259 Revision 6 removed the Temporary Sample question.
+        // Revision 8 added What is a Private course?
+        // Build 260 Revisions 0 and 5 added the Course languages and
+        // difficulty questions.
+        expect(ids(english), hasLength(70));
         expect(ids(italian), ids(english));
         expect(ids(spanish), ids(english));
         expect(managerEnglish, hasLength(14));

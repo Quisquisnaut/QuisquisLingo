@@ -42,10 +42,10 @@ void main() {
       await _hoverHelp(tester, 'choice_target', 'question');
       await _enter(
         tester,
-        'Prompt (optional)',
+        'Instruction or context (optional)',
         'How do you say this in Italian?',
       );
-      await _enter(tester, 'Question or sentence to complete', 'Good morning');
+      await _enter(tester, 'Question or sentence', 'Good morning');
       final original = jsonEncode(source.toJson());
       final preferences = await workflow.preferences();
       await workflow.tapKey(tester, 'exercise-preview');
@@ -178,7 +178,8 @@ void main() {
     await _mount(tester, _exercise('listening_comprehension'));
     expect(workflow.field('Spoken passage'), findsNothing);
     expect(workflow.field('Spoken text'), findsOneWidget);
-    expect(workflow.field('Question (optional)'), findsOneWidget);
+    // The question is required since Build 259 Revision 2.
+    expect(workflow.field('Question'), findsOneWidget);
   });
 
   testWidgets(

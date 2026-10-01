@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:quisquislingo_app/localization/learner_panel/learner_panel_en.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/services/course_library_operations.dart';
 import 'package:quisquislingo_app/services/course_service.dart';
@@ -119,7 +120,10 @@ void main() {
       ).hasMatch(source),
       isTrue,
     );
-    expect(source.contains("labelText: 'Your answer'"), isTrue);
+    // Build 260 Revision 1: the label is learner panel text, English
+    // "Your answer".
+    expect(source.contains("labelText: _t('yourAnswer')"), isTrue);
+    expect(learnerPanelEn['yourAnswer'], 'Your answer');
   });
 
   test(

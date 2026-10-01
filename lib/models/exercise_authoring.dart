@@ -91,6 +91,8 @@ class ExercisePreset {
     'type_translation_to_source' => 'type_translation_to_target',
     'build_translation_to_target' => 'build_translation_to_source',
     'build_translation_to_source' => 'build_translation_to_target',
+    'listening_choose_target' => 'listening_choose_source',
+    'listening_choose_source' => 'listening_choose_target',
     'listening_answer_target' => 'listening_answer_source',
     'listening_answer_source' => 'listening_answer_target',
     'translation_choice_to_target' => 'translation_choice_to_source',
@@ -264,20 +266,32 @@ abstract final class ExercisePresetRegistry {
       primitive: ExercisePrimitive.select,
       base: 'choice',
     ),
+    // Pick the words for the gaps (Build 259 Revision 4): the former Drag
+    // the blocks into the gaps, each word filling one gap; the Select-based
+    // gap_choice_inline is retired to it.
     ExercisePreset(
-      id: 'gap_choice_inline',
+      id: 'gap_blocks',
       name: 'Pick the words for the gaps',
       description:
-          'Learner fills the gaps of a fixed sentence by tapping options, one per gap; an option can serve several gaps.',
+          'Learner fills the gaps of a fixed sentence by tapping words; each word fills one gap.',
+      category: ExerciseCategory.grammarAndSentences,
+      primitive: ExercisePrimitive.arrange,
+      base: 'word_order',
+    ),
+    ExercisePreset(
+      id: 'one_word_fills_all',
+      name: 'One word fills all',
+      description:
+          'Learner picks the one word that fills every gap of the sentences.',
       category: ExerciseCategory.grammarAndSentences,
       primitive: ExercisePrimitive.select,
-      base: 'choice',
+      base: 'gap_choice',
     ),
     ExercisePreset(
       id: 'complete_text',
       name: 'Complete the text',
       description:
-          'Learner types the words missing from a text with several gaps; no audio.',
+          'Learner types the words missing from a text with several gaps marked ___; no audio, an optional instruction and hint.',
       category: ExerciseCategory.grammarAndSentences,
       primitive: ExercisePrimitive.input,
       base: 'missing_word',
@@ -290,15 +304,6 @@ abstract final class ExercisePresetRegistry {
       category: ExerciseCategory.grammarAndSentences,
       primitive: ExercisePrimitive.input,
       base: 'missing_word',
-    ),
-    ExercisePreset(
-      id: 'gap_blocks',
-      name: 'Drag the blocks into the gaps',
-      description:
-          'Learner fills the gaps of a fixed sentence with word blocks, each block used once.',
-      category: ExerciseCategory.grammarAndSentences,
-      primitive: ExercisePrimitive.arrange,
-      base: 'word_order',
     ),
     ExercisePreset(
       id: 'sentence_order',
@@ -330,11 +335,32 @@ abstract final class ExercisePresetRegistry {
       direction: PresetDirection.none,
     ),
     // ------------------------------------------------------------ Listening
+    // Listen and choose has no question; Listen and answer's question is
+    // required (Build 259 Revision 2, owner decisions of 29 September 2026).
+    ExercisePreset(
+      id: 'listening_choose_target',
+      name: 'Listen and choose (to target)',
+      description:
+          'Learner listens to a word or a sentence and chooses what was heard among target-language answers; no question.',
+      category: ExerciseCategory.listening,
+      primitive: ExercisePrimitive.select,
+      base: 'listening_choice',
+    ),
+    ExercisePreset(
+      id: 'listening_choose_source',
+      name: 'Listen and choose (to source)',
+      description:
+          'Learner listens to a word or a sentence and chooses its meaning among source-language answers; no question.',
+      category: ExerciseCategory.listening,
+      primitive: ExercisePrimitive.select,
+      direction: PresetDirection.toSource,
+      base: 'listening_choice',
+    ),
     ExercisePreset(
       id: 'listening_answer_target',
       name: 'Listen and answer (to target)',
       description:
-          'Learner listens to a word, a sentence or a passage and chooses the target-language answer; a question is optional.',
+          'Learner listens to a word, a sentence or a passage and answers a question about it among target-language answers.',
       category: ExerciseCategory.listening,
       primitive: ExercisePrimitive.select,
       base: 'listening_comprehension',
@@ -343,7 +369,7 @@ abstract final class ExercisePresetRegistry {
       id: 'listening_answer_source',
       name: 'Listen and answer (to source)',
       description:
-          'Learner listens to a word, a sentence or a passage and chooses the source-language answer; a question is optional.',
+          'Learner listens to a word, a sentence or a passage and answers a source-language question about it among source-language answers.',
       category: ExerciseCategory.listening,
       primitive: ExercisePrimitive.select,
       direction: PresetDirection.toSource,
@@ -466,7 +492,7 @@ abstract final class ExercisePresetRegistry {
     ),
     ExercisePreset(
       id: 'picture_word_match',
-      name: 'Match picture to word',
+      name: 'Match pictures to words',
       description: 'Learner matches pictures with their words.',
       category: ExerciseCategory.picturesAndCharacters,
       primitive: ExercisePrimitive.match,
@@ -615,25 +641,29 @@ abstract final class ExercisePresetRegistry {
     'word_match':
         'The learner matches target-language words (left) with their source-language meanings (right). Provide at least two text pairs, one per line as left = right, with a short instruction.',
     'super_match':
-        'The learner matches related target-language items such as synonyms, opposites or a word and its definition. Provide exactly three text pairs, one per line as left = right.',
+        'The learner matches related target-language items such as synonyms, opposites or a word and its definition. Provide exactly three text pairs, one per line as left = right, and an optional instruction or context naming the relationship, in the learners’ language.',
     'flashcard':
         'The learner sees a target-language word or expression, its source-language translation and an optional usage example, hears the word when read-aloud is on, then chooses Got it or Review again. Choose Automatically, On request or No read-aloud; the spoken text is the word itself unless Pronunciation TTS (if different) says otherwise. Read-aloud never makes the card an audio exercise.',
     'choice_target':
-        'The learner reads a question, or a sentence to complete, and chooses the right answer among target-language text alternatives: a grammar form, a cultural fact, a meaning, a translation. Provide the question, at least two answers and the correct answer number (a new exercise starts with 1); an optional Prompt line, an instruction or some context, is shown above the question instead of the standard “Choose the correct answer.” line; an optional picture or spoken text may support the question.',
+        'The learner reads a question, or a sentence to complete, and chooses the right answer among target-language text alternatives: a grammar form, a cultural fact, a meaning, a translation. Provide the question, at least two answers and the correct answer number (a new exercise starts with 1); an optional Instruction or context line, in the learners’ language, is shown instead of the standard “Find the correct answer.” line; an optional picture or spoken text may support the question.',
     'choice_source':
-        'The learner reads a question, or a sentence to complete, written in the source language and chooses the right answer among source-language text alternatives: grammar, culture or meaning explained in their own language. Provide the question, at least two answers and the correct answer number (a new exercise starts with 1); an optional Prompt line is shown above the question instead of the standard “Choose the correct answer.” line.',
+        'The learner reads a question, or a sentence to complete, written in the source language and chooses the right answer among source-language text alternatives: grammar, culture or meaning explained in their own language. Provide the question, at least two answers and the correct answer number (a new exercise starts with 1); an optional Instruction or context line is shown instead of the standard “Find the correct answer.” line.',
     'gap_choice':
         'The learner sees a sentence containing ___ and chooses the missing word or expression. Provide one text gap, answer blocks and one correct answer. Use exactly one gap where possible and make only one option grammatically and semantically correct.',
     'type_missing_word':
         'Enter a sentence with one ___ gap and the complete accepted words for it. Show the first letter turns the gap into a hint that reveals the first letter; off, the learner types the whole word without help.',
     'word_order':
         'The learner rearranges target-language blocks into their correct order. Provide the available text blocks and the correct order; at most two distractor blocks.',
+    'listening_choose_target':
+        'The learner hears a word or a sentence and chooses what was heard among target-language answers. Provide the spoken text, an optional instruction or context, at least two answers and the correct answer number.',
+    'listening_choose_source':
+        'The learner hears a target-language word or sentence and chooses its meaning among source-language answers. Provide the spoken text, an optional instruction or context, at least two source-language answers and the correct answer number.',
     'listening_answer_target':
-        'The learner hears a word, a sentence or a passage and chooses the target-language answer. Provide the spoken text, an optional question (without it the learner picks what was heard), at least two answers and the correct answer number.',
+        'The learner hears a word, a sentence or a passage and answers a question about it among target-language answers. Provide the spoken text, the question, at least two answers and the correct answer number.',
     'listening_answer_source':
-        'The learner hears a word, a sentence or a passage and chooses the source-language answer. Provide the spoken text, an optional question in the source language, at least two source-language answers and the correct answer number.',
+        'The learner hears a word, a sentence or a passage and answers a question in the source language among source-language answers. Provide the spoken text, the question in the source language, at least two source-language answers and the correct answer number.',
     'listening_spelling':
-        'The learner hears audio and types what was heard. Provide the audio text and accepted transcription. Audio and accepted text should match exactly except for permitted normalization.',
+        'The learner hears audio and types what was heard. Provide the audio text, which is always accepted, and optionally other accepted spellings of the same words.',
     'missing_word':
         'The learner hears audio while reading a transcript with one or more gaps, then types each missing word. Provide the transcript with ___ gaps and the missing words in order.',
     'audio_match':
@@ -641,7 +671,7 @@ abstract final class ExercisePresetRegistry {
     'reading_answer_target':
         'The learner reads a short text in the source language that explains the situation, and dialogue lines in the target language written as Speaker: text, then answers a target-language question by choosing. Provide the text, the dialogue or both, the dialogue\'s read-aloud (no, on request or automatic: each line is spoken in turn), the question, at least two answers and the correct answer number. The text to read is never read aloud; the read-aloud is optional, so the exercise also plays with Audio Exercises off.',
     'icon_choice':
-        'The learner sees a question and image choices, then selects the matching image. Provide the question, the answers, the correct answer number and one icon or image key per answer in the same order.',
+        'The learner sees a question and image choices, then selects the matching image. Provide the question or sentence (it names what to find), the answers, the correct answer number and one icon or image key per answer in the same order.',
     'script_recognition':
         'Each item pairs a character image with its corresponding text.\n\nImage to text: learners see a character image and choose the matching text.\n\nText to image: learners see the text and choose the matching character image.\n\nThe text can be the character’s name, sound, pronunciation, transliteration or another identifying label.\n\nProvide at least two options; exactly one is correct. Multiple prompt images may show print, handwriting or different fonts. Use bundled images or portable imported images, never absolute local paths. Preview uses the normal Select learner behavior.',
     'image_word':
@@ -650,30 +680,30 @@ abstract final class ExercisePresetRegistry {
         'The learner sees a picture with its target-language word and source-language translation, an optional usage example with its translation, and hears the word when read-aloud is on. The picture is required; the read-aloud (Automatically, On request or none) speaks the word itself, or Pronunciation TTS (if different), and never makes the card an audio exercise.',
     'true_false':
         'The learner reads a statement in the target language, optionally hears it, and answers true or false. Provide the statement, the two answers in the source language (prefilled True and False) and the correct one.',
-    'gap_choice_inline':
-        'The learner fills the gaps of a fixed sentence by tapping options in order; the same option can fill several gaps. Write the sentence with each answer inside braces, {answer}, add 0 to 2 distractor options and an optional spoken prompt.',
     'complete_text':
-        'The learner types the words missing from a text with several gaps. Write the complete text and list the words to hide, one per line, in order; each must occur in the text. No audio.',
+        'The learner types the words missing from a text with several gaps. Write the text with ___ for each gap and give one line per gap in Missing words, in order ([il|un] gatto accepts both); an optional instruction or context and an optional hint. No audio.',
     'missing_letters':
-        'The learner types the letters missing inside words. Write the complete text and put the missing letters inside square brackets: My cat doesn’t dr[ink] milk. The learner sees dr___ milk. Optional spoken text or picture.',
+        'The learner types the letters missing inside words. Write the complete text and put the missing letters between underscores: My cat doesn’t dr_ink_ milk. The learner sees dr___ milk. Optional spoken text, picture or hint.',
     'gap_blocks':
-        'The learner fills the gaps of a fixed sentence by placing word blocks; each block is used once. Write the sentence with each answer inside braces, {answer}, add 0 to 2 distractor blocks and an optional spoken prompt.',
+        'The learner fills the gaps of a fixed sentence by tapping words; each word fills one gap. Write the sentence with each answer between underscores, _answer_, add 0 to 2 distractor words and an optional spoken prompt.',
     'sentence_order':
-        'The learner puts the lines of a story or a dialogue in order. Enter the lines, one per line, and the correct order; 0, 1 or at most 2 extra distractor lines.',
+        'The learner puts the lines of a story or a dialogue in order. Enter the lines once, in the correct order, 0, 1 or at most 2 extra lines, an optional instruction or context and an optional hint.',
     'sort_into_groups':
-        'The learner taps a word, then the group it belongs to, and checks when every word is placed. Enter the question and one group per line as “Group name: word, word, …” (at least two groups; every word belongs to one).',
+        'The learner taps a word, then the group it belongs to, and checks when every word is placed. Enter an optional instruction or context and one group per line as “Group name: word, word, …” (at least two groups; every word belongs to one).',
     'fill_the_slots':
-        'The learner taps a word, then the slot it fills, and checks when every slot is filled. Enter the question and one slot per line as “what the learner sees = the word”, for example “… gatto = il”. Extra words that fill no slot are optional; a switch lets one word fill more than one slot.',
+        'The learner taps a word, then the slot it fills, and checks when every slot is filled. Enter an optional instruction or context and one slot per line as “what the learner sees = the word”, for example “… gatto = il”. Extra words that fill no slot are optional; a switch lets one word fill more than one slot.',
     'listening_image_choice':
-        'The learner hears a word or a sentence and picks the matching picture. Provide the spoken text, an optional question, the answer labels and one picture per answer, and the correct answer.',
+        'The learner hears a word or a sentence and picks the matching picture. Provide the spoken text, an optional instruction or context, the answer labels and one picture per answer, and the correct answer.',
     'spell_heard':
         'The learner hears a word and spells it from letter or syllable tiles. Provide the spoken word and its tiles in order, one per line (split the word into letters or syllables as you like). No picture is needed.',
+    'one_word_fills_all':
+        'The learner reads sentences with two or more ___ gaps and picks the one word that fills them all; it then appears in every gap. Write the sentences with ___ for each gap, the answer words and the correct answer number.',
     'picture_choice':
-        'The learner sees a picture and picks the word or sentence that names it. Provide the picture, a question, at least two answers and the correct one.',
+        'The learner sees a picture and picks the word or sentence that names it. Provide the picture (required), an optional instruction or context, at least two answers and the correct one.',
     'picture_blocks':
-        'The learner sees a picture and builds its name by tapping word blocks in order. Provide the picture (Exercise image), an optional question such as What is this?, the blocks of the name in order (one word per line) and up to two extra blocks that are not part of the name, plus an optional hint.',
+        'The learner sees a picture and builds its name by tapping word blocks in order. Provide the picture (Exercise image, required), an optional instruction or context such as What is this?, the blocks of the name in order (one word per line) and up to two extra blocks that are not part of the name, plus an optional hint.',
     'picture_name':
-        'The learner sees a picture and types its name. Provide the picture, a question or instruction, one or more accepted answers (the same syntax as Type the translation) and an optional hint.',
+        'The learner sees a picture and types its name. Provide the picture (required), an optional instruction or context, one or more accepted answers (the same syntax as Type the translation) and an optional hint.',
     'spell_word':
         'The learner spells a word from letter or syllable tiles after a clue in the source language: the word itself or a definition. Provide the clue and the tiles of the word in order, one per line; a picture is optional.',
     'picture_word_match':

@@ -505,7 +505,10 @@ void main() {
       await _tap(tester, find.widgetWithText(FilledButton, 'Right e1'));
       await _tap(tester, find.widgetWithText(FilledButton, 'Continue'));
       expect(find.byKey(const ValueKey('story-entry-0')), findsOneWidget);
-      expect(find.text('Now · step 2 of 2'), findsOneWidget);
+      // The step count stays above the title block; no "Now" line
+      // (Build 259 Revision 5).
+      expect(find.text('Story · 2 steps'), findsOneWidget);
+      expect(find.textContaining('Now · step'), findsNothing);
       expect(find.byKey(const Key('story-spacer')), findsOneWidget);
       expect(find.text('Right e1'), findsOneWidget);
       expect(find.text('Question 1'), findsOneWidget);

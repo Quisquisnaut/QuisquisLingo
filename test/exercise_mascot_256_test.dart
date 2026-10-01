@@ -34,8 +34,15 @@ final _bundledMascots = [
 
 const _sleepingMonkey = 'assets/mascots/qql-monkey-sleeping.png';
 
+// The Edge Case is the Course to import since Build 259 Revision 5.
 Course _load(String file) => Course.fromJson(
-  jsonDecode(File('assets/courses/$file').readAsStringSync())
+  jsonDecode(
+        File(
+          file == 'edge_case_it_en.json'
+              ? 'demo_courses/$file'
+              : 'assets/courses/$file',
+        ).readAsStringSync(),
+      )
       as Map<String, dynamic>,
 );
 
@@ -97,10 +104,9 @@ const _allowedAnchors = <String, Set<ExerciseMascotAnchor>>{
     ExerciseMascotAnchor.question,
     ExerciseMascotAnchor.playButton,
   },
-  'gap_choice_inline': {
-    ExerciseMascotAnchor.gappedText,
-    ExerciseMascotAnchor.playButton,
-  },
+  'one_word_fills_all': {ExerciseMascotAnchor.question},
+  'listening_choose_target': {ExerciseMascotAnchor.playButton},
+  'listening_choose_source': {ExerciseMascotAnchor.playButton},
   'listening_answer_target': {ExerciseMascotAnchor.playButton},
   'listening_answer_source': {ExerciseMascotAnchor.playButton},
   'reading_answer_target': {ExerciseMascotAnchor.question},
@@ -134,7 +140,9 @@ const _laboratoryShows = {
   'choice_source',
   'gap_choice',
   'true_false',
-  'gap_choice_inline',
+  'one_word_fills_all',
+  'listening_choose_target',
+  'listening_choose_source',
   'listening_answer_target',
   'listening_answer_source',
   'type_translation_to_target',

@@ -19,6 +19,7 @@ import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:quisquislingo_app/services/publication_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'support/edge_case_fixture.dart';
 import 'support/pump_file_io.dart';
 
 void main() {
@@ -32,6 +33,7 @@ void main() {
   late CourseLibraryOperations operations;
 
   setUp(() async {
+    registerEdgeCaseFixture();
     SharedPreferences.setMockInitialValues({'sound_effects_enabled': false});
     support = await Directory.systemTemp.createTemp('qql_bundled_source_254_');
     await ProfileService().addProfile('Source reviewer');

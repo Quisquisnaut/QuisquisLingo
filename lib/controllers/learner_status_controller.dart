@@ -4,7 +4,9 @@ import 'package:flutter/widgets.dart';
 
 import '../models/course_models.dart';
 import '../models/learner_status_state.dart';
+import '../services/course_access_policy.dart';
 import '../services/course_editor_service.dart';
+import '../services/course_privacy.dart';
 import '../services/course_service.dart';
 import '../services/learner_status_events.dart';
 import '../services/profile_service.dart';
@@ -76,7 +78,14 @@ class LearnerStatusController extends ChangeNotifier
       final courseId = saved.substring('custom:'.length);
       final courses = await _courseEditor.listUserCourses();
       for (final course in courses) {
-        if (course.courseId == courseId) return course;
+        if (course.courseId == courseId) {
+          // A Private course the learner may no longer see is not opened
+          // (Build 259 Revision 8).
+          final visible = await CoursePrivacy(
+            accessPolicy: CourseAccessPolicy(profileService: _profiles),
+          ).isVisible(course);
+          return visible ? course : null;
+        }
       }
       return null;
     }

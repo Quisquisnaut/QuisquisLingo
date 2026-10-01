@@ -30,7 +30,7 @@ void main() {
       expect(course.courseId, 'course_e5f5585a-7762-43a0-a6b2-62754e02d17b');
       expect(course.originType, CourseOriginType.bundledOfficial);
       // Build 255 Revision 6 renamed it from Piedmontais, keeping its ID.
-      expect(course.title, 'Temporary Demo: Piedmontese');
+      expect(course.title, 'QQL Demo: Piedmontese (sorted by exercise type)');
       expect(course.learningLanguage, 'Piedmontese');
       expect(course.sourceLanguage, 'English');
       expect(course.targetLanguage, 'Piedmontese');
@@ -40,7 +40,8 @@ void main() {
       expect(course.sourceLanguageTag, 'en-GB');
       expect(course.targetLanguageTag, 'pms-IT');
       expect(course.worldFlagId, 'piedmontese');
-      expect(course.temporarySample, isTrue);
+      // Not a Private course (Build 259 Revision 8).
+      expect(course.temporarySample, isFalse);
       expect(course.courseDescription, contains('UNREVIEWED AI-GENERATED'));
       expect(course.courseDescription, contains('no recorded'));
       expect(course.audioMode, 'tts');
@@ -63,9 +64,10 @@ void main() {
       // and the two Assign presets (the Laboratory's Assign Lesson shows
       // them; owner decision, 29 September 2026). Before you start has no
       // Lesson either: its card opens every Lesson (Build 257). Page has
-      // none: the Laboratory shows it (Build 258).
+      // none: the Laboratory shows it (Build 258). Listen and choose adds two
+      // presets and two Lessons (Build 259 Revision 2).
       expect(course.lessons, hasLength(presets.length - 5));
-      expect(presets, hasLength(44));
+      expect(presets, hasLength(46));
       final seenTypes = <String>{};
       for (final lesson in course.lessons) {
         expect(lesson.publicationState, PublicationState.published);
@@ -111,7 +113,7 @@ void main() {
   );
 
   test(
-    'all 117 Piedmontese examples pass Audit and enter the runnable queue',
+    'all 123 Piedmontese examples pass Audit and enter the runnable queue',
     () async {
       final course = await loadCourse();
       final audit = CourseAuditService().auditCourse(course);
@@ -161,7 +163,7 @@ void main() {
       }
       // Rounds of cards or lines only (Flashcard, Picture flashcard, Note
       // card, Dialogue line) can be completed but never earn a Laurel.
-      expect(playable.laurelEligibleRoundIds(course), hasLength(35));
+      expect(playable.laurelEligibleRoundIds(course), hasLength(37));
     },
   );
 
@@ -188,6 +190,16 @@ void main() {
             }
           }
         } else if (exercise.interaction.kind == 'input') {
+          // Type what you hear accepts its Audio text as a literal answer,
+          // without another line (Build 259 Revision 3).
+          if (exercise.accepted.isEmpty) {
+            expect(
+              exercise.canonicalEvaluation.literalAnswers,
+              isNotEmpty,
+              reason: exercise.id,
+            );
+            continue;
+          }
           final answers = engine.validAnswers(exercise.accepted);
           expect(answers, isNotEmpty, reason: exercise.id);
           for (final answer in answers) {

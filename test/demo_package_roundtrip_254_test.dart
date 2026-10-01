@@ -45,13 +45,20 @@ Course _forkableTestCopy(Course shipped) {
 const _allNewDemoAssets = [
   'assets/courses/exercise_laboratory_en_it.json',
   'assets/courses/piedmontais_en.json',
-  'assets/courses/edge_case_it_en.json',
+  // The Edge Case is a test fixture since Build 259 Revision 5; its bundled
+  // identity stays reserved.
+  'test/fixtures/v12/edge_case_it_en.json',
 ];
 final _clock = DateTime.utc(2026, 9, 25, 14);
 
 Future<Course> _load(String asset) async => Course.fromJson(
   Map<String, dynamic>.from(
-    jsonDecode(await rootBundle.loadString(asset)) as Map,
+    jsonDecode(
+          asset.startsWith('assets/')
+              ? await rootBundle.loadString(asset)
+              : await File(asset).readAsString(),
+        )
+        as Map,
   ),
 );
 

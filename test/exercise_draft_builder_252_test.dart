@@ -70,7 +70,7 @@ void main() {
           original: _choice(),
           type: 'gap_blocks',
           publicationState: PublicationState.draft,
-          gapLayout: 'I {go} to {school}.',
+          gapLayout: 'I _go_ to _school_.',
           tokens: 'went',
           prompt: 'Build the sentence',
         ),

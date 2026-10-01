@@ -149,7 +149,7 @@ Future<void> _editTranslation(
   Finder field(String label) => find.byWidgetPredicate(
     (widget) => widget is TextField && widget.decoration?.labelText == label,
   );
-  await tester.enterText(field('Source text'), source);
+  await tester.enterText(field('Sentence'), source);
   await tester.scrollUntilVisible(
     field('Accepted translations'),
     200,

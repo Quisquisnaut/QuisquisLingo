@@ -1,3 +1,402 @@
+# 2.0.60 (Build 260, Revision 7) - QQL Demos along a difficulty curve - 2026-10-01
+
+Owner decisions of 1 October 2026.
+
+- **QQL Demo: English from Italian** goes from easier to harder: its first
+  Rounds hold mostly recognition, its last ones mostly writing, with every
+  Round's types different and one listening exercise each. 15 of its 36
+  exercises show a picture.
+- **QQL Demo: Piedmontese** deals its 120 exercises the same way: cards
+  first, harder types later, six types in every Round, at most two
+  listening exercises.
+
+Scoring, progression and learner data are unchanged. Beta expiry
+`2026-10-31 23:59:59` local time (same release day as Revision 0).
+
+# 2.0.60 (Build 260, Revision 6) - Difficulty bonus XP - 2026-10-01
+
+Owner decisions of 1 October 2026.
+
+- **Difficulty bonus.** The first time a Round is completed, each exercise
+  answered correctly at the first attempt earns 1 XP per difficulty level:
+  +1 for recognizing a meaning up to +4 for writing. Repeats and Review earn
+  no bonus. The end-of-Round summary shows it on its own line.
+- Help EN/IT/ES explain it.
+
+Progression, Review, the Duel and learner data are unchanged; earlier XP
+stays as earned. Beta expiry `2026-10-31 23:59:59` local time (same release
+day as Revision 0).
+
+# 2.0.60 (Build 260, Revision 5) - Exercise difficulty - 2026-10-01
+
+Owner decision of 1 October 2026.
+
+- **Difficulty levels.** QQL computes each exercise's difficulty from what
+  the learner does: 0 read a card, 1 recognize the meaning, 2 recognize the
+  language, 3 build with blocks, 4 write. It is never stored.
+- **In the editor**: four bars beside each exercise in the Round editor and
+  each Round's average on the Rounds page, so a Lesson's curve shows.
+- Help EN/IT/ES: "What do the difficulty bars mean?".
+
+Scoring, progression, Review and learner data are unchanged. Beta expiry
+`2026-10-31 23:59:59` local time (same release day as Revision 0).
+
+# 2.0.60 (Build 260, Revision 4) - QQL Demo titles - 2026-10-01
+
+Owner decision of 1 October 2026.
+
+- Every official Course QQL bundles is titled "QQL Demo: …": QQL Demo:
+  Exercise Laboratory, QQL Demo: Piedmontese (sorted by exercise type), QQL
+  Demo: Piedmontese, QQL Demo: English from Italian. The credits page names
+  them so.
+
+Course IDs, content, scoring, progression and learner data are unchanged.
+Beta expiry `2026-10-31 23:59:59` local time (same release day as Revision
+0).
+
+# 2.0.60 (Build 260, Revision 3) - Piedmontese showcase, first-Round cards - 2026-10-01
+
+Owner review of 1 October 2026.
+
+- **Pick the missing word** and **One word fills all** have an optional
+  Instruction or context, such as the meaning of a short phrase; the
+  learner sees it in place of the standard line.
+- **Demo: Piedmontese** opens every exercise in its preset's form again:
+  its Pick the missing word instructions are kept, its Listen and answer
+  (to source) answers are marked as English, its Spell the word in the
+  picture blocks are stored in the word's order. QQL Demo: Piedmontese
+  follows.
+- **QQL Demo Courses**: only the first Round of each Lesson opens with a
+  Before you start card.
+- Help EN/IT/ES name the new field.
+
+Scoring, progression, Review and learner data are unchanged. Beta expiry
+`2026-10-31 23:59:59` local time (same release day as Revision 0).
+
+# 2.0.60 (Build 260, Revision 2) - QQL Demo: English from Italian - 2026-10-01
+
+Owner request of 1 October 2026.
+
+- **QQL Demo: English from Italian**, a new bundled Course: one Lesson,
+  "Primi passi", with a GuideBook (overview, four notes, 35 words). Three
+  ordinary Rounds, the Story "Al bar", three more Rounds, the Story "Alla
+  stazione". The ordinary Rounds hold six exercises each, 36 different
+  types mixed at random; each Round keeps one listening exercise and still
+  plays with Audio Exercises off. Its learner panel is in Italian.
+- Written by `tools/generate_english_from_italian_260.py`; AI-written,
+  awaiting review. Language XP and streaks count it as English.
+
+Scoring, progression, Review and learner data are unchanged. Beta expiry
+`2026-10-31 23:59:59` local time (same release day as Revision 0).
+
+# 2.0.60 (Build 260, Revision 1) - Learner panel buttons and messages - 2026-10-01
+
+Plan point 6 (`docs/260_LANGUAGES_PLAN.md`).
+
+- **The learner panel speaks the Course's language.** Check, Continue,
+  Correct and Incorrect, Hint, Correct answer, Before you start, Review
+  your mistakes, the end-of-Round summary, the Duel and the Review page now
+  follow the Course's base language like the exercise lines: English,
+  Spanish, Italian, German, Portuguese, Dutch or French (AI-written,
+  pending review), otherwise English.
+- QQL's own messages stay in English: errors, audio set-up, what this
+  version cannot play, the author's Preview, Report a problem.
+- Help EN/IT/ES and the QQL Guide say so.
+
+Scoring, progression, Review and learner data are unchanged. Beta expiry
+`2026-10-31 23:59:59` local time (same release day as Revision 0).
+
+# 2.0.60 (Build 260, Revision 0) - Course languages - 2026-10-01
+
+Owner decisions of 1 October 2026 (`docs/260_LANGUAGES_PLAN.md`).
+
+- **Language selector in New Course.** Source and Target language list
+  227 languages by their English name (every ISO 639-1 language and the
+  regional ones such as Neapolitan nap and Piedmontese pms), with a
+  search. A language not in the list is typed by hand, with an optional
+  tag. The Course stores the name and the tag; voice and flag follow.
+- **Course Info** shows whether a language has a tag and can add the tags
+  an earlier Course lacks, never another language. "Learning language
+  name for learners" sets how the learner lines name the language taught.
+- **Instruction languages.** The learner panel's headings and lines are in
+  the Course's base language: English, Spanish, Italian, German,
+  Portuguese, Dutch and now French (AI-written, pending review). Finnish
+  and Welsh are removed; other base languages get English.
+- **Language names in the lines**: "Traduce al italiano.", "Traduci in
+  napoletano." instead of the Course's English names.
+- Help EN/IT/ES: "How do I choose the Course languages?".
+
+Scoring, progression, Review and learner data are unchanged; the Course
+format gains one optional field. Beta expiry `2026-10-31 23:59:59` local
+time (same release day as Build 259 Revision 6).
+
+# 2.0.59 (Build 259, Revision 8) - Private courses, Laboratory fixes - 2026-10-01
+
+Owner decisions of 1 October 2026.
+
+- **Private course.** The Course flag shown until now as "Temporary Sample"
+  is a Private course: a custom Course visible in QQL only to its Course
+  Maintainer and the members of its assigned Team. Nobody else on the
+  device sees it in Course Library, the Course Selector or Course Studio,
+  admins included. Course Info Editor has a **Private course** switch, and
+  Course Info shows a Private course box. The included demos and the Edge
+  Case Course to import are not private.
+- An exported file stays private. QQL refuses to import someone else's
+  Private course, or to use it in a Merge, because it would stay hidden
+  for the importer. Fork and Copy as New Course start non-private; a Merge
+  keeps the left Course's value and no longer stops when the two differ.
+- **Resets.** "Remove all learners except admins" is refused while one of
+  them maintains a Course, as deleting one profile already is; the
+  explanation names the Courses (another learner's Private course as "a
+  Private course"). "Remove custom courses" and "Wipe out everything"
+  still remove every Course and say how many are Private courses the admin
+  cannot see.
+- **Exercise Laboratory.** The French friend's name becomes "Il David di
+  Michelangelo è a ___." (Firenze); the farm-animal hint no longer repeats
+  the first letter ("One barks; you can ride the other."); "Il gatto ___."
+  offers two blocks (dorme, dormono).
+- Help EN/IT/ES: "What is a Private course?" (68 Editor Help questions)
+  and the reset options.
+
+Scoring, progression, Review, the Course format and learner data are
+unchanged; the flag keeps its JSON key `temporarySample`. Beta expiry
+`2026-10-31 23:59:59` local time (same release day as Revision 6).
+
+# 2.0.59 (Build 259, Revision 7) - Translation lines, plainer instructions, GuideBooks - 2026-10-01
+
+Owner review of 1 October 2026.
+
+- **Type the translation, to source:** a Piedmontese word to translate into
+  English showed "Translate from English into Piedmontese:". That fixed
+  line is gone; the instruction line now names the language of the answer:
+  "Translate into English." or "Translate into Piedmontese.". Build the
+  translation does the same ("Translate into … with the word blocks.").
+- **Instruction lines that repeated their title** are reworded in the eight
+  learner languages, for example CHOOSE: "Find the correct answer.",
+  MATCH: "Pair each word with its translation.", BUILD THE WORD: "Spell
+  what the picture shows.", TYPE THE MISSING WORD: "The first letter is
+  given: type the whole word.".
+- **QQL Demo: Piedmontese** has GuideBooks: the mixed practice Lesson has an
+  overview, three notes (subject pronouns, articles, spelling) and 32
+  words; the Story at the market has an overview and 5 words. Every card
+  offers Open GuideBook, and the words join the Review.
+- "Son content" stays refused for "I am happy": written Piedmontese needs
+  the subject pronoun i; "i son content" and "mi i son content" are
+  accepted, as before.
+
+Scoring, progression, Review rules, the Course format and learner data are
+unchanged. Beta expiry `2026-10-31 23:59:59` local time (same release day
+as Revision 6).
+
+# 2.0.59 (Build 259, Revision 6) - QQL Demo: Piedmontese - 2026-10-01
+
+Owner requests of 1 October 2026.
+
+- **QQL Demo: Piedmontese**, a new bundled course: the 120 exercises of the
+  Piedmontese demo, no longer grouped by exercise type but mixed at random
+  in one Lesson of 20 Rounds of six, each opening with a Before you start
+  card ("Mixed practice: 6 exercises of different types."), then the Story
+  at the market as a second Lesson. It has no GuideBook. The exercises are
+  the same; only their IDs belong to the new course. Language XP and
+  streaks count it as Piedmontese.
+- The existing demo is renamed **Demo: Piedmontese (sorted by exercise
+  type)**; its content is unchanged.
+- Help: the Editor Help question "What is a TEMPORARY SAMPLE Course?" is
+  removed, and App Info no longer says the demos are "titled Temporary
+  Demo" (they are now named Demo: … or QQL Demo: …).
+
+Scoring, progression, Review, the Course format and learner data are
+unchanged. Beta expiry `2026-10-31 23:59:59` local time (30 days from the
+1 October 2026 release).
+
+# 2.0.59 (Build 259, Revision 5) - Owner review: pictures, Stories, Edge Case - 2026-09-30
+
+Corrections from the owner's third review of 30 September 2026 (points
+1–5).
+
+- **Match pictures to words:** the preset "Match picture to word" is renamed
+  in the plural. A Published save needs at least two words (a single word
+  was accepted). The form no longer offers an Exercise image: only the
+  picture of each word.
+- **Stories:** the scrolling Story shows its step count ("Story · N
+  steps") once, above the title block; the "Now · step k of N" line under
+  each step is gone. A Dialogue line no longer shows an instruction such as
+  "Read or listen, then continue.".
+- **The Edge Case Course leaves the bundle.** QuisquisLingo now ships the
+  Exercise Laboratory and the Piedmontese demo. The Edge Case is a Course to
+  import: `demo_courses/edge_case_it_en.json`, a custom Course with its own
+  identity (the bundled one stays reserved) that anyone can Fork. Progress
+  on the former bundled Edge Case stays on the device but is not shown.
+
+Scoring, progression, Review, the Course format and learner data are
+unchanged. Beta expiry `2026-10-30 23:59:59` local time (same release day
+as Revision 0).
+
+# 2.0.59 (Build 259, Revision 4) - Owner review: gaps, pictures, hints - 2026-09-30
+
+Corrections from the owner's second review of 30 September 2026 (points
+1–10).
+
+- **Pictures required:** Type what you see and Name what you see, like
+  What is in the picture, refuse a Published save without their picture.
+- **No file paths for learners:** Match picture to word showed a picture's
+  file path beside it, and a picture answer without a caption could show
+  its path too. Learners now see only the picture.
+- **Spelling lines:** Spell the word no longer says "Build the word shown
+  in the image." without an image. It reads "Build the word that matches
+  the clue."; Spell what you hear reads "Build the word you hear.".
+- **Piedmontese demo hints:** Name what you see asks for the article;
+  the evening story names its verbs; Missing letters has a hint for each
+  exercise; the shopping list names bread and water.
+- **Gaps are written `_word_`:** the Sentence with gaps field and Missing
+  letters (`dr_ink_`) use underscores instead of `{word}` and `[ink]`,
+  which the answer syntax also uses. Stored exercises are unchanged; the
+  form writes and reads the new marks.
+- **Pick the words for the gaps:** each word fills one gap. Drag the
+  blocks into the gaps, which also played by tapping, is merged into it.
+  The Select version whose option could fill several gaps is retired.
+- **One word fills all**, new: sentences with two or more ___ gaps and
+  one word that fits them all; once chosen, it appears in every gap.
+- The new lines are in the eight learner languages; Help EN/IT/ES
+  follows. The Laboratory, the Piedmontese and the Edge Case demos use the
+  merged and the new preset.
+
+Scoring, progression, Review, the Course format and learner data are
+unchanged. Beta expiry `2026-10-30 23:59:59` local time (same release day
+as Revision 0).
+
+# 2.0.59 (Build 259, Revision 3) - Owner review: listening, pictures, gaps - 2026-09-30
+
+Corrections from the owner's review of 30 September 2026 (points A–H).
+
+- **Type what you hear:** the Audio text is always accepted. The box once
+  labelled "Missing word" is now **Other accepted spellings (optional)**,
+  for another way to write the same words (alle 9 for alle nove). A
+  Published save needs nothing in it. The Laboratory's example no longer
+  accepts a word that is not heard.
+- **Listening lines:** Listen and answer shows "Listen and answer the
+  question."; Listen and choose shows "Select the sentence that you heard."
+  (to target) or "Select the meaning of what you heard." (to source).
+  Listen and pick the image keeps its line.
+- **What is in the picture:** the learner title is **WHAT IS IN THE
+  PICTURE?** with the line "Choose the option that fits best.", and a
+  Published save needs the picture.
+- **Feedback in view:** after an answer the page scrolls down to the
+  feedback and its Continue or Finish round button. In a short window a
+  tall exercise such as Sort into groups left it below the screen, where it
+  was not even drawn.
+- **Typed gaps:** "Choose the word that completes the sentence." was wrong
+  for a typed exercise. It is now "Type the words that complete the
+  sentence.", "Type the word that completes the sentence." for one gap and
+  "Type the missing letters." for Missing letters.
+- **Complete the text:** the text marks each gap with ___. Missing words
+  gives one line per gap, in order, and a line may accept several answers
+  (`[il|un] gatto`). A Published save checks that the gaps and lines match.
+  The Laboratory has an example with alternatives.
+- **Put the sentences in order:** "Arrange the lines in a logical order."
+  no longer repeats the title.
+- The new and changed lines are in the eight learner languages; Help
+  EN/IT/ES follows.
+
+Scoring, progression, Review, the Course format and learner data are
+unchanged. Beta expiry `2026-10-30 23:59:59` local time (same release day
+as Revision 0).
+
+# 2.0.59 (Build 259, Revision 2) - Listen and choose, Listen and answer - 2026-09-30
+
+Listen and answer's optional question did two jobs: sometimes it was an
+instruction ("Choose the greeting you hear."), sometimes a real question
+("Dove fa la spesa Maria?"). It splits into two presets (owner decisions of
+29 September 2026, plan `docs/CONTEXT_AND_HINT_PLAN.md` §6):
+
+- **Listen and choose (to target / to source)**, new: the learner hears a
+  word or a sentence and picks what was heard, or its meaning. No
+  question; an optional **Instruction or context** takes the place of the
+  standard line.
+- **Listen and answer (to target / to source)**: its **Question** is now
+  required (a Published save refuses it empty); the learner answers it
+  about what was heard.
+- The recording is unchanged in both. An exercise without a question is
+  recognized as Listen and choose.
+- The Round Wizard's listening exercise is now a Listen and choose without
+  the "What do you hear?" question (the standard line says it), and the
+  Story Wizard offers both presets.
+- **Demo content:** the Laboratory's greeting and "What did you hear?"
+  examples become Listen and choose, and a new example asks a
+  source-language question about a passage; the Piedmontese demo has one
+  Lesson per preset (41 Lessons).
+- **Help EN/IT/ES**, field Help and Search follow.
+
+Scoring, progression, Review, the Course format and learner data are
+unchanged. Beta expiry `2026-10-30 23:59:59` local time (same release day
+as Revision 0).
+
+# 2.0.59 (Build 259, Revision 1) - Complete the text and Put the sentences in order - 2026-09-30
+
+Two exercises whose answer learners could not always work out get context
+and hints (owner decisions of 29 September 2026, plan
+`docs/CONTEXT_AND_HINT_PLAN.md` §5).
+
+- **Complete the text:** an optional **Instruction or context** first
+  (it replaces the standard line in the Round) and an optional **Hint**
+  last. The hint shows under the gapped text.
+- **Put the sentences in order:** the lines are entered once, **Lines, in
+  the correct order**, with **Extra lines (optional)** (0, 1 or at most 2)
+  and an optional **Hint**, shown above the lines. "Sentences or lines" and
+  "Correct order" repeated the same lines and are gone. A Published save
+  needs at least two lines. Line IDs follow their text, and the stored
+  order of the lines is kept.
+- **Hints on the gap and order screens:** Missing letters' hint and Name
+  what you see's hint, which learners never saw, now show too.
+- **No Play audio button without audio:** a gap exercise with no audio
+  used to show a greyed Play audio button, as if it were a listening
+  exercise.
+- **Demo content:** Piedmontese Lessons 18 and 21 get hints and
+  instructions that make every answer reachable with audio off; the
+  Laboratory's Complete the text and Put the sentences in order examples
+  show the new fields.
+- **Help EN/IT/ES** and Search (hints) follow.
+
+Scoring, progression, Review, the Course format and learner data are
+unchanged. Beta expiry `2026-10-30 23:59:59` local time (same release day
+as Revision 0).
+
+# 2.0.59 (Build 259, Revision 0) - Instructions and questions - 2026-09-30
+
+Exercise prompts say clearly what they are (owner decisions of 29 September
+2026, plan `docs/CONTEXT_AND_HINT_PLAN.md`).
+
+- **Instruction or context:** every optional prompt in the learners'
+  language is labelled **Instruction or context (optional)**. In a Round it
+  takes the place of the standard instruction line under the heading, in
+  every exercise (until now only Choose and Match did so), and its helper
+  quotes the line it replaces. It is stored without a language; a prompt
+  with a language (a text to translate, a spelling clue) keeps its own
+  line.
+- **Questions and sentences are never optional:** they are labelled
+  **Question or sentence**, **Sentence** or **Question**, stay in the
+  exercise body, and a Published save refuses them empty.
+- **Fields that were really instructions:** the optional questions of What
+  is in the picture, Type what you see, Name what you see, Listen and pick
+  the image, Sort into groups and Fill the slots become Instruction or
+  context. The questions of the Assign presets and of Name what you see
+  were never shown to learners; they now are.
+- **Type what you hear:** its "Passage transcript" was shown to the
+  learner; it is now its Instruction or context, so the label no longer
+  invites the answer.
+- **Match by meaning:** its instruction is in the learners' language (it
+  asked for the target language by mistake).
+- **Recognize characters:** in text-to-image mode the text naming the
+  character is its question.
+- **Duel:** "Listen and choose the meaning." appears only for an exercise
+  with audio.
+- **Help EN/IT/ES** and the demo Courses follow; reading and listening
+  material is unchanged.
+
+Scoring, progression, Review, the Course format and learner data are
+unchanged. Beta expiry `2026-10-30 23:59:59` local time (30 days after this
+revision's release on 30 September 2026).
+
 # 2.0.58 (Build 258, Revision 4) - Share, save and print a Page - 2026-09-30
 
 Learners can share, save and print a Page as a PDF, when its Course allows

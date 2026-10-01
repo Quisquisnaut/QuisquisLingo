@@ -13,9 +13,11 @@ Resume from this file alone. Plan (approved by the owner on 29 September
   (`2.0.58+258004`, share, save and print a Page)**. Last complete suite
   3343 passed, 1 skipped, 0 failed (01:08–01:34). Beta expiry
   `2026-10-30 23:59:59`.
-- 30 September, 09:06: on the owner's request the branch is pushed to
-  `origin/claude/258-page-cards` (with Build 256 Revision 9 and Build 257,
-  which it contains); no pull request yet.
+- 30 September: on the owner's request the branch was pushed (with Build
+  256 Revision 9 and Build 257, which it contains) and merged into `main`
+  through PR #29 (merge commit `8d4fe9c`); the remote branch is deleted and
+  local `main` fast-forwarded. The local branch `claude/258-page-cards`
+  remains.
 - Next: the owner reviews a Windows build; corrections are same-version
   follow-ups of the revision they concern. Known limit: a page taller than
   A4 is cut at a fixed height in the PDF. Deferred by the plan: the

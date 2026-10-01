@@ -243,10 +243,11 @@ void main() {
       },
     );
 
-    test('the bundled Courses open every Lesson with a card', () {
+    test('the bundled and demo Courses open every Lesson with a card', () {
       for (final path in [
         'assets/courses/exercise_laboratory_en_it.json',
-        'assets/courses/edge_case_it_en.json',
+        // The Edge Case to import (Build 259 Revision 5).
+        'demo_courses/edge_case_it_en.json',
         'assets/courses/piedmontais_en.json',
       ]) {
         final course = Course.fromJson(

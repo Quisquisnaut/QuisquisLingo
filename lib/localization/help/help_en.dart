@@ -56,9 +56,6 @@ const Map<String, String> helpEn = <String, String>{
       r'''Why does a notice appear the first time I open a Course in View only?''',
   'editorHelp.qa.viewOnlyNotice.a':
       r'''It explains that View only changes nothing. It appears once per user and Course; Show one-time notices again, in Settings, brings it back without changing the access mode.''',
-  'editorHelp.qa.temporarySample.q': r'''What is a TEMPORARY SAMPLE Course?''',
-  'editorHelp.qa.temporarySample.a':
-      r'''A Course with development or demonstration material. The mark is shown in Course Info. Replace the sample material with reviewed educational content before you share the Course.''',
   'editorHelp.qa.structure.q': r'''How is a Course organized?''',
   'editorHelp.qa.structure.a':
       r'''A Course contains Lessons. Each Lesson has a GuideBook, Rounds and a Duel; each Round holds exercises. In the Course Editor open Lessons, then a Lesson, its Rounds and a Round. The breadcrumbs at the top of each page show where you are and take you back.''',
@@ -102,10 +99,17 @@ const Map<String, String> helpEn = <String, String>{
   'editorHelp.qa.restore.a':
       r'''Open Version History in the Course Editor. It lists the current version and the backups, newest first, with Open backup folder and Export JSON. Restore into working copy loads a backup of a custom Course into the working copy; it replaces the stored Course only when you confirm the Course changes. Official Courses keep their publisher versions only.''',
   'editorHelp.qa.courseSettings.title': r'''Course settings''',
+  'editorHelp.qa.privateCourse.q': r'''What is a Private course?''',
+  'editorHelp.qa.privateCourse.a':
+      r'''A custom Course visible in QQL only to its Course Maintainer and the members of its assigned Team: nobody else on this device sees it in Course Library, the Course Selector or Course Studio, admins included. Turn Private course on or off in Course Info Editor. An exported file stays private, so on another device only its Maintainer and Team can import it; QQL refuses to import someone else's Private course, or to use it in a Merge. Fork and Copy as New Course start non-private. A learner who maintains a Course cannot be removed until its Maintainer changes; Remove custom courses and Wipe out everything remove Private courses too, and their confirmation counts the ones you cannot see.''',
+  'editorHelp.qa.courseLanguages.q':
+      r'''How do I choose the Course languages?''',
+  'editorHelp.qa.courseLanguages.a':
+      r'''Three language settings act independently. QQL's own interface is in English. Help and Course Info are in English, Spanish or Italian: each learner's Help Language, set in QQL Guide. A Course's learner panel (exercise headings and instruction lines, buttons such as Check and Continue, the feedback, the end-of-Round summary, the Duel and the Review page) is in the Course's Source language when it is one of English, Spanish, Italian, German, Portuguese, Dutch and French, otherwise in English; messages about errors, audio set-up and app versions stay in English. In New Course, Source language and Target language list the languages by their English names: type to find one, or open the list. A language that is not in the list is kept as you type it, with an optional tag such as nap or pt-BR. The Course stores each name with its tag, and the voice and the automatic flag follow the Target language. The learner panel names languages in its own language: "Traduci in tedesco." The languages never change after creation: Course Info can only add the tag of a language an earlier Course wrote by name, and Learning language name for learners changes the name the lines use.''',
   'editorHelp.qa.courseInfo.q':
       r'''Where do I change the Course name and description?''',
   'editorHelp.qa.courseInfo.a':
-      r'''In Course Info Editor, available in Edit on the Course Editor page. The name can change; the Course ID never does. The source and learning languages are shown with their codes and cannot be changed there. Nothing is kept until you save the dialog and confirm the Course changes.''',
+      r'''In Course Info Editor, available in Edit on the Course Editor page. The name can change; the Course ID never does. The source and learning languages are shown with their codes and cannot be changed; an earlier Course can add the tags of its own languages from the list, and Learning language name for learners sets how the learner lines name the language you teach. Nothing is kept until you save the dialog and confirm the Course changes.''',
   'editorHelp.qa.license.q': r'''Which license can I choose?''',
   'editorHelp.qa.license.a':
       r'''All rights reserved, CC0 1.0, CC BY 4.0, CC BY-SA 4.0, CC BY-NC 4.0, CC BY-NC-SA 4.0, or Other / Custom license, which also states whether others may make derivative works. The license covers your Course content, not the QuisquisLingo software (MPL-2.0), and it never grants editing rights in QQL.''',
@@ -220,6 +224,9 @@ const Map<String, String> helpEn = <String, String>{
   'editorHelp.qa.distractors.q': r'''How many extra blocks may I add?''',
   'editorHelp.qa.distractors.a':
       r'''Put the words in order, Build the translation and Name what you see accept 0, 1 or at most 2 blocks that are not in the answer; the spelling presets use exactly the blocks of the word. Prefer fewer extra blocks in the first Rounds of a Lesson.''',
+  'editorHelp.qa.difficulty.q': r'''What do the difficulty bars mean?''',
+  'editorHelp.qa.difficulty.a':
+      r'''QQL computes each exercise's difficulty from what the learner does, from 0 to 4: 0 a card to read (Flashcard, Note card, Page); 1 recognize the meaning (pick or pair a source-language answer or a picture); 2 recognize the language (pick, pair or sort target-language forms); 3 build with blocks (put blocks in order or into slots); 4 write (type the answer). The Round editor shows four bars beside each exercise, filled up to its level; the Rounds page shows each Round's average. Before you start cards, Story covers and Dialogue lines have no level. The level is never stored: changing an exercise changes it. A Lesson usually works best from easier to harder Rounds: start with recognition and keep writing for later Rounds, while mixing the types within each Round. On a Round's first completion, each exercise answered correctly at the first attempt earns the learner 1 XP per level as a Difficulty bonus.''',
   'editorHelp.qa.firstLetter.q':
       r'''What does Show the first letter do in Type the missing word?''',
   'editorHelp.qa.firstLetter.a':
@@ -230,7 +237,7 @@ const Map<String, String> helpEn = <String, String>{
       r'''Write the situation in Text to read, in the learners' own language; add dialogue lines in the target language, one “Speaker: text” per line, and choose whether they are read aloud automatically, on request or not at all; then write the question and the answers in the target language. The text to read is never read aloud, and the read-aloud never makes it an audio exercise.''',
   'editorHelp.qa.pictures.q': r'''Which exercises use a picture?''',
   'editorHelp.qa.pictures.a':
-      r'''What is in the picture (choose the name), Name what you see (build the name from word blocks), Type what you see (type the name), Spell the word in the picture, Match picture to word and Picture flashcard. Choose the picture under Exercise image.''',
+      r'''What is in the picture (choose the name), Name what you see (build the name from word blocks), Type what you see (type the name), Spell the word in the picture and Picture flashcard: choose the picture under Exercise image. Match pictures to words has one picture per word instead, chosen below its words.''',
   'editorHelp.qa.allTypes.q': r'''Where is every exercise type explained?''',
   'editorHelp.qa.allTypes.a':
       r'''In Technical reference › Exercise types at the top of this page, and with Exercise Help beside each preset.''',
@@ -397,7 +404,7 @@ const Map<String, String> helpEn = <String, String>{
   'appInfo.courseIdentityAndProgress.body':
       r'''Every course has an immutable globally unique Course ID. Updates to the same course keep that ID and retain course progress. Importing a course with an existing Course ID lets you replace or update it, create a separate derived copy with a new ID, or cancel. Derived copies may record their parent Course ID and source version. Course completions, Review history, laurels and Language Duel wins are separate per Course ID. Language XP, streaks and study days remain shared by target language, while Week XP remains a total across all courses and languages.''',
   'appInfo.progressWeekXpAndGamification.body':
-      r'''Language XP, streak, study days and Status are stored separately for each learner and target language. Profile > Statistics shows Total Study Days across languages and, for every studied language, its flag, name, canonical language ID, Study Days, Current Streak and Max Streak. Completed Rounds and laurel crowns are stored separately for each learner and Course ID. Week XP is different: it is the total XP earned by that learner across all courses during the current week. Profile > Gamification contains Weekly XP Target · All courses, Last Week XP · All courses and the Local leaderboard · All courses. Last Week XP refers to the previous completed week; tap your own Last Week XP to see the XP breakdown for each course. The local leaderboard ranks participating learner profiles on this device by their total XP across all courses during that same completed week. Participation can be turned off without deleting the learner’s XP history. A Round or Story without a scored exercise (cards, covers or dialogue lines only) counts as completed but awards no XP and no Laurel.''',
+      r'''Language XP, streak, study days and Status are stored separately for each learner and target language. Profile > Statistics shows Total Study Days across languages and, for every studied language, its flag, name, canonical language ID, Study Days, Current Streak and Max Streak. Completed Rounds and laurel crowns are stored separately for each learner and Course ID. Week XP is different: it is the total XP earned by that learner across all courses during the current week. Profile > Gamification contains Weekly XP Target · All courses, Last Week XP · All courses and the Local leaderboard · All courses. Last Week XP refers to the previous completed week; tap your own Last Week XP to see the XP breakdown for each course. The local leaderboard ranks participating learner profiles on this device by their total XP across all courses during that same completed week. Participation can be turned off without deleting the learner’s XP history. A Round or Story without a scored exercise (cards, covers or dialogue lines only) counts as completed but awards no XP and no Laurel. The first time you complete a Round, each exercise you answer correctly at the first attempt also earns a Difficulty bonus: 1 XP per difficulty level, from 1 (recognize the meaning) to 4 (write).''',
   'appInfo.streakAndFreezeRule.body':
       r'''Your streak increases when you study that language on a new day. If you spend a day studying a different language, this language streak is frozen: it does not increase and it does not reset. A full day with no study in any language breaks active streaks.''',
   'appInfo.daysStudied.body':
@@ -425,7 +432,7 @@ const Map<String, String> helpEn = <String, String>{
   'appInfo.courseStudioAndCourseEditor.body':
       r'''Course Studio is opened from the learner Course Selector rather than Settings. It is the lifecycle hub: official courses provide read-only inspection, licensed Fork, Audit and supported Export; custom courses provide Edit, Copy as New Course, Merge, Audit, Export and Delete. Fork preserves the source lineage; Copy as New Course starts an independent Course lineage. Open Course Studio Help for library operations, and Editor Help from any Course Editor hierarchy page for authoring instructions.''',
   'appInfo.courseContentAndAi.body':
-      r'''The bundled courses titled Temporary Demo are AI-generated, unreviewed demonstrations and are not reliable learning courses. Real QuisquisLingo course content is intended to be authored and reviewed by humans. This classification does not apply to other official or custom courses.''',
+      r'''The bundled demo courses (Demo in their titles) are AI-generated, unreviewed demonstrations and are not reliable learning courses. Real QuisquisLingo course content is intended to be authored and reviewed by humans. This classification does not apply to other official or custom courses.''',
   'appInfo.versionAndBuild.body': r'''{version}''',
   'appInfo.betaExpiry.active':
       r'''This is a time-limited beta build. It expires on {expiryDate}. After expiry, learner exercises and Review are blocked until a newer beta is installed. Local progress, courses, course edits and settings are not deleted, and Course Editor remains available.''',
@@ -507,7 +514,7 @@ Remove from my courses, in the Selector or Course Studio, removes the course onl
       r'''Course Model v12 (Build 256). Every exercise is one of nine primitives with typed options, prompt elements, items, targets, an inline layout, an evaluation mode and optional feedback. Presets are recipes over this data and never change what learners see.''',
   'technical.exercisePrimitives.exerciseAnatomy.title': r'''Exercise anatomy''',
   'technical.exercisePrimitives.exerciseAnatomy.body':
-      r'''Exercise = primitive + options + prompt[] + items[] + targets[] + layout[] + evaluation + feedback, with an optional hint. Prompt elements are text, audio or image with a role (primary, question, passage, situation, clue, context, dialogue_turn, character, illustration) and the attributes language (source or target), playback (automatic or manual) and required. Items are what the learner chooses, orders, places or pairs; a Match item has a side. Targets are the gaps, slots or regions the learner fills, and the layout places them in the text. Items and targets are named by stable IDs, never by position.''',
+      r'''Exercise = primitive + options + prompt[] + items[] + targets[] + layout[] + evaluation + feedback, with an optional hint. Prompt elements are text, audio or image with a role (primary, question, passage, situation, clue, context, dialogue_turn, character, illustration) and the attributes language (source or target), playback (automatic or manual) and required. A primary text (else a clue) that states no language is the Instruction or context: the learner sees it in place of the standard instruction line under the heading; one with a language is material, such as a text to translate. Items are what the learner chooses, orders, places or pairs; a Match item has a side. Targets are the gaps, slots or regions the learner fills, and the layout places them in the text. Items and targets are named by stable IDs, never by position.''',
   'technical.exercisePrimitives.primitives.title': r'''The nine primitives''',
   'technical.exercisePrimitives.primitives.body':
       r'''select: the learner selects one or more items. input: the learner types text or a number into a field or into inline gaps. arrange: the learner orders blocks or drags them into gaps. match: the learner pairs left and right items. assign: the learner sorts items into groups, fills slots or the gaps of a text by tapping an item and then its destination (the presets Sort into groups and Fill the slots; gaps are authored in the canonical editor; picture regions and grid cells wait for a later version). speak: the learner speaks (definitions only). ink: the learner writes by hand (definitions only). submit: the learner hands in a free answer for self-check or review (definitions only). presentation: a card or note with nothing to answer, such as a Flashcard. The primitive is locked once an exercise exists.''',
@@ -665,11 +672,11 @@ If the Crash Log file is deleted, QuisquisLingo recreates it automatically at th
   'deviceAdminHelp.resetOptions.bullet1':
       r'''Reset learner progress: clears XP, streaks and completed lessons for every learner. Learners, PINs, settings and courses stay.''',
   'deviceAdminHelp.resetOptions.bullet2':
-      r'''Remove all learners except admins: deletes every non-admin learner and their data, and removes the Team list if it names any of them.''',
+      r'''Remove all learners except admins: deletes every non-admin learner and their data, and removes the Team list if it names any of them. It is refused while one of them maintains a Course: change the Course Maintainer or delete the Course first.''',
   'deviceAdminHelp.resetOptions.bullet3':
       r'''Remove imported media: you choose whether to remove the imported images, the imported audio files (recorded MP3 files), or both; nothing is ticked at first. It deletes only the copies QQL made in its own storage. Media that comes with QQL itself (the built-in image library, flags, icons and the bundled courses’ recordings) is part of the app and is never removed; edits to the shared image library’s tags and labels go back to the defaults. Your original files are not touched.''',
   'deviceAdminHelp.resetOptions.bullet4':
-      r'''Remove custom courses: deletes all custom and installed courses, all Teams and all imported media, meaning every imported image and every imported recorded MP3 audio file. Learners stay.''',
+      r'''Remove custom courses: deletes all custom and installed courses, all Teams and all imported media, meaning every imported image and every imported recorded MP3 audio file. Private courses of other learners, which you cannot see, go too; the confirmation counts them. Learners stay.''',
   'deviceAdminHelp.resetOptions.bullet5':
       r'''Wipe out everything: returns QQL to a brand-new installation, including all learners and admins. You can keep the Export folder, the Logs folder, the Import and ToBeMerged folders, and the Backups folder; all are kept unless you untick them in the first step. Import and ToBeMerged hold the original files you copied there yourself; Backups holds the automatic Course Backups.''',
   'deviceAdminHelp.beforeResetBackups.title': r'''Before you reset: backups''',
@@ -924,10 +931,14 @@ Question and Context are separate. Context can be text, audio, or both. Dialogue
       r'''Learner reads a question and chooses the answer among target-language options: grammar, culture or meaning, not only translations.''',
   'exerciseHelp.preset.choice_source.description':
       r'''Learner reads a question in the source language and chooses the answer: rules, culture and meanings asked in the language the learner already knows.''',
+  'exerciseHelp.preset.listening_choose_target.description':
+      r'''Learner listens to target-language audio and picks what was heard among target-language answers; there is no question.''',
+  'exerciseHelp.preset.listening_choose_source.description':
+      r'''Learner listens to target-language audio and picks its meaning among source-language answers; there is no question.''',
   'exerciseHelp.preset.listening_answer_target.description':
-      r'''Learner listens to target-language audio and picks the answer in the target language: what was heard, or the answer to a question about it.''',
+      r'''Learner listens to target-language audio and answers a question about it, choosing among target-language answers.''',
   'exerciseHelp.preset.listening_answer_source.description':
-      r'''Learner listens to target-language audio and picks the answer in the source language: its meaning, or the answer to a question about it.''',
+      r'''Learner listens to target-language audio and answers a source-language question about it, choosing among source-language answers.''',
   'exerciseHelp.preset.reading_answer_target.description':
       r'''Learner reads a situation in the source language and dialogue lines in the target language, then answers a target-language question.''',
   'exerciseHelp.preset.type_translation_to_target.description':
@@ -942,14 +953,14 @@ Question and Context are separate. Context can be text, audio, or both. Dialogue
       r'''Learner reviews a picture with its word, meaning and an optional usage example, with optional read-aloud.''',
   'exerciseHelp.preset.true_false.description':
       r'''Learner reads (or hears) a statement in the target language and answers true or false.''',
-  'exerciseHelp.preset.gap_choice_inline.description':
-      r'''Learner fills the gaps of a fixed sentence by tapping options, one per gap.''',
+  'exerciseHelp.preset.one_word_fills_all.description':
+      r'''Learner picks the one word that fills every gap of the sentences.''',
   'exerciseHelp.preset.complete_text.description':
-      r'''Learner types the words missing from a text with several gaps; no audio.''',
+      r'''Learner types the words missing from a text with several gaps marked ___; no audio, an optional instruction and hint.''',
   'exerciseHelp.preset.missing_letters.description':
       r'''Learner types the letters missing inside words (dr__); optional spoken text or picture.''',
   'exerciseHelp.preset.gap_blocks.description':
-      r'''Learner fills the gaps of a fixed sentence with word blocks, each used once.''',
+      r'''Learner fills the gaps of a fixed sentence by tapping words; each word fills one gap.''',
   'exerciseHelp.preset.sentence_order.description':
       r'''Learner puts the lines of a story or a dialogue in the right order.''',
   'exerciseHelp.preset.sort_into_groups.description':
@@ -1009,13 +1020,17 @@ Question and Context are separate. Context can be text, audio, or both. Dialogue
   'exerciseHelp.preset.flashcard.description':
       r'''Presents learning material without an ordinary scored answer.''',
   'exerciseHelp.preset.choice_target.body':
-      r'''The learner reads a question, or a sentence to complete, and chooses the right answer among text alternatives in the target language; the question itself may be in either language. It can be anything a course needs: a grammar form, a cultural fact, a meaning, a translation. Provide the question, at least two text answers and one correct answer (a new exercise starts with answer 1; several are possible with Multiple correct answers, and the Audit warns when every answer is correct). An optional Prompt line, an instruction or some context, is shown above the question instead of the standard “Choose the correct answer.” line. Optional prompt audio or a picture can support the question. Keep distractors plausible but clearly wrong. The twin Choose the answer (to source) asks and answers in the source language.''',
+      r'''The learner reads a question, or a sentence to complete, and chooses the right answer among text alternatives in the target language; the question itself may be in either language. It can be anything a course needs: a grammar form, a cultural fact, a meaning, a translation. Provide the question, at least two text answers and one correct answer (a new exercise starts with answer 1; several are possible with Multiple correct answers, and the Audit warns when every answer is correct). An optional Instruction or context line, in the learners’ language, is shown instead of the standard “Find the correct answer.” line. Optional prompt audio or a picture can support the question. Keep distractors plausible but clearly wrong. The twin Choose the answer (to source) asks and answers in the source language.''',
   'exerciseHelp.preset.choice_source.body':
-      r'''The learner reads a question, or a sentence to complete, written in the source language and chooses the right answer among alternatives in the source language: a grammar rule, a cultural fact, the meaning of an expression, anything better asked in the language the learner already knows. Provide the question, at least two text answers and one correct answer (a new exercise starts with answer 1; several are possible with Multiple correct answers, and the Audit warns when every answer is correct). An optional Prompt line, an instruction or some context, is shown above the question instead of the standard “Choose the correct answer.” line. Optional prompt audio is spoken with the source-language voice, and a picture can support the question. Keep distractors plausible but clearly wrong. The twin Choose the answer (to target) asks and answers in the target language.''',
+      r'''The learner reads a question, or a sentence to complete, written in the source language and chooses the right answer among alternatives in the source language: a grammar rule, a cultural fact, the meaning of an expression, anything better asked in the language the learner already knows. Provide the question, at least two text answers and one correct answer (a new exercise starts with answer 1; several are possible with Multiple correct answers, and the Audit warns when every answer is correct). An optional Instruction or context line, in the learners’ language, is shown instead of the standard “Find the correct answer.” line. Optional prompt audio is spoken with the source-language voice, and a picture can support the question. Keep distractors plausible but clearly wrong. The twin Choose the answer (to target) asks and answers in the target language.''',
+  'exerciseHelp.preset.listening_choose_target.body':
+      r'''The learner hears target-language audio and picks what was heard among written alternatives in the target language. There is no question; an optional instruction or context sets the scene and replaces the standard line. Spoken text contains exactly what the learner should hear; it plays as in Listen and answer (to target), through On-Device TTS, Recorded MP3 or Hybrid. Provide the alternatives and one correct answer; avoid visible text that gives away the audio. To ask a question about what was heard, use Listen and answer. The twin Listen and choose (to source) answers with the meaning in the source language.''',
+  'exerciseHelp.preset.listening_choose_source.body':
+      r'''The learner hears target-language audio and picks its meaning among written alternatives in the source language. There is no question; an optional instruction or context sets the scene and replaces the standard line. Spoken text, On-Device TTS, Recorded MP3 and Hybrid work as in Listen and answer (to target). Provide the alternatives and one correct answer; avoid visible text that gives away the audio.''',
   'exerciseHelp.preset.listening_answer_target.body':
-      r'''The learner hears target-language audio and chooses the answer among written alternatives in the target language. Without a question the learner picks what was heard; with a question the exercise tests comprehension of the passage, so make the passage long enough. Spoken text contains exactly what the learner should hear, for example: Buongiorno, come stai? On-Device TTS sends this text to the device’s native speech engine. Recorded MP3 resolves Course Audio Library text mappings; Hybrid tries a complete MP3 sequence before native TTS. For MP3, open Course Editor > Audio Library, copy files to {folderAudioImports}, press Import MP3, then Associate recording with its Word or expression and select Recorded MP3 only or Hybrid. There is no per-exercise MP3 attachment. Physical files are grouped by learning language; references belong to the Course. Verified Course backups copy referenced files; JSON alone does not transfer MP3 bytes. Provide written alternatives and exactly one correct answer; avoid visible text that gives away the audio. The twin Listen and answer (to source) asks and answers in the source language.''',
+      r'''The learner hears target-language audio and chooses the answer among written alternatives in the target language. The question is required: the learner answers it about what was heard, so make the passage long enough. To let the learner pick what was heard, with no question, use Listen and choose. Spoken text contains exactly what the learner should hear, for example: Buongiorno, come stai? On-Device TTS sends this text to the device’s native speech engine. Recorded MP3 resolves Course Audio Library text mappings; Hybrid tries a complete MP3 sequence before native TTS. For MP3, open Course Editor > Audio Library, copy files to {folderAudioImports}, press Import MP3, then Associate recording with its Word or expression and select Recorded MP3 only or Hybrid. There is no per-exercise MP3 attachment. Physical files are grouped by learning language; references belong to the Course. Verified Course backups copy referenced files; JSON alone does not transfer MP3 bytes. Provide written alternatives and exactly one correct answer; avoid visible text that gives away the audio. The twin Listen and answer (to source) asks and answers in the source language.''',
   'exerciseHelp.preset.listening_answer_source.body':
-      r'''The learner hears target-language audio and chooses the answer among written alternatives in the source language: the meaning of what was heard, or the answer to a question asked in the source language. Provide the spoken text in the target language, an optional question, the alternatives and one correct answer. Spoken text, On-Device TTS, Recorded MP3 and Hybrid work as in Listen and answer (to target). Avoid visible text that gives away the audio.''',
+      r'''The learner hears target-language audio and answers a question asked in the source language, choosing among written alternatives in the source language. Provide the spoken text in the target language, the question (required), the alternatives and one correct answer. For the meaning alone, with no question, use Listen and choose (to source). Spoken text, On-Device TTS, Recorded MP3 and Hybrid work as in Listen and answer (to target). Avoid visible text that gives away the audio.''',
   'exerciseHelp.preset.reading_answer_target.body':
       r'''The learner reads a short text in the source language that explains the situation, then dialogue lines in the target language (one “Speaker: text” turn per line), and answers a question in the target language by choosing among target-language alternatives. Provide the text, the dialogue or both, the question, at least two answers and one correct answer. Read the dialogue aloud: Automatically speaks each line in turn with a short pause when the exercise appears; On request adds a Play dialogue button; No read-aloud keeps it silent. The text to read is never read aloud, and the read-aloud never makes this an audio exercise. An exercise image may accompany it. This preset replaces Reading comprehension, Dialogue response and Contextual comprehension; Read and answer (to source) was retired and opens here.''',
   'exerciseHelp.preset.type_translation_to_target.body':
@@ -1030,30 +1045,30 @@ Question and Context are separate. Context can be text, audio, or both. Dialogue
       r'''The learner sees a picture with its target-language word and source-language translation, an optional usage example with its translation, and hears the word when read-aloud is on. Provide the picture (Image), the word and the translation, optionally the usage lines, and choose Automatically, On request or No read-aloud; fill in Pronunciation TTS (if different) only when the spoken text should differ from the word. The card is never an audio exercise and is shown when Audio Exercises are off. Got it completes the card; Review again schedules it once more.''',
   'exerciseHelp.preset.true_false.body':
       r'''The learner reads a statement in the target language, optionally hears it, and chooses between the word for true and the word for false in the source language. Provide the statement, an optional spoken statement, the two answers (prefilled in the source language when QQL knows it) and the correct answer number: 1 when the statement is true, 2 when it is false.''',
-  'exerciseHelp.preset.gap_choice_inline.body':
-      r'''The learner sees a sentence with one or more gaps and fills them in order by tapping options; the same option can fill several gaps, and a wrong tap can land in the wrong gap. Write the sentence and put each answer inside braces: I {am} going {to} London. Add 0, 1 or at most 2 distractor options and an optional spoken prompt. This preset replaces the Inline gaps switch of Choose the answer.''',
+  'exerciseHelp.preset.one_word_fills_all.body':
+      r'''The learner reads sentences with two or more ___ gaps and picks the one word that fills them all; once chosen it appears in every gap. Write the sentences with ___ (three underscores) for each gap, the answer words and the correct answer number; only one word may fit every gap. For a single gap use Pick the missing word. An optional Instruction or context takes the place of the standard line.''',
   'exerciseHelp.preset.complete_text.body':
-      r'''The learner reads a text with one or more gaps and types each missing word. Write the complete text and list the words to hide, one per line, in order; each must occur in the text. Answers are checked with the normal Input normalization. There is no audio: for gaps heard from a recording use Listen and fill the gaps.''',
+      r'''The learner reads a text with one or more gaps and types what goes into each. Write the text with ___ (three underscores) for each gap, and give one line per gap in Missing words, in order. A line may accept several answers: [il|un] gatto accepts both il gatto and un gatto. An optional Instruction or context sets the scene and replaces the standard line; an optional hint helps without giving the words away. Answers are checked with the normal Input normalization. There is no audio: for gaps heard from a recording use Listen and fill the gaps.''',
   'exerciseHelp.preset.missing_letters.body':
-      r'''The learner sees words with missing letters and types the letters. Write the complete text and put the missing letters inside square brackets: My cat doesn’t dr[ink] milk. The learner sees dr___ milk, one underscore per letter, and types ink. Several gaps are fine. An optional spoken text reads the whole sentence, an optional picture illustrates it, and an optional hint helps without giving the letters away.''',
+      r'''The learner sees words with missing letters and types the letters. Write the complete text and put the missing letters between underscores: My cat doesn’t dr_ink_ milk. The learner sees dr___ milk, one underscore per letter, and types ink. Several gaps are fine. An optional spoken text reads the whole sentence, an optional picture illustrates it, and an optional hint helps without giving the letters away.''',
   'exerciseHelp.preset.gap_blocks.body':
-      r'''The learner sees a sentence with gaps and drags word blocks into them; each block is used once and must land in the right gap. Write the sentence with each answer inside braces: Io {vorrei} un caffè. Add 0, 1 or at most 2 distractor blocks and an optional spoken prompt. This preset replaces the Inline gaps switch of Word order and Build the translation.''',
+      r'''The learner sees a sentence with gaps and taps a word for each gap; each word fills one gap and leaves the bank, and must land in the right gap. Write the sentence with each answer between underscores: Io _vorrei_ un caffè. A word needed twice is written in both gaps and offered twice. Add 0, 1 or at most 2 distractor words and an optional spoken prompt. This preset joins the former Pick the words for the gaps and Drag the blocks into the gaps.''',
   'exerciseHelp.preset.sentence_order.body':
-      r'''The learner sees the lines of a short story or dialogue as blocks and puts them in order. Enter the lines, one per line, and the correct order; you may add 0, 1 or at most 2 extra lines that belong nowhere. The instruction says what to order: the sentences of a story, the turns of a dialogue.''',
+      r'''The learner sees the lines of a short story or dialogue as blocks and puts them in order. Enter the lines once, in the correct order, and 0, 1 or at most 2 extra lines that belong nowhere. The Instruction or context can give the situation that decides the order; an optional hint helps without giving it away.''',
   'exerciseHelp.preset.sort_into_groups.body':
-      r'''The learner taps a word, then the group it belongs to; a placed word can be taken back; Check grades every group at once. Enter the question, one group per line as “Group name: word, word, …” (at least two, each with at least one word). Every word belongs to one group, and to one group only. Sort into groups is never an audio exercise.''',
+      r'''The learner taps a word, then the group it belongs to; a placed word can be taken back; Check grades every group at once. Enter an optional instruction or context and one group per line as “Group name: word, word, …” (at least two, each with at least one word). Every word belongs to one group, and to one group only. Sort into groups is never an audio exercise.''',
   'exerciseHelp.preset.fill_the_slots.body':
-      r'''The learner taps a word, then the slot it fills; a second word replaces the first; Check grades every slot at once. Enter the question and one slot per line as “what the learner sees = the word that fills it”, for example “… gatto = il”. Extra words that fill no slot are optional. Turn on “A word may fill more than one slot” when the same word is the answer of several slots: it stays in the bank after each use.''',
+      r'''The learner taps a word, then the slot it fills; a second word replaces the first; Check grades every slot at once. Enter an optional instruction or context and one slot per line as “what the learner sees = the word that fills it”, for example “… gatto = il”. Extra words that fill no slot are optional. Turn on “A word may fill more than one slot” when the same word is the answer of several slots: it stays in the bank after each use.''',
   'exerciseHelp.preset.listening_image_choice.body':
-      r'''The learner hears the spoken text and picks the picture it names. Provide the spoken text, an optional question, the answer labels (one per line) and one picture per answer, chosen with the pickers below the answers; mark the correct answer. The labels are shown under the pictures.''',
+      r'''The learner hears the spoken text and picks the picture it names. Provide the spoken text, an optional instruction or context, the answer labels (one per line) and one picture per answer, chosen with the pickers below the answers; mark the correct answer. The labels are shown under the pictures.''',
   'exerciseHelp.preset.spell_heard.body':
       r'''The learner hears a word and spells it by ordering letter or syllable tiles. Provide the spoken word and its tiles in order, one per line (split the word into letters or syllables as you like). No picture is needed; the tiles join without spaces.''',
   'exerciseHelp.preset.picture_choice.body':
-      r'''The learner sees a picture and chooses the word or sentence that names it among text answers. Provide the picture (Image), a question such as What is this?, at least two answers and the correct one.''',
+      r'''The learner sees a picture and chooses the word or sentence that names it among text answers. Provide the picture (Image, required), an optional instruction or context such as What is this?, at least two answers and the correct one.''',
   'exerciseHelp.preset.picture_name.body':
-      r'''The learner sees a picture and types what it shows. Provide the picture (Image), a question or instruction, one or more accepted answers with the same syntax as Type the translation (optional {}, alternatives [a|b], linked groups, reorder scopes) and an optional hint. Answers are checked with the normal Input normalization and typo tolerance.''',
+      r'''The learner sees a picture and types what it shows. Provide the picture (Image, required), an optional instruction or context, one or more accepted answers with the same syntax as Type the translation (optional {}, alternatives [a|b], linked groups, reorder scopes) and an optional hint. Answers are checked with the normal Input normalization and typo tolerance.''',
   'exerciseHelp.preset.picture_blocks.body':
-      r'''The learner sees a picture and builds its name by tapping word blocks in order; a placed block can be taken back; Check grades the order. Provide the picture (Exercise image), an optional question such as What is this?, the blocks of the name in order (one word per line) and up to two extra blocks that are not part of the name, plus an optional hint. The blocks join with spaces. Capitals that differ between the name and its blocks get an Audit warning. Type what you see is the same exercise with a typed answer.''',
+      r'''The learner sees a picture and builds its name by tapping word blocks in order; a placed block can be taken back; Check grades the order. Provide the picture (Exercise image, required), an optional instruction or context such as What is this?, the blocks of the name in order (one word per line) and up to two extra blocks that are not part of the name, plus an optional hint. The blocks join with spaces. Capitals that differ between the name and its blocks get an Audit warning. Type what you see is the same exercise with a typed answer.''',
   'exerciseHelp.preset.spell_word.body':
       r'''The learner reads a clue in the source language, the word itself or a definition, and spells the target-language word by ordering letter or syllable tiles. Provide the clue and the tiles of the word in order, one per line; a picture is optional.''',
   'exerciseHelp.preset.picture_word_match.body':
@@ -1069,7 +1084,7 @@ Question and Context are separate. Context can be text, audio, or both. Dialogue
   'exerciseHelp.preset.note_card.body':
       r'''A card with a title and a note: a tip, a grammar point, a cultural remark. The learner reads it and presses Continue; there is no answer, no score and no audio. Write in the language your learners read best.''',
   'exerciseHelp.preset.gap_choice.body':
-      r'''The learner sees a sentence containing ___ and chooses the missing word or expression. Provide one text gap, answer blocks and one correct answer. Text is supported. Use exactly one gap where possible and make only one option grammatically and semantically correct.''',
+      r'''The learner sees a sentence containing ___ and chooses the missing word or expression. Provide one text gap, answer blocks and one correct answer. Text is supported. Use exactly one gap where possible and make only one option grammatically and semantically correct. An optional Instruction or context, such as the meaning of a short phrase (Complete the phrase meaning the dog.), takes the place of the standard line.''',
   'exerciseHelp.preset.icon_choice.body':
       r'''The learner sees a question and image choices, then selects the matching image. Provide one answer and image/icon entry per option plus the correct answer number. Text and images are supported. Every option needs a corresponding visual.''',
   'exerciseHelp.preset.script_recognition.body':
@@ -1093,13 +1108,13 @@ The learner sees target-language text and picks its correct source-language tran
   'exerciseHelp.preset.type_missing_word.body':
       r'''Enter a sentence with one ___ gap and the complete accepted words. With Show the first letter on, the gap reveals the first letter as a hint: QQL derives the first Unicode grapheme automatically and all accepted words must share exactly that first grapheme. With the switch off, the gap is empty and the learner types the word without help. Either way the learner enters the complete word, which uses normal Input normalization and feedback. Example: with the hint, the learner sees é______ and enters école, not cole. The complete sentence is shown after checking. Exercises made with the former Fill-in preset open here.''',
   'exerciseHelp.preset.listening_spelling.body':
-      r'''The learner hears audio and types what was heard. Provide the audio text and accepted transcription. Audio and text are supported. Return or Enter submits the answer.''',
+      r'''The learner hears audio and types what was heard. Provide the Audio text: it is always accepted as the answer. Other accepted spellings (optional) lists other ways to write the same words, such as alle 9 for alle nove. Return or Enter submits the answer.''',
   'exerciseHelp.preset.missing_word.body':
       r'''The learner hears audio while reading a transcript with one or more gaps, then types each missing word. Provide the complete transcript/audio and every missing item in order. Audio and text are supported. Every missing item must occur in the transcript.''',
   'exerciseHelp.preset.word_match.body':
       r'''The learner matches source-language words with their target-language translations. Provide at least two text pairs; three is the usual number. Text is supported. Each visible item must be unique after ordinary normalization. Exercises made with the former Matching preset open here.''',
   'exerciseHelp.preset.super_match.body':
-      r'''The learner matches related target-language items such as synonyms or opposites. Provide exactly three text pairs and an instruction naming the relationship. Text is supported. Do not mix unrelated relationship rules.''',
+      r'''The learner matches related target-language items such as synonyms or opposites. Provide exactly three text pairs and an optional instruction or context naming the relationship, in the learners’ language. Text is supported. Do not mix unrelated relationship rules.''',
   'exerciseHelp.preset.audio_match.body':
       r'''The learner plays audio items and matches each one to visible text. Provide exactly three audio-text pairs with no distractors. Audio and text are supported. Each audio and visible answer must be unique.''',
   'exerciseHelp.preset.word_order.body':
@@ -1108,17 +1123,6 @@ The learner sees target-language text and picks its correct source-language tran
       r'''The learner sees an image and orders letter or syllable blocks to form its word. Provide an image, an instruction and the blocks of the word in order, one per line; the learner gets exactly those blocks, shuffled. Distractors are not allowed.''',
   'exerciseHelp.preset.flashcard.body':
       r'''The learner sees a target-language word or expression, its source-language translation and an optional usage example with its translation, hears the word when read-aloud is on, then chooses Got it or Review again. Provide the learning material rather than a scored answer; choose Automatically, On request or No read-aloud; fill in Pronunciation TTS (if different) only when the spoken text should differ from the word. Read-aloud never makes the card an audio exercise. Presentation content does not earn base correct-answer XP.''',
-  'exerciseHelp.field.choice.prompt.body':
-      r'''An optional line above the question: an instruction or some context. Example: Pick the verb form that fits.
-
-What to enter
-One line, or nothing. In a Round it takes the place of the standard “Choose the correct answer.” line under the CHOOSE heading; leave it empty to keep that line. The question or sentence goes in its own field.
-
-Checks
-Optional. Keep it consistent with the question and the answers.
-
-Example
-Pick the verb form that fits.''',
   'exerciseHelp.field.build_translation_to_source.correctTranslation.body':
       r'''Defines one complete literal source-language answer for Build the translation (to source).
 
@@ -1159,11 +1163,33 @@ Example
 the one before a vowel
 the one before a consonant
 none''',
+  'exerciseHelp.field.listening_answer.question.body':
+      r'''The question the learner answers about what they hear.
+
+What to enter
+One question about the recording: who, what, where, how many. Listen and answer (to source) asks it in the source language. To let the learner simply pick what was heard, with no question, use Listen and choose.
+
+Checks
+Required: a Published save refuses it empty. Make the recording long enough to answer it, and mark the correct answer.
+
+Example
+Dove fa la spesa Maria?''',
+  'exerciseHelp.field.one_word_fills_all.question.body':
+      r'''The sentences the learner completes with one word that fits every gap.
+
+What to enter
+Write the sentences in the target language with ___ (3 underscores) wherever the same word goes; at least two gaps. The chosen word appears in every gap.
+
+Checks
+Required: a Published save refuses it without two or more gaps. For one gap, use Pick the missing word.
+
+Example
+___ gatto dorme. ___ cane mangia.''',
   'exerciseHelp.field.choice_source.question.body':
       r'''The question, or the sentence to complete, written in the source language.
 
 What to enter
-One question in the language the learner already knows, or a sentence with ___ where the answer fits: a grammar rule, a cultural fact, the meaning of an expression. An instruction or context goes in Prompt.
+One question in the language the learner already knows, or a sentence with ___ where the answer fits: a grammar rule, a cultural fact, the meaning of an expression. An instruction or context goes in Instruction or context.
 
 Checks
 The answers below are in the source language too; mark the correct one (or several with Multiple correct answers).
@@ -1237,28 +1263,28 @@ Every answer needs a picture; the Audit warns otherwise. Course pictures travel 
 Example
 1. gatto: a picture of a cat''',
   'exerciseHelp.field.complete_text.missingWords.body':
-      r'''The words hidden from the text.
+      r'''What goes into each gap, in order.
 
 What to enter
-One word or expression per line, in the order they appear in the text.
+One line per ___ gap, in the order the gaps appear. A line may accept several answers: [il|un] gatto accepts il gatto and un gatto; {il} gatto accepts gatto with or without il.
 
 Checks
-Each entry must occur in the text; the first occurrence after the previous gap is hidden. Answers are checked with the normal Input normalization.
+As many lines as gaps. Malformed alternatives are rejected. Answers are checked with the normal Input normalization.
 
 Example
 caffè
-treno''',
+[il|un] treno''',
   'exerciseHelp.field.complete_text.prompt.body':
-      r'''The complete text; the words listed below become gaps.
+      r'''The text the learner completes; each ___ is a gap.
 
 What to enter
-Write the whole text including the words to hide. Several sentences are fine.
+Write the text and put ___ (three underscores) where each missing word or phrase goes. Several sentences are fine.
 
 Checks
-Every missing word must occur in the text, in order.
+At least one gap, and as many gaps as lines in Missing words.
 
 Example
-Anna beve un caffè al bar. Poi prende il treno.''',
+Anna beve un ___ al bar. Poi prende ___.''',
   'exerciseHelp.field.gap_blocks.tokens.body':
       r'''Blocks that fill no gap, offered beside the answers.
 
@@ -1271,16 +1297,16 @@ A distractor must not repeat the text of any gap answer.
 Example
 sempre''',
   'exerciseHelp.field.missing_letters.prompt.body':
-      r'''The complete text with the missing letters marked in square brackets.
+      r'''The complete text with the missing letters marked between underscores.
 
 What to enter
-Write the text and put the letters to hide inside [ and ], one bracket per gap: My cat doesn’t dr[ink] milk.
+Write the text and put the letters to hide between underscores, one pair per gap: My cat doesn’t dr_ink_ milk.
 
 Checks
-At least one bracket, none empty. The learner sees one underscore per hidden letter and types the letters.
+At least one gap, none empty. The learner sees one underscore per hidden letter and types the letters.
 
 Example
-Il ga[tt]o dor[me] sul divano.''',
+Il ga_tt_o dor_me_ sul divano.''',
   'exerciseHelp.field.dialogue_line.speaker.body': r'''Who says the line.
 
 What to enter
@@ -1399,17 +1425,6 @@ Recommended; a cover without a picture shows the title only.
 
 Example
 A café terrace''',
-  'exerciseHelp.field.sort_into_groups.question.body':
-      r'''What the learner is asked to do.
-
-What to enter
-One line, in the language you prefer; name the groups if that helps.
-
-Checks
-Required.
-
-Example
-Sort the words: animals or plants?''',
   'exerciseHelp.field.sort_into_groups.groups.body':
       r'''The groups and their words.
 
@@ -1422,17 +1437,6 @@ A word can be in one group only; a line without a colon, a name or words is refu
 Example
 Animals: gatto, cane
 Plants: rosa, pino''',
-  'exerciseHelp.field.fill_the_slots.question.body':
-      r'''What the learner is asked to do.
-
-What to enter
-One line, in the language you prefer.
-
-Checks
-Required.
-
-Example
-Which article goes with each noun?''',
   'exerciseHelp.field.fill_the_slots.slots.body':
       r'''The slots and the word that fills each one.
 
@@ -1558,31 +1562,29 @@ gatto
 cane
 casa''',
   'exerciseHelp.field.sentence_order.order.body':
-      r'''The lines in the right order.
+      r'''The lines of the story or dialogue, in the order the learner must find.
 
 What to enter
-One line per line, exactly as written above, in the correct order.
+One sentence or line per line, in the correct order; the learner gets them shuffled. Lines that belong nowhere go in Extra lines.
 
 Checks
-Each line must match one of the listed lines.
+At least two lines to publish. The same text twice is two lines.
 
 Example
 Anna entra nel bar.
 Ordina un caffè.
 Paga e saluta.''',
-  'exerciseHelp.field.sentence_order.tokens.body':
-      r'''The lines of the story or dialogue the learner puts in order.
+  'exerciseHelp.field.sentence_order.extraWords.body':
+      r'''Lines offered with the others that belong nowhere; the learner must leave them out.
 
 What to enter
-One sentence or line per line, in any order. You may add 0, 1 or at most 2 extra lines that belong nowhere.
+One line per line: 0, 1 or at most 2.
 
 Checks
-Every line of the correct order must be listed here.
+Optional. Keep them plausible but clearly out of place.
 
 Example
-Anna entra nel bar.
-Ordina un caffè.
-Paga e saluta.''',
+Il treno parte alle nove.''',
   'exerciseHelp.field.spell_heard.tts.body':
       r'''The word the learner hears and spells.
 
@@ -1632,14 +1634,14 @@ Roma è la capitale d’Italia.''',
       r'''What the learner answers: a question, or a sentence with a gap the answers complete.
 
 What to enter
-One question, or one sentence with ___ where the answer fits, as plain text; an instruction or context goes in Prompt. In Choose the answer (to target) the answers are in the target language and the question may be in either language; in Choose the answer (to source) question and answers are in the source language.
+One question, or one sentence with ___ where the answer fits, as plain text; an instruction or context goes in Instruction or context. In Choose the answer (to target) the answers are in the target language and the question may be in either language; in Choose the answer (to source) question and answers are in the source language.
 
 Checks
 Required. Provide matching answers and mark the correct one (or several with Multiple correct answers).
 
 Example
 Which article goes with casa?
-Ieri ___ al cinema. (with the Prompt: Pick the verb form that fits.)''',
+Ieri ___ al cinema. (with the Instruction or context: Pick the verb form that fits.)''',
   'exerciseHelp.field.choice.answers.body':
       r'''Defines the alternatives presented to the learner.
 
@@ -1676,16 +1678,16 @@ The Check button stays disabled until at least this many options are selected. T
 Example
 2''',
   'exerciseHelp.field.choice.gapLayout.body':
-      r'''Shows the fixed sentence with one or more inline blanks the learner fills, in order, by tapping options from a list.
+      r'''The fixed sentence with one or more inline gaps the learner fills, in order, by tapping options.
 
 What to enter
-Write the sentence and put each answer word or phrase directly inside braces: {answer}. Example: I {am} going {to} London. Each tap fills the first remaining empty blank, whichever option is tapped — placement does not check correctness, so the right words in the wrong blanks are still marked incorrect. If the same word answers more than one gap, write it inside each of those braces: {Was} she happy? {Was} he late? — the learner taps it once per blank it needs to fill. Extra options that are not the answer to any gap go in Distractor options (optional).
+Write the sentence and put each answer word or phrase between underscores: _answer_. Example: I _am_ going _to_ London. Extra options that are not the answer to any gap go in Distractor options (optional).
 
 Checks
-At least one {…} gap is required, and every gap must contain non-empty text. Literal { or } characters cannot appear anywhere else in the sentence.
+At least one _…_ gap is required, and every gap must contain text. A lone _ cannot appear anywhere else in the sentence.
 
 Example
-I {am} going {to} London.''',
+I _am_ going _to_ London.''',
   'exerciseHelp.field.choice.tokens.body':
       r'''Adds options the learner can select that are not the answer to any gap.
 
@@ -1789,13 +1791,13 @@ Both modes use normal Select with at least two options and exactly one correct o
 Example
 Show several handwritten forms of 가 and ask the learner to choose ga.''',
   'exerciseHelp.field.script_recognition.scriptPrompt.body':
-      r'''Supplies the text that the learner matches to an image.
+      r'''The question or sentence that names the character the learner finds among the images.
 
 What to enter
-Enter the character, syllable, sound transcription or instruction as plain text. Keep the image answers in their separate option fields.
+Enter the character, syllable or sound transcription, as a question or a sentence. Keep the image answers in their separate option fields.
 
 Checks
-Text to image requires a nonempty text prompt, at least two image-only options and exactly one correct option.
+Text to image requires a question or sentence, at least two image-only options and exactly one correct option.
 
 Example
 Choose the character pronounced ga.''',
@@ -1949,7 +1951,7 @@ Example
       r'''Supplies the blocks used to construct the configured correct translations.
 
 What to enter
-Enter one literal block per line. Blank lines are ignored. Include enough distinct occurrences to construct every correct translation; repeated words require repeated lines. When Inline gaps is enabled, this field is relabeled Extra distractor blocks: the gap answers themselves come from the {answer} braces in Target sentence with gaps, and this field only adds optional unused distractors.
+Enter one literal block per line. Blank lines are ignored. Include enough distinct occurrences to construct every correct translation; repeated words require repeated lines. When Inline gaps is enabled, this field is relabeled Extra distractor blocks: the gap answers themselves come from the _answer_ markers in Target sentence with gaps, and this field only adds optional unused distractors.
 
 Checks
 Every correct translation must be constructible from these blocks. At most 2 blocks may be unused by every correct translation. A block used by any configured answer is not an unused distractor. Answer-expression syntax is not expanded.
@@ -1972,16 +1974,16 @@ At least one non-empty answer is required. Answers must be unique after case, sp
 Example
 Io vorrei un caffè.''',
   'exerciseHelp.field.build_translation.gapLayout.body':
-      r'''Shows the fixed sentence text with one or more inline blanks the learner fills with word or phrase tiles.
+      r'''The fixed sentence with one or more inline gaps the learner fills with words, each word filling one gap.
 
 What to enter
-Write the fixed sentence and put each answer word or phrase directly inside braces: {answer}. Example: I {am} going {to} London. Each {…} segment is both the gap and its correct answer, so no separate Correct answers / Correct sentence field is needed in this mode. Extra distractor blocks that are not used by any gap still go in Available word blocks / Extra distractor blocks (optional).
+Write the fixed sentence and put each answer word or phrase between underscores: _answer_. Example: I _am_ going _to_ London. Each _…_ segment is both the gap and its correct answer. Extra distractor words that fill no gap go in Extra distractor words (optional).
 
 Checks
-At least one {…} gap is required, and every gap must contain non-empty text. Literal { or } characters cannot appear anywhere else in the sentence — every { must be paired with a matching } directly around one answer. Existing whole-sentence Arrange exercises are unaffected unless Inline gaps is enabled.
+At least one _…_ gap is required, and every gap must contain text. A lone _ cannot appear anywhere else in the sentence.
 
 Example
-I {am} going {to} London.''',
+I _am_ going _to_ London.''',
   'exerciseHelp.field.translation_choice_to_target.question.body':
       r'''The source-language word or phrase the learner translates.
 
@@ -2076,28 +2078,17 @@ With the hint on, all complete accepted words must share exactly the same first 
 
 Example
 Je vais à l’___. Answer: école. Learner sees é______ and enters école, not cole.''',
-  'exerciseHelp.field.listening_spelling.prompt.body':
-      r'''Supplies the visible prompt text for Type what you hear.
-
-What to enter
-Enter one text value. This preset displays the text as entered; it does not automatically remove the accepted answer from the transcript. Audio text controls what the learner hears.
-
-Checks
-Preview the prompt to make sure it does not reveal the answer you want the learner to type. Put accepted typed responses in Missing word.
-
-Example
-Listen and type the word you hear.''',
   'exerciseHelp.field.listening_spelling.missingWords.body':
-      r'''Defines accepted typed responses for Type what you hear.
+      r'''Other ways to write what the learner hears; the Audio text itself is always accepted.
 
 What to enter
-Despite the compact field label, each entry is a complete accepted word or passage, not an instruction to remove text from the transcript. Enter complete equivalent answers on separate lines. Blank lines are ignored. Optional text: {Io} prendo un cappuccino. Alternatives: [prendo|vorrei] un cappuccino. Linked alternatives: [*:il|i] [*:tuo|tuoi] [*:denaro|soldi] pairs alternatives by position; use at least two linked groups with equal alternative counts. Scoped reordering: (non arrivo <> oggi). Without parentheses, a casa <> domani reorders the whole expression. Terminal punctuation stays at the sentence end; generated sentence starts are capitalized. Use lowercase except for proper names.
+Leave it empty when the Audio text is the only way to write it. Otherwise enter one complete spelling per line: the whole text heard, not a single missing word. Alternatives inside a line: alle [9|nove]. Capitals, punctuation and spacing are ignored anyway.
 
 Checks
-At least one accepted answer is required. Malformed expressions are rejected. Expansion is deterministic, duplicate results are removed, and the combined limit is 128 answers; simplify an expression that exceeds it. Declare equivalent answers explicitly: syntax does not invent translations. Match the accepted responses to Audio text and check the visible prompt in Preview.
+Optional. Every line must be the same words the learner hears; do not accept words that are not heard. Malformed alternatives are rejected.
 
 Example
-caffè''',
+arrivo alle 8''',
   'exerciseHelp.field.missing_word.prompt.body':
       r'''Supplies the complete text from which the learner view creates listening gaps.
 
@@ -2122,17 +2113,17 @@ At least one entry is required and each entry must occur in Passage transcript, 
 Example
 caffè
 per favore''',
-  'exerciseHelp.field.matching.prompt.body':
-      r'''The instruction or context shown to the learner.
+  'exerciseHelp.field.instruction.body':
+      r'''An optional line in the learners’ language: what to do, the situation, or the meaning the exercise needs.
 
 What to enter
-Enter one instruction or prompt as plain text. Line breaks remain part of that text; they do not create separate answers. Use the course source language for operational instructions.
+One line in the learners’ language, or nothing. In a Round it takes the place of the standard instruction line under the heading; leave it empty to keep that line. It may set the scene (Anna goes to the market in the morning) or give the meaning (Anna reads a book). The question, the sentence and the answers go in their own fields.
 
 Checks
-Keep it consistent with the selected exercise and the separately entered question, pairs or blocks. For Match by meaning, state the relationship in the target language.
+Optional. It is stored without a language, so it never turns the exercise into a translation. Keep it consistent with the rest of the exercise, and do not give the answer away.
 
 Example
-Build the sentence.''',
+Put the dialogue at the bar in order.''',
   'exerciseHelp.field.matching.pairs.body':
       r'''Defines items that the learner matches across two columns.
 
@@ -2162,7 +2153,7 @@ water = acqua''',
       r'''Matches related words, such as synonyms or opposites.
 
 What to enter
-Enter exactly three non-empty lines as left = right, with both sides in the target language. State the relationship in Match type / instruction.
+Enter exactly three non-empty lines as left = right, with both sides in the target language. Name the relationship in Instruction or context, in the learners’ language.
 
 Checks
 All three pairs need both sides and a usable equals separator. Check that every pair follows the stated relationship and that matching is unambiguous.
@@ -2188,7 +2179,7 @@ acqua = water''',
       r'''Supplies the blocks the learner puts into sentence order.
 
 What to enter
-Enter one literal target-language block per line. Blank lines are ignored. Repeat a line when the answer needs another occurrence of that word or block. When Inline gaps is enabled, this field is relabeled Extra distractor blocks: the gap answers themselves come from the {answer} braces in Sentence with gaps, and this field only adds optional unused distractors.
+Enter one literal target-language block per line. Blank lines are ignored. Repeat a line when the answer needs another occurrence of that word or block. When Inline gaps is enabled, this field is relabeled Extra distractor blocks: the gap answers themselves come from the _answer_ markers in Sentence with gaps, and this field only adds optional unused distractors.
 
 Checks
 Include every block occurrence used in Correct sentence. You may add 0, 1 or at most 2 unused distractor blocks. Keep block spelling and internal punctuation consistent with the correct order.
@@ -2295,9 +2286,9 @@ Good morning, Maria!''',
   'courseInfo.internalCourseData': r'''Internal course data''',
   'courseInfo.enlargeImage': r'''Enlarge Course image''',
   'courseInfo.courseModel': r'''Course Model: v{value}''',
-  'courseInfo.temporarySample.title': r'''Temporary Sample''',
+  'courseInfo.temporarySample.title': r'''Private course''',
   'courseInfo.temporarySample.body':
-      r'''This course is marked TEMPORARY SAMPLE. The preloaded material is provided only to demonstrate and test the editor. Replace sample material with reviewed content before publishing or distributing the course.''',
+      r'''This course is visible in QQL only to its Course Maintainer and the members of its assigned Team. Turn Private course off in Course Info to show it to everyone on this device.''',
   'courseInfo.authorshipAndDescriptiveCredits':
       r'''Authorship and descriptive credits''',
   'courseInfo.teamLeaderTooltip':

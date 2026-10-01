@@ -703,6 +703,29 @@ class _ResetSection extends StatelessWidget {
           '${preview.audioFileCount} imported audio file(s), '
           '${preview.hasCustomCourses ? 'custom courses or Teams are stored' : 'no custom courses or Teams'}.',
         ),
+        // Build 259 Revision 8: Private courses of other learners, which the
+        // admin cannot see, go with the custom courses.
+        if ((plan.scope == AppResetScope.customCourses ||
+                plan.scope == AppResetScope.everything) &&
+            preview.hiddenPrivateCourseCount > 0) ...[
+          const SizedBox(height: 8),
+          Text(
+            preview.hiddenPrivateCourseCount == 1
+                ? 'This includes 1 Private course of another learner, which you cannot see.'
+                : 'This includes ${preview.hiddenPrivateCourseCount} Private courses of other learners, which you cannot see.',
+            key: const Key('reset-hidden-private-courses'),
+            style: const TextStyle(fontWeight: FontWeight.w600),
+          ),
+        ],
+        if (plan.scope == AppResetScope.nonAdminLearners &&
+            preview.coursesMaintainedByNonAdmins.isNotEmpty) ...[
+          const SizedBox(height: 8),
+          Text(
+            'These learners maintain ${preview.coursesMaintainedByNonAdmins.join(', ')}. Change the Course Maintainer or delete those Courses first: until then this reset is refused.',
+            key: const Key('reset-maintained-courses'),
+            style: const TextStyle(fontWeight: FontWeight.w600),
+          ),
+        ],
         if (affectedLearners.isNotEmpty) ...[
           const SizedBox(height: 8),
           Text(

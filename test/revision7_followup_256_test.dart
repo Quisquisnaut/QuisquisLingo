@@ -23,7 +23,7 @@ import 'support/test_directories.dart';
 
 /// Build 256 Revision 7 follow-up (owner review, 29 September 2026): the
 /// Assign presets Sort into groups and Fill the slots (recipes over
-/// canonical data, forms, Help, Search, Audit), the Match picture to word
+/// canonical data, forms, Help, Search, Audit), the Match pictures to words
 /// form whose cards follow the words as they are typed, the Flashcard form
 /// with named languages and a Read aloud choice instead of a pronunciation
 /// field, and the spelling presets' single field.
@@ -186,7 +186,7 @@ void main() {
       // 2026: the words that belong nowhere were removed).
       final e = _built(
         'sort_into_groups',
-        question: 'Sort the words: animals or plants?',
+        prompt: 'Sort the words: animals or plants?',
         groups: 'Animals: gatto, cane\nPlants: rosa, pino',
       );
       final f = ExerciseFeatures(e);
@@ -196,7 +196,9 @@ void main() {
       expect(f.assignTargetMode, AssignTargetMode.categories);
       expect(f.targetCapacity, TargetCapacity.unlimited);
       expect(f.assignItemReuse, isFalse);
-      expect(f.questionText, 'Sort the words: animals or plants?');
+      // Build 259: an Instruction or context, shown in the instruction line.
+      expect(f.questionText, isEmpty);
+      expect(f.authoredInstruction, 'Sort the words: animals or plants?');
       expect(e.items.map((item) => item.value), [
         'gatto',
         'cane',
@@ -217,7 +219,7 @@ void main() {
       );
       // The form reads its fields back and the recipe represents the result.
       final draft = PresetRecipes.decompose(e, 'sort_into_groups');
-      expect(draft.question, 'Sort the words: animals or plants?');
+      expect(draft.prompt, 'Sort the words: animals or plants?');
       expect(draft.groups, 'Animals: gatto, cane\nPlants: rosa, pino');
       expect(PresetRecipes.represents(e, 'sort_into_groups'), isTrue);
       final stripped = e.withAuthoringMetadata(const {});
@@ -229,7 +231,7 @@ void main() {
     test('Fill the slots: one word per slot unless reuse is allowed', () {
       final refused = _build(
         'fill_the_slots',
-        question: 'Which article goes with each noun?',
+        prompt: 'Which article goes with each noun?',
         slots: '… cane = il\n… libro = il\n… casa = la',
       );
       expect(refused.error?.code, ExerciseDraftErrorCode.slotWordRepeated);
@@ -237,7 +239,7 @@ void main() {
       expect(refused.error?.detail, 'il');
       final e = _built(
         'fill_the_slots',
-        question: 'Which article goes with each noun?',
+        prompt: 'Which article goes with each noun?',
         slots: '… cane = il\n… libro = il\n… casa = la',
         extraWords: 'lo',
         slotReuse: true,
@@ -435,12 +437,12 @@ void main() {
       });
       expect(PresetRecipes.defaultPresetFor(ExercisePrimitive.assign), isNull);
       expect(ExerciseFieldHelpRegistry.editorFieldKeys('sort_into_groups'), [
-        'question',
+        'prompt',
         'groups',
         'image',
       ]);
       expect(ExerciseFieldHelpRegistry.editorFieldKeys('fill_the_slots'), [
-        'question',
+        'prompt',
         'slots',
         'extraWords',
         'slotReuse',
@@ -485,7 +487,7 @@ void main() {
         ),
       );
       await tester.enterText(
-        find.byKey(const ValueKey('exercise-field-question')),
+        find.byKey(const ValueKey('exercise-field-prompt')),
         'Which article goes with each noun?',
       );
       await tester.enterText(
@@ -507,7 +509,7 @@ void main() {
     });
   });
 
-  group('Match picture to word form', () {
+  group('Match pictures to words form', () {
     testWidgets('the picture cards follow the words as they are typed', (
       tester,
     ) async {
@@ -528,14 +530,37 @@ void main() {
       await tester.pump();
       expect(find.text('3. casa'), findsOneWidget);
       expect(find.byKey(const ValueKey('answer-picture-2')), findsOneWidget);
-      // One shared prompt image card; the per-word cards carry the word.
-      expect(find.text('Exercise image'), findsOneWidget);
+      // Only the per-word cards, which carry the word: no Exercise image
+      // (Build 259 Revision 5, owner decision).
+      expect(find.text('Exercise image'), findsNothing);
       expect(find.text('Pictures, in the order of the words'), findsOneWidget);
       await tester.enterText(words, 'gatto');
       await tester.pump();
       expect(find.text('2. cane'), findsNothing);
       expect(find.byKey(const ValueKey('answer-picture-1')), findsNothing);
     });
+
+    testWidgets(
+      'a Published save refuses a single word (Build 259 Revision 5)',
+      (tester) async {
+        _bigWindow(tester);
+        final saved = await _mountForm(
+          tester,
+          _formExercise('picture_word_match'),
+        );
+        await tester.enterText(
+          find.byKey(const ValueKey('exercise-field-answers')),
+          'gatto',
+        );
+        await tester.pump();
+        await _tap(tester, find.byKey(const Key('exercise-save')));
+        expect(saved(), isNull);
+        expect(
+          find.textContaining('enter at least two words, one per line'),
+          findsWidgets,
+        );
+      },
+    );
   });
 
   group('Flashcard read-aloud', () {
@@ -662,8 +687,8 @@ void main() {
     ) async {
       _bigWindow(tester);
       await _mountForm(tester, _formExercise('choice_target'));
-      expect(find.text('Prompt (optional)'), findsOneWidget);
-      expect(find.text('Question or sentence to complete'), findsOneWidget);
+      expect(find.text('Instruction or context (optional)'), findsOneWidget);
+      expect(find.text('Question or sentence'), findsOneWidget);
       final correct = find.byKey(const ValueKey('exercise-field-correct'));
       expect(tester.widget<TextField>(correct).controller!.text, '1');
     });
@@ -726,7 +751,7 @@ void main() {
           .expand((lesson) => lesson.rounds)
           .expand((round) => round.exercises)
           .singleWhere((e) => e.id == 'qql_lab254_match_opposites');
-      expect(ExerciseFeatures(opposites).primaryText, contains('contrario'));
+      expect(ExerciseFeatures(opposites).primaryText, contains('opposite'));
       expect(
         ExerciseCopyService.instructionForExercise(course, opposites),
         ExerciseCopyService.instruction(course, LearnerExerciseKind.match),

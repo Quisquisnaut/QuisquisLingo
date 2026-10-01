@@ -270,7 +270,9 @@ void main() {
     await _until(tester, find.text('Anna walks into the café.'));
     expect(find.byKey(const Key('story-line-narrator')), findsOneWidget);
     expect(find.text('Narrator'), findsOneWidget);
-    expect(find.text('Read or listen, then continue.'), findsOneWidget);
+    // A line has no instruction (Build 259 Revision 5).
+    expect(find.text('Read or listen, then continue.'), findsNothing);
+    expect(find.byKey(const Key('exercise-instruction')), findsNothing);
     // A line has no heading (owner decision, 28 September 2026).
     expect(find.byKey(const Key('exercise-heading')), findsNothing);
     expect(find.text('DIALOGUE'), findsNothing);
@@ -288,7 +290,9 @@ void main() {
     // spoken in the target language with the female voice.
     await _until(tester, find.byKey(const Key('story-line-bubble')));
     expect(find.text('Anna'), findsOneWidget);
-    expect(find.text('Listen first; the text appears after.'), findsOneWidget);
+    // The bubble says "Listen first…"; no instruction line under it (Build
+    // 259 Revision 5).
+    expect(find.text('Listen first; the text appears after.'), findsNothing);
     // Anna's bundled avatar is drawn as the asset it is: the portable
     // decoder used to refuse assets/avatars and draw a broken image.
     expect(
@@ -322,7 +326,8 @@ void main() {
     await _tap(tester, find.byKey(const Key('story-line-continue')));
     await _until(tester, find.text('What did Anna order?'));
     expect(find.text('Grazie.'), findsOneWidget);
-    expect(find.text('Now · step 5 of 6'), findsOneWidget);
+    expect(find.text('Story · 6 steps'), findsOneWidget);
+    expect(find.textContaining('Now · step'), findsNothing);
     for (var i = 0; i < 4; i++) {
       expect(find.byKey(ValueKey('story-entry-$i')), findsOneWidget);
     }

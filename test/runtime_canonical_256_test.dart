@@ -29,6 +29,9 @@ const _expectedKinds = <String, Set<LearnerExerciseKind>>{
   'gap_choice': {LearnerExerciseKind.selectComplete},
   'icon_choice': {LearnerExerciseKind.selectImage},
   'script_recognition': {LearnerExerciseKind.selectCharacter},
+  // Listen and choose (Build 259 Revision 2): what was heard, no question.
+  'listening_choose_target': {LearnerExerciseKind.selectListen},
+  'listening_choose_source': {LearnerExerciseKind.selectListen},
   'listening_answer_target': {
     LearnerExerciseKind.selectListen,
     LearnerExerciseKind.selectListenPassage,
@@ -64,10 +67,9 @@ const _expectedKinds = <String, Set<LearnerExerciseKind>>{
   'build_translation_to_source': {LearnerExerciseKind.arrangeTranslation},
   'picture_flashcard': {LearnerExerciseKind.presentation},
   'true_false': {LearnerExerciseKind.select, LearnerExerciseKind.selectListen},
-  'gap_choice_inline': {
-    LearnerExerciseKind.select,
-    LearnerExerciseKind.selectListen,
-  },
+  // Build 259 Revision 4: One word fills all; gap_choice_inline merged
+  // into gap_blocks.
+  'one_word_fills_all': {LearnerExerciseKind.selectCompleteAll},
   'complete_text': {LearnerExerciseKind.inputComplete},
   'missing_letters': {
     LearnerExerciseKind.inputComplete,
@@ -80,7 +82,8 @@ const _expectedKinds = <String, Set<LearnerExerciseKind>>{
   },
   'listening_image_choice': {LearnerExerciseKind.selectListen},
   'spell_heard': {LearnerExerciseKind.arrangeWord},
-  'picture_choice': {LearnerExerciseKind.select},
+  // What is in the picture has its own title (Build 259 Revision 3).
+  'picture_choice': {LearnerExerciseKind.selectPicture},
   'picture_name': {LearnerExerciseKind.inputPictureName},
   'picture_blocks': {LearnerExerciseKind.arrangePictureName},
   'spell_word': {LearnerExerciseKind.arrangeWord},
@@ -106,8 +109,15 @@ const _bundled = [
   'piedmontais_en.json',
 ];
 
+// The Edge Case is the Course to import since Build 259 Revision 5.
 Course _load(String file) => Course.fromJson(
-  jsonDecode(File('assets/courses/$file').readAsStringSync())
+  jsonDecode(
+        File(
+          file == 'edge_case_it_en.json'
+              ? 'demo_courses/$file'
+              : 'assets/courses/$file',
+        ).readAsStringSync(),
+      )
       as Map<String, dynamic>,
 );
 
@@ -328,8 +338,11 @@ void main() {
       const selectPresets = {
         'choice_target',
         'gap_choice',
+        'one_word_fills_all',
         'icon_choice',
         'script_recognition',
+        'listening_choose_target',
+        'listening_choose_source',
         'listening_answer_target',
         'reading_answer_target',
         'translation_choice_to_target',

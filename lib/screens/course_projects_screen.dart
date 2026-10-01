@@ -23,6 +23,7 @@ import '../services/formal_name_policy.dart';
 import '../services/course_access_policy.dart';
 import '../services/sound_effect_service.dart';
 import '../services/new_course_structure.dart';
+import '../widgets/language_field.dart';
 import '../widgets/course_cover_field.dart';
 import '../widgets/course_flag_picker.dart';
 import '../widgets/course_library_row.dart';
@@ -1084,8 +1085,10 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
     final availableMaintainers = await _ops.profiles.getProfileRecords();
     if (!mounted) return null;
     final title = TextEditingController();
-    final source = TextEditingController(text: 'English');
-    final target = TextEditingController();
+    // Build 260 Revision 0: languages come from the list (English names and
+    // tags) or are typed by hand.
+    final source = LanguageFieldController(name: 'English');
+    final target = LanguageFieldController();
     final authorNames = [
       TextEditingController(text: activeProfile.displayName),
     ];
@@ -1166,23 +1169,18 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    TextField(
+                    LanguageField(
                       controller: source,
-                      maxLength: 80,
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                        labelText: 'Source language *',
-                      ),
+                      label: 'Source language *',
+                      keyPrefix: 'new-course-source-language',
+                      onChanged: () => setDialogState(() {}),
                     ),
                     const SizedBox(height: 8),
-                    TextField(
+                    LanguageField(
                       controller: target,
-                      maxLength: 80,
-                      onChanged: (_) => setDialogState(() {}),
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                        labelText: 'Target language *',
-                      ),
+                      label: 'Target language *',
+                      keyPrefix: 'new-course-target-language',
+                      onChanged: () => setDialogState(() {}),
                     ),
                     const SizedBox(height: 8),
                     DropdownButtonFormField<String>(
@@ -1620,10 +1618,12 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
                     const SizedBox(height: 12),
                     CourseFlagSelector(
                       selection: flagSelection,
-                      languageName: target.text,
-                      languageTag: CourseLanguageResolver.codeFromMetadata([
-                        target.text,
-                      ]),
+                      languageName: target.text.text,
+                      languageTag: target.choice?.tag.isNotEmpty == true
+                          ? target.choice!.tag
+                          : CourseLanguageResolver.codeFromMetadata([
+                              target.text.text,
+                            ]),
                       onChanged: (selection) =>
                           setDialogState(() => flagSelection = selection),
                     ),
@@ -1678,9 +1678,9 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
                           );
                           return;
                         }
-                        final s = source.text.trim();
-                        final tg = target.text.trim();
-                        if (s.isEmpty || tg.isEmpty) return;
+                        final s = source.choice;
+                        final tg = target.choice;
+                        if (s == null || tg == null) return;
                         if (_library.hasCourseTitled(t)) {
                           final continueAnyway = await showDialog<bool>(
                             context: ctx,
@@ -1726,8 +1726,10 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
                             creator: activeProfile,
                             maintainerProfileId: selectedMaintainer,
                             title: t,
-                            sourceLanguage: s,
-                            targetLanguage: tg,
+                            sourceLanguage: s.name,
+                            targetLanguage: tg.name,
+                            sourceLanguageTag: s.tag,
+                            targetLanguageTag: tg.tag,
                             credits: [
                               for (
                                 var index = 0;

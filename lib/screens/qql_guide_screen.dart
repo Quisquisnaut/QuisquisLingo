@@ -19,8 +19,10 @@ class QqlGuideScreen extends StatelessWidget {
           ListTile(
             key: const Key('qql-guide-language'),
             title: const Text('Help Language'),
+            // Build 260 Revision 0 (owner request): the three language
+            // settings are independent.
             subtitle: const Text(
-              'Help and Course Info language for this learner.',
+              'Help and Course Info language for this learner. QQL itself is in English; the learner panel follows each Course\'s source language.',
             ),
             trailing: AppLocaleSelector(
               key: const Key('qql-guide-language-selector'),

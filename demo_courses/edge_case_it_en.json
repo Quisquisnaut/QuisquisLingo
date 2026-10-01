@@ -1,24 +1,23 @@
 {
   "formatVersion": 12,
+  "courseId": "course_ef03d1b5-dccc-4fbb-88da-100473cddaad",
+  "originType": "custom",
+  "originalCourseCreator": {
+    "type": "qqlUser",
+    "id": "afb065f8-701c-48d2-85f7-c80d44abecb9",
+    "displayName": "QuisquisLingo"
+  },
+  "maintainer": {
+    "profileId": "afb065f8-701c-48d2-85f7-c80d44abecb9"
+  },
+  "originalCreatedAtUtc": "2026-09-25T00:00:00.000Z",
+  "courseVersion": "1",
+  "lastVersionEditorProfileId": "afb065f8-701c-48d2-85f7-c80d44abecb9",
+  "lastVersionEditorDisplayName": "QuisquisLingo",
   "publicationState": "published",
   "lessonNumberingMode": "lesson",
   "defaultLessonIconStyle": "monochrome",
   "createDuels": false,
-  "courseId": "course_6f6a1fa3-b834-4936-b324-92fb57f73502",
-  "originType": "bundledOfficial",
-  "publisherId": "org.quisquislingo",
-  "publisherName": "QuisquisLingo",
-  "officialCourseVersion": "1.2.0",
-  "officialReleaseDateUtc": "2026-09-28T00:00:00.000Z",
-  "officialReleaseNotes": "QQL Build 256 Revision 5: a Story Lesson (a cover, lines, one of them audio only, and an exercise that needs the Story's audio).",
-  "distributionChannel": "bundled",
-  "publisherVerificationStatus": "verified",
-  "originalCourseCreator": {
-    "type": "publisher",
-    "id": "org.quisquislingo",
-    "displayName": "QuisquisLingo"
-  },
-  "originalCreatedAtUtc": "2026-09-25T00:00:00.000Z",
   "modifiedAtUtc": "2026-09-28T00:00:00.000Z",
   "learningLanguage": "English",
   "interfaceLanguage": "Italian",
@@ -42,7 +41,7 @@
   "courseDescription": "TEMPORARY AI-GENERATED TEST COURSE. Italiano → inglese. Per trovarlo abilita Show unavailable: contiene strutture Draft valide, omesse nel Learner. Include tre avvisi Audit intenzionali (opzioni duplicate, testo lungo e una Story di sole copertine). Hybrid prova MP3 preinstallati e fallback TTS; i campioni MP3 non hanno una trascrizione verificata e sono solo prove di riproduzione. Fork abilita i collaudi Copy as New Course e Merge su copie personali. Non è un percorso didattico revisionato.",
   "textDirection": "ltr",
   "flagCode": "EN",
-  "temporarySample": true,
+  "temporarySample": false,
   "keywords": [
     "demo",
     "edge cases",
@@ -1288,7 +1287,7 @@
             "kind": "explanation",
             "required": false,
             "role": "overview",
-            "text": "Arrange usa occorrenze separate; Select può riutilizzare una stessa opzione in più gap."
+            "text": "Ogni parola riempie un solo gap; una parola che serve due volte è offerta due volte."
           },
           {
             "id": "qql_edge_254_l02_v1",
@@ -1650,19 +1649,18 @@
               "kind": "exercise",
               "required": true,
               "authoringMetadata": {
-                "presetId": "gap_choice_inline"
+                "presetId": "gap_blocks"
               },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
-                "primitive": "select",
+                "primitive": "arrange",
                 "options": {
-                  "itemReuse": "unlimited",
                   "layout": "inline",
-                  "evaluationTiming": "explicit"
+                  "placementMode": "inlineGaps"
                 },
                 "prompt": [
                   {
-                    "role": "primary",
+                    "role": "clue",
                     "type": "text",
                     "text": "Completa: un gatto."
                   }
@@ -1695,7 +1693,7 @@
                   }
                 ],
                 "evaluation": {
-                  "mode": "exactItem",
+                  "mode": "gapAssignments",
                   "assignments": [
                     {
                       "targetId": "qql_edge_254_e17_select_min_g1",
@@ -1713,21 +1711,20 @@
               "kind": "exercise",
               "required": true,
               "authoringMetadata": {
-                "presetId": "gap_choice_inline"
+                "presetId": "gap_blocks"
               },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
-                "primitive": "select",
+                "primitive": "arrange",
                 "options": {
-                  "itemReuse": "unlimited",
                   "layout": "inline",
-                  "evaluationTiming": "explicit"
+                  "placementMode": "inlineGaps"
                 },
                 "prompt": [
                   {
-                    "role": "primary",
+                    "role": "clue",
                     "type": "text",
-                    "text": "Completa entrambe le domande riutilizzando la stessa opzione."
+                    "text": "Completa entrambe le domande: la stessa parola serve due volte."
                   }
                 ],
                 "items": [
@@ -1747,12 +1744,22 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "Were"
+                        "text": "Was"
                       }
                     ]
                   },
                   {
                     "id": "qql_edge_254_e18_select_linked_i3",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "Were"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "qql_edge_254_e18_select_linked_i4",
                     "content": [
                       {
                         "role": "primary",
@@ -1789,7 +1796,7 @@
                   }
                 ],
                 "evaluation": {
-                  "mode": "exactItem",
+                  "mode": "gapAssignments",
                   "assignments": [
                     {
                       "targetId": "qql_edge_254_e18_select_linked_g1",
@@ -1800,7 +1807,7 @@
                     {
                       "targetId": "qql_edge_254_e18_select_linked_g2",
                       "itemIds": [
-                        "qql_edge_254_e18_select_linked_i1"
+                        "qql_edge_254_e18_select_linked_i2"
                       ]
                     }
                   ]
@@ -1813,21 +1820,20 @@
               "kind": "exercise",
               "required": true,
               "authoringMetadata": {
-                "presetId": "gap_choice_inline"
+                "presetId": "gap_blocks"
               },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
-                "primitive": "select",
+                "primitive": "arrange",
                 "options": {
-                  "itemReuse": "unlimited",
                   "layout": "inline",
-                  "evaluationTiming": "explicit"
+                  "placementMode": "inlineGaps"
                 },
                 "prompt": [
                   {
-                    "role": "primary",
+                    "role": "clue",
                     "type": "text",
-                    "text": "Completa con due opzioni diverse."
+                    "text": "Completa con due parole diverse."
                   }
                 ],
                 "items": [
@@ -1903,7 +1909,7 @@
                   }
                 ],
                 "evaluation": {
-                  "mode": "exactItem",
+                  "mode": "gapAssignments",
                   "assignments": [
                     {
                       "targetId": "qql_edge_254_e19_select_distinct_g1",
@@ -1922,7 +1928,7 @@
               }
             }
           ],
-          "title": "Select: gap singolo e riuso"
+          "title": "Una parola per gap"
         }
       ],
       "duel": {
@@ -3322,6 +3328,5 @@
         "title": "Duel"
       }
     }
-  ],
-  "officialChecksum": "dd6c6ec2c010da10eb45b0c8dd68b06dc2712546588a62662ced8f7ab6d35d13"
+  ]
 }

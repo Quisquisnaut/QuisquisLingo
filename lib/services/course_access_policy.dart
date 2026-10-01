@@ -53,8 +53,16 @@ class CourseAccessPolicy {
   final ProfileService _profiles;
   final TeamService _teams;
 
-  Future<CourseAccessCapabilities> forCurrentProfile(Course course) async {
-    final profileId = await _profiles.getActiveProfileId();
+  Future<CourseAccessCapabilities> forCurrentProfile(Course course) async =>
+      forProfile(course, await _profiles.getActiveProfileId());
+
+  /// The capabilities of the profile [profileId], with its Teams. A Private
+  /// course asks this for whichever profile a list belongs to (Build 259
+  /// Revision 8).
+  Future<CourseAccessCapabilities> forProfile(
+    Course course,
+    String? profileId,
+  ) async {
     final teamIds = profileId == null
         ? const <String>{}
         : (await _teams.teamsForProfile(

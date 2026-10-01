@@ -24,7 +24,7 @@
   "interfaceLanguage": "English",
   "sourceLanguage": "English",
   "targetLanguage": "Piedmontese",
-  "title": "Temporary Demo: Piedmontese",
+  "title": "QQL Demo: Piedmontese (sorted by exercise type)",
   "ttsLanguage": "pms-IT",
   "audioMode": "tts",
   "authors": [
@@ -54,7 +54,7 @@
   "targetLanguageTag": "pms-IT",
   "textDirection": "ltr",
   "worldFlagId": "piedmontese",
-  "temporarySample": true,
+  "temporarySample": false,
   "lessons": [
     {
       "lessonId": "pms_e5f5585a_l01",
@@ -2682,7 +2682,7 @@
                 "primitive": "select",
                 "prompt": [
                   {
-                    "role": "primary",
+                    "role": "question",
                     "type": "text",
                     "text": "How do you say bread in Piedmontese?"
                   }
@@ -2740,7 +2740,7 @@
                 "primitive": "select",
                 "prompt": [
                   {
-                    "role": "primary",
+                    "role": "question",
                     "type": "text",
                     "text": "How do you say cat in Piedmontese?"
                   }
@@ -2798,7 +2798,7 @@
                 "primitive": "select",
                 "prompt": [
                   {
-                    "role": "primary",
+                    "role": "question",
                     "type": "text",
                     "text": "How do you say water in Piedmontese?"
                   }
@@ -4061,7 +4061,7 @@
       "publicationState": "published",
       "updatedAt": "2026-09-25T00:00:00.000Z",
       "section": false,
-      "title": "Pick the words for the gaps — Pick the words for the gaps",
+      "title": "Pick the words for the gaps — Fill the gaps",
       "themeIconAsset": "assets/lesson_icons/speech_bubbles.png",
       "guidebook": {
         "content": [
@@ -4071,7 +4071,7 @@
             "kind": "explanation",
             "required": false,
             "role": "overview",
-            "text": "Tap the options to fill the gaps of a fixed sentence: mi i son content = I am happy; pan e eva = bread and water; ël gat e ël can = the cat and the dog."
+            "text": "Tap a word for each gap; every word fills one gap: mi i son content = I am happy; pan e eva = bread and water; ël gat e ël can = the cat and the dog."
           }
         ]
       },
@@ -4101,7 +4101,7 @@
                   {
                     "role": "intro",
                     "type": "text",
-                    "text": "Pick the words for the gaps: Pick the words for the gaps. Three short examples use this exercise type."
+                    "text": "Pick the words for the gaps: Fill the gaps. Three short examples use this exercise type."
                   }
                 ],
                 "evaluation": {
@@ -4115,19 +4115,18 @@
               "kind": "exercise",
               "required": true,
               "authoringMetadata": {
-                "presetId": "gap_choice_inline"
+                "presetId": "gap_blocks"
               },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
-                "primitive": "select",
+                "primitive": "arrange",
                 "options": {
-                  "itemReuse": "unlimited",
                   "layout": "inline",
-                  "evaluationTiming": "explicit"
+                  "placementMode": "inlineGaps"
                 },
                 "prompt": [
                   {
-                    "role": "primary",
+                    "role": "clue",
                     "type": "text",
                     "text": "Complete the sentence about being happy."
                   }
@@ -4191,7 +4190,7 @@
                   }
                 ],
                 "evaluation": {
-                  "mode": "exactItem",
+                  "mode": "gapAssignments",
                   "assignments": [
                     {
                       "targetId": "gap_1",
@@ -4215,19 +4214,18 @@
               "kind": "exercise",
               "required": true,
               "authoringMetadata": {
-                "presetId": "gap_choice_inline"
+                "presetId": "gap_blocks"
               },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
-                "primitive": "select",
+                "primitive": "arrange",
                 "options": {
-                  "itemReuse": "unlimited",
                   "layout": "inline",
-                  "evaluationTiming": "explicit"
+                  "placementMode": "inlineGaps"
                 },
                 "prompt": [
                   {
-                    "role": "primary",
+                    "role": "clue",
                     "type": "text",
                     "text": "Complete the phrase meaning bread and water."
                   }
@@ -4287,7 +4285,7 @@
                   }
                 ],
                 "evaluation": {
-                  "mode": "exactItem",
+                  "mode": "gapAssignments",
                   "assignments": [
                     {
                       "targetId": "gap_1",
@@ -4311,21 +4309,20 @@
               "kind": "exercise",
               "required": true,
               "authoringMetadata": {
-                "presetId": "gap_choice_inline"
+                "presetId": "gap_blocks"
               },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
-                "primitive": "select",
+                "primitive": "arrange",
                 "options": {
-                  "itemReuse": "unlimited",
                   "layout": "inline",
-                  "evaluationTiming": "explicit"
+                  "placementMode": "inlineGaps"
                 },
                 "prompt": [
                   {
-                    "role": "primary",
+                    "role": "clue",
                     "type": "text",
-                    "text": "Complete the phrase; the same article fills both gaps."
+                    "text": "Complete the phrase; the article is a separate block each time."
                   }
                 ],
                 "items": [
@@ -4345,7 +4342,7 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "la"
+                        "text": "ël"
                       }
                     ]
                   }
@@ -4377,7 +4374,7 @@
                   }
                 ],
                 "evaluation": {
-                  "mode": "exactItem",
+                  "mode": "gapAssignments",
                   "assignments": [
                     {
                       "targetId": "gap_1",
@@ -4388,7 +4385,7 @@
                     {
                       "targetId": "gap_2",
                       "itemIds": [
-                        "pms_e5f5585a_l17_r01_e03_i0"
+                        "pms_e5f5585a_l17_r01_e03_i1"
                       ]
                     }
                   ]
@@ -4408,12 +4405,247 @@
       "publicationState": "published",
       "updatedAt": "2026-09-25T00:00:00.000Z",
       "section": false,
-      "title": "Complete the text — Complete the text",
+      "title": "One word fills all — One word for every gap",
       "themeIconAsset": "assets/lesson_icons/speech_bubbles.png",
       "guidebook": {
         "content": [
           {
             "id": "pms_e5f5585a_l18_g01",
+            "publicationState": "published",
+            "kind": "explanation",
+            "required": false,
+            "role": "overview",
+            "text": "un = a, one; ël = the; bondì = good morning. One word fills every gap of the sentences."
+          }
+        ]
+      },
+      "rounds": [
+        {
+          "id": "pms_e5f5585a_l18_r01",
+          "publicationState": "published",
+          "updatedAt": "2026-09-25T00:00:00.000Z",
+          "visualType": "generic",
+          "title": "One word fills all practice",
+          "content": [
+            {
+              "id": "pms_e5f5585a_l18_r01_intro",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": false,
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "One word fills all: One word for every gap. Three short examples use this exercise type."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
+            },
+            {
+              "id": "pms_e5f5585a_l18_r01_e01",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "authoringMetadata": {
+                "presetId": "one_word_fills_all"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "select",
+                "prompt": [
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "I l'hai ___ gat e ___ can."
+                  }
+                ],
+                "items": [
+                  {
+                    "id": "pms_e5f5585a_l18_r01_e01_i0",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "un"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "pms_e5f5585a_l18_r01_e01_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "pan"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "pms_e5f5585a_l18_r01_e01_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "eva"
+                      }
+                    ]
+                  }
+                ],
+                "evaluation": {
+                  "mode": "exactItem",
+                  "correctItemIds": [
+                    "pms_e5f5585a_l18_r01_e01_i0"
+                  ]
+                }
+              }
+            },
+            {
+              "id": "pms_e5f5585a_l18_r01_e02",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "authoringMetadata": {
+                "presetId": "one_word_fills_all"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "select",
+                "prompt": [
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "___ gat a l'é n'animal. ___ can a l'é n'animal."
+                  }
+                ],
+                "items": [
+                  {
+                    "id": "pms_e5f5585a_l18_r01_e02_i0",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "La"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "pms_e5f5585a_l18_r01_e02_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "Ël"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "pms_e5f5585a_l18_r01_e02_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "Pan"
+                      }
+                    ]
+                  }
+                ],
+                "evaluation": {
+                  "mode": "exactItem",
+                  "correctItemIds": [
+                    "pms_e5f5585a_l18_r01_e02_i1"
+                  ]
+                }
+              }
+            },
+            {
+              "id": "pms_e5f5585a_l18_r01_e03",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "authoringMetadata": {
+                "presetId": "one_word_fills_all"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "select",
+                "prompt": [
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "___, Anna! ___, Tòni!"
+                  }
+                ],
+                "items": [
+                  {
+                    "id": "pms_e5f5585a_l18_r01_e03_i0",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "Pan"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "pms_e5f5585a_l18_r01_e03_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "Eva"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "pms_e5f5585a_l18_r01_e03_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "Bondì"
+                      }
+                    ]
+                  }
+                ],
+                "evaluation": {
+                  "mode": "exactItem",
+                  "correctItemIds": [
+                    "pms_e5f5585a_l18_r01_e03_i2"
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "duel": {
+        "id": "pms_e5f5585a_l18_duel",
+        "title": "Duel"
+      }
+    },
+    {
+      "lessonId": "pms_e5f5585a_l19",
+      "publicationState": "published",
+      "updatedAt": "2026-09-25T00:00:00.000Z",
+      "section": false,
+      "title": "Complete the text — Complete the text",
+      "themeIconAsset": "assets/lesson_icons/speech_bubbles.png",
+      "guidebook": {
+        "content": [
+          {
+            "id": "pms_e5f5585a_l19_g01",
             "publicationState": "published",
             "kind": "explanation",
             "required": false,
@@ -4424,14 +4656,14 @@
       },
       "rounds": [
         {
-          "id": "pms_e5f5585a_l18_r01",
+          "id": "pms_e5f5585a_l19_r01",
           "publicationState": "published",
           "updatedAt": "2026-09-25T00:00:00.000Z",
           "visualType": "generic",
           "title": "Complete the text practice",
           "content": [
             {
-              "id": "pms_e5f5585a_l18_r01_intro",
+              "id": "pms_e5f5585a_l19_r01_intro",
               "publicationState": "published",
               "kind": "exercise",
               "required": false,
@@ -4457,7 +4689,7 @@
               }
             },
             {
-              "id": "pms_e5f5585a_l18_r01_e01",
+              "id": "pms_e5f5585a_l19_r01_e01",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
@@ -4518,11 +4750,12 @@
                       ]
                     }
                   ]
-                }
+                },
+                "hint": "One meows, one barks."
               }
             },
             {
-              "id": "pms_e5f5585a_l18_r01_e02",
+              "id": "pms_e5f5585a_l19_r01_e02",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
@@ -4583,11 +4816,12 @@
                       ]
                     }
                   ]
-                }
+                },
+                "hint": "Bread and water, in Piedmontese."
               }
             },
             {
-              "id": "pms_e5f5585a_l18_r01_e03",
+              "id": "pms_e5f5585a_l19_r01_e03",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
@@ -4601,7 +4835,13 @@
                   "layout": "inlineGaps",
                   "cardinality": "multiple"
                 },
-                "prompt": [],
+                "prompt": [
+                  {
+                    "role": "clue",
+                    "type": "text",
+                    "text": "You are at home, on the sofa."
+                  }
+                ],
                 "targets": [
                   {
                     "id": "gap_1"
@@ -4631,19 +4871,20 @@
                       ]
                     }
                   ]
-                }
+                },
+                "hint": "Something you read."
               }
             }
           ]
         }
       ],
       "duel": {
-        "id": "pms_e5f5585a_l18_duel",
+        "id": "pms_e5f5585a_l19_duel",
         "title": "Duel"
       }
     },
     {
-      "lessonId": "pms_e5f5585a_l19",
+      "lessonId": "pms_e5f5585a_l20",
       "publicationState": "published",
       "updatedAt": "2026-09-25T00:00:00.000Z",
       "section": false,
@@ -4652,7 +4893,7 @@
       "guidebook": {
         "content": [
           {
-            "id": "pms_e5f5585a_l19_g01",
+            "id": "pms_e5f5585a_l20_g01",
             "publicationState": "published",
             "kind": "explanation",
             "required": false,
@@ -4663,14 +4904,14 @@
       },
       "rounds": [
         {
-          "id": "pms_e5f5585a_l19_r01",
+          "id": "pms_e5f5585a_l20_r01",
           "publicationState": "published",
           "updatedAt": "2026-09-25T00:00:00.000Z",
           "visualType": "generic",
           "title": "Missing letters practice",
           "content": [
             {
-              "id": "pms_e5f5585a_l19_r01_intro",
+              "id": "pms_e5f5585a_l20_r01_intro",
               "publicationState": "published",
               "kind": "exercise",
               "required": false,
@@ -4696,7 +4937,7 @@
               }
             },
             {
-              "id": "pms_e5f5585a_l19_r01_e01",
+              "id": "pms_e5f5585a_l20_r01_e01",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
@@ -4740,11 +4981,12 @@
                       ]
                     }
                   ]
-                }
+                },
+                "hint": "An animal that meows."
               }
             },
             {
-              "id": "pms_e5f5585a_l19_r01_e02",
+              "id": "pms_e5f5585a_l20_r01_e02",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
@@ -4788,11 +5030,12 @@
                       ]
                     }
                   ]
-                }
+                },
+                "hint": "The opposite of small."
               }
             },
             {
-              "id": "pms_e5f5585a_l19_r01_e03",
+              "id": "pms_e5f5585a_l20_r01_e03",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
@@ -4843,351 +5086,8 @@
                       ]
                     }
                   ]
-                }
-              }
-            }
-          ]
-        }
-      ],
-      "duel": {
-        "id": "pms_e5f5585a_l19_duel",
-        "title": "Duel"
-      }
-    },
-    {
-      "lessonId": "pms_e5f5585a_l20",
-      "publicationState": "published",
-      "updatedAt": "2026-09-25T00:00:00.000Z",
-      "section": false,
-      "title": "Drag the blocks into the gaps — Drag the blocks into the gaps",
-      "themeIconAsset": "assets/lesson_icons/speech_bubbles.png",
-      "guidebook": {
-        "content": [
-          {
-            "id": "pms_e5f5585a_l20_g01",
-            "publicationState": "published",
-            "kind": "explanation",
-            "required": false,
-            "role": "overview",
-            "text": "Drag each block into its gap; every block is used once: mi i son content; pan e eva; ël gat e ël can."
-          }
-        ]
-      },
-      "rounds": [
-        {
-          "id": "pms_e5f5585a_l20_r01",
-          "publicationState": "published",
-          "updatedAt": "2026-09-25T00:00:00.000Z",
-          "visualType": "generic",
-          "title": "Drag the blocks into the gaps practice",
-          "content": [
-            {
-              "id": "pms_e5f5585a_l20_r01_intro",
-              "publicationState": "published",
-              "kind": "exercise",
-              "required": false,
-              "authoringMetadata": {
-                "presetId": "before_you_start"
-              },
-              "exercise": {
-                "updatedAt": "2026-09-25T00:00:00.000Z",
-                "primitive": "presentation",
-                "options": {
-                  "guidebookButton": true
                 },
-                "prompt": [
-                  {
-                    "role": "intro",
-                    "type": "text",
-                    "text": "Drag the blocks into the gaps: Drag the blocks into the gaps. Three short examples use this exercise type."
-                  }
-                ],
-                "evaluation": {
-                  "mode": "none"
-                }
-              }
-            },
-            {
-              "id": "pms_e5f5585a_l20_r01_e01",
-              "publicationState": "published",
-              "kind": "exercise",
-              "required": true,
-              "authoringMetadata": {
-                "presetId": "gap_blocks"
-              },
-              "exercise": {
-                "updatedAt": "2026-09-25T00:00:00.000Z",
-                "primitive": "arrange",
-                "options": {
-                  "layout": "inline",
-                  "placementMode": "inlineGaps"
-                },
-                "prompt": [
-                  {
-                    "role": "clue",
-                    "type": "text",
-                    "text": "Complete the sentence about being happy."
-                  }
-                ],
-                "items": [
-                  {
-                    "id": "pms_e5f5585a_l20_r01_e01_i0",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "i"
-                      }
-                    ]
-                  },
-                  {
-                    "id": "pms_e5f5585a_l20_r01_e01_i1",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "son"
-                      }
-                    ]
-                  },
-                  {
-                    "id": "pms_e5f5585a_l20_r01_e01_i2",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "a"
-                      }
-                    ]
-                  }
-                ],
-                "targets": [
-                  {
-                    "id": "gap_1"
-                  },
-                  {
-                    "id": "gap_2"
-                  }
-                ],
-                "layout": [
-                  {
-                    "type": "text",
-                    "text": "Mi"
-                  },
-                  {
-                    "type": "target",
-                    "targetId": "gap_1"
-                  },
-                  {
-                    "type": "target",
-                    "targetId": "gap_2"
-                  },
-                  {
-                    "type": "text",
-                    "text": "content."
-                  }
-                ],
-                "evaluation": {
-                  "mode": "gapAssignments",
-                  "assignments": [
-                    {
-                      "targetId": "gap_1",
-                      "itemIds": [
-                        "pms_e5f5585a_l20_r01_e01_i0"
-                      ]
-                    },
-                    {
-                      "targetId": "gap_2",
-                      "itemIds": [
-                        "pms_e5f5585a_l20_r01_e01_i1"
-                      ]
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "id": "pms_e5f5585a_l20_r01_e02",
-              "publicationState": "published",
-              "kind": "exercise",
-              "required": true,
-              "authoringMetadata": {
-                "presetId": "gap_blocks"
-              },
-              "exercise": {
-                "updatedAt": "2026-09-25T00:00:00.000Z",
-                "primitive": "arrange",
-                "options": {
-                  "layout": "inline",
-                  "placementMode": "inlineGaps"
-                },
-                "prompt": [
-                  {
-                    "role": "clue",
-                    "type": "text",
-                    "text": "Complete the phrase meaning bread and water."
-                  }
-                ],
-                "items": [
-                  {
-                    "id": "pms_e5f5585a_l20_r01_e02_i0",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "pan"
-                      }
-                    ]
-                  },
-                  {
-                    "id": "pms_e5f5585a_l20_r01_e02_i1",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "eva"
-                      }
-                    ]
-                  },
-                  {
-                    "id": "pms_e5f5585a_l20_r01_e02_i2",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "pom"
-                      }
-                    ]
-                  }
-                ],
-                "targets": [
-                  {
-                    "id": "gap_1"
-                  },
-                  {
-                    "id": "gap_2"
-                  }
-                ],
-                "layout": [
-                  {
-                    "type": "target",
-                    "targetId": "gap_1"
-                  },
-                  {
-                    "type": "text",
-                    "text": "e"
-                  },
-                  {
-                    "type": "target",
-                    "targetId": "gap_2"
-                  }
-                ],
-                "evaluation": {
-                  "mode": "gapAssignments",
-                  "assignments": [
-                    {
-                      "targetId": "gap_1",
-                      "itemIds": [
-                        "pms_e5f5585a_l20_r01_e02_i0"
-                      ]
-                    },
-                    {
-                      "targetId": "gap_2",
-                      "itemIds": [
-                        "pms_e5f5585a_l20_r01_e02_i1"
-                      ]
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "id": "pms_e5f5585a_l20_r01_e03",
-              "publicationState": "published",
-              "kind": "exercise",
-              "required": true,
-              "authoringMetadata": {
-                "presetId": "gap_blocks"
-              },
-              "exercise": {
-                "updatedAt": "2026-09-25T00:00:00.000Z",
-                "primitive": "arrange",
-                "options": {
-                  "layout": "inline",
-                  "placementMode": "inlineGaps"
-                },
-                "prompt": [
-                  {
-                    "role": "clue",
-                    "type": "text",
-                    "text": "Complete the phrase; the article is a separate block each time."
-                  }
-                ],
-                "items": [
-                  {
-                    "id": "pms_e5f5585a_l20_r01_e03_i0",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "ël"
-                      }
-                    ]
-                  },
-                  {
-                    "id": "pms_e5f5585a_l20_r01_e03_i1",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "ël"
-                      }
-                    ]
-                  }
-                ],
-                "targets": [
-                  {
-                    "id": "gap_1"
-                  },
-                  {
-                    "id": "gap_2"
-                  }
-                ],
-                "layout": [
-                  {
-                    "type": "target",
-                    "targetId": "gap_1"
-                  },
-                  {
-                    "type": "text",
-                    "text": "gat e"
-                  },
-                  {
-                    "type": "target",
-                    "targetId": "gap_2"
-                  },
-                  {
-                    "type": "text",
-                    "text": "can"
-                  }
-                ],
-                "evaluation": {
-                  "mode": "gapAssignments",
-                  "assignments": [
-                    {
-                      "targetId": "gap_1",
-                      "itemIds": [
-                        "pms_e5f5585a_l20_r01_e03_i0"
-                      ]
-                    },
-                    {
-                      "targetId": "gap_2",
-                      "itemIds": [
-                        "pms_e5f5585a_l20_r01_e03_i1"
-                      ]
-                    }
-                  ]
-                }
+                "hint": "Something you drink."
               }
             }
           ]
@@ -5266,7 +5166,7 @@
                   {
                     "role": "clue",
                     "type": "text",
-                    "text": "Put the greeting exchange in order."
+                    "text": "Tòni meets Anna in the street and greets her first."
                   }
                 ],
                 "items": [
@@ -5331,7 +5231,7 @@
                   {
                     "role": "clue",
                     "type": "text",
-                    "text": "Put the shopping story in order."
+                    "text": "Anna goes to the market in the morning and is home by noon."
                   }
                 ],
                 "items": [
@@ -5396,7 +5296,7 @@
                   {
                     "role": "clue",
                     "type": "text",
-                    "text": "Put the evening in order."
+                    "text": "In the evening you have dinner, then you read in bed."
                   }
                 ],
                 "items": [
@@ -5443,7 +5343,8 @@
                       ]
                     }
                   ]
-                }
+                },
+                "hint": "mangio = I eat; leso = I read. The last line is what you say before sleeping."
               }
             }
           ]
@@ -5459,7 +5360,7 @@
       "publicationState": "published",
       "updatedAt": "2026-09-25T00:00:00.000Z",
       "section": false,
-      "title": "Listen and answer (to target) — Hear a greeting",
+      "title": "Listen and choose (to target) — Hear a greeting",
       "themeIconAsset": "assets/lesson_icons/speech_bubbles.png",
       "guidebook": {
         "content": [
@@ -5479,7 +5380,7 @@
           "publicationState": "published",
           "updatedAt": "2026-09-25T00:00:00.000Z",
           "visualType": "generic",
-          "title": "Listen and answer (to target) practice",
+          "title": "Listen and choose (to target) practice",
           "content": [
             {
               "id": "pms_e5f5585a_l22_r01_intro",
@@ -5499,7 +5400,7 @@
                   {
                     "role": "intro",
                     "type": "text",
-                    "text": "Listen and answer (to target): Hear a greeting. Three short examples use this exercise type."
+                    "text": "Listen and choose (to target): Hear a greeting. Three short examples use this exercise type."
                   }
                 ],
                 "evaluation": {
@@ -5513,7 +5414,7 @@
               "kind": "exercise",
               "required": true,
               "authoringMetadata": {
-                "presetId": "listening_answer_target"
+                "presetId": "listening_choose_target"
               },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
@@ -5577,7 +5478,7 @@
               "kind": "exercise",
               "required": true,
               "authoringMetadata": {
-                "presetId": "listening_answer_target"
+                "presetId": "listening_choose_target"
               },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
@@ -5641,7 +5542,7 @@
               "kind": "exercise",
               "required": true,
               "authoringMetadata": {
-                "presetId": "listening_answer_target"
+                "presetId": "listening_choose_target"
               },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
@@ -5712,7 +5613,7 @@
       "publicationState": "published",
       "updatedAt": "2026-09-25T00:00:00.000Z",
       "section": false,
-      "title": "Listen and answer (to source) — Listen for meaning",
+      "title": "Listen and choose (to source) — Hear the meaning",
       "themeIconAsset": "assets/lesson_icons/speech_bubbles.png",
       "guidebook": {
         "content": [
@@ -5722,7 +5623,7 @@
             "kind": "explanation",
             "required": false,
             "role": "overview",
-            "text": "I l'hai = I have; i son = I am; a ca = at home; lìber = book; un = one; doi = two; tre = three. Listen to each short passage and answer its English question. Audio uses On-Device TTS with pms-IT. This demo contains no recorded Piedmontese voice. Listening examples require a suitable device voice; availability and pronunciation depend on the device."
+            "text": "bondì = good morning; grassie = thank you; bon-aneuit = good night. Listen and choose the English meaning. Audio uses On-Device TTS with pms-IT. This demo contains no recorded Piedmontese voice. Listening examples require a suitable device voice; availability and pronunciation depend on the device."
           }
         ]
       },
@@ -5732,7 +5633,7 @@
           "publicationState": "published",
           "updatedAt": "2026-09-25T00:00:00.000Z",
           "visualType": "generic",
-          "title": "Listen and answer (to source) practice",
+          "title": "Listen and choose (to source) practice",
           "content": [
             {
               "id": "pms_e5f5585a_l23_r01_intro",
@@ -5752,7 +5653,7 @@
                   {
                     "role": "intro",
                     "type": "text",
-                    "text": "Listen and answer (to source): Listen for meaning. Three short examples use this exercise type."
+                    "text": "Listen and choose (to source): Hear the meaning. Three short examples use this exercise type."
                   }
                 ],
                 "evaluation": {
@@ -5766,23 +5667,22 @@
               "kind": "exercise",
               "required": true,
               "authoringMetadata": {
-                "presetId": "listening_answer_source"
+                "presetId": "listening_choose_source"
               },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
                 "primitive": "select",
                 "prompt": [
                   {
-                    "role": "passage",
+                    "role": "primary",
                     "type": "audio",
-                    "text": "Mi i son a ca. I l'hai un lìber.",
+                    "text": "bondì",
                     "playback": "automatic"
                   },
                   {
-                    "role": "question",
+                    "role": "primary",
                     "type": "text",
-                    "text": "What does the speaker have?",
-                    "language": "source"
+                    "text": "A neighbour greets you in the morning."
                   }
                 ],
                 "items": [
@@ -5792,7 +5692,8 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "a book"
+                        "text": "good morning",
+                        "language": "source"
                       }
                     ]
                   },
@@ -5802,7 +5703,8 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "a dog"
+                        "text": "good night",
+                        "language": "source"
                       }
                     ]
                   },
@@ -5812,7 +5714,8 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "an apple"
+                        "text": "thank you",
+                        "language": "source"
                       }
                     ]
                   }
@@ -5831,23 +5734,22 @@
               "kind": "exercise",
               "required": true,
               "authoringMetadata": {
-                "presetId": "listening_answer_source"
+                "presetId": "listening_choose_source"
               },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
                 "primitive": "select",
                 "prompt": [
                   {
-                    "role": "passage",
+                    "role": "primary",
                     "type": "audio",
-                    "text": "I l'hai un gat e un can.",
+                    "text": "grassie",
                     "playback": "automatic"
                   },
                   {
-                    "role": "question",
+                    "role": "primary",
                     "type": "text",
-                    "text": "Which two animals are mentioned?",
-                    "language": "source"
+                    "text": "You are given a present."
                   }
                 ],
                 "items": [
@@ -5857,7 +5759,8 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "a cat and a horse"
+                        "text": "goodbye",
+                        "language": "source"
                       }
                     ]
                   },
@@ -5867,7 +5770,8 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "a cat and a dog"
+                        "text": "thank you",
+                        "language": "source"
                       }
                     ]
                   },
@@ -5877,7 +5781,8 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "a dog and a horse"
+                        "text": "good morning",
+                        "language": "source"
                       }
                     ]
                   }
@@ -5896,23 +5801,17 @@
               "kind": "exercise",
               "required": true,
               "authoringMetadata": {
-                "presetId": "listening_answer_source"
+                "presetId": "listening_choose_source"
               },
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
                 "primitive": "select",
                 "prompt": [
                   {
-                    "role": "passage",
+                    "role": "primary",
                     "type": "audio",
-                    "text": "La lista: pan, eva e tre pom.",
+                    "text": "bon-aneuit",
                     "playback": "automatic"
-                  },
-                  {
-                    "role": "question",
-                    "type": "text",
-                    "text": "How many apples are on the list?",
-                    "language": "source"
                   }
                 ],
                 "items": [
@@ -5922,7 +5821,8 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "one"
+                        "text": "good morning",
+                        "language": "source"
                       }
                     ]
                   },
@@ -5932,7 +5832,8 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "two"
+                        "text": "thank you",
+                        "language": "source"
                       }
                     ]
                   },
@@ -5942,7 +5843,8 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "three"
+                        "text": "good night",
+                        "language": "source"
                       }
                     ]
                   }
@@ -5968,12 +5870,530 @@
       "publicationState": "published",
       "updatedAt": "2026-09-25T00:00:00.000Z",
       "section": false,
-      "title": "Type what you hear — Hear and spell",
+      "title": "Listen and answer (to target) — Listen and answer",
       "themeIconAsset": "assets/lesson_icons/speech_bubbles.png",
       "guidebook": {
         "content": [
           {
             "id": "pms_e5f5585a_l24_g01",
+            "publicationState": "published",
+            "kind": "explanation",
+            "required": false,
+            "role": "overview",
+            "text": "I l'hai = I have; gat = cat; can = dog; pan = bread; eva = water; pom = apples; a ca = at home. Listen to each short passage and answer its question with a Piedmontese word. Audio uses On-Device TTS with pms-IT. This demo contains no recorded Piedmontese voice. Listening examples require a suitable device voice; availability and pronunciation depend on the device."
+          }
+        ]
+      },
+      "rounds": [
+        {
+          "id": "pms_e5f5585a_l24_r01",
+          "publicationState": "published",
+          "updatedAt": "2026-09-25T00:00:00.000Z",
+          "visualType": "generic",
+          "title": "Listen and answer (to target) practice",
+          "content": [
+            {
+              "id": "pms_e5f5585a_l24_r01_intro",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": false,
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "Listen and answer (to target): Listen and answer. Three short examples use this exercise type."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
+            },
+            {
+              "id": "pms_e5f5585a_l24_r01_e01",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "authoringMetadata": {
+                "presetId": "listening_answer_target"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "select",
+                "prompt": [
+                  {
+                    "role": "passage",
+                    "type": "audio",
+                    "text": "I l'hai un gat e un can.",
+                    "playback": "automatic"
+                  },
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "Which animal is mentioned first?"
+                  }
+                ],
+                "items": [
+                  {
+                    "id": "pms_e5f5585a_l24_r01_e01_i0",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "gat"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "pms_e5f5585a_l24_r01_e01_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "can"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "pms_e5f5585a_l24_r01_e01_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "caval"
+                      }
+                    ]
+                  }
+                ],
+                "evaluation": {
+                  "mode": "exactItem",
+                  "correctItemIds": [
+                    "pms_e5f5585a_l24_r01_e01_i0"
+                  ]
+                }
+              }
+            },
+            {
+              "id": "pms_e5f5585a_l24_r01_e02",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "authoringMetadata": {
+                "presetId": "listening_answer_target"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "select",
+                "prompt": [
+                  {
+                    "role": "passage",
+                    "type": "audio",
+                    "text": "La lista: pan, eva e tre pom.",
+                    "playback": "automatic"
+                  },
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "What is first on the list?"
+                  }
+                ],
+                "items": [
+                  {
+                    "id": "pms_e5f5585a_l24_r01_e02_i0",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "eva"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "pms_e5f5585a_l24_r01_e02_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "pan"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "pms_e5f5585a_l24_r01_e02_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "pom"
+                      }
+                    ]
+                  }
+                ],
+                "evaluation": {
+                  "mode": "exactItem",
+                  "correctItemIds": [
+                    "pms_e5f5585a_l24_r01_e02_i1"
+                  ]
+                }
+              }
+            },
+            {
+              "id": "pms_e5f5585a_l24_r01_e03",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "authoringMetadata": {
+                "presetId": "listening_answer_target"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "select",
+                "prompt": [
+                  {
+                    "role": "passage",
+                    "type": "audio",
+                    "text": "Mi i son a ca. I l'hai un lìber.",
+                    "playback": "automatic"
+                  },
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "Where is the speaker?"
+                  }
+                ],
+                "items": [
+                  {
+                    "id": "pms_e5f5585a_l24_r01_e03_i0",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "al mercà"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "pms_e5f5585a_l24_r01_e03_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "a scòla"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "pms_e5f5585a_l24_r01_e03_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "a ca"
+                      }
+                    ]
+                  }
+                ],
+                "evaluation": {
+                  "mode": "exactItem",
+                  "correctItemIds": [
+                    "pms_e5f5585a_l24_r01_e03_i2"
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "duel": {
+        "id": "pms_e5f5585a_l24_duel",
+        "title": "Duel"
+      }
+    },
+    {
+      "lessonId": "pms_e5f5585a_l25",
+      "publicationState": "published",
+      "updatedAt": "2026-09-25T00:00:00.000Z",
+      "section": false,
+      "title": "Listen and answer (to source) — Listen for meaning",
+      "themeIconAsset": "assets/lesson_icons/speech_bubbles.png",
+      "guidebook": {
+        "content": [
+          {
+            "id": "pms_e5f5585a_l25_g01",
+            "publicationState": "published",
+            "kind": "explanation",
+            "required": false,
+            "role": "overview",
+            "text": "I l'hai = I have; i son = I am; a ca = at home; lìber = book; un = one; doi = two; tre = three. Listen to each short passage and answer its English question. Audio uses On-Device TTS with pms-IT. This demo contains no recorded Piedmontese voice. Listening examples require a suitable device voice; availability and pronunciation depend on the device."
+          }
+        ]
+      },
+      "rounds": [
+        {
+          "id": "pms_e5f5585a_l25_r01",
+          "publicationState": "published",
+          "updatedAt": "2026-09-25T00:00:00.000Z",
+          "visualType": "generic",
+          "title": "Listen and answer (to source) practice",
+          "content": [
+            {
+              "id": "pms_e5f5585a_l25_r01_intro",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": false,
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "Listen and answer (to source): Listen for meaning. Three short examples use this exercise type."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
+            },
+            {
+              "id": "pms_e5f5585a_l25_r01_e01",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "authoringMetadata": {
+                "presetId": "listening_answer_source"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "select",
+                "prompt": [
+                  {
+                    "role": "passage",
+                    "type": "audio",
+                    "text": "Mi i son a ca. I l'hai un lìber.",
+                    "playback": "automatic"
+                  },
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "What does the speaker have?",
+                    "language": "source"
+                  }
+                ],
+                "items": [
+                  {
+                    "id": "pms_e5f5585a_l25_r01_e01_i0",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "a book",
+                        "language": "source"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "pms_e5f5585a_l25_r01_e01_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "a dog",
+                        "language": "source"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "pms_e5f5585a_l25_r01_e01_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "an apple",
+                        "language": "source"
+                      }
+                    ]
+                  }
+                ],
+                "evaluation": {
+                  "mode": "exactItem",
+                  "correctItemIds": [
+                    "pms_e5f5585a_l25_r01_e01_i0"
+                  ]
+                }
+              }
+            },
+            {
+              "id": "pms_e5f5585a_l25_r01_e02",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "authoringMetadata": {
+                "presetId": "listening_answer_source"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "select",
+                "prompt": [
+                  {
+                    "role": "passage",
+                    "type": "audio",
+                    "text": "I l'hai un gat e un can.",
+                    "playback": "automatic"
+                  },
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "Which two animals are mentioned?",
+                    "language": "source"
+                  }
+                ],
+                "items": [
+                  {
+                    "id": "pms_e5f5585a_l25_r01_e02_i0",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "a cat and a horse",
+                        "language": "source"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "pms_e5f5585a_l25_r01_e02_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "a cat and a dog",
+                        "language": "source"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "pms_e5f5585a_l25_r01_e02_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "a dog and a horse",
+                        "language": "source"
+                      }
+                    ]
+                  }
+                ],
+                "evaluation": {
+                  "mode": "exactItem",
+                  "correctItemIds": [
+                    "pms_e5f5585a_l25_r01_e02_i1"
+                  ]
+                }
+              }
+            },
+            {
+              "id": "pms_e5f5585a_l25_r01_e03",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "authoringMetadata": {
+                "presetId": "listening_answer_source"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "select",
+                "prompt": [
+                  {
+                    "role": "passage",
+                    "type": "audio",
+                    "text": "La lista: pan, eva e tre pom.",
+                    "playback": "automatic"
+                  },
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "How many apples are on the list?",
+                    "language": "source"
+                  }
+                ],
+                "items": [
+                  {
+                    "id": "pms_e5f5585a_l25_r01_e03_i0",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "one",
+                        "language": "source"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "pms_e5f5585a_l25_r01_e03_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "two",
+                        "language": "source"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "pms_e5f5585a_l25_r01_e03_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "three",
+                        "language": "source"
+                      }
+                    ]
+                  }
+                ],
+                "evaluation": {
+                  "mode": "exactItem",
+                  "correctItemIds": [
+                    "pms_e5f5585a_l25_r01_e03_i2"
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "duel": {
+        "id": "pms_e5f5585a_l25_duel",
+        "title": "Duel"
+      }
+    },
+    {
+      "lessonId": "pms_e5f5585a_l26",
+      "publicationState": "published",
+      "updatedAt": "2026-09-25T00:00:00.000Z",
+      "section": false,
+      "title": "Type what you hear — Hear and spell",
+      "themeIconAsset": "assets/lesson_icons/speech_bubbles.png",
+      "guidebook": {
+        "content": [
+          {
+            "id": "pms_e5f5585a_l26_g01",
             "publicationState": "published",
             "kind": "explanation",
             "required": false,
@@ -5984,14 +6404,14 @@
       },
       "rounds": [
         {
-          "id": "pms_e5f5585a_l24_r01",
+          "id": "pms_e5f5585a_l26_r01",
           "publicationState": "published",
           "updatedAt": "2026-09-25T00:00:00.000Z",
           "visualType": "generic",
           "title": "Type what you hear practice",
           "content": [
             {
-              "id": "pms_e5f5585a_l24_r01_intro",
+              "id": "pms_e5f5585a_l26_r01_intro",
               "publicationState": "published",
               "kind": "exercise",
               "required": false,
@@ -6017,7 +6437,7 @@
               }
             },
             {
-              "id": "pms_e5f5585a_l24_r01_e01",
+              "id": "pms_e5f5585a_l26_r01_e01",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
@@ -6042,14 +6462,14 @@
                 ],
                 "evaluation": {
                   "mode": "expression",
-                  "answers": [
+                  "literalAnswers": [
                     "pan"
                   ]
                 }
               }
             },
             {
-              "id": "pms_e5f5585a_l24_r01_e02",
+              "id": "pms_e5f5585a_l26_r01_e02",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
@@ -6074,14 +6494,14 @@
                 ],
                 "evaluation": {
                   "mode": "expression",
-                  "answers": [
+                  "literalAnswers": [
                     "eva"
                   ]
                 }
               }
             },
             {
-              "id": "pms_e5f5585a_l24_r01_e03",
+              "id": "pms_e5f5585a_l26_r01_e03",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
@@ -6106,7 +6526,7 @@
                 ],
                 "evaluation": {
                   "mode": "expression",
-                  "answers": [
+                  "literalAnswers": [
                     "pom"
                   ]
                 }
@@ -6116,12 +6536,12 @@
         }
       ],
       "duel": {
-        "id": "pms_e5f5585a_l24_duel",
+        "id": "pms_e5f5585a_l26_duel",
         "title": "Duel"
       }
     },
     {
-      "lessonId": "pms_e5f5585a_l25",
+      "lessonId": "pms_e5f5585a_l27",
       "publicationState": "published",
       "updatedAt": "2026-09-25T00:00:00.000Z",
       "section": false,
@@ -6130,7 +6550,7 @@
       "guidebook": {
         "content": [
           {
-            "id": "pms_e5f5585a_l25_g01",
+            "id": "pms_e5f5585a_l27_g01",
             "publicationState": "published",
             "kind": "explanation",
             "required": false,
@@ -6141,14 +6561,14 @@
       },
       "rounds": [
         {
-          "id": "pms_e5f5585a_l25_r01",
+          "id": "pms_e5f5585a_l27_r01",
           "publicationState": "published",
           "updatedAt": "2026-09-25T00:00:00.000Z",
           "visualType": "generic",
           "title": "Listen and fill the gaps practice",
           "content": [
             {
-              "id": "pms_e5f5585a_l25_r01_intro",
+              "id": "pms_e5f5585a_l27_r01_intro",
               "publicationState": "published",
               "kind": "exercise",
               "required": false,
@@ -6174,7 +6594,7 @@
               }
             },
             {
-              "id": "pms_e5f5585a_l25_r01_e01",
+              "id": "pms_e5f5585a_l27_r01_e01",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
@@ -6238,7 +6658,7 @@
               }
             },
             {
-              "id": "pms_e5f5585a_l25_r01_e02",
+              "id": "pms_e5f5585a_l27_r01_e02",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
@@ -6310,7 +6730,7 @@
               }
             },
             {
-              "id": "pms_e5f5585a_l25_r01_e03",
+              "id": "pms_e5f5585a_l27_r01_e03",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
@@ -6368,12 +6788,12 @@
         }
       ],
       "duel": {
-        "id": "pms_e5f5585a_l25_duel",
+        "id": "pms_e5f5585a_l27_duel",
         "title": "Duel"
       }
     },
     {
-      "lessonId": "pms_e5f5585a_l26",
+      "lessonId": "pms_e5f5585a_l28",
       "publicationState": "published",
       "updatedAt": "2026-09-25T00:00:00.000Z",
       "section": false,
@@ -6382,7 +6802,7 @@
       "guidebook": {
         "content": [
           {
-            "id": "pms_e5f5585a_l26_g01",
+            "id": "pms_e5f5585a_l28_g01",
             "publicationState": "published",
             "kind": "explanation",
             "required": false,
@@ -6393,14 +6813,14 @@
       },
       "rounds": [
         {
-          "id": "pms_e5f5585a_l26_r01",
+          "id": "pms_e5f5585a_l28_r01",
           "publicationState": "published",
           "updatedAt": "2026-09-25T00:00:00.000Z",
           "visualType": "generic",
           "title": "Listen and match practice",
           "content": [
             {
-              "id": "pms_e5f5585a_l26_r01_intro",
+              "id": "pms_e5f5585a_l28_r01_intro",
               "publicationState": "published",
               "kind": "exercise",
               "required": false,
@@ -6426,7 +6846,7 @@
               }
             },
             {
-              "id": "pms_e5f5585a_l26_r01_e01",
+              "id": "pms_e5f5585a_l28_r01_e01",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
@@ -6445,7 +6865,7 @@
                 ],
                 "items": [
                   {
-                    "id": "pms_e5f5585a_l26_r01_e01_i0",
+                    "id": "pms_e5f5585a_l28_r01_e01_i0",
                     "content": [
                       {
                         "role": "primary",
@@ -6456,7 +6876,7 @@
                     "side": "left"
                   },
                   {
-                    "id": "pms_e5f5585a_l26_r01_e01_i1",
+                    "id": "pms_e5f5585a_l28_r01_e01_i1",
                     "content": [
                       {
                         "role": "primary",
@@ -6467,7 +6887,7 @@
                     "side": "right"
                   },
                   {
-                    "id": "pms_e5f5585a_l26_r01_e01_i2",
+                    "id": "pms_e5f5585a_l28_r01_e01_i2",
                     "content": [
                       {
                         "role": "primary",
@@ -6478,7 +6898,7 @@
                     "side": "left"
                   },
                   {
-                    "id": "pms_e5f5585a_l26_r01_e01_i3",
+                    "id": "pms_e5f5585a_l28_r01_e01_i3",
                     "content": [
                       {
                         "role": "primary",
@@ -6489,7 +6909,7 @@
                     "side": "right"
                   },
                   {
-                    "id": "pms_e5f5585a_l26_r01_e01_i4",
+                    "id": "pms_e5f5585a_l28_r01_e01_i4",
                     "content": [
                       {
                         "role": "primary",
@@ -6500,7 +6920,7 @@
                     "side": "left"
                   },
                   {
-                    "id": "pms_e5f5585a_l26_r01_e01_i5",
+                    "id": "pms_e5f5585a_l28_r01_e01_i5",
                     "content": [
                       {
                         "role": "primary",
@@ -6515,23 +6935,23 @@
                   "mode": "exactRelations",
                   "relations": [
                     [
-                      "pms_e5f5585a_l26_r01_e01_i0",
-                      "pms_e5f5585a_l26_r01_e01_i1"
+                      "pms_e5f5585a_l28_r01_e01_i0",
+                      "pms_e5f5585a_l28_r01_e01_i1"
                     ],
                     [
-                      "pms_e5f5585a_l26_r01_e01_i2",
-                      "pms_e5f5585a_l26_r01_e01_i3"
+                      "pms_e5f5585a_l28_r01_e01_i2",
+                      "pms_e5f5585a_l28_r01_e01_i3"
                     ],
                     [
-                      "pms_e5f5585a_l26_r01_e01_i4",
-                      "pms_e5f5585a_l26_r01_e01_i5"
+                      "pms_e5f5585a_l28_r01_e01_i4",
+                      "pms_e5f5585a_l28_r01_e01_i5"
                     ]
                   ]
                 }
               }
             },
             {
-              "id": "pms_e5f5585a_l26_r01_e02",
+              "id": "pms_e5f5585a_l28_r01_e02",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
@@ -6550,7 +6970,7 @@
                 ],
                 "items": [
                   {
-                    "id": "pms_e5f5585a_l26_r01_e02_i0",
+                    "id": "pms_e5f5585a_l28_r01_e02_i0",
                     "content": [
                       {
                         "role": "primary",
@@ -6561,7 +6981,7 @@
                     "side": "left"
                   },
                   {
-                    "id": "pms_e5f5585a_l26_r01_e02_i1",
+                    "id": "pms_e5f5585a_l28_r01_e02_i1",
                     "content": [
                       {
                         "role": "primary",
@@ -6572,7 +6992,7 @@
                     "side": "right"
                   },
                   {
-                    "id": "pms_e5f5585a_l26_r01_e02_i2",
+                    "id": "pms_e5f5585a_l28_r01_e02_i2",
                     "content": [
                       {
                         "role": "primary",
@@ -6583,7 +7003,7 @@
                     "side": "left"
                   },
                   {
-                    "id": "pms_e5f5585a_l26_r01_e02_i3",
+                    "id": "pms_e5f5585a_l28_r01_e02_i3",
                     "content": [
                       {
                         "role": "primary",
@@ -6594,7 +7014,7 @@
                     "side": "right"
                   },
                   {
-                    "id": "pms_e5f5585a_l26_r01_e02_i4",
+                    "id": "pms_e5f5585a_l28_r01_e02_i4",
                     "content": [
                       {
                         "role": "primary",
@@ -6605,7 +7025,7 @@
                     "side": "left"
                   },
                   {
-                    "id": "pms_e5f5585a_l26_r01_e02_i5",
+                    "id": "pms_e5f5585a_l28_r01_e02_i5",
                     "content": [
                       {
                         "role": "primary",
@@ -6620,23 +7040,23 @@
                   "mode": "exactRelations",
                   "relations": [
                     [
-                      "pms_e5f5585a_l26_r01_e02_i0",
-                      "pms_e5f5585a_l26_r01_e02_i1"
+                      "pms_e5f5585a_l28_r01_e02_i0",
+                      "pms_e5f5585a_l28_r01_e02_i1"
                     ],
                     [
-                      "pms_e5f5585a_l26_r01_e02_i2",
-                      "pms_e5f5585a_l26_r01_e02_i3"
+                      "pms_e5f5585a_l28_r01_e02_i2",
+                      "pms_e5f5585a_l28_r01_e02_i3"
                     ],
                     [
-                      "pms_e5f5585a_l26_r01_e02_i4",
-                      "pms_e5f5585a_l26_r01_e02_i5"
+                      "pms_e5f5585a_l28_r01_e02_i4",
+                      "pms_e5f5585a_l28_r01_e02_i5"
                     ]
                   ]
                 }
               }
             },
             {
-              "id": "pms_e5f5585a_l26_r01_e03",
+              "id": "pms_e5f5585a_l28_r01_e03",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
@@ -6655,7 +7075,7 @@
                 ],
                 "items": [
                   {
-                    "id": "pms_e5f5585a_l26_r01_e03_i0",
+                    "id": "pms_e5f5585a_l28_r01_e03_i0",
                     "content": [
                       {
                         "role": "primary",
@@ -6666,7 +7086,7 @@
                     "side": "left"
                   },
                   {
-                    "id": "pms_e5f5585a_l26_r01_e03_i1",
+                    "id": "pms_e5f5585a_l28_r01_e03_i1",
                     "content": [
                       {
                         "role": "primary",
@@ -6677,7 +7097,7 @@
                     "side": "right"
                   },
                   {
-                    "id": "pms_e5f5585a_l26_r01_e03_i2",
+                    "id": "pms_e5f5585a_l28_r01_e03_i2",
                     "content": [
                       {
                         "role": "primary",
@@ -6688,7 +7108,7 @@
                     "side": "left"
                   },
                   {
-                    "id": "pms_e5f5585a_l26_r01_e03_i3",
+                    "id": "pms_e5f5585a_l28_r01_e03_i3",
                     "content": [
                       {
                         "role": "primary",
@@ -6699,7 +7119,7 @@
                     "side": "right"
                   },
                   {
-                    "id": "pms_e5f5585a_l26_r01_e03_i4",
+                    "id": "pms_e5f5585a_l28_r01_e03_i4",
                     "content": [
                       {
                         "role": "primary",
@@ -6710,7 +7130,7 @@
                     "side": "left"
                   },
                   {
-                    "id": "pms_e5f5585a_l26_r01_e03_i5",
+                    "id": "pms_e5f5585a_l28_r01_e03_i5",
                     "content": [
                       {
                         "role": "primary",
@@ -6725,16 +7145,16 @@
                   "mode": "exactRelations",
                   "relations": [
                     [
-                      "pms_e5f5585a_l26_r01_e03_i0",
-                      "pms_e5f5585a_l26_r01_e03_i1"
+                      "pms_e5f5585a_l28_r01_e03_i0",
+                      "pms_e5f5585a_l28_r01_e03_i1"
                     ],
                     [
-                      "pms_e5f5585a_l26_r01_e03_i2",
-                      "pms_e5f5585a_l26_r01_e03_i3"
+                      "pms_e5f5585a_l28_r01_e03_i2",
+                      "pms_e5f5585a_l28_r01_e03_i3"
                     ],
                     [
-                      "pms_e5f5585a_l26_r01_e03_i4",
-                      "pms_e5f5585a_l26_r01_e03_i5"
+                      "pms_e5f5585a_l28_r01_e03_i4",
+                      "pms_e5f5585a_l28_r01_e03_i5"
                     ]
                   ]
                 }
@@ -6744,12 +7164,12 @@
         }
       ],
       "duel": {
-        "id": "pms_e5f5585a_l26_duel",
+        "id": "pms_e5f5585a_l28_duel",
         "title": "Duel"
       }
     },
     {
-      "lessonId": "pms_e5f5585a_l27",
+      "lessonId": "pms_e5f5585a_l29",
       "publicationState": "published",
       "updatedAt": "2026-09-25T00:00:00.000Z",
       "section": false,
@@ -6758,7 +7178,7 @@
       "guidebook": {
         "content": [
           {
-            "id": "pms_e5f5585a_l27_g01",
+            "id": "pms_e5f5585a_l29_g01",
             "publicationState": "published",
             "kind": "explanation",
             "required": false,
@@ -6769,14 +7189,14 @@
       },
       "rounds": [
         {
-          "id": "pms_e5f5585a_l27_r01",
+          "id": "pms_e5f5585a_l29_r01",
           "publicationState": "published",
           "updatedAt": "2026-09-25T00:00:00.000Z",
           "visualType": "generic",
           "title": "Listen and pick the image practice",
           "content": [
             {
-              "id": "pms_e5f5585a_l27_r01_intro",
+              "id": "pms_e5f5585a_l29_r01_intro",
               "publicationState": "published",
               "kind": "exercise",
               "required": false,
@@ -6802,7 +7222,7 @@
               }
             },
             {
-              "id": "pms_e5f5585a_l27_r01_e01",
+              "id": "pms_e5f5585a_l29_r01_e01",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
@@ -6822,7 +7242,7 @@
                 ],
                 "items": [
                   {
-                    "id": "pms_e5f5585a_l27_r01_e01_i0",
+                    "id": "pms_e5f5585a_l29_r01_e01_i0",
                     "content": [
                       {
                         "role": "primary",
@@ -6837,7 +7257,7 @@
                     ]
                   },
                   {
-                    "id": "pms_e5f5585a_l27_r01_e01_i1",
+                    "id": "pms_e5f5585a_l29_r01_e01_i1",
                     "content": [
                       {
                         "role": "primary",
@@ -6852,7 +7272,7 @@
                     ]
                   },
                   {
-                    "id": "pms_e5f5585a_l27_r01_e01_i2",
+                    "id": "pms_e5f5585a_l29_r01_e01_i2",
                     "content": [
                       {
                         "role": "primary",
@@ -6870,13 +7290,13 @@
                 "evaluation": {
                   "mode": "exactItem",
                   "correctItemIds": [
-                    "pms_e5f5585a_l27_r01_e01_i0"
+                    "pms_e5f5585a_l29_r01_e01_i0"
                   ]
                 }
               }
             },
             {
-              "id": "pms_e5f5585a_l27_r01_e02",
+              "id": "pms_e5f5585a_l29_r01_e02",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
@@ -6896,7 +7316,7 @@
                 ],
                 "items": [
                   {
-                    "id": "pms_e5f5585a_l27_r01_e02_i0",
+                    "id": "pms_e5f5585a_l29_r01_e02_i0",
                     "content": [
                       {
                         "role": "primary",
@@ -6911,7 +7331,7 @@
                     ]
                   },
                   {
-                    "id": "pms_e5f5585a_l27_r01_e02_i1",
+                    "id": "pms_e5f5585a_l29_r01_e02_i1",
                     "content": [
                       {
                         "role": "primary",
@@ -6926,7 +7346,7 @@
                     ]
                   },
                   {
-                    "id": "pms_e5f5585a_l27_r01_e02_i2",
+                    "id": "pms_e5f5585a_l29_r01_e02_i2",
                     "content": [
                       {
                         "role": "primary",
@@ -6944,13 +7364,13 @@
                 "evaluation": {
                   "mode": "exactItem",
                   "correctItemIds": [
-                    "pms_e5f5585a_l27_r01_e02_i1"
+                    "pms_e5f5585a_l29_r01_e02_i1"
                   ]
                 }
               }
             },
             {
-              "id": "pms_e5f5585a_l27_r01_e03",
+              "id": "pms_e5f5585a_l29_r01_e03",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
@@ -6970,7 +7390,7 @@
                 ],
                 "items": [
                   {
-                    "id": "pms_e5f5585a_l27_r01_e03_i0",
+                    "id": "pms_e5f5585a_l29_r01_e03_i0",
                     "content": [
                       {
                         "role": "primary",
@@ -6985,7 +7405,7 @@
                     ]
                   },
                   {
-                    "id": "pms_e5f5585a_l27_r01_e03_i1",
+                    "id": "pms_e5f5585a_l29_r01_e03_i1",
                     "content": [
                       {
                         "role": "primary",
@@ -7000,7 +7420,7 @@
                     ]
                   },
                   {
-                    "id": "pms_e5f5585a_l27_r01_e03_i2",
+                    "id": "pms_e5f5585a_l29_r01_e03_i2",
                     "content": [
                       {
                         "role": "primary",
@@ -7018,7 +7438,7 @@
                 "evaluation": {
                   "mode": "exactItem",
                   "correctItemIds": [
-                    "pms_e5f5585a_l27_r01_e03_i2"
+                    "pms_e5f5585a_l29_r01_e03_i2"
                   ]
                 }
               }
@@ -7027,12 +7447,12 @@
         }
       ],
       "duel": {
-        "id": "pms_e5f5585a_l27_duel",
+        "id": "pms_e5f5585a_l29_duel",
         "title": "Duel"
       }
     },
     {
-      "lessonId": "pms_e5f5585a_l28",
+      "lessonId": "pms_e5f5585a_l30",
       "publicationState": "published",
       "updatedAt": "2026-09-25T00:00:00.000Z",
       "section": false,
@@ -7041,7 +7461,7 @@
       "guidebook": {
         "content": [
           {
-            "id": "pms_e5f5585a_l28_g01",
+            "id": "pms_e5f5585a_l30_g01",
             "publicationState": "published",
             "kind": "explanation",
             "required": false,
@@ -7052,14 +7472,14 @@
       },
       "rounds": [
         {
-          "id": "pms_e5f5585a_l28_r01",
+          "id": "pms_e5f5585a_l30_r01",
           "publicationState": "published",
           "updatedAt": "2026-09-25T00:00:00.000Z",
           "visualType": "generic",
           "title": "Spell what you hear practice",
           "content": [
             {
-              "id": "pms_e5f5585a_l28_r01_intro",
+              "id": "pms_e5f5585a_l30_r01_intro",
               "publicationState": "published",
               "kind": "exercise",
               "required": false,
@@ -7085,7 +7505,7 @@
               }
             },
             {
-              "id": "pms_e5f5585a_l28_r01_e01",
+              "id": "pms_e5f5585a_l30_r01_e01",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
@@ -7109,7 +7529,7 @@
                 ],
                 "items": [
                   {
-                    "id": "pms_e5f5585a_l28_r01_e01_i0",
+                    "id": "pms_e5f5585a_l30_r01_e01_i0",
                     "content": [
                       {
                         "role": "primary",
@@ -7119,7 +7539,7 @@
                     ]
                   },
                   {
-                    "id": "pms_e5f5585a_l28_r01_e01_i1",
+                    "id": "pms_e5f5585a_l30_r01_e01_i1",
                     "content": [
                       {
                         "role": "primary",
@@ -7129,7 +7549,7 @@
                     ]
                   },
                   {
-                    "id": "pms_e5f5585a_l28_r01_e01_i2",
+                    "id": "pms_e5f5585a_l30_r01_e01_i2",
                     "content": [
                       {
                         "role": "primary",
@@ -7145,9 +7565,9 @@
                     {
                       "text": "gat",
                       "itemIds": [
-                        "pms_e5f5585a_l28_r01_e01_i0",
-                        "pms_e5f5585a_l28_r01_e01_i1",
-                        "pms_e5f5585a_l28_r01_e01_i2"
+                        "pms_e5f5585a_l30_r01_e01_i0",
+                        "pms_e5f5585a_l30_r01_e01_i1",
+                        "pms_e5f5585a_l30_r01_e01_i2"
                       ]
                     }
                   ]
@@ -7155,7 +7575,7 @@
               }
             },
             {
-              "id": "pms_e5f5585a_l28_r01_e02",
+              "id": "pms_e5f5585a_l30_r01_e02",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
@@ -7179,7 +7599,7 @@
                 ],
                 "items": [
                   {
-                    "id": "pms_e5f5585a_l28_r01_e02_i0",
+                    "id": "pms_e5f5585a_l30_r01_e02_i0",
                     "content": [
                       {
                         "role": "primary",
@@ -7189,7 +7609,7 @@
                     ]
                   },
                   {
-                    "id": "pms_e5f5585a_l28_r01_e02_i1",
+                    "id": "pms_e5f5585a_l30_r01_e02_i1",
                     "content": [
                       {
                         "role": "primary",
@@ -7199,7 +7619,7 @@
                     ]
                   },
                   {
-                    "id": "pms_e5f5585a_l28_r01_e02_i2",
+                    "id": "pms_e5f5585a_l30_r01_e02_i2",
                     "content": [
                       {
                         "role": "primary",
@@ -7215,9 +7635,9 @@
                     {
                       "text": "pan",
                       "itemIds": [
-                        "pms_e5f5585a_l28_r01_e02_i0",
-                        "pms_e5f5585a_l28_r01_e02_i1",
-                        "pms_e5f5585a_l28_r01_e02_i2"
+                        "pms_e5f5585a_l30_r01_e02_i0",
+                        "pms_e5f5585a_l30_r01_e02_i1",
+                        "pms_e5f5585a_l30_r01_e02_i2"
                       ]
                     }
                   ]
@@ -7225,7 +7645,7 @@
               }
             },
             {
-              "id": "pms_e5f5585a_l28_r01_e03",
+              "id": "pms_e5f5585a_l30_r01_e03",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
@@ -7249,7 +7669,7 @@
                 ],
                 "items": [
                   {
-                    "id": "pms_e5f5585a_l28_r01_e03_i0",
+                    "id": "pms_e5f5585a_l30_r01_e03_i0",
                     "content": [
                       {
                         "role": "primary",
@@ -7259,7 +7679,7 @@
                     ]
                   },
                   {
-                    "id": "pms_e5f5585a_l28_r01_e03_i1",
+                    "id": "pms_e5f5585a_l30_r01_e03_i1",
                     "content": [
                       {
                         "role": "primary",
@@ -7275,8 +7695,8 @@
                     {
                       "text": "caval",
                       "itemIds": [
-                        "pms_e5f5585a_l28_r01_e03_i0",
-                        "pms_e5f5585a_l28_r01_e03_i1"
+                        "pms_e5f5585a_l30_r01_e03_i0",
+                        "pms_e5f5585a_l30_r01_e03_i1"
                       ]
                     }
                   ]
@@ -7287,12 +7707,12 @@
         }
       ],
       "duel": {
-        "id": "pms_e5f5585a_l28_duel",
+        "id": "pms_e5f5585a_l30_duel",
         "title": "Duel"
       }
     },
     {
-      "lessonId": "pms_e5f5585a_l29",
+      "lessonId": "pms_e5f5585a_l31",
       "publicationState": "published",
       "updatedAt": "2026-09-25T00:00:00.000Z",
       "section": false,
@@ -7301,7 +7721,7 @@
       "guidebook": {
         "content": [
           {
-            "id": "pms_e5f5585a_l29_g01",
+            "id": "pms_e5f5585a_l31_g01",
             "publicationState": "published",
             "kind": "explanation",
             "required": false,
@@ -7312,14 +7732,14 @@
       },
       "rounds": [
         {
-          "id": "pms_e5f5585a_l29_r01",
+          "id": "pms_e5f5585a_l31_r01",
           "publicationState": "published",
           "updatedAt": "2026-09-25T00:00:00.000Z",
           "visualType": "generic",
           "title": "Read and answer (to target) practice",
           "content": [
             {
-              "id": "pms_e5f5585a_l29_r01_intro",
+              "id": "pms_e5f5585a_l31_r01_intro",
               "publicationState": "published",
               "kind": "exercise",
               "required": false,
@@ -7345,7 +7765,7 @@
               }
             },
             {
-              "id": "pms_e5f5585a_l29_r01_e01",
+              "id": "pms_e5f5585a_l31_r01_e01",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
@@ -7382,7 +7802,7 @@
                 ],
                 "items": [
                   {
-                    "id": "pms_e5f5585a_l29_r01_e01_i0",
+                    "id": "pms_e5f5585a_l31_r01_e01_i0",
                     "content": [
                       {
                         "role": "primary",
@@ -7392,7 +7812,7 @@
                     ]
                   },
                   {
-                    "id": "pms_e5f5585a_l29_r01_e01_i1",
+                    "id": "pms_e5f5585a_l31_r01_e01_i1",
                     "content": [
                       {
                         "role": "primary",
@@ -7402,7 +7822,7 @@
                     ]
                   },
                   {
-                    "id": "pms_e5f5585a_l29_r01_e01_i2",
+                    "id": "pms_e5f5585a_l31_r01_e01_i2",
                     "content": [
                       {
                         "role": "primary",
@@ -7415,13 +7835,13 @@
                 "evaluation": {
                   "mode": "exactItem",
                   "correctItemIds": [
-                    "pms_e5f5585a_l29_r01_e01_i0"
+                    "pms_e5f5585a_l31_r01_e01_i0"
                   ]
                 }
               }
             },
             {
-              "id": "pms_e5f5585a_l29_r01_e02",
+              "id": "pms_e5f5585a_l31_r01_e02",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
@@ -7472,7 +7892,7 @@
                 ],
                 "items": [
                   {
-                    "id": "pms_e5f5585a_l29_r01_e02_i0",
+                    "id": "pms_e5f5585a_l31_r01_e02_i0",
                     "content": [
                       {
                         "role": "primary",
@@ -7482,7 +7902,7 @@
                     ]
                   },
                   {
-                    "id": "pms_e5f5585a_l29_r01_e02_i1",
+                    "id": "pms_e5f5585a_l31_r01_e02_i1",
                     "content": [
                       {
                         "role": "primary",
@@ -7492,7 +7912,7 @@
                     ]
                   },
                   {
-                    "id": "pms_e5f5585a_l29_r01_e02_i2",
+                    "id": "pms_e5f5585a_l31_r01_e02_i2",
                     "content": [
                       {
                         "role": "primary",
@@ -7505,13 +7925,13 @@
                 "evaluation": {
                   "mode": "exactItem",
                   "correctItemIds": [
-                    "pms_e5f5585a_l29_r01_e02_i1"
+                    "pms_e5f5585a_l31_r01_e02_i1"
                   ]
                 }
               }
             },
             {
-              "id": "pms_e5f5585a_l29_r01_e03",
+              "id": "pms_e5f5585a_l31_r01_e03",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
@@ -7562,7 +7982,7 @@
                 ],
                 "items": [
                   {
-                    "id": "pms_e5f5585a_l29_r01_e03_i0",
+                    "id": "pms_e5f5585a_l31_r01_e03_i0",
                     "content": [
                       {
                         "role": "primary",
@@ -7572,7 +7992,7 @@
                     ]
                   },
                   {
-                    "id": "pms_e5f5585a_l29_r01_e03_i1",
+                    "id": "pms_e5f5585a_l31_r01_e03_i1",
                     "content": [
                       {
                         "role": "primary",
@@ -7582,545 +8002,12 @@
                     ]
                   },
                   {
-                    "id": "pms_e5f5585a_l29_r01_e03_i2",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "Bon-aneuit!"
-                      }
-                    ]
-                  }
-                ],
-                "evaluation": {
-                  "mode": "exactItem",
-                  "correctItemIds": [
-                    "pms_e5f5585a_l29_r01_e03_i2"
-                  ]
-                }
-              }
-            }
-          ]
-        }
-      ],
-      "duel": {
-        "id": "pms_e5f5585a_l29_duel",
-        "title": "Duel"
-      }
-    },
-    {
-      "lessonId": "pms_e5f5585a_l30",
-      "publicationState": "published",
-      "updatedAt": "2026-09-25T00:00:00.000Z",
-      "section": false,
-      "title": "Select the image — Words in pictures",
-      "themeIconAsset": "assets/lesson_icons/speech_bubbles.png",
-      "guidebook": {
-        "content": [
-          {
-            "id": "pms_e5f5585a_l30_g01",
-            "publicationState": "published",
-            "kind": "explanation",
-            "required": false,
-            "role": "overview",
-            "text": "Look at the pictures: gat = cat; pan = bread; eva = water."
-          }
-        ]
-      },
-      "rounds": [
-        {
-          "id": "pms_e5f5585a_l30_r01",
-          "publicationState": "published",
-          "updatedAt": "2026-09-25T00:00:00.000Z",
-          "visualType": "generic",
-          "title": "Select the image practice",
-          "content": [
-            {
-              "id": "pms_e5f5585a_l30_r01_intro",
-              "publicationState": "published",
-              "kind": "exercise",
-              "required": false,
-              "authoringMetadata": {
-                "presetId": "before_you_start"
-              },
-              "exercise": {
-                "updatedAt": "2026-09-25T00:00:00.000Z",
-                "primitive": "presentation",
-                "options": {
-                  "guidebookButton": true
-                },
-                "prompt": [
-                  {
-                    "role": "intro",
-                    "type": "text",
-                    "text": "Select the image: Words in pictures. Three short examples use this exercise type."
-                  }
-                ],
-                "evaluation": {
-                  "mode": "none"
-                }
-              }
-            },
-            {
-              "id": "pms_e5f5585a_l30_r01_e01",
-              "publicationState": "published",
-              "kind": "exercise",
-              "required": true,
-              "authoringMetadata": {
-                "presetId": "icon_choice"
-              },
-              "exercise": {
-                "updatedAt": "2026-09-25T00:00:00.000Z",
-                "primitive": "select",
-                "prompt": [
-                  {
-                    "role": "primary",
-                    "type": "text",
-                    "text": "Select the image for gat."
-                  }
-                ],
-                "items": [
-                  {
-                    "id": "pms_e5f5585a_l30_r01_e01_i0",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "gat"
-                      },
-                      {
-                        "role": "icon",
-                        "type": "text",
-                        "text": "assets/exercise_images/cat.webp"
-                      }
-                    ]
-                  },
-                  {
-                    "id": "pms_e5f5585a_l30_r01_e01_i1",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "can"
-                      },
-                      {
-                        "role": "icon",
-                        "type": "text",
-                        "text": "assets/exercise_images/dog.webp"
-                      }
-                    ]
-                  },
-                  {
-                    "id": "pms_e5f5585a_l30_r01_e01_i2",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "caval"
-                      },
-                      {
-                        "role": "icon",
-                        "type": "text",
-                        "text": "assets/exercise_images/horse.webp"
-                      }
-                    ]
-                  }
-                ],
-                "evaluation": {
-                  "mode": "exactItem",
-                  "correctItemIds": [
-                    "pms_e5f5585a_l30_r01_e01_i0"
-                  ]
-                }
-              }
-            },
-            {
-              "id": "pms_e5f5585a_l30_r01_e02",
-              "publicationState": "published",
-              "kind": "exercise",
-              "required": true,
-              "authoringMetadata": {
-                "presetId": "icon_choice"
-              },
-              "exercise": {
-                "updatedAt": "2026-09-25T00:00:00.000Z",
-                "primitive": "select",
-                "prompt": [
-                  {
-                    "role": "primary",
-                    "type": "text",
-                    "text": "Select the image for pan."
-                  }
-                ],
-                "items": [
-                  {
-                    "id": "pms_e5f5585a_l30_r01_e02_i0",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "pom"
-                      },
-                      {
-                        "role": "icon",
-                        "type": "text",
-                        "text": "assets/exercise_images/apple.webp"
-                      }
-                    ]
-                  },
-                  {
-                    "id": "pms_e5f5585a_l30_r01_e02_i1",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "pan"
-                      },
-                      {
-                        "role": "icon",
-                        "type": "text",
-                        "text": "assets/exercise_images/bread.webp"
-                      }
-                    ]
-                  },
-                  {
-                    "id": "pms_e5f5585a_l30_r01_e02_i2",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "eva"
-                      },
-                      {
-                        "role": "icon",
-                        "type": "text",
-                        "text": "assets/exercise_images/water.webp"
-                      }
-                    ]
-                  }
-                ],
-                "evaluation": {
-                  "mode": "exactItem",
-                  "correctItemIds": [
-                    "pms_e5f5585a_l30_r01_e02_i1"
-                  ]
-                }
-              }
-            },
-            {
-              "id": "pms_e5f5585a_l30_r01_e03",
-              "publicationState": "published",
-              "kind": "exercise",
-              "required": true,
-              "authoringMetadata": {
-                "presetId": "icon_choice"
-              },
-              "exercise": {
-                "updatedAt": "2026-09-25T00:00:00.000Z",
-                "primitive": "select",
-                "prompt": [
-                  {
-                    "role": "primary",
-                    "type": "text",
-                    "text": "Select the image for eva."
-                  }
-                ],
-                "items": [
-                  {
-                    "id": "pms_e5f5585a_l30_r01_e03_i0",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "pan"
-                      },
-                      {
-                        "role": "icon",
-                        "type": "text",
-                        "text": "assets/exercise_images/bread.webp"
-                      }
-                    ]
-                  },
-                  {
-                    "id": "pms_e5f5585a_l30_r01_e03_i1",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "pom"
-                      },
-                      {
-                        "role": "icon",
-                        "type": "text",
-                        "text": "assets/exercise_images/apple.webp"
-                      }
-                    ]
-                  },
-                  {
-                    "id": "pms_e5f5585a_l30_r01_e03_i2",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "eva"
-                      },
-                      {
-                        "role": "icon",
-                        "type": "text",
-                        "text": "assets/exercise_images/water.webp"
-                      }
-                    ]
-                  }
-                ],
-                "evaluation": {
-                  "mode": "exactItem",
-                  "correctItemIds": [
-                    "pms_e5f5585a_l30_r01_e03_i2"
-                  ]
-                }
-              }
-            }
-          ]
-        }
-      ],
-      "duel": {
-        "id": "pms_e5f5585a_l30_duel",
-        "title": "Duel"
-      }
-    },
-    {
-      "lessonId": "pms_e5f5585a_l31",
-      "publicationState": "published",
-      "updatedAt": "2026-09-25T00:00:00.000Z",
-      "section": false,
-      "title": "Recognize characters — Accented letters",
-      "themeIconAsset": "assets/lesson_icons/speech_bubbles.png",
-      "guidebook": {
-        "content": [
-          {
-            "id": "pms_e5f5585a_l31_g01",
-            "publicationState": "published",
-            "kind": "explanation",
-            "required": false,
-            "role": "overview",
-            "text": "These letter diagrams distinguish ë (e with diaeresis), é (e with acute accent), and ò (o with grave accent). Identify the printed character, not its sound."
-          }
-        ]
-      },
-      "rounds": [
-        {
-          "id": "pms_e5f5585a_l31_r01",
-          "publicationState": "published",
-          "updatedAt": "2026-09-25T00:00:00.000Z",
-          "visualType": "generic",
-          "title": "Recognize characters practice",
-          "content": [
-            {
-              "id": "pms_e5f5585a_l31_r01_intro",
-              "publicationState": "published",
-              "kind": "exercise",
-              "required": false,
-              "authoringMetadata": {
-                "presetId": "before_you_start"
-              },
-              "exercise": {
-                "updatedAt": "2026-09-25T00:00:00.000Z",
-                "primitive": "presentation",
-                "options": {
-                  "guidebookButton": true
-                },
-                "prompt": [
-                  {
-                    "role": "intro",
-                    "type": "text",
-                    "text": "Recognize characters: Accented letters. Three short examples use this exercise type."
-                  }
-                ],
-                "evaluation": {
-                  "mode": "none"
-                }
-              }
-            },
-            {
-              "id": "pms_e5f5585a_l31_r01_e01",
-              "publicationState": "published",
-              "kind": "exercise",
-              "required": true,
-              "authoringMetadata": {
-                "presetId": "script_recognition"
-              },
-              "exercise": {
-                "updatedAt": "2026-09-25T00:00:00.000Z",
-                "primitive": "select",
-                "prompt": [
-                  {
-                    "role": "primary",
-                    "type": "text",
-                    "text": "Identify this printed e-family character."
-                  },
-                  {
-                    "role": "character",
-                    "type": "image",
-                    "text": "A printed accented letter",
-                    "asset": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAG4AAACmCAAAAAAei+X+AAAAgElEQVR42u3ZMQ7AIAgFUI/h/S9K5w422lRDyfsrkTcSsMXRNBwOh8PhcLiPuX7LfA2Hw+Fw1TjjFYfD4XA4HA6Hw43XjqfgcDgcrhq32mT+HQ6Hw+H+zL0NDofD4apx249UOBwOh0vLOcHhcDgcLnzT43A4HA6Hw+FwOBwuH3cB3IUCccMAJ2AAAAAASUVORK5CYII="
-                  }
-                ],
-                "items": [
-                  {
-                    "id": "pms_e5f5585a_l31_r01_e01_i0",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "ë"
-                      }
-                    ]
-                  },
-                  {
-                    "id": "pms_e5f5585a_l31_r01_e01_i1",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "é"
-                      }
-                    ]
-                  },
-                  {
-                    "id": "pms_e5f5585a_l31_r01_e01_i2",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "e"
-                      }
-                    ]
-                  }
-                ],
-                "evaluation": {
-                  "mode": "exactItem",
-                  "correctItemIds": [
-                    "pms_e5f5585a_l31_r01_e01_i0"
-                  ]
-                }
-              }
-            },
-            {
-              "id": "pms_e5f5585a_l31_r01_e02",
-              "publicationState": "published",
-              "kind": "exercise",
-              "required": true,
-              "authoringMetadata": {
-                "presetId": "script_recognition"
-              },
-              "exercise": {
-                "updatedAt": "2026-09-25T00:00:00.000Z",
-                "primitive": "select",
-                "prompt": [
-                  {
-                    "role": "primary",
-                    "type": "text",
-                    "text": "Which accented e is printed here?"
-                  },
-                  {
-                    "role": "character",
-                    "type": "image",
-                    "text": "A printed accented letter",
-                    "asset": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAG4AAACmCAAAAAAei+X+AAAAfUlEQVR42u3ZuQ0AIAwDQMZg/0WhpuKRQBDOfXS1nVSOJuFwOBwOh8Md5HITHA6Hw/3EzQI4HA6Hi8opXDgcDvcvl4eDw+FwuGjcau3o3+FwOBzuZW41OBwOh4vGbR+pcDgcDnctZ4LD4XA4XPGmx+FwOBwOh8PhcDjcfVwFX4kCcY7YXVIAAAAASUVORK5CYII="
-                  }
-                ],
-                "items": [
-                  {
-                    "id": "pms_e5f5585a_l31_r01_e02_i0",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "è"
-                      }
-                    ]
-                  },
-                  {
-                    "id": "pms_e5f5585a_l31_r01_e02_i1",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "é"
-                      }
-                    ]
-                  },
-                  {
-                    "id": "pms_e5f5585a_l31_r01_e02_i2",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "ë"
-                      }
-                    ]
-                  }
-                ],
-                "evaluation": {
-                  "mode": "exactItem",
-                  "correctItemIds": [
-                    "pms_e5f5585a_l31_r01_e02_i1"
-                  ]
-                }
-              }
-            },
-            {
-              "id": "pms_e5f5585a_l31_r01_e03",
-              "publicationState": "published",
-              "kind": "exercise",
-              "required": true,
-              "authoringMetadata": {
-                "presetId": "script_recognition"
-              },
-              "exercise": {
-                "updatedAt": "2026-09-25T00:00:00.000Z",
-                "primitive": "select",
-                "prompt": [
-                  {
-                    "role": "primary",
-                    "type": "text",
-                    "text": "Which o-family character is shown?"
-                  },
-                  {
-                    "role": "character",
-                    "type": "image",
-                    "text": "A printed accented letter",
-                    "asset": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAG4AAACmCAAAAAAei+X+AAAAdUlEQVR42u3ZMQoAIAwDQJ/h/z+qs1NBimi97OXmpG0cTcPhcDgcDodL5voSHA6Hw/3LZeI4HA6Hq8MpXDgcDmc1ioPD4XC4atxu7YjvcDgcDofD4XA4HA6Hw+Fw73ImOBwOh8MNb3ocDofD4XA4HA6Hw93HTS4OZDi+dmo0AAAAAElFTkSuQmCC"
-                  }
-                ],
-                "items": [
-                  {
-                    "id": "pms_e5f5585a_l31_r01_e03_i0",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "o"
-                      }
-                    ]
-                  },
-                  {
-                    "id": "pms_e5f5585a_l31_r01_e03_i1",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "ó"
-                      }
-                    ]
-                  },
-                  {
                     "id": "pms_e5f5585a_l31_r01_e03_i2",
                     "content": [
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "ò"
+                        "text": "Bon-aneuit!"
                       }
                     ]
                   }
@@ -8146,12 +8033,545 @@
       "publicationState": "published",
       "updatedAt": "2026-09-25T00:00:00.000Z",
       "section": false,
-      "title": "Spell the word in the picture — Build pictured words",
+      "title": "Select the image — Words in pictures",
       "themeIconAsset": "assets/lesson_icons/speech_bubbles.png",
       "guidebook": {
         "content": [
           {
             "id": "pms_e5f5585a_l32_g01",
+            "publicationState": "published",
+            "kind": "explanation",
+            "required": false,
+            "role": "overview",
+            "text": "Look at the pictures: gat = cat; pan = bread; eva = water."
+          }
+        ]
+      },
+      "rounds": [
+        {
+          "id": "pms_e5f5585a_l32_r01",
+          "publicationState": "published",
+          "updatedAt": "2026-09-25T00:00:00.000Z",
+          "visualType": "generic",
+          "title": "Select the image practice",
+          "content": [
+            {
+              "id": "pms_e5f5585a_l32_r01_intro",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": false,
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "Select the image: Words in pictures. Three short examples use this exercise type."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
+            },
+            {
+              "id": "pms_e5f5585a_l32_r01_e01",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "authoringMetadata": {
+                "presetId": "icon_choice"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "select",
+                "prompt": [
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "Select the image for gat."
+                  }
+                ],
+                "items": [
+                  {
+                    "id": "pms_e5f5585a_l32_r01_e01_i0",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "gat"
+                      },
+                      {
+                        "role": "icon",
+                        "type": "text",
+                        "text": "assets/exercise_images/cat.webp"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "pms_e5f5585a_l32_r01_e01_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "can"
+                      },
+                      {
+                        "role": "icon",
+                        "type": "text",
+                        "text": "assets/exercise_images/dog.webp"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "pms_e5f5585a_l32_r01_e01_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "caval"
+                      },
+                      {
+                        "role": "icon",
+                        "type": "text",
+                        "text": "assets/exercise_images/horse.webp"
+                      }
+                    ]
+                  }
+                ],
+                "evaluation": {
+                  "mode": "exactItem",
+                  "correctItemIds": [
+                    "pms_e5f5585a_l32_r01_e01_i0"
+                  ]
+                }
+              }
+            },
+            {
+              "id": "pms_e5f5585a_l32_r01_e02",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "authoringMetadata": {
+                "presetId": "icon_choice"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "select",
+                "prompt": [
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "Select the image for pan."
+                  }
+                ],
+                "items": [
+                  {
+                    "id": "pms_e5f5585a_l32_r01_e02_i0",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "pom"
+                      },
+                      {
+                        "role": "icon",
+                        "type": "text",
+                        "text": "assets/exercise_images/apple.webp"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "pms_e5f5585a_l32_r01_e02_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "pan"
+                      },
+                      {
+                        "role": "icon",
+                        "type": "text",
+                        "text": "assets/exercise_images/bread.webp"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "pms_e5f5585a_l32_r01_e02_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "eva"
+                      },
+                      {
+                        "role": "icon",
+                        "type": "text",
+                        "text": "assets/exercise_images/water.webp"
+                      }
+                    ]
+                  }
+                ],
+                "evaluation": {
+                  "mode": "exactItem",
+                  "correctItemIds": [
+                    "pms_e5f5585a_l32_r01_e02_i1"
+                  ]
+                }
+              }
+            },
+            {
+              "id": "pms_e5f5585a_l32_r01_e03",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "authoringMetadata": {
+                "presetId": "icon_choice"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "select",
+                "prompt": [
+                  {
+                    "role": "question",
+                    "type": "text",
+                    "text": "Select the image for eva."
+                  }
+                ],
+                "items": [
+                  {
+                    "id": "pms_e5f5585a_l32_r01_e03_i0",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "pan"
+                      },
+                      {
+                        "role": "icon",
+                        "type": "text",
+                        "text": "assets/exercise_images/bread.webp"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "pms_e5f5585a_l32_r01_e03_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "pom"
+                      },
+                      {
+                        "role": "icon",
+                        "type": "text",
+                        "text": "assets/exercise_images/apple.webp"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "pms_e5f5585a_l32_r01_e03_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "eva"
+                      },
+                      {
+                        "role": "icon",
+                        "type": "text",
+                        "text": "assets/exercise_images/water.webp"
+                      }
+                    ]
+                  }
+                ],
+                "evaluation": {
+                  "mode": "exactItem",
+                  "correctItemIds": [
+                    "pms_e5f5585a_l32_r01_e03_i2"
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "duel": {
+        "id": "pms_e5f5585a_l32_duel",
+        "title": "Duel"
+      }
+    },
+    {
+      "lessonId": "pms_e5f5585a_l33",
+      "publicationState": "published",
+      "updatedAt": "2026-09-25T00:00:00.000Z",
+      "section": false,
+      "title": "Recognize characters — Accented letters",
+      "themeIconAsset": "assets/lesson_icons/speech_bubbles.png",
+      "guidebook": {
+        "content": [
+          {
+            "id": "pms_e5f5585a_l33_g01",
+            "publicationState": "published",
+            "kind": "explanation",
+            "required": false,
+            "role": "overview",
+            "text": "These letter diagrams distinguish ë (e with diaeresis), é (e with acute accent), and ò (o with grave accent). Identify the printed character, not its sound."
+          }
+        ]
+      },
+      "rounds": [
+        {
+          "id": "pms_e5f5585a_l33_r01",
+          "publicationState": "published",
+          "updatedAt": "2026-09-25T00:00:00.000Z",
+          "visualType": "generic",
+          "title": "Recognize characters practice",
+          "content": [
+            {
+              "id": "pms_e5f5585a_l33_r01_intro",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": false,
+              "authoringMetadata": {
+                "presetId": "before_you_start"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "presentation",
+                "options": {
+                  "guidebookButton": true
+                },
+                "prompt": [
+                  {
+                    "role": "intro",
+                    "type": "text",
+                    "text": "Recognize characters: Accented letters. Three short examples use this exercise type."
+                  }
+                ],
+                "evaluation": {
+                  "mode": "none"
+                }
+              }
+            },
+            {
+              "id": "pms_e5f5585a_l33_r01_e01",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "authoringMetadata": {
+                "presetId": "script_recognition"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "select",
+                "prompt": [
+                  {
+                    "role": "primary",
+                    "type": "text",
+                    "text": "Identify this printed e-family character."
+                  },
+                  {
+                    "role": "character",
+                    "type": "image",
+                    "text": "A printed accented letter",
+                    "asset": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAG4AAACmCAAAAAAei+X+AAAAgElEQVR42u3ZMQ7AIAgFUI/h/S9K5w422lRDyfsrkTcSsMXRNBwOh8PhcLiPuX7LfA2Hw+Fw1TjjFYfD4XA4HA6Hw43XjqfgcDgcrhq32mT+HQ6Hw+H+zL0NDofD4apx249UOBwOh0vLOcHhcDgcLnzT43A4HA6Hw+FwOBwuH3cB3IUCccMAJ2AAAAAASUVORK5CYII="
+                  }
+                ],
+                "items": [
+                  {
+                    "id": "pms_e5f5585a_l33_r01_e01_i0",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "ë"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "pms_e5f5585a_l33_r01_e01_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "é"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "pms_e5f5585a_l33_r01_e01_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "e"
+                      }
+                    ]
+                  }
+                ],
+                "evaluation": {
+                  "mode": "exactItem",
+                  "correctItemIds": [
+                    "pms_e5f5585a_l33_r01_e01_i0"
+                  ]
+                }
+              }
+            },
+            {
+              "id": "pms_e5f5585a_l33_r01_e02",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "authoringMetadata": {
+                "presetId": "script_recognition"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "select",
+                "prompt": [
+                  {
+                    "role": "primary",
+                    "type": "text",
+                    "text": "Which accented e is printed here?"
+                  },
+                  {
+                    "role": "character",
+                    "type": "image",
+                    "text": "A printed accented letter",
+                    "asset": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAG4AAACmCAAAAAAei+X+AAAAfUlEQVR42u3ZuQ0AIAwDQMZg/0WhpuKRQBDOfXS1nVSOJuFwOBwOh8Md5HITHA6Hw/3EzQI4HA6Hi8opXDgcDvcvl4eDw+FwuGjcau3o3+FwOBzuZW41OBwOh4vGbR+pcDgcDnctZ4LD4XA4XPGmx+FwOBwOh8PhcDjcfVwFX4kCcY7YXVIAAAAASUVORK5CYII="
+                  }
+                ],
+                "items": [
+                  {
+                    "id": "pms_e5f5585a_l33_r01_e02_i0",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "è"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "pms_e5f5585a_l33_r01_e02_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "é"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "pms_e5f5585a_l33_r01_e02_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "ë"
+                      }
+                    ]
+                  }
+                ],
+                "evaluation": {
+                  "mode": "exactItem",
+                  "correctItemIds": [
+                    "pms_e5f5585a_l33_r01_e02_i1"
+                  ]
+                }
+              }
+            },
+            {
+              "id": "pms_e5f5585a_l33_r01_e03",
+              "publicationState": "published",
+              "kind": "exercise",
+              "required": true,
+              "authoringMetadata": {
+                "presetId": "script_recognition"
+              },
+              "exercise": {
+                "updatedAt": "2026-09-25T00:00:00.000Z",
+                "primitive": "select",
+                "prompt": [
+                  {
+                    "role": "primary",
+                    "type": "text",
+                    "text": "Which o-family character is shown?"
+                  },
+                  {
+                    "role": "character",
+                    "type": "image",
+                    "text": "A printed accented letter",
+                    "asset": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAG4AAACmCAAAAAAei+X+AAAAdUlEQVR42u3ZMQoAIAwDQJ/h/z+qs1NBimi97OXmpG0cTcPhcDgcDodL5voSHA6Hw/3LZeI4HA6Hq8MpXDgcDmc1ioPD4XC4atxu7YjvcDgcDofD4XA4HA6Hw+Fw73ImOBwOh8MNb3ocDofD4XA4HA6Hw93HTS4OZDi+dmo0AAAAAElFTkSuQmCC"
+                  }
+                ],
+                "items": [
+                  {
+                    "id": "pms_e5f5585a_l33_r01_e03_i0",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "o"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "pms_e5f5585a_l33_r01_e03_i1",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "ó"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "pms_e5f5585a_l33_r01_e03_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "ò"
+                      }
+                    ]
+                  }
+                ],
+                "evaluation": {
+                  "mode": "exactItem",
+                  "correctItemIds": [
+                    "pms_e5f5585a_l33_r01_e03_i2"
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "duel": {
+        "id": "pms_e5f5585a_l33_duel",
+        "title": "Duel"
+      }
+    },
+    {
+      "lessonId": "pms_e5f5585a_l34",
+      "publicationState": "published",
+      "updatedAt": "2026-09-25T00:00:00.000Z",
+      "section": false,
+      "title": "Spell the word in the picture — Build pictured words",
+      "themeIconAsset": "assets/lesson_icons/speech_bubbles.png",
+      "guidebook": {
+        "content": [
+          {
+            "id": "pms_e5f5585a_l34_g01",
             "publicationState": "published",
             "kind": "explanation",
             "required": false,
@@ -8162,14 +8582,14 @@
       },
       "rounds": [
         {
-          "id": "pms_e5f5585a_l32_r01",
+          "id": "pms_e5f5585a_l34_r01",
           "publicationState": "published",
           "updatedAt": "2026-09-25T00:00:00.000Z",
           "visualType": "generic",
           "title": "Spell the word in the picture practice",
           "content": [
             {
-              "id": "pms_e5f5585a_l32_r01_intro",
+              "id": "pms_e5f5585a_l34_r01_intro",
               "publicationState": "published",
               "kind": "exercise",
               "required": false,
@@ -8195,7 +8615,7 @@
               }
             },
             {
-              "id": "pms_e5f5585a_l32_r01_e01",
+              "id": "pms_e5f5585a_l34_r01_e01",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
@@ -8224,17 +8644,7 @@
                 ],
                 "items": [
                   {
-                    "id": "pms_e5f5585a_l32_r01_e01_i0",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "n"
-                      }
-                    ]
-                  },
-                  {
-                    "id": "pms_e5f5585a_l32_r01_e01_i1",
+                    "id": "pms_e5f5585a_l34_r01_e01_i0",
                     "content": [
                       {
                         "role": "primary",
@@ -8244,12 +8654,22 @@
                     ]
                   },
                   {
-                    "id": "pms_e5f5585a_l32_r01_e01_i2",
+                    "id": "pms_e5f5585a_l34_r01_e01_i1",
                     "content": [
                       {
                         "role": "primary",
                         "type": "text",
                         "text": "a"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "pms_e5f5585a_l34_r01_e01_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "n"
                       }
                     ]
                   }
@@ -8260,9 +8680,9 @@
                     {
                       "text": "pan",
                       "itemIds": [
-                        "pms_e5f5585a_l32_r01_e01_i1",
-                        "pms_e5f5585a_l32_r01_e01_i2",
-                        "pms_e5f5585a_l32_r01_e01_i0"
+                        "pms_e5f5585a_l34_r01_e01_i0",
+                        "pms_e5f5585a_l34_r01_e01_i1",
+                        "pms_e5f5585a_l34_r01_e01_i2"
                       ]
                     }
                   ]
@@ -8270,7 +8690,7 @@
               }
             },
             {
-              "id": "pms_e5f5585a_l32_r01_e02",
+              "id": "pms_e5f5585a_l34_r01_e02",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
@@ -8299,17 +8719,7 @@
                 ],
                 "items": [
                   {
-                    "id": "pms_e5f5585a_l32_r01_e02_i0",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "t"
-                      }
-                    ]
-                  },
-                  {
-                    "id": "pms_e5f5585a_l32_r01_e02_i1",
+                    "id": "pms_e5f5585a_l34_r01_e02_i0",
                     "content": [
                       {
                         "role": "primary",
@@ -8319,12 +8729,22 @@
                     ]
                   },
                   {
-                    "id": "pms_e5f5585a_l32_r01_e02_i2",
+                    "id": "pms_e5f5585a_l34_r01_e02_i1",
                     "content": [
                       {
                         "role": "primary",
                         "type": "text",
                         "text": "a"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "pms_e5f5585a_l34_r01_e02_i2",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "t"
                       }
                     ]
                   }
@@ -8335,9 +8755,9 @@
                     {
                       "text": "gat",
                       "itemIds": [
-                        "pms_e5f5585a_l32_r01_e02_i1",
-                        "pms_e5f5585a_l32_r01_e02_i2",
-                        "pms_e5f5585a_l32_r01_e02_i0"
+                        "pms_e5f5585a_l34_r01_e02_i0",
+                        "pms_e5f5585a_l34_r01_e02_i1",
+                        "pms_e5f5585a_l34_r01_e02_i2"
                       ]
                     }
                   ]
@@ -8345,7 +8765,7 @@
               }
             },
             {
-              "id": "pms_e5f5585a_l32_r01_e03",
+              "id": "pms_e5f5585a_l34_r01_e03",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
@@ -8374,27 +8794,7 @@
                 ],
                 "items": [
                   {
-                    "id": "pms_e5f5585a_l32_r01_e03_i0",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "a"
-                      }
-                    ]
-                  },
-                  {
-                    "id": "pms_e5f5585a_l32_r01_e03_i1",
-                    "content": [
-                      {
-                        "role": "primary",
-                        "type": "text",
-                        "text": "l"
-                      }
-                    ]
-                  },
-                  {
-                    "id": "pms_e5f5585a_l32_r01_e03_i2",
+                    "id": "pms_e5f5585a_l34_r01_e03_i0",
                     "content": [
                       {
                         "role": "primary",
@@ -8404,7 +8804,7 @@
                     ]
                   },
                   {
-                    "id": "pms_e5f5585a_l32_r01_e03_i3",
+                    "id": "pms_e5f5585a_l34_r01_e03_i1",
                     "content": [
                       {
                         "role": "primary",
@@ -8414,12 +8814,32 @@
                     ]
                   },
                   {
-                    "id": "pms_e5f5585a_l32_r01_e03_i4",
+                    "id": "pms_e5f5585a_l34_r01_e03_i2",
                     "content": [
                       {
                         "role": "primary",
                         "type": "text",
                         "text": "v"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "pms_e5f5585a_l34_r01_e03_i3",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "a"
+                      }
+                    ]
+                  },
+                  {
+                    "id": "pms_e5f5585a_l34_r01_e03_i4",
+                    "content": [
+                      {
+                        "role": "primary",
+                        "type": "text",
+                        "text": "l"
                       }
                     ]
                   }
@@ -8430,11 +8850,11 @@
                     {
                       "text": "caval",
                       "itemIds": [
-                        "pms_e5f5585a_l32_r01_e03_i2",
-                        "pms_e5f5585a_l32_r01_e03_i0",
-                        "pms_e5f5585a_l32_r01_e03_i4",
-                        "pms_e5f5585a_l32_r01_e03_i3",
-                        "pms_e5f5585a_l32_r01_e03_i1"
+                        "pms_e5f5585a_l34_r01_e03_i0",
+                        "pms_e5f5585a_l34_r01_e03_i1",
+                        "pms_e5f5585a_l34_r01_e03_i2",
+                        "pms_e5f5585a_l34_r01_e03_i3",
+                        "pms_e5f5585a_l34_r01_e03_i4"
                       ]
                     }
                   ]
@@ -8445,12 +8865,12 @@
         }
       ],
       "duel": {
-        "id": "pms_e5f5585a_l32_duel",
+        "id": "pms_e5f5585a_l34_duel",
         "title": "Duel"
       }
     },
     {
-      "lessonId": "pms_e5f5585a_l33",
+      "lessonId": "pms_e5f5585a_l35",
       "publicationState": "published",
       "updatedAt": "2026-09-25T00:00:00.000Z",
       "section": false,
@@ -8459,7 +8879,7 @@
       "guidebook": {
         "content": [
           {
-            "id": "pms_e5f5585a_l33_g01",
+            "id": "pms_e5f5585a_l35_g01",
             "publicationState": "published",
             "kind": "explanation",
             "required": false,
@@ -8470,14 +8890,14 @@
       },
       "rounds": [
         {
-          "id": "pms_e5f5585a_l33_r01",
+          "id": "pms_e5f5585a_l35_r01",
           "publicationState": "published",
           "updatedAt": "2026-09-25T00:00:00.000Z",
           "visualType": "generic",
           "title": "What is in the picture practice",
           "content": [
             {
-              "id": "pms_e5f5585a_l33_r01_intro",
+              "id": "pms_e5f5585a_l35_r01_intro",
               "publicationState": "published",
               "kind": "exercise",
               "required": false,
@@ -8503,7 +8923,7 @@
               }
             },
             {
-              "id": "pms_e5f5585a_l33_r01_e01",
+              "id": "pms_e5f5585a_l35_r01_e01",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
@@ -8515,7 +8935,7 @@
                 "primitive": "select",
                 "prompt": [
                   {
-                    "role": "question",
+                    "role": "primary",
                     "type": "text",
                     "text": "What is this?"
                   },
@@ -8528,7 +8948,7 @@
                 ],
                 "items": [
                   {
-                    "id": "pms_e5f5585a_l33_r01_e01_i0",
+                    "id": "pms_e5f5585a_l35_r01_e01_i0",
                     "content": [
                       {
                         "role": "primary",
@@ -8538,7 +8958,7 @@
                     ]
                   },
                   {
-                    "id": "pms_e5f5585a_l33_r01_e01_i1",
+                    "id": "pms_e5f5585a_l35_r01_e01_i1",
                     "content": [
                       {
                         "role": "primary",
@@ -8548,7 +8968,7 @@
                     ]
                   },
                   {
-                    "id": "pms_e5f5585a_l33_r01_e01_i2",
+                    "id": "pms_e5f5585a_l35_r01_e01_i2",
                     "content": [
                       {
                         "role": "primary",
@@ -8561,13 +8981,13 @@
                 "evaluation": {
                   "mode": "exactItem",
                   "correctItemIds": [
-                    "pms_e5f5585a_l33_r01_e01_i0"
+                    "pms_e5f5585a_l35_r01_e01_i0"
                   ]
                 }
               }
             },
             {
-              "id": "pms_e5f5585a_l33_r01_e02",
+              "id": "pms_e5f5585a_l35_r01_e02",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
@@ -8579,7 +8999,7 @@
                 "primitive": "select",
                 "prompt": [
                   {
-                    "role": "question",
+                    "role": "primary",
                     "type": "text",
                     "text": "What is this?"
                   },
@@ -8592,7 +9012,7 @@
                 ],
                 "items": [
                   {
-                    "id": "pms_e5f5585a_l33_r01_e02_i0",
+                    "id": "pms_e5f5585a_l35_r01_e02_i0",
                     "content": [
                       {
                         "role": "primary",
@@ -8602,7 +9022,7 @@
                     ]
                   },
                   {
-                    "id": "pms_e5f5585a_l33_r01_e02_i1",
+                    "id": "pms_e5f5585a_l35_r01_e02_i1",
                     "content": [
                       {
                         "role": "primary",
@@ -8612,7 +9032,7 @@
                     ]
                   },
                   {
-                    "id": "pms_e5f5585a_l33_r01_e02_i2",
+                    "id": "pms_e5f5585a_l35_r01_e02_i2",
                     "content": [
                       {
                         "role": "primary",
@@ -8625,13 +9045,13 @@
                 "evaluation": {
                   "mode": "exactItem",
                   "correctItemIds": [
-                    "pms_e5f5585a_l33_r01_e02_i1"
+                    "pms_e5f5585a_l35_r01_e02_i1"
                   ]
                 }
               }
             },
             {
-              "id": "pms_e5f5585a_l33_r01_e03",
+              "id": "pms_e5f5585a_l35_r01_e03",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
@@ -8643,7 +9063,7 @@
                 "primitive": "select",
                 "prompt": [
                   {
-                    "role": "question",
+                    "role": "primary",
                     "type": "text",
                     "text": "What is this?"
                   },
@@ -8656,7 +9076,7 @@
                 ],
                 "items": [
                   {
-                    "id": "pms_e5f5585a_l33_r01_e03_i0",
+                    "id": "pms_e5f5585a_l35_r01_e03_i0",
                     "content": [
                       {
                         "role": "primary",
@@ -8666,7 +9086,7 @@
                     ]
                   },
                   {
-                    "id": "pms_e5f5585a_l33_r01_e03_i1",
+                    "id": "pms_e5f5585a_l35_r01_e03_i1",
                     "content": [
                       {
                         "role": "primary",
@@ -8676,7 +9096,7 @@
                     ]
                   },
                   {
-                    "id": "pms_e5f5585a_l33_r01_e03_i2",
+                    "id": "pms_e5f5585a_l35_r01_e03_i2",
                     "content": [
                       {
                         "role": "primary",
@@ -8689,7 +9109,7 @@
                 "evaluation": {
                   "mode": "exactItem",
                   "correctItemIds": [
-                    "pms_e5f5585a_l33_r01_e03_i2"
+                    "pms_e5f5585a_l35_r01_e03_i2"
                   ]
                 }
               }
@@ -8698,12 +9118,12 @@
         }
       ],
       "duel": {
-        "id": "pms_e5f5585a_l33_duel",
+        "id": "pms_e5f5585a_l35_duel",
         "title": "Duel"
       }
     },
     {
-      "lessonId": "pms_e5f5585a_l34",
+      "lessonId": "pms_e5f5585a_l36",
       "publicationState": "published",
       "updatedAt": "2026-09-25T00:00:00.000Z",
       "section": false,
@@ -8712,7 +9132,7 @@
       "guidebook": {
         "content": [
           {
-            "id": "pms_e5f5585a_l34_g01",
+            "id": "pms_e5f5585a_l36_g01",
             "publicationState": "published",
             "kind": "explanation",
             "required": false,
@@ -8723,14 +9143,14 @@
       },
       "rounds": [
         {
-          "id": "pms_e5f5585a_l34_r01",
+          "id": "pms_e5f5585a_l36_r01",
           "publicationState": "published",
           "updatedAt": "2026-09-25T00:00:00.000Z",
           "visualType": "generic",
           "title": "Type what you see practice",
           "content": [
             {
-              "id": "pms_e5f5585a_l34_r01_intro",
+              "id": "pms_e5f5585a_l36_r01_intro",
               "publicationState": "published",
               "kind": "exercise",
               "required": false,
@@ -8756,7 +9176,7 @@
               }
             },
             {
-              "id": "pms_e5f5585a_l34_r01_e01",
+              "id": "pms_e5f5585a_l36_r01_e01",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
@@ -8768,7 +9188,7 @@
                 "primitive": "input",
                 "prompt": [
                   {
-                    "role": "question",
+                    "role": "primary",
                     "type": "text",
                     "text": "What is this?"
                   },
@@ -8788,7 +9208,7 @@
               }
             },
             {
-              "id": "pms_e5f5585a_l34_r01_e02",
+              "id": "pms_e5f5585a_l36_r01_e02",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
@@ -8800,7 +9220,7 @@
                 "primitive": "input",
                 "prompt": [
                   {
-                    "role": "question",
+                    "role": "primary",
                     "type": "text",
                     "text": "What is this?"
                   },
@@ -8820,7 +9240,7 @@
               }
             },
             {
-              "id": "pms_e5f5585a_l34_r01_e03",
+              "id": "pms_e5f5585a_l36_r01_e03",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
@@ -8832,7 +9252,7 @@
                 "primitive": "input",
                 "prompt": [
                   {
-                    "role": "question",
+                    "role": "primary",
                     "type": "text",
                     "text": "What is this?"
                   },
@@ -8856,12 +9276,12 @@
         }
       ],
       "duel": {
-        "id": "pms_e5f5585a_l34_duel",
+        "id": "pms_e5f5585a_l36_duel",
         "title": "Duel"
       }
     },
     {
-      "lessonId": "pms_e5f5585a_l35",
+      "lessonId": "pms_e5f5585a_l37",
       "publicationState": "published",
       "updatedAt": "2026-09-25T00:00:00.000Z",
       "section": false,
@@ -8870,7 +9290,7 @@
       "guidebook": {
         "content": [
           {
-            "id": "pms_e5f5585a_l35_g01",
+            "id": "pms_e5f5585a_l37_g01",
             "publicationState": "published",
             "kind": "explanation",
             "required": false,
@@ -8881,14 +9301,14 @@
       },
       "rounds": [
         {
-          "id": "pms_e5f5585a_l35_r01",
+          "id": "pms_e5f5585a_l37_r01",
           "publicationState": "published",
           "updatedAt": "2026-09-25T00:00:00.000Z",
           "visualType": "generic",
           "title": "Name what you see practice",
           "content": [
             {
-              "id": "pms_e5f5585a_l35_r01_intro",
+              "id": "pms_e5f5585a_l37_r01_intro",
               "publicationState": "published",
               "kind": "exercise",
               "required": false,
@@ -8914,7 +9334,7 @@
               }
             },
             {
-              "id": "pms_e5f5585a_l35_r01_e01",
+              "id": "pms_e5f5585a_l37_r01_e01",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
@@ -8926,7 +9346,7 @@
                 "primitive": "arrange",
                 "prompt": [
                   {
-                    "role": "question",
+                    "role": "primary",
                     "type": "text",
                     "text": "What is this?"
                   },
@@ -8939,7 +9359,7 @@
                 ],
                 "items": [
                   {
-                    "id": "pms_e5f5585a_l35_r01_e01_i0",
+                    "id": "pms_e5f5585a_l37_r01_e01_i0",
                     "content": [
                       {
                         "role": "primary",
@@ -8949,7 +9369,7 @@
                     ]
                   },
                   {
-                    "id": "pms_e5f5585a_l35_r01_e01_i1",
+                    "id": "pms_e5f5585a_l37_r01_e01_i1",
                     "content": [
                       {
                         "role": "primary",
@@ -8959,7 +9379,7 @@
                     ]
                   },
                   {
-                    "id": "pms_e5f5585a_l35_r01_e01_i2",
+                    "id": "pms_e5f5585a_l37_r01_e01_i2",
                     "content": [
                       {
                         "role": "primary",
@@ -8975,16 +9395,17 @@
                     {
                       "text": "ël gat",
                       "itemIds": [
-                        "pms_e5f5585a_l35_r01_e01_i0",
-                        "pms_e5f5585a_l35_r01_e01_i1"
+                        "pms_e5f5585a_l37_r01_e01_i0",
+                        "pms_e5f5585a_l37_r01_e01_i1"
                       ]
                     }
                   ]
-                }
+                },
+                "hint": "Include the article."
               }
             },
             {
-              "id": "pms_e5f5585a_l35_r01_e02",
+              "id": "pms_e5f5585a_l37_r01_e02",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
@@ -8996,7 +9417,7 @@
                 "primitive": "arrange",
                 "prompt": [
                   {
-                    "role": "question",
+                    "role": "primary",
                     "type": "text",
                     "text": "What is this?"
                   },
@@ -9009,7 +9430,7 @@
                 ],
                 "items": [
                   {
-                    "id": "pms_e5f5585a_l35_r01_e02_i0",
+                    "id": "pms_e5f5585a_l37_r01_e02_i0",
                     "content": [
                       {
                         "role": "primary",
@@ -9019,7 +9440,7 @@
                     ]
                   },
                   {
-                    "id": "pms_e5f5585a_l35_r01_e02_i1",
+                    "id": "pms_e5f5585a_l37_r01_e02_i1",
                     "content": [
                       {
                         "role": "primary",
@@ -9029,7 +9450,7 @@
                     ]
                   },
                   {
-                    "id": "pms_e5f5585a_l35_r01_e02_i2",
+                    "id": "pms_e5f5585a_l37_r01_e02_i2",
                     "content": [
                       {
                         "role": "primary",
@@ -9045,16 +9466,17 @@
                     {
                       "text": "ël pan",
                       "itemIds": [
-                        "pms_e5f5585a_l35_r01_e02_i0",
-                        "pms_e5f5585a_l35_r01_e02_i1"
+                        "pms_e5f5585a_l37_r01_e02_i0",
+                        "pms_e5f5585a_l37_r01_e02_i1"
                       ]
                     }
                   ]
-                }
+                },
+                "hint": "Include the article."
               }
             },
             {
-              "id": "pms_e5f5585a_l35_r01_e03",
+              "id": "pms_e5f5585a_l37_r01_e03",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
@@ -9066,7 +9488,7 @@
                 "primitive": "arrange",
                 "prompt": [
                   {
-                    "role": "question",
+                    "role": "primary",
                     "type": "text",
                     "text": "What is this?"
                   },
@@ -9079,7 +9501,7 @@
                 ],
                 "items": [
                   {
-                    "id": "pms_e5f5585a_l35_r01_e03_i0",
+                    "id": "pms_e5f5585a_l37_r01_e03_i0",
                     "content": [
                       {
                         "role": "primary",
@@ -9089,7 +9511,7 @@
                     ]
                   },
                   {
-                    "id": "pms_e5f5585a_l35_r01_e03_i1",
+                    "id": "pms_e5f5585a_l37_r01_e03_i1",
                     "content": [
                       {
                         "role": "primary",
@@ -9099,7 +9521,7 @@
                     ]
                   },
                   {
-                    "id": "pms_e5f5585a_l35_r01_e03_i2",
+                    "id": "pms_e5f5585a_l37_r01_e03_i2",
                     "content": [
                       {
                         "role": "primary",
@@ -9115,24 +9537,25 @@
                     {
                       "text": "ël pom",
                       "itemIds": [
-                        "pms_e5f5585a_l35_r01_e03_i0",
-                        "pms_e5f5585a_l35_r01_e03_i1"
+                        "pms_e5f5585a_l37_r01_e03_i0",
+                        "pms_e5f5585a_l37_r01_e03_i1"
                       ]
                     }
                   ]
-                }
+                },
+                "hint": "Include the article."
               }
             }
           ]
         }
       ],
       "duel": {
-        "id": "pms_e5f5585a_l35_duel",
+        "id": "pms_e5f5585a_l37_duel",
         "title": "Duel"
       }
     },
     {
-      "lessonId": "pms_e5f5585a_l36",
+      "lessonId": "pms_e5f5585a_l38",
       "publicationState": "published",
       "updatedAt": "2026-09-25T00:00:00.000Z",
       "section": false,
@@ -9141,7 +9564,7 @@
       "guidebook": {
         "content": [
           {
-            "id": "pms_e5f5585a_l36_g01",
+            "id": "pms_e5f5585a_l38_g01",
             "publicationState": "published",
             "kind": "explanation",
             "required": false,
@@ -9152,14 +9575,14 @@
       },
       "rounds": [
         {
-          "id": "pms_e5f5585a_l36_r01",
+          "id": "pms_e5f5585a_l38_r01",
           "publicationState": "published",
           "updatedAt": "2026-09-25T00:00:00.000Z",
           "visualType": "generic",
           "title": "Spell the word practice",
           "content": [
             {
-              "id": "pms_e5f5585a_l36_r01_intro",
+              "id": "pms_e5f5585a_l38_r01_intro",
               "publicationState": "published",
               "kind": "exercise",
               "required": false,
@@ -9185,7 +9608,7 @@
               }
             },
             {
-              "id": "pms_e5f5585a_l36_r01_e01",
+              "id": "pms_e5f5585a_l38_r01_e01",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
@@ -9209,7 +9632,7 @@
                 ],
                 "items": [
                   {
-                    "id": "pms_e5f5585a_l36_r01_e01_i0",
+                    "id": "pms_e5f5585a_l38_r01_e01_i0",
                     "content": [
                       {
                         "role": "primary",
@@ -9219,7 +9642,7 @@
                     ]
                   },
                   {
-                    "id": "pms_e5f5585a_l36_r01_e01_i1",
+                    "id": "pms_e5f5585a_l38_r01_e01_i1",
                     "content": [
                       {
                         "role": "primary",
@@ -9229,7 +9652,7 @@
                     ]
                   },
                   {
-                    "id": "pms_e5f5585a_l36_r01_e01_i2",
+                    "id": "pms_e5f5585a_l38_r01_e01_i2",
                     "content": [
                       {
                         "role": "primary",
@@ -9245,9 +9668,9 @@
                     {
                       "text": "gat",
                       "itemIds": [
-                        "pms_e5f5585a_l36_r01_e01_i0",
-                        "pms_e5f5585a_l36_r01_e01_i1",
-                        "pms_e5f5585a_l36_r01_e01_i2"
+                        "pms_e5f5585a_l38_r01_e01_i0",
+                        "pms_e5f5585a_l38_r01_e01_i1",
+                        "pms_e5f5585a_l38_r01_e01_i2"
                       ]
                     }
                   ]
@@ -9255,7 +9678,7 @@
               }
             },
             {
-              "id": "pms_e5f5585a_l36_r01_e02",
+              "id": "pms_e5f5585a_l38_r01_e02",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
@@ -9279,7 +9702,7 @@
                 ],
                 "items": [
                   {
-                    "id": "pms_e5f5585a_l36_r01_e02_i0",
+                    "id": "pms_e5f5585a_l38_r01_e02_i0",
                     "content": [
                       {
                         "role": "primary",
@@ -9289,7 +9712,7 @@
                     ]
                   },
                   {
-                    "id": "pms_e5f5585a_l36_r01_e02_i1",
+                    "id": "pms_e5f5585a_l38_r01_e02_i1",
                     "content": [
                       {
                         "role": "primary",
@@ -9299,7 +9722,7 @@
                     ]
                   },
                   {
-                    "id": "pms_e5f5585a_l36_r01_e02_i2",
+                    "id": "pms_e5f5585a_l38_r01_e02_i2",
                     "content": [
                       {
                         "role": "primary",
@@ -9315,9 +9738,9 @@
                     {
                       "text": "pan",
                       "itemIds": [
-                        "pms_e5f5585a_l36_r01_e02_i0",
-                        "pms_e5f5585a_l36_r01_e02_i1",
-                        "pms_e5f5585a_l36_r01_e02_i2"
+                        "pms_e5f5585a_l38_r01_e02_i0",
+                        "pms_e5f5585a_l38_r01_e02_i1",
+                        "pms_e5f5585a_l38_r01_e02_i2"
                       ]
                     }
                   ]
@@ -9325,7 +9748,7 @@
               }
             },
             {
-              "id": "pms_e5f5585a_l36_r01_e03",
+              "id": "pms_e5f5585a_l38_r01_e03",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
@@ -9349,7 +9772,7 @@
                 ],
                 "items": [
                   {
-                    "id": "pms_e5f5585a_l36_r01_e03_i0",
+                    "id": "pms_e5f5585a_l38_r01_e03_i0",
                     "content": [
                       {
                         "role": "primary",
@@ -9359,7 +9782,7 @@
                     ]
                   },
                   {
-                    "id": "pms_e5f5585a_l36_r01_e03_i1",
+                    "id": "pms_e5f5585a_l38_r01_e03_i1",
                     "content": [
                       {
                         "role": "primary",
@@ -9375,8 +9798,8 @@
                     {
                       "text": "eva",
                       "itemIds": [
-                        "pms_e5f5585a_l36_r01_e03_i0",
-                        "pms_e5f5585a_l36_r01_e03_i1"
+                        "pms_e5f5585a_l38_r01_e03_i0",
+                        "pms_e5f5585a_l38_r01_e03_i1"
                       ]
                     }
                   ]
@@ -9387,21 +9810,21 @@
         }
       ],
       "duel": {
-        "id": "pms_e5f5585a_l36_duel",
+        "id": "pms_e5f5585a_l38_duel",
         "title": "Duel"
       }
     },
     {
-      "lessonId": "pms_e5f5585a_l37",
+      "lessonId": "pms_e5f5585a_l39",
       "publicationState": "published",
       "updatedAt": "2026-09-25T00:00:00.000Z",
       "section": false,
-      "title": "Match picture to word — Pictures and words",
+      "title": "Match pictures to words — Pictures and words",
       "themeIconAsset": "assets/lesson_icons/speech_bubbles.png",
       "guidebook": {
         "content": [
           {
-            "id": "pms_e5f5585a_l37_g01",
+            "id": "pms_e5f5585a_l39_g01",
             "publicationState": "published",
             "kind": "explanation",
             "required": false,
@@ -9412,14 +9835,14 @@
       },
       "rounds": [
         {
-          "id": "pms_e5f5585a_l37_r01",
+          "id": "pms_e5f5585a_l39_r01",
           "publicationState": "published",
           "updatedAt": "2026-09-25T00:00:00.000Z",
           "visualType": "generic",
-          "title": "Match picture to word practice",
+          "title": "Match pictures to words practice",
           "content": [
             {
-              "id": "pms_e5f5585a_l37_r01_intro",
+              "id": "pms_e5f5585a_l39_r01_intro",
               "publicationState": "published",
               "kind": "exercise",
               "required": false,
@@ -9436,7 +9859,7 @@
                   {
                     "role": "intro",
                     "type": "text",
-                    "text": "Match picture to word: Pictures and words. Three short examples use this exercise type."
+                    "text": "Match pictures to words: Pictures and words. Three short examples use this exercise type."
                   }
                 ],
                 "evaluation": {
@@ -9445,7 +9868,7 @@
               }
             },
             {
-              "id": "pms_e5f5585a_l37_r01_e01",
+              "id": "pms_e5f5585a_l39_r01_e01",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
@@ -9464,7 +9887,7 @@
                 ],
                 "items": [
                   {
-                    "id": "pms_e5f5585a_l37_r01_e01_i0",
+                    "id": "pms_e5f5585a_l39_r01_e01_i0",
                     "content": [
                       {
                         "role": "primary",
@@ -9476,7 +9899,7 @@
                     "side": "left"
                   },
                   {
-                    "id": "pms_e5f5585a_l37_r01_e01_i1",
+                    "id": "pms_e5f5585a_l39_r01_e01_i1",
                     "content": [
                       {
                         "role": "primary",
@@ -9488,7 +9911,7 @@
                     "side": "right"
                   },
                   {
-                    "id": "pms_e5f5585a_l37_r01_e01_i2",
+                    "id": "pms_e5f5585a_l39_r01_e01_i2",
                     "content": [
                       {
                         "role": "primary",
@@ -9500,7 +9923,7 @@
                     "side": "left"
                   },
                   {
-                    "id": "pms_e5f5585a_l37_r01_e01_i3",
+                    "id": "pms_e5f5585a_l39_r01_e01_i3",
                     "content": [
                       {
                         "role": "primary",
@@ -9512,7 +9935,7 @@
                     "side": "right"
                   },
                   {
-                    "id": "pms_e5f5585a_l37_r01_e01_i4",
+                    "id": "pms_e5f5585a_l39_r01_e01_i4",
                     "content": [
                       {
                         "role": "primary",
@@ -9524,7 +9947,7 @@
                     "side": "left"
                   },
                   {
-                    "id": "pms_e5f5585a_l37_r01_e01_i5",
+                    "id": "pms_e5f5585a_l39_r01_e01_i5",
                     "content": [
                       {
                         "role": "primary",
@@ -9540,23 +9963,23 @@
                   "mode": "exactRelations",
                   "relations": [
                     [
-                      "pms_e5f5585a_l37_r01_e01_i0",
-                      "pms_e5f5585a_l37_r01_e01_i1"
+                      "pms_e5f5585a_l39_r01_e01_i0",
+                      "pms_e5f5585a_l39_r01_e01_i1"
                     ],
                     [
-                      "pms_e5f5585a_l37_r01_e01_i2",
-                      "pms_e5f5585a_l37_r01_e01_i3"
+                      "pms_e5f5585a_l39_r01_e01_i2",
+                      "pms_e5f5585a_l39_r01_e01_i3"
                     ],
                     [
-                      "pms_e5f5585a_l37_r01_e01_i4",
-                      "pms_e5f5585a_l37_r01_e01_i5"
+                      "pms_e5f5585a_l39_r01_e01_i4",
+                      "pms_e5f5585a_l39_r01_e01_i5"
                     ]
                   ]
                 }
               }
             },
             {
-              "id": "pms_e5f5585a_l37_r01_e02",
+              "id": "pms_e5f5585a_l39_r01_e02",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
@@ -9575,7 +9998,7 @@
                 ],
                 "items": [
                   {
-                    "id": "pms_e5f5585a_l37_r01_e02_i0",
+                    "id": "pms_e5f5585a_l39_r01_e02_i0",
                     "content": [
                       {
                         "role": "primary",
@@ -9587,7 +10010,7 @@
                     "side": "left"
                   },
                   {
-                    "id": "pms_e5f5585a_l37_r01_e02_i1",
+                    "id": "pms_e5f5585a_l39_r01_e02_i1",
                     "content": [
                       {
                         "role": "primary",
@@ -9599,7 +10022,7 @@
                     "side": "right"
                   },
                   {
-                    "id": "pms_e5f5585a_l37_r01_e02_i2",
+                    "id": "pms_e5f5585a_l39_r01_e02_i2",
                     "content": [
                       {
                         "role": "primary",
@@ -9611,7 +10034,7 @@
                     "side": "left"
                   },
                   {
-                    "id": "pms_e5f5585a_l37_r01_e02_i3",
+                    "id": "pms_e5f5585a_l39_r01_e02_i3",
                     "content": [
                       {
                         "role": "primary",
@@ -9623,7 +10046,7 @@
                     "side": "right"
                   },
                   {
-                    "id": "pms_e5f5585a_l37_r01_e02_i4",
+                    "id": "pms_e5f5585a_l39_r01_e02_i4",
                     "content": [
                       {
                         "role": "primary",
@@ -9635,7 +10058,7 @@
                     "side": "left"
                   },
                   {
-                    "id": "pms_e5f5585a_l37_r01_e02_i5",
+                    "id": "pms_e5f5585a_l39_r01_e02_i5",
                     "content": [
                       {
                         "role": "primary",
@@ -9651,23 +10074,23 @@
                   "mode": "exactRelations",
                   "relations": [
                     [
-                      "pms_e5f5585a_l37_r01_e02_i0",
-                      "pms_e5f5585a_l37_r01_e02_i1"
+                      "pms_e5f5585a_l39_r01_e02_i0",
+                      "pms_e5f5585a_l39_r01_e02_i1"
                     ],
                     [
-                      "pms_e5f5585a_l37_r01_e02_i2",
-                      "pms_e5f5585a_l37_r01_e02_i3"
+                      "pms_e5f5585a_l39_r01_e02_i2",
+                      "pms_e5f5585a_l39_r01_e02_i3"
                     ],
                     [
-                      "pms_e5f5585a_l37_r01_e02_i4",
-                      "pms_e5f5585a_l37_r01_e02_i5"
+                      "pms_e5f5585a_l39_r01_e02_i4",
+                      "pms_e5f5585a_l39_r01_e02_i5"
                     ]
                   ]
                 }
               }
             },
             {
-              "id": "pms_e5f5585a_l37_r01_e03",
+              "id": "pms_e5f5585a_l39_r01_e03",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
@@ -9686,7 +10109,7 @@
                 ],
                 "items": [
                   {
-                    "id": "pms_e5f5585a_l37_r01_e03_i0",
+                    "id": "pms_e5f5585a_l39_r01_e03_i0",
                     "content": [
                       {
                         "role": "primary",
@@ -9698,7 +10121,7 @@
                     "side": "left"
                   },
                   {
-                    "id": "pms_e5f5585a_l37_r01_e03_i1",
+                    "id": "pms_e5f5585a_l39_r01_e03_i1",
                     "content": [
                       {
                         "role": "primary",
@@ -9710,7 +10133,7 @@
                     "side": "right"
                   },
                   {
-                    "id": "pms_e5f5585a_l37_r01_e03_i2",
+                    "id": "pms_e5f5585a_l39_r01_e03_i2",
                     "content": [
                       {
                         "role": "primary",
@@ -9722,7 +10145,7 @@
                     "side": "left"
                   },
                   {
-                    "id": "pms_e5f5585a_l37_r01_e03_i3",
+                    "id": "pms_e5f5585a_l39_r01_e03_i3",
                     "content": [
                       {
                         "role": "primary",
@@ -9734,7 +10157,7 @@
                     "side": "right"
                   },
                   {
-                    "id": "pms_e5f5585a_l37_r01_e03_i4",
+                    "id": "pms_e5f5585a_l39_r01_e03_i4",
                     "content": [
                       {
                         "role": "primary",
@@ -9746,7 +10169,7 @@
                     "side": "left"
                   },
                   {
-                    "id": "pms_e5f5585a_l37_r01_e03_i5",
+                    "id": "pms_e5f5585a_l39_r01_e03_i5",
                     "content": [
                       {
                         "role": "primary",
@@ -9762,16 +10185,16 @@
                   "mode": "exactRelations",
                   "relations": [
                     [
-                      "pms_e5f5585a_l37_r01_e03_i0",
-                      "pms_e5f5585a_l37_r01_e03_i1"
+                      "pms_e5f5585a_l39_r01_e03_i0",
+                      "pms_e5f5585a_l39_r01_e03_i1"
                     ],
                     [
-                      "pms_e5f5585a_l37_r01_e03_i2",
-                      "pms_e5f5585a_l37_r01_e03_i3"
+                      "pms_e5f5585a_l39_r01_e03_i2",
+                      "pms_e5f5585a_l39_r01_e03_i3"
                     ],
                     [
-                      "pms_e5f5585a_l37_r01_e03_i4",
-                      "pms_e5f5585a_l37_r01_e03_i5"
+                      "pms_e5f5585a_l39_r01_e03_i4",
+                      "pms_e5f5585a_l39_r01_e03_i5"
                     ]
                   ]
                 }
@@ -9781,12 +10204,12 @@
         }
       ],
       "duel": {
-        "id": "pms_e5f5585a_l37_duel",
+        "id": "pms_e5f5585a_l39_duel",
         "title": "Duel"
       }
     },
     {
-      "lessonId": "pms_e5f5585a_l38",
+      "lessonId": "pms_e5f5585a_l40",
       "publicationState": "published",
       "updatedAt": "2026-09-25T00:00:00.000Z",
       "section": false,
@@ -9795,7 +10218,7 @@
       "guidebook": {
         "content": [
           {
-            "id": "pms_e5f5585a_l38_g01",
+            "id": "pms_e5f5585a_l40_g01",
             "publicationState": "published",
             "kind": "explanation",
             "required": false,
@@ -9806,14 +10229,14 @@
       },
       "rounds": [
         {
-          "id": "pms_e5f5585a_l38_r01",
+          "id": "pms_e5f5585a_l40_r01",
           "publicationState": "published",
           "updatedAt": "2026-09-25T00:00:00.000Z",
           "visualType": "generic",
           "title": "Note card practice",
           "content": [
             {
-              "id": "pms_e5f5585a_l38_r01_intro",
+              "id": "pms_e5f5585a_l40_r01_intro",
               "publicationState": "published",
               "kind": "exercise",
               "required": false,
@@ -9839,7 +10262,7 @@
               }
             },
             {
-              "id": "pms_e5f5585a_l38_r01_e01",
+              "id": "pms_e5f5585a_l40_r01_e01",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
@@ -9867,7 +10290,7 @@
               }
             },
             {
-              "id": "pms_e5f5585a_l38_r01_e02",
+              "id": "pms_e5f5585a_l40_r01_e02",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
@@ -9895,7 +10318,7 @@
               }
             },
             {
-              "id": "pms_e5f5585a_l38_r01_e03",
+              "id": "pms_e5f5585a_l40_r01_e03",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
@@ -9926,12 +10349,12 @@
         }
       ],
       "duel": {
-        "id": "pms_e5f5585a_l38_duel",
+        "id": "pms_e5f5585a_l40_duel",
         "title": "Duel"
       }
     },
     {
-      "lessonId": "pms_e5f5585a_l39",
+      "lessonId": "pms_e5f5585a_l41",
       "publicationState": "published",
       "updatedAt": "2026-09-25T00:00:00.000Z",
       "section": false,
@@ -9940,7 +10363,7 @@
       "guidebook": {
         "content": [
           {
-            "id": "pms_e5f5585a_l39_g01",
+            "id": "pms_e5f5585a_l41_g01",
             "publicationState": "published",
             "kind": "explanation",
             "required": false,
@@ -9951,14 +10374,14 @@
       },
       "rounds": [
         {
-          "id": "pms_e5f5585a_l39_r01",
+          "id": "pms_e5f5585a_l41_r01",
           "publicationState": "published",
           "updatedAt": "2026-09-25T00:00:00.000Z",
           "visualType": "story",
           "title": "Dialogue line practice",
           "content": [
             {
-              "id": "pms_e5f5585a_l39_r01_intro",
+              "id": "pms_e5f5585a_l41_r01_intro",
               "publicationState": "published",
               "kind": "exercise",
               "required": false,
@@ -9984,7 +10407,7 @@
               }
             },
             {
-              "id": "pms_e5f5585a_l39_r01_e01",
+              "id": "pms_e5f5585a_l41_r01_e01",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
@@ -10013,7 +10436,7 @@
               }
             },
             {
-              "id": "pms_e5f5585a_l39_r01_e02",
+              "id": "pms_e5f5585a_l41_r01_e02",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
@@ -10044,7 +10467,7 @@
               }
             },
             {
-              "id": "pms_e5f5585a_l39_r01_e03",
+              "id": "pms_e5f5585a_l41_r01_e03",
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
@@ -10076,45 +10499,45 @@
             }
           ],
           "flow": {
-            "start": "pms_e5f5585a_l39_r01_intro",
+            "start": "pms_e5f5585a_l41_r01_intro",
             "nodes": [
               {
-                "id": "pms_e5f5585a_l39_r01_intro",
+                "id": "pms_e5f5585a_l41_r01_intro",
                 "kind": "exercise",
-                "contentId": "pms_e5f5585a_l39_r01_intro",
+                "contentId": "pms_e5f5585a_l41_r01_intro",
                 "transitions": [
                   {
                     "trigger": "next",
-                    "target": "pms_e5f5585a_l39_r01_e01"
+                    "target": "pms_e5f5585a_l41_r01_e01"
                   }
                 ]
               },
               {
-                "id": "pms_e5f5585a_l39_r01_e01",
+                "id": "pms_e5f5585a_l41_r01_e01",
                 "kind": "exercise",
-                "contentId": "pms_e5f5585a_l39_r01_e01",
+                "contentId": "pms_e5f5585a_l41_r01_e01",
                 "transitions": [
                   {
                     "trigger": "next",
-                    "target": "pms_e5f5585a_l39_r01_e02"
+                    "target": "pms_e5f5585a_l41_r01_e02"
                   }
                 ]
               },
               {
-                "id": "pms_e5f5585a_l39_r01_e02",
+                "id": "pms_e5f5585a_l41_r01_e02",
                 "kind": "exercise",
-                "contentId": "pms_e5f5585a_l39_r01_e02",
+                "contentId": "pms_e5f5585a_l41_r01_e02",
                 "transitions": [
                   {
                     "trigger": "next",
-                    "target": "pms_e5f5585a_l39_r01_e03"
+                    "target": "pms_e5f5585a_l41_r01_e03"
                   }
                 ]
               },
               {
-                "id": "pms_e5f5585a_l39_r01_e03",
+                "id": "pms_e5f5585a_l41_r01_e03",
                 "kind": "exercise",
-                "contentId": "pms_e5f5585a_l39_r01_e03"
+                "contentId": "pms_e5f5585a_l41_r01_e03"
               }
             ],
             "presentation": "scroll",
@@ -10124,7 +10547,7 @@
         }
       ],
       "duel": {
-        "id": "pms_e5f5585a_l39_duel",
+        "id": "pms_e5f5585a_l41_duel",
         "title": "Duel"
       }
     }
@@ -10149,5 +10572,5 @@
       "voice": "female"
     }
   ],
-  "officialChecksum": "953f0cfadb82797e2c7dd885b8e90379bc5254edfd1cee7b6074f49c0d299231"
+  "officialChecksum": "fbbc80eff92176a09813a39ada557747e50b773b8a9bad77bc8424bc2e3a6adc"
 }

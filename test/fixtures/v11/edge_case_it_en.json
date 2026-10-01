@@ -1244,7 +1244,7 @@
             "kind": "explanation",
             "required": false,
             "role": "overview",
-            "text": "Arrange usa occorrenze separate; Select può riutilizzare una stessa opzione in più gap."
+            "text": "Ogni parola riempie un solo gap; una parola che serve due volte è offerta due volte."
           },
           {
             "id": "qql_edge_254_l02_v1",
@@ -1541,18 +1541,18 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "choice",
+              "editorTemplate": "word_order",
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
                 "prompt": [
                   {
-                    "role": "primary",
+                    "role": "clue",
                     "type": "text",
                     "text": "Completa: un gatto."
                   }
                 ],
                 "interaction": {
-                  "kind": "select",
+                  "kind": "arrange",
                   "items": [
                     {
                       "id": "qql_edge_254_e17_select_min_i1",
@@ -1576,12 +1576,10 @@
                       "type": "gap",
                       "text": "qql_edge_254_e17_select_min_g1"
                     }
-                  ],
-                  "minSelections": 1,
-                  "maxSelections": 1
+                  ]
                 },
                 "evaluation": {
-                  "kind": "selected_items",
+                  "kind": "gap_items",
                   "gapAssignments": {
                     "qql_edge_254_e17_select_min_g1": "qql_edge_254_e17_select_min_i1"
                   }
@@ -1593,18 +1591,18 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "choice",
+              "editorTemplate": "word_order",
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
                 "prompt": [
                   {
-                    "role": "primary",
+                    "role": "clue",
                     "type": "text",
-                    "text": "Completa entrambe le domande riutilizzando la stessa opzione."
+                    "text": "Completa entrambe le domande: la stessa parola serve due volte."
                   }
                 ],
                 "interaction": {
-                  "kind": "select",
+                  "kind": "arrange",
                   "items": [
                     {
                       "id": "qql_edge_254_e18_select_linked_i1",
@@ -1622,12 +1620,22 @@
                         {
                           "role": "primary",
                           "type": "text",
-                          "text": "Were"
+                          "text": "Was"
                         }
                       ]
                     },
                     {
                       "id": "qql_edge_254_e18_select_linked_i3",
+                      "content": [
+                        {
+                          "role": "primary",
+                          "type": "text",
+                          "text": "Were"
+                        }
+                      ]
+                    },
+                    {
+                      "id": "qql_edge_254_e18_select_linked_i4",
                       "content": [
                         {
                           "role": "primary",
@@ -1658,15 +1666,13 @@
                       "type": "text",
                       "text": "he late?"
                     }
-                  ],
-                  "minSelections": 1,
-                  "maxSelections": 1
+                  ]
                 },
                 "evaluation": {
-                  "kind": "selected_items",
+                  "kind": "gap_items",
                   "gapAssignments": {
                     "qql_edge_254_e18_select_linked_g1": "qql_edge_254_e18_select_linked_i1",
-                    "qql_edge_254_e18_select_linked_g2": "qql_edge_254_e18_select_linked_i1"
+                    "qql_edge_254_e18_select_linked_g2": "qql_edge_254_e18_select_linked_i2"
                   }
                 }
               }
@@ -1676,18 +1682,18 @@
               "publicationState": "published",
               "kind": "exercise",
               "required": true,
-              "editorTemplate": "choice",
+              "editorTemplate": "word_order",
               "exercise": {
                 "updatedAt": "2026-09-25T00:00:00.000Z",
                 "prompt": [
                   {
-                    "role": "primary",
+                    "role": "clue",
                     "type": "text",
-                    "text": "Completa con due opzioni diverse."
+                    "text": "Completa con due parole diverse."
                   }
                 ],
                 "interaction": {
-                  "kind": "select",
+                  "kind": "arrange",
                   "items": [
                     {
                       "id": "qql_edge_254_e19_select_distinct_i1",
@@ -1756,12 +1762,10 @@
                       "type": "text",
                       "text": "London."
                     }
-                  ],
-                  "minSelections": 1,
-                  "maxSelections": 1
+                  ]
                 },
                 "evaluation": {
-                  "kind": "selected_items",
+                  "kind": "gap_items",
                   "gapAssignments": {
                     "qql_edge_254_e19_select_distinct_g1": "qql_edge_254_e19_select_distinct_i1",
                     "qql_edge_254_e19_select_distinct_g2": "qql_edge_254_e19_select_distinct_i2"
@@ -1770,7 +1774,7 @@
               }
             }
           ],
-          "title": "Select: gap singolo e riuso"
+          "title": "Una parola per gap"
         }
       ],
       "duel": {

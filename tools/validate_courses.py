@@ -26,8 +26,9 @@ ROOT = Path(__file__).resolve().parents[1]
 COURSES = ROOT / "assets" / "courses"
 EXPECTED_TTS = {
     "exercise_laboratory_en_it.json": "it-IT",
-    "edge_case_it_en.json": "en-GB",
     "piedmontais_en.json": "pms-IT",
+    "piedmontese_mixed_en.json": "pms-IT",
+    "english_from_italian_it_en.json": "en-GB",
 }
 TEXT_MODES = {"exactText", "acceptedTexts", "expression"}
 ROUND_VISUAL_TYPES = {"listening", "story", "generic", "test"}
@@ -187,6 +188,10 @@ def validate(path: Path, global_ids: dict[str, str]) -> list[str]:
                 issues.append(f"root: author {index} roles must be a list")
     if not isinstance(data.get("temporarySample"), bool):
         issues.append("root: temporarySample must be a boolean")
+    elif data.get("temporarySample"):
+        # Build 259 Revision 8: the flag means Private course; a bundled demo
+        # is for everyone.
+        issues.append("root: a bundled course must not be a Private course (temporarySample)")
     if data.get("ttsLanguage") != EXPECTED_TTS[path.name]:
         issues.append(f"root: expected TTS locale {EXPECTED_TTS[path.name]}, found {data.get('ttsLanguage')!r}")
     add_id(data.get("courseId"), "root")
@@ -430,7 +435,11 @@ def validate(path: Path, global_ids: dict[str, str]) -> list[str]:
                         issues.append(f"{where}: every Input target needs targetAnswers")
                     elif any(not isinstance(t.get("answers"), list) or not any(isinstance(a, str) and a.strip() for a in t["answers"]) for t in target_answers):
                         issues.append(f"{where}: every Input target needs a non-empty answer")
-                elif not isinstance(answers, list) or not any(isinstance(a, str) and a.strip() for a in answers):
+                # A literal answer counts (Build 259 Revision 3): Type what
+                # you hear accepts its Audio text without another line.
+                elif not any(isinstance(a, str) and a.strip()
+                             for a in [*(answers if isinstance(answers, list) else []),
+                                       *evaluation.get("literalAnswers", [])]):
                     issues.append(f"{where}: Input needs non-empty answers")
             if primitive == "arrange" and mode in {"exactOrder", "acceptedOrders"}:
                 orders = evaluation.get("correctOrders")
@@ -472,9 +481,15 @@ def validate(path: Path, global_ids: dict[str, str]) -> list[str]:
     if not isinstance(lessons, list):
         return issues + ["root: lessons must be a list"]
     expected_lessons = {
-        "exercise_laboratory_en_it.json": 7,
-        "edge_case_it_en.json": 6,
-        "piedmontais_en.json": 39,
+        # The Page Lesson (Build 258 Revision 3) is the eighth.
+        "exercise_laboratory_en_it.json": 8,
+        # Listen and choose (Build 259 Revision 2) adds two Lessons.
+        "piedmontais_en.json": 41,
+        # QQL Demo: Piedmontese (Build 259 Revision 6): the mixed practice
+        # Lesson and the Story.
+        "piedmontese_mixed_en.json": 2,
+        # QQL Demo: English from Italian (Build 260 Revision 2): one Lesson.
+        "english_from_italian_it_en.json": 1,
     }.get(path.name, 9)
     if len(lessons) != expected_lessons:
         issues.append(
@@ -510,7 +525,10 @@ def validate(path: Path, global_ids: dict[str, str]) -> list[str]:
                 issues.append(f"{where_lesson}: invalid or missing themeIconAsset: {icon}")
         guidebook = lesson.get("guidebook")
         guide_content = guidebook.get("content") if isinstance(guidebook, dict) else None
-        if not isinstance(guide_content, list) or not guide_content:
+        # A Course with Use GuideBook off may leave its GuideBooks empty, as
+        # the Audit allows (Build 259 Revision 6).
+        uses_guidebook = data.get("useGuidebook", True) is not False
+        if not isinstance(guide_content, list) or (uses_guidebook and not guide_content):
             issues.append(f"{where_lesson}: guidebook.content must be non-empty")
         else:
             for content_index, content in enumerate(guide_content, 1):

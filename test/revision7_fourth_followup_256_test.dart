@@ -323,7 +323,8 @@ void main() {
       final e = _built(
         'picture_blocks',
         original: _blank('picture-blocks'),
-        question: 'What is this?',
+        // Its optional Instruction or context (Build 259).
+        prompt: 'What is this?',
         imageAsset: 'assets/exercise_images/bread.webp',
         order: 'il\npane',
         extraWords: 'la',
@@ -336,6 +337,8 @@ void main() {
       expect(order.itemIds, [e.items[0].id, e.items[1].id]);
       expect(f.kind, LearnerExerciseKind.arrangePictureName);
       expect(f.pictureImages, hasLength(1));
+      expect(f.authoredInstruction, 'What is this?');
+      expect(f.questionText, isEmpty);
       expect(_errors(e), isEmpty);
       final course = _course([e]);
       expect(
@@ -344,7 +347,8 @@ void main() {
       );
       expect(
         ExerciseCopyService.instruction(course, f.kind),
-        'Build the name of what you see.',
+        // Build 259 Revision 7 wording.
+        'Put the blocks in order to name the picture.',
       );
       final draft = PresetRecipes.decompose(e, 'picture_blocks');
       expect(draft.order, 'il\npane');
@@ -361,10 +365,27 @@ void main() {
     });
 
     test('the Audit asks for the picture and at most two extra blocks', () {
-      final noPicture = _built(
+      // Build 259 Revision 4: a Published save needs the picture; a stored
+      // exercise without one still gets the Audit's mismatch.
+      expect(
+        _build(
+          'picture_blocks',
+          original: _blank('no-picture'),
+          order: 'il\npane',
+        ).error?.code,
+        ExerciseDraftErrorCode.pictureRequired,
+      );
+      final withPicture = _built(
         'picture_blocks',
         original: _blank('no-picture'),
+        imageAsset: 'assets/exercise_images/bread.webp',
         order: 'il\npane',
+      );
+      final noPicture = withPicture.copyWith(
+        promptElements: [
+          for (final element in withPicture.promptElements)
+            if (!element.isImage) element,
+        ],
       );
       expect(_codes(noPicture), contains('PRESET_CANONICAL_MISMATCH'));
       final tooMany = _built(
@@ -376,7 +397,11 @@ void main() {
       );
       expect(_errors(tooMany), contains('WORD_BLOCK_DISTRACTOR_COUNT'));
       expect(
-        _build('picture_blocks', original: _blank('empty')).error?.code,
+        _build(
+          'picture_blocks',
+          original: _blank('empty'),
+          imageAsset: 'assets/exercise_images/bread.webp',
+        ).error?.code,
         ExerciseDraftErrorCode.nameBlocksRequired,
       );
     });
@@ -409,7 +434,7 @@ void main() {
       expect(ExerciseCopyService.typeLabel(course, kind), 'NAME WHAT YOU SEE');
       expect(
         ExerciseCopyService.instruction(course, kind),
-        'Type the name of what you see.',
+        'Type the name of the picture.',
       );
     });
 
@@ -437,7 +462,7 @@ void main() {
       expect(find.text('Blocks of the name, in order'), findsOneWidget);
       expect(find.text('Extra blocks (optional)'), findsOneWidget);
       await tester.enterText(
-        find.byKey(const ValueKey('exercise-field-question')),
+        find.byKey(const ValueKey('exercise-field-prompt')),
         'What is this?',
       );
       await tester.enterText(

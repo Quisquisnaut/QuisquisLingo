@@ -49,7 +49,10 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      await tester.enterText(field('Prompt (optional)'), 'Unsaved new prompt');
+      await tester.enterText(
+        field('Instruction or context (optional)'),
+        'Unsaved new prompt',
+      );
       await tapKey(tester, 'exercise-preview');
       expect(find.byType(RoundScreen), findsOneWidget);
       final preview = tester.widget<RoundScreen>(find.byType(RoundScreen));
@@ -64,7 +67,10 @@ void main() {
       await tester.tap(find.byType(BackButton));
       await settle(tester);
       expect(
-        tester.widget<TextField>(field('Prompt (optional)')).controller!.text,
+        tester
+            .widget<TextField>(field('Instruction or context (optional)'))
+            .controller!
+            .text,
         'Unsaved new prompt',
       );
       expect(await preferences(), before);
@@ -185,7 +191,7 @@ void main() {
       );
       await tester.pumpAndSettle();
       await tester.enterText(
-        field('Prompt (optional)'),
+        field('Instruction or context (optional)'),
         'Changed before preview',
       );
       final before = await preferences();
@@ -201,7 +207,10 @@ void main() {
       await settle(tester);
       expect(find.byType(ExerciseEditorScreen), findsOneWidget);
       expect(
-        tester.widget<TextField>(field('Prompt (optional)')).controller!.text,
+        tester
+            .widget<TextField>(field('Instruction or context (optional)'))
+            .controller!
+            .text,
         'Changed before preview',
       );
       expect(await preferences(), before);
@@ -236,13 +245,19 @@ void main() {
             .onPressed,
         isNull,
       );
-      await tester.enterText(field('Prompt (optional)'), 'Keep this draft');
+      await tester.enterText(
+        field('Instruction or context (optional)'),
+        'Keep this draft',
+      );
       await tapKey(tester, 'exercise-next');
       expect(find.text('Unsaved Exercise changes'), findsOneWidget);
       await tester.tap(find.text('Keep editing'));
       await settle(tester);
       expect(
-        tester.widget<TextField>(field('Prompt (optional)')).controller!.text,
+        tester
+            .widget<TextField>(field('Instruction or context (optional)'))
+            .controller!
+            .text,
         'Keep this draft',
       );
       await tapKey(tester, 'exercise-next');
@@ -256,18 +271,27 @@ void main() {
             .onPressed,
         isNull,
       );
-      await tester.enterText(field('Prompt (optional)'), 'Discard this change');
+      await tester.enterText(
+        field('Instruction or context (optional)'),
+        'Discard this change',
+      );
       await tapKey(tester, 'exercise-previous');
       await tester.tap(find.text('Discard changes'));
       await settle(tester);
       expect(
-        tester.widget<TextField>(field('Prompt (optional)')).controller!.text,
+        tester
+            .widget<TextField>(field('Instruction or context (optional)'))
+            .controller!
+            .text,
         'Keep this draft',
       );
       expect(saves, hasLength(1));
       await tapKey(tester, 'exercise-next');
       expect(
-        tester.widget<TextField>(field('Prompt (optional)')).controller!.text,
+        tester
+            .widget<TextField>(field('Instruction or context (optional)'))
+            .controller!
+            .text,
         second.prompt,
       );
       expect(find.text('Lesson 1: Lesson title'), findsOneWidget);
@@ -300,7 +324,10 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(
-        tester.widget<TextField>(field('Missing word')).controller!.text,
+        tester
+            .widget<TextField>(field('Other accepted spellings (optional)'))
+            .controller!
+            .text,
         'Ciao',
       );
       await tapKey(tester, 'exercise-preview');
@@ -513,7 +540,7 @@ void main() {
     await tester.tap(find.text('Original prompt'));
     await tester.pumpAndSettle();
     await tester.enterText(
-      field('Prompt (optional)'),
+      field('Instruction or context (optional)'),
       'Unsaved breadcrumb edit',
     );
     await tester.tap(find.widgetWithText(TextButton, 'Round 1'));
@@ -522,7 +549,10 @@ void main() {
     await tester.tap(find.text('Keep editing'));
     await tester.pumpAndSettle();
     expect(
-      tester.widget<TextField>(field('Prompt (optional)')).controller!.text,
+      tester
+          .widget<TextField>(field('Instruction or context (optional)'))
+          .controller!
+          .text,
       'Unsaved breadcrumb edit',
     );
     await tester.tap(find.widgetWithText(TextButton, 'Round 1'));

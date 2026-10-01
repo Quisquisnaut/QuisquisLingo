@@ -217,11 +217,14 @@ class AuthoringDuplicationService {
       courseDescription: source.courseDescription,
       sourceLanguageTag: source.sourceLanguageTag,
       targetLanguageTag: source.targetLanguageTag,
+      targetLanguageNameForLearners: source.targetLanguageNameForLearners,
       textDirection: source.textDirection,
       flagCode: source.flagCode,
       flagImageBase64: source.flagImageBase64,
       worldFlagId: source.worldFlagId,
-      temporarySample: source.temporarySample,
+      // Fork and Copy as New Course start non-private (Build 259 Revision 8,
+      // owner decision): the flag is shown as Private course.
+      temporarySample: false,
       buyACoffeeUrl: source.buyACoffeeUrl,
       lessonIconAssets: [
         for (final asset in source.lessonIconAssets)

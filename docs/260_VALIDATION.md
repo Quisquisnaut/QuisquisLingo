@@ -1,0 +1,233 @@
+# Build 260 validation
+
+## Revision 0 (2.0.60+260000, 1 October 2026): Course languages
+
+**Generators and validator**
+- The Laboratory, Piedmontese, QQL Demo: Piedmontese and Edge Case
+  generators: `--check` reproducible for all (no Course file changes in
+  this revision).
+- `tools/validate_courses.py`: the three bundled Courses pass.
+
+**Laboratory presentation baseline**
+- Unchanged: the Laboratory's base language is English, whose lines are
+  the same as before.
+
+**Tests**
+- New: `test/course_languages_260_test.dart` (227 languages with unique
+  tags and the curated three-letter ones; resolution by tag, English name,
+  native name and instruction-language name, ignoring capitals and
+  accents; tag shape; names in the seven instruction languages; every
+  catalog has only keys English has and the same placeholders; learner
+  lines such as "Traduce al italiano.", "Traduci in napoletano.",
+  "Traduis en allemand.", an English fallback for a base language QQL does
+  not have, a hand-written language kept as written, the Course's own name
+  for learners; Course Info's tag rules; the `LanguageField` widget: a
+  listed language shows its tag, a language not in the list is kept as
+  typed, a bad tag is flagged).
+- `course_info_update_service_245_test` passes the three new fields.
+- Updated: the Editor Help count (69), the instruction-language lists
+  (French instead of Finnish and Welsh) in `assign_runtime_256_test` and
+  the Build 259 Revision 3 and 4 tests, the Revision 7 test (a Spanish-base
+  Course now reads "Traduce al italiano."), the QQL Guide line.
+- Focused run (27 files, 519 tests): 2 failures fixed.
+  `course_editor_layout_regression_test` forbids `helperMaxLines: 3` in
+  the Course Info region, so the learners' name field uses a `helper`
+  text; `owner_review_259_revision7_test` gave the Laboratory a new
+  base-language name while its `en-GB` tag still decided, so the test
+  removes the tag.
+- `flutter analyze --no-pub`: no issues.
+- **Complete suite** (`--concurrency=1`, keep-awake, 28 min 29 s):
+  **3481 passed, 1 skipped, 0 failed**.
+
+## Revision 1 (2.0.60+260001, 1 October 2026): the learner panel's buttons and messages
+
+**Generators and validator**
+- No Course file changes; the bundled Courses' learner panels change only
+  for a base language other than English (none of the three bundled
+  Courses).
+
+**Tests**
+- New: `test/learner_panel_260_test.dart` (seven catalogs, each with every
+  English key, no empty text and the English placeholders; the panel
+  follows the base language and falls back to English for a language QQL
+  does not have; placeholders filled; an Italian-base Round shows
+  Controlla, La tua risposta, Sbagliato, the Italian translation heading
+  and Rivedi gli errori; an Italian-base Duel shows Duello linguistico and
+  "Domanda 1/25 · 4 vite").
+- Focused run (the 55 files that open the Round, the Duel, the Review page
+  or the exercise lines, and the Revision 0 test): 950 passed.
+- `flutter analyze --no-pub`: no issues.
+- First complete suite: 3485 passed, 1 skipped, 1 failed:
+  `imported_course_v6_regression_test` searched the Round screen's source
+  for `labelText: 'Your answer'`; it now checks `labelText:
+  _t('yourAnswer')` and that the English catalog says "Your answer".
+  Re-run alone: passed.
+- **Complete suite** (second run, `--concurrency=1`, keep-awake,
+  28 min 45 s): **3486 passed, 1 skipped, 0 failed**.
+
+## Revision 2 (2.0.60+260002, 1 October 2026): QQL Demo: English from Italian
+
+**Generators and validator**
+- `tools/generate_english_from_italian_260.py` writes
+  `assets/courses/english_from_italian_it_en.json`; `--check` reproducible.
+  The other four generators: `--check` reproducible, no change.
+- `tools/validate_courses.py`: the four bundled Courses pass (the new one
+  with en-GB and one Lesson).
+- While authoring, two exercises were not represented by their preset and
+  were corrected in the generator: the spelling preset stores the blocks in
+  the word's order (the Round shuffles them), and Pick the missing word has
+  no instruction field. The same two shapes, and the stored order of a
+  Listen and answer (to source) prompt, leave nine exercises of the
+  Piedmontese demo (Lessons 13, 25 and 34) unrepresented; that demo is not
+  changed here (reported to the owner).
+
+**Tests**
+- New: `test/english_from_italian_260_test.dart` (a bundled Course counted
+  as English; three Rounds, a Story, three Rounds, a Story; six ordinary
+  Rounds of six exercises of six types each with a GuideBook card and one
+  audio exercise, 36 types in all, not in the catalogue's order, each
+  represented by its preset; the Stories with a cover, six lines and two
+  questions; the GuideBook's four notes and 35 words; the learner panel in
+  Italian; the Audit with no error or warning).
+- Updated for the fourth bundled Course: `bundled_courses_225_02_test` (a
+  model demo, so no Duel is required; four Courses),
+  `course_library_screen_244_test` and `course_library_view_255_test` (the
+  counts), `course_official_provenance_225_04_test` (title, derivative
+  works forbidden), `course_service_test` (the registry and the startup
+  reconciliation), `korean_production_discovery_225_03_test` (six bundled
+  assets with the fixtures), `course_model_v11_243_test` (its Course ID),
+  `leaderboard_navigation_test` (the Course picker is scrolled to the
+  Korean row, now below the first screen).
+- Focused run (the 50 files that read the bundled Courses): 7 failures,
+  all in the tests above, fixed; the eight files re-run: 104 passed.
+- `flutter analyze --no-pub`: no issues.
+- **Complete suite** (`--concurrency=1`, keep-awake, 29 min 41 s):
+  **3493 passed, 1 skipped, 0 failed**.
+
+## Revision 3 (2.0.60+260003, 1 October 2026): Piedmontese showcase and Before you start
+
+**Generators and validator**
+- The Piedmontese, QQL Demo: Piedmontese and QQL Demo: English from Italian
+  generators rewrite their Courses; the v11 fixture of the Piedmontese demo
+  is rewritten from `build_course_v11()` (the Laboratory's is unchanged).
+  All five generators: `--check` reproducible.
+- `tools/validate_courses.py`: the four bundled Courses pass.
+
+**Tests**
+- New: `test/owner_review_260_revision3_test.dart` (Pick the missing word
+  and One word fills all keep an Instruction or context through the
+  builder, Recognition and the form's values, and store nothing without
+  one; every exercise of the four bundled Courses is represented by its
+  preset; the Piedmontese demo's instructions, source answers and ordered
+  blocks; the QQL Demo Courses open only each Lesson's first Round with a
+  card).
+- Updated: `piedmontese_mixed_259_test` and `english_from_italian_260_test`
+  (the first Round's card only), `exercise_field_help_ui_226_02_test` (the
+  two forms' new field).
+- Focused run (the 38 files that read these presets, the Piedmontese
+  Courses, the field Help or the cards): 15 failures. 13 came from a gap
+  this revision opened: the Exercise Help page (and its search) looks up
+  every form field in `exerciseHelpFieldKeyByPresetAndField`, which had no
+  entry for the new field, so it threw; the two entries were added. The
+  other two were the field list above. The four files re-run: 124 passed.
+- `flutter analyze --no-pub`: no issues.
+- **Complete suite** (`--concurrency=1`, keep-awake, 29 min 38 s):
+  **3500 passed, 1 skipped, 0 failed**.
+
+## Revision 4 (2.0.60+260004, 1 October 2026): QQL Demo titles
+
+**Generators and validator**
+- The Laboratory and Piedmontese generators write the new titles; QQL
+  Demo: Piedmontese is unchanged (it replaces the title it copies). The v11
+  fixtures of both are rewritten; the Laboratory-of-the-future fixture's
+  checksum follows the Laboratory's (only that line changes). All five
+  generators: `--check` reproducible. `tools/validate_courses.py`: the four
+  bundled Courses pass.
+
+**Tests**
+- Updated: the tests that name the two Courses
+  (`bundled_courses_225_02_test`, `course_official_provenance_225_04_test`,
+  `korean_production_discovery_225_03_test`, `leaderboard_navigation_test`,
+  `piedmontais_course_254_test`).
+- Focused run (the 41 files that name the Courses, read their files or the
+  fixtures, or show the credits): 830 passed.
+- `flutter analyze --no-pub`: no issues.
+- **Complete suite** (`--concurrency=1`, keep-awake, 30 min 13 s):
+  **3500 passed, 1 skipped, 0 failed**.
+
+## Revision 5 (2.0.60+260005, 1 October 2026): exercise difficulty
+
+**Generators and validator**
+- No Course file changes; `tools/validate_courses.py` passes.
+
+**Tests**
+- New: `test/exercise_difficulty_260_test.dart` (the level of every
+  Laboratory example, for all its presets, matches the expected level;
+  Recognize characters is 1 or 2 by direction; a Round's average counts
+  its answered exercises only; the badge's tooltips; the Editor Help
+  question in EN, IT and ES).
+- Updated: the Editor Help counts (70) in `editor_help_qa_256_test` and
+  `editor_help_translation_test`.
+- Focused run (the new test and the two Help tests): 19 passed. The Round
+  editor's and Rounds page's rows keep their texts as separate widgets, so
+  no test reading them needed a change (checked by search before the
+  suite).
+- `flutter analyze --no-pub`: no issues.
+- **Complete suite** (`--concurrency=1`, keep-awake, 29 min 25 s):
+  **3505 passed, 1 skipped, 0 failed**.
+
+## Revision 6 (2.0.60+260006, 1 October 2026): Difficulty bonus XP
+
+**Generators and validator**
+- No Course file changes; `tools/validate_courses.py` passes.
+
+**Tests**
+- New: `test/difficulty_bonus_260_test.dart` (the first completion adds 1
+  XP per level of the right answers: six exercises of levels 1, 2, 3, 4, 2
+  and 1 give 73 XP instead of 60; wrong answers are not summed; repeats
+  and Review add none; an unfinished Round or one without a scored
+  exercise adds none; a caller stating no difficulty keeps the earlier
+  awards; the summary line exists in the seven languages).
+- Deliberately updated for the new rule (their exercises are level-2
+  Choose exercises, +2 XP each on a first completion):
+  `lesson_completion_regression_test` (35 → 37, 60 → 62, and the summary's
+  "Difficulty bonus: +2 XP"), `round_xp_completion_regression_test` (5 →
+  7, 40 → 44 with "+4 XP", 10 → 12, 60 → 62, 70 → 86 with "+16 XP", the
+  repeat 91 → 107, 49 → 53, the course reset 50 → 54) and
+  `qql_230_learner_flow_hardening_test` (a double tap still awards once:
+  37). The repeat and Review expectations did not change.
+- Focused run (the 29 files that read XP or Laurels): 1 failure, the last
+  one above, fixed and re-run.
+- `flutter analyze --no-pub`: no issues.
+- **Complete suite** (`--concurrency=1`, keep-awake, 26 min 30 s):
+  **3511 passed, 1 skipped, 0 failed**.
+
+## Revision 7 (2.0.60+260007, 1 October 2026): the QQL Demos along a difficulty curve
+
+**Generators and validator**
+- The English from Italian and QQL Demo: Piedmontese generators rewrite
+  their Courses; all five generators: `--check` reproducible;
+  `tools/validate_courses.py`: the four bundled Courses pass.
+- Round averages (levels 1–4): English from Italian 1.2, 1.8, 2.0, 2.7,
+  3.3, 3.7; QQL Demo: Piedmontese from 1.0 (Rounds 1–3) to 3.8 (Rounds
+  19–20), six types in every Round, at most two audio exercises. Three
+  earlier drafts of the Piedmontese dealing were rejected while authoring:
+  cards bunched in the first Rounds, then leftovers (easy listening
+  exercises, a twin type) collecting in the last Round.
+
+**Tests**
+- New: `test/difficulty_curve_260_test.dart` (for both Courses, with the
+  levels the app computes: the first third of the Rounds is easier than
+  the middle and the middle than the last; the last Round is at least 60 %
+  build or write and harder than the first; six types in every Round; at
+  most two audio exercises and at least three others; English from
+  Italian: at least 15 picture exercises and its audio exercises in rising
+  order).
+- Updated: `english_from_italian_260_test` (36 exercises of 29 types, 36
+  words) and `piedmontese_mixed_259_test` (the card's "from easier to
+  harder").
+- Focused run (the new test and the six that read the bundled Courses): 1
+  failure, the card text above, fixed and re-run.
+- `flutter analyze --no-pub`: no issues.
+- **Complete suite** (`--concurrency=1`, keep-awake, 27 min 1 s):
+  **3518 passed, 1 skipped, 0 failed**.

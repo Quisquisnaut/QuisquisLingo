@@ -396,6 +396,10 @@ void main() {
       'exercise_laboratory_en_it.json':
           'course_50d68435-d2c2-4b63-9a0b-b23161357f1d',
       'piedmontais_en.json': 'course_e5f5585a-7762-43a0-a6b2-62754e02d17b',
+      'piedmontese_mixed_en.json':
+          'course_69ff369e-bb4f-46a3-85f0-57ff9d51b453',
+      'english_from_italian_it_en.json':
+          'course_65dce83b-fd0a-4b83-a5a1-8f8b97a58d05',
     };
 
     test('bundled Courses keep the Course IDs learner progress uses', () {
@@ -771,8 +775,16 @@ Map<String, dynamic> _v11Custom() => {
   ],
 };
 
+// The Edge Case is a test fixture since Build 259 Revision 5.
 Map<String, dynamic> _bundled(String file) => Map<String, dynamic>.from(
-  jsonDecode(File('assets/courses/$file').readAsStringSync()) as Map,
+  jsonDecode(
+        File(
+          file == 'edge_case_it_en.json'
+              ? 'test/fixtures/v12/$file'
+              : 'assets/courses/$file',
+        ).readAsStringSync(),
+      )
+      as Map,
 );
 
 Map<String, dynamic> _fixture(String file) => Map<String, dynamic>.from(

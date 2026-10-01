@@ -95,7 +95,9 @@ void main() {
           '{Io} [vorrei|desidero] un cappuccino',
         ],
       );
-      expect(find.text('Translate from English into Italian:'), findsOneWidget);
+      // Build 259 Revision 7: the fixed direction line is gone; an authored
+      // prompt without a language is the instruction.
+      expect(find.textContaining('Translate from'), findsNothing);
       expect(find.text('Translate this source text.'), findsOneWidget);
       await tester.enterText(
         find.byType(TextField).last,

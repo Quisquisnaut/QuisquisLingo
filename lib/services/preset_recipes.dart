@@ -27,9 +27,16 @@ abstract final class PresetRecipes {
     'before_you_start',
     // Page (Build 258 Revision 2).
     'page',
+    // Put the sentences in order builds its lines and extra lines itself
+    // (Build 259 Revision 1); it still converts from the Word order shape.
+    'sentence_order',
+    // Complete the text reads its gaps from ___ (Build 259 Revision 3); it
+    // still converts from the Listen-for-missing-words shape.
+    'complete_text',
   };
 
-  /// The learner kind each preset's recipe produces.
+  /// The learner kind each preset's recipe produces; the first is the one
+  /// whose standard instruction the form quotes (Build 259).
   static const kinds = <String, Set<LearnerExerciseKind>>{
     'translation_choice_to_target': {LearnerExerciseKind.selectTranslation},
     'translation_choice_to_source': {LearnerExerciseKind.selectTranslation},
@@ -54,6 +61,8 @@ abstract final class PresetRecipes {
       LearnerExerciseKind.inputComplete,
     },
     'word_order': {LearnerExerciseKind.arrangeSentence},
+    'listening_choose_target': {LearnerExerciseKind.selectListen},
+    'listening_choose_source': {LearnerExerciseKind.selectListen},
     'listening_answer_target': {
       LearnerExerciseKind.selectListen,
       LearnerExerciseKind.selectListenPassage,
@@ -74,10 +83,8 @@ abstract final class PresetRecipes {
       LearnerExerciseKind.select,
       LearnerExerciseKind.selectListen,
     },
-    'gap_choice_inline': {
-      LearnerExerciseKind.select,
-      LearnerExerciseKind.selectListen,
-    },
+    // One word fills all (Build 259 Revision 4).
+    'one_word_fills_all': {LearnerExerciseKind.selectCompleteAll},
     'complete_text': {LearnerExerciseKind.inputComplete},
     'missing_letters': {
       LearnerExerciseKind.inputComplete,
@@ -85,18 +92,18 @@ abstract final class PresetRecipes {
     },
     'gap_blocks': {LearnerExerciseKind.arrangeSentence},
     'sentence_order': {
-      LearnerExerciseKind.arrangeSentence,
       LearnerExerciseKind.arrangeLines,
+      LearnerExerciseKind.arrangeSentence,
     },
     'listening_image_choice': {LearnerExerciseKind.selectListen},
     'spell_heard': {LearnerExerciseKind.arrangeWord},
-    'picture_choice': {LearnerExerciseKind.select},
+    'picture_choice': {LearnerExerciseKind.selectPicture},
     'picture_name': {LearnerExerciseKind.inputPictureName},
     'picture_blocks': {LearnerExerciseKind.arrangePictureName},
     'spell_word': {LearnerExerciseKind.arrangeWord},
     'picture_word_match': {
-      LearnerExerciseKind.matchTranslation,
       LearnerExerciseKind.match,
+      LearnerExerciseKind.matchTranslation,
     },
     'note_card': {LearnerExerciseKind.presentation},
     'dialogue_line': {LearnerExerciseKind.dialogueLine},
@@ -151,7 +158,7 @@ abstract final class PresetRecipes {
     final items = exercise.items;
     final evaluation = exercise.canonicalEvaluation;
     final assignments = f.targetAssignments;
-    // A picture item (Match picture to word) is named by its picture.
+    // A picture item (Match pictures to words) is named by its picture.
     final valueById = {
       for (final item in items)
         item.id: item.value.isNotEmpty ? item.value : item.image,
@@ -190,7 +197,13 @@ abstract final class PresetRecipes {
         : presentation
         ? f.textOf('term')
         : presetId == 'missing_letters' && f.hasInlineTargets
-        ? f.bracketedSentence
+        ? f.markedSentence
+        // Complete the text shows each gap as ___ (Build 259 Revision 3).
+        : presetId == 'complete_text' && exercise.layout.isNotEmpty
+        ? [
+            for (final element in exercise.layout)
+              element.isTarget ? '___' : element.text,
+          ].join()
         : f.primitive == ExercisePrimitive.input && f.hasInlineTargets
         ? f.inlineSentence
         : [
@@ -209,6 +222,10 @@ abstract final class PresetRecipes {
         ? ''
         : presentation
         ? f.textOf('meaning')
+        // Complete the text keeps its Instruction or context in the form's
+        // question value (Build 259 Revision 1).
+        : presetId == 'complete_text'
+        ? f.authoredInstruction
         : f.questionText;
     // (A Note card keeps its body as the meaning.)
     // The former Fill-in shape keeps its sentence in the question field; the
@@ -269,7 +286,8 @@ abstract final class PresetRecipes {
     final gapLayout = exercise.layout
         .map(
           (element) => element.isTarget
-              ? '{${valueById[assignments[element.targetId]] ?? ''}}'
+              // A gap is _word_ (Build 259 Revision 4; {word} before).
+              ? '_${valueById[assignments[element.targetId]] ?? ''}_'
               : element.text,
         )
         .join(' ');
@@ -330,7 +348,8 @@ abstract final class PresetRecipes {
             for (final target in exercise.targets)
               '${f.targetLabel(target.id)} = ${targetWords(target.id)}',
           ].join('\n');
-    // Name what you see: the blocks outside the name are its extra blocks.
+    // Name what you see and Put the sentences in order: the blocks outside
+    // the answer are its extra blocks (lines).
     final nameIds = orders.isEmpty
         ? const <String>{}
         : orders.first.itemIds.toSet();
@@ -393,7 +412,9 @@ abstract final class PresetRecipes {
       lineLanguage: f.lineLanguage,
       groups: groups,
       slots: slots,
-      extraWords: presetId == 'picture_blocks' ? extraBlocks : unassigned,
+      extraWords: presetId == 'picture_blocks' || presetId == 'sentence_order'
+          ? extraBlocks
+          : unassigned,
       slotReuse: isAssign && f.assignItemReuse,
       guidebookButton: f.guidebookButton,
       pageBlocks: presetId == 'page' ? f.pageBlocks : const [],
@@ -473,7 +494,13 @@ abstract final class PresetRecipes {
       hint: '',
       icons: const [],
     ).copyWith(feedback: exercise.feedback);
-    final draft = decompose(exercise, presetId, original: blank);
+    // Put the sentences in order also borrows the stored items (Build 259
+    // Revision 1): its form keeps their IDs and order but does not show the
+    // order, which the former "in any order" field let an author choose.
+    final original = presetId == 'sentence_order'
+        ? blank.copyWith(items: exercise.items)
+        : blank;
+    final draft = decompose(exercise, presetId, original: original);
     return ExerciseDraftBuilder.build(draft).candidate;
   }
 

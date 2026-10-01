@@ -6,6 +6,7 @@ import '../widgets/beta_expired_view.dart';
 import '../models/course_models.dart';
 import '../models/exercise_features.dart';
 import '../services/duel_eligibility_service.dart';
+import '../services/learner_panel_text.dart';
 import '../services/progress_service.dart';
 import '../services/report_service.dart';
 import '../services/tts_cache_service.dart';
@@ -118,7 +119,12 @@ class _DuelScreenState extends State<DuelScreen> {
       widget.course.lessons.last.lessonId == widget.lesson.lessonId;
 
   String get _duelTitle =>
-      _isFinalLesson ? 'Final Duel' : widget.lesson.duel.title;
+      _isFinalLesson ? _t('duel.finalTitle') : widget.lesson.duel.title;
+
+  /// The learner panel text of [key] in the Course's instruction language
+  /// (Build 260 Revision 1).
+  String _t(String key, [Map<String, Object> values = const {}]) =>
+      LearnerPanelText.of(widget.course, key, values);
   String get _screenTitle =>
       widget.viewOnlyMode ? 'VIEW ONLY · $_duelTitle' : _duelTitle;
 
@@ -239,7 +245,7 @@ class _DuelScreenState extends State<DuelScreen> {
 
   Widget _translationAudioButton(String text) => IconButton.filledTonal(
     key: const Key('translation-choice-audio'),
-    tooltip: _optionalAudioEnabled ? 'Play audio' : 'Audio unavailable',
+    tooltip: _optionalAudioEnabled ? _t('playAudio') : _t('audioUnavailable'),
     onPressed: _optionalAudioEnabled ? () => _speakText(text) : null,
     icon: const Icon(Icons.volume_up_outlined),
   );
@@ -247,7 +253,7 @@ class _DuelScreenState extends State<DuelScreen> {
   Widget _translationAudioUnavailableNote() => Padding(
     padding: const EdgeInsets.only(top: 8),
     child: Text(
-      'Audio is turned off or unavailable. The exercise still works.',
+      _t('audioOffNote'),
       key: const Key('translation-choice-audio-note'),
       style: Theme.of(context).textTheme.bodySmall,
     ),
@@ -290,8 +296,9 @@ class _DuelScreenState extends State<DuelScreen> {
   }
 
   String _correctAnswer(Exercise ex) {
-    final value = _correctItem(ex)?.value ?? '';
-    return value.isEmpty ? 'See the course answer.' : value;
+    // Never a picture's file path (Build 259 Revision 4).
+    final value = _correctItem(ex)?.label ?? '';
+    return value.isEmpty ? _t('seeCourseAnswer') : value;
   }
 
   /// The text shown above the question: the primary or clue text. Passages,
@@ -303,7 +310,7 @@ class _DuelScreenState extends State<DuelScreen> {
   String _answerState(Exercise ex) {
     if (_selected == null) return 'Not answered yet';
     if (_selected! >= 0 && _selected! < _choices.length) {
-      return 'Selected choice ${_selected! + 1}: ${_choices[_selected!].text}';
+      return 'Selected choice ${_selected! + 1}: ${_choices[_selected!].item.label}';
     }
     return 'Choice selected';
   }
@@ -406,10 +413,10 @@ class _DuelScreenState extends State<DuelScreen> {
           widget.viewOnlyMode
               ? 'View Only duel result'
               : won && isFinalLesson
-              ? 'Final Duel completed!'
+              ? _t('duel.finalCompleted')
               : won
-              ? 'Duel won'
-              : 'Duel lost',
+              ? _t('duel.won')
+              : _t('duel.lost'),
         ),
         content: Text(
           widget.viewOnlyMode
@@ -417,10 +424,8 @@ class _DuelScreenState extends State<DuelScreen> {
               : won
               ? isFinalLesson
                     ? '+$awardedXp XP'
-                    : 'Duel won: +$awardedXp XP\n\nYou proved your knowledge. The next Lesson can now unlock.'
-              : (_lives <= 0
-                    ? 'Duel lost. You have lost all four lives.'
-                    : 'The duel ended before all 25 questions were completed.'),
+                    : _t('duel.wonBody', {'xp': '$awardedXp'})
+              : (_lives <= 0 ? _t('duel.lostLives') : _t('duel.endedEarly')),
         ),
         actions: [
           TextButton(
@@ -428,7 +433,7 @@ class _DuelScreenState extends State<DuelScreen> {
               Navigator.of(context).pop();
               Navigator.of(context).pop();
             },
-            child: const Text('Back to course'),
+            child: Text(_t('duel.backToCourse')),
           ),
         ],
       ),
@@ -534,7 +539,7 @@ class _DuelScreenState extends State<DuelScreen> {
               padding: const EdgeInsets.all(20),
               children: [
                 Text(
-                  _isFinalLesson ? 'Final Duel' : 'Language Duel',
+                  _isFinalLesson ? _t('duel.finalTitle') : _t('duel.title'),
                   style: Theme.of(context).textTheme.headlineSmall,
                 ),
                 const SizedBox(height: 6),
@@ -543,7 +548,12 @@ class _DuelScreenState extends State<DuelScreen> {
                   runSpacing: 6,
                   crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
-                    Text('Question ${_index + 1}/${items.length} · 4 lives'),
+                    Text(
+                      _t('duel.question', {
+                        'n': _index + 1,
+                        'total': items.length,
+                      }),
+                    ),
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       children: List.generate(
@@ -568,7 +578,7 @@ class _DuelScreenState extends State<DuelScreen> {
                     _features.automaticAudio!.role != 'dialogue_turn') ...[
                   Center(
                     child: IconButton.filledTonal(
-                      tooltip: 'Play audio again',
+                      tooltip: _t('playAudioAgain'),
                       iconSize: 34,
                       onPressed: () => _speak(ex),
                       icon: const Icon(Icons.volume_up_outlined),
@@ -634,12 +644,17 @@ class _DuelScreenState extends State<DuelScreen> {
                     ),
                     const SizedBox(height: 8),
                   ],
-                  Text(
-                    _features.questionText.isEmpty
-                        ? 'Listen and choose the meaning.'
-                        : _features.questionText,
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
+                  // Without a question, the fallback line suits a listening
+                  // exercise only; a picture asks through its instruction
+                  // (Build 259).
+                  if (_features.questionText.isNotEmpty ||
+                      _features.audioElements.isNotEmpty)
+                    Text(
+                      _features.questionText.isEmpty
+                          ? _t('duel.listenChooseMeaning')
+                          : _features.questionText,
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
                 ],
                 const SizedBox(height: 18),
                 ...List.generate(
@@ -680,29 +695,31 @@ class _DuelScreenState extends State<DuelScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          _answerCorrect ? 'Correct' : 'Incorrect',
+                          _answerCorrect ? _t('correct') : _t('incorrect'),
                           style: Theme.of(context).textTheme.titleMedium,
                         ),
                         if (!_answerCorrect) ...[
                           const SizedBox(height: 5),
                           if (_correctItem(ex)?.image.isNotEmpty == true) ...[
-                            const Text('Correct answer:'),
+                            Text(_t('correctAnswerLabel')),
                             PortableExerciseImage(
                               asset: _correctItem(ex)!.image,
                               width: 128,
                               height: 128,
                             ),
                           ] else
-                            Text('Correct answer: ${_correctAnswer(ex)}'),
+                            Text(
+                              _t('correctAnswer', {
+                                'answer': _correctAnswer(ex),
+                              }),
+                            ),
                         ],
                         if (_features.isTranslationChoice &&
                             _features.itemLanguage == TextLanguage.target) ...[
                           const SizedBox(height: 8),
                           Row(
                             children: [
-                              const Expanded(
-                                child: Text('Listen to the answer'),
-                              ),
+                              Expanded(child: Text(_t('listenToAnswer'))),
                               _translationAudioButton(_correctAnswer(ex)),
                             ],
                           ),
@@ -719,10 +736,10 @@ class _DuelScreenState extends State<DuelScreen> {
                   onPressed: _selected == null || _finishing ? null : _next,
                   child: Text(
                     _finishing
-                        ? 'Finishing duel…'
+                        ? _t('duel.finishing')
                         : _lives <= 0 || _index + 1 == items.length
-                        ? 'Finish duel'
-                        : 'Continue',
+                        ? _t('duel.finish')
+                        : _t('continue'),
                   ),
                 ),
               ],

@@ -30,11 +30,9 @@ void main() {
         'IT|qql_lab254_card_usage|FLASHCARD_AUDIO_EMPTY',
         'IT|qql_lab254_card_usage_translation|FLASHCARD_AUDIO_EMPTY',
         'IT|qql_lab254_card_audio|FLASHCARD_EXAMPLE_EMPTY',
-        'EN_EDGE|qql_edge_254_e04_duplicate|CHOICE_ANSWER_DUPLICATE',
-        'EN_EDGE|qql_edge_254_e07_long|EXERCISE_TEXT_LONG',
-        // The Story of covers alone (Build 256 Revision 5 follow-up); a
-        // Round-level warning has no exercise ID.
-        'EN_EDGE|null|STORY_WITHOUT_DIALOGUE',
+        // The Edge Case's three intentional warnings are checked by
+        // edge_case_course_254_test since it left the bundle (Build 259
+        // Revision 5).
         'PMS|pms_e5f5585a_l08_r01_e01|OPPOSITE_TOO_EARLY',
       };
       final observedDemoWarnings = <String>[];
@@ -45,7 +43,12 @@ void main() {
           Map<String, dynamic>.from(jsonDecode(raw) as Map),
         );
         final result = CourseAuditService().auditCourse(course);
-        final isModelDemo = const {'IT', 'EN_EDGE', 'PMS'}.contains(entry.key);
+        final isModelDemo = const {
+          'IT',
+          'PMS',
+          'PMS_MIX',
+          'EN_IT',
+        }.contains(entry.key);
         final errors = result.count(AuditSeverity.error);
         final warnings = result.count(AuditSeverity.warning);
         final info = result.count(AuditSeverity.info);
@@ -130,7 +133,8 @@ void main() {
         }
       }
 
-      expect(CourseService.courseAssets, hasLength(3));
+      // QQL Demo: English from Italian joined in Build 260 Revision 2.
+      expect(CourseService.courseAssets, hasLength(4));
       final auditReport = <String>[
         ...auditSummaries,
         'BUNDLED_AUDIT aggregate: $aggregateErrors errors, '
@@ -158,7 +162,7 @@ void main() {
     final course = await CourseService().loadCourse('PMS');
 
     expect(course.formatVersion, Course.currentFormatVersion);
-    expect(course.title, 'Temporary Demo: Piedmontese');
+    expect(course.title, 'QQL Demo: Piedmontese (sorted by exercise type)');
     expect(course.sourceLanguage, 'English');
     expect(course.targetLanguage, 'Piedmontese');
     expect(course.ttsLanguage, 'pms-IT');

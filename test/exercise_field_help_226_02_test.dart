@@ -59,6 +59,8 @@ void main() {
       'gap_choice': ['question', 'answers', 'correct', 'hint'],
       'type_missing_word': ['revealFirstLetter', 'prompt', 'accepted', 'hint'],
       'word_order': ['prompt', 'gapLayout', 'tokens', 'order', 'tts'],
+      'listening_choose_target': ['tts', 'prompt', 'answers', 'correct'],
+      'listening_choose_source': ['tts', 'prompt', 'answers', 'correct'],
       'listening_answer_target': ['tts', 'question', 'answers', 'correct'],
       'listening_answer_source': ['tts', 'question', 'answers', 'correct'],
       'listening_spelling': ['prompt', 'tts', 'missingWords'],
@@ -92,22 +94,25 @@ void main() {
         'answers',
       ],
       'true_false': ['question', 'tts', 'answers', 'correct'],
-      'gap_choice_inline': ['prompt', 'gapLayout', 'tokens', 'tts'],
-      'complete_text': ['prompt', 'missingWords'],
+      // Build 259 Revision 4: gap_choice_inline merged into gap_blocks.
+      'one_word_fills_all': ['question', 'answers', 'correct', 'hint'],
+      // Build 259 Revision 1: an instruction (question value) and a hint.
+      'complete_text': ['question', 'prompt', 'missingWords', 'hint'],
       'missing_letters': ['prompt', 'tts', 'hint'],
       'gap_blocks': ['prompt', 'gapLayout', 'tokens', 'tts'],
-      'sentence_order': ['prompt', 'tokens', 'order'],
+      'sentence_order': ['prompt', 'order', 'extraWords', 'hint'],
       'listening_image_choice': [
         'tts',
-        'question',
+        'prompt',
         'answers',
         'correct',
         'icons',
       ],
       'spell_heard': ['tts', 'order'],
-      'picture_choice': ['question', 'answers', 'correct'],
-      'picture_name': ['question', 'accepted', 'hint'],
-      'picture_blocks': ['question', 'order', 'extraWords', 'hint'],
+      // Their optional questions became Instruction or context (Build 259).
+      'picture_choice': ['prompt', 'answers', 'correct'],
+      'picture_name': ['prompt', 'accepted', 'hint'],
+      'picture_blocks': ['prompt', 'order', 'extraWords', 'hint'],
       'spell_word': ['prompt', 'order'],
       'picture_word_match': ['prompt', 'answers', 'icons'],
       'note_card': ['prompt', 'question'],
@@ -125,8 +130,8 @@ void main() {
       // Every Page block field shares one Help entry (Build 258).
       'page': ['blocks'],
       // The Assign presets (Build 256 Revision 7 follow-up).
-      'sort_into_groups': ['question', 'groups'],
-      'fill_the_slots': ['question', 'slots', 'extraWords', 'slotReuse'],
+      'sort_into_groups': ['prompt', 'groups'],
+      'fill_the_slots': ['prompt', 'slots', 'extraWords', 'slotReuse'],
     };
     expect(
       fieldsByPreset.keys.toSet(),
@@ -149,20 +154,31 @@ void main() {
     expect(covered, ExerciseAuthoringField.values.toSet());
   });
 
-  test('Prompt and Question have distinct concrete examples', () {
+  test('Instruction or context and Question have distinct examples', () {
     final prompt = help('choice_target', 'prompt');
     final question = help('choice_target', 'question');
+    // Build 259: the shared Instruction or context (owner decisions of
+    // 29 September 2026).
+    expect(prompt.title, 'Instruction or context (optional)');
     expect(
       prompt.purpose,
-      'An optional line above the question: an instruction or some context. Example: Pick the verb form that fits.',
+      'An optional line in the learners’ language: what to do, the situation, or the meaning the exercise needs. Example: Put the dialogue at the bar in order.',
     );
-    expect(prompt.example, 'Pick the verb form that fits.');
+    expect(prompt.example, 'Put the dialogue at the bar in order.');
+    expect(question.title, 'Question or sentence');
+    expect(
+      prompt.entryRules,
+      contains('takes the place of the standard instruction line'),
+    );
     expect(
       question.purpose,
       'What the learner answers: a question, or a sentence with a gap the answers complete. Example: Which article goes with casa?',
     );
     expect(question.example, 'Which article goes with casa?');
-    expect(prompt.text, contains('Example\nPick the verb form that fits.'));
+    expect(
+      prompt.text,
+      contains('Example\nPut the dialogue at the bar in order.'),
+    );
     expect(question.text, contains('Example\nWhich article goes with casa?'));
   });
 
@@ -228,7 +244,6 @@ void main() {
     for (final definition in [
       help('type_translation_to_target', 'accepted'),
       help('type_translation_to_source', 'accepted'),
-      help('listening_spelling', 'missingWords'),
     ]) {
       expect(
         definition.entryRules,
@@ -239,6 +254,14 @@ void main() {
         contains('Malformed expressions are rejected'),
       );
     }
+    // Type what you hear lists only other spellings, with alternatives
+    // (Build 259 Revision 3).
+    final spellings = help('listening_spelling', 'missingWords');
+    expect(spellings.entryRules, contains('alle [9|nove]'));
+    expect(
+      spellings.validation,
+      contains('Malformed alternatives are rejected'),
+    );
     final gaps = help('missing_word', 'missingWords');
     expect(gaps.entryRules, contains('Multiple lines select multiple gaps'));
     expect(
@@ -384,13 +407,19 @@ void main() {
   });
 
   test('listening Help does not promise unimplemented automatic gaps', () {
+    // Type what you hear's visible text is its Instruction or context
+    // (Build 259): the label no longer invites the transcript.
+    expect(
+      help('listening_spelling', 'prompt').title,
+      'Instruction or context (optional)',
+    );
     expect(
       help('listening_spelling', 'prompt').entryRules,
-      contains('does not automatically remove the accepted answer'),
+      contains('The question, the sentence and the answers go in their own'),
     );
     expect(
       help('listening_spelling', 'missingWords').purpose,
-      contains('accepted typed responses'),
+      contains('the Audio text itself is always accepted'),
     );
     expect(
       help('missing_word', 'prompt').entryRules,
