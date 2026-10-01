@@ -98,7 +98,7 @@ class _DoNotDisturbSettingsScreenState
                 SwitchListTile(
                   title: const Text('Animations'),
                   subtitle: const Text(
-                    'Show decorative animations throughout QuisquisLingo, including startup and course-entry animations.',
+                    'Show decorative animations throughout QuisquisLingo, including startup and course-entry animations and the weekly-goal confetti.',
                   ),
                   value: _animationsEnabled,
                   onChanged: _setAnimations,

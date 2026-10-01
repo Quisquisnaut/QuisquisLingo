@@ -3184,39 +3184,48 @@ class _GuidebookNode extends StatelessWidget {
                         Expanded(
                           child: Semantics(
                             header: true,
-                            child: Text.rich(
-                              TextSpan(
-                                children: identity.deduplicated
-                                    ? [
-                                        TextSpan(
-                                          text: identity.fullText,
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.w900,
-                                          ),
-                                        ),
-                                      ]
-                                    : [
-                                        if (identity.prefix != null)
+                            // The whole title when three lines cut it (Build
+                            // 261 Revision 0, owner decision).
+                            child: Tooltip(
+                              key: ValueKey(
+                                'unified-guidebook-lesson-tooltip-${lesson.lessonId}',
+                              ),
+                              message: identity.fullText,
+                              excludeFromSemantics: true,
+                              child: Text.rich(
+                                TextSpan(
+                                  children: identity.deduplicated
+                                      ? [
                                           TextSpan(
-                                            text: '${identity.prefix}: ',
+                                            text: identity.fullText,
                                             style: const TextStyle(
-                                              fontWeight: FontWeight.normal,
+                                              fontWeight: FontWeight.w900,
                                             ),
                                           ),
-                                        TextSpan(
-                                          text: identity.title,
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.w900,
+                                        ]
+                                      : [
+                                          if (identity.prefix != null)
+                                            TextSpan(
+                                              text: '${identity.prefix}: ',
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.normal,
+                                              ),
+                                            ),
+                                          TextSpan(
+                                            text: identity.title,
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.w900,
+                                            ),
                                           ),
-                                        ),
-                                      ],
+                                        ],
+                                ),
+                                key: ValueKey(
+                                  'unified-guidebook-lesson-title-${lesson.lessonId}',
+                                ),
+                                maxLines: 3,
+                                overflow: TextOverflow.ellipsis,
+                                style: Theme.of(context).textTheme.titleMedium,
                               ),
-                              key: ValueKey(
-                                'unified-guidebook-lesson-title-${lesson.lessonId}',
-                              ),
-                              maxLines: 3,
-                              overflow: TextOverflow.ellipsis,
-                              style: Theme.of(context).textTheme.titleMedium,
                             ),
                           ),
                         ),
@@ -3683,6 +3692,68 @@ class _RoundNode extends StatelessWidget {
         !RegExp(r'^(round|ronda)\s+\d+$', caseSensitive: false).hasMatch(title);
   }
 
+  /// The Round's name on one line (Build 261 Revision 0, owner decision of 1
+  /// October 2026): "Round 2: " in normal weight before the title in bold,
+  /// and "Story: " / "Sequence: " the same way; "Round" stays English. A
+  /// Round without a title of its own shows "Round 2" alone, in bold.
+  (String, String?) get _titleParts {
+    if (round.flow != null) {
+      final prefix = round.isStory
+          ? LearningRound.storyTitlePrefix
+          : LearningRound.sequenceTitlePrefix;
+      return (
+        prefix,
+        round.displayTitle(roundNumber - 1).substring(prefix.length),
+      );
+    }
+    if (_hasDescriptiveTitle) {
+      return ('Round $roundNumber: ', round.title.trim());
+    }
+    return ('Round $roundNumber', null);
+  }
+
+  /// A little smaller than the former title line; it wraps up to three lines
+  /// (with the status line they fit the card's 88 pixels) and the tooltip
+  /// gives the whole name when it is cut.
+  Widget _title(BuildContext context) {
+    final (prefix, title) = _titleParts;
+    final base = Theme.of(context).textTheme.titleMedium;
+    final style = base?.copyWith(
+      fontSize: (base.fontSize ?? 16) - 1,
+      height: 1.4,
+    );
+    final key = ValueKey('unified-round-title-${round.id}');
+    if (title == null) {
+      return Text(
+        prefix,
+        key: key,
+        style: style?.copyWith(fontWeight: FontWeight.w800),
+      );
+    }
+    return Tooltip(
+      message: '$prefix$title',
+      excludeFromSemantics: true,
+      child: Text.rich(
+        TextSpan(
+          children: [
+            TextSpan(
+              text: prefix,
+              style: const TextStyle(fontWeight: FontWeight.normal),
+            ),
+            TextSpan(
+              text: title,
+              style: const TextStyle(fontWeight: FontWeight.w800),
+            ),
+          ],
+        ),
+        key: key,
+        maxLines: 3,
+        overflow: TextOverflow.ellipsis,
+        style: style,
+      ),
+    );
+  }
+
   String get _status => perfect
       ? 'Perfect'
       : completed || ttsSkippedPerfect
@@ -3788,20 +3859,7 @@ class _RoundNode extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Round $roundNumber',
-                      style: const TextStyle(fontWeight: FontWeight.w900),
-                    ),
-                    if (_hasDescriptiveTitle)
-                      Text(
-                        round.flow != null
-                            ? round.displayTitle(roundNumber - 1)
-                            : round.title,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(fontWeight: FontWeight.w800),
-                      ),
+                    _title(context),
                     Text(
                       _status,
                       style: TextStyle(

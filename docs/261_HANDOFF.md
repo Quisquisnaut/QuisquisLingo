@@ -1,0 +1,38 @@
+# Build 261 handoff
+
+Branch `claude/261-learner-polish` from `main` (`8b98c6a`, Builds 259 and
+260 merged through PR #30); local commits only, not pushed. Changes:
+`docs/261_CHANGE_SUMMARY.md`; evidence: `docs/261_VALIDATION.md`.
+
+Plan (owner answers of 1 October 2026):
+
+- Revision 0, learner polish: Round names on one line, tooltips on the
+  Round name and the Lesson title, confetti for the weekly goal.
+- Revision 1: Study and Review in the ⋮ menus of All Courses and Course
+  Studio (Study adds the Course to the personal library when missing,
+  makes it current and opens the learner screen; unavailable entries
+  greyed with a reason); in Do Not Disturb a per-learner "Course Editor
+  opening mode" (Locked / View only / Inspection / Edit) for Courses never
+  opened in the editor (the remembered per-Course mode wins; Edit falls
+  back to View only without rights); the new key goes to AppResetService,
+  InventoryService and docs/239_RESET_STORAGE_INVENTORY.md.
+- Revision 2, the Course preview from the Course Editor: a flag left of
+  the title on every Course Editor screen opens the learner screen on the
+  working copy (Drafts included, nothing completed, every Lesson open;
+  Rounds, Stories, Duel and GuideBook usable; Selector, Profile, Review and
+  Settings disabled; nothing written; the stored current Course
+  unchanged); a "Preview · Exit" chip returns to the same editor spot with
+  the changes still pending. From the Exercise editor the preview leaves
+  out that form's unsaved edits.
+
+## Revision 0 (implemented, 2 October 2026)
+
+Learner polish. Tests in `learner_round_path_test`,
+`leaderboard_navigation_test` and `round_xp_completion_regression_test`.
+
+## Next
+
+Revision 1.
+
+Stage with `git add -A -- . ':!devtools_options.yaml' ':!tools/cloud_setup.sh'`
+after checking `git status` for files another session wrote.

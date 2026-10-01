@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/rendering.dart' show RenderAbstractViewport;
 import '../services/course_language_resolver.dart';
 import '../services/first_letter_answer_service.dart';
+import '../widgets/confetti_burst.dart';
 import '../widgets/course_media_image.dart';
 import '../widgets/exercise_mascot.dart';
 import '../widgets/exercise_prompt_panels.dart';
@@ -1848,19 +1849,32 @@ class _RoundScreenState extends State<RoundScreen> {
         if (await _settings.areSoundEffectsEnabled()) {
           await _sounds.playDuelWin();
         }
+        final animationsEnabled = await _settings.areAnimationsEnabled();
         if (!mounted) return;
+        // Confetti over the dialog (Build 261 Revision 0).
+        final confetti = ConfettiBurst.allowed(
+          context,
+          animationsEnabled: animationsEnabled,
+        );
         await showDialog<void>(
           context: context,
-          builder: (ctx) => AlertDialog(
-            title: Text(_t('weeklyGoalReached')),
-            content: Text(
-              '${completion.weeklyXpAfter} / ${completion.weeklyXpTarget} XP',
-            ),
-            actions: [
-              FilledButton(
-                onPressed: () => Navigator.pop(ctx),
-                child: Text(_t('continue')),
+          builder: (ctx) => Stack(
+            fit: StackFit.expand,
+            children: [
+              AlertDialog(
+                title: Text(_t('weeklyGoalReached')),
+                content: Text(
+                  '${completion.weeklyXpAfter} / ${completion.weeklyXpTarget} XP',
+                ),
+                actions: [
+                  FilledButton(
+                    onPressed: () => Navigator.pop(ctx),
+                    child: Text(_t('continue')),
+                  ),
+                ],
               ),
+              if (confetti)
+                const ConfettiBurst(key: Key('weekly-goal-confetti')),
             ],
           ),
         );

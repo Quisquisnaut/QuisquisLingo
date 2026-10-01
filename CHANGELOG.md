@@ -1,3 +1,17 @@
+# 2.0.61 (Build 261, Revision 0) - Learner polish - 2026-10-02
+
+Owner decisions of 1 October 2026.
+
+- **Round names on one line** in the learner path: "Round 2:" in normal
+  weight before the title in bold, a little smaller, wrapping; a Story and
+  a sequence show "Story:" and "Sequence:" the same way.
+- **Tooltips** with the whole Round name and the whole Lesson title.
+- **Confetti** over the "Weekly goal reached!" dialog, for about two
+  seconds, unless Animations are off or the device asks for reduced motion.
+
+Scoring, progression and learner data are unchanged. Beta expiry
+`2026-11-01 23:59:59` local time.
+
 # 2.0.60 (Build 260, Revision 7) - QQL Demos along a difficulty curve - 2026-10-01
 
 Owner decisions of 1 October 2026.
