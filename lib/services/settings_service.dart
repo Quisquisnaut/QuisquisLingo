@@ -82,6 +82,9 @@ class SettingsService {
   static const _welcomeWizardNoticeId = 'welcome_wizard_237';
   static const _courseEditorUnlockedKey = 'course_editor_unlocked';
   static const _courseEditorModeKeyPrefix = 'course_editor_mode_';
+
+  /// Per learner (Build 261 Revision 1): see [getCourseEditorOpeningMode].
+  static const courseEditorOpeningModeKey = 'course_editor_opening_mode';
   static const _audioOrphanCheckKey = AppResetService.audioOrphanCheckKeyPrefix;
   static const _lastSelectedCourseKeyBase = 'last_selected_course_code';
   static const _recentCourseRefsKey = 'recent_course_refs';
@@ -106,20 +109,20 @@ class SettingsService {
     final hasUriScheme = RegExp(
       r'^[A-Za-z][A-Za-z0-9+.-]*:',
     ).hasMatch(trimmedPath);
-    final isWindowsDrivePath = RegExp(
-      r'^[A-Za-z]:[\\/]',
-    ).hasMatch(trimmedPath);
+    final isWindowsDrivePath = RegExp(r'^[A-Za-z]:[\\/]').hasMatch(trimmedPath);
     if (trimmedPath.isEmpty ||
         (hasUriScheme && !isWindowsDrivePath) ||
-        (Platform.isWindows && !executablePath.toLowerCase().endsWith('.exe'))) {
-      throw ArgumentError.value(path, 'path', 'Select a local executable file.');
+        (Platform.isWindows &&
+            !executablePath.toLowerCase().endsWith('.exe'))) {
+      throw ArgumentError.value(
+        path,
+        'path',
+        'Select a local executable file.',
+      );
     }
     FileSystemEntityType fileType;
     try {
-      fileType = await FileSystemEntity.type(
-        executablePath,
-        followLinks: true,
-      );
+      fileType = await FileSystemEntity.type(executablePath, followLinks: true);
     } on FileSystemException {
       throw ArgumentError.value(path, 'path', 'Executable file not available.');
     }
@@ -553,15 +556,64 @@ class SettingsService {
       if (stored != null) return CourseEditorMode.fromStorage(stored);
     }
     // Preserve a user's former two-state choice once. A fresh course/editor
-    // has no legacy value and therefore starts in View only.
+    // has no legacy value and therefore starts in the learner's opening mode
+    // (View only unless chosen in Do Not Disturb, Build 261 Revision 1).
     final legacy = preferences.getBool(
       'course_editor_locked_${courseId.toUpperCase()}',
     );
     return switch (legacy) {
       true => CourseEditorMode.locked,
       false => CourseEditorMode.edit,
-      null => CourseEditorMode.viewOnly,
+      null => await getCourseEditorOpeningMode(),
     };
+  }
+
+  /// Whether [courseId] has a Course Editor mode of its own: one this
+  /// learner chose or met on an earlier opening, or a legacy lock value.
+  Future<bool> hasCourseEditorMode(String courseId) async {
+    final preferences = await SharedPreferences.getInstance();
+    final profiles = ProfileService();
+    final activeId = await profiles.getActiveProfileId();
+    if (activeId != null &&
+        preferences.containsKey(
+          profiles.keyForProfileId(
+            activeId,
+            _coursePreferenceKey(_courseEditorModeKeyPrefix, courseId),
+          ),
+        )) {
+      return true;
+    }
+    return preferences.containsKey(
+      'course_editor_locked_${courseId.toUpperCase()}',
+    );
+  }
+
+  /// The mode a Course opens in the Course Editor the first time this learner
+  /// opens it (Do Not Disturb, Build 261 Revision 1, owner decision of 1
+  /// October 2026); View only until chosen. A Course remembers its own mode
+  /// afterwards, and Edit opens as View only without editing rights.
+  Future<CourseEditorMode> getCourseEditorOpeningMode() async {
+    final profiles = ProfileService();
+    final activeId = await profiles.getActiveProfileId();
+    if (activeId == null) return CourseEditorMode.viewOnly;
+    final stored = (await SharedPreferences.getInstance()).getString(
+      profiles.keyForProfileId(activeId, courseEditorOpeningModeKey),
+    );
+    return stored == null
+        ? CourseEditorMode.viewOnly
+        : CourseEditorMode.fromStorage(stored);
+  }
+
+  Future<void> setCourseEditorOpeningMode(CourseEditorMode mode) async {
+    final profiles = ProfileService();
+    final activeId = await profiles.getActiveProfileId();
+    if (activeId == null) {
+      throw StateError('Choose a learner profile first.');
+    }
+    await (await SharedPreferences.getInstance()).setString(
+      profiles.keyForProfileId(activeId, courseEditorOpeningModeKey),
+      mode.storageValue,
+    );
   }
 
   Future<void> setCourseEditorMode(

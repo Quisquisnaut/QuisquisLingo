@@ -4,6 +4,7 @@ import '../models/course_models.dart';
 import '../services/course_editor_service.dart';
 import '../services/course_library_presentation.dart';
 import '../services/course_media_store.dart';
+import '../services/course_study.dart';
 import '../services/custom_course_transfer_service.dart';
 import '../services/settings_service.dart';
 import '../widgets/course_library_row.dart';
@@ -30,6 +31,7 @@ class AllCoursesTab extends StatelessWidget {
     required this.refreshToken,
     this.highlightCourseId,
     this.onLibraryChanged,
+    this.onStudy,
   });
 
   final CourseEditorService? editorService;
@@ -42,6 +44,7 @@ class AllCoursesTab extends StatelessWidget {
   final int refreshToken;
   final String? highlightCourseId;
   final VoidCallback? onLibraryChanged;
+  final ValueChanged<CourseStudyRequest>? onStudy;
 
   @override
   Widget build(BuildContext context) => AvailableCoursesScreen(
@@ -56,6 +59,7 @@ class AllCoursesTab extends StatelessWidget {
     refreshToken: refreshToken,
     highlightCourseId: highlightCourseId,
     onLibraryChanged: onLibraryChanged,
+    onStudy: onStudy,
   );
 }
 
@@ -73,6 +77,7 @@ class CourseStudioTab extends StatelessWidget {
     required this.showUnavailable,
     required this.search,
     required this.refreshToken,
+    this.onStudy,
   });
 
   final GlobalKey<CourseProjectsScreenState> screenKey;
@@ -85,6 +90,7 @@ class CourseStudioTab extends StatelessWidget {
   final bool showUnavailable;
   final String search;
   final int refreshToken;
+  final ValueChanged<CourseStudyRequest>? onStudy;
 
   @override
   Widget build(BuildContext context) => CourseProjectsScreen(
@@ -99,10 +105,14 @@ class CourseStudioTab extends StatelessWidget {
     showUnavailable: showUnavailable,
     search: search,
     refreshToken: refreshToken,
+    onStudy: onStudy,
   );
 }
 
 /// One Courses screen with shared view controls and two Course libraries.
+///
+/// Study or Review in a Course menu closes it with a [CourseStudyRequest]
+/// for the learner page (Build 261 Revision 1).
 class CoursesScreen extends StatefulWidget {
   const CoursesScreen({
     super.key,
@@ -155,6 +165,8 @@ class _CoursesScreenState extends State<CoursesScreen> {
       WidgetsBinding.instance.addPostFrameCallback((_) => _explainLock());
     }
   }
+
+  void _study(CourseStudyRequest request) => Navigator.of(context).pop(request);
 
   void _explainLock() {
     if (!mounted) return;
@@ -415,6 +427,7 @@ class _CoursesScreenState extends State<CoursesScreen> {
                   refreshToken: _refreshToken,
                   highlightCourseId: _highlightCourseId,
                   onLibraryChanged: () => setState(() => _refreshToken++),
+                  onStudy: _study,
                 ),
                 CourseStudioTab(
                   screenKey: _managerKey,
@@ -429,6 +442,7 @@ class _CoursesScreenState extends State<CoursesScreen> {
                   showUnavailable: _showUnavailable,
                   search: _search,
                   refreshToken: _refreshToken,
+                  onStudy: _study,
                 ),
               ],
             ),

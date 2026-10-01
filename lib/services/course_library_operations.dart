@@ -14,16 +14,22 @@ import 'course_merge_service.dart';
 import 'course_package_import.dart';
 import 'course_privacy.dart';
 import 'course_service.dart';
+import 'course_study.dart';
 import 'custom_course_transfer_service.dart';
 import 'file_dialog_service.dart';
 import 'formal_name_policy.dart';
 import 'new_course_structure.dart';
 import 'profile_service.dart';
+import 'progress_service.dart';
 import 'settings_service.dart';
 import 'team_service.dart';
 
-/// The Course Manager menu entries, in menu order.
+/// The Course Manager menu entries, in menu order. [study] and [review]
+/// (Build 261 Revision 1) come from [CourseManagerLibrary.studyEntriesFor],
+/// shown only where the menu can return to the learner page.
 enum CourseManagerAction {
+  study,
+  review,
   removeFromMyCourses,
   removePublisherFromDevice,
   courseInfo,
@@ -68,6 +74,7 @@ class CourseManagerLibrary {
     this.memberTeamIds = const {},
     this.isAdmin = false,
     this.importAuthoringEnabled = false,
+    this.reviewableCourseIds = const {},
   });
 
   /// The stored Custom and Publisher Courses in the active personal library.
@@ -86,6 +93,28 @@ class CourseManagerLibrary {
 
   /// Copy as New Course and Fork are offered on a matching-ID import.
   final bool importAuthoringEnabled;
+
+  /// The Courses with a completed Round for Review to offer.
+  final Set<String> reviewableCourseIds;
+
+  /// Study and Review for [course], with the reason each cannot be used.
+  List<CourseManagerEntry> studyEntriesFor(Course course) => [
+    CourseManagerEntry(
+      CourseManagerAction.study,
+      CourseStudy.studyUnavailableReason(
+        course,
+        hasLearner: activeProfileId != null,
+      ),
+    ),
+    CourseManagerEntry(
+      CourseManagerAction.review,
+      CourseStudy.reviewUnavailableReason(
+        course,
+        hasLearner: activeProfileId != null,
+        hasCompletedRounds: reviewableCourseIds.contains(course.courseId),
+      ),
+    ),
+  ];
 
   CourseAccessCapabilities capabilitiesFor(Course course) =>
       CourseAccessPolicy.evaluate(
@@ -359,6 +388,9 @@ class CourseLibraryOperations {
     final hiddenCourseIds = await visibility.hiddenCourseIds(
       [...personal, ...includedBundled].map((course) => course.courseId),
     );
+    final reviewableCourseIds = activeProfileId == null
+        ? const <String>{}
+        : await CourseStudy.coursesWithCompletedRounds(ProgressService());
     return CourseManagerLibrary(
       personalCourses: personal,
       bundledCourses: includedBundled,
@@ -369,6 +401,7 @@ class CourseLibraryOperations {
       memberTeamIds: memberTeamIds,
       isAdmin: isAdmin,
       importAuthoringEnabled: importAuthoringEnabled,
+      reviewableCourseIds: Set.unmodifiable(reviewableCourseIds),
     );
   }
 

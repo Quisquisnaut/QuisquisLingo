@@ -33,3 +33,32 @@
 - `flutter analyze --no-pub`: no issues.
 - **Complete suite** (`--concurrency=1`, keep-awake, 26 min 52 s):
   **3521 passed, 1 skipped, 0 failed**.
+
+## Revision 1 (2.0.61+261001, 2 October 2026): Study and Review from Courses, the Course Editor opening mode
+
+**Generators and validator**
+- No Course file changes (the four bundled Courses unchanged).
+
+**Tests**
+- New: `test/courses_study_review_261_test.dart` (9 tests): the Study and
+  Review reasons (a published bundled Course can be studied, none without a
+  learner, "Publish this Course before you can study it." for a Draft
+  Course, Review needs a completed Round); completed Rounds read from the
+  Review records; Course Studio's `studyEntriesFor` apart from
+  `entriesFor`; the opening mode (View only until chosen, a first opening
+  remembers it, a later default leaves opened Courses alone, a mode chosen
+  in the editor wins, Edit opens as View only without rights, a legacy lock
+  keeps its meaning, the key under the learner prefix); Do Not Disturb sets
+  it; from the empty library, All Courses → Study adds the Laboratory, makes
+  it current (`IT`) and returns to the learner page, with Review greyed
+  ("Complete a Round of this Course first."); Review on QQL Demo: English
+  from Italian (a recorded Round) makes `EN_IT` current and opens Review on
+  it; Course Studio closes Courses with the request.
+- Updated: `app_reset_service_239_test` (the learner-progress reset keeps
+  `course_editor_opening_mode`); the version pins.
+- Focused run: the new file, then the 52 files that build Courses, Course
+  Studio, the Course Editor modes, Do Not Disturb or the resets: 532
+  passed.
+- `flutter analyze --no-pub`: no issues.
+- **Complete suite** (`--concurrency=1`, keep-awake, 27 min 13 s):
+  **3530 passed, 1 skipped, 0 failed**.

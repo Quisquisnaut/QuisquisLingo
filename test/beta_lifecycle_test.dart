@@ -3,7 +3,7 @@ import 'package:quisquislingo_app/services/beta_lifecycle_service.dart';
 
 void main() {
   test(
-    'QQL 261 Revision 0 sets the 1 November Beta expiry and includes the expiry day',
+    'QQL 261 Revision 1 sets the 1 November Beta expiry and includes the expiry day',
     () {
       expect(BetaLifecycleService.expiryIsoDate, '2026-11-01');
       expect(BetaLifecycleService.daysRemaining(DateTime(2026, 10, 2)), 30);

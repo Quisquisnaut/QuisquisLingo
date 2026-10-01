@@ -31,9 +31,15 @@ Learner polish. Tests in `learner_round_path_test`,
 `leaderboard_navigation_test` and `round_xp_completion_regression_test`.
 Complete suite: 3521 passed, 1 skipped.
 
+## Revision 1 (implemented, 2 October 2026)
+
+Study and Review in the Course menus of All Courses and Course Studio; the
+Course Editor opening mode in Do Not Disturb. Test
+`test/courses_study_review_261_test.dart`.
+
 ## Next
 
-Revision 1.
+Revision 2, the Course preview from the Course Editor.
 
 Stage with `git add -A -- . ':!devtools_options.yaml' ':!tools/cloud_setup.sh'`
 after checking `git status` for files another session wrote.

@@ -20,6 +20,7 @@ import '../services/course_library_view_service.dart';
 import '../services/course_media_store.dart';
 import '../services/course_privacy.dart';
 import '../services/course_service.dart';
+import '../services/course_study.dart';
 import '../services/progress_service.dart';
 import '../widgets/app_locale_selector.dart';
 import '../widgets/course_library_row.dart';
@@ -102,6 +103,10 @@ class AvailableCoursesScreen extends StatefulWidget {
   final int refreshToken;
   final String? highlightCourseId;
   final VoidCallback? onLibraryChanged;
+
+  /// Study and Review in the Course menu (Build 261 Revision 1); without it
+  /// the menu leaves them out.
+  final ValueChanged<CourseStudyRequest>? onStudy;
   const AvailableCoursesScreen({
     super.key,
     this.editorService,
@@ -116,6 +121,7 @@ class AvailableCoursesScreen extends StatefulWidget {
     this.refreshToken = 0,
     this.highlightCourseId,
     this.onLibraryChanged,
+    this.onStudy,
   });
   @override
   State<AvailableCoursesScreen> createState() => _AvailableCoursesScreenState();
@@ -131,6 +137,7 @@ class _AvailableCoursesScreenState extends State<AvailableCoursesScreen> {
   Set<String> _added = {};
   Set<String> _hidden = {};
   Set<String> _favoriteIds = {};
+  Set<String> _reviewable = {};
   List<SkippedCourseFile> _unreadable = const [];
   String? _profileId;
   String? _error;
@@ -234,6 +241,9 @@ class _AvailableCoursesScreenState extends State<AvailableCoursesScreen> {
         courses.map((course) => course.courseId),
       );
       final profileId = await _library.profiles.getActiveProfileId();
+      final reviewable = await CourseStudy.coursesWithCompletedRounds(
+        ProgressService(),
+      );
       final profileNames = {
         for (final profile in await _library.profiles.getProfileRecords())
           profile.learnerProfileId: profile.displayName,
@@ -261,6 +271,7 @@ class _AvailableCoursesScreenState extends State<AvailableCoursesScreen> {
         _added = added;
         _hidden = hidden;
         _favoriteIds = favoriteIds;
+        _reviewable = reviewable;
         _unreadable = editor.unreadableCourseFiles;
         _profileId = profileId;
         _profileNames = profileNames;
@@ -428,6 +439,7 @@ class _AvailableCoursesScreenState extends State<AvailableCoursesScreen> {
     String title, {
     String? unavailableReason,
   }) => PopupMenuItem<String>(
+    key: ValueKey('all-course-action-$action'),
     value: action,
     enabled: unavailableReason == null,
     child: ListTile(
@@ -453,6 +465,14 @@ class _AvailableCoursesScreenState extends State<AvailableCoursesScreen> {
       icon: const Icon(Icons.more_vert),
       onSelected: (action) {
         switch (action) {
+          case 'study':
+            widget.onStudy?.call(
+              CourseStudyRequest(course, CourseStudyAction.study),
+            );
+          case 'review':
+            widget.onStudy?.call(
+              CourseStudyRequest(course, CourseStudyAction.review),
+            );
           case 'info':
             Navigator.of(context).push<void>(
               MaterialPageRoute(
@@ -468,6 +488,25 @@ class _AvailableCoursesScreenState extends State<AvailableCoursesScreen> {
         }
       },
       itemBuilder: (_) => [
+        if (widget.onStudy != null) ...[
+          _courseActionItem(
+            'study',
+            'Study',
+            unavailableReason: CourseStudy.studyUnavailableReason(
+              course,
+              hasLearner: _profileId != null,
+            ),
+          ),
+          _courseActionItem(
+            'review',
+            'Review',
+            unavailableReason: CourseStudy.reviewUnavailableReason(
+              course,
+              hasLearner: _profileId != null,
+              hasCompletedRounds: _reviewable.contains(course.courseId),
+            ),
+          ),
+        ],
         _courseActionItem('info', 'Course Info'),
         _courseActionItem(
           'favorite',

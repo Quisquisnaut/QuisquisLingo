@@ -104,6 +104,11 @@ void main() {
       final prefsBefore = await SharedPreferences.getInstance();
       final prefixBefore = ProfileService.prefixForProfileId(learnerId);
       await prefsBefore.setString('${prefixBefore}locale', 'ES');
+      // A setting, not progress (Build 261 Revision 1).
+      await prefsBefore.setString(
+        '${prefixBefore}course_editor_opening_mode',
+        'edit',
+      );
       await service.reset(
         AppResetScope.learnerProgress,
         actorProfileId: adminId,
@@ -115,6 +120,7 @@ void main() {
       expect(prefs.containsKey('${prefix}xp_it'), isFalse);
       expect(prefs.getString('${prefix}theme_mode'), 'dark');
       expect(prefs.getString('${prefix}locale'), 'ES');
+      expect(prefs.getString('${prefix}course_editor_opening_mode'), 'edit');
       expect(await profiles.getProfileRecords(), hasLength(2));
       expect(await profiles.hasAccessPin(adminId), isTrue);
     },

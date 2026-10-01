@@ -1,3 +1,20 @@
+# 2.0.61 (Build 261, Revision 1) - Study and Review from Courses - 2026-10-02
+
+Owner decisions of 1 October 2026.
+
+- **Study and Review** open the ⋮ menu of every Course in All Courses and
+  Course Studio. Study returns to the learner page with that Course
+  current, adding it to your courses when it is missing; Review does the
+  same and opens the Review page. Greyed out with the reason when they
+  cannot be used (for Review, before any Round of the Course is completed).
+- **Course Editor opening mode** in Do Not Disturb (Locked, View only,
+  Inspection mode or Edit, for each learner): the mode a Course opens in
+  the first time you open it; then each Course remembers its own. Edit
+  opens as View only where you may not edit.
+
+Scoring, progression and learner progress are unchanged. Beta expiry
+`2026-11-01 23:59:59` local time (same release day as Revision 0).
+
 # 2.0.61 (Build 261, Revision 0) - Learner polish - 2026-10-02
 
 Owner decisions of 1 October 2026.

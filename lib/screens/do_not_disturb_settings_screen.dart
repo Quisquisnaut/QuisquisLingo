@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../services/crash_log_service.dart';
+import '../services/profile_service.dart';
 import '../services/settings_service.dart';
 
 class DoNotDisturbSettingsScreen extends StatefulWidget {
@@ -18,6 +19,8 @@ class _DoNotDisturbSettingsScreenState
   bool _loading = true;
   bool _soundEffectsEnabled = true;
   bool _animationsEnabled = true;
+  CourseEditorMode _openingMode = CourseEditorMode.viewOnly;
+  bool _hasLearner = false;
 
   @override
   void initState() {
@@ -29,10 +32,14 @@ class _DoNotDisturbSettingsScreenState
     try {
       final soundEffectsEnabled = await _settings.areSoundEffectsEnabled();
       final animationsEnabled = await _settings.areAnimationsEnabled();
+      final hasLearner = await ProfileService().getActiveProfileId() != null;
+      final openingMode = await _settings.getCourseEditorOpeningMode();
       if (!mounted) return;
       setState(() {
         _soundEffectsEnabled = soundEffectsEnabled;
         _animationsEnabled = animationsEnabled;
+        _hasLearner = hasLearner;
+        _openingMode = openingMode;
         _loading = false;
       });
     } catch (error, stackTrace) {
@@ -65,6 +72,12 @@ class _DoNotDisturbSettingsScreenState
   Future<void> _setAnimations(bool value) async {
     await _settings.setAnimationsEnabled(value);
     if (mounted) setState(() => _animationsEnabled = value);
+  }
+
+  Future<void> _setOpeningMode(CourseEditorMode? mode) async {
+    if (mode == null) return;
+    await _settings.setCourseEditorOpeningMode(mode);
+    if (mounted) setState(() => _openingMode = mode);
   }
 
   Future<void> _showOneTimeNoticesAgain() async {
@@ -102,6 +115,25 @@ class _DoNotDisturbSettingsScreenState
                   ),
                   value: _animationsEnabled,
                   onChanged: _setAnimations,
+                ),
+                // Per learner (Build 261 Revision 1, owner decision of 1
+                // October 2026).
+                ListTile(
+                  title: const Text('Course Editor opening mode'),
+                  subtitle: Text(
+                    _hasLearner
+                        ? 'How a Course opens in the Course Editor the first time you open it; then it remembers its own mode. Edit opens as View only where you may not edit.'
+                        : 'Choose a learner profile first.',
+                  ),
+                  trailing: DropdownButton<CourseEditorMode>(
+                    key: const Key('course-editor-opening-mode'),
+                    value: _openingMode,
+                    onChanged: _hasLearner ? _setOpeningMode : null,
+                    items: [
+                      for (final mode in CourseEditorMode.values)
+                        DropdownMenuItem(value: mode, child: Text(mode.label)),
+                    ],
+                  ),
                 ),
                 ListTile(
                   leading: const Icon(Icons.notifications_active_outlined),

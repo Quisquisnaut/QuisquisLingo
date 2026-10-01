@@ -14,6 +14,7 @@ import '../services/update_service.dart';
 import '../models/course_models.dart';
 import '../services/course_language_resolver.dart';
 import '../services/course_service.dart';
+import '../services/course_study.dart';
 import '../services/course_editor_service.dart';
 import '../services/publication_service.dart';
 import '../services/lesson_presentation_service.dart';
@@ -1559,18 +1560,19 @@ class _HomeScreenState extends State<HomeScreen> {
       final selectedCourse = _course;
       Navigator.pop(sheetContext);
       if (!overlayContext.mounted) return;
-      await Navigator.of(overlayContext).push<void>(
-        MaterialPageRoute(
-          builder: (_) => CoursesScreen(
-            initialTab: tab,
-            currentCourse: selectedCourse,
-            initialCourseIdToOpen: editCurrent
-                ? selectedCourse?.courseId
-                : null,
-          ),
-        ),
-      );
-      if (mounted) await _reload();
+      final request = await Navigator.of(overlayContext)
+          .push<CourseStudyRequest>(
+            MaterialPageRoute(
+              builder: (_) => CoursesScreen(
+                initialTab: tab,
+                currentCourse: selectedCourse,
+                initialCourseIdToOpen: editCurrent
+                    ? selectedCourse?.courseId
+                    : null,
+              ),
+            ),
+          );
+      if (mounted) await _studyFromCourses(request);
     }
 
     Future<void> showCourseManagerLocked(BuildContext sheetContext) =>
@@ -1790,12 +1792,51 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _openAllCourses() async {
-    await Navigator.of(context).push<void>(
+    final request = await Navigator.of(context).push<CourseStudyRequest>(
       MaterialPageRoute(
         builder: (_) => const CoursesScreen(initialTab: CoursesTab.allCourses),
       ),
     );
-    if (mounted) await _reload();
+    if (mounted) await _studyFromCourses(request);
+  }
+
+  /// After Courses closes: reload, or carry out Study or Review chosen in a
+  /// Course menu (Build 261 Revision 1, owner decision of 1 October 2026).
+  /// The Course joins the learner's courses when it is missing and becomes
+  /// current; Review then opens on it.
+  Future<void> _studyFromCourses(CourseStudyRequest? request) async {
+    if (request == null) {
+      await _reload();
+      return;
+    }
+    final course = request.course;
+    try {
+      final library = CourseLibraryService();
+      if (!await library.contains(course)) await library.add(course);
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not add “${course.title}”: $error')),
+        );
+      }
+      await _reload();
+      return;
+    }
+    if (!mounted) return;
+    if (course.courseId == _course?.courseId) {
+      await _reload();
+    } else if (course.originType == CourseOriginType.bundledOfficial) {
+      await _switchCourse(CourseService.bundledCodeForCourse(course));
+    } else {
+      await _switchCustomCourse(course);
+    }
+    final current = _course;
+    if (!mounted ||
+        request.action != CourseStudyAction.review ||
+        current?.courseId != course.courseId) {
+      return;
+    }
+    await _openReview(current!);
   }
 
   Future<bool> _canOpenLearnerContent() async {
@@ -2283,15 +2324,16 @@ class _HomeScreenState extends State<HomeScreen> {
                   icon: const Icon(Icons.edit_note),
                   label: const Text('Course Studio'),
                   onPressed: () async {
-                    await Navigator.of(context).push<void>(
-                      MaterialPageRoute(
-                        builder: (_) => const CoursesScreen(
-                          initialTab: CoursesTab.manager,
-                          currentCourse: null,
-                        ),
-                      ),
-                    );
-                    if (mounted) await _reload();
+                    final request = await Navigator.of(context)
+                        .push<CourseStudyRequest>(
+                          MaterialPageRoute(
+                            builder: (_) => const CoursesScreen(
+                              initialTab: CoursesTab.manager,
+                              currentCourse: null,
+                            ),
+                          ),
+                        );
+                    if (mounted) await _studyFromCourses(request);
                   },
                 ),
               ],
