@@ -31,11 +31,11 @@ Learner polish. Tests in `learner_round_path_test`,
 `leaderboard_navigation_test` and `round_xp_completion_regression_test`.
 Complete suite: 3521 passed, 1 skipped.
 
-## Revision 1 (implemented, 2 October 2026)
+## Revision 1 (committed `2e82cd8`, 2 October 2026)
 
 Study and Review in the Course menus of All Courses and Course Studio; the
 Course Editor opening mode in Do Not Disturb. Test
-`test/courses_study_review_261_test.dart`.
+`test/courses_study_review_261_test.dart`. Complete suite: 3530 passed, 1 skipped.
 
 ## Next
 
