@@ -90,7 +90,8 @@ void main() {
               '${topic.id}.${question.id}',
         ];
         expect(english, hasLength(7));
-        expect(ids(english), hasLength(68));
+        // Build 259 Revision 6 removed the Temporary Sample question.
+        expect(ids(english), hasLength(67));
         expect(ids(italian), ids(english));
         expect(ids(spanish), ids(english));
         expect(managerEnglish, hasLength(14));

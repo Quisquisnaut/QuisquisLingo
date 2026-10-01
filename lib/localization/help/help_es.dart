@@ -64,9 +64,6 @@ const Map<String, String> helpEs = {
       '¿Por qué aparece un aviso la primera vez que abro un Course en View only?',
   'editorHelp.qa.viewOnlyNotice.a':
       'Explica que View only no cambia nada. Aparece una vez por usuario y Course; Show one-time notices again, en Settings, lo vuelve a mostrar sin cambiar el modo de acceso.',
-  'editorHelp.qa.temporarySample.q': '¿Qué es un Course TEMPORARY SAMPLE?',
-  'editorHelp.qa.temporarySample.a':
-      'Un Course con material de desarrollo o demostración. La marca se muestra en Course Info. Sustituye el material de muestra por contenido educativo revisado antes de compartir el Course.',
   'editorHelp.qa.structure.q': '¿Cómo se organiza un Course?',
   'editorHelp.qa.structure.a':
       'Un Course contiene Lessons. Cada Lesson tiene un GuideBook, Rounds y un Duel; cada Round contiene ejercicios. En el Course Editor abre Lessons, luego una Lesson, sus Rounds y un Round. La ruta de navegación en la parte superior de cada página muestra dónde estás y te lleva de vuelta.',
@@ -421,7 +418,7 @@ const Map<String, String> helpEs = {
       'Course Studio se abre desde Course Selector, no desde Settings. Gestiona los cursos: los oficiales permiten consulta, Fork según licencia, Audit y Export; los custom permiten Edit, Copy as New Course, Merge, Audit, Export y Delete según tus permisos. Fork conserva el origen; Copy as New Course inicia otro. Para las operaciones de la biblioteca, abre Course Studio Help. Para crear y modificar cursos, abre Editor Help desde una página de Course Editor.',
   'appInfo.courseContentAndAi.title': 'Contenido de cursos e IA',
   'appInfo.courseContentAndAi.body':
-      'Los cursos incluidos llamados Temporary Demo son demostraciones generadas con IA y sin revisión; no son cursos fiables para estudiar. El contenido real de QuisquisLingo está pensado para ser escrito y revisado por personas. Esto no clasifica a otros cursos oficiales o custom.',
+      'Los cursos de demostración incluidos (Demo en el título) son demostraciones generadas con IA y sin revisión; no son cursos fiables para estudiar. El contenido real de QuisquisLingo está pensado para ser escrito y revisado por personas. Esto no clasifica a otros cursos oficiales o custom.',
   'appInfo.creditsButton': 'App and image credits',
   'appInfo.title': 'Información de la app',
   'courseInfo.title': 'Course Info',

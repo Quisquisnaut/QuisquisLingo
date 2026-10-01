@@ -316,3 +316,34 @@ handoff: `259_HANDOFF.md`.
 - `flutter analyze --no-pub`: no issues.
 - **Complete suite** (22:45–23:12, `--concurrency=1`, keep-awake):
   **3451 passed, 1 skipped, 0 failed**.
+
+## Revision 6 (2.0.59+259006, 1 October 2026): QQL Demo: Piedmontese
+
+**Generators and validator**
+- `tools/generate_piedmontese_mixed_259.py --check`: reproducible (2
+  Lessons, 20 mixed Rounds of 6 and the Story). The generator asserts that
+  it takes 120 exercises, that every Round has a scored exercise and that
+  no ID of the source Course is left.
+- Piedmontese: regenerated for the new title; `--check` reproducible. Its
+  v11 fixture rewritten with its checksum (the title only).
+- Laboratory and Edge Case: `--check` reproducible, unchanged.
+- `tools/validate_courses.py`: the three bundled Courses pass (an empty
+  GuideBook is accepted when `useGuidebook` is false).
+
+**Tests**
+- New: `test/piedmontese_mixed_259_test.dart` (the registry code and the
+  Piedmontese language code, JSON round trip and checksum; the same 120
+  exercises as the source with IDs set aside; no Round of one type;
+  20 Rounds of a card and six exercises, each with a scored one; the
+  Story unchanged; no GuideBook; no Audit error or warning).
+- Updated: the bundled-course counts and titles (provenance, registry,
+  Audit of the bundle, Course Library and Selector counts, discovery), the
+  Editor Help question count (67) and the Beta expiry dates (shifted by
+  one day).
+- `flutter analyze --no-pub`: no issues.
+- **First complete suite** (01:48–02:14, `--concurrency=1`, keep-awake):
+  3454 passed, 1 skipped, 1 failed: `owner_review_259_revision5_test`
+  pinned the bundle at two Courses. It now checks only that the Edge Case
+  left it.
+- **Second complete suite** (02:15–02:42): **3455 passed, 1 skipped, 0
+  failed**.

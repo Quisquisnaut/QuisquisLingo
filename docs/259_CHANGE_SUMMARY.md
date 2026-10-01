@@ -480,3 +480,46 @@ picture?" says Match pictures to words has one picture per word instead.
 
 Scoring, progression, Review, the Course format and learner data are
 unchanged.
+
+## Revision 6 (2.0.59+259006, 1 October 2026): QQL Demo: Piedmontese
+
+Owner requests of 1 October 2026, with three answers in chat: the course
+is bundled, it is one Lesson of many Rounds, and each Round has a Before
+you start card and no GuideBook.
+
+**QQL Demo: Piedmontese.** The Piedmontese demo groups its exercises by
+type, one Lesson each. The new bundled course holds the same 120
+exercises mixed at random:
+- one Lesson, **Mixed practice**, of 20 Rounds of six ("Mixed practice
+  1" … "20"), each opening with the card "Mixed practice: 6 exercises of
+  different types."; every Round has at least one scored exercise and at
+  least three exercise types;
+- the Story at the market as a second Lesson, **At the market** (its lines
+  keep their order; its card reads "A Story at the market: three lines of
+  dialogue.");
+- no GuideBook (`useGuidebook: false`, empty GuideBooks, no Open GuideBook
+  button);
+- the exercises keep their content, presets and time stamps; their IDs
+  take the new course's prefix, as bundled IDs are unique across courses;
+- `tools/generate_piedmontese_mixed_259.py` builds it from the Piedmontese
+  generator with a fixed seed, so it is reproducible (`--check`);
+- the registry code is `PMS_MIX`; language XP and streaks count it as
+  Piedmontese, like the other demo; its ID is reserved against a custom
+  import. The Audit finds no error and no warning.
+
+**Demo: Piedmontese (sorted by exercise type)** is the new title of the
+Piedmontese demo (formerly Temporary Demo: Piedmontese). Its content is
+unchanged.
+
+**Help.** The Editor Help question "What is a TEMPORARY SAMPLE Course?" is
+removed (EN/IT/ES; 67 questions). App Info said the bundled demos were
+"titled Temporary Demo"; it now says they have Demo in their titles. The
+"Temporary Sample" box that Course Info shows for a Course marked as a
+sample (the three demos) stays: the owner has not decided whether it still
+serves a purpose.
+
+**Validator.** A Course with Use GuideBook off may leave its GuideBooks
+empty, as the Audit already allows.
+
+Scoring, progression, Review, the Course format and learner data are
+unchanged.

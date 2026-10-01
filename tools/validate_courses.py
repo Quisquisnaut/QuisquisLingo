@@ -27,6 +27,7 @@ COURSES = ROOT / "assets" / "courses"
 EXPECTED_TTS = {
     "exercise_laboratory_en_it.json": "it-IT",
     "piedmontais_en.json": "pms-IT",
+    "piedmontese_mixed_en.json": "pms-IT",
 }
 TEXT_MODES = {"exactText", "acceptedTexts", "expression"}
 ROUND_VISUAL_TYPES = {"listening", "story", "generic", "test"}
@@ -479,6 +480,9 @@ def validate(path: Path, global_ids: dict[str, str]) -> list[str]:
         "exercise_laboratory_en_it.json": 8,
         # Listen and choose (Build 259 Revision 2) adds two Lessons.
         "piedmontais_en.json": 41,
+        # QQL Demo: Piedmontese (Build 259 Revision 6): the mixed practice
+        # Lesson and the Story.
+        "piedmontese_mixed_en.json": 2,
     }.get(path.name, 9)
     if len(lessons) != expected_lessons:
         issues.append(
@@ -514,7 +518,10 @@ def validate(path: Path, global_ids: dict[str, str]) -> list[str]:
                 issues.append(f"{where_lesson}: invalid or missing themeIconAsset: {icon}")
         guidebook = lesson.get("guidebook")
         guide_content = guidebook.get("content") if isinstance(guidebook, dict) else None
-        if not isinstance(guide_content, list) or not guide_content:
+        # A Course with Use GuideBook off may leave its GuideBooks empty, as
+        # the Audit allows (Build 259 Revision 6).
+        uses_guidebook = data.get("useGuidebook", True) is not False
+        if not isinstance(guide_content, list) or (uses_guidebook and not guide_content):
             issues.append(f"{where_lesson}: guidebook.content must be non-empty")
         else:
             for content_index, content in enumerate(guide_content, 1):

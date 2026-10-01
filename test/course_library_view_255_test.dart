@@ -229,11 +229,12 @@ void main() {
         await tester.tap(toggle(0));
         await tester.pump();
       }
-      // The Edge Case demo has Draft content, so it is unavailable.
-      expect(count(tester, 0), ' · 2 of 3 shown');
+      // The Edge Case demo has Draft content, so it is unavailable (three
+      // bundled demos and the fixture since Build 259 Revision 6).
+      expect(count(tester, 0), ' · 3 of 4 shown');
       await tester.tap(find.byKey(const Key('show-unavailable-courses')));
       await tester.pump();
-      expect(count(tester, 0), ' · 3 of 3 shown');
+      expect(count(tester, 0), ' · 4 of 4 shown');
       expect(
         find.byKey(
           const ValueKey(

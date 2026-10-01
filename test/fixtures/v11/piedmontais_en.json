@@ -24,7 +24,7 @@
   "interfaceLanguage": "English",
   "sourceLanguage": "English",
   "targetLanguage": "Piedmontese",
-  "title": "Temporary Demo: Piedmontese",
+  "title": "Demo: Piedmontese (sorted by exercise type)",
   "ttsLanguage": "pms-IT",
   "audioMode": "tts",
   "authors": [
@@ -9231,5 +9231,5 @@
       }
     }
   ],
-  "officialChecksum": "8b851412a7adc7d4fcb432c449cc96623d28314c7b64569a9d0ad73785f916e5"
+  "officialChecksum": "cfc14387574492cde96aa3f065376b80e51f1ccfaf8b564f28ed7c8d1bbe5678"
 }

@@ -90,8 +90,9 @@ void main() {
   });
 
   group('the Edge Case leaves the bundle', () {
-    test('only the Laboratory and the Piedmontese demo are bundled', () {
-      expect(CourseService.courseAssets.keys, ['IT', 'PMS']);
+    test('the Edge Case is no longer bundled', () {
+      // Revision 6 added QQL Demo: Piedmontese (PMS_MIX) to the bundle.
+      expect(CourseService.courseAssets.keys, isNot(contains('EN_EDGE')));
       expect(File('assets/courses/edge_case_it_en.json').existsSync(), isFalse);
       expect(File(edgeCaseImportPath).existsSync(), isTrue);
       expect(File(edgeCaseFixturePath).existsSync(), isTrue);

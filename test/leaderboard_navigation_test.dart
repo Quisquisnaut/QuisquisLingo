@@ -3183,7 +3183,7 @@ void main() {
     expect(recentTiles, hasLength(3));
 
     final recentTitles = [
-      'Temporary Demo: Piedmontese',
+      'Demo: Piedmontese (sorted by exercise type)',
       'Temporary Demo: Edge Case Course',
       'AI-Slop Demo: Korean for English Speakers',
     ];

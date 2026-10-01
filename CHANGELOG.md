@@ -1,3 +1,24 @@
+# 2.0.59 (Build 259, Revision 6) - QQL Demo: Piedmontese - 2026-10-01
+
+Owner requests of 1 October 2026.
+
+- **QQL Demo: Piedmontese**, a new bundled course: the 120 exercises of the
+  Piedmontese demo, no longer grouped by exercise type but mixed at random
+  in one Lesson of 20 Rounds of six, each opening with a Before you start
+  card ("Mixed practice: 6 exercises of different types."), then the Story
+  at the market as a second Lesson. It has no GuideBook. The exercises are
+  the same; only their IDs belong to the new course. Language XP and
+  streaks count it as Piedmontese.
+- The existing demo is renamed **Demo: Piedmontese (sorted by exercise
+  type)**; its content is unchanged.
+- Help: the Editor Help question "What is a TEMPORARY SAMPLE Course?" is
+  removed, and App Info no longer says the demos are "titled Temporary
+  Demo" (they are now named Demo: … or QQL Demo: …).
+
+Scoring, progression, Review, the Course format and learner data are
+unchanged. Beta expiry `2026-10-31 23:59:59` local time (30 days from the
+1 October 2026 release).
+
 # 2.0.59 (Build 259, Revision 5) - Owner review: pictures, Stories, Edge Case - 2026-09-30
 
 Corrections from the owner's third review of 30 September 2026 (points

@@ -108,10 +108,20 @@ lines re-recorded. `flutter analyze --no-pub`: no issues. The ZIP made by
 the app's export is in `Documents/QuisquisLingo/Import/Courses` (not
 committed). Complete suite 3451 passed, 1 skipped, 0 failed (23:12).
 
+## Revision 6 (implemented, 1 October 2026)
+
+QQL Demo: Piedmontese, the Piedmontese demo renamed, the Temporary Sample
+Help question removed, in the working tree as `2.0.59+259006`: see
+`docs/259_CHANGE_SUMMARY.md` (Revision 6). New generator
+`tools/generate_piedmontese_mixed_259.py`, new test
+`test/piedmontese_mixed_259_test.dart`. Open point for the owner: keep or
+remove Course Info's "Temporary Sample" box. Complete suite 3455 passed,
+1 skipped, 0 failed (02:42).
+
 ## Next
 
-Build 259 is complete after Revision 5. The plan's separate findings C, E
-and F are not in this build.
+Build 259 is complete after Revision 6. The plan's separate findings C and
+E are not in this build.
 
 Stage with `git add -A -- . ':!devtools_options.yaml' ':!tools/cloud_setup.sh'`
 after checking `git status` for files another session wrote.

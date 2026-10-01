@@ -56,9 +56,6 @@ const Map<String, String> helpEn = <String, String>{
       r'''Why does a notice appear the first time I open a Course in View only?''',
   'editorHelp.qa.viewOnlyNotice.a':
       r'''It explains that View only changes nothing. It appears once per user and Course; Show one-time notices again, in Settings, brings it back without changing the access mode.''',
-  'editorHelp.qa.temporarySample.q': r'''What is a TEMPORARY SAMPLE Course?''',
-  'editorHelp.qa.temporarySample.a':
-      r'''A Course with development or demonstration material. The mark is shown in Course Info. Replace the sample material with reviewed educational content before you share the Course.''',
   'editorHelp.qa.structure.q': r'''How is a Course organized?''',
   'editorHelp.qa.structure.a':
       r'''A Course contains Lessons. Each Lesson has a GuideBook, Rounds and a Duel; each Round holds exercises. In the Course Editor open Lessons, then a Lesson, its Rounds and a Round. The breadcrumbs at the top of each page show where you are and take you back.''',
@@ -425,7 +422,7 @@ const Map<String, String> helpEn = <String, String>{
   'appInfo.courseStudioAndCourseEditor.body':
       r'''Course Studio is opened from the learner Course Selector rather than Settings. It is the lifecycle hub: official courses provide read-only inspection, licensed Fork, Audit and supported Export; custom courses provide Edit, Copy as New Course, Merge, Audit, Export and Delete. Fork preserves the source lineage; Copy as New Course starts an independent Course lineage. Open Course Studio Help for library operations, and Editor Help from any Course Editor hierarchy page for authoring instructions.''',
   'appInfo.courseContentAndAi.body':
-      r'''The bundled courses titled Temporary Demo are AI-generated, unreviewed demonstrations and are not reliable learning courses. Real QuisquisLingo course content is intended to be authored and reviewed by humans. This classification does not apply to other official or custom courses.''',
+      r'''The bundled demo courses (Demo in their titles) are AI-generated, unreviewed demonstrations and are not reliable learning courses. Real QuisquisLingo course content is intended to be authored and reviewed by humans. This classification does not apply to other official or custom courses.''',
   'appInfo.versionAndBuild.body': r'''{version}''',
   'appInfo.betaExpiry.active':
       r'''This is a time-limited beta build. It expires on {expiryDate}. After expiry, learner exercises and Review are blocked until a newer beta is installed. Local progress, courses, course edits and settings are not deleted, and Course Editor remains available.''',

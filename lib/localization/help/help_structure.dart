@@ -8,7 +8,6 @@ const editorHelpQuestionsByTopic = <String, List<String>>{
     'accessModes',
     'whyNoEdit',
     'viewOnlyNotice',
-    'temporarySample',
     'structure',
     'search',
     'internalIds',

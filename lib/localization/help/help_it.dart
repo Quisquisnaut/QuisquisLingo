@@ -63,9 +63,6 @@ const Map<String, String> helpIt = {
       "Perché compare un avviso la prima volta che apro un Course in View only?",
   "editorHelp.qa.viewOnlyNotice.a":
       "Spiega che View only non cambia niente. Compare una volta sola per ogni utente e per ogni Course; Show one-time notices again, in Settings, lo fa ricomparire senza cambiare la modalità di accesso.",
-  "editorHelp.qa.temporarySample.q": "Che cos’è un Course TEMPORARY SAMPLE?",
-  "editorHelp.qa.temporarySample.a":
-      "Un Course con materiale di sviluppo o dimostrativo. Il contrassegno compare in Course Info. Sostituisci il materiale di esempio con contenuti didattici revisionati prima di condividere il Course.",
   "editorHelp.qa.structure.q": "Come è organizzato un Course?",
   "editorHelp.qa.structure.a":
       "Un Course contiene delle Lesson. Ogni Lesson ha un GuideBook, dei Round e un Duel; ogni Round contiene degli esercizi. Nel Course Editor apri Lessons, poi una Lesson, i suoi Rounds e un Round. Le briciole di navigazione in cima a ogni pagina mostrano dove ti trovi e ti riportano indietro.",
@@ -423,7 +420,7 @@ const Map<String, String> helpIt = {
       'Il Course Studio si apre dal Course Selector della pagina di studio, non da Settings. È il punto da cui si gestisce tutto il ciclo di vita dei corsi: quelli ufficiali permettono la consultazione in sola lettura, il Fork su licenza, l’Audit e l’Export supportato; quelli personalizzati permettono Edit, Copy as New Course, Merge, Audit, Export e Delete. Il Fork mantiene la discendenza dal corso di origine; Copy as New Course fa partire una discendenza indipendente. Per le operazioni della libreria apri Course Studio Help; per creare e modificare i corsi apri Editor Help da una pagina del Course Editor.',
   'appInfo.courseContentAndAi.title': 'Contenuti dei corsi e IA',
   'appInfo.courseContentAndAi.body':
-      'I corsi inclusi nell’app che si chiamano Temporary Demo sono dimostrazioni generate dall’IA e non revisionate: non sono corsi affidabili per studiare. I veri contenuti di QuisquisLingo sono pensati per essere scritti e revisionati da persone. Questa classificazione non riguarda gli altri corsi, ufficiali o personalizzati.',
+      'I corsi dimostrativi inclusi nell’app (Demo nel titolo) sono dimostrazioni generate dall’IA e non revisionate: non sono corsi affidabili per studiare. I veri contenuti di QuisquisLingo sono pensati per essere scritti e revisionati da persone. Questa classificazione non riguarda gli altri corsi, ufficiali o personalizzati.',
   'appInfo.creditsButton': 'App and image credits',
   // Course Info and the shared Locale selector.
   "courseInfo.title": "Course Info",

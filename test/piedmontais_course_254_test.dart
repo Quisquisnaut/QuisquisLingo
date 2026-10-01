@@ -30,7 +30,7 @@ void main() {
       expect(course.courseId, 'course_e5f5585a-7762-43a0-a6b2-62754e02d17b');
       expect(course.originType, CourseOriginType.bundledOfficial);
       // Build 255 Revision 6 renamed it from Piedmontais, keeping its ID.
-      expect(course.title, 'Temporary Demo: Piedmontese');
+      expect(course.title, 'Demo: Piedmontese (sorted by exercise type)');
       expect(course.learningLanguage, 'Piedmontese');
       expect(course.sourceLanguage, 'English');
       expect(course.targetLanguage, 'Piedmontese');

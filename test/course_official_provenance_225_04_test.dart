@@ -9,9 +9,10 @@ import 'package:quisquislingo_app/services/course_service.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  test('both bundled sources have verified immutable provenance', () async {
-    // The Edge Case left the bundle in Build 259 Revision 5.
-    expect(CourseService.courseAssets, hasLength(2));
+  test('the bundled sources have verified immutable provenance', () async {
+    // The Edge Case left the bundle in Build 259 Revision 5; QQL Demo:
+    // Piedmontese joined it in Revision 6.
+    expect(CourseService.courseAssets, hasLength(3));
     final mismatches = <String, String>{};
     final titles = <String>{};
     for (final entry in CourseService.courseAssets.entries) {
@@ -19,7 +20,8 @@ void main() {
       final course = Course.fromJson(Map<String, dynamic>.from(raw as Map));
       expect(course.originType, CourseOriginType.bundledOfficial);
       expect(course.temporarySample, isTrue);
-      expect(course.title, startsWith('Temporary Demo: '));
+      // Revision 6 titles: Demo: … and QQL Demo: … (owner decision).
+      expect(course.title, contains('Demo: '));
       titles.add(course.title);
       expect(course.publisherId, 'org.quisquislingo');
       expect(
@@ -33,7 +35,8 @@ void main() {
     }
     expect(mismatches, isEmpty, reason: 'bundled checksum mismatches');
     expect(titles, {
-      'Temporary Demo: Piedmontese',
+      'Demo: Piedmontese (sorted by exercise type)',
+      'QQL Demo: Piedmontese',
       'Temporary Demo: Exercise Laboratory',
     });
     for (final entry in CourseService.courseAssets.entries) {
@@ -53,6 +56,7 @@ void main() {
       const derivatives = {
         'IT': DerivativeWorksPolicy.allowed,
         'PMS': DerivativeWorksPolicy.forbidden,
+        'PMS_MIX': DerivativeWorksPolicy.forbidden,
       };
       expect(
         CourseService.courseAssets.keys,

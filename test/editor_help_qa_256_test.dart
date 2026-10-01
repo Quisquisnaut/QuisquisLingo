@@ -42,7 +42,8 @@ void main() {
     final ids = [for (final list in editorHelpQuestionsByTopic.values) ...list];
     // Build 257: How do I write the Before you start note of a Round?
     // Build 258: How do I make a textbook-like Page?
-    expect(ids, hasLength(68));
+    // Build 259 Revision 6: What is a TEMPORARY SAMPLE Course? is gone.
+    expect(ids, hasLength(67));
     expect(ids.toSet(), hasLength(ids.length));
     for (final catalog in [helpEn, helpIt, helpEs]) {
       for (final topic in editorHelpQuestionsByTopic.keys) {
