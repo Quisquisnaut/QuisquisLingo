@@ -44,7 +44,8 @@ void main() {
     // Build 258: How do I make a textbook-like Page?
     // Build 259 Revision 6: What is a TEMPORARY SAMPLE Course? is gone.
     // Build 259 Revision 8: What is a Private course?
-    expect(ids, hasLength(68));
+    // Build 260 Revision 0: How do I choose the Course languages?
+    expect(ids, hasLength(69));
     expect(ids.toSet(), hasLength(ids.length));
     for (final catalog in [helpEn, helpIt, helpEs]) {
       for (final topic in editorHelpQuestionsByTopic.keys) {

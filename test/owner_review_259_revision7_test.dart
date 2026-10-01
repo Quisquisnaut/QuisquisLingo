@@ -113,8 +113,12 @@ void main() {
     });
 
     test('the other learner languages follow', () {
-      Course inLanguage(String source) =>
-          Course.fromJson({..._laboratory.toJson(), 'sourceLanguage': source});
+      // Build 260 Revision 0: the base language's tag decides first, so the
+      // Laboratory's en-GB goes.
+      Course inLanguage(String source) => Course.fromJson({
+        ..._laboratory.toJson()..remove('sourceLanguageTag'),
+        'sourceLanguage': source,
+      });
       expect(
         ExerciseCopyService.instruction(
           inLanguage('Italian'),
@@ -122,13 +126,13 @@ void main() {
         ),
         'Trova la risposta corretta.',
       );
-      // The language name is the Course's own, as in Pick the translation.
+      // Build 260 Revision 0: the name is in the instruction language.
       expect(
         ExerciseCopyService.instruction(
           inLanguage('Spanish'),
           LearnerExerciseKind.inputTranslation,
         ),
-        'Traduce al Italian.',
+        'Traduce al italiano.',
       );
     });
   });

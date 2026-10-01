@@ -476,8 +476,8 @@ void main() {
       'German',
       'Portuguese',
       'Dutch',
-      'Finnish',
-      'Welsh',
+      // Build 260 Revision 0: Finnish and Welsh left, French joined.
+      'French',
     ]) {
       final course = _course(const [], source: source);
       for (final variant in const [

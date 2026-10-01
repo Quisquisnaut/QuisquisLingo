@@ -227,6 +227,9 @@ class CourseMergeService {
       'allowPageSharing',
       // Private course (Build 259 Revision 8): the left Course's value too.
       'temporarySample',
+      // Build 260 Revision 0: the learners' name of the language, the left
+      // Course's.
+      'targetLanguageNameForLearners',
       'lessonNumberingMode',
       'customLessonLabel',
       'sectionNames',

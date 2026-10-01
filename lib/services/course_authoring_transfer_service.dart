@@ -388,6 +388,7 @@ class CourseAuthoringTransferService {
     courseDescription: source.courseDescription,
     sourceLanguageTag: source.sourceLanguageTag,
     targetLanguageTag: source.targetLanguageTag,
+    targetLanguageNameForLearners: source.targetLanguageNameForLearners,
     textDirection: source.textDirection,
     flagCode: source.flagCode,
     flagImageBase64: source.flagImageBase64,

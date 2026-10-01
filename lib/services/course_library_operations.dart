@@ -578,6 +578,10 @@ class CourseLibraryOperations {
     required String title,
     required String sourceLanguage,
     required String targetLanguage,
+    // Build 260 Revision 0: the tags of listed languages ('' for a language
+    // typed by hand without one).
+    String sourceLanguageTag = '',
+    String targetLanguageTag = '',
     required List<NewCourseCredit> credits,
     required String license,
     required DerivativeWorksPolicy derivativeWorksPolicy,
@@ -614,9 +618,12 @@ class CourseLibraryOperations {
       interfaceLanguage: sourceLanguage,
       sourceLanguage: sourceLanguage,
       targetLanguage: targetLanguage,
+      sourceLanguageTag: sourceLanguageTag,
+      targetLanguageTag: targetLanguageTag,
       title: title,
-      ttsLanguage:
-          CourseLanguageResolver.codeFromMetadata([targetLanguage]) ?? 'und',
+      ttsLanguage: targetLanguageTag.isNotEmpty
+          ? targetLanguageTag
+          : CourseLanguageResolver.codeFromMetadata([targetLanguage]) ?? 'und',
       originType: CourseOriginType.custom,
       courseVersion: '',
       authors: [

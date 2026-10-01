@@ -318,8 +318,8 @@ void main() {
         'German',
         'Portuguese',
         'Dutch',
-        'Finnish',
-        'Welsh',
+        // Build 260 Revision 0: Finnish and Welsh left, French joined.
+        'French',
       ]) {
         final localized = Course.fromJson({
           ...course.toJson(),

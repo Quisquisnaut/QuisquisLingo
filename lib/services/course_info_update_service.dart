@@ -1,5 +1,7 @@
 import '../models/course_models.dart';
 import 'course_governance_service.dart';
+import 'course_service.dart';
+import 'language_catalog.dart';
 
 /// Values accepted by the Course Info dialog after its field validation.
 typedef CourseInfoChange = ({
@@ -14,6 +16,12 @@ typedef CourseInfoChange = ({
   // Build 259 Revision 8: a Private course (stored as temporarySample) is
   // visible only to its Maintainer and assigned Team.
   bool privateCourse,
+  // Build 260 Revision 0: language tags an earlier Course gains from the
+  // list (only the tags of its own languages), and the learners' name of the
+  // learning language ('' for QQL's name).
+  String sourceLanguageTag,
+  String targetLanguageTag,
+  String targetLanguageNameForLearners,
   String variant,
   String startLevel,
   String targetLevel,
@@ -45,11 +53,61 @@ class CourseInfoUpdateService {
 
   final CourseGovernanceService _governanceService;
 
+  /// A Course's languages never change after it is created (Build 260
+  /// Revision 0, owner decision): Course Info may only add the tag of the
+  /// language a side already names. A stored tag stays; an added learning
+  /// language tag must keep the language code that language XP and streaks
+  /// use, and an added base language tag must name the language the Course
+  /// writes, when QQL knows it.
+  static void _checkLanguageTags(Course course, CourseInfoChange change) {
+    for (final (side, stored, requested, written) in [
+      (
+        'base',
+        course.sourceLanguageTag,
+        change.sourceLanguageTag.trim(),
+        course.sourceLanguage,
+      ),
+      (
+        'learning',
+        course.targetLanguageTag,
+        change.targetLanguageTag.trim(),
+        course.targetLanguage,
+      ),
+    ]) {
+      if (requested == stored) continue;
+      if (stored.isNotEmpty) {
+        throw ArgumentError('The $side language tag cannot change.');
+      }
+      if (!LanguageCatalog.isValidTag(requested)) {
+        throw ArgumentError('“$requested” is not a language tag.');
+      }
+      final known = LanguageCatalog.resolve(written);
+      final chosen = LanguageCatalog.byTag(requested);
+      if (known != null && chosen?.tag != known.tag) {
+        throw ArgumentError(
+          '“${chosen?.englishName ?? requested}” is not “$written”: the $side language cannot change.',
+        );
+      }
+    }
+    final tagged = Course.fromJson({
+      ...course.toJson(),
+      if (change.targetLanguageTag.trim().isNotEmpty)
+        'targetLanguageTag': change.targetLanguageTag.trim(),
+    });
+    if (CourseService.codeForCourse(tagged) !=
+        CourseService.codeForCourse(course)) {
+      throw ArgumentError(
+        'That tag would move the learning language’s XP and streak: the learning language cannot change.',
+      );
+    }
+  }
+
   Future<CourseInfoUpdateResult> apply(
     Course currentCourse,
     CourseInfoChange change,
     String? actorProfileId,
   ) async {
+    _checkLanguageTags(currentCourse, change);
     var governedCourse = currentCourse;
     if (governedCourse.assignedTeamId != change.assignedTeamId) {
       if (actorProfileId == null) {
@@ -81,6 +139,16 @@ class CourseInfoUpdateService {
             governedCourse.maintainer!.profileId ||
         currentCourse.assignedTeamId != governedCourse.assignedTeamId;
     final descriptive = <String, Object?>{
+      'sourceLanguageTag': change.sourceLanguageTag.trim().isEmpty
+          ? null
+          : change.sourceLanguageTag.trim(),
+      'targetLanguageTag': change.targetLanguageTag.trim().isEmpty
+          ? null
+          : change.targetLanguageTag.trim(),
+      'targetLanguageNameForLearners':
+          change.targetLanguageNameForLearners.trim().isEmpty
+          ? null
+          : change.targetLanguageNameForLearners.trim(),
       'estimatedStudyHours': change.estimatedStudyHours,
       'minimumAge': change.minimumAge,
       'keywords': change.keywords.isEmpty ? null : change.keywords,

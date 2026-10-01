@@ -884,6 +884,11 @@ class Course {
   final String courseDescription;
   final String sourceLanguageTag;
   final String targetLanguageTag;
+
+  /// How this Course's learners call the language they learn, in the
+  /// Course's base language, for lines such as "Translate into …" (Build 260
+  /// Revision 0). Empty: QQL's name for the language. Stored only when set.
+  final String targetLanguageNameForLearners;
   final String textDirection;
   final String flagCode;
   final String flagImageBase64;
@@ -978,6 +983,7 @@ class Course {
     this.courseDescription = '',
     this.sourceLanguageTag = '',
     this.targetLanguageTag = '',
+    this.targetLanguageNameForLearners = '',
     this.textDirection = 'ltr',
     this.flagCode = '',
     this.flagImageBase64 = '',
@@ -1408,6 +1414,8 @@ class Course {
     if (courseDescription.isNotEmpty) 'courseDescription': courseDescription,
     if (sourceLanguageTag.isNotEmpty) 'sourceLanguageTag': sourceLanguageTag,
     if (targetLanguageTag.isNotEmpty) 'targetLanguageTag': targetLanguageTag,
+    if (targetLanguageNameForLearners.isNotEmpty)
+      'targetLanguageNameForLearners': targetLanguageNameForLearners,
     'textDirection': textDirection,
     if (flagCode.isNotEmpty) 'flagCode': flagCode,
     if (flagImageBase64.isNotEmpty) 'flagImageBase64': flagImageBase64,
@@ -1722,6 +1730,11 @@ class Course {
       courseDescription: _optionalString(json, 'courseDescription', ''),
       sourceLanguageTag: _optionalString(json, 'sourceLanguageTag', ''),
       targetLanguageTag: _optionalString(json, 'targetLanguageTag', ''),
+      targetLanguageNameForLearners: _optionalString(
+        json,
+        'targetLanguageNameForLearners',
+        '',
+      ),
       textDirection: _optionalString(json, 'textDirection', 'ltr'),
       flagCode: _optionalString(json, 'flagCode', ''),
       flagImageBase64: _optionalString(json, 'flagImageBase64', ''),

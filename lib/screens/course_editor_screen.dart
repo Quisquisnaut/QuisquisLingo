@@ -63,6 +63,8 @@ import '../services/authoring_duplication_service.dart';
 import '../services/exercise_creation_planner.dart';
 import '../services/exercise_draft_builder.dart';
 import '../services/exercise_copy_service.dart';
+import '../services/language_catalog.dart';
+import '../widgets/language_field.dart';
 import '../services/canonical_exercise_draft.dart';
 import '../services/round_flow_authoring.dart';
 import '../services/preset_recipes.dart';
@@ -661,6 +663,57 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
     }
   }
 
+  static String _tagHelper(String tag) =>
+      tag.isEmpty ? 'Read-only · no language tag' : 'Read-only · tag $tag';
+
+  /// The tags of the Course's own languages (Build 260 Revision 0, owner
+  /// decision: a Course's languages never change). A written name QQL
+  /// recognizes gives its tag; otherwise the author picks the language from
+  /// the list, and a learning language tag is kept only when it leaves the
+  /// language code of XP and streaks as it is.
+  Future<(String, String)> _languageTagsFromList(
+    BuildContext context, {
+    required String sourceTag,
+    required String targetTag,
+  }) async {
+    Future<String> tagFor(String written) async {
+      final known = LanguageCatalog.resolve(written);
+      if (known != null) return known.tag;
+      final picked = await showLanguagePicker(
+        context,
+        initialQuery: written,
+        title: 'Which language is “$written”?',
+      );
+      return picked?.tag ?? '';
+    }
+
+    var source = sourceTag;
+    var target = targetTag;
+    if (source.isEmpty) source = await tagFor(_course.sourceLanguage);
+    if (target.isEmpty) {
+      final candidate = await tagFor(_course.targetLanguage);
+      if (candidate.isNotEmpty) {
+        final tagged = Course.fromJson({
+          ..._course.toJson(),
+          'targetLanguageTag': candidate,
+        });
+        if (CourseService.codeForCourse(tagged) ==
+            CourseService.codeForCourse(_course)) {
+          target = candidate;
+        } else if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                '“${LanguageCatalog.byTag(candidate)?.englishName ?? candidate}” is not “${_course.targetLanguage}”: the learning language of a Course cannot change.',
+              ),
+            ),
+          );
+        }
+      }
+    }
+    return (source, target);
+  }
+
   Future<void> _editCourseInfo() async {
     final resolvedGovernance = await CourseGovernanceResolver(
       profileService: _profiles,
@@ -825,6 +878,20 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
     var derivativePolicy = _course.derivativeWorksPolicy;
     var allowPageSharing = _course.allowPageSharing;
     var privateCourse = _course.temporarySample;
+    // Build 260 Revision 0: an earlier Course may gain the tags of its own
+    // languages, and its learners' name of the learning language.
+    var sourceTag = _course.sourceLanguageTag;
+    var targetTag = _course.targetLanguageTag;
+    final learnerLanguageName = TextEditingController(
+      text: _course.targetLanguageNameForLearners,
+    );
+    final defaultLearnerLanguageName = ExerciseCopyService.languageName(
+      Course.fromJson({
+        ..._course.toJson(),
+        'targetLanguageNameForLearners': '',
+      }),
+      intoSource: false,
+    );
     String? mediaCreditError;
     var flagSelection = CourseFlagSelection.fromCourse(_course);
     var coverImage = _course.coverImage;
@@ -1092,11 +1159,16 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                   ),
                   const SizedBox(height: 8),
                   if (narrowCourseInfo) ...[
-                    readOnlyField('Base language', baseLanguage.displayLabel),
+                    readOnlyField(
+                      'Base language',
+                      baseLanguage.displayLabel,
+                      helperText: _tagHelper(sourceTag),
+                    ),
                     const SizedBox(height: 8),
                     readOnlyField(
                       'Learning language',
                       learningLanguage.displayLabel,
+                      helperText: _tagHelper(targetTag),
                     ),
                   ] else
                     Row(
@@ -1106,6 +1178,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                           child: readOnlyField(
                             'Base language',
                             baseLanguage.displayLabel,
+                            helperText: _tagHelper(sourceTag),
                           ),
                         ),
                         const SizedBox(width: 8),
@@ -1113,10 +1186,47 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                           child: readOnlyField(
                             'Learning language',
                             learningLanguage.displayLabel,
+                            helperText: _tagHelper(targetTag),
                           ),
                         ),
                       ],
                     ),
+                  if (sourceTag.isEmpty || targetTag.isEmpty)
+                    Align(
+                      alignment: AlignmentDirectional.centerStart,
+                      child: TextButton.icon(
+                        key: const Key('course-info-language-tags'),
+                        icon: const Icon(Icons.sell_outlined),
+                        label: const Text(
+                          'Add the language tags from the list',
+                        ),
+                        onPressed: () async {
+                          final tags = await _languageTagsFromList(
+                            ctx,
+                            sourceTag: sourceTag,
+                            targetTag: targetTag,
+                          );
+                          setLocalState(() {
+                            sourceTag = tags.$1;
+                            targetTag = tags.$2;
+                          });
+                        },
+                      ),
+                    ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    key: const Key('course-info-learner-language-name'),
+                    controller: learnerLanguageName,
+                    maxLength: 60,
+                    decoration: InputDecoration(
+                      border: const OutlineInputBorder(),
+                      labelText: 'Learning language name for learners',
+                      hintText: defaultLearnerLanguageName,
+                      helper: Text(
+                        'How this Course’s learners call the language they learn, in lines such as “Translate into …”. Leave it empty for “$defaultLearnerLanguageName”.',
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 14),
                   const Text(
                     'Course flag',
@@ -1971,6 +2081,10 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                         ),
                   allowPageSharing: allowPageSharing,
                   privateCourse: privateCourse,
+                  sourceLanguageTag: sourceTag,
+                  targetLanguageTag: targetTag,
+                  targetLanguageNameForLearners: learnerLanguageName.text
+                      .trim(),
                   variant: variant.text.trim(),
                   startLevel: startLevel.text.trim(),
                   targetLevel: targetLevel.text.trim(),

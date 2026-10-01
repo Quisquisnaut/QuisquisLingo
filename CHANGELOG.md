@@ -1,3 +1,27 @@
+# 2.0.60 (Build 260, Revision 0) - Course languages - 2026-10-01
+
+Owner decisions of 1 October 2026 (`docs/260_LANGUAGES_PLAN.md`).
+
+- **Language selector in New Course.** Source and Target language list
+  227 languages by their English name (every ISO 639-1 language and the
+  regional ones such as Neapolitan nap and Piedmontese pms), with a
+  search. A language not in the list is typed by hand, with an optional
+  tag. The Course stores the name and the tag; voice and flag follow.
+- **Course Info** shows whether a language has a tag and can add the tags
+  an earlier Course lacks, never another language. "Learning language
+  name for learners" sets how the learner lines name the language taught.
+- **Instruction languages.** The learner panel's headings and lines are in
+  the Course's base language: English, Spanish, Italian, German,
+  Portuguese, Dutch and now French (AI-written, pending review). Finnish
+  and Welsh are removed; other base languages get English.
+- **Language names in the lines**: "Traduce al italiano.", "Traduci in
+  napoletano." instead of the Course's English names.
+- Help EN/IT/ES: "How do I choose the Course languages?".
+
+Scoring, progression, Review and learner data are unchanged; the Course
+format gains one optional field. Beta expiry `2026-10-31 23:59:59` local
+time (same release day as Build 259 Revision 6).
+
 # 2.0.59 (Build 259, Revision 8) - Private courses, Laboratory fixes - 2026-10-01
 
 Owner decisions of 1 October 2026.
