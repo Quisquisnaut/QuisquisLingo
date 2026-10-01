@@ -118,7 +118,7 @@ Help question removed, in the working tree as `2.0.59+259006`: see
 remove Course Info's "Temporary Sample" box. Complete suite 3455 passed,
 1 skipped, 0 failed (02:42).
 
-## Revision 7 (implemented, 1 October 2026)
+## Revision 7 (committed `0009f50`, 09:00, 1 October 2026)
 
 Translation lines, plainer instructions and the new course's GuideBooks,
 in the working tree as `2.0.59+259007`: see `docs/259_CHANGE_SUMMARY.md`
