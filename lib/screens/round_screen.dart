@@ -18,6 +18,7 @@ import '../widgets/beta_expired_view.dart';
 import '../models/course_models.dart';
 import '../models/exercise_features.dart';
 import '../services/progress_service.dart';
+import '../services/exercise_difficulty.dart';
 import '../services/learner_panel_text.dart';
 import '../services/learning_completion_service.dart';
 import '../services/report_service.dart';
@@ -193,6 +194,10 @@ class _RoundScreenState extends State<RoundScreen> {
   final Set<int> _wrongFirstPass = {};
   int _position = 0;
   int _firstPassCorrect = 0;
+
+  /// The sum of the difficulty levels of the exercises answered correctly at
+  /// the first attempt: the Difficulty bonus (Build 260 Revision 6).
+  int _firstPassDifficulty = 0;
   int _evaluableExerciseCount = 0;
   int _errorsThisAttempt = 0;
   bool _reviewPhase = false;
@@ -1250,6 +1255,7 @@ class _RoundScreenState extends State<RoundScreen> {
       if (!_reviewPhase) {
         if (correct) {
           _firstPassCorrect++;
+          _firstPassDifficulty += ExerciseDifficulty.of(_exercise)?.value ?? 0;
         } else {
           _wrongFirstPass.add(_exerciseIndex);
         }
@@ -1752,6 +1758,7 @@ class _RoundScreenState extends State<RoundScreen> {
             evaluableExerciseCount: _evaluableExerciseCount,
             wasCompletedAtStart: _wasCompleted,
             ttsWasSkipped: _ttsWasSkipped,
+            firstPassDifficulty: _firstPassDifficulty,
           ),
         ),
         onNewLaurel: () async {
@@ -1798,6 +1805,13 @@ class _RoundScreenState extends State<RoundScreen> {
                         'xp': completion.roundXp.correctAnswerXp,
                       }),
                     ),
+                    if (completion.roundXp.difficultyBonusXp > 0)
+                      Text(
+                        _t('summary.difficultyBonus', {
+                          'xp': completion.roundXp.difficultyBonusXp,
+                        }),
+                        key: const Key('round-completed-difficulty-bonus'),
+                      ),
                     if (completion.roundXp.perfectBonusXp > 0)
                       Text(
                         _t('summary.perfectBonus', {

@@ -175,3 +175,29 @@
 - `flutter analyze --no-pub`: no issues.
 - **Complete suite** (`--concurrency=1`, keep-awake, 29 min 25 s):
   **3505 passed, 1 skipped, 0 failed**.
+
+## Revision 6 (2.0.60+260006, 1 October 2026): Difficulty bonus XP
+
+**Generators and validator**
+- No Course file changes; `tools/validate_courses.py` passes.
+
+**Tests**
+- New: `test/difficulty_bonus_260_test.dart` (the first completion adds 1
+  XP per level of the right answers: six exercises of levels 1, 2, 3, 4, 2
+  and 1 give 73 XP instead of 60; wrong answers are not summed; repeats
+  and Review add none; an unfinished Round or one without a scored
+  exercise adds none; a caller stating no difficulty keeps the earlier
+  awards; the summary line exists in the seven languages).
+- Deliberately updated for the new rule (their exercises are level-2
+  Choose exercises, +2 XP each on a first completion):
+  `lesson_completion_regression_test` (35 → 37, 60 → 62, and the summary's
+  "Difficulty bonus: +2 XP"), `round_xp_completion_regression_test` (5 →
+  7, 40 → 44 with "+4 XP", 10 → 12, 60 → 62, 70 → 86 with "+16 XP", the
+  repeat 91 → 107, 49 → 53, the course reset 50 → 54) and
+  `qql_230_learner_flow_hardening_test` (a double tap still awards once:
+  37). The repeat and Review expectations did not change.
+- Focused run (the 29 files that read XP or Laurels): 1 failure, the last
+  one above, fixed and re-run.
+- `flutter analyze --no-pub`: no issues.
+- **Complete suite** (`--concurrency=1`, keep-awake, 26 min 30 s):
+  **3511 passed, 1 skipped, 0 failed**.

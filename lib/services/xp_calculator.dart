@@ -10,6 +10,11 @@ class RoundXpAwardContext {
   /// only, which awards nothing (owner decision, 28 September 2026).
   final int? evaluableExerciseCount;
 
+  /// The sum of the difficulty levels (`ExerciseDifficulty`, 0 to 4) of the
+  /// exercises answered correctly at the first attempt; zero when the
+  /// caller does not state it (Build 260 Revision 6).
+  final int firstPassDifficulty;
+
   const RoundXpAwardContext({
     required this.completed,
     required this.errorsThisAttempt,
@@ -17,6 +22,7 @@ class RoundXpAwardContext {
     required this.wasCompletedAtStart,
     required this.newlyEarnedLaurel,
     this.evaluableExerciseCount,
+    this.firstPassDifficulty = 0,
   });
 }
 
@@ -25,13 +31,20 @@ class RoundXpResult {
   final int perfectBonusXp;
   final int laurelBonusXp;
 
+  /// 1 XP per difficulty level of each exercise answered correctly at the
+  /// first attempt, on a Round's first completion only (Build 260 Revision
+  /// 6, owner decision of 1 October 2026).
+  final int difficultyBonusXp;
+
   const RoundXpResult({
     required this.correctAnswerXp,
     required this.perfectBonusXp,
     required this.laurelBonusXp,
+    this.difficultyBonusXp = 0,
   });
 
-  int get totalXp => correctAnswerXp + perfectBonusXp + laurelBonusXp;
+  int get totalXp =>
+      correctAnswerXp + perfectBonusXp + laurelBonusXp + difficultyBonusXp;
 }
 
 /// Pure XP reward calculations.
@@ -43,6 +56,7 @@ class XpCalculator {
   static const int _repeatCorrectAnswerXp = 2;
   static const int _perfectCompletionXp = 5;
   static const int _firstLaurelXp = 25;
+  static const int _difficultyBonusXpPerLevel = 1;
   static const int _lessonCompletionXp = 25;
   static const int _firstDuelWinXp = 50;
   static const int _repeatDuelWinXp = 10;
@@ -66,6 +80,10 @@ class XpCalculator {
       correctAnswerXp: context.firstPassCorrect * xpPerCorrectAnswer,
       perfectBonusXp: context.errorsThisAttempt == 0 ? _perfectCompletionXp : 0,
       laurelBonusXp: context.newlyEarnedLaurel ? _firstLaurelXp : 0,
+      // Repeats and Review earn no Difficulty bonus.
+      difficultyBonusXp: context.wasCompletedAtStart
+          ? 0
+          : context.firstPassDifficulty * _difficultyBonusXpPerLevel,
     );
   }
 

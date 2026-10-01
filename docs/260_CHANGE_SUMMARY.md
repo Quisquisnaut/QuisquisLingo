@@ -222,3 +222,32 @@ bars mean?" (70 questions).
 
 Nothing learners see, scoring, progression, the Course format and learner
 data change in this revision; Revision 6 adds the Difficulty bonus XP.
+
+## Revision 6 (2.0.60+260006, 1 October 2026): Difficulty bonus XP
+
+Owner decisions of 1 October 2026: 1 XP per difficulty level, only for an
+exercise answered correctly, only on a Round's first completion.
+
+**The rule.** On a Round's first completion, each evaluable exercise
+answered correctly at the first attempt adds its difficulty level
+(`ExerciseDifficulty`, Revision 5: 1 recognize the meaning, 2 recognize the
+language, 3 build with blocks, 4 write) in XP. A wrong answer, a repeat and
+Review add none; cards (level 0) add nothing. An answer the Course accepts
+with a small difference (accents, punctuation) counts as correct, as it
+does for the other XP. Example: a Round of six exercises of levels 1, 2,
+3, 4, 2 and 1, all right the first time, earns 13 more XP (73 instead of
+60).
+
+**Where.** `XpCalculator.calculateRoundAward` (pure) computes
+`RoundXpResult.difficultyBonusXp` from
+`RoundXpAwardContext.firstPassDifficulty`;
+`LearningCompletionAttemptFacts.firstPassDifficulty` carries it from the
+Round, which sums the level of each exercise answered correctly at the
+first attempt (`RoundScreen._firstPassDifficulty`); the persisted total
+includes it. The end-of-Round summary shows "Difficulty bonus: +N XP"
+(`round-completed-difficulty-bonus`, learner panel key
+`summary.difficultyBonus` in the seven languages). The Duel, Lesson
+completion and the Laurel are unchanged.
+
+**Help EN/IT/ES**: App Info's progress page and the Editor Help answer
+about the difficulty bars. AGENTS.md's Round XP rules gain the rule.

@@ -30,12 +30,17 @@ class LearningCompletionAttemptFacts {
   final bool wasCompletedAtStart;
   final bool ttsWasSkipped;
 
+  /// The sum of the difficulty levels of the exercises answered correctly
+  /// at the first attempt (Build 260 Revision 6).
+  final int firstPassDifficulty;
+
   const LearningCompletionAttemptFacts({
     required this.errorsThisAttempt,
     required this.firstPassCorrect,
     this.evaluableExerciseCount = 0,
     required this.wasCompletedAtStart,
     required this.ttsWasSkipped,
+    this.firstPassDifficulty = 0,
   });
 }
 
@@ -215,6 +220,7 @@ class LearningCompletionService {
         wasCompletedAtStart: scoringFacts.wasCompletedAtStart,
         newlyEarnedLaurel: newlyEarnedLaurel,
         evaluableExerciseCount: scoringFacts.evaluableExerciseCount,
+        firstPassDifficulty: scoringFacts.firstPassDifficulty,
       ),
     );
     final weeklyXpBefore = await _progress.getWeeklyXp();

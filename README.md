@@ -1,6 +1,6 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.60+260005 · Build 260, Revision 5 · Course Model v12 (`formatVersion: 12`).**
+**Current source version: 2.0.60+260006 · Build 260, Revision 6 · Course Model v12 (`formatVersion: 12`).**
 
 **QuisquisLingo 2.0.60 Beta — QQL 260 Course languages (Course Model v12)**
 
@@ -16,7 +16,9 @@ Revision 3 gives Pick the missing word an Instruction or context, makes the
 Piedmontese demo open every exercise in its preset's form again and keeps
 the Before you start card on each Lesson's first Round in the QQL Demos.
 Revision 4 titles every bundled Course "QQL Demo: …". Revision 5 shows
-each exercise's computed difficulty (0 read to 4 write) in the editor.
+each exercise's computed difficulty (0 read to 4 write) in the editor;
+Revision 6 adds 1 XP per level for each exercise answered correctly at the
+first attempt, on a Round's first completion.
 
 **QQL 259 Instructions and questions**
 
@@ -430,7 +432,7 @@ The MPL-2.0 covers the QuisquisLingo software source. Courses, the Image Bank an
 
 ## Beta lifecycle
 
-Version 2.0.60, Build 260, Revision 5 is a time-limited Beta with an expiry of **2026-10-31 23:59:59 local time** (30 days after the 1 October 2026 release date). In its last seven days it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
+Version 2.0.60, Build 260, Revision 6 is a time-limited Beta with an expiry of **2026-10-31 23:59:59 local time** (30 days after the 1 October 2026 release date). In its last seven days it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
 
 ## Core logic
 

@@ -72,6 +72,7 @@ const learnerPanelEn = <String, String>{
   'steps.story': 'Story · {n} steps',
   'steps.sequence': 'Sequence · {n} steps',
   'summary.correctAnswers': 'Correct answers: {correct}/{total} — {xp} XP',
+  'summary.difficultyBonus': 'Difficulty bonus: +{xp} XP',
   'summary.perfectBonus': 'Perfect bonus: +{xp} XP',
   'summary.firstLaurel': 'First Laurel: +{xp} XP',
   'summary.lessonCompleted': 'Lesson completed: +{xp} XP',

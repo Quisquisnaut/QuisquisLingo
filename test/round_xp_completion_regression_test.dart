@@ -50,8 +50,10 @@ void main() {
         await progress.getTtsSkippedPerfectRounds(courseId: courseId),
         isEmpty,
       );
-      expect(await progress.getXp(courseCode: courseCode), 5);
-      expect(await progress.getWeeklyXp(), 5);
+      // 5 for the answer and 2 Difficulty bonus for a level-2 Choose
+      // (Build 260 Revision 6).
+      expect(await progress.getXp(courseCode: courseCode), 7);
+      expect(await progress.getWeeklyXp(), 7);
       final recent = await progress.getRecentRounds(courseId: courseId);
       expect(recent, hasLength(1));
       expect(recent.single.roundId, fixture.round.id);
@@ -139,11 +141,13 @@ void main() {
       await _pumpFrames(tester);
 
       expect(find.text('Correct answers: 2/2 — 10 XP'), findsOneWidget);
+      // Build 260 Revision 6: two level-2 Choose exercises.
+      expect(find.text('Difficulty bonus: +4 XP'), findsOneWidget);
       expect(find.text('Perfect bonus: +5 XP'), findsOneWidget);
       expect(find.text('First Laurel: +25 XP'), findsOneWidget);
-      expect(find.text('Total: 40 XP'), findsOneWidget);
-      expect(await progress.getXp(courseCode: courseCode), 40);
-      expect(await progress.getWeeklyXp(), 40);
+      expect(find.text('Total: 44 XP'), findsOneWidget);
+      expect(await progress.getXp(courseCode: courseCode), 44);
+      expect(await progress.getWeeklyXp(), 44);
 
       await _tapAndPump(tester, 'Continue');
       expect(routeResults, [true]);
@@ -201,8 +205,9 @@ void main() {
       expect(await progress.getTtsSkippedPerfectRounds(courseId: courseId), {
         fixture.round.id,
       });
-      expect(await progress.getXp(courseCode: courseCode), 10);
-      expect(await progress.getWeeklyXp(), 10);
+      // With the Difficulty bonus of a level-2 Choose (Build 260 Revision 6).
+      expect(await progress.getXp(courseCode: courseCode), 12);
+      expect(await progress.getWeeklyXp(), 12);
     },
   );
 
@@ -303,7 +308,8 @@ void main() {
       expect(await restartedProgress.getCompletedLessons(courseId: courseId), {
         fixture.lesson.lessonId,
       });
-      expect(await restartedProgress.getXp(courseCode: courseCode), 60);
+      // With the Difficulty bonus of a level-2 Choose (Build 260 Revision 6).
+      expect(await restartedProgress.getXp(courseCode: courseCode), 62);
     },
   );
 
@@ -345,9 +351,12 @@ void main() {
       );
 
       expect(find.text('Correct answers: 8/8 — 40 XP'), findsOneWidget);
+      // Build 260 Revision 6: eight level-2 Choose exercises; the cards add
+      // nothing.
+      expect(find.text('Difficulty bonus: +16 XP'), findsOneWidget);
       expect(find.text('Perfect bonus: +5 XP'), findsOneWidget);
       expect(find.text('First Laurel: +25 XP'), findsOneWidget);
-      expect(find.text('Total: 70 XP'), findsOneWidget);
+      expect(find.text('Total: 86 XP'), findsOneWidget);
       await _tapAndPump(tester, 'Continue');
 
       final progress = ProgressService();
@@ -355,8 +364,8 @@ void main() {
       expect(await progress.getPerfectRounds(courseId: courseId), {
         fixture.round.id,
       });
-      expect(await progress.getXp(courseCode: courseCode), 70);
-      expect(await progress.getWeeklyXp(), 70);
+      expect(await progress.getXp(courseCode: courseCode), 86);
+      expect(await progress.getWeeklyXp(), 86);
 
       await _openRound(
         tester,
@@ -366,9 +375,10 @@ void main() {
       );
       await _completeMixedPerfectRound(tester, itemCount: 12);
 
+      // A repeat earns no Difficulty bonus: 8 × 2 + 5.
       expect(routeResults, [true, true]);
-      expect(await progress.getXp(courseCode: courseCode), 91);
-      expect(await progress.getWeeklyXp(), 91);
+      expect(await progress.getXp(courseCode: courseCode), 107);
+      expect(await progress.getWeeklyXp(), 107);
     },
   );
 
@@ -425,8 +435,9 @@ void main() {
       expect(await progress.getPerfectRounds(courseId: courseId), {
         fixture.round.id,
       });
-      expect(await progress.getXp(courseCode: courseCode), 40);
-      expect(await progress.getWeeklyXp(), 40);
+      // With the Difficulty bonus of two level-2 Choose exercises.
+      expect(await progress.getXp(courseCode: courseCode), 44);
+      expect(await progress.getWeeklyXp(), 44);
       expect(await progress.getStreak(courseCode: courseCode), 1);
       expect(await progress.getDaysStudied(courseCode: courseCode), 1);
       expect(await progress.isWeeklyGoalCelebrated(), isTrue);
@@ -442,7 +453,8 @@ void main() {
 
       expect(find.text('Weekly goal reached!'), findsNothing);
       expect(routeResults, [true, true]);
-      expect(await progress.getWeeklyXp(), 49);
+      // 44 and a repeat without Difficulty bonus: 2 × 2 + 5.
+      expect(await progress.getWeeklyXp(), 53);
       expect(await progress.isWeeklyGoalCelebrated(), isTrue);
     },
   );
@@ -547,8 +559,9 @@ void main() {
     expect(await progress.getPerfectRounds(courseId: courseId), {
       fixture.round.id,
     });
-    expect(await progress.getXp(courseCode: courseCode), 50);
-    expect(await progress.getWeeklyXp(), 50);
+    // The reset restores the first completion, Difficulty bonus included.
+    expect(await progress.getXp(courseCode: courseCode), 54);
+    expect(await progress.getWeeklyXp(), 54);
   });
 }
 

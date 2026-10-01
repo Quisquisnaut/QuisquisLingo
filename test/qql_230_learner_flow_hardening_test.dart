@@ -76,8 +76,10 @@ void main() {
     await _pumpUntil(tester, find.text('Round completed'));
 
     final progress = ProgressService();
-    expect(await progress.getXp(courseCode: 'IT'), 35);
-    expect(await progress.getWeeklyXp(), 35);
+    // Awarded once: 35 and the Difficulty bonus of a level-2 Choose (Build
+    // 260 Revision 6).
+    expect(await progress.getXp(courseCode: 'IT'), 37);
+    expect(await progress.getWeeklyXp(), 37);
     expect(
       await progress.getCompletedRounds(courseId: fixture.course.courseId),
       {fixture.round.id},

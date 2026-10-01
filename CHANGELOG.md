@@ -1,3 +1,17 @@
+# 2.0.60 (Build 260, Revision 6) - Difficulty bonus XP - 2026-10-01
+
+Owner decisions of 1 October 2026.
+
+- **Difficulty bonus.** The first time a Round is completed, each exercise
+  answered correctly at the first attempt earns 1 XP per difficulty level:
+  +1 for recognizing a meaning up to +4 for writing. Repeats and Review earn
+  no bonus. The end-of-Round summary shows it on its own line.
+- Help EN/IT/ES explain it.
+
+Progression, Review, the Duel and learner data are unchanged; earlier XP
+stays as earned. Beta expiry `2026-10-31 23:59:59` local time (same release
+day as Revision 0).
+
 # 2.0.60 (Build 260, Revision 5) - Exercise difficulty - 2026-10-01
 
 Owner decision of 1 October 2026.
