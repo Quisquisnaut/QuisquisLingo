@@ -43,10 +43,10 @@ the QQL Demo Courses keep the Before you start card on each Lesson's first
 Round only. Test `test/owner_review_260_revision3_test.dart`.
 Complete suite: 3500 passed, 1 skipped.
 
-## Revision 4 (implemented, 1 October 2026)
+## Revision 4 (committed `12935e7`, 1 October 2026)
 
 QQL Demo titles: QQL Demo: Exercise Laboratory, QQL Demo: Piedmontese
-(sorted by exercise type).
+(sorted by exercise type). Complete suite: 3500 passed, 1 skipped.
 
 ## Next (owner decisions of 1 October 2026)
 
