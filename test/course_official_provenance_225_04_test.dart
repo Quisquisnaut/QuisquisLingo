@@ -37,10 +37,10 @@ void main() {
     }
     expect(mismatches, isEmpty, reason: 'bundled checksum mismatches');
     expect(titles, {
-      'Demo: Piedmontese (sorted by exercise type)',
+      'QQL Demo: Piedmontese (sorted by exercise type)',
       'QQL Demo: Piedmontese',
       'QQL Demo: English from Italian',
-      'Temporary Demo: Exercise Laboratory',
+      'QQL Demo: Exercise Laboratory',
     });
     for (final entry in CourseService.courseAssets.entries) {
       expect(

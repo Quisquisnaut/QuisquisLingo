@@ -556,7 +556,7 @@ def build_course_v11() -> dict:
         "originalCreatedAtUtc": STAMP, "modifiedAtUtc": RELEASE_STAMP,
         "learningLanguage": "Piedmontese", "interfaceLanguage": "English",
         "sourceLanguage": "English", "targetLanguage": "Piedmontese",
-        "title": "Demo: Piedmontese (sorted by exercise type)", "ttsLanguage": "pms-IT", "audioMode": "tts",
+        "title": "QQL Demo: Piedmontese (sorted by exercise type)", "ttsLanguage": "pms-IT", "audioMode": "tts",
         "authors": [{"name": "OpenAI Codex (AI-generated sample; not linguistically reviewed)", "roles": ["Author"]}],
         "license": "All rights reserved",
         "derivativeWorksPolicy": "forbidden",

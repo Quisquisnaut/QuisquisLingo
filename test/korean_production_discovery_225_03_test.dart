@@ -93,7 +93,7 @@ void main() {
     await _expectCourseTile(
       tester,
       const ValueKey('bundled-course-PMS'),
-      'Demo: Piedmontese (sorted by exercise type)',
+      'QQL Demo: Piedmontese (sorted by exercise type)',
       selected: false,
     );
     await tester.tap(find.byKey(const ValueKey('bundled-course-PMS')));
@@ -290,11 +290,11 @@ void main() {
           await _expectCourseTile(
             tester,
             const Key('current-course'),
-            selectCustom ? custom.title : 'Temporary Demo: Exercise Laboratory',
+            selectCustom ? custom.title : 'QQL Demo: Exercise Laboratory',
             selected: true,
           );
           for (final entry in {
-            'PMS': 'Demo: Piedmontese (sorted by exercise type)',
+            'PMS': 'QQL Demo: Piedmontese (sorted by exercise type)',
             'EN_EDGE': 'Temporary Demo: Edge Case Course',
             'custom:${otherCustom.courseId}': otherCustom.title,
           }.entries) {
@@ -311,14 +311,14 @@ void main() {
             await _expectCourseTile(
               tester,
               const ValueKey('bundled-course-IT'),
-              'Temporary Demo: Exercise Laboratory',
+              'QQL Demo: Exercise Laboratory',
               selected: false,
             );
           }
           await _expectCourseTile(
             tester,
             const ValueKey('recent-course-PMS'),
-            'Demo: Piedmontese (sorted by exercise type)',
+            'QQL Demo: Piedmontese (sorted by exercise type)',
             selected: false,
           );
           await _expectCourseTile(

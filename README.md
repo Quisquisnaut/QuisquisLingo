@@ -1,6 +1,6 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.60+260003 · Build 260, Revision 3 · Course Model v12 (`formatVersion: 12`).**
+**Current source version: 2.0.60+260004 · Build 260, Revision 4 · Course Model v12 (`formatVersion: 12`).**
 
 **QuisquisLingo 2.0.60 Beta — QQL 260 Course languages (Course Model v12)**
 
@@ -15,6 +15,7 @@ with a GuideBook, six Rounds of exercises mixed at random and two Stories.
 Revision 3 gives Pick the missing word an Instruction or context, makes the
 Piedmontese demo open every exercise in its preset's form again and keeps
 the Before you start card on each Lesson's first Round in the QQL Demos.
+Revision 4 titles every bundled Course "QQL Demo: …".
 
 **QQL 259 Instructions and questions**
 
@@ -428,7 +429,7 @@ The MPL-2.0 covers the QuisquisLingo software source. Courses, the Image Bank an
 
 ## Beta lifecycle
 
-Version 2.0.60, Build 260, Revision 3 is a time-limited Beta with an expiry of **2026-10-31 23:59:59 local time** (30 days after the 1 October 2026 release date). In its last seven days it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
+Version 2.0.60, Build 260, Revision 4 is a time-limited Beta with an expiry of **2026-10-31 23:59:59 local time** (30 days after the 1 October 2026 release date). In its last seven days it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
 
 ## Core logic
 
@@ -461,7 +462,7 @@ On Android, the platform's own Auto Backup is deliberately left enabled, because
 - Local daily quest
 - XP
 - Local TTS service with generated-file caching
-- Three bundled sample courses, titled Temporary Demo: Exercise Laboratory, Demo: Piedmontese (sorted by exercise type) and QQL Demo: Piedmontese; the Edge Case Course is in `demo_courses/`, to import
+- Four bundled sample courses, titled QQL Demo: Exercise Laboratory, QQL Demo: Piedmontese (sorted by exercise type), QQL Demo: Piedmontese and QQL Demo: English from Italian; the Edge Case Course is in `demo_courses/`, to import
 - Local authoring Teams with stable profile-ID membership and one or more Team Leaders
 - No account
 - Local offline leaderboard for the previous completed week, based on each participating learner’s XP across all courses

@@ -1,3 +1,16 @@
+# 2.0.60 (Build 260, Revision 4) - QQL Demo titles - 2026-10-01
+
+Owner decision of 1 October 2026.
+
+- Every official Course QQL bundles is titled "QQL Demo: …": QQL Demo:
+  Exercise Laboratory, QQL Demo: Piedmontese (sorted by exercise type), QQL
+  Demo: Piedmontese, QQL Demo: English from Italian. The credits page names
+  them so.
+
+Course IDs, content, scoring, progression and learner data are unchanged.
+Beta expiry `2026-10-31 23:59:59` local time (same release day as Revision
+0).
+
 # 2.0.60 (Build 260, Revision 3) - Piedmontese showcase, first-Round cards - 2026-10-01
 
 Owner review of 1 October 2026.

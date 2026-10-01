@@ -25,7 +25,7 @@
   "sourceLanguageTag": "en-GB",
   "targetLanguage": "Italian",
   "targetLanguageTag": "it-IT",
-  "title": "Temporary Demo: Exercise Laboratory",
+  "title": "QQL Demo: Exercise Laboratory",
   "ttsLanguage": "it-IT",
   "audioMode": "tts",
   "authors": [
@@ -9232,5 +9232,5 @@
     }
   ],
   "minimumAppBuild": 258000,
-  "officialChecksum": "a64dea91715af113c8020ff2437de460028035be335022440d62409833eff895"
+  "officialChecksum": "0d65e201369da8f99234c7bec0b506e777894855c1418c8081f5ef2cab56f415"
 }

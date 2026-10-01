@@ -43,7 +43,23 @@ the QQL Demo Courses keep the Before you start card on each Lesson's first
 Round only. Test `test/owner_review_260_revision3_test.dart`.
 Complete suite: 3500 passed, 1 skipped.
 
-## Next
+## Revision 4 (implemented, 1 October 2026)
+
+QQL Demo titles: QQL Demo: Exercise Laboratory, QQL Demo: Piedmontese
+(sorted by exercise type).
+
+## Next (owner decisions of 1 October 2026)
+
+- Revision 5: a computed difficulty level 0–4 per exercise (present,
+  recognize meaning, recognize in the target language, build with blocks,
+  type), from canonical data, never stored; a badge in the Round editor and
+  a curve per Lesson.
+- Revision 6: Difficulty bonus XP, 1 XP per level for each exercise answered
+  correctly at the first attempt, on a Round's first completion only; a
+  line in the end-of-Round summary (seven languages); XpCalculator.
+- Revision 7: the QQL Demo Courses regenerated with a curve: a larger share
+  of harder types in later Rounds, variety kept, picture exercises
+  preferred.
 
 The owner's review of Build 260 (the AI-written translations and
 names await native review).

@@ -171,3 +171,18 @@ the missing word ("Scegli la forma giusta di to be.").
 
 Scoring, progression, Review, the Course format and learner data are
 unchanged.
+
+## Revision 4 (2.0.60+260004, 1 October 2026): QQL Demo titles
+
+Owner decision of 1 October 2026: the titles of the official Courses QQL
+bundles all begin with "QQL Demo:".
+
+- Temporary Demo: Exercise Laboratory is **QQL Demo: Exercise Laboratory**
+  (`tools/generate_exercise_laboratory_254.py`).
+- Demo: Piedmontese (sorted by exercise type) is **QQL Demo: Piedmontese
+  (sorted by exercise type)** (`tools/generate_piedmontais_demo_254.py`).
+- QQL Demo: Piedmontese and QQL Demo: English from Italian already were.
+- The v11 converter fixtures and the Laboratory-of-the-future fixture's
+  checksum follow; the credits page says "The bundled courses titled QQL
+  Demo are AI-generated…". Test fixtures and importable demos keep their
+  titles. Course IDs, content and learner data are unchanged.

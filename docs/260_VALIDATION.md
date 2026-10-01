@@ -133,3 +133,24 @@
 - `flutter analyze --no-pub`: no issues.
 - **Complete suite** (`--concurrency=1`, keep-awake, 29 min 38 s):
   **3500 passed, 1 skipped, 0 failed**.
+
+## Revision 4 (2.0.60+260004, 1 October 2026): QQL Demo titles
+
+**Generators and validator**
+- The Laboratory and Piedmontese generators write the new titles; QQL
+  Demo: Piedmontese is unchanged (it replaces the title it copies). The v11
+  fixtures of both are rewritten; the Laboratory-of-the-future fixture's
+  checksum follows the Laboratory's (only that line changes). All five
+  generators: `--check` reproducible. `tools/validate_courses.py`: the four
+  bundled Courses pass.
+
+**Tests**
+- Updated: the tests that name the two Courses
+  (`bundled_courses_225_02_test`, `course_official_provenance_225_04_test`,
+  `korean_production_discovery_225_03_test`, `leaderboard_navigation_test`,
+  `piedmontais_course_254_test`).
+- Focused run (the 41 files that name the Courses, read their files or the
+  fixtures, or show the credits): 830 passed.
+- `flutter analyze --no-pub`: no issues.
+- **Complete suite** (`--concurrency=1`, keep-awake, 30 min 13 s):
+  **3500 passed, 1 skipped, 0 failed**.

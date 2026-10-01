@@ -3194,7 +3194,7 @@ void main() {
     expect(recentTiles, hasLength(3));
 
     final recentTitles = [
-      'Demo: Piedmontese (sorted by exercise type)',
+      'QQL Demo: Piedmontese (sorted by exercise type)',
       'Temporary Demo: Edge Case Course',
       'AI-Slop Demo: Korean for English Speakers',
     ];

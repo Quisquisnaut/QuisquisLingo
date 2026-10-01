@@ -162,7 +162,7 @@ void main() {
     final course = await CourseService().loadCourse('PMS');
 
     expect(course.formatVersion, Course.currentFormatVersion);
-    expect(course.title, 'Demo: Piedmontese (sorted by exercise type)');
+    expect(course.title, 'QQL Demo: Piedmontese (sorted by exercise type)');
     expect(course.sourceLanguage, 'English');
     expect(course.targetLanguage, 'Piedmontese');
     expect(course.ttsLanguage, 'pms-IT');
