@@ -25,10 +25,11 @@ Plan (owner answers of 1 October 2026):
   the changes still pending. From the Exercise editor the preview leaves
   out that form's unsaved edits.
 
-## Revision 0 (implemented, 2 October 2026)
+## Revision 0 (committed `18ab7a5`, 2 October 2026)
 
 Learner polish. Tests in `learner_round_path_test`,
 `leaderboard_navigation_test` and `round_xp_completion_regression_test`.
+Complete suite: 3521 passed, 1 skipped.
 
 ## Next
 
