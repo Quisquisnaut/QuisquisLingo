@@ -1,3 +1,19 @@
+# 2.0.60 (Build 260, Revision 2) - QQL Demo: English from Italian - 2026-10-01
+
+Owner request of 1 October 2026.
+
+- **QQL Demo: English from Italian**, a new bundled Course: one Lesson,
+  "Primi passi", with a GuideBook (overview, four notes, 35 words). Three
+  ordinary Rounds, the Story "Al bar", three more Rounds, the Story "Alla
+  stazione". The ordinary Rounds hold six exercises each, 36 different
+  types mixed at random; each Round keeps one listening exercise and still
+  plays with Audio Exercises off. Its learner panel is in Italian.
+- Written by `tools/generate_english_from_italian_260.py`; AI-written,
+  awaiting review. Language XP and streaks count it as English.
+
+Scoring, progression, Review and learner data are unchanged. Beta expiry
+`2026-10-31 23:59:59` local time (same release day as Revision 0).
+
 # 2.0.60 (Build 260, Revision 1) - Learner panel buttons and messages - 2026-10-01
 
 Plan point 6 (`docs/260_LANGUAGES_PLAN.md`).

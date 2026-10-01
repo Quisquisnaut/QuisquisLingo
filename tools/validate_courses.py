@@ -28,6 +28,7 @@ EXPECTED_TTS = {
     "exercise_laboratory_en_it.json": "it-IT",
     "piedmontais_en.json": "pms-IT",
     "piedmontese_mixed_en.json": "pms-IT",
+    "english_from_italian_it_en.json": "en-GB",
 }
 TEXT_MODES = {"exactText", "acceptedTexts", "expression"}
 ROUND_VISUAL_TYPES = {"listening", "story", "generic", "test"}
@@ -487,6 +488,8 @@ def validate(path: Path, global_ids: dict[str, str]) -> list[str]:
         # QQL Demo: Piedmontese (Build 259 Revision 6): the mixed practice
         # Lesson and the Story.
         "piedmontese_mixed_en.json": 2,
+        # QQL Demo: English from Italian (Build 260 Revision 2): one Lesson.
+        "english_from_italian_it_en.json": 1,
     }.get(path.name, 9)
     if len(lessons) != expected_lessons:
         issues.append(

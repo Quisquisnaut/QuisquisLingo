@@ -2758,9 +2758,20 @@ void main() {
     expect(find.text('Current course'), findsOneWidget);
     expect(find.text('Other courses'), findsOneWidget);
     expect(find.text(italianCourse.title), findsWidgets);
-    tester
-        .widget<ListTile>(find.byKey(const ValueKey('bundled-course-KO')))
-        .onTap!();
+    // Build 260 Revision 2: a fourth bundled Course moves the Korean row
+    // below the picker's first screen.
+    final koreanTile = find.byKey(const ValueKey('bundled-course-KO'));
+    await tester.scrollUntilVisible(
+      koreanTile,
+      120,
+      scrollable: find
+          .descendant(
+            of: find.byType(BottomSheet),
+            matching: find.byType(Scrollable),
+          )
+          .first,
+    );
+    tester.widget<ListTile>(koreanTile).onTap!();
     await tester.pump();
     await _pumpUntilWithIo(
       tester,

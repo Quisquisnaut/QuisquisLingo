@@ -99,3 +99,37 @@ Guide line say the learner panel's buttons and messages follow the Course.
 
 Scoring, progression, Review, the Course format and learner data are
 unchanged.
+
+## Revision 2 (2.0.60+260002, 1 October 2026): QQL Demo: English from Italian
+
+Owner request of 1 October 2026.
+
+**A fourth bundled Course**, `assets/courses/english_from_italian_it_en.json`
+(`CourseService.courseAssets` code `EN_IT`, `_additionalBundledCodes` for
+`course_65dce83b-fd0a-4b83-a5a1-8f8b97a58d05`, reserved in
+`CourseEditorService`; `codeForCourse` is `EN`, so language XP and streaks
+count it as English), written by `tools/generate_english_from_italian_260.py`
+(`--check` verifies it). Italian to English, Beginner, All rights reserved,
+derivative works forbidden, AI-written and awaiting review.
+
+**One Lesson, "Primi passi", with a GuideBook**: an overview, four notes (a
+or an, to be, the adjective before the noun, greetings) and 35 vocabulary
+entries (Italian = English). Its eight Rounds: Pratica 1–3, the Story **Al
+bar**, Pratica 4–6, the Story **Alla stazione**.
+
+**The ordinary Rounds** hold 36 exercises of 36 different types, mixed at
+random with a fixed seed, six to a Round, each Round opening with a Before
+you start card that offers the GuideBook. The mix gives every Round one
+exercise that needs audio and at most one card (Flashcard, Picture
+flashcard, Note card), so each Round still plays with Audio Exercises off.
+
+**The Stories** (scrolling, dialogue log): a card, a cover (the coffee and
+train pictures), six Dialogue lines and two questions each. A narrator
+speaks Italian; Tom, Emma, Anna and Ben speak English (bundled avatars).
+
+The Course is Italian-based, so its learner panel shows the Italian lines
+and buttons of Revisions 0 and 1. `tools/validate_courses.py` expects the
+fourth file (en-GB, one Lesson).
+
+Scoring, progression, Review, the Course format and learner data are
+unchanged.

@@ -398,6 +398,8 @@ void main() {
       'piedmontais_en.json': 'course_e5f5585a-7762-43a0-a6b2-62754e02d17b',
       'piedmontese_mixed_en.json':
           'course_69ff369e-bb4f-46a3-85f0-57ff9d51b453',
+      'english_from_italian_it_en.json':
+          'course_65dce83b-fd0a-4b83-a5a1-8f8b97a58d05',
     };
 
     test('bundled Courses keep the Course IDs learner progress uses', () {

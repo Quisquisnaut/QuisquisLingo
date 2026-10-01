@@ -432,8 +432,9 @@ Future<void> _pumpUntilWithIo(WidgetTester tester, Finder finder) async {
 }
 
 Future<void> _expectEveryBundledTile(WidgetTester tester) async {
-  // IT, PMS, PMS_MIX (Build 259 Revision 6), KO and EN_EDGE fixtures.
-  expect(CourseService.bundledAssets, hasLength(5));
+  // IT, PMS, PMS_MIX (Build 259 Revision 6), EN_IT (Build 260 Revision 2),
+  // KO and EN_EDGE fixtures.
+  expect(CourseService.bundledAssets, hasLength(6));
   final settings = SettingsService();
   final selected = await settings.getLastSelectedCourseCode();
   final recent = (await settings.getRecentCourseRefs())

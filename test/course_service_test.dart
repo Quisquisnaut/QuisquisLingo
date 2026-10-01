@@ -7,11 +7,12 @@ void main() {
 
   setUp(() => SharedPreferences.setMockInitialValues({}));
 
-  test('Build 259 Revision 6 bundles three demos', () {
+  test('Build 260 Revision 2 bundles four demos', () {
     expect(CourseService.courseAssets, {
       'IT': 'assets/courses/exercise_laboratory_en_it.json',
       'PMS': 'assets/courses/piedmontais_en.json',
       'PMS_MIX': 'assets/courses/piedmontese_mixed_en.json',
+      'EN_IT': 'assets/courses/english_from_italian_it_en.json',
     });
     expect(CourseService.hasCourse('ko'), isFalse);
     expect(CourseService.sourceLabels['PMS'], 'English');
@@ -58,7 +59,7 @@ void main() {
 
       expect(first, CourseService.courseAssets.keys);
       expect(second, first);
-      expect(first, ['IT', 'PMS', 'PMS_MIX']);
+      expect(first, ['IT', 'PMS', 'PMS_MIX', 'EN_IT']);
       expect(
         preferences.getStringList(CourseService.bundledCourseIndexStorageKey),
         first,

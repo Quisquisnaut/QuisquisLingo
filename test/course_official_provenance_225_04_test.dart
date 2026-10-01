@@ -11,8 +11,9 @@ void main() {
 
   test('the bundled sources have verified immutable provenance', () async {
     // The Edge Case left the bundle in Build 259 Revision 5; QQL Demo:
-    // Piedmontese joined it in Revision 6.
-    expect(CourseService.courseAssets, hasLength(3));
+    // Piedmontese joined it in Revision 6, QQL Demo: English from Italian in
+    // Build 260 Revision 2.
+    expect(CourseService.courseAssets, hasLength(4));
     final mismatches = <String, String>{};
     final titles = <String>{};
     for (final entry in CourseService.courseAssets.entries) {
@@ -38,6 +39,7 @@ void main() {
     expect(titles, {
       'Demo: Piedmontese (sorted by exercise type)',
       'QQL Demo: Piedmontese',
+      'QQL Demo: English from Italian',
       'Temporary Demo: Exercise Laboratory',
     });
     for (final entry in CourseService.courseAssets.entries) {
@@ -58,6 +60,7 @@ void main() {
         'IT': DerivativeWorksPolicy.allowed,
         'PMS': DerivativeWorksPolicy.forbidden,
         'PMS_MIX': DerivativeWorksPolicy.forbidden,
+        'EN_IT': DerivativeWorksPolicy.forbidden,
       };
       expect(
         CourseService.courseAssets.keys,

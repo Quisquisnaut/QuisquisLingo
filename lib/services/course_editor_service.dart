@@ -54,6 +54,7 @@ class CourseEditorService {
     'course_6f6a1fa3-b834-4936-b324-92fb57f73502',
     'course_e5f5585a-7762-43a0-a6b2-62754e02d17b',
     'course_69ff369e-bb4f-46a3-85f0-57ff9d51b453',
+    'course_65dce83b-fd0a-4b83-a5a1-8f8b97a58d05',
     'sample_it_en_it',
     'sample_de_en_de',
     'sample_es_en_es',

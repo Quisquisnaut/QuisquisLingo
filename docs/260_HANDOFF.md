@@ -21,14 +21,17 @@ version and author Preview messages, Report a problem, Reset Word List and
 Review Help stay in English. New test `test/learner_panel_260_test.dart`.
 Complete suite: 3486 passed, 1 skipped.
 
+## Revision 2 (implemented, 1 October 2026)
+
+QQL Demo: English from Italian (owner request): a fourth bundled Course
+(code `EN_IT`), one Lesson with a GuideBook, Pratica 1–3, Story "Al bar",
+Pratica 4–6, Story "Alla stazione"; 36 exercises of 36 types mixed at
+random. Generator `tools/generate_english_from_italian_260.py`, test
+`test/english_from_italian_260_test.dart`.
+
 ## Next
 
-Revision 2 (owner request of 1 October 2026): a bundled **QQL Demo:
-English from Italian**, one Lesson with a GuideBook: three ordinary
-Rounds of six exercises (types mixed at random), a Story, three more
-Rounds, a second Story at the end.
-
-Then the owner's review of Build 260 (the AI-written translations and
+The owner's review of Build 260 (the AI-written translations and
 names await native review).
 
 Stage with `git add -A -- . ':!devtools_options.yaml' ':!tools/cloud_setup.sh'`

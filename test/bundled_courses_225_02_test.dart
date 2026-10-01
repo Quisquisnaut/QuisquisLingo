@@ -43,7 +43,12 @@ void main() {
           Map<String, dynamic>.from(jsonDecode(raw) as Map),
         );
         final result = CourseAuditService().auditCourse(course);
-        final isModelDemo = const {'IT', 'PMS', 'PMS_MIX'}.contains(entry.key);
+        final isModelDemo = const {
+          'IT',
+          'PMS',
+          'PMS_MIX',
+          'EN_IT',
+        }.contains(entry.key);
         final errors = result.count(AuditSeverity.error);
         final warnings = result.count(AuditSeverity.warning);
         final info = result.count(AuditSeverity.info);
@@ -128,7 +133,8 @@ void main() {
         }
       }
 
-      expect(CourseService.courseAssets, hasLength(3));
+      // QQL Demo: English from Italian joined in Build 260 Revision 2.
+      expect(CourseService.courseAssets, hasLength(4));
       final auditReport = <String>[
         ...auditSummaries,
         'BUNDLED_AUDIT aggregate: $aggregateErrors errors, '

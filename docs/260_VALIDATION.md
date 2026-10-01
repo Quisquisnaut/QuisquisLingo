@@ -64,3 +64,42 @@
   Re-run alone: passed.
 - **Complete suite** (second run, `--concurrency=1`, keep-awake,
   28 min 45 s): **3486 passed, 1 skipped, 0 failed**.
+
+## Revision 2 (2.0.60+260002, 1 October 2026): QQL Demo: English from Italian
+
+**Generators and validator**
+- `tools/generate_english_from_italian_260.py` writes
+  `assets/courses/english_from_italian_it_en.json`; `--check` reproducible.
+  The other four generators: `--check` reproducible, no change.
+- `tools/validate_courses.py`: the four bundled Courses pass (the new one
+  with en-GB and one Lesson).
+- While authoring, two exercises were not represented by their preset and
+  were corrected in the generator: the spelling preset stores the blocks in
+  the word's order (the Round shuffles them), and Pick the missing word has
+  no instruction field. The same two shapes, and the stored order of a
+  Listen and answer (to source) prompt, leave nine exercises of the
+  Piedmontese demo (Lessons 13, 25 and 34) unrepresented; that demo is not
+  changed here (reported to the owner).
+
+**Tests**
+- New: `test/english_from_italian_260_test.dart` (a bundled Course counted
+  as English; three Rounds, a Story, three Rounds, a Story; six ordinary
+  Rounds of six exercises of six types each with a GuideBook card and one
+  audio exercise, 36 types in all, not in the catalogue's order, each
+  represented by its preset; the Stories with a cover, six lines and two
+  questions; the GuideBook's four notes and 35 words; the learner panel in
+  Italian; the Audit with no error or warning).
+- Updated for the fourth bundled Course: `bundled_courses_225_02_test` (a
+  model demo, so no Duel is required; four Courses),
+  `course_library_screen_244_test` and `course_library_view_255_test` (the
+  counts), `course_official_provenance_225_04_test` (title, derivative
+  works forbidden), `course_service_test` (the registry and the startup
+  reconciliation), `korean_production_discovery_225_03_test` (six bundled
+  assets with the fixtures), `course_model_v11_243_test` (its Course ID),
+  `leaderboard_navigation_test` (the Course picker is scrolled to the
+  Korean row, now below the first screen).
+- Focused run (the 50 files that read the bundled Courses): 7 failures,
+  all in the tests above, fixed; the eight files re-run: 104 passed.
+- `flutter analyze --no-pub`: no issues.
+- **Complete suite** (`--concurrency=1`, keep-awake, 29 min 41 s):
+  **3493 passed, 1 skipped, 0 failed**.
