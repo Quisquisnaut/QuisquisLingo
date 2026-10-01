@@ -18,6 +18,7 @@ import '../widgets/beta_expired_view.dart';
 import '../models/course_models.dart';
 import '../models/exercise_features.dart';
 import '../services/progress_service.dart';
+import '../services/learner_panel_text.dart';
 import '../services/learning_completion_service.dart';
 import '../services/report_service.dart';
 import '../services/tts_cache_service.dart';
@@ -143,7 +144,7 @@ class _RoundScreenState extends State<RoundScreen> {
       : widget.viewOnlyMode
       ? 'VIEW ONLY · $_roundTitle'
       : widget.reviewMode
-      ? 'Review · $_roundTitle'
+      ? _t('reviewOfRound', {'round': _roundTitle})
       : _roundTitle;
   int get _lessonIndex => widget.course.lessons.indexWhere(
     (lesson) => lesson.lessonId == widget.lesson.lessonId,
@@ -153,8 +154,8 @@ class _RoundScreenState extends State<RoundScreen> {
         ? widget.round.displayTitle(widget.roundIndex)
         : widget.round.title.trim();
     return '${widget.course.title} · ${widget.course.targetLanguage} · '
-        'Lesson ${_lessonIndex + 1}: ${widget.lesson.title} · '
-        'Round ${widget.roundIndex + 1}'
+        '${_t('review.lesson', {'n': _lessonIndex + 1, 'title': widget.lesson.title})} · '
+        '${_t('review.round', {'n': widget.roundIndex + 1})}'
         '${roundTitle.isEmpty ? '' : ': $roundTitle'}';
   }
 
@@ -207,6 +208,14 @@ class _RoundScreenState extends State<RoundScreen> {
       : widget.round.isStory
       ? 'Story'
       : 'Sequence';
+
+  /// The same, as the suffix of the learner panel keys (Build 260 Revision
+  /// 1): `round`, `story` or `sequence`.
+  String get _nounKey => _roundNoun.toLowerCase();
+
+  /// The learner panel text of [key] in the Course's instruction language.
+  String _t(String key, [Map<String, Object> values = const {}]) =>
+      LearnerPanelText.of(widget.course, key, values);
   late ExerciseFeatures _features;
   bool _answered = false;
   bool _lastAnswerCorrect = false;
@@ -1040,9 +1049,9 @@ class _RoundScreenState extends State<RoundScreen> {
           ex,
           ex.canonicalEvaluation.correctItemIds.firstOrNull,
         );
-        return value.isEmpty ? 'See the course answer.' : value;
+        return value.isEmpty ? _t('seeCourseAnswer') : value;
       case ExercisePrimitive.presentation:
-        return 'Review the flashcard.';
+        return _t('reviewTheFlashcard');
       case ExercisePrimitive.input:
         if (f.gapFieldTargets.isNotEmpty) {
           // The first answer each gap accepts, written out: a gap answer
@@ -1095,7 +1104,7 @@ class _RoundScreenState extends State<RoundScreen> {
       case ExercisePrimitive.submit:
         break;
     }
-    return 'See the course answer.';
+    return _t('seeCourseAnswer');
   }
 
   String _itemValue(Exercise ex, String? itemId) {
@@ -1122,7 +1131,7 @@ class _RoundScreenState extends State<RoundScreen> {
 
   String _gapAnswerText(Exercise ex) {
     final assignments = _features.targetAssignments;
-    if (assignments.isEmpty) return 'See the course answer.';
+    if (assignments.isEmpty) return _t('seeCourseAnswer');
     return assignments.entries
         .map((entry) => _itemValue(ex, entry.value))
         .where((value) => value.isNotEmpty)
@@ -1136,7 +1145,7 @@ class _RoundScreenState extends State<RoundScreen> {
         .map((item) => item.value)
         .where((value) => value.isNotEmpty)
         .toList();
-    return values.isEmpty ? 'See the course answer.' : values.join(' / ');
+    return values.isEmpty ? _t('seeCourseAnswer') : values.join(' / ');
   }
 
   String _answerState() {
@@ -1236,7 +1245,7 @@ class _RoundScreenState extends State<RoundScreen> {
     setState(() {
       _answered = true;
       _lastAnswerCorrect = correct;
-      _feedback = correct ? 'Correct' : 'Incorrect';
+      _feedback = correct ? _t('correct') : _t('incorrect');
       if (!correct) _errorsThisAttempt++;
       if (!_reviewPhase) {
         if (correct) {
@@ -1278,10 +1287,10 @@ class _RoundScreenState extends State<RoundScreen> {
       _answered = true;
       _lastAnswerCorrect = true; // Flashcards have no correct/incorrect answer.
       if (reviewAgain) {
-        _feedback = 'This card will be shown again later in this round.';
+        _feedback = _t('cardAgainLater');
         _queue.add(_exerciseIndex);
       } else {
-        _feedback = 'Card reviewed.';
+        _feedback = _t('cardReviewed');
       }
     });
     _revealFeedback();
@@ -1412,9 +1421,9 @@ class _RoundScreenState extends State<RoundScreen> {
 
   String _assignTargetFallbackLabel(ExerciseFeatures f, int index) =>
       switch (f.assignTargetMode) {
-        AssignTargetMode.slots => 'Slot ${index + 1}',
-        AssignTargetMode.gaps => 'Gap ${index + 1}',
-        _ => 'Group ${index + 1}',
+        AssignTargetMode.slots => _t('slotNumber', {'n': index + 1}),
+        AssignTargetMode.gaps => _t('gapNumber', {'n': index + 1}),
+        _ => _t('groupNumber', {'n': index + 1}),
       };
 
   void _logStoryItem() {
@@ -1542,7 +1551,7 @@ class _RoundScreenState extends State<RoundScreen> {
         ),
         const SizedBox(width: 4),
         Text(
-          '$_roundNoun · ${_queue.length} steps',
+          _t('steps.$_nounKey', {'n': _queue.length}),
           key: const Key('story-now'),
           style: Theme.of(context).textTheme.labelLarge?.copyWith(
             color: Theme.of(context).colorScheme.primary,
@@ -1664,12 +1673,12 @@ class _RoundScreenState extends State<RoundScreen> {
         context: context,
         barrierDismissible: false,
         builder: (dialogContext) => AlertDialog(
-          title: const Text('Review your mistakes'),
-          content: const Text("Let's try again the exercises you got wrong."),
+          title: Text(_t('reviewMistakesTitle')),
+          content: Text(_t('reviewMistakesBody')),
           actions: [
             FilledButton(
               onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('Continue'),
+              child: Text(_t('continue')),
             ),
           ],
         ),
@@ -1758,7 +1767,7 @@ class _RoundScreenState extends State<RoundScreen> {
         context: context,
         barrierDismissible: false,
         builder: (ctx) => AlertDialog(
-          title: Text('$_roundNoun completed'),
+          title: Text(_t('completed.$_nounKey')),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1768,43 +1777,53 @@ class _RoundScreenState extends State<RoundScreen> {
             children: completion.evaluableExerciseCount == 0
                 ? [
                     Text(
-                      'Nothing to score in this $_roundNoun.',
+                      _t('nothingToScore.$_nounKey'),
                       key: const Key('round-completed-unscored'),
                     ),
                     if (completion.lessonCompletionXp > 0) ...[
                       Text(
-                        'Lesson completed: +${completion.lessonCompletionXp} XP',
+                        _t('summary.lessonCompleted', {
+                          'xp': completion.lessonCompletionXp,
+                        }),
                       ),
-                      Text('Total: ${completion.awardedXp} XP'),
+                      Text(_t('summary.total', {'xp': completion.awardedXp})),
                     ],
                     if (_versionSkipped > 0) _versionSkippedLine(),
                   ]
                 : [
                     Text(
-                      'Correct answers: ${completion.firstPassCorrect}/'
-                      '${completion.evaluableExerciseCount} — '
-                      '${completion.roundXp.correctAnswerXp} XP',
+                      _t('summary.correctAnswers', {
+                        'correct': completion.firstPassCorrect,
+                        'total': completion.evaluableExerciseCount,
+                        'xp': completion.roundXp.correctAnswerXp,
+                      }),
                     ),
                     if (completion.roundXp.perfectBonusXp > 0)
                       Text(
-                        'Perfect bonus: +${completion.roundXp.perfectBonusXp} XP',
+                        _t('summary.perfectBonus', {
+                          'xp': completion.roundXp.perfectBonusXp,
+                        }),
                       ),
                     if (completion.roundXp.laurelBonusXp > 0)
                       Text(
-                        'First Laurel: +${completion.roundXp.laurelBonusXp} XP',
+                        _t('summary.firstLaurel', {
+                          'xp': completion.roundXp.laurelBonusXp,
+                        }),
                       ),
                     if (completion.lessonCompletionXp > 0)
                       Text(
-                        'Lesson completed: +${completion.lessonCompletionXp} XP',
+                        _t('summary.lessonCompleted', {
+                          'xp': completion.lessonCompletionXp,
+                        }),
                       ),
-                    Text('Total: ${completion.awardedXp} XP'),
+                    Text(_t('summary.total', {'xp': completion.awardedXp})),
                     if (_versionSkipped > 0) _versionSkippedLine(),
                   ],
           ),
           actions: [
             FilledButton(
               onPressed: () => Navigator.pop(ctx),
-              child: const Text('Continue'),
+              child: Text(_t('continue')),
             ),
           ],
         ),
@@ -1819,14 +1838,14 @@ class _RoundScreenState extends State<RoundScreen> {
         await showDialog<void>(
           context: context,
           builder: (ctx) => AlertDialog(
-            title: const Text('Weekly goal reached!'),
+            title: Text(_t('weeklyGoalReached')),
             content: Text(
               '${completion.weeklyXpAfter} / ${completion.weeklyXpTarget} XP',
             ),
             actions: [
               FilledButton(
                 onPressed: () => Navigator.pop(ctx),
-                child: const Text('Continue'),
+                child: Text(_t('continue')),
               ),
             ],
           ),
@@ -1863,7 +1882,7 @@ class _RoundScreenState extends State<RoundScreen> {
   /// the exercise) when the learner turned audio or TTS off.
   Widget _translationAudioButton(String text) => IconButton.filledTonal(
     key: const Key('translation-choice-audio'),
-    tooltip: _optionalAudioEnabled ? 'Play audio' : 'Audio unavailable',
+    tooltip: _optionalAudioEnabled ? _t('playAudio') : _t('audioUnavailable'),
     onPressed: _optionalAudioEnabled ? () => _speakText(text) : null,
     icon: const Icon(Icons.volume_up_outlined),
   );
@@ -1871,7 +1890,7 @@ class _RoundScreenState extends State<RoundScreen> {
   Widget _translationAudioUnavailableNote() => Padding(
     padding: const EdgeInsets.only(bottom: 12),
     child: Text(
-      'Audio is turned off or unavailable. The exercise still works.',
+      _t('audioOffNote'),
       key: const Key('translation-choice-audio-note'),
       style: Theme.of(context).textTheme.bodySmall,
     ),
@@ -1891,7 +1910,7 @@ class _RoundScreenState extends State<RoundScreen> {
       const SizedBox(height: 8),
       Row(
         children: [
-          const Expanded(child: Text('Listen to the answer')),
+          Expanded(child: Text(_t('listenToAnswer'))),
           _translationAudioButton(spoken),
         ],
       ),
@@ -1958,7 +1977,7 @@ class _RoundScreenState extends State<RoundScreen> {
             child: _besideCentered(
               ExerciseMascotAnchor.playButton,
               IconButton.filledTonal(
-                tooltip: 'Play audio again',
+                tooltip: _t('playAudioAgain'),
                 iconSize: 34,
                 onPressed: _speak,
                 icon: const Icon(Icons.volume_up_outlined),
@@ -1992,7 +2011,7 @@ class _RoundScreenState extends State<RoundScreen> {
                 f.kind == LearnerExerciseKind.selectCompleteAll) &&
             ex.hint.trim().isNotEmpty) ...[
           Text(
-            'Hint: ${ex.hint}',
+            _t('hint', {'hint': ex.hint}),
             key: const Key('gap-choice-hint'),
             style: Theme.of(context).textTheme.bodyLarge,
           ),
@@ -2084,7 +2103,7 @@ class _RoundScreenState extends State<RoundScreen> {
               _answered || _multiSelected.length < _features.minimumSelections
               ? null
               : () => _submitMultiChoice(ex),
-          child: const Text('Check'),
+          child: Text(_t('check')),
         ),
       ],
     );
@@ -2182,7 +2201,7 @@ class _RoundScreenState extends State<RoundScreen> {
             child: FilledButton.tonalIcon(
               onPressed: () => _speakText(audio),
               icon: const Icon(Icons.volume_up_outlined),
-              label: const Text('Play audio'),
+              label: Text(_t('playAudio')),
             ),
           ),
           const SizedBox(height: 14),
@@ -2237,7 +2256,7 @@ class _RoundScreenState extends State<RoundScreen> {
           onPressed: _answered || !allGapsFilled
               ? null
               : () => _submitSelectGaps(ex),
-          child: const Text('Check'),
+          child: Text(_t('check')),
         ),
       ],
     );
@@ -2290,7 +2309,7 @@ class _RoundScreenState extends State<RoundScreen> {
               borderRadius: BorderRadius.circular(14),
             ),
             child: Text(
-              'Hint: ${ex.hint}',
+              _t('hint', {'hint': ex.hint}),
               style: Theme.of(context).textTheme.bodyLarge,
             ),
           ),
@@ -2302,9 +2321,9 @@ class _RoundScreenState extends State<RoundScreen> {
           autofocus: true,
           onChanged: (_) => setState(() {}),
           onSubmitted: (_) => _submitFill(),
-          decoration: const InputDecoration(
-            border: OutlineInputBorder(),
-            labelText: 'Your answer',
+          decoration: InputDecoration(
+            border: const OutlineInputBorder(),
+            labelText: _t('yourAnswer'),
           ),
         ),
         const SizedBox(height: 12),
@@ -2312,7 +2331,7 @@ class _RoundScreenState extends State<RoundScreen> {
           onPressed: _answered || _textController.text.trim().isEmpty
               ? null
               : _submitFill,
-          child: const Text('Check'),
+          child: Text(_t('check')),
         ),
       ],
     );
@@ -2331,7 +2350,7 @@ class _RoundScreenState extends State<RoundScreen> {
                 ? null
                 : () => _speakText(audio),
             icon: const Icon(Icons.volume_up_outlined),
-            label: const Text('Play audio'),
+            label: Text(_t('playAudio')),
           ),
         ),
         const SizedBox(height: 14),
@@ -2346,9 +2365,9 @@ class _RoundScreenState extends State<RoundScreen> {
           autofocus: true,
           onChanged: (_) => setState(() {}),
           onSubmitted: (_) => _submitFill(),
-          decoration: const InputDecoration(
-            border: OutlineInputBorder(),
-            labelText: 'Your answer',
+          decoration: InputDecoration(
+            border: const OutlineInputBorder(),
+            labelText: _t('yourAnswer'),
           ),
         ),
         const SizedBox(height: 12),
@@ -2356,7 +2375,7 @@ class _RoundScreenState extends State<RoundScreen> {
           onPressed: _answered || _textController.text.trim().isEmpty
               ? null
               : _submitFill,
-          child: const Text('Check'),
+          child: Text(_t('check')),
         ),
       ],
     );
@@ -2372,7 +2391,7 @@ class _RoundScreenState extends State<RoundScreen> {
       borderRadius: BorderRadius.circular(14),
     ),
     child: Text(
-      'Hint: ${ex.hint.trim()}',
+      _t('hint', {'hint': ex.hint.trim()}),
       style: Theme.of(context).textTheme.bodyLarge,
     ),
   );
@@ -2421,7 +2440,7 @@ class _RoundScreenState extends State<RoundScreen> {
         const SizedBox(height: 16),
         FilledButton(
           onPressed: _answered || _builtOrder.isEmpty ? null : _submitOrder,
-          child: const Text('Check'),
+          child: Text(_t('check')),
         ),
       ],
     );
@@ -2518,7 +2537,7 @@ class _RoundScreenState extends State<RoundScreen> {
             child: FilledButton.tonalIcon(
               onPressed: () => _speakText(audio),
               icon: const Icon(Icons.volume_up_outlined),
-              label: const Text('Play audio'),
+              label: Text(_t('playAudio')),
             ),
           ),
           const SizedBox(height: 14),
@@ -2568,7 +2587,7 @@ class _RoundScreenState extends State<RoundScreen> {
         const SizedBox(height: 16),
         FilledButton(
           onPressed: _answered || !allGapsFilled ? null : _submitArrangeGaps,
-          child: const Text('Check'),
+          child: Text(_t('check')),
         ),
       ],
     );
@@ -2735,7 +2754,7 @@ class _RoundScreenState extends State<RoundScreen> {
         const SizedBox(height: 16),
         FilledButton(
           onPressed: _answered || _builtOrder.isEmpty ? null : _submitOrder,
-          child: const Text('Check'),
+          child: Text(_t('check')),
         ),
       ],
     );
@@ -2774,7 +2793,7 @@ class _RoundScreenState extends State<RoundScreen> {
     final targets = _features.gapFieldTargets;
     final inWord =
         i < targets.length && (_features.gapsInWord[targets[i].id] ?? false);
-    final noun = inWord ? 'Missing letters' : 'Missing word';
+    final noun = inWord ? _t('missingLetters') : _t('missingWord');
     return _missingWordControllers.length == 1 ? noun : '$noun ${i + 1}';
   }
 
@@ -2816,7 +2835,7 @@ class _RoundScreenState extends State<RoundScreen> {
           FilledButton.tonalIcon(
             onPressed: _answered ? null : () => _speakText(audio),
             icon: const Icon(Icons.volume_up_outlined),
-            label: const Text('Play audio'),
+            label: Text(_t('playAudio')),
           ),
           const SizedBox(height: 14),
         ],
@@ -2857,7 +2876,7 @@ class _RoundScreenState extends State<RoundScreen> {
           onPressed: _answered || !anyTyped
               ? null
               : () => _submitMissingWords(ex),
-          child: const Text('Check'),
+          child: Text(_t('check')),
         ),
       ],
     );
@@ -2949,7 +2968,7 @@ class _RoundScreenState extends State<RoundScreen> {
                   _matchingSelections.length != _matchingLeftPairs.length
               ? null
               : _submitMatching,
-          child: const Text('Check'),
+          child: Text(_t('check')),
         ),
       ],
     );
@@ -3024,7 +3043,7 @@ class _RoundScreenState extends State<RoundScreen> {
               ),
               const SizedBox(height: 8),
               IconButton.filledTonal(
-                tooltip: 'Pronounce word or phrase',
+                tooltip: _t('pronounceWord'),
                 onPressed: audio.isEmpty ? null : () => _speakText(audio),
                 icon: const Icon(Icons.volume_up_outlined),
               ),
@@ -3037,7 +3056,7 @@ class _RoundScreenState extends State<RoundScreen> {
               if (usage.isNotEmpty) ...[
                 const Divider(height: 28),
                 Text(
-                  'Usage:',
+                  _t('usage'),
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.labelLarge,
                 ),
@@ -3052,7 +3071,7 @@ class _RoundScreenState extends State<RoundScreen> {
                   Text(usageTranslation, textAlign: TextAlign.center),
                 const SizedBox(height: 6),
                 IconButton(
-                  tooltip: 'Pronounce usage sentence',
+                  tooltip: _t('pronounceUsage'),
                   onPressed: () => _speakText(usage),
                   icon: const Icon(Icons.record_voice_over_outlined),
                 ),
@@ -3066,7 +3085,7 @@ class _RoundScreenState extends State<RoundScreen> {
             onPressed: _answered
                 ? null
                 : () => _flashcardResult(reviewAgain: true),
-            child: const Text('Review again'),
+            child: Text(_t('reviewAgain')),
           ),
           const SizedBox(height: 8),
         ],
@@ -3074,7 +3093,7 @@ class _RoundScreenState extends State<RoundScreen> {
           onPressed: _answered
               ? null
               : () => _flashcardResult(reviewAgain: false),
-          child: Text(reviewable ? 'Got it' : 'Continue'),
+          child: Text(reviewable ? _t('gotIt') : _t('continue')),
         ),
       ],
     );
@@ -3105,13 +3124,13 @@ class _RoundScreenState extends State<RoundScreen> {
           speaker: speaker,
           text: showsText ? transcript : null,
           placeholder: hidden
-              ? 'Listen first…'
-              : (audio != null && !showsText ? 'Listen…' : null),
+              ? _t('listenFirst')
+              : (audio != null && !showsText ? _t('listen') : null),
           trailing: audio == null
               ? null
               : IconButton.filledTonal(
                   key: const Key('story-line-play'),
-                  tooltip: audioPlayable ? 'Play' : 'Audio unavailable',
+                  tooltip: audioPlayable ? _t('play') : _t('audioUnavailable'),
                   onPressed: audioPlayable ? () => _playLine(f) : null,
                   icon: const Icon(Icons.volume_up_outlined),
                 ),
@@ -3120,7 +3139,7 @@ class _RoundScreenState extends State<RoundScreen> {
           Padding(
             padding: const EdgeInsets.only(top: 8),
             child: Text(
-              'Audio not available on this device.',
+              _t('audioNotOnDevice'),
               key: const Key('story-line-audio-note'),
               style: Theme.of(context).textTheme.bodySmall,
             ),
@@ -3129,7 +3148,7 @@ class _RoundScreenState extends State<RoundScreen> {
         FilledButton(
           key: const Key('story-line-continue'),
           onPressed: _answered ? null : _continueLine,
-          child: const Text('Continue'),
+          child: Text(_t('continue')),
         ),
       ],
     );
@@ -3196,7 +3215,7 @@ class _RoundScreenState extends State<RoundScreen> {
         FilledButton(
           key: const Key('page-continue'),
           onPressed: _answered ? null : _continueLine,
-          child: const Text('Continue'),
+          child: Text(_t('continue')),
         ),
       ],
     );
@@ -3252,9 +3271,9 @@ class _RoundScreenState extends State<RoundScreen> {
     }
     if (!opened && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          duration: Duration(seconds: 8),
-          content: Text('The link could not be opened.'),
+        SnackBar(
+          duration: const Duration(seconds: 8),
+          content: Text(_t('linkNotOpened')),
         ),
       );
     }
@@ -3276,7 +3295,7 @@ class _RoundScreenState extends State<RoundScreen> {
         FilledButton(
           key: const Key('story-cover-continue'),
           onPressed: _answered ? null : _continueLine,
-          child: const Text('Continue'),
+          child: Text(_t('continue')),
         ),
       ],
     );
@@ -3514,7 +3533,7 @@ class _RoundScreenState extends State<RoundScreen> {
               child: Column(
                 children: [
                   IconButton.filledTonal(
-                    tooltip: 'Play sound',
+                    tooltip: _t('playSound'),
                     onPressed: () => _speakText(sound),
                     icon: const Icon(Icons.volume_up_outlined),
                   ),
@@ -3555,7 +3574,7 @@ class _RoundScreenState extends State<RoundScreen> {
                   );
                   _mark(ok);
                 },
-          child: const Text('Check matches'),
+          child: Text(_t('checkMatches')),
         ),
       ],
     );
@@ -3808,7 +3827,7 @@ class _RoundScreenState extends State<RoundScreen> {
         FilledButton(
           key: const Key('assign-check'),
           onPressed: _answered || placed.isEmpty ? null : _submitAssign,
-          child: const Text('Check'),
+          child: Text(_t('check')),
         ),
       ],
     );
@@ -3873,8 +3892,8 @@ class _RoundScreenState extends State<RoundScreen> {
                           .isEmpty)
                         Text(
                           f.assignTargetMode == AssignTargetMode.slots
-                              ? 'Empty'
-                              : 'Nothing here yet',
+                              ? _t('empty')
+                              : _t('nothingHereYet'),
                           style: Theme.of(context).textTheme.bodySmall,
                         ),
                     ],
@@ -4045,7 +4064,7 @@ class _RoundScreenState extends State<RoundScreen> {
         FilledButton(
           key: const Key('not-executable-continue'),
           onPressed: _answered ? null : _skipNotExecutable,
-          child: const Text('Continue'),
+          child: Text(_t('continue')),
         ),
       ],
     );
@@ -4109,7 +4128,7 @@ class _RoundScreenState extends State<RoundScreen> {
             padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
             children: [
               Text(
-                'Before you start',
+                _t('beforeYouStart'),
                 style: Theme.of(
                   context,
                 ).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w900),
@@ -4153,7 +4172,7 @@ class _RoundScreenState extends State<RoundScreen> {
                     ),
                   ),
                   icon: const Icon(Icons.menu_book_outlined),
-                  label: const Text('Open Guidebook'),
+                  label: Text(_t('openGuidebook')),
                 ),
               ],
               const SizedBox(height: 8),
@@ -4176,7 +4195,7 @@ class _RoundScreenState extends State<RoundScreen> {
                   });
                 },
                 child: Text(
-                  _queue.isEmpty ? 'Close preview' : 'Continue to Round',
+                  _queue.isEmpty ? 'Close preview' : _t('continueToRound'),
                 ),
               ),
             ],
@@ -4249,13 +4268,21 @@ class _RoundScreenState extends State<RoundScreen> {
               ),
               if (_reviewPhase)
                 Text(
-                  'Reviewing exercises you missed',
+                  _t('reviewingMissed'),
                   style: Theme.of(context).textTheme.labelSmall,
                 ),
             ] else ...[
-              Text(_reviewPhase ? '$_roundTitle · Review' : _roundTitle),
               Text(
-                '${widget.course.targetLanguage} · Lesson ${_lessonIndex + 1} · ${widget.lesson.title}',
+                _reviewPhase
+                    ? _t('roundInReview', {'round': _roundTitle})
+                    : _roundTitle,
+              ),
+              Text(
+                _t('lessonLine', {
+                  'language': widget.course.targetLanguage,
+                  'n': _lessonIndex + 1,
+                  'title': widget.lesson.title,
+                }),
                 style: Theme.of(context).textTheme.labelSmall,
               ),
             ],
@@ -4267,7 +4294,7 @@ class _RoundScreenState extends State<RoundScreen> {
               !(ex.primitive == ExercisePrimitive.select &&
                   _features.automaticAudio != null))
             IconButton(
-              tooltip: 'Play audio',
+              tooltip: _t('playAudio'),
               icon: const Icon(Icons.volume_up_outlined),
               onPressed: _speak,
             ),
@@ -4298,7 +4325,7 @@ class _RoundScreenState extends State<RoundScreen> {
               Padding(
                 padding: const EdgeInsets.only(bottom: 10),
                 child: Text(
-                  'Reviewing exercises you missed',
+                  _t('reviewingMissed'),
                   style: Theme.of(context).textTheme.labelLarge,
                 ),
               ),
@@ -4422,9 +4449,11 @@ class _RoundScreenState extends State<RoundScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
-                              'Correct translations:',
-                              style: TextStyle(fontWeight: FontWeight.w700),
+                            Text(
+                              _t('correctTranslations'),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w700,
+                              ),
                             ),
                             const SizedBox(height: 4),
                             for (final answer
@@ -4439,7 +4468,7 @@ class _RoundScreenState extends State<RoundScreen> {
                     ] else if (_features.kind ==
                             LearnerExerciseKind.selectCharacter &&
                         !_lastAnswerCorrect) ...[
-                      const Text('Correct answer:'),
+                      Text(_t('correctAnswerLabel')),
                       for (final item in ex.items.where(
                         (item) => ex.canonicalEvaluation.correctItemIds
                             .contains(item.id),
@@ -4458,10 +4487,10 @@ class _RoundScreenState extends State<RoundScreen> {
                         const SizedBox(height: 8),
                         Text(
                           _lastAnswerCorrect
-                              ? 'Other correct translations:'
+                              ? _t('otherCorrectTranslations')
                               : _translationFeedbackPartial
-                              ? 'Some possible translations:'
-                              : 'Correct translations:',
+                              ? _t('somePossibleTranslations')
+                              : _t('correctTranslations'),
                           key: const Key('translation-feedback-heading'),
                         ),
                         for (var i = 0; i < _translationFeedback.length; i++)
@@ -4475,13 +4504,20 @@ class _RoundScreenState extends State<RoundScreen> {
                             (ex.primitive == ExercisePrimitive.input &&
                                 _features.gapFieldTargets.isEmpty))) ...[
                       const SizedBox(height: 5),
-                      Text('Correct answer: ${_correctAnswerText(ex)}'),
+                      Text(
+                        _t('correctAnswer', {'answer': _correctAnswerText(ex)}),
+                      ),
                     ],
                     if (_lastAnswerCorrect &&
                         _acceptedDifferences.isNotEmpty) ...[
                       const SizedBox(height: 5),
                       Text(
-                        '${_acceptedDifferences.length == 1 ? 'Accepted difference' : 'Accepted differences'}: ${_acceptedDifferences.join(', ')}',
+                        _t(
+                          _acceptedDifferences.length == 1
+                              ? 'acceptedDifference'
+                              : 'acceptedDifferences',
+                          {'list': _acceptedDifferences.join(', ')},
+                        ),
                       ),
                     ],
                   ],
@@ -4495,19 +4531,19 @@ class _RoundScreenState extends State<RoundScreen> {
                 // labels stay.
                 child: Text(
                   _finishing
-                      ? 'Finishing ${_roundNoun.toLowerCase()}…'
+                      ? _t('finishing.$_nounKey')
                       : !_reviewPhase &&
                             !_playsInOrder &&
                             _position + 1 == _queue.length &&
                             _wrongFirstPass.isNotEmpty
-                      ? 'Review mistakes'
+                      ? _t('reviewMistakes')
                       : (_position + 1 == _queue.length
                             ? (_playsInOrder &&
                                       !widget.previewMode &&
                                       !_exercise.isExecutable
-                                  ? 'Leave ${_roundNoun.toLowerCase()}'
-                                  : 'Finish ${_roundNoun.toLowerCase()}')
-                            : 'Continue'),
+                                  ? _t('leave.$_nounKey')
+                                  : _t('finish.$_nounKey'))
+                            : _t('continue')),
                 ),
               ),
             ],

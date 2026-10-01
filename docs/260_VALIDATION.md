@@ -38,3 +38,29 @@
 - `flutter analyze --no-pub`: no issues.
 - **Complete suite** (`--concurrency=1`, keep-awake, 28 min 29 s):
   **3481 passed, 1 skipped, 0 failed**.
+
+## Revision 1 (2.0.60+260001, 1 October 2026): the learner panel's buttons and messages
+
+**Generators and validator**
+- No Course file changes; the bundled Courses' learner panels change only
+  for a base language other than English (none of the three bundled
+  Courses).
+
+**Tests**
+- New: `test/learner_panel_260_test.dart` (seven catalogs, each with every
+  English key, no empty text and the English placeholders; the panel
+  follows the base language and falls back to English for a language QQL
+  does not have; placeholders filled; an Italian-base Round shows
+  Controlla, La tua risposta, Sbagliato, the Italian translation heading
+  and Rivedi gli errori; an Italian-base Duel shows Duello linguistico and
+  "Domanda 1/25 · 4 vite").
+- Focused run (the 55 files that open the Round, the Duel, the Review page
+  or the exercise lines, and the Revision 0 test): 950 passed.
+- `flutter analyze --no-pub`: no issues.
+- First complete suite: 3485 passed, 1 skipped, 1 failed:
+  `imported_course_v6_regression_test` searched the Round screen's source
+  for `labelText: 'Your answer'`; it now checks `labelText:
+  _t('yourAnswer')` and that the English catalog says "Your answer".
+  Re-run alone: passed.
+- **Complete suite** (second run, `--concurrency=1`, keep-awake,
+  28 min 45 s): **3486 passed, 1 skipped, 0 failed**.

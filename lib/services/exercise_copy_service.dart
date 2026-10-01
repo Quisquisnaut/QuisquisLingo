@@ -15,7 +15,7 @@ class ExerciseCopyService {
   /// The instruction language: the Course's base language when QQL has a
   /// catalog for it (Build 260 Revision 0: its tag, else the language its
   /// name or interface language names), otherwise English.
-  static String _languageCode(Course course) {
+  static String instructionLanguage(Course course) {
     final tag = LanguageCatalog.tagFor(
       tag: course.sourceLanguageTag,
       name: course.sourceLanguage,
@@ -34,7 +34,7 @@ class ExerciseCopyService {
   };
 
   static Map<String, String> _copy(Course course) =>
-      _merged[_languageCode(course)]!;
+      _merged[instructionLanguage(course)]!;
 
   /// The learner heading for an exercise of [kind].
   static String typeLabel(Course course, LearnerExerciseKind kind) {
@@ -92,7 +92,7 @@ class ExerciseCopyService {
       fallbackName: fallback,
     );
     if (tag != null) {
-      final local = LanguageCatalog.nameIn(_languageCode(course), tag);
+      final local = LanguageCatalog.nameIn(instructionLanguage(course), tag);
       if (local != null) return local;
       final entry = LanguageCatalog.byTag(tag);
       if (entry != null) return entry.englishName;
@@ -221,7 +221,7 @@ class ExerciseCopyService {
   /// old Spanish-source demo exercises that used English `Translate:` text.
   static String displayPrompt(Course course, String prompt) {
     final value = prompt.trim();
-    if (_languageCode(course) == 'es' && value.startsWith('Translate:')) {
+    if (instructionLanguage(course) == 'es' && value.startsWith('Translate:')) {
       return 'Traduce:${value.substring('Translate:'.length)}';
     }
     return prompt;

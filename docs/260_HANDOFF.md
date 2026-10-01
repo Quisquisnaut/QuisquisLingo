@@ -12,16 +12,23 @@ tags and the learners' name of the language, seven instruction languages
 New test `test/course_languages_260_test.dart`.
 Complete suite: 3481 passed, 1 skipped.
 
+## Revision 1 (implemented, 1 October 2026)
+
+The learner panel's buttons and messages (plan point 6): 107 keys in
+seven languages (`lib/localization/learner_panel/`, `LearnerPanelText`),
+used by the Round, the Duel and the Review page; error, audio-setup,
+version and author Preview messages, Report a problem, Reset Word List and
+Review Help stay in English. New test `test/learner_panel_260_test.dart`.
+
 ## Next
 
-Revision 1: the learner panel's buttons and messages in the seven
-instruction languages (plan point 6).
+Revision 2 (owner request of 1 October 2026): a bundled **QQL Demo:
+English from Italian**, one Lesson with a GuideBook: three ordinary
+Rounds of six exercises (types mixed at random), a Story, three more
+Rounds, a second Story at the end.
 
-Draft in progress: about 100 strings (buttons, feedback, the end-of-Round
-summary, Before you start, the Duel, the Review page) in a new catalog
-per language (`lib/localization/learner_panel/`), following the same
-instruction language as the exercise lines. Error, audio-setup, version
-and author Preview messages and Report a problem stay in English.
+Then the owner's review of Build 260 (the AI-written translations and
+names await native review).
 
 Stage with `git add -A -- . ':!devtools_options.yaml' ':!tools/cloud_setup.sh'`
 after checking `git status` for files another session wrote.

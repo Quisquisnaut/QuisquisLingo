@@ -56,3 +56,46 @@ Info answer.
 
 Scoring, progression, Review, the Course format (one optional field) and
 learner data are unchanged.
+
+## Revision 1 (2.0.60+260001, 1 October 2026): the learner panel's buttons and messages
+
+Plan point 6 (`docs/260_LANGUAGES_PLAN.md`).
+
+**One catalog per language.** `lib/localization/learner_panel/` holds the
+learner panel's buttons and messages in English, Spanish, Italian, German,
+Portuguese, Dutch and French (107 keys each; the six translations are
+AI-written, pending native review). `LearnerPanelText.of(course, key,
+values)` (`lib/services/learner_panel_text.dart`) reads them in the same
+instruction language as the exercise lines
+(`ExerciseCopyService.instructionLanguage`, now public), English for a key
+a catalog lacks, and fills `{name}` placeholders.
+
+**What follows the Course's language.** In the Round: Check, Check matches,
+Continue, Correct / Incorrect, Hint, Your answer, Missing word / Missing
+letters, Correct answer, the translation lists, accepted differences, Play
+audio and the audio notes, Listen to the answer, the flashcard buttons and
+notes, the dialogue placeholders, the Assign labels, the link message,
+Before you start with Open Guidebook and Continue to Round, Review your
+mistakes, Reviewing exercises you missed, Finish / Leave / Finishing round,
+story or sequence, "Story · N steps", the header line, and the end-of-Round
+summary (Round completed, Correct answers, Perfect bonus, First Laurel,
+Lesson completed, Total, Nothing to score, Weekly goal reached). In the
+Duel: its title, the question counter, Listen and choose the meaning,
+Correct / Incorrect, Correct answer, Finish duel, Continue, the result
+titles and texts, Back to course. On the Review page: its title, Before /
+After the Round, Lesson and Round, Word i of n, Show answer, I know it /
+Now I know it / I still don't know it / Show it to me again, Review
+completed!, Ready for Review, the word count, Next Review, Back to Course,
+the empty message.
+
+**What stays in English** (QQL's own interface): messages about errors and
+App bugs, audio set-up instructions that name Settings, messages about what
+this version of QuisquisLingo cannot play, the author's Preview and View
+Only results, Report a problem, and the Review page's Reset Word List and
+Review Help.
+
+**Help EN/IT/ES** ("How do I choose the Course languages?") and the QQL
+Guide line say the learner panel's buttons and messages follow the Course.
+
+Scoring, progression, Review, the Course format and learner data are
+unchanged.

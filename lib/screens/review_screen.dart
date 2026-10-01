@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/course_models.dart';
 import '../services/beta_lifecycle_service.dart';
 import '../services/course_language_resolver.dart';
+import '../services/learner_panel_text.dart';
 import '../services/review_round_resolver.dart';
 import '../services/vocabulary_review_service.dart';
 import '../widgets/beta_expired_view.dart';
@@ -37,6 +38,11 @@ enum _ReviewStage {
 }
 
 class _ReviewScreenState extends State<ReviewScreen> {
+  /// The learner panel text of [key] in the Course's instruction language
+  /// (Build 260 Revision 1).
+  String _t(String key, [Map<String, Object> values = const {}]) =>
+      LearnerPanelText.of(widget.course, key, values);
+
   final ReviewRoundResolver _resolver = ReviewRoundResolver();
   final VocabularyReviewService _vocabulary = VocabularyReviewService();
   final Set<String> _reviewedRoundIds = {};
@@ -285,7 +291,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
     if (_stage == _ReviewStage.openingRound) _scheduleRound();
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Review'),
+        title: Text(_t('review.title')),
         actions: [
           IconButton(
             key: const Key('review-reset-word-list'),
@@ -312,13 +318,10 @@ class _ReviewScreenState extends State<ReviewScreen> {
     _ReviewStage.interReview => _interReview(),
     _ReviewStage.preVocabulary => _vocabularyCard(afterRound: false),
     _ReviewStage.postVocabulary => _vocabularyCard(afterRound: true),
-    _ReviewStage.empty => const Center(
+    _ReviewStage.empty => Center(
       child: Padding(
-        padding: EdgeInsets.all(28),
-        child: Text(
-          'There are no Rounds available for Review in this course.',
-          textAlign: TextAlign.center,
-        ),
+        padding: const EdgeInsets.all(28),
+        child: Text(_t('review.noRounds'), textAlign: TextAlign.center),
       ),
     ),
   };
@@ -334,7 +337,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
       children: [
         Text(
-          afterRound ? 'After the Round' : 'Before the Round',
+          afterRound ? _t('review.afterRound') : _t('review.beforeRound'),
           style: Theme.of(
             context,
           ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
@@ -343,11 +346,14 @@ class _ReviewScreenState extends State<ReviewScreen> {
         Text(widget.course.title, softWrap: true),
         Text(widget.course.targetLanguage, softWrap: true),
         Text(
-          'Lesson ${location.lessonIndex + 1}: ${location.lesson.title}',
+          _t('review.lesson', {
+            'n': location.lessonIndex + 1,
+            'title': location.lesson.title,
+          }),
           softWrap: true,
         ),
         Text(
-          'Round ${location.roundIndex + 1}'
+          '${_t('review.round', {'n': location.roundIndex + 1})}'
           '${roundTitle.isEmpty ? '' : ': $roundTitle'}',
           softWrap: true,
         ),
@@ -355,7 +361,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
         LinearProgressIndicator(value: _entryIndex / entries.length),
         const SizedBox(height: 6),
         Text(
-          'Word ${_entryIndex + 1} of ${entries.length}',
+          _t('review.word', {'i': _entryIndex + 1, 'n': entries.length}),
           textAlign: TextAlign.end,
         ),
         const SizedBox(height: 18),
@@ -387,35 +393,35 @@ class _ReviewScreenState extends State<ReviewScreen> {
         if (!_answerRevealed)
           FilledButton(
             onPressed: () => setState(() => _answerRevealed = true),
-            child: const Text('Show answer'),
+            child: Text(_t('review.showAnswer')),
           )
         else if (afterRound) ...[
           FilledButton(
             onPressed: _decisionPending
                 ? null
                 : () => _decide(needsReinforcement: false),
-            child: const Text('Now I know it'),
+            child: Text(_t('review.nowIKnow')),
           ),
           const SizedBox(height: 8),
           OutlinedButton(
             onPressed: _decisionPending
                 ? null
                 : () => _decide(needsReinforcement: true),
-            child: const Text("I still don't know it"),
+            child: Text(_t('review.stillDontKnow')),
           ),
         ] else ...[
           FilledButton(
             onPressed: _decisionPending
                 ? null
                 : () => _decide(needsReinforcement: false),
-            child: const Text('I know it'),
+            child: Text(_t('review.iKnowIt')),
           ),
           const SizedBox(height: 8),
           OutlinedButton(
             onPressed: _decisionPending
                 ? null
                 : () => _decide(needsReinforcement: true),
-            child: const Text('Show it to me again'),
+            child: Text(_t('review.showAgain')),
           ),
         ],
       ],
@@ -442,7 +448,9 @@ class _ReviewScreenState extends State<ReviewScreen> {
               ),
               const SizedBox(height: 16),
               Text(
-                _hasCompletedReview ? 'Review completed!' : 'Ready for Review',
+                _hasCompletedReview
+                    ? _t('review.completed')
+                    : _t('review.ready'),
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.w800,
@@ -450,15 +458,17 @@ class _ReviewScreenState extends State<ReviewScreen> {
               ),
               if (_noMoreRounds) ...[
                 const SizedBox(height: 14),
-                const Text(
-                  'No more Rounds are available in this Review session.',
-                  textAlign: TextAlign.center,
-                ),
+                Text(_t('review.noMoreRounds'), textAlign: TextAlign.center),
               ],
               if (wordCount != null) ...[
                 const SizedBox(height: 14),
                 Text(
-                  '$wordCount ${wordCount == 1 ? 'word' : 'words'} to review in the next Review.',
+                  _t(
+                    wordCount == 1
+                        ? 'review.wordsToReview.one'
+                        : 'review.wordsToReview.other',
+                    {'n': wordCount},
+                  ),
                   key: const Key('review-next-word-count'),
                   textAlign: TextAlign.center,
                 ),
@@ -468,14 +478,14 @@ class _ReviewScreenState extends State<ReviewScreen> {
                 key: const Key('review-next'),
                 onPressed: _location == null ? null : _prepareLocation,
                 icon: const Icon(Icons.navigate_next),
-                label: const Text('Next Review'),
+                label: Text(_t('review.next')),
               ),
               const SizedBox(height: 8),
               OutlinedButton.icon(
                 key: const Key('review-back-to-course'),
                 onPressed: () => Navigator.of(context).maybePop(),
                 icon: const Icon(Icons.arrow_back),
-                label: const Text('Back to Course'),
+                label: Text(_t('review.backToCourse')),
               ),
             ],
           ),

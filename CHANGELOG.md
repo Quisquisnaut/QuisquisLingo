@@ -1,3 +1,20 @@
+# 2.0.60 (Build 260, Revision 1) - Learner panel buttons and messages - 2026-10-01
+
+Plan point 6 (`docs/260_LANGUAGES_PLAN.md`).
+
+- **The learner panel speaks the Course's language.** Check, Continue,
+  Correct and Incorrect, Hint, Correct answer, Before you start, Review
+  your mistakes, the end-of-Round summary, the Duel and the Review page now
+  follow the Course's base language like the exercise lines: English,
+  Spanish, Italian, German, Portuguese, Dutch or French (AI-written,
+  pending review), otherwise English.
+- QQL's own messages stay in English: errors, audio set-up, what this
+  version cannot play, the author's Preview, Report a problem.
+- Help EN/IT/ES and the QQL Guide say so.
+
+Scoring, progression, Review and learner data are unchanged. Beta expiry
+`2026-10-31 23:59:59` local time (same release day as Revision 0).
+
 # 2.0.60 (Build 260, Revision 0) - Course languages - 2026-10-01
 
 Owner decisions of 1 October 2026 (`docs/260_LANGUAGES_PLAN.md`).
