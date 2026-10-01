@@ -48,12 +48,12 @@ Complete suite: 3500 passed, 1 skipped.
 QQL Demo titles: QQL Demo: Exercise Laboratory, QQL Demo: Piedmontese
 (sorted by exercise type). Complete suite: 3500 passed, 1 skipped.
 
-## Revision 5 (implemented, 1 October 2026)
+## Revision 5 (committed `40980a1`, 1 October 2026)
 
 Exercise difficulty: `ExerciseDifficulty` (0 read … 4 write, computed,
 never stored), `DifficultyBadge` in the Round editor and on the Rounds
 page, Editor Help question `difficulty`. Test
-`test/exercise_difficulty_260_test.dart`.
+`test/exercise_difficulty_260_test.dart`. Complete suite: 3505 passed, 1 skipped.
 
 ## Next (owner decisions of 1 October 2026)
 
