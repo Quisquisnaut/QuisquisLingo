@@ -55,11 +55,11 @@ never stored), `DifficultyBadge` in the Round editor and on the Rounds
 page, Editor Help question `difficulty`. Test
 `test/exercise_difficulty_260_test.dart`. Complete suite: 3505 passed, 1 skipped.
 
-## Revision 6 (implemented, 1 October 2026)
+## Revision 6 (committed `7461b83`, 1 October 2026)
 
 Difficulty bonus XP: 1 XP per level for each exercise answered correctly at
 the first attempt, on a Round's first completion only; a summary line in
-the seven languages. Test `test/difficulty_bonus_260_test.dart`.
+the seven languages. Test `test/difficulty_bonus_260_test.dart`. Complete suite: 3511 passed, 1 skipped.
 
 ## Next (owner decisions of 1 October 2026)
 
