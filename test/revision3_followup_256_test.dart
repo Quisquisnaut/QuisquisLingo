@@ -407,7 +407,9 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(find.text('New Exercise'), findsOneWidget);
-      expect(find.text('New Canonical'), findsOneWidget);
+      // Build 261 Revision 5: the canonical editor is New Exercise's last
+      // choice, no longer a button of its own.
+      expect(find.text('New Canonical'), findsNothing);
       // The fork's Exercises are Draft: Save says so instead of counting
       // Audit errors.
       await tester.tap(find.byKey(const Key('round-save')));
@@ -663,7 +665,11 @@ void main() {
         catalog['editorHelp.qa.exerciseWizard.q'],
         contains('Exercise Wizard'),
       );
-      expect(catalog['editorHelp.qa.newExercise.a'], contains('New Canonical'));
+      expect(
+        catalog['editorHelp.qa.newExercise.a'],
+        contains('Canonical editor'),
+      );
+      expect(catalog['editorHelp.qa.newExercise.a'], contains('Fill with'));
       expect(
         catalog['exerciseHelp.supplement.canonicalEditor.body'],
         contains('New Exercise'),

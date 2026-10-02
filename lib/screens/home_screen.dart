@@ -14,6 +14,7 @@ import '../services/update_service.dart';
 import '../models/course_models.dart';
 import '../services/course_language_resolver.dart';
 import '../services/course_service.dart';
+import '../services/course_study.dart';
 import '../services/course_editor_service.dart';
 import '../services/publication_service.dart';
 import '../services/lesson_presentation_service.dart';
@@ -54,6 +55,8 @@ import '../widgets/unified_learner_top_bar.dart';
 import '../widgets/learner_theme_mode_scope.dart';
 import '../widgets/welcome_wizard_dialog.dart';
 import '../localization/locale_service.dart';
+
+part 'course_preview_screen.dart';
 
 const _learnerLightPageBackground = Color(0xFFF7F3E8);
 const _learnerDarkPageBackground = Color(0xFF080B09);
@@ -1559,18 +1562,19 @@ class _HomeScreenState extends State<HomeScreen> {
       final selectedCourse = _course;
       Navigator.pop(sheetContext);
       if (!overlayContext.mounted) return;
-      await Navigator.of(overlayContext).push<void>(
-        MaterialPageRoute(
-          builder: (_) => CoursesScreen(
-            initialTab: tab,
-            currentCourse: selectedCourse,
-            initialCourseIdToOpen: editCurrent
-                ? selectedCourse?.courseId
-                : null,
-          ),
-        ),
-      );
-      if (mounted) await _reload();
+      final request = await Navigator.of(overlayContext)
+          .push<CourseStudyRequest>(
+            MaterialPageRoute(
+              builder: (_) => CoursesScreen(
+                initialTab: tab,
+                currentCourse: selectedCourse,
+                initialCourseIdToOpen: editCurrent
+                    ? selectedCourse?.courseId
+                    : null,
+              ),
+            ),
+          );
+      if (mounted) await _studyFromCourses(request);
     }
 
     Future<void> showCourseManagerLocked(BuildContext sheetContext) =>
@@ -1790,12 +1794,51 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _openAllCourses() async {
-    await Navigator.of(context).push<void>(
+    final request = await Navigator.of(context).push<CourseStudyRequest>(
       MaterialPageRoute(
         builder: (_) => const CoursesScreen(initialTab: CoursesTab.allCourses),
       ),
     );
-    if (mounted) await _reload();
+    if (mounted) await _studyFromCourses(request);
+  }
+
+  /// After Courses closes: reload, or carry out Study or Review chosen in a
+  /// Course menu (Build 261 Revision 1, owner decision of 1 October 2026).
+  /// The Course joins the learner's courses when it is missing and becomes
+  /// current; Review then opens on it.
+  Future<void> _studyFromCourses(CourseStudyRequest? request) async {
+    if (request == null) {
+      await _reload();
+      return;
+    }
+    final course = request.course;
+    try {
+      final library = CourseLibraryService();
+      if (!await library.contains(course)) await library.add(course);
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not add “${course.title}”: $error')),
+        );
+      }
+      await _reload();
+      return;
+    }
+    if (!mounted) return;
+    if (course.courseId == _course?.courseId) {
+      await _reload();
+    } else if (course.originType == CourseOriginType.bundledOfficial) {
+      await _switchCourse(CourseService.bundledCodeForCourse(course));
+    } else {
+      await _switchCustomCourse(course);
+    }
+    final current = _course;
+    if (!mounted ||
+        request.action != CourseStudyAction.review ||
+        current?.courseId != course.courseId) {
+      return;
+    }
+    await _openReview(current!);
   }
 
   Future<bool> _canOpenLearnerContent() async {
@@ -2283,15 +2326,16 @@ class _HomeScreenState extends State<HomeScreen> {
                   icon: const Icon(Icons.edit_note),
                   label: const Text('Course Studio'),
                   onPressed: () async {
-                    await Navigator.of(context).push<void>(
-                      MaterialPageRoute(
-                        builder: (_) => const CoursesScreen(
-                          initialTab: CoursesTab.manager,
-                          currentCourse: null,
-                        ),
-                      ),
-                    );
-                    if (mounted) await _reload();
+                    final request = await Navigator.of(context)
+                        .push<CourseStudyRequest>(
+                          MaterialPageRoute(
+                            builder: (_) => const CoursesScreen(
+                              initialTab: CoursesTab.manager,
+                              currentCourse: null,
+                            ),
+                          ),
+                        );
+                    if (mounted) await _studyFromCourses(request);
                   },
                 ),
               ],
@@ -2805,6 +2849,9 @@ class _LessonSection extends StatelessWidget {
   final bool isExpanded;
   final LearnerIddqdMode? iddqdAccessMode;
   final bool previewOnly;
+
+  /// The Course preview opens a Draft GuideBook too (Build 261 Revision 2).
+  final bool includeDrafts;
   final Set<String> completedRounds;
   final Set<String> perfectRounds;
   final Set<String> ttsSkippedPerfectRounds;
@@ -2832,6 +2879,7 @@ class _LessonSection extends StatelessWidget {
     required this.isExpanded,
     required this.iddqdAccessMode,
     required this.previewOnly,
+    this.includeDrafts = false,
     required this.completedRounds,
     required this.perfectRounds,
     required this.ttsSkippedPerfectRounds,
@@ -2908,7 +2956,7 @@ class _LessonSection extends StatelessWidget {
         onTap:
             hasAccess &&
                 !previewOnly &&
-                lesson.guidebook.publicationState.isPublished
+                (includeDrafts || lesson.guidebook.publicationState.isPublished)
             ? onOpenGuidebook
             : null,
       ),
@@ -3184,39 +3232,48 @@ class _GuidebookNode extends StatelessWidget {
                         Expanded(
                           child: Semantics(
                             header: true,
-                            child: Text.rich(
-                              TextSpan(
-                                children: identity.deduplicated
-                                    ? [
-                                        TextSpan(
-                                          text: identity.fullText,
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.w900,
-                                          ),
-                                        ),
-                                      ]
-                                    : [
-                                        if (identity.prefix != null)
+                            // The whole title when three lines cut it (Build
+                            // 261 Revision 0, owner decision).
+                            child: Tooltip(
+                              key: ValueKey(
+                                'unified-guidebook-lesson-tooltip-${lesson.lessonId}',
+                              ),
+                              message: identity.fullText,
+                              excludeFromSemantics: true,
+                              child: Text.rich(
+                                TextSpan(
+                                  children: identity.deduplicated
+                                      ? [
                                           TextSpan(
-                                            text: '${identity.prefix}: ',
+                                            text: identity.fullText,
                                             style: const TextStyle(
-                                              fontWeight: FontWeight.normal,
+                                              fontWeight: FontWeight.w900,
                                             ),
                                           ),
-                                        TextSpan(
-                                          text: identity.title,
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.w900,
+                                        ]
+                                      : [
+                                          if (identity.prefix != null)
+                                            TextSpan(
+                                              text: '${identity.prefix}: ',
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.normal,
+                                              ),
+                                            ),
+                                          TextSpan(
+                                            text: identity.title,
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.w900,
+                                            ),
                                           ),
-                                        ),
-                                      ],
+                                        ],
+                                ),
+                                key: ValueKey(
+                                  'unified-guidebook-lesson-title-${lesson.lessonId}',
+                                ),
+                                maxLines: 3,
+                                overflow: TextOverflow.ellipsis,
+                                style: Theme.of(context).textTheme.titleMedium,
                               ),
-                              key: ValueKey(
-                                'unified-guidebook-lesson-title-${lesson.lessonId}',
-                              ),
-                              maxLines: 3,
-                              overflow: TextOverflow.ellipsis,
-                              style: Theme.of(context).textTheme.titleMedium,
                             ),
                           ),
                         ),
@@ -3683,6 +3740,68 @@ class _RoundNode extends StatelessWidget {
         !RegExp(r'^(round|ronda)\s+\d+$', caseSensitive: false).hasMatch(title);
   }
 
+  /// The Round's name on one line (Build 261 Revision 0, owner decision of 1
+  /// October 2026): "Round 2: " in normal weight before the title in bold,
+  /// and "Story: " / "Sequence: " the same way; "Round" stays English. A
+  /// Round without a title of its own shows "Round 2" alone, in bold.
+  (String, String?) get _titleParts {
+    if (round.flow != null) {
+      final prefix = round.isStory
+          ? LearningRound.storyTitlePrefix
+          : LearningRound.sequenceTitlePrefix;
+      return (
+        prefix,
+        round.displayTitle(roundNumber - 1).substring(prefix.length),
+      );
+    }
+    if (_hasDescriptiveTitle) {
+      return ('Round $roundNumber: ', round.title.trim());
+    }
+    return ('Round $roundNumber', null);
+  }
+
+  /// A little smaller than the former title line; it wraps up to three lines
+  /// (with the status line they fit the card's 88 pixels) and the tooltip
+  /// gives the whole name when it is cut.
+  Widget _title(BuildContext context) {
+    final (prefix, title) = _titleParts;
+    final base = Theme.of(context).textTheme.titleMedium;
+    final style = base?.copyWith(
+      fontSize: (base.fontSize ?? 16) - 1,
+      height: 1.4,
+    );
+    final key = ValueKey('unified-round-title-${round.id}');
+    if (title == null) {
+      return Text(
+        prefix,
+        key: key,
+        style: style?.copyWith(fontWeight: FontWeight.w800),
+      );
+    }
+    return Tooltip(
+      message: '$prefix$title',
+      excludeFromSemantics: true,
+      child: Text.rich(
+        TextSpan(
+          children: [
+            TextSpan(
+              text: prefix,
+              style: const TextStyle(fontWeight: FontWeight.normal),
+            ),
+            TextSpan(
+              text: title,
+              style: const TextStyle(fontWeight: FontWeight.w800),
+            ),
+          ],
+        ),
+        key: key,
+        maxLines: 3,
+        overflow: TextOverflow.ellipsis,
+        style: style,
+      ),
+    );
+  }
+
   String get _status => perfect
       ? 'Perfect'
       : completed || ttsSkippedPerfect
@@ -3788,20 +3907,7 @@ class _RoundNode extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Round $roundNumber',
-                      style: const TextStyle(fontWeight: FontWeight.w900),
-                    ),
-                    if (_hasDescriptiveTitle)
-                      Text(
-                        round.flow != null
-                            ? round.displayTitle(roundNumber - 1)
-                            : round.title,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(fontWeight: FontWeight.w800),
-                      ),
+                    _title(context),
                     Text(
                       _status,
                       style: TextStyle(

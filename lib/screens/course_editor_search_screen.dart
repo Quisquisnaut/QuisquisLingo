@@ -6,6 +6,7 @@ import '../services/exercise_search_service.dart';
 import '../services/editor_display_preferences.dart';
 import '../services/lesson_presentation_service.dart';
 import '../widgets/editor_app_bar_actions.dart';
+import '../widgets/course_preview_flag.dart';
 
 class CourseEditorSearchScreen extends StatefulWidget {
   const CourseEditorSearchScreen({
@@ -57,7 +58,10 @@ class _CourseEditorSearchScreenState extends State<CourseEditorSearchScreen> {
     final results = _results;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Search Exercises'),
+        title: CoursePreviewTitle(
+          course: widget.course,
+          title: const Text('Search Exercises'),
+        ),
         actions: const [EditorAppBarActions()],
       ),
       body: Column(

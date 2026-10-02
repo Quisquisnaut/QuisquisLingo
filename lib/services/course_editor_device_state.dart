@@ -14,7 +14,12 @@ class CourseEditorDeviceState {
     String courseId, {
     required bool canEditOriginal,
   }) async {
+    final remembered = await _settings.hasCourseEditorMode(courseId);
     final mode = await _settings.getCourseEditorMode(courseId);
+    // The first opening keeps the learner's opening mode for this Course, so
+    // changing that default later leaves Courses already opened alone
+    // (Build 261 Revision 1, owner decision of 1 October 2026).
+    if (!remembered) await _settings.setCourseEditorMode(courseId, mode);
     if (!canEditOriginal && mode == CourseEditorMode.edit) {
       return CourseEditorMode.viewOnly;
     }

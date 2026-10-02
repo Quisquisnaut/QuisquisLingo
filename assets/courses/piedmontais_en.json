@@ -7726,7 +7726,7 @@
             "kind": "explanation",
             "required": false,
             "role": "overview",
-            "text": "bondì = good morning; grassie = thank you; prego = you are welcome; bon-aneuit = good night; lìber = book. Read the situation in English and the Piedmontese dialogue, then answer in Piedmontese."
+            "text": "bondì = good morning; grassie = thank you; ringrassié = to thank; prego = you are welcome; bon-aneuit = good night; la matin = the morning; la sèira = the evening; lìber = book. Read the situation in English and the Piedmontese dialogue, then answer in Piedmontese: the answers say it in other words."
           }
         ]
       },
@@ -7797,7 +7797,7 @@
                   {
                     "role": "question",
                     "type": "text",
-                    "text": "Còs ch'a dis Anna?"
+                    "text": "Quand ch'as treuvo?"
                   }
                 ],
                 "items": [
@@ -7807,7 +7807,7 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "Bondì!"
+                        "text": "La matin."
                       }
                     ]
                   },
@@ -7817,7 +7817,7 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "Bon-aneuit!"
+                        "text": "La sèira."
                       }
                     ]
                   },
@@ -7827,7 +7827,7 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "Grassie!"
+                        "text": "A mesdì."
                       }
                     ]
                   }
@@ -7887,7 +7887,7 @@
                   {
                     "role": "question",
                     "type": "text",
-                    "text": "Còs ch'a dà Gioann?"
+                    "text": "Còs ch'a fa Anna?"
                   }
                 ],
                 "items": [
@@ -7897,7 +7897,7 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "Un pom."
+                        "text": "A va a ca."
                       }
                     ]
                   },
@@ -7907,7 +7907,7 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "Un lìber."
+                        "text": "A ringrassia Gioann."
                       }
                     ]
                   },
@@ -7917,7 +7917,7 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "Un gat."
+                        "text": "A dà un pom."
                       }
                     ]
                   }
@@ -7977,7 +7977,7 @@
                   {
                     "role": "question",
                     "type": "text",
-                    "text": "Còs ch'a dis Gioann?"
+                    "text": "Quand ch'as saludo?"
                   }
                 ],
                 "items": [
@@ -7987,7 +7987,7 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "Bondì!"
+                        "text": "La matin."
                       }
                     ]
                   },
@@ -7997,7 +7997,7 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "Prego!"
+                        "text": "A mesdì."
                       }
                     ]
                   },
@@ -8007,7 +8007,7 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "Bon-aneuit!"
+                        "text": "La sèira."
                       }
                     ]
                   }
@@ -10572,5 +10572,5 @@
       "voice": "female"
     }
   ],
-  "officialChecksum": "fbbc80eff92176a09813a39ada557747e50b773b8a9bad77bc8424bc2e3a6adc"
+  "officialChecksum": "22ee654fe0de99d24f2cd981e55f6bbd843a6eea55d8a361071df6398838bbb9"
 }

@@ -3460,7 +3460,7 @@
                   {
                     "role": "question",
                     "type": "text",
-                    "text": "Còs ch'a dis Anna?"
+                    "text": "Quand ch'as treuvo?"
                   }
                 ],
                 "items": [
@@ -3470,7 +3470,7 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "Bondì!"
+                        "text": "La matin."
                       }
                     ]
                   },
@@ -3480,7 +3480,7 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "Bon-aneuit!"
+                        "text": "La sèira."
                       }
                     ]
                   },
@@ -3490,7 +3490,7 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "Grassie!"
+                        "text": "A mesdì."
                       }
                     ]
                   }
@@ -3885,7 +3885,7 @@
                   {
                     "role": "question",
                     "type": "text",
-                    "text": "Còs ch'a dà Gioann?"
+                    "text": "Còs ch'a fa Anna?"
                   }
                 ],
                 "items": [
@@ -3895,7 +3895,7 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "Un pom."
+                        "text": "A va a ca."
                       }
                     ]
                   },
@@ -3905,7 +3905,7 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "Un lìber."
+                        "text": "A ringrassia Gioann."
                       }
                     ]
                   },
@@ -3915,7 +3915,7 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "Un gat."
+                        "text": "A dà un pom."
                       }
                     ]
                   }
@@ -4300,7 +4300,7 @@
                   {
                     "role": "question",
                     "type": "text",
-                    "text": "Còs ch'a dis Gioann?"
+                    "text": "Quand ch'as saludo?"
                   }
                 ],
                 "items": [
@@ -4310,7 +4310,7 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "Bondì!"
+                        "text": "La matin."
                       }
                     ]
                   },
@@ -4320,7 +4320,7 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "Prego!"
+                        "text": "A mesdì."
                       }
                     ]
                   },
@@ -4330,7 +4330,7 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "Bon-aneuit!"
+                        "text": "La sèira."
                       }
                     ]
                   }
@@ -8684,5 +8684,5 @@
       "voice": "female"
     }
   ],
-  "officialChecksum": "baae97366b856846ec67c83760828dba879c5dccba6a90080f14324ebf231b68"
+  "officialChecksum": "6197c42eb52e14b420deec97be76530d775c83a3935b15bf4b22df84104a2bfa"
 }

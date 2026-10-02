@@ -265,11 +265,7 @@ void main() {
         expect(find.textContaining('Story'), findsNothing);
         expect(find.byKey(const Key('round-story-steps')), findsNothing);
         expect(find.byKey(const Key('round-add-step')), findsNothing);
-        for (final key in [
-          'new-exercise',
-          'new-canonical-exercise',
-          'exercise-creation-wizard',
-        ]) {
+        for (final key in ['new-exercise', 'exercise-creation-wizard']) {
           expect(find.byKey(Key(key)), findsOneWidget, reason: key);
         }
 

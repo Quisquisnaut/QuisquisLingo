@@ -217,7 +217,8 @@ void main() {
     await _pumpEditor(tester, _course(_round(_full(), story: false)));
     expect(find.byKey(const Key('round-add-step')), findsNothing);
     expect(find.byKey(const Key('new-exercise')), findsOneWidget);
-    expect(find.byKey(const Key('new-canonical-exercise')), findsOneWidget);
+    // Build 261 Revision 5: the canonical editor is a choice of New Exercise.
+    expect(find.byKey(const Key('new-canonical-exercise')), findsNothing);
     expect(find.byKey(const Key('exercise-creation-wizard')), findsOneWidget);
     expect(find.byKey(const Key('round-story-steps')), findsNothing);
   });

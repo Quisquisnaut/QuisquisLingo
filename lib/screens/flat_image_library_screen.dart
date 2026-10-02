@@ -26,6 +26,7 @@ import '../widgets/import_summary.dart';
 import '../services/course_package_service.dart';
 import '../services/import/image_validator.dart';
 import '../widgets/quick_import_access.dart';
+import '../widgets/course_preview_flag.dart';
 
 class FlatImageLibraryScreen extends StatefulWidget {
   final bool selectMode;
@@ -948,7 +949,9 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                const Text('Attribution (optional; author and license go together)'),
+                const Text(
+                  'Attribution (optional; author and license go together)',
+                ),
                 const SizedBox(height: 8),
                 TextFormField(
                   key: const Key('exercise-image-attribution-author'),
@@ -1010,9 +1013,12 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
               key: const Key('exercise-image-metadata-save'),
               onPressed: () async {
                 try {
-                  final hasAttribution = [author, license, title, source].any(
-                    (value) => value.trim().isNotEmpty,
-                  );
+                  final hasAttribution = [
+                    author,
+                    license,
+                    title,
+                    source,
+                  ].any((value) => value.trim().isNotEmpty);
                   await _metadata.updateMetadata(
                     actorProfileId: actor,
                     imageId: item.id,
@@ -1643,7 +1649,10 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
           final course = _course;
           file = course == null
               ? null
-              : await _courseMedia.existingFile(course.courseId, item.assetPath);
+              : await _courseMedia.existingFile(
+                  course.courseId,
+                  item.assetPath,
+                );
         } else {
           file = File(item.assetPath);
         }
@@ -1755,7 +1764,8 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
                             future: details,
                             builder: (context, snapshot) => Tooltip(
                               key: const Key('image-preview-details-tooltip'),
-                              message: snapshot.data ?? 'Loading image details…',
+                              message:
+                                  snapshot.data ?? 'Loading image details…',
                               child: _imageFor(item),
                             ),
                           ),
@@ -1878,9 +1888,14 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
           );
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          '${_course == null ? 'Shared Images' : 'Image Library'} '
-          '· ${_all.length} images',
+        // The Course preview flag only where the library edits a Course
+        // (Build 261 Revision 2), not when it picks an image.
+        title: CoursePreviewTitle(
+          course: widget.onCourseChanged == null ? null : _course,
+          title: Text(
+            '${_course == null ? 'Shared Images' : 'Image Library'} '
+            '· ${_all.length} images',
+          ),
         ),
         actions: [
           if (widget.onCourseChanged != null && _course != null)

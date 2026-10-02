@@ -62,13 +62,6 @@ abstract final class TranslationChoice {
   static String instruction(Course course, String type) =>
       'Pick the correct ${answerLanguage(course, type)} translation';
 
-  /// The same instruction from canonical data: the language the answer
-  /// items are in (Build 256, plan A.3).
-  static String instructionFor(Course course, TextLanguage answerLanguage) =>
-      'Pick the correct '
-      '${answerLanguage == TextLanguage.target ? _targetName(course) : _sourceName(course)} '
-      'translation';
-
   /// The optional audio of a translation Select from canonical data: QQL
   /// speech concerns the target language, so a target-language question is
   /// spoken on request and a target-language correct answer only after the

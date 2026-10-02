@@ -12,10 +12,10 @@ import '../services/report_service.dart';
 import '../services/tts_cache_service.dart';
 import '../services/sound_effect_service.dart';
 import '../services/course_service.dart';
+import '../services/exercise_copy_service.dart';
 import '../services/settings_service.dart';
 import '../services/recorded_audio_service.dart';
 import '../services/audio_exercise_availability_service.dart';
-import '../services/translation_choice_service.dart';
 import '../widgets/course_media_image.dart';
 import '../widgets/exercise_prompt_panels.dart';
 import '../widgets/portable_exercise_image.dart';
@@ -25,6 +25,11 @@ class DuelScreen extends StatefulWidget {
   final Lesson lesson;
   final String ttsLanguage;
   final bool viewOnlyMode;
+
+  /// The Course preview from the Course Editor (Build 261 Revision 2): Draft
+  /// content counts, the learner's Audio Settings are bypassed as in a Round
+  /// Preview, and nothing is recorded.
+  final bool previewMode;
   final SettingsService? settingsService;
 
   const DuelScreen({
@@ -33,6 +38,7 @@ class DuelScreen extends StatefulWidget {
     required this.lesson,
     required this.ttsLanguage,
     this.viewOnlyMode = false,
+    this.previewMode = false,
     this.settingsService,
   });
 
@@ -125,8 +131,14 @@ class _DuelScreenState extends State<DuelScreen> {
   /// (Build 260 Revision 1).
   String _t(String key, [Map<String, Object> values = const {}]) =>
       LearnerPanelText.of(widget.course, key, values);
-  String get _screenTitle =>
-      widget.viewOnlyMode ? 'VIEW ONLY · $_duelTitle' : _duelTitle;
+  String get _screenTitle => widget.previewMode
+      ? 'PREVIEW · $_duelTitle'
+      : widget.viewOnlyMode
+      ? 'VIEW ONLY · $_duelTitle'
+      : _duelTitle;
+
+  /// Nothing is recorded in View Only or in the Course preview.
+  bool get _recordsNothing => widget.viewOnlyMode || widget.previewMode;
 
   @override
   void initState() {
@@ -140,15 +152,18 @@ class _DuelScreenState extends State<DuelScreen> {
 
   Future<void> _initializeDuel() async {
     try {
-      final audioExercisesEnabled = await _settings.areAudioExercisesEnabled();
+      final audioExercisesEnabled =
+          widget.previewMode || await _settings.areAudioExercisesEnabled();
       final ttsEnabled =
-          audioExercisesEnabled && await _settings.isTtsEnabled();
+          widget.previewMode ||
+          (audioExercisesEnabled && await _settings.isTtsEnabled());
       final eligibility = await _eligibility.evaluateEffective(
         widget.course,
         widget.lesson,
         audioExercisesEnabled: audioExercisesEnabled,
         ttsEnabled: ttsEnabled,
         audioAvailability: _audioAvailability,
+        includeDrafts: widget.previewMode,
       );
       final candidates = eligibility.candidates
           .map(
@@ -275,6 +290,7 @@ class _DuelScreenState extends State<DuelScreen> {
         language: _voiceFor(language ?? _features.audioLanguageOf(text)),
         learningLanguage: widget.course.learningLanguage,
         targetLanguage: widget.course.targetLanguage,
+        applyLearnerSettings: !widget.previewMode,
       );
     }
     if (!ok && mounted) {
@@ -388,7 +404,7 @@ class _DuelScreenState extends State<DuelScreen> {
     final won = _lives > 0 && _index + 1 >= _items.length;
     final isFinalLesson = _isFinalLesson;
     int? awardedXp;
-    if (won && !widget.viewOnlyMode) {
+    if (won && !_recordsNothing) {
       awardedXp = await _progress.winDuel(
         widget.lesson.duel.id,
         courseId: widget.course.courseId,
@@ -410,7 +426,9 @@ class _DuelScreenState extends State<DuelScreen> {
       barrierDismissible: false,
       builder: (_) => AlertDialog(
         title: Text(
-          widget.viewOnlyMode
+          widget.previewMode
+              ? 'Preview duel result'
+              : widget.viewOnlyMode
               ? 'View Only duel result'
               : won && isFinalLesson
               ? _t('duel.finalCompleted')
@@ -419,7 +437,7 @@ class _DuelScreenState extends State<DuelScreen> {
               : _t('duel.lost'),
         ),
         content: Text(
-          widget.viewOnlyMode
+          _recordsNothing
               ? 'Preview result: ${won ? 'Duel won' : 'Duel lost'}. No learning progress or rewards were recorded.'
               : won
               ? isFinalLesson
@@ -451,7 +469,7 @@ class _DuelScreenState extends State<DuelScreen> {
     if (!mounted) return;
     setState(() => _finishing = true);
     final persistenceStarted =
-        _lives > 0 && _index + 1 >= items.length && !widget.viewOnlyMode;
+        _lives > 0 && _index + 1 >= items.length && !_recordsNothing;
     try {
       await _finishDuel();
     } catch (_) {
@@ -588,11 +606,12 @@ class _DuelScreenState extends State<DuelScreen> {
                 ],
                 if (_features.isTranslationChoice) ...[
                   // Single learner-facing instruction: no prompt, no
-                  // fallback text and no editor-only type name.
+                  // fallback text and no title (the Duel shows none), in the
+                  // instruction language since Build 261 Revision 3.
                   Text(
-                    TranslationChoice.instructionFor(
+                    ExerciseCopyService.instructionForExercise(
                       widget.course,
-                      _features.itemLanguage!,
+                      ex,
                     ),
                     key: const Key('translation-choice-instruction'),
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(

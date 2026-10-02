@@ -1,7 +1,7 @@
 # Build 260 handoff
 
-Branch `claude/259-instructions-and-hints` (local commits only, not
-pushed). Plan: `docs/260_LANGUAGES_PLAN.md`; changes:
+Branch `claude/259-instructions-and-hints`, merged into `main` through
+PR #30 (merge `8b98c6a`, 1 October 2026; the branch is deleted). Plan: `docs/260_LANGUAGES_PLAN.md`; changes:
 `docs/260_CHANGE_SUMMARY.md`; evidence: `docs/260_VALIDATION.md`.
 
 ## Revision 0 (committed `5128f53`, 1 October 2026)
@@ -70,7 +70,7 @@ The QQL Demo Courses along a difficulty curve: English from Italian by
 ## Next
 
 The owner's review of Build 260 (the AI-written translations and
-names await native review).
+names await native review). Build 261 continues in `docs/261_HANDOFF.md`.
 
 Stage with `git add -A -- . ':!devtools_options.yaml' ':!tools/cloud_setup.sh'`
 after checking `git status` for files another session wrote.

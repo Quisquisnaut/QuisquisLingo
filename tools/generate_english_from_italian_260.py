@@ -152,8 +152,10 @@ def practice_exercises() -> list[dict]:
         choose("reading_answer_target", [text("Anna incontra Tom la mattina.", "context", "source"),
                                          *turn("Good morning, Tom!", "Anna"),
                                          *turn("Good morning, Anna! How are you?", "Tom"),
-                                         text("What does Tom ask?", "question")],
-               ["How are you?", "Good night!", "Thank you!"]),
+                                         # Build 261 Revision 5: the answer is not
+                                         # copied from the dialogue (owner rule).
+                                         text("What does Tom want to know?", "question")],
+               ["If Anna is well", "Where Anna lives", "What time it is"]),
         enter("type_translation_to_target", [text("grazie")], ["thank you", "thanks"]),
         enter("type_translation_to_source", [text("good night", language="target")],
               ["buonanotte", "buona notte"]),
@@ -286,7 +288,7 @@ def practice_round(number: int, round_id: str, members: list[dict]) -> dict:
         "e due Story. Apri il GuideBook per le note e le parole."))] if number == 1 else []
     content += [with_ids(member, f"{round_id}_e{index:02d}") for index, member in enumerate(members, 1)]
     return {"id": round_id, "publicationState": "published", "updatedAt": STAMP,
-            "visualType": "generic", "title": f"Pratica {number}", "content": content}
+            "visualType": "generic", "content": content}
 
 
 TOM, EMMA, ANNA, BEN = (f"{PREFIX}_character_{name}" for name in ("tom", "emma", "anna", "ben"))

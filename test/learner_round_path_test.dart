@@ -602,7 +602,11 @@ void main() {
           .getRect(
             find.byKey(ValueKey('unified-round-laurel-${sample.single.id}')),
           )
-          .overlaps(tester.getRect(find.text('Round 1'))),
+          .overlaps(
+            tester.getRect(
+              find.byKey(ValueKey('unified-round-title-${sample.single.id}')),
+            ),
+          ),
       isFalse,
     );
     expect(find.text('Perfect'), findsOneWidget);
@@ -647,7 +651,7 @@ void main() {
     expect(find.text('Practice'), findsOneWidget);
   });
 
-  testWidgets('long Round title stays at two lines on a 320 px page', (
+  testWidgets('long Round title wraps up to three lines on a 320 px page', (
     tester,
   ) async {
     final round = LearningRound(
@@ -664,11 +668,87 @@ void main() {
       ),
     );
 
-    final title = tester.widget<Text>(find.text(round.title));
-    expect(title.maxLines, 2);
+    // One line since Build 261 Revision 0: "Round 1: " and the title.
+    final title = tester.widget<Text>(
+      find.byKey(const ValueKey('unified-round-title-long-title-round')),
+    );
+    expect(title.textSpan!.toPlainText(), 'Round 1: ${round.title}');
+    expect(title.maxLines, 3);
     expect(title.overflow, TextOverflow.ellipsis);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets(
+    'Round, Story and sequence names: normal prefix, bold title, tooltip',
+    (tester) async {
+      // Owner decision of 1 October 2026 (Build 261 Revision 0).
+      final path = [
+        LearningRound(id: 'titled', title: 'Pratica 1'),
+        LearningRound(id: 'untitled', title: 'Round 2'),
+        LearningRound(
+          id: 'story',
+          title: 'Round three',
+          visualType: LearningRound.storyVisualType,
+          flow: ContentFlow.linear(const [], title: 'Al bar'),
+        ),
+        LearningRound(
+          id: 'sequence',
+          title: 'Numbers',
+          flow: ContentFlow.linear(const []),
+        ),
+      ];
+      await tester.pumpWidget(app(rounds: path, mascotAssets: const []));
+
+      (String, FontWeight?, String, FontWeight?) parts(String id) {
+        final text = tester.widget<Text>(
+          find.byKey(ValueKey('unified-round-title-$id')),
+        );
+        final spans = (text.textSpan! as TextSpan).children!.cast<TextSpan>();
+        return (
+          spans[0].text!,
+          spans[0].style?.fontWeight,
+          spans[1].text!,
+          spans[1].style?.fontWeight,
+        );
+      }
+
+      expect(parts('titled'), (
+        'Round 1: ',
+        FontWeight.normal,
+        'Pratica 1',
+        FontWeight.w800,
+      ));
+      expect(parts('story'), (
+        'Story: ',
+        FontWeight.normal,
+        'Al bar',
+        FontWeight.w800,
+      ));
+      expect(parts('sequence'), (
+        'Sequence: ',
+        FontWeight.normal,
+        'Numbers',
+        FontWeight.w800,
+      ));
+      final untitled = tester.widget<Text>(
+        find.byKey(const ValueKey('unified-round-title-untitled')),
+      );
+      expect(untitled.data, 'Round 2');
+      expect(untitled.style?.fontWeight, FontWeight.w800);
+
+      expect(find.byTooltip('Round 1: Pratica 1'), findsOneWidget);
+      expect(find.byTooltip('Story: Al bar'), findsOneWidget);
+      expect(find.byTooltip('Sequence: Numbers'), findsOneWidget);
+      expect(find.byTooltip('Round 2'), findsNothing);
+
+      // Slightly smaller than the former titleMedium (16) title line.
+      final titled = tester.widget<Text>(
+        find.byKey(const ValueKey('unified-round-title-titled')),
+      );
+      expect(titled.style!.fontSize, 15);
+      expect(titled.style!.height, 1.4);
+    },
+  );
 
   testWidgets('Round surfaces are 75% opaque without fading content', (
     tester,
@@ -680,7 +760,17 @@ void main() {
       find.byKey(ValueKey('unified-round-${sample.single.id}')),
     );
     expect(card.color!.a, closeTo(.75, .01));
-    expect(tester.widget<Text>(find.text('Round 1')).style?.color?.a ?? 1, 1);
+    expect(
+      tester
+              .widget<Text>(
+                find.byKey(ValueKey('unified-round-title-${sample.single.id}')),
+              )
+              .style
+              ?.color
+              ?.a ??
+          1,
+      1,
+    );
   });
 
   testWidgets(

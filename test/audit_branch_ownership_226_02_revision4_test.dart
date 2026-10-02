@@ -210,8 +210,9 @@ void main() {
     expect(status.hasLessonsAuditConcern, isFalse);
     expect(status.hasCourseAuditConcern, isFalse);
     // Build 257: ROUND_INTRO_EMPTY and ROUND_INTRO_DUPLICATE; Build 258:
-    // PAGE_EMPTY, PAGE_MARK_UNMATCHED and PAGE_LINK_INVALID.
-    expect(AuditCode.values, hasLength(113));
+    // PAGE_EMPTY, PAGE_MARK_UNMATCHED and PAGE_LINK_INVALID; Build 261:
+    // READING_ANSWER_IN_TEXT.
+    expect(AuditCode.values, hasLength(114));
   });
 
   test(

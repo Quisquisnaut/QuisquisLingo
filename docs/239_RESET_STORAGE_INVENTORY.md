@@ -22,7 +22,7 @@ Everything under the prefix belongs to that learner and is removed when the lear
 Progress keys (removed by *learner progress*), matched by suffix start:
 `v4_` (completed/perfect rounds and lessons, won duels, seen guidebooks, recent rounds), `v1_vocabulary_review_course_`, `xp_`, `week_xp`, `last_week_xp`, `week_goal_celebrated_week`, `study_days`, `streak_`, `last_active_`, `guidebook_availability_notice_seen`.
 
-Everything else under the prefix (identity, avatar, theme, PIN verifier, recovery credential, TTS and audio settings, Course visibility and display settings, IDDQD mode, editor unlock) is kept by *learner progress*.
+Everything else under the prefix (identity, avatar, theme, PIN verifier, recovery credential, TTS and audio settings, Course visibility and display settings, IDDQD mode, editor unlock, the Course Editor mode of each Course `course_editor_mode_<id>` and, since Build 261 Revision 1, the Course Editor opening mode `course_editor_opening_mode` chosen in Do Not Disturb; since Build 261 Revision 6, the canonical editor's primitive popups `one_time_notice_seen_primitive_intro_<primitive>_<URI-encoded course ID>`, cleared with the learner's other one-time notices by "Show one-time notices again") is kept by *learner progress*. Inventory counts them among each learner's settings (no file).
 
 ## Files
 | Location | Contents | Scopes that remove it |

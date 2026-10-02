@@ -11,6 +11,7 @@ import '../services/course_favorite_service.dart';
 import '../services/course_library_view_service.dart';
 import '../services/custom_course_transfer_service.dart';
 import '../services/course_service.dart';
+import '../services/course_study.dart';
 import '../services/course_language_resolver.dart';
 import '../services/course_library_operations.dart';
 import '../services/course_library_categories.dart';
@@ -800,6 +801,10 @@ class CourseProjectsScreen extends StatefulWidget {
   final bool showUnavailable;
   final String search;
   final int refreshToken;
+
+  /// Study and Review in the Course menu (Build 261 Revision 1); without it
+  /// the menu leaves them out.
+  final ValueChanged<CourseStudyRequest>? onStudy;
   const CourseProjectsScreen({
     super.key,
     required this.currentCourse,
@@ -813,6 +818,7 @@ class CourseProjectsScreen extends StatefulWidget {
     this.showUnavailable = true,
     this.search = '',
     this.refreshToken = 0,
+    this.onStudy,
   });
 
   @override
@@ -1933,6 +1939,14 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
       tooltip: 'Course actions',
       onSelected: (action) {
         switch (action) {
+          case CourseManagerAction.study:
+            widget.onStudy?.call(
+              CourseStudyRequest(course, CourseStudyAction.study),
+            );
+          case CourseManagerAction.review:
+            widget.onStudy?.call(
+              CourseStudyRequest(course, CourseStudyAction.review),
+            );
           case CourseManagerAction.courseInfo:
             Navigator.of(context).push<void>(
               MaterialPageRoute(
@@ -1962,6 +1976,9 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
         }
       },
       itemBuilder: (_) => [
+        if (widget.onStudy != null)
+          for (final entry in _library.studyEntriesFor(course))
+            _courseActionItem(entry, access, course),
         for (final entry in _library.entriesFor(course))
           _courseActionItem(entry, access, course),
       ],
@@ -1980,6 +1997,8 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
       String title,
       String? description,
     ) = switch (entry.action) {
+      CourseManagerAction.study => (Icons.school_outlined, 'Study', null),
+      CourseManagerAction.review => (Icons.history_outlined, 'Review', null),
       CourseManagerAction.removeFromMyCourses => (
         null,
         'Remove from my courses',

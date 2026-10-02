@@ -86,9 +86,9 @@ The suffix below follows `qql_lab254_` in the stable Content/Exercise ID. Answer
 | Select / Images and written characters | script_multiple_images | script_recognition | Recognize characters; two visual specimens of the same character to text | E |
 | Select / Images and written characters | script_text_image | script_recognition | Recognize characters; text to image-only options; Italian accented character | Image È |
 | Select / Read and answer | reading_situation | reading_answer_target | Read and answer; a situation in the source language, no dialogue | Buonasera! |
-| Select / Read and answer | reading_dialogue | reading_answer_target | Read and answer; situation, dialogue lines and an image, no read-aloud | Una mela. |
-| Select / Read and answer | reading_dialogue_automatic | reading_answer_target | Read and answer; the dialogue read aloud automatically, line by line | Senza zucchero. |
-| Select / Read and answer | reading_dialogue_manual | reading_answer_target | Read and answer; dialogue lines only, read aloud on request | Vicino al parco. |
+| Select / Read and answer | reading_dialogue | reading_answer_target | Read and answer; situation, dialogue lines and an image, no read-aloud | Un frutto. |
+| Select / Read and answer | reading_dialogue_automatic | reading_answer_target | Read and answer; the dialogue read aloud automatically, line by line | No, è amaro. |
+| Select / Read and answer | reading_dialogue_manual | reading_answer_target | Read and answer; dialogue lines only, read aloud on request | No, non è lontana. |
 | Select / Listening | select_listening_word | listening_choose_target | Listen and choose (to target); audio prompt, an instruction and written answers | Buongiorno. |
 | Select / Listening | select_listening_passage | listening_comprehension | Listen and choose; passage audio and separate question | Al mercato. |
 | Select / Two translation directions | translation_target_two | translation_choice_to_target | Pick translation to target; minimum two answers; no image | Buongiorno. |

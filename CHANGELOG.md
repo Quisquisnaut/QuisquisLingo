@@ -1,3 +1,119 @@
+# 2.0.61 (Build 261, Revision 6) - The canonical editor explains its primitives - 2026-10-02
+
+Owner request and decisions of 2 October 2026.
+
+- **A popup for each primitive**: the first time the canonical editor shows
+  a primitive in a Course, a short explanation of how to use it (once per
+  primitive, learner and Course; Show one-time notices again brings it
+  back).
+- **Clear all** beside Fill with an example returns a new exercise to its
+  primitive's defaults.
+- Changing the primitive of a filled new exercise says "You changed
+  exercise type. Please check all fields."
+- **Editor Help › Exercise primitives** has a section with a screenshot for
+  each of the nine primitives, and the canonical editor's Help button
+  opens the section of the primitive being edited.
+- **Role is a menu** of the roles QQL reads, each explained; a role QQL
+  does not read can no longer be typed by mistake, and a stored one is
+  kept and marked.
+
+Scoring, progression and learner data are unchanged. Beta expiry
+`2026-11-01 23:59:59` local time (same release day as Revision 0).
+
+# 2.0.61 (Build 261, Revision 5) - Owner review: reading answers, untitled Rounds, canonical examples - 2026-10-02
+
+Owner review of 2 October 2026.
+
+- **Reading questions no longer answered by copying the text**: seven
+  questions of the bundled Courses are rewritten (e.g. "What does Tom want
+  to know?" → "If Anna is well"). The Audit warns when a reading answer
+  copies its text (READING_ANSWER_IN_TEXT); listening is not concerned.
+- **QQL Demo: English from Italian**: the practice Rounds have no title.
+- **New Exercise** is the one way to add an exercise in a Round; its last
+  choice opens the canonical editor (the New Canonical button is gone).
+- **Fill with an example** in the canonical editor fills a new exercise
+  with a working example of its primitive.
+
+Scoring, progression and learner data are unchanged. Beta expiry
+`2026-11-01 23:59:59` local time (same release day as Revision 0).
+
+# 2.0.61 (Build 261, Revision 4) - The preview made evident - 2026-10-02
+
+Owner request and decisions of 2 October 2026.
+
+- The Course preview opens with an **amber PREVIEW bar** across the top
+  ("As a learner sees it · nothing is recorded") and its **Exit** button.
+- Only the buttons that work are shown: Course Info, **Theme** (Light /
+  Dark) and **Flag background**. Both start from your settings and change
+  this preview only.
+
+Scoring, progression and learner data are unchanged. Beta expiry
+`2026-11-01 23:59:59` local time (same release day as Revision 0).
+
+# 2.0.61 (Build 261, Revision 3) - Exercise titles - 2026-10-02
+
+Owner report and decisions of 2 October 2026.
+
+- **Every exercise has a title, its preset's name** (PICK THE TRANSLATION,
+  TRUE OR FALSE, WORD ORDER, READ AND ANSWER, …), recognized from the
+  exercise's content and shown in the learner panel's language, above its
+  instruction. Pick the translation, which had none, now has one.
+- **Stories show no titles**, only the instructions (the Story cover's
+  STORY heading is gone).
+- The Pick the translation line is in the learner panel's language
+  ("Scegli la traduzione corretta in inglese").
+
+Scoring, progression and learner data are unchanged. Beta expiry
+`2026-11-01 23:59:59` local time (same release day as Revision 0).
+
+# 2.0.61 (Build 261, Revision 2) - Course preview from the Course Editor - 2026-10-02
+
+Owner decisions of 1 October 2026.
+
+- **The Course's flag** (or cover) sits left of the title on every Course
+  Editor screen. A tap opens the learner page on the Course as you are
+  editing it: Drafts included, every Lesson open, nothing completed;
+  Rounds, Stories, GuideBooks and Duels play in Preview and record
+  nothing; the Course Selector, Profile, Review and Settings are not
+  available; the Course you study does not change.
+- **Preview · Exit** returns to the same editor screen with your changes
+  still waiting for the Course confirmation. From an exercise form the
+  preview shows what you have saved, not the form's unsaved changes.
+
+Scoring, progression and learner data are unchanged. Beta expiry
+`2026-11-01 23:59:59` local time (same release day as Revision 0).
+
+# 2.0.61 (Build 261, Revision 1) - Study and Review from Courses - 2026-10-02
+
+Owner decisions of 1 October 2026.
+
+- **Study and Review** open the ⋮ menu of every Course in All Courses and
+  Course Studio. Study returns to the learner page with that Course
+  current, adding it to your courses when it is missing; Review does the
+  same and opens the Review page. Greyed out with the reason when they
+  cannot be used (for Review, before any Round of the Course is completed).
+- **Course Editor opening mode** in Do Not Disturb (Locked, View only,
+  Inspection mode or Edit, for each learner): the mode a Course opens in
+  the first time you open it; then each Course remembers its own. Edit
+  opens as View only where you may not edit.
+
+Scoring, progression and learner progress are unchanged. Beta expiry
+`2026-11-01 23:59:59` local time (same release day as Revision 0).
+
+# 2.0.61 (Build 261, Revision 0) - Learner polish - 2026-10-02
+
+Owner decisions of 1 October 2026.
+
+- **Round names on one line** in the learner path: "Round 2:" in normal
+  weight before the title in bold, a little smaller, wrapping; a Story and
+  a sequence show "Story:" and "Sequence:" the same way.
+- **Tooltips** with the whole Round name and the whole Lesson title.
+- **Confetti** over the "Weekly goal reached!" dialog, for about two
+  seconds, unless Animations are off or the device asks for reduced motion.
+
+Scoring, progression and learner data are unchanged. Beta expiry
+`2026-11-01 23:59:59` local time.
+
 # 2.0.60 (Build 260, Revision 7) - QQL Demos along a difficulty curve - 2026-10-01
 
 Owner decisions of 1 October 2026.

@@ -51,14 +51,14 @@ abstract final class ExerciseEditorIntro {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                'Presets: New exercise',
+                'Presets: New Exercise',
                 style: TextStyle(fontWeight: FontWeight.w700),
               ),
               SizedBox(height: 4),
               Text(presetsText),
               SizedBox(height: 12),
               Text(
-                'Canonical: New canonical',
+                'Canonical: New Exercise › Canonical editor',
                 style: TextStyle(fontWeight: FontWeight.w700),
               ),
               SizedBox(height: 4),

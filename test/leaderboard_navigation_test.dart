@@ -143,7 +143,10 @@ void main() {
     await _openHome(tester, scrollToActions: false);
     final firstLesson = course.lessons.first;
     final firstRound = firstLesson.rounds.first;
-    final firstRoundCard = find.text(firstRound.title).first;
+    // "Round 1: <title>" on one line since Build 261 Revision 0.
+    final firstRoundCard = find.byKey(
+      ValueKey('unified-round-title-${firstRound.id}'),
+    );
     expect(
       find.byKey(
         ValueKey('unified-guidebook-lesson-title-${firstLesson.lessonId}'),
@@ -199,6 +202,19 @@ void main() {
       );
       expect((identitySpans[1] as TextSpan).text, firstLesson.title);
       expect((identitySpans[1] as TextSpan).style?.fontWeight, FontWeight.w900);
+      // The whole title as a tooltip (Build 261 Revision 0).
+      expect(
+        tester
+            .widget<Tooltip>(
+              find.byKey(
+                ValueKey(
+                  'unified-guidebook-lesson-tooltip-${firstLesson.lessonId}',
+                ),
+              ),
+            )
+            .message,
+        'Lesson 1: ${firstLesson.title}',
+      );
       expect(find.text('Guidebook'), findsNothing);
       expect(find.text('Start Here'), findsNothing);
       final guidebookAction = find.byKey(

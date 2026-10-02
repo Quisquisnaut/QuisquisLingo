@@ -426,6 +426,15 @@ void main() {
 
       await _completePerfectRound(tester, exerciseCount: 2);
       expect(find.text('Weekly goal reached!'), findsOneWidget);
+      // Confetti over the dialog (Build 261 Revision 0); about two seconds.
+      expect(find.byKey(const Key('weekly-goal-confetti')), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('weekly-goal-confetti')),
+          matching: find.byType(IgnorePointer),
+        ),
+        findsOneWidget,
+      );
 
       final progress = ProgressService();
       expect(routeResults, isEmpty);
@@ -452,12 +461,40 @@ void main() {
       await _completePerfectRound(tester, exerciseCount: 2);
 
       expect(find.text('Weekly goal reached!'), findsNothing);
+      expect(find.byKey(const Key('weekly-goal-confetti')), findsNothing);
       expect(routeResults, [true, true]);
       // 44 and a repeat without Difficulty bonus: 2 × 2 + 5.
       expect(await progress.getWeeklyXp(), 53);
       expect(await progress.isWeeklyGoalCelebrated(), isTrue);
     },
   );
+
+  for (final (name, animationsOff, reducedMotion) in [
+    ('Animations off', true, false),
+    ('reduced motion', false, true),
+  ]) {
+    testWidgets('weekly goal shows no confetti with $name', (tester) async {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt('weekly_xp_target', 10);
+      if (animationsOff) await SettingsService().setAnimationsEnabled(false);
+      if (reducedMotion) {
+        tester.platformDispatcher.accessibilityFeaturesTestValue =
+            const FakeAccessibilityFeatures(disableAnimations: true);
+        addTearDown(
+          tester.platformDispatcher.clearAccessibilityFeaturesTestValue,
+        );
+      }
+      final fixture = _roundFixture(exerciseCount: 2);
+      final routeResults = <bool?>[];
+      await _openRound(tester, fixture, routeResults: routeResults);
+
+      await _completePerfectRound(tester, exerciseCount: 2);
+      expect(find.text('Weekly goal reached!'), findsOneWidget);
+      expect(find.byKey(const Key('weekly-goal-confetti')), findsNothing);
+      await _tapAndPump(tester, 'Continue');
+      expect(routeResults, [true]);
+    });
+  }
 
   testWidgets('imperfect repeat keeps first-pass-correct scoring', (
     tester,

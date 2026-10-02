@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/rendering.dart' show RenderAbstractViewport;
 import '../services/course_language_resolver.dart';
 import '../services/first_letter_answer_service.dart';
+import '../widgets/confetti_burst.dart';
 import '../widgets/course_media_image.dart';
 import '../widgets/exercise_mascot.dart';
 import '../widgets/exercise_prompt_panels.dart';
@@ -94,6 +95,7 @@ class _StoryEntry {
     required this.answer,
     required this.correct,
     required this.evaluable,
+    this.headingIsInstruction = false,
     this.kind = LearnerExerciseKind.other,
     this.speaker,
     this.picture = '',
@@ -104,6 +106,9 @@ class _StoryEntry {
   final String? answer;
   final bool correct;
   final bool evaluable;
+
+  /// A Story's entry is headed by the instruction, not a title.
+  final bool headingIsInstruction;
 
   /// Build 256 Revision 5: a dialogue line or a Story cover is drawn as it
   /// was shown (bubble, cover), any other item as a card.
@@ -1484,13 +1489,24 @@ class _RoundScreenState extends State<RoundScreen> {
     }
     _storyLog.add(
       _StoryEntry(
-        heading: _features.isTranslationChoice
-            ? TranslationChoice.instructionFor(
-                widget.course,
-                _features.itemLanguage!,
-              )
-            : ExerciseCopyService.typeLabel(widget.course, _features.kind),
-        prompt: _displayedPrompt.isNotEmpty
+        // A Story shows no exercise title, only its instruction; a
+        // sequence keeps the title (Build 261 Revision 3).
+        heading: widget.round.isStory
+            ? (_promptAsInstruction
+                  ? ExerciseCopyService.displayPrompt(
+                      widget.course,
+                      _displayedPrompt,
+                    )
+                  : ExerciseCopyService.instructionForExercise(
+                      widget.course,
+                      ex,
+                    ))
+            : ExerciseCopyService.title(widget.course, ex),
+        headingIsInstruction: widget.round.isStory,
+        // An authored instruction heading a Story's entry is not repeated.
+        prompt:
+            _displayedPrompt.isNotEmpty &&
+                !(widget.round.isStory && _promptAsInstruction)
             ? ExerciseCopyService.displayPrompt(widget.course, _displayedPrompt)
             : (_features.questionText.isNotEmpty
                   ? _features.questionText
@@ -1608,10 +1624,14 @@ class _RoundScreenState extends State<RoundScreen> {
             Expanded(
               child: Text(
                 entry.heading,
-                style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: .7,
-                ),
+                style: entry.headingIsInstruction
+                    ? Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      )
+                    : Theme.of(context).textTheme.labelLarge?.copyWith(
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: .7,
+                      ),
               ),
             ),
             if (entry.evaluable)
@@ -1848,19 +1868,32 @@ class _RoundScreenState extends State<RoundScreen> {
         if (await _settings.areSoundEffectsEnabled()) {
           await _sounds.playDuelWin();
         }
+        final animationsEnabled = await _settings.areAnimationsEnabled();
         if (!mounted) return;
+        // Confetti over the dialog (Build 261 Revision 0).
+        final confetti = ConfettiBurst.allowed(
+          context,
+          animationsEnabled: animationsEnabled,
+        );
         await showDialog<void>(
           context: context,
-          builder: (ctx) => AlertDialog(
-            title: Text(_t('weeklyGoalReached')),
-            content: Text(
-              '${completion.weeklyXpAfter} / ${completion.weeklyXpTarget} XP',
-            ),
-            actions: [
-              FilledButton(
-                onPressed: () => Navigator.pop(ctx),
-                child: Text(_t('continue')),
+          builder: (ctx) => Stack(
+            fit: StackFit.expand,
+            children: [
+              AlertDialog(
+                title: Text(_t('weeklyGoalReached')),
+                content: Text(
+                  '${completion.weeklyXpAfter} / ${completion.weeklyXpTarget} XP',
+                ),
+                actions: [
+                  FilledButton(
+                    onPressed: () => Navigator.pop(ctx),
+                    child: Text(_t('continue')),
+                  ),
+                ],
               ),
+              if (confetti)
+                const ConfettiBurst(key: Key('weekly-goal-confetti')),
             ],
           ),
         );
@@ -4343,33 +4376,22 @@ class _RoundScreenState extends State<RoundScreen> {
                   style: Theme.of(context).textTheme.labelLarge,
                 ),
               ),
-            if (_features.isTranslationChoice)
-              // The single learner-facing instruction: no type label, no
-              // authored prompt and no fallback text for these exercises.
-              Text(
-                TranslationChoice.instructionFor(
-                  widget.course,
-                  _features.itemLanguage!,
-                ),
-                key: const Key('translation-choice-instruction'),
-                style: Theme.of(
-                  context,
-                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
-              )
-            else ...[
-              // A dialogue line shows no heading (owner decision, 28
-              // September 2026): the speaker's bubble says what it is. A
-              // card for an exercise this version cannot play shows neither
-              // heading nor instruction (Build 256 Revision 6).
-              if (ExerciseFeatures(ex).kind !=
+            ...[
+              // Every exercise has a title, its preset's name, and an
+              // instruction (Build 261 Revision 3, owner decisions of 2
+              // October 2026). Inside a Story no title is shown, only the
+              // instruction (the Round is already called "Story: …"). A
+              // dialogue line shows no heading (owner decision, 28 September
+              // 2026): the speaker's bubble says what it is. A card for an
+              // exercise this version cannot play shows neither heading nor
+              // instruction (Build 256 Revision 6).
+              if (!widget.round.isStory &&
+                  ExerciseFeatures(ex).kind !=
                       LearnerExerciseKind.dialogueLine &&
                   ExerciseFeatures(ex).kind != LearnerExerciseKind.page &&
                   ex.isExecutable) ...[
                 Text(
-                  ExerciseCopyService.typeLabel(
-                    widget.course,
-                    ExerciseFeatures(ex).kind,
-                  ),
+                  ExerciseCopyService.title(widget.course, ex),
                   key: const Key('exercise-heading'),
                   style: Theme.of(context).textTheme.labelLarge?.copyWith(
                     fontWeight: FontWeight.w900,
@@ -4398,7 +4420,9 @@ class _RoundScreenState extends State<RoundScreen> {
                             widget.course,
                             ex,
                           ),
-                    key: const Key('exercise-instruction'),
+                    key: _features.isTranslationChoice
+                        ? const Key('translation-choice-instruction')
+                        : const Key('exercise-instruction'),
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
