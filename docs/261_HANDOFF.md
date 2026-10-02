@@ -56,12 +56,12 @@ The preview made evident (owner go of 2 October 2026): the amber PREVIEW
 bar with Exit; Course Info, Theme and Flag background only, changing the
 preview alone. Tests in `test/course_preview_261_test.dart`. Complete suite: 3542 passed, 1 skipped.
 
-## Revision 5 (implemented, 2 October 2026)
+## Revision 5 (committed `9190715`, 2 October 2026)
 
 Owner review points 1, 2, 4 and 5: reading answers that do not copy the
 text and the Audit's READING_ANSWER_IN_TEXT; English from Italian's
 untitled practice Rounds; New Canonical folded into New Exercise; Fill
-with an example. Test `test/owner_review_261_revision5_test.dart`.
+with an example. Test `test/owner_review_261_revision5_test.dart`. Complete suite: 3550 passed, 1 skipped.
 
 ## Next
 
