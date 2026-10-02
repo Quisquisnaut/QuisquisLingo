@@ -181,9 +181,9 @@ const Map<String, String> helpEn = <String, String>{
   'editorHelp.qa.copyMove.a':
       r'''Duplicate puts an independent copy with new IDs right after the original. Copy to… and Move to… choose a Lesson or Round of this Course. Moving keeps IDs and state; a copy gets new IDs and starts as Draft. All of it happens in the working copy until you confirm the Course changes.''',
   'editorHelp.qa.preview.q':
-      r'''How do I try a Lesson or Round as a learner?''',
+      r'''How do I try the Course, a Lesson or a Round as a learner?''',
   'editorHelp.qa.preview.a':
-      r'''Preview in the Lesson and Round editors plays the working copy as learners see it, Drafts included. Preview saves nothing and never writes progress, XP, streaks, Laurels, Review or Duel results.''',
+      r'''Preview in the Lesson and Round editors plays the working copy as learners see it, Drafts included. Preview saves nothing and never writes progress, XP, streaks, Laurels, Review or Duel results. The Course's flag (or cover) left of the title on every Course Editor screen opens the learner page on the working copy: Drafts included, every Lesson open, nothing completed. Rounds, Stories, GuideBooks and Duels can be played there; the Course Selector, Profile, Review and Settings are not available, and the Course you study stays as it was. Preview · Exit returns to the same screen with your changes still waiting for the Course confirmation. From an exercise form the preview shows what you have saved, not the form's unsaved changes.''',
   'editorHelp.qa.exercises.title': r'''Exercises''',
   'editorHelp.qa.newExercise.q': r'''How do I add an exercise?''',
   'editorHelp.qa.newExercise.a':

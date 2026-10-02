@@ -56,6 +56,8 @@ import '../widgets/learner_theme_mode_scope.dart';
 import '../widgets/welcome_wizard_dialog.dart';
 import '../localization/locale_service.dart';
 
+part 'course_preview_screen.dart';
+
 const _learnerLightPageBackground = Color(0xFFF7F3E8);
 const _learnerDarkPageBackground = Color(0xFF080B09);
 const _welcomeDialogBackground = Color(0xFFFFE600);
@@ -2847,6 +2849,9 @@ class _LessonSection extends StatelessWidget {
   final bool isExpanded;
   final LearnerIddqdMode? iddqdAccessMode;
   final bool previewOnly;
+
+  /// The Course preview opens a Draft GuideBook too (Build 261 Revision 2).
+  final bool includeDrafts;
   final Set<String> completedRounds;
   final Set<String> perfectRounds;
   final Set<String> ttsSkippedPerfectRounds;
@@ -2874,6 +2879,7 @@ class _LessonSection extends StatelessWidget {
     required this.isExpanded,
     required this.iddqdAccessMode,
     required this.previewOnly,
+    this.includeDrafts = false,
     required this.completedRounds,
     required this.perfectRounds,
     required this.ttsSkippedPerfectRounds,
@@ -2950,7 +2956,7 @@ class _LessonSection extends StatelessWidget {
         onTap:
             hasAccess &&
                 !previewOnly &&
-                lesson.guidebook.publicationState.isPublished
+                (includeDrafts || lesson.guidebook.publicationState.isPublished)
             ? onOpenGuidebook
             : null,
       ),

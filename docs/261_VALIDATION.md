@@ -62,3 +62,29 @@
 - `flutter analyze --no-pub`: no issues.
 - **Complete suite** (`--concurrency=1`, keep-awake, 27 min 13 s):
   **3530 passed, 1 skipped, 0 failed**.
+
+## Revision 2 (2.0.61+261002, 2 October 2026): the Course preview from the Course Editor
+
+**Generators and validator**
+- No Course file changes (the four bundled Courses unchanged).
+
+**Tests**
+- New: `test/course_preview_261_test.dart` (6 tests): the Duel counts Draft
+  content only with `includeDrafts`; the preview of QQL Demo: English from
+  Italian with its Lesson, GuideBook and second Round as Drafts shows the
+  Lesson open and nothing completed (no Practice or Perfect), the Draft
+  Round on the path, Profile, Review and Settings disabled and no learner
+  Course Selector, opens the Draft GuideBook with `includeDraftContent`, a
+  Round in `previewMode`, and Preview · Exit returns, with every
+  SharedPreferences value unchanged; a Duel opened from the preview is
+  titled PREVIEW; the Course Editor's flag opens the preview and comes back
+  to the editor; the Round editor has the flag in its AppBar; from an
+  exercise form with an unsaved edit the preview shows the exercise as
+  stored, and the edit is still in the form after Exit.
+- While authoring: the preview's first frames wait for the Course flag's
+  file reads like the learner page, so the test pumps with
+  `pumpUntilFileIoState`; a Round left loading in fake time is closed
+  through the Navigator.
+- `flutter analyze --no-pub`: no issues.
+- **Complete suite** (`--concurrency=1`, keep-awake, 29 min 5 s):
+  **3536 passed, 1 skipped, 0 failed**.

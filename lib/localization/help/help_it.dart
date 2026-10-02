@@ -185,9 +185,9 @@ const Map<String, String> helpIt = {
   "editorHelp.qa.copyMove.a":
       "Duplicate mette una copia indipendente, con ID nuovi, subito dopo l’originale. Copy to… e Move to… ti fanno scegliere una Lesson o un Round di questo Course. Lo spostamento conserva ID e stato; una copia riceve ID nuovi e parte come Draft. Tutto avviene nella copia di lavoro finché non confermi le modifiche del Course.",
   "editorHelp.qa.preview.q":
-      "Come provo una Lesson o un Round come uno studente?",
+      "Come provo il Course, una Lesson o un Round come uno studente?",
   "editorHelp.qa.preview.a":
-      "Preview negli editor della Lesson e del Round fa giocare la copia di lavoro come la vedono gli studenti, Draft compresi. Preview non salva niente e non scrive mai progressi, XP, streak, Laurel, Review o risultati dei Duel.",
+      "Preview negli editor della Lesson e del Round fa giocare la copia di lavoro come la vedono gli studenti, Draft compresi. Preview non salva niente e non scrive mai progressi, XP, streak, Laurel, Review o risultati dei Duel. La bandiera (o la copertina) del Course a sinistra del titolo, in ogni schermata del Course Editor, apre la pagina dello studente sulla copia di lavoro: Draft compresi, ogni Lesson aperta, niente completato. Lì si possono giocare Round, Story, GuideBook e Duel; Course Selector, Profile, Review e Settings non sono disponibili, e il Course che studi resta quello di prima. Preview · Exit torna alla stessa schermata con le modifiche ancora in attesa della conferma del Course. Da un modulo di esercizio l’anteprima mostra ciò che hai salvato, non le modifiche non salvate del modulo.",
   "editorHelp.qa.exercises.title": "Esercizi",
   "editorHelp.qa.newExercise.q": "Come aggiungo un esercizio?",
   "editorHelp.qa.newExercise.a":

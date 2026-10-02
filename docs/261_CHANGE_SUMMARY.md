@@ -84,3 +84,42 @@ Help EN/IT/ES: All Courses Help and Course Studio Help describe Study and
 Review; the Editor Help answer on Locked, View only, Inspection mode and
 Edit names the opening mode. Scoring, progression, Course files and
 learner progress are unchanged.
+
+## Revision 2 (2.0.61+261002, 2 October 2026): the Course preview from the Course Editor
+
+**The flag.** Every Course Editor screen shows the Course's cover, or its
+flag, left of its title (`CoursePreviewFlag` / `CoursePreviewTitle` in
+`lib/widgets/course_preview_flag.dart`, key `course-preview-flag`, tooltip
+"Preview as a learner"): the main page (its existing flag, now tappable),
+Lessons, the Lesson editor, Rounds, the Round editor, the exercise forms
+and the Generic Primitive Editor, the GuideBook editor and its Insights
+(which now receive the working copy for this), the Round Wizard, the Story
+Wizard, the Exercise Creation Wizard, Course Audit, the Audio Library, the
+Image Library when it edits the Course (not when it picks an image),
+Search, Version History and the Lesson preview list.
+
+**The preview.** A tap opens `CoursePreviewScreen` (`lib/screens/course_preview_screen.dart`,
+a part of `home_screen.dart` so it draws the learner page's own Lesson
+sections) on the working copy as that screen holds it: Draft Lessons,
+Rounds, exercises and GuideBooks included, every Lesson open, no Round
+completed, no Laurel (owner decisions: Drafts included, a clean slate).
+Rounds and Stories play in the Round Preview (`RoundScreen` with
+`previewMode`), the GuideBook opens with its Draft content, and the Duel in
+a new `DuelScreen.previewMode` (Draft content counted through
+`DuelEligibilityService.evaluate(includeDrafts:)` / `evaluateEffective`,
+the learner's Audio Settings bypassed as in a Round Preview, title "PREVIEW
+· …", nothing recorded). The Course Selector, Settings, Profile and Review
+are shown greyed with "Not available in the Course preview."; Course Info
+opens. The screen reads and writes no learner state, so the stored current
+Course and the learner's progress are unchanged. **Preview · Exit**
+(`course-preview-exit`) pops back to the screen that opened it, whose
+editing session is untouched, changes still waiting for the Course
+confirmation. From an exercise form the preview shows the working copy with
+what the form saved in this session (`_savedInSession`), never its unsaved
+edits (owner decision); the other forms (a Lesson's section and icon
+fields, the GuideBook form, the wizards' drafts) likewise show what is in
+the working copy.
+
+Help EN/IT/ES: the Editor Help question on trying the Course, a Lesson or
+a Round as a learner. Scoring, progression, Course files and learner data
+are unchanged.

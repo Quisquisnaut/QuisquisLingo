@@ -16,6 +16,7 @@ import '../widgets/exercise_editor_intro.dart';
 import '../widgets/image_credit_reminder.dart';
 import 'flat_image_library_screen.dart';
 import 'round_screen.dart';
+import '../widgets/course_preview_flag.dart';
 
 /// The Generic Primitive Editor (Build 256 Session 4, plan A.12/A.13): one
 /// form for every canonical exercise, whatever its primitive, with its
@@ -454,7 +455,10 @@ class _PrimitiveEditorScreenState extends State<PrimitiveEditorScreen> {
         key: const Key('primitive-editor'),
         appBar: AppBar(
           leading: BackButton(onPressed: _leave),
-          title: Text(_pageTitle),
+          title: CoursePreviewTitle(
+            course: widget.course,
+            title: Text(_pageTitle),
+          ),
           actions: const [EditorAppBarActions()],
         ),
         body: ListView(

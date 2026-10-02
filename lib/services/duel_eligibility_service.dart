@@ -52,11 +52,13 @@ class DuelEligibilityService {
     return exercise.items.any((item) => item.id == correct);
   }
 
-  DuelEligibilityResult evaluate(Lesson lesson) {
+  /// [includeDrafts] counts Draft Lessons, Rounds and exercises too: the
+  /// Course preview from the Course Editor (Build 261 Revision 2).
+  DuelEligibilityResult evaluate(Lesson lesson, {bool includeDrafts = false}) {
     final candidates = <DuelCandidate>[];
     final seen = <String>{};
 
-    if (!lesson.publicationState.isPublished) {
+    if (!includeDrafts && !lesson.publicationState.isPublished) {
       return const DuelEligibilityResult(
         candidates: [],
         requiredCount: requiredQuestionCount,
@@ -65,7 +67,7 @@ class DuelEligibilityService {
     }
 
     for (final round in lesson.rounds) {
-      if (!round.publicationState.isPublished) continue;
+      if (!includeDrafts && !round.publicationState.isPublished) continue;
       // Build 256 Revision 5: a Story's exercises depend on its dialogue
       // and never enter the Duel pool (owner decision). A sequence is a
       // plain Round played in order, so its exercises do (Revision 7, third
@@ -74,7 +76,9 @@ class DuelEligibilityService {
         continue;
       }
       for (final exercise in round.exercises) {
-        if (!exercise.publicationState.isPublished) continue;
+        if (!includeDrafts && !exercise.publicationState.isPublished) {
+          continue;
+        }
         if (!isEligible(exercise)) continue;
         final features = ExerciseFeatures(exercise);
         final correct = exercise.canonicalEvaluation.correctItemIds.single;
@@ -112,8 +116,9 @@ class DuelEligibilityService {
     required bool audioExercisesEnabled,
     required bool ttsEnabled,
     AudioExerciseAvailabilityService? audioAvailability,
+    bool includeDrafts = false,
   }) async {
-    final structural = evaluate(lesson);
+    final structural = evaluate(lesson, includeDrafts: includeDrafts);
     final availability =
         audioAvailability ?? AudioExerciseAvailabilityService();
     final candidates = <DuelCandidate>[];

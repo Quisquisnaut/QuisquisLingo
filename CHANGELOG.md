@@ -1,3 +1,20 @@
+# 2.0.61 (Build 261, Revision 2) - Course preview from the Course Editor - 2026-10-02
+
+Owner decisions of 1 October 2026.
+
+- **The Course's flag** (or cover) sits left of the title on every Course
+  Editor screen. A tap opens the learner page on the Course as you are
+  editing it: Drafts included, every Lesson open, nothing completed;
+  Rounds, Stories, GuideBooks and Duels play in Preview and record
+  nothing; the Course Selector, Profile, Review and Settings are not
+  available; the Course you study does not change.
+- **Preview · Exit** returns to the same editor screen with your changes
+  still waiting for the Course confirmation. From an exercise form the
+  preview shows what you have saved, not the form's unsaved changes.
+
+Scoring, progression and learner data are unchanged. Beta expiry
+`2026-11-01 23:59:59` local time (same release day as Revision 0).
+
 # 2.0.61 (Build 261, Revision 1) - Study and Review from Courses - 2026-10-02
 
 Owner decisions of 1 October 2026.

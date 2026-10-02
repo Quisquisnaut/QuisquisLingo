@@ -6,6 +6,7 @@ import '../services/course_audit_service.dart';
 import '../services/custom_course_transfer_service.dart';
 import '../services/storage/course_storage_names.dart';
 import '../widgets/file_dialog_feedback.dart';
+import '../widgets/course_preview_flag.dart';
 
 /// What Version History shows: the readable versions, where they are, and
 /// the files in that folder it could not read.
@@ -193,7 +194,12 @@ class _CourseVersionHistoryScreenState
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Version history')),
+    appBar: AppBar(
+      title: CoursePreviewTitle(
+        course: widget.course,
+        title: const Text('Version history'),
+      ),
+    ),
     body: FutureBuilder<_History>(
       future: _history,
       builder: (context, snapshot) {

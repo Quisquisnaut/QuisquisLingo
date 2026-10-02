@@ -78,6 +78,8 @@ import '../services/new_course_structure.dart';
 import '../widgets/file_dialog_feedback.dart';
 import '../widgets/flag_art.dart';
 import '../widgets/course_artwork.dart';
+import '../widgets/course_preview_flag.dart';
+import 'home_screen.dart' show openCoursePreview;
 import '../widgets/course_cover_field.dart';
 import '../widgets/course_flag_picker.dart';
 import '../widgets/image_credit_reminder.dart';
@@ -2944,20 +2946,29 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
               children: [
                 if (constraints.maxWidth >= 58) ...[
                   // Build 255 Revision 6: the cover, as in Courses, when the
-                  // Course has one.
-                  if (Course.coverImagePattern.hasMatch(_course.coverImage))
-                    CourseArtwork(
-                      key: const Key('course-editor-header-cover'),
-                      course: _course,
-                      size: 38,
-                    )
-                  else
-                    CourseFlagBadge(
-                      course: _course,
-                      fallbackCode: _code,
-                      width: 38,
-                      height: 27,
+                  // Course has one. Build 261 Revision 2: a tap previews the
+                  // working copy as a learner.
+                  Tooltip(
+                    message: 'Preview as a learner',
+                    child: InkWell(
+                      key: const Key('course-preview-flag'),
+                      borderRadius: BorderRadius.circular(6),
+                      onTap: () => openCoursePreview(context, _course),
+                      child:
+                          Course.coverImagePattern.hasMatch(_course.coverImage)
+                          ? CourseArtwork(
+                              key: const Key('course-editor-header-cover'),
+                              course: _course,
+                              size: 38,
+                            )
+                          : CourseFlagBadge(
+                              course: _course,
+                              fallbackCode: _code,
+                              width: 38,
+                              height: 27,
+                            ),
                     ),
+                  ),
                   const SizedBox(width: 10),
                 ],
                 Expanded(
@@ -3553,7 +3564,10 @@ class _LessonManagementScreenState extends State<LessonManagementScreen> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Lessons'),
+          title: CoursePreviewTitle(
+            course: _course,
+            title: const Text('Lessons'),
+          ),
           leading: BackButton(onPressed: _returnToCourse),
           actions: [
             IconButton(
@@ -3722,8 +3736,11 @@ class LessonAuthoringPreviewScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
-      title: Text(
-        'PREVIEW · ${course.lessons.any((candidate) => candidate.lessonId == lesson.lessonId) ? const LessonPresentationService().identity(course, course.lessons.indexWhere((candidate) => candidate.lessonId == lesson.lessonId)).fullText : lesson.title}',
+      title: CoursePreviewTitle(
+        course: course,
+        title: Text(
+          'PREVIEW · ${course.lessons.any((candidate) => candidate.lessonId == lesson.lessonId) ? const LessonPresentationService().identity(course, course.lessons.indexWhere((candidate) => candidate.lessonId == lesson.lessonId)).fullText : lesson.title}',
+        ),
       ),
     ),
     body: lesson.rounds.isEmpty
@@ -3762,10 +3779,14 @@ class LessonAuthoringPreviewScreen extends StatelessWidget {
 class GuidebookEditorScreen extends StatefulWidget {
   final Guidebook guidebook;
   final String guidebookId;
+
+  /// The working copy, for the Course preview flag (Build 261 Revision 2).
+  final Course? course;
   const GuidebookEditorScreen({
     super.key,
     required this.guidebook,
     this.guidebookId = '',
+    this.course,
   });
   @override
   State<GuidebookEditorScreen> createState() => _GuidebookEditorScreenState();
@@ -3890,6 +3911,7 @@ class _GuidebookEditorScreenState extends State<GuidebookEditorScreen> {
         builder: (_) => GuidebookInsightsEditorScreen(
           initialSections: _insights,
           onChanged: (sections) => _insights = [...sections],
+          course: widget.course,
         ),
       ),
     );
@@ -3950,7 +3972,10 @@ class _GuidebookEditorScreenState extends State<GuidebookEditorScreen> {
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
-      title: const Text('Guidebook'),
+      title: CoursePreviewTitle(
+        course: widget.course,
+        title: const Text('Guidebook'),
+      ),
       actions: [
         TextButton(
           key: const Key('guidebook-save-appbar'),
@@ -4017,10 +4042,14 @@ class GuidebookInsightsEditorScreen extends StatefulWidget {
   final List<GuidebookInsight> initialSections;
   final ValueChanged<List<GuidebookInsight>> onChanged;
 
+  /// The working copy, for the Course preview flag (Build 261 Revision 2).
+  final Course? course;
+
   const GuidebookInsightsEditorScreen({
     super.key,
     required this.initialSections,
     required this.onChanged,
+    this.course,
   });
 
   @override
@@ -4150,7 +4179,12 @@ class _GuidebookInsightsEditorScreenState
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Insights')),
+    appBar: AppBar(
+      title: CoursePreviewTitle(
+        course: widget.course,
+        title: const Text('Insights'),
+      ),
+    ),
     body: _sections.isEmpty
         ? const Center(child: Text('No Insight sections yet.'))
         : ReorderableListView.builder(
@@ -4574,6 +4608,7 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
         builder: (_) => GuidebookEditorScreen(
           guidebook: _lesson.guidebook,
           guidebookId: _lesson.guidebookId,
+          course: _courseWithIcons,
         ),
       ),
     );
@@ -5095,7 +5130,10 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
       child: Scaffold(
         appBar: AppBar(
           leading: BackButton(onPressed: _returnToLessons),
-          title: Text(_lessonLabel),
+          title: CoursePreviewTitle(
+            course: _courseWithIcons,
+            title: Text(_lessonLabel),
+          ),
           actions: [
             IconButton(
               key: const Key('lesson-search-action'),
@@ -5673,7 +5711,10 @@ class _GuidebookRoundGeneratorScreenState
     },
     child: Scaffold(
       appBar: AppBar(
-        title: const Text('Generate Rounds from GuideBook'),
+        title: CoursePreviewTitle(
+          course: widget.course,
+          title: const Text('Generate Rounds from GuideBook'),
+        ),
         actions: [
           IconButton(
             tooltip: 'Generator Help',
@@ -6006,7 +6047,10 @@ class _StoryWizardScreenState extends State<StoryWizardScreen> {
     const names = ['Story', 'Narrator', 'Characters', 'Steps'];
     return Scaffold(
       appBar: AppBar(
-        title: Text('New Story · ${names[index]} (${index + 1} of 4)'),
+        title: CoursePreviewTitle(
+          course: widget.course,
+          title: Text('New Story · ${names[index]} (${index + 1} of 4)'),
+        ),
         actions: const [EditorAppBarActions()],
       ),
       bottomNavigationBar: SafeArea(
@@ -6819,7 +6863,10 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Text('Rounds · $lessonLabel'),
+          title: CoursePreviewTitle(
+            course: _auditableCourse,
+            title: Text('Rounds · $lessonLabel'),
+          ),
           actions: [
             IconButton(
               key: const Key('rounds-search-action'),
@@ -8293,7 +8340,10 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
       child: Scaffold(
         appBar: AppBar(
           leading: BackButton(onPressed: _returnToRounds),
-          title: Text(_editedRound().displayTitle(widget.roundIndex)),
+          title: CoursePreviewTitle(
+            course: _workingCourse,
+            title: Text(_editedRound().displayTitle(widget.roundIndex)),
+          ),
           actions: [
             IconButton(
               key: const Key('round-search-action'),
@@ -9308,7 +9358,12 @@ class _ExerciseCreationWizardScreenState
       if (!didPop) _cancel();
     },
     child: Scaffold(
-      appBar: AppBar(title: const Text('Exercise Creation Wizard')),
+      appBar: AppBar(
+        title: CoursePreviewTitle(
+          course: widget.course,
+          title: const Text('Exercise Creation Wizard'),
+        ),
+      ),
       body: switch (_stage) {
         _ExerciseWizardStage.setup => _setup(),
         _ExerciseWizardStage.plan => _reviewPlan(),
@@ -9441,7 +9496,12 @@ class _CourseAuditScreenState extends State<CourseAuditScreen> {
       onSelected: (_) => setState(() => _filter = severity),
     );
     return Scaffold(
-      appBar: AppBar(title: Text(widget.title)),
+      appBar: AppBar(
+        title: CoursePreviewTitle(
+          course: widget.course,
+          title: Text(widget.title),
+        ),
+      ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(12, 12, 12, 28),
         children: [
@@ -9567,6 +9627,9 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
   bool _navigationBusy = false;
   late bool _inspection;
   Exercise? _savedDuringSession;
+
+  /// Every exercise this form saved in this session, by ID.
+  final Map<String, Exercise> _savedInSession = {};
   late Exercise _exercise;
   ScriptRecognitionController? _scriptController;
   late final List<Exercise> _navigationExercises;
@@ -11771,6 +11834,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     );
     if (index >= 0) _navigationExercises[index] = exercise;
     _savedDuringSession = exercise;
+    _savedInSession[exercise.id] = exercise;
     widget.onExerciseSaved?.call(exercise);
     setState(() {
       _exercise = exercise;
@@ -11782,6 +11846,28 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     if (!close) return;
     await WidgetsBinding.instance.endOfFrame;
     if (mounted) Navigator.pop(context, exercise);
+  }
+
+  /// The Course preview from this form (Build 261 Revision 2, owner
+  /// decision): the working copy with what the form saved in this session,
+  /// never its unsaved edits.
+  Course? get _previewCourse {
+    final course = widget.course;
+    final lesson = widget.lesson;
+    final round = widget.round;
+    if (course == null || lesson == null || round == null) return course;
+    var preview = course;
+    try {
+      for (final exercise in _savedInSession.values) {
+        preview = _hierarchyUpdates.apply(
+          preview,
+          UpsertExercise(lesson.lessonId, round.id, exercise),
+        );
+      }
+    } on Object {
+      return course;
+    }
+    return preview;
   }
 
   Future<void> _preview() async {
@@ -12154,7 +12240,10 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     child: Scaffold(
       appBar: AppBar(
         leading: BackButton(onPressed: _leave),
-        title: Text(_pageTitle),
+        title: CoursePreviewTitle(
+          course: _previewCourse,
+          title: Text(_pageTitle),
+        ),
         actions: const [EditorAppBarActions()],
       ),
       body: ListView(
@@ -12755,7 +12844,10 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Audio Library'),
+          title: CoursePreviewTitle(
+            course: _course,
+            title: const Text('Audio Library'),
+          ),
           actions: [
             if (_course.audioMode != 'tts' && _audio.fileDialogsAvailable)
               IconButton(
