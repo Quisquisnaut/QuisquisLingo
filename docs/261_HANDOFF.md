@@ -63,14 +63,14 @@ text and the Audit's READING_ANSWER_IN_TEXT; English from Italian's
 untitled practice Rounds; New Canonical folded into New Exercise; Fill
 with an example. Test `test/owner_review_261_revision5_test.dart`. Complete suite: 3550 passed, 1 skipped.
 
-## Revision 6 (implemented, 2 October 2026)
+## Revision 6 (committed `f62c4b0`, 2 October 2026)
 
 The canonical editor explains its primitives: a popup per primitive,
 learner and Course; Clear all; the message when the primitive changes over
 filled fields; nine Help sections with the owner's screenshots
 (`assets/primitives_screenshots/`); Help opens at the primitive; Role is a
 menu of the roles QQL reads (`ElementRoles`). Plan
-`docs/261_REVISION6_PLAN.md`; test `test/owner_review_261_revision6_test.dart`.
+`docs/261_REVISION6_PLAN.md`; test `test/owner_review_261_revision6_test.dart`. Complete suite: 3572 passed, 1 skipped.
 Noticed, not fixed (outside the revision): at 360 pixels the canonical
 editor's option menus overflow to the right.
 
@@ -85,5 +85,6 @@ Course makes a copy that keeps every ID; "Export as bundled" writes a
 bundled-format file to Export/Courses; the developer puts it in the assets
 at the next build, after which that Course's generator is retired.
 
-Stage with `git add -A -- . ':!devtools_options.yaml' ':!tools/cloud_setup.sh'`
+Stage with `git add -A -- . ':!devtools_options.yaml' ':!tools/cloud_setup.sh' ':!assets/lesson_plants/QQL_IT_EN_qql_demo_english_from_italian.zip' ':!docs/262_BUNDLED_AUTHORING_PLAN.md'`
+(the zip is the owner's; the Build 262 plan is committed with Build 262)
 after checking `git status` for files another session wrote.
