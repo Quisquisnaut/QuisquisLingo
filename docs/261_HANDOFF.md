@@ -76,13 +76,13 @@ menu of the roles QQL reads (`ElementRoles`). Plan
 At 360 pixels the canonical editor's menus overflowed to the right:
 fixed by the Revision 6 follow-up (below).
 
-## Revision 6 follow-up (same version, 2 October 2026)
+## Revision 6 follow-up (committed `c48c875`, same version, 2 October 2026)
 
 The canonical editor fits a phone: every menu takes the width it is given
 with one-line entries; a Match item's Side and a gap's Reveal sit under
 the row's title. Test `test/primitive_editor_narrow_261_test.dart` (every
 primitive, blank and with its example, and every Laboratory exercise at
-360 pixels).
+360 pixels). Complete suite: 3582 passed, 1 skipped.
 
 ## Next
 
