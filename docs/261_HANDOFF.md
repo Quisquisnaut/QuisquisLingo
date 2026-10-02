@@ -50,11 +50,11 @@ a Story; the Pick the translation line translated. Test
 `test/exercise_titles_261_test.dart`; the Laboratory presentation
 baseline re-recorded (70 records, titles only). Complete suite: 3541 passed, 1 skipped.
 
-## Revision 4 (implemented, 2 October 2026)
+## Revision 4 (committed `2e4dd84`, 2 October 2026)
 
 The preview made evident (owner go of 2 October 2026): the amber PREVIEW
 bar with Exit; Course Info, Theme and Flag background only, changing the
-preview alone. Tests in `test/course_preview_261_test.dart`.
+preview alone. Tests in `test/course_preview_261_test.dart`. Complete suite: 3542 passed, 1 skipped.
 
 ## Next
 
