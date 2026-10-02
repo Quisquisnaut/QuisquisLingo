@@ -165,3 +165,31 @@ removed.
 AGENTS.md records the one preset-dependent thing learners see. Help
 EN/IT/ES (the primitives page's status). Scoring, progression, Course
 files and learner data are unchanged.
+
+## Revision 4 (2.0.61+261004, 2 October 2026): the preview made evident
+
+Owner request and decisions of 2 October 2026: entering the preview from
+the Course Editor's flag must be evident; the preview should not show
+buttons that do not work, and should offer Theme and Flag background.
+
+**The PREVIEW bar.** `CoursePreviewScreen` opens with a full-width amber
+bar (`course-preview-bar`, `CoursePreviewScreen.barColor`): an eye,
+"**PREVIEW** · As a learner sees it · nothing is recorded" and the **Exit**
+button (`course-preview-exit`), in place of the Revision 2 chip. Below it,
+the Course's flag or cover (now only a picture) and its title.
+
+**Only the controls that work.** The greyed Course Selector look,
+Settings, Profile and Review are gone. The bottom bar holds Course Info,
+**Theme** (`course-preview-theme`, Light / Dark) and **Flag background**
+(`course-preview-flag-background`, the learner page's five modes, drawn
+behind the page as there: the flag with its veil, or the Tinted /
+Inspired colours). Both start from the active learner's choice (the
+app's appearance; the learner's Flag background for this Course, read
+once) and change for this preview only: the screen is a StatefulWidget
+whose Theme and LearnerThemeModeScope wrap the page, nothing is written,
+and Rounds, Stories and Duels opened from it keep the app's own
+appearance.
+
+Help EN/IT/ES (the Editor Help answer on trying the Course as a
+learner). Scoring, progression, Course files and learner data are
+unchanged.

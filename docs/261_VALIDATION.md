@@ -128,3 +128,19 @@
 - `flutter analyze --no-pub`: no issues.
 - **Complete suite** (`--concurrency=1`, keep-awake, 29 min 2 s):
   **3541 passed, 1 skipped, 0 failed**.
+
+## Revision 4 (2.0.61+261004, 2 October 2026): the preview made evident
+
+**Generators and validator**
+- No Course file changes (the four bundled Courses unchanged).
+
+**Tests**
+- `test/course_preview_261_test.dart` (7 tests): the clean-slate test now
+  finds the PREVIEW bar and Course Info and no Course Selector, Settings,
+  Profile or Review; new: the bar has the amber colour, Theme starts
+  Light and turns Dark, Flag background starts Off and the next mode draws
+  the flag behind the page, Exit returns, and every SharedPreferences value
+  is as before.
+- `flutter analyze --no-pub`: no issues.
+- **Complete suite** (`--concurrency=1`, keep-awake, 30 min 33 s):
+  **3542 passed, 1 skipped, 0 failed**.

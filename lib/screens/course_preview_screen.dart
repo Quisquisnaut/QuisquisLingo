@@ -5,19 +5,56 @@ part of 'home_screen.dart';
 ///
 /// It shows [course] as it is, Draft content included, on a clean slate:
 /// no Round completed, no Laurel, every Lesson open. Rounds, Stories, the
-/// GuideBook and the Duel open in their Preview modes, which record nothing;
-/// the Course Selector, Profile, Review and Settings are not available. The
-/// screen reads and writes no learner state, so the stored current Course is
-/// unchanged, and "Preview · Exit" pops back to the editor screen that opened
-/// it with the session's changes still pending.
-class CoursePreviewScreen extends StatelessWidget {
+/// GuideBook and the Duel open in their Preview modes, which record nothing.
+/// The screen writes no learner state, so the stored current Course is
+/// unchanged, and Exit pops back to the editor screen that opened it with the
+/// session's changes still pending.
+///
+/// Revision 4 (owner decisions of 2 October 2026): a coloured PREVIEW bar
+/// with Exit says where the learner is; only the controls that work are
+/// shown (Course Info, Theme, Flag background); Theme and Flag background
+/// start from the active learner's and change for this preview only.
+class CoursePreviewScreen extends StatefulWidget {
   const CoursePreviewScreen({super.key, required this.course});
 
   final Course course;
 
-  static const _unavailable = 'Not available in the Course preview.';
+  /// The PREVIEW bar's colour, the same in light and dark.
+  static const barColor = Color(0xFFFFB300);
+
+  @override
+  State<CoursePreviewScreen> createState() => _CoursePreviewScreenState();
+}
+
+class _CoursePreviewScreenState extends State<CoursePreviewScreen> {
+  /// Null until the learner's choice is known (the app's appearance).
+  bool? _dark;
+  var _flagBackground = LearnerFlagBackgroundMode.off;
+
+  Course get course => widget.course;
+
+  String get _code => CourseService.codeForCourse(course);
 
   String get _ttsLanguage => CourseLanguageResolver.learning(course).code ?? '';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFlagBackground();
+  }
+
+  /// Reads the active learner's Flag background for this Course; nothing is
+  /// written back.
+  Future<void> _loadFlagBackground() async {
+    try {
+      final mode = await ProfileService().getFlagBackgroundMode(
+        course.courseId,
+      );
+      if (mounted) setState(() => _flagBackground = mode);
+    } catch (_) {
+      // The preview keeps Off when the learner's choice cannot be read.
+    }
+  }
 
   Future<void> _openGuidebook(
     BuildContext context,
@@ -63,84 +100,100 @@ class CoursePreviewScreen extends StatelessWidget {
         ),
       );
 
-  Widget _header(BuildContext context) {
-    final theme = Theme.of(context);
-    final artwork = Course.coverImagePattern.hasMatch(course.coverImage)
-        ? CourseArtwork(course: course, size: 40)
-        : CourseFlagBadge(
-            course: course,
-            fallbackCode: CourseService.codeForCourse(course),
-            width: 40,
-            height: 28,
-          );
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(14, 8, 8, 4),
+  Widget _previewBar(BuildContext context) => Material(
+    key: const Key('course-preview-bar'),
+    color: CoursePreviewScreen.barColor,
+    child: Padding(
+      padding: const EdgeInsets.fromLTRB(14, 6, 8, 6),
       child: Row(
         children: [
-          Tooltip(
-            message: 'Course Selector: $_unavailable',
-            child: Opacity(
-              key: const Key('course-preview-selector'),
-              opacity: .6,
-              child: artwork,
-            ),
-          ),
+          const Icon(Icons.visibility_outlined, color: Colors.black87),
           const SizedBox(width: 10),
           Expanded(
-            child: Text(
-              course.title,
-              key: const Key('course-preview-title'),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w800,
+            child: Text.rich(
+              const TextSpan(
+                children: [
+                  TextSpan(
+                    text: 'PREVIEW',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 1,
+                    ),
+                  ),
+                  TextSpan(
+                    text: ' · As a learner sees it · nothing is recorded',
+                  ),
+                ],
               ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: Colors.black87),
             ),
           ),
           const SizedBox(width: 8),
-          ActionChip(
+          FilledButton.icon(
             key: const Key('course-preview-exit'),
-            avatar: const Icon(Icons.visibility_outlined, size: 18),
-            label: const Text('Preview · Exit'),
-            tooltip: 'Back to the Course Editor',
+            style: FilledButton.styleFrom(
+              backgroundColor: Colors.black87,
+              foregroundColor: CoursePreviewScreen.barColor,
+            ),
             onPressed: () => Navigator.of(context).pop(),
-          ),
-          IconButton(
-            key: const Key('course-preview-settings'),
-            tooltip: 'Settings: $_unavailable',
-            onPressed: null,
-            icon: const Icon(Icons.settings_outlined),
+            icon: const Icon(Icons.close),
+            label: const Text('Exit'),
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
 
-  Widget _bottomBar(BuildContext context) => Padding(
+  Widget _header(BuildContext context) => Padding(
+    padding: const EdgeInsets.fromLTRB(14, 10, 14, 4),
+    child: Row(
+      children: [
+        Course.coverImagePattern.hasMatch(course.coverImage)
+            ? CourseArtwork(course: course, size: 40)
+            : CourseFlagBadge(
+                course: course,
+                fallbackCode: _code,
+                width: 40,
+                height: 28,
+              ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            course.title,
+            key: const Key('course-preview-title'),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+          ),
+        ),
+      ],
+    ),
+  );
+
+  Widget _roundButton({
+    required Key key,
+    required String tooltip,
+    required IconData icon,
+    required VoidCallback onPressed,
+  }) => IconButton.filledTonal(
+    key: key,
+    tooltip: tooltip,
+    onPressed: onPressed,
+    icon: Icon(icon),
+  );
+
+  Widget _bottomBar(BuildContext context, bool dark) => Padding(
     padding: const EdgeInsets.fromLTRB(14, 0, 14, 12),
     child: Wrap(
       alignment: WrapAlignment.center,
+      crossAxisAlignment: WrapCrossAlignment.center,
       spacing: 8,
       runSpacing: 4,
       children: [
-        Tooltip(
-          message: 'Profile: $_unavailable',
-          child: TextButton.icon(
-            key: const Key('course-preview-profile'),
-            onPressed: null,
-            icon: const Icon(Icons.person_outline),
-            label: const Text('Profile'),
-          ),
-        ),
-        Tooltip(
-          message: 'Review: $_unavailable',
-          child: TextButton.icon(
-            key: const Key('course-preview-review'),
-            onPressed: null,
-            icon: const Icon(Icons.history_outlined),
-            label: const Text('Review'),
-          ),
-        ),
         TextButton.icon(
           key: const Key('course-preview-course-info'),
           onPressed: () => Navigator.of(context).push<void>(
@@ -149,9 +202,64 @@ class CoursePreviewScreen extends StatelessWidget {
           icon: const Icon(Icons.info_outline),
           label: const Text('Course Info'),
         ),
+        _roundButton(
+          key: const Key('course-preview-theme'),
+          tooltip: dark ? 'Theme: Dark' : 'Theme: Light',
+          icon: dark ? Icons.dark_mode_outlined : Icons.light_mode_outlined,
+          onPressed: () => setState(() => _dark = !dark),
+        ),
+        _roundButton(
+          key: const Key('course-preview-flag-background'),
+          tooltip: 'Flag background: ${_flagBackground.label}',
+          icon: switch (_flagBackground) {
+            LearnerFlagBackgroundMode.small => Icons.flag_outlined,
+            LearnerFlagBackgroundMode.off => Icons.hide_image_outlined,
+            LearnerFlagBackgroundMode.extended => Icons.flag,
+            LearnerFlagBackgroundMode.tinted =>
+              Icons.format_color_fill_outlined,
+            LearnerFlagBackgroundMode.softInspired => Icons.gradient_outlined,
+          },
+          onPressed: () =>
+              setState(() => _flagBackground = _flagBackground.next),
+        ),
       ],
     ),
   );
+
+  /// The flag behind the page, drawn as on the learner page.
+  List<Widget> _background(ThemeData theme, bool dark) =>
+      switch (_flagBackground) {
+        LearnerFlagBackgroundMode.small ||
+        LearnerFlagBackgroundMode.extended => [
+          CourseFlagBackdrop(
+            key: const Key('course-preview-flag-backdrop'),
+            course: course,
+            fallbackCode: _code,
+            opacity: 1,
+            fit: _flagBackground == LearnerFlagBackgroundMode.extended
+                ? BoxFit.cover
+                : BoxFit.contain,
+          ),
+          ColoredBox(
+            color: theme.colorScheme.surface.withValues(
+              alpha: dark
+                  ? learnerDarkFlagVeilOpacity
+                  : learnerLightFlagVeilOpacity,
+            ),
+          ),
+        ],
+        LearnerFlagBackgroundMode.tinted ||
+        LearnerFlagBackgroundMode.softInspired => [
+          CourseFlagInspiredBackground(
+            key: const Key('course-preview-flag-inspired'),
+            course: course,
+            fallbackCode: _code,
+            brightness: dark ? Brightness.dark : Brightness.light,
+            mode: _flagBackground,
+          ),
+        ],
+        LearnerFlagBackgroundMode.off => const [],
+      };
 
   Widget _lesson(BuildContext context, int lessonIndex) {
     final lesson = course.lessons[lessonIndex];
@@ -194,38 +302,63 @@ class CoursePreviewScreen extends StatelessWidget {
     );
   }
 
+  /// The app's light theme, whatever the app shows now: the preview's Theme
+  /// button may differ from the learner's.
+  ThemeData _lightTheme(BuildContext context) =>
+      context.findAncestorWidgetOfExactType<MaterialApp>()?.theme ??
+      ThemeData.light(useMaterial3: true);
+
   @override
   Widget build(BuildContext context) {
-    final dark = _usesDarkLearnerAppearance(context);
-    return Theme(
-      data: _unifiedLearnerTheme(context),
+    final dark = _dark ?? _usesDarkLearnerAppearance(context);
+    final mode = dark ? LearnerThemeMode.dark : LearnerThemeMode.light;
+    return LearnerThemeModeScope(
+      mode: mode,
       child: Builder(
-        builder: (context) => Scaffold(
-          key: const Key('course-preview-page'),
-          backgroundColor: dark
-              ? _learnerDarkPageBackground
-              : _learnerLightPageBackground,
-          body: SafeArea(
-            child: Column(
-              children: [
-                _header(context),
-                Expanded(
-                  child: ListView.builder(
-                    key: const Key('course-preview-scroll'),
-                    padding: const EdgeInsets.fromLTRB(14, 8, 14, 24),
-                    itemCount: course.lessons.isEmpty
-                        ? 1
-                        : course.lessons.length,
-                    itemBuilder: (context, index) => course.lessons.isEmpty
-                        ? const _EmptyCourseCard()
-                        : _lesson(context, index),
-                  ),
+        builder: (scoped) {
+          final theme = dark
+              ? _unifiedLearnerTheme(scoped)
+              : _lightTheme(scoped);
+          return Theme(
+            data: theme,
+            child: Builder(
+              builder: (context) => Scaffold(
+                key: const Key('course-preview-page'),
+                backgroundColor: dark
+                    ? _learnerDarkPageBackground
+                    : _learnerLightPageBackground,
+                body: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    ..._background(theme, dark),
+                    SafeArea(
+                      child: Column(
+                        children: [
+                          _previewBar(context),
+                          _header(context),
+                          Expanded(
+                            child: ListView.builder(
+                              key: const Key('course-preview-scroll'),
+                              padding: const EdgeInsets.fromLTRB(14, 8, 14, 24),
+                              itemCount: course.lessons.isEmpty
+                                  ? 1
+                                  : course.lessons.length,
+                              itemBuilder: (context, index) =>
+                                  course.lessons.isEmpty
+                                  ? const _EmptyCourseCard()
+                                  : _lesson(context, index),
+                            ),
+                          ),
+                          _bottomBar(context, dark),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-                _bottomBar(context),
-              ],
+              ),
             ),
-          ),
-        ),
+          );
+        },
       ),
     );
   }

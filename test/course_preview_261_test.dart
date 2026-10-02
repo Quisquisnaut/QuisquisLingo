@@ -103,24 +103,19 @@ void main() {
       findsOneWidget,
     );
 
-    // Selector, Profile, Review and Settings are not available.
-    for (final key in ['course-preview-profile', 'course-preview-review']) {
-      expect(
-        tester.widget<TextButton>(find.byKey(Key(key))).onPressed,
-        isNull,
-        reason: key,
-      );
+    // Only the controls that work are shown (Revision 4): no Course
+    // Selector, Settings, Profile or Review.
+    expect(find.byKey(const Key('course-preview-bar')), findsOneWidget);
+    for (final key in [
+      'course-preview-profile',
+      'course-preview-review',
+      'course-preview-settings',
+      'course-preview-selector',
+      'unified-topbar-course-selector',
+    ]) {
+      expect(find.byKey(Key(key)), findsNothing, reason: key);
     }
-    expect(
-      tester
-          .widget<IconButton>(find.byKey(const Key('course-preview-settings')))
-          .onPressed,
-      isNull,
-    );
-    expect(
-      find.byKey(const Key('unified-topbar-course-selector')),
-      findsNothing,
-    );
+    expect(find.byKey(const Key('course-preview-course-info')), findsOneWidget);
 
     // The Draft GuideBook opens with its Draft content.
     await tester.tap(find.byKey(const Key('unified-guidebook-node')).first);
@@ -155,6 +150,63 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('course-preview-page')), findsNothing);
     expect(find.text('Open preview'), findsOneWidget);
+    expect(await tester.runAsync(_preferences), before);
+  });
+
+  testWidgets('Theme and Flag background change for the preview only', (
+    tester,
+  ) async {
+    final before = await tester.runAsync(_preferences);
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: ThemeData.light(useMaterial3: true),
+        home: Builder(
+          builder: (context) => Scaffold(
+            body: Center(
+              child: FilledButton(
+                onPressed: () => openCoursePreview(context, english),
+                child: const Text('Open preview'),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('Open preview'));
+    await tester.pumpUntilFileIoState(
+      () => find.byKey(const Key('course-preview-page')).evaluate().isNotEmpty,
+    );
+    final bar = tester.widget<Material>(
+      find.byKey(const Key('course-preview-bar')),
+    );
+    expect(bar.color, CoursePreviewScreen.barColor);
+    expect(find.textContaining('PREVIEW'), findsWidgets);
+
+    Brightness brightness() => Theme.of(
+      tester.element(find.byKey(const Key('course-preview-title'))),
+    ).brightness;
+    expect(brightness(), Brightness.light);
+    expect(find.byTooltip('Theme: Light'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('course-preview-theme')));
+    await tester.pumpUntilFileIoState(() => brightness() == Brightness.dark);
+    expect(find.byTooltip('Theme: Dark'), findsOneWidget);
+
+    // Off (the learner's) → Extended: the flag is drawn behind the page.
+    expect(find.byKey(const Key('course-preview-flag-backdrop')), findsNothing);
+    expect(find.byTooltip('Flag background: Off'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('course-preview-flag-background')));
+    await tester.pumpUntilFileIoState(
+      () => find
+          .byKey(const Key('course-preview-flag-backdrop'))
+          .evaluate()
+          .isNotEmpty,
+    );
+
+    await tester.tap(find.byKey(const Key('course-preview-exit')));
+    await tester.pumpUntilFileIoState(
+      () => find.text('Open preview').evaluate().isNotEmpty,
+    );
+    // The learner's Theme and Flag background are as they were.
     expect(await tester.runAsync(_preferences), before);
   });
 

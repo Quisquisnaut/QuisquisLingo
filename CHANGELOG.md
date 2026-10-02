@@ -1,3 +1,16 @@
+# 2.0.61 (Build 261, Revision 4) - The preview made evident - 2026-10-02
+
+Owner request and decisions of 2 October 2026.
+
+- The Course preview opens with an **amber PREVIEW bar** across the top
+  ("As a learner sees it · nothing is recorded") and its **Exit** button.
+- Only the buttons that work are shown: Course Info, **Theme** (Light /
+  Dark) and **Flag background**. Both start from your settings and change
+  this preview only.
+
+Scoring, progression and learner data are unchanged. Beta expiry
+`2026-11-01 23:59:59` local time (same release day as Revision 0).
+
 # 2.0.61 (Build 261, Revision 3) - Exercise titles - 2026-10-02
 
 Owner report and decisions of 2 October 2026.

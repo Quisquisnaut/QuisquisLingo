@@ -50,13 +50,15 @@ a Story; the Pick the translation line translated. Test
 `test/exercise_titles_261_test.dart`; the Laboratory presentation
 baseline re-recorded (70 records, titles only). Complete suite: 3541 passed, 1 skipped.
 
+## Revision 4 (implemented, 2 October 2026)
+
+The preview made evident (owner go of 2 October 2026): the amber PREVIEW
+bar with Exit; Course Info, Theme and Flag background only, changing the
+preview alone. Tests in `test/course_preview_261_test.dart`.
+
 ## Next
 
-Revision 4 (owner decisions of 2 October 2026, go to confirm): the Course
-preview made evident with a coloured PREVIEW bar (with Exit) in place of
-the chip; in the preview's bottom bar only the available buttons (Course
-Info) plus Theme and Flag background, whose changes last for the preview
-only; the greyed Course Selector and Settings removed from the top.
+The owner's review of Build 261 (push and PR only when asked).
 
 Stage with `git add -A -- . ':!devtools_options.yaml' ':!tools/cloud_setup.sh'`
 after checking `git status` for files another session wrote.

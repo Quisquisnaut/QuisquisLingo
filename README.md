@@ -1,6 +1,6 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.61+261003 · Build 261, Revision 3 · Course Model v12 (`formatVersion: 12`).**
+**Current source version: 2.0.61+261004 · Build 261, Revision 4 · Course Model v12 (`formatVersion: 12`).**
 
 **QuisquisLingo 2.0.61 Beta — QQL 261 Learner polish (Course Model v12)**
 
@@ -18,7 +18,9 @@ working copy on the learner page (Drafts included, every Lesson open,
 nothing recorded) and "Preview · Exit" returns to the same screen.
 Revision 3 titles every exercise with the name of its preset (PICK THE
 TRANSLATION, TRUE OR FALSE, …) in the learner panel's language; a Story
-shows only the instructions.
+shows only the instructions. Revision 4 marks the preview with an amber
+PREVIEW bar and gives it Theme and Flag background buttons that change
+the preview only.
 
 **QQL 260 Course languages**
 
@@ -451,7 +453,7 @@ The MPL-2.0 covers the QuisquisLingo software source. Courses, the Image Bank an
 
 ## Beta lifecycle
 
-Version 2.0.61, Build 261, Revision 3 is a time-limited Beta with an expiry of **2026-11-01 23:59:59 local time** (30 days after the 2 October 2026 release date). In its last seven days it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
+Version 2.0.61, Build 261, Revision 4 is a time-limited Beta with an expiry of **2026-11-01 23:59:59 local time** (30 days after the 2 October 2026 release date). In its last seven days it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
 
 ## Core logic
 
