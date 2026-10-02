@@ -123,3 +123,45 @@ the working copy.
 Help EN/IT/ES: the Editor Help question on trying the Course, a Lesson or
 a Round as a learner. Scoring, progression, Course files and learner data
 are unchanged.
+
+## Revision 3 (2.0.61+261003, 2 October 2026): exercise titles
+
+Owner report and decisions of 2 October 2026: in QQL Demo: Piedmontese,
+Mixed practice 6, the "the dog" exercise had no title. Pick the
+translation never had one (a Build 239 choice: one instruction line only),
+and the other titles named an interaction kind shared by several presets
+(CHOOSE for Choose the answer and True or false, BUILD THE SENTENCE for
+Word order and Pick the words for the gaps, MATCH, COMPLETE, …). The owner
+decided that every exercise has a title, the name of its preset, and an
+instruction.
+
+**The title.** `ExerciseTitle` (`lib/services/exercise_title.dart`) finds
+the preset that represents an exercise from its canonical content with the
+Course Editor's own recognition (`PresetRecipes.recognize`, cached per
+exercise), never from the stored preset ID (owner decision), and drops "(to
+target)" / "(to source)": 40 titles for the 46 presets. An exercise no
+preset represents keeps the title of its kind.
+`ExerciseCopyService.title(course, exercise)` reads `title.<slug>` from the
+learner-panel catalog of the Course's instruction language: the seven
+catalogs (`lib/localization/exercise_copy/`) gain the 40 titles (the six
+translations AI-written, reusing the existing headings where they already
+said the same, e.g. SCEGLI L’IMMAGINE).
+
+**Where.** Rounds, Review and every Preview show the title above the
+instruction; Pick the translation has the title and its line in the
+ordinary instruction style. Inside a Story no title is shown, only the
+instruction, the Story cover included (its STORY heading is gone: the
+Round is already called "Story: …"), and the scrolling log heads each
+exercise with its instruction (a sequence keeps the title); Dialogue lines
+and Pages keep no title and no instruction, and the Duel shows no titles,
+as before.
+
+**The Pick the translation line** ("Pick the correct Italian translation")
+is in the instruction language too (`instruction.selectTranslation`, e.g.
+"Scegli la traduzione corretta in inglese" in QQL Demo: English from
+Italian), in the Round and the Duel; `TranslationChoice.instructionFor` is
+removed.
+
+AGENTS.md records the one preset-dependent thing learners see. Help
+EN/IT/ES (the primitives page's status). Scoring, progression, Course
+files and learner data are unchanged.

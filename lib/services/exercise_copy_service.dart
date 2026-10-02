@@ -2,6 +2,7 @@ import '../localization/exercise_copy/exercise_copy_catalogs.dart';
 import '../localization/exercise_copy/exercise_copy_en.dart';
 import '../models/course_models.dart';
 import '../models/exercise_features.dart';
+import 'exercise_title.dart';
 import 'language_catalog.dart';
 
 /// Learner-facing exercise labels and instructions, keyed by the
@@ -40,6 +41,15 @@ class ExerciseCopyService {
   static String typeLabel(Course course, LearnerExerciseKind kind) {
     final c = _copy(course);
     return c['type.${kind.name}'] ?? c['type.default']!;
+  }
+
+  /// The learner title of [exercise] (Build 261 Revision 3, owner decisions
+  /// of 2 October 2026): the name of the preset that represents it
+  /// ([ExerciseTitle]) in the instruction language, else its kind's heading.
+  static String title(Course course, Exercise exercise) {
+    final slug = ExerciseTitle.slugFor(exercise);
+    return (slug == null ? null : _copy(course)['title.$slug']) ??
+        typeLabel(course, ExerciseFeatures(exercise).kind);
   }
 
   /// The learner instruction for an exercise of [kind]. Without an
@@ -124,6 +134,18 @@ class ExerciseCopyService {
       features.contextText,
     ].join(' ').toLowerCase();
     final c = _copy(course);
+    // Pick the translation names the language of its answers (in the
+    // instruction language since Build 261 Revision 3).
+    if (kind == LearnerExerciseKind.selectTranslation) {
+      return (c['instruction.selectTranslation'] ?? c['instruction.default']!)
+          .replaceAll(
+            '{language}',
+            languageName(
+              course,
+              intoSource: features.itemLanguage == TextLanguage.source,
+            ),
+          );
+    }
     if (kind == LearnerExerciseKind.dialogueLine) {
       // The instruction follows the line's mode and whether its text waits
       // for the audio (owner review, 28 September 2026).

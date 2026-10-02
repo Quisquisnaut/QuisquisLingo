@@ -558,7 +558,7 @@ const Map<String, String> helpIt = {
   "technical.exercisePrimitives.title": "Primitive degli esercizi",
   "technical.exercisePrimitives.status.title": "Stato",
   "technical.exercisePrimitives.status.body":
-      "Course Model v12 (Build 256). Ogni esercizio è una delle nove primitive, con opzioni tipizzate, elementi del prompt, item, target, un layout inline, una modalità di valutazione e un feedback facoltativo. I preset sono ricette su questi dati e non cambiano mai ciò che vede lo studente.",
+      "Course Model v12 (Build 256). Ogni esercizio è una delle nove primitive, con opzioni tipizzate, elementi del prompt, item, target, un layout inline, una modalità di valutazione e un feedback facoltativo. I preset sono ricette su questi dati e non cambiano mai come un esercizio si gioca o si valuta; dalla Build 261 il titolo che lo studente vede su un esercizio è il nome del preset che lo rappresenta, riconosciuto dal suo contenuto (mai dal preset salvato), nella lingua del pannello dello studente. Una Story non mostra titoli, solo le istruzioni.",
   "technical.exercisePrimitives.exerciseAnatomy.title":
       "Struttura di un esercizio",
   "technical.exercisePrimitives.exerciseAnatomy.body":

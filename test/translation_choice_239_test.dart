@@ -950,8 +950,10 @@ void main() {
       expect(find.text('Pick the correct Italian translation'), findsOneWidget);
       expect(find.textContaining('Pick the correct'), findsOneWidget);
       expect(find.text('I am going to London'), findsOneWidget);
-      // The editor-only preset name and stock type labels are never shown.
+      // The title is the preset's name without its direction (Build 261
+      // Revision 3); no stock type label.
       expect(find.text('Pick the translation (to target)'), findsNothing);
+      expect(find.text('PICK THE TRANSLATION'), findsOneWidget);
       expect(find.text('CHOOSE'), findsNothing);
       expect(find.text('Choose the correct answer.'), findsNothing);
     });

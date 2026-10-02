@@ -88,3 +88,43 @@
 - `flutter analyze --no-pub`: no issues.
 - **Complete suite** (`--concurrency=1`, keep-awake, 29 min 5 s):
   **3536 passed, 1 skipped, 0 failed**.
+
+## Revision 3 (2.0.61+261003, 2 October 2026): exercise titles
+
+**Generators and validator**
+- No Course file changes (the four bundled Courses unchanged).
+
+**Laboratory presentation baseline**
+- Re-recorded with `QQL_RECORD_PRESENTATION`: 124 records, 70 changed,
+  only in their `heading` (no instruction, prompt, panel, audio or control
+  changed). The changes, by count: Word order and Pick the words for the
+  gaps (12, from BUILD THE SENTENCE), Choose the answer (8) and True or
+  false (3, from CHOOSE), the three spelling presets (7, from BUILD THE
+  WORD), Type the missing word, Complete the text, Missing letters and
+  Listen and fill the gaps (9, from COMPLETE), Read and answer (4, from
+  CONTEXT), the three Match presets and Listen and match (7), Note card and
+  Picture flashcard (4, from FLASHCARD), Pick the translation (4, from no
+  title), and Select the image, Listen and pick the image, Pick the missing
+  word, Listen and answer, Type what you hear, Type what you see and Story
+  cover. The Laboratory test plays every example outside a Story, so the
+  Story lesson's examples are recorded with titles.
+
+**Tests**
+- New: `test/exercise_titles_261_test.dart` (5 tests): 40 titles, the
+  English one equal to the preset's name without its direction, all seven
+  catalogs complete, `instruction.selectTranslation` with `{language}`;
+  every exercise of the four bundled Courses titled by its preset in its
+  Course's language; "the dog" of QQL Demo: Piedmontese titled PICK THE
+  TRANSLATION with "Pick the correct Piedmontese translation"; in QQL Demo:
+  English from Italian a Pick the translation shows SCEGLI LA TRADUZIONE and
+  "Scegli la traduzione corretta in inglese"; its Story "Al bar" shows no
+  title on the cover nor on its first question.
+- Updated: `translation_choice_239_test` (the title is shown).
+- While authoring: in a Story's scrolling log an authored instruction was
+  shown twice (heading and text); the entry now shows it once
+  (`story_runtime_256_test`). A focused run was disturbed by an
+  interrupted earlier run still alive (stopped; its one failure passed
+  alone).
+- `flutter analyze --no-pub`: no issues.
+- **Complete suite** (`--concurrency=1`, keep-awake, 29 min 2 s):
+  **3541 passed, 1 skipped, 0 failed**.

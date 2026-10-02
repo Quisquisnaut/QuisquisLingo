@@ -1,3 +1,19 @@
+# 2.0.61 (Build 261, Revision 3) - Exercise titles - 2026-10-02
+
+Owner report and decisions of 2 October 2026.
+
+- **Every exercise has a title, its preset's name** (PICK THE TRANSLATION,
+  TRUE OR FALSE, WORD ORDER, READ AND ANSWER, …), recognized from the
+  exercise's content and shown in the learner panel's language, above its
+  instruction. Pick the translation, which had none, now has one.
+- **Stories show no titles**, only the instructions (the Story cover's
+  STORY heading is gone).
+- The Pick the translation line is in the learner panel's language
+  ("Scegli la traduzione corretta in inglese").
+
+Scoring, progression and learner data are unchanged. Beta expiry
+`2026-11-01 23:59:59` local time (same release day as Revision 0).
+
 # 2.0.61 (Build 261, Revision 2) - Course preview from the Course Editor - 2026-10-02
 
 Owner decisions of 1 October 2026.

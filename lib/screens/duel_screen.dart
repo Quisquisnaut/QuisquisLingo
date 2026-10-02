@@ -12,10 +12,10 @@ import '../services/report_service.dart';
 import '../services/tts_cache_service.dart';
 import '../services/sound_effect_service.dart';
 import '../services/course_service.dart';
+import '../services/exercise_copy_service.dart';
 import '../services/settings_service.dart';
 import '../services/recorded_audio_service.dart';
 import '../services/audio_exercise_availability_service.dart';
-import '../services/translation_choice_service.dart';
 import '../widgets/course_media_image.dart';
 import '../widgets/exercise_prompt_panels.dart';
 import '../widgets/portable_exercise_image.dart';
@@ -606,11 +606,12 @@ class _DuelScreenState extends State<DuelScreen> {
                 ],
                 if (_features.isTranslationChoice) ...[
                   // Single learner-facing instruction: no prompt, no
-                  // fallback text and no editor-only type name.
+                  // fallback text and no title (the Duel shows none), in the
+                  // instruction language since Build 261 Revision 3.
                   Text(
-                    TranslationChoice.instructionFor(
+                    ExerciseCopyService.instructionForExercise(
                       widget.course,
-                      _features.itemLanguage!,
+                      ex,
                     ),
                     key: const Key('translation-choice-instruction'),
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(

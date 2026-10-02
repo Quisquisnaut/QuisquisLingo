@@ -43,9 +43,20 @@ The Course preview from the Course Editor: the flag on every editor
 screen, `CoursePreviewScreen`, the Duel's preview mode. Test
 `test/course_preview_261_test.dart`. Complete suite: 3536 passed, 1 skipped.
 
+## Revision 3 (implemented, 2 October 2026)
+
+Exercise titles: the recognized preset's name in seven languages, none in
+a Story; the Pick the translation line translated. Test
+`test/exercise_titles_261_test.dart`; the Laboratory presentation
+baseline re-recorded (70 records, titles only).
+
 ## Next
 
-The owner's review of Build 261 (push and PR only when asked).
+Revision 4 (owner decisions of 2 October 2026, go to confirm): the Course
+preview made evident with a coloured PREVIEW bar (with Exit) in place of
+the chip; in the preview's bottom bar only the available buttons (Course
+Info) plus Theme and Flag background, whose changes last for the preview
+only; the greyed Course Selector and Settings removed from the top.
 
 Stage with `git add -A -- . ':!devtools_options.yaml' ':!tools/cloud_setup.sh'`
 after checking `git status` for files another session wrote.
