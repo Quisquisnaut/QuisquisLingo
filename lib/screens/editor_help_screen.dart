@@ -4,6 +4,7 @@ import '../localization/help/help_structure.dart';
 import '../localization/help/help_text.dart';
 import '../localization/locale_builder.dart';
 import '../localization/locale_service.dart';
+import '../models/course_models.dart';
 import '../models/exercise_authoring.dart';
 import '../services/exercise_field_help.dart';
 import '../services/exercise_search_service.dart';
@@ -583,14 +584,162 @@ class CourseModelV4HelpScreen extends StatelessWidget {
   );
 }
 
-class ExercisePrimitivesHelpScreen extends StatelessWidget {
-  const ExercisePrimitivesHelpScreen({super.key});
+/// The Exercise primitives reference. Since Build 261 Revision 6 each
+/// primitive has its own section with a screenshot of the exercise Fill
+/// with an example makes (`assets/primitives_screenshots/<primitive>.png`,
+/// provided by the owner; a missing file leaves the text alone), and
+/// [focus] opens the page at that primitive's section: the canonical
+/// editor's Help button.
+class ExercisePrimitivesHelpScreen extends StatefulWidget {
+  const ExercisePrimitivesHelpScreen({super.key, this.focus});
+
+  final ExercisePrimitive? focus;
+
+  static String screenshotOf(ExercisePrimitive primitive) =>
+      'assets/primitives_screenshots/${primitive.serialized}.png';
+
+  /// Test seam: the bundle the screenshots come from.
+  static AssetBundle? bundle;
+
+  /// The width and height a PNG file states in its header, or null when
+  /// [data] is not a PNG.
+  static Size? pngSize(ByteData data) {
+    const signature = [137, 80, 78, 71, 13, 10, 26, 10];
+    if (data.lengthInBytes < 24) return null;
+    for (var i = 0; i < signature.length; i++) {
+      if (data.getUint8(i) != signature[i]) return null;
+    }
+    final width = data.getUint32(16);
+    final height = data.getUint32(20);
+    if (width == 0 || height == 0) return null;
+    return Size(width.toDouble(), height.toDouble());
+  }
 
   @override
-  Widget build(BuildContext context) => const _TechnicalPage(
-    prefix: 'technical.exercisePrimitives',
-    sectionIds: exercisePrimitivesHelpSectionIds,
+  State<ExercisePrimitivesHelpScreen> createState() =>
+      _ExercisePrimitivesHelpScreenState();
+}
+
+class _ExercisePrimitivesHelpScreenState
+    extends State<ExercisePrimitivesHelpScreen> {
+  static const _prefix = 'technical.exercisePrimitives';
+  final _focusKey = GlobalKey();
+  Map<ExercisePrimitive, Size>? _sizes;
+  bool _scrolled = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSizes();
+  }
+
+  /// The screenshots' sizes, read from their PNG headers before the page
+  /// is laid out, so every section has its final height at once and the
+  /// page can open at [ExercisePrimitivesHelpScreen.focus]. A missing or
+  /// unreadable file has no size: its section shows the text alone.
+  Future<void> _loadSizes() async {
+    final bundle = ExercisePrimitivesHelpScreen.bundle ?? rootBundle;
+    final sizes = <ExercisePrimitive, Size>{};
+    for (final primitive in ExercisePrimitive.values) {
+      try {
+        final size = ExercisePrimitivesHelpScreen.pngSize(
+          await bundle.load(
+            ExercisePrimitivesHelpScreen.screenshotOf(primitive),
+          ),
+        );
+        if (size != null) sizes[primitive] = size;
+      } catch (_) {
+        // No screenshot for this primitive: the text stands alone.
+      }
+    }
+    if (mounted) setState(() => _sizes = sizes);
+  }
+
+  ExercisePrimitive? _primitiveOf(String id) {
+    for (final primitive in ExercisePrimitive.values) {
+      if (exercisePrimitiveHelpSectionId(primitive.serialized) == id) {
+        return primitive;
+      }
+    }
+    return null;
+  }
+
+  @override
+  Widget build(BuildContext context) => LocaleBuilder(
+    builder: (context, locale) {
+      final sizes = _sizes;
+      if (sizes != null && widget.focus != null && !_scrolled) {
+        _scrolled = true;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          final target = _focusKey.currentContext;
+          if (target != null) Scrollable.ensureVisible(target);
+        });
+      }
+      return Scaffold(
+        key: const Key('exercise-primitives-help'),
+        appBar: AppBar(
+          title: Text(_t(locale, '$_prefix.title')),
+          actions: [AppLocaleSelector(locale: locale)],
+        ),
+        body: sizes == null
+            ? const Center(child: CircularProgressIndicator())
+            : SingleChildScrollView(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    for (final id in exercisePrimitivesHelpSectionIds)
+                      _section(locale, id, sizes),
+                  ],
+                ),
+              ),
+      );
+    },
   );
+
+  Widget _section(
+    AppLocale locale,
+    String id,
+    Map<ExercisePrimitive, Size> sizes,
+  ) {
+    final primitive = _primitiveOf(id);
+    if (primitive == null) return _localizedSection(locale, '$_prefix.$id');
+    final title = _t(locale, '$_prefix.$id.title');
+    final size = sizes[primitive];
+    return KeyedSubtree(
+      key: ValueKey('exercise-primitive-help-${primitive.serialized}'),
+      child: _HelpSection(
+        key: primitive == widget.focus ? _focusKey : null,
+        title: title,
+        body: _t(locale, '$_prefix.$id.body'),
+        footer: size == null
+            ? null
+            : Align(
+                alignment: Alignment.centerLeft,
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(maxWidth: size.width),
+                  child: AspectRatio(
+                    aspectRatio: size.width / size.height,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.asset(
+                        ExercisePrimitivesHelpScreen.screenshotOf(primitive),
+                        key: ValueKey(
+                          'exercise-primitive-help-image-${primitive.serialized}',
+                        ),
+                        bundle: ExercisePrimitivesHelpScreen.bundle,
+                        fit: BoxFit.contain,
+                        semanticLabel: title,
+                        errorBuilder: (context, error, stackTrace) =>
+                            const SizedBox.shrink(),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+      ),
+    );
+  }
 }
 
 class JsonV4HelpScreen extends StatelessWidget {
@@ -629,7 +778,15 @@ class _TechnicalPage extends StatelessWidget {
 class _HelpSection extends StatelessWidget {
   final String title;
   final String body;
-  const _HelpSection({super.key, required this.title, required this.body});
+
+  /// Shown under the body: a primitive's screenshot (Build 261 Revision 6).
+  final Widget? footer;
+  const _HelpSection({
+    super.key,
+    required this.title,
+    required this.body,
+    this.footer,
+  });
   @override
   Widget build(BuildContext context) => Card(
     margin: const EdgeInsets.only(bottom: 12),
@@ -646,6 +803,7 @@ class _HelpSection extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Text(body),
+          if (footer != null) ...[const SizedBox(height: 12), footer!],
         ],
       ),
     ),

@@ -1,13 +1,23 @@
 import 'package:flutter/material.dart';
 
+import '../models/course_models.dart';
 import '../screens/editor_help_screen.dart';
 import '../services/editor_display_preferences.dart';
 
 /// Shared Help and optional internal-ID controls for Editor hierarchy pages.
 class EditorAppBarActions extends StatefulWidget {
-  const EditorAppBarActions({super.key, this.showInternalIdsToggle = true});
+  const EditorAppBarActions({
+    super.key,
+    this.showInternalIdsToggle = true,
+    this.helpPrimitive,
+  });
 
   final bool showInternalIdsToggle;
+
+  /// The primitive the canonical editor shows (Build 261 Revision 6): Help
+  /// then opens the Exercise primitives reference at its section instead
+  /// of Editor Help.
+  final ExercisePrimitive? helpPrimitive;
 
   @override
   State<EditorAppBarActions> createState() => _EditorAppBarActionsState();
@@ -26,9 +36,15 @@ class _EditorAppBarActionsState extends State<EditorAppBarActions> {
     children: [
       IconButton(
         key: const Key('editor-help-action'),
-        tooltip: 'Editor Help',
+        tooltip: widget.helpPrimitive == null
+            ? 'Editor Help'
+            : 'Help: ${widget.helpPrimitive!.label}',
         onPressed: () => Navigator.of(context).push<void>(
-          MaterialPageRoute(builder: (_) => const EditorHelpScreen()),
+          MaterialPageRoute(
+            builder: (_) => widget.helpPrimitive == null
+                ? const EditorHelpScreen()
+                : ExercisePrimitivesHelpScreen(focus: widget.helpPrimitive),
+          ),
         ),
         icon: const Icon(Icons.help_outline),
       ),

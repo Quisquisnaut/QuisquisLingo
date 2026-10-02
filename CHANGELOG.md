@@ -1,3 +1,25 @@
+# 2.0.61 (Build 261, Revision 6) - The canonical editor explains its primitives - 2026-10-02
+
+Owner request and decisions of 2 October 2026.
+
+- **A popup for each primitive**: the first time the canonical editor shows
+  a primitive in a Course, a short explanation of how to use it (once per
+  primitive, learner and Course; Show one-time notices again brings it
+  back).
+- **Clear all** beside Fill with an example returns a new exercise to its
+  primitive's defaults.
+- Changing the primitive of a filled new exercise says "You changed
+  exercise type. Please check all fields."
+- **Editor Help › Exercise primitives** has a section with a screenshot for
+  each of the nine primitives, and the canonical editor's Help button
+  opens the section of the primitive being edited.
+- **Role is a menu** of the roles QQL reads, each explained; a role QQL
+  does not read can no longer be typed by mistake, and a stored one is
+  kept and marked.
+
+Scoring, progression and learner data are unchanged. Beta expiry
+`2026-11-01 23:59:59` local time (same release day as Revision 0).
+
 # 2.0.61 (Build 261, Revision 5) - Owner review: reading answers, untitled Rounds, canonical examples - 2026-10-02
 
 Owner review of 2 October 2026.

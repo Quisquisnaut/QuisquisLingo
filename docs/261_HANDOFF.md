@@ -63,9 +63,21 @@ text and the Audit's READING_ANSWER_IN_TEXT; English from Italian's
 untitled practice Rounds; New Canonical folded into New Exercise; Fill
 with an example. Test `test/owner_review_261_revision5_test.dart`. Complete suite: 3550 passed, 1 skipped.
 
+## Revision 6 (implemented, 2 October 2026)
+
+The canonical editor explains its primitives: a popup per primitive,
+learner and Course; Clear all; the message when the primitive changes over
+filled fields; nine Help sections with the owner's screenshots
+(`assets/primitives_screenshots/`); Help opens at the primitive; Role is a
+menu of the roles QQL reads (`ElementRoles`). Plan
+`docs/261_REVISION6_PLAN.md`; test `test/owner_review_261_revision6_test.dart`.
+Noticed, not fixed (outside the revision): at 360 pixels the canonical
+editor's option menus overflow to the right.
+
 ## Next
 
-Build 262 (owner decisions of 2 October 2026, discussion to finish): the
+Build 262 (owner decisions of 2 October 2026, discussion to finish; plan
+`docs/262_BUNDLED_AUTHORING_PLAN.md`, not committed yet): the
 app author edits and produces the bundled Courses inside the app. A
 secret, undocumented author mode (20 taps on a hidden spot, then a code
 the author chooses, stored only as a hash); "Edit as author" on a bundled

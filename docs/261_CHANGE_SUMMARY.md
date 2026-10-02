@@ -240,3 +240,62 @@ is loaded by `CanonicalExerciseDraft.fillFrom`; the form's cards are
 rebuilt so every field shows it. An existing exercise offers no example.
 
 Scoring, progression and learner data are unchanged.
+
+## Revision 6 (2.0.61+261006, 2 October 2026): the canonical editor explains its primitives
+
+Owner request and decisions of 2 October 2026; plan
+`docs/261_REVISION6_PLAN.md`.
+
+**1. A popup for each primitive.** The first time the canonical editor
+shows a primitive in a Course, a popup ("Select: how it works") says what
+the learner does, which fields to fill and a tip (`PrimitiveIntro`,
+`lib/widgets/primitive_intro.dart`). Once per primitive, per learner and
+per Course: opening a Select exercise shows the Select popup, choosing
+Match in the selector shows the Match one, the same primitive in another
+Course shows it again. English only, like every editor popup (owner
+decision). It follows the Course's "Two ways to create an exercise"
+introduction when both are due, and never appears while the form is read
+only. Stored as a learner one-time notice
+(`learner_<id>_one_time_notice_seen_primitive_intro_<primitive>_<course>`),
+so Show one-time notices again brings it back; resets and the Inventory
+cover it through the learner prefix (`docs/239_RESET_STORAGE_INVENTORY.md`).
+
+**2. Clear all.** Beside Fill with an example, for new exercises: the form
+returns to the blank defaults of its primitive, after "Clear all fields?"
+when it holds something.
+
+**3. Changing the primitive.** When a new exercise's primitive changes and
+the form was not blank, a message says "You changed exercise type. Please
+check all fields." The change itself works as before.
+
+**4. Help for each primitive.** Editor Help › Exercise primitives has a
+section for each of the nine primitives (English, Italian, Spanish): what
+the learner does, the fields that matter, and the owner's screenshot of
+the exercise Fill with an example writes, as the learner sees it
+(`assets/primitives_screenshots/`, a new asset folder; Speak, Ink and
+Submit show the "Not playable in this version" card). The page reads each
+picture's size from its PNG header before it is laid out, so it can open
+at a section; a missing picture leaves the text alone.
+
+**5. Help at the primitive.** The canonical editor's Help button
+("Help: Select") opens the Exercise primitives reference at the section of
+the primitive being edited; elsewhere Help is unchanged.
+
+**6. Role is a menu.** The owner asked why Role was free text; it was a
+shortcut, and a mistyped role left an element QQL silently ignored. The
+owner chose a menu of the roles QQL reads only (no free entry): one
+catalog, `ElementRoles` (`lib/models/canonical/element_roles.dart`), gives
+each role its element types, its place (prompt or item content), whether
+only a Presentation reads it, and a description shown in the menu and
+under the field. Item content rows get the menu too. A stored role outside
+the list (an imported Course, or a role another primitive uses) stays
+selected and is marked "not a QQL role" or "not used by this primitive";
+nothing is rewritten unless the author picks another role. A test checks
+that every role in the bundled Courses' exercises is in the catalog. The
+Help's exercise anatomy and canonical editor sections say so.
+
+Also: the "Two ways to create an exercise" popup named the New canonical
+button, removed in Revision 5; it now says New Exercise › Canonical
+editor.
+
+Scoring, progression and learner data are unchanged.

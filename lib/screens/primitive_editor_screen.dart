@@ -15,6 +15,7 @@ import '../widgets/editor_breadcrumbs.dart';
 import '../widgets/editor_dialogs.dart';
 import '../widgets/exercise_editor_intro.dart';
 import '../widgets/image_credit_reminder.dart';
+import '../widgets/primitive_intro.dart';
 import 'flat_image_library_screen.dart';
 import 'round_screen.dart';
 import '../widgets/course_preview_flag.dart';
@@ -86,14 +87,7 @@ class _PrimitiveEditorScreenState extends State<PrimitiveEditorScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        ExerciseEditorIntro.showIfNeeded(
-          context,
-          courseId: widget.course?.courseId,
-        );
-      }
-    });
+    WidgetsBinding.instance.addPostFrameCallback((_) => _showIntroductions());
     _draft = CanonicalExerciseDraft.fromExercise(widget.exercise);
     _prompt.addAll(_draft.prompt.map(_Slot.new));
     _items.addAll(_draft.items.map(_Slot.new));
@@ -102,6 +96,28 @@ class _PrimitiveEditorScreenState extends State<PrimitiveEditorScreen> {
     _orders.addAll(_draft.evaluation.correctOrders.map(_Slot.new));
     _relations.addAll(
       _draft.evaluation.relations.map((pair) => _Slot(List.of(pair))),
+    );
+  }
+
+  /// The Course's introduction to the two ways of creating an exercise,
+  /// then this primitive's popup (Build 261 Revision 6), each when due.
+  Future<void> _showIntroductions() async {
+    if (!mounted) return;
+    await ExerciseEditorIntro.showIfNeeded(
+      context,
+      courseId: widget.course?.courseId,
+    );
+    await _showPrimitiveIntro();
+  }
+
+  /// The popup that explains the primitive on screen, once per learner,
+  /// primitive and Course; not while the form is read-only.
+  Future<void> _showPrimitiveIntro() async {
+    if (!mounted || _locked) return;
+    await PrimitiveIntro.showIfNeeded(
+      context,
+      primitive: _draft.primitive,
+      courseId: widget.course?.courseId,
     );
   }
 
@@ -375,53 +391,92 @@ class _PrimitiveEditorScreenState extends State<PrimitiveEditorScreen> {
       updatedAt: widget.exercise.updatedAt,
     );
     if (built.semanticallyEquals(widget.exercise)) return false;
-    if (widget.isNew) {
-      // A new exercise still blank for its primitive has nothing to lose,
-      // whichever primitive the creator has picked so far (owner report,
-      // 27 September 2026).
-      final blank = CanonicalExerciseDraft.blankExercise(
-        _draft.primitive,
-        id: widget.exercise.id,
-        updatedAt: widget.exercise.updatedAt,
-      );
-      return !built.semanticallyEquals(blank);
-    }
+    // A new exercise still blank for its primitive has nothing to lose,
+    // whichever primitive the creator has picked so far (owner report,
+    // 27 September 2026).
+    if (widget.isNew) return !_isBlank;
     return true;
   }
 
-  /// Fill with an example (Build 261 Revision 5, owner decision of 2
-  /// October 2026): a working exercise of the chosen primitive, after a
-  /// confirmation when the form already holds something.
-  Future<void> _fillWithExample() async {
-    if (_locked) return;
-    if (_hasUnsavedChanges) {
-      final replace = await showDialog<bool>(
+  /// Whether the form holds only the blank defaults of its primitive: no
+  /// content, the default evaluation mode and the required options.
+  bool get _isBlank => _draft
+      .toExercise(
+        publicationState: widget.exercise.publicationState,
+        updatedAt: widget.exercise.updatedAt,
+      )
+      .semanticallyEquals(
+        CanonicalExerciseDraft.blankExercise(
+          _draft.primitive,
+          id: widget.exercise.id,
+          updatedAt: widget.exercise.updatedAt,
+        ),
+      );
+
+  /// A new exercise's primitive changes: content that still applies stays,
+  /// the rest is cleared. When the form held something, a message asks the
+  /// creator to check every field (Build 261 Revision 6), after the new
+  /// primitive's popup when it is due.
+  Future<void> _changePrimitive(ExercisePrimitive? value) async {
+    if (value == null || value == _draft.primitive) return;
+    final hadContent = !_isBlank;
+    _change(() {
+      _draft.changePrimitive(value);
+      _items
+        ..clear()
+        ..addAll(_draft.items.map(_Slot.new));
+      _targets
+        ..clear()
+        ..addAll(_draft.targets.map(_Slot.new));
+      _layout
+        ..clear()
+        ..addAll(_draft.layout.map(_Slot.new));
+      _orders.clear();
+      _relations.clear();
+    });
+    await _showPrimitiveIntro();
+    if (!hadContent || !mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        const SnackBar(
+          key: Key('primitive-changed-notice'),
+          content: Text('You changed exercise type. Please check all fields.'),
+        ),
+      );
+  }
+
+  /// Asks before the form's content is replaced; true to go on.
+  Future<bool> _confirmReplace({
+    required String title,
+    required String content,
+    required String action,
+    required String key,
+  }) async =>
+      await showDialog<bool>(
         context: context,
         builder: (dialogContext) => AlertDialog(
-          title: const Text('Replace with an example?'),
-          content: const Text('The example replaces what this form holds now.'),
+          title: Text(title),
+          content: Text(content),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogContext, false),
               child: const Text('Cancel'),
             ),
             FilledButton(
-              key: const Key('primitive-fill-example-confirm'),
+              key: Key(key),
               onPressed: () => Navigator.pop(dialogContext, true),
-              child: const Text('Replace'),
+              child: Text(action),
             ),
           ],
         ),
-      );
-      if (replace != true || !mounted) return;
-    }
-    final sample = CanonicalExerciseSamples.forPrimitive(
-      _draft.primitive,
-      id: _draft.id,
-      updatedAt: _clock().toUtc(),
-    );
+      ) ==
+      true;
+
+  /// Loads [exercise]'s content into the form and rebuilds every card.
+  void _replaceForm(Exercise exercise) {
     setState(() {
-      _draft.fillFrom(sample);
+      _draft.fillFrom(exercise);
       _prompt
         ..clear()
         ..addAll(_draft.prompt.map(_Slot.new));
@@ -445,6 +500,54 @@ class _PrimitiveEditorScreenState extends State<PrimitiveEditorScreen> {
       _formGeneration++;
       _dirty = true;
     });
+  }
+
+  /// Fill with an example (Build 261 Revision 5, owner decision of 2
+  /// October 2026): a working exercise of the chosen primitive, after a
+  /// confirmation when the form already holds something.
+  Future<void> _fillWithExample() async {
+    if (_locked) return;
+    if (_hasUnsavedChanges) {
+      final replace = await _confirmReplace(
+        title: 'Replace with an example?',
+        content: 'The example replaces what this form holds now.',
+        action: 'Replace',
+        key: 'primitive-fill-example-confirm',
+      );
+      if (!replace || !mounted) return;
+    }
+    _replaceForm(
+      CanonicalExerciseSamples.forPrimitive(
+        _draft.primitive,
+        id: _draft.id,
+        updatedAt: _clock().toUtc(),
+      ),
+    );
+  }
+
+  /// Clear all (Build 261 Revision 6, owner request of 2 October 2026): the
+  /// blank defaults of this primitive, after a confirmation when the form
+  /// holds something.
+  Future<void> _clearAll() async {
+    if (_locked) return;
+    if (!_isBlank) {
+      final clear = await _confirmReplace(
+        title: 'Clear all fields?',
+        content:
+            'Every field returns to its default for this primitive; what the '
+            'form holds now is lost.',
+        action: 'Clear all',
+        key: 'primitive-clear-all-confirm',
+      );
+      if (!clear || !mounted) return;
+    }
+    _replaceForm(
+      CanonicalExerciseDraft.blankExercise(
+        _draft.primitive,
+        id: _draft.id,
+        updatedAt: _clock().toUtc(),
+      ),
+    );
   }
 
   Future<void> _leave() async {
@@ -521,7 +624,7 @@ class _PrimitiveEditorScreenState extends State<PrimitiveEditorScreen> {
             course: widget.course,
             title: Text(_pageTitle),
           ),
-          actions: const [EditorAppBarActions()],
+          actions: [EditorAppBarActions(helpPrimitive: _draft.primitive)],
         ),
         body: ListView(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 28),
@@ -681,36 +784,27 @@ class _PrimitiveEditorScreenState extends State<PrimitiveEditorScreen> {
             for (final primitive in ExercisePrimitive.values)
               DropdownMenuItem(value: primitive, child: Text(primitive.label)),
           ],
-          onChanged: widget.isNew && !_locked
-              ? (value) {
-                  if (value == null) return;
-                  _change(() {
-                    _draft.changePrimitive(value);
-                    _items
-                      ..clear()
-                      ..addAll(_draft.items.map(_Slot.new));
-                    _targets
-                      ..clear()
-                      ..addAll(_draft.targets.map(_Slot.new));
-                    _layout
-                      ..clear()
-                      ..addAll(_draft.layout.map(_Slot.new));
-                    _orders.clear();
-                    _relations.clear();
-                  });
-                }
-              : null,
+          onChanged: widget.isNew && !_locked ? _changePrimitive : null,
         ),
         if (widget.isNew && !_locked) ...[
           const SizedBox(height: 8),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: OutlinedButton.icon(
-              key: const Key('primitive-fill-example'),
-              onPressed: _fillWithExample,
-              icon: const Icon(Icons.lightbulb_outline),
-              label: const Text('Fill with an example'),
-            ),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              OutlinedButton.icon(
+                key: const Key('primitive-fill-example'),
+                onPressed: _fillWithExample,
+                icon: const Icon(Icons.lightbulb_outline),
+                label: const Text('Fill with an example'),
+              ),
+              OutlinedButton.icon(
+                key: const Key('primitive-clear-all'),
+                onPressed: _clearAll,
+                icon: const Icon(Icons.clear_all),
+                label: const Text('Clear all'),
+              ),
+            ],
           ),
         ],
         const SizedBox(height: 8),
@@ -901,14 +995,15 @@ class _PrimitiveEditorScreenState extends State<PrimitiveEditorScreen> {
 
   Widget _promptCard() => _section(
     'Prompt',
-    'What the learner sees and hears. Roles name the part each element plays: '
-        'primary, question, passage, situation, clue, context, dialogue_turn, '
-        'character, illustration.',
+    'What the learner sees and hears. Each element has a role: the part it '
+        'plays, chosen from the roles QQL reads for its type.',
     [
       for (var i = 0; i < _prompt.length; i++)
         _ElementRow(
           key: _prompt[i].key,
           element: _prompt[i].value,
+          primitive: _draft.primitive,
+          place: ElementPlace.prompt,
           index: i,
           count: _prompt.length,
           locked: _locked,
@@ -961,6 +1056,7 @@ class _PrimitiveEditorScreenState extends State<PrimitiveEditorScreen> {
           count: _items.length,
           locked: _locked,
           showSide: _draft.primitive == ExercisePrimitive.match,
+          primitive: _draft.primitive,
           chooseImage: _chooseImage,
           onChanged: (item) => _change(() => _items[i].value = item),
           onMove: (delta) => _change(() {
@@ -1647,6 +1743,8 @@ class _ElementRow extends StatelessWidget {
   const _ElementRow({
     super.key,
     required this.element,
+    required this.primitive,
+    required this.place,
     required this.index,
     required this.count,
     required this.locked,
@@ -1658,6 +1756,11 @@ class _ElementRow extends StatelessWidget {
   });
 
   final PromptElement element;
+
+  /// The exercise's primitive and where the element sits: together with
+  /// the element's type they decide the roles the Role menu offers.
+  final ExercisePrimitive primitive;
+  final ElementPlace place;
   final int index;
   final int count;
   final bool locked;
@@ -1747,18 +1850,8 @@ class _ElementRow extends StatelessWidget {
                 ),
               ],
             ),
-            if (!compact) ...[
-              TextFormField(
-                initialValue: element.role,
-                readOnly: locked,
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: 'Role',
-                ),
-                onChanged: (value) => onChanged(_with(role: value.trim())),
-              ),
-              const SizedBox(height: 8),
-            ],
+            _roleField(context),
+            const SizedBox(height: 8),
             if (element.type == 'image') ...[
               Row(
                 children: [
@@ -1880,6 +1973,90 @@ class _ElementRow extends StatelessWidget {
     );
   }
 
+  /// The Role menu (Build 261 Revision 6, owner decision of 2 October
+  /// 2026): only the roles QQL reads for this element's type, place and
+  /// primitive ([ElementRoles]), each with its description. A stored role
+  /// outside them stays selected, marked, and is never rewritten unless
+  /// the author picks another.
+  Widget _roleField(BuildContext context) {
+    final offered = ElementRoles.offered(
+      type: element.type,
+      place: place,
+      primitive: primitive,
+    );
+    final current = ElementRoles.find(
+      element.role,
+      type: element.type,
+      place: place,
+      primitive: primitive,
+    );
+    final note = current == null
+        ? ElementRoles.notOfferedNote(
+            element.role,
+            type: element.type,
+            place: place,
+          )
+        : null;
+    String name(String id) => id.isEmpty ? '(none)' : id;
+    final entries = [
+      if (current == null)
+        (id: element.role, description: 'Kept as stored: $note.'),
+      for (final role in offered) (id: role.id, description: role.description),
+    ];
+    final small = Theme.of(context).textTheme.bodySmall;
+    return DropdownButtonFormField<String>(
+      // Keyed by the menu's contents, so a new primitive or type rebuilds it.
+      key: ValueKey(
+        'element-role-${primitive.serialized}-${place.name}-${element.type}',
+      ),
+      initialValue: element.role,
+      isExpanded: true,
+      itemHeight: null,
+      decoration: InputDecoration(
+        border: const OutlineInputBorder(),
+        labelText: 'Role',
+        helperText: current?.description ?? 'Kept as stored: $note.',
+        helperMaxLines: 3,
+      ),
+      selectedItemBuilder: (context) => [
+        for (final entry in entries)
+          Text(
+            entry.id == element.role && current == null
+                ? '${name(entry.id)} ($note)'
+                : name(entry.id),
+            overflow: TextOverflow.ellipsis,
+          ),
+      ],
+      items: [
+        for (final entry in entries)
+          DropdownMenuItem<String>(
+            value: entry.id,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 6),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    name(entry.id),
+                    style: const TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                  Text(entry.description, style: small),
+                ],
+              ),
+            ),
+          ),
+      ],
+      onChanged: locked
+          ? null
+          : (value) {
+              if (value != null && value != element.role) {
+                onChanged(_with(role: value));
+              }
+            },
+    );
+  }
+
   Widget _choice<T>(
     String label,
     T current,
@@ -1913,6 +2090,7 @@ class _ItemRow extends StatelessWidget {
     required this.count,
     required this.locked,
     required this.showSide,
+    required this.primitive,
     required this.chooseImage,
     required this.onChanged,
     required this.onMove,
@@ -1924,6 +2102,7 @@ class _ItemRow extends StatelessWidget {
   final int count;
   final bool locked;
   final bool showSide;
+  final ExercisePrimitive primitive;
   final Future<String?> Function() chooseImage;
   final ValueChanged<ExerciseItem> onChanged;
   final ValueChanged<int> onMove;
@@ -1992,6 +2171,8 @@ class _ItemRow extends StatelessWidget {
             _ElementRow(
               key: ValueKey('${item.id}-$i-${item.content[i].type}'),
               element: item.content[i],
+              primitive: primitive,
+              place: ElementPlace.item,
               index: i,
               count: item.content.length,
               locked: locked,

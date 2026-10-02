@@ -186,3 +186,32 @@
   re-run alone.
 - **Complete suite** (`--concurrency=1`, keep-awake, 31 min 43 s):
   **3550 passed, 1 skipped, 0 failed**.
+
+## Revision 6 (2.0.61+261006, 2 October 2026): the canonical editor explains its primitives
+
+- `dart format` on the changed Dart files; `flutter analyze --no-pub`: no
+  issues.
+- `python tools/validate_courses.py`: the 4 bundled Course Model v12 files
+  valid; the five generators `--check`: reproducible (unchanged).
+- `python tools/validate_media_assets.py`: 457 files (the nine new
+  screenshots in `assets/primitives_screenshots/`), 0 issues.
+- New `test/owner_review_261_revision6_test.dart` (22 tests): every role of
+  the bundled Courses' and the fixtures' exercises (and the Fill with an
+  example samples) is in `ElementRoles`, each menu offers a role once, the
+  roles the runtime reads are listed; the Role menu changes only the role,
+  keeps and marks a stored unknown role, covers item rows and fits a
+  480-pixel window; the primitive popup once per primitive, learner and
+  Course, again after Show one-time notices again, not in View only, after
+  the two-ways introduction; Clear all with and without content, none on
+  an existing exercise; the type-change message only over filled fields;
+  nine Help sections in three languages, the nine screenshots present as
+  PNG files, an image only where it exists, the editor's Help opening at
+  its primitive.
+- Focused runs: the new test, plus the primitive editor, Revision 5,
+  interoperability, Page, Course Editor UI, QQL Guide, Help localization,
+  settings, editor diagnostics and Lesson controls tests: all passed.
+- Noticed, outside this revision: at 360 pixels the canonical editor's
+  option menus (not the Role menu) overflow to the right; reported to the
+  owner.
+- **Complete suite** (`--concurrency=1`, keep-awake, 34 min 11 s):
+  **3572 passed, 1 skipped, 0 failed**.

@@ -5,6 +5,7 @@
 library;
 
 export 'content_flow.dart';
+export 'element_roles.dart';
 export 'evaluation_mode.dart';
 export 'exercise_primitive.dart';
 export 'primitive_capability_registry.dart';

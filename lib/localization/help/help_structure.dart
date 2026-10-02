@@ -156,6 +156,16 @@ const exercisePrimitivesHelpSectionIds = <String>[
   'status',
   'exerciseAnatomy',
   'primitives',
+  // One section per primitive, with its screenshot (Build 261 Revision 6).
+  'primitiveSelect',
+  'primitiveInput',
+  'primitiveArrange',
+  'primitiveMatch',
+  'primitiveAssign',
+  'primitiveSpeak',
+  'primitiveInk',
+  'primitiveSubmit',
+  'primitivePresentation',
   'primitiveOptions',
   'layouts',
   'evaluationModes',
@@ -165,6 +175,11 @@ const exercisePrimitivesHelpSectionIds = <String>[
   'canonicalEditor',
   'stories',
 ];
+
+/// The Exercise primitives page's section of one primitive, by its
+/// serialized name (Build 261 Revision 6): `select` → `primitiveSelect`.
+String exercisePrimitiveHelpSectionId(String primitive) =>
+    'primitive${primitive[0].toUpperCase()}${primitive.substring(1)}';
 
 const jsonStructureHelpSectionIds = <String>[
   'status',

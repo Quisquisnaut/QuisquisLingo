@@ -486,6 +486,30 @@ class SettingsService {
     );
   }
 
+  /// A one-time notice of the active learner (Build 261 Revision 6: the
+  /// canonical editor's primitive popups), stored under the learner prefix
+  /// as `learner_<id>_one_time_notice_seen_<id>`, so "Show one-time notices
+  /// again" clears it. Null when no learner is active.
+  Future<bool?> hasSeenLearnerOneTimeNotice(String id) async {
+    final profiles = ProfileService();
+    final activeId = await profiles.getActiveProfileId();
+    if (activeId == null) return null;
+    return (await SharedPreferences.getInstance()).getBool(
+          profiles.keyForProfileId(activeId, '$_oneTimeNoticePrefix$id'),
+        ) ??
+        false;
+  }
+
+  Future<void> markLearnerOneTimeNoticeSeen(String id) async {
+    final profiles = ProfileService();
+    final activeId = await profiles.getActiveProfileId();
+    if (activeId == null) return;
+    await (await SharedPreferences.getInstance()).setBool(
+      profiles.keyForProfileId(activeId, '$_oneTimeNoticePrefix$id'),
+      true,
+    );
+  }
+
   Future<bool> isCourseEditorUnlocked() async {
     final profiles = ProfileService();
     final activeId = await profiles.getActiveProfileId();
