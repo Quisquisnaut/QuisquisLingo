@@ -37,11 +37,11 @@ Study and Review in the Course menus of All Courses and Course Studio; the
 Course Editor opening mode in Do Not Disturb. Test
 `test/courses_study_review_261_test.dart`. Complete suite: 3530 passed, 1 skipped.
 
-## Revision 2 (implemented, 2 October 2026)
+## Revision 2 (committed `c6a03b1`, 2 October 2026)
 
 The Course preview from the Course Editor: the flag on every editor
 screen, `CoursePreviewScreen`, the Duel's preview mode. Test
-`test/course_preview_261_test.dart`.
+`test/course_preview_261_test.dart`. Complete suite: 3536 passed, 1 skipped.
 
 ## Next
 
