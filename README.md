@@ -1,6 +1,6 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.61+261004 · Build 261, Revision 4 · Course Model v12 (`formatVersion: 12`).**
+**Current source version: 2.0.61+261005 · Build 261, Revision 5 · Course Model v12 (`formatVersion: 12`).**
 
 **QuisquisLingo 2.0.61 Beta — QQL 261 Learner polish (Course Model v12)**
 
@@ -20,7 +20,10 @@ Revision 3 titles every exercise with the name of its preset (PICK THE
 TRANSLATION, TRUE OR FALSE, …) in the learner panel's language; a Story
 shows only the instructions. Revision 4 marks the preview with an amber
 PREVIEW bar and gives it Theme and Flag background buttons that change
-the preview only.
+the preview only. Revision 5 rewrites the reading questions whose answer
+copied the text (and the Audit now warns about them), leaves the English
+course's practice Rounds untitled, folds New Canonical into New Exercise
+and adds Fill with an example to the canonical editor.
 
 **QQL 260 Course languages**
 
@@ -453,7 +456,7 @@ The MPL-2.0 covers the QuisquisLingo software source. Courses, the Image Bank an
 
 ## Beta lifecycle
 
-Version 2.0.61, Build 261, Revision 4 is a time-limited Beta with an expiry of **2026-11-01 23:59:59 local time** (30 days after the 2 October 2026 release date). In its last seven days it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
+Version 2.0.61, Build 261, Revision 5 is a time-limited Beta with an expiry of **2026-11-01 23:59:59 local time** (30 days after the 2 October 2026 release date). In its last seven days it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
 
 ## Core logic
 

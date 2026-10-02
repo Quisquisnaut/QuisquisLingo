@@ -67,7 +67,6 @@ import '../services/exercise_copy_service.dart';
 import '../services/exercise_difficulty.dart';
 import '../services/language_catalog.dart';
 import '../widgets/language_field.dart';
-import '../services/canonical_exercise_draft.dart';
 import '../services/round_flow_authoring.dart';
 import '../services/preset_recipes.dart';
 import '../services/preset_variants.dart';
@@ -7585,7 +7584,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
   }
 
   /// Add Step (Build 256 Revision 5, third follow-up): in a Story, one
-  /// button instead of New Exercise, New Canonical and Exercise Wizard; it
+  /// button instead of New Exercise and Exercise Wizard; it
   /// asks for the block type. The title block is offered once, a Dialogue
   /// line uses the short form New Story uses, an exercise the presets a
   /// Story may use.
@@ -7695,36 +7694,6 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
         updatedAt: _clock().toUtc(),
       ),
     );
-    _warnLength();
-  }
-
-  /// A new exercise in the Generic Primitive Editor: any primitive, every
-  /// canonical field, no preset.
-  Future<void> _insertCanonical() async {
-    if (widget.readOnly) return;
-    final e = await Navigator.of(context).push<Exercise>(
-      MaterialPageRoute(
-        builder: (_) => PrimitiveEditorScreen(
-          exercise: CanonicalExerciseDraft.blankExercise(
-            ExercisePrimitive.select,
-            id: _ids.next('exercise'),
-            updatedAt: _clock().toUtc(),
-          ),
-          title: 'New Canonical Exercise',
-          isNew: true,
-          course: _workingCourse,
-          lesson: _lesson,
-          round: _editedRound(),
-          onExerciseSaved: _acceptExercise,
-          linkParent: true,
-          clock: _clock,
-        ),
-      ),
-    );
-    if (e == null || !mounted) return;
-    if (!_exercises.any((item) => item.id == e.id)) {
-      _mutateRound(() => _exercises.add(e));
-    }
     _warnLength();
   }
 
@@ -8398,13 +8367,6 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
                       onPressed: _insert,
                       icon: const Icon(Icons.add),
                       label: const Text('New Exercise'),
-                    ),
-                    OutlinedButton.icon(
-                      key: const Key('new-canonical-exercise'),
-                      style: _compactButtonStyle,
-                      onPressed: _insertCanonical,
-                      icon: const Icon(Icons.tune),
-                      label: const Text('New Canonical'),
                     ),
                     FilledButton.icon(
                       key: const Key('exercise-creation-wizard'),

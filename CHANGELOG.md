@@ -1,3 +1,20 @@
+# 2.0.61 (Build 261, Revision 5) - Owner review: reading answers, untitled Rounds, canonical examples - 2026-10-02
+
+Owner review of 2 October 2026.
+
+- **Reading questions no longer answered by copying the text**: seven
+  questions of the bundled Courses are rewritten (e.g. "What does Tom want
+  to know?" → "If Anna is well"). The Audit warns when a reading answer
+  copies its text (READING_ANSWER_IN_TEXT); listening is not concerned.
+- **QQL Demo: English from Italian**: the practice Rounds have no title.
+- **New Exercise** is the one way to add an exercise in a Round; its last
+  choice opens the canonical editor (the New Canonical button is gone).
+- **Fill with an example** in the canonical editor fills a new exercise
+  with a working example of its primitive.
+
+Scoring, progression and learner data are unchanged. Beta expiry
+`2026-11-01 23:59:59` local time (same release day as Revision 0).
+
 # 2.0.61 (Build 261, Revision 4) - The preview made evident - 2026-10-02
 
 Owner request and decisions of 2 October 2026.

@@ -1826,6 +1826,40 @@ class CourseAuditService {
             'Translation prompt does not identify the word or expression to translate.',
           );
         }
+        // Build 261 Revision 5 (owner rule of 2 October 2026): a reading
+        // question whose correct answer copies the text word for word is too
+        // obvious. Listening is not concerned: hearing is harder than reading.
+        if (kind == LearnerExerciseKind.selectRead ||
+            kind == LearnerExerciseKind.selectDialogue ||
+            kind == LearnerExerciseKind.selectContext) {
+          final material = _wordsOf(
+            ex.promptElements
+                .where(
+                  (element) =>
+                      element.type == 'text' &&
+                      const {
+                        'passage',
+                        'situation',
+                        'context',
+                        'dialogue_turn',
+                      }.contains(element.role),
+                )
+                .map((element) => element.text)
+                .join(' '),
+          );
+          final copied = ex.items.any(
+            (item) =>
+                evaluation.correctItemIds.contains(item.id) &&
+                _wordsOf(item.value).isNotEmpty &&
+                ' $material '.contains(' ${_wordsOf(item.value)} '),
+          );
+          if (material.isNotEmpty && copied) {
+            add(
+              AuditCode.readingAnswerInText,
+              'The correct answer appears word for word in the text to read. Ask about meaning or intent and word the answer differently.',
+            );
+          }
+        }
         if (kind == LearnerExerciseKind.selectRead) {
           final lexicalWords = _lexicalWordCount(f.passageText);
           if (lexicalWords > 0 && lexicalWords < 3) {
@@ -2305,6 +2339,12 @@ class CourseAuditService {
     r"\p{L}+(?:['’\-]\p{L}+)*|\p{N}+",
     unicode: true,
   ).allMatches(value).length;
+
+  /// [value]'s words in small letters, one space apart, punctuation gone.
+  String _wordsOf(String value) => RegExp(
+    r"\p{L}+(?:['’\-]\p{L}+)*|\p{N}+",
+    unicode: true,
+  ).allMatches(value.toLowerCase()).map((match) => match[0]).join(' ');
 
   String _hintComparable(String value) => value
       .trim()

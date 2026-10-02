@@ -144,3 +144,45 @@
 - `flutter analyze --no-pub`: no issues.
 - **Complete suite** (`--concurrency=1`, keep-awake, 30 min 33 s):
   **3542 passed, 1 skipped, 0 failed**.
+
+## Revision 5 (2.0.61+261005, 2 October 2026): owner review points 1, 2, 4 and 5
+
+**Generators and validator**
+- English from Italian, the Laboratory and the Piedmontese generators
+  edited; the four bundled Courses, the two v11 converter fixtures and the
+  future Laboratory fixture regenerated; all five generators' `--check`
+  reproduce their Courses; `tools/validate_courses.py`: the four bundled
+  Courses pass. An untitled Round first carried `"title": ""`, which the
+  app does not write, so the bundled checksum check refused the Course;
+  the generator now omits the key.
+- Before the change, a scan of the bundled Courses found the correct
+  answer inside the text in 18 Select exercises; the owner exempted
+  listening, leaving the 7 reading questions (10 with QQL Demo:
+  Piedmontese's copies), all rewritten.
+
+**Laboratory presentation baseline**
+- 3 records re-recorded (the Read and answer dialogues): only their
+  answer buttons changed.
+
+**Tests**
+- New: `test/owner_review_261_revision5_test.dart` (8 tests): a reading
+  answer copied from its text is `READING_ANSWER_IN_TEXT`, a reworded one
+  is not, a listening one never is; no bundled Course has the finding;
+  English from Italian's ordinary Rounds have no title and its Stories
+  keep theirs; every primitive's example is legal, has no Audit error and
+  plays where its primitive plays; a blank new exercise fills at once, a
+  filled form asks before replacing, an existing exercise offers no
+  example.
+- Updated: the Audit rule counts (`audit_branch_ownership_226_02_revision4`,
+  `audit_code_registry_226_02`: 114 rules, 45 Warnings), the New Canonical
+  button gone (`sequence_round_256`, `story_add_step_256`,
+  `revision3_followup_256`, which also checks Help names Canonical editor
+  and Fill with an example), the version pins.
+- Focused run (63 files): 5 failures, the baseline records and the two
+  Build 256 expectations above, fixed and re-run.
+- `flutter analyze --no-pub`: no issues.
+- First complete suite (30 min 18 s): 3549 passed, 1 skipped, 1 failed
+  (`audit_code_registry_226_02_test` still counted 113 rules), fixed and
+  re-run alone.
+- **Complete suite** (`--concurrency=1`, keep-awake, 31 min 43 s):
+  **3550 passed, 1 skipped, 0 failed**.

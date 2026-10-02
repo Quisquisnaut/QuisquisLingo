@@ -56,9 +56,22 @@ The preview made evident (owner go of 2 October 2026): the amber PREVIEW
 bar with Exit; Course Info, Theme and Flag background only, changing the
 preview alone. Tests in `test/course_preview_261_test.dart`. Complete suite: 3542 passed, 1 skipped.
 
+## Revision 5 (implemented, 2 October 2026)
+
+Owner review points 1, 2, 4 and 5: reading answers that do not copy the
+text and the Audit's READING_ANSWER_IN_TEXT; English from Italian's
+untitled practice Rounds; New Canonical folded into New Exercise; Fill
+with an example. Test `test/owner_review_261_revision5_test.dart`.
+
 ## Next
 
-The owner's review of Build 261 (push and PR only when asked).
+Build 262 (owner decisions of 2 October 2026, discussion to finish): the
+app author edits and produces the bundled Courses inside the app. A
+secret, undocumented author mode (20 taps on a hidden spot, then a code
+the author chooses, stored only as a hash); "Edit as author" on a bundled
+Course makes a copy that keeps every ID; "Export as bundled" writes a
+bundled-format file to Export/Courses; the developer puts it in the assets
+at the next build, after which that Course's generator is retired.
 
 Stage with `git add -A -- . ':!devtools_options.yaml' ':!tools/cloud_setup.sh'`
 after checking `git status` for files another session wrote.

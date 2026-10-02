@@ -193,3 +193,50 @@ appearance.
 Help EN/IT/ES (the Editor Help answer on trying the Course as a
 learner). Scoring, progression, Course files and learner data are
 unchanged.
+
+## Revision 5 (2.0.61+261005, 2 October 2026): owner review points 1, 2, 4 and 5
+
+Owner review of 2 October 2026 (point 3, authoring the bundled Courses
+inside the app, is Build 262).
+
+**1. Reading answers no longer copy the text.** In QQL Demo: English from
+Italian, "What does Tom ask?" was answered by "How are you?", the very
+words of the dialogue. The owner's rule: in a reading exercise the correct
+answer must not repeat the text word for word; listening exercises are
+exempt (hearing is harder than reading). The seven reading questions of
+the bundled Courses that broke it are rewritten in their generators:
+English from Italian "What does Tom want to know?" → "If Anna is well";
+the Laboratory "Che cosa accetta Luca?" → "Un frutto.", "Il caffè di Luca
+è dolce?" → "No, è amaro.", "La stazione è lontana?" → "No, non è
+lontana."; the Piedmontese demo (and so QQL Demo: Piedmontese)
+"Quand ch'as treuvo?" → "La matin.", "Còs ch'a fa Anna?" → "A ringrassia
+Gioann.", "Quand ch'as saludo?" → "La sèira." (Piedmontese AI-written, to
+be reviewed; the Lesson card lists ringrassié, la matin and la sèira).
+The Audit gains `READING_ANSWER_IN_TEXT` (Warning, 114 rules): the correct
+answer of a reading kind (Read and answer, reading, dialogue) appears word
+for word in its passage, situation, context or dialogue lines, compared
+as words in small letters; listening is not checked. AGENTS.md records the
+rule among the exercise-content rules.
+
+**2. Untitled practice Rounds.** QQL Demo: English from Italian's ordinary
+Rounds lose their titles "Pratica 1–6" (the generator writes no title, as
+the app stores an untitled Round); learners see "Round 1"… The two
+Stories keep theirs.
+
+**4. New Canonical folded into New Exercise.** The Round editor's New
+Canonical button is gone; the canonical editor is the last choice of New
+Exercise's preset sheet (Canonical editor). Help EN/IT/ES updated.
+
+**5. Fill with an example.** A new exercise in the canonical editor has
+**Fill with an example** (`primitive-fill-example`) under the primitive:
+it fills the form with a working example of the chosen primitive
+(`CanonicalExerciseSamples.forPrimitive`, `lib/services/canonical_exercise_samples.dart`:
+a Select "Which animal barks?", an Input, an Arrange with one distractor,
+a Match of opposites, an Assign built by the Sort into groups recipe
+without its preset, Speak, Ink and Submit definitions, a Presentation
+card), English placeholders that state no language. When the form already
+holds something it asks first ("Replace with an example?"). The example
+is loaded by `CanonicalExerciseDraft.fillFrom`; the form's cards are
+rebuilt so every field shows it. An existing exercise offers no example.
+
+Scoring, progression and learner data are unchanged.

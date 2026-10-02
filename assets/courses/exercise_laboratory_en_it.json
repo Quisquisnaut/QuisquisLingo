@@ -1157,7 +1157,7 @@
                   {
                     "role": "question",
                     "type": "text",
-                    "text": "Che cosa offre Anna?"
+                    "text": "Che cosa accetta Luca?"
                   }
                 ],
                 "items": [
@@ -1167,7 +1167,7 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "Una mela."
+                        "text": "Un frutto."
                       }
                     ]
                   },
@@ -1247,7 +1247,7 @@
                   {
                     "role": "question",
                     "type": "text",
-                    "text": "Come vuole il caffè Luca?"
+                    "text": "Il caffè di Luca è dolce?"
                   }
                 ],
                 "items": [
@@ -1257,7 +1257,7 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "Senza zucchero."
+                        "text": "No, è amaro."
                       }
                     ]
                   },
@@ -1267,7 +1267,7 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "Con molto zucchero."
+                        "text": "Sì, è molto dolce."
                       }
                     ]
                   },
@@ -1277,7 +1277,7 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "Con il gelato."
+                        "text": "Sì, con il miele."
                       }
                     ]
                   }
@@ -1331,7 +1331,7 @@
                   {
                     "role": "question",
                     "type": "text",
-                    "text": "Dov'è la stazione?"
+                    "text": "La stazione è lontana?"
                   }
                 ],
                 "items": [
@@ -1341,7 +1341,7 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "Vicino al parco."
+                        "text": "No, non è lontana."
                       }
                     ]
                   },
@@ -1351,7 +1351,7 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "In biblioteca."
+                        "text": "Sì, è molto lontana."
                       }
                     ]
                   },
@@ -1361,7 +1361,7 @@
                       {
                         "role": "primary",
                         "type": "text",
-                        "text": "Lontano dalla città."
+                        "text": "È in un'altra città."
                       }
                     ]
                   }
@@ -9232,5 +9232,5 @@
     }
   ],
   "minimumAppBuild": 258000,
-  "officialChecksum": "0d65e201369da8f99234c7bec0b506e777894855c1418c8081f5ef2cab56f415"
+  "officialChecksum": "ce49018e71157e116bf137f22622c303aea9f2ca3346ffb64d09fe593985bd36"
 }

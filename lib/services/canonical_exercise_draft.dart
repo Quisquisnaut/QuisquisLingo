@@ -161,6 +161,32 @@ class CanonicalExerciseDraft {
     }
   }
 
+  /// Replaces the content with [sample]'s, a working example of this
+  /// primitive (Build 261 Revision 5): options, prompt, items, targets,
+  /// layout, evaluation, feedback and hint. The ID and primitive stay.
+  void fillFrom(Exercise sample) {
+    options
+      ..clear()
+      ..addAll({
+        for (final key in sample.options.keys) key: sample.options[key]!,
+      });
+    prompt
+      ..clear()
+      ..addAll(sample.promptElements);
+    items
+      ..clear()
+      ..addAll(sample.items);
+    targets
+      ..clear()
+      ..addAll(sample.targets);
+    layout
+      ..clear()
+      ..addAll(sample.layout);
+    evaluation = sample.canonicalEvaluation;
+    feedback = sample.feedback;
+    hint = sample.hint;
+  }
+
   /// The next unused item ID in this exercise's own naming.
   String nextItemId() => _nextId('item', items.map((item) => item.id));
 

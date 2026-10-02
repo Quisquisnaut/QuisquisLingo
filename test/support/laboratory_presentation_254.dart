@@ -27,6 +27,8 @@
 /// ANSWER, …), and Pick the translation has one (PICK THE TRANSLATION); no
 /// instruction changed. Each example is played outside a Story here, so the
 /// Story lesson's examples show titles that a Story does not.
+/// Build 261 Revision 5 re-recorded 3 records: the Read and answer
+/// dialogues' answers no longer copy their text.
 const laboratoryPresentation = <String, Map<String, Object?>>{
   'qql_lab254_arrange_gap_audio': {
     'before': {
@@ -10428,7 +10430,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
         'note': 0,
       },
       'controls': {
-        'filled': ['Un caffè.', 'Un libro.', 'Una mela.'],
+        'filled': ['Un caffè.', 'Un frutto.', 'Un libro.'],
         'outlined': <String>[],
         'checkboxes': 0,
         'textFields': 0,
@@ -10490,7 +10492,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
         'note': 0,
       },
       'controls': {
-        'filled': ['Finish round', 'Un caffè.', 'Un libro.', 'Una mela.'],
+        'filled': ['Finish round', 'Un caffè.', 'Un frutto.', 'Un libro.'],
         'outlined': <String>[],
         'checkboxes': 0,
         'textFields': 0,
@@ -10556,9 +10558,9 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
       'controls': {
         'filled': [
           '<_FilledButtonWithIconChild>',
-          'Con il gelato.',
-          'Con molto zucchero.',
-          'Senza zucchero.',
+          'No, è amaro.',
+          'Sì, con il miele.',
+          'Sì, è molto dolce.',
         ],
         'outlined': <String>[],
         'checkboxes': 0,
@@ -10623,10 +10625,10 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
       'controls': {
         'filled': [
           '<_FilledButtonWithIconChild>',
-          'Con il gelato.',
-          'Con molto zucchero.',
           'Finish round',
-          'Senza zucchero.',
+          'No, è amaro.',
+          'Sì, con il miele.',
+          'Sì, è molto dolce.',
         ],
         'outlined': <String>[],
         'checkboxes': 0,
@@ -10693,9 +10695,9 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
       'controls': {
         'filled': [
           '<_FilledButtonWithIconChild>',
-          'In biblioteca.',
-          'Lontano dalla città.',
-          'Vicino al parco.',
+          'No, non è lontana.',
+          'Sì, è molto lontana.',
+          'È in un\'altra città.',
         ],
         'outlined': <String>[],
         'checkboxes': 0,
@@ -10761,9 +10763,9 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
         'filled': [
           '<_FilledButtonWithIconChild>',
           'Finish round',
-          'In biblioteca.',
-          'Lontano dalla città.',
-          'Vicino al parco.',
+          'No, non è lontana.',
+          'Sì, è molto lontana.',
+          'È in un\'altra città.',
         ],
         'outlined': <String>[],
         'checkboxes': 0,

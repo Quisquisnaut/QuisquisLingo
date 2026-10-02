@@ -310,10 +310,10 @@ def lesson_specs() -> list[tuple[str, str, str, list[dict]]]:
     # Read and answer (Build 256 Revision 7 fourth follow-up): a situation in
     # English, Piedmontese dialogue lines (read aloud or not), a Piedmontese
     # question; Read and answer (to source) was retired.
-    add("reading_answer_target", "Read and answer", "bondì = good morning; grassie = thank you; prego = you are welcome; bon-aneuit = good night; lìber = book. Read the situation in English and the Piedmontese dialogue, then answer in Piedmontese.", [
-        choose("reading_answer_target", [text("Anna meets Gioann in the morning.", "context", "source"), *turn("Bondì, Gioann!", "Anna"), *turn("Bondì, Anna!", "Gioann"), text("Còs ch'a dis Anna?", "question")], ["Bondì!", "Bon-aneuit!", "Grassie!"]),
-        choose("reading_answer_target", [text("Gioann gives Anna a book.", "context", "source"), *turn("Ecco un lìber.", "Gioann", "automatic"), *turn("Grassie, Gioann!", "Anna", "automatic"), text("Còs ch'a dà Gioann?", "question")], ["Un pom.", "Un lìber.", "Un gat."], 1),
-        choose("reading_answer_target", [text("Anna and Gioann say goodbye in the evening.", "context", "source"), *turn("Bon-aneuit, Gioann!", "Anna", "manual"), *turn("Bon-aneuit, Anna!", "Gioann", "manual"), text("Còs ch'a dis Gioann?", "question")], ["Bondì!", "Prego!", "Bon-aneuit!"], 2),
+    add("reading_answer_target", "Read and answer", "bondì = good morning; grassie = thank you; ringrassié = to thank; prego = you are welcome; bon-aneuit = good night; la matin = the morning; la sèira = the evening; lìber = book. Read the situation in English and the Piedmontese dialogue, then answer in Piedmontese: the answers say it in other words.", [
+        choose("reading_answer_target", [text("Anna meets Gioann in the morning.", "context", "source"), *turn("Bondì, Gioann!", "Anna"), *turn("Bondì, Anna!", "Gioann"), text("Quand ch'as treuvo?", "question")], ["La matin.", "La sèira.", "A mesdì."]),
+        choose("reading_answer_target", [text("Gioann gives Anna a book.", "context", "source"), *turn("Ecco un lìber.", "Gioann", "automatic"), *turn("Grassie, Gioann!", "Anna", "automatic"), text("Còs ch'a fa Anna?", "question")], ["A va a ca.", "A ringrassia Gioann.", "A dà un pom."], 1),
+        choose("reading_answer_target", [text("Anna and Gioann say goodbye in the evening.", "context", "source"), *turn("Bon-aneuit, Gioann!", "Anna", "manual"), *turn("Bon-aneuit, Anna!", "Gioann", "manual"), text("Quand ch'as saludo?", "question")], ["La matin.", "A mesdì.", "La sèira."], 2),
     ])
     add("type_translation_to_target", "Write in Piedmontese", "Translate English into Piedmontese. Thank you accepts grassie or mersì. The happy speaker is masculine: i son content; mi is optional. The house is la ca.", [
         enter("type_translation_to_target", [text("thank you")], ["grassie", "mersì"]),

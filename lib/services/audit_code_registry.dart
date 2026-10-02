@@ -431,6 +431,14 @@ enum AuditCode {
     'The recognized generated vocabulary question has a valid correct option whose nonempty text is absent from the passage, ignoring case.',
     'Review the passage, question and correct option together; do not force an unrelated answer into the passage.',
   ),
+  readingAnswerInText(
+    'READING_ANSWER_IN_TEXT',
+    AuditSeverity.warning,
+    'Exercise: Read and answer',
+    'The correct answer copies the text to read.',
+    'In a reading exercise (a passage, a situation or dialogue lines to read) the correct answer appears word for word in the text, so the question can be answered without understanding it. Listening exercises are not concerned.',
+    'Ask about meaning, intent or what follows, and word the correct answer differently from the text.',
+  ),
   listeningAudioRequired(
     'LISTENING_AUDIO_REQUIRED',
     AuditSeverity.warning,

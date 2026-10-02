@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import '../models/course_models.dart';
 import '../models/exercise_image_metadata.dart';
 import '../services/canonical_exercise_draft.dart';
+import '../services/canonical_exercise_samples.dart';
 import '../services/course_audit_service.dart';
 import '../services/course_language_resolver.dart';
 import '../services/portable_exercise_image.dart';
@@ -75,6 +76,9 @@ class _PrimitiveEditorScreenState extends State<PrimitiveEditorScreen> {
   final _relations = <_Slot<List<String>>>[];
   late bool _inspection = widget.initiallyInspecting;
   bool _dirty = false;
+
+  /// Renewed when an example fills the form, so every field shows it.
+  int _formGeneration = 0;
   bool _routeMayPop = false;
 
   bool get _locked => widget.readOnly || _inspection;
@@ -385,6 +389,64 @@ class _PrimitiveEditorScreenState extends State<PrimitiveEditorScreen> {
     return true;
   }
 
+  /// Fill with an example (Build 261 Revision 5, owner decision of 2
+  /// October 2026): a working exercise of the chosen primitive, after a
+  /// confirmation when the form already holds something.
+  Future<void> _fillWithExample() async {
+    if (_locked) return;
+    if (_hasUnsavedChanges) {
+      final replace = await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: const Text('Replace with an example?'),
+          content: const Text('The example replaces what this form holds now.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              key: const Key('primitive-fill-example-confirm'),
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: const Text('Replace'),
+            ),
+          ],
+        ),
+      );
+      if (replace != true || !mounted) return;
+    }
+    final sample = CanonicalExerciseSamples.forPrimitive(
+      _draft.primitive,
+      id: _draft.id,
+      updatedAt: _clock().toUtc(),
+    );
+    setState(() {
+      _draft.fillFrom(sample);
+      _prompt
+        ..clear()
+        ..addAll(_draft.prompt.map(_Slot.new));
+      _items
+        ..clear()
+        ..addAll(_draft.items.map(_Slot.new));
+      _targets
+        ..clear()
+        ..addAll(_draft.targets.map(_Slot.new));
+      _layout
+        ..clear()
+        ..addAll(_draft.layout.map(_Slot.new));
+      _orders
+        ..clear()
+        ..addAll(_draft.evaluation.correctOrders.map(_Slot.new));
+      _relations
+        ..clear()
+        ..addAll(
+          _draft.evaluation.relations.map((pair) => _Slot(List.of(pair))),
+        );
+      _formGeneration++;
+      _dirty = true;
+    });
+  }
+
   Future<void> _leave() async {
     if (_hasUnsavedChanges && !_locked) {
       final discard = await showDialog<bool>(
@@ -479,15 +541,15 @@ class _PrimitiveEditorScreenState extends State<PrimitiveEditorScreen> {
             ] else ...[
               _primitiveCard(support),
               if (violations.isNotEmpty) _violationsCard(violations),
-              _optionsCard(),
-              _promptCard(),
-              if (_draft.capability.usesItems) _itemsCard(),
+              _generation(0, _optionsCard()),
+              _generation(1, _promptCard()),
+              if (_draft.capability.usesItems) _generation(2, _itemsCard()),
               if (_draft.capability.usesTargets) ...[
-                _targetsCard(),
-                _layoutCard(),
+                _generation(3, _targetsCard()),
+                _generation(4, _layoutCard()),
               ],
-              _evaluationCard(),
-              _feedbackCard(),
+              _generation(5, _evaluationCard()),
+              _generation(6, _feedbackCard()),
             ],
           ],
         ),
@@ -534,6 +596,12 @@ class _PrimitiveEditorScreenState extends State<PrimitiveEditorScreen> {
       ),
     );
   }
+
+  /// A card rebuilt from the draft after an example fills the form.
+  Widget _generation(int index, Widget card) => KeyedSubtree(
+    key: ValueKey('primitive-form-$_formGeneration-$index'),
+    child: card,
+  );
 
   Widget _presentationNotice() => Card(
     key: ValueKey(
@@ -633,6 +701,18 @@ class _PrimitiveEditorScreenState extends State<PrimitiveEditorScreen> {
                 }
               : null,
         ),
+        if (widget.isNew && !_locked) ...[
+          const SizedBox(height: 8),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: OutlinedButton.icon(
+              key: const Key('primitive-fill-example'),
+              onPressed: _fillWithExample,
+              icon: const Icon(Icons.lightbulb_outline),
+              label: const Text('Fill with an example'),
+            ),
+          ),
+        ],
         const SizedBox(height: 8),
         Text(_draft.primitive.learnerAction),
         const SizedBox(height: 8),
