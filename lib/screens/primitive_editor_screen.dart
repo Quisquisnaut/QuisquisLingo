@@ -66,6 +66,12 @@ class _Slot<T> {
   T value;
 }
 
+/// A menu entry's text on one line, cut with an ellipsis when the menu is
+/// narrower than the text (Build 261 Revision 6 follow-up: the editor's
+/// menus fit a 360-pixel window).
+Text _menuText(String text) =>
+    Text(text, maxLines: 1, overflow: TextOverflow.ellipsis);
+
 class _PrimitiveEditorScreenState extends State<PrimitiveEditorScreen> {
   late final CanonicalExerciseDraft _draft;
   late final DateTime Function() _clock = widget.clock ?? DateTime.now;
@@ -776,13 +782,17 @@ class _PrimitiveEditorScreenState extends State<PrimitiveEditorScreen> {
         DropdownButtonFormField<ExercisePrimitive>(
           key: const Key('primitive-editor-primitive'),
           initialValue: _draft.primitive,
+          isExpanded: true,
           decoration: const InputDecoration(
             border: OutlineInputBorder(),
             labelText: 'Primitive',
           ),
           items: [
             for (final primitive in ExercisePrimitive.values)
-              DropdownMenuItem(value: primitive, child: Text(primitive.label)),
+              DropdownMenuItem(
+                value: primitive,
+                child: _menuText(primitive.label),
+              ),
           ],
           onChanged: widget.isNew && !_locked ? _changePrimitive : null,
         ),
@@ -884,6 +894,7 @@ class _PrimitiveEditorScreenState extends State<PrimitiveEditorScreen> {
         return DropdownButtonFormField<String>(
           key: Key('primitive-option-${key.name}'),
           initialValue: current == null ? '' : '${current.serialized}',
+          isExpanded: true,
           decoration: InputDecoration(
             border: const OutlineInputBorder(),
             labelText: label,
@@ -893,11 +904,11 @@ class _PrimitiveEditorScreenState extends State<PrimitiveEditorScreen> {
             helperMaxLines: 3,
           ),
           items: [
-            DropdownMenuItem(value: '', child: Text(defaultText)),
+            DropdownMenuItem(value: '', child: _menuText(defaultText)),
             for (final value in definition.legalValues)
               DropdownMenuItem(
                 value: value.serialized,
-                child: Text(value.serialized),
+                child: _menuText(value.serialized),
               ),
           ],
           onChanged: _locked
@@ -916,6 +927,7 @@ class _PrimitiveEditorScreenState extends State<PrimitiveEditorScreen> {
         return DropdownButtonFormField<String>(
           key: Key('primitive-option-${key.name}'),
           initialValue: currentText,
+          isExpanded: true,
           decoration: InputDecoration(
             border: const OutlineInputBorder(),
             labelText: label,
@@ -925,7 +937,7 @@ class _PrimitiveEditorScreenState extends State<PrimitiveEditorScreen> {
             helperMaxLines: 3,
           ),
           items: [
-            DropdownMenuItem(value: '', child: Text(defaultText)),
+            DropdownMenuItem(value: '', child: _menuText(defaultText)),
             const DropdownMenuItem(value: 'true', child: Text('On')),
             const DropdownMenuItem(value: 'false', child: Text('Off')),
           ],
@@ -1163,6 +1175,7 @@ class _PrimitiveEditorScreenState extends State<PrimitiveEditorScreen> {
         DropdownButtonFormField<EvaluationMode>(
           key: const Key('primitive-evaluation-mode'),
           initialValue: mode,
+          isExpanded: true,
           decoration: const InputDecoration(
             border: OutlineInputBorder(),
             labelText: 'Mode',
@@ -1171,10 +1184,10 @@ class _PrimitiveEditorScreenState extends State<PrimitiveEditorScreen> {
             for (final candidate in _draft.capability.evaluationModes)
               DropdownMenuItem(
                 value: candidate,
-                child: Text(candidate.serialized),
+                child: _menuText(candidate.serialized),
               ),
             if (!_draft.capability.evaluationModes.contains(mode))
-              DropdownMenuItem(value: mode, child: Text(mode.serialized)),
+              DropdownMenuItem(value: mode, child: _menuText(mode.serialized)),
           ],
           onChanged: _locked
               ? null
@@ -1642,13 +1655,14 @@ class _PrimitiveEditorScreenState extends State<PrimitiveEditorScreen> {
     return DropdownButtonFormField<String>(
       key: Key(key),
       initialValue: known ? current : null,
+      isExpanded: true,
       decoration: InputDecoration(
         border: const OutlineInputBorder(),
         labelText: label,
       ),
       items: [
         for (final item in items)
-          DropdownMenuItem(value: item.id, child: Text(_itemLabel(item))),
+          DropdownMenuItem(value: item.id, child: _menuText(_itemLabel(item))),
       ],
       onChanged: _locked
           ? null
@@ -1701,13 +1715,14 @@ class _PrimitiveEditorScreenState extends State<PrimitiveEditorScreen> {
       DropdownButtonFormField<FeedbackAlternatives>(
         key: const Key('primitive-feedback-alternatives'),
         initialValue: _draft.feedback.showAlternatives,
+        isExpanded: true,
         decoration: const InputDecoration(
           border: OutlineInputBorder(),
           labelText: 'Show alternatives',
         ),
         items: [
           for (final value in FeedbackAlternatives.values)
-            DropdownMenuItem(value: value, child: Text(value.serialized)),
+            DropdownMenuItem(value: value, child: _menuText(value.serialized)),
         ],
         onChanged: _locked
             ? null
@@ -2124,30 +2139,6 @@ class _ItemRow extends StatelessWidget {
                   style: Theme.of(context).textTheme.labelLarge,
                 ),
               ),
-              if (showSide)
-                DropdownButton<MatchSide?>(
-                  value: item.side,
-                  items: const [
-                    DropdownMenuItem(value: null, child: Text('No side')),
-                    DropdownMenuItem(
-                      value: MatchSide.left,
-                      child: Text('Left'),
-                    ),
-                    DropdownMenuItem(
-                      value: MatchSide.right,
-                      child: Text('Right'),
-                    ),
-                  ],
-                  onChanged: locked
-                      ? null
-                      : (value) => onChanged(
-                          ExerciseItem(
-                            id: item.id,
-                            content: item.content,
-                            side: value,
-                          ),
-                        ),
-                ),
               IconButton(
                 tooltip: 'Move up',
                 onPressed: locked || index == 0 ? null : () => onMove(-1),
@@ -2167,6 +2158,41 @@ class _ItemRow extends StatelessWidget {
               ),
             ],
           ),
+          // Below the header, so the header fits a 360-pixel window (Build
+          // 261 Revision 6 follow-up).
+          if (showSide) ...[
+            DropdownButtonFormField<MatchSide?>(
+              key: ValueKey('item-side-${item.id}'),
+              initialValue: item.side,
+              isExpanded: true,
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                labelText: 'Side',
+                isDense: true,
+              ),
+              items: [
+                DropdownMenuItem(value: null, child: _menuText('No side')),
+                DropdownMenuItem(
+                  value: MatchSide.left,
+                  child: _menuText('Left'),
+                ),
+                DropdownMenuItem(
+                  value: MatchSide.right,
+                  child: _menuText('Right'),
+                ),
+              ],
+              onChanged: locked
+                  ? null
+                  : (value) => onChanged(
+                      ExerciseItem(
+                        id: item.id,
+                        content: item.content,
+                        side: value,
+                      ),
+                    ),
+            ),
+            const SizedBox(height: 8),
+          ],
           for (var i = 0; i < item.content.length; i++)
             _ElementRow(
               key: ValueKey('${item.id}-$i-${item.content[i].type}'),
@@ -2252,17 +2278,35 @@ class _TargetRow extends StatelessWidget {
     margin: const EdgeInsets.only(bottom: 8),
     child: Padding(
       padding: const EdgeInsets.all(12),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Expanded(child: Text(target.id)),
-          const SizedBox(width: 8),
-          DropdownButton<TargetReveal?>(
-            value: target.reveal,
-            items: const [
-              DropdownMenuItem(value: null, child: Text('Reveal nothing')),
+          Row(
+            children: [
+              Expanded(child: Text(target.id)),
+              IconButton(
+                tooltip: 'Remove',
+                onPressed: locked ? null : onRemove,
+                icon: const Icon(Icons.delete_outline),
+              ),
+            ],
+          ),
+          // Below the ID, so the row fits a 360-pixel window (Build 261
+          // Revision 6 follow-up).
+          DropdownButtonFormField<TargetReveal?>(
+            key: ValueKey('target-reveal-${target.id}'),
+            initialValue: target.reveal,
+            isExpanded: true,
+            decoration: const InputDecoration(
+              border: OutlineInputBorder(),
+              labelText: 'Reveal',
+              isDense: true,
+            ),
+            items: [
+              DropdownMenuItem(value: null, child: _menuText('Reveal nothing')),
               DropdownMenuItem(
                 value: TargetReveal.firstGrapheme,
-                child: Text('Reveal the first letter'),
+                child: _menuText('Reveal the first letter'),
               ),
             ],
             onChanged: locked
@@ -2274,11 +2318,6 @@ class _TargetRow extends StatelessWidget {
                       region: target.region,
                     ),
                   ),
-          ),
-          IconButton(
-            tooltip: 'Remove',
-            onPressed: locked ? null : onRemove,
-            icon: const Icon(Icons.delete_outline),
           ),
         ],
       ),
@@ -2319,13 +2358,14 @@ class _LayoutRow extends StatelessWidget {
                   initialValue: targetIds.contains(element.targetId)
                       ? element.targetId
                       : null,
+                  isExpanded: true,
                   decoration: const InputDecoration(
                     border: OutlineInputBorder(),
                     labelText: 'Gap',
                   ),
                   items: [
                     for (final id in targetIds)
-                      DropdownMenuItem(value: id, child: Text(id)),
+                      DropdownMenuItem(value: id, child: _menuText(id)),
                   ],
                   onChanged: locked
                       ? null

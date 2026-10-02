@@ -1,7 +1,9 @@
 # Build 261 handoff
 
 Branch `claude/261-learner-polish` from `main` (`8b98c6a`, Builds 259 and
-260 merged through PR #30); local commits only, not pushed. Changes:
+260 merged through PR #30); Revisions 0–6 merged into `main` through
+PR #31 (`c6516eb`); the Revision 6 follow-up is on branch
+`claude/261-revision6-followup`. Changes:
 `docs/261_CHANGE_SUMMARY.md`; evidence: `docs/261_VALIDATION.md`.
 
 Plan (owner answers of 1 October 2026):
@@ -71,8 +73,16 @@ filled fields; nine Help sections with the owner's screenshots
 (`assets/primitives_screenshots/`); Help opens at the primitive; Role is a
 menu of the roles QQL reads (`ElementRoles`). Plan
 `docs/261_REVISION6_PLAN.md`; test `test/owner_review_261_revision6_test.dart`. Complete suite: 3572 passed, 1 skipped.
-Noticed, not fixed (outside the revision): at 360 pixels the canonical
-editor's option menus overflow to the right.
+At 360 pixels the canonical editor's menus overflowed to the right:
+fixed by the Revision 6 follow-up (below).
+
+## Revision 6 follow-up (same version, 2 October 2026)
+
+The canonical editor fits a phone: every menu takes the width it is given
+with one-line entries; a Match item's Side and a gap's Reveal sit under
+the row's title. Test `test/primitive_editor_narrow_261_test.dart` (every
+primitive, blank and with its example, and every Laboratory exercise at
+360 pixels).
 
 ## Next
 

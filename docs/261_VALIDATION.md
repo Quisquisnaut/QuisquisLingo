@@ -215,3 +215,19 @@
   owner.
 - **Complete suite** (`--concurrency=1`, keep-awake, 34 min 11 s):
   **3572 passed, 1 skipped, 0 failed**.
+
+### Revision 6 follow-up (same version, 2 October 2026): the canonical editor fits a phone
+
+- New `test/primitive_editor_narrow_261_test.dart` (10 tests): every
+  primitive's form, blank (new) and with its example (existing), and every
+  exercise of the Exercise Laboratory, at 360 pixels without an exception.
+  Before the fix it failed on all nine primitives and on the Laboratory
+  (overflows of 10–91 pixels from the option and evaluation menus, 17 from
+  a Match item's header, 187 from a gap's Reveal menu).
+- `test/owner_review_261_revision6_test.dart`: the Role menu test now runs
+  at 360 pixels.
+- Focused runs (the two tests above, the primitive editor, Revision 5,
+  interoperability and Page tests): all passed. `dart format`, `flutter
+  analyze --no-pub`: no issues.
+- **Complete suite** (`--concurrency=1`, keep-awake, 30 min 29 s):
+  **3582 passed, 1 skipped, 0 failed**.
