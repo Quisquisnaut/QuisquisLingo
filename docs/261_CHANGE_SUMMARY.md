@@ -299,3 +299,14 @@ button, removed in Revision 5; it now says New Exercise › Canonical
 editor.
 
 Scoring, progression and learner data are unchanged.
+
+### Revision 6 follow-up (same version, 2 October 2026): the canonical editor fits a phone
+
+Owner request after Revision 6 reported it. At 360 pixels the canonical
+editor's menus ran off the right edge (up to about 90 pixels for the
+options, 187 for a gap's Reveal menu): a menu without `isExpanded` takes
+the width of its longest entry, and the Match item and target rows put a
+menu and buttons on one line. Every menu of the form now takes the width
+it is given and cuts a long entry with an ellipsis; a Match item's Side
+and a gap's Reveal are full-width fields under the row's title (labelled
+Side and Reveal; same values). Nothing else changes.

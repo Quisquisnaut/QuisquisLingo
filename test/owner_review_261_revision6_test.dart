@@ -310,10 +310,8 @@ void main() {
       expect(find.text('Kept as stored: not a QQL role.'), findsOne);
     });
 
-    // At 360 pixels the option menus above overflow (they did before this
-    // revision); the Role menu itself wraps and truncates.
-    testWidgets('the menu fits a narrow window', (tester) async {
-      tester.view.physicalSize = const Size(480, 2400);
+    testWidgets('the menu fits a phone', (tester) async {
+      tester.view.physicalSize = const Size(360, 2400);
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.reset);
       await tester.pumpWidget(

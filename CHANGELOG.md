@@ -16,6 +16,9 @@ Owner request and decisions of 2 October 2026.
 - **Role is a menu** of the roles QQL reads, each explained; a role QQL
   does not read can no longer be typed by mistake, and a stored one is
   kept and marked.
+- Follow-up: the canonical editor fits a phone. At 360 pixels its option,
+  evaluation and other menus no longer run off the right edge; a Match
+  item's Side and a gap's Reveal sit under their row's title.
 
 Scoring, progression and learner data are unchanged. Beta expiry
 `2026-11-01 23:59:59` local time (same release day as Revision 0).
