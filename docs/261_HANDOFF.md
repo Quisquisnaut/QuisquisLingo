@@ -43,12 +43,12 @@ The Course preview from the Course Editor: the flag on every editor
 screen, `CoursePreviewScreen`, the Duel's preview mode. Test
 `test/course_preview_261_test.dart`. Complete suite: 3536 passed, 1 skipped.
 
-## Revision 3 (implemented, 2 October 2026)
+## Revision 3 (committed `f0e1391`, 2 October 2026)
 
 Exercise titles: the recognized preset's name in seven languages, none in
 a Story; the Pick the translation line translated. Test
 `test/exercise_titles_261_test.dart`; the Laboratory presentation
-baseline re-recorded (70 records, titles only).
+baseline re-recorded (70 records, titles only). Complete suite: 3541 passed, 1 skipped.
 
 ## Next
 
