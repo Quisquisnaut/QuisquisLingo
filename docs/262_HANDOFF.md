@@ -17,6 +17,8 @@ owner chose for Build 262:
 Not in Build 262: 4.4 in-app signing, 4.5 shipped Publisher ZIPs, the
 owner's tasks outside the code.
 
+- Revision 3 (owner request of the evening): a path shape for each Lesson.
+
 ## Revision 0 (2.0.62+262000, 3 October 2026; committed `5ee20a5`)
 
 Done in the working tree: `CourseService` without `PMS`/`PMS_MIX` (IDs
@@ -80,6 +82,28 @@ refusals, build; official version = Course version, owner decision),
 signing Help + guide (EN/IT/ES). Complete suite 3610 passed, 1 skipped,
 1 failed (a Help section count, corrected, passing alone).
 
+## Revision 3 (2.0.62+262003, 3 October 2026)
+
+Owner request: «Evita di usare sempre lo stesso andamento del path in tutte
+le lezioni e in tutti i corsi». Asked whether the zigzag of the circles or
+the private generator's Round sequence was meant, the owner chose the
+zigzag (an app change; the private Courses need no regeneration).
+`learnerRoundPlacement(index, start:)`, `learnerRoundPlacementStart(courseId,
+lessonIndex)`, `learnerRoundPlacementStarts` = [0, 5, 3, 8, 7, 11, 13, 15]
+(centre starts only: a scan showed left-edge starts 1, 2, 6, 12 cross the
+first label when the line comes from the IDDQD pill); mascot helpers take
+`placementStart`, `learnerMascotPositionOffsetForLesson(courseId:)`.
+Focused: `learner_round_path_test.dart` 31 passed; analyzer clean. Complete
+suite (4 October, 00:10): the test shell ran out of memory after 1594 passed,
+0 failed, in `exercise_workflow_226_02_test.dart` (8 GB PC, browsers open);
+the 208 files from that one on reran in two batches: 1160 passed, then 879
+passed, 1 skipped, 2 failed in `timed_round_261_test.dart` (a real-time wait
+under load; 7/7 alone). Committed as Revision 3.
+
+Gotcha: with browsers open the 8 GB PC can run the test shell out of memory
+mid-suite; `remaining.py` (scratchpad) lists the unfinished files from the
+log and `run_files.ps1` reruns them in two batches (cmd line limit).
+
 ## The private Courses, owner review of the evening (3 October 2026)
 
 Generator `D:\QQL_plus\Corsi_Privati\corsi_brevi\make_short_courses.py`:
@@ -114,7 +138,7 @@ became bonnì (Giacco: buondì), bemmenuto and dimanessera (domani sera), so all
 76 are attested. Audit 0 errors, 0 warnings; Duel 34 per Lesson. Audit 0/0 for both. Sources and lookup tools are in
 `corsi_brevi/fonti/` (private).
 
-Next: Build 262 is complete (Revisions 0–2). Not pushed. The owner reviews
+Next: Build 262 is complete (Revisions 0–3). Not pushed. The owner reviews
 the private Courses (`LEGGIMI.txt` lists the words to check).
 
 Owner decision for Revision 2 (3 October 2026): the exported Publisher

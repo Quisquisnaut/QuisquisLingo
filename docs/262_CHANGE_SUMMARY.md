@@ -17,6 +17,58 @@ Not in Build 262: 4.4 signing in the app, 4.5 Publisher ZIPs shipped in the
 app, the documents of 4.6 beyond what each part needs, and the owner's
 tasks outside the code.
 
+Revision 3 answers an owner request of the same evening about the learner
+path.
+
+## Revision 3 (2.0.62+262003, 3 October 2026): a path shape for each Lesson
+
+**Why.** The owner noticed that the path had the same course in every
+Lesson and every Course. The Round circles follow one 16-step pattern of
+places (left edge, centre with texts right, centre with texts left, right
+edge; Build 261 Revision 8), and every Lesson entered it at its first step,
+so every Lesson of six Rounds drew the same zigzag, whatever the Course.
+The owner first asked to fix the private Courses' generator; asked which
+course was meant, they chose the zigzag of the circles, which the app
+draws: no Course content decides it.
+
+**The change.** Each Lesson enters the pattern at its own place:
+`learnerRoundPlacement(index, start:)` and
+`learnerRoundPlacementStart(courseId, lessonIndex)` in
+`lib/screens/home_screen.dart`. `learnerRoundPlacementStarts` holds eight
+starts, giving eight different shapes of six Rounds. The Course ID (the seed
+the mascot order already uses) picks the first Lesson's start and each next
+Lesson moves three places along the list: neighbouring Lessons never share a
+shape, their first texts change side, and the first Lesson's shape differs
+from Course to Course. Nothing is stored; reordering Lessons reorders the
+shapes.
+
+**Which starts.** Every start opens at the centre, its texts on the right or
+on the left. A scan of all candidate starts found that a first circle at the
+left edge is reached cleanly from the Lesson circle but not from the IDDQD
+pill, whose line comes down at the centre and crossed the first Round's
+label; those four starts are left out. The pattern also wraps around
+without an edge-to-edge jump, so long Lessons stay clear.
+
+**Mascots.** Whether a Round has a mascot depends on its neighbour's side,
+so `learnerRoundPathSide`, `learnerRoundPathMascotRows`,
+`learnerRoundPathShowsMascot` and `learnerRoundPathMascotSlotCount` take the
+Lesson's start, and `learnerMascotPositionOffsetForLesson` takes the Course
+ID to count each earlier Lesson's mascots with its own start; the mascot
+order still runs on across the Course. `LearnerRoundPath` computes the start
+from the `courseId` and `lessonIndex` it already had, on the learner page
+and in the Course preview.
+
+**Tests.** `test/learner_round_path_test.dart`: every start against line and
+text crossings from the Lesson circle and from the IDDQD pill at five
+widths; eight starts, eight shapes, each opening at the centre; a Course's
+first eight Lessons all different, neighbours opening on opposite sides,
+the first Lesson not the same in every Course; the mascot side rule for
+every start; the mascot, placement and production-mascot tests follow the
+Lesson's start instead of assuming the first one.
+
+Course files, scoring, progression and learner data are unchanged. Beta
+expiry `2026-11-02 23:59:59` local time.
+
 ## Revision 2 (2.0.62+262002, 3 October 2026): Export as Publisher Course
 
 **The action.** Course Studio's menu of a custom Course gains **Export as

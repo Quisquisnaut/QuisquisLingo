@@ -115,24 +115,92 @@ void main() {
   });
 
   test('no two Rounds in a row have a mascot on the same side', () {
-    // Owner request of 3 October 2026 (Build 261 Revision 8).
-    for (var offset = 0; offset < 20; offset++) {
-      final rows = learnerRoundPathMascotRows(40, roundPositionOffset: offset);
-      for (var index = 1; index < rows.length; index++) {
+    // Owner request of 3 October 2026 (Build 261 Revision 8), for every
+    // Lesson start (Build 262 Revision 3).
+    for (final start in learnerRoundPlacementStarts) {
+      for (var offset = 0; offset < 20; offset++) {
+        final rows = learnerRoundPathMascotRows(
+          40,
+          roundPositionOffset: offset,
+          placementStart: start,
+        );
+        for (var index = 1; index < rows.length; index++) {
+          expect(
+            rows[index] &&
+                rows[index - 1] &&
+                learnerRoundPathSide(index, start: start) ==
+                    learnerRoundPathSide(index - 1, start: start),
+            isFalse,
+            reason: 'start $start, offset $offset, Rounds ${index - 1}-$index',
+          );
+        }
         expect(
-          rows[index] &&
-              rows[index - 1] &&
-              learnerRoundPathSide(index) == learnerRoundPathSide(index - 1),
-          isFalse,
-          reason: 'offset $offset, Rounds ${index - 1} and $index',
+          rows.where((shown) => shown).length,
+          greaterThanOrEqualTo(20),
+          reason: 'more than half the Rounds keep a mascot',
         );
       }
+    }
+  });
+
+  test('each Lesson and each Course has its own path shape', () {
+    // Owner request of 3 October 2026 (Build 262 Revision 3): not the same
+    // path in every Lesson and every Course.
+    List<LearnerRoundPlacement> shape(String courseId, int lessonIndex) =>
+        List.generate(
+          6,
+          (index) => learnerRoundPlacement(
+            index,
+            start: learnerRoundPlacementStart(courseId, lessonIndex),
+          ),
+        );
+
+    // Eight starts, eight different shapes, each opening at the centre.
+    expect(learnerRoundPlacementStarts.toSet(), hasLength(8));
+    expect({
+      for (final start in learnerRoundPlacementStarts)
+        List.generate(
+          6,
+          (index) => learnerRoundPlacement(index, start: start),
+        ).join(),
+    }, hasLength(8));
+    for (final start in learnerRoundPlacementStarts) {
       expect(
-        rows.where((shown) => shown).length,
-        greaterThanOrEqualTo(20),
-        reason: 'more than half the Rounds keep a mascot',
+        learnerRoundPlacement(0, start: start),
+        isIn(const [
+          LearnerRoundPlacement.centerTextRight,
+          LearnerRoundPlacement.centerTextLeft,
+        ]),
       );
     }
+
+    const courses = [
+      'course-alpha',
+      'course-beta',
+      'course_65dce83b-fd0a-4b83-a5a1-8f8b97a58d05',
+      'course_99b99a4a-0000-4000-8000-000000000000',
+    ];
+    for (final course in courses) {
+      final shapes = [
+        for (var lesson = 0; lesson < 8; lesson++) shape(course, lesson),
+      ];
+      // A Course's first eight Lessons all differ, and neighbouring Lessons
+      // open with their texts on opposite sides.
+      expect(shapes.map((shape) => shape.join()).toSet(), hasLength(8));
+      for (var lesson = 1; lesson < shapes.length; lesson++) {
+        expect(
+          shapes[lesson].first,
+          isNot(shapes[lesson - 1].first),
+          reason: '$course Lessons ${lesson - 1} and $lesson',
+        );
+      }
+      expect(shape(course, 3), shape(course, 3), reason: 'stable');
+    }
+    // The first Lesson does not have one shape in every Course.
+    expect(
+      {for (final course in courses) shape(course, 0).join()}.length,
+      greaterThan(1),
+    );
   });
 
   test('course identity gives mascots a stable full-set shuffle', () {
@@ -214,6 +282,7 @@ void main() {
       var mascotPosition = learnerMascotPositionOffsetForLesson(
         lessons,
         lessonIndex,
+        courseId: 'sample_it_en_it',
       );
       for (
         var roundIndex = 0;
@@ -223,6 +292,10 @@ void main() {
         if (learnerRoundPathShowsMascot(
           roundIndex,
           roundPositionOffset: roundOffset,
+          placementStart: learnerRoundPlacementStart(
+            'sample_it_en_it',
+            lessonIndex,
+          ),
         )) {
           selected.add(learnerMascotAssetAtPosition(order, mascotPosition++));
         }
@@ -321,6 +394,7 @@ void main() {
                     width: 430,
                     child: LearnerRoundPath(
                       courseId: 'sample_it_en_it',
+                      lessonIndex: lessonIndex,
                       rounds: lessons[lessonIndex].rounds,
                       completedRounds: const {},
                       perfectRounds: const {},
@@ -331,6 +405,7 @@ void main() {
                           learnerMascotPositionOffsetForLesson(
                             lessons,
                             lessonIndex,
+                            courseId: 'sample_it_en_it',
                           ),
                       roundPositionOffset: learnerRoundPositionOffsetForLesson(
                         lessons,
@@ -392,7 +467,12 @@ void main() {
       var roundCount = 0;
       var slotCount = 0;
       while (slotCount < discovered.length) {
-        if (learnerRoundPathShowsMascot(roundCount)) slotCount++;
+        if (learnerRoundPathShowsMascot(
+          roundCount,
+          placementStart: learnerRoundPlacementStart('course-alpha', 0),
+        )) {
+          slotCount++;
+        }
         roundCount++;
       }
       await tester.pumpWidget(
@@ -527,10 +607,11 @@ void main() {
             .dx,
     ];
     final path = tester.getRect(find.byKey(const Key('unified-round-tree')));
+    final start = learnerRoundPlacementStart('course-alpha', 0);
     for (var index = 0; index < sample.length; index++) {
       expect(
         circles[index],
-        closeTo(switch (learnerRoundPlacement(index)) {
+        closeTo(switch (learnerRoundPlacement(index, start: start)) {
           LearnerRoundPlacement.left => path.left + learnerRoundIconCenterX,
           LearnerRoundPlacement.right => path.right - learnerRoundIconCenterX,
           _ => path.center.dx,
@@ -965,18 +1046,30 @@ void main() {
     tester,
   ) async {
     // Owner decision of 3 October 2026: circle to circle, from the Lesson
-    // circle above to the Duel below.
+    // circle above (or the IDDQD pill's connector) to the Duel below; every
+    // Lesson start (Build 262 Revision 3).
     tester.view.physicalSize = const Size(1000, 1400);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
     final sample = rounds(8);
-    for (final width in [292.0, 347.0, 402.0, 560.0, 900.0]) {
+    final starts = {
+      for (var lesson = 0; lesson < 8; lesson++)
+        learnerRoundPlacementStart('course-alpha', lesson),
+    };
+    expect(starts, learnerRoundPlacementStarts.toSet());
+    for (final (lessonIndex, fromLessonCircle, width) in [
+      for (var lesson = 0; lesson < 8; lesson++)
+        for (final fromLessonCircle in [true, false])
+          for (final width in [292.0, 347.0, 402.0, 560.0, 900.0])
+            (lesson, fromLessonCircle, width),
+    ]) {
       await tester.pumpWidget(
         app(
           rounds: sample,
           width: width,
-          startsAtLessonCircle: true,
+          lessonIndex: lessonIndex,
+          startsAtLessonCircle: fromLessonCircle,
           leadsToDuel: true,
           perfectRounds: {sample[1].id},
           completedRounds: {sample[1].id, sample[2].id},
@@ -1005,7 +1098,10 @@ void main() {
       final pageLeft = treeRect.center.dx - width / 2;
       expect(
         points.first.dx - pageLeft,
-        closeTo(learnerLessonCircleCenterX(width), .01),
+        closeTo(
+          fromLessonCircle ? learnerLessonCircleCenterX(width) : width / 2,
+          .01,
+        ),
       );
       expect(points.last.dx, closeTo(treeRect.center.dx, .01));
       expect(points.last.dy, closeTo(treeRect.bottom, .01));
@@ -1025,7 +1121,9 @@ void main() {
           expect(
             points.where((point) => text.inflate(1).contains(point)),
             isEmpty,
-            reason: 'the line crosses ${round.id} $key at $width',
+            reason:
+                'the line crosses ${round.id} $key at $width, Lesson '
+                '$lessonIndex, from the Lesson circle $fromLessonCircle',
           );
         }
       }
@@ -1075,40 +1173,41 @@ void main() {
         app(rounds: sample, onOpenRound: (round) => opened = round),
       );
 
-      expect(
-        find.byKey(const ValueKey('learner-round-mascot-0')),
-        findsOneWidget,
+      // Some Rounds have a mascot and some do not; each stands in the half
+      // opposite its Round, whatever the Lesson's start (Build 262
+      // Revision 3).
+      final start = learnerRoundPlacementStart('course-alpha', 0);
+      final shown = learnerRoundPathMascotRows(
+        sample.length,
+        placementStart: start,
       );
-      expect(
-        find.byKey(const ValueKey('learner-round-mascot-3')),
-        findsOneWidget,
-      );
-      expect(
-        find.byKey(const ValueKey('learner-round-mascot-6')),
-        findsNothing,
-      );
-      // Mascot 0 stands left of the centred first Round, mascot 5 right of
-      // the sixth Round at the left edge.
-      final firstMascot = find.byKey(const ValueKey('learner-round-mascot-0'));
-      final secondMascot = find.byKey(const ValueKey('learner-round-mascot-5'));
-      final firstRound = find.byKey(ValueKey('unified-round-${sample[0].id}'));
-      final secondRound = find.byKey(ValueKey('unified-round-${sample[5].id}'));
+      expect(shown, containsAll([true, false]));
       final pathCenter = tester
           .getRect(find.byKey(const Key('unified-round-tree')))
           .center
           .dx;
-      expect(
-        tester.getRect(firstMascot).overlaps(tester.getRect(firstRound)),
-        isFalse,
+      for (var index = 0; index < sample.length; index++) {
+        final mascot = find.byKey(ValueKey('learner-round-mascot-$index'));
+        expect(mascot, shown[index] ? findsOneWidget : findsNothing);
+        if (!shown[index]) continue;
+        final round = tester.getRect(
+          find.byKey(ValueKey('unified-round-${sample[index].id}')),
+        );
+        final mascotRect = tester.getRect(mascot);
+        expect(mascotRect.overlaps(round), isFalse, reason: 'Round $index');
+        if (learnerRoundPathSide(index, start: start) ==
+            LearnerRoundPathSide.right) {
+          expect(round.center.dx, greaterThan(pathCenter));
+          expect(mascotRect.center.dx, lessThan(pathCenter));
+        } else {
+          expect(round.center.dx, lessThan(pathCenter));
+          expect(mascotRect.center.dx, greaterThan(pathCenter));
+        }
+      }
+      final firstMascot = find.byKey(
+        ValueKey('learner-round-mascot-${shown.indexOf(true)}'),
       );
-      expect(tester.getRect(firstMascot).center.dx, lessThan(pathCenter));
-      expect(tester.getRect(firstRound).center.dx, greaterThan(pathCenter));
-      expect(
-        tester.getRect(secondMascot).overlaps(tester.getRect(secondRound)),
-        isFalse,
-      );
-      expect(tester.getRect(secondMascot).center.dx, greaterThan(pathCenter));
-      expect(tester.getRect(secondRound).center.dx, lessThan(pathCenter));
+      final firstRound = find.byKey(ValueKey('unified-round-${sample[0].id}'));
       expect(
         tester
             .widget<Image>(

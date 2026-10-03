@@ -1,5 +1,32 @@
 # Build 262 validation
 
+## Revision 3 (2.0.62+262003, 3 October 2026): a path shape for each Lesson
+
+- Start scan (temporary test, deleted): every candidate start with
+  8 Rounds, a Duel, from the Lesson circle and from the IDDQD pill, at
+  292, 347, 402, 560 and 900 px. The left-edge starts 1, 2, 6 and 12 crossed
+  the first Round's label from the pill at every width; the centre starts 0,
+  3, 5, 7, 8, 11, 13 and 15 crossed nothing. The eight centre starts are
+  `learnerRoundPlacementStarts`.
+- Focused: `test/learner_round_path_test.dart` 31 passed (new: each Lesson
+  and each Course has its own path shape; the crossing test now covers every
+  start from the Lesson circle and the pill); with
+  `learner_round_audio_indicator_230_test.dart` and
+  `leaderboard_navigation_test.dart`: 91 passed.
+- `flutter analyze`: no issues.
+- Complete suite (`--concurrency=1`, 4 October 2026, 00:10–00:29):
+  - First run: the test shell stopped with "Out of memory" after 1594
+    passed and 0 failed, inside `exercise_workflow_226_02_test.dart`. The PC
+    has 8 GB; about 1.5 GB was free, with browsers open.
+  - The 208 files from that one onward ran again on the same tree, in two
+    batches (the command line limit): 1160 passed; then 879 passed,
+    1 skipped and 2 failed.
+  - The 2 failures are in `timed_round_261_test.dart` (countdown waits for
+    play; on-time bonus). `_waitFor` gave up after about a second of real
+    time without seeing `timed-countdown`. Run alone, the file passed 7 of 7.
+    The test waits on real time and nothing in it touches the path.
+  - Every other test file passed.
+
 ## Revision 2 (2.0.62+262002, 3 October 2026): Export as Publisher Course
 
 **Tests**

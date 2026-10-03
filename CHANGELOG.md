@@ -1,3 +1,30 @@
+# 2.0.62 (Build 262, Revision 3) - A path shape for each Lesson - 2026-10-03
+
+Owner request of 3 October 2026: the learner path should not have the same
+shape in every Lesson and every Course.
+
+- **Each Lesson has its own path shape.** The Round circles followed one
+  16-step pattern from the first Round of every Lesson, so every Lesson of
+  six Rounds drew the same zigzag in every Course. Each Lesson now enters the
+  pattern at its own place (`learnerRoundPlacementStart`): eight starts
+  (`learnerRoundPlacementStarts`) give eight different shapes. The Course ID
+  picks the first Lesson's start and each next Lesson moves three places
+  along the list, so neighbouring Lessons never share a shape and their first
+  texts change side.
+- **The line still never crosses a text.** Every start opens at the centre,
+  with the texts on the right or on the left, where the line from the Lesson
+  circle or from the IDDQD pill reaches the first circle cleanly. A start at
+  the left edge was tried and left out: the line from the IDDQD pill crossed
+  the first Round's label. The path test now checks every start, from the
+  Lesson circle and from the pill, at five widths.
+- Mascots follow each Lesson's own sides (`placementStart`;
+  `learnerMascotPositionOffsetForLesson` takes the Course ID), so the mascot
+  order still runs on across the Course.
+- On the learner page and in the Course preview. Nothing is stored: the shape
+  follows the Course ID and the Lesson's position. Course files, scoring,
+  progression and learner data are unchanged. Beta expiry
+  `2026-11-02 23:59:59` local time.
+
 # 2.0.62 (Build 262, Revision 2) - Export as Publisher Course - 2026-10-03
 
 Owner decision of 2 October 2026 (`docs/PUBLISHER_COURSES_PLAN.md`, 4.3);
