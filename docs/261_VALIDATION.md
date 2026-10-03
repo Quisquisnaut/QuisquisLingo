@@ -1,5 +1,17 @@
 # Build 261 validation
 
+## Revision 7 Lesson and Round labels (3 October 2026)
+
+- Lesson Options presents four Lesson label and numbering choices: Off, Lesson + number, Number only and Custom + number, alongside Round label and numbering. Stored Unit, Topic, Module, Skill, Chapter, Stage, Step and Part modes remain readable and display as the selected existing option until changed.
+- Lesson titles remain required. Presentation tests verify that Off, numbered and custom labels all retain authored Lesson titles; Round presentation tests cover a numbered authored title under Off. Editor Help has a dedicated bilingual-selector FAQ in English, Italian and Spanish.
+- Focused and complete suite results are recorded below after verification.
+
+## Revision 7 Timed Rounds (3 October 2026)
+
+- New Round offers Timed with a stopwatch icon. Limits are distinct and ordered, each 30–600 seconds; Lesson Options holds Course defaults that are copied into new Timed Rounds. The Canonical Editor and Audit use the same compatibility rules.
+- The timer starts with actual Round play. Timeout locks input, leaves progress incomplete, and credits first-pass correct-answer XP. Timely completion awards the usual XP and a separate 10 XP On Time bonus on the first completion of each limit. Completed limits are stored per learner, Course and Round.
+- `test/timed_round_261_test.dart` covers model persistence, icon, limits, default copy, Audit, countdown timing, timeout, retry, and once-per-limit bonus. Full verification results follow after the suite.
+
 ## Revision 0 (2.0.61+261000, 2 October 2026): learner polish
 
 **Generators and validator**
@@ -231,3 +243,39 @@
   analyze --no-pub`: no issues.
 - **Complete suite** (`--concurrency=1`, keep-awake, 30 min 29 s):
   **3582 passed, 1 skipped, 0 failed**.
+
+## Revision 7 (2.0.61+261007, 3 October 2026): Round Types redesign
+
+- The Round-type model, four Round-number formats, authoring selector,
+  GuideBook Wizard replanning, canonical compatibility and blocking Audit,
+  Story/Sequence preview flow, Test's deferred feedback, and learner-path
+  Completed status have focused Flutter tests. Copy and transfer retain the
+  Round type and Course numbering choice.
+- Older official Course fixtures keep their original checksum when the new
+  fields are synthesized during migration. A changed type or numbering
+  setting cannot validate against that legacy checksum. The normal checksum
+  applies to new official Courses.
+- Editor Help has a Round Types section in English, Italian and Spanish;
+  Exercise Primitives Help no longer contains Stories. Test result copy is
+  complete in the seven learner-panel language catalogs.
+- The four bundled generators' `--check` runs and
+  `python -X utf8 tools/validate_courses.py` pass. Existing Course IDs,
+  exercise content, and progress identities are unchanged.
+- Codex's complete runs before the last changes: 3,602 passed, 1 skipped,
+  3 failed (three older tests whose expectations the requested behaviour
+  changed: an untitled Round, Number only keeping a Lesson title, a GuideBook
+  card scrolled out of view); each was corrected and passes on its own.
+- Final working tree (Beta expiry 2 November, release texts):
+  `flutter analyze --no-pub`: no issues. All five generators' `--check`
+  (Laboratory, Edge Case, Piedmontese sorted, Piedmontese mixed, English
+  from Italian) and `tools/validate_courses.py` pass. Focused batch (Beta,
+  version pins, Timed): 34 passed.
+- **Complete suite** (`--concurrency=1`, keep-awake, `TEMP`/`TMP` on D:
+  because C: lacked room for the 300 MB Image Library fixture, 45 min 30 s):
+  **3605 passed, 1 skipped, 0 failed**.
+- Not covered by a test: a Timed timeout during the mistake review or while
+  the Review your mistakes message is open; the owner kept that behaviour
+  unchanged (3 October 2026).
+- After the suite `dart format` reformatted six changed files (no code
+  change); `flutter analyze` (no issues) and those files' tests plus the
+  source-reading Audit registry test (101 passed) were rerun.

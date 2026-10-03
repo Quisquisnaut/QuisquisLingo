@@ -153,8 +153,7 @@ class CourseService {
             course.publisherId != 'org.quisquislingo' ||
             course.publisherVerificationStatus !=
                 PublisherVerificationStatus.verified ||
-            CourseBackupService.officialContentChecksum(course) !=
-                course.officialChecksum) {
+            !CourseBackupService.officialContentChecksumMatches(course)) {
           throw const FormatException(
             'Bundled official course provenance or checksum is invalid.',
           );

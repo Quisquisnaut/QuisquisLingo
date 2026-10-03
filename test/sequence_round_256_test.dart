@@ -218,88 +218,15 @@ void main() {
   });
 
   group('Round editor', () {
-    testWidgets(
-      'Play as a sequence on a New Round: optional title, plain Round buttons, Sequence label',
-      (tester) async {
-        _bigWindow(tester);
-        final course = _course([
-          _round('round_one', [_select('q1', 'One?'), _select('q2', 'Two?')]),
-        ]);
-        Course? changed;
-        await tester.pumpWidget(
-          MaterialApp(
-            home: RoundEditorScreen(
-              course: course,
-              lesson: course.lessons.first,
-              round: _roundOf(course),
-              roundIndex: 0,
-              onCourseChanged: (value) => changed = value,
-              clock: () => _stamp,
-            ),
-          ),
-        );
-        await tester.pumpAndSettle();
-        await _tap(tester, find.byKey(const Key('round-story-switch')));
-
-        // A plain Round played in order: one exercise per page, every
-        // finished item kept when it scrolls, no title of its own yet.
-        final flow = _roundOf(changed!).flow!;
-        expect(flow.presentation, FlowPresentation.step);
-        expect(flow.log, FlowLog.all);
-        expect(flow.readAloud, FlowReadAloud.automatic);
-        expect(flow.title, isEmpty);
-        expect(_roundOf(changed!).isSequence, isTrue);
-        expect(_roundOf(changed!).displayTitle(0), 'Sequence: Numbers');
-        expect(find.text('Sequence: Numbers'), findsOneWidget);
-
-        expect(find.text('Optional sequence title'), findsOneWidget);
-        expect(find.text('Story title'), findsNothing);
-        expect(
-          tester
-              .widget<TextField>(find.byKey(const Key('round-story-title')))
-              .controller!
-              .text,
-          isEmpty,
-        );
-        expect(find.textContaining('Needs the sequence\'s audio'), findsOne);
-        expect(find.textContaining('Story'), findsNothing);
-        expect(find.byKey(const Key('round-story-steps')), findsNothing);
-        expect(find.byKey(const Key('round-add-step')), findsNothing);
-        for (final key in ['new-exercise', 'exercise-creation-wizard']) {
-          expect(find.byKey(Key(key)), findsOneWidget, reason: key);
-        }
-
-        await tester.enterText(
-          find.byKey(const Key('round-story-title')),
-          'Counting',
-        );
-        await tester.pumpAndSettle();
-        expect(_roundOf(changed!).flow!.title, 'Counting');
-        expect(_roundOf(changed!).title, 'Numbers');
-        expect(_roundOf(changed!).displayTitle(0), 'Sequence: Counting');
-
-        await _tap(tester, find.byKey(const ValueKey('exercise-actions-q1')));
-        expect(find.text('Needs the sequence\'s audio'), findsOneWidget);
-        final duplicate = tester.widget<PopupMenuItem<String>>(
-          find.widgetWithText(PopupMenuItem<String>, 'Duplicate'),
-        );
-        expect(duplicate.enabled, isTrue);
-        await tester.tapAt(const Offset(4, 4));
-        await tester.pumpAndSettle();
-
-        await _tap(tester, find.byKey(const Key('round-story-switch')));
-        expect(_roundOf(changed!).flow, isNull);
-        expect(_roundOf(changed!).displayTitle(0), 'Numbers');
-      },
-    );
-
-    testWidgets('a Story keeps its Story options and Add Step', (tester) async {
+    testWidgets('a Sequence Round has optional title and plain Round buttons', (
+      tester,
+    ) async {
       _bigWindow(tester);
       final course = _course([
         _round('round_one', [
-          _line('l1', 'Ciao.'),
           _select('q1', 'One?'),
-        ], visualType: LearningRound.storyVisualType),
+          _select('q2', 'Two?'),
+        ], flow: RoundFlowAuthoring.linearFor),
       ]);
       Course? changed;
       await tester.pumpWidget(
@@ -315,10 +242,85 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      await _tap(tester, find.byKey(const Key('round-story-switch')));
-      expect(_roundOf(changed!).isStory, isTrue);
-      expect(_roundOf(changed!).flow!.presentation, FlowPresentation.scroll);
-      expect(_roundOf(changed!).displayTitle(0), 'Story: Numbers');
+      expect(find.byKey(const Key('round-story-switch')), findsNothing);
+
+      // A plain Round played in order: one exercise per page, every
+      // finished item kept when it scrolls, no title of its own yet.
+      final flow = _roundOf(course).flow!;
+      expect(flow.presentation, FlowPresentation.step);
+      expect(flow.log, FlowLog.all);
+      expect(flow.readAloud, FlowReadAloud.automatic);
+      expect(flow.title, isEmpty);
+      expect(_roundOf(course).isSequence, isTrue);
+      expect(find.text('Sequence · Numbers'), findsOneWidget);
+
+      expect(find.text('Optional sequence title'), findsOneWidget);
+      expect(find.text('Story title'), findsNothing);
+      expect(
+        tester
+            .widget<TextField>(find.byKey(const Key('round-story-title')))
+            .controller!
+            .text,
+        isEmpty,
+      );
+      expect(find.textContaining('Needs the sequence\'s audio'), findsOne);
+      expect(find.textContaining('Story'), findsNothing);
+      expect(find.byKey(const Key('round-story-steps')), findsNothing);
+      expect(find.byKey(const Key('round-add-step')), findsNothing);
+      for (final key in ['new-exercise', 'exercise-creation-wizard']) {
+        expect(find.byKey(Key(key)), findsOneWidget, reason: key);
+      }
+
+      await tester.enterText(
+        find.byKey(const Key('round-story-title')),
+        'Counting',
+      );
+      await tester.pumpAndSettle();
+      expect(_roundOf(changed!).flow!.title, 'Counting');
+      expect(_roundOf(changed!).title, 'Numbers');
+      expect(_roundOf(changed!).displayTitle(0), 'Sequence: Counting');
+
+      await _tap(tester, find.byKey(const ValueKey('exercise-actions-q1')));
+      expect(find.text('Needs the sequence\'s audio'), findsOneWidget);
+      final duplicate = tester.widget<PopupMenuItem<String>>(
+        find.widgetWithText(PopupMenuItem<String>, 'Duplicate'),
+      );
+      expect(duplicate.enabled, isTrue);
+      await tester.tapAt(const Offset(4, 4));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('round-story-switch')), findsNothing);
+    });
+
+    testWidgets('a Story keeps its Story options and Add Step', (tester) async {
+      _bigWindow(tester);
+      final course = _course([
+        _round(
+          'round_one',
+          [_line('l1', 'Ciao.'), _select('q1', 'One?')],
+          visualType: LearningRound.storyVisualType,
+          flow: (content) => RoundFlowAuthoring.linearFor(
+            content,
+            presentation: FlowPresentation.scroll,
+          ),
+        ),
+      ]);
+      await tester.pumpWidget(
+        MaterialApp(
+          home: RoundEditorScreen(
+            course: course,
+            lesson: course.lessons.first,
+            round: _roundOf(course),
+            roundIndex: 0,
+            onCourseChanged: (_) {},
+            clock: () => _stamp,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('round-story-switch')), findsNothing);
+      expect(_roundOf(course).isStory, isTrue);
+      expect(_roundOf(course).flow!.presentation, FlowPresentation.scroll);
       expect(find.text('Story title'), findsOneWidget);
       expect(find.byKey(const Key('round-story-steps')), findsOneWidget);
       expect(find.byKey(const Key('round-add-step')), findsOneWidget);
@@ -411,7 +413,7 @@ void main() {
       ),
     );
     await _until(tester, find.text('Question 1'));
-    expect(find.text('Sequence: Numbers'), findsOneWidget);
+    expect(find.text('Sequence · Numbers'), findsOneWidget);
     expect(find.text('Sequence · 2 steps'), findsOneWidget);
     // In order, without a mistake review: a wrong answer moves on.
     await _tap(tester, find.widgetWithText(FilledButton, 'Wrong e1'));

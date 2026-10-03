@@ -80,12 +80,14 @@ class ProgressService {
   static const _wonDuelsKey = 'v4_won_duels';
   static const _seenGuidebooksKey = 'v4_seen_guidebooks';
   static const _recentRoundsKey = 'v4_recent_rounds';
+  static const _completedTimedLimitsKey = 'v4_completed_timed_limits';
   static const _courseProgressKeyBases = <String>[
     _completedRoundsKey,
     _perfectRoundsKey,
     _ttsSkippedPerfectRoundsKey,
     _completedLessonsKey,
     _wonDuelsKey,
+    _completedTimedLimitsKey,
     _seenGuidebooksKey,
   ];
 
@@ -168,6 +170,40 @@ class ProgressService {
     final p = await _prefs;
     return (p.getStringList(await _ck(_completedRoundsKey, courseId)) ?? [])
         .toSet();
+  }
+
+  String _timedLimitEntry(String roundId, int seconds) =>
+      '${Uri.encodeComponent(roundId)}:$seconds';
+
+  Future<Set<int>> getCompletedTimedLimits(
+    String roundId, {
+    required String courseId,
+  }) async {
+    final p = await _prefs;
+    final entries =
+        p.getStringList(await _ck(_completedTimedLimitsKey, courseId)) ??
+        const [];
+    final prefix = '${Uri.encodeComponent(roundId)}:';
+    return {
+      for (final entry in entries)
+        if (entry.startsWith(prefix))
+          if (int.tryParse(entry.substring(prefix.length)) case final int value)
+            value,
+    };
+  }
+
+  /// Records a first timely completion and unlocks the next authored limit.
+  Future<bool> claimTimedLimit(
+    String roundId,
+    int seconds, {
+    required String courseId,
+  }) async {
+    final p = await _prefs;
+    final key = await _ck(_completedTimedLimitsKey, courseId);
+    final entries = (p.getStringList(key) ?? const <String>[]).toSet();
+    if (!entries.add(_timedLimitEntry(roundId, seconds))) return false;
+    await p.setStringList(key, entries.toList());
+    return true;
   }
 
   Future<void> completeRound(

@@ -670,8 +670,7 @@ class CourseEditorService {
 
   static void _validateOfficialSource(Course course) {
     if (!course.originType.isOfficial ||
-        CourseBackupService.officialContentChecksum(course) !=
-            course.officialChecksum) {
+        !CourseBackupService.officialContentChecksumMatches(course)) {
       throw const FormatException('The official package checksum is invalid.');
     }
   }

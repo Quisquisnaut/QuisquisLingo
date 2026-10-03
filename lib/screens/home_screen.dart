@@ -18,6 +18,7 @@ import '../services/course_study.dart';
 import '../services/course_editor_service.dart';
 import '../services/publication_service.dart';
 import '../services/lesson_presentation_service.dart';
+import '../services/round_type_presentation.dart';
 import '../services/duel_eligibility_service.dart';
 import '../services/audio_exercise_availability_service.dart';
 import '../services/progress_service.dart';
@@ -2994,6 +2995,8 @@ class _LessonSection extends StatelessWidget {
         const _VerticalConnector(),
         LearnerRoundPath(
           courseId: courseId,
+          roundNumberingMode: course.roundNumberingMode,
+          customRoundLabel: course.customRoundLabel,
           rounds: lesson.rounds,
           completedRounds: completedRounds,
           perfectRounds: perfectRounds,
@@ -3470,6 +3473,8 @@ String learnerMascotAssetAtPosition(List<String> orderedAssets, int position) {
 
 class LearnerRoundPath extends StatefulWidget {
   final String courseId;
+  final RoundNumberingMode roundNumberingMode;
+  final String customRoundLabel;
   final List<LearningRound> rounds;
   final Set<String> completedRounds;
   final Set<String> perfectRounds;
@@ -3484,6 +3489,8 @@ class LearnerRoundPath extends StatefulWidget {
   const LearnerRoundPath({
     super.key,
     required this.courseId,
+    this.roundNumberingMode = RoundNumberingMode.off,
+    this.customRoundLabel = '',
     required this.rounds,
     required this.completedRounds,
     required this.perfectRounds,
@@ -3631,6 +3638,8 @@ class _LearnerRoundPathState extends State<LearnerRoundPath> {
                   child: _RoundNode(
                     round: widget.rounds[index],
                     roundNumber: index + 1,
+                    roundNumberingMode: widget.roundNumberingMode,
+                    customRoundLabel: widget.customRoundLabel,
                     completed: widget.completedRounds.contains(
                       widget.rounds[index].id,
                     ),
@@ -3696,6 +3705,8 @@ class _MascotDecoration extends StatelessWidget {
 class _RoundNode extends StatelessWidget {
   final LearningRound round;
   final int roundNumber;
+  final RoundNumberingMode roundNumberingMode;
+  final String customRoundLabel;
   final bool completed;
   final bool perfect;
   final bool ttsSkippedPerfect;
@@ -3705,6 +3716,8 @@ class _RoundNode extends StatelessWidget {
   const _RoundNode({
     required this.round,
     required this.roundNumber,
+    required this.roundNumberingMode,
+    required this.customRoundLabel,
     required this.completed,
     required this.perfect,
     required this.ttsSkippedPerfect,
@@ -3712,12 +3725,7 @@ class _RoundNode extends StatelessWidget {
     required this.onTap,
   });
 
-  IconData get _visualIcon => switch (round.visualType) {
-    'listening' => Icons.headphones_outlined,
-    'story' => Icons.auto_stories_outlined,
-    'test' => Icons.fact_check_outlined,
-    _ => Icons.school_outlined,
-  };
+  IconData get _visualIcon => RoundTypePresentation.icon(round.roundType);
 
   bool get _hasAudio =>
       audioAvailability != EffectiveRoundAudioAvailability.none;
@@ -3733,31 +3741,21 @@ class _RoundNode extends StatelessWidget {
     _ => 'Audio exercises are currently unavailable.',
   };
 
-  bool get _hasDescriptiveTitle {
-    if (round.flow != null) return true;
-    final title = round.title.trim();
-    return title.isNotEmpty &&
-        !RegExp(r'^(round|ronda)\s+\d+$', caseSensitive: false).hasMatch(title);
-  }
-
   /// The Round's name on one line (Build 261 Revision 0, owner decision of 1
   /// October 2026): "Round 2: " in normal weight before the title in bold,
   /// and "Story: " / "Sequence: " the same way; "Round" stays English. A
   /// Round without a title of its own shows "Round 2" alone, in bold.
   (String, String?) get _titleParts {
-    if (round.flow != null) {
-      final prefix = round.isStory
-          ? LearningRound.storyTitlePrefix
-          : LearningRound.sequenceTitlePrefix;
-      return (
-        prefix,
-        round.displayTitle(roundNumber - 1).substring(prefix.length),
-      );
-    }
-    if (_hasDescriptiveTitle) {
-      return ('Round $roundNumber: ', round.title.trim());
-    }
-    return ('Round $roundNumber', null);
+    final typeAndNumber = RoundTypePresentation.prefix(
+      round.roundType,
+      roundNumber,
+      roundNumberingMode,
+      customPrefix: customRoundLabel,
+    );
+    final authored = RoundTypePresentation.authoredTitle(round);
+    return authored.isEmpty
+        ? (typeAndNumber, null)
+        : ('$typeAndNumber · ', authored);
   }
 
   /// A little smaller than the former title line; it wraps up to three lines
@@ -3805,7 +3803,7 @@ class _RoundNode extends StatelessWidget {
   String get _status => perfect
       ? 'Perfect'
       : completed || ttsSkippedPerfect
-      ? 'Practice'
+      ? 'Completed'
       : 'Learn';
 
   @override

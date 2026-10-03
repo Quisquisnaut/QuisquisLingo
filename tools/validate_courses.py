@@ -32,6 +32,9 @@ EXPECTED_TTS = {
 }
 TEXT_MODES = {"exactText", "acceptedTexts", "expression"}
 ROUND_VISUAL_TYPES = {"listening", "story", "generic", "test"}
+ROUND_TYPES = {"discover", "practice", "sequence", "listening", "reading",
+               "story", "flashcard", "test", "timed", "speak"}
+ROUND_NUMBERING_MODES = {"off", "roundAndNumber", "numberOnly", "customAndNumber"}
 PUBLICATION_STATES = {"draft", "published"}
 LESSON_NUMBERING_MODES = {"lesson", "unit", "topic", "module", "skill", "chapter", "stage", "step", "part", "other", "numberOnly", "none"}
 LESSON_ICON_STYLES = {"monochrome", "coloredLessonNumbers"}
@@ -121,6 +124,10 @@ def validate(path: Path, global_ids: dict[str, str]) -> list[str]:
         issues.append("root: invalid publicationState")
     if data.get("lessonNumberingMode") not in LESSON_NUMBERING_MODES:
         issues.append("root: missing or invalid lessonNumberingMode")
+    if data.get("roundNumberingMode") not in ROUND_NUMBERING_MODES:
+        issues.append("root: missing or invalid roundNumberingMode")
+    if data.get("roundNumberingMode") == "customAndNumber" and not str(data.get("customRoundLabel", "")).strip():
+        issues.append("root: custom Round numbering needs a label")
     if data.get("defaultLessonIconStyle") not in LESSON_ICON_STYLES:
         issues.append("root: missing or invalid defaultLessonIconStyle")
     if data.get("originType") != "bundledOfficial":
@@ -558,6 +565,23 @@ def validate(path: Path, global_ids: dict[str, str]) -> list[str]:
                 issues.append(f"{round_where}: invalid publicationState")
             if round_data.get("visualType") not in ROUND_VISUAL_TYPES:
                 issues.append(f"{round_where}: invalid visualType")
+            round_type = round_data.get("roundType")
+            if round_type not in ROUND_TYPES:
+                issues.append(f"{round_where}: missing or invalid roundType")
+            if (round_type in {"story", "sequence"}) != isinstance(round_data.get("flow"), dict):
+                issues.append(f"{round_where}: roundType and flow disagree")
+            if round_type == "test":
+                if not isinstance(round_data.get("testFixedOrder", False), bool):
+                    issues.append(f"{round_where}: testFixedOrder must be boolean")
+                threshold = round_data.get("testPassingPercent")
+                if threshold is not None and (type(threshold) is not int or not 0 <= threshold <= 100):
+                    issues.append(f"{round_where}: testPassingPercent must be 0–100")
+            if round_type == "timed":
+                limits = round_data.get("timedLimitsSeconds")
+                if (not isinstance(limits, list) or not limits
+                        or any(type(value) is not int or not 30 <= value <= 600 for value in limits)
+                        or len(set(limits)) != len(limits)):
+                    issues.append(f"{round_where}: timedLimitsSeconds must contain distinct limits of 30–600 seconds")
             if "title" in round_data and not isinstance(round_data["title"], str):
                 issues.append(f"{round_where}: title must be a string")
             content_items = round_data.get("content")

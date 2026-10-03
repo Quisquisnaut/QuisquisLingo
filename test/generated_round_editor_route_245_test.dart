@@ -80,7 +80,7 @@ void main() {
       await tester.tap(find.text('Open generated Round'));
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
-      expect(find.text('Generated draft'), findsWidgets);
+      expect(find.text('Practice · Generated draft'), findsWidgets);
 
       expect(find.byKey(const Key('round-rename-action')), findsNothing);
 

@@ -36,10 +36,9 @@ class LessonPresentationService {
       LessonNumberingMode.numberOnly => '$number',
       LessonNumberingMode.none => null,
     };
-    final canonicalDefault = 'Lesson $number';
-    final deduplicated =
-        prefix != null &&
-        (lesson.title == prefix || lesson.title == canonicalDefault);
+    // A numbering choice may not hide an authored title. Avoid only the exact
+    // duplicate that would show the same text twice.
+    final deduplicated = prefix != null && lesson.title == prefix;
     final displayTitle = deduplicated ? prefix : lesson.title;
     return LessonIdentityPresentation(
       fullText: deduplicated || prefix == null

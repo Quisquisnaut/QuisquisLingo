@@ -302,11 +302,16 @@ void main() {
       await tester.ensureVisible(toggle);
       await tester.tap(toggle);
       await tester.pumpAndSettle();
+      await tester.drag(find.byType(ListView).first, const Offset(0, 1200));
+      await tester.pumpAndSettle();
       expect(
         tester.widget<AuthoringStatusCard>(ancestor).hasAuditConcern,
         isFalse,
       );
+      await tester.ensureVisible(toggle);
       await tester.tap(toggle);
+      await tester.pumpAndSettle();
+      await tester.drag(find.byType(ListView).first, const Offset(0, 1200));
       await tester.pumpAndSettle();
       expect(
         tester.widget<AuthoringStatusCard>(ancestor).hasAuditConcern,

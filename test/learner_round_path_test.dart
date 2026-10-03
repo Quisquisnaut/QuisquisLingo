@@ -550,7 +550,7 @@ void main() {
       (iconContainer.decoration! as BoxDecoration).color,
       const Color(0xFFFFB000),
     );
-    expect(find.text('Practice'), findsOneWidget);
+    expect(find.text('Completed'), findsOneWidget);
     expect(find.text('Perfect'), findsNothing);
   });
 
@@ -648,7 +648,7 @@ void main() {
       ),
       findsNothing,
     );
-    expect(find.text('Practice'), findsOneWidget);
+    expect(find.text('Completed'), findsOneWidget);
   });
 
   testWidgets('long Round title wraps up to three lines on a 320 px page', (
@@ -668,11 +668,11 @@ void main() {
       ),
     );
 
-    // One line since Build 261 Revision 0: "Round 1: " and the title.
+    // Numbering is Off: the type and author title share the line.
     final title = tester.widget<Text>(
       find.byKey(const ValueKey('unified-round-title-long-title-round')),
     );
-    expect(title.textSpan!.toPlainText(), 'Round 1: ${round.title}');
+    expect(title.textSpan!.toPlainText(), 'Practice · ${round.title}');
     expect(title.maxLines, 3);
     expect(title.overflow, TextOverflow.ellipsis);
     expect(tester.takeException(), isNull);
@@ -684,7 +684,7 @@ void main() {
       // Owner decision of 1 October 2026 (Build 261 Revision 0).
       final path = [
         LearningRound(id: 'titled', title: 'Pratica 1'),
-        LearningRound(id: 'untitled', title: 'Round 2'),
+        LearningRound(id: 'untitled', title: ''),
         LearningRound(
           id: 'story',
           title: 'Round three',
@@ -713,19 +713,19 @@ void main() {
       }
 
       expect(parts('titled'), (
-        'Round 1: ',
+        'Practice · ',
         FontWeight.normal,
         'Pratica 1',
         FontWeight.w800,
       ));
       expect(parts('story'), (
-        'Story: ',
+        'Story · ',
         FontWeight.normal,
         'Al bar',
         FontWeight.w800,
       ));
       expect(parts('sequence'), (
-        'Sequence: ',
+        'Sequence · ',
         FontWeight.normal,
         'Numbers',
         FontWeight.w800,
@@ -733,13 +733,13 @@ void main() {
       final untitled = tester.widget<Text>(
         find.byKey(const ValueKey('unified-round-title-untitled')),
       );
-      expect(untitled.data, 'Round 2');
+      expect(untitled.data, 'Practice');
       expect(untitled.style?.fontWeight, FontWeight.w800);
 
-      expect(find.byTooltip('Round 1: Pratica 1'), findsOneWidget);
-      expect(find.byTooltip('Story: Al bar'), findsOneWidget);
-      expect(find.byTooltip('Sequence: Numbers'), findsOneWidget);
-      expect(find.byTooltip('Round 2'), findsNothing);
+      expect(find.byTooltip('Practice · Pratica 1'), findsOneWidget);
+      expect(find.byTooltip('Story · Al bar'), findsOneWidget);
+      expect(find.byTooltip('Sequence · Numbers'), findsOneWidget);
+      expect(find.byTooltip('Practice'), findsNothing);
 
       // Slightly smaller than the former titleMedium (16) title line.
       final titled = tester.widget<Text>(

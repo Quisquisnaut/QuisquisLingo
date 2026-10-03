@@ -35,7 +35,7 @@ void main() {
           : 'Lesson 1',
       LessonNumberingMode.numberOnly: title == 'Greetings'
           ? '1: Greetings'
-          : '1',
+          : '1: Lesson 1',
       LessonNumberingMode.none: title,
     }.entries) {
       test('${entry.key.name} presents $title without changing it', () {

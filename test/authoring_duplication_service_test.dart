@@ -28,6 +28,7 @@ void main() {
       final source = LearningRound(
         id: 'round_source',
         title: 'Round',
+        roundType: RoundType.reading,
         content: [
           const LearningContent(
             id: 'note_source',
@@ -49,6 +50,7 @@ void main() {
       ).duplicateRound(source);
 
       expect(copy.id, isNot(source.id));
+      expect(copy.roundType, RoundType.reading);
       expect(
         copy.content.map((content) => content.id).toSet(),
         isNot(contains('note_source')),
@@ -171,6 +173,8 @@ void main() {
         title: 'Original',
         ttsLanguage: 'it-IT',
         courseDescription: 'Metadata',
+        roundNumberingMode: RoundNumberingMode.customAndNumber,
+        customRoundLabel: 'Step',
         authors: const [
           CourseAuthor(name: 'Source author', roles: ['Author']),
         ],
@@ -217,6 +221,8 @@ void main() {
       expect(copy.modifiedAtUtc, copiedAt.toIso8601String());
       expect(copy.title, 'Original copy');
       expect(copy.courseDescription, source.courseDescription);
+      expect(copy.roundNumberingMode, source.roundNumberingMode);
+      expect(copy.customRoundLabel, source.customRoundLabel);
       expect(copy.authors.single.toJson(), source.authors.single.toJson());
       expect(
         copy.rightsHolders.single.toJson(),

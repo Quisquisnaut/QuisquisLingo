@@ -26,7 +26,7 @@ class PublisherVerificationService {
       );
     }
     return utf8.encode(
-      'QQL-COURSE-SIGNATURE-V1\n${course.publisherId}\n$keyId\n${CourseChecksums.official(course)}\n',
+      'QQL-COURSE-SIGNATURE-V1\n${course.publisherId}\n$keyId\n${CourseChecksums.officialMatches(course) ? course.officialChecksum : CourseChecksums.official(course)}\n',
     );
   }
 
@@ -36,7 +36,7 @@ class PublisherVerificationService {
         'Only Publisher Courses use publisher signatures.',
       );
     }
-    if (CourseChecksums.official(course) != course.officialChecksum) {
+    if (!CourseChecksums.officialMatches(course)) {
       throw const FormatException(
         'The Publisher Course package checksum is invalid.',
       );

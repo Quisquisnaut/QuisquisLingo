@@ -383,7 +383,7 @@ class _CourseMergeScreenState extends State<CourseMergeScreen> {
             'Creator, Assigned Team, authors and roles, Rights Holders, license/'
             'derivative policy, language tags/text direction/TTS language, language '
             'variant, custom Lesson icons, and audio configuration/library must match. '
-            'Title, Publication state, Create Duels, Use GuideBooks, Lesson numbering/custom '
+            'Title, Publication state, Create Duels, Use GuideBooks, Lesson label and numbering/custom '
             'label, Section names, Buy a Coffee metadata, description, Flag and language '
             'levels may differ. '
             'The merge lets you choose Left or Right for each differing setting; either '
@@ -637,7 +637,7 @@ class _CourseMergeScreenState extends State<CourseMergeScreen> {
     if (widget.leftCourse.lessonNumberingMode != right.lessonNumberingMode ||
         widget.leftCourse.customLessonLabel != right.customLessonLabel)
       _sideChoice(
-        label: 'Lesson numbering',
+        label: 'Lesson label and numbering',
         value: _lessonNumberingSide,
         onChanged: (side) => setState(() => _lessonNumberingSide = side),
       ),

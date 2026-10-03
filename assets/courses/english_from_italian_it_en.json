@@ -844,7 +844,8 @@
                 }
               }
             }
-          ]
+          ],
+          "roundType": "practice"
         },
         {
           "id": "enit_65dce83b_l01_r02",
@@ -1243,7 +1244,8 @@
                 }
               }
             }
-          ]
+          ],
+          "roundType": "practice"
         },
         {
           "id": "enit_65dce83b_l01_r03",
@@ -1712,7 +1714,8 @@
                 }
               }
             }
-          ]
+          ],
+          "roundType": "practice"
         },
         {
           "id": "enit_65dce83b_l01_r04",
@@ -2159,7 +2162,8 @@
             "presentation": "scroll",
             "title": "Al bar",
             "log": "dialogue"
-          }
+          },
+          "roundType": "story"
         },
         {
           "id": "enit_65dce83b_l01_r05",
@@ -2602,7 +2606,8 @@
                 }
               }
             }
-          ]
+          ],
+          "roundType": "practice"
         },
         {
           "id": "enit_65dce83b_l01_r06",
@@ -2947,7 +2952,8 @@
                 }
               }
             }
-          ]
+          ],
+          "roundType": "practice"
         },
         {
           "id": "enit_65dce83b_l01_r07",
@@ -3291,7 +3297,8 @@
                 }
               }
             }
-          ]
+          ],
+          "roundType": "practice"
         },
         {
           "id": "enit_65dce83b_l01_r08",
@@ -3738,7 +3745,8 @@
             "presentation": "scroll",
             "title": "Alla stazione",
             "log": "dialogue"
-          }
+          },
+          "roundType": "story"
         }
       ],
       "duel": {
@@ -3747,6 +3755,7 @@
       }
     }
   ],
+  "roundNumberingMode": "off",
   "storyNarrator": {
     "name": "Narratore",
     "language": "source"
@@ -3781,5 +3790,5 @@
       "voice": "male"
     }
   ],
-  "officialChecksum": "00c1c2b1cf2dc4b3d80aa1a847f1ad05f436906d9cd5875e067c9b62c70139c1"
+  "officialChecksum": "b9f6fdefb3315163a25f11a05ece6b0b52c3c9b6560b36bc4d0b95732215ab78"
 }

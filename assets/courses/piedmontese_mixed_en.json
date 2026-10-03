@@ -361,6 +361,7 @@
           "publicationState": "published",
           "updatedAt": "2026-10-01T00:00:00.000Z",
           "visualType": "generic",
+          "roundType": "practice",
           "title": "Mixed practice 1",
           "content": [
             {
@@ -869,6 +870,7 @@
           "publicationState": "published",
           "updatedAt": "2026-10-01T00:00:00.000Z",
           "visualType": "generic",
+          "roundType": "practice",
           "title": "Mixed practice 2",
           "content": [
             {
@@ -1331,6 +1333,7 @@
           "publicationState": "published",
           "updatedAt": "2026-10-01T00:00:00.000Z",
           "visualType": "generic",
+          "roundType": "practice",
           "title": "Mixed practice 3",
           "content": [
             {
@@ -1725,6 +1728,7 @@
           "publicationState": "published",
           "updatedAt": "2026-10-01T00:00:00.000Z",
           "visualType": "generic",
+          "roundType": "practice",
           "title": "Mixed practice 4",
           "content": [
             {
@@ -2123,6 +2127,7 @@
           "publicationState": "published",
           "updatedAt": "2026-10-01T00:00:00.000Z",
           "visualType": "generic",
+          "roundType": "practice",
           "title": "Mixed practice 5",
           "content": [
             {
@@ -2540,6 +2545,7 @@
           "publicationState": "published",
           "updatedAt": "2026-10-01T00:00:00.000Z",
           "visualType": "generic",
+          "roundType": "practice",
           "title": "Mixed practice 6",
           "content": [
             {
@@ -2960,6 +2966,7 @@
           "publicationState": "published",
           "updatedAt": "2026-10-01T00:00:00.000Z",
           "visualType": "generic",
+          "roundType": "practice",
           "title": "Mixed practice 7",
           "content": [
             {
@@ -3378,6 +3385,7 @@
           "publicationState": "published",
           "updatedAt": "2026-10-01T00:00:00.000Z",
           "visualType": "generic",
+          "roundType": "practice",
           "title": "Mixed practice 8",
           "content": [
             {
@@ -3769,6 +3777,7 @@
           "publicationState": "published",
           "updatedAt": "2026-10-01T00:00:00.000Z",
           "visualType": "generic",
+          "roundType": "practice",
           "title": "Mixed practice 9",
           "content": [
             {
@@ -4162,6 +4171,7 @@
           "publicationState": "published",
           "updatedAt": "2026-10-01T00:00:00.000Z",
           "visualType": "generic",
+          "roundType": "practice",
           "title": "Mixed practice 10",
           "content": [
             {
@@ -4591,6 +4601,7 @@
           "publicationState": "published",
           "updatedAt": "2026-10-01T00:00:00.000Z",
           "visualType": "generic",
+          "roundType": "practice",
           "title": "Mixed practice 11",
           "content": [
             {
@@ -5080,6 +5091,7 @@
           "publicationState": "published",
           "updatedAt": "2026-10-01T00:00:00.000Z",
           "visualType": "generic",
+          "roundType": "practice",
           "title": "Mixed practice 12",
           "content": [
             {
@@ -5561,6 +5573,7 @@
           "publicationState": "published",
           "updatedAt": "2026-10-01T00:00:00.000Z",
           "visualType": "generic",
+          "roundType": "practice",
           "title": "Mixed practice 13",
           "content": [
             {
@@ -6036,6 +6049,7 @@
           "publicationState": "published",
           "updatedAt": "2026-10-01T00:00:00.000Z",
           "visualType": "generic",
+          "roundType": "practice",
           "title": "Mixed practice 14",
           "content": [
             {
@@ -6444,6 +6458,7 @@
           "publicationState": "published",
           "updatedAt": "2026-10-01T00:00:00.000Z",
           "visualType": "generic",
+          "roundType": "practice",
           "title": "Mixed practice 15",
           "content": [
             {
@@ -6765,6 +6780,7 @@
           "publicationState": "published",
           "updatedAt": "2026-10-01T00:00:00.000Z",
           "visualType": "generic",
+          "roundType": "practice",
           "title": "Mixed practice 16",
           "content": [
             {
@@ -7173,6 +7189,7 @@
           "publicationState": "published",
           "updatedAt": "2026-10-01T00:00:00.000Z",
           "visualType": "generic",
+          "roundType": "practice",
           "title": "Mixed practice 17",
           "content": [
             {
@@ -7503,6 +7520,7 @@
           "publicationState": "published",
           "updatedAt": "2026-10-01T00:00:00.000Z",
           "visualType": "generic",
+          "roundType": "practice",
           "title": "Mixed practice 18",
           "content": [
             {
@@ -7823,6 +7841,7 @@
           "publicationState": "published",
           "updatedAt": "2026-10-01T00:00:00.000Z",
           "visualType": "generic",
+          "roundType": "practice",
           "title": "Mixed practice 19",
           "content": [
             {
@@ -8112,6 +8131,7 @@
           "publicationState": "published",
           "updatedAt": "2026-10-01T00:00:00.000Z",
           "visualType": "generic",
+          "roundType": "practice",
           "title": "Mixed practice 20",
           "content": [
             {
@@ -8655,7 +8675,8 @@
             "presentation": "scroll",
             "title": "Al mercà",
             "log": "dialogue"
-          }
+          },
+          "roundType": "story"
         }
       ],
       "duel": {
@@ -8664,6 +8685,7 @@
       }
     }
   ],
+  "roundNumberingMode": "off",
   "storyNarrator": {
     "name": "Narrator",
     "language": "source"
@@ -8684,5 +8706,5 @@
       "voice": "female"
     }
   ],
-  "officialChecksum": "6197c42eb52e14b420deec97be76530d775c83a3935b15bf4b22df84104a2bfa"
+  "officialChecksum": "31f6d3b9208b7df66c19173067ce47af81edfe5a0e82c7c485c4ac89d4cb6330"
 }

@@ -435,7 +435,8 @@
                 }
               }
             }
-          ]
+          ],
+          "roundType": "practice"
         },
         {
           "id": "qql_lab254_round_select_gaps",
@@ -646,7 +647,8 @@
                 "hint": "Both subjects are one person."
               }
             }
-          ]
+          ],
+          "roundType": "practice"
         },
         {
           "id": "qql_lab254_round_select_visual",
@@ -1019,7 +1021,8 @@
                 }
               }
             }
-          ]
+          ],
+          "roundType": "practice"
         },
         {
           "id": "qql_lab254_round_select_context",
@@ -1374,7 +1377,8 @@
                 }
               }
             }
-          ]
+          ],
+          "roundType": "practice"
         },
         {
           "id": "qql_lab254_round_select_listening",
@@ -1537,7 +1541,8 @@
                 }
               }
             }
-          ]
+          ],
+          "roundType": "practice"
         },
         {
           "id": "qql_lab254_round_select_translation",
@@ -1854,7 +1859,8 @@
                 }
               }
             }
-          ]
+          ],
+          "roundType": "practice"
         },
         {
           "id": "qql_lab254_round_select_source",
@@ -2391,7 +2397,8 @@
                 }
               }
             }
-          ]
+          ],
+          "roundType": "practice"
         }
       ],
       "duel": {
@@ -2618,7 +2625,8 @@
                 }
               }
             }
-          ]
+          ],
+          "roundType": "practice"
         },
         {
           "id": "qql_lab254_round_input_ordered_variants",
@@ -2820,7 +2828,8 @@
                 }
               }
             }
-          ]
+          ],
+          "roundType": "practice"
         },
         {
           "id": "qql_lab254_round_input_gaps",
@@ -3094,7 +3103,8 @@
                 "hint": "The capital of Tuscany."
               }
             }
-          ]
+          ],
+          "roundType": "practice"
         },
         {
           "id": "qql_lab254_round_input_listening",
@@ -3367,7 +3377,8 @@
                 }
               }
             }
-          ]
+          ],
+          "roundType": "practice"
         },
         {
           "id": "qql_lab254_round_input_source_and_pictures",
@@ -3767,7 +3778,8 @@
                 }
               }
             }
-          ]
+          ],
+          "roundType": "practice"
         }
       ],
       "duel": {
@@ -4308,7 +4320,8 @@
                 "hint": "Include the article."
               }
             }
-          ]
+          ],
+          "roundType": "practice"
         },
         {
           "id": "qql_lab254_round_arrange_gaps",
@@ -4725,7 +4738,8 @@
                 }
               }
             }
-          ]
+          ],
+          "roundType": "practice"
         },
         {
           "id": "qql_lab254_round_arrange_translations",
@@ -5303,7 +5317,8 @@
                 }
               }
             }
-          ]
+          ],
+          "roundType": "practice"
         },
         {
           "id": "qql_lab254_round_arrange_images",
@@ -5596,7 +5611,8 @@
                 }
               }
             }
-          ]
+          ],
+          "roundType": "practice"
         },
         {
           "id": "qql_lab254_round_arrange_source_and_lines",
@@ -6265,7 +6281,8 @@
                 }
               }
             }
-          ]
+          ],
+          "roundType": "practice"
         }
       ],
       "duel": {
@@ -6735,7 +6752,8 @@
                 }
               }
             }
-          ]
+          ],
+          "roundType": "practice"
         },
         {
           "id": "qql_lab254_round_match_pictures",
@@ -6881,7 +6899,8 @@
                 }
               }
             }
-          ]
+          ],
+          "roundType": "practice"
         },
         {
           "id": "qql_lab254_round_match_audio",
@@ -7021,7 +7040,8 @@
                 }
               }
             }
-          ]
+          ],
+          "roundType": "practice"
         },
         {
           "id": "qql_lab254_round_match_opposites",
@@ -7161,7 +7181,8 @@
                 }
               }
             }
-          ]
+          ],
+          "roundType": "practice"
         }
       ],
       "duel": {
@@ -7329,7 +7350,8 @@
                 }
               }
             }
-          ]
+          ],
+          "roundType": "practice"
         },
         {
           "id": "qql_lab254_round_presentation_audio",
@@ -7490,7 +7512,8 @@
                 }
               }
             }
-          ]
+          ],
+          "roundType": "practice"
         },
         {
           "id": "qql_lab254_round_presentation_pictures_notes",
@@ -7671,7 +7694,8 @@
                 }
               }
             }
-          ]
+          ],
+          "roundType": "practice"
         }
       ],
       "duel": {
@@ -8210,7 +8234,8 @@
             "presentation": "scroll",
             "title": "Al bar",
             "log": "dialogue"
-          }
+          },
+          "roundType": "story"
         },
         {
           "id": "qql_lab254_round_story_options",
@@ -8498,7 +8523,8 @@
             "title": "Le opzioni",
             "log": "dialogue",
             "readAloud": "manual"
-          }
+          },
+          "roundType": "story"
         }
       ],
       "duel": {
@@ -9012,7 +9038,8 @@
                 }
               }
             }
-          ]
+          ],
+          "roundType": "practice"
         }
       ],
       "duel": {
@@ -9202,7 +9229,8 @@
                 }
               }
             }
-          ]
+          ],
+          "roundType": "practice"
         }
       ],
       "duel": {
@@ -9211,6 +9239,7 @@
       }
     }
   ],
+  "roundNumberingMode": "off",
   "storyNarrator": {
     "name": "Narrator",
     "language": "source"
@@ -9232,5 +9261,5 @@
     }
   ],
   "minimumAppBuild": 258000,
-  "officialChecksum": "ce49018e71157e116bf137f22622c303aea9f2ca3346ffb64d09fe593985bd36"
+  "officialChecksum": "00f0c2fc9da457effc8adcf8c3b31cf0ff36e8dde826d003dd18b87b5f94f742"
 }

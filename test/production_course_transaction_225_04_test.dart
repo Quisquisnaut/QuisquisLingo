@@ -452,6 +452,8 @@ void main() {
 
       await tester.tap(find.byKey(const Key('rounds-new-round')));
       await _settle(tester);
+      await tester.tap(find.byKey(const Key('new-round-type-practice')));
+      await _settle(tester);
       await tester.enterText(find.byType(TextFormField), 'Created round');
       await tester.tap(find.widgetWithText(FilledButton, 'Save'));
       await tester.pumpUntilFileIoState(

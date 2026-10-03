@@ -12,6 +12,7 @@ class LearningCompletionRequest {
   /// extraction. Concurrent completion requests for the same Course and Round
   /// share one in-flight operation, so these facts are consumed only once.
   final LearningCompletionAttemptFacts Function() readAttemptFacts;
+  final Future<bool> Function()? claimOnTimeBonus;
 
   const LearningCompletionRequest({
     required this.roundId,
@@ -20,6 +21,7 @@ class LearningCompletionRequest {
     required this.courseCode,
     this.completedLessonId,
     required this.readAttemptFacts,
+    this.claimOnTimeBonus,
   });
 }
 
@@ -212,6 +214,8 @@ class LearningCompletionService {
     }
 
     final scoringFacts = request.readAttemptFacts();
+    final firstOnTimeCompletion =
+        await request.claimOnTimeBonus?.call() ?? false;
     final roundXp = _xpCalculator.calculateRoundAward(
       RoundXpAwardContext(
         completed: true,
@@ -219,6 +223,7 @@ class LearningCompletionService {
         firstPassCorrect: scoringFacts.firstPassCorrect,
         wasCompletedAtStart: scoringFacts.wasCompletedAtStart,
         newlyEarnedLaurel: newlyEarnedLaurel,
+        firstOnTimeCompletion: firstOnTimeCompletion,
         evaluableExerciseCount: scoringFacts.evaluableExerciseCount,
         firstPassDifficulty: scoringFacts.firstPassDifficulty,
       ),

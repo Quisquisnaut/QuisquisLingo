@@ -791,6 +791,8 @@ void main() {
       expect(find.byKey(const Key('round-draft-indicator')), findsNothing);
       await tester.tap(find.text('New Round'));
       await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('new-round-type-practice')));
+      await tester.pumpAndSettle();
       final titleField = find.descendant(
         of: find.byType(AlertDialog),
         matching: find.byType(TextFormField),

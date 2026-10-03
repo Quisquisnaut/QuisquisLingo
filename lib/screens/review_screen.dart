@@ -5,6 +5,7 @@ import '../services/beta_lifecycle_service.dart';
 import '../services/course_language_resolver.dart';
 import '../services/learner_panel_text.dart';
 import '../services/review_round_resolver.dart';
+import '../services/round_type_presentation.dart';
 import '../services/vocabulary_review_service.dart';
 import '../widgets/beta_expired_view.dart';
 import 'round_screen.dart';
@@ -330,9 +331,12 @@ class _ReviewScreenState extends State<ReviewScreen> {
     final location = _location!;
     final entries = afterRound ? _postEntries : _preEntries;
     final entry = entries[_entryIndex];
-    final roundTitle = location.round.flow != null
-        ? location.round.displayTitle(location.roundIndex)
-        : location.round.title.trim();
+    final roundTitle = RoundTypePresentation.title(
+      location.round,
+      location.roundIndex + 1,
+      widget.course.roundNumberingMode,
+      customPrefix: widget.course.customRoundLabel,
+    );
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
       children: [

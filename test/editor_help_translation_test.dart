@@ -76,7 +76,7 @@ void main() {
       () {
         // Build 256 Revision 8: Editor Help is questions in seven topics (66;
         // 67 since Build 257's Before you start question, 68 with Build 258's
-        // Page question).
+        // Page question). Build 261 Revision 7 adds Round Types as an eighth.
         final english = editorHelpTopics(HelpLanguage.english);
         final italian = editorHelpTopics(HelpLanguage.italian);
         final spanish = editorHelpTopics(HelpLanguage.spanish);
@@ -89,12 +89,12 @@ void main() {
             for (final question in topic.questions)
               '${topic.id}.${question.id}',
         ];
-        expect(english, hasLength(7));
+        expect(english, hasLength(8));
         // Build 259 Revision 6 removed the Temporary Sample question.
         // Revision 8 added What is a Private course?
         // Build 260 Revisions 0 and 5 added the Course languages and
         // difficulty questions.
-        expect(ids(english), hasLength(70));
+        expect(ids(english), hasLength(82));
         expect(ids(italian), ids(english));
         expect(ids(spanish), ids(english));
         expect(managerEnglish, hasLength(14));
@@ -105,6 +105,7 @@ void main() {
           'Saving and versions',
           'Course settings',
           'Lessons and Rounds',
+          'Round Types',
           'Exercises',
           'Pictures and sound',
           'Checking the Course',

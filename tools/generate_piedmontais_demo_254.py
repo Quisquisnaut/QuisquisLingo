@@ -637,6 +637,10 @@ def build_course() -> dict:
     v11 = build_course_v11()
     v11["lessons"] = [*v11["lessons"], *story_lessons(len(v11["lessons"]) + 1)]
     course = convert_course_v11_to_v12(v11)
+    course["roundNumberingMode"] = "off"
+    for lesson in course["lessons"]:
+        for round_data in lesson["rounds"]:
+            round_data["roundType"] = "story" if round_data.get("flow") else "practice"
     course["storyNarrator"] = {"name": "Narrator", "language": "source"}
     course["storyCharacters"] = [
         {"id": f"{PREFIX}_character_gioanin", "name": "Gioanin", "avatar": "assets/avatars/kid.png",

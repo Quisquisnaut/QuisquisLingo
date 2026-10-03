@@ -78,14 +78,14 @@ void main() {
     await tester.enterText(find.byType(TextFormField), '');
     await tester.tap(find.widgetWithText(FilledButton, 'Save'));
     await tester.pumpAndSettle();
-    expect(find.text('Round 1'), findsOneWidget);
+    expect(find.text('1. Practice'), findsOneWidget);
 
     await tester.tap(find.byKey(const ValueKey('round-actions-round_a')));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Duplicate'));
     await tester.pumpAndSettle();
-    expect(find.text('Round 1'), findsOneWidget);
-    expect(find.text('Round 2'), findsOneWidget);
+    expect(find.text('1. Practice'), findsOneWidget);
+    expect(find.text('2. Practice'), findsOneWidget);
 
     await tester.pageBack();
     await tester.pumpAndSettle();

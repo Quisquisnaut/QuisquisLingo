@@ -136,9 +136,13 @@ const Map<String, String> helpIt = {
   "editorHelp.qa.customFlag.a":
       "Copia un PNG o un JPEG chiamato flag.png, flag.jpg o flag.jpeg in {folderCourseFlagImports} e premi Upload custom flag nel selettore di bandiere. Può pesare fino a 2 MB e misurare tra 64 × 40 e 4096 pixel. QQL la riduce a 256 pixel sul lato più lungo, mantiene la trasparenza del PNG e la salva dentro il Course.",
   "editorHelp.qa.lessonOptions.q":
-      "Dove sono Use GuideBook, Create Duels e Lesson numbering?",
+      "Dove sono Use GuideBook, Create Duels e le opzioni per le etichette?",
   "editorHelp.qa.lessonOptions.a":
-      "In Lesson Options, sotto il riquadro Lessons della pagina del Course Editor. Con Use GuideBook disattivato, gli studenti non vedono i GuideBook, il cui contenuto viene conservato; con Create Duels disattivato, non vedono i Duel. Lesson numbering sceglie la parola usata per le Lesson nell’Editor e per gli studenti. Nessuna di queste opzioni cancella contenuti, vittorie, completamenti o XP.",
+      "In Lesson Options, sotto il riquadro Lessons della pagina del Course Editor. Con Use GuideBook disattivato, gli studenti non vedono i GuideBook, il cui contenuto viene conservato; con Create Duels disattivato, non vedono i Duel. Lesson label and numbering e Round label and numbering cambiano la presentazione dei nomi. Nessuna di queste opzioni cancella contenuti, vittorie, completamenti o XP.",
+  "editorHelp.qa.labelsAndNumbering.q":
+      "Come funzionano Lesson label and numbering e Round label and numbering?",
+  "editorHelp.qa.labelsAndNumbering.a":
+      "Entrambi i selettori sono in Lesson Options. Ognuno offre Off, la propria etichetta + numero, Number only e Custom + number. Cambiano il prefisso visualizzato, non il titolo né l’ID. A ogni Lesson va assegnato un titolo; per un Round il titolo è facoltativo, perché il tipo gli dà comunque un nome. Un titolo assegnato resta visibile con ogni opzione, anche Off. I numeri seguono la posizione attuale e l’editor mostra sempre i numeri d’ordine. Nei vecchi Course un’etichetta Lesson scelta in passato resta valida finché non si sceglie una delle quattro opzioni attuali.",
   "editorHelp.qa.sections.q": "Come raggruppo le Lesson in Section?",
   "editorHelp.qa.sections.a":
       "In una Lesson, il selettore Section propone No section, i nomi esistenti, Add new section… e Manage sections…. Le Lesson consecutive con la stessa Section formano un solo blocco nel percorso dello studente. Una nuova Lesson prende la Section della Lesson che la precede. Un nome ancora usato da una Lesson non si può rimuovere. Le Section non hanno progressi né sblocchi propri.",
@@ -149,25 +153,60 @@ const Map<String, String> helpIt = {
   "editorHelp.qa.whoMayEdit.a":
       "Il suo Course Maintainer e tutti i membri del Team assegnato. Solo il Maintainer può passare la manutenzione a qualcun altro o assegnare o rimuovere il Team, e un Team conserva sempre almeno un Team Leader. Le altre persone possono fare un Fork del Course in Course Studio solo quando la sua licenza permette le opere derivate.",
   "editorHelp.qa.lessonsAndRounds.title": "Lesson e Round",
+  "editorHelp.qa.roundTypes.title": "Tipi di Round",
+  "editorHelp.qa.roundTypeContract.q": "Che cosa controlla il tipo di Round?",
+  "editorHelp.qa.roundTypeContract.a":
+      "Ogni Round ha un tipo che determina nome e icona nel percorso, suggerimenti nell’editor, controlli di pubblicazione e, per Sequence, Story, FlashCard e Test, il modo di giocare. Il comportamento degli esercizi dipende sempre dai dati canonici; i preset servono solo a crearli.",
+  "editorHelp.qa.discover.q": "Quando uso Discover?",
+  "editorHelp.qa.discover.a":
+      "Discover introduce parole, concetti, strutture o esempi. Puoi combinare spiegazioni, schede e primi esercizi guidati. Le domande hanno risposta immediata e normale ripasso degli errori.",
+  "editorHelp.qa.practice.q": "Quando uso Practice?",
+  "editorHelp.qa.practice.a":
+      "Practice è il Round generale di esercizi: normalmente mescola le domande, mostra subito la correzione e ripropone gli errori. I vecchi Round ordinari diventano Practice.",
+  "editorHelp.qa.listening.q": "Che cosa va in un Round Listen?",
+  "editorHelp.qa.listening.a":
+      "Ogni esercizio obbligatorio deve richiedere l’audio per rispondere. Il selettore propone preset compatibili e resta disponibile l’editor canonico. Un audio facoltativo non basta. L’editor avvisa e l’Audit blocca i contenuti incompatibili.",
+  "editorHelp.qa.reading.q": "Che cosa va in un Round Read?",
+  "editorHelp.qa.reading.a":
+      "Ogni esercizio obbligatorio deve avere un testo da leggere e una domanda verificabili. Una risposta copiata dal testo non basta. Il selettore propone preset di lettura e l’editor canonico; l’Audit blocca la pubblicazione incompatibile.",
+  "editorHelp.qa.flashcardRound.q": "Che cos’è un Round FlashCard?",
+  "editorHelp.qa.flashcardRound.a":
+      "Contiene solo Flashcard o Picture Flashcard valide con termine e significato. Le schede avanzano una alla volta, senza giudizio di correttezza né normale ripasso degli errori. L’Audit rifiuta altri contenuti.",
+  "editorHelp.qa.testRound.q": "Come funziona un Test?",
+  "editorHelp.qa.testRound.a":
+      "Un Test accetta solo esercizi valutabili. Lo studente risponde a tutte le domande senza vedere correzioni, poi vede i risultati. Puoi fissare o mescolare l’ordine e impostare una percentuale di superamento facoltativa. La soglia cambia solo l’etichetta dei risultati: completamento, XP, sblocchi e Laurel restano normali. Anteprima e uscita anticipata non registrano nulla.",
+  "editorHelp.qa.timedRound.q": "Come funziona un Round Timed?",
+  "editorHelp.qa.timedRound.a":
+      "Scegli Timed in New Round, imposta un limite fra 30 secondi e 10 minuti e aggiungi esercizi compatibili. In Lesson Options puoi impostare limiti Timed predefiniti per il Corso: ogni nuovo Round Timed li copia, mentre i Round esistenti conservano i propri. Nell’editor del Round puoi aggiungere limiti diversi e ordinarli. Il limite successivo si sblocca dopo il primo completamento in tempo del precedente. Il conto alla rovescia parte quando inizia il gioco, dopo l’eventuale Before you start. Se il tempo scade, l’input si blocca, gli XP delle risposte corrette restano e il Round rimane incompleto: puoi riprovare. Completare prima dello zero dà gli XP normali e, una sola volta per ciascun limite, un bonus On Time separato di 10 XP. L’Audit blocca limiti assenti, ripetuti o non validi e contenuti che non possono finire in modo affidabile.",
+  "editorHelp.qa.speakRound.q": "Posso creare un Round Speak?",
+  "editorHelp.qa.speakRound.a":
+      "Speak appare per ultimo in New Round come Coming soon e non si può scegliere. Un Round Speak importato resta leggibile ma non pubblicabile né giocabile in questa versione.",
+  "editorHelp.qa.roundCompatibility.q":
+      "Come vengono controllati gli esercizi?",
+  "editorHelp.qa.roundCompatibility.a":
+      "Il selettore filtra i preset suggeriti, ma il controllo finale legge l’esercizio canonico. Puoi salvare come Draft un Round incompleto; l’Audit blocca la pubblicazione di Listen, Read, FlashCard, Test, Story, Sequence o Speak incompatibili.",
+  "editorHelp.qa.roundNumbering.q": "Come funzionano i numeri dei Round?",
+  "editorHelp.qa.roundNumbering.a":
+      "Round label and numbering in Lesson Options offre Off, Round + number, Number only e Custom + number. Con Off restano visibili il tipo e il titolo, per esempio «Practice · Saluti». Il numero segue la posizione nella Lesson, mai l’ID o il progresso. Nell’editor i numeri d’ordine sono sempre visibili.",
   "editorHelp.qa.newRound.q": "Come aggiungo un Round?",
   "editorHelp.qa.newRound.a":
-      "Nella pagina Rounds di una Lesson premi New Round. Un nuovo Round è un Draft provvisorio con un esercizio di esempio (Pick the translation) da sostituire. Il titolo può restare vuoto: in quel caso il Round si chiama Round N, secondo la sua posizione.",
+      "Nella pagina Rounds di una Lesson premi New Round e scegli il tipo; Speak non è ancora disponibile. Story apre il suo Wizard; gli altri tipi iniziano come Draft provvisori, con un esempio solo per Discover, Practice e Sequence. Il titolo può restare vuoto: lo studente vede comunque il tipo. Round Wizard resta accanto a New Round per creare più Round.",
   "editorHelp.qa.beforeYouStart.q":
       "Come scrivo la nota Before you start di un Round?",
   "editorHelp.qa.beforeYouStart.a":
       "Aggiungi una scheda Before you start: New Exercise nell’editor del Round, poi scegli Before you start (Cards and notes). Scrivi la nota e, se il Corso usa i GuideBook, attiva Open GuideBook button. La scheda va per prima nel Round; gli studenti la leggono su una pagina a sé prima che il Round inizi, mai in Review. Modificala, pubblicala o eliminala come qualsiasi esercizio. Il Round Wizard aggiunge una scheda in Draft al primo Round che crea, e l’Audit segnala una Lesson il cui primo Round non ne ha.",
   "editorHelp.qa.roundWizard.q": "Come crea i Round il Round Wizard?",
   "editorHelp.qa.roundWizard.a":
-      "Premi Round Wizard nella pagina Rounds; richiede Use GuideBook attivo. Costruisce i Round a partire dalle coppie di vocaboli e dagli esempi del GuideBook della Lesson (almeno tre coppie). Scegli da 1 a 12 Round e da 1 a 15 esercizi per Round (6 e 8 di partenza) e rivedi il piano: i primi Round puntano sul riconoscimento, i successivi sulla costruzione e sulla produzione. Crea solo esercizi da preset, ciascuno dei quali si apre nel modulo del suo preset, e i suoi Round restano Draft finché non li rivedi e li approvi.",
-  "editorHelp.qa.sequence.q": "Che cosa fa Play as a sequence?",
+      "Premi Round Wizard nella pagina Rounds; richiede Use GuideBook attivo. Costruisce i Round a partire dalle coppie di vocaboli e dagli esempi del GuideBook della Lesson (almeno tre coppie). Scegli da 1 a 12 Round e da 1 a 15 esercizi per Round (6 e 8 di partenza) e rivedi i tipi proposti e la difficoltà crescente. Puoi cambiare il tipo prima di generare, quando il GuideBook offre esercizi compatibili. Crea solo esercizi da preset, ciascuno dei quali si apre nel modulo del suo preset, e i suoi Round restano Draft finché non li rivedi e li approvi.",
+  "editorHelp.qa.sequence.q": "Che cos’è un Round Sequence?",
   "editorHelp.qa.sequence.a":
-      "In un Round creato con New Round, fa giocare gli esercizi nell’ordine che hai stabilito, senza mescolarli e senza il ripasso finale degli errori. Optional sequence title gli dà un nome: gli elenchi, il percorso dello studente e la schermata del Round lo chiamano “Sequence: <title>”, oppure “Sequence: <Round name>” se il titolo manca. Conserva New Exercise ed Exercise Wizard, riceve le regole dell’Audit per i Round e i suoi esercizi contano per il Duel. Scegli Step by step o Scrolling.",
+      "Scegli Sequence in New Round. Il flusso lineare riproduce gli esercizi nell’ordine scritto, senza mescolarli né ripassare gli errori. Il titolo facoltativo del flusso compare nelle schermate dello studente. Restano New Exercise ed Exercise Wizard; le domande idonee possono entrare nel Duel. Scegli Step by step o Scrolling nell’editor.",
   "editorHelp.qa.story.q": "Che cos’è una Story?",
   "editorHelp.qa.story.a":
-      "Un Round giocato in ordine: un blocco titolo (la copertina), battute dette dal narratore o dai personaggi, ed esercizi su di esse. Gli elenchi la chiamano “Story: <title>”. Solo gli esercizi danno punteggio; segue le regole di XP, completamento e Laurel di un Round di pratica, e i suoi esercizi restano fuori dal Duel.",
+      "Una Story è un Round narrativo ordinato con copertina, battute ed esercizi di comprensione. Solo gli esercizi valutabili danno punti; completamento, XP e Laurel seguono le regole normali. Le domande della Story restano fuori dal Duel.",
   "editorHelp.qa.newStory.q": "Come costruisco una Story?",
   "editorHelp.qa.newStory.a":
-      "Premi New Story nella pagina Rounds (non richiede un GuideBook). Indica il titolo, l’immagine di copertina e se le battute si leggono ad alta voce automaticamente o a richiesta; controlla il narratore e i personaggi del Course, che puoi aggiungere o modificare; poi costruisci i passi con Add line e Add exercise. Finish richiede almeno una battuta e aggiunge la Story alla copia di lavoro.",
+      "Premi New Round → Story (senza bisogno di GuideBook). Indica titolo, copertina e lettura ad alta voce, controlla narratore e personaggi del Course, poi costruisci i passi con Add line e Add exercise. Finish richiede almeno una battuta e aggiunge la Story alla copia di lavoro.",
   "editorHelp.qa.editStory.q": "Come modifico una Story in seguito?",
   "editorHelp.qa.editStory.a":
       "Apri il suo Round. Add Step propone Title block (uno per Story), Dialogue line ed Exercise. Le opzioni della Story impostano il titolo, Step by step o Scrolling, che cosa conserva il registro dello scorrimento (Dialogue only o Everything) e la lettura ad alta voce. “Needs the Story's audio” nel menu di un esercizio segna un esercizio che viene saltato quando Audio Exercises è disattivato; le battute non vengono mai saltate.",
@@ -194,7 +233,7 @@ const Map<String, String> helpIt = {
       "In un Round, New Exercise apre la scelta dei preset: scegli un tipo di esercizio, come Pick the translation o Name what you see, e compila il suo modulo. L’ultima voce, Canonical editor, apre l’editor canonico per qualsiasi primitiva; Fill with an example vi mette un esempio funzionante della primitiva scelta e Clear all lo svuota di nuovo; il suo pulsante Help apre la sezione di quella primitiva nel riferimento Exercise primitives. Il nome del preset compare in grassetto in cima al modulo.",
   "editorHelp.qa.pageCards.q": "Come creo una Page simile a un libro di testo?",
   "editorHelp.qa.pageCards.a":
-      "Nell’editor del Round premi New Exercise e scegli Page (Cards and notes). Aggiungi blocchi con Add block: titoli, paragrafi, citazioni o esempi, elenchi puntati o numerati, immagini, audio e link video; ordinali con le frecce. Nel testo scrivi **grassetto** e *corsivo* (la barra degli strumenti avvolge la selezione). Ogni blocco di testo ha un allineamento, un colore della tavolozza e una lettura ad alta voce facoltativa; ogni immagine una dimensione, un allineamento e una didascalia. Un link video apre un indirizzo https nel browser dello studente. L’anteprima sotto i blocchi mostra la Page come la vede lo studente. Più pagine di seguito sono più schede Page; attiva Play as a sequence per mantenerne l’ordine. Sotto ogni Page gli studenti trovano Share, Save PDF e Print (sui computer Print apre il PDF nel visualizzatore, che lo stampa); il PDF cita il Corso, il titolare dei diritti e la licenza. Puoi disattivarli in Course Info con Learners may share, save and print pages.",
+      "Nell’editor del Round premi New Exercise e scegli Page (Cards and notes). Aggiungi blocchi con Add block: titoli, paragrafi, citazioni o esempi, elenchi puntati o numerati, immagini, audio e link video; ordinali con le frecce. Nel testo scrivi **grassetto** e *corsivo* (la barra degli strumenti avvolge la selezione). Ogni blocco di testo ha un allineamento, un colore della tavolozza e una lettura ad alta voce facoltativa; ogni immagine una dimensione, un allineamento e una didascalia. Un link video apre un indirizzo https nel browser dello studente. L’anteprima sotto i blocchi mostra la Page come la vede lo studente. Più pagine di seguito sono più schede Page; scegli un Round Sequence per mantenerne l’ordine. Sotto ogni Page gli studenti trovano Share, Save PDF e Print (sui computer Print apre il PDF nel visualizzatore, che lo stampa); il PDF cita il Corso, il titolare dei diritti e la licenza. Puoi disattivarli in Course Info con Learners may share, save and print pages.",
   "editorHelp.qa.presetOrCanonical.q":
       "Che differenza c’è tra un preset e l’editor canonico?",
   "editorHelp.qa.presetOrCanonical.a":
@@ -618,9 +657,6 @@ const Map<String, String> helpIt = {
   "technical.exercisePrimitives.canonicalEditor.title": "L’editor canonico",
   "technical.exercisePrimitives.canonicalEditor.body":
       "L’editor canonico (New Exercise › Canonical editor) mostra ogni campo canonico di qualsiasi primitiva con i valori ammessi dal registro delle capacità: Primitive, Options, Prompt, Items, Targets, Layout, Evaluation per modalità, Feedback e hint. Dice se questa versione può giocare l’esercizio, rifiuta le combinazioni rifiutate dal registro, mostra l’anteprima con il runtime dello studente e salva come un modulo preset (Save as draft, oppure Save con l’Audit). Un esercizio che nessun preset rappresenta si apre lì. Role è un menu dei ruoli che QQL legge per il tipo dell’elemento, con a che cosa serve ciascuno; un ruolo salvato fuori dall’elenco resta ed è segnalato. Un esercizio nuovo ha Fill with an example e Clear all (torna ai valori predefiniti della primitiva); se cambi la primitiva con dei campi già compilati, un messaggio ti chiede di controllarli. La prima volta che una primitiva si apre in un corso, un popup la spiega (una volta per utente e corso; Show one-time notices again lo fa tornare), e il pulsante Help apre la sua sezione in questa pagina.",
-  "technical.exercisePrimitives.stories.title": "Storie",
-  "technical.exercisePrimitives.stories.body":
-      "Un Round con un flusso di contenuti si gioca nell’ordine scritto: è una Story quando il suo tipo visivo è story (lo crea New Story), altrimenti una sequenza (un Round creato con New Round). Play as a sequence nell’editor del Round dà al Round un flusso lineare: i suoi esercizi si giocano nell’ordine scritto, senza mescolarli e senza ripasso degli errori; XP, completamento, Laurel e Review funzionano come in un Round di pratica. Gli esercizi di una sequenza entrano nel Duel e l’Audit le applica le regole dei Round; quelli di una Story restano fuori dal Duel. Modificare, spostare, copiare e duplicare una Story ne conserva il flusso. I flussi con diramazioni (onCorrect, onIncorrect, onChoice, conditional) vengono salvati e controllati ma non sono giocabili in questa versione. Una Story si mostra Step by step (un elemento per pagina) oppure Scrolling (gli elementi finiti restano nella pagina con la risposta dello studente, il successivo compare sotto e la pagina scorre fino a lì), a scelta sotto l’interruttore della Story. Build 256 Revision 5 aggiunge i preset Dialogue line e Story cover, il titolo della Story, le opzioni del registro di scorrimento e di lettura ad alta voce, gli esercizi segnati come bisognosi dell’audio della Story, il narratore e i personaggi come dati del Course (storyNarrator, storyCharacters, speakerId sugli elementi, l’opzione textReveal) e lo Story Wizard; vedi Storie e Story Wizard nell’Editor Help.",
   "technical.jsonStructure.title": "Struttura dati JSON",
   "technical.jsonStructure.status.title": "Stato",
   "technical.jsonStructure.status.body":
@@ -633,7 +669,7 @@ const Map<String, String> helpIt = {
       "Ogni Lesson contiene un guidebook con publicationState facoltativo e guidebook.content[] strutturato, per esempio explanation, vocabulary ed example. Senza publicationState, il GuideBook si considera pubblicato; draft esplicito lo esclude dalla consegna allo studente. L’Internal ID mostrato deriva dall’ID immutabile della Lesson con suffisso _guidebook; non viene salvato un campo ID aggiuntivo. Il Content del GuideBook conserva i propri ID stabili. L’interruttore useGuidebook del Course cambia l’accesso dello studente e il Warning per GuideBook vuoto, mai il contenuto salvato.",
   "technical.jsonStructure.lessonAndRound.title": "Lesson e Round",
   "technical.jsonStructure.lessonAndRound.body":
-      "Course, Lesson, GuideBook, Round e Content di tipo Exercise scritto nell’Editor hanno stato draft/published. GuideBook è published per impostazione predefinita se lo stato facoltativo manca. Lesson, Round ed Exercise richiedono anche timestamp UTC updatedAt. Un Course salva la numerazione delle Lesson, un valore compatibile con il vecchio ripiego per l’icona e gli eventuali asset gestiti delle icone Lesson personalizzate. Entrambi i valori precedenti ammessi disegnano lo stesso cerchio numerato nel colore del tema. Una Lesson contiene lessonId, title, Section facoltativa, metadati themeIconAsset, guidebook, rounds[] e identità del Duel. GuideBook può contenere sezioni Insights ordinate con Title e Text. Il titolo del Round è facoltativo e, se manca, usa ovunque la posizione corrente Round N senza cambiare identità.",
+      "Course, Lesson, GuideBook, Round e Content di tipo Exercise scritto nell’Editor hanno stato draft/published. GuideBook è published per impostazione predefinita se lo stato facoltativo manca. Lesson, Round ed Exercise richiedono anche timestamp UTC updatedAt. Un Course salva Lesson label and numbering, Round label and numbering, un valore compatibile con il vecchio ripiego per l’icona e gli eventuali asset gestiti delle icone Lesson personalizzate. Entrambi i valori precedenti ammessi disegnano lo stesso cerchio numerato nel colore del tema. Una Lesson contiene lessonId, un titolo obbligatorio, Section facoltativa, metadati themeIconAsset, guidebook, rounds[] e identità del Duel. GuideBook può contenere sezioni Insights ordinate con Title e Text. Il titolo del Round è facoltativo; se manca, il tipo gli dà comunque un nome senza cambiarne l’identità.",
   "technical.jsonStructure.exerciseContent.title": "Exercise Content",
   "technical.jsonStructure.exerciseContent.body":
       "Exercise Content salva editorTemplate insieme a exercise.prompt[], exercise.interaction e exercise.evaluation. La correttezza usa ID stabili degli Item, non gli indici mostrati. Build the translation salva uno o più correctOrders letterali con testo della risposta e ID degli Item ordinati; il vecchio correctOrder viene rifiutato.",
@@ -872,7 +908,7 @@ const Map<String, String> helpIt = {
   "exerciseHelp.preset.page.body":
       "Una pagina che lo studente legge e poi continua, fatta di blocchi: titoli, paragrafi, citazioni o esempi, elenchi puntati o numerati, immagini, audio e link video. Nel testo scrivi **grassetto** e *corsivo* (la barra degli strumenti avvolge la selezione); scegli per ogni blocco l’allineamento (inizio, centro, fine, giustificato per il testo) e un colore da una tavolozza leggibile nel tema chiaro e in quello scuro; un blocco di testo può offrire la lettura ad alta voce. Le immagini sono piccole, medie, grandi o a tutta larghezza, con didascalia; un link video apre un indirizzo https nel browser. Nessuna risposta, nessun punteggio.",
   "exerciseHelp.preset.story_cover.body":
-      "La prima scheda di una Storia. Scegli l’immagine di copertina e, se vuoi, una riga di titolo; il titolo della Storia dalle opzioni del Round appare sopra. Lo studente preme Continue. Crea le Storie con lo Story Wizard o attivando Play as a sequence nell’editor del Round.",
+      "La prima scheda di una Storia. Scegli l’immagine di copertina e, se vuoi, una riga di titolo; il titolo della Storia dalle opzioni del Round appare sopra. Lo studente preme Continue. Crea una Story con New Round → Story.",
   "exerciseHelp.preset.note_card.body":
       "Una scheda con un titolo e una nota: un consiglio, un punto di grammatica, un’osservazione culturale. Lo studente la legge e preme Continue; non c’è risposta, punteggio né audio. Scrivi nella lingua che i tuoi studenti leggono meglio.",
   "exerciseHelp.preset.gap_choice.body":

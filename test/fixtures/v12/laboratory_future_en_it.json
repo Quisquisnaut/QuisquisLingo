@@ -86,6 +86,7 @@
           "updatedAt": "2026-09-25T00:00:00.000Z",
           "title": "Speak",
           "visualType": "generic",
+          "roundType": "practice",
           "content": [
             {
               "id": "qql_labfuture_intro_speak",
@@ -167,6 +168,7 @@
           "updatedAt": "2026-09-25T00:00:00.000Z",
           "title": "Ink and Submit",
           "visualType": "generic",
+          "roundType": "practice",
           "content": [
             {
               "id": "qql_labfuture_intro_ink_submit",
@@ -245,6 +247,7 @@
           "updatedAt": "2026-09-25T00:00:00.000Z",
           "title": "A Story that ends on speech",
           "visualType": "story",
+          "roundType": "story",
           "content": [
             {
               "id": "qql_labfuture_intro_ends",
@@ -386,6 +389,7 @@
           "updatedAt": "2026-09-25T00:00:00.000Z",
           "title": "A branching Story",
           "visualType": "story",
+          "roundType": "story",
           "content": [
             {
               "id": "qql_labfuture_intro_branching",
@@ -635,6 +639,7 @@
       }
     }
   ],
+  "roundNumberingMode": "off",
   "storyNarrator": {
     "name": "Narrator",
     "language": "source"
@@ -655,5 +660,5 @@
       "voice": "male"
     }
   ],
-  "officialChecksum": "8ffe7ba5e194fddaa12e144b1c2a5bdf5f23f5648234943496282f24a1baf0bf"
+  "officialChecksum": "e4edd06dff035c864989dc8a840be83dba572adf1d8763cd970f117788ed6229"
 }

@@ -409,8 +409,8 @@ void main() {
         expect(course.formatVersion, 12, reason: entry.key);
         expect(course.courseId, entry.value, reason: entry.key);
         expect(
-          course.officialChecksum,
-          CourseChecksums.official(course),
+          CourseChecksums.officialMatches(course),
+          isTrue,
           reason: entry.key,
         );
       }
@@ -534,8 +534,8 @@ void main() {
             }
           }
           expect(
-            shipped.officialChecksum,
-            CourseChecksums.official(shipped),
+            CourseChecksums.officialMatches(shipped),
+            isTrue,
             reason: file,
           );
         }

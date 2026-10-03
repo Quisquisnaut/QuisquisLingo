@@ -93,7 +93,7 @@ void main() {
       find.byKey(ValueKey('unified-lesson-locked-${lesson.lessonId}')),
       findsNothing,
     );
-    expect(find.text('Practice'), findsNothing);
+    expect(find.text('Completed'), findsNothing);
     expect(find.text('Perfect'), findsNothing);
     // The Draft Round is on the path.
     final draftRound = lesson.rounds[1];

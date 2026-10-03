@@ -1,3 +1,51 @@
+# 2.0.61 (Build 261, Revision 7) - Round Types - 2026-10-03
+
+Owner plan `docs/QQL_Round_Types_Redesign_Plan.md` and decisions of
+3 October 2026; implementation plan
+`docs/superpowers/plans/2026-10-03-round-types-redesign.md`.
+
+- **Every Round has a type**: Discover, Practice, Sequence, Listen, Read,
+  Story, FlashCard, Test and Timed (Speak is shown, disabled, as coming
+  later). The type is stored with the Round and drives its icon, its label
+  on the learner path, the exercises the editor offers and the Audit.
+- **Existing Rounds keep working**: a Story or a sequence keeps its type,
+  a Round marked Listening becomes Listen only when every required exercise
+  depends on its audio, and every other Round becomes Practice (an old Test
+  icon could not prove a Test's behaviour). Official Courses signed before
+  this version stay verified.
+- **New Round asks for the type**; New Story and the Play as a sequence
+  switch are gone (Story and Sequence are types). The Round Wizard shows a
+  type for each proposed Round and replans its exercises when the type
+  changes.
+- **Compatibility**: the exercise list of a Listen, Read, FlashCard, Test
+  or Timed Round shows only exercises that fit it (Canonical editor always
+  available, with a warning when the exercise does not fit). A Draft may
+  hold anything; publishing an incompatible Round is blocked by the Audit.
+- **Test** shows no feedback until the end, then every result; an optional
+  passing threshold changes only the result's label. Completion and XP are
+  unchanged.
+- **Timed**: one or more time limits (30 seconds to 10 minutes, distinct,
+  in order; presets 30 s to 5 min or Custom). The countdown starts with the
+  first exercise. Finishing in time completes the Round as usual, unlocks
+  the next limit and adds a 10 XP **On Time** bonus the first time each
+  limit is beaten, shown on its own line. When time runs out, input stops,
+  the correct answers so far earn their XP, and the Round stays incomplete
+  until retried. Lesson Options can hold the Course's default limits,
+  copied into each new Timed Round.
+- **Lesson label and numbering** (Off, Lesson + number, Number only,
+  Custom + number) and **Round label and numbering** (Off, Round + number,
+  Number only, Custom + number) sit together in Lesson Options. Titles
+  always stay visible; Lesson titles remain required, Round titles
+  optional.
+- The learner path says **Completed** for a completed Round that was not
+  perfect, so "Practice" no longer appears as both a type and a status.
+- **Editor Help** has a Round Types topic (English, Italian, Spanish) and
+  a question on the two label and numbering selectors; the Stories section
+  leaves the Exercise primitives page.
+
+Scoring and progression are unchanged except for Timed. Beta expiry
+`2026-11-02 23:59:59` local time.
+
 # 2.0.61 (Build 261, Revision 6) - The canonical editor explains its primitives - 2026-10-02
 
 Owner request and decisions of 2 October 2026.

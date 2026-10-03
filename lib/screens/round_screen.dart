@@ -22,11 +22,14 @@ import '../services/progress_service.dart';
 import '../services/exercise_difficulty.dart';
 import '../services/learner_panel_text.dart';
 import '../services/learning_completion_service.dart';
+import '../services/xp_calculator.dart';
+import '../services/timed_round_rules.dart';
 import '../services/report_service.dart';
 import '../services/tts_cache_service.dart';
 import '../services/settings_service.dart';
 import '../services/course_service.dart';
 import '../services/round_playability_service.dart';
+import '../services/round_type_presentation.dart';
 import '../services/sound_effect_service.dart';
 import '../services/recorded_audio_service.dart';
 import '../services/exercise_copy_service.dart';
@@ -64,6 +67,7 @@ class RoundScreen extends StatefulWidget {
 
   /// The random source of the mascot order; tests pass a seeded one.
   final Random? mascotRandom;
+  final DateTime Function()? timedClock;
 
   const RoundScreen({
     super.key,
@@ -81,6 +85,7 @@ class RoundScreen extends StatefulWidget {
     this.recordedAudioService,
     this.mascotAssets,
     this.mascotRandom,
+    this.timedClock,
   });
 
   @override
@@ -144,7 +149,12 @@ class _MatchPairView {
 }
 
 class _RoundScreenState extends State<RoundScreen> {
-  String get _roundTitle => widget.round.displayTitle(widget.roundIndex);
+  String get _roundTitle => RoundTypePresentation.title(
+    widget.round,
+    widget.roundIndex + 1,
+    widget.course.roundNumberingMode,
+    customPrefix: widget.course.customRoundLabel,
+  );
   String get _screenTitle => widget.previewMode
       ? 'PREVIEW · $_roundTitle'
       : widget.viewOnlyMode
@@ -156,9 +166,7 @@ class _RoundScreenState extends State<RoundScreen> {
     (lesson) => lesson.lessonId == widget.lesson.lessonId,
   );
   String get _reviewContext {
-    final roundTitle = widget.round.flow != null
-        ? widget.round.displayTitle(widget.roundIndex)
-        : widget.round.title.trim();
+    final roundTitle = _roundTitle;
     return '${widget.course.title} · ${widget.course.targetLanguage} · '
         '${_t('review.lesson', {'n': _lessonIndex + 1, 'title': widget.lesson.title})} · '
         '${_t('review.round', {'n': widget.roundIndex + 1})}'
@@ -207,21 +215,102 @@ class _RoundScreenState extends State<RoundScreen> {
   int _errorsThisAttempt = 0;
   bool _reviewPhase = false;
   bool _finishing = false;
+  Timer? _timedTicker;
+  Timer? _timedExpiryTimer;
+  DateTime? _timedDeadline;
+  int? _activeTimedLimitSeconds;
+  int _timedSecondsLeft = 0;
+  bool _timedOut = false;
+  bool _timedCompletedBeforeZero = false;
+  bool _timedReviewDialogOpen = false;
+  bool _timeoutSaving = false;
+  bool _timeoutSaved = false;
+  int _timeoutXp = 0;
+  String? _timeoutError;
+
+  DateTime get _timedNow => (widget.timedClock ?? DateTime.now)();
+
+  void _startTimedCountdown() {
+    if (widget.round.roundType != RoundType.timed ||
+        _timedDeadline != null ||
+        _timedOut ||
+        _activeTimedLimitSeconds == null ||
+        _queue.isEmpty) {
+      return;
+    }
+    _timedDeadline = _timedNow.add(
+      Duration(seconds: _activeTimedLimitSeconds!),
+    );
+    _timedExpiryTimer = Timer(
+      Duration(seconds: _activeTimedLimitSeconds!),
+      _expireTimedAttempt,
+    );
+    _timedTicker = Timer.periodic(const Duration(milliseconds: 250), (_) {
+      if (!mounted || _timedOut || _finishing) return;
+      final millis = _timedDeadline!.difference(_timedNow).inMilliseconds;
+      if (millis <= 0) {
+        _expireTimedAttempt();
+      } else {
+        setState(() => _timedSecondsLeft = (millis + 999) ~/ 1000);
+      }
+    });
+  }
+
+  void _expireTimedAttempt() {
+    if (_timedOut || _finishing) return;
+    _timedTicker?.cancel();
+    _timedExpiryTimer?.cancel();
+    _timedOut = true; // Input is locked before any persistence await.
+    FocusManager.instance.primaryFocus?.unfocus();
+    if (_timedReviewDialogOpen && mounted) {
+      Navigator.of(context).pop();
+    }
+    setState(() => _timedSecondsLeft = 0);
+    unawaited(_saveTimedTimeoutXp());
+  }
+
+  Future<void> _saveTimedTimeoutXp() async {
+    if (_timeoutSaving || _timeoutSaved) return;
+    _timeoutSaving = true;
+    if (mounted) setState(() => _timeoutError = null);
+    final award = const XpCalculator().calculateTimedTimeoutAward(
+      firstPassCorrect: _firstPassCorrect,
+      wasCompletedAtStart: _wasCompleted,
+    );
+    try {
+      if (!widget.previewMode && !widget.viewOnlyMode && award.totalXp > 0) {
+        await _progress.addXp(
+          award.totalXp,
+          courseCode: CourseService.codeForCourse(widget.course),
+          courseId: widget.course.courseId,
+        );
+      }
+      _timeoutSaved = true;
+      _timeoutXp = widget.previewMode || widget.viewOnlyMode
+          ? 0
+          : award.totalXp;
+    } catch (_) {
+      _timeoutError = 'XP could not be saved. Try again before leaving.';
+    } finally {
+      _timeoutSaving = false;
+      if (mounted) setState(() {});
+    }
+  }
 
   /// The Round plays its flow in the authored order: a Story, or a sequence
   /// (a plain Round played in order; Build 256 Revision 7, third follow-up).
   bool _playsInOrder = false;
 
   /// What the learner is told this Round is: a Story, a Sequence or a Round.
-  String get _roundNoun => !_playsInOrder
-      ? 'Round'
-      : widget.round.isStory
-      ? 'Story'
-      : 'Sequence';
+  String get _roundNoun => RoundTypePresentation.label(widget.round.roundType);
 
   /// The same, as the suffix of the learner panel keys (Build 260 Revision
   /// 1): `round`, `story` or `sequence`.
-  String get _nounKey => _roundNoun.toLowerCase();
+  String get _nounKey => switch (widget.round.roundType) {
+    RoundType.story => 'story',
+    RoundType.sequence => 'sequence',
+    _ => 'round',
+  };
 
   /// The learner panel text of [key] in the Course's instruction language.
   String _t(String key, [Map<String, Object> values = const {}]) =>
@@ -229,6 +318,7 @@ class _RoundScreenState extends State<RoundScreen> {
   late ExerciseFeatures _features;
   bool _answered = false;
   bool _lastAnswerCorrect = false;
+  final List<({bool correct, String correction})> _testResults = [];
 
   /// Build 256 Revision 5: a dialogue line's audio has played once, so a
   /// text shown "after listening" may appear.
@@ -553,7 +643,8 @@ class _RoundScreenState extends State<RoundScreen> {
           for (final index in flowOrder)
             if (filtered.contains(index)) index,
         ];
-      } else {
+      } else if (widget.round.roundType != RoundType.test ||
+          !widget.round.testFixedOrder) {
         _shuffleDifferentInts(_queue);
       }
       // Mascots (Build 256 Revision 9): never in a Story, whose characters
@@ -597,12 +688,27 @@ class _RoundScreenState extends State<RoundScreen> {
         );
       }
       if (!mounted) return;
+      if (widget.round.roundType == RoundType.timed) {
+        final completed = widget.previewMode
+            ? <int>{}
+            : await _progress.getCompletedTimedLimits(
+                widget.round.id,
+                courseId: widget.course.courseId,
+              );
+        if (!mounted) return;
+        _activeTimedLimitSeconds = TimedRoundRules.activeLimit(
+          widget.round,
+          completed,
+        );
+        _timedSecondsLeft = _activeTimedLimitSeconds ?? 0;
+      }
       setState(() => _ready = true);
       if (_queue.isNotEmpty) {
         final exercise = _exercise;
         final generation = _preparedExerciseGeneration;
         WidgetsBinding.instance.addPostFrameCallback((_) {
           _activatePreparedAudio(exercise, generation, trigger: 'round_ready');
+          if (mounted && _lessonIntro == null) _startTimedCountdown();
         });
       }
     } catch (error, stackTrace) {
@@ -622,6 +728,8 @@ class _RoundScreenState extends State<RoundScreen> {
 
   @override
   void dispose() {
+    _timedTicker?.cancel();
+    _timedExpiryTimer?.cancel();
     final diagnostic = _preparedAudioDiagnostic;
     if (diagnostic != null) {
       unawaited(diagnostic.dispose(outcome: 'round_disposed'));
@@ -639,6 +747,10 @@ class _RoundScreenState extends State<RoundScreen> {
   /// The exercise indices in the Round's linear flow order, or null for a
   /// practice Round (no flow) or a flow this version cannot play.
   List<int>? get _flowOrder {
+    if (widget.round.roundType != RoundType.story &&
+        widget.round.roundType != RoundType.sequence) {
+      return null;
+    }
     final flow = widget.round.flow;
     if (flow == null) return null;
     final nodeIds = flow.linearNodeIds();
@@ -1251,7 +1363,13 @@ class _RoundScreenState extends State<RoundScreen> {
   }
 
   void _mark(bool correct) {
-    if (_answered) return;
+    if (_answered || _timedOut) return;
+    if (widget.round.roundType == RoundType.timed &&
+        _timedDeadline != null &&
+        !_timedNow.isBefore(_timedDeadline!)) {
+      _expireTimedAttempt();
+      return;
+    }
     setState(() {
       _answered = true;
       _lastAnswerCorrect = correct;
@@ -1265,8 +1383,21 @@ class _RoundScreenState extends State<RoundScreen> {
           _wrongFirstPass.add(_exerciseIndex);
         }
       }
+      if (widget.round.roundType == RoundType.test) {
+        _testResults.add((
+          correct: correct,
+          correction: correct ? '' : _correctAnswerText(_exercise),
+        ));
+      }
     });
-    _revealFeedback();
+    if (widget.round.roundType == RoundType.timed &&
+        _position + 1 == _queue.length &&
+        (_reviewPhase || _wrongFirstPass.isEmpty)) {
+      _timedTicker?.cancel();
+      _timedExpiryTimer?.cancel();
+      _timedCompletedBeforeZero = true;
+    }
+    if (widget.round.roundType != RoundType.test) _revealFeedback();
   }
 
   /// Scrolls the page down to the feedback panel, the last thing on it,
@@ -1662,7 +1793,7 @@ class _RoundScreenState extends State<RoundScreen> {
   );
 
   Future<void> _next() async {
-    if (_finishing) return;
+    if (_finishing || _timedOut) return;
     _logStoryItem();
     if (_position + 1 < _queue.length) {
       setState(() => _position++);
@@ -1694,7 +1825,11 @@ class _RoundScreenState extends State<RoundScreen> {
       return;
     }
 
-    if (!_reviewPhase && _wrongFirstPass.isNotEmpty && !_playsInOrder) {
+    if (!_reviewPhase &&
+        _wrongFirstPass.isNotEmpty &&
+        !_playsInOrder &&
+        widget.round.roundType != RoundType.test) {
+      _timedReviewDialogOpen = true;
       await showDialog<void>(
         context: context,
         barrierDismissible: false,
@@ -1709,7 +1844,8 @@ class _RoundScreenState extends State<RoundScreen> {
           ],
         ),
       );
-      if (!mounted) return;
+      _timedReviewDialogOpen = false;
+      if (!mounted || _timedOut) return;
       setState(() {
         _reviewPhase = true;
         _queue = _wrongFirstPass.toList();
@@ -1720,7 +1856,67 @@ class _RoundScreenState extends State<RoundScreen> {
       return;
     }
 
-    if (!mounted) return;
+    if (widget.round.roundType == RoundType.test && !_reviewPhase) {
+      final threshold = widget.round.testPassingPercent;
+      final percent = _testResults.isEmpty
+          ? 0
+          : (100 *
+                    _testResults.where((r) => r.correct).length /
+                    _testResults.length)
+                .round();
+      await showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (dialogContext) => AlertDialog(
+          key: const Key('test-results'),
+          title: Text(
+            _t(
+              threshold == null
+                  ? 'testResults'
+                  : percent >= threshold
+                  ? 'testPassed'
+                  : 'testBelowThreshold',
+              {'percent': percent},
+            ),
+          ),
+          content: SizedBox(
+            width: 380,
+            child: ListView(
+              shrinkWrap: true,
+              children: [
+                for (var i = 0; i < _testResults.length; i++)
+                  ListTile(
+                    title: Text(
+                      _t('testQuestion', {
+                        'n': i + 1,
+                        'status': _t(
+                          _testResults[i].correct ? 'correct' : 'incorrect',
+                        ),
+                      }),
+                    ),
+                    subtitle: _testResults[i].correction.isEmpty
+                        ? null
+                        : Text(
+                            _t('correctAnswer', {
+                              'answer': _testResults[i].correction,
+                            }),
+                          ),
+                  ),
+              ],
+            ),
+          ),
+          actions: [
+            FilledButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: Text(_t('continue')),
+            ),
+          ],
+        ),
+      );
+    }
+    if (!mounted || _timedOut) return;
+    _timedTicker?.cancel();
+    _timedExpiryTimer?.cancel();
     setState(() => _finishing = true);
     var persistenceStarted = false;
     var persistenceCompleted = false;
@@ -1780,6 +1976,16 @@ class _RoundScreenState extends State<RoundScreen> {
             ttsWasSkipped: _ttsWasSkipped,
             firstPassDifficulty: _firstPassDifficulty,
           ),
+          claimOnTimeBonus:
+              widget.round.roundType == RoundType.timed &&
+                  _timedCompletedBeforeZero &&
+                  _activeTimedLimitSeconds != null
+              ? () => _progress.claimTimedLimit(
+                  widget.round.id,
+                  _activeTimedLimitSeconds!,
+                  courseId: widget.course.courseId,
+                )
+              : null,
         ),
         onNewLaurel: () async {
           if (await _settings.areSoundEffectsEnabled()) {
@@ -1831,6 +2037,13 @@ class _RoundScreenState extends State<RoundScreen> {
                           'xp': completion.roundXp.difficultyBonusXp,
                         }),
                         key: const Key('round-completed-difficulty-bonus'),
+                      ),
+                    if (completion.roundXp.onTimeBonusXp > 0)
+                      Text(
+                        _t('summary.onTimeBonus', {
+                          'xp': completion.roundXp.onTimeBonusXp,
+                        }),
+                        key: const Key('round-completed-on-time-bonus'),
                       ),
                     if (completion.roundXp.perfectBonusXp > 0)
                       Text(
@@ -2324,7 +2537,7 @@ class _RoundScreenState extends State<RoundScreen> {
           _withMascot(
             ExerciseMascotAnchor.question,
             Text(
-              _answered
+              _answered && widget.round.roundType != RoundType.test
                   ? FirstLetterAnswerService.completedSentence(
                       f.inlineSentence,
                       _displayedCorrection,
@@ -4234,6 +4447,7 @@ class _RoundScreenState extends State<RoundScreen> {
                   final exercise = _exercise;
                   final generation = _preparedExerciseGeneration;
                   WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (mounted) _startTimedCountdown();
                     _activatePreparedAudio(
                       exercise,
                       generation,
@@ -4246,6 +4460,76 @@ class _RoundScreenState extends State<RoundScreen> {
                 ),
               ),
             ],
+          ),
+        ),
+      );
+    }
+    if (_timedOut) {
+      return Scaffold(
+        backgroundColor: background,
+        appBar: _simpleRoundAppBar(background),
+        body: SafeArea(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.timer_off_outlined, size: 48),
+                  const SizedBox(height: 12),
+                  Text(
+                    _t('timed.timeUp'),
+                    key: const Key('timed-timeout'),
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(_t('timed.incomplete')),
+                  if (_timeoutSaving) const CircularProgressIndicator(),
+                  if (_timeoutSaved)
+                    Text(
+                      _t('timed.correctXpKept', {'xp': _timeoutXp}),
+                      key: const Key('timed-timeout-xp'),
+                    ),
+                  if (_timeoutError != null) ...[
+                    Text(_timeoutError!),
+                    TextButton(
+                      onPressed: _saveTimedTimeoutXp,
+                      child: Text(_t('timed.retrySaving')),
+                    ),
+                  ],
+                  const SizedBox(height: 12),
+                  FilledButton(
+                    key: const Key('timed-retry'),
+                    onPressed: !_timeoutSaved
+                        ? null
+                        : () => Navigator.of(context).pushReplacement(
+                            MaterialPageRoute(
+                              builder: (_) => RoundScreen(
+                                course: widget.course,
+                                lesson: widget.lesson,
+                                round: widget.round,
+                                ttsLanguage: widget.ttsLanguage,
+                                roundIndex: widget.roundIndex,
+                                previewMode: widget.previewMode,
+                                viewOnlyMode: widget.viewOnlyMode,
+                                reviewMode: widget.reviewMode,
+                                completeLessonOnFinish:
+                                    widget.completeLessonOnFinish,
+                                settingsService: widget.settingsService,
+                                ttsCacheService: widget.ttsCacheService,
+                                recordedAudioService:
+                                    widget.recordedAudioService,
+                                mascotAssets: widget.mascotAssets,
+                                mascotRandom: widget.mascotRandom,
+                                timedClock: widget.timedClock,
+                              ),
+                            ),
+                          ),
+                    child: Text(_t('timed.retry')),
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
       );
@@ -4362,6 +4646,18 @@ class _RoundScreenState extends State<RoundScreen> {
           controller: _storyScrolls ? _storyScroll : _pageScroll,
           padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
           children: [
+            if (widget.round.roundType == RoundType.timed)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Text(
+                  _t('timed.timeLeft', {
+                    'time':
+                        '${_timedSecondsLeft ~/ 60}:${(_timedSecondsLeft % 60).toString().padLeft(2, '0')}',
+                  }),
+                  key: const Key('timed-countdown'),
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ),
             if (_storyScrolls) ...[
               if (_storyLog.isNotEmpty) _storyStepsLine(),
               for (var i = 0; i < _storyLog.length; i++)
@@ -4460,7 +4756,7 @@ class _RoundScreenState extends State<RoundScreen> {
               key: Key('exercise-renderer-${ex.primitive.serialized}'),
               child: _exerciseBody(ex),
             ),
-            if (_answered) ...[
+            if (_answered && widget.round.roundType != RoundType.test) ...[
               const SizedBox(height: 18),
               Container(
                 key: const Key('exercise-feedback-surface'),
@@ -4582,6 +4878,18 @@ class _RoundScreenState extends State<RoundScreen> {
                                   ? _t('leave.$_nounKey')
                                   : _t('finish.$_nounKey'))
                             : _t('continue')),
+                ),
+              ),
+            ],
+            if (_answered && widget.round.roundType == RoundType.test) ...[
+              const SizedBox(height: 18),
+              FilledButton(
+                key: const Key('test-next'),
+                onPressed: _finishing ? null : _next,
+                child: Text(
+                  _position + 1 == _queue.length
+                      ? _t('testSeeResults')
+                      : _t('testNextQuestion'),
                 ),
               ),
             ],
