@@ -33,12 +33,28 @@ Maintainer = the owner's profile Tempesta 35932, `f2a7b4c8-…`, owner's
 choice; `python make_custom_courses.py --maintainer <ID> --name <name>`),
 `generators/`, `tests/`, `fixtures_v11/`, `docs/`, `LEGGIMI.txt`.
 
-Next (owner request of 3 October 2026, before Revisions 1 and 2): two
-short private Courses, not bundled, kept in `D:\QQL_plus\Corsi_Privati`:
-Italian → Viterbese and English → Neapolitan; real Courses of rising
-difficulty (not showcases); Lesson and Round label and numbering Off;
-GuideBook on; Duel on. Revisions 1 and 2 are drafted in the session's
-scratchpad (code, tests, docs) and wait for that.
+## Two private Courses (3 October 2026, outside the repository)
+
+Owner request, before Revisions 1 and 2: two short private Courses, not
+bundled, in `D:\QQL_plus\Corsi_Privati\custom`: **Viterbese per
+italiani** (Italian → Viterbese, `course_99b99a4a-…`) and **Neapolitan for
+English Speakers** (English → Neapolitan, `course_c2bffe3b-…`). Real Courses
+of rising difficulty: three Lessons each, a GuideBook per Lesson, Rounds
+Discover / Practice ×3 / Test (words, then sentences, then writing; four
+choices from Lesson 2, two extra blocks in Lesson 3), Lesson and Round
+label and numbering Off, GuideBook and Duels on (27 eligible questions per
+Lesson). Made by `corsi_brevi/make_short_courses.py` (tables
+`viterbese.py`, `napoletano.py`; `--check`), which uses this repository's
+`tools/qql_v11_builders.py` and `tools/qql_course_v12.py`. Checked through
+the app's custom import with a throwaway test (not committed): Audit 0
+errors and 0 warnings, Duel available in every Lesson, every exercise
+represented by its preset, no Round-type issue, every accepted answer
+expands. Dialect answers also accept the form without apostrophes. The
+texts are AI-written; `LEGGIMI.txt` there lists the points a native
+speaker should check. Nothing in the repository changed for them.
+
+Next: Revision 1 (4.2) and Revision 2 (4.3), drafted in the session's
+scratchpad (code, tests, docs).
 
 Owner decision for Revision 2 (3 October 2026): the exported Publisher
 Course's official version **equals its Course version** (which rises at
