@@ -70,7 +70,7 @@ support. Complete suite 3598 passed, 1 skipped, 1 failed (the signing guide
 must equal the English Help: the guide note was removed, the test passes
 alone).
 
-## Revision 2 (2.0.62+262002, 3 October 2026)
+## Revision 2 (2.0.62+262002, 3 October 2026; committed `66ed376`)
 
 Export as Publisher Course: `CourseManagerAction.exportAsPublisherCourse`,
 `PublisherCourseExportScreen`, `PublisherCourseExport` (publishers,
