@@ -94,10 +94,14 @@ mo'?» was right too); the same exercise never twice in a Lesson. Owner
 review of the night: a Course from Italian (`AVOID_ITALIAN`) teaches no
 word that is Italian too or almost the same (`corsi_brevi/italian_check.py`:
 LibreOffice's Hunspell it_IT dictionary plus similarity .90, the wider
-check the owner chose); only 27 of 72 Viterbese words passed, so Viterbese
-is one Lesson, "Le parole del viterbese" (57 exercises, Duel 33/25), by
-owner decision; Neapolitan (for English speakers) keeps its 3 Lessons
-(177 exercises, Duel 34/25 each). Audit 0/0 for both.
+check the owner chose; similarity on the words without articles). The
+owner then gave a Viterbese dictionary (F. Nappo, V. Galeotti, "Dizionario
+italiano - viterbese", his `Downloads/VITERBO.pdf`): Viterbese is rebuilt
+in 3 Lessons with its words and spellings (city forms; local variants and
+coarse words left out; sentences written for the Course), 176 exercises,
+Duel 33-35/25; `ALSO_MEANS` keeps a word's other true meanings out of its
+wrong answers. Neapolitan (for English speakers) keeps 3 Lessons (177
+exercises, Duel 34/25 each). Audit 0/0 for both.
 
 Next: Build 262 is complete (Revisions 0–2). Not pushed. The owner reviews
 the private Courses (`LEGGIMI.txt` lists the words to check).
