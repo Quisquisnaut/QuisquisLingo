@@ -68,6 +68,9 @@ import '../services/exercise_difficulty.dart';
 import '../services/language_catalog.dart';
 import '../widgets/language_field.dart';
 import '../services/round_flow_authoring.dart';
+import '../services/round_type_presentation.dart';
+import '../services/round_type_compatibility.dart';
+import '../services/timed_round_rules.dart';
 import '../services/preset_recipes.dart';
 import '../services/preset_variants.dart';
 import '../services/guidebook_round_generator.dart';
@@ -328,6 +331,68 @@ Future<String?> askAuthoringName(
   return result == null || result.isEmpty ? null : result;
 }
 
+Future<int?> _chooseTimedLimit(BuildContext context) async {
+  final choice = await showDialog<int>(
+    context: context,
+    builder: (dialogContext) => SimpleDialog(
+      key: const Key('timed-limit-picker'),
+      title: const Text('Time limit'),
+      children: [
+        for (final seconds in TimedRoundRules.presetSeconds)
+          SimpleDialogOption(
+            key: Key('timed-limit-$seconds'),
+            onPressed: () => Navigator.pop(dialogContext, seconds),
+            child: Text(TimedRoundRules.label(seconds)),
+          ),
+        SimpleDialogOption(
+          key: const Key('timed-limit-custom'),
+          onPressed: () => Navigator.pop(dialogContext, -1),
+          child: const Text('Custom'),
+        ),
+      ],
+    ),
+  );
+  if (choice != -1 || !context.mounted) return choice;
+  int? custom;
+  return showDialog<int>(
+    context: context,
+    builder: (dialogContext) => StatefulBuilder(
+      builder: (dialogContext, update) => AlertDialog(
+        key: const Key('timed-custom-limit-dialog'),
+        title: const Text('Custom time limit'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              key: const Key('timed-custom-seconds'),
+              keyboardType: TextInputType.number,
+              autofocus: true,
+              decoration: const InputDecoration(
+                labelText: 'Seconds (30–600)',
+                border: OutlineInputBorder(),
+              ),
+              onChanged: (value) => update(() => custom = int.tryParse(value)),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            key: const Key('timed-custom-save'),
+            onPressed: custom != null && TimedRoundRules.validSeconds(custom!)
+                ? () => Navigator.pop(dialogContext, custom)
+                : null,
+            child: const Text('Use limit'),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
 class _DraftBranchIndicator extends StatelessWidget {
   const _DraftBranchIndicator({
     super.key,
@@ -511,6 +576,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
   late final CourseAuthoringSession _session;
   bool _routeMayPop = false;
   int _numberingFieldVersion = 0;
+  int _roundNumberingFieldVersion = 0;
 
   @override
   void initState() {
@@ -2572,6 +2638,55 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
       ),
   ];
 
+  String? get _legacyLessonNumberingLabel =>
+      switch (_course.lessonNumberingMode) {
+        LessonNumberingMode.unit => 'Unit',
+        LessonNumberingMode.topic => 'Topic',
+        LessonNumberingMode.module => 'Module',
+        LessonNumberingMode.skill => 'Skill',
+        LessonNumberingMode.chapter => 'Chapter',
+        LessonNumberingMode.stage => 'Stage',
+        LessonNumberingMode.step => 'Step',
+        LessonNumberingMode.part => 'Part',
+        _ => null,
+      };
+
+  void _setDefaultTimedLimits(List<int> limits) {
+    _updateDraft(
+      Course.fromJson({
+        ..._course.toJson(),
+        'defaultTimedLimitsSeconds': limits,
+      }),
+    );
+  }
+
+  Future<void> _editDefaultTimedLimit(int? index) async {
+    if (!_canModify) return;
+    final seconds = await _chooseTimedLimit(context);
+    if (seconds == null || !mounted) return;
+    final limits = [..._course.defaultTimedLimitsSeconds];
+    if (limits.contains(seconds) &&
+        (index == null || limits[index] != seconds)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Each Timed limit must be different.')),
+      );
+      return;
+    }
+    if (index == null) {
+      limits.add(seconds);
+    } else {
+      limits[index] = seconds;
+    }
+    _setDefaultTimedLimits(limits);
+  }
+
+  void _moveDefaultTimedLimit(int index, int offset) {
+    final limits = [..._course.defaultTimedLimitsSeconds];
+    final value = limits.removeAt(index);
+    limits.insert(index + offset, value);
+    _setDefaultTimedLimits(limits);
+  }
+
   List<Widget> _lessonOptions() => [
     Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
@@ -2583,57 +2698,30 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
         isExpanded: true,
         decoration: const InputDecoration(
           border: OutlineInputBorder(),
-          labelText: 'Lesson numbering',
+          labelText: 'Lesson label and numbering',
         ),
-        items: const [
-          DropdownMenuItem(
+        items: [
+          const DropdownMenuItem(
+            value: LessonNumberingMode.none,
+            child: Text('Off'),
+          ),
+          const DropdownMenuItem(
             value: LessonNumberingMode.lesson,
             child: Text('Lesson + number'),
           ),
-          DropdownMenuItem(
-            value: LessonNumberingMode.unit,
-            child: Text('Unit'),
-          ),
-          DropdownMenuItem(
-            value: LessonNumberingMode.topic,
-            child: Text('Topic'),
-          ),
-          DropdownMenuItem(
-            value: LessonNumberingMode.module,
-            child: Text('Module'),
-          ),
-          DropdownMenuItem(
-            value: LessonNumberingMode.skill,
-            child: Text('Skill'),
-          ),
-          DropdownMenuItem(
-            value: LessonNumberingMode.chapter,
-            child: Text('Chapter'),
-          ),
-          DropdownMenuItem(
-            value: LessonNumberingMode.stage,
-            child: Text('Stage'),
-          ),
-          DropdownMenuItem(
-            value: LessonNumberingMode.step,
-            child: Text('Step'),
-          ),
-          DropdownMenuItem(
-            value: LessonNumberingMode.part,
-            child: Text('Part'),
-          ),
-          DropdownMenuItem(
-            value: LessonNumberingMode.other,
-            child: Text('Other...'),
-          ),
-          DropdownMenuItem(
+          const DropdownMenuItem(
             value: LessonNumberingMode.numberOnly,
             child: Text('Number only'),
           ),
-          DropdownMenuItem(
-            value: LessonNumberingMode.none,
-            child: Text('Title only'),
+          const DropdownMenuItem(
+            value: LessonNumberingMode.other,
+            child: Text('Custom + number'),
           ),
+          if (_legacyLessonNumberingLabel != null)
+            DropdownMenuItem(
+              value: _course.lessonNumberingMode,
+              child: Text('$_legacyLessonNumberingLabel + number (existing)'),
+            ),
         ],
         onChanged: _canModify ? _setLessonNumbering : null,
       ),
@@ -2646,6 +2734,110 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
               ? () => _setLessonNumbering(LessonNumberingMode.other)
               : null,
           child: Text('Custom Lesson label: ${_course.customLessonLabel}'),
+        ),
+      ),
+    Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+      child: DropdownButtonFormField<RoundNumberingMode>(
+        key: ValueKey(
+          'round-numbering-${_course.roundNumberingMode.name}-$_roundNumberingFieldVersion',
+        ),
+        initialValue: _course.roundNumberingMode,
+        isExpanded: true,
+        decoration: const InputDecoration(
+          border: OutlineInputBorder(),
+          labelText: 'Round label and numbering',
+        ),
+        items: const [
+          DropdownMenuItem(value: RoundNumberingMode.off, child: Text('Off')),
+          DropdownMenuItem(
+            value: RoundNumberingMode.roundAndNumber,
+            child: Text('Round + number'),
+          ),
+          DropdownMenuItem(
+            value: RoundNumberingMode.numberOnly,
+            child: Text('Number only'),
+          ),
+          DropdownMenuItem(
+            value: RoundNumberingMode.customAndNumber,
+            child: Text('Custom + number'),
+          ),
+        ],
+        onChanged: _canModify ? _setRoundNumbering : null,
+      ),
+    ),
+    if (_course.roundNumberingMode == RoundNumberingMode.customAndNumber)
+      Padding(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+        child: TextButton(
+          onPressed: _canModify
+              ? () => _setRoundNumbering(RoundNumberingMode.customAndNumber)
+              : null,
+          child: Text('Custom Round label: ${_course.customRoundLabel}'),
+        ),
+      ),
+    const ListTile(
+      title: Text('Default Timed limits'),
+      subtitle: Text(
+        'New Timed Rounds copy these limits in order. Existing Rounds keep their own limits.',
+      ),
+    ),
+    for (
+      var index = 0;
+      index < _course.defaultTimedLimitsSeconds.length;
+      index++
+    )
+      ListTile(
+        key: Key('default-timed-limit-$index'),
+        title: Text(
+          'Stage ${index + 1} · ${TimedRoundRules.label(_course.defaultTimedLimitsSeconds[index])}',
+        ),
+        onTap: _canModify ? () => _editDefaultTimedLimit(index) : null,
+        trailing: _canModify
+            ? Wrap(
+                children: [
+                  IconButton(
+                    key: Key('default-timed-limit-up-$index'),
+                    tooltip: 'Move up',
+                    onPressed: index == 0
+                        ? null
+                        : () => _moveDefaultTimedLimit(index, -1),
+                    icon: const Icon(Icons.arrow_upward),
+                  ),
+                  IconButton(
+                    key: Key('default-timed-limit-down-$index'),
+                    tooltip: 'Move down',
+                    onPressed:
+                        index == _course.defaultTimedLimitsSeconds.length - 1
+                        ? null
+                        : () => _moveDefaultTimedLimit(index, 1),
+                    icon: const Icon(Icons.arrow_downward),
+                  ),
+                  IconButton(
+                    key: Key('default-timed-limit-remove-$index'),
+                    tooltip: 'Remove time limit',
+                    onPressed: () {
+                      final limits = [..._course.defaultTimedLimitsSeconds]
+                        ..removeAt(index);
+                      _setDefaultTimedLimits(limits);
+                    },
+                    icon: const Icon(Icons.delete_outline),
+                  ),
+                ],
+              )
+            : null,
+      ),
+    if (_canModify)
+      Padding(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+        child: Align(
+          alignment: Alignment.centerLeft,
+          child: OutlinedButton.icon(
+            key: const Key('default-timed-limit-add'),
+            onPressed: () => _editDefaultTimedLimit(null),
+            icon: const Icon(Icons.add),
+            label: const Text('Add default time limit'),
+          ),
         ),
       ),
     SwitchListTile(
@@ -2697,6 +2889,35 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
         ..._course.toJson(),
         'lessonNumberingMode': mode.name,
         'customLessonLabel': mode == LessonNumberingMode.other ? label : '',
+      }),
+    );
+  }
+
+  Future<void> _setRoundNumbering(RoundNumberingMode? mode) async {
+    if (!_canModify || mode == null) return;
+    var label = _course.customRoundLabel;
+    if (mode == RoundNumberingMode.customAndNumber) {
+      final entered = await askAuthoringName(
+        context,
+        title: 'Custom Round label',
+        initial: label,
+        confirmLabel: 'Save',
+        maxLength: 40,
+      );
+      if (!mounted) return;
+      if (entered == null) {
+        setState(() => _roundNumberingFieldVersion++);
+        return;
+      }
+      label = entered;
+    }
+    _updateDraft(
+      Course.fromJson({
+        ..._course.toJson(),
+        'roundNumberingMode': mode.name,
+        'customRoundLabel': mode == RoundNumberingMode.customAndNumber
+            ? label
+            : '',
       }),
     );
   }
@@ -2892,6 +3113,10 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                 updatedAt: currentRound.updatedAt,
                 title: currentRound.title,
                 visualType: currentRound.visualType,
+                roundType: currentRound.roundType,
+                testFixedOrder: currentRound.testFixedOrder,
+                testPassingPercent: currentRound.testPassingPercent,
+                timedLimitsSeconds: currentRound.timedLimitsSeconds,
                 content: content,
                 flow: currentRound.flow,
               );
@@ -3752,7 +3977,14 @@ class LessonAuthoringPreviewScreen extends StatelessWidget {
               return Card(
                 child: ListTile(
                   leading: const Icon(Icons.play_circle_outline),
-                  title: Text(round.displayTitle(index)),
+                  title: Text(
+                    RoundTypePresentation.title(
+                      round,
+                      index + 1,
+                      course.roundNumberingMode,
+                      customPrefix: course.customRoundLabel,
+                    ),
+                  ),
                   subtitle: Text('${round.exercises.length} exercises'),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => Navigator.of(context).push<void>(
@@ -4622,6 +4854,10 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
           updatedAt: round.updatedAt,
           title: round.title,
           visualType: round.visualType,
+          roundType: round.roundType,
+          testFixedOrder: round.testFixedOrder,
+          testPassingPercent: round.testPassingPercent,
+          timedLimitsSeconds: round.timedLimitsSeconds,
           flow: round.flow,
           content: [
             for (final content in round.content)
@@ -5398,6 +5634,29 @@ class _GuidebookRoundGeneratorScreenState
     }
   }
 
+  void _changePlanType(GuidebookRoundPlan round, RoundType type) {
+    try {
+      final revised = _generator().changeType(
+        widget.lesson.guidebook,
+        round,
+        type,
+      );
+      final original = _plan!;
+      setState(
+        () => _plan = GuidebookGenerationPlan(
+          roundCount: original.roundCount,
+          exercisesPerRound: original.exercisesPerRound,
+          rounds: [
+            for (final item in original.rounds)
+              item.index == round.index ? revised : item,
+          ],
+        ),
+      );
+    } on GuidebookGenerationException catch (error) {
+      _message(error.message);
+    }
+  }
+
   void _regenerateDrafts() {
     _seed++;
     try {
@@ -5406,9 +5665,24 @@ class _GuidebookRoundGeneratorScreenState
         roundCount: _plan!.roundCount,
         exercisesPerRound: _plan!.exercisesPerRound,
       );
-      final drafts = _generator().createDrafts(widget.lesson.guidebook, plan);
+      final revisedPlan = GuidebookGenerationPlan(
+        roundCount: plan.roundCount,
+        exercisesPerRound: plan.exercisesPerRound,
+        rounds: [
+          for (var i = 0; i < plan.rounds.length; i++)
+            _generator().changeType(
+              widget.lesson.guidebook,
+              plan.rounds[i],
+              _plan!.rounds[i].roundType,
+            ),
+        ],
+      );
+      final drafts = _generator().createDrafts(
+        widget.lesson.guidebook,
+        revisedPlan,
+      );
       setState(() {
-        _plan = plan;
+        _plan = revisedPlan;
         _drafts = drafts;
       });
     } on GuidebookGenerationException catch (error) {
@@ -5459,17 +5733,51 @@ class _GuidebookRoundGeneratorScreenState
     ),
   );
 
-  List<CourseAuditIssue> _issues() => [
-    for (var roundIndex = 0; roundIndex < _drafts.length; roundIndex++)
-      for (final round in [_drafts[roundIndex]])
-        for (final exercise in round.exercises)
-          ...CourseAuditService().auditExercise(
+  List<CourseAuditIssue> _issues() {
+    final issues = <CourseAuditIssue>[];
+    for (var roundIndex = 0; roundIndex < _drafts.length; roundIndex++) {
+      final round = _drafts[roundIndex];
+      for (final exercise in round.exercises) {
+        issues.addAll(
+          CourseAuditService().auditExercise(
             exercise,
             location:
                 '${round.displayTitle(roundIndex)} · ${_exerciseKindName(exercise)}',
             roundId: round.id,
           ),
-  ];
+        );
+      }
+      for (final content in round.content) {
+        final exercise = content.asRunnableExercise();
+        if (exercise == null ||
+            ExerciseFeatures(exercise).kind == LearnerExerciseKind.roundIntro) {
+          continue;
+        }
+        for (final issue in RoundTypeCompatibility.issuesForExercise(
+          round.roundType,
+          exercise,
+          required: content.required,
+        )) {
+          issues.add(
+            CourseAuditIssue(
+              severity: AuditSeverity.error,
+              code: 'ROUND_TYPE_${issue.name.toUpperCase()}',
+              message: RoundTypeCompatibility.message(issue),
+              location: RoundTypePresentation.title(
+                round,
+                roundIndex + 1,
+                widget.course.roundNumberingMode,
+                customPrefix: widget.course.customRoundLabel,
+              ),
+              roundId: round.id,
+              exerciseId: exercise.id,
+            ),
+          );
+        }
+      }
+    }
+    return issues;
+  }
 
   void _approve() {
     final errors = _issues()
@@ -5581,13 +5889,34 @@ class _GuidebookRoundGeneratorScreenState
           ListTile(
             dense: true,
             leading: CircleAvatar(child: Text('${round.index + 1}')),
-            title: Text(round.title),
+            title: Text(
+              '${RoundTypePresentation.label(round.roundType)} · ${round.title}',
+            ),
             subtitle: Text(
               'Difficulty ${(round.difficulty * 100).round()}% · ${round.presetIds.map((id) => ExercisePresetRegistry.byId(id)!.name).join(', ')}',
               maxLines: 3,
               overflow: TextOverflow.ellipsis,
             ),
+            trailing: DropdownButton<RoundType>(
+              key: ValueKey('generator-round-type-${round.index}'),
+              value: round.roundType,
+              items: [
+                for (final type in RoundType.values)
+                  DropdownMenuItem(
+                    value: type,
+                    enabled: GuidebookRoundGenerator.supportsType(type),
+                    child: Text(RoundTypePresentation.label(type)),
+                  ),
+              ],
+              onChanged: (type) {
+                if (type != null) _changePlanType(round, type);
+              },
+            ),
           ),
+        const SizedBox(height: 8),
+        Text(GuidebookRoundGenerator.unsupportedReason(RoundType.reading)),
+        Text(GuidebookRoundGenerator.unsupportedReason(RoundType.story)),
+        Text(GuidebookRoundGenerator.unsupportedReason(RoundType.speak)),
         const SizedBox(height: 8),
         Text(
           'Planned preset distribution',
@@ -6018,6 +6347,7 @@ class _StoryWizardScreenState extends State<StoryWizardScreen> {
       updatedAt: _clock().toUtc(),
       title: title,
       visualType: 'story',
+      roundType: RoundType.story,
       content: content,
       flow: RoundFlowAuthoring.linearFor(
         content,
@@ -6496,22 +6826,38 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
     _adoptCourse(_courseWithRounds(rounds));
   }
 
-  LearningRound _blankRound(String title) {
+  LearningRound _blankRound(
+    String title,
+    RoundType type, {
+    List<int> timedLimitsSeconds = const [],
+  }) {
     final updatedAt = _clock();
+    final sample =
+        type == RoundType.practice ||
+        type == RoundType.discover ||
+        type == RoundType.sequence;
+    final content = sample
+        ? [
+            NewCourseStructure.sampleExercise(
+              _ids,
+              sourceLanguage: _course.sourceLanguage,
+              learningLanguage: _course.learningLanguage,
+              updatedAt: updatedAt,
+            ),
+          ]
+        : <LearningContent>[];
     return LearningRound(
       id: _ids.next('round'),
       publicationState: PublicationState.draft,
       provisionalDraft: true,
       updatedAt: updatedAt,
       title: title,
-      content: [
-        NewCourseStructure.sampleExercise(
-          _ids,
-          sourceLanguage: _course.sourceLanguage,
-          learningLanguage: _course.learningLanguage,
-          updatedAt: updatedAt,
-        ),
-      ],
+      roundType: type,
+      timedLimitsSeconds: timedLimitsSeconds,
+      content: content,
+      flow: type == RoundType.sequence
+          ? RoundFlowAuthoring.linearFor(content)
+          : null,
     );
   }
 
@@ -6558,9 +6904,64 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
 
   Future<void> _add() async {
     if (widget.readOnly) return;
+    final type = await showDialog<RoundType>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Choose Round type'),
+        content: SizedBox(
+          width: 440,
+          child: ListView(
+            shrinkWrap: true,
+            children: [
+              for (final candidate in RoundType.values)
+                ListTile(
+                  key: Key('new-round-type-${candidate.name}'),
+                  leading: Icon(RoundTypePresentation.icon(candidate)),
+                  title: Text(RoundTypePresentation.label(candidate)),
+                  subtitle: Text(RoundTypePresentation.description(candidate)),
+                  enabled: candidate != RoundType.speak,
+                  onTap: candidate == RoundType.speak
+                      ? null
+                      : () => Navigator.pop(context, candidate),
+                ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+        ],
+      ),
+    );
+    if (type == null || !mounted) return;
+    if (type == RoundType.story) {
+      await _openStoryWizard();
+      return;
+    }
     final title = await _name('New Round', allowEmpty: true);
     if (title != null && mounted) {
-      _updateRounds([..._rounds, _blankRound(title)]);
+      final defaults = _course.defaultTimedLimitsSeconds;
+      final limit = type == RoundType.timed && defaults.isEmpty
+          ? await _chooseTimedLimit(context)
+          : null;
+      if (!mounted ||
+          (type == RoundType.timed && defaults.isEmpty && limit == null)) {
+        return;
+      }
+      _updateRounds([
+        ..._rounds,
+        _blankRound(
+          title,
+          type,
+          timedLimitsSeconds: type != RoundType.timed
+              ? const []
+              : defaults.isNotEmpty
+              ? [...defaults]
+              : [limit!],
+        ),
+      ]);
     }
   }
 
@@ -6665,6 +7066,10 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
       updatedAt: _clock(),
       title: title,
       visualType: source.visualType,
+      roundType: source.roundType,
+      testFixedOrder: source.testFixedOrder,
+      testPassingPercent: source.testPassingPercent,
+      timedLimitsSeconds: source.timedLimitsSeconds,
       content: source.content,
       flow: source.flow,
     );
@@ -6909,13 +7314,6 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
                           label: const Text('Round Wizard'),
                         ),
                       ),
-                      FilledButton.icon(
-                        key: const Key('rounds-new-story'),
-                        style: _compactButtonStyle,
-                        onPressed: _openStoryWizard,
-                        icon: const Icon(Icons.auto_stories_outlined),
-                        label: const Text('New Story'),
-                      ),
                     ],
                   ),
                 ),
@@ -6952,7 +7350,9 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
                       enabled: !widget.readOnly,
                       child: const Icon(Icons.drag_handle),
                     ),
-                    title: Text(round.displayTitle(index)),
+                    title: Text(
+                      '${index + 1}. ${RoundTypePresentation.title(round, index + 1, RoundNumberingMode.off)}',
+                    ),
                     // Build 260 Revision 5: the Round's average difficulty
                     // beside its count, so a Lesson's curve shows.
                     subtitle: Wrap(
@@ -7095,6 +7495,9 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
   late DateTime _updatedAt;
   late PublicationState _publicationState;
   late bool _provisionalDraft;
+  late bool _testFixedOrder;
+  int? _testPassingPercent;
+  late List<int> _timedLimitsSeconds;
 
   /// The Round's content flow (a Story), kept through every edit: a linear
   /// flow follows the edited content order (`RoundFlowAuthoring`).
@@ -7111,8 +7514,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
   /// played in order, made with New Round and Play as a sequence): the
   /// Round carries the `story` visual type (Build 256 Revision 7, third
   /// follow-up; `LearningRound.isStory`).
-  bool get _isStory =>
-      _flow != null && widget.round.visualType == LearningRound.storyVisualType;
+  bool get _isStory => widget.round.roundType == RoundType.story;
 
   /// What the options' texts call this Round: a Story or a sequence.
   String get _flowNoun => _isStory ? 'Story' : 'sequence';
@@ -7129,6 +7531,9 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
     _updatedAt = widget.round.updatedAt;
     _publicationState = widget.round.publicationState;
     _provisionalDraft = widget.round.provisionalDraft;
+    _testFixedOrder = widget.round.testFixedOrder;
+    _testPassingPercent = widget.round.testPassingPercent;
+    _timedLimitsSeconds = [...widget.round.timedLimitsSeconds];
     _flow = widget.round.flow;
   }
 
@@ -7150,82 +7555,14 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
       updatedAt: updatedAt ?? _updatedAt,
       title: _title,
       visualType: widget.round.visualType,
+      roundType: widget.round.roundType,
+      testFixedOrder: _testFixedOrder,
+      testPassingPercent: _testPassingPercent,
+      timedLimitsSeconds: _timedLimitsSeconds,
       content: content,
       flow: RoundFlowAuthoring.forContent(_flow, content),
     );
   }
-
-  /// Story on: the exercises play in this order, unshuffled, without a
-  /// mistake review. Off: an ordinary practice Round. Turning a branching
-  /// Story off removes a flow QQL's forms cannot rebuild, so it asks first.
-  Future<void> _setStory(bool on) async {
-    if (widget.readOnly) return;
-    if (on && widget.round.visualType != LearningRound.storyVisualType) {
-      // A sequence (Build 256 Revision 7, third follow-up) is a plain Round
-      // played in order: one exercise per page, every finished item kept
-      // when it scrolls, and an optional title the author types.
-      _storyTitle.text = '';
-      _mutateRound(
-        () => _flow = RoundFlowAuthoring.linearFor(_editedContent()),
-      );
-      return;
-    }
-    if (on) {
-      // A new Story (Build 256 Revision 5) scrolls, logs the dialogue only
-      // and reads aloud automatically. It is named after the Round's own
-      // title, or after the prefixed title an earlier build stored.
-      final stored = _storyTitleOf(_title);
-      final title = stored.isNotEmpty ? stored : _title.trim();
-      _storyTitle.text = title;
-      _mutateRound(
-        () => _flow = RoundFlowAuthoring.linearFor(
-          _editedContent(),
-          presentation: FlowPresentation.scroll,
-          title: title,
-          log: FlowLog.dialogue,
-          readAloud: FlowReadAloud.automatic,
-        ),
-      );
-      return;
-    }
-    final flow = _flow;
-    if (flow != null && !flow.isLinear) {
-      final remove = await showDialog<bool>(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: Text('Remove the branching $_flowNoun?'),
-          content: Text(
-            'This Round\'s flow branches, which QQL\'s forms cannot rebuild. Turning the $_flowNoun off removes the flow; the exercises stay.',
-          ),
-          actions: [
-            FilledButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: Text('Keep the $_flowNoun'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text('Remove'),
-            ),
-          ],
-        ),
-      );
-      if (remove != true || !mounted) return;
-    }
-    _mutateRound(() {
-      _flow = null;
-      // The Round keeps its name without the Story prefix.
-      if (_title.startsWith(_storyTitlePrefix)) _title = _storyTitleOf(_title);
-    });
-  }
-
-  static const _storyTitlePrefix = 'Story: ';
-
-  /// The Story title a Round title carries: what follows `Story: `, else
-  /// nothing.
-  static String _storyTitleOf(String roundTitle) =>
-      roundTitle.startsWith(_storyTitlePrefix)
-      ? roundTitle.substring(_storyTitlePrefix.length).trim()
-      : '';
 
   /// Names the Story: the flow carries the title, the Round keeps its own
   /// name, and every list derives "Story: <title>" from the flow
@@ -7239,6 +7576,34 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
         title: value.trim(),
       ),
     );
+  }
+
+  Future<void> _editTimedLimit(int? index) async {
+    if (widget.readOnly) return;
+    final seconds = await _chooseTimedLimit(context);
+    if (seconds == null || !mounted) return;
+    if (_timedLimitsSeconds.contains(seconds) &&
+        (index == null || _timedLimitsSeconds[index] != seconds)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Each Timed limit must be different.')),
+      );
+      return;
+    }
+    _mutateRound(() {
+      if (index == null) {
+        _timedLimitsSeconds.add(seconds);
+      } else {
+        _timedLimitsSeconds[index] = seconds;
+      }
+    });
+  }
+
+  void _moveTimedLimit(int index, int offset) {
+    _mutateRound(() {
+      final other = index + offset;
+      final value = _timedLimitsSeconds.removeAt(index);
+      _timedLimitsSeconds.insert(other, value);
+    });
   }
 
   /// Marks or unmarks an exercise as needing the Story's audio (Build 256
@@ -7257,19 +7622,6 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
         requiresAudio: requires,
       ),
     );
-  }
-
-  String get _storyDescription {
-    final flow = _flow;
-    if (flow == null) {
-      return 'Off: a practice Round with an introduction, shuffled exercises and a mistake review.';
-    }
-    if (flow.isLinear) {
-      return flow.presentation == FlowPresentation.scroll
-          ? 'On, scrolling: finished items stay on the page, the next one appears below and the page scrolls to it. No shuffle, no mistake review.'
-          : 'On, step by step: the exercises play in this order, one per page, unshuffled, without a mistake review.';
-    }
-    return 'On: a branching $_flowNoun authored outside QQL. Edits here keep its flow as it is; the Audit reports what it no longer finds.';
   }
 
   List<LearningContent> _editedContent() =>
@@ -8238,6 +8590,14 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
       updatedAt: _clock(),
       title: 'Preview exercise',
       visualType: widget.round.visualType,
+      roundType: widget.round.roundType,
+      testFixedOrder: widget.round.testFixedOrder,
+      testPassingPercent: widget.round.testPassingPercent,
+      timedLimitsSeconds: widget.round.timedLimitsSeconds,
+      flow: RoundFlowAuthoring.singleExercisePreviewFlow(
+        widget.round.roundType,
+        _exercises[index],
+      ),
       exercises: [_exercises[index]],
     );
     await Navigator.of(context).push(
@@ -8311,7 +8671,14 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
           leading: BackButton(onPressed: _returnToRounds),
           title: CoursePreviewTitle(
             course: _workingCourse,
-            title: Text(_editedRound().displayTitle(widget.roundIndex)),
+            title: Text(
+              RoundTypePresentation.title(
+                _editedRound(),
+                widget.roundIndex + 1,
+                _workingCourse.roundNumberingMode,
+                customPrefix: _workingCourse.customRoundLabel,
+              ),
+            ),
           ),
           actions: [
             IconButton(
@@ -8407,14 +8774,117 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
                   id: widget.round.id,
                 ),
               ),
-              SwitchListTile(
-                key: const Key('round-story-switch'),
-                title: const Text('Play as a sequence'),
-                subtitle: Text(_storyDescription),
-                value: _flow != null,
-                onChanged: widget.readOnly ? null : _setStory,
-              ),
-              if (_flow != null && _flow!.isLinear) ...[
+              if (widget.round.roundType == RoundType.test) ...[
+                SwitchListTile(
+                  key: const Key('test-fixed-order'),
+                  title: const Text('Fixed question order'),
+                  subtitle: const Text(
+                    'Off: questions are randomized for each attempt.',
+                  ),
+                  value: _testFixedOrder,
+                  onChanged: widget.readOnly
+                      ? null
+                      : (value) => _mutateRound(() => _testFixedOrder = value),
+                ),
+                SwitchListTile(
+                  key: const Key('test-passing-enabled'),
+                  title: const Text('Show pass or fail label'),
+                  subtitle: const Text(
+                    'The threshold changes the results label only; completion and XP stay normal.',
+                  ),
+                  value: _testPassingPercent != null,
+                  onChanged: widget.readOnly
+                      ? null
+                      : (value) => _mutateRound(
+                          () => _testPassingPercent = value ? 70 : null,
+                        ),
+                ),
+                if (_testPassingPercent != null)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Column(
+                      children: [
+                        Text('Passing threshold: $_testPassingPercent%'),
+                        Slider(
+                          key: const Key('test-passing-threshold'),
+                          value: _testPassingPercent!.toDouble(),
+                          min: 0,
+                          max: 100,
+                          divisions: 100,
+                          onChanged: widget.readOnly
+                              ? null
+                              : (value) => _mutateRound(
+                                  () => _testPassingPercent = value.round(),
+                                ),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+              if (widget.round.roundType == RoundType.timed) ...[
+                const Padding(
+                  padding: EdgeInsets.fromLTRB(16, 8, 16, 4),
+                  child: Text(
+                    'Time limits unlock in this order. Each first on-time completion earns its own bonus.',
+                  ),
+                ),
+                for (var index = 0; index < _timedLimitsSeconds.length; index++)
+                  ListTile(
+                    key: Key('timed-stage-$index'),
+                    title: Text(
+                      'Stage ${index + 1} · ${TimedRoundRules.label(_timedLimitsSeconds[index])}',
+                    ),
+                    onTap: widget.readOnly
+                        ? null
+                        : () => _editTimedLimit(index),
+                    trailing: widget.readOnly
+                        ? null
+                        : Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                key: Key('timed-stage-up-$index'),
+                                tooltip: 'Move up',
+                                onPressed: index == 0
+                                    ? null
+                                    : () => _moveTimedLimit(index, -1),
+                                icon: const Icon(Icons.arrow_upward),
+                              ),
+                              IconButton(
+                                key: Key('timed-stage-down-$index'),
+                                tooltip: 'Move down',
+                                onPressed:
+                                    index == _timedLimitsSeconds.length - 1
+                                    ? null
+                                    : () => _moveTimedLimit(index, 1),
+                                icon: const Icon(Icons.arrow_downward),
+                              ),
+                              IconButton(
+                                key: Key('timed-stage-remove-$index'),
+                                tooltip: 'Remove time limit',
+                                onPressed: () => _mutateRound(
+                                  () => _timedLimitsSeconds.removeAt(index),
+                                ),
+                                icon: const Icon(Icons.delete_outline),
+                              ),
+                            ],
+                          ),
+                  ),
+                if (!widget.readOnly)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+                    child: OutlinedButton.icon(
+                      key: const Key('timed-add-limit'),
+                      onPressed: () => _editTimedLimit(null),
+                      icon: const Icon(Icons.add),
+                      label: const Text('Add time limit'),
+                    ),
+                  ),
+              ],
+              if ((widget.round.roundType == RoundType.story ||
+                      widget.round.roundType == RoundType.sequence) &&
+                  _flow != null &&
+                  _flow!.isLinear) ...[
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
                   child: TextField(
@@ -9056,6 +9526,14 @@ class _ExerciseCreationWizardScreenState
             publicationState: PublicationState.draft,
             updatedAt: DateTime.now().toUtc(),
             title: 'Preview exercise',
+            roundType: widget.round.roundType,
+            testFixedOrder: widget.round.testFixedOrder,
+            testPassingPercent: widget.round.testPassingPercent,
+            timedLimitsSeconds: widget.round.timedLimitsSeconds,
+            flow: RoundFlowAuthoring.singleExercisePreviewFlow(
+              widget.round.roundType,
+              exercise,
+            ),
             exercises: [exercise],
           ),
           ttsLanguage:
@@ -11291,6 +11769,11 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
           final visible = ExercisePresetRegistry.presets
               .where(
                 (preset) =>
+                    (widget.round == null ||
+                        RoundTypeCompatibility.canOfferPreset(
+                          widget.round!.roundType,
+                          preset,
+                        )) &&
                     matchesDirection(preset) &&
                     matchesQuery(
                       preset.name,
@@ -11879,6 +12362,14 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
       updatedAt: round.updatedAt,
       title: 'Preview Exercise',
       visualType: round.visualType,
+      roundType: round.roundType,
+      testFixedOrder: round.testFixedOrder,
+      testPassingPercent: round.testPassingPercent,
+      timedLimitsSeconds: round.timedLimitsSeconds,
+      flow: RoundFlowAuthoring.singleExercisePreviewFlow(
+        round.roundType,
+        candidate,
+      ),
       exercises: [candidate],
     );
     // Preview receives detached data and uses the existing no-progress runtime.

@@ -76,11 +76,19 @@ void main() {
             find.byKey(const ValueKey('unified-duel-optional-lesson')),
             visible ? findsOneWidget : findsNothing,
           );
+          // The path line leaves the Lesson circle itself since Build 261
+          // Revision 8; only the Duel keeps its 24px connector.
           expect(
             find.byKey(const Key('learner-tree-connector')),
-            findsNWidgets(visible ? 2 : 1),
+            findsNWidgets(visible ? 1 : 0),
             reason: 'The unavailable Duel must not leave its 24px connector.',
           );
+          final dynamic painter = tester
+              .widget<CustomPaint>(
+                find.byKey(const Key('learner-round-connector')),
+              )
+              .painter;
+          expect(painter.leadsToDuel, visible);
           expect(find.textContaining('suitable exercises'), findsNothing);
           if (visible) {
             expect(find.text('Final Duel'), findsOneWidget);
@@ -302,11 +310,16 @@ void main() {
       await tester.ensureVisible(toggle);
       await tester.tap(toggle);
       await tester.pumpAndSettle();
+      await tester.drag(find.byType(ListView).first, const Offset(0, 1200));
+      await tester.pumpAndSettle();
       expect(
         tester.widget<AuthoringStatusCard>(ancestor).hasAuditConcern,
         isFalse,
       );
+      await tester.ensureVisible(toggle);
       await tester.tap(toggle);
+      await tester.pumpAndSettle();
+      await tester.drag(find.byType(ListView).first, const Offset(0, 1200));
       await tester.pumpAndSettle();
       expect(
         tester.widget<AuthoringStatusCard>(ancestor).hasAuditConcern,

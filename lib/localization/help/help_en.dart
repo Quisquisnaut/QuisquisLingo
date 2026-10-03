@@ -130,22 +130,61 @@ const Map<String, String> helpEn = <String, String>{
   'editorHelp.qa.customFlag.a':
       r'''Copy one PNG or JPEG named flag.png, flag.jpg or flag.jpeg to {folderCourseFlagImports} and press Upload custom flag in the flag chooser. It may be up to 2 MB and between 64 × 40 and 4096 pixels. QQL reduces it to 256 pixels on its longest side, keeps PNG transparency and stores it inside the Course.''',
   'editorHelp.qa.lessonOptions.q':
-      r'''Where are Use GuideBook, Create Duels and Lesson numbering?''',
+      r'''Where are Use GuideBook, Create Duels and the label options?''',
   'editorHelp.qa.lessonOptions.a':
-      r'''In Lesson Options, under the Lessons tile of the Course Editor page. With Use GuideBook off, learners see no GuideBooks, whose content is kept; with Create Duels off, no Duels. Lesson numbering chooses the word used for Lessons in the Editor and for learners. None of them deletes content, victories, completion or XP.''',
+      r'''In Lesson Options, under the Lessons tile of the Course Editor page. With Use GuideBook off, learners see no GuideBooks, whose content is kept; with Create Duels off, no Duels. Lesson label and numbering and Round label and numbering change how names appear. None of these options deletes content, victories, completion or XP.''',
+  'editorHelp.qa.labelsAndNumbering.q':
+      r'''How do Lesson label and numbering and Round label and numbering work?''',
+  'editorHelp.qa.labelsAndNumbering.a':
+      r'''Both selectors are in Lesson Options. Each offers Off, its own label + number, Number only and Custom + number. They change the displayed prefix, not the title or the content ID. Every Lesson must have an authored title; a Round title is optional because its type still names it. An authored title remains visible with every choice, including Off. Numbers follow the current position, and the editor still shows order numbers. Older Courses may retain a previously chosen Lesson label until you select one of the four current choices.''',
   'editorHelp.qa.sections.q': r'''How do I group Lessons into Sections?''',
   'editorHelp.qa.sections.a':
       r'''In a Lesson, the Section selector offers No section, the existing names, Add new section… and Manage sections…. Consecutive Lessons with the same Section form one block on the learner's path. A new Lesson takes the Section of the Lesson before it. A name still used by a Lesson cannot be removed. Sections have no progress or unlocks of their own.''',
   'editorHelp.qa.lessonIcon.q': r'''How do I choose a Lesson icon?''',
   'editorHelp.qa.lessonIcon.a':
-      r'''In the Lesson editor choose a Preinstalled icon, a Custom Course icon, or Numbers. For Import custom icon, keep exactly one PNG, JPG/JPEG or WebP of up to 2 MB and 4096 pixels in {folderLessonIconImports}; QQL centres it on a transparent 256 × 256 square and stores it in the Course. Without an icon, a Lesson shows its number in a theme-colored circle.''',
+      r'''In the Lesson editor choose a Preinstalled icon, a Custom Course icon, or Numbers. For Import custom icon, keep exactly one PNG, JPG/JPEG or WebP of up to 2 MB and 4096 pixels in {folderLessonIconImports}; QQL centres it on a transparent 256 × 256 square and stores it in the Course. Without an icon, a Lesson shows its number in a circle of the Lesson's colour: QQL gives each Lesson one of eight colours by its position, and its Round circles on the learner path use the same colour.''',
   'editorHelp.qa.whoMayEdit.q': r'''Who may edit a Course?''',
   'editorHelp.qa.whoMayEdit.a':
       r'''Its Course Maintainer and every member of the Team assigned to it. Only the Maintainer can hand over maintenance or assign or remove the Team, and a Team always keeps at least one Team Leader. Other people can Fork the Course in Course Studio only when its license allows derivative works.''',
   'editorHelp.qa.lessonsAndRounds.title': r'''Lessons and Rounds''',
+  'editorHelp.qa.roundTypes.title': r'''Round Types''',
+  'editorHelp.qa.roundTypeContract.q': r'''What does a Round type control?''',
+  'editorHelp.qa.roundTypeContract.a':
+      r'''Each Round has one type. It determines its learner-path name and icon, the exercises the editor offers, publication checks and, for Sequence, Story, FlashCard and Test, how the Round plays. Exercise behavior still comes from its canonical primitive, options and content; a preset is only a way to author it.''',
+  'editorHelp.qa.discover.q': r'''When should I use Discover?''',
+  'editorHelp.qa.discover.a':
+      r'''Use Discover to introduce words, concepts, structures or examples. You may mix explanations, cards and first guided exercises. It uses immediate feedback and normal mistake review for questions.''',
+  'editorHelp.qa.practice.q': r'''When should I use Practice?''',
+  'editorHelp.qa.practice.a':
+      r'''Practice is the general exercise Round. Questions are normally randomized, checked immediately and revisited after mistakes. Existing ordinary Rounds become Practice.''',
+  'editorHelp.qa.listening.q': r'''What belongs in a Listen Round?''',
+  'editorHelp.qa.listening.a':
+      r'''Every required exercise must need audio to answer. The picker offers audio-capable presets and the Canonical Editor remains available. Optional audio alone does not qualify. The editor warns about incompatible canonical content and the Audit blocks publication.''',
+  'editorHelp.qa.reading.q': r'''What belongs in a Read Round?''',
+  'editorHelp.qa.reading.a':
+      r'''Every required exercise must have a verifiable reading passage and question. A visible answer copied from the passage does not qualify. The picker offers reading-capable presets plus the Canonical Editor; the Audit blocks incompatible published content.''',
+  'editorHelp.qa.flashcardRound.q': r'''What is a FlashCard Round?''',
+  'editorHelp.qa.flashcardRound.a':
+      r'''It contains only valid term-and-meaning Flashcards or Picture Flashcards. Cards advance one by one without correctness grading or an ordinary mistake review. Other Presentation cards and exercises are blocked by the Audit.''',
+  'editorHelp.qa.testRound.q': r'''How does a Test work?''',
+  'editorHelp.qa.testRound.a':
+      r'''A Test accepts evaluatable exercises only. Learners answer every question without seeing correctness or corrections, then see all results. The editor offers fixed or randomized order and an optional passing percentage. That percentage changes the results label only; completion, XP, unlocks and Laurels follow the usual rules. Preview and early exit record nothing.''',
+  'editorHelp.qa.timedRound.q': r'''How does a Timed Round work?''',
+  'editorHelp.qa.timedRound.a':
+      r'''Choose Timed in New Round, set a limit from 30 seconds to 10 minutes, and add timed-compatible exercises. Lesson Options can hold ordered default Timed limits for the Course; each new Timed Round copies them, while existing Rounds keep their own limits. In the Round editor you can add distinct limits and arrange their order. The next limit unlocks after the first timely completion of the current one. The timer begins when play starts, after any Before you start card. If time runs out, input locks, correct-answer XP is kept and the Round remains incomplete for retry. Completing before zero gives normal Round XP and, once for each limit, a separate 10 XP On Time bonus. The Audit blocks missing, repeated or invalid limits and content that cannot finish reliably.''',
+  'editorHelp.qa.speakRound.q': r'''Can I create a Speak Round?''',
+  'editorHelp.qa.speakRound.a':
+      r'''Speak is shown last in New Round as Coming soon and cannot be selected. An imported Speak Round remains readable but cannot be published or played in this version.''',
+  'editorHelp.qa.roundCompatibility.q':
+      r'''How are exercises checked against a Round type?''',
+  'editorHelp.qa.roundCompatibility.a':
+      r'''The picker filters suggested presets, but final validation examines the actual canonical exercise. You may save an unfinished Round as Draft; the Audit blocks publishing an incompatible Listen, Read, FlashCard, Test, Story, Sequence or Speak Round.''',
+  'editorHelp.qa.roundNumbering.q': r'''How do Round numbers work?''',
+  'editorHelp.qa.roundNumbering.a':
+      r'''Lesson Options sets Round label and numbering to Off, Round + number, Number only or Custom + number. Off still shows the type and your title, such as “Practice · Greetings”. Numbers follow the Round’s current position in its Lesson, never its ID or progress record. The editor always shows order numbers.''',
   'editorHelp.qa.newRound.q': r'''How do I add a Round?''',
   'editorHelp.qa.newRound.a':
-      r'''On a Lesson's Rounds page press New Round. A new Round is a provisional Draft with one sample exercise (Pick the translation) to replace. The title may stay empty: the Round is then called Round N after its position.''',
+      r'''On a Lesson's Rounds page press New Round and choose a type. Speak is unavailable. Story opens the Story Wizard; other types start a provisional Draft, with a sample only for Discover, Practice and Sequence. You can leave the title empty; learners still see the type. Round Wizard remains beside New Round for generating multiple Rounds.''',
   'editorHelp.qa.beforeYouStart.q':
       r'''How do I write the Before you start note of a Round?''',
   'editorHelp.qa.beforeYouStart.a':
@@ -153,16 +192,16 @@ const Map<String, String> helpEn = <String, String>{
   'editorHelp.qa.roundWizard.q':
       r'''How does the Round Wizard create Rounds?''',
   'editorHelp.qa.roundWizard.a':
-      r'''Press Round Wizard on the Rounds page; it needs Use GuideBook on. It builds Rounds from the vocabulary pairs and examples of the Lesson GuideBook (at least three pairs). Choose 1–12 Rounds and 1–15 exercises per Round (6 and 8 by default) and review the plan: early Rounds recognize, later ones build and produce. It creates preset exercises only, each opening in its preset's form, and its Rounds stay Draft until you review and approve them.''',
-  'editorHelp.qa.sequence.q': r'''What does Play as a sequence do?''',
+      r'''Press Round Wizard on the Rounds page; it needs Use GuideBook on. It builds Rounds from the vocabulary pairs and examples of the Lesson GuideBook (at least three pairs). Choose 1–12 Rounds and 1–15 exercises per Round (6 and 8 by default) and review each proposed type and the rising difficulty. Change a type before generation when the GuideBook can produce compatible exercises. It creates compatible preset exercises only; unsupported Read and Story proposals explain why they cannot be generated from vocabulary alone. Rounds stay Draft until you review and approve them.''',
+  'editorHelp.qa.sequence.q': r'''What is a Sequence Round?''',
   'editorHelp.qa.sequence.a':
-      r'''In a Round made with New Round, it plays the exercises in the order you set, without shuffling and without the final review of mistakes. The Optional sequence title names it: lists, the learner's path and the Round screen call it “Sequence: <title>”, or “Sequence: <Round name>” without one. It keeps New Exercise and Exercise Wizard, gets the Audit's Round rules and its exercises count toward the Duel. Choose Step by step or Scrolling.''',
+      r'''Choose Sequence in New Round. Its linear content flow plays exercises in authored order, without shuffle or mistake review. The optional flow title names it in learner views. It keeps New Exercise and Exercise Wizard, and its eligible questions may enter the Duel. Choose Step by step or Scrolling in its Round editor.''',
   'editorHelp.qa.story.q': r'''What is a Story?''',
   'editorHelp.qa.story.a':
-      r'''A Round played in order: a title block (the cover), dialogue lines said by the narrator or by characters, and exercises about them. Lists call it “Story: <title>”. Only the exercises score; it follows the XP, completion and Laurel rules of a practice Round, and its exercises stay out of the Duel.''',
+      r'''A Story is an ordered narrative Round with a title block, dialogue lines and comprehension exercises. Only evaluatable exercises score; normal completion, XP and Laurel rules apply. Story questions stay out of the Duel.''',
   'editorHelp.qa.newStory.q': r'''How do I build a Story?''',
   'editorHelp.qa.newStory.a':
-      r'''Press New Story on the Rounds page (it needs no GuideBook). Give the title, the cover picture and whether lines are read aloud automatically or on request; check the narrator and the Course characters, which you can add or edit; then build the steps with Add line and Add exercise. Finish needs at least one line and adds the Story to the working copy.''',
+      r'''Press New Round → Story (no GuideBook needed). Give the title and cover picture, choose read-aloud, check the narrator and Course characters, then build steps with Add line and Add exercise. Finish needs at least one line and adds the Story to the working copy.''',
   'editorHelp.qa.editStory.q': r'''How do I change a Story afterwards?''',
   'editorHelp.qa.editStory.a':
       r'''Open its Round. Add Step offers Title block (one per Story), Dialogue line and Exercise. The Story options set the title, Step by step or Scrolling, what the scrolling log keeps (Dialogue only or Everything) and the read-aloud. “Needs the Story's audio” in an exercise's menu marks one that is skipped with Audio Exercises off; lines are never skipped.''',
@@ -190,7 +229,7 @@ const Map<String, String> helpEn = <String, String>{
       r'''In a Round, New Exercise opens the preset picker: choose an exercise type, such as Pick the translation or Name what you see, and fill its form. Its last choice, Canonical editor, opens the canonical editor for any primitive; Fill with an example puts a working example of the chosen primitive in it and Clear all empties it again; its Help button opens that primitive's section of the Exercise primitives reference. The preset's name is shown in bold at the top of the form.''',
   'editorHelp.qa.pageCards.q': r'''How do I make a textbook-like Page?''',
   'editorHelp.qa.pageCards.a':
-      r'''In the Round editor press New Exercise and choose Page (Cards and notes). Add blocks with Add block: headings, paragraphs, quotes or examples, bulleted or numbered lists, pictures, audio and video links; order them with the arrows. In body text write **bold** and *italic* (the toolbar wraps the selection). Each text block has an alignment, a colour from the palette and an optional read-aloud; each picture a size, an alignment and a caption. A video link opens an https address in the learner’s browser. The preview under the blocks shows the Page as the learner sees it. Several pages in a row are several Page cards; turn on Play as a sequence to keep their order. Under each Page learners find Share, Save PDF and Print (on computers Print opens the PDF in the viewer, which prints it); the PDF credits the Course, its rights holder and licence. Turn them off in Course Info with Learners may share, save and print pages.''',
+      r'''In the Round editor press New Exercise and choose Page (Cards and notes). Add blocks with Add block: headings, paragraphs, quotes or examples, bulleted or numbered lists, pictures, audio and video links; order them with the arrows. In body text write **bold** and *italic* (the toolbar wraps the selection). Each text block has an alignment, a colour from the palette and an optional read-aloud; each picture a size, an alignment and a caption. A video link opens an https address in the learner’s browser. The preview under the blocks shows the Page as the learner sees it. Several pages in a row are several Page cards; choose a Sequence Round to keep their order. Under each Page learners find Share, Save PDF and Print (on computers Print opens the PDF in the viewer, which prints it); the PDF credits the Course, its rights holder and licence. Turn them off in Course Info with Learners may share, save and print pages.''',
   'editorHelp.qa.presetOrCanonical.q':
       r'''What is the difference between a preset and the canonical editor?''',
   'editorHelp.qa.presetOrCanonical.a':
@@ -384,6 +423,16 @@ const Map<String, String> helpEn = <String, String>{
   'appInfo.streakAndFreezeRule.title': r'''Streak and the freeze rule''',
   'appInfo.daysStudied.title': r'''Days studied''',
   'appInfo.laurelCrowns.title': r'''Laurel crowns''',
+  'appInfo.pathColours.title': r'''Colour code of the path''',
+  'appInfo.pathColours.enlarge': r'''Enlarge the picture''',
+  'appInfo.pathColours.body':
+      r'''Each Lesson has its own colour, one of eight that start again after Lesson 8; the picture shows them in the light and the dark theme. The Lesson's number circle is drawn in its colour, and so are the circles of its Rounds and of its Duel.
+• A pale circle ringed with the colour: a Round not completed yet (Learn).
+• A solid circle: a completed Round; Completed is written in another shade of the colour.
+• A green circle with a laurel: a Perfect Round, completed without errors.
+Learn is always blue and Perfect always green, whatever the Lesson's colour.''',
+  'appInfo.pathColours.picture':
+      r'''The eight Lesson colours in the light and the dark theme: a Round not completed, a completed Round and the word Completed.''',
   'appInfo.audioSettings.title': r'''Audio Settings''',
   'appInfo.betaExpiry.title': r'''Beta expiry''',
   'appInfo.status.title': r'''Status''',
@@ -571,9 +620,6 @@ Remove from my courses, in the Selector or Course Studio, removes the course onl
       r'''The canonical editor''',
   'technical.exercisePrimitives.canonicalEditor.body':
       r'''The canonical editor (New Exercise › Canonical editor) shows every canonical field of any primitive with the values the capability registry allows: Primitive, Options, Prompt, Items, Targets, Layout, Evaluation by mode, Feedback and hint. It says whether this version can play the exercise, refuses the combinations the registry refuses, previews with the learner runtime and saves like a preset form (Save as draft, or Save with the Audit). An exercise that no preset represents opens there. Role is a menu of the roles QQL reads for the element's type, with what each does; a stored role outside the list stays and is marked. A new exercise has Fill with an example and Clear all (back to the primitive's defaults); changing its primitive when fields are filled asks you to check them. The first time each primitive opens in a Course, a popup explains it (once per user and Course; Show one-time notices again brings it back), and the Help button opens that primitive's section on this page.''',
-  'technical.exercisePrimitives.stories.title': r'''Stories''',
-  'technical.exercisePrimitives.stories.body':
-      r'''A Round with a content flow plays in the authored order: a Story when its visual type is story (New Story makes it), a sequence otherwise (a Round made with New Round). Play as a sequence in the Round editor gives the Round a linear flow: its exercises play in the authored order, unshuffled and without a mistake review; XP, completion, Laurels and Review work as in a practice Round. A sequence's exercises join the Duel and it gets the Audit's Round rules; a Story's exercises stay out of the Duel. Editing, moving, copying and duplicating a Story keeps its flow. Branching flows (onCorrect, onIncorrect, onChoice, conditional) are stored and checked but are not playable in this version. A Story is shown Step by step (one item per page) or Scrolling (finished items stay on the page with the learner's answer, the next item appears below and the page scrolls to it), chosen under the Story switch. Build 256 Revision 5 adds the Dialogue line and Story cover presets, the Story title, scroll log and read-aloud options, exercises marked as needing the Story’s audio, the narrator and characters as Course data (storyNarrator, storyCharacters, speakerId on elements, the textReveal option) and the Story Wizard; see Stories and the Story Wizard in the Editor Help.''',
   'technical.jsonStructure.title': r'''JSON data structure''',
   'technical.jsonStructure.status.title': r'''Status''',
   'technical.jsonStructure.status.body':
@@ -586,7 +632,7 @@ Remove from my courses, in the Selector or Course Studio, removes the course onl
       r'''Each Lesson contains a guidebook with optional publicationState and guidebook.content[] structured Content such as explanation, vocabulary and example entries. An omitted Guidebook publicationState means published; an explicit draft state keeps the Guidebook out of learner delivery. Its displayed Internal ID is derived from the immutable Lesson ID with the suffix _guidebook; no additional ID field is persisted. Guidebook Content retains its own stable IDs. The optional course useGuidebook switch changes learner access and the empty-Guidebook Warning, never the stored content.''',
   'technical.jsonStructure.lessonAndRound.title': r'''Lesson and Round''',
   'technical.jsonStructure.lessonAndRound.body':
-      r'''Course, Lesson, Guidebook, Round and authored Exercise content carry draft/published state. Guidebook defaults to published when its optional state is absent. Lesson, Round and Exercise also require UTC updatedAt timestamps. A Course stores Lesson numbering, a legacy-compatible fallback-icon value and optional managed custom Lesson-icon assets. Both accepted legacy fallback values now render the same theme-colored number circle. A Lesson contains lessonId, title, optional Section and themeIconAsset metadata, guidebook, rounds[] and its Duel identity. Guidebook may contain ordered Insights sections with Title and Text. Round title is optional and falls back everywhere to its current Round N position without changing identity.''',
+      r'''Course, Lesson, Guidebook, Round and authored Exercise content carry draft/published state. Guidebook defaults to published when its optional state is absent. Lesson, Round and Exercise also require UTC updatedAt timestamps. A Course stores Lesson label and numbering, Round label and numbering, a legacy-compatible fallback-icon value and optional managed custom Lesson-icon assets. Both accepted legacy fallback values now render the same number circle in the Lesson's colour, chosen by its position; nothing about the colour is stored. A Lesson contains lessonId, a required title, optional Section and themeIconAsset metadata, guidebook, rounds[] and its Duel identity. Guidebook may contain ordered Insights sections with Title and Text. Round title is optional; without one, the Round type still names it without changing identity.''',
   'technical.jsonStructure.exerciseContent.title': r'''Exercise Content''',
   'technical.jsonStructure.exerciseContent.body':
       r'''Exercise Content stores editorTemplate plus exercise.prompt[], exercise.interaction and exercise.evaluation. Correctness uses stable Item IDs rather than display indexes. Build the translation stores one or more literal correctOrders with answer text and ordered Item IDs; legacy correctOrder is rejected.''',
@@ -1108,7 +1154,7 @@ Question and Context are separate. Context can be text, audio, or both. Dialogue
   'exerciseHelp.preset.page.body':
       r'''A page the learner reads and continues, built from blocks: headings, paragraphs, quotes or examples, bulleted or numbered lists, pictures, audio and video links. Write **bold** and *italic* in body text (the toolbar wraps the selection); choose each block’s alignment (start, center, end, justify for body text) and a colour from a palette that stays readable in light and dark themes; a text block may offer a read-aloud button. Pictures come small, medium, large or full width with a caption; a video link opens an https address in the browser. No answer, no score.''',
   'exerciseHelp.preset.story_cover.body':
-      r'''The first card of a Story. Choose the cover picture and, if you like, a title line; the Story's title from the Round options is shown above it. The learner presses Continue. Create Stories with the Story Wizard or by turning on Play as a sequence in the Round editor.''',
+      r'''The first card of a Story. Choose the cover picture and, if you like, a title line; the Story's title from the Round options is shown above it. The learner presses Continue. Create a Story with New Round → Story.''',
   'exerciseHelp.preset.note_card.body':
       r'''A card with a title and a note: a tip, a grammar point, a cultural remark. The learner reads it and presses Continue; there is no answer, no score and no audio. Write in the language your learners read best.''',
   'exerciseHelp.preset.gap_choice.body':

@@ -63,6 +63,7 @@ Course _laboratoryWithStory() {
   final round = rounds.first as Map<String, dynamic>;
   final parsed = LearningRound.fromJson(round);
   round['flow'] = RoundFlowAuthoring.linearFor(parsed.content).toJson();
+  round['roundType'] = 'story';
   final source = Course.fromJson(json);
   const profileId = '11111111-1111-4111-8111-111111111111';
   final copy =
@@ -248,7 +249,7 @@ void main() {
     expect(updated.lessons.first.rounds[1].flow, isNull);
   });
 
-  testWidgets('the Round editor keeps a Story and offers the Story switch', (
+  testWidgets('the Round editor keeps a Story without a type switch', (
     tester,
   ) async {
     tester.view.physicalSize = const Size(1200, 2400);
@@ -273,9 +274,8 @@ void main() {
     );
     await tester.pumpAndSettle();
     final switchFinder = find.byKey(const Key('round-story-switch'));
-    expect(switchFinder, findsOneWidget);
-    expect(tester.widget<SwitchListTile>(switchFinder).value, isTrue);
-    expect(find.textContaining('play in this order'), findsOneWidget);
+    expect(switchFinder, findsNothing);
+    expect(find.byKey(const Key('round-story-presentation')), findsOneWidget);
     // Saving the Round (as draft: the fork's content is Draft, so a
     // published save would fail the Audit) rebuilds it and keeps the flow.
     await tester.tap(find.byKey(const Key('round-save-draft')));
@@ -289,9 +289,7 @@ void main() {
     );
   });
 
-  testWidgets('the Story switch turns a practice Round into a linear Story', (
-    tester,
-  ) async {
+  testWidgets('a Practice Round has no flow switch', (tester) async {
     tester.view.physicalSize = const Size(1200, 2400);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
@@ -300,7 +298,6 @@ void main() {
     final lesson = course.lessons.first;
     final round = lesson.rounds.first;
     expect(round.flow, isNull);
-    Course? changed;
     await tester.pumpWidget(
       MaterialApp(
         home: RoundEditorScreen(
@@ -308,31 +305,14 @@ void main() {
           lesson: lesson,
           round: round,
           roundIndex: 0,
-          onCourseChanged: (value) => changed = value,
+          onCourseChanged: (_) {},
           clock: () => DateTime.utc(2026, 9, 27, 12),
         ),
       ),
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('round-story-switch')));
-    await tester.pumpAndSettle();
-    expect(
-      tester
-          .widget<SwitchListTile>(find.byKey(const Key('round-story-switch')))
-          .value,
-      isTrue,
-    );
-    expect(changed, isNotNull);
-    final saved = changed!.lessons.first.rounds.first;
-    expect(saved.flow, isNotNull);
-    expect(
-      saved.flow!.linearNodeIds(),
-      saved.content.map((content) => content.id).toList(),
-    );
-    // And off again: a practice Round.
-    await tester.tap(find.byKey(const Key('round-story-switch')));
-    await tester.pumpAndSettle();
-    expect(changed!.lessons.first.rounds.first.flow, isNull);
+    expect(find.byKey(const Key('round-story-switch')), findsNothing);
+    expect(find.byKey(const Key('round-story-presentation')), findsNothing);
   });
 }
 

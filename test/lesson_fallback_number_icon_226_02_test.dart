@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/main.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/screens/course_editor_screen.dart';
+import 'package:quisquislingo_app/services/lesson_color_palette.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:quisquislingo_app/widgets/lesson_fallback_icon.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -22,7 +23,7 @@ void main() {
 
     for (final persisted in ['monochrome', 'coloredLessonNumbers']) {
       testWidgets(
-        '$persisted loads as the one theme-colored circle in ${mode.name}',
+        '$persisted loads as the one Lesson-colour circle in ${mode.name}',
         (tester) async {
           final course = _reload(_course(persisted));
           expect(course.toJson()['defaultLessonIconStyle'], persisted);
@@ -34,7 +35,7 @@ void main() {
                 body: Center(
                   child: LessonFallbackIcon(
                     style: course.defaultLessonIconStyle,
-                    number: 1,
+                    number: 3,
                     size: 84,
                   ),
                 ),
@@ -48,16 +49,19 @@ void main() {
           expect(theme.brightness, brightness);
           expect(tester.getSize(fallback), const Size(84, 84));
           final number = tester.widget<Text>(
-            find.descendant(of: fallback, matching: find.text('1')),
+            find.descendant(of: fallback, matching: find.text('3')),
           );
 
+          // The third Lesson's colour (Build 261 Revision 8): the stored
+          // style still changes nothing.
+          final colors = LessonColorPalette.of(2, brightness);
           expect(
             tester
                 .widget<CircleAvatar>(find.byType(CircleAvatar))
                 .backgroundColor,
-            theme.colorScheme.primaryContainer,
+            colors.solid,
           );
-          expect(number.style!.color, theme.colorScheme.onPrimaryContainer);
+          expect(number.style!.color, colors.onSolid);
           expect(
             find.descendant(of: fallback, matching: find.byType(ClipOval)),
             findsNothing,

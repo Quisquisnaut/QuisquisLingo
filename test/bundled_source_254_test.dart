@@ -72,10 +72,7 @@ void main() {
       // 39 examples and seven Before you start cards (Build 257).
       hasLength(46),
     );
-    expect(
-      CourseBackupService.officialContentChecksum(actual),
-      source.officialChecksum,
-    );
+    expect(CourseBackupService.officialContentChecksumMatches(actual), isTrue);
     expect(actual.toJson(), source.toJson());
   }
 

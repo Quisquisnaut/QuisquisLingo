@@ -794,6 +794,8 @@ Course _course({PublicationState state = PublicationState.published}) => Course(
   buyACoffeeUrl: 'https://example.com/coffee',
   lessonNumberingMode: LessonNumberingMode.other,
   customLessonLabel: 'Unit',
+  roundNumberingMode: RoundNumberingMode.customAndNumber,
+  customRoundLabel: 'Step',
   audioLibrary: const [
     CourseAudioClip(
       id: 'audio',

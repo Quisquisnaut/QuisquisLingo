@@ -10,6 +10,7 @@ import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/screens/home_screen.dart';
 import 'package:quisquislingo_app/services/course_service.dart';
 import 'package:quisquislingo_app/services/learner_mascots.dart';
+import 'package:quisquislingo_app/services/lesson_color_palette.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:quisquislingo_app/services/settings_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -40,6 +41,10 @@ void main() {
     double width = 430,
     ThemeMode themeMode = ThemeMode.light,
     void Function(LearningRound round)? onOpenRound,
+    int lessonIndex = 0,
+    bool halo = false,
+    bool startsAtLessonCircle = false,
+    bool leadsToDuel = false,
   }) => MaterialApp(
     theme: ThemeData.light(useMaterial3: true),
     darkTheme: ThemeData.dark(useMaterial3: true),
@@ -49,17 +54,23 @@ void main() {
         alignment: Alignment.topCenter,
         child: SizedBox(
           width: width,
-          child: LearnerRoundPath(
-            courseId: 'course-alpha',
-            rounds: rounds,
-            completedRounds: completedRounds,
-            perfectRounds: perfectRounds,
-            ttsSkippedPerfectRounds: const {},
-            roundAudioAvailability: const {},
-            mascotAssets: mascotAssets,
-            mascotPositionOffset: mascotPositionOffset,
-            roundPositionOffset: roundPositionOffset,
-            onOpenRound: onOpenRound ?? (_) {},
+          child: LearnerPathHalo(
+            enabled: halo,
+            child: LearnerRoundPath(
+              courseId: 'course-alpha',
+              lessonIndex: lessonIndex,
+              startsAtLessonCircle: startsAtLessonCircle,
+              leadsToDuel: leadsToDuel,
+              rounds: rounds,
+              completedRounds: completedRounds,
+              perfectRounds: perfectRounds,
+              ttsSkippedPerfectRounds: const {},
+              roundAudioAvailability: const {},
+              mascotAssets: mascotAssets,
+              mascotPositionOffset: mascotPositionOffset,
+              roundPositionOffset: roundPositionOffset,
+              onOpenRound: onOpenRound ?? (_) {},
+            ),
           ),
         ),
       ),
@@ -99,8 +110,29 @@ void main() {
         )
         .toSet();
 
-    expect(positions, [0, 3, 5, 8]);
+    expect(positions, [0, 1, 3, 5, 7, 8]);
     expect(freeSides, {LearnerRoundPathSide.left, LearnerRoundPathSide.right});
+  });
+
+  test('no two Rounds in a row have a mascot on the same side', () {
+    // Owner request of 3 October 2026 (Build 261 Revision 8).
+    for (var offset = 0; offset < 20; offset++) {
+      final rows = learnerRoundPathMascotRows(40, roundPositionOffset: offset);
+      for (var index = 1; index < rows.length; index++) {
+        expect(
+          rows[index] &&
+              rows[index - 1] &&
+              learnerRoundPathSide(index) == learnerRoundPathSide(index - 1),
+          isFalse,
+          reason: 'offset $offset, Rounds ${index - 1} and $index',
+        );
+      }
+      expect(
+        rows.where((shown) => shown).length,
+        greaterThanOrEqualTo(20),
+        reason: 'more than half the Rounds keep a mascot',
+      );
+    }
   });
 
   test('course identity gives mascots a stable full-set shuffle', () {
@@ -197,7 +229,7 @@ void main() {
       }
     }
 
-    expect(learnerRoundPathMascotSlotCount(2), 1);
+    expect(learnerRoundPathMascotSlotCount(2), 2);
     expect(selected.take(assets.length).toSet(), hasLength(assets.length));
     expect(selected[assets.length], isIn(selected.take(assets.length)));
     for (var index = 1; index < selected.length; index++) {
@@ -482,10 +514,42 @@ void main() {
         tester.getRect(find.byKey(ValueKey('unified-round-${round.id}'))),
     ];
 
+    // Circles at the left edge, the centre or the right edge (Build 261
+    // Revision 8): some places repeat, an edge never follows the other edge.
     final firstLayout = rects();
-    expect(firstLayout[3].left, firstLayout[4].left);
     expect(firstLayout[3].bottom + 20, lessThanOrEqualTo(firstLayout[4].top));
-    expect(firstLayout.map((rect) => rect.left).toSet().length, 2);
+    expect(firstLayout.map((rect) => rect.left).toSet().length, 4);
+    final circles = [
+      for (final round in sample)
+        tester
+            .getRect(find.byKey(ValueKey('unified-round-icon-${round.id}')))
+            .center
+            .dx,
+    ];
+    final path = tester.getRect(find.byKey(const Key('unified-round-tree')));
+    for (var index = 0; index < sample.length; index++) {
+      expect(
+        circles[index],
+        closeTo(switch (learnerRoundPlacement(index)) {
+          LearnerRoundPlacement.left => path.left + learnerRoundIconCenterX,
+          LearnerRoundPlacement.right => path.right - learnerRoundIconCenterX,
+          _ => path.center.dx,
+        }, .01),
+      );
+    }
+    final placements = List.generate(32, learnerRoundPlacement);
+    for (var index = 1; index < placements.length; index++) {
+      expect(
+        {placements[index - 1], placements[index]},
+        isNot({LearnerRoundPlacement.left, LearnerRoundPlacement.right}),
+        reason: 'no jump from edge to edge at $index',
+      );
+    }
+    expect(
+      List.generate(31, (index) => placements[index] == placements[index + 1]),
+      contains(isTrue),
+      reason: 'a place sometimes repeats',
+    );
 
     await tester.pumpWidget(app(rounds: sample));
     expect(rects(), firstLayout);
@@ -499,17 +563,25 @@ void main() {
       final sample = rounds(count);
       await tester.pumpWidget(app(rounds: sample));
       expect(find.byKey(const Key('unified-round-tree')), findsOneWidget);
-      expect(find.byType(Card), findsNWidgets(count));
+      // Rows without cards since Build 261 Revision 8.
+      expect(find.byType(Card), findsNothing);
+      for (final round in sample) {
+        expect(
+          find.byKey(ValueKey('unified-round-${round.id}')),
+          findsOneWidget,
+        );
+      }
       expect(tester.takeException(), isNull, reason: '$count Rounds');
     }
   });
 
-  testWidgets('completion alone gives the icon its persistent bright accent', (
+  testWidgets('completion fills the icon circle with the Lesson colour', (
     tester,
   ) async {
     final sample = rounds(2);
-    const completedColor = Color(0xFFFFB000);
-    const incompleteColor = Color(0xFFFFEBC0);
+    final lesson = LessonColorPalette.of(0, Brightness.light);
+    final completedColor = lesson.solid;
+    final incompleteColor = lesson.tint;
 
     Color iconColor(String roundId) {
       final iconContainer = tester.widget<Container>(
@@ -548,10 +620,76 @@ void main() {
     );
     expect(
       (iconContainer.decoration! as BoxDecoration).color,
-      const Color(0xFFFFB000),
+      LessonColorPalette.of(0, Brightness.light).solid,
     );
-    expect(find.text('Practice'), findsOneWidget);
+    expect(find.text('Completed'), findsOneWidget);
+    // Written in the Lesson's deeper shade, not the circle's own.
+    expect(
+      tester.widget<Text>(find.text('Completed')).style!.color,
+      LessonColorPalette.of(0, Brightness.light).onTint,
+    );
     expect(find.text('Perfect'), findsNothing);
+  });
+
+  testWidgets(
+    'a Round not yet completed is a pale tint ringed with its Lesson colour',
+    (tester) async {
+      // Owner decisions of 3 October 2026 (Build 261 Revision 8): each
+      // Lesson has its own colour, by position; green is only Perfect.
+      final sample = rounds(1);
+      for (final mode in [ThemeMode.light, ThemeMode.dark]) {
+        await tester.pumpWidget(
+          app(rounds: sample, lessonIndex: 2, themeMode: mode),
+        );
+        await tester.pumpAndSettle();
+        final colors = LessonColorPalette.of(
+          2,
+          mode == ThemeMode.dark ? Brightness.dark : Brightness.light,
+        );
+        final circle = tester.widget<Container>(
+          find.byKey(ValueKey('unified-round-icon-${sample.single.id}')),
+        );
+        final decoration = circle.decoration! as BoxDecoration;
+        expect(decoration.color, colors.tint, reason: '$mode');
+        expect((decoration.border! as Border).top.color, colors.solid);
+        expect(
+          tester
+              .widget<Icon>(
+                find.descendant(
+                  of: find.byKey(
+                    ValueKey('unified-round-icon-${sample.single.id}'),
+                  ),
+                  matching: find.byType(Icon),
+                ),
+              )
+              .color,
+          colors.onTint,
+        );
+        expect(find.text('Learn'), findsOneWidget);
+      }
+    },
+  );
+
+  test('the Lesson palette has eight colours, by position, without green', () {
+    for (final brightness in Brightness.values) {
+      final solids = {
+        for (var index = 0; index < LessonColorPalette.count; index++)
+          LessonColorPalette.of(index, brightness).solid,
+      };
+      expect(solids, hasLength(8), reason: '$brightness');
+      expect(
+        LessonColorPalette.of(8, brightness).solid,
+        LessonColorPalette.of(0, brightness).solid,
+      );
+      for (final solid in solids) {
+        final hue = HSVColor.fromColor(solid).hue;
+        expect(
+          hue < 75 || hue > 165,
+          isTrue,
+          reason: 'green is reserved for Perfect ($solid)',
+        );
+      }
+    }
   });
 
   testWidgets('perfect completion uses two light Laurel branches', (
@@ -585,11 +723,13 @@ void main() {
       find.descendant(of: round, matching: find.byIcon(Icons.eco)),
       findsNothing,
     );
+    // The laurel reaches past the icon slot, so the circle and the path line
+    // stay in place (Build 261 Revision 8).
     final laurelFrame = tester.widget<SizedBox>(
       find.byKey(ValueKey('unified-round-laurel-${sample.single.id}')),
     );
-    expect(laurelFrame.width, 72);
-    expect(laurelFrame.height, 66);
+    expect(laurelFrame.width, learnerRoundIconSlotWidth);
+    expect(laurelFrame.height, 70);
     final iconContainer = tester.widget<Container>(
       find.byKey(ValueKey('unified-round-icon-${sample.single.id}')),
     );
@@ -597,18 +737,24 @@ void main() {
       (iconContainer.decoration! as BoxDecoration).color,
       const Color(0xFF34C759),
     );
-    expect(
-      tester
-          .getRect(
-            find.byKey(ValueKey('unified-round-laurel-${sample.single.id}')),
-          )
-          .overlaps(
-            tester.getRect(
-              find.byKey(ValueKey('unified-round-title-${sample.single.id}')),
+    for (final side in ['left', 'right']) {
+      expect(
+        tester
+            .getRect(
+              find.byKey(
+                ValueKey(
+                  'unified-round-laurel-branch-$side-${sample.single.id}',
+                ),
+              ),
+            )
+            .overlaps(
+              tester.getRect(
+                find.byKey(ValueKey('unified-round-label-${sample.single.id}')),
+              ),
             ),
-          ),
-      isFalse,
-    );
+        isFalse,
+      );
+    }
     expect(find.text('Perfect'), findsOneWidget);
 
     await tester.pumpWidget(
@@ -648,43 +794,49 @@ void main() {
       ),
       findsNothing,
     );
-    expect(find.text('Practice'), findsOneWidget);
-  });
-
-  testWidgets('long Round title wraps up to three lines on a 320 px page', (
-    tester,
-  ) async {
-    final round = LearningRound(
-      id: 'long-title-round',
-      title: 'A deliberately long descriptive Round title for narrow layouts',
-    );
-    await tester.pumpWidget(
-      app(
-        rounds: [round],
-        completedRounds: {round.id},
-        perfectRounds: {round.id},
-        mascotAssets: fixtureMascotAssets,
-        width: 320 - 28,
-      ),
-    );
-
-    // One line since Build 261 Revision 0: "Round 1: " and the title.
-    final title = tester.widget<Text>(
-      find.byKey(const ValueKey('unified-round-title-long-title-round')),
-    );
-    expect(title.textSpan!.toPlainText(), 'Round 1: ${round.title}');
-    expect(title.maxLines, 3);
-    expect(title.overflow, TextOverflow.ellipsis);
-    expect(tester.takeException(), isNull);
+    expect(find.text('Completed'), findsOneWidget);
   });
 
   testWidgets(
-    'Round, Story and sequence names: normal prefix, bold title, tooltip',
+    'long Round title wraps up to two lines under its label at 320 px',
     (tester) async {
-      // Owner decision of 1 October 2026 (Build 261 Revision 0).
+      final round = LearningRound(
+        id: 'long-title-round',
+        title: 'A deliberately long descriptive Round title for narrow layouts',
+      );
+      await tester.pumpWidget(
+        app(
+          rounds: [round],
+          completedRounds: {round.id},
+          perfectRounds: {round.id},
+          mascotAssets: fixtureMascotAssets,
+          width: 320 - 28,
+        ),
+      );
+
+      // Numbering is Off: the type is the label line, the author title below.
+      final label = tester.widget<Text>(
+        find.byKey(const ValueKey('unified-round-label-long-title-round')),
+      );
+      expect(label.data, 'Practice');
+      final title = tester.widget<Text>(
+        find.byKey(const ValueKey('unified-round-title-long-title-round')),
+      );
+      expect(title.data, round.title);
+      expect(title.maxLines, 2);
+      expect(title.overflow, TextOverflow.ellipsis);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
+    'Round, Story and sequence names: grey label line, lighter title, tooltip',
+    (tester) async {
+      // Owner decisions of 1 October 2026 (Build 261 Revision 0) and of
+      // 3 October 2026 (Revision 8: label above a lighter, smaller title).
       final path = [
         LearningRound(id: 'titled', title: 'Pratica 1'),
-        LearningRound(id: 'untitled', title: 'Round 2'),
+        LearningRound(id: 'untitled', title: ''),
         LearningRound(
           id: 'story',
           title: 'Round three',
@@ -699,78 +851,186 @@ void main() {
       ];
       await tester.pumpWidget(app(rounds: path, mascotAssets: const []));
 
-      (String, FontWeight?, String, FontWeight?) parts(String id) {
-        final text = tester.widget<Text>(
-          find.byKey(ValueKey('unified-round-title-$id')),
-        );
-        final spans = (text.textSpan! as TextSpan).children!.cast<TextSpan>();
-        return (
-          spans[0].text!,
-          spans[0].style?.fontWeight,
-          spans[1].text!,
-          spans[1].style?.fontWeight,
-        );
-      }
-
-      expect(parts('titled'), (
-        'Round 1: ',
-        FontWeight.normal,
-        'Pratica 1',
-        FontWeight.w800,
-      ));
-      expect(parts('story'), (
-        'Story: ',
-        FontWeight.normal,
-        'Al bar',
-        FontWeight.w800,
-      ));
-      expect(parts('sequence'), (
-        'Sequence: ',
-        FontWeight.normal,
-        'Numbers',
-        FontWeight.w800,
-      ));
-      final untitled = tester.widget<Text>(
-        find.byKey(const ValueKey('unified-round-title-untitled')),
+      (String, String) parts(String id) => (
+        tester
+            .widget<Text>(find.byKey(ValueKey('unified-round-label-$id')))
+            .data!,
+        tester
+            .widget<Text>(find.byKey(ValueKey('unified-round-title-$id')))
+            .data!,
       );
-      expect(untitled.data, 'Round 2');
-      expect(untitled.style?.fontWeight, FontWeight.w800);
 
-      expect(find.byTooltip('Round 1: Pratica 1'), findsOneWidget);
-      expect(find.byTooltip('Story: Al bar'), findsOneWidget);
-      expect(find.byTooltip('Sequence: Numbers'), findsOneWidget);
-      expect(find.byTooltip('Round 2'), findsNothing);
+      expect(parts('titled'), ('Practice', 'Pratica 1'));
+      expect(parts('story'), ('Story', 'Al bar'));
+      expect(parts('sequence'), ('Sequence', 'Numbers'));
+      // Without a title of its own the label keeps the same small regular
+      // style (owner decision): no title line.
+      expect(
+        find.byKey(const ValueKey('unified-round-title-untitled')),
+        findsNothing,
+      );
+      final untitled = tester.widget<Text>(
+        find.byKey(const ValueKey('unified-round-label-untitled')),
+      );
+      expect(untitled.data, 'Practice');
+      expect(untitled.style!.fontSize, 12);
 
-      // Slightly smaller than the former titleMedium (16) title line.
-      final titled = tester.widget<Text>(
+      expect(find.byTooltip('Practice · Pratica 1'), findsOneWidget);
+      expect(find.byTooltip('Story · Al bar'), findsOneWidget);
+      expect(find.byTooltip('Sequence · Numbers'), findsOneWidget);
+      expect(find.byTooltip('Practice'), findsNothing);
+
+      final label = tester.widget<Text>(
+        find.byKey(const ValueKey('unified-round-label-titled')),
+      );
+      expect(label.style!.fontSize, 12);
+      final title = tester.widget<Text>(
         find.byKey(const ValueKey('unified-round-title-titled')),
       );
-      expect(titled.style!.fontSize, 15);
-      expect(titled.style!.height, 1.4);
+      expect(title.style!.fontSize, 15);
+      expect(title.style!.fontWeight, FontWeight.w400);
+      final status = tester.widget<Text>(
+        find.byKey(const ValueKey('unified-round-status-titled')),
+      );
+      expect(status.data, 'Learn');
+      expect(status.style!.fontSize, 12);
     },
   );
 
-  testWidgets('Round surfaces are 75% opaque without fading content', (
+  testWidgets(
+    'Round rows have a faint borderless background and unfaded texts',
+    (tester) async {
+      final sample = rounds(1);
+      await tester.pumpWidget(app(rounds: sample));
+
+      // 20% opaque, no border (Build 261 Revision 8, owner decision): the path
+      // line shows through, a little dimmed.
+      final row = tester.widget<Material>(
+        find.byKey(ValueKey('unified-round-${sample.single.id}')),
+      );
+      expect(row.color!.a, closeTo(learnerPathSurfaceOpacity, .01));
+      expect(learnerPathSurfaceOpacity, .20);
+      expect((row.shape! as RoundedRectangleBorder).side, BorderSide.none);
+      expect(
+        find.descendant(
+          of: find.byKey(ValueKey('unified-round-${sample.single.id}')),
+          matching: find.byType(Card),
+        ),
+        findsNothing,
+      );
+      expect(
+        tester
+                .widget<Text>(
+                  find.byKey(
+                    ValueKey('unified-round-title-${sample.single.id}'),
+                  ),
+                )
+                .style
+                ?.color
+                ?.a ??
+            1,
+        1,
+      );
+    },
+  );
+
+  testWidgets('a halo surrounds the path texts only over a flag picture', (
     tester,
   ) async {
     final sample = rounds(1);
-    await tester.pumpWidget(app(rounds: sample));
+    for (final halo in [false, true]) {
+      await tester.pumpWidget(app(rounds: sample, halo: halo));
+      for (final key in ['title', 'label', 'status']) {
+        final text = tester.widget<Text>(
+          find.byKey(ValueKey('unified-round-$key-${sample.single.id}')),
+        );
+        expect(
+          text.style!.shadows,
+          halo ? isNotEmpty : isNull,
+          reason: '$key halo=$halo',
+        );
+      }
+      final connector = tester.widget<CustomPaint>(
+        find.byKey(const Key('learner-round-connector')),
+      );
+      final dynamic painter = connector.painter;
+      expect(
+        (painter.supportColor as Color).a,
+        halo ? greaterThan(.8) : lessThan(.55),
+      );
+    }
+  });
 
-    final card = tester.widget<Card>(
-      find.byKey(ValueKey('unified-round-${sample.single.id}')),
-    );
-    expect(card.color!.a, closeTo(.75, .01));
-    expect(
-      tester
-              .widget<Text>(
-                find.byKey(ValueKey('unified-round-title-${sample.single.id}')),
-              )
-              .style
-              ?.color
-              ?.a ??
-          1,
-      1,
-    );
+  testWidgets('the path line joins the circles and never crosses a text', (
+    tester,
+  ) async {
+    // Owner decision of 3 October 2026: circle to circle, from the Lesson
+    // circle above to the Duel below.
+    tester.view.physicalSize = const Size(1000, 1400);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final sample = rounds(8);
+    for (final width in [292.0, 347.0, 402.0, 560.0, 900.0]) {
+      await tester.pumpWidget(
+        app(
+          rounds: sample,
+          width: width,
+          startsAtLessonCircle: true,
+          leadsToDuel: true,
+          perfectRounds: {sample[1].id},
+          completedRounds: {sample[1].id, sample[2].id},
+        ),
+      );
+      final tree = find.byKey(const Key('unified-round-tree'));
+      final treeRect = tester.getRect(tree);
+      final connector = tester.widget<CustomPaint>(
+        find.byKey(const Key('learner-round-connector')),
+      );
+      final dynamic painter = connector.painter;
+      final path = painter.pathFor(treeRect.size) as Path;
+      final points = <Offset>[];
+      for (final metric in path.computeMetrics()) {
+        for (var distance = 0.0; distance < metric.length; distance += 2) {
+          points.add(
+            metric.getTangentForOffset(distance)!.position + treeRect.topLeft,
+          );
+        }
+        points.add(
+          metric.getTangentForOffset(metric.length)!.position +
+              treeRect.topLeft,
+        );
+      }
+      expect(treeRect.width, lessThanOrEqualTo(learnerRoundPathMaxWidth));
+      final pageLeft = treeRect.center.dx - width / 2;
+      expect(
+        points.first.dx - pageLeft,
+        closeTo(learnerLessonCircleCenterX(width), .01),
+      );
+      expect(points.last.dx, closeTo(treeRect.center.dx, .01));
+      expect(points.last.dy, closeTo(treeRect.bottom, .01));
+      for (final round in sample) {
+        final circle = tester.getRect(
+          find.byKey(ValueKey('unified-round-icon-${round.id}')),
+        );
+        expect(
+          points.any((point) => (point - circle.center).distance < 1.5),
+          isTrue,
+          reason: 'the line passes through ${round.id} at $width',
+        );
+        for (final key in ['label', 'title', 'status']) {
+          final text = tester.getRect(
+            find.byKey(ValueKey('unified-round-$key-${round.id}')),
+          );
+          expect(
+            points.where((point) => text.inflate(1).contains(point)),
+            isEmpty,
+            reason: 'the line crosses ${round.id} $key at $width',
+          );
+        }
+      }
+      expect(tester.takeException(), isNull);
+    }
   });
 
   testWidgets(
@@ -824,13 +1084,15 @@ void main() {
         findsOneWidget,
       );
       expect(
-        find.byKey(const ValueKey('learner-round-mascot-2')),
+        find.byKey(const ValueKey('learner-round-mascot-6')),
         findsNothing,
       );
+      // Mascot 0 stands left of the centred first Round, mascot 5 right of
+      // the sixth Round at the left edge.
       final firstMascot = find.byKey(const ValueKey('learner-round-mascot-0'));
-      final secondMascot = find.byKey(const ValueKey('learner-round-mascot-3'));
+      final secondMascot = find.byKey(const ValueKey('learner-round-mascot-5'));
       final firstRound = find.byKey(ValueKey('unified-round-${sample[0].id}'));
-      final secondRound = find.byKey(ValueKey('unified-round-${sample[3].id}'));
+      final secondRound = find.byKey(ValueKey('unified-round-${sample[5].id}'));
       final pathCenter = tester
           .getRect(find.byKey(const Key('unified-round-tree')))
           .center
@@ -909,7 +1171,7 @@ void main() {
       if (pageWidth == 430) {
         expect(
           tester
-              .getRect(find.byKey(ValueKey('unified-round-${sample.first.id}')))
+              .getRect(find.byKey(ValueKey('unified-round-${sample[1].id}')))
               .width,
           closeTo(244, .01),
         );

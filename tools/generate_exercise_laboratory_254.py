@@ -699,6 +699,10 @@ def course(lab: Laboratory) -> dict:
         assert placed, after
     v11["lessons"] = [*lessons, *lab.story_lessons]
     value = convert_course_v11_to_v12(v11)
+    value["roundNumberingMode"] = "off"
+    for lesson in value["lessons"]:
+        for round_data in lesson["rounds"]:
+            round_data["roundType"] = "story" if round_data.get("flow") else "practice"
     value["storyNarrator"] = {"name": "Narrator", "language": "source"}
     value["storyCharacters"] = [
         {"id": "qql_lab254_character_anna", "name": "Anna", "avatar": "assets/avatars/cat.png",
@@ -731,7 +735,8 @@ def _intro(key: str, text: str) -> dict:
 def _future_round(key: str, title: str, content: list[dict], *, visual: str = "generic",
                   flow: dict | None = None) -> dict:
     value = {"id": f"qql_labfuture_round_{key}", "publicationState": "published",
-             "updatedAt": STAMP, "title": title, "visualType": visual, "content": content}
+             "updatedAt": STAMP, "title": title, "visualType": visual,
+             "roundType": "story" if flow is not None else "practice", "content": content}
     if flow is not None:
         value["flow"] = flow
     return value

@@ -170,6 +170,9 @@ class CourseBackupService {
   static String officialContentChecksum(Course course) =>
       CourseChecksums.official(course);
 
+  static bool officialContentChecksumMatches(Course course) =>
+      CourseChecksums.officialMatches(course);
+
   static String _filenameStamp(DateTime value) => value
       .toUtc()
       .toIso8601String()
@@ -481,7 +484,7 @@ class CourseBackupService {
         final record = await loadBackup(entity, expectedCourseId: courseId);
         final source = record.course;
         if (!source.originType.isOfficial ||
-            officialContentChecksum(source) != source.officialChecksum) {
+            !officialContentChecksumMatches(source)) {
           throw const FormatException(
             'Official history source integrity is invalid.',
           );

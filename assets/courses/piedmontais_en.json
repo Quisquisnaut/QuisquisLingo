@@ -295,7 +295,8 @@
                 }
               }
             }
-          ]
+          ],
+          "roundType": "practice"
         }
       ],
       "duel": {
@@ -542,7 +543,8 @@
                 }
               }
             }
-          ]
+          ],
+          "roundType": "practice"
         }
       ],
       "duel": {
@@ -703,7 +705,8 @@
                 }
               }
             }
-          ]
+          ],
+          "roundType": "practice"
         }
       ],
       "duel": {
@@ -865,7 +868,8 @@
                 }
               }
             }
-          ]
+          ],
+          "roundType": "practice"
         }
       ],
       "duel": {
@@ -1151,7 +1155,8 @@
                 }
               }
             }
-          ]
+          ],
+          "roundType": "practice"
         }
       ],
       "duel": {
@@ -1426,7 +1431,8 @@
                 }
               }
             }
-          ]
+          ],
+          "roundType": "practice"
         }
       ],
       "duel": {
@@ -1820,7 +1826,8 @@
                 }
               }
             }
-          ]
+          ],
+          "roundType": "practice"
         }
       ],
       "duel": {
@@ -2196,7 +2203,8 @@
                 }
               }
             }
-          ]
+          ],
+          "roundType": "practice"
         }
       ],
       "duel": {
@@ -2398,7 +2406,8 @@
                 }
               }
             }
-          ]
+          ],
+          "roundType": "practice"
         }
       ],
       "duel": {
@@ -2608,7 +2617,8 @@
                 }
               }
             }
-          ]
+          ],
+          "roundType": "practice"
         }
       ],
       "duel": {
@@ -2843,7 +2853,8 @@
                 }
               }
             }
-          ]
+          ],
+          "roundType": "practice"
         }
       ],
       "duel": {
@@ -3090,7 +3101,8 @@
                 }
               }
             }
-          ]
+          ],
+          "roundType": "practice"
         }
       ],
       "duel": {
@@ -3340,7 +3352,8 @@
                 }
               }
             }
-          ]
+          ],
+          "roundType": "practice"
         }
       ],
       "duel": {
@@ -3543,7 +3556,8 @@
                 "hint": "An object with pages to read."
               }
             }
-          ]
+          ],
+          "roundType": "practice"
         }
       ],
       "duel": {
@@ -3832,7 +3846,8 @@
                 }
               }
             }
-          ]
+          ],
+          "roundType": "practice"
         }
       ],
       "duel": {
@@ -4048,7 +4063,8 @@
                 }
               }
             }
-          ]
+          ],
+          "roundType": "practice"
         }
       ],
       "duel": {
@@ -4392,7 +4408,8 @@
                 }
               }
             }
-          ]
+          ],
+          "roundType": "practice"
         }
       ],
       "duel": {
@@ -4627,7 +4644,8 @@
                 }
               }
             }
-          ]
+          ],
+          "roundType": "practice"
         }
       ],
       "duel": {
@@ -4875,7 +4893,8 @@
                 "hint": "Something you read."
               }
             }
-          ]
+          ],
+          "roundType": "practice"
         }
       ],
       "duel": {
@@ -5090,7 +5109,8 @@
                 "hint": "Something you drink."
               }
             }
-          ]
+          ],
+          "roundType": "practice"
         }
       ],
       "duel": {
@@ -5347,7 +5367,8 @@
                 "hint": "mangio = I eat; leso = I read. The last line is what you say before sleeping."
               }
             }
-          ]
+          ],
+          "roundType": "practice"
         }
       ],
       "duel": {
@@ -5600,7 +5621,8 @@
                 }
               }
             }
-          ]
+          ],
+          "roundType": "practice"
         }
       ],
       "duel": {
@@ -5857,7 +5879,8 @@
                 }
               }
             }
-          ]
+          ],
+          "roundType": "practice"
         }
       ],
       "duel": {
@@ -6110,7 +6133,8 @@
                 }
               }
             }
-          ]
+          ],
+          "roundType": "practice"
         }
       ],
       "duel": {
@@ -6375,7 +6399,8 @@
                 }
               }
             }
-          ]
+          ],
+          "roundType": "practice"
         }
       ],
       "duel": {
@@ -6532,7 +6557,8 @@
                 }
               }
             }
-          ]
+          ],
+          "roundType": "practice"
         }
       ],
       "duel": {
@@ -6784,7 +6810,8 @@
                 }
               }
             }
-          ]
+          ],
+          "roundType": "practice"
         }
       ],
       "duel": {
@@ -7160,7 +7187,8 @@
                 }
               }
             }
-          ]
+          ],
+          "roundType": "practice"
         }
       ],
       "duel": {
@@ -7443,7 +7471,8 @@
                 }
               }
             }
-          ]
+          ],
+          "roundType": "practice"
         }
       ],
       "duel": {
@@ -7703,7 +7732,8 @@
                 }
               }
             }
-          ]
+          ],
+          "roundType": "practice"
         }
       ],
       "duel": {
@@ -8020,7 +8050,8 @@
                 }
               }
             }
-          ]
+          ],
+          "roundType": "practice"
         }
       ],
       "duel": {
@@ -8300,7 +8331,8 @@
                 }
               }
             }
-          ]
+          ],
+          "roundType": "practice"
         }
       ],
       "duel": {
@@ -8553,7 +8585,8 @@
                 }
               }
             }
-          ]
+          ],
+          "roundType": "practice"
         }
       ],
       "duel": {
@@ -8861,7 +8894,8 @@
                 }
               }
             }
-          ]
+          ],
+          "roundType": "practice"
         }
       ],
       "duel": {
@@ -9114,7 +9148,8 @@
                 }
               }
             }
-          ]
+          ],
+          "roundType": "practice"
         }
       ],
       "duel": {
@@ -9272,7 +9307,8 @@
                 }
               }
             }
-          ]
+          ],
+          "roundType": "practice"
         }
       ],
       "duel": {
@@ -9546,7 +9582,8 @@
                 "hint": "Include the article."
               }
             }
-          ]
+          ],
+          "roundType": "practice"
         }
       ],
       "duel": {
@@ -9806,7 +9843,8 @@
                 }
               }
             }
-          ]
+          ],
+          "roundType": "practice"
         }
       ],
       "duel": {
@@ -10200,7 +10238,8 @@
                 }
               }
             }
-          ]
+          ],
+          "roundType": "practice"
         }
       ],
       "duel": {
@@ -10345,7 +10384,8 @@
                 }
               }
             }
-          ]
+          ],
+          "roundType": "practice"
         }
       ],
       "duel": {
@@ -10543,7 +10583,8 @@
             "presentation": "scroll",
             "title": "Al mercà",
             "log": "dialogue"
-          }
+          },
+          "roundType": "story"
         }
       ],
       "duel": {
@@ -10552,6 +10593,7 @@
       }
     }
   ],
+  "roundNumberingMode": "off",
   "storyNarrator": {
     "name": "Narrator",
     "language": "source"
@@ -10572,5 +10614,5 @@
       "voice": "female"
     }
   ],
-  "officialChecksum": "22ee654fe0de99d24f2cd981e55f6bbd843a6eea55d8a361071df6398838bbb9"
+  "officialChecksum": "74e9f322f100fa6aee9434580610c9a02aed418f54d10518ce917386ba40492f"
 }

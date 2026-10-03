@@ -1,3 +1,94 @@
+# 2.0.61 (Build 261, Revision 8) - The learner path in Lesson colours - 2026-10-03
+
+Owner decisions of 3 October 2026, refined over several rendered mockups.
+
+- **A colour for each Lesson**: QQL's palette of eight colours, by the
+  Lesson's position (Lesson 9 starts again), with light and dark shades and
+  no green, which stays for Perfect. The Lesson number circle shows it (on
+  the path and in the Lesson editor's icon previews); a Lesson's own theme
+  picture is unchanged. Nothing is stored.
+- **Round circles in the Lesson colour**, a little larger (52 pixels): a
+  pale tint ringed with the colour before completion, the solid colour once
+  completed (instead of orange), green with the laurel when perfect. The
+  word Completed is written in the Lesson's deeper shade. The Duel is a
+  centred circle in the Lesson colour with its texts underneath.
+- **Faint backgrounds instead of cards**: the Lesson, Round and Duel rows
+  keep their old card colour at 20% opacity, rounded and without a border,
+  so the path line shows through them, a little dimmed.
+- **Lighter text**: a small grey label line ("Lesson 2", "Round 1 · Practice",
+  as the numbering settings say; the same whether or not the Round has a
+  title) above the title; Lesson titles 17 points medium, Round titles 15
+  regular, the status line 12.
+- **A livelier zigzag**: Round circles stand at the left edge, the centre or
+  the right edge, with their texts toward the middle (on the left of a
+  circle at the right edge, on either side of a centred one), sometimes
+  twice in the same place, never jumping from one edge straight to the
+  other. On a wide window the path keeps a centred column of at most 560
+  pixels. About six Rounds in ten have a mascot in the free half (four
+  before), so the sides are less empty, never two Rounds in a row with a
+  mascot on the same side.
+- **The line**: long rounded curves from circle to circle (from the Lesson's
+  circle or picture to the Duel's), each a little different, thinner and
+  fainter at the circles, thicker and stronger between them; two circles in
+  one column are joined by an outward bow. The curves never cross a text.
+- **Over a flag picture** (Flag Background Small or Extended) the texts and
+  the line get a soft halo in the page colour.
+- **App Info › Colour code of the path** (English, Italian, Spanish), after
+  Laurel crowns, explains the colours with the owner's picture of the eight
+  Lesson colours (`assets/rounds_screenshots/colors.png`); a tap opens it
+  enlarged, where it zooms with a pinch.
+
+Scoring, progression, Course files and learner data are unchanged. Beta
+expiry `2026-11-02 23:59:59` local time (same release day as Revision 7).
+
+# 2.0.61 (Build 261, Revision 7) - Round Types - 2026-10-03
+
+Owner plan `docs/QQL_Round_Types_Redesign_Plan.md` and decisions of
+3 October 2026; implementation plan
+`docs/superpowers/plans/2026-10-03-round-types-redesign.md`.
+
+- **Every Round has a type**: Discover, Practice, Sequence, Listen, Read,
+  Story, FlashCard, Test and Timed (Speak is shown, disabled, as coming
+  later). The type is stored with the Round and drives its icon, its label
+  on the learner path, the exercises the editor offers and the Audit.
+- **Existing Rounds keep working**: a Story or a sequence keeps its type,
+  a Round marked Listening becomes Listen only when every required exercise
+  depends on its audio, and every other Round becomes Practice (an old Test
+  icon could not prove a Test's behaviour). Official Courses signed before
+  this version stay verified.
+- **New Round asks for the type**; New Story and the Play as a sequence
+  switch are gone (Story and Sequence are types). The Round Wizard shows a
+  type for each proposed Round and replans its exercises when the type
+  changes.
+- **Compatibility**: the exercise list of a Listen, Read, FlashCard, Test
+  or Timed Round shows only exercises that fit it (Canonical editor always
+  available, with a warning when the exercise does not fit). A Draft may
+  hold anything; publishing an incompatible Round is blocked by the Audit.
+- **Test** shows no feedback until the end, then every result; an optional
+  passing threshold changes only the result's label. Completion and XP are
+  unchanged.
+- **Timed**: one or more time limits (30 seconds to 10 minutes, distinct,
+  in order; presets 30 s to 5 min or Custom). The countdown starts with the
+  first exercise. Finishing in time completes the Round as usual, unlocks
+  the next limit and adds a 10 XP **On Time** bonus the first time each
+  limit is beaten, shown on its own line. When time runs out, input stops,
+  the correct answers so far earn their XP, and the Round stays incomplete
+  until retried. Lesson Options can hold the Course's default limits,
+  copied into each new Timed Round.
+- **Lesson label and numbering** (Off, Lesson + number, Number only,
+  Custom + number) and **Round label and numbering** (Off, Round + number,
+  Number only, Custom + number) sit together in Lesson Options. Titles
+  always stay visible; Lesson titles remain required, Round titles
+  optional.
+- The learner path says **Completed** for a completed Round that was not
+  perfect, so "Practice" no longer appears as both a type and a status.
+- **Editor Help** has a Round Types topic (English, Italian, Spanish) and
+  a question on the two label and numbering selectors; the Stories section
+  leaves the Exercise primitives page.
+
+Scoring and progression are unchanged except for Timed. Beta expiry
+`2026-11-02 23:59:59` local time.
+
 # 2.0.61 (Build 261, Revision 6) - The canonical editor explains its primitives - 2026-10-02
 
 Owner request and decisions of 2 October 2026.

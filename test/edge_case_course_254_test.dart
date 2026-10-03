@@ -136,7 +136,14 @@ void main() {
     'shipped demo round-trips with exactly its two intentional warnings',
     () async {
       final raw = jsonDecode(await File(_asset).readAsString());
-      expect(source.toJson(), raw);
+      final legacy = source.toJson()..remove('roundNumberingMode');
+      for (final lesson in legacy['lessons'] as List) {
+        for (final round
+            in (lesson as Map<String, dynamic>)['rounds'] as List) {
+          (round as Map<String, dynamic>).remove('roundType');
+        }
+      }
+      expect(legacy, raw);
       expect(source.courseId, _courseId);
       expect(source.sourceLanguageTag, 'it-IT');
       expect(source.targetLanguageTag, 'en-GB');
@@ -144,7 +151,7 @@ void main() {
       expect(source.lessons.expand((lesson) => lesson.rounds), hasLength(12));
       // 39 examples and, since Build 257, seven Before you start cards.
       expect(_exercises(source), hasLength(46));
-      expect(CourseChecksums.official(source), source.officialChecksum);
+      expect(CourseChecksums.officialMatches(source), isTrue);
       final audit = CourseAuditService().auditCourse(source);
       expect(audit.count(AuditSeverity.error), 0);
       expect(
@@ -324,10 +331,7 @@ void main() {
           isEmpty,
           reason: 'Bundled asset references stay bundled',
         );
-        expect(
-          CourseChecksums.official(parsed.course),
-          source.officialChecksum,
-        );
+        expect(CourseChecksums.officialMatches(parsed.course), isTrue);
       } finally {
         await parsed.discard();
       }

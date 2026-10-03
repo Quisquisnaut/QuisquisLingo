@@ -6,6 +6,7 @@ import 'exercise_canonical.dart';
 import 'exercise_image_metadata.dart';
 import 'preset_successors.dart';
 import '../services/app_metadata.dart';
+import '../services/round_type_compatibility.dart';
 
 export 'canonical/canonical.dart';
 export 'exercise_canonical.dart';
@@ -201,6 +202,21 @@ enum LessonNumberingMode {
         'course.lessonNumberingMode is missing or invalid.',
       ),
     );
+  }
+}
+
+enum RoundNumberingMode {
+  off,
+  roundAndNumber,
+  numberOnly,
+  customAndNumber;
+
+  static RoundNumberingMode parse(Map<String, dynamic> json) {
+    if (!json.containsKey('roundNumberingMode')) return off;
+    for (final mode in values) {
+      if (mode.name == json['roundNumberingMode']) return mode;
+    }
+    throw const FormatException('course.roundNumberingMode is invalid.');
   }
 }
 
@@ -836,6 +852,9 @@ class Course {
   final PublicationState publicationState;
   final LessonNumberingMode lessonNumberingMode;
   final String customLessonLabel;
+  final RoundNumberingMode roundNumberingMode;
+  final String customRoundLabel;
+  final List<int> defaultTimedLimitsSeconds;
   final LessonFallbackIconStyle defaultLessonIconStyle;
   final bool createDuels;
   final bool useGuidebook;
@@ -951,6 +970,9 @@ class Course {
     this.publicationState = PublicationState.published,
     this.lessonNumberingMode = LessonNumberingMode.lesson,
     String customLessonLabel = '',
+    this.roundNumberingMode = RoundNumberingMode.off,
+    String customRoundLabel = '',
+    this.defaultTimedLimitsSeconds = const [],
     this.defaultLessonIconStyle = LessonFallbackIconStyle.monochrome,
     this.createDuels = true,
     this.useGuidebook = true,
@@ -996,7 +1018,8 @@ class Course {
     this.storyNarrator,
     this.storyCharacters = const [],
     required this.lessons,
-  }) : originalCourseCreator =
+  }) : customRoundLabel = customRoundLabel.trim(),
+       originalCourseCreator =
            originalCourseCreator ??
            (originType == CourseOriginType.custom
                ? const CourseProvenanceIdentity.qqlUser(
@@ -1089,6 +1112,10 @@ class Course {
       throw const FormatException(
         'A non-empty custom Lesson label is required for Other.',
       );
+    }
+    if (roundNumberingMode == RoundNumberingMode.customAndNumber &&
+        this.customRoundLabel.isEmpty) {
+      throw const FormatException('A custom Round label is required.');
     }
     if (originType.isOfficial &&
         (publisherId.trim().isEmpty ||
@@ -1345,6 +1372,11 @@ class Course {
     'lessonNumberingMode': lessonNumberingMode.name,
     if (lessonNumberingMode == LessonNumberingMode.other)
       'customLessonLabel': customLessonLabel,
+    'roundNumberingMode': roundNumberingMode.name,
+    if (roundNumberingMode == RoundNumberingMode.customAndNumber)
+      'customRoundLabel': customRoundLabel,
+    if (defaultTimedLimitsSeconds.isNotEmpty)
+      'defaultTimedLimitsSeconds': defaultTimedLimitsSeconds,
     'defaultLessonIconStyle': defaultLessonIconStyle.name,
     if (!createDuels) 'createDuels': false,
     if (!useGuidebook) 'useGuidebook': false,
@@ -1650,6 +1682,12 @@ class Course {
       publicationState: PublicationState.parseRequired(json, 'course'),
       lessonNumberingMode: LessonNumberingMode.parseRequired(json),
       customLessonLabel: _optionalString(json, 'customLessonLabel', ''),
+      roundNumberingMode: RoundNumberingMode.parse(json),
+      customRoundLabel: _optionalString(json, 'customRoundLabel', ''),
+      defaultTimedLimitsSeconds:
+          (json['defaultTimedLimitsSeconds'] as List<dynamic>? ?? const [])
+              .map((value) => value as int)
+              .toList(),
       defaultLessonIconStyle: LessonFallbackIconStyle.parseRequired(json),
       createDuels: json['createDuels'] as bool? ?? true,
       useGuidebook: json['useGuidebook'] as bool? ?? true,
@@ -2104,6 +2142,26 @@ class Lesson {
   }
 }
 
+enum RoundType {
+  discover,
+  practice,
+  sequence,
+  listening,
+  reading,
+  story,
+  flashcard,
+  test,
+  timed,
+  speak;
+
+  static RoundType fromJson(Object? value) {
+    for (final type in values) {
+      if (type.name == value) return type;
+    }
+    throw const FormatException('round.roundType is invalid.');
+  }
+}
+
 class LearningRound {
   static const validVisualTypes = {'listening', 'story', 'generic', 'test'};
   final String id;
@@ -2115,6 +2173,14 @@ class LearningRound {
   final DateTime updatedAt;
   final String title;
   final String visualType;
+  final RoundType roundType;
+
+  /// Test-only presentation settings. Neither changes completion or XP.
+  final bool testFixedOrder;
+  final int? testPassingPercent;
+
+  /// Ordered author-defined time limits; the learner unlocks them in order.
+  final List<int> timedLimitsSeconds;
   final List<LearningContent> content;
 
   /// Course Model v12: how the content and exercise nodes are ordered or
@@ -2128,16 +2194,32 @@ class LearningRound {
     DateTime? updatedAt,
     required this.title,
     this.visualType = 'generic',
+    RoundType? roundType,
+    this.testFixedOrder = false,
+    this.testPassingPercent,
+    this.timedLimitsSeconds = const [],
     List<LearningContent>? content,
     List<Exercise>? exercises,
     this.flow,
-  }) : updatedAt = _canonicalUtcTimestamp(updatedAt),
+  }) : assert(
+         testPassingPercent == null ||
+             (testPassingPercent >= 0 && testPassingPercent <= 100),
+       ),
+       updatedAt = _canonicalUtcTimestamp(updatedAt),
+       roundType =
+           roundType ??
+           (flow == null
+               ? RoundType.practice
+               : visualType == storyVisualType
+               ? RoundType.story
+               : RoundType.sequence),
        content =
            content ??
            [
              for (final e in exercises ?? const <Exercise>[])
                LearningContent.fromExercise(e),
            ];
+
   Map<String, dynamic> toJson() => {
     'id': id,
     'publicationState': publicationState.name,
@@ -2145,6 +2227,11 @@ class LearningRound {
     'updatedAt': _timestampToJson(updatedAt),
     if (title.trim().isNotEmpty) 'title': title.trim(),
     'visualType': visualType,
+    'roundType': roundType.name,
+    if (roundType == RoundType.test) 'testFixedOrder': testFixedOrder,
+    if (roundType == RoundType.test && testPassingPercent != null)
+      'testPassingPercent': testPassingPercent,
+    if (roundType == RoundType.timed) 'timedLimitsSeconds': timedLimitsSeconds,
     'content': content.map((e) => e.toJson()).toList(),
     if (flow != null) 'flow': flow!.toJson(),
   };
@@ -2162,6 +2249,34 @@ class LearningRound {
         'round.visualType must be one of ${validVisualTypes.join(', ')}.',
       );
     }
+    final content = _mapList(j, 'content', 'round', LearningContent.fromJson);
+    final roundType = j.containsKey('roundType')
+        ? RoundType.fromJson(j['roundType'])
+        : rawFlow == null &&
+              visualType == 'listening' &&
+              content.where((entry) => entry.required).isNotEmpty &&
+              content.where((entry) => entry.required).every((entry) {
+                final exercise = entry.asRunnableExercise();
+                return exercise != null &&
+                    RoundTypeCompatibility.audioEssential(exercise);
+              })
+        ? RoundType.listening
+        : null;
+    final passing = j['testPassingPercent'];
+    if (passing != null && (passing is! int || passing < 0 || passing > 100)) {
+      throw const FormatException('round.testPassingPercent must be 0–100.');
+    }
+    if (j.containsKey('testFixedOrder') && j['testFixedOrder'] is! bool) {
+      throw const FormatException('round.testFixedOrder must be a boolean.');
+    }
+    final rawTimedLimits = j['timedLimitsSeconds'];
+    if (rawTimedLimits != null &&
+        (rawTimedLimits is! List ||
+            rawTimedLimits.any((value) => value is! int))) {
+      throw const FormatException(
+        'round.timedLimitsSeconds must be an integer list.',
+      );
+    }
     return LearningRound(
       id: _requiredString(j, 'id', 'round'),
       publicationState: PublicationState.parseRequired(j, 'round'),
@@ -2169,7 +2284,13 @@ class LearningRound {
       updatedAt: _requiredUtcTimestamp(j, 'updatedAt', 'round'),
       title: _optionalString(j, 'title', ''),
       visualType: visualType,
-      content: _mapList(j, 'content', 'round', LearningContent.fromJson),
+      roundType: roundType,
+      testFixedOrder: j['testFixedOrder'] as bool? ?? false,
+      testPassingPercent: passing as int?,
+      timedLimitsSeconds: rawTimedLimits == null
+          ? const []
+          : List<int>.from(rawTimedLimits as List),
+      content: content,
       flow: rawFlow is Map
           ? ContentFlow.fromJson(Map<String, dynamic>.from(rawFlow))
           : null,
@@ -2197,12 +2318,12 @@ class LearningRound {
 
   /// A Round with a content flow and the `story` visual type is a Story:
   /// what New Story creates (owner decision, 29 September 2026).
-  bool get isStory => flow != null && visualType == storyVisualType;
+  bool get isStory => flow != null && roundType == RoundType.story;
 
   /// A Round with a content flow and any other visual type is a sequence: a
   /// plain Round played in the authored order (New Round with Play as a
   /// sequence).
-  bool get isSequence => flow != null && visualType != storyVisualType;
+  bool get isSequence => flow != null && roundType == RoundType.sequence;
 
   /// A Story's own title, or a sequence's optional one: the flow's, else the
   /// Round title without a prefix an earlier build stored.

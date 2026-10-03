@@ -422,11 +422,31 @@ void main() {
       expect(find.textContaining('blocking error'), findsNothing);
     });
 
-    testWidgets('the Story switch offers Step by step or Scrolling', (
+    testWidgets('a Story Round offers Step by step or Scrolling', (
       tester,
     ) async {
       _bigWindow(tester);
-      final course = _customLaboratory();
+      final original = _customLaboratory();
+      final firstRound = original.lessons.first.rounds.first;
+      final storyRound = LearningRound.fromJson({
+        ...firstRound.toJson(),
+        'roundType': 'story',
+        'visualType': 'story',
+        'flow': RoundFlowAuthoring.linearFor(firstRound.content).toJson(),
+      });
+      final course = Course.fromJson({
+        ...original.toJson(),
+        'lessons': [
+          {
+            ...original.lessons.first.toJson(),
+            'rounds': [
+              storyRound.toJson(),
+              ...original.lessons.first.rounds.skip(1).map((r) => r.toJson()),
+            ],
+          },
+          ...original.lessons.skip(1).map((l) => l.toJson()),
+        ],
+      });
       final lesson = course.lessons.first;
       Course? changed;
       await tester.pumpWidget(
@@ -442,16 +462,14 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      expect(find.byKey(const Key('round-story-presentation')), findsNothing);
-      await tester.tap(find.byKey(const Key('round-story-switch')));
-      await tester.pumpAndSettle();
       expect(find.byKey(const Key('round-story-presentation')), findsOneWidget);
+      expect(find.byKey(const Key('round-story-switch')), findsNothing);
       await tester.tap(find.text('Scrolling'));
       await tester.pumpAndSettle();
       final flow = changed!.lessons.first.rounds.first.flow!;
       expect(flow.presentation, FlowPresentation.scroll);
       expect(flow.isLinear, isTrue);
-      expect(find.textContaining('scrolling'), findsOneWidget);
+      expect(find.byKey(const Key('round-story-presentation')), findsOneWidget);
     });
   });
 
@@ -674,9 +692,10 @@ void main() {
         catalog['exerciseHelp.supplement.canonicalEditor.body'],
         contains('New Exercise'),
       );
+      expect(catalog['editorHelp.qa.editStory.a'], contains('Scrolling'));
       expect(
-        catalog['technical.exercisePrimitives.stories.body'],
-        contains('Scrolling'),
+        catalog.containsKey('technical.exercisePrimitives.stories.body'),
+        isFalse,
       );
     }
   });

@@ -106,7 +106,7 @@ void main() {
     );
     expect(
       tester
-          .widget<FilledButton>(find.byKey(const Key('rounds-new-story')))
+          .widget<FilledButton>(find.byKey(const Key('rounds-new-round')))
           .onPressed,
       isNotNull,
     );
@@ -118,7 +118,8 @@ void main() {
       _bigWindow(tester);
       Course? changed;
       await _pumpRoundsPage(tester, _course(), (value) => changed = value);
-      await _tap(tester, find.byKey(const Key('rounds-new-story')));
+      await _tap(tester, find.byKey(const Key('rounds-new-round')));
+      await _tap(tester, find.byKey(const Key('new-round-type-story')));
       expect(find.byKey(const Key('story-wizard-step-story')), findsOneWidget);
 
       // A: the title is required; read-aloud on request.
@@ -302,7 +303,8 @@ void main() {
     Course? changed;
     final course = _course();
     await _pumpRoundsPage(tester, course, (value) => changed = value);
-    await _tap(tester, find.byKey(const Key('rounds-new-story')));
+    await _tap(tester, find.byKey(const Key('rounds-new-round')));
+    await _tap(tester, find.byKey(const Key('new-round-type-story')));
     await tester.enterText(
       find.byKey(const Key('story-wizard-title')),
       'Never told',

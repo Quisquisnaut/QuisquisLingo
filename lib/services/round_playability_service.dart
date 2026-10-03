@@ -1,6 +1,8 @@
 import '../models/course_models.dart';
 import '../models/exercise_features.dart';
 import 'course_audit_service.dart';
+import 'round_type_compatibility.dart';
+import 'timed_round_rules.dart';
 
 /// Shares the learner-facing definition of a runnable Round exercise.
 class RoundPlayabilityService {
@@ -39,7 +41,26 @@ class RoundPlayabilityService {
 
   List<int> _valid(LearningRound round, {required bool includeDrafts}) =>
       (!includeDrafts && !round.publicationState.isPublished) ||
-          (round.flow != null && !round.flow!.isLinear)
+          round.roundType == RoundType.speak ||
+          (round.roundType == RoundType.timed &&
+              (!TimedRoundRules.validLimits(round.timedLimitsSeconds) ||
+                  round.content.any((content) {
+                    final exercise = content.asRunnableExercise();
+                    return !content.required || exercise == null;
+                  }))) ||
+          ((round.roundType == RoundType.story ||
+                  round.roundType == RoundType.sequence) !=
+              (round.flow != null)) ||
+          (round.flow != null && !round.flow!.isLinear) ||
+          round.content.any((content) {
+            final exercise = content.asRunnableExercise();
+            if (exercise == null || isRoundIntro(exercise)) return false;
+            return RoundTypeCompatibility.issuesForExercise(
+              round.roundType,
+              exercise,
+              required: content.required,
+            ).isNotEmpty;
+          })
       ? const []
       : List<int>.generate(round.exercises.length, (index) => index)
             .where(

@@ -270,7 +270,7 @@ void main() {
     expect(
       find.descendant(
         of: find.byType(AppBar),
-        matching: find.text('Renamed Round'),
+        matching: find.text('Practice · Renamed Round'),
       ),
       findsOneWidget,
     );

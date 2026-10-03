@@ -310,3 +310,159 @@ menu and buttons on one line. Every menu of the form now takes the width
 it is given and cuts a long entry with an ellipsis; a Match item's Side
 and a gap's Reveal are full-width fields under the row's title (labelled
 Side and Reveal; same values). Nothing else changes.
+
+## Revision 7 (2.0.61+261007, 3 October 2026): Round Types
+
+Owner proposal `docs/QQL_Round_Types_Redesign_Plan.md` and decisions of
+3 October 2026; implementation plan
+`docs/superpowers/plans/2026-10-03-round-types-redesign.md`.
+
+**1. A type for every Round.** `LearningRound.roundType` (`RoundType`:
+discover, practice, sequence, listening, reading, story, flashcard, test,
+timed, speak) is stored with the Round (`roundType` in JSON, unknown values
+refused) and is what the editor, the Audit, the player and the learner path
+read; `visualType` stays in the file but decides nothing new. Labels and
+icons come from one place (`RoundTypePresentation`,
+`lib/services/round_type_presentation.dart`). Speak is listed, disabled,
+as coming later; an imported Speak Round is not playable.
+
+**2. Existing Rounds.** A Round without `roundType` is a Story or a
+Sequence when its flow says so; a Round marked Listening becomes Listen
+only when every required exercise structurally depends on its audio; every
+other Round is Practice (an old Test icon could not prove deferred
+feedback). Official Courses signed before this version keep their checksum
+(`CourseChecksums.officialMatches` accepts the older shape while the
+synthesized values equal what migration assigns).
+
+**3. Creating Rounds.** New Round opens a type selector
+(`new-round-type-<type>`); Story opens the Story Wizard; New Story and the
+Play as a sequence switch are gone. The Round Wizard shows a type for each
+proposed Round and replans its exercises from the same GuideBook when the
+type changes (`GuidebookRoundGenerator.changeType`); Read, Story and Timed
+cannot be generated from vocabulary and say why.
+
+**4. Compatibility and the Audit.** `RoundTypeCompatibility`
+(`lib/services/round_type_compatibility.dart`) answers both which presets
+the exercise list offers and whether an actual exercise fits: Listen needs
+audio the learner cannot read elsewhere, Read a question on a passage whose
+correct answer is not copied from it, FlashCard canonical Flashcards, Test
+and Timed automatically evaluatable exercises (Timed also no required
+audio). The Canonical editor warns and refuses to publish an exercise that
+does not fit; a Draft may hold anything. The Audit's new Round-type rules
+block publication.
+
+**5. Playback.** Practice, Discover, Listen and Read keep immediate
+feedback and the mistake review; Sequence and Story keep their authored
+flow; FlashCard goes card by card. **Test** collects the answers without
+feedback and shows every result at the end; it can keep a fixed order, and
+an optional passing threshold changes only the result's label (completion,
+XP and unlocks as usual). The result texts are in the seven learner-panel
+catalogs.
+
+**6. Timed.** One or more distinct limits, in order, each 30 seconds to
+10 minutes (presets 30 s, 60 s, 90 s, 2, 3 and 5 min, or Custom;
+`TimedRoundRules`, `lib/services/timed_round_rules.dart`); Lesson Options
+holds the Course's default limits (`Course.defaultTimedLimitsSeconds`),
+copied into each new Timed Round. The countdown starts with the first
+exercise, after any Before you start card. Finishing in time completes the
+Round normally and, the first time each limit is beaten, adds a 10 XP On
+Time bonus (`XpCalculator`, `RoundXpResult.onTimeBonusXp`, its own line in
+the completion dialog) and unlocks the next limit
+(`ProgressService.claimTimedLimit`, key `v4_completed_timed_limits`, reset
+with learner progress). When time runs out, input stops at once, the
+first-pass correct answers earn their XP
+(`XpCalculator.calculateTimedTimeoutAward`), and the Round stays incomplete
+until retried. Preview and View Only record nothing. Icon
+`Icons.timer_outlined`.
+
+**7. Label and numbering.** Lesson Options has **Lesson label and
+numbering** (Off, Lesson + number, Number only, Custom + number; the older
+Unit, Topic, Module… choices still display) and **Round label and
+numbering** (`Course.roundNumberingMode`: Off by default, Round + number,
+Number only, Custom + number). Numbers come from the Round's position, never
+stored. Authored titles stay visible in every mode; Lesson titles remain
+required, Round titles optional. The learner path says Completed for a
+completed Round that was not perfect, so Practice is not both a type and a
+status.
+
+**8. Help.** Editor Help has a Round Types topic (English, Italian,
+Spanish) that now holds the Story and Sequence questions, and a question on
+the two label and numbering selectors; the Stories section leaves the
+Exercise primitives page.
+
+Bundled Courses and the Laboratory-of-the-future fixture are regenerated
+with explicit types (`tools/validate_courses.py` checks them). Scoring and
+progression are unchanged except for Timed.
+
+## Revision 8 (2.0.61+261008, 3 October 2026): the learner path in Lesson colours
+
+Owner request and decisions of 3 October 2026, refined over six renders of
+the real path drawn with the Roboto font (tinted cards and coloured label
+pills were offered and declined: colour on the circles only).
+
+**1. A colour for each Lesson.** `LessonColorPalette`
+(`lib/services/lesson_color_palette.dart`) holds eight colours (indigo,
+purple, magenta, coral, gold, cyan, brown, slate), each as `LessonColors`
+with a solid colour, the number or icon on it, a pale tint and the deeper
+shade drawn on the tint, in a light and a dark version; numbers, icons and
+the word Completed have at least 4.4:1 contrast. A Lesson's colour comes
+from its position (the ninth starts again) and is never stored. There is no
+green: green means Perfect.
+
+**2. The circles.** The Lesson number circle (`LessonFallbackIcon`, on the
+path and in the Lesson editor's previews) is the solid colour; the stored
+fallback style still changes nothing, and a Lesson's own theme picture is
+unchanged. A Round's circle, now 52 pixels, is the pale tint ringed with
+the colour before completion (on the cream page a tint alone was almost
+invisible), the solid colour once completed (replacing orange) and green
+with the laurel when perfect; the laurel reaches past the icon slot so the
+circle never moves. Completed is written in the Lesson's deeper shade. The
+Duel is a circle in the Lesson colour, centred, with its texts underneath.
+
+**3. Faint backgrounds, lighter texts.** The Lesson, Round and Duel rows
+lose the 70–75% cards and their border; they keep the old card colour at
+20%, rounded, so the path line shows through them a little dimmed, and stay
+one tap target. A small grey label line ("Lesson 2", "Round 1 · Practice",
+following the numbering settings, and the same whether or not the Round has
+a title) sits above the title: Lesson titles 17 points medium, Round titles
+15 regular, the status line 12.
+
+**4. The zigzag.** A Round's circle stands at the left edge, the centre or
+the right edge, with its texts toward the middle (`LearnerRoundPlacement`);
+a 16-step pattern sometimes keeps a place twice and never jumps from one
+edge straight to the other, where a curve across the whole width would cross
+a text. The mascots take the half the texts leave free, now in seven slots
+in ten (four before: without cards the sides looked empty), never on two
+Rounds in a row on the same side (`learnerRoundPathMascotRows`), so about
+six Rounds in ten have one; the mascot order still runs on across the
+Course, each Lesson counting its own (`learnerMascotPositionOffsetForLesson`). On a wide window the path keeps a centred column
+of at most 560 pixels.
+
+**5. The line.** Long rounded curves from circle to circle, as the earlier
+path had, from the Lesson's circle or picture (except when the IDDQD pill
+stands between them, where the short centred connector stays) to the Duel's
+circle, or ending at the last Round. Each curve stays in its circles' column
+near them and turns between them; how late and how sharply it turns, a
+slight bow, its thickness and its strength vary from curve to curve, from
+the Rounds' IDs, so a Course always draws the same path. The line is a
+filled band, thin and faint where it meets a circle, thick and strong
+between circles; two circles in one column are joined by an outward bow.
+
+**6. Over a flag picture.** With Flag Background Small or Extended, on the
+learner page and in the Course preview, `LearnerPathHalo` gives the texts
+stacked shadows in the page colour and the line a wider page-colour band.
+
+**7. Colour code of the path in App Info.** A section after Laurel crowns
+(`appInfoSectionIds` `pathColours`, keys `appInfo.pathColours.*` in English,
+Italian and Spanish; status words stay English) explains the eight Lesson
+colours and the pale, solid and green circles, with the owner's picture
+`assets/rounds_screenshots/colors.png`
+(a new asset folder; the chat's "⋯" button captured over the Lesson 4
+swatch was painted out by copying the clean corner of the Lesson 3 card).
+The picture keeps its proportions while it loads; a tap opens it enlarged
+(`showEnlargedImage`) inside an `InteractiveViewer`, so it zooms with a
+pinch on a phone.
+
+Help (EN/IT/ES): the Lesson icon answer, and the JSON structure in English
+and Italian, name the Lesson colour. Scoring, progression, Course files and
+learner data are unchanged.

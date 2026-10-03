@@ -176,6 +176,9 @@ class AuthoringDuplicationService {
       publicationState: PublicationState.draft,
       lessonNumberingMode: source.lessonNumberingMode,
       customLessonLabel: source.customLessonLabel,
+      roundNumberingMode: source.roundNumberingMode,
+      customRoundLabel: source.customRoundLabel,
+      defaultTimedLimitsSeconds: source.defaultTimedLimitsSeconds,
       defaultLessonIconStyle: source.defaultLessonIconStyle,
       createDuels: source.createDuels,
       useGuidebook: source.useGuidebook,
@@ -378,6 +381,10 @@ class AuthoringDuplicationService {
     updatedAt: source.updatedAt,
     title: source.title,
     visualType: source.visualType,
+    roundType: source.roundType,
+    testFixedOrder: source.testFixedOrder,
+    testPassingPercent: source.testPassingPercent,
+    timedLimitsSeconds: source.timedLimitsSeconds,
     content: [
       for (final content in source.content)
         _copyContent(

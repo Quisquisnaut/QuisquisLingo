@@ -423,6 +423,10 @@ def build_course_v11() -> dict:
 
 def build_course() -> dict:
     course = convert_course_v11_to_v12(build_course_v11())
+    course["roundNumberingMode"] = "off"
+    for lesson in course["lessons"]:
+        for round_data in lesson["rounds"]:
+            round_data["roundType"] = "story" if round_data.get("flow") else "practice"
     course["storyNarrator"] = {"name": "Narratore", "language": "source"}
     course["storyCharacters"] = [
         {"id": TOM, "name": "Tom", "avatar": "assets/avatars/kid.png", "language": "target", "voice": "male"},

@@ -3,6 +3,8 @@ import 'dart:math';
 import '../models/course_models.dart';
 import '../models/exercise_authoring.dart';
 import 'authoring_duplication_service.dart';
+import 'round_type_compatibility.dart';
+import 'round_flow_authoring.dart';
 
 class GuidebookGenerationException implements Exception {
   const GuidebookGenerationException(this.message);
@@ -18,12 +20,23 @@ class GuidebookRoundPlan {
     required this.difficulty,
     required this.title,
     required this.presetIds,
+    this.roundType = RoundType.practice,
   });
 
   final int index;
   final double difficulty;
   final String title;
   final List<String> presetIds;
+  final RoundType roundType;
+
+  GuidebookRoundPlan withType(RoundType type, List<String> presets) =>
+      GuidebookRoundPlan(
+        index: index,
+        difficulty: difficulty,
+        title: title,
+        presetIds: List.unmodifiable(presets),
+        roundType: type,
+      );
 }
 
 class GuidebookGenerationPlan {
@@ -65,6 +78,56 @@ class GuidebookRoundGenerator {
   final int _randomSeed;
   final AuthoringIdGenerator _draftIds;
   final DateTime Function() _now;
+
+  static bool supportsType(RoundType type) => switch (type) {
+    RoundType.discover ||
+    RoundType.practice ||
+    RoundType.sequence ||
+    RoundType.listening ||
+    RoundType.flashcard ||
+    RoundType.test => true,
+    RoundType.reading ||
+    RoundType.story ||
+    RoundType.timed ||
+    RoundType.speak => false,
+  };
+
+  static String unsupportedReason(RoundType type) => switch (type) {
+    RoundType.reading =>
+      'GuideBook vocabulary alone cannot produce a verifiable reading-comprehension question. Create a Read Round manually.',
+    RoundType.story =>
+      'GuideBook vocabulary alone has no authored dialogue or narrative flow. Use New Round → Story.',
+    RoundType.speak => 'Speak Rounds are coming soon.',
+    RoundType.timed => 'Set a time limit in New Round to create a Timed Round.',
+    _ => '',
+  };
+
+  GuidebookRoundPlan changeType(
+    Guidebook guidebook,
+    GuidebookRoundPlan source,
+    RoundType type,
+  ) {
+    if (!supportsType(type)) {
+      throw GuidebookGenerationException(unsupportedReason(type));
+    }
+    final material = _GuidebookMaterial.from(guidebook);
+    final pool = _poolFor(
+      source.difficulty,
+      hasExamples: material.hasExamples,
+      hasMatchedExamples: material.hasMatchedExamples,
+      roundType: type,
+    );
+    if (pool.isEmpty) {
+      throw GuidebookGenerationException(
+        'This GuideBook has no compatible candidates for ${type.name}.',
+      );
+    }
+    final presets = [
+      for (var i = 0; i < source.presetIds.length; i++)
+        pool[(source.index + i) % pool.length],
+    ];
+    return source.withType(type, presets);
+  }
 
   GuidebookGenerationPlan plan(
     Guidebook guidebook, {
@@ -143,6 +206,9 @@ class GuidebookRoundGenerator {
     Random random,
     AuthoringDuplicationService duplication,
   ) {
+    if (!supportsType(plan.roundType)) {
+      throw GuidebookGenerationException(unsupportedReason(plan.roundType));
+    }
     final exercises = <Exercise>[];
     for (var i = 0; i < plan.presetIds.length; i++) {
       final pair = material.pairs[(plan.index + i) % material.pairs.length];
@@ -156,12 +222,25 @@ class GuidebookRoundGenerator {
       );
       exercises.add(duplication.duplicateExercise(template));
     }
+    for (final exercise in exercises) {
+      final problems = RoundTypeCompatibility.issuesForExercise(
+        plan.roundType,
+        exercise,
+      );
+      if (problems.isNotEmpty) {
+        throw GuidebookGenerationException(
+          'Generated ${plan.roundType.name} exercise is incompatible: ${RoundTypeCompatibility.message(problems.first)}',
+        );
+      }
+    }
     final introId = plan.index == 0 ? _draftIds.next('intro') : '';
     final content = <LearningContent>[
       // Build 257: the introduction is a Before you start card, a Draft
       // the author edits and publishes like any card, offering the GuideBook
       // the Round was generated from.
-      if (plan.index == 0)
+      if (plan.index == 0 &&
+          plan.roundType != RoundType.flashcard &&
+          plan.roundType != RoundType.test)
         LearningContent(
           id: introId,
           publicationState: PublicationState.draft,
@@ -199,7 +278,11 @@ class GuidebookRoundGenerator {
       publicationState: PublicationState.draft,
       updatedAt: _now(),
       title: plan.title,
+      roundType: plan.roundType,
       content: content,
+      flow: plan.roundType == RoundType.sequence
+          ? RoundFlowAuthoring.linearFor(content)
+          : null,
     );
   }
 
@@ -312,6 +395,13 @@ class GuidebookRoundGenerator {
           accepted: [pair.target],
           hint: difficulty < .67 ? 'Use the Lesson GuideBook vocabulary.' : '',
         );
+      case 'flashcard':
+        return Exercise.presentation(
+          id: 'draft_template',
+          editorTemplate: 'flashcard',
+          term: pair.target,
+          meaning: pair.source,
+        );
       default:
         throw StateError('Unsupported generated preset: $preset');
     }
@@ -352,7 +442,12 @@ class GuidebookRoundGenerator {
     double difficulty, {
     required bool hasExamples,
     required bool hasMatchedExamples,
+    RoundType roundType = RoundType.practice,
   }) {
+    if (roundType == RoundType.flashcard) return const ['flashcard'];
+    if (roundType == RoundType.listening) {
+      return const ['listening_choose_target'];
+    }
     final candidates = difficulty < .34
         ? [
             'choice_target',

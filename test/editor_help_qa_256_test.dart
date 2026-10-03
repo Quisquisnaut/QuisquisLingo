@@ -35,6 +35,7 @@ void main() {
       'savingAndVersions',
       'courseSettings',
       'lessonsAndRounds',
+      'roundTypes',
       'exercises',
       'picturesAndSound',
       'checkingTheCourse',
@@ -46,7 +47,7 @@ void main() {
     // Build 259 Revision 8: What is a Private course?
     // Build 260 Revision 0: How do I choose the Course languages? Revision
     // 5: What do the difficulty bars mean?
-    expect(ids, hasLength(70));
+    expect(ids, hasLength(82));
     expect(ids.toSet(), hasLength(ids.length));
     for (final catalog in [helpEn, helpIt, helpEs]) {
       for (final topic in editorHelpQuestionsByTopic.keys) {

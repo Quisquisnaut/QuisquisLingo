@@ -11,6 +11,8 @@ import 'lesson_icon_catalog.dart';
 import 'page_blocks.dart';
 import 'preset_recipes.dart';
 import 'translation_choice_service.dart';
+import 'round_type_compatibility.dart';
+import 'timed_round_rules.dart';
 
 export 'audit_code_registry.dart' show AuditSeverity;
 
@@ -578,6 +580,144 @@ class CourseAuditService {
         // outside a Story plays as a plain card. A sequence gets the Round
         // rules (Revision 7, third follow-up).
         final roundExercises = r.exercises;
+        if (r.roundType == RoundType.timed) {
+          if (!TimedRoundRules.validLimits(r.timedLimitsSeconds)) {
+            issues.add(
+              CourseAuditIssue.fromCode(
+                AuditCode.roundTypeTimedLimitInvalid,
+                message:
+                    'Timed limits must be unique and between 30 and 600 seconds.',
+                location: rl,
+                roundId: r.id,
+              ),
+            );
+          }
+          final timedActivities = r.content.where((content) {
+            final exercise = content.asRunnableExercise();
+            return content.required &&
+                exercise != null &&
+                RoundTypeCompatibility.evaluatable(exercise);
+          });
+          if (timedActivities.isEmpty) {
+            issues.add(
+              CourseAuditIssue.fromCode(
+                AuditCode.roundTypeTimedNoPlayable,
+                message: 'Timed Round has no playable required activity.',
+                location: rl,
+                roundId: r.id,
+              ),
+            );
+          }
+          for (final content in r.content) {
+            final exercise = content.asRunnableExercise();
+            if (exercise != null &&
+                ExerciseFeatures(exercise).kind ==
+                    LearnerExerciseKind.roundIntro) {
+              continue;
+            }
+            if (!content.required) {
+              issues.add(
+                CourseAuditIssue.fromCode(
+                  AuditCode.roundTypeTimedIndeterminate,
+                  message: 'Timed activities must be required.',
+                  location: rl,
+                  roundId: r.id,
+                  exerciseId: exercise?.id,
+                ),
+              );
+            }
+            if (exercise == null) {
+              issues.add(
+                CourseAuditIssue.fromCode(
+                  AuditCode.roundTypeTimedContentIncompatible,
+                  message: 'Timed content must be a playable Exercise.',
+                  location: rl,
+                  roundId: r.id,
+                ),
+              );
+            }
+          }
+        }
+        final orderedType =
+            r.roundType == RoundType.story || r.roundType == RoundType.sequence;
+        if (orderedType != (r.flow != null)) {
+          issues.add(
+            CourseAuditIssue.fromCode(
+              AuditCode.roundTypeFlowInconsistent,
+              message:
+                  'The ${r.roundType.name} Round has ${r.flow == null ? 'no' : 'an unexpected'} content flow.',
+              location: rl,
+              roundId: r.id,
+            ),
+          );
+        }
+        final flow = r.flow;
+        if (flow != null) {
+          for (final problem in flow.check()) {
+            issues.add(
+              CourseAuditIssue.fromCode(
+                AuditCode.roundTypeFlowInvalid,
+                message: problem.message,
+                location: rl,
+                roundId: r.id,
+              ),
+            );
+          }
+          final contentIds = r.content.map((entry) => entry.id).toSet();
+          for (final node in flow.nodes) {
+            if (!contentIds.contains(node.contentId)) {
+              issues.add(
+                CourseAuditIssue.fromCode(
+                  AuditCode.roundTypeFlowInvalid,
+                  message:
+                      'Flow node ${node.id} names missing Content ${node.contentId}.',
+                  location: rl,
+                  roundId: r.id,
+                ),
+              );
+            }
+          }
+        }
+        for (final content in r.content) {
+          final exercise = content.asRunnableExercise();
+          if (exercise == null) continue;
+          if (ExerciseFeatures(exercise).kind ==
+                  LearnerExerciseKind.roundIntro &&
+              r.roundType != RoundType.flashcard &&
+              r.roundType != RoundType.test) {
+            continue;
+          }
+          for (final incompatibility
+              in RoundTypeCompatibility.issuesForExercise(
+                r.roundType,
+                exercise,
+                required: content.required,
+              )) {
+            final code = switch (incompatibility) {
+              RoundTypeIssue.audioRequired => AuditCode.roundTypeAudioRequired,
+              RoundTypeIssue.readingRequired =>
+                AuditCode.roundTypeReadingRequired,
+              RoundTypeIssue.flashcardOnly => AuditCode.roundTypeFlashcardOnly,
+              RoundTypeIssue.evaluatableOnly =>
+                AuditCode.roundTypeEvaluatableOnly,
+              RoundTypeIssue.timedEvaluatableOnly =>
+                AuditCode.roundTypeTimedContentIncompatible,
+              RoundTypeIssue.timedRequiresAudio =>
+                AuditCode.roundTypeTimedIndeterminate,
+              RoundTypeIssue.speakUnavailable =>
+                AuditCode.roundTypeSpeakUnavailable,
+            };
+            issues.add(
+              CourseAuditIssue.fromCode(
+                code,
+                message: RoundTypeCompatibility.message(incompatibility),
+                location: rl,
+                roundId: r.id,
+                exerciseId: exercise.id,
+              ),
+            );
+          }
+        }
         if (r.isStory) {
           final flow = r.flow!;
           if (flow.title.trim().isEmpty) {

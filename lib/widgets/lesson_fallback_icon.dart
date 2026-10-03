@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/course_models.dart';
+import '../services/lesson_color_palette.dart';
 
 /// The canonical fallback shown only when a Lesson has no explicit theme icon.
 class LessonFallbackIcon extends StatelessWidget {
@@ -14,8 +15,11 @@ class LessonFallbackIcon extends StatelessWidget {
   });
 
   /// Retained so legacy callers and persisted values continue to load safely.
-  /// All fallback Lessons now use the single theme-colored presentation.
+  /// All fallback Lessons now use the single Lesson-colour presentation.
   final LessonFallbackIconStyle? style;
+
+  /// The Lesson's one-based position in its Course: it also picks the
+  /// Lesson's colour (Build 261 Revision 8).
   final int number;
   final double size;
   final Key? monochromeKey;
@@ -23,18 +27,21 @@ class LessonFallbackIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
+    final colors = LessonColorPalette.of(
+      number - 1,
+      Theme.of(context).brightness,
+    );
     return SizedBox.square(
       key: monochromeKey ?? coloredKey,
       dimension: size,
       child: CircleAvatar(
-        backgroundColor: colors.primaryContainer,
+        backgroundColor: colors.solid,
         child: Text(
           '$number',
           style: TextStyle(
-            color: colors.onPrimaryContainer,
+            color: colors.onSolid,
             fontSize: size * 0.36,
-            fontWeight: FontWeight.w900,
+            fontWeight: FontWeight.w800,
           ),
         ),
       ),

@@ -9,6 +9,8 @@ import '../services/canonical_exercise_draft.dart';
 import '../services/canonical_exercise_samples.dart';
 import '../services/course_audit_service.dart';
 import '../services/course_language_resolver.dart';
+import '../services/round_type_compatibility.dart';
+import '../services/round_flow_authoring.dart';
 import '../services/portable_exercise_image.dart';
 import '../widgets/editor_app_bar_actions.dart';
 import '../widgets/editor_breadcrumbs.dart';
@@ -254,6 +256,12 @@ class _PrimitiveEditorScreenState extends State<PrimitiveEditorScreen> {
       updatedAt: round.updatedAt,
       title: 'Preview Exercise',
       visualType: round.visualType,
+      roundType: round.roundType,
+      timedLimitsSeconds: round.timedLimitsSeconds,
+      flow: RoundFlowAuthoring.singleExercisePreviewFlow(
+        round.roundType,
+        candidate,
+      ),
       exercises: [candidate],
     );
     // Preview receives detached data and uses the existing no-progress runtime.
@@ -326,6 +334,27 @@ class _PrimitiveEditorScreenState extends State<PrimitiveEditorScreen> {
     }
     final exercise = _candidate(state);
     if (state.isPublished) {
+      final type = widget.round?.roundType;
+      if (type != null) {
+        final required =
+            widget.round?.content
+                .where((content) => content.id == widget.exercise.id)
+                .firstOrNull
+                ?.required ??
+            true;
+        final incompatible = RoundTypeCompatibility.issuesForExercise(
+          type,
+          exercise,
+          required: required,
+        );
+        if (incompatible.isNotEmpty) {
+          await _showList(
+            'Round type compatibility',
+            incompatible.map(RoundTypeCompatibility.message).toList(),
+          );
+          return false;
+        }
+      }
       final issues = CourseAuditService().auditExercise(exercise);
       final errors = issues
           .where((issue) => issue.severity == AuditSeverity.error)
@@ -617,6 +646,19 @@ class _PrimitiveEditorScreenState extends State<PrimitiveEditorScreen> {
       evaluationMode: _draft.evaluation.mode,
     );
     final violations = _draft.violations;
+    final type = widget.round?.roundType;
+    final compatibility = type == null || violations.isNotEmpty
+        ? const <RoundTypeIssue>[]
+        : RoundTypeCompatibility.issuesForExercise(
+            type,
+            _candidate(PublicationState.draft),
+            required:
+                widget.round?.content
+                    .where((content) => content.id == widget.exercise.id)
+                    .firstOrNull
+                    ?.required ??
+                true,
+          );
     return PopScope(
       canPop: _routeMayPop,
       onPopInvokedWithResult: (didPop, _) {
@@ -650,6 +692,18 @@ class _PrimitiveEditorScreenState extends State<PrimitiveEditorScreen> {
             ] else ...[
               _primitiveCard(support),
               if (violations.isNotEmpty) _violationsCard(violations),
+              if (compatibility.isNotEmpty)
+                Card(
+                  key: const Key('primitive-round-type-warning'),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Text(
+                      compatibility
+                          .map(RoundTypeCompatibility.message)
+                          .join('\n'),
+                    ),
+                  ),
+                ),
               _generation(0, _optionsCard()),
               _generation(1, _promptCard()),
               if (_draft.capability.usesItems) _generation(2, _itemsCard()),

@@ -254,6 +254,7 @@ def mixed_lesson(source_lessons: list[dict]) -> dict:
             "publicationState": "published",
             "updatedAt": STAMP,
             "visualType": "generic",
+            "roundType": "practice",
             "title": f"Mixed practice {number}",
             "content": content,
         })

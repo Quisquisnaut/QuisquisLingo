@@ -64,6 +64,9 @@ class ExercisePreset {
     required this.category,
     required this.primitive,
     this.direction = PresetDirection.toTarget,
+    this.audioEssentialCandidate = false,
+    this.readingEssentialCandidate = false,
+    this.flashcardCandidate = false,
     String? base,
   }) : base = base ?? id;
 
@@ -77,6 +80,18 @@ class ExercisePreset {
 
   /// The language side the learner works in (picker filter).
   final PresetDirection direction;
+
+  /// A recipe may offer this capability; the resulting canonical exercise
+  /// must still pass the Round-type check after the author edits its fields.
+  final bool audioEssentialCandidate;
+  final bool readingEssentialCandidate;
+  final bool flashcardCandidate;
+
+  bool get evaluatableCandidate =>
+      primitive != ExercisePrimitive.presentation &&
+      primitive != ExercisePrimitive.speak &&
+      primitive != ExercisePrimitive.ink &&
+      primitive != ExercisePrimitive.submit;
 
   /// The recipe this preset is built on: its own ID, or the ID of the older
   /// recipe it reuses with a direction applied (`choice_source` is built on
@@ -203,6 +218,7 @@ abstract final class ExercisePresetRegistry {
       category: ExerciseCategory.vocabulary,
       primitive: ExercisePrimitive.presentation,
       direction: PresetDirection.none,
+      flashcardCandidate: true,
     ),
     ExercisePreset(
       id: 'picture_flashcard',
@@ -212,6 +228,7 @@ abstract final class ExercisePresetRegistry {
       category: ExerciseCategory.vocabulary,
       primitive: ExercisePrimitive.presentation,
       direction: PresetDirection.none,
+      flashcardCandidate: true,
       base: 'flashcard',
     ),
     // ------------------------------------------------ Grammar and sentences
@@ -344,6 +361,7 @@ abstract final class ExercisePresetRegistry {
           'Learner listens to a word or a sentence and chooses what was heard among target-language answers; no question.',
       category: ExerciseCategory.listening,
       primitive: ExercisePrimitive.select,
+      audioEssentialCandidate: true,
       base: 'listening_choice',
     ),
     ExercisePreset(
@@ -354,6 +372,7 @@ abstract final class ExercisePresetRegistry {
       category: ExerciseCategory.listening,
       primitive: ExercisePrimitive.select,
       direction: PresetDirection.toSource,
+      audioEssentialCandidate: true,
       base: 'listening_choice',
     ),
     ExercisePreset(
@@ -363,6 +382,7 @@ abstract final class ExercisePresetRegistry {
           'Learner listens to a word, a sentence or a passage and answers a question about it among target-language answers.',
       category: ExerciseCategory.listening,
       primitive: ExercisePrimitive.select,
+      audioEssentialCandidate: true,
       base: 'listening_comprehension',
     ),
     ExercisePreset(
@@ -373,6 +393,7 @@ abstract final class ExercisePresetRegistry {
       category: ExerciseCategory.listening,
       primitive: ExercisePrimitive.select,
       direction: PresetDirection.toSource,
+      audioEssentialCandidate: true,
       base: 'listening_comprehension',
     ),
     ExercisePreset(
@@ -381,6 +402,7 @@ abstract final class ExercisePresetRegistry {
       description: 'Learner listens and types the heard word or passage.',
       category: ExerciseCategory.listening,
       primitive: ExercisePrimitive.input,
+      audioEssentialCandidate: true,
     ),
     ExercisePreset(
       id: 'missing_word',
@@ -389,6 +411,7 @@ abstract final class ExercisePresetRegistry {
           'Learner listens and types the words missing from the transcript.',
       category: ExerciseCategory.listening,
       primitive: ExercisePrimitive.input,
+      audioEssentialCandidate: true,
     ),
     ExercisePreset(
       id: 'audio_match',
@@ -396,6 +419,7 @@ abstract final class ExercisePresetRegistry {
       description: 'Learner matches audio with the corresponding item.',
       category: ExerciseCategory.listening,
       primitive: ExercisePrimitive.match,
+      audioEssentialCandidate: true,
     ),
     ExercisePreset(
       id: 'listening_image_choice',
@@ -404,6 +428,7 @@ abstract final class ExercisePresetRegistry {
           'Learner hears a word or a sentence and picks the matching picture.',
       category: ExerciseCategory.listening,
       primitive: ExercisePrimitive.select,
+      audioEssentialCandidate: true,
       base: 'icon_choice',
     ),
     ExercisePreset(
@@ -427,6 +452,7 @@ abstract final class ExercisePresetRegistry {
           'Learner reads a situation in the source language and dialogue lines in the target language, then answers a target-language question.',
       category: ExerciseCategory.readingAndDialogue,
       primitive: ExercisePrimitive.select,
+      readingEssentialCandidate: true,
       base: 'reading_comprehension',
     ),
     // -------------------------------------------- Pictures and characters

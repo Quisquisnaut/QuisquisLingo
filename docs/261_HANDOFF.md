@@ -84,6 +84,80 @@ the row's title. Test `test/primitive_editor_narrow_261_test.dart` (every
 primitive, blank and with its example, and every Laboratory exercise at
 360 pixels). Complete suite: 3582 passed, 1 skipped.
 
+## Revision 7 (committed `fb38c7b`, 2.0.61+261007, 3 October 2026)
+
+Round Types redesign: ten explicit Round types replace the generic learner
+path label; New Round selects a type, and Lesson Options controls optional
+Round numbering. Story creation and Sequence playback follow their types.
+Listen and Read require structurally verifiable content; FlashCard and Test
+have their own publication rules, and Test defers feedback until its results.
+The GuideBook Round Wizard can replan compatible types. Existing official
+Courses retain valid checksums when the new fields are synthesized during
+migration. The learner path says Completed rather than repeating Practice as
+both a type and a completion action. Editor Help now owns a Round Types
+section; Story guidance is removed from Exercise Primitives Help. The
+Course Editor now offers Lesson label and numbering and Round label and
+numbering together in Lesson Options. Lesson choices are Off, Lesson +
+number, Number only and Custom + number; older label choices remain valid
+for existing Courses. Lesson titles remain required and Round titles optional;
+authored titles stay visible with every label choice. A dedicated Editor Help
+FAQ explains both selectors in English, Italian and Spanish. The
+Timed type uses `Icons.timer_outlined`, accepts required non-audio evaluatable
+exercises, and has ordered distinct limits from 30 seconds to 10 minutes.
+Course-level default limits in Lesson Options are copied into new Timed Rounds;
+editing the defaults leaves existing Rounds alone. Timely completion unlocks
+the next limit and grants a separate 10 XP On Time bonus once per learner,
+Course, Round and limit. Timeout locks the attempt, leaves the Round incomplete
+and retains first-pass correct-answer XP for that attempt. The Audit blocks
+invalid limits and incompatible or indeterminate Timed content. The bonus is
+calculated by `XpCalculator` and displayed in the completion breakdown.
+The implementation plan is
+`docs/superpowers/plans/2026-10-03-round-types-redesign.md`; verification
+is in `docs/261_VALIDATION.md`.
+
+Codex stopped before the commit; Claude Code resumed at 11:35 on
+3 October. Added then: the Beta expiry moves to `2026-11-02 23:59:59`
+(30 days from the 3 October release; `beta_lifecycle_test.dart` shifted a
+day), README, CHANGELOG, `docs/261_CHANGE_SUMMARY.md` Revision 7, the
+AGENTS expiry line and `v4_completed_timed_limits` in
+`docs/239_RESET_STORAGE_INVENTORY.md` (reset already covers it through the
+`v4_` prefix; Inventory counts every learner key). Analyzer clean; final
+complete suite with temporary files on D: (C: has under 3 GB free, too
+little for the 300 MB Image Library fixture; AGENTS.md now names
+`D:\QQL_test_temp` for test runs): 3605 passed, 1 skipped, 0 failed.
+
+Owner decision (3 October 2026): in a Timed Round the clock keeps running
+through the mistake review (and the Review your mistakes message, which
+closes itself at zero); the Round finishes in time only when the last
+review answer comes before zero. Kept as it is, nothing added.
+
+## Revision 8 (committed `2efeb61`, 2.0.61+261008, 3 October 2026)
+
+The learner path in Lesson colours (owner decisions of 3 October, refined
+over six renders sent to the owner): `LessonColorPalette` (eight non-green
+colours by position, light and dark); the Lesson number circle and the
+52-pixel Round circles in the Lesson colour (tint with a ring, solid when
+completed, green with the laurel when perfect; Completed written in the
+deeper shade); the Duel as a centred circle; rows on 20% backgrounds without
+border; a 12-point grey label above lighter titles (the same with or without
+a Round title); a 16-step placement pattern (left edge, centre with texts
+right or left, right edge; repeats, never edge to edge); the path at most
+560 pixels wide; rounded curves from circle to circle, varied per curve from
+the Rounds' IDs, tapering and fading toward the circles; a page-colour halo
+over Flag Background Small/Extended. Release notes, AGENTS.md, README and
+the change summary describe the final design.
+
+Later owner requests in the same revision: mascots in seven slots of ten,
+never two Rounds in a row on the same side (`learnerRoundPathMascotRows`);
+App Info's "Colour code of the path" with the owner's picture
+`assets/rounds_screenshots/colors.png` (first placed in Course Info by
+mistake and moved; the chat's "..." button painted out of the picture).
+
+Visual check: a throwaway test rendered the preview, a Duel, App Info and
+the circle states with the real Roboto font into `D:/QQL_test_temp/rev8*.png`
+(deleted, never committed). Owner said go at the eleventh render; the
+complete suite passed: 3612 passed, 1 skipped, 0 failed.
+
 ## Next
 
 Build 262 (owner decisions of 2 October 2026, discussion to finish; plan
@@ -95,6 +169,6 @@ Course makes a copy that keeps every ID; "Export as bundled" writes a
 bundled-format file to Export/Courses; the developer puts it in the assets
 at the next build, after which that Course's generator is retired.
 
-Stage with `git add -A -- . ':!devtools_options.yaml' ':!tools/cloud_setup.sh' ':!assets/lesson_plants/QQL_IT_EN_qql_demo_english_from_italian.zip' ':!docs/262_BUNDLED_AUTHORING_PLAN.md'`
+Stage with `git add -A -- . ':!devtools_options.yaml' ':!tools/cloud_setup.sh' ':!assets/lesson_plants/QQL_IT_EN_qql_demo_english_from_italian.zip' ':!docs/262_BUNDLED_AUTHORING_PLAN.md' ':!docs/PUBLISHER_COURSES_PLAN.md'`
 (the zip is the owner's; the Build 262 plan is committed with Build 262)
 after checking `git status` for files another session wrote.

@@ -379,10 +379,22 @@ void main() {
 
   group('Round editor Story options', () {
     testWidgets(
-      'Story on writes scroll, dialogue log and automatic read-aloud; the title names the Round',
+      'Story options preserve scroll, dialogue log and read-aloud; the title names the Round',
       (tester) async {
         _bigWindow(tester);
-        final course = _course();
+        final base = _round();
+        final story = LearningRound.fromJson({
+          ...base.toJson(),
+          'roundType': 'story',
+          'flow': RoundFlowAuthoring.linearFor(
+            base.content,
+            presentation: FlowPresentation.scroll,
+            title: 'Round one',
+            log: FlowLog.dialogue,
+            readAloud: FlowReadAloud.automatic,
+          ).toJson(),
+        });
+        final course = _course(round: story);
         Course? changed;
         await tester.pumpWidget(
           MaterialApp(
@@ -397,17 +409,14 @@ void main() {
           ),
         );
         await tester.pumpAndSettle();
-        expect(find.byKey(const Key('round-story-title')), findsNothing);
-        expect(find.byKey(const Key('round-story-log')), findsNothing);
-        await tester.tap(find.byKey(const Key('round-story-switch')));
-        await tester.pumpAndSettle();
-        var flow = _roundOf(changed!).flow!;
+        expect(find.byKey(const Key('round-story-switch')), findsNothing);
+        var flow = _roundOf(course).flow!;
         expect(flow.presentation, FlowPresentation.scroll);
         expect(flow.log, FlowLog.dialogue);
         expect(flow.readAloud, FlowReadAloud.automatic);
         // A new Story is named after the Round's own title.
         expect(flow.title, 'Round one');
-        expect(_roundOf(changed!).displayTitle(0), 'Story: Round one');
+        expect(_roundOf(course).displayTitle(0), 'Story: Round one');
         expect(find.byKey(const Key('round-story-title')), findsOneWidget);
         expect(find.byKey(const Key('round-story-log')), findsOneWidget);
         expect(find.byKey(const Key('round-story-read-aloud')), findsOneWidget);
@@ -422,7 +431,7 @@ void main() {
         // The Round keeps its own name; the label is derived from the flow.
         expect(_roundOf(changed!).title, 'Round one');
         expect(_roundOf(changed!).displayTitle(0), 'Story: Al bar');
-        expect(find.text('Story: Al bar'), findsOneWidget);
+        expect(find.text('Story · Al bar'), findsOneWidget);
 
         await tester.tap(find.text('On request'));
         await tester.pumpAndSettle();
@@ -437,12 +446,7 @@ void main() {
         expect(_roundOf(changed!).flow!.presentation, FlowPresentation.step);
         expect(find.byKey(const Key('round-story-log')), findsNothing);
 
-        // Story off: the Round keeps its own name.
-        await tester.tap(find.byKey(const Key('round-story-switch')));
-        await tester.pumpAndSettle();
-        expect(_roundOf(changed!).flow, isNull);
-        expect(_roundOf(changed!).title, 'Round one');
-        expect(_roundOf(changed!).displayTitle(0), 'Round one');
+        expect(find.byKey(const Key('round-story-switch')), findsNothing);
       },
     );
 

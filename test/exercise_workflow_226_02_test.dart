@@ -404,12 +404,14 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('New Round'));
     await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('new-round-type-practice')));
+    await tester.pumpAndSettle();
     expect(find.text('Press Enter to keep this Round untitled.'), findsNothing);
     expect(field('Title, or Enter to skip'), findsOneWidget);
     await tester.testTextInput.receiveAction(TextInputAction.done);
     await tester.pumpAndSettle();
     expect(find.byType(AlertDialog), findsNothing);
-    expect(find.text('Round 3'), findsOneWidget);
+    expect(find.text('3. Practice'), findsOneWidget);
     await tester.tap(find.byType(BackButton));
     await tester.pumpAndSettle();
     expect(returned, hasLength(3));

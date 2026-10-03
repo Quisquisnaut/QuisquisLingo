@@ -11,6 +11,15 @@ import '../models/course_models.dart';
 /// Story options (title, scroll log, read-aloud; Build 256 Revision 5) and
 /// each exercise node's audio dependence travel with every rebuild.
 abstract final class RoundFlowAuthoring {
+  /// A detached exercise preview still needs a one-node flow when its Round
+  /// type requires flow. It must not mutate the authored Round.
+  static ContentFlow? singleExercisePreviewFlow(
+    RoundType type,
+    Exercise exercise,
+  ) => type == RoundType.story || type == RoundType.sequence
+      ? linearFor([LearningContent.fromExercise(exercise)])
+      : null;
+
   /// The linear flow that plays [content] in authored order. Node IDs are
   /// the content IDs, which are unique within a Round; the exercises whose
   /// content ID is in [requiresAudio] need the Story's audio.

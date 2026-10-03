@@ -337,16 +337,28 @@ class _CoursePreviewScreenState extends State<CoursePreviewScreen> {
                           _previewBar(context),
                           _header(context),
                           Expanded(
-                            child: ListView.builder(
-                              key: const Key('course-preview-scroll'),
-                              padding: const EdgeInsets.fromLTRB(14, 8, 14, 24),
-                              itemCount: course.lessons.isEmpty
-                                  ? 1
-                                  : course.lessons.length,
-                              itemBuilder: (context, index) =>
-                                  course.lessons.isEmpty
-                                  ? const _EmptyCourseCard()
-                                  : _lesson(context, index),
+                            child: LearnerPathHalo(
+                              enabled:
+                                  _flagBackground ==
+                                      LearnerFlagBackgroundMode.small ||
+                                  _flagBackground ==
+                                      LearnerFlagBackgroundMode.extended,
+                              child: ListView.builder(
+                                key: const Key('course-preview-scroll'),
+                                padding: const EdgeInsets.fromLTRB(
+                                  14,
+                                  8,
+                                  14,
+                                  24,
+                                ),
+                                itemCount: course.lessons.isEmpty
+                                    ? 1
+                                    : course.lessons.length,
+                                itemBuilder: (context, index) =>
+                                    course.lessons.isEmpty
+                                    ? const _EmptyCourseCard()
+                                    : _lesson(context, index),
+                              ),
                             ),
                           ),
                           _bottomBar(context, dark),

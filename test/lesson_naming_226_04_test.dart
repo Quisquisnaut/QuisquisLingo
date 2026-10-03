@@ -33,31 +33,19 @@ void main() {
     (
       choice: 'Number only',
       mode: LessonNumberingMode.numberOnly,
-      first: '1',
+      first: '1: Lesson 1',
       second: '2: Greetings',
     ),
     (
-      choice: 'Title only',
+      choice: 'Off',
       mode: LessonNumberingMode.none,
       first: 'Lesson 1',
       second: 'Greetings',
     ),
     (
-      choice: 'Unit',
-      mode: LessonNumberingMode.unit,
-      first: 'Unit 1',
-      second: 'Unit 2: Greetings',
-    ),
-    (
-      choice: 'Module',
-      mode: LessonNumberingMode.module,
-      first: 'Module 1',
-      second: 'Module 2: Greetings',
-    ),
-    (
-      choice: 'Other...',
+      choice: 'Custom + number',
       mode: LessonNumberingMode.other,
-      first: 'Level 1',
+      first: 'Level 1: Lesson 1',
       second: 'Level 2: Greetings',
     ),
   ]) {
@@ -107,6 +95,8 @@ void main() {
         await tester.tap(lessonOptions);
         await tester.pumpAndSettle();
         expect(find.text('Lesson Options'), findsOneWidget);
+        expect(find.text('Lesson label and numbering'), findsOneWidget);
+        expect(find.text('Round label and numbering'), findsOneWidget);
         expect(
           tester
               .widget<DropdownButton<LessonNumberingMode>>(
@@ -117,7 +107,12 @@ void main() {
               )
               .items!
               .map((item) => item.value),
-          LessonNumberingMode.values,
+          [
+            LessonNumberingMode.none,
+            LessonNumberingMode.lesson,
+            LessonNumberingMode.numberOnly,
+            LessonNumberingMode.other,
+          ],
         );
         await tester.ensureVisible(modeField);
         await tester.pumpAndSettle();
@@ -143,11 +138,11 @@ void main() {
           scenario.mode,
         );
         expect(find.byType(AlertDialog), findsNothing);
-        if (scenario.mode == LessonNumberingMode.module) {
+        if (scenario.mode == LessonNumberingMode.numberOnly) {
           await tester.ensureVisible(modeField);
           await tester.tap(modeField);
           await tester.pumpAndSettle();
-          final other = find.text('Other...').last;
+          final other = find.text('Custom + number').last;
           await tester.ensureVisible(other);
           await tester.tap(other);
           await tester.pumpAndSettle();
@@ -156,7 +151,7 @@ void main() {
           await tester.pumpAndSettle();
           expect(
             tester.state<FormFieldState<LessonNumberingMode>>(modeField).value,
-            LessonNumberingMode.module,
+            LessonNumberingMode.numberOnly,
           );
         }
         final lessonsLink = find.byKey(
@@ -248,12 +243,52 @@ void main() {
         expect(find.text('PREVIEW · ${scenario.first}'), findsOneWidget);
         expect(jsonEncode(source.toJson()), original);
         expect(tester.takeException(), isNull);
-        if (scenario.mode == LessonNumberingMode.module) {
+        if (scenario.mode == LessonNumberingMode.lesson) {
           await _expectPersistedHome(tester, working);
         }
       },
     );
   }
+
+  testWidgets('an existing Unit label stays selected until changed', (
+    tester,
+  ) async {
+    final source = Course.fromJson({
+      ..._course().toJson(),
+      'lessonNumberingMode': LessonNumberingMode.unit.name,
+    });
+    await SettingsService().setCourseEditorLocked(source.courseId, false);
+    await SettingsService().markAudioOrphanCheckRun(
+      CourseService.codeForCourse(source),
+    );
+    await tester.pumpWidget(
+      MaterialApp(home: CourseEditorScreen(course: source, userCourse: true)),
+    );
+    await tester.pumpAndSettle();
+    final options = find.byKey(const Key('course-lesson-options'));
+    await tester.ensureVisible(options);
+    await tester.tap(options);
+    await tester.pumpAndSettle();
+    final field = find.byType(DropdownButtonFormField<LessonNumberingMode>);
+    expect(
+      tester.state<FormFieldState<LessonNumberingMode>>(field).value,
+      LessonNumberingMode.unit,
+    );
+    final dropdown = tester.widget<DropdownButton<LessonNumberingMode>>(
+      find.descendant(
+        of: field,
+        matching: find.byType(DropdownButton<LessonNumberingMode>),
+      ),
+    );
+    expect(dropdown.items!.map((item) => item.value), [
+      LessonNumberingMode.none,
+      LessonNumberingMode.lesson,
+      LessonNumberingMode.numberOnly,
+      LessonNumberingMode.other,
+      LessonNumberingMode.unit,
+    ]);
+    expect(find.text('Unit + number (existing)'), findsOneWidget);
+  });
 }
 
 Future<void> _expectPersistedHome(WidgetTester tester, Course course) async {
@@ -263,7 +298,7 @@ Future<void> _expectPersistedHome(WidgetTester tester, Course course) async {
   final saved = (await tester.runAsync(
     () => CourseEditorService().listUserCourses(),
   ))!.single;
-  expect(saved.lessonNumberingMode, LessonNumberingMode.module);
+  expect(saved.lessonNumberingMode, LessonNumberingMode.lesson);
   expect(saved.lessons.map((lesson) => lesson.title), [
     'Lesson 1',
     'Greetings',
@@ -305,7 +340,7 @@ Future<void> _expectPersistedHome(WidgetTester tester, Course course) async {
       ),
     );
     await tester.pumpUntilFileIoState(
-      () => find.text('Module 1', findRichText: true).evaluate().isNotEmpty,
+      () => find.text('Lesson 1', findRichText: true).evaluate().isNotEmpty,
     );
     if (find.text('Beta expiry').evaluate().isNotEmpty) {
       await tester.tap(find.widgetWithText(FilledButton, 'OK'));
@@ -313,7 +348,7 @@ Future<void> _expectPersistedHome(WidgetTester tester, Course course) async {
         await tester.pump(const Duration(milliseconds: 50));
       }
     }
-    expect(find.text('Module 1', findRichText: true), findsWidgets);
+    expect(find.text('Lesson 1', findRichText: true), findsWidgets);
     expect(find.text('Lesson 1: Lesson 1', findRichText: true), findsNothing);
     expect(tester.takeException(), isNull);
   }
