@@ -90,8 +90,14 @@ picture, Select the image, Match pictures to words, Type what you see;
 per Round: nothing asked twice, no option shown more than twice, no two
 questions (matching included) sharing more than one option; gap wrong
 answers only from the tables, checked never to fit (owner: «Ndo' annamo
-mo'?» was right too); Viterbese without «pure» (Italian too). Both Courses:
-177 exercises, Audit 0/0, Duel 34/25 per Lesson.
+mo'?» was right too); the same exercise never twice in a Lesson. Owner
+review of the night: a Course from Italian (`AVOID_ITALIAN`) teaches no
+word that is Italian too or almost the same (`corsi_brevi/italian_check.py`:
+LibreOffice's Hunspell it_IT dictionary plus similarity .90, the wider
+check the owner chose); only 27 of 72 Viterbese words passed, so Viterbese
+is one Lesson, "Le parole del viterbese" (57 exercises, Duel 33/25), by
+owner decision; Neapolitan (for English speakers) keeps its 3 Lessons
+(177 exercises, Duel 34/25 each). Audit 0/0 for both.
 
 Next: Build 262 is complete (Revisions 0–2). Not pushed. The owner reviews
 the private Courses (`LEGGIMI.txt` lists the words to check).
