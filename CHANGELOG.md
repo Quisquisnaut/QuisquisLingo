@@ -1,3 +1,17 @@
+# 2.0.62 (Build 262, Revision 1) - The publisher QuisquisLingo Courses - 2026-10-03
+
+Owner decision of 2 October 2026 (`docs/PUBLISHER_COURSES_PLAN.md`, 4.2),
+prepared with a test key only, as the owner asked on 3 October.
+
+- **QuisquisLingo Courses** has its entry in the trusted publisher registry:
+  publisher ID `com.quisquislingo`, key ID `qqlc-2026-1`, separate from the
+  app's own bundled Courses. Its public key is still empty: the owner creates
+  the key on their own computer, and adding its Base64 value is a one-line
+  change. Until then the app trusts no key for this publisher.
+- Tests sign Courses with a TEST ONLY key under that identity: a signed
+  Course verifies, imports and installs; altered, unsigned, wrong-key and
+  wrong-name Courses are refused.
+
 # 2.0.62 (Build 262, Revision 0) - The Piedmontese Courses leave the app - 2026-10-03
 
 Owner decision of 2 October 2026 (`docs/PUBLISHER_COURSES_PLAN.md`, 4.1),

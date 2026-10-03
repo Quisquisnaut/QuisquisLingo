@@ -17,6 +17,34 @@ Not in Build 262: 4.4 signing in the app, 4.5 Publisher ZIPs shipped in the
 app, the documents of 4.6 beyond what each part needs, and the owner's
 tasks outside the code.
 
+## Revision 1 (2.0.62+262001, 3 October 2026): the publisher QuisquisLingo Courses
+
+**The registry entry.** `TrustedPublishers.quisquisLingoCourses`
+(`lib/services/trusted_publishers.dart`) describes the publisher of the
+owner's own Courses, separate from the app (whose bundled Courses keep
+`org.quisquislingo`): publisher ID `com.quisquislingo`, name
+**QuisquisLingo Courses**, key ID `qqlc-2026-1`. Its public key,
+`quisquisLingoCoursesPublicKeyBase64`, is empty: the owner has not created
+the key yet (plan §5.1, guide §2). `TrustedPublishers.application()` adds
+the entry only once that value is set, so until then the app trusts no key
+for this publisher and refuses its Courses as signed by an unknown key.
+Adding the real key is one line: the Base64 of its 32 public-key bytes
+(guide §6).
+
+**Tests with a TEST ONLY key.** `test/quisquislingo_courses_publisher_262_test.dart`
+trusts a deterministic Ed25519 test key under the same publisher, name and
+key ID, as guide §6 asks for an approved key: a Course signed by it
+verifies, imports and installs as a Publisher Course; an altered Course
+(even with a recalculated checksum), an unsigned one, one signed by another
+key or under another key ID, and one naming another publisher name or ID
+are refused. While the key is pending, the app's own registry refuses the
+signed Course; the test adapts by itself once the real key is in.
+`test/support/publisher_fixtures.dart` gains `signWithKey` and
+`dummyKeyPair`, with `signFixture` unchanged on top of them.
+
+Nothing else changes: no new publisher can be chosen anywhere yet (that is
+Revision 2), learners, scoring and stored data are unchanged.
+
 ## Revision 0 (2.0.62+262000, 3 October 2026): the Piedmontese Courses leave
 
 **Two bundled Courses.** `CourseService.courseAssets` keeps `IT` (QQL Demo:

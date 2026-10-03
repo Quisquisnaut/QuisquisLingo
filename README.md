@@ -1,6 +1,6 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.62+262000 · Build 262, Revision 0 · Course Model v12 (`formatVersion: 12`).**
+**Current source version: 2.0.62+262001 · Build 262, Revision 1 · Course Model v12 (`formatVersion: 12`).**
 
 **QuisquisLingo 2.0.62 Beta — QQL 262 Publisher Courses (Course Model v12)**
 
@@ -9,6 +9,9 @@ the app's open-source code ([plan](docs/PUBLISHER_COURSES_PLAN.md),
 [change summary](docs/262_CHANGE_SUMMARY.md)). Revision 0 removes the two
 Piedmontese demos from the app and from the repository: QQL now ships
 **QQL Demo: Exercise Laboratory** and **QQL Demo: English from Italian**.
+Revision 1 gives the publisher **QuisquisLingo Courses**
+(`com.quisquislingo`) its place among the trusted publishers; its signing
+key is still to be created, so the app trusts none for it yet.
 
 **QQL 261 Learner polish**
 
@@ -481,7 +484,7 @@ The MPL-2.0 covers the QuisquisLingo software source. Courses, the Image Bank an
 
 ## Beta lifecycle
 
-Version 2.0.62, Build 262, Revision 0 is a time-limited Beta with an expiry of **2026-11-02 23:59:59 local time** (30 days after the 3 October 2026 release date). In its last seven days it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
+Version 2.0.62, Build 262, Revision 1 is a time-limited Beta with an expiry of **2026-11-02 23:59:59 local time** (30 days after the 3 October 2026 release date). In its last seven days it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
 
 ## Core logic
 

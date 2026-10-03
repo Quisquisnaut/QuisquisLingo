@@ -53,8 +53,19 @@ expands. Dialect answers also accept the form without apostrophes. The
 texts are AI-written; `LEGGIMI.txt` there lists the points a native
 speaker should check. Nothing in the repository changed for them.
 
-Next: Revision 1 (4.2) and Revision 2 (4.3), drafted in the session's
-scratchpad (code, tests, docs).
+## Revision 1 (2.0.62+262001, 3 October 2026)
+
+`TrustedPublishers.quisquisLingoCourses` (`com.quisquislingo`, QuisquisLingo
+Courses, `qqlc-2026-1`) with an empty public key; `application()` adds it
+only once the key is set. `test/quisquislingo_courses_publisher_262_test.dart`
+with a TEST ONLY key; `signWithKey` / `dummyKeyPair` in the publisher test
+support. Complete suite 3598 passed, 1 skipped, 1 failed (the signing guide
+must equal the English Help: the guide note was removed, the test passes
+alone).
+
+Next: Revision 2 (4.3), drafted in the session's scratchpad (code, tests,
+docs; `r2_*.py`, `publisher_course_export*.dart`). The signing guide and its
+Help change together (EN/IT/ES), never the guide alone.
 
 Owner decision for Revision 2 (3 October 2026): the exported Publisher
 Course's official version **equals its Course version** (which rises at

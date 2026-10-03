@@ -24,24 +24,37 @@ PublisherVerificationService fixtureVerifier(
   ]),
 );
 
-Future<Course> signFixture(Course course) async {
+Future<Course> signFixture(Course course) async =>
+    signWithKey(course, await dummyKeyPair(), 'dummy-1');
+
+/// The Dummy publisher's key pair, read from its TEST ONLY private key.
+Future<SimpleKeyPair> dummyKeyPair() {
   final pem = File(
     'test/fixtures/publishers/dummy-private.pem',
   ).readAsLinesSync().where((line) => !line.startsWith('-----')).join();
   final der = base64Decode(pem);
-  final pair = await Ed25519().newKeyPairFromSeed(der.sublist(der.length - 32));
+  return Ed25519().newKeyPairFromSeed(der.sublist(der.length - 32));
+}
+
+/// [course] signed with [pair] under [keyId], as `tools/sign_course.dart`
+/// and OpenSSL would sign it.
+Future<Course> signWithKey(
+  Course course,
+  SimpleKeyPair pair,
+  String keyId,
+) async {
   final normalized = Course.fromJson({
     ...course.toJson(),
     'officialChecksum': CourseChecksums.official(course),
     'publisherVerificationStatus': 'unverified',
   });
   final signature = await Ed25519().sign(
-    PublisherVerificationService.signingBytes(normalized, 'dummy-1'),
+    PublisherVerificationService.signingBytes(normalized, keyId),
     keyPair: pair,
   );
   return Course.fromJson({
     ...normalized.toJson(),
     'publisherSignature':
-        '${PublisherVerificationService.protocol}:dummy-1:${base64Encode(signature.bytes)}',
+        '${PublisherVerificationService.protocol}:$keyId:${base64Encode(signature.bytes)}',
   });
 }

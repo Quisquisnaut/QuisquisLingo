@@ -1,5 +1,34 @@
 # Build 262 validation
 
+## Revision 1 (2.0.62+262001, 3 October 2026): the publisher QuisquisLingo Courses
+
+**Tests**
+- New `test/quisquislingo_courses_publisher_262_test.dart` (8 tests): the
+  registry entry (`com.quisquislingo`, QuisquisLingo Courses,
+  `qqlc-2026-1`, a key ID the signing payload accepts, not the bundled
+  publisher); `application()` holds it only with a key (Dummy still only in
+  test builds); while the key is pending a signed Course is refused by the
+  app's registry. With the TEST ONLY key: a signed Course verifies, imports
+  through `CustomCourseTransferService` and installs through
+  `installExternalOfficialUpdate`; altered (also with a recalculated
+  checksum), unsigned, other-key, other-key-ID, other-name and other-ID
+  Courses are refused.
+- `test/support/publisher_fixtures.dart`: `signWithKey`, `dummyKeyPair`;
+  `publisher_verification_test` (which uses `signFixture`) passes unchanged.
+- Version pins as in Revision 0.
+
+**Runs**
+- `flutter analyze`: No issues found.
+- Focused: the new test, `publisher_verification_test` and the version
+  pins, 45 passed.
+- Complete suite (34 minutes): 3598 passed, 1 skipped, 1 failed:
+  `publisher_signing_help_test` requires `docs/PUBLISHER_SIGNING_GUIDE.md`
+  to equal the English in-app Help word for word, and this revision had
+  added a note to the guide alone. The note was removed (the guide is again
+  as committed in Revision 0) and the test passes alone (5 tests); the note
+  goes into the Help and the guide together in Revision 2. No source or test
+  file changed after the complete suite.
+
 ## Revision 0 (2.0.62+262000, 3 October 2026): the Piedmontese Courses leave
 
 **Generators and validator**
