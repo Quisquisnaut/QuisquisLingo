@@ -131,7 +131,7 @@ through the mistake review (and the Review your mistakes message, which
 closes itself at zero); the Round finishes in time only when the last
 review answer comes before zero. Kept as it is, nothing added.
 
-## Revision 8 (2.0.61+261008, 3 October 2026)
+## Revision 8 (committed `2efeb61`, 2.0.61+261008, 3 October 2026)
 
 The learner path in Lesson colours (owner decisions of 3 October, refined
 over six renders sent to the owner): `LessonColorPalette` (eight non-green
