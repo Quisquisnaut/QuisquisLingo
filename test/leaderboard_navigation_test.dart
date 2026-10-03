@@ -3219,7 +3219,7 @@ void main() {
       'custom:${oldest.courseId}',
       'KO',
       'EN_EDGE',
-      'PMS',
+      'EN_IT',
       'IT',
     ]) {
       await settings.setLastSelectedCourseCode(ref);
@@ -3253,7 +3253,7 @@ void main() {
     expect(recentTiles, hasLength(3));
 
     final recentTitles = [
-      'QQL Demo: Piedmontese (sorted by exercise type)',
+      'QQL Demo: English from Italian',
       'Temporary Demo: Edge Case Course',
       'AI-Slop Demo: Korean for English Speakers',
     ];
@@ -3362,7 +3362,7 @@ void main() {
       addTearDown(tester.view.resetDevicePixelRatio);
       addTearDown(tester.view.resetPhysicalSize);
       final settings = SettingsService();
-      for (final ref in ['PMS', 'KO', 'IT']) {
+      for (final ref in ['EN_IT', 'KO', 'IT']) {
         await settings.setLastSelectedCourseCode(ref);
       }
       await _openHome(tester, scrollToActions: false);
@@ -3370,13 +3370,13 @@ void main() {
       final korean = (await tester.runAsync(
         () => CourseService().loadCourse('KO'),
       ))!;
-      final piedmontese = (await tester.runAsync(
-        () => CourseService().loadCourse('PMS'),
+      final english = (await tester.runAsync(
+        () => CourseService().loadCourse('EN_IT'),
       ))!;
       final favorites = CourseFavoriteService();
       await favorites.setFavorite(current.courseId, true);
       await favorites.setFavorite(korean.courseId, true);
-      await favorites.setFavorite(piedmontese.courseId, true);
+      await favorites.setFavorite(english.courseId, true);
 
       await tester.tap(find.byKey(const Key('unified-topbar-course-selector')));
       await _pumpUntilWithIo(
@@ -3390,7 +3390,7 @@ void main() {
       );
       expect(find.byKey(const Key('current-course')), findsOneWidget);
       expect(find.byKey(const Key('recent-course-KO')), findsOneWidget);
-      for (final ref in ['IT', 'KO', 'PMS']) {
+      for (final ref in ['IT', 'KO', 'EN_IT']) {
         await tester.scrollUntilVisible(
           find.byKey(ValueKey('favorite-course-$ref')),
           250,
@@ -3401,24 +3401,24 @@ void main() {
       expect(find.text('Favorites'), findsOneWidget);
 
       await tester.scrollUntilVisible(
-        find.byKey(const Key('course-selector-actions-favorite-PMS')),
+        find.byKey(const Key('course-selector-actions-favorite-EN_IT')),
         250,
         scrollable: selectorScroll,
       );
       await tester.tap(
-        find.byKey(const Key('course-selector-actions-favorite-PMS')),
+        find.byKey(const Key('course-selector-actions-favorite-EN_IT')),
       );
       await tester.pumpAndSettle();
       expect(find.text('Remove from Favorites'), findsOneWidget);
       await tester.tap(find.text('Hide in Learner'));
       await tester.pumpAndSettle();
       expect(
-        await CourseLearnerVisibilityService().isHidden(piedmontese.courseId),
+        await CourseLearnerVisibilityService().isHidden(english.courseId),
         isTrue,
       );
-      expect(await CourseLibraryService().contains(piedmontese), isTrue);
+      expect(await CourseLibraryService().contains(english), isTrue);
       expect(await settings.getLastSelectedCourseCode(), 'IT');
-      expect(find.byKey(const Key('favorite-course-PMS')), findsNothing);
+      expect(find.byKey(const Key('favorite-course-EN_IT')), findsNothing);
 
       await tester.scrollUntilVisible(
         find.byKey(const Key('course-selector-actions-current')),
@@ -3992,7 +3992,7 @@ Finder _sectionSelectorLabel(Course course, int lessonIndex) => find.descendant(
   ),
 );
 
-/// The Course Selector's World Flag rows (Piedmontese) show an indeterminate
+/// The Course Selector's World Flag rows (English from Italian) show an indeterminate
 /// progress indicator while their SVG loads, so pumpAndSettle never settles
 /// once such a row is built. Ten 100 ms frames cover the sheet and menu
 /// transitions.

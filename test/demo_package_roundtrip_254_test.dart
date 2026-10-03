@@ -23,13 +23,15 @@ const _authorId = '12345678-1234-4234-9234-123456789abc';
 const _receiverId = '22345678-1234-4234-9234-123456789abc';
 const _demos = {
   'Laboratory': 'assets/courses/exercise_laboratory_en_it.json',
-  'Piedmontese': 'assets/courses/piedmontais_en.json',
+  // Build 262 Revision 0: the Piedmontese demo left the bundle; English from
+  // Italian takes its place here.
+  'English from Italian': 'assets/courses/english_from_italian_it_en.json',
 };
 
-// Build 255 Revision 6: Piedmontese forbids derivative works, so the shipped
-// Course cannot be forked. Its content still takes the personal-fork route
-// through this test-only copy, which differs only in that permission.
-const _forbidsDerivatives = {'Piedmontese'};
+// English from Italian forbids derivative works, so the shipped Course
+// cannot be forked. Its content still takes the personal-fork route through
+// this test-only copy, which differs only in that permission.
+const _forbidsDerivatives = {'English from Italian'};
 
 Course _forkableTestCopy(Course shipped) {
   final allowed = Course.fromJson({
@@ -44,7 +46,7 @@ Course _forkableTestCopy(Course shipped) {
 
 const _allNewDemoAssets = [
   'assets/courses/exercise_laboratory_en_it.json',
-  'assets/courses/piedmontais_en.json',
+  'assets/courses/english_from_italian_it_en.json',
   // The Edge Case is a test fixture since Build 259 Revision 5; its bundled
   // identity stays reserved.
   'test/fixtures/v12/edge_case_it_en.json',
@@ -362,38 +364,12 @@ void main() {
     () async {
       for (final asset in _allNewDemoAssets) {
         final bundled = await _load(asset);
-        final collision = Course(
-          courseId: bundled.courseId,
-          learningLanguage: 'Italian',
-          interfaceLanguage: 'English',
-          sourceLanguage: 'English',
-          targetLanguage: 'Italian',
-          title: 'Custom identity collision probe',
-          ttsLanguage: 'it-IT',
-          originalCourseCreator: const CourseProvenanceIdentity.qqlUser(
-            profileId: _authorId,
-            displayName: 'Demo Package Author',
-          ),
-          originalCreatedAtUtc: _clock.toIso8601String(),
-          modifiedAtUtc: _clock.toIso8601String(),
-          lastVersionEditorProfileId: _authorId,
-          lastVersionEditorDisplayName: 'Demo Package Author',
-          maintainer: const CourseMaintainer(_authorId),
-          lessons: const [],
-        );
+        final collision = _collisionProbe(bundled.courseId);
         expect(
           Course.fromJson(collision.toJson()).originType,
           CourseOriginType.custom,
         );
-        final rejection = throwsA(
-          isA<FormatException>().having(
-            (error) => error.message,
-            'message',
-            contains(
-              'A custom course cannot replace an official course identity',
-            ),
-          ),
-        );
+        final rejection = _identityRejection;
         await expectLater(author.editor.saveUserCourse(collision), rejection);
         await expectLater(
           author.editor.installImportedCustomCourse(collision),
@@ -404,4 +380,52 @@ void main() {
       }
     },
   );
+
+  // Build 262 Revision 0: the Piedmontese demos left the bundle; their
+  // identities stay reserved, as the demos removed before them.
+  test('the removed Piedmontese identities stay reserved', () async {
+    for (final courseId in const [
+      'course_e5f5585a-7762-43a0-a6b2-62754e02d17b',
+      'course_69ff369e-bb4f-46a3-85f0-57ff9d51b453',
+    ]) {
+      final collision = _collisionProbe(courseId);
+      await expectLater(
+        author.editor.saveUserCourse(collision),
+        _identityRejection,
+      );
+      await expectLater(
+        author.editor.installImportedCustomCourse(collision),
+        _identityRejection,
+      );
+    }
+    expect(await author.editor.listUserCourses(), isEmpty);
+  });
 }
+
+final _identityRejection = throwsA(
+  isA<FormatException>().having(
+    (error) => error.message,
+    'message',
+    contains('A custom course cannot replace an official course identity'),
+  ),
+);
+
+Course _collisionProbe(String courseId) => Course(
+  courseId: courseId,
+  learningLanguage: 'Italian',
+  interfaceLanguage: 'English',
+  sourceLanguage: 'English',
+  targetLanguage: 'Italian',
+  title: 'Custom identity collision probe',
+  ttsLanguage: 'it-IT',
+  originalCourseCreator: const CourseProvenanceIdentity.qqlUser(
+    profileId: _authorId,
+    displayName: 'Demo Package Author',
+  ),
+  originalCreatedAtUtc: _clock.toIso8601String(),
+  modifiedAtUtc: _clock.toIso8601String(),
+  lastVersionEditorProfileId: _authorId,
+  lastVersionEditorDisplayName: 'Demo Package Author',
+  maintainer: const CourseMaintainer(_authorId),
+  lessons: const [],
+);

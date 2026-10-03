@@ -278,7 +278,7 @@ void main() {
     });
 
     test('a Bundled Course is read only and exportable', () async {
-      final bundled = await CourseService().loadCourse('PMS');
+      final bundled = await CourseService().loadCourse('EN_IT');
       expect(admin.actionsFor(bundled), const [
         CourseManagerAction.removeFromMyCourses,
         CourseManagerAction.courseInfo,
@@ -356,7 +356,7 @@ void main() {
     });
 
     test('official Courses hide what can never apply', () async {
-      final bundled = await CourseService().loadCourse('PMS');
+      final bundled = await CourseService().loadCourse('EN_IT');
       final shown = reasons(admin, bundled);
       expect(shown.keys, const [
         CourseManagerAction.removeFromMyCourses,

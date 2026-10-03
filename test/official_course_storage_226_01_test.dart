@@ -191,7 +191,7 @@ void main() {
     'official checksum covers derivative permission and rejects custom restore metadata',
     () async {
       SharedPreferences.setMockInitialValues({});
-      final source = await CourseService().loadBundledCourse('PMS');
+      final source = await CourseService().loadBundledCourse('EN_IT');
       final hash = CourseBackupService.officialContentChecksum(source);
       expect(
         CourseBackupService.officialContentChecksum(

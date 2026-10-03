@@ -33,7 +33,6 @@ void main() {
         // The Edge Case's three intentional warnings are checked by
         // edge_case_course_254_test since it left the bundle (Build 259
         // Revision 5).
-        'PMS|pms_e5f5585a_l08_r01_e01|OPPOSITE_TOO_EARLY',
       };
       final observedDemoWarnings = <String>[];
 
@@ -43,12 +42,7 @@ void main() {
           Map<String, dynamic>.from(jsonDecode(raw) as Map),
         );
         final result = CourseAuditService().auditCourse(course);
-        final isModelDemo = const {
-          'IT',
-          'PMS',
-          'PMS_MIX',
-          'EN_IT',
-        }.contains(entry.key);
+        final isModelDemo = const {'IT', 'EN_IT'}.contains(entry.key);
         final errors = result.count(AuditSeverity.error);
         final warnings = result.count(AuditSeverity.warning);
         final info = result.count(AuditSeverity.info);
@@ -133,8 +127,9 @@ void main() {
         }
       }
 
-      // QQL Demo: English from Italian joined in Build 260 Revision 2.
-      expect(CourseService.courseAssets, hasLength(4));
+      // QQL Demo: English from Italian joined in Build 260 Revision 2; the
+      // two Piedmontese demos left in Build 262 Revision 0.
+      expect(CourseService.courseAssets, hasLength(2));
       final auditReport = <String>[
         ...auditSummaries,
         'BUNDLED_AUDIT aggregate: $aggregateErrors errors, '
@@ -157,16 +152,16 @@ void main() {
     },
   );
 
-  test('the Piedmontese demo loads through the registry', () async {
+  test('the English from Italian demo loads through the registry', () async {
     SharedPreferences.setMockInitialValues({});
-    final course = await CourseService().loadCourse('PMS');
+    final course = await CourseService().loadCourse('EN_IT');
 
     expect(course.formatVersion, Course.currentFormatVersion);
-    expect(course.title, 'QQL Demo: Piedmontese (sorted by exercise type)');
-    expect(course.sourceLanguage, 'English');
-    expect(course.targetLanguage, 'Piedmontese');
-    expect(course.ttsLanguage, 'pms-IT');
-    expect(course.worldFlagId, 'piedmontese');
+    expect(course.title, 'QQL Demo: English from Italian');
+    expect(course.sourceLanguage, 'Italian');
+    expect(course.targetLanguage, 'English');
+    expect(course.ttsLanguage, 'en-GB');
+    expect(course.worldFlagId, 'united_kingdom');
   });
 
   testWidgets('Korean registry code renders the South Korean flag', (

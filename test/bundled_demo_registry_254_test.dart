@@ -54,10 +54,9 @@ void main() {
     );
     expect(CourseService.hasCourse('FI'), isFalse);
     expect(CourseService.hasCourse('NL'), isFalse);
-    expect(
-      CourseService.courseAssets['PMS'],
-      'assets/courses/piedmontais_en.json',
-    );
+    // Build 262 Revision 0 removed the two Piedmontese demos.
+    expect(CourseService.hasCourse('PMS'), isFalse);
+    expect(CourseService.hasCourse('PMS_MIX'), isFalse);
     // Build 259 Revision 5: the Edge Case left the bundle; it is imported
     // from demo_courses/.
     expect(CourseService.courseAssets.containsKey('EN_EDGE'), isFalse);
@@ -74,9 +73,9 @@ void main() {
       expect(CourseService.bundledCodeForCourse(italianToEnglish), 'EN_EDGE');
       expect(CourseService.codeForCourse(italianToEnglish), 'EN');
       expect(italianToEnglish.sourceLanguage, 'Italian');
-      final piedmontese = await service.loadBundledCourse('PMS');
-      expect(CourseService.codeForCourse(piedmontese), 'PMS');
-      expect(piedmontese.sourceLanguage, 'English');
+      final laboratory = await service.loadBundledCourse('IT');
+      expect(CourseService.codeForCourse(laboratory), 'IT');
+      expect(laboratory.sourceLanguage, 'English');
     },
   );
 
@@ -86,7 +85,7 @@ void main() {
     await SettingsService().setLastSelectedCourseCode('EN_EDGE');
     final service = CourseService();
     final edge = await service.loadBundledCourse('EN_EDGE');
-    final other = await service.loadBundledCourse('PMS');
+    final other = await service.loadBundledCourse('IT');
     final visibility = CourseLearnerVisibilityService();
     await expectLater(visibility.setHidden(edge, true), throwsStateError);
     await visibility.setHidden(other, true);

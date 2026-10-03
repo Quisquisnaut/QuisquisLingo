@@ -1,3 +1,24 @@
+# 2.0.62 (Build 262, Revision 0) - The Piedmontese Courses leave the app - 2026-10-03
+
+Owner decision of 2 October 2026 (`docs/PUBLISHER_COURSES_PLAN.md`, 4.1),
+the first of three parts the owner chose for Build 262 on 3 October.
+
+- **Two bundled Courses**: QQL Demo: Exercise Laboratory and QQL Demo:
+  English from Italian. QQL Demo: Piedmontese (sorted by exercise type) and
+  QQL Demo: Piedmontese are no longer in the app; their Course IDs stay
+  reserved, and progress already made on them stays on the device without a
+  Course, as for the demos removed before.
+- **Out of the public repository**: the two Course files, their generators,
+  tests, v11 fixture and coverage document went to the owner's private
+  folder, with the two Courses converted to custom Courses to import (new
+  Course IDs, every other ID kept). The git history is unchanged.
+- The English from Italian generator's Content builders moved unchanged to
+  `tools/qql_v11_builders.py`; the Course file is unchanged.
+- The credits card names the English from Italian and Edge Case courses.
+- Tests that used a Piedmontese Course as an example now use English from
+  Italian or the Exercise Laboratory; a new test checks that the removed
+  identities stay reserved.
+
 # 2.0.61 (Build 261, Revision 8) - The learner path in Lesson colours - 2026-10-03
 
 Owner decisions of 3 October 2026, refined over several rendered mockups.

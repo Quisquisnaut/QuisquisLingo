@@ -435,18 +435,18 @@ void main() {
         final courses = await tester.runAsync(
           () => Future.wait([
             CourseService().loadCourse('IT'),
-            CourseService().loadCourse('PMS'),
+            CourseService().loadCourse('EN_IT'),
           ]),
         );
         final italian = courses![0];
-        final piedmontese = courses[1];
+        final english = courses[1];
         final profiles = _BlockingFlagBackgroundProfileService();
         await profiles.setFlagBackgroundMode(
           italian.courseId,
           LearnerFlagBackgroundMode.extended,
         );
         await profiles.setFlagBackgroundMode(
-          piedmontese.courseId,
+          english.courseId,
           LearnerFlagBackgroundMode.off,
         );
         await _openHome(tester, profileService: profiles);
@@ -462,10 +462,10 @@ void main() {
           italian.courseId,
         );
 
-        profiles.blockNextFlagReadFor(piedmontese.courseId);
+        profiles.blockNextFlagReadFor(english.courseId);
         addTearDown(profiles.releaseFlagRead);
         await _openCoursePicker(tester);
-        await _tapBundledCourse(tester, 'PMS');
+        await _tapBundledCourse(tester, 'EN_IT');
 
         void expectCoherentFrame() {
           if (find.byType(UnifiedLearnerTopBar).evaluate().isEmpty) return;
@@ -473,7 +473,7 @@ void main() {
           final extendedBackdrop = find.byKey(
             const Key('unified-learner-flag-background'),
           );
-          if (activeCourseId == piedmontese.courseId) {
+          if (activeCourseId == english.courseId) {
             expect(
               extendedBackdrop,
               findsNothing,
@@ -514,9 +514,9 @@ void main() {
           );
           await tester.pump(const Duration(milliseconds: 10));
           expectCoherentFrame();
-          if (_activeCourseId(tester) == piedmontese.courseId) break;
+          if (_activeCourseId(tester) == english.courseId) break;
         }
-        expect(_activeCourseId(tester), piedmontese.courseId);
+        expect(_activeCourseId(tester), english.courseId);
         await _pumpUntil(tester, find.byTooltip('Flag background: Off'));
         expect(find.byTooltip('Flag background: Off'), findsOneWidget);
       },
@@ -529,18 +529,18 @@ void main() {
         await SettingsService().setAnimationsEnabled(false);
         final courses = await tester.runAsync(
           () => Future.wait([
-            CourseService().loadCourse('PMS'),
+            CourseService().loadCourse('EN_IT'),
             CourseService().loadCourse('KO'),
           ]),
         );
-        final piedmontese = courses![0];
+        final english = courses![0];
         final korean = courses[1];
         final profiles = _BlockingFlagBackgroundProfileService();
-        profiles.blockNextFlagReadFor(piedmontese.courseId);
+        profiles.blockNextFlagReadFor(english.courseId);
         addTearDown(profiles.releaseFlagRead);
         await _openHome(tester, profileService: profiles);
 
-        await _selectBundledCourse(tester, 'PMS');
+        await _selectBundledCourse(tester, 'EN_IT');
         for (
           var attempt = 0;
           attempt < 100 && !profiles.flagReadStarted;
@@ -741,7 +741,7 @@ Future<void> _selectBundledCourse(WidgetTester tester, String code) async {
 Future<void> _openCoursePicker(WidgetTester tester) async {
   await tester.tap(find.byKey(const Key('unified-topbar-course-selector')));
   await _pumpUntil(tester, find.text('Choose course'));
-  // The bundled Piedmontese row resolves its World Flag asynchronously and
+  // The bundled English from Italian row resolves its World Flag asynchronously and
   // legitimately shows an indeterminate progress indicator in the meantime.
   // Waiting for the whole tree to settle would therefore conflate that asset
   // load with the bottom-sheet transition under test.

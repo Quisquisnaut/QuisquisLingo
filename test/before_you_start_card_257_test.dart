@@ -222,7 +222,7 @@ void main() {
         final v11 =
             jsonDecode(
                   File(
-                    'test/fixtures/v11/piedmontais_en.json',
+                    'test/fixtures/v11/exercise_laboratory_en_it.json',
                   ).readAsStringSync(),
                 )
                 as Map<String, dynamic>;
@@ -248,7 +248,6 @@ void main() {
         'assets/courses/exercise_laboratory_en_it.json',
         // The Edge Case to import (Build 259 Revision 5).
         'demo_courses/edge_case_it_en.json',
-        'assets/courses/piedmontais_en.json',
       ]) {
         final course = Course.fromJson(
           jsonDecode(File(path).readAsStringSync()) as Map<String, dynamic>,

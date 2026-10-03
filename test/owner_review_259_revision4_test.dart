@@ -30,7 +30,6 @@ Course _load(String file) => Course.fromJson(
 );
 
 final _laboratory = _load('exercise_laboratory_en_it.json');
-final _piedmonteseCourse = _load('piedmontais_en.json');
 
 Iterable<LearningContent> _contents(Course course) => course.lessons
     .expand((lesson) => lesson.rounds)
@@ -137,8 +136,8 @@ Exercise _built(
   return result.candidate!;
 }
 
-String _line(Exercise exercise, {Course? course}) =>
-    ExerciseCopyService.instructionForExercise(course ?? _laboratory, exercise);
+String _line(Exercise exercise) =>
+    ExerciseCopyService.instructionForExercise(_laboratory, exercise);
 
 void _window(WidgetTester tester, Size size) {
   tester.view.physicalSize = size;
@@ -228,14 +227,6 @@ Future<void> _pumpRound(
 String _text(WidgetTester tester, String key) =>
     tester.widget<Text>(find.byKey(Key(key))).data!;
 
-/// The exercises of the Piedmontese Lesson for [presetId].
-List<Exercise> _piedmontese(String presetId) => [
-  for (final content in _contents(_piedmonteseCourse))
-    if (content.exercise case final exercise?
-        when exercise.editorTemplate == presetId)
-      exercise,
-];
-
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -300,41 +291,6 @@ void main() {
       );
       expect(_line(_lab('spell_heard_letters')), 'Spell the word you hear.');
       expect(_line(_lab('image_letters')), 'Spell what the picture shows.');
-      expect(
-        _line(_piedmontese('spell_word').first, course: _piedmonteseCourse),
-        'Spell the word the clue describes.',
-      );
-    });
-  });
-
-  group('4–7. Piedmontese hints', () {
-    test('Name what you see hints at the article', () {
-      final exercises = _piedmontese('picture_blocks');
-      expect(exercises, hasLength(3));
-      for (final exercise in exercises) {
-        expect(exercise.hint, 'Include the article.');
-      }
-    });
-
-    test('the evening story names its verbs', () {
-      final evening = _piedmontese('sentence_order').last;
-      expect(evening.hint, contains('mangio = I eat'));
-      expect(evening.hint, contains('leso = I read'));
-    });
-
-    test('Missing letters has a hint for every exercise', () {
-      expect(_piedmontese('missing_letters').map((exercise) => exercise.hint), [
-        'An animal that meows.',
-        'The opposite of small.',
-        'Something you drink.',
-      ]);
-    });
-
-    test('the shopping list hint names the two words', () {
-      expect(
-        _piedmontese('complete_text')[1].hint,
-        'Bread and water, in Piedmontese.',
-      );
     });
   });
 
@@ -456,15 +412,6 @@ void main() {
       };
       expect(labPresets, isNot(contains('gap_choice_inline')));
       expect(labPresets, containsAll(['gap_blocks', 'one_word_fills_all']));
-      expect(_piedmontese('gap_choice_inline'), isEmpty);
-      expect(_piedmontese('one_word_fills_all'), hasLength(3));
-      for (final exercise in _piedmontese('one_word_fills_all')) {
-        expect(
-          PresetRecipes.represents(exercise, 'one_word_fills_all'),
-          isTrue,
-          reason: exercise.id,
-        );
-      }
     });
   });
 

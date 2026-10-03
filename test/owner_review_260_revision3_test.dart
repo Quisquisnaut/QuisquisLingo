@@ -13,8 +13,9 @@ import 'package:quisquislingo_app/services/round_playability_service.dart';
 /// Build 260 Revision 3 (owner review of 1 October 2026): Pick the missing
 /// word and One word fills all take an Instruction or context, the
 /// Piedmontese demo's exercises are all represented by their presets (it
-/// showcases them), and the QQL Demo Courses keep a Before you start card on
-/// the first Round of each Lesson only.
+/// showcased them until it left the bundle in Build 262 Revision 0), and the
+/// QQL Demo Courses keep a Before you start card on the first Round of each
+/// Lesson only.
 
 final _stamp = DateTime.utc(2026, 10, 1);
 
@@ -25,8 +26,6 @@ Course _load(String file) => Course.fromJson(
 
 const _bundled = [
   'exercise_laboratory_en_it.json',
-  'piedmontais_en.json',
-  'piedmontese_mixed_en.json',
   'english_from_italian_it_en.json',
 ];
 
@@ -115,53 +114,9 @@ void main() {
     }
   });
 
-  group('the Piedmontese demo', () {
-    final course = _load('piedmontais_en.json');
-    Iterable<Exercise> byPreset(String preset) => [
-      for (final lesson in course.lessons)
-        for (final round in lesson.rounds)
-          for (final content in round.content)
-            if (content.editorTemplate == preset) content.exercise!,
-    ];
-
-    test('Pick the missing word keeps its instructions', () {
-      expect(
-        byPreset(
-          'gap_choice',
-        ).map((exercise) => ExerciseFeatures(exercise).authoredInstruction),
-        [
-          'Complete the phrase meaning the dog.',
-          'Complete the phrase meaning the house.',
-          'Complete the greeting meaning good morning.',
-        ],
-      );
-    });
-
-    test('Listen and answer (to source) marks its answers source', () {
-      for (final exercise in byPreset('listening_answer_source')) {
-        expect(
-          ExerciseFeatures(exercise).itemLanguage,
-          TextLanguage.source,
-          reason: exercise.id,
-        );
-      }
-    });
-
-    test('Spell the word in the picture stores the blocks in order', () {
-      for (final exercise in byPreset('image_word')) {
-        expect(exercise.canonicalEvaluation.correctOrders.single.itemIds, [
-          for (final item in exercise.items) item.id,
-        ], reason: exercise.id);
-      }
-    });
-  });
-
   test('the QQL Demo Courses open only each Lesson\'s first Round with a '
       'card', () {
-    for (final file in [
-      'piedmontese_mixed_en.json',
-      'english_from_italian_it_en.json',
-    ]) {
+    for (final file in ['english_from_italian_it_en.json']) {
       final course = _load(file);
       for (final lesson in course.lessons) {
         for (final (index, round) in lesson.rounds.indexed) {

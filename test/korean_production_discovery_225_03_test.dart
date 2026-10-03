@@ -78,7 +78,8 @@ void main() {
   });
 
   // Build 255 Revision 6 removed the Spanish-to-English bundle; the Edge
-  // Course and Piedmontese still switch and restart independently.
+  // Course and English from Italian, two English Courses, still switch and
+  // restart independently (Build 262 Revision 0 removed Piedmontese).
   testWidgets('two bundled Courses switch and restart independently', (
     tester,
   ) async {
@@ -92,17 +93,17 @@ void main() {
     await _openCoursePicker(tester);
     await _expectCourseTile(
       tester,
-      const ValueKey('bundled-course-PMS'),
-      'QQL Demo: Piedmontese (sorted by exercise type)',
+      const ValueKey('bundled-course-EN_IT'),
+      'QQL Demo: English from Italian',
       selected: false,
     );
-    await tester.tap(find.byKey(const ValueKey('bundled-course-PMS')));
+    await tester.tap(find.byKey(const ValueKey('bundled-course-EN_IT')));
     await _pumpIo(tester, frames: 30);
     expect(
       current().course.courseId,
-      'course_e5f5585a-7762-43a0-a6b2-62754e02d17b',
+      'course_65dce83b-fd0a-4b83-a5a1-8f8b97a58d05',
     );
-    expect(await settings.getLastSelectedCourseCode(), 'PMS');
+    expect(await settings.getLastSelectedCourseCode(), 'EN_IT');
     await tester.pump(
       CourseEntryAnimationPolicy.duration + const Duration(milliseconds: 50),
     );
@@ -279,7 +280,7 @@ void main() {
           for (final ref in [
             'custom:${otherCustom.courseId}',
             'EN_EDGE',
-            'PMS',
+            'EN_IT',
             selectCustom ? 'custom:${custom.courseId}' : 'IT',
           ]) {
             await settings.setLastSelectedCourseCode(ref);
@@ -294,7 +295,7 @@ void main() {
             selected: true,
           );
           for (final entry in {
-            'PMS': 'QQL Demo: Piedmontese (sorted by exercise type)',
+            'EN_IT': 'QQL Demo: English from Italian',
             'EN_EDGE': 'Temporary Demo: Edge Case Course',
             'custom:${otherCustom.courseId}': otherCustom.title,
           }.entries) {
@@ -317,8 +318,8 @@ void main() {
           }
           await _expectCourseTile(
             tester,
-            const ValueKey('recent-course-PMS'),
-            'QQL Demo: Piedmontese (sorted by exercise type)',
+            const ValueKey('recent-course-EN_IT'),
+            'QQL Demo: English from Italian',
             selected: false,
           );
           await _expectCourseTile(
@@ -432,9 +433,9 @@ Future<void> _pumpUntilWithIo(WidgetTester tester, Finder finder) async {
 }
 
 Future<void> _expectEveryBundledTile(WidgetTester tester) async {
-  // IT, PMS, PMS_MIX (Build 259 Revision 6), EN_IT (Build 260 Revision 2),
-  // KO and EN_EDGE fixtures.
-  expect(CourseService.bundledAssets, hasLength(6));
+  // IT, EN_IT (Build 260 Revision 2), KO and EN_EDGE fixtures; the two
+  // Piedmontese demos left in Build 262 Revision 0.
+  expect(CourseService.bundledAssets, hasLength(4));
   final settings = SettingsService();
   final selected = await settings.getLastSelectedCourseCode();
   final recent = (await settings.getRecentCourseRefs())

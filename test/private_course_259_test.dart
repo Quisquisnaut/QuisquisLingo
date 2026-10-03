@@ -105,7 +105,7 @@ void main() {
       isTrue,
     );
     expect(CoursePrivacy.isPrivate(_course('c', maintainer: _bob)), isFalse);
-    final bundled = await CourseService().loadCourse('PMS');
+    final bundled = await CourseService().loadCourse('EN_IT');
     expect(bundled.temporarySample, isFalse);
     final flagged = Course.fromJson({
       ...bundled.toJson(),

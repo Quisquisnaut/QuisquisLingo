@@ -472,39 +472,5 @@ void main() {
         );
       }
     });
-
-    test('the Piedmontese demo has one Lesson per listening preset', () {
-      final course = _load('piedmontais_en.json');
-      // Each Lesson's preset, past its Before you start card.
-      String presetOf(Lesson lesson) => lesson.rounds
-          .expand((round) => round.content)
-          .map((content) => content.exercise?.editorTemplate ?? '')
-          .firstWhere(
-            (id) => id.isNotEmpty && id != 'before_you_start',
-            orElse: () => '',
-          );
-      final listening = [
-        for (final lesson in course.lessons)
-          if (presetOf(lesson).startsWith('listening_')) presetOf(lesson),
-      ];
-      expect(listening.take(4), [
-        'listening_choose_target',
-        'listening_choose_source',
-        'listening_answer_target',
-        'listening_answer_source',
-      ]);
-      for (final content in _contents(course)) {
-        final exercise = content.exercise;
-        if (exercise == null ||
-            !exercise.editorTemplate.startsWith('listening_answer')) {
-          continue;
-        }
-        expect(
-          ExerciseFeatures(exercise).questionText,
-          isNotEmpty,
-          reason: content.id,
-        );
-      }
-    });
   });
 }
