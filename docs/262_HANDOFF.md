@@ -53,7 +53,7 @@ expands. Dialect answers also accept the form without apostrophes. The
 texts are AI-written; `LEGGIMI.txt` there lists the points a native
 speaker should check. Nothing in the repository changed for them.
 
-## Revision 1 (2.0.62+262001, 3 October 2026)
+## Revision 1 (2.0.62+262001, 3 October 2026; committed `b7e9ef6`)
 
 `TrustedPublishers.quisquisLingoCourses` (`com.quisquislingo`, QuisquisLingo
 Courses, `qqlc-2026-1`) with an empty public key; `application()` adds it
