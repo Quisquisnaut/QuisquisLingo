@@ -17,7 +17,7 @@ owner chose for Build 262:
 Not in Build 262: 4.4 in-app signing, 4.5 shipped Publisher ZIPs, the
 owner's tasks outside the code.
 
-## Revision 0 (2.0.62+262000, 3 October 2026)
+## Revision 0 (2.0.62+262000, 3 October 2026; committed `5ee20a5`)
 
 Done in the working tree: `CourseService` without `PMS`/`PMS_MIX` (IDs
 still reserved in `CourseEditorService`), files moved to the private folder
