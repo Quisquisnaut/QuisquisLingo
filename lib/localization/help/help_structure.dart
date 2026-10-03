@@ -130,6 +130,7 @@ const appInfoSectionIds = <String>[
   'streakAndFreezeRule',
   'daysStudied',
   'laurelCrowns',
+  'pathColours',
   'audioSettings',
   'betaExpiry',
   'status',

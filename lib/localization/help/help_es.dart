@@ -149,7 +149,7 @@ const Map<String, String> helpEs = {
       'En una Lesson, el selector de Section ofrece No section, los nombres existentes, Add new section… y Manage sections…. Las Lessons consecutivas con la misma Section forman un bloque en el recorrido del estudiante. Una Lesson nueva toma la Section de la Lesson anterior. No se puede quitar un nombre que todavía usa una Lesson. Las Sections no tienen progreso ni desbloqueos propios.',
   'editorHelp.qa.lessonIcon.q': '¿Cómo elijo el icono de una Lesson?',
   'editorHelp.qa.lessonIcon.a':
-      'En el editor de la Lesson elige un Preinstalled icon, un Custom Course icon o Numbers. Para Import custom icon, deja exactamente un PNG, JPG/JPEG o WebP de hasta 2 MB y 4096 píxeles en {folderLessonIconImports}; QQL lo centra en un cuadrado transparente de 256 × 256 y lo guarda en el Course. Sin icono, una Lesson muestra su número en un círculo del color del tema.',
+      'En el editor de la Lesson elige un Preinstalled icon, un Custom Course icon o Numbers. Para Import custom icon, deja exactamente un PNG, JPG/JPEG o WebP de hasta 2 MB y 4096 píxeles en {folderLessonIconImports}; QQL lo centra en un cuadrado transparente de 256 × 256 y lo guarda en el Course. Sin icono, una Lesson muestra su número en un círculo del color de la Lesson: QQL da a cada Lesson uno de ocho colores según su posición, y los círculos de sus Rounds en el camino del estudiante usan el mismo color.',
   'editorHelp.qa.whoMayEdit.q': '¿Quién puede editar un Course?',
   'editorHelp.qa.whoMayEdit.a':
       'Su Course Maintainer y todos los miembros del Team asignado. Solo el Maintainer puede ceder el mantenimiento o asignar o quitar el Team, y un Team siempre conserva al menos un Team Leader. Otras personas pueden hacer Fork del Course en Course Studio solo cuando su licencia permite obras derivadas.',
@@ -426,6 +426,12 @@ const Map<String, String> helpEs = {
   'appInfo.laurelCrowns.title': 'Coronas de laurel',
   'appInfo.laurelCrowns.body':
       'Un Round gana una corona cuando completas un intento entero sin errores, desde el curso o Review. La corona permanece aunque después cometas errores. Al ganarla suena la victoria si los efectos de sonido están activados.',
+  'appInfo.pathColours.title': 'Código de colores del camino',
+  'appInfo.pathColours.enlarge': 'Ampliar la imagen',
+  'appInfo.pathColours.body':
+      'Cada Lesson tiene su propio color, uno de ocho que vuelven a empezar después de la Lesson 8; la imagen los muestra en el tema claro y en el oscuro. El círculo con el número de la Lesson es de su color, como los círculos de sus Rounds y de su Duel.\n• Un círculo claro con borde del color: un Round aún no completado (Learn).\n• Un círculo lleno: un Round completado; Completed se escribe en otro tono del color.\n• Un círculo verde con laurel: un Round Perfect, completado sin errores.\nLearn es siempre azul y Perfect siempre verde, sea cual sea el color de la Lesson.',
+  'appInfo.pathColours.picture':
+      'Los ocho colores de las Lessons en el tema claro y en el oscuro: un Round no completado, un Round completado y la palabra Completed.',
   'appInfo.audioSettings.title': 'Audio Settings',
   'appInfo.audioSettings.body':
       'Settings > Audio Settings ofrece Enable Audio Exercises, Text-to-speech, selector de voz TTS y Test Voice. Las dos opciones empiezan en Off por estudiante; la voz empieza en System. Test Voice lee solo el texto que escribas, con la lengua del curso seleccionado. Con audio en Off se omiten ejercicios MP3, TTS y Hybrid antes de preparar su fuente. Con audio en On, Text-to-speech controla TTS sin desactivar grabaciones válidas. Preview de autoría no escribe progreso ni usa estos ajustes. Completar solo la parte no sonora de un Round no concede la corona plena.',

@@ -279,3 +279,19 @@
 - After the suite `dart format` reformatted six changed files (no code
   change); `flutter analyze` (no issues) and those files' tests plus the
   source-reading Audit registry test (101 passed) were rerun.
+
+## Revision 8 (2.0.61+261008, 3 October 2026): the learner path in Lesson colours
+
+- Focused tests during the work: `learner_round_path_test.dart` (the
+  palette, circle states, label and title styles, the 20% backgrounds,
+  the halo, the placement pattern, the mascot rule, and a check that the
+  line passes through every circle and never crosses a label, title or
+  status at 292, 347, 402, 560 and 900 pixels), `leaderboard_navigation_test`,
+  `lesson_fallback_number_icon_226_02_test`, `optional_learning_paths_226_04_test`,
+  `app_info_path_colours_261_test` (new), the App Info translation and
+  catalog tests, Course Info and enlarge tests.
+- Visual check: eleven renders of the real path, preview, Duel and App Info
+  with the Roboto font, sent to the owner; the render test was deleted.
+- `flutter analyze --no-pub`: no issues.
+- **Complete suite** (`--concurrency=1`, keep-awake, `TEMP`/`TMP` on
+  `D:\QQL_test_temp`, 32 min 9 s): **3612 passed, 1 skipped, 0 failed**.

@@ -142,7 +142,7 @@ const Map<String, String> helpEn = <String, String>{
       r'''In a Lesson, the Section selector offers No section, the existing names, Add new section… and Manage sections…. Consecutive Lessons with the same Section form one block on the learner's path. A new Lesson takes the Section of the Lesson before it. A name still used by a Lesson cannot be removed. Sections have no progress or unlocks of their own.''',
   'editorHelp.qa.lessonIcon.q': r'''How do I choose a Lesson icon?''',
   'editorHelp.qa.lessonIcon.a':
-      r'''In the Lesson editor choose a Preinstalled icon, a Custom Course icon, or Numbers. For Import custom icon, keep exactly one PNG, JPG/JPEG or WebP of up to 2 MB and 4096 pixels in {folderLessonIconImports}; QQL centres it on a transparent 256 × 256 square and stores it in the Course. Without an icon, a Lesson shows its number in a theme-colored circle.''',
+      r'''In the Lesson editor choose a Preinstalled icon, a Custom Course icon, or Numbers. For Import custom icon, keep exactly one PNG, JPG/JPEG or WebP of up to 2 MB and 4096 pixels in {folderLessonIconImports}; QQL centres it on a transparent 256 × 256 square and stores it in the Course. Without an icon, a Lesson shows its number in a circle of the Lesson's colour: QQL gives each Lesson one of eight colours by its position, and its Round circles on the learner path use the same colour.''',
   'editorHelp.qa.whoMayEdit.q': r'''Who may edit a Course?''',
   'editorHelp.qa.whoMayEdit.a':
       r'''Its Course Maintainer and every member of the Team assigned to it. Only the Maintainer can hand over maintenance or assign or remove the Team, and a Team always keeps at least one Team Leader. Other people can Fork the Course in Course Studio only when its license allows derivative works.''',
@@ -423,6 +423,16 @@ const Map<String, String> helpEn = <String, String>{
   'appInfo.streakAndFreezeRule.title': r'''Streak and the freeze rule''',
   'appInfo.daysStudied.title': r'''Days studied''',
   'appInfo.laurelCrowns.title': r'''Laurel crowns''',
+  'appInfo.pathColours.title': r'''Colour code of the path''',
+  'appInfo.pathColours.enlarge': r'''Enlarge the picture''',
+  'appInfo.pathColours.body':
+      r'''Each Lesson has its own colour, one of eight that start again after Lesson 8; the picture shows them in the light and the dark theme. The Lesson's number circle is drawn in its colour, and so are the circles of its Rounds and of its Duel.
+• A pale circle ringed with the colour: a Round not completed yet (Learn).
+• A solid circle: a completed Round; Completed is written in another shade of the colour.
+• A green circle with a laurel: a Perfect Round, completed without errors.
+Learn is always blue and Perfect always green, whatever the Lesson's colour.''',
+  'appInfo.pathColours.picture':
+      r'''The eight Lesson colours in the light and the dark theme: a Round not completed, a completed Round and the word Completed.''',
   'appInfo.audioSettings.title': r'''Audio Settings''',
   'appInfo.betaExpiry.title': r'''Beta expiry''',
   'appInfo.status.title': r'''Status''',
@@ -622,7 +632,7 @@ Remove from my courses, in the Selector or Course Studio, removes the course onl
       r'''Each Lesson contains a guidebook with optional publicationState and guidebook.content[] structured Content such as explanation, vocabulary and example entries. An omitted Guidebook publicationState means published; an explicit draft state keeps the Guidebook out of learner delivery. Its displayed Internal ID is derived from the immutable Lesson ID with the suffix _guidebook; no additional ID field is persisted. Guidebook Content retains its own stable IDs. The optional course useGuidebook switch changes learner access and the empty-Guidebook Warning, never the stored content.''',
   'technical.jsonStructure.lessonAndRound.title': r'''Lesson and Round''',
   'technical.jsonStructure.lessonAndRound.body':
-      r'''Course, Lesson, Guidebook, Round and authored Exercise content carry draft/published state. Guidebook defaults to published when its optional state is absent. Lesson, Round and Exercise also require UTC updatedAt timestamps. A Course stores Lesson label and numbering, Round label and numbering, a legacy-compatible fallback-icon value and optional managed custom Lesson-icon assets. Both accepted legacy fallback values now render the same theme-colored number circle. A Lesson contains lessonId, a required title, optional Section and themeIconAsset metadata, guidebook, rounds[] and its Duel identity. Guidebook may contain ordered Insights sections with Title and Text. Round title is optional; without one, the Round type still names it without changing identity.''',
+      r'''Course, Lesson, Guidebook, Round and authored Exercise content carry draft/published state. Guidebook defaults to published when its optional state is absent. Lesson, Round and Exercise also require UTC updatedAt timestamps. A Course stores Lesson label and numbering, Round label and numbering, a legacy-compatible fallback-icon value and optional managed custom Lesson-icon assets. Both accepted legacy fallback values now render the same number circle in the Lesson's colour, chosen by its position; nothing about the colour is stored. A Lesson contains lessonId, a required title, optional Section and themeIconAsset metadata, guidebook, rounds[] and its Duel identity. Guidebook may contain ordered Insights sections with Title and Text. Round title is optional; without one, the Round type still names it without changing identity.''',
   'technical.jsonStructure.exerciseContent.title': r'''Exercise Content''',
   'technical.jsonStructure.exerciseContent.body':
       r'''Exercise Content stores editorTemplate plus exercise.prompt[], exercise.interaction and exercise.evaluation. Correctness uses stable Item IDs rather than display indexes. Build the translation stores one or more literal correctOrders with answer text and ordered Item IDs; legacy correctOrder is rejected.''',

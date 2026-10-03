@@ -5,6 +5,8 @@ import 'available_courses_screen.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
+import 'dart:ui' as ui show Gradient;
+import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import '../controllers/learner_status_controller.dart';
@@ -17,6 +19,7 @@ import '../services/course_service.dart';
 import '../services/course_study.dart';
 import '../services/course_editor_service.dart';
 import '../services/publication_service.dart';
+import '../services/lesson_color_palette.dart';
 import '../services/lesson_presentation_service.dart';
 import '../services/round_type_presentation.dart';
 import '../services/duel_eligibility_service.dart';
@@ -63,10 +66,87 @@ const _learnerLightPageBackground = Color(0xFFF7F3E8);
 const _learnerDarkPageBackground = Color(0xFF080B09);
 const _welcomeDialogBackground = Color(0xFFFFE600);
 const _welcomeDialogForeground = Color(0xFF0756DF);
-const learnerPathSurfaceOpacity = .75;
-const learnerGuidebookSurfaceOpacity = .70;
-const learnerDuelSurfaceOpacity = .70;
 const learnerGuidebookWidthFactor = .78;
+
+/// The Lesson and Round rows keep a faint background, 20% opaque and without
+/// a border, that partly covers the path line passing under them (Build 261
+/// Revision 8, owner decision).
+const learnerPathSurfaceOpacity = .20;
+
+/// The Lesson row's padding and number circle (or theme picture) slot.
+const learnerLessonRowPadding = 12.0;
+const learnerLessonIconSize = 84.0;
+
+/// The Round row's padding, icon slot and icon circle: the path line runs
+/// through the circle's centre (Build 261 Revision 8).
+const learnerRoundRowPadding = 10.0;
+const learnerRoundIconSlotWidth = 60.0;
+const learnerRoundIconSize = 52.0;
+const learnerRoundIconCenterX =
+    learnerRoundRowPadding + learnerRoundIconSlotWidth / 2;
+
+/// The band above the first Round where the line turns from the Lesson
+/// circle to the first Round circle, and below the last Round where it turns
+/// to the Duel.
+const learnerRoundPathLead = 24.0;
+
+/// On a wide window the Round path keeps at most this width, centred.
+const learnerRoundPathMaxWidth = 560.0;
+
+/// Where the Lesson number circle's centre sits across a Lesson of [width]:
+/// the Lesson row is centred, [learnerGuidebookWidthFactor] of at most 400.
+double learnerLessonCircleCenterX(double width) {
+  final rowWidth = min(width, 400.0) * learnerGuidebookWidthFactor;
+  return (width - rowWidth) / 2 +
+      learnerLessonRowPadding +
+      learnerLessonIconSize / 2;
+}
+
+/// The path's texts and line, drawn without cards since Build 261 Revision 8,
+/// get a soft halo in the page colour when a flag picture is behind them
+/// (Flag Background Small or Extended).
+class LearnerPathHalo extends InheritedWidget {
+  const LearnerPathHalo({
+    super.key,
+    required this.enabled,
+    required super.child,
+  });
+
+  final bool enabled;
+
+  static bool of(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<LearnerPathHalo>()?.enabled ??
+      false;
+
+  @override
+  bool updateShouldNotify(LearnerPathHalo oldWidget) =>
+      oldWidget.enabled != enabled;
+}
+
+Color _learnerPageBackgroundOf(BuildContext context) =>
+    Theme.of(context).brightness == Brightness.dark
+    ? _learnerDarkPageBackground
+    : _learnerLightPageBackground;
+
+/// Text shadows forming the halo, or null when no flag picture is behind.
+List<Shadow>? learnerPathTextHalo(BuildContext context) {
+  if (!LearnerPathHalo.of(context)) return null;
+  final color = _learnerPageBackgroundOf(context);
+  // Stacked shadows: a close, dense glow that keeps even the small grey and
+  // blue lines readable on a saturated flag.
+  return [
+    for (final blur in const [1.0, 1.5, 2.0, 2.5, 3.0, 4.0, 6.0])
+      Shadow(color: color, blurRadius: blur),
+  ];
+}
+
+/// The path's small grey label line ("Lesson 2", "Round 1 · Practice").
+TextStyle learnerPathLabelStyle(BuildContext context) => TextStyle(
+  fontSize: 12,
+  height: 1.3,
+  color: Theme.of(context).colorScheme.onSurfaceVariant,
+  shadows: learnerPathTextHalo(context),
+);
 const learnerRoundCardMaxWidth = 244.0;
 const learnerMascotSurfaceOpacity = .10;
 const learnerPathConnectorOpacity = .55;
@@ -2506,140 +2586,147 @@ class _HomeScreenState extends State<HomeScreen> {
                           ],
                         ),
                         Expanded(
-                          child: RefreshIndicator(
-                            onRefresh: _reload,
-                            child: NotificationListener<ScrollNotification>(
-                              onNotification: (_) {
-                                _schedulePrimaryLessonSync(course);
-                                return false;
-                              },
-                              child: ListView.builder(
-                                key: const Key('unified-learner-scroll'),
-                                controller: _learnerScrollController,
-                                physics: const AlwaysScrollableScrollPhysics(),
-                                padding: const EdgeInsets.fromLTRB(
-                                  14,
-                                  8,
-                                  14,
-                                  _learnerScrollBottomInset,
-                                ),
-                                itemCount: course.lessons.isEmpty
-                                    ? 1
-                                    : course.lessons.length,
-                                itemBuilder: (context, flowIndex) {
-                                  if (course.lessons.isEmpty) {
-                                    return const _EmptyCourseCard();
-                                  }
-                                  final lessonIndex = flowIndex;
-                                  final sectionLesson =
-                                      course.lessons[lessonIndex];
-                                  final showSectionHeader =
-                                      learnerShowsSectionHeader(
-                                        course.lessons,
-                                        lessonIndex,
-                                      );
-                                  final unlocked = _isLessonUnlocked(
-                                    course,
-                                    lessonIndex,
-                                  );
-                                  final previewOnly =
-                                      !unlocked &&
-                                      !_iddqdMode.bypassesLocks &&
-                                      _sessionPreviewedLockedLessons.contains((
-                                        courseId: course.courseId,
-                                        lessonId: sectionLesson.lessonId,
-                                      ));
-                                  final hasAccess =
-                                      unlocked ||
-                                      _iddqdMode.bypassesLocks ||
-                                      previewOnly;
-                                  final lessonExpanded =
-                                      LessonExpansionPolicy.isExpanded(
-                                        mode: _lessonExpansionMode,
-                                        hasAccess: hasAccess,
-                                        isCompleted: _completedLessons.contains(
-                                          sectionLesson.lessonId,
-                                        ),
-                                        isCurrent:
-                                            lessonIndex == _activeLessonIndex,
-                                      );
-                                  return _LessonSection(
-                                    key: ValueKey(
-                                      'unified-lesson-section-${sectionLesson.lessonId}',
-                                    ),
-                                    visibilityKey: _lessonSectionKey(
-                                      course,
-                                      sectionLesson,
-                                    ),
-                                    lesson: sectionLesson,
-                                    course: course,
-                                    courseId: course.courseId,
-                                    lessonIndex: lessonIndex,
-                                    mascotPositionOffset:
-                                        learnerMascotPositionOffsetForLesson(
-                                          course.lessons,
-                                          lessonIndex,
-                                        ),
-                                    roundPositionOffset:
-                                        learnerRoundPositionOffsetForLesson(
-                                          course.lessons,
-                                          lessonIndex,
-                                        ),
-                                    showBoundary: lessonIndex > 0,
-                                    showSectionHeader: showSectionHeader,
-                                    unlocked: unlocked,
-                                    hasAccess: hasAccess,
-                                    isExpanded: lessonExpanded,
-                                    iddqdAccessMode:
-                                        !unlocked && _iddqdMode.bypassesLocks
-                                        ? _iddqdMode
-                                        : null,
-                                    previewOnly: previewOnly,
-                                    completedRounds: _completedRounds,
-                                    perfectRounds: _perfectRounds,
-                                    ttsSkippedPerfectRounds:
-                                        _ttsSkippedPerfectRounds,
-                                    roundAudioAvailability:
-                                        _roundAudioAvailability,
-                                    duelEligibility:
-                                        _duelEligibilityByLessonId[sectionLesson
-                                            .lessonId] ??
-                                        const DuelEligibilityResult(
-                                          candidates: [],
-                                          requiredCount: DuelEligibilityService
-                                              .requiredQuestionCount,
-                                          structuralEligibleCount: 0,
-                                        ),
-                                    onOpenGuidebook: () => _openGuidebook(
-                                      course,
-                                      sectionLesson,
-                                      lessonIndex,
-                                    ),
-                                    onOpenRound: (round) => _openRound(
-                                      course,
-                                      sectionLesson,
-                                      round,
-                                    ),
-                                    onOpenDuel: () =>
-                                        _openDuel(course, sectionLesson),
-                                    onExpand:
-                                        _lessonExpansionMode ==
-                                                LearnerLessonExpansionMode
-                                                    .focused &&
-                                            !lessonExpanded &&
-                                            hasAccess
-                                        ? () =>
-                                              _selectLesson(course, lessonIndex)
-                                        : null,
-                                    onLockedTap:
-                                        unlocked || _iddqdMode.bypassesLocks
-                                        ? null
-                                        : () => _recordLockedLessonTap(
-                                            course.courseId,
-                                            sectionLesson.lessonId,
-                                          ),
-                                  );
+                          child: LearnerPathHalo(
+                            enabled: showsFlagArtwork,
+                            child: RefreshIndicator(
+                              onRefresh: _reload,
+                              child: NotificationListener<ScrollNotification>(
+                                onNotification: (_) {
+                                  _schedulePrimaryLessonSync(course);
+                                  return false;
                                 },
+                                child: ListView.builder(
+                                  key: const Key('unified-learner-scroll'),
+                                  controller: _learnerScrollController,
+                                  physics:
+                                      const AlwaysScrollableScrollPhysics(),
+                                  padding: const EdgeInsets.fromLTRB(
+                                    14,
+                                    8,
+                                    14,
+                                    _learnerScrollBottomInset,
+                                  ),
+                                  itemCount: course.lessons.isEmpty
+                                      ? 1
+                                      : course.lessons.length,
+                                  itemBuilder: (context, flowIndex) {
+                                    if (course.lessons.isEmpty) {
+                                      return const _EmptyCourseCard();
+                                    }
+                                    final lessonIndex = flowIndex;
+                                    final sectionLesson =
+                                        course.lessons[lessonIndex];
+                                    final showSectionHeader =
+                                        learnerShowsSectionHeader(
+                                          course.lessons,
+                                          lessonIndex,
+                                        );
+                                    final unlocked = _isLessonUnlocked(
+                                      course,
+                                      lessonIndex,
+                                    );
+                                    final previewOnly =
+                                        !unlocked &&
+                                        !_iddqdMode.bypassesLocks &&
+                                        _sessionPreviewedLockedLessons
+                                            .contains((
+                                              courseId: course.courseId,
+                                              lessonId: sectionLesson.lessonId,
+                                            ));
+                                    final hasAccess =
+                                        unlocked ||
+                                        _iddqdMode.bypassesLocks ||
+                                        previewOnly;
+                                    final lessonExpanded =
+                                        LessonExpansionPolicy.isExpanded(
+                                          mode: _lessonExpansionMode,
+                                          hasAccess: hasAccess,
+                                          isCompleted: _completedLessons
+                                              .contains(sectionLesson.lessonId),
+                                          isCurrent:
+                                              lessonIndex == _activeLessonIndex,
+                                        );
+                                    return _LessonSection(
+                                      key: ValueKey(
+                                        'unified-lesson-section-${sectionLesson.lessonId}',
+                                      ),
+                                      visibilityKey: _lessonSectionKey(
+                                        course,
+                                        sectionLesson,
+                                      ),
+                                      lesson: sectionLesson,
+                                      course: course,
+                                      courseId: course.courseId,
+                                      lessonIndex: lessonIndex,
+                                      mascotPositionOffset:
+                                          learnerMascotPositionOffsetForLesson(
+                                            course.lessons,
+                                            lessonIndex,
+                                          ),
+                                      roundPositionOffset:
+                                          learnerRoundPositionOffsetForLesson(
+                                            course.lessons,
+                                            lessonIndex,
+                                          ),
+                                      showBoundary: lessonIndex > 0,
+                                      showSectionHeader: showSectionHeader,
+                                      unlocked: unlocked,
+                                      hasAccess: hasAccess,
+                                      isExpanded: lessonExpanded,
+                                      iddqdAccessMode:
+                                          !unlocked && _iddqdMode.bypassesLocks
+                                          ? _iddqdMode
+                                          : null,
+                                      previewOnly: previewOnly,
+                                      completedRounds: _completedRounds,
+                                      perfectRounds: _perfectRounds,
+                                      ttsSkippedPerfectRounds:
+                                          _ttsSkippedPerfectRounds,
+                                      roundAudioAvailability:
+                                          _roundAudioAvailability,
+                                      duelEligibility:
+                                          _duelEligibilityByLessonId[sectionLesson
+                                              .lessonId] ??
+                                          const DuelEligibilityResult(
+                                            candidates: [],
+                                            requiredCount:
+                                                DuelEligibilityService
+                                                    .requiredQuestionCount,
+                                            structuralEligibleCount: 0,
+                                          ),
+                                      onOpenGuidebook: () => _openGuidebook(
+                                        course,
+                                        sectionLesson,
+                                        lessonIndex,
+                                      ),
+                                      onOpenRound: (round) => _openRound(
+                                        course,
+                                        sectionLesson,
+                                        round,
+                                      ),
+                                      onOpenDuel: () =>
+                                          _openDuel(course, sectionLesson),
+                                      onExpand:
+                                          _lessonExpansionMode ==
+                                                  LearnerLessonExpansionMode
+                                                      .focused &&
+                                              !lessonExpanded &&
+                                              hasAccess
+                                          ? () => _selectLesson(
+                                              course,
+                                              lessonIndex,
+                                            )
+                                          : null,
+                                      onLockedTap:
+                                          unlocked || _iddqdMode.bypassesLocks
+                                          ? null
+                                          : () => _recordLockedLessonTap(
+                                              course.courseId,
+                                              sectionLesson.lessonId,
+                                            ),
+                                    );
+                                  },
+                                ),
                               ),
                             ),
                           ),
@@ -2992,9 +3079,15 @@ class _LessonSection extends StatelessWidget {
           ),
         )
       else if (isExpanded) ...[
-        const _VerticalConnector(),
+        // The line leaves the Lesson circle itself, unless the IDDQD pill
+        // stands between them (Build 261 Revision 8).
+        if (iddqdAccessMode != null) const _VerticalConnector(),
         LearnerRoundPath(
           courseId: courseId,
+          lessonIndex: lessonIndex,
+          startsAtLessonCircle: iddqdAccessMode == null,
+          leadsToDuel:
+              course.createDuels && duelEligibility.isStructurallyAvailable,
           roundNumberingMode: course.roundNumberingMode,
           customRoundLabel: course.customRoundLabel,
           rounds: lesson.rounds,
@@ -3011,6 +3104,7 @@ class _LessonSection extends StatelessWidget {
           const _VerticalConnector(),
           _DuelCard(
             key: ValueKey('unified-duel-${lesson.lessonId}'),
+            lessonIndex: lessonIndex,
             eligibility: duelEligibility,
             isFinalLesson: lessonIndex == course.lessons.length - 1,
             onTap: previewOnly ? null : onOpenDuel,
@@ -3127,34 +3221,32 @@ class _GuidebookNode extends StatelessWidget {
         }
       }
     }
+    // Since Build 261 Revision 8 (owner decisions) a faint borderless
+    // background instead of the card: the number circle carries the Lesson's
+    // colour, the texts are lighter, and the row is still one tap target.
+    final halo = learnerPathTextHalo(context);
     return Align(
       alignment: Alignment.center,
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 400),
         child: FractionallySizedBox(
           widthFactor: learnerGuidebookWidthFactor,
-          child: Card(
+          child: Material(
             key: const Key('unified-guidebook-node'),
-            margin: EdgeInsets.zero,
             color:
                 (isDark
                         ? colorScheme.surfaceContainerHigh
                         : const Color(0xFFFFF7C9))
-                    .withValues(alpha: learnerGuidebookSurfaceOpacity),
+                    .withValues(alpha: learnerPathSurfaceOpacity),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(18),
-              side: BorderSide(
-                color: isDark
-                    ? colorScheme.outlineVariant
-                    : const Color(0xFFF1C232),
-              ),
             ),
             child: InkWell(
               borderRadius: BorderRadius.circular(18),
               excludeFromSemantics: !course.useGuidebook,
               onTap: onExpandLesson ?? (course.useGuidebook ? onTap : null),
               child: Padding(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(learnerLessonRowPadding),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
@@ -3162,8 +3254,8 @@ class _GuidebookNode extends StatelessWidget {
                       children: [
                         SizedBox(
                           key: const Key('guidebook-lesson-icon-slot'),
-                          width: 84,
-                          height: 84,
+                          width: learnerLessonIconSize,
+                          height: learnerLessonIconSize,
                           child: Stack(
                             clipBehavior: Clip.none,
                             children: [
@@ -3243,39 +3335,40 @@ class _GuidebookNode extends StatelessWidget {
                               ),
                               message: identity.fullText,
                               excludeFromSemantics: true,
-                              child: Text.rich(
-                                TextSpan(
-                                  children: identity.deduplicated
-                                      ? [
-                                          TextSpan(
-                                            text: identity.fullText,
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.w900,
-                                            ),
-                                          ),
-                                        ]
-                                      : [
-                                          if (identity.prefix != null)
-                                            TextSpan(
-                                              text: '${identity.prefix}: ',
-                                              style: const TextStyle(
-                                                fontWeight: FontWeight.normal,
-                                              ),
-                                            ),
-                                          TextSpan(
-                                            text: identity.title,
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.w900,
-                                            ),
-                                          ),
-                                        ],
+                              // A small label line above a lighter title
+                              // (Build 261 Revision 8, owner decision).
+                              child: MergeSemantics(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    if (identity.prefix != null)
+                                      Text(
+                                        identity.prefix!,
+                                        key: ValueKey(
+                                          'unified-guidebook-lesson-label-${lesson.lessonId}',
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: learnerPathLabelStyle(context),
+                                      ),
+                                    Text(
+                                      identity.title,
+                                      key: ValueKey(
+                                        'unified-guidebook-lesson-title-${lesson.lessonId}',
+                                      ),
+                                      maxLines: 3,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        fontSize: 17,
+                                        height: 1.25,
+                                        fontWeight: FontWeight.w500,
+                                        color: colorScheme.onSurface,
+                                        shadows: halo,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                key: ValueKey(
-                                  'unified-guidebook-lesson-title-${lesson.lessonId}',
-                                ),
-                                maxLines: 3,
-                                overflow: TextOverflow.ellipsis,
-                                style: Theme.of(context).textTheme.titleMedium,
                               ),
                             ),
                           ),
@@ -3321,6 +3414,15 @@ class _VerticalConnector extends StatelessWidget {
         borderRadius: BorderRadius.circular(
           learnerPathConnectorStrokeWidth / 2,
         ),
+        boxShadow: LearnerPathHalo.of(context)
+            ? [
+                BoxShadow(
+                  color: _learnerPageBackgroundOf(context),
+                  blurRadius: 2,
+                  spreadRadius: 1,
+                ),
+              ]
+            : null,
       ),
     ),
   );
@@ -3328,44 +3430,79 @@ class _VerticalConnector extends StatelessWidget {
 
 enum LearnerRoundPathSide { left, right }
 
-LearnerRoundPathSide learnerRoundPathSide(int index) {
-  const pattern = <LearnerRoundPathSide>[
-    LearnerRoundPathSide.right,
-    LearnerRoundPathSide.left,
-    LearnerRoundPathSide.right,
-    LearnerRoundPathSide.left,
-    LearnerRoundPathSide.left,
-    LearnerRoundPathSide.right,
-    LearnerRoundPathSide.left,
-    LearnerRoundPathSide.right,
-    LearnerRoundPathSide.right,
-    LearnerRoundPathSide.left,
-    LearnerRoundPathSide.left,
-    LearnerRoundPathSide.right,
-  ];
-  return pattern[index % pattern.length];
+/// Where a Round's circle stands and on which side of it its texts run
+/// (Build 261 Revision 8, owner decisions): at the left edge, the centre or
+/// the right edge, the texts toward the middle; a centred circle has its
+/// texts on the right or on the left.
+enum LearnerRoundPlacement { left, centerTextRight, centerTextLeft, right }
+
+/// The circles wander between the centre and the edges, sometimes staying
+/// twice on a side or at the centre; they never jump from one edge straight
+/// to the other, where a curve across the whole width would cross a text
+/// (owner request: more variety).
+LearnerRoundPlacement learnerRoundPlacement(int index) => const [
+  LearnerRoundPlacement.centerTextRight,
+  LearnerRoundPlacement.left,
+  LearnerRoundPlacement.left,
+  LearnerRoundPlacement.centerTextRight,
+  LearnerRoundPlacement.right,
+  LearnerRoundPlacement.centerTextLeft,
+  LearnerRoundPlacement.left,
+  LearnerRoundPlacement.centerTextRight,
+  LearnerRoundPlacement.centerTextLeft,
+  LearnerRoundPlacement.right,
+  LearnerRoundPlacement.right,
+  LearnerRoundPlacement.centerTextLeft,
+  LearnerRoundPlacement.left,
+  LearnerRoundPlacement.centerTextRight,
+  LearnerRoundPlacement.right,
+  LearnerRoundPlacement.centerTextLeft,
+][index % 16];
+
+/// The half of the path a Round's texts take; its mascot stands on the
+/// other one.
+LearnerRoundPathSide learnerRoundPathSide(int index) =>
+    switch (learnerRoundPlacement(index)) {
+      LearnerRoundPlacement.left ||
+      LearnerRoundPlacement.centerTextLeft => LearnerRoundPathSide.left,
+      LearnerRoundPlacement.centerTextRight ||
+      LearnerRoundPlacement.right => LearnerRoundPathSide.right,
+    };
+
+/// Which Rounds of a Lesson have a mascot, in the free half opposite their
+/// texts (Build 261 Revision 8, owner requests): seven slots in ten across
+/// the Course (four before: without cards the sides looked empty), but never
+/// two Rounds in a row with a mascot on the same side.
+List<bool> learnerRoundPathMascotRows(
+  int roundCount, {
+  int roundPositionOffset = 0,
+}) {
+  const slots = <int>{0, 1, 3, 4, 5, 7, 8};
+  final rows = <bool>[];
+  for (var index = 0; index < roundCount; index++) {
+    final slot = slots.contains((roundPositionOffset + index) % 10);
+    final besideAnother =
+        index > 0 &&
+        rows[index - 1] &&
+        learnerRoundPathSide(index) == learnerRoundPathSide(index - 1);
+    rows.add(slot && !besideAnother);
+  }
+  return rows;
 }
 
-bool learnerRoundPathShowsMascot(int index, {int roundPositionOffset = 0}) {
-  const positions = <int>{0, 3, 5, 8};
-  return positions.contains((roundPositionOffset + index) % 10);
-}
+bool learnerRoundPathShowsMascot(int index, {int roundPositionOffset = 0}) =>
+    learnerRoundPathMascotRows(
+      index + 1,
+      roundPositionOffset: roundPositionOffset,
+    )[index];
 
 int learnerRoundPathMascotSlotCount(
   int roundCount, {
   int roundPositionOffset = 0,
-}) {
-  var count = 0;
-  for (var index = 0; index < roundCount; index++) {
-    if (learnerRoundPathShowsMascot(
-      index,
-      roundPositionOffset: roundPositionOffset,
-    )) {
-      count++;
-    }
-  }
-  return count;
-}
+}) => learnerRoundPathMascotRows(
+  roundCount,
+  roundPositionOffset: roundPositionOffset,
+).where((shown) => shown).length;
 
 int learnerRoundPositionOffsetForLesson(
   List<Lesson> lessons,
@@ -3374,12 +3511,22 @@ int learnerRoundPositionOffsetForLesson(
     .take(lessonIndex)
     .fold(0, (total, lesson) => total + lesson.rounds.length);
 
+/// How many mascots the earlier Lessons show, so the mascot order runs on
+/// across the Course. Each Lesson counts its own, since whether a Round has
+/// one depends on its neighbour in the same Lesson.
 int learnerMascotPositionOffsetForLesson(
   List<Lesson> lessons,
   int lessonIndex,
-) => learnerRoundPathMascotSlotCount(
-  learnerRoundPositionOffsetForLesson(lessons, lessonIndex),
-);
+) {
+  var count = 0;
+  for (var index = 0; index < lessonIndex; index++) {
+    count += learnerRoundPathMascotSlotCount(
+      lessons[index].rounds.length,
+      roundPositionOffset: learnerRoundPositionOffsetForLesson(lessons, index),
+    );
+  }
+  return count;
+}
 
 /// One-based position inside the current consecutive Section block.
 /// A non-Section Lesson has no Section-relative number and returns zero.
@@ -3473,6 +3620,16 @@ String learnerMascotAssetAtPosition(List<String> orderedAssets, int position) {
 
 class LearnerRoundPath extends StatefulWidget {
   final String courseId;
+
+  /// The Lesson's zero-based position: it picks the circles' colour.
+  final int lessonIndex;
+
+  /// The line starts at the Lesson number circle just above the path,
+  /// otherwise at the top centre.
+  final bool startsAtLessonCircle;
+
+  /// The line continues below the last Round to the Duel circle.
+  final bool leadsToDuel;
   final RoundNumberingMode roundNumberingMode;
   final String customRoundLabel;
   final List<LearningRound> rounds;
@@ -3489,6 +3646,9 @@ class LearnerRoundPath extends StatefulWidget {
   const LearnerRoundPath({
     super.key,
     required this.courseId,
+    this.lessonIndex = 0,
+    this.startsAtLessonCircle = false,
+    this.leadsToDuel = false,
     this.roundNumberingMode = RoundNumberingMode.off,
     this.customRoundLabel = '',
     required this.rounds,
@@ -3554,7 +3714,10 @@ class _LearnerRoundPathState extends State<LearnerRoundPath> {
   Widget _buildPath(BuildContext context, List<String> mascotAssets) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final width = constraints.maxWidth;
+        // On a wide window the path keeps a phone-like column, centred, so
+        // the curves between circles stay clear of the texts.
+        final width = min(constraints.maxWidth, learnerRoundPathMaxWidth);
+        final inset = (constraints.maxWidth - width) / 2;
         final textScale = MediaQuery.textScalerOf(context).scale(1);
         final cardHeight = 108.0 + (textScale - 1.0).clamp(0.0, 2.0) * 148.0;
         const verticalGap = 28.0;
@@ -3567,99 +3730,169 @@ class _LearnerRoundPathState extends State<LearnerRoundPath> {
             min(learnerRoundCardMaxWidth, width * (showMascots ? .68 : .82)),
           ),
         );
-        final mascotExtent = min(112.0, width - cardWidth - 12);
-        final sides = List<LearnerRoundPathSide>.generate(
-          widget.rounds.length,
-          learnerRoundPathSide,
-          growable: false,
-        );
+        const lead = learnerRoundPathLead;
+        final rows = <({double left, double width, bool mirrored})>[
+          for (var index = 0; index < widget.rounds.length; index++)
+            switch (learnerRoundPlacement(index)) {
+              LearnerRoundPlacement.left => (
+                left: 0,
+                width: cardWidth,
+                mirrored: false,
+              ),
+              LearnerRoundPlacement.right => (
+                left: width - cardWidth,
+                width: cardWidth,
+                mirrored: true,
+              ),
+              LearnerRoundPlacement.centerTextRight => (
+                left: width / 2 - learnerRoundIconCenterX,
+                width: min(cardWidth, width / 2 + learnerRoundIconCenterX),
+                mirrored: false,
+              ),
+              LearnerRoundPlacement.centerTextLeft => (
+                left: max(0.0, width / 2 + learnerRoundIconCenterX - cardWidth),
+                width: min(cardWidth, width / 2 + learnerRoundIconCenterX),
+                mirrored: true,
+              ),
+            },
+        ];
+        final centers = [
+          for (var index = 0; index < rows.length; index++)
+            Offset(
+              rows[index].mirrored
+                  ? rows[index].left +
+                        rows[index].width -
+                        learnerRoundIconCenterX
+                  : rows[index].left + learnerRoundIconCenterX,
+              lead + index * rowExtent + cardHeight / 2,
+            ),
+        ];
         final courseMascots = learnerCourseMascotOrder(
           widget.courseId,
           mascotAssets,
         );
         var mascotPosition = widget.mascotPositionOffset;
-        return SizedBox(
-          key: const Key('unified-round-tree'),
-          height: rowExtent * widget.rounds.length - verticalGap,
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              Positioned.fill(
-                child: IgnorePointer(
-                  child: CustomPaint(
-                    key: const Key('learner-round-connector'),
-                    painter: _RoundPathPainter(
-                      sides: sides,
-                      cardWidth: cardWidth,
-                      cardHeight: cardHeight,
-                      rowExtent: rowExtent,
-                      lineColor: Theme.of(context).colorScheme.onSurfaceVariant
-                          .withValues(alpha: learnerPathConnectorOpacity),
-                      supportColor: Theme.of(context).colorScheme.surface
-                          .withValues(
-                            alpha: learnerPathConnectorSupportOpacity,
-                          ),
-                    ),
-                  ),
-                ),
-              ),
-              if (showMascots)
-                for (var index = 0; index < widget.rounds.length; index++)
-                  if (learnerRoundPathShowsMascot(
-                    index,
-                    roundPositionOffset: widget.roundPositionOffset,
-                  ))
-                    Positioned(
-                      key: ValueKey('learner-round-mascot-$index'),
-                      top: index * rowExtent + (cardHeight - mascotExtent) / 2,
-                      left: sides[index] == LearnerRoundPathSide.right
-                          ? 0
-                          : null,
-                      right: sides[index] == LearnerRoundPathSide.left
-                          ? 0
-                          : null,
-                      width: mascotExtent,
-                      height: mascotExtent,
-                      child: _MascotDecoration(
-                        asset: learnerMascotAssetAtPosition(
-                          courseMascots,
-                          mascotPosition++,
-                        ),
+        final mascotRows = learnerRoundPathMascotRows(
+          widget.rounds.length,
+          roundPositionOffset: widget.roundPositionOffset,
+        );
+        final halo = LearnerPathHalo.of(context);
+        return Align(
+          alignment: Alignment.topCenter,
+          child: SizedBox(
+            key: const Key('unified-round-tree'),
+            width: width,
+            height:
+                lead +
+                rowExtent * widget.rounds.length -
+                verticalGap +
+                (widget.leadsToDuel ? lead : 0),
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Positioned.fill(
+                  child: IgnorePointer(
+                    child: CustomPaint(
+                      key: const Key('learner-round-connector'),
+                      painter: _RoundPathPainter(
+                        centers: centers,
+                        seeds: [
+                          for (final round in widget.rounds)
+                            _learnerMascotSeed(round.id),
+                        ],
+                        startX: widget.startsAtLessonCircle
+                            ? learnerLessonCircleCenterX(constraints.maxWidth) -
+                                  inset
+                            : null,
+                        // The Lesson row's padding under its circle.
+                        startOverhang: widget.startsAtLessonCircle
+                            ? learnerLessonRowPadding
+                            : 0,
+                        leadsToDuel: widget.leadsToDuel,
+                        halo: halo,
+                        lineColor: Theme.of(context)
+                            .colorScheme
+                            .onSurfaceVariant
+                            .withValues(alpha: learnerPathConnectorOpacity),
+                        supportColor: halo
+                            ? _learnerPageBackgroundOf(
+                                context,
+                              ).withValues(alpha: .85)
+                            : Theme.of(context).colorScheme.surface.withValues(
+                                alpha: learnerPathConnectorSupportOpacity,
+                              ),
                       ),
                     ),
-              for (var index = 0; index < widget.rounds.length; index++)
-                Positioned(
-                  key: ValueKey('learner-round-row-$index'),
-                  top: index * rowExtent,
-                  left: sides[index] == LearnerRoundPathSide.left ? 0 : null,
-                  right: sides[index] == LearnerRoundPathSide.right ? 0 : null,
-                  width: cardWidth,
-                  height: cardHeight,
-                  child: _RoundNode(
-                    round: widget.rounds[index],
-                    roundNumber: index + 1,
-                    roundNumberingMode: widget.roundNumberingMode,
-                    customRoundLabel: widget.customRoundLabel,
-                    completed: widget.completedRounds.contains(
-                      widget.rounds[index].id,
-                    ),
-                    perfect: widget.perfectRounds.contains(
-                      widget.rounds[index].id,
-                    ),
-                    ttsSkippedPerfect: widget.ttsSkippedPerfectRounds.contains(
-                      widget.rounds[index].id,
-                    ),
-                    audioAvailability:
-                        widget.roundAudioAvailability[widget
-                            .rounds[index]
-                            .id] ??
-                        EffectiveRoundAudioAvailability.none,
-                    onTap: widget.interactive
-                        ? () => widget.onOpenRound(widget.rounds[index])
-                        : null,
                   ),
                 ),
-            ],
+                if (showMascots)
+                  for (var index = 0; index < widget.rounds.length; index++)
+                    if (mascotRows[index])
+                      // The mascot stands in the free half, opposite the
+                      // Round's texts.
+                      () {
+                        final textsOnRight =
+                            learnerRoundPathSide(index) ==
+                            LearnerRoundPathSide.right;
+                        final free = textsOnRight
+                            ? rows[index].left
+                            : width - rows[index].left - rows[index].width;
+                        final extent = max(0.0, min(112.0, free - 12));
+                        return Positioned(
+                          key: ValueKey('learner-round-mascot-$index'),
+                          top:
+                              lead +
+                              index * rowExtent +
+                              (cardHeight - extent) / 2,
+                          left: textsOnRight ? 0 : null,
+                          right: textsOnRight ? null : 0,
+                          width: extent,
+                          height: extent,
+                          child: _MascotDecoration(
+                            asset: learnerMascotAssetAtPosition(
+                              courseMascots,
+                              mascotPosition++,
+                            ),
+                          ),
+                        );
+                      }(),
+                for (var index = 0; index < widget.rounds.length; index++)
+                  Positioned(
+                    key: ValueKey('learner-round-row-$index'),
+                    top: lead + index * rowExtent,
+                    left: rows[index].left,
+                    width: rows[index].width,
+                    height: cardHeight,
+                    child: _RoundNode(
+                      round: widget.rounds[index],
+                      mirrored: rows[index].mirrored,
+                      lessonColors: LessonColorPalette.of(
+                        widget.lessonIndex,
+                        Theme.of(context).brightness,
+                      ),
+                      roundNumber: index + 1,
+                      roundNumberingMode: widget.roundNumberingMode,
+                      customRoundLabel: widget.customRoundLabel,
+                      completed: widget.completedRounds.contains(
+                        widget.rounds[index].id,
+                      ),
+                      perfect: widget.perfectRounds.contains(
+                        widget.rounds[index].id,
+                      ),
+                      ttsSkippedPerfect: widget.ttsSkippedPerfectRounds
+                          .contains(widget.rounds[index].id),
+                      audioAvailability:
+                          widget.roundAudioAvailability[widget
+                              .rounds[index]
+                              .id] ??
+                          EffectiveRoundAudioAvailability.none,
+                      onTap: widget.interactive
+                          ? () => widget.onOpenRound(widget.rounds[index])
+                          : null,
+                    ),
+                  ),
+              ],
+            ),
           ),
         );
       },
@@ -3704,6 +3937,7 @@ class _MascotDecoration extends StatelessWidget {
 
 class _RoundNode extends StatelessWidget {
   final LearningRound round;
+  final LessonColors lessonColors;
   final int roundNumber;
   final RoundNumberingMode roundNumberingMode;
   final String customRoundLabel;
@@ -3713,8 +3947,15 @@ class _RoundNode extends StatelessWidget {
   final EffectiveRoundAudioAvailability audioAvailability;
   final VoidCallback? onTap;
 
+  /// A row on the right of the path has its circle on the outer right and
+  /// its texts, right-aligned, on the left of it, so the circles reach both
+  /// edges (Build 261 Revision 8, owner request).
+  final bool mirrored;
+
   const _RoundNode({
     required this.round,
+    required this.lessonColors,
+    required this.mirrored,
     required this.roundNumber,
     required this.roundNumberingMode,
     required this.customRoundLabel,
@@ -3741,10 +3982,8 @@ class _RoundNode extends StatelessWidget {
     _ => 'Audio exercises are currently unavailable.',
   };
 
-  /// The Round's name on one line (Build 261 Revision 0, owner decision of 1
-  /// October 2026): "Round 2: " in normal weight before the title in bold,
-  /// and "Story: " / "Sequence: " the same way; "Round" stays English. A
-  /// Round without a title of its own shows "Round 2" alone, in bold.
+  /// The Round's label ("Round 2 · Practice", by the Course's numbering) and
+  /// its own title, or null when it has none.
   (String, String?) get _titleParts {
     final typeAndNumber = RoundTypePresentation.prefix(
       round.roundType,
@@ -3753,49 +3992,52 @@ class _RoundNode extends StatelessWidget {
       customPrefix: customRoundLabel,
     );
     final authored = RoundTypePresentation.authoredTitle(round);
-    return authored.isEmpty
-        ? (typeAndNumber, null)
-        : ('$typeAndNumber · ', authored);
+    return (typeAndNumber, authored.isEmpty ? null : authored);
   }
 
-  /// A little smaller than the former title line; it wraps up to three lines
-  /// (with the status line they fit the card's 88 pixels) and the tooltip
-  /// gives the whole name when it is cut.
+  /// A small grey label line above the title in regular weight (Build 261
+  /// Revision 8, owner decisions); the label looks the same whether or not
+  /// the Round has a title of its own. The tooltip gives the whole name when
+  /// it is cut.
   Widget _title(BuildContext context) {
-    final (prefix, title) = _titleParts;
-    final base = Theme.of(context).textTheme.titleMedium;
-    final style = base?.copyWith(
-      fontSize: (base.fontSize ?? 16) - 1,
-      height: 1.4,
+    final (label, title) = _titleParts;
+    final titleStyle = TextStyle(
+      fontSize: 15,
+      height: 1.25,
+      fontWeight: FontWeight.w400,
+      color: Theme.of(context).colorScheme.onSurface,
+      shadows: learnerPathTextHalo(context),
     );
     final key = ValueKey('unified-round-title-${round.id}');
-    if (title == null) {
-      return Text(
-        prefix,
-        key: key,
-        style: style?.copyWith(fontWeight: FontWeight.w800),
-      );
-    }
+    final align = mirrored ? TextAlign.end : TextAlign.start;
+    final labelText = Text(
+      label,
+      key: ValueKey('unified-round-label-${round.id}'),
+      maxLines: title == null ? 2 : 1,
+      overflow: TextOverflow.ellipsis,
+      textAlign: align,
+      style: learnerPathLabelStyle(context),
+    );
+    if (title == null) return labelText;
     return Tooltip(
-      message: '$prefix$title',
+      message: '$label · $title',
       excludeFromSemantics: true,
-      child: Text.rich(
-        TextSpan(
-          children: [
-            TextSpan(
-              text: prefix,
-              style: const TextStyle(fontWeight: FontWeight.normal),
-            ),
-            TextSpan(
-              text: title,
-              style: const TextStyle(fontWeight: FontWeight.w800),
-            ),
-          ],
-        ),
-        key: key,
-        maxLines: 3,
-        overflow: TextOverflow.ellipsis,
-        style: style,
+      child: Column(
+        crossAxisAlignment: mirrored
+            ? CrossAxisAlignment.end
+            : CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          labelText,
+          Text(
+            title,
+            key: key,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            textAlign: align,
+            style: titleStyle,
+          ),
+        ],
       ),
     );
   }
@@ -3809,44 +4051,56 @@ class _RoundNode extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final colorScheme = Theme.of(context).colorScheme;
+    // "Completed" is written in the Lesson's deeper shade, not the circle's
+    // own (owner decision, Build 261 Revision 8).
     final statusColor = perfect
         ? (isDark ? const Color(0xFF72DC86) : const Color(0xFF16862E))
         : completed || ttsSkippedPerfect
-        ? (isDark ? const Color(0xFFFF9B7A) : const Color(0xFFD74B20))
+        ? lessonColors.onTint
         : (isDark ? const Color(0xFF8DB8FF) : const Color(0xFF1657D9));
-    return Card(
+    // The circle carries the Lesson's colour: a pale tint ringed with it
+    // before completion, the colour itself once completed, green with the
+    // laurel when perfect (Build 261 Revision 8, owner decision).
+    final circleColor = perfect
+        ? (isDark ? const Color(0xFF4CD964) : const Color(0xFF34C759))
+        : completed
+        ? lessonColors.solid
+        : lessonColors.tint;
+    final iconColor = perfect
+        ? const Color(0xFF082A10)
+        : completed
+        ? lessonColors.onSolid
+        : lessonColors.onTint;
+    return Material(
       key: ValueKey('unified-round-${round.id}'),
-      margin: EdgeInsets.zero,
       color:
-          (isDark ? colorScheme.surfaceContainerHigh : const Color(0xFFFFF8D6))
+          (isDark
+                  ? Theme.of(context).colorScheme.surfaceContainerHigh
+                  : const Color(0xFFFFF8D6))
               .withValues(alpha: learnerPathSurfaceOpacity),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(18),
-        side: BorderSide(
-          color: isDark ? colorScheme.outlineVariant : const Color(0xFFF1C232),
-        ),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       child: InkWell(
         borderRadius: BorderRadius.circular(18),
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.all(10),
+          padding: const EdgeInsets.all(learnerRoundRowPadding),
           child: Row(
-            children: [
+            children: _ordered([
               SizedBox(
                 key: perfect
                     ? ValueKey('unified-round-laurel-${round.id}')
                     : null,
-                width: perfect ? 72 : 56,
-                height: perfect ? 66 : 54,
+                width: learnerRoundIconSlotWidth,
+                height: perfect ? 70 : 58,
                 child: Stack(
                   alignment: Alignment.center,
                   clipBehavior: Clip.none,
                   children: [
+                    // The laurel reaches past the slot so the circle, and
+                    // the path line through it, stay in the same place.
                     if (perfect) ...[
                       Positioned(
-                        left: 3,
+                        left: -6,
                         child: CustomPaint(
                           key: ValueKey(
                             'unified-round-laurel-branch-left-${round.id}',
@@ -3859,7 +4113,7 @@ class _RoundNode extends StatelessWidget {
                         ),
                       ),
                       Positioned(
-                        right: 3,
+                        right: -6,
                         child: CustomPaint(
                           key: ValueKey(
                             'unified-round-laurel-branch-right-${round.id}',
@@ -3874,27 +4128,16 @@ class _RoundNode extends StatelessWidget {
                     ],
                     Container(
                       key: ValueKey('unified-round-icon-${round.id}'),
-                      width: 46,
-                      height: 46,
+                      width: learnerRoundIconSize,
+                      height: learnerRoundIconSize,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: perfect
-                            ? (isDark
-                                  ? const Color(0xFF4CD964)
-                                  : const Color(0xFF34C759))
-                            : completed
-                            ? (isDark
-                                  ? const Color(0xFFFFB62E)
-                                  : const Color(0xFFFFB000))
-                            : isDark
-                            ? const Color(0xFF3A3425)
-                            : const Color(0xFFFFEBC0),
+                        color: circleColor,
+                        border: perfect || completed
+                            ? null
+                            : Border.all(color: lessonColors.solid, width: 1.5),
                       ),
-                      child: Icon(
-                        _visualIcon,
-                        size: 28,
-                        color: perfect ? const Color(0xFF082A10) : null,
-                      ),
+                      child: Icon(_visualIcon, size: 29, color: iconColor),
                     ),
                   ],
                 ),
@@ -3903,14 +4146,22 @@ class _RoundNode extends StatelessWidget {
               Expanded(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: mirrored
+                      ? CrossAxisAlignment.end
+                      : CrossAxisAlignment.start,
                   children: [
                     _title(context),
+                    const SizedBox(height: 2),
                     Text(
                       _status,
+                      key: ValueKey('unified-round-status-${round.id}'),
+                      textAlign: mirrored ? TextAlign.end : TextAlign.start,
                       style: TextStyle(
+                        fontSize: 12,
+                        height: 1.3,
                         color: statusColor,
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w500,
+                        shadows: learnerPathTextHalo(context),
                       ),
                     ),
                   ],
@@ -3933,12 +4184,16 @@ class _RoundNode extends StatelessWidget {
                           color: Theme.of(context).disabledColor,
                         ),
                       ),
-            ],
+            ]),
           ),
         ),
       ),
     );
   }
+
+  /// Circle, gap, texts and audio icon from the left, or reversed.
+  List<Widget> _ordered(List<Widget> leftToRight) =>
+      mirrored ? leftToRight.reversed.toList() : leftToRight;
 }
 
 class _LaurelBranchPainter extends CustomPainter {
@@ -3997,155 +4252,346 @@ class _LaurelBranchPainter extends CustomPainter {
       oldDelegate.color != color || oldDelegate.mirror != mirror;
 }
 
+/// One curve of the path line and how it is drawn.
+class _PathSegment {
+  const _PathSegment({
+    required this.path,
+    required this.from,
+    required this.to,
+    required this.fadeStart,
+    required this.fadeEnd,
+    required this.peak,
+    required this.thickness,
+    required this.strength,
+  });
+
+  final Path path;
+  final Offset from;
+  final Offset to;
+
+  /// The line fades out where it meets a circle; it stays at full strength
+  /// where it joins a straight connector.
+  final bool fadeStart;
+  final bool fadeEnd;
+
+  /// Where along the curve (0–1) it is thickest and strongest.
+  final double peak;
+
+  /// The widest band at [peak].
+  final double thickness;
+
+  /// The opacity at [peak], as a share of the line colour's own.
+  final double strength;
+}
+
+/// The line from circle to circle (Build 261 Revision 8, owner decisions):
+/// long rounded curves like the earlier path, each a little different,
+/// thinner and fainter where they meet a circle, thicker and stronger
+/// between circles. Each curve leaves and reaches its circles vertically, so
+/// it passes beside the texts, not through them.
 class _RoundPathPainter extends CustomPainter {
-  final List<LearnerRoundPathSide> sides;
-  final double cardWidth;
-  final double cardHeight;
-  final double rowExtent;
+  /// The centre of each Round's icon circle.
+  final List<Offset> centers;
+
+  /// A stable number per Round (from its ID) that varies each curve's shape.
+  final List<int> seeds;
+
+  /// Where the line starts across the path (the Lesson circle), or null for
+  /// the top centre.
+  final double? startX;
+
+  /// How far above the path the line starts: the Lesson row's padding under
+  /// its circle.
+  final double startOverhang;
+  final bool leadsToDuel;
+
+  /// Over a flag picture the support band widens into a halo.
+  final bool halo;
   final Color lineColor;
   final Color supportColor;
 
   const _RoundPathPainter({
-    required this.sides,
-    required this.cardWidth,
-    required this.cardHeight,
-    required this.rowExtent,
+    required this.centers,
+    required this.seeds,
+    required this.startX,
+    required this.startOverhang,
+    required this.leadsToDuel,
+    required this.halo,
     required this.lineColor,
     required this.supportColor,
   });
 
+  static const thinWidth = 1.2;
+
+  List<_PathSegment> _segments(Size size) {
+    if (centers.isEmpty) return const [];
+    _PathSegment curve(
+      Offset from,
+      Offset to,
+      int seed, {
+      bool fadeStart = true,
+      bool fadeEnd = true,
+    }) {
+      final random = Random(seed);
+      // The first control point stays above the middle and the second below
+      // it, so the curve stays close to its circles' column near them; how
+      // late and how sharply it turns varies, and it bows a little to one
+      // side. Between two circles in one column it bows outward.
+      final first =
+          from.dy + (to.dy - from.dy) * (.5 + .22 * random.nextDouble());
+      final second =
+          from.dy + (to.dy - from.dy) * (.5 - .22 * random.nextDouble());
+      final double bow;
+      if ((from.dx - to.dx).abs() < 1) {
+        final middle = size.width / 2;
+        final outward = from.dx < middle - 1
+            ? -1.0
+            : from.dx > middle + 1
+            ? 1.0
+            : (random.nextBool() ? 1.0 : -1.0);
+        bow = outward * (6 + 8 * random.nextDouble());
+      } else {
+        bow = (random.nextDouble() * 2 - 1) * 6;
+      }
+      return _PathSegment(
+        path: Path()
+          ..moveTo(from.dx, from.dy)
+          ..cubicTo(from.dx + bow, first, to.dx + bow, second, to.dx, to.dy),
+        from: from,
+        to: to,
+        fadeStart: fadeStart,
+        fadeEnd: fadeEnd,
+        peak: .38 + .24 * random.nextDouble(),
+        thickness: 3.0 + 1.3 * random.nextDouble(),
+        strength: .75 + .25 * random.nextDouble(),
+      );
+    }
+
+    final start = Offset(startX ?? size.width / 2, -startOverhang);
+    return [
+      curve(
+        start,
+        centers.first,
+        seeds.first ^ 0x5bd1e995,
+        // From the top centre it continues the IDDQD pill's connector.
+        fadeStart: startX != null,
+      ),
+      for (var index = 1; index < centers.length; index++)
+        curve(
+          centers[index - 1],
+          centers[index],
+          seeds[index - 1] * 31 + seeds[index],
+        ),
+      if (leadsToDuel)
+        // Straight down out of the last circle first, below its texts, then
+        // into the Duel's connector at the bottom centre.
+        () {
+          final random = Random(seeds.last ^ 0x27d4eb2d);
+          final from = centers.last;
+          final to = Offset(size.width / 2, size.height);
+          return _PathSegment(
+            path: Path()
+              ..moveTo(from.dx, from.dy)
+              ..cubicTo(
+                from.dx,
+                to.dy,
+                to.dx,
+                (from.dy + to.dy) / 2,
+                to.dx,
+                to.dy,
+              ),
+            from: from,
+            to: to,
+            fadeStart: true,
+            fadeEnd: false,
+            peak: .5,
+            thickness: 3.0 + 1.3 * random.nextDouble(),
+            strength: .75 + .25 * random.nextDouble(),
+          );
+        }(),
+    ];
+  }
+
+  /// The curves' centre lines, for tests.
+  List<Path> segments(Size size) => [
+    for (final segment in _segments(size)) segment.path,
+  ];
+
+  /// The whole centre line, for tests.
+  Path pathFor(Size size) {
+    final path = Path();
+    for (final segment in segments(size)) {
+      path.addPath(segment, Offset.zero);
+    }
+    return path;
+  }
+
+  /// A filled band along the segment, [extra] wider than the line, from
+  /// [thinWidth] at its ends to the segment's thickness at its peak.
+  static Path _band(_PathSegment segment, double extra) {
+    final band = Path();
+    for (final metric in segment.path.computeMetrics()) {
+      final steps = max(2, (metric.length / 3).ceil());
+      final left = <Offset>[];
+      final right = <Offset>[];
+      for (var step = 0; step <= steps; step++) {
+        final t = step / steps;
+        final tangent = metric.getTangentForOffset(metric.length * t)!;
+        // A sine bump whose top sits at the segment's peak.
+        final phase = t < segment.peak
+            ? t / segment.peak / 2
+            : .5 + (t - segment.peak) / (1 - segment.peak) / 2;
+        final ends =
+            (t == 0 && !segment.fadeStart) || (t == 1 && !segment.fadeEnd)
+            ? learnerPathConnectorStrokeWidth
+            : thinWidth;
+        final width =
+            ends + (segment.thickness - ends) * sin(pi * phase) + extra;
+        final normal = Offset(-tangent.vector.dy, tangent.vector.dx);
+        left.add(tangent.position + normal * (width / 2));
+        right.add(tangent.position - normal * (width / 2));
+      }
+      band.addPolygon([...left, ...right.reversed], true);
+    }
+    return band;
+  }
+
+  /// The colour fades along the segment: faint at a circle, strongest at
+  /// the peak, full where a straight connector continues it.
+  static Paint _shade(Color color, _PathSegment segment) {
+    final alpha = color.a;
+    Color at(double share) => color.withValues(alpha: alpha * share);
+    final peak = segment.peak;
+    return Paint()
+      ..shader = ui.Gradient.linear(
+        segment.from,
+        segment.to,
+        [
+          at(segment.fadeStart ? .15 : 1),
+          at(segment.strength * .7),
+          at(segment.strength),
+          at(segment.strength * .7),
+          at(segment.fadeEnd ? .15 : 1),
+        ],
+        [0, peak / 2, peak, (1 + peak) / 2, 1],
+      );
+  }
+
   @override
   void paint(Canvas canvas, Size size) {
-    if (sides.isEmpty || size.height <= 0) return;
-    final supportPaint = Paint()
-      ..color = supportColor
-      ..strokeWidth = learnerPathConnectorSupportStrokeWidth
-      ..strokeCap = StrokeCap.round
-      ..style = PaintingStyle.stroke;
-    final paint = Paint()
-      ..color = lineColor
-      ..strokeWidth = learnerPathConnectorStrokeWidth
-      ..strokeCap = StrokeCap.round
-      ..style = PaintingStyle.stroke;
-    final points = <Offset>[
-      for (var index = 0; index < sides.length; index++)
-        Offset(
-          sides[index] == LearnerRoundPathSide.left
-              ? cardWidth / 2
-              : size.width - cardWidth / 2,
-          index * rowExtent + cardHeight / 2,
-        ),
-    ];
-    final path = Path()..moveTo(size.width / 2, 0);
-    var previous = Offset(size.width / 2, 0);
-    for (final point in points) {
-      final middleY = (previous.dy + point.dy) / 2;
-      path.cubicTo(previous.dx, middleY, point.dx, middleY, point.dx, point.dy);
-      previous = point;
+    if (centers.isEmpty || size.height <= 0) return;
+    for (final segment in _segments(size)) {
+      canvas.drawPath(
+        _band(segment, halo ? 4 : 2),
+        _shade(supportColor, segment),
+      );
+      canvas.drawPath(_band(segment, 0), _shade(lineColor, segment));
     }
-    final middleY = (previous.dy + size.height) / 2;
-    path.cubicTo(
-      previous.dx,
-      middleY,
-      size.width / 2,
-      middleY,
-      size.width / 2,
-      size.height,
-    );
-    canvas.drawPath(path, supportPaint);
-    canvas.drawPath(path, paint);
   }
 
   @override
   bool shouldRepaint(covariant _RoundPathPainter oldDelegate) =>
-      oldDelegate.sides != sides ||
-      oldDelegate.cardWidth != cardWidth ||
-      oldDelegate.cardHeight != cardHeight ||
-      oldDelegate.rowExtent != rowExtent ||
+      !listEquals(oldDelegate.centers, centers) ||
+      !listEquals(oldDelegate.seeds, seeds) ||
+      oldDelegate.startX != startX ||
+      oldDelegate.startOverhang != startOverhang ||
+      oldDelegate.leadsToDuel != leadsToDuel ||
+      oldDelegate.halo != halo ||
       oldDelegate.lineColor != lineColor ||
       oldDelegate.supportColor != supportColor;
 }
 
 class _DuelCard extends StatelessWidget {
+  final int lessonIndex;
   final DuelEligibilityResult eligibility;
   final bool isFinalLesson;
   final VoidCallback? onTap;
 
   const _DuelCard({
     super.key,
+    required this.lessonIndex,
     required this.eligibility,
     required this.isFinalLesson,
     required this.onTap,
   });
 
+  /// Since Build 261 Revision 8 (owner decisions) a circle in the Lesson's
+  /// colour, where the path line arrives, with the texts under it, on the
+  /// same faint background as the Lessons and Rounds.
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final colors = LessonColorPalette.of(
+      lessonIndex,
+      Theme.of(context).brightness,
+    );
+    final available = eligibility.isAvailable;
+    final halo = learnerPathTextHalo(context);
     final card = Align(
       alignment: Alignment.center,
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 400),
         child: FractionallySizedBox(
           widthFactor: .88,
-          child: Card(
+          child: Material(
             key: const Key('unified-duel-card'),
-            margin: EdgeInsets.zero,
             color:
-                (eligibility.isAvailable
-                        ? const Color(0xFF0756DF)
-                        : colorScheme.surfaceContainerHighest)
-                    .withValues(alpha: learnerDuelSurfaceOpacity),
+                (Theme.of(context).brightness == Brightness.dark
+                        ? colorScheme.surfaceContainerHigh
+                        : const Color(0xFFFFF8D6))
+                    .withValues(alpha: learnerPathSurfaceOpacity),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(18),
             ),
             child: InkWell(
               borderRadius: BorderRadius.circular(18),
-              onTap: eligibility.isAvailable ? onTap : null,
+              onTap: available ? onTap : null,
               child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 12,
-                ),
-                child: Row(
+                padding: const EdgeInsets.fromLTRB(12, 0, 12, 10),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(
-                      Icons.sports_martial_arts_outlined,
-                      size: 40,
-                      color: eligibility.isAvailable ? Colors.white : null,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            isFinalLesson ? 'Final Duel' : 'Duel',
-                            style: Theme.of(context).textTheme.titleLarge
-                                ?.copyWith(
-                                  color: eligibility.isAvailable
-                                      ? Colors.white
-                                      : null,
-                                  fontWeight: FontWeight.w900,
-                                ),
-                          ),
-                          Text(
-                            eligibility.isAvailable
-                                ? isFinalLesson
-                                      ? 'Final challenge'
-                                      : 'Win to skip ahead'
-                                : 'Unavailable for this Lesson: not enough suitable exercises.',
-                            style: TextStyle(
-                              color: eligibility.isAvailable
-                                  ? const Color(0xFFFFE600)
-                                  : null,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                        ],
+                    Container(
+                      key: const Key('unified-duel-icon'),
+                      width: 56,
+                      height: 56,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: available
+                            ? colors.solid
+                            : colorScheme.surfaceContainerHighest,
+                      ),
+                      child: Icon(
+                        Icons.sports_martial_arts_outlined,
+                        size: 32,
+                        color: available
+                            ? colors.onSolid
+                            : colorScheme.onSurfaceVariant,
                       ),
                     ),
-                    if (eligibility.isAvailable)
-                      const Icon(Icons.chevron_right, color: Colors.white),
+                    const SizedBox(height: 6),
+                    Text(
+                      isFinalLesson ? 'Final Duel' : 'Duel',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 17,
+                        height: 1.25,
+                        fontWeight: FontWeight.w500,
+                        color: available
+                            ? colorScheme.onSurface
+                            : colorScheme.onSurfaceVariant,
+                        shadows: halo,
+                      ),
+                    ),
+                    Text(
+                      available
+                          ? isFinalLesson
+                                ? 'Final challenge'
+                                : 'Win to skip ahead'
+                          : 'Unavailable for this Lesson: not enough suitable exercises.',
+                      textAlign: TextAlign.center,
+                      style: learnerPathLabelStyle(context),
+                    ),
                   ],
                 ),
               ),

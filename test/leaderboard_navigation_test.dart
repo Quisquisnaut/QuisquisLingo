@@ -17,6 +17,7 @@ import 'package:quisquislingo_app/screens/course_projects_screen.dart';
 import 'package:quisquislingo_app/screens/courses_screen.dart';
 import 'package:quisquislingo_app/screens/guidebook_screen.dart';
 import 'package:quisquislingo_app/screens/home_screen.dart';
+import 'package:quisquislingo_app/services/lesson_color_palette.dart';
 import 'package:quisquislingo_app/screens/info_screen.dart';
 import 'package:quisquislingo_app/screens/profile_screen.dart';
 import 'package:quisquislingo_app/screens/review_screen.dart';
@@ -186,22 +187,29 @@ void main() {
       expect(guidebookRect.width, lessThan(352));
       expect(guidebookRect.center.dx, closeTo(viewport.center.dx, 1));
       expect(guidebookRect.height, lessThanOrEqualTo(156));
-      expect(tester.widget<Card>(guidebook).color!.a, closeTo(.70, .01));
+      // A faint borderless background since Build 261 Revision 8 (owner
+      // decision).
+      expect(
+        tester.widget<Material>(guidebook).color!.a,
+        closeTo(learnerPathSurfaceOpacity, .01),
+      );
       final firstLesson = course.lessons.first;
       final identity = find.byKey(
         ValueKey('unified-guidebook-lesson-title-${firstLesson.lessonId}'),
       );
       final identityText = tester.widget<Text>(identity);
-      final identitySpans = (identityText.textSpan! as TextSpan).children!;
       expect(identityText.maxLines, 3);
       expect(identityText.overflow, TextOverflow.ellipsis);
-      expect((identitySpans[0] as TextSpan).text, 'Lesson 1: ');
-      expect(
-        (identitySpans[0] as TextSpan).style?.fontWeight,
-        FontWeight.normal,
+      expect(identityText.data, firstLesson.title);
+      expect(identityText.style?.fontWeight, FontWeight.w500);
+      expect(identityText.style?.fontSize, 17);
+      final identityLabel = tester.widget<Text>(
+        find.byKey(
+          ValueKey('unified-guidebook-lesson-label-${firstLesson.lessonId}'),
+        ),
       );
-      expect((identitySpans[1] as TextSpan).text, firstLesson.title);
-      expect((identitySpans[1] as TextSpan).style?.fontWeight, FontWeight.w900);
+      expect(identityLabel.data, 'Lesson 1');
+      expect(identityLabel.style?.fontSize, 12);
       // The whole title as a tooltip (Build 261 Revision 0).
       expect(
         tester
@@ -258,8 +266,19 @@ void main() {
       final duelContentBottom = duelRect.bottom + learnerPosition.pixels;
       expect(duelRect.width, lessThanOrEqualTo(400));
       expect(duelRect.center.dx, closeTo(viewport.center.dx, 1));
-      final duelCard = tester.widget<Card>(duelCardFinder);
-      expect(duelCard.color!.a, closeTo(.70, .01));
+      expect(
+        tester.widget<Material>(duelCardFinder).color!.a,
+        closeTo(learnerPathSurfaceOpacity, .01),
+      );
+      // The Duel is a circle where the path line arrives, centred.
+      final duelCircle = find.descendant(
+        of: duel,
+        matching: find.byKey(const Key('unified-duel-icon')),
+      );
+      expect(
+        tester.getRect(duelCircle).center.dx,
+        closeTo(viewport.center.dx, 1),
+      );
 
       final nextGuidebook = find.byKey(
         ValueKey(
@@ -327,7 +346,7 @@ void main() {
       of: find.byKey(
         ValueKey('unified-guidebook-lesson-title-${lesson.lessonId}'),
       ),
-      matching: find.byType(Card),
+      matching: find.byKey(const Key('unified-guidebook-node')),
     );
 
     final withIcon = course.lessons.first;
@@ -375,9 +394,17 @@ void main() {
       ),
       findsNothing,
     );
+    final fallback = find.descendant(
+      of: withoutIconCard,
+      matching: find.byType(CircleAvatar),
+    );
+    expect(fallback, findsOneWidget);
     expect(
-      find.descendant(of: withoutIconCard, matching: find.byType(CircleAvatar)),
-      findsOneWidget,
+      tester.widget<CircleAvatar>(fallback).backgroundColor,
+      LessonColorPalette.of(
+        1,
+        Theme.of(tester.element(fallback)).brightness,
+      ).solid,
     );
     expect(find.text('Start Here'), findsNothing);
 
@@ -465,13 +492,22 @@ void main() {
         return (container.decoration! as BoxDecoration).color!;
       }
 
+      LessonColors colors() => LessonColorPalette.of(
+        0,
+        Theme.of(
+          tester.element(
+            find.byKey(ValueKey('unified-round-icon-${completedRound.id}')),
+          ),
+        ).brightness,
+      );
+
       await _openHome(tester, scrollToActions: false);
-      expect(iconColor(completedRound), const Color(0xFFFFB000));
-      expect(iconColor(incompleteRound), const Color(0xFFFFEBC0));
+      expect(iconColor(completedRound), colors().solid);
+      expect(iconColor(incompleteRound), colors().tint);
 
       await tester.pumpWidget(const SizedBox.shrink());
       await _openHome(tester, scrollToActions: false);
-      expect(iconColor(completedRound), const Color(0xFFFFB000));
+      expect(iconColor(completedRound), colors().solid);
 
       await progress.completeRound(
         completedRound.id,
@@ -480,7 +516,7 @@ void main() {
       );
       await tester.pumpWidget(const SizedBox.shrink());
       await _openHome(tester, scrollToActions: false);
-      expect(iconColor(completedRound), const Color(0xFFFFB000));
+      expect(iconColor(completedRound), colors().solid);
     },
   );
 
@@ -2260,18 +2296,25 @@ void main() {
     await tester.pumpAndSettle();
 
     final headingText = tester.widget<Text>(heading);
-    final headingFontSize = Theme.of(
-      tester.element(heading),
-    ).textTheme.titleMedium?.fontSize;
-    expect(headingText.style?.fontSize, headingFontSize);
+    expect(headingText.style?.fontSize, 17);
     expect(headingText.maxLines, 3);
     expect(headingText.overflow, TextOverflow.ellipsis);
-    final spans = (headingText.textSpan! as TextSpan).children!;
-    expect(spans, hasLength(2));
-    expect((spans[0] as TextSpan).text, 'Lesson 2: ');
-    expect((spans[0] as TextSpan).style?.fontWeight, FontWeight.normal);
-    expect((spans[1] as TextSpan).text, longTitle);
-    expect((spans[1] as TextSpan).style?.fontWeight, FontWeight.w900);
+    expect(headingText.data, longTitle);
+    expect(headingText.style?.fontWeight, FontWeight.w500);
+    expect(
+      tester
+          .widget<Text>(
+            find.byKey(
+              ValueKey('unified-guidebook-lesson-label-${lesson.lessonId}'),
+            ),
+          )
+          .data,
+      'Lesson 2',
+    );
+    expect(
+      tester.getSize(heading).height,
+      lessThanOrEqualTo(17 * 1.25 * 3 + 1),
+    );
     expect(
       find.byKey(ValueKey('flag-backdrop-lesson-title-${lesson.lessonId}')),
       findsNothing,
@@ -2419,7 +2462,7 @@ void main() {
           of: find.byKey(
             ValueKey('unified-guidebook-lesson-title-${lesson.lessonId}'),
           ),
-          matching: find.byType(Card),
+          matching: find.byKey(const Key('unified-guidebook-node')),
         );
         final withIconCard = cardFor(course.lessons.first);
         final withIconTitle = tester.widget<Text>(

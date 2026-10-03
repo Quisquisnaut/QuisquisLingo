@@ -131,6 +131,33 @@ through the mistake review (and the Review your mistakes message, which
 closes itself at zero); the Round finishes in time only when the last
 review answer comes before zero. Kept as it is, nothing added.
 
+## Revision 8 (2.0.61+261008, 3 October 2026)
+
+The learner path in Lesson colours (owner decisions of 3 October, refined
+over six renders sent to the owner): `LessonColorPalette` (eight non-green
+colours by position, light and dark); the Lesson number circle and the
+52-pixel Round circles in the Lesson colour (tint with a ring, solid when
+completed, green with the laurel when perfect; Completed written in the
+deeper shade); the Duel as a centred circle; rows on 20% backgrounds without
+border; a 12-point grey label above lighter titles (the same with or without
+a Round title); a 16-step placement pattern (left edge, centre with texts
+right or left, right edge; repeats, never edge to edge); the path at most
+560 pixels wide; rounded curves from circle to circle, varied per curve from
+the Rounds' IDs, tapering and fading toward the circles; a page-colour halo
+over Flag Background Small/Extended. Release notes, AGENTS.md, README and
+the change summary describe the final design.
+
+Later owner requests in the same revision: mascots in seven slots of ten,
+never two Rounds in a row on the same side (`learnerRoundPathMascotRows`);
+App Info's "Colour code of the path" with the owner's picture
+`assets/rounds_screenshots/colors.png` (first placed in Course Info by
+mistake and moved; the chat's "..." button painted out of the picture).
+
+Visual check: a throwaway test rendered the preview, a Duel, App Info and
+the circle states with the real Roboto font into `D:/QQL_test_temp/rev8*.png`
+(deleted, never committed). Owner said go at the eleventh render; the
+complete suite passed: 3612 passed, 1 skipped, 0 failed.
+
 ## Next
 
 Build 262 (owner decisions of 2 October 2026, discussion to finish; plan
