@@ -84,7 +84,7 @@ the row's title. Test `test/primitive_editor_narrow_261_test.dart` (every
 primitive, blank and with its example, and every Laboratory exercise at
 360 pixels). Complete suite: 3582 passed, 1 skipped.
 
-## Revision 7 (2.0.61+261007, 3 October 2026)
+## Revision 7 (committed `fb38c7b`, 2.0.61+261007, 3 October 2026)
 
 Round Types redesign: ten explicit Round types replace the generic learner
 path label; New Round selects a type, and Lesson Options controls optional
