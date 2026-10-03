@@ -104,8 +104,12 @@ wrong answers. Neapolitan (for English speakers) keeps 3 Lessons (177
 exercises, Duel 34/25 each), modern Neapolitan checked against P. P. Volpe,
 "Vocabolario napoletano-italiano tascabile" (1869, archive.org text) by
 owner decision: Volpe's forms where still alive (peccerillo, portuallo,
-doce), `corsi_brevi/fonti/volpe_report.py` lists the 24 words Volpe does
-not show, for review. Audit 0/0 for both. Sources and lookup tools are in
+doce). The owner then gave G. Giacco's "Schedario napoletano" (modern,
+vesuvioweb PDF): the Course keeps j where Giacco writes i (owner's choice:
+assaje, ajere, jammo, jatta); `corsi_brevi/fonti/napoletano_report.py`
+(j = i, doubling after an article dropped, conjugated forms under their
+infinitive) finds 73 of 76 words in Giacco or Volpe; only bongiorno,
+bonasera and stasera are in neither, for review. Audit 0/0 for both. Sources and lookup tools are in
 `corsi_brevi/fonti/` (private).
 
 Next: Build 262 is complete (Revisions 0–2). Not pushed. The owner reviews
