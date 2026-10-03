@@ -101,7 +101,12 @@ in 3 Lessons with its words and spellings (city forms; local variants and
 coarse words left out; sentences written for the Course), 176 exercises,
 Duel 33-35/25; `ALSO_MEANS` keeps a word's other true meanings out of its
 wrong answers. Neapolitan (for English speakers) keeps 3 Lessons (177
-exercises, Duel 34/25 each). Audit 0/0 for both.
+exercises, Duel 34/25 each), modern Neapolitan checked against P. P. Volpe,
+"Vocabolario napoletano-italiano tascabile" (1869, archive.org text) by
+owner decision: Volpe's forms where still alive (peccerillo, portuallo,
+doce), `corsi_brevi/fonti/volpe_report.py` lists the 24 words Volpe does
+not show, for review. Audit 0/0 for both. Sources and lookup tools are in
+`corsi_brevi/fonti/` (private).
 
 Next: Build 262 is complete (Revisions 0–2). Not pushed. The owner reviews
 the private Courses (`LEGGIMI.txt` lists the words to check).
