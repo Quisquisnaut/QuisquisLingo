@@ -209,6 +209,7 @@ void main() {
         CourseManagerAction.merge,
         CourseManagerAction.audit,
         CourseManagerAction.export,
+        CourseManagerAction.exportAsPublisherCourse,
         CourseManagerAction.delete,
       ]);
     });
@@ -314,6 +315,7 @@ void main() {
         CourseManagerAction.merge,
         CourseManagerAction.audit,
         CourseManagerAction.export,
+        CourseManagerAction.exportAsPublisherCourse,
         CourseManagerAction.delete,
       ]);
       expect(
@@ -343,6 +345,7 @@ void main() {
         (CourseManagerAction.copyAsNewCourse, 'copy'),
         (CourseManagerAction.merge, 'merge'),
         (CourseManagerAction.export, 'export'),
+        (CourseManagerAction.exportAsPublisherCourse, 'publish'),
         (CourseManagerAction.delete, 'delete'),
       ]) {
         expect(

@@ -1,5 +1,43 @@
 # Build 262 validation
 
+## Revision 2 (2.0.62+262002, 3 October 2026): Export as Publisher Course
+
+**Tests**
+- New `test/publisher_course_export_262_test.dart`: refusals (none for a
+  clean published Course its Maintainer exports; each reason by itself:
+  access, Course version, publication, License, Draft content, official
+  Course); build (externalOfficial, every ID kept, publisher fields and
+  Original Course Creator, official version = Course version, release notes,
+  date and channel, no Maintainer/Team/Course version/Last Version Editor,
+  not private, unsigned, checksum of its own content, JSON round trip, the
+  source unchanged; a Private course exported as not private); publishers
+  (QuisquisLingo Courses offered with an empty registry; one per publisher,
+  revoked keys left out); export, sign, install (Quick Export writes
+  `QQL_IT_EN_qql_demo_english_from_italian_publisher_v3.zip`; its
+  course.json signed with a TEST ONLY key installs as a verified Publisher
+  Course; version 4 installs as an update with a backup; version 3 again is
+  refused; a refused Course and someone else's Course write nothing);
+  Course Studio (the menu entry for the Maintainer, greyed for another
+  profile, absent on an official Course; the page lists refusals and keeps
+  Quick Export off; Quick Export exports for the publisher chosen).
+- Updated: the Course Studio menus of a custom Course in
+  `course_library_operations_249` and `course_manager_workflow_249` gain
+  the entry (greyed for another profile with "Only the Maintainer or
+  assigned Team can publish this Course."); `editor_help_translation_test`
+  counts 15 Course Studio Help sections.
+- `publisher_signing_help_test`: the signing guide still equals the English
+  Help after both changed together.
+
+**Runs**
+- `flutter analyze`: No issues found (an unused import in the new page was
+  removed first).
+- Focused: the new test, the two menu tests, the signing guide, the Help
+  catalogs, the storage names and the version pins, 118 passed.
+- Complete suite (34 minutes): 3610 passed, 1 skipped, 1 failed:
+  `editor_help_translation_test` pinned 14 Course Studio Help sections;
+  corrected to 15 (and the new title), it passes alone. No other file
+  changed after the complete suite.
+
 ## Revision 1 (2.0.62+262001, 3 October 2026): the publisher QuisquisLingo Courses
 
 **Tests**

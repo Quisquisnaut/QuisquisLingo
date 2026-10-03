@@ -21,8 +21,10 @@ import 'formal_name_policy.dart';
 import 'new_course_structure.dart';
 import 'profile_service.dart';
 import 'progress_service.dart';
+import 'publisher_course_export.dart';
 import 'settings_service.dart';
 import 'team_service.dart';
+import 'trusted_publishers.dart';
 
 /// The Course Manager menu entries, in menu order. [study] and [review]
 /// (Build 261 Revision 1) come from [CourseManagerLibrary.studyEntriesFor],
@@ -40,6 +42,7 @@ enum CourseManagerAction {
   merge,
   audit,
   export,
+  exportAsPublisherCourse,
   delete,
 }
 
@@ -170,6 +173,15 @@ class CourseManagerLibrary {
             ? null
             : '$onlyInside export this Course.',
       ),
+      // Build 262 Revision 2: the Course itself decides the other reasons,
+      // which its export page names (PublisherCourseExport.refusals).
+      if (!official)
+        CourseManagerEntry(
+          CourseManagerAction.exportAsPublisherCourse,
+          access.hasOperationalAccess
+              ? null
+              : PublisherCourseExport.noAccessReason,
+        ),
       if (!official)
         CourseManagerEntry(
           CourseManagerAction.delete,
@@ -581,6 +593,60 @@ class CourseLibraryOperations {
     return (result: await transfer.exportCourseTo(course), notice: notice);
   }
 
+  /// Why the active profile cannot export the stored [course] as a Publisher
+  /// Course (Build 262 Revision 2); empty when it can.
+  Future<List<String>> publisherExportRefusals(Course course) async {
+    final activeProfileId = await profiles.getActiveProfileId();
+    final memberTeamIds = activeProfileId == null
+        ? const <String>{}
+        : (await teams.teamsForProfile(
+            activeProfileId,
+          )).map((team) => team.teamId).toSet();
+    return PublisherCourseExport.refusals(
+      course,
+      hasOperationalAccess: CourseAccessPolicy.evaluate(
+        course,
+        profileId: activeProfileId,
+        memberTeamIds: memberTeamIds,
+      ).hasOperationalAccess,
+    );
+  }
+
+  /// The stored [course] as an unsigned Publisher Course of [publisher],
+  /// released now, written into the fixed Exports folder. A refused Course
+  /// throws a [FormatException] naming the reasons, and nothing is written.
+  Future<String> exportAsPublisherCourse(
+    Course course,
+    TrustedPublisherKey publisher,
+  ) async {
+    final exported = await _publisherCourse(course, publisher);
+    return transfer.exportCourse(
+      exported,
+      publisherVersion: exported.officialCourseVersion,
+    );
+  }
+
+  /// The same Publisher Course, saved with the system dialog.
+  Future<FileDialogResult> savePublisherCourseTo(
+    Course course,
+    TrustedPublisherKey publisher,
+  ) async {
+    final exported = await _publisherCourse(course, publisher);
+    return transfer.exportCourseTo(
+      exported,
+      publisherVersion: exported.officialCourseVersion,
+    );
+  }
+
+  Future<Course> _publisherCourse(
+    Course course,
+    TrustedPublisherKey publisher,
+  ) async {
+    final refusals = await publisherExportRefusals(course);
+    if (refusals.isNotEmpty) throw FormatException(refusals.join(' '));
+    return PublisherCourseExport.build(course, publisher, now: _clock());
+  }
+
   /// The World Flag problem, if any, and the Audit of [course].
   Future<({CourseAuditResult result, String? flagProblem})> audit(
     Course course,
@@ -755,6 +821,16 @@ abstract final class CourseLibraryReports {
 
   static String savedTo(Course course, String? displayName, String? notice) =>
       'Saved “${course.title}” as $displayName.${notice == null ? '' : ' $notice'}';
+
+  /// Export as Publisher Course (Build 262 Revision 2).
+  static String publisherExported(
+    Course course,
+    TrustedPublisherKey publisher,
+    String where,
+  ) =>
+      'Exported “${course.title}” as a Publisher Course of '
+      '${publisher.publisherName} (official version ${course.courseVersion}) '
+      'to $where. It is not signed yet: sign it before distributing it.';
 
   static String importBlocked(int errors) =>
       'Course Audit found $errors error${errors == 1 ? '' : 's'}. Fix these errors before importing the course.';

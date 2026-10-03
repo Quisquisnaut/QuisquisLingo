@@ -1,3 +1,24 @@
+# 2.0.62 (Build 262, Revision 2) - Export as Publisher Course - 2026-10-03
+
+Owner decision of 2 October 2026 (`docs/PUBLISHER_COURSES_PLAN.md`, 4.3);
+the official version follows the Course version (owner decision of
+3 October).
+
+- **Export as Publisher Course** in Course Studio's menu of a custom Course
+  (Maintainer or assigned Team only): writes the Course as a Publisher Course
+  of a publisher QQL knows, QuisquisLingo Courses included while its key is
+  pending. Every ID is kept, the publisher becomes the original creator, the
+  Maintainer, Team and Course version go, and the official version is the
+  Course version, so each export after a confirmed change is a valid update
+  and learners keep their progress. The author's Course is not changed.
+- The page names whatever stands in the way: a Fork or merged Course, no
+  Course version, not published, Draft content, no License, Audit errors.
+- Quick Export or Save as… writes an ordinary Course ZIP
+  (`QQL_<pair>_<title>_publisher_v<version>.zip`); it is not signed: unzip
+  it and sign course.json with `tools/sign_course.dart` (signing guide,
+  section 7), since QQL refuses an unsigned Publisher Course.
+- Course Studio Help (English, Italian, Spanish) explains it.
+
 # 2.0.62 (Build 262, Revision 1) - The publisher QuisquisLingo Courses - 2026-10-03
 
 Owner decision of 2 October 2026 (`docs/PUBLISHER_COURSES_PLAN.md`, 4.2),

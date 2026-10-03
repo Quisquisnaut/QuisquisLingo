@@ -24,6 +24,8 @@ import '../services/formal_name_policy.dart';
 import '../services/course_access_policy.dart';
 import '../services/sound_effect_service.dart';
 import '../services/new_course_structure.dart';
+import '../services/publisher_course_export.dart';
+import '../services/trusted_publishers.dart';
 import '../widgets/language_field.dart';
 import '../widgets/course_cover_field.dart';
 import '../widgets/course_flag_picker.dart';
@@ -36,6 +38,7 @@ import 'course_editor_screen.dart';
 import 'course_info_screen.dart';
 import 'team_manager_screen.dart';
 import 'flat_image_library_screen.dart';
+import 'publisher_course_export_screen.dart';
 import '../services/storage/qql_storage.dart';
 import '../widgets/quick_import_access.dart';
 
@@ -1017,6 +1020,25 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
         ),
       );
 
+  /// Export as Publisher Course (Build 262 Revision 2).
+  Future<void> _openPublisherExport(Course course) async {
+    final refusals = await _ops.publisherExportRefusals(course);
+    if (!mounted) return;
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) => PublisherCourseExportScreen(
+          course: course,
+          refusals: refusals,
+          publishers: PublisherCourseExport.publishers(),
+          onExport: (publisher) => _exportAsPublisher(course, publisher),
+          onSaveTo: _transfer.fileDialogsAvailable
+              ? (publisher) => _savePublisherCourseTo(course, publisher)
+              : null,
+        ),
+      ),
+    );
+  }
+
   Future<void> _openCourseMerge(Course course) => Navigator.of(context)
       .push<void>(
         MaterialPageRoute(
@@ -1971,6 +1993,8 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
             _auditCourse(course);
           case CourseManagerAction.export:
             _openCourseExport(course);
+          case CourseManagerAction.exportAsPublisherCourse:
+            _openPublisherExport(course);
           case CourseManagerAction.delete:
             _delete(course);
         }
@@ -2050,6 +2074,11 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
         Icons.download_outlined,
         'Export Course',
         null,
+      ),
+      CourseManagerAction.exportAsPublisherCourse => (
+        Icons.storefront_outlined,
+        'Export as Publisher Course',
+        'Write this Course as a Publisher Course, ready to be signed.',
       ),
       CourseManagerAction.delete => (
         Icons.delete_outline,
@@ -2408,6 +2437,63 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
           course,
           saved.result.displayName,
           saved.notice,
+        ),
+        fallbackHint: exportFallbackHint,
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          duration: const Duration(seconds: 8),
+          content: Text(error.toString().replaceFirst('FormatException: ', '')),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
+    }
+  }
+
+  Future<void> _exportAsPublisher(
+    Course course,
+    TrustedPublisherKey publisher,
+  ) async {
+    try {
+      final path = await _ops.exportAsPublisherCourse(course, publisher);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          duration: const Duration(seconds: 12),
+          content: Text(
+            CourseLibraryReports.publisherExported(course, publisher, path),
+          ),
+        ),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          duration: const Duration(seconds: 8),
+          content: Text(error.toString().replaceFirst('FormatException: ', '')),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
+    }
+  }
+
+  Future<void> _savePublisherCourseTo(
+    Course course,
+    TrustedPublisherKey publisher,
+  ) async {
+    try {
+      final result = await _ops.savePublisherCourseTo(course, publisher);
+      if (!mounted) return;
+      showFileDialogFeedback(
+        context,
+        result,
+        saving: true,
+        savedMessage: CourseLibraryReports.publisherExported(
+          course,
+          publisher,
+          result.displayName ?? '',
         ),
         fallbackHint: exportFallbackHint,
       );

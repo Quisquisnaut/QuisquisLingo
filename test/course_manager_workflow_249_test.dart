@@ -215,6 +215,7 @@ void main() {
     'Merge',
     'Audit',
     'Export Course',
+    'Export as Publisher Course',
     'Delete course',
   ];
 
@@ -294,6 +295,7 @@ void main() {
         'Merge',
         'Audit',
         'Export Course',
+        'Export as Publisher Course',
         'Delete course',
       ]);
       expect(await menuEntries(tester, actionsOf('theirs')), [
@@ -305,6 +307,7 @@ void main() {
         'Merge (greyed)',
         'Audit',
         'Export Course (greyed)',
+        'Export as Publisher Course (greyed)',
         'Delete course (greyed)',
       ]);
       expect(await menuEntries(tester, actionsOf(publisher.courseId)), [

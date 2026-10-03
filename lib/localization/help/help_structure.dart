@@ -114,6 +114,7 @@ const courseStudioHelpSectionIds = <String>[
   'courseCreationRules',
   'importCustomCourse',
   'exportCustomCourse',
+  'exportAsPublisherCourse',
   'courseResponsibilityPermissionsAndTeams',
   'androidDeviceBackupTechnical',
   'courseAudit',

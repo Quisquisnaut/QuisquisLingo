@@ -49,7 +49,14 @@ Lesson). Made by `corsi_brevi/make_short_courses.py` (tables
 the app's custom import with a throwaway test (not committed): Audit 0
 errors and 0 warnings, Duel available in every Lesson, every exercise
 represented by its preset, no Round-type issue, every accepted answer
-expands. Dialect answers also accept the form without apostrophes. The
+expands. Dialect answers also accept the form without apostrophes.
+Owner review the same evening ("in the first Viterbese Round the same
+words come back several times"): Discover Rounds are shuffled, so the
+Discover Round now shows only its six flashcards; no word or sentence is
+asked twice in a Round, no option is shown more than twice in a Round
+and no two questions share more than one option: the generator chooses the
+wrong answers with what the Round already shows and stops on a broken rule
+(owner: "fix the generator itself"); 26 Duel questions per Lesson. The
 texts are AI-written; `LEGGIMI.txt` there lists the points a native
 speaker should check. Nothing in the repository changed for them.
 
@@ -63,9 +70,31 @@ support. Complete suite 3598 passed, 1 skipped, 1 failed (the signing guide
 must equal the English Help: the guide note was removed, the test passes
 alone).
 
-Next: Revision 2 (4.3), drafted in the session's scratchpad (code, tests,
-docs; `r2_*.py`, `publisher_course_export*.dart`). The signing guide and its
-Help change together (EN/IT/ES), never the guide alone.
+## Revision 2 (2.0.62+262002, 3 October 2026)
+
+Export as Publisher Course: `CourseManagerAction.exportAsPublisherCourse`,
+`PublisherCourseExportScreen`, `PublisherCourseExport` (publishers,
+refusals, build; official version = Course version, owner decision),
+`CourseLibraryOperations.exportAsPublisherCourse` / `savePublisherCourseTo`,
+`exportBaseName(publisherVersion:)`; Course Studio Help section and the
+signing Help + guide (EN/IT/ES). Complete suite 3610 passed, 1 skipped,
+1 failed (a Help section count, corrected, passing alone).
+
+## The private Courses, owner review of the evening (3 October 2026)
+
+Generator `D:\QQL_plus\Corsi_Privati\corsi_brevi\make_short_courses.py`:
+six Rounds per Lesson (Discover, Recognize, Nouns and adjectives,
+Sentences, Write, Check); six nouns with a picture of QQL's Image Library
+and three adjectives per Lesson; picture flashcards, What is in the
+picture, Select the image, Match pictures to words, Type what you see;
+per Round: nothing asked twice, no option shown more than twice, no two
+questions (matching included) sharing more than one option; gap wrong
+answers only from the tables, checked never to fit (owner: «Ndo' annamo
+mo'?» was right too); Viterbese without «pure» (Italian too). Both Courses:
+177 exercises, Audit 0/0, Duel 34/25 per Lesson.
+
+Next: Build 262 is complete (Revisions 0–2). Not pushed. The owner reviews
+the private Courses (`LEGGIMI.txt` lists the words to check).
 
 Owner decision for Revision 2 (3 October 2026): the exported Publisher
 Course's official version **equals its Course version** (which rises at

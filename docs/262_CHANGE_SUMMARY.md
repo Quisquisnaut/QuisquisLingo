@@ -17,6 +17,59 @@ Not in Build 262: 4.4 signing in the app, 4.5 Publisher ZIPs shipped in the
 app, the documents of 4.6 beyond what each part needs, and the owner's
 tasks outside the code.
 
+## Revision 2 (2.0.62+262002, 3 October 2026): Export as Publisher Course
+
+**The action.** Course Studio's menu of a custom Course gains **Export as
+Publisher Course** (`CourseManagerAction.exportAsPublisherCourse`, after
+Export Course), greyed for a profile that neither maintains the Course nor
+belongs to its assigned Team ("Only the Maintainer or assigned Team can
+publish this Course."). It never appears on an official Course.
+
+**The page** (`PublisherCourseExportScreen`,
+`lib/screens/publisher_course_export_screen.dart`): the publisher to export
+for (`publisher-export-publisher`; `PublisherCourseExport.publishers()`:
+one entry per publisher of the app's registry, revoked keys left out, plus
+QuisquisLingo Courses even while its key is pending, with a line saying so),
+the official version, Quick Export (`publisher-export-quick`, into
+`Export/Courses`) and Save as… (`publisher-export-save-as`), and four notes:
+the file is not signed (sign it with `tools/sign_course.dart`, guide §7);
+what changes; how to update; the same Course ID cannot be installed beside
+the author's own Course. When something stands in the way, a card
+(`publisher-export-refusals`) names every reason and the buttons stay off.
+
+**The rules** (`PublisherCourseExport`, `lib/services/publisher_course_export.dart`):
+- Refused (`refusals`): not a custom Course; no Maintainer or Team access;
+  a Fork or a merged Course (their lineage cannot be carried by a Publisher
+  Course); no Course version yet; not published; Draft content; no License;
+  Audit errors.
+- Built (`build`): `externalOfficial`, every ID kept (Course, Lessons,
+  Rounds, content, items); the chosen publisher's ID and name, and the
+  publisher as Original Course Creator; **the official version is the Course
+  version** (owner decision of 3 October 2026: it rises at every confirmed
+  save, so every export after a change is a valid update); release date now,
+  release notes from the Course's version notes, distribution channel
+  `publisher`; no Maintainer, Team, Course version, version notes or Last
+  Version Editor; not private; unverified, unsigned, with its official
+  checksum. Authors, Rights Holders, License and all content stay. The
+  stored Course is never changed.
+- Written (`CourseLibraryOperations.exportAsPublisherCourse` /
+  `savePublisherCourseTo`): the ordinary Course package (format 1:
+  `course.json`, manifest, the Course's own media), so unzipping it gives
+  exactly what `tools/sign_course.dart prepare` and `package` take. File name
+  `QQL_<pair>_<title>_publisher_v<version>.zip`
+  (`CourseStorageNames.exportBaseName(publisherVersion:)`). A refused Course
+  throws and writes nothing.
+
+**Help** EN/IT/ES: Course Studio Help section **Export as Publisher Course**
+(`exportAsPublisherCourse`, after Export a custom course). Publisher
+signing Help (EN/IT/ES) and `docs/PUBLISHER_SIGNING_GUIDE.md`, which must
+equal the English Help: the status names the QuisquisLingo Courses entry of
+Revision 1, section 7 says where the starting JSON comes from, and signing
+inside QQL is not implemented yet.
+
+Signing in the app (4.4) and Publisher ZIPs shipped with the app (4.5) are
+not in Build 262. Learners, scoring and stored data are unchanged.
+
 ## Revision 1 (2.0.62+262001, 3 October 2026): the publisher QuisquisLingo Courses
 
 **The registry entry.** `TrustedPublishers.quisquisLingoCourses`

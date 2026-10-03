@@ -118,11 +118,8 @@ class CustomCourseTransferService {
     importJsonName,
   );
 
-  Future<CoursePackage> mergeCoursePackage() async => _readPackageOrJson(
-    await mergeFolder(),
-    mergePackageName,
-    mergeJsonName,
-  );
+  Future<CoursePackage> mergeCoursePackage() async =>
+      _readPackageOrJson(await mergeFolder(), mergePackageName, mergeJsonName);
 
   static FormatException _notOrdinary(String name) => FormatException(
     '$name is not an ordinary file. Copy the file itself, not a link or '
@@ -298,6 +295,7 @@ class CustomCourseTransferService {
   Future<CourseExportPayload> buildCourseExport(
     Course course, {
     String? historicalVersion,
+    String? publisherVersion,
   }) async {
     final payload = const JsonEncoder.withIndent('  ').convert(course.toJson());
     final bytes = Uint8List.fromList(utf8.encode(payload));
@@ -312,6 +310,7 @@ class CustomCourseTransferService {
         pair: CourseStorageNames.pairOfCourse(course),
         title: course.title,
         historicalVersion: historicalVersion,
+        publisherVersion: publisherVersion,
       ),
     );
   }
@@ -322,10 +321,12 @@ class CustomCourseTransferService {
   Future<FileDialogResult> exportCourseTo(
     Course course, {
     String? historicalVersion,
+    String? publisherVersion,
   }) async {
     final payload = await buildCourseExport(
       course,
       historicalVersion: historicalVersion,
+      publisherVersion: publisherVersion,
     );
     return _fileDialogs.saveBytes(
       bytes: payload.bytes,
@@ -352,9 +353,8 @@ class CustomCourseTransferService {
   Future<({FileDialogResult dialog, CoursePackage? package})>
   mergePackageFromDialog() => _packageFromDialog('course-merge');
 
-  Future<({FileDialogResult dialog, CoursePackage? package})> _packageFromDialog(
-    String artifact,
-  ) async {
+  Future<({FileDialogResult dialog, CoursePackage? package})>
+  _packageFromDialog(String artifact) async {
     // The file stays in staging and a ZIP is read from there piece by
     // piece: a 300 MB package is never held in memory whole.
     final picked = await _fileDialogs.openStaged(
@@ -396,10 +396,7 @@ class CustomCourseTransferService {
     } finally {
       await staged.discard();
     }
-    return (
-      dialog: result,
-      package: await _jsonPackage(bytes, name),
-    );
+    return (dialog: result, package: await _jsonPackage(bytes, name));
   }
 
   Future<({FileDialogResult dialog, Course? course})> _courseFromDialog(
@@ -411,7 +408,9 @@ class CustomCourseTransferService {
       artifact: artifact,
     );
     if (result.outcome == FileDialogOutcome.tooLarge) {
-      throw const FormatException('Course JSON exceeds the 10 MB safety limit.');
+      throw const FormatException(
+        'Course JSON exceeds the 10 MB safety limit.',
+      );
     }
     if (result.outcome != FileDialogOutcome.opened) {
       return (dialog: result, course: null);
@@ -420,10 +419,15 @@ class CustomCourseTransferService {
     return (dialog: result, course: course);
   }
 
-  Future<String> exportCourse(Course course, {String? historicalVersion}) async {
+  Future<String> exportCourse(
+    Course course, {
+    String? historicalVersion,
+    String? publisherVersion,
+  }) async {
     final export = await buildCourseExport(
       course,
       historicalVersion: historicalVersion,
+      publisherVersion: publisherVersion,
     );
     // Keep course exports independent from desktop file-picker/portal support.
     // They always go to one predictable Quick Export folder. (Save as… is a

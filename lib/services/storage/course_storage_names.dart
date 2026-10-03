@@ -110,7 +110,10 @@ class CourseStorageNames {
     final normalized = (name ?? '').trim().toLowerCase();
     final known = codesByName[normalized];
     if (known != null) return known;
-    final letters = normalized.toUpperCase().replaceAll(RegExp('[^A-Z0-9]'), '');
+    final letters = normalized.toUpperCase().replaceAll(
+      RegExp('[^A-Z0-9]'),
+      '',
+    );
     if (letters.isEmpty) return unknownLanguage;
     return letters.length > maxCodeLength
         ? letters.substring(0, maxCodeLength)
@@ -254,6 +257,7 @@ class CourseStorageNames {
     required String pair,
     required String title,
     String? historicalVersion,
+    String? publisherVersion,
   }) {
     final safeTitle = title
         .trim()
@@ -261,6 +265,10 @@ class CourseStorageNames {
         .replaceAll(RegExp(r'[^a-z0-9]+'), '_')
         .replaceAll(RegExp(r'^_+|_+$'), '');
     final name = safeTitle.isEmpty ? 'custom_course' : safeTitle;
+    // Export as Publisher Course (Build 262 Revision 2).
+    if (publisherVersion != null) {
+      return '${prefix}_${pair}_${name}_publisher_v${_safe(publisherVersion)}';
+    }
     if (historicalVersion == null) return '${prefix}_${pair}_$name';
     final version = _safe(historicalVersion);
     return version.isEmpty
