@@ -108,8 +108,10 @@ doce). The owner then gave G. Giacco's "Schedario napoletano" (modern,
 vesuvioweb PDF): the Course keeps j where Giacco writes i (owner's choice:
 assaje, ajere, jammo, jatta); `corsi_brevi/fonti/napoletano_report.py`
 (j = i, doubling after an article dropped, conjugated forms under their
-infinitive) finds 73 of 76 words in Giacco or Volpe; only bongiorno,
-bonasera and stasera are in neither, for review. Audit 0/0 for both. Sources and lookup tools are in
+infinitive) finds 73 of 76 words in Giacco or Volpe. Owner rule: words equal or close
+to Italian stay when the dictionaries confirm them; the three unattested ones
+became bonnì (Giacco: buondì), bemmenuto and dimanessera (domani sera), so all
+76 are attested. Audit 0 errors, 0 warnings; Duel 34 per Lesson. Audit 0/0 for both. Sources and lookup tools are in
 `corsi_brevi/fonti/` (private).
 
 Next: Build 262 is complete (Revisions 0–2). Not pushed. The owner reviews
