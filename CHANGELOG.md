@@ -25,6 +25,35 @@ shape in every Lesson and every Course.
   progression and learner data are unchanged. Beta expiry
   `2026-11-02 23:59:59` local time.
 
+Follow-up in the same version (owner review of 4 October 2026):
+
+- **Export as Publisher Course works for any publisher.** The page offered
+  only a list of the publishers the app knows; in a release build that list
+  held just the owner's own publisher, whose key is still pending. The author
+  now types the **Publisher ID** and **Publisher name** the publisher
+  received when its signing key was approved. No publisher is suggested and
+  the page names none. An ID with spaces or other characters than letters,
+  digits, dots, hyphens and underscores is pointed out, and nothing is
+  exported until both fields are filled. A note says that QuisquisLingo
+  installs the Course only where it trusts that publisher's key.
+- **The publisher is remembered for each Course** (owner choice): after a
+  successful export the app keeps that Course's publisher ID and name and
+  fills them in at the next export, with a line saying so, so an update goes
+  out for the same publisher. They are kept on the device, never in the
+  Course file. Deleting the Course in Course Studio, the custom-course reset
+  and Wipe everything remove them, and Inventory lists them.
+- **A warning compares the publisher with the accepted ones** (owner
+  choice). It never stops the export. It has three messages:
+  - this version does not accept the publisher yet: the Course can be
+    exported and signed, but not installed until an app version has its key;
+  - QuisquisLingo has revoked the publisher's signing key, so the Course
+    cannot be installed until the publisher has a new approved key;
+  - the app knows the publisher under another name, which would make the
+    installation fail.
+
+  It names only the publisher the author typed.
+- Help (EN/IT/ES) and the signing guide say the same.
+
 # 2.0.62 (Build 262, Revision 2) - Export as Publisher Course - 2026-10-03
 
 Owner decision of 2 October 2026 (`docs/PUBLISHER_COURSES_PLAN.md`, 4.3);

@@ -100,6 +100,19 @@ the 208 files from that one on reran in two batches: 1160 passed, then 879
 passed, 1 skipped, 2 failed in `timed_round_261_test.dart` (a real-time wait
 under load; 7/7 alone). Committed as Revision 3.
 
+Follow-up (same version, 4 October 2026): Export as Publisher Course for any
+publisher (owner: work for any publisher, do not even mention
+com.quisquislingo in the export dialogue). Typed Publisher ID and Publisher
+name (`PublisherIdentity`, `PublisherCourseExport.identity` /
+`publisherIdProblem`), `publishers()` removed, Help EN/IT/ES and the signing
+guide §7 updated. The owner then chose to remember the publisher per Course:
+`PublisherExportMemory` (key `qql_publisher_export_<Course ID>`, device-level),
+filled in as `initialPublisher`, forgotten on Course Studio delete, removed by
+the custom-course reset and Wipe everything, listed by Inventory. Then a warning
+against the accepted publishers (`PublisherCourseExport.trustWarning`, never
+blocking: not accepted yet, key revoked, or known under another name). Complete
+suite 3620 passed, 1 skipped, 0 failed; committed as the Revision 3 follow-up.
+
 Gotcha: with browsers open the 8 GB PC can run the test shell out of memory
 mid-suite; `remaining.py` (scratchpad) lists the unfinished files from the
 log and `run_files.ps1` reruns them in two batches (cmd line limit).

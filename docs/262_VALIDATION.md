@@ -1,5 +1,41 @@
 # Build 262 validation
 
+## Revision 3 follow-up (same version, 4 October 2026): any publisher
+
+- A complete suite started after the first part of the follow-up was stopped
+  at 1306 passed, 0 failed, when the owner chose to remember the publisher;
+  one complete run covers both parts.
+- Remembered publisher: `dart analyze` on the six changed library files and
+  the four test files: no issues. Focused
+  `publisher_course_export_262_test.dart`,
+  `course_library_operations_249_test.dart`,
+  `app_reset_service_239_test.dart`, `inventory_239_test.dart` and
+  `received_custom_course_250_test.dart`: 103 passed.
+- A second complete suite, started after the remembered publisher, was
+  stopped at 2269 passed, 0 failed, when the owner asked for the warning;
+  one complete run covers all three parts.
+- Warning: `dart analyze` on the screen, the service and the test: no issues.
+  `publisher_course_export_262_test.dart` 18 passed.
+- A third complete suite was stopped at 634 passed, 0 failed, when the owner
+  asked for a message of its own for a revoked publisher.
+- Revoked publisher: `publisher_course_export_262_test.dart` 18 passed;
+  `flutter analyze` clean.
+- Complete suite on the final tree (`--concurrency=1`, 4 October 2026,
+  01:54–02:26): **3620 passed, 1 skipped, 0 failed**.
+
+- `dart analyze` on the four changed files: no issues.
+- Focused:
+  - `publisher_course_export_262_test.dart` 13 passed. The two screen tests
+    first failed because the new fields pushed the buttons out of the 600 px
+    test view, so they now use a taller surface.
+  - With `course_library_operations_249_test.dart`,
+    `quisquislingo_courses_publisher_262_test.dart` and
+    `editor_help_translation_test.dart`: 66 passed apart from those two
+    before the fix.
+  - `publisher_signing_help_test.dart`, `localization_catalog_test.dart`,
+    `editor_help_qa_256_test.dart` and `storage_roles_255_test.dart`:
+    27 passed.
+
 ## Revision 3 (2.0.62+262003, 3 October 2026): a path shape for each Lesson
 
 - Start scan (temporary test, deleted): every candidate start with

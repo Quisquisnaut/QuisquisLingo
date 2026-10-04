@@ -69,6 +69,110 @@ Lesson's start instead of assuming the first one.
 Course files, scoring, progression and learner data are unchanged. Beta
 expiry `2026-11-02 23:59:59` local time.
 
+## Revision 3 follow-up (same version, 4 October 2026): any publisher
+
+**Why.** The owner asked that Export as Publisher Course work for any
+publisher, and that the page not even mention com.quisquislingo. Revision 2
+offered a list built from the app's trusted publishers plus QuisquisLingo
+Courses while its key is pending. In a release build that list held only
+QuisquisLingo Courses, so no other publisher could be named.
+
+**The change.** `PublisherCourseExportScreen` replaces the list with two
+fields:
+
+- **Publisher ID** (`publisher-export-publisher-id`), with an error when the
+  ID has spaces or characters other than letters, digits, dots, hyphens and
+  underscores.
+- **Publisher name** (`publisher-export-publisher-name`), exactly as
+  approved.
+
+No publisher is suggested. A note (`publisher-export-trust-note`) says that
+QuisquisLingo installs a Publisher Course only when it trusts the publisher's
+signing key (guide §§3–6). The key-pending note is gone. Point 3 of the notes
+asks for the same publisher ID and name for an update.
+
+In code, `PublisherIdentity` (ID and name) replaces `TrustedPublisherKey`
+throughout the export: `PublisherCourseExport.build`,
+`CourseLibraryOperations.exportAsPublisherCourse` / `savePublisherCourseTo`
+and `CourseLibraryReports.publisherExported`. `PublisherCourseExport.identity`
+trims the two fields and returns null while either is empty or the ID is not
+usable. `publisherIdProblem` explains a bad ID. `build` refuses an unusable
+publisher. `PublisherCourseExport.publishers()` is removed. The trusted
+publisher registry is unchanged: it decides at import, not at export.
+
+Help EN/IT/ES (the export section and the signing section's paragraph) and
+`docs/PUBLISHER_SIGNING_GUIDE.md` §7 say that the approved publisherId and
+publisherName are typed.
+
+**Remembered publisher** (owner choice, same day). `PublisherExportMemory`
+(`lib/services/publisher_export_memory.dart`) keeps the publisher each Course
+was last exported for:
+
+- **Storage:** one device-level SharedPreferences key per Course,
+  `qql_publisher_export_<URI-encoded Course ID>`, holding JSON
+  `{publisherId, publisherName}`. It is never written into the Course file or
+  the package.
+- **Writing:** `CourseLibraryOperations.exportAsPublisherCourse` writes it
+  after the ZIP is written; `savePublisherCourseTo` writes it only once the
+  dialog saved. A refused export writes nothing.
+- **Filling in:** `rememberedPublisher` reads it, and Course Studio passes it
+  to the page as `initialPublisher`. The page fills both fields and says so
+  (`publisher-export-remembered`). A stored value that is not usable is
+  ignored.
+- **Removal:** `CourseLibraryOperations.deleteCourse`, the custom-course reset
+  (`AppResetService`, which also counts the key for `hasCustomCourses`) and
+  Wipe everything remove it.
+- **Inventory:** the section **Remembered publishers** lists each Course with
+  its publisher. `docs/239_RESET_STORAGE_INVENTORY.md` has the key.
+
+**Warning against the accepted publishers** (owner choice, same day).
+`PublisherCourseExport.trustWarning(publisher, [registry])` compares the typed
+publisher with the publishers the registry accepts at installation (by
+default `TrustedPublishers.application()`):
+
+- an ID it does not know gives "does not accept this publisher yet: the
+  Course can be exported and signed, but not installed until a version of
+  the app has its signing key";
+- an ID whose keys are all revoked gives "QuisquisLingo has revoked this
+  publisher's signing key: the Course cannot be installed until the publisher
+  has a new approved key" (owner review: a revoked publisher is not "not
+  yet"); a publisher with one active key among revoked ones is accepted;
+- an accepted ID with another name gives "knows this publisher as “<approved
+  name>”: write the name exactly so, or the Course will be refused at
+  installation" (the import checks the name exactly);
+- otherwise nothing.
+
+The page shows it under the fields (`publisher-export-trust-warning`, amber
+icon) and never disables the buttons for it. It names only the publisher the
+author typed. The screen's optional `registry` serves the tests.
+
+**Tests.** In `test/publisher_course_export_262_test.dart`, the example
+publisher is `org.example.courses`. New tests cover:
+
+- any typed ID and name, trimmed;
+- a publisher the app does not know is exported too;
+- an unusable publisher is refused.
+
+The screen test types a bad ID (error shown, buttons off), then a good one,
+and exports with the typed identity. It also checks that the page shows
+neither com.quisquislingo nor QuisquisLingo Courses.
+
+For the remembered publisher:
+
+- `publisher_course_export_262_test.dart` covers one value per Course read
+  back and forgotten, unusable stored values ignored, Quick Export
+  remembering and a refused export not remembering, and the page filling in
+  a remembered publisher.
+- `course_library_operations_249_test.dart`: Delete forgets it.
+- `app_reset_service_239_test.dart`: only the custom-course reset removes it.
+- `inventory_239_test.dart`: Inventory lists it.
+
+For the warning: `trustWarning` checks an accepted publisher, a wrong name,
+an unknown ID, an ID with only revoked keys (its own message), an ID with a
+revoked and an active key, and the app's own registry. The page warns for an
+unknown ID and for a wrong name, still exports, and drops the warning once
+the name is right.
+
 ## Revision 2 (2.0.62+262002, 3 October 2026): Export as Publisher Course
 
 **The action.** Course Studio's menu of a custom Course gains **Export as

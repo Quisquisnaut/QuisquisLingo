@@ -16,6 +16,8 @@ import 'package:quisquislingo_app/services/course_package_service.dart';
 import 'package:quisquislingo_app/services/course_service.dart';
 import 'package:quisquislingo_app/services/custom_course_transfer_service.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
+import 'package:quisquislingo_app/services/publisher_course_export.dart';
+import 'package:quisquislingo_app/services/publisher_export_memory.dart';
 import 'package:quisquislingo_app/services/settings_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -688,10 +690,19 @@ void main() {
     test('Delete removes a stored Custom Course', () async {
       final mine = _course('mine', title: 'Mine');
       await editor.installImportedCustomCourse(mine);
+      await PublisherExportMemory().remember(
+        mine.courseId,
+        const PublisherIdentity(
+          publisherId: 'org.example.courses',
+          publisherName: 'Example Courses',
+        ),
+      );
 
       await ops.deleteCourse(mine);
 
       expect(await stored(), isEmpty);
+      // Build 262 Revision 3 follow-up: its remembered publisher goes too.
+      expect(await PublisherExportMemory().recall(mine.courseId), isNull);
     });
 
     test(

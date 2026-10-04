@@ -22,9 +22,9 @@ import 'new_course_structure.dart';
 import 'profile_service.dart';
 import 'progress_service.dart';
 import 'publisher_course_export.dart';
+import 'publisher_export_memory.dart';
 import 'settings_service.dart';
 import 'team_service.dart';
-import 'trusted_publishers.dart';
 
 /// The Course Manager menu entries, in menu order. [study] and [review]
 /// (Build 261 Revision 1) come from [CourseManagerLibrary.studyEntriesFor],
@@ -334,6 +334,7 @@ class CourseLibraryOperations {
     ProfileService? profiles,
     TeamService? teams,
     CourseFlagService? flags,
+    PublisherExportMemory? publisherMemory,
     DateTime Function()? clock,
   }) : editor = editor ?? CourseEditorService(),
        transfer = transfer ?? CustomCourseTransferService(),
@@ -342,6 +343,7 @@ class CourseLibraryOperations {
        _settings = settings ?? SettingsService(),
        profiles = profiles ?? ProfileService(),
        _flags = flags ?? CourseFlagService(),
+       publisherMemory = publisherMemory ?? PublisherExportMemory(),
        _clock = clock ?? DateTime.now {
     this.teams = teams ?? TeamService(profileService: this.profiles);
     _membership =
@@ -364,6 +366,10 @@ class CourseLibraryOperations {
   late final CourseLearnerVisibilityService visibility;
   final SettingsService _settings;
   final CourseFlagService _flags;
+
+  /// The publisher each Course was last exported for (owner request of
+  /// 4 October 2026).
+  final PublisherExportMemory publisherMemory;
   final DateTime Function() _clock;
 
   /// Everything Course Manager lists. With [importOnly], no Bundled Course is
@@ -612,35 +618,47 @@ class CourseLibraryOperations {
     );
   }
 
+  /// The publisher [course] was last exported for, to fill in the page.
+  Future<PublisherIdentity?> rememberedPublisher(Course course) =>
+      publisherMemory.recall(course.courseId);
+
   /// The stored [course] as an unsigned Publisher Course of [publisher],
-  /// released now, written into the fixed Exports folder. A refused Course
-  /// throws a [FormatException] naming the reasons, and nothing is written.
+  /// released now, written into the fixed Exports folder; the publisher is
+  /// then remembered for the Course. A refused Course throws a
+  /// [FormatException] naming the reasons, and nothing is written.
   Future<String> exportAsPublisherCourse(
     Course course,
-    TrustedPublisherKey publisher,
+    PublisherIdentity publisher,
   ) async {
     final exported = await _publisherCourse(course, publisher);
-    return transfer.exportCourse(
+    final path = await transfer.exportCourse(
       exported,
       publisherVersion: exported.officialCourseVersion,
     );
+    await publisherMemory.remember(course.courseId, publisher);
+    return path;
   }
 
-  /// The same Publisher Course, saved with the system dialog.
+  /// The same Publisher Course, saved with the system dialog; the publisher
+  /// is remembered once the file is saved.
   Future<FileDialogResult> savePublisherCourseTo(
     Course course,
-    TrustedPublisherKey publisher,
+    PublisherIdentity publisher,
   ) async {
     final exported = await _publisherCourse(course, publisher);
-    return transfer.exportCourseTo(
+    final result = await transfer.exportCourseTo(
       exported,
       publisherVersion: exported.officialCourseVersion,
     );
+    if (result.outcome == FileDialogOutcome.saved) {
+      await publisherMemory.remember(course.courseId, publisher);
+    }
+    return result;
   }
 
   Future<Course> _publisherCourse(
     Course course,
-    TrustedPublisherKey publisher,
+    PublisherIdentity publisher,
   ) async {
     final refusals = await publisherExportRefusals(course);
     if (refusals.isNotEmpty) throw FormatException(refusals.join(' '));
@@ -663,8 +681,10 @@ class CourseLibraryOperations {
     );
   }
 
-  Future<void> deleteCourse(Course course) =>
-      editor.deleteUserCourse(course.courseId);
+  Future<void> deleteCourse(Course course) async {
+    await editor.deleteUserCourse(course.courseId);
+    await publisherMemory.forget(course.courseId);
+  }
 
   Future<void> removePublisherCourse(Course course) =>
       editor.removePublisherCourseFromDevice(course);
@@ -825,7 +845,7 @@ abstract final class CourseLibraryReports {
   /// Export as Publisher Course (Build 262 Revision 2).
   static String publisherExported(
     Course course,
-    TrustedPublisherKey publisher,
+    PublisherIdentity publisher,
     String where,
   ) =>
       'Exported “${course.title}” as a Publisher Course of '

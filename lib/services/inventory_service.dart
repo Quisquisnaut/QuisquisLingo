@@ -12,6 +12,7 @@ import 'profile_service.dart';
 import 'course_media_store.dart';
 import 'course_favorite_service.dart';
 import 'course_received_service.dart';
+import 'publisher_export_memory.dart';
 import 'diagnostic_log_service.dart';
 import 'exercise_image_service.dart';
 import 'image_bank_service.dart';
@@ -264,6 +265,48 @@ class InventoryService {
         ],
         hiddenCount: receivedKeys.length > maxListedPerSection
             ? receivedKeys.length - maxListedPerSection
+            : 0,
+      ),
+    );
+
+    // The publisher each Course was last exported for (Export as Publisher
+    // Course, owner request of 4 October 2026).
+    final memory = PublisherExportMemory();
+    final publisherKeys =
+        preferences
+            .getKeys()
+            .where((key) => key.startsWith(PublisherExportMemory.keyPrefix))
+            .toList()
+          ..sort();
+    final publisherItems = <InventoryItem>[];
+    for (final key in publisherKeys.take(maxListedPerSection)) {
+      final encoded = key.substring(PublisherExportMemory.keyPrefix.length);
+      String courseId;
+      try {
+        courseId = Uri.decodeComponent(encoded);
+      } on FormatException {
+        courseId = encoded;
+      }
+      final publisher = await memory.recall(courseId);
+      publisherItems.add(
+        InventoryItem(
+          name: courseId,
+          note: publisher == null
+              ? 'Unreadable remembered publisher in QQL settings (no file).'
+              : 'Last exported as a Publisher Course of '
+                    '${publisher.publisherName} (${publisher.publisherId}); '
+                    'in QQL settings (no file).',
+        ),
+      );
+    }
+    sections.add(
+      InventorySection(
+        title: 'Remembered publishers',
+        description:
+            'The publisher ID and name each Course was last exported for with Export as Publisher Course, filled in at the next export. They are stored inside QQL settings.',
+        items: publisherItems,
+        hiddenCount: publisherKeys.length > maxListedPerSection
+            ? publisherKeys.length - maxListedPerSection
             : 0,
       ),
     );

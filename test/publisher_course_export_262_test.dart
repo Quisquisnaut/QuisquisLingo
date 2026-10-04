@@ -15,6 +15,7 @@ import 'package:quisquislingo_app/services/course_service.dart';
 import 'package:quisquislingo_app/services/custom_course_transfer_service.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:quisquislingo_app/services/publisher_course_export.dart';
+import 'package:quisquislingo_app/services/publisher_export_memory.dart';
 import 'package:quisquislingo_app/services/publisher_verification_service.dart';
 import 'package:quisquislingo_app/services/trusted_publishers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -23,15 +24,19 @@ import 'support/publisher_fixtures.dart';
 
 /// Build 262 Revision 2 (`docs/PUBLISHER_COURSES_PLAN.md` 4.3): Export as
 /// Publisher Course turns a custom Course its Maintainer or Team may
-/// publish into an unsigned Publisher Course of a known publisher, every ID
-/// kept, its official version the Course version (owner decision of
-/// 3 October 2026).
+/// publish into an unsigned Publisher Course, every ID kept, its official
+/// version the Course version (owner decision of 3 October 2026), for any
+/// publisher the author names (owner decision of 4 October 2026).
 
 const _alice = '11111111-1111-4111-8111-111111111111';
 const _bob = '22222222-2222-4222-8222-222222222222';
 const _courseId = 'course_7c1d2b9e-4f3a-4b6c-8d2e-1a5f9e3c7b40';
 final _when = DateTime.utc(2026, 10, 3, 16, 45);
-const _publisher = TrustedPublishers.quisquisLingoCourses;
+const _publisher = PublisherIdentity(
+  publisherId: 'org.example.courses',
+  publisherName: 'Example Courses',
+);
+const _keyId = 'example-2026-1';
 
 const _officialKeys = [
   'publisherId',
@@ -83,7 +88,7 @@ List<String> _ids(Course course) => [
   ],
 ];
 
-/// TEST ONLY: a deterministic Ed25519 key for QuisquisLingo Courses.
+/// TEST ONLY: a deterministic Ed25519 key for the example publisher.
 Future<SimpleKeyPair> _testKeyPair() =>
     Ed25519().newKeyPairFromSeed(List<int>.generate(32, (i) => 0xA5 ^ i));
 
@@ -94,7 +99,7 @@ Future<PublisherVerificationService> _testVerifier() async {
       TrustedPublisherKey(
         publisherId: _publisher.publisherId,
         publisherName: _publisher.publisherName,
-        keyId: _publisher.keyId,
+        keyId: _keyId,
         publicKeyBase64: base64Encode(publicKey.bytes),
       ),
     ]),
@@ -181,13 +186,13 @@ void main() {
       expect(exported.originType, CourseOriginType.externalOfficial);
       expect(exported.courseId, _courseId);
       expect(_ids(exported), _ids(source));
-      expect(exported.publisherId, 'com.quisquislingo');
-      expect(exported.publisherName, 'QuisquisLingo Courses');
+      expect(exported.publisherId, 'org.example.courses');
+      expect(exported.publisherName, 'Example Courses');
       expect(
         exported.originalCourseCreator.type,
         CourseProvenanceIdentityType.publisher,
       );
-      expect(exported.originalCourseCreator.id, 'com.quisquislingo');
+      expect(exported.originalCourseCreator.id, 'org.example.courses');
       expect(exported.originalCreatedAtUtc, source.originalCreatedAtUtc);
       expect(exported.officialCourseVersion, '3');
       expect(exported.officialReleaseNotes, 'Edition 3.');
@@ -221,34 +226,169 @@ void main() {
     });
   });
 
-  group('publishers', () {
-    test('QuisquisLingo Courses is offered even while its key is pending', () {
-      expect(PublisherCourseExport.publishers(TrustedPublishers(const [])), [
-        _publisher,
-      ]);
+  group('publisher', () {
+    test('any publisher ID and name the author types, trimmed', () {
+      final identity = PublisherCourseExport.identity(
+        '  net.someone.lessons ',
+        ' Someone Lessons ',
+      )!;
+      expect(identity.publisherId, 'net.someone.lessons');
+      expect(identity.publisherName, 'Someone Lessons');
+      expect(PublisherCourseExport.identity('', 'Someone'), isNull);
+      expect(PublisherCourseExport.identity('net.someone', '  '), isNull);
+      expect(PublisherCourseExport.identity('net someone', 'Someone'), isNull);
+      expect(PublisherCourseExport.publisherIdProblem(''), isNull);
+      expect(
+        PublisherCourseExport.publisherIdProblem('net.some_one-2'),
+        isNull,
+      );
+      expect(
+        PublisherCourseExport.publisherIdProblem('net someone'),
+        'A publisher ID has no spaces: only letters, digits, dots, hyphens '
+        'and underscores.',
+      );
     });
 
-    test('one entry per publisher, revoked keys left out', () {
+    test('a publisher the app does not know is exported too', () async {
+      const unknown = PublisherIdentity(
+        publisherId: 'net.someone.lessons',
+        publisherName: 'Someone Lessons',
+      );
+      expect(
+        TrustedPublishers.application().keys.map((key) => key.publisherId),
+        isNot(contains(unknown.publisherId)),
+      );
+      final exported = PublisherCourseExport.build(
+        await _custom(),
+        unknown,
+        now: _when,
+      );
+      expect(exported.publisherId, 'net.someone.lessons');
+      expect(exported.publisherName, 'Someone Lessons');
+      expect(
+        () => PublisherCourseExport.build(exported, _publisher, now: _when),
+        throwsArgumentError,
+        reason: 'already a Publisher Course',
+      );
+    });
+
+    test('a warning compares the publisher with the accepted ones', () {
+      // Owner request of 4 October 2026: warn, never refuse.
+      const accepted = TrustedPublisherKey(
+        publisherId: 'org.example.courses',
+        publisherName: 'Example Courses',
+        keyId: 'example-2026-1',
+        publicKeyBase64: 'AA==',
+      );
       const revoked = TrustedPublisherKey(
-        publisherId: 'org.example.revoked',
-        publisherName: 'Revoked',
-        keyId: 'r-1',
+        publisherId: 'net.old.lessons',
+        publisherName: 'Old Lessons',
+        keyId: 'old-1',
         publicKeyBase64: 'AA==',
         revoked: true,
       );
-      const second = TrustedPublisherKey(
-        publisherId: 'com.quisquislingo',
-        publisherName: 'QuisquisLingo Courses',
-        keyId: 'qqlc-2027-1',
-        publicKeyBase64: 'AA==',
+      final registry = TrustedPublishers(const [accepted, revoked]);
+      String? warning(String id, String name) =>
+          PublisherCourseExport.trustWarning(
+            PublisherIdentity(publisherId: id, publisherName: name),
+            registry,
+          );
+
+      expect(warning('org.example.courses', 'Example Courses'), isNull);
+      expect(
+        warning('org.example.courses', 'Example courses'),
+        'This version of QuisquisLingo knows this publisher as “Example '
+        'Courses”: write the name exactly so, or the Course will be refused '
+        'at installation.',
       );
-      final listed = PublisherCourseExport.publishers(
-        TrustedPublishers([TrustedPublishers.dummy, revoked, second]),
+      const notAccepted =
+          'This version of QuisquisLingo does not accept this publisher yet: '
+          'the Course can be exported and signed, but not installed until a '
+          'version of the app has its signing key.';
+      expect(warning('net.someone.lessons', 'Someone Lessons'), notAccepted);
+      // Revoked is not "not yet" (owner review of 4 October 2026).
+      expect(
+        warning('net.old.lessons', 'Old Lessons'),
+        "QuisquisLingo has revoked this publisher's signing key: the Course "
+        'cannot be installed until the publisher has a new approved key.',
       );
-      expect(listed.map((key) => key.publisherId), [
-        TrustedPublishers.dummy.publisherId,
-        'com.quisquislingo',
-      ]);
+      // A publisher with a revoked and an active key is accepted.
+      expect(
+        PublisherCourseExport.trustWarning(
+          const PublisherIdentity(
+            publisherId: 'net.old.lessons',
+            publisherName: 'Old Lessons',
+          ),
+          TrustedPublishers(const [
+            revoked,
+            TrustedPublisherKey(
+              publisherId: 'net.old.lessons',
+              publisherName: 'Old Lessons',
+              keyId: 'old-2',
+              publicKeyBase64: 'AA==',
+            ),
+          ]),
+        ),
+        isNull,
+      );
+      // This app accepts no such publisher.
+      expect(
+        PublisherCourseExport.trustWarning(
+          const PublisherIdentity(
+            publisherId: 'net.someone.lessons',
+            publisherName: 'Someone Lessons',
+          ),
+        ),
+        notAccepted,
+      );
+    });
+
+    test('an unusable publisher is refused', () async {
+      final course = await _custom();
+      for (final publisher in const [
+        PublisherIdentity(publisherId: 'net someone', publisherName: 'X'),
+        PublisherIdentity(publisherId: 'net.someone', publisherName: ' '),
+      ]) {
+        expect(
+          () => PublisherCourseExport.build(course, publisher, now: _when),
+          throwsArgumentError,
+        );
+      }
+    });
+  });
+
+  group('remembered publisher', () {
+    test('one per Course, read back, forgotten', () async {
+      final memory = PublisherExportMemory();
+      expect(await memory.recall(_courseId), isNull);
+      await memory.remember(_courseId, _publisher);
+      final recalled = (await memory.recall(_courseId))!;
+      expect(recalled.publisherId, 'org.example.courses');
+      expect(recalled.publisherName, 'Example Courses');
+      expect(await memory.recall('course_other'), isNull);
+      final prefs = await SharedPreferences.getInstance();
+      expect(
+        prefs.getKeys().where(
+          (key) => key.startsWith(PublisherExportMemory.keyPrefix),
+        ),
+        [PublisherExportMemory.keyForCourseId(_courseId)],
+      );
+      await memory.forget(_courseId);
+      expect(await memory.recall(_courseId), isNull);
+    });
+
+    test('an unusable stored value is ignored', () async {
+      final prefs = await SharedPreferences.getInstance();
+      final key = PublisherExportMemory.keyForCourseId(_courseId);
+      for (final raw in [
+        'not json',
+        '[]',
+        '{"publisherId": "net someone", "publisherName": "X"}',
+        '{"publisherId": "net.someone"}',
+      ]) {
+        await prefs.setString(key, raw);
+        expect(await PublisherExportMemory().recall(_courseId), isNull);
+      }
     });
   });
 
@@ -291,10 +431,13 @@ void main() {
     }
 
     test('Quick Export writes the ZIP the signing tool starts from', () async {
-      final path = await ops.exportAsPublisherCourse(
-        await _custom(),
-        _publisher,
-      );
+      final source = await _custom();
+      expect(await ops.rememberedPublisher(source), isNull);
+      final path = await ops.exportAsPublisherCourse(source, _publisher);
+      // The publisher is remembered for the next export of this Course.
+      final remembered = (await ops.rememberedPublisher(source))!;
+      expect(remembered.publisherId, _publisher.publisherId);
+      expect(remembered.publisherName, _publisher.publisherName);
       expect(
         path,
         endsWith('QQL_IT_EN_qql_demo_english_from_italian_publisher_v3.zip'),
@@ -314,7 +457,7 @@ void main() {
         ),
       );
       final pair = await _testKeyPair();
-      final first = await signWithKey(course, pair, _publisher.keyId);
+      final first = await signWithKey(course, pair, _keyId);
       expect(
         (await editor.installExternalOfficialUpdate(
           first,
@@ -329,7 +472,7 @@ void main() {
           ),
         ),
         pair,
-        _publisher.keyId,
+        _keyId,
       );
       final updated = await editor.installExternalOfficialUpdate(next);
       expect(updated.officialCourse.officialCourseVersion, '4');
@@ -355,6 +498,7 @@ void main() {
         ),
       );
       expect(folder.listSync(), isEmpty);
+      expect(await PublisherExportMemory().recall(_courseId), isNull);
     });
 
     test('someone else\'s Course is not exported', () async {
@@ -404,13 +548,15 @@ void main() {
       tester,
     ) async {
       final course = (await tester.runAsync(_custom))!;
+      // The whole page, buttons included, is built.
+      await tester.binding.setSurfaceSize(const Size(800, 1800));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
       var exports = 0;
       await tester.pumpWidget(
         MaterialApp(
           home: PublisherCourseExportScreen(
             course: course,
             refusals: const ['The Course has no Course version yet.'],
-            publishers: const [_publisher],
             onExport: (_) async => exports++,
           ),
         ),
@@ -431,17 +577,117 @@ void main() {
       expect(exports, 0);
     });
 
-    testWidgets('Quick Export exports for the chosen publisher', (
+    testWidgets('the page warns about a publisher it would not accept', (
       tester,
     ) async {
       final course = (await tester.runAsync(_custom))!;
-      final chosen = <TrustedPublisherKey>[];
+      await tester.binding.setSurfaceSize(const Size(800, 1800));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      final registry = TrustedPublishers(const [
+        TrustedPublisherKey(
+          publisherId: 'org.example.courses',
+          publisherName: 'Example Courses',
+          keyId: 'example-2026-1',
+          publicKeyBase64: 'AA==',
+        ),
+      ]);
+      var exports = 0;
       await tester.pumpWidget(
         MaterialApp(
           home: PublisherCourseExportScreen(
             course: course,
             refusals: const [],
-            publishers: const [_publisher, TrustedPublishers.dummy],
+            registry: registry,
+            onExport: (_) async => exports++,
+          ),
+        ),
+      );
+      final warning = find.byKey(const Key('publisher-export-trust-warning'));
+      expect(warning, findsNothing);
+
+      Future<void> type(String id, String name) async {
+        await tester.enterText(
+          find.byKey(const Key('publisher-export-publisher-id')),
+          id,
+        );
+        await tester.enterText(
+          find.byKey(const Key('publisher-export-publisher-name')),
+          name,
+        );
+        await tester.pump();
+      }
+
+      await type('net.someone.lessons', 'Someone Lessons');
+      expect(warning, findsOneWidget);
+      expect(find.textContaining('does not accept this publisher'), findsOne);
+      await type('org.example.courses', 'Example courses');
+      expect(
+        find.textContaining('knows this publisher as “Example Courses”'),
+        findsOne,
+      );
+      // A warning, not a refusal.
+      await tester.tap(find.byKey(const Key('publisher-export-quick')));
+      await tester.pump();
+      expect(exports, 1);
+      await type('org.example.courses', 'Example Courses');
+      expect(warning, findsNothing);
+    });
+
+    testWidgets('a remembered publisher is filled in', (tester) async {
+      final course = (await tester.runAsync(_custom))!;
+      await tester.binding.setSurfaceSize(const Size(800, 1800));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      final chosen = <PublisherIdentity>[];
+      await tester.pumpWidget(
+        MaterialApp(
+          home: PublisherCourseExportScreen(
+            course: course,
+            refusals: const [],
+            initialPublisher: _publisher,
+            onExport: (publisher) async => chosen.add(publisher),
+          ),
+        ),
+      );
+      expect(
+        tester
+            .widget<TextField>(
+              find.byKey(const Key('publisher-export-publisher-id')),
+            )
+            .controller!
+            .text,
+        'org.example.courses',
+      );
+      expect(
+        tester
+            .widget<TextField>(
+              find.byKey(const Key('publisher-export-publisher-name')),
+            )
+            .controller!
+            .text,
+        'Example Courses',
+      );
+      expect(
+        find.byKey(const Key('publisher-export-remembered')),
+        findsOneWidget,
+      );
+      await tester.tap(find.byKey(const Key('publisher-export-quick')));
+      await tester.pump();
+      expect(chosen.single.publisherId, 'org.example.courses');
+    });
+
+    testWidgets('Quick Export exports for the publisher the author names', (
+      tester,
+    ) async {
+      final course = (await tester.runAsync(_custom))!;
+      // The whole page, buttons included, is built.
+      await tester.binding.setSurfaceSize(const Size(800, 1800));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      final chosen = <PublisherIdentity>[];
+      await tester.pumpWidget(
+        MaterialApp(
+          home: PublisherCourseExportScreen(
+            course: course,
+            refusals: const [],
             onExport: (publisher) async => chosen.add(publisher),
             onSaveTo: (_) async {},
           ),
@@ -454,26 +700,48 @@ void main() {
         ),
         findsOneWidget,
       );
-      if (TrustedPublishers.quisquisLingoCoursesPublicKeyBase64.isEmpty) {
-        expect(
-          find.byKey(const Key('publisher-export-key-pending')),
-          findsOneWidget,
-        );
-      }
-      await tester.tap(find.byKey(const Key('publisher-export-publisher')));
-      await tester.pumpAndSettle();
-      await tester.tap(
-        find
-            .text(
-              '${TrustedPublishers.dummy.publisherName} '
-              '(${TrustedPublishers.dummy.publisherId})',
-            )
-            .last,
+      // No publisher is suggested (owner decision of 4 October 2026).
+      expect(find.textContaining('com.quisquislingo'), findsNothing);
+      expect(find.textContaining('QuisquisLingo Courses'), findsNothing);
+      FilledButton quick() => tester.widget<FilledButton>(
+        find.byKey(const Key('publisher-export-quick')),
       );
-      await tester.pumpAndSettle();
+      OutlinedButton saveAs() => tester.widget<OutlinedButton>(
+        find.byKey(const Key('publisher-export-save-as')),
+      );
+      expect(quick().onPressed, isNull);
+      expect(saveAs().onPressed, isNull);
+      expect(
+        find.byKey(const Key('publisher-export-remembered')),
+        findsNothing,
+      );
+
+      await tester.enterText(
+        find.byKey(const Key('publisher-export-publisher-id')),
+        'net someone',
+      );
+      await tester.enterText(
+        find.byKey(const Key('publisher-export-publisher-name')),
+        'Someone Lessons',
+      );
+      await tester.pump();
+      expect(
+        find.textContaining('A publisher ID has no spaces'),
+        findsOneWidget,
+      );
+      expect(quick().onPressed, isNull);
+
+      await tester.enterText(
+        find.byKey(const Key('publisher-export-publisher-id')),
+        'net.someone.lessons ',
+      );
+      await tester.pump();
+      expect(find.textContaining('A publisher ID has no spaces'), findsNothing);
+      expect(saveAs().onPressed, isNotNull);
       await tester.tap(find.byKey(const Key('publisher-export-quick')));
       await tester.pump();
-      expect(chosen, [TrustedPublishers.dummy]);
+      expect(chosen.single.publisherId, 'net.someone.lessons');
+      expect(chosen.single.publisherName, 'Someone Lessons');
     });
   });
 }

@@ -117,6 +117,24 @@ void main() {
     expect(received.items.single.path, isNull);
   });
 
+  test('lists the remembered publisher of each Course', () async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(
+      'qql_publisher_export_friend%2Fcourse',
+      '{"publisherId": "org.example.courses", "publisherName": "Example"}',
+    );
+
+    final all = await service.load();
+    final remembered = sectionOf(all, 'Remembered publishers');
+    expect(remembered.count, 1);
+    expect(remembered.items.single.name, 'friend/course');
+    expect(
+      remembered.items.single.note,
+      contains('Example (org.example.courses)'),
+    );
+    expect(remembered.items.single.path, isNull);
+  });
+
   test('lists active learner Course Favorite flags with their owner', () async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(

@@ -25,7 +25,6 @@ import '../services/course_access_policy.dart';
 import '../services/sound_effect_service.dart';
 import '../services/new_course_structure.dart';
 import '../services/publisher_course_export.dart';
-import '../services/trusted_publishers.dart';
 import '../widgets/language_field.dart';
 import '../widgets/course_cover_field.dart';
 import '../widgets/course_flag_picker.dart';
@@ -1023,13 +1022,14 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
   /// Export as Publisher Course (Build 262 Revision 2).
   Future<void> _openPublisherExport(Course course) async {
     final refusals = await _ops.publisherExportRefusals(course);
+    final remembered = await _ops.rememberedPublisher(course);
     if (!mounted) return;
     await Navigator.of(context).push<void>(
       MaterialPageRoute(
         builder: (_) => PublisherCourseExportScreen(
           course: course,
           refusals: refusals,
-          publishers: PublisherCourseExport.publishers(),
+          initialPublisher: remembered,
           onExport: (publisher) => _exportAsPublisher(course, publisher),
           onSaveTo: _transfer.fileDialogsAvailable
               ? (publisher) => _savePublisherCourseTo(course, publisher)
@@ -2454,7 +2454,7 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
 
   Future<void> _exportAsPublisher(
     Course course,
-    TrustedPublisherKey publisher,
+    PublisherIdentity publisher,
   ) async {
     try {
       final path = await _ops.exportAsPublisherCourse(course, publisher);
@@ -2481,7 +2481,7 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
 
   Future<void> _savePublisherCourseTo(
     Course course,
-    TrustedPublisherKey publisher,
+    PublisherIdentity publisher,
   ) async {
     try {
       final result = await _ops.savePublisherCourseTo(course, publisher);

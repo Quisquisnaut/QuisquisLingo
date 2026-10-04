@@ -4,6 +4,21 @@ import 'course_audit_service.dart';
 import 'course_checksums.dart';
 import 'trusted_publishers.dart';
 
+/// The publisher a Course is exported for: the publisher ID and name the
+/// QQL owner gave it when approving its signing key
+/// (`docs/PUBLISHER_SIGNING_GUIDE.md` §§3–6), typed by the author. Any
+/// publisher can be named; the app that imports the Course decides whether
+/// it trusts the publisher's key.
+class PublisherIdentity {
+  const PublisherIdentity({
+    required this.publisherId,
+    required this.publisherName,
+  });
+
+  final String publisherId;
+  final String publisherName;
+}
+
 /// Export as Publisher Course (Build 262 Revision 2,
 /// `docs/PUBLISHER_COURSES_PLAN.md` 4.3): a custom Course its Maintainer or
 /// assigned Team may publish, turned into an unsigned Publisher Course
@@ -13,7 +28,8 @@ import 'trusted_publishers.dart';
 /// Every ID is kept, so a later export of the same Course is an update of
 /// the same Publisher Course; its official version is the Course version,
 /// which rises at every confirmed save (owner decision of 3 October 2026).
-/// The stored Course is never changed.
+/// The stored Course is never changed. The publisher is any the author
+/// names (owner decision of 4 October 2026), not a list of the app's.
 abstract final class PublisherCourseExport {
   /// The distribution channel of an exported Publisher Course.
   static const distributionChannel = 'publisher';
@@ -23,19 +39,26 @@ abstract final class PublisherCourseExport {
   static const noAccessReason =
       'Only the Maintainer or assigned Team can publish this Course.';
 
-  /// The publishers a Course can be exported for, one per publisher: the
-  /// active keys of [registry] (by default the app's) and QuisquisLingo
-  /// Courses, whose key may still be pending.
-  static List<TrustedPublisherKey> publishers([TrustedPublishers? registry]) {
-    final byId = <String, TrustedPublisherKey>{};
-    for (final key in [
-      ...(registry ?? TrustedPublishers.application()).keys,
-      TrustedPublishers.quisquisLingoCourses,
-    ]) {
-      if (key.revoked) continue;
-      byId.putIfAbsent(key.publisherId, () => key);
+  static final _publisherIdPattern = RegExp(r'^[A-Za-z0-9._-]+$');
+
+  /// What is wrong with a typed publisher ID; null when it is usable or
+  /// still empty.
+  static String? publisherIdProblem(String publisherId) {
+    final id = publisherId.trim();
+    if (id.isEmpty || _publisherIdPattern.hasMatch(id)) return null;
+    return 'A publisher ID has no spaces: only letters, digits, dots, '
+        'hyphens and underscores.';
+  }
+
+  /// [publisherId] and [publisherName] as a [PublisherIdentity], trimmed;
+  /// null while either is empty or the ID is not usable.
+  static PublisherIdentity? identity(String publisherId, String publisherName) {
+    final id = publisherId.trim();
+    final name = publisherName.trim();
+    if (id.isEmpty || name.isEmpty || publisherIdProblem(id) != null) {
+      return null;
     }
-    return List.unmodifiable(byId.values);
+    return PublisherIdentity(publisherId: id, publisherName: name);
   }
 
   /// Why [course] cannot be exported as a Publisher Course; empty when it
@@ -76,12 +99,45 @@ abstract final class PublisherCourseExport {
     ];
   }
 
+  /// A warning, never a refusal, comparing [publisher] with the publishers
+  /// [registry] (by default this app's) accepts at installation (owner
+  /// request of 4 October 2026): an ID it does not know, an ID whose keys
+  /// are all revoked, or a name other than the approved one, each of which
+  /// would make the import fail. It names only the publisher the author
+  /// typed; null when the Course would be accepted.
+  static String? trustWarning(
+    PublisherIdentity publisher, [
+    TrustedPublishers? registry,
+  ]) {
+    final keys = (registry ?? TrustedPublishers.application()).keys
+        .where((key) => key.publisherId == publisher.publisherId)
+        .toList();
+    if (keys.isEmpty) {
+      return 'This version of QuisquisLingo does not accept this publisher '
+          'yet: the Course can be exported and signed, but not installed '
+          'until a version of the app has its signing key.';
+    }
+    final active = keys.where((key) => !key.revoked).toList();
+    if (active.isEmpty) {
+      return "QuisquisLingo has revoked this publisher's signing key: the "
+          'Course cannot be installed until the publisher has a new approved '
+          'key.';
+    }
+    if (active.any((key) => key.publisherName == publisher.publisherName)) {
+      return null;
+    }
+    return 'This version of QuisquisLingo knows this publisher as '
+        '“${active.first.publisherName}”: write the name exactly so, or the '
+        'Course will be refused at installation.';
+  }
+
   /// [course] as an unsigned Publisher Course of [publisher], released
   /// [now]. Throws [ArgumentError] when [refusals] would refuse it for a
-  /// reason of its own (access is the caller's).
+  /// reason of its own (access is the caller's) or [identity] would not
+  /// accept the publisher.
   static Course build(
     Course course,
-    TrustedPublisherKey publisher, {
+    PublisherIdentity publisher, {
     required DateTime now,
   }) {
     if (course.originType != CourseOriginType.custom ||
@@ -89,6 +145,10 @@ abstract final class PublisherCourseExport {
         course.mergeProvenance != null ||
         course.courseVersion.isEmpty) {
       throw ArgumentError('This Course cannot become a Publisher Course.');
+    }
+    final checked = identity(publisher.publisherId, publisher.publisherName);
+    if (checked == null) {
+      throw ArgumentError('Name the publisher with a usable ID and name.');
     }
     final json = course.toJson()
       ..remove('maintainer')
@@ -101,11 +161,11 @@ abstract final class PublisherCourseExport {
     final unsigned = Course.fromJson({
       ...json,
       'originType': CourseOriginType.externalOfficial.name,
-      'publisherId': publisher.publisherId,
-      'publisherName': publisher.publisherName,
+      'publisherId': checked.publisherId,
+      'publisherName': checked.publisherName,
       'originalCourseCreator': CourseProvenanceIdentity.publisher(
-        publisherId: publisher.publisherId,
-        displayName: publisher.publisherName,
+        publisherId: checked.publisherId,
+        displayName: checked.publisherName,
       ).toJson(),
       'officialCourseVersion': course.courseVersion,
       'officialReleaseDateUtc': now.toUtc().toIso8601String(),
