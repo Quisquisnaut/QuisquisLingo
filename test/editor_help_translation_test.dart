@@ -97,7 +97,8 @@ void main() {
         expect(ids(english), hasLength(82));
         expect(ids(italian), ids(english));
         expect(ids(spanish), ids(english));
-        expect(managerEnglish, hasLength(14));
+        // Build 262 Revision 2 adds Export as Publisher Course.
+        expect(managerEnglish, hasLength(15));
         expect(managerItalian, hasLength(managerEnglish.length));
         expect(managerSpanish, hasLength(managerEnglish.length));
         expect(english.map((topic) => topic.title), [
@@ -118,6 +119,7 @@ void main() {
             'Course creation rules',
             'Import a custom course',
             'Export a custom course',
+            'Export as Publisher Course',
             'Course responsibility, permissions and Teams',
             'Android device backup (technical)',
             'Course operations',

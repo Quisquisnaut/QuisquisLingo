@@ -38,10 +38,7 @@ double _hardShare(LearningRound round) {
 }
 
 void main() {
-  for (final file in [
-    'english_from_italian_it_en.json',
-    'piedmontese_mixed_en.json',
-  ]) {
+  for (final file in ['english_from_italian_it_en.json']) {
     group(file, () {
       final course = _load(file);
       final rounds = _practice(course);

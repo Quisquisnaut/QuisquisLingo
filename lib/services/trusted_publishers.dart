@@ -30,8 +30,26 @@ class TrustedPublishers {
     keyId: 'dummy-1',
     publicKeyBase64: 'gSmelpGZaX9VzzJY6IkKGheBAtn56oVtwH7I7mwLgMs=',
   );
+
+  /// QuisquisLingo Courses, the publisher of the owner's own Courses
+  /// (`docs/PUBLISHER_COURSES_PLAN.md` 4.2, Build 262 Revision 1): a
+  /// publisher separate from the app, approved like any other
+  /// (`docs/PUBLISHER_SIGNING_GUIDE.md` §§3–6).
+  ///
+  /// Its key is pending: the owner creates it on their own computer (guide
+  /// §2) and puts here the Base64 of its 32 public-key bytes (guide §6).
+  /// While this is empty the app trusts no key for this publisher.
+  static const quisquisLingoCoursesPublicKeyBase64 = '';
+  static const quisquisLingoCourses = TrustedPublisherKey(
+    publisherId: 'com.quisquislingo',
+    publisherName: 'QuisquisLingo Courses',
+    keyId: 'qqlc-2026-1',
+    publicKeyBase64: quisquisLingoCoursesPublicKeyBase64,
+  );
+
   factory TrustedPublishers.application() => TrustedPublishers([
-    // Production keys: none approved yet. Do not add test keys here.
+    // Production keys: only approved ones. Do not add test keys here.
+    if (quisquisLingoCoursesPublicKeyBase64.isNotEmpty) quisquisLingoCourses,
     if (dummyEnabled) dummy,
   ]);
 

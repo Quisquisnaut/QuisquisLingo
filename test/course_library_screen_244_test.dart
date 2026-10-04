@@ -189,10 +189,10 @@ void main() {
         findsOneWidget,
       );
     }
-    // Four bundled demos since Build 260 Revision 2 and the Edge Case
+    // Two bundled demos since Build 262 Revision 0 and the Edge Case
     // fixture.
-    expect(CourseService.bundledAssets, hasLength(5));
-    expect(count(tester, 0), ' · 4 of 5 shown');
+    expect(CourseService.bundledAssets, hasLength(3));
+    expect(count(tester, 0), ' · 2 of 3 shown');
     final edge = (await tester.runAsync(
       () => CourseService().loadCourse('EN_EDGE'),
     ))!;
@@ -220,7 +220,7 @@ void main() {
 
     await tester.tap(find.byKey(const Key('show-unavailable-courses')));
     await tester.pump();
-    expect(count(tester, 0), ' · 5');
+    expect(count(tester, 0), ' · 3');
     expect(row(edge), findsOneWidget);
     expect(
       find.descendant(of: row(edge), matching: find.text('Draft')),

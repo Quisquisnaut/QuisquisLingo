@@ -441,7 +441,7 @@ void main() {
     for (final file in const [
       'exercise_laboratory_en_it.json',
       'edge_case_it_en.json',
-      'piedmontais_en.json',
+      'english_from_italian_it_en.json',
     ]) {
       test('$file: every exercise follows the three rules', () {
         final course = _load(file);

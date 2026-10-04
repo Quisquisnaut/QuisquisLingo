@@ -273,6 +273,7 @@ class _CoursePreviewScreenState extends State<CoursePreviewScreen> {
       mascotPositionOffset: learnerMascotPositionOffsetForLesson(
         course.lessons,
         lessonIndex,
+        courseId: course.courseId,
       ),
       roundPositionOffset: learnerRoundPositionOffsetForLesson(
         course.lessons,

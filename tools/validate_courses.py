@@ -26,8 +26,6 @@ ROOT = Path(__file__).resolve().parents[1]
 COURSES = ROOT / "assets" / "courses"
 EXPECTED_TTS = {
     "exercise_laboratory_en_it.json": "it-IT",
-    "piedmontais_en.json": "pms-IT",
-    "piedmontese_mixed_en.json": "pms-IT",
     "english_from_italian_it_en.json": "en-GB",
 }
 TEXT_MODES = {"exactText", "acceptedTexts", "expression"}
@@ -490,11 +488,6 @@ def validate(path: Path, global_ids: dict[str, str]) -> list[str]:
     expected_lessons = {
         # The Page Lesson (Build 258 Revision 3) is the eighth.
         "exercise_laboratory_en_it.json": 8,
-        # Listen and choose (Build 259 Revision 2) adds two Lessons.
-        "piedmontais_en.json": 41,
-        # QQL Demo: Piedmontese (Build 259 Revision 6): the mixed practice
-        # Lesson and the Story.
-        "piedmontese_mixed_en.json": 2,
         # QQL Demo: English from Italian (Build 260 Revision 2): one Lesson.
         "english_from_italian_it_en.json": 1,
     }.get(path.name, 9)

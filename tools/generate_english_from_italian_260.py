@@ -29,7 +29,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from generate_piedmontais_demo_254 import (  # noqa: E402
+from qql_v11_builders import (  # noqa: E402
     arrange, audio, choose, enter, flashcard, gaps, image, match, note, picture_card, text, turn,
 )
 from qql_course_v12 import becomes_exercise, convert_course_v11_to_v12, story_cover, story_flow, story_line  # noqa: E402
@@ -250,8 +250,8 @@ def mixed_rounds(exercises: list[dict]) -> list[list[dict]]:
 
 
 def with_ids(content: dict, content_id: str) -> dict:
-    """The Content with its ID and its items' IDs, as the Piedmontese demo
-    names them."""
+    """The Content with its ID and its items' IDs, named as the former
+    Piedmontese demo named them."""
     content = copy.deepcopy(content)
     content["id"] = content_id
     if content["kind"] != "exercise":

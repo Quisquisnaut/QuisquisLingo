@@ -2,7 +2,7 @@
 
 ## Status: signature verification implemented
 
-Build 241 now verifies Ed25519 publisher signatures for Publisher Course imports, both with Quick Import and from the system file dialog. The storage service checks again before installation. Missing, invalid, unknown or revoked signatures are rejected. The normal trusted publisher registry currently has no approved external publishers; the Dummy identity is for explicitly enabled test builds only.
+Build 241 now verifies Ed25519 publisher signatures for Publisher Course imports, both with Quick Import and from the system file dialog. The storage service checks again before installation. Missing, invalid, unknown or revoked signatures are rejected. The normal trusted publisher registry currently has no approved external publishers; the Dummy identity is for explicitly enabled test builds only. Since Build 262 the registry has a place for QuisquisLingo Courses (com.quisquislingo, key ID qqlc-2026-1), the publisher of the owner's own Courses; its public key is still empty, so the app trusts none of its Courses yet.
 
 Publisher approval is a manual owner process. The owner maintains the public-key registry in lib/services/trusted_publishers.dart and distributes changes with an app update. There is no approval portal or in-app signing button. A developer command and OpenSSL provide course signing outside the app.
 
@@ -134,6 +134,8 @@ Approval authenticates the publisher identity, not ownership of every course ID 
 
 Start with a valid externalOfficial JSON for Course Model v12, with your exact approved publisherId and publisherName, publisher lineage, stable courseId and release metadata. For an update retain the course ID/provenance and increase officialCourseVersion. Resolve blocking Course Audit errors and check content/media licenses. The tool does not convert custom courses or invent publisher metadata.
 
+Since Build 262, QQL can make that JSON from a custom Course you maintain: in Course Studio, Export as Publisher Course in the Course's menu writes an ordinary Course ZIP whose course.json is the unsigned Publisher Course (every ID kept, the approved publisherId and publisherName you type, the Course version as officialCourseVersion) and whose media folder holds its media under their SHA-256 names. Unzip it and use course.json and the media folder in the commands below. For an update, export the same Course again after a confirmed change.
+
 Run from the QQL repository. Replace dummy-1 with your approved keyId and use your actual input/output/key paths. The examples use a separate working folder named C:/QQL-Publisher:
 
 ```text
@@ -165,7 +167,7 @@ Check exit code 0 after each command ($LASTEXITCODE in PowerShell). The Dart too
 
 Import course-signed.zip in a QQL version containing your approved key. Check the verified publisher, version, content and media. Test an update against the previous installed release and its progress. Distribute that exact ZIP. Re-exporting through QQL preserves the normalized signed content and signature; editing signed content invalidates it.
 
-The signature covers the normalized Course JSON, including embedded data and each media: SHA-256 reference. The ZIP verifies each file against its signed reference, so replacing media bytes fails import. An in-app publishing interface is not implemented.
+The signature covers the normalized Course JSON, including embedded data and each media: SHA-256 reference. The ZIP verifies each file against its signed reference, so replacing media bytes fails import. Signing inside QQL is not implemented yet.
 
 ## 7a. Media a Publisher Course can and cannot carry
 

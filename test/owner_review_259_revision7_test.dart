@@ -9,16 +9,17 @@ import 'package:quisquislingo_app/services/exercise_copy_service.dart';
 /// Build 259 Revision 7 (owner review of 1 October 2026): Type and Build the
 /// translation name the language of the answer (a "to source" exercise said
 /// "Translate from English into Piedmontese"), and the standard lines no
-/// longer repeat their exercise title.
+/// longer repeat their exercise title. Build 262 Revision 0: the
+/// Piedmontese demos left the bundle; the Laboratory and QQL Demo: English
+/// from Italian show the same lines.
 
 Course _load(String file) => Course.fromJson(
   jsonDecode(File('assets/courses/$file').readAsStringSync())
       as Map<String, dynamic>,
 );
 
-final _piedmontese = _load('piedmontais_en.json');
-final _mixed = _load('piedmontese_mixed_en.json');
 final _laboratory = _load('exercise_laboratory_en_it.json');
+final _englishFromItalian = _load('english_from_italian_it_en.json');
 
 Iterable<LearningContent> _contents(Course course) => course.lessons
     .expand((lesson) => lesson.rounds)
@@ -34,40 +35,46 @@ String _line(Course course, Exercise exercise) =>
 
 void main() {
   group('2. Translations name the language of the answer', () {
-    for (final course in [_piedmontese, _mixed]) {
+    for (final (course, source, target) in [
+      (_laboratory, 'English', 'Italian'),
+      (_englishFromItalian, 'italiano', 'inglese'),
+    ]) {
+      final english = course == _laboratory;
       test('${course.title}: Type the translation, both directions', () {
-        for (final exercise in _byPreset(
-          course,
-          'type_translation_to_source',
-        )) {
-          expect(_line(course, exercise), 'Translate into English.');
+        final toSource = _byPreset(course, 'type_translation_to_source');
+        final toTarget = _byPreset(course, 'type_translation_to_target');
+        expect(toSource, isNotEmpty);
+        expect(toTarget, isNotEmpty);
+        for (final exercise in toSource) {
+          expect(
+            _line(course, exercise),
+            english ? 'Translate into $source.' : 'Traduci in $source.',
+          );
         }
-        for (final exercise in _byPreset(
-          course,
-          'type_translation_to_target',
-        )) {
-          expect(_line(course, exercise), 'Translate into Piedmontese.');
+        for (final exercise in toTarget) {
+          expect(
+            _line(course, exercise),
+            english ? 'Translate into $target.' : 'Traduci in $target.',
+          );
         }
       });
     }
 
     test('Build the translation, both directions', () {
-      for (final exercise in _byPreset(
-        _piedmontese,
-        'build_translation_to_source',
-      )) {
+      final toSource = _byPreset(_laboratory, 'build_translation_to_source');
+      final toTarget = _byPreset(_laboratory, 'build_translation_to_target');
+      expect(toSource, isNotEmpty);
+      expect(toTarget, isNotEmpty);
+      for (final exercise in toSource) {
         expect(
-          _line(_piedmontese, exercise),
+          _line(_laboratory, exercise),
           'Translate into English with the word blocks.',
         );
       }
-      for (final exercise in _byPreset(
-        _piedmontese,
-        'build_translation_to_target',
-      )) {
+      for (final exercise in toTarget) {
         expect(
-          _line(_piedmontese, exercise),
-          'Translate into Piedmontese with the word blocks.',
+          _line(_laboratory, exercise),
+          'Translate into Italian with the word blocks.',
         );
       }
     });

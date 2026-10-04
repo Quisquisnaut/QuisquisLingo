@@ -1,3 +1,115 @@
+# 2.0.62 (Build 262, Revision 3) - A path shape for each Lesson - 2026-10-03
+
+Owner request of 3 October 2026: the learner path should not have the same
+shape in every Lesson and every Course.
+
+- **Each Lesson has its own path shape.** The Round circles followed one
+  16-step pattern from the first Round of every Lesson, so every Lesson of
+  six Rounds drew the same zigzag in every Course. Each Lesson now enters the
+  pattern at its own place (`learnerRoundPlacementStart`): eight starts
+  (`learnerRoundPlacementStarts`) give eight different shapes. The Course ID
+  picks the first Lesson's start and each next Lesson moves three places
+  along the list, so neighbouring Lessons never share a shape and their first
+  texts change side.
+- **The line still never crosses a text.** Every start opens at the centre,
+  with the texts on the right or on the left, where the line from the Lesson
+  circle or from the IDDQD pill reaches the first circle cleanly. A start at
+  the left edge was tried and left out: the line from the IDDQD pill crossed
+  the first Round's label. The path test now checks every start, from the
+  Lesson circle and from the pill, at five widths.
+- Mascots follow each Lesson's own sides (`placementStart`;
+  `learnerMascotPositionOffsetForLesson` takes the Course ID), so the mascot
+  order still runs on across the Course.
+- On the learner page and in the Course preview. Nothing is stored: the shape
+  follows the Course ID and the Lesson's position. Course files, scoring,
+  progression and learner data are unchanged. Beta expiry
+  `2026-11-02 23:59:59` local time.
+
+Follow-up in the same version (owner review of 4 October 2026):
+
+- **Export as Publisher Course works for any publisher.** The page offered
+  only a list of the publishers the app knows; in a release build that list
+  held just the owner's own publisher, whose key is still pending. The author
+  now types the **Publisher ID** and **Publisher name** the publisher
+  received when its signing key was approved. No publisher is suggested and
+  the page names none. An ID with spaces or other characters than letters,
+  digits, dots, hyphens and underscores is pointed out, and nothing is
+  exported until both fields are filled. A note says that QuisquisLingo
+  installs the Course only where it trusts that publisher's key.
+- **The publisher is remembered for each Course** (owner choice): after a
+  successful export the app keeps that Course's publisher ID and name and
+  fills them in at the next export, with a line saying so, so an update goes
+  out for the same publisher. They are kept on the device, never in the
+  Course file. Deleting the Course in Course Studio, the custom-course reset
+  and Wipe everything remove them, and Inventory lists them.
+- **A warning compares the publisher with the accepted ones** (owner
+  choice). It never stops the export. It has three messages:
+  - this version does not accept the publisher yet: the Course can be
+    exported and signed, but not installed until an app version has its key;
+  - QuisquisLingo has revoked the publisher's signing key, so the Course
+    cannot be installed until the publisher has a new approved key;
+  - the app knows the publisher under another name, which would make the
+    installation fail.
+
+  It names only the publisher the author typed.
+- Help (EN/IT/ES) and the signing guide say the same.
+
+# 2.0.62 (Build 262, Revision 2) - Export as Publisher Course - 2026-10-03
+
+Owner decision of 2 October 2026 (`docs/PUBLISHER_COURSES_PLAN.md`, 4.3);
+the official version follows the Course version (owner decision of
+3 October).
+
+- **Export as Publisher Course** in Course Studio's menu of a custom Course
+  (Maintainer or assigned Team only): writes the Course as a Publisher Course
+  of a publisher QQL knows, QuisquisLingo Courses included while its key is
+  pending. Every ID is kept, the publisher becomes the original creator, the
+  Maintainer, Team and Course version go, and the official version is the
+  Course version, so each export after a confirmed change is a valid update
+  and learners keep their progress. The author's Course is not changed.
+- The page names whatever stands in the way: a Fork or merged Course, no
+  Course version, not published, Draft content, no License, Audit errors.
+- Quick Export or Save as… writes an ordinary Course ZIP
+  (`QQL_<pair>_<title>_publisher_v<version>.zip`); it is not signed: unzip
+  it and sign course.json with `tools/sign_course.dart` (signing guide,
+  section 7), since QQL refuses an unsigned Publisher Course.
+- Course Studio Help (English, Italian, Spanish) explains it.
+
+# 2.0.62 (Build 262, Revision 1) - The publisher QuisquisLingo Courses - 2026-10-03
+
+Owner decision of 2 October 2026 (`docs/PUBLISHER_COURSES_PLAN.md`, 4.2),
+prepared with a test key only, as the owner asked on 3 October.
+
+- **QuisquisLingo Courses** has its entry in the trusted publisher registry:
+  publisher ID `com.quisquislingo`, key ID `qqlc-2026-1`, separate from the
+  app's own bundled Courses. Its public key is still empty: the owner creates
+  the key on their own computer, and adding its Base64 value is a one-line
+  change. Until then the app trusts no key for this publisher.
+- Tests sign Courses with a TEST ONLY key under that identity: a signed
+  Course verifies, imports and installs; altered, unsigned, wrong-key and
+  wrong-name Courses are refused.
+
+# 2.0.62 (Build 262, Revision 0) - The Piedmontese Courses leave the app - 2026-10-03
+
+Owner decision of 2 October 2026 (`docs/PUBLISHER_COURSES_PLAN.md`, 4.1),
+the first of three parts the owner chose for Build 262 on 3 October.
+
+- **Two bundled Courses**: QQL Demo: Exercise Laboratory and QQL Demo:
+  English from Italian. QQL Demo: Piedmontese (sorted by exercise type) and
+  QQL Demo: Piedmontese are no longer in the app; their Course IDs stay
+  reserved, and progress already made on them stays on the device without a
+  Course, as for the demos removed before.
+- **Out of the public repository**: the two Course files, their generators,
+  tests, v11 fixture and coverage document went to the owner's private
+  folder, with the two Courses converted to custom Courses to import (new
+  Course IDs, every other ID kept). The git history is unchanged.
+- The English from Italian generator's Content builders moved unchanged to
+  `tools/qql_v11_builders.py`; the Course file is unchanged.
+- The credits card names the English from Italian and Edge Case courses.
+- Tests that used a Piedmontese Course as an example now use English from
+  Italian or the Exercise Laboratory; a new test checks that the removed
+  identities stay reserved.
+
 # 2.0.61 (Build 261, Revision 8) - The learner path in Lesson colours - 2026-10-03
 
 Owner decisions of 3 October 2026, refined over several rendered mockups.

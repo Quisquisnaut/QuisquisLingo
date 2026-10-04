@@ -11,9 +11,9 @@ void main() {
 
   test('the bundled sources have verified immutable provenance', () async {
     // The Edge Case left the bundle in Build 259 Revision 5; QQL Demo:
-    // Piedmontese joined it in Revision 6, QQL Demo: English from Italian in
-    // Build 260 Revision 2.
-    expect(CourseService.courseAssets, hasLength(4));
+    // English from Italian joined it in Build 260 Revision 2; the two
+    // Piedmontese demos left it in Build 262 Revision 0.
+    expect(CourseService.courseAssets, hasLength(2));
     final mismatches = <String, String>{};
     final titles = <String>{};
     for (final entry in CourseService.courseAssets.entries) {
@@ -37,8 +37,6 @@ void main() {
     }
     expect(mismatches, isEmpty, reason: 'bundled checksum mismatches');
     expect(titles, {
-      'QQL Demo: Piedmontese (sorted by exercise type)',
-      'QQL Demo: Piedmontese',
       'QQL Demo: English from Italian',
       'QQL Demo: Exercise Laboratory',
     });
@@ -58,8 +56,6 @@ void main() {
     () async {
       const derivatives = {
         'IT': DerivativeWorksPolicy.allowed,
-        'PMS': DerivativeWorksPolicy.forbidden,
-        'PMS_MIX': DerivativeWorksPolicy.forbidden,
         'EN_IT': DerivativeWorksPolicy.forbidden,
       };
       expect(

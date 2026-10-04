@@ -471,10 +471,7 @@ void main() {
     });
 
     test('every bundled example opens in its form', () {
-      for (final file in const [
-        'exercise_laboratory_en_it.json',
-        'piedmontais_en.json',
-      ]) {
+      for (final file in const ['exercise_laboratory_en_it.json']) {
         final orders = [
           for (final content in _contents(_load(file)))
             if (content.exercise?.editorTemplate == 'sentence_order')
@@ -552,42 +549,6 @@ void main() {
       final picture = _exercise(lab, 'qql_lab254_picture_blocks');
       await _pumpRound(tester, picture.copyWith(hint: 'Something to eat.'));
       expect(find.byKey(const Key('order-hint')), findsOneWidget);
-    });
-  });
-
-  group('the demo content', () {
-    test('Piedmontese Lessons 18 and 21 can be worked out', () {
-      final course = _load('piedmontais_en.json');
-      final completeText = [
-        for (final content in _contents(course))
-          if (content.exercise?.editorTemplate == 'complete_text')
-            content.exercise!,
-      ];
-      expect(completeText.map((e) => e.hint), [
-        'One meows, one barks.',
-        // More precise since Build 259 Revision 4.
-        'Bread and water, in Piedmontese.',
-        'Something you read.',
-      ]);
-      expect(
-        ExerciseFeatures(completeText.last).authoredInstruction,
-        'You are at home, on the sofa.',
-      );
-      final orders = [
-        for (final content in _contents(course))
-          if (content.exercise?.editorTemplate == 'sentence_order')
-            content.exercise!,
-      ];
-      expect(orders.map((e) => ExerciseFeatures(e).authoredInstruction), [
-        'Tòni meets Anna in the street and greets her first.',
-        'Anna goes to the market in the morning and is home by noon.',
-        'In the evening you have dinner, then you read in bed.',
-      ]);
-      expect(
-        orders.last.hint,
-        'mangio = I eat; leso = I read. The last line is what you say before '
-        'sleeping.',
-      );
     });
   });
 }

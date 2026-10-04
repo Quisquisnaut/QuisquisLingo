@@ -16,6 +16,8 @@ import 'package:quisquislingo_app/services/course_package_service.dart';
 import 'package:quisquislingo_app/services/course_service.dart';
 import 'package:quisquislingo_app/services/custom_course_transfer_service.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
+import 'package:quisquislingo_app/services/publisher_course_export.dart';
+import 'package:quisquislingo_app/services/publisher_export_memory.dart';
 import 'package:quisquislingo_app/services/settings_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -209,6 +211,7 @@ void main() {
         CourseManagerAction.merge,
         CourseManagerAction.audit,
         CourseManagerAction.export,
+        CourseManagerAction.exportAsPublisherCourse,
         CourseManagerAction.delete,
       ]);
     });
@@ -278,7 +281,7 @@ void main() {
     });
 
     test('a Bundled Course is read only and exportable', () async {
-      final bundled = await CourseService().loadCourse('PMS');
+      final bundled = await CourseService().loadCourse('EN_IT');
       expect(admin.actionsFor(bundled), const [
         CourseManagerAction.removeFromMyCourses,
         CourseManagerAction.courseInfo,
@@ -314,6 +317,7 @@ void main() {
         CourseManagerAction.merge,
         CourseManagerAction.audit,
         CourseManagerAction.export,
+        CourseManagerAction.exportAsPublisherCourse,
         CourseManagerAction.delete,
       ]);
       expect(
@@ -343,6 +347,7 @@ void main() {
         (CourseManagerAction.copyAsNewCourse, 'copy'),
         (CourseManagerAction.merge, 'merge'),
         (CourseManagerAction.export, 'export'),
+        (CourseManagerAction.exportAsPublisherCourse, 'publish'),
         (CourseManagerAction.delete, 'delete'),
       ]) {
         expect(
@@ -356,7 +361,7 @@ void main() {
     });
 
     test('official Courses hide what can never apply', () async {
-      final bundled = await CourseService().loadCourse('PMS');
+      final bundled = await CourseService().loadCourse('EN_IT');
       final shown = reasons(admin, bundled);
       expect(shown.keys, const [
         CourseManagerAction.removeFromMyCourses,
@@ -685,10 +690,19 @@ void main() {
     test('Delete removes a stored Custom Course', () async {
       final mine = _course('mine', title: 'Mine');
       await editor.installImportedCustomCourse(mine);
+      await PublisherExportMemory().remember(
+        mine.courseId,
+        const PublisherIdentity(
+          publisherId: 'org.example.courses',
+          publisherName: 'Example Courses',
+        ),
+      );
 
       await ops.deleteCourse(mine);
 
       expect(await stored(), isEmpty);
+      // Build 262 Revision 3 follow-up: its remembered publisher goes too.
+      expect(await PublisherExportMemory().recall(mine.courseId), isNull);
     });
 
     test(

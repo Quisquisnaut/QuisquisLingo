@@ -75,15 +75,17 @@ void main() {
     }
   });
 
-  test('the dog of QQL Demo: Piedmontese has its title', () async {
-    final course = await CourseService().loadCourse('PMS_MIX');
-    final dog = course.lessons.first.rounds[5].exercises.firstWhere(
-      (exercise) => exercise.id == 'pmsmix_69ff369e_l01_r06_e05',
+  // Build 262 Revision 0: QQL Demo: Piedmontese left the bundle; its dog
+  // has a twin in QQL Demo: English from Italian.
+  test('the dog of QQL Demo: English from Italian has its title', () async {
+    final course = await CourseService().loadCourse('EN_IT');
+    final dog = course.lessons.first.rounds[1].exercises.firstWhere(
+      (exercise) => exercise.id == 'enit_65dce83b_l01_r02_e01',
     );
-    expect(ExerciseCopyService.title(course, dog), 'PICK THE TRANSLATION');
+    expect(ExerciseCopyService.title(course, dog), 'SCEGLI LA TRADUZIONE');
     expect(
       ExerciseCopyService.instructionForExercise(course, dog),
-      'Pick the correct Piedmontese translation',
+      'Scegli la traduzione corretta in inglese',
     );
   });
 

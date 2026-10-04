@@ -2662,6 +2662,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                           learnerMascotPositionOffsetForLesson(
                                             course.lessons,
                                             lessonIndex,
+                                            courseId: course.courseId,
                                           ),
                                       roundPositionOffset:
                                           learnerRoundPositionOffsetForLesson(
@@ -3439,30 +3440,52 @@ enum LearnerRoundPlacement { left, centerTextRight, centerTextLeft, right }
 /// The circles wander between the centre and the edges, sometimes staying
 /// twice on a side or at the centre; they never jump from one edge straight
 /// to the other, where a curve across the whole width would cross a text
-/// (owner request: more variety).
-LearnerRoundPlacement learnerRoundPlacement(int index) => const [
-  LearnerRoundPlacement.centerTextRight,
-  LearnerRoundPlacement.left,
-  LearnerRoundPlacement.left,
-  LearnerRoundPlacement.centerTextRight,
-  LearnerRoundPlacement.right,
-  LearnerRoundPlacement.centerTextLeft,
-  LearnerRoundPlacement.left,
-  LearnerRoundPlacement.centerTextRight,
-  LearnerRoundPlacement.centerTextLeft,
-  LearnerRoundPlacement.right,
-  LearnerRoundPlacement.right,
-  LearnerRoundPlacement.centerTextLeft,
-  LearnerRoundPlacement.left,
-  LearnerRoundPlacement.centerTextRight,
-  LearnerRoundPlacement.right,
-  LearnerRoundPlacement.centerTextLeft,
-][index % 16];
+/// (owner request: more variety). A Lesson enters the pattern at [start]
+/// (see [learnerRoundPlacementStart]); the pattern also never jumps from edge
+/// to edge where it wraps around.
+LearnerRoundPlacement learnerRoundPlacement(int index, {int start = 0}) =>
+    const [
+      LearnerRoundPlacement.centerTextRight,
+      LearnerRoundPlacement.left,
+      LearnerRoundPlacement.left,
+      LearnerRoundPlacement.centerTextRight,
+      LearnerRoundPlacement.right,
+      LearnerRoundPlacement.centerTextLeft,
+      LearnerRoundPlacement.left,
+      LearnerRoundPlacement.centerTextRight,
+      LearnerRoundPlacement.centerTextLeft,
+      LearnerRoundPlacement.right,
+      LearnerRoundPlacement.right,
+      LearnerRoundPlacement.centerTextLeft,
+      LearnerRoundPlacement.left,
+      LearnerRoundPlacement.centerTextRight,
+      LearnerRoundPlacement.right,
+      LearnerRoundPlacement.centerTextLeft,
+    ][(start + index) % 16];
+
+/// Where each Lesson enters [learnerRoundPlacement] (owner request of
+/// 3 October 2026, Build 262 Revision 3: not the same path in every Lesson
+/// and every Course). Every start puts the first circle at the centre, its
+/// texts on the right or on the left, where the line from the Lesson circle
+/// or from the IDDQD pill reaches it without crossing a text (a first circle
+/// at the left edge would have the line from the pill cross its label). The
+/// eight starts give eight different shapes; the Course picks the first
+/// Lesson's start and each next Lesson moves three places along this list,
+/// so neighbouring Lessons never share a shape and their first texts change
+/// side. Nothing is stored: the shape follows the Course ID and the Lesson's
+/// position.
+const learnerRoundPlacementStarts = <int>[0, 5, 3, 8, 7, 11, 13, 15];
+
+int learnerRoundPlacementStart(String courseId, int lessonIndex) {
+  const starts = learnerRoundPlacementStarts;
+  final first = _learnerMascotSeed(courseId) % starts.length;
+  return starts[(first + 3 * lessonIndex) % starts.length];
+}
 
 /// The half of the path a Round's texts take; its mascot stands on the
 /// other one.
-LearnerRoundPathSide learnerRoundPathSide(int index) =>
-    switch (learnerRoundPlacement(index)) {
+LearnerRoundPathSide learnerRoundPathSide(int index, {int start = 0}) =>
+    switch (learnerRoundPlacement(index, start: start)) {
       LearnerRoundPlacement.left ||
       LearnerRoundPlacement.centerTextLeft => LearnerRoundPathSide.left,
       LearnerRoundPlacement.centerTextRight ||
@@ -3476,6 +3499,7 @@ LearnerRoundPathSide learnerRoundPathSide(int index) =>
 List<bool> learnerRoundPathMascotRows(
   int roundCount, {
   int roundPositionOffset = 0,
+  int placementStart = 0,
 }) {
   const slots = <int>{0, 1, 3, 4, 5, 7, 8};
   final rows = <bool>[];
@@ -3484,24 +3508,31 @@ List<bool> learnerRoundPathMascotRows(
     final besideAnother =
         index > 0 &&
         rows[index - 1] &&
-        learnerRoundPathSide(index) == learnerRoundPathSide(index - 1);
+        learnerRoundPathSide(index, start: placementStart) ==
+            learnerRoundPathSide(index - 1, start: placementStart);
     rows.add(slot && !besideAnother);
   }
   return rows;
 }
 
-bool learnerRoundPathShowsMascot(int index, {int roundPositionOffset = 0}) =>
-    learnerRoundPathMascotRows(
-      index + 1,
-      roundPositionOffset: roundPositionOffset,
-    )[index];
+bool learnerRoundPathShowsMascot(
+  int index, {
+  int roundPositionOffset = 0,
+  int placementStart = 0,
+}) => learnerRoundPathMascotRows(
+  index + 1,
+  roundPositionOffset: roundPositionOffset,
+  placementStart: placementStart,
+)[index];
 
 int learnerRoundPathMascotSlotCount(
   int roundCount, {
   int roundPositionOffset = 0,
+  int placementStart = 0,
 }) => learnerRoundPathMascotRows(
   roundCount,
   roundPositionOffset: roundPositionOffset,
+  placementStart: placementStart,
 ).where((shown) => shown).length;
 
 int learnerRoundPositionOffsetForLesson(
@@ -3516,13 +3547,15 @@ int learnerRoundPositionOffsetForLesson(
 /// one depends on its neighbour in the same Lesson.
 int learnerMascotPositionOffsetForLesson(
   List<Lesson> lessons,
-  int lessonIndex,
-) {
+  int lessonIndex, {
+  required String courseId,
+}) {
   var count = 0;
   for (var index = 0; index < lessonIndex; index++) {
     count += learnerRoundPathMascotSlotCount(
       lessons[index].rounds.length,
       roundPositionOffset: learnerRoundPositionOffsetForLesson(lessons, index),
+      placementStart: learnerRoundPlacementStart(courseId, index),
     );
   }
   return count;
@@ -3731,9 +3764,13 @@ class _LearnerRoundPathState extends State<LearnerRoundPath> {
           ),
         );
         const lead = learnerRoundPathLead;
+        final start = learnerRoundPlacementStart(
+          widget.courseId,
+          widget.lessonIndex,
+        );
         final rows = <({double left, double width, bool mirrored})>[
           for (var index = 0; index < widget.rounds.length; index++)
-            switch (learnerRoundPlacement(index)) {
+            switch (learnerRoundPlacement(index, start: start)) {
               LearnerRoundPlacement.left => (
                 left: 0,
                 width: cardWidth,
@@ -3775,6 +3812,7 @@ class _LearnerRoundPathState extends State<LearnerRoundPath> {
         final mascotRows = learnerRoundPathMascotRows(
           widget.rounds.length,
           roundPositionOffset: widget.roundPositionOffset,
+          placementStart: start,
         );
         final halo = LearnerPathHalo.of(context);
         return Align(
@@ -3832,7 +3870,7 @@ class _LearnerRoundPathState extends State<LearnerRoundPath> {
                       // Round's texts.
                       () {
                         final textsOnRight =
-                            learnerRoundPathSide(index) ==
+                            learnerRoundPathSide(index, start: start) ==
                             LearnerRoundPathSide.right;
                         final free = textsOnRight
                             ? rows[index].left

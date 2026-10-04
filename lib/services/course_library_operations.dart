@@ -21,6 +21,8 @@ import 'formal_name_policy.dart';
 import 'new_course_structure.dart';
 import 'profile_service.dart';
 import 'progress_service.dart';
+import 'publisher_course_export.dart';
+import 'publisher_export_memory.dart';
 import 'settings_service.dart';
 import 'team_service.dart';
 
@@ -40,6 +42,7 @@ enum CourseManagerAction {
   merge,
   audit,
   export,
+  exportAsPublisherCourse,
   delete,
 }
 
@@ -170,6 +173,15 @@ class CourseManagerLibrary {
             ? null
             : '$onlyInside export this Course.',
       ),
+      // Build 262 Revision 2: the Course itself decides the other reasons,
+      // which its export page names (PublisherCourseExport.refusals).
+      if (!official)
+        CourseManagerEntry(
+          CourseManagerAction.exportAsPublisherCourse,
+          access.hasOperationalAccess
+              ? null
+              : PublisherCourseExport.noAccessReason,
+        ),
       if (!official)
         CourseManagerEntry(
           CourseManagerAction.delete,
@@ -322,6 +334,7 @@ class CourseLibraryOperations {
     ProfileService? profiles,
     TeamService? teams,
     CourseFlagService? flags,
+    PublisherExportMemory? publisherMemory,
     DateTime Function()? clock,
   }) : editor = editor ?? CourseEditorService(),
        transfer = transfer ?? CustomCourseTransferService(),
@@ -330,6 +343,7 @@ class CourseLibraryOperations {
        _settings = settings ?? SettingsService(),
        profiles = profiles ?? ProfileService(),
        _flags = flags ?? CourseFlagService(),
+       publisherMemory = publisherMemory ?? PublisherExportMemory(),
        _clock = clock ?? DateTime.now {
     this.teams = teams ?? TeamService(profileService: this.profiles);
     _membership =
@@ -352,6 +366,10 @@ class CourseLibraryOperations {
   late final CourseLearnerVisibilityService visibility;
   final SettingsService _settings;
   final CourseFlagService _flags;
+
+  /// The publisher each Course was last exported for (owner request of
+  /// 4 October 2026).
+  final PublisherExportMemory publisherMemory;
   final DateTime Function() _clock;
 
   /// Everything Course Manager lists. With [importOnly], no Bundled Course is
@@ -581,6 +599,72 @@ class CourseLibraryOperations {
     return (result: await transfer.exportCourseTo(course), notice: notice);
   }
 
+  /// Why the active profile cannot export the stored [course] as a Publisher
+  /// Course (Build 262 Revision 2); empty when it can.
+  Future<List<String>> publisherExportRefusals(Course course) async {
+    final activeProfileId = await profiles.getActiveProfileId();
+    final memberTeamIds = activeProfileId == null
+        ? const <String>{}
+        : (await teams.teamsForProfile(
+            activeProfileId,
+          )).map((team) => team.teamId).toSet();
+    return PublisherCourseExport.refusals(
+      course,
+      hasOperationalAccess: CourseAccessPolicy.evaluate(
+        course,
+        profileId: activeProfileId,
+        memberTeamIds: memberTeamIds,
+      ).hasOperationalAccess,
+    );
+  }
+
+  /// The publisher [course] was last exported for, to fill in the page.
+  Future<PublisherIdentity?> rememberedPublisher(Course course) =>
+      publisherMemory.recall(course.courseId);
+
+  /// The stored [course] as an unsigned Publisher Course of [publisher],
+  /// released now, written into the fixed Exports folder; the publisher is
+  /// then remembered for the Course. A refused Course throws a
+  /// [FormatException] naming the reasons, and nothing is written.
+  Future<String> exportAsPublisherCourse(
+    Course course,
+    PublisherIdentity publisher,
+  ) async {
+    final exported = await _publisherCourse(course, publisher);
+    final path = await transfer.exportCourse(
+      exported,
+      publisherVersion: exported.officialCourseVersion,
+    );
+    await publisherMemory.remember(course.courseId, publisher);
+    return path;
+  }
+
+  /// The same Publisher Course, saved with the system dialog; the publisher
+  /// is remembered once the file is saved.
+  Future<FileDialogResult> savePublisherCourseTo(
+    Course course,
+    PublisherIdentity publisher,
+  ) async {
+    final exported = await _publisherCourse(course, publisher);
+    final result = await transfer.exportCourseTo(
+      exported,
+      publisherVersion: exported.officialCourseVersion,
+    );
+    if (result.outcome == FileDialogOutcome.saved) {
+      await publisherMemory.remember(course.courseId, publisher);
+    }
+    return result;
+  }
+
+  Future<Course> _publisherCourse(
+    Course course,
+    PublisherIdentity publisher,
+  ) async {
+    final refusals = await publisherExportRefusals(course);
+    if (refusals.isNotEmpty) throw FormatException(refusals.join(' '));
+    return PublisherCourseExport.build(course, publisher, now: _clock());
+  }
+
   /// The World Flag problem, if any, and the Audit of [course].
   Future<({CourseAuditResult result, String? flagProblem})> audit(
     Course course,
@@ -597,8 +681,10 @@ class CourseLibraryOperations {
     );
   }
 
-  Future<void> deleteCourse(Course course) =>
-      editor.deleteUserCourse(course.courseId);
+  Future<void> deleteCourse(Course course) async {
+    await editor.deleteUserCourse(course.courseId);
+    await publisherMemory.forget(course.courseId);
+  }
 
   Future<void> removePublisherCourse(Course course) =>
       editor.removePublisherCourseFromDevice(course);
@@ -755,6 +841,16 @@ abstract final class CourseLibraryReports {
 
   static String savedTo(Course course, String? displayName, String? notice) =>
       'Saved “${course.title}” as $displayName.${notice == null ? '' : ' $notice'}';
+
+  /// Export as Publisher Course (Build 262 Revision 2).
+  static String publisherExported(
+    Course course,
+    PublisherIdentity publisher,
+    String where,
+  ) =>
+      'Exported “${course.title}” as a Publisher Course of '
+      '${publisher.publisherName} (official version ${course.courseVersion}) '
+      'to $where. It is not signed yet: sign it before distributing it.';
 
   static String importBlocked(int errors) =>
       'Course Audit found $errors error${errors == 1 ? '' : 's'}. Fix these errors before importing the course.';
