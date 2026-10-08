@@ -1,0 +1,2495 @@
+// English source text for the localized Help, Course Info and Locale slice.
+// Keys are stable and ordered by surface; keep UI command names in English.
+const Map<String, String> helpEn = <String, String>{
+  'editorHelp.coursesInLearnerMode.title': r'''Courses in learner mode''',
+  'editorHelp.coursesInLearnerMode.body':
+      r'''Course Library, at the bottom of Course Selector, lists every Course on this device in Bundled Courses, Publisher Courses, My Local Courses and Other Local Courses. By default it hides unavailable or Draft Courses; a switch shows them. Sort by and each section's Expanded / Compact / Minimal button change only the view. Add to my courses adds a shared course to your Selector and Course Studio without granting editing rights. Remove from my courses removes it from both for your profile only; progress is kept unless you explicitly choose Reset my progress. Even with reset selected, all XP (including Weekly XP), total and per-language study days and streak remain; XP earned from this course is not subtracted. Only an admin can Remove Publisher Course from device, and only if no other profile includes it. Progress and version backups survive uninstall. With no playable courses, Home keeps Settings and Course Studio when activated; no course flag is displayed. The page has its own Help, Course covers or flags, Version, Last edited, Maintainer and Duration details, and an Added · Remove action. Import Course in the Selector returns directly to study; it does not activate Course Studio. Continue to Editor prepares a new course; it is saved only with Confirm course changes. Change course lists Published courses in your personal library: the bundled official courses included with QuisquisLingo and Published courses under Local courses. Courses that are Not published stay available for authoring but cannot become the active learner Course. Selecting a Published course makes it current. The learner page resumes the active Published Lesson for that learner and course. When a course has real Sections, the fixed Section selector opens its ordered consecutive Published Section blocks and jumps to each block's first Lesson.''',
+  'editorHelp.courseOrigin.title': r'''Course origin''',
+  'editorHelp.courseOrigin.body':
+      r'''Bundled official courses are verified immutable source copies supplied with QuisquisLingo. Publisher Course imports require a valid Ed25519 signature from an approved publisher. Stored external courses that cannot be verified are preserved with Verification required and are excluded from learner delivery. Custom courses are created locally or imported without official provenance. Both official origins open Official course - read only: inspect Course Info, Audit, Preview, Version History and Lessons/Rounds/Exercises without an authoring transaction. Course Info shows publisher, official version, verification status and checksum. Only an explicit derivativeWorksPolicy of allowed enables Fork; forbidden or unspecified permission explains why it is unavailable. A Fork has fresh IDs and independent custom history while preserving its source lineage. Copy as New Course is a separate action that begins a new independent lineage.''',
+  'editorHelp.localCourseEditsAndBackups.title':
+      r'''Local course edits and backups''',
+  'editorHelp.localCourseEditsAndBackups.body':
+      r'''Every confirmed change to an existing custom course first archives the complete currently persisted course in {folderBackups}/Courses, one folder per Course named with its language pair and ID. On Android 7–10, QQL asks once for permission to use that folder; on Android, Version History lists only the backups this installation of QQL made. Backup manifests include the full v11 Course, Course Maintainer, optional Assigned Team, provenance, versions, authors, UTC modification timestamp, optional notes, checksum and referenced managed audio assets. Backups are never pruned automatically. Version History lists the current version and verified backups newest first, with Open backup folder and Export JSON. Only custom history supports Restore into working copy. Official history contains publisher sources only; older backup directories are not loaded or deleted. A restore is still only a working-copy change until the top-level confirmation succeeds.''',
+  'editorHelp.androidDeviceBackupTechnical.title':
+      r'''Android device backup (technical)''',
+  'editorHelp.androidDeviceBackupTechnical.body':
+      r'''QuisquisLingo has no account and no server, so on Android the platform's own Auto Backup is deliberately left enabled: it is the only way a learner keeps their work through a lost or replaced phone. Backed up on purpose: learner profiles, progress, XP, streaks, Review history, local Course edits, authoring Teams, settings, the Access PIN verifier and the User Recovery Key credential. The Access PIN is included knowingly. It is a casual-access guard for a shared family device, not a security boundary, and excluding it would only mean a restored learner silently loses their PIN. Excluded from cloud backup: imported Image Banks, imported exercise images and recorded MP3s. The reason is capacity, not privacy. Android allows one app 25 MB of Auto Backup, a single Image Bank import may reach 50 MB, and an app that exceeds the quota has its backup silently switched off entirely rather than partially. That media can be imported again from your own files; progress cannot. A direct phone-to-phone transfer carries no such quota and still moves the media. For authors this matters in one practical way: a Course you have written is backed up, but the images and audio you imported into it are not, so keep the original media files and your exported Course JSON. Whether Auto Backup runs at all is an Android setting owned by the device owner; QQL never uploads anything itself. Two resource files define this and must always be changed together, because android:dataExtractionRules is ignored below API 31: res/xml/data_extraction_rules.xml for API 31 and above, and res/xml/backup_rules.xml for API 30 and below. An Advanced (Admin) reset removes local data but cannot reach a backup Android has already taken. Course Backups are in {folderBackups}, outside the app's Auto Backup: they stay when QQL is uninstalled, and a restored phone does not bring them back.''',
+  'editorHelp.officialCourseUpdates.title': r'''Official course updates''',
+  'editorHelp.officialCourseUpdates.body':
+      r'''A newer verified official course update is accepted only for the same courseId and publisher and only when its checksum is valid. Before replacement, QuisquisLingo archives the previous official source. The new source becomes current. Existing custom forks and their histories stay unchanged, with no merge or rebase. Old Build 225 official overrides are not used, converted or deleted. If the publisher signature cannot be verified, import is blocked. An existing unverified course is preserved and requires explicit association with a newer signed release before reactivation.''',
+  'editorHelp.courseInfoEditorAndLicense.title':
+      r'''Course Info Editor and license''',
+  'editorHelp.courseInfoEditorAndLicense.body':
+      r'''Course Info Editor stores structured Authors / Contributors, Rights Holder, the content License and an optional Buy a Coffee HTTPS link separately from the MPL-2.0 license of the QuisquisLingo software. Attribution and rights information are descriptive and never grant QQL permissions. Rights Holder may name one or more people or organizations without requiring local user identities. Choose All rights reserved, CC0 1.0, CC BY 4.0, CC BY-SA 4.0, CC BY-NC 4.0, CC BY-NC-SA 4.0, or Other / Custom license; a custom license also records its outsider derivative policy. Official content and provenance remain read-only.''',
+  'editorHelp.courseResponsibilityPermissionsAndTeams.title':
+      r'''Course responsibility, permissions and Teams''',
+  'editorHelp.courseResponsibilityPermissionsAndTeams.body':
+      r'''Original Course Creator, Course Maintainer, Assigned Team, Authors / Contributors, Rights Holder, License and fork/merge provenance are separate. Every v12 custom Course has an immutable Original Course Creator and one individual Course Maintainer. Only the current Course Maintainer can transfer maintainership or assign and revoke a Team for management. The Course Maintainer and every current member of the Assigned Team may manage Course content under QQL permissions; Team leadership controls Team membership and roles only. Teams are an experimental QQL collaboration model and may manage Courses maintained or created by different individuals. QQL permissions govern behavior inside QQL and do not by themselves determine copyright ownership, contractual rights or external organizational authority. Attribution, provenance and Rights Holder metadata never grant permissions. Outsiders cannot mutate or Copy as New Course under the current access policy and can Fork only when derivatives are allowed. Bundled Courses use this same Editor surface in read-only mode.''',
+  'editorHelp.importCustomCourse.title': r'''Import a custom course''',
+  'editorHelp.importCustomCourse.body':
+      r'''1. Copy a supported Course ZIP to {folderCourseImports}/import.zip, or a media-free Course Model v12 JSON to import.json; keep only one. The ZIP normally has course.json, qql-course-package.json and media/ at its root. QQL also accepts one enclosing folder whose name exactly matches the ZIP filename without .zip and shows a non-blocking warning; for import.zip, the folder must be named import. 2. In Course Studio, open Course Import and select Quick Import. 3. QQL checks the whole package and Course Audit before installing the Course and its own media. Audit errors block import; warnings are reported. Images copied from an Admin Shared Image Library stay with the imported Course and are not added to the recipient device’s Shared Image Library. An external-official Course requires a valid approved-publisher signature; an ordinary custom import stays custom. The source file remains in {folderCourseImports}. A JSON import must be valid UTF-8 and at most 10 MB; a Course ZIP may be at most 300 MB compressed and expanded. Earlier Course formats are refused without migration or deletion.''',
+  'editorHelp.exportCustomCourse.title': r'''Export a custom course''',
+  'editorHelp.exportCustomCourse.body':
+      r'''Quick Export in Export Course saves the complete Course Model v12 authoring JSON and all referenced Course-owned images and recordings in one ZIP under {folderCourseExports}. App-bundled media stay supplied by QQL. Admin-added Shared Image Library images used by the Course travel as Course media with their library ID, label, category, tags, origin and available per-image attribution. An Admin can enter author, license, title and source in the library’s Edit metadata dialog; importing the ZIP does not add images to the destination Shared Image Library. Original Creator, Maintainer, optional Team, authors, rights, License, fork/merge provenance, Draft/Published state and version metadata remain in the JSON. Fork preserves its source lineage; Copy as New Course starts an independent lineage. Save as… can write the same ZIP through the system dialog where available.''',
+  'editorHelp.exportAsPublisherCourse.title': r'''Export as Publisher Course''',
+  'editorHelp.exportAsPublisherCourse.body':
+      r'''Export as Publisher Course, in a custom Course's menu in Course Studio, writes the Course as a Publisher Course of the publisher you name, any publisher: type its publisher ID and name exactly as they were approved with its signing key. You get the same Lessons, Rounds and exercises with the same IDs, the publisher as Original Course Creator, no Maintainer, Team or Course version, not private, and the Course version as its official version, so every export after a confirmed change is higher. Authors, Rights Holders and License stay. Only the Maintainer or a member of the assigned Team can do it, and only for a published Course with a License and without Draft content, Audit errors or Fork or merge lineage; the page names whatever stands in the way. Quick Export writes the ZIP into {folderCourseExports}; Save as… writes it where you choose. The Publisher Course is not signed, and QQL refuses a Publisher Course without a valid signature: unzip it, sign course.json with tools/sign_course.dart and the publisher's key, then package it with its media folder (docs/PUBLISHER_SIGNING_GUIDE.md, section 7). QQL installs it only where the app trusts that publisher's key; the page warns, without stopping the export, when this version of QQL does not accept the publisher, has revoked its signing key or knows it under another name. For an update, edit your Course, confirm it and export it again with the same publisher ID and name, which QQL fills in from the Course's last export: learners keep their progress. Your Course is never changed; as the Publisher Course has the same Course ID, this device cannot install it beside your Course.''',
+  'editorHelp.courseCreationRules.title': r'''Course creation rules''',
+  'editorHelp.courseCreationRules.body':
+      r'''A Lesson should normally contain at least 6 Rounds, which in typical content may mean roughly 48 exercises. This is author guidance only: it is not a validity requirement and never determines Duel availability. The standard Round contains 15 exercises. Avoid accidental duplicate content inside one Round. Isolated words should normally be lowercase unless the language requires capitalization, as with German nouns or proper names. Opposite exercises belong in later Rounds, after the learner has already met the vocabulary. Sentence Word Order works best with 0, 1 or 2 distractors (a recommendation, not a limit); use fewer distractors early in a Lesson and more later. Distractors should be plausible but unambiguously wrong. Learner-facing operational instructions must use the course source language. Early Rounds should introduce and consolidate material; later Rounds can demand harder discrimination and combinations.''',
+  'editorHelp.auditSeverityAndCodes.title': r'''Audit severity and codes''',
+  'editorHelp.auditSeverityAndCodes.body':
+      r'''Course Audit reports Errors, Warnings and Info. Error blocks publication or import because content is structurally or functionally invalid. Warning marks a likely authoring problem that needs review. Info is guidance or a neutral fact and never blocks publication by itself. Audit can sort by Lesson, friendly Exercise type or Recently modified and can be opened for a whole Course, one Lesson or one Round. Recent order uses updatedAt descending with deterministic ties; findings are numbered progressively inside each severity group after filtering. A red border marks an Audit Error or Warning and propagates through its represented branch. A luminous green border means the current branch has no Error or Warning; Info guidance may remain. One blue Draft indicator independently includes a Lesson or Round's own Draft state and follows Draft Guidebooks and Content through their visible ancestors. A green Audit border does not mean the item is Published. An explicitly Draft Lesson or Round keeps Published children hidden until that container is saved. A Guidebook concern affects its Lesson and Lessons hierarchy, but not the separate Rounds branch. Fewer than 3 Rounds is Info; fewer than 25 eligible Duel Exercises is Info only when Create Duels is ON. Missing Reading- or Listening-comprehension coverage produces no finding; malformed existing comprehension content still receives validation. Drafts are included for author review without making unrelated Published learner content invalid. Course Editor Help > Technical reference > Audit Codes displays the shared rule registry in Errors, Warnings, Info order. All three independently selectable categories start enabled, and text search applies within the selected categories.''',
+  'editorHelp.courseAudit.title': r'''Course Audit''',
+  'editorHelp.courseAudit.body':
+      r'''Course Audit checks structural and authoring problems such as invalid exercise fields, duplicate IDs, Word Block problems, missing audio mappings and Missing Word errors. An empty Reading passage is an Error; one or two Unicode/apostrophe-aware lexical words produce READING_PASSAGE_TOO_SHORT, while three or more do not. HINT_REPEATS_PROMPT is a Warning and revealing any canonical correct answer remains an Error. It does not certify grammar, translation accuracy or pedagogical quality.''',
+  'editorHelp.createNewCourse.title': r'''Create a new course''',
+  'editorHelp.createNewCourse.body':
+      r'''Course Studio creates an independent Course Model v12 project and opens it in Course Editor. New Course restores the same License / Rights, Authors / Contributors, language variant, levels, description and support metadata used by Course Info Editor. The active profile becomes the immutable Original Course Creator and defaults as Course Maintainer; another local individual may instead be selected as Maintainer. Assigned Team remains separate and is not selected during creation. Number of Lessons defaults to 3 (whole numbers 1–100), and Rounds per Lesson defaults to 1 (whole numbers 1–20). Invalid or missing values show inline errors and disable Create. The complete initial hierarchy is created atomically with fresh stable IDs and untitled Rounds, each with exactly one Draft Pick the translation (to target) sample Exercise. Review and explicitly save teaching content before publication. The new Not published Course remains only a working copy until Confirm course changes creates version 1; cancelling creates no stored Course. Imported v11 authoring content must state its provenance, Maintainer, Draft/Published state and required UTC timestamps explicitly; earlier Course Models are neither inferred nor migrated.''',
+  'editorHelp.qa.gettingStarted.title': r'''Getting started''',
+  'editorHelp.qa.accessModes.q':
+      r'''What do Locked, View only, Inspection mode and Edit do?''',
+  'editorHelp.qa.accessModes.a':
+      r'''The access control on the Course Editor page decides what you can do. Locked keeps the Lessons closed. View only, the default, opens every form read-only; Search, Help, the internal IDs, Preview and Audit still work. Inspection mode opens exercises in their technical presentation, also read-only. Edit lets you change the Course, if you have the right to edit it. Settings > Do Not Disturb > Course Editor opening mode chooses the mode a Course opens in the first time you open it; afterwards each Course remembers its own mode, and Edit opens as View only where you may not edit.''',
+  'editorHelp.qa.whyNoEdit.q': r'''Why can't I choose Edit?''',
+  'editorHelp.qa.whyNoEdit.a':
+      r'''Edit needs editing rights: you must be the Course Maintainer or a member of the Team assigned to the Course. Official Courses, bundled with QQL or from a Publisher, are always read-only: to change one, Fork it in Course Studio when its license allows derivative works. The Editor shows why Edit is unavailable. Credits, licenses and Rights Holders never grant editing rights.''',
+  'editorHelp.qa.viewOnlyNotice.q':
+      r'''Why does a notice appear the first time I open a Course in View only?''',
+  'editorHelp.qa.viewOnlyNotice.a':
+      r'''It explains that View only changes nothing. It appears once per user and Course; Show one-time notices again, in Settings, brings it back without changing the access mode.''',
+  'editorHelp.qa.structure.q': r'''How is a Course organized?''',
+  'editorHelp.qa.structure.a':
+      r'''A Course contains Lessons. Each Lesson has a GuideBook, Rounds and a Duel; each Round holds exercises. In the Course Editor open Lessons, then a Lesson, its Rounds and a Round. The breadcrumbs at the top of each page show where you are and take you back.''',
+  'editorHelp.qa.search.q': r'''How do I find an exercise?''',
+  'editorHelp.qa.search.a':
+      r'''Use the Search icon on the Lessons, Lesson, Rounds or Round page. From Lessons it searches the whole Course, from a Lesson or its Rounds that Lesson, from a Round only that Round. It finds whole words, phrases and exercise IDs, ignoring capitals and accents, and can filter by exercise type. A result opens in the form that suits the access mode; Search never changes the Course.''',
+  'editorHelp.qa.internalIds.q': r'''How do I see the internal IDs?''',
+  'editorHelp.qa.internalIds.a':
+      r'''Tap the badge icon in the Editor's app bar. It shows or hides the stable IDs of the Course, Lessons, Rounds and exercises on the Editor pages and in Search results, and changes nothing in the Course.''',
+  'editorHelp.qa.findHelp.q': r'''Where do I find Help while editing?''',
+  'editorHelp.qa.findHelp.a':
+      r'''The Help icon in the app bar opens this page. Each exercise field has its own Help button, and Exercise Help beside the preset explains the whole exercise type. The Technical reference at the top of this page leads to the exercise types, the Audit codes and the Course Model.''',
+  'editorHelp.qa.savingAndVersions.title': r'''Saving and versions''',
+  'editorHelp.qa.workingCopy.q': r'''When are my changes saved?''',
+  'editorHelp.qa.workingCopy.a':
+      r'''While you edit, every change goes into a working copy of the Course. Save and Save as draft on a Lesson, Round or exercise store it in that working copy only. Nothing reaches learners, and no version or backup is made, until you leave the Course Editor and choose Confirm course changes.''',
+  'editorHelp.qa.saveOrDraft.q':
+      r'''What is the difference between Save and Save as draft?''',
+  'editorHelp.qa.saveOrDraft.a':
+      r'''Save stores an item as normal content; Save as draft stores it as a Draft, which learners never see. A blue badge marks a Draft on the item and on its parents. A Draft Lesson or Round hides everything in it, even Published content.''',
+  'editorHelp.qa.provisionalDraft.q':
+      r'''Why is a new Lesson or Round a Draft although I never chose it?''',
+  'editorHelp.qa.provisionalDraft.a':
+      r'''A new Lesson or Round starts as a provisional Draft and becomes Published by itself once its content is complete and saved: for a Round, its exercises saved as normal content; for a Lesson, its Rounds and, while Use GuideBook is on, its GuideBook. Save as draft on the Lesson or Round keeps it Draft until you Save it. Copies, forks and imported Courses stay Draft for your review.''',
+  'editorHelp.qa.leaveEditor.q':
+      r'''What happens when I leave the Course Editor?''',
+  'editorHelp.qa.leaveEditor.a':
+      r'''If the working copy differs from the stored Course, one dialog offers Confirm course changes or Cancel course changes, with an optional note for the version. Confirm first makes and checks a complete backup, then stores the whole Course and raises its version by one. Cancel discards the whole working copy. If the backup or the save fails, the working copy stays open and the stored Course is unchanged.''',
+  'editorHelp.qa.leaveExercise.q':
+      r'''What happens if I leave an exercise without saving?''',
+  'editorHelp.qa.leaveExercise.a':
+      r'''You choose Keep editing, Discard changes, Save as draft or Save. Discard drops only that form's changes; the rest of the working copy stays as it is.''',
+  'editorHelp.qa.publishCourse.q':
+      r'''How do I make a Course available to learners?''',
+  'editorHelp.qa.publishCourse.a':
+      r'''Set Course delivery status to Published on the Course Editor page (Not published keeps it for authoring), then confirm the Course changes. Drafts inside a Published Course stay hidden from learners.''',
+  'editorHelp.qa.backups.q': r'''Where are the earlier versions kept?''',
+  'editorHelp.qa.backups.a':
+      r'''Every confirmed change first archives the previous version in {folderBackups}/Courses, one folder per Course. Backups are never deleted automatically. On Android 7–10 QQL asks once for permission to use that folder; on Android, Version History lists only the backups this installation made.''',
+  'editorHelp.qa.restore.q': r'''How do I go back to an earlier version?''',
+  'editorHelp.qa.restore.a':
+      r'''Open Version History in the Course Editor. It lists the current version and the backups, newest first, with Open backup folder and Export JSON. Restore into working copy loads a backup of a custom Course into the working copy; it replaces the stored Course only when you confirm the Course changes. Official Courses keep their publisher versions only.''',
+  'editorHelp.qa.courseSettings.title': r'''Course settings''',
+  'editorHelp.qa.privateCourse.q': r'''What is a Private course?''',
+  'editorHelp.qa.privateCourse.a':
+      r'''A custom Course visible in QQL only to its Course Maintainer and the members of its assigned Team: nobody else on this device sees it in Course Library, the Course Selector or Course Studio, admins included. Turn Private course on or off in Course Info Editor. An exported file stays private, so on another device only its Maintainer and Team can import it; QQL refuses to import someone else's Private course, or to use it in a Merge. Fork and Copy as New Course start non-private. A learner who maintains a Course cannot be removed until its Maintainer changes; Remove custom courses and Wipe out everything remove Private courses too, and their confirmation counts the ones you cannot see.''',
+  'editorHelp.qa.courseLanguages.q':
+      r'''How do I choose the Course languages?''',
+  'editorHelp.qa.courseLanguages.a':
+      r'''Three language settings act independently. QQL's own interface is in English. Help and Course Info are in English, Spanish or Italian: each learner's Help Language, set in QQL Guide. A Course's learner panel (exercise headings and instruction lines, buttons such as Check and Continue, the feedback, the end-of-Round summary, the Duel and the Review page) is in the Course's Source language when it is one of English, Spanish, Italian, German, Portuguese, Dutch and French, otherwise in English; messages about errors, audio set-up and app versions stay in English. In New Course, Source language and Target language list the languages by their English names: type to find one, or open the list. A language that is not in the list is kept as you type it, with an optional tag such as nap or pt-BR. The Course stores each name with its tag, and the voice and the automatic flag follow the Target language. The learner panel names languages in its own language: "Traduci in tedesco." The languages never change after creation: Course Info can only add the tag of a language an earlier Course wrote by name, and Learning language name for learners changes the name the lines use.''',
+  'editorHelp.qa.courseInfo.q':
+      r'''Where do I change the Course name and description?''',
+  'editorHelp.qa.courseInfo.a':
+      r'''In Course Info Editor, available in Edit on the Course Editor page. The name can change; the Course ID never does. The source and learning languages are shown with their codes and cannot be changed; an earlier Course can add the tags of its own languages from the list, and Learning language name for learners sets how the learner lines name the language you teach. Nothing is kept until you save the dialog and confirm the Course changes.''',
+  'editorHelp.qa.license.q': r'''Which license can I choose?''',
+  'editorHelp.qa.license.a':
+      r'''All rights reserved, CC0 1.0, CC BY 4.0, CC BY-SA 4.0, CC BY-NC 4.0, CC BY-NC-SA 4.0, or Other / Custom license, which also states whether others may make derivative works. The license covers your Course content, not the QuisquisLingo software (MPL-2.0), and it never grants editing rights in QQL.''',
+  'editorHelp.qa.authors.q': r'''How do I credit authors and rights holders?''',
+  'editorHelp.qa.authors.a':
+      r'''Course Info Editor keeps the Authors / Contributors with their roles, one or more Rights Holders and an optional Buy a Coffee link (HTTPS). They describe the Course and never give anyone editing rights. The Original Course Creator, the Course Maintainer, a Fork's creator and the Last Version Editor are recorded separately.''',
+  'editorHelp.qa.mediaCredits.q':
+      r'''How do I credit pictures and recordings made by others?''',
+  'editorHelp.qa.mediaCredits.a':
+      r'''Add them under Media credits: the author, the license and, when you know it, where the work came from. When the image library knows who made a picture (a QQL image, or one with a recorded credit), QQL adds the credit for you. The Audit warns when a Course with media of its own has no media credits.''',
+  'editorHelp.qa.cover.q': r'''How do I give the Course a cover picture?''',
+  'editorHelp.qa.cover.a':
+      r'''Use Cover image in Course Info Editor or in Create new course. Choose image takes a picture from the image library, Quick Import reads the one picture in {folderImageImports}, and Open from… uses the system dialog. In Crop the cover choose the square the cover shows; it is stored at 512 × 512 pixels. The cover replaces the flag in lists, Course Info and the Editor header; the flag stays in the top bar and the Flag Background. Remove cover shows the flag again.''',
+  'editorHelp.qa.flag.q': r'''How do I choose the Course flag?''',
+  'editorHelp.qa.flag.a':
+      r'''Create new course and Course Info Editor share a searchable flag chooser with QQL FlagPainter flags, WORLD Flags and Upload custom flag. Search by name, alias, ID, language code or territory code. Use Automatic picks the flag of the Course language. Opening or searching changes nothing until you choose.''',
+  'editorHelp.qa.customFlag.q': r'''How do I use my own flag?''',
+  'editorHelp.qa.customFlag.a':
+      r'''Copy one PNG or JPEG named flag.png, flag.jpg or flag.jpeg to {folderCourseFlagImports} and press Upload custom flag in the flag chooser. It may be up to 2 MB and between 64 × 40 and 4096 pixels. QQL reduces it to 256 pixels on its longest side, keeps PNG transparency and stores it inside the Course.''',
+  'editorHelp.qa.lessonOptions.q':
+      r'''Where are Use GuideBook, Word Lookup, Create Duels and the label options?''',
+  'editorHelp.qa.lessonOptions.a':
+      r'''In Lesson Options, under the Lessons tile of the Course Editor page. With Use GuideBook off, learners see no GuideBooks, whose content is kept; Word Lookup, shown only while Use GuideBook is on, lets learners tap a word to see its GuideBook translation; with Create Duels off, no Duels. Lesson label and numbering and Round label and numbering change how names appear. None of these options deletes content, victories, completion or XP.''',
+  'editorHelp.qa.labelsAndNumbering.q':
+      r'''How do Lesson label and numbering and Round label and numbering work?''',
+  'editorHelp.qa.labelsAndNumbering.a':
+      r'''Both selectors are in Lesson Options. Each offers Off, its own label + number, Number only and Custom + number. They change the displayed prefix, not the title or the content ID. Every Lesson must have an authored title; a Round title is optional because its type still names it. An authored title remains visible with every choice, including Off. Numbers follow the current position, and the editor still shows order numbers. Older Courses may retain a previously chosen Lesson label until you select one of the four current choices.''',
+  'editorHelp.qa.sections.q': r'''How do I group Lessons into Sections?''',
+  'editorHelp.qa.sections.a':
+      r'''In a Lesson, the Section selector offers No section, the existing names, Add new section… and Manage sections…. Consecutive Lessons with the same Section form one block on the learner's path. A new Lesson takes the Section of the Lesson before it. A name still used by a Lesson cannot be removed. Sections have no progress or unlocks of their own.''',
+  'editorHelp.qa.lessonIcon.q': r'''How do I choose a Lesson icon?''',
+  'editorHelp.qa.lessonIcon.a':
+      r'''In the Lesson editor choose a Preinstalled icon, a Custom Course icon, or Numbers; Choose from the image library takes any QQL picture of the library (not a flag) as the icon, and a Course that uses one needs this version of QQL or later. For Import custom icon, keep exactly one PNG, JPG/JPEG or WebP of up to 2 MB and 4096 pixels in {folderLessonIconImports}; QQL centres it on a transparent 256 × 256 square and stores it in the Course. Without an icon, a Lesson shows its number in a circle of the Lesson's colour: QQL gives each Lesson one of eight colours by its position, and its Round circles on the learner path use the same colour.''',
+  'editorHelp.qa.whoMayEdit.q': r'''Who may edit a Course?''',
+  'editorHelp.qa.whoMayEdit.a':
+      r'''Its Course Maintainer and every member of the Team assigned to it. Only the Maintainer can hand over maintenance or assign or remove the Team, and a Team always keeps at least one Team Leader. Other people can Fork the Course in Course Studio only when its license allows derivative works.''',
+  'editorHelp.qa.lessonsAndRounds.title': r'''Lessons and Rounds''',
+  'editorHelp.qa.roundTypes.title': r'''Round Types''',
+  'editorHelp.qa.roundTypeContract.q': r'''What does a Round type control?''',
+  'editorHelp.qa.roundTypeContract.a':
+      r'''Each Round has one type. It determines its learner-path name and icon, the exercises the editor offers, publication checks and, for Sequence, Story, FlashCard and Test, how the Round plays. Exercise behavior still comes from its canonical primitive, options and content; a preset is only a way to author it.''',
+  'editorHelp.qa.discover.q': r'''When should I use Discover?''',
+  'editorHelp.qa.discover.a':
+      r'''Use Discover to introduce words, concepts, structures or examples. You may mix explanations, cards and first guided exercises. It uses immediate feedback and normal mistake review for questions.''',
+  'editorHelp.qa.practice.q': r'''When should I use Practice?''',
+  'editorHelp.qa.practice.a':
+      r'''Practice is the general exercise Round. Questions are normally randomized, checked immediately and revisited after mistakes. Existing ordinary Rounds become Practice.''',
+  'editorHelp.qa.listening.q': r'''What belongs in a Listen Round?''',
+  'editorHelp.qa.listening.a':
+      r'''Every required exercise must need audio to answer. The picker offers audio-capable presets and the Canonical Editor remains available. Optional audio alone does not qualify. The editor warns about incompatible canonical content and the Audit blocks publication.''',
+  'editorHelp.qa.reading.q': r'''What belongs in a Read Round?''',
+  'editorHelp.qa.reading.a':
+      r'''Every required exercise must have a verifiable reading passage and question. A visible answer copied from the passage does not qualify. The picker offers reading-capable presets plus the Canonical Editor; the Audit blocks incompatible published content.''',
+  'editorHelp.qa.flashcardRound.q': r'''What is a FlashCard Round?''',
+  'editorHelp.qa.flashcardRound.a':
+      r'''It contains only valid term-and-meaning Flashcards or Picture Flashcards. Cards advance one by one without correctness grading or an ordinary mistake review. Other Presentation cards and exercises are blocked by the Audit.''',
+  'editorHelp.qa.testRound.q': r'''How does a Test work?''',
+  'editorHelp.qa.testRound.a':
+      r'''A Test accepts evaluatable exercises only. Learners answer every question without seeing correctness or corrections, then see all results. The editor offers fixed or randomized order and an optional passing percentage. That percentage changes the results label only; completion, XP, unlocks and Laurels follow the usual rules. Preview and early exit record nothing.''',
+  'editorHelp.qa.timedRound.q': r'''How does a Timed Round work?''',
+  'editorHelp.qa.timedRound.a':
+      r'''Choose Timed in New Round, set a limit from 30 seconds to 10 minutes, and add timed-compatible exercises. Lesson Options can hold ordered default Timed limits for the Course; each new Timed Round copies them, while existing Rounds keep their own limits. In the Round editor you can add distinct limits and arrange their order. The next limit unlocks after the first timely completion of the current one. The timer begins when play starts, after any Before you start card. If time runs out, input locks, correct-answer XP is kept and the Round remains incomplete for retry. Completing before zero gives normal Round XP and, once for each limit, a separate 10 XP On Time bonus. The Audit blocks missing, repeated or invalid limits and content that cannot finish reliably.''',
+  'editorHelp.qa.speakRound.q': r'''Can I create a Speak Round?''',
+  'editorHelp.qa.speakRound.a':
+      r'''Speak is shown last in New Round as Coming soon and cannot be selected. An imported Speak Round remains readable but cannot be published or played in this version.''',
+  'editorHelp.qa.roundCompatibility.q':
+      r'''How are exercises checked against a Round type?''',
+  'editorHelp.qa.roundCompatibility.a':
+      r'''The picker filters suggested presets, but final validation examines the actual canonical exercise. You may save an unfinished Round as Draft; the Audit blocks publishing an incompatible Listen, Read, FlashCard, Test, Story, Sequence or Speak Round.''',
+  'editorHelp.qa.roundNumbering.q': r'''How do Round numbers work?''',
+  'editorHelp.qa.roundNumbering.a':
+      r'''Lesson Options sets Round label and numbering to Off, Round + number, Number only or Custom + number. Off still shows the type and your title, such as “Practice · Greetings”. Numbers follow the Round’s current position in its Lesson, never its ID or progress record. The editor always shows order numbers.''',
+  'editorHelp.qa.newRound.q': r'''How do I add a Round?''',
+  'editorHelp.qa.newRound.a':
+      r'''On a Lesson's Rounds page press New Round and choose a type. Speak is unavailable. Story opens the Story Wizard; other types start a provisional Draft, with a sample only for Discover, Practice and Sequence. You can leave the title empty; learners still see the type. Round Wizard remains beside New Round for generating multiple Rounds.''',
+  'editorHelp.qa.beforeYouStart.q':
+      r'''How do I write the Before you start note of a Round?''',
+  'editorHelp.qa.beforeYouStart.a':
+      r'''Add a Before you start card: New Exercise in the Round editor, then choose Before you start (Cards and notes). Write the note and, if the Course uses GuideBooks, turn on Open GuideBook button. The card goes first in the Round; learners read it on its own page before the Round starts, never in Review. Edit, publish or delete it like any exercise. The Round Wizard adds a Draft card to the first Round it creates, and the Audit notes a Lesson whose first Round has none.''',
+  'editorHelp.qa.roundWizard.q':
+      r'''How does the Round Wizard create Rounds?''',
+  'editorHelp.qa.roundWizard.a':
+      r'''Press Round Wizard on the Rounds page; it needs Use GuideBook on. It builds Rounds from the vocabulary pairs and examples of the Lesson GuideBook (at least three pairs). Choose 1–12 Rounds and 1–15 exercises per Round (6 and 8 by default) and review each proposed type and the rising difficulty. Change a type before generation when the GuideBook can produce compatible exercises. It creates compatible preset exercises only; unsupported Read and Story proposals explain why they cannot be generated from vocabulary alone. Rounds stay Draft until you review and approve them.''',
+  'editorHelp.qa.sequence.q': r'''What is a Sequence Round?''',
+  'editorHelp.qa.sequence.a':
+      r'''Choose Sequence in New Round. Its linear content flow plays exercises in authored order, without shuffle or mistake review. The optional flow title names it in learner views. It keeps New Exercise and Exercise Wizard, and its eligible questions may enter the Duel. Choose Step by step or Scrolling in its Round editor.''',
+  'editorHelp.qa.story.q': r'''What is a Story?''',
+  'editorHelp.qa.story.a':
+      r'''A Story is an ordered narrative Round with a title block, dialogue lines and comprehension exercises. Only evaluatable exercises score; normal completion, XP and Laurel rules apply. Story questions stay out of the Duel.''',
+  'editorHelp.qa.newStory.q': r'''How do I build a Story?''',
+  'editorHelp.qa.newStory.a':
+      r'''Press New Round → Story (no GuideBook needed). Give the title and cover picture, choose read-aloud, check the narrator and Course characters, then build steps with Add line and Add exercise. Finish needs at least one line and adds the Story to the working copy.''',
+  'editorHelp.qa.editStory.q': r'''How do I change a Story afterwards?''',
+  'editorHelp.qa.editStory.a':
+      r'''Open its Round. Add Step offers Title block (one per Story), Dialogue line and Exercise. The Story options set the title, Step by step or Scrolling, what the scrolling log keeps (Dialogue only or Everything) and the read-aloud. “Needs the Story's audio” in an exercise's menu marks one that is skipped with Audio Exercises off; lines are never skipped.''',
+  'editorHelp.qa.characters.q':
+      r'''Where are the narrator and the characters?''',
+  'editorHelp.qa.characters.a':
+      r'''Under Story characters on the Course Editor page: a name, an avatar (a bundled figure, none, or your own picture cropped to a square), a language and a voice preference (any, male or female, matched with the device voices). A character that lines still name cannot be removed.''',
+  'editorHelp.qa.guidebook.q': r'''What goes into a Lesson GuideBook?''',
+  'editorHelp.qa.guidebook.a':
+      r'''Overview, Usage examples, Vocabulary and Grammar, and Insights with titled sections. Learners see it once it is saved as normal content and Use GuideBook is on; Save Guidebook as draft keeps it hidden. Its vocabulary and examples feed the Round Wizard, the learner's Review and Word Lookup. Write each vocabulary entry as learning language = learner's language, one per line, for example casa = house in a Course that teaches Italian.''',
+  'editorHelp.qa.wordLookup.q':
+      r'''How does Word Lookup use the GuideBook vocabulary?''',
+  'editorHelp.qa.wordLookup.a':
+      r'''In a Round, words of the learning language that have GuideBook entries get a light dotted underline, and a learner can tap one to see the entries that match it, from the whole Course: those of the current Lesson when it has any, otherwise those of every Lesson, naming the Lesson of an entry from another Lesson. A whole expression written in the text (il pane, l'acqua) wins over a single word; a word found only inside an expression shows it when the expression's other words are articles (gatto shows il gatto, è does not show dov'è); inflected forms are not found, so add the forms you want learners to look up. Text in the learner's own language, the Instruction or context and Before you start notes are never looked up; neither are answer options, Test Rounds or Duels. The card says it shows one possible translation. Word Lookup is on by default; turn it off in Lesson Options. It exists only while Use GuideBook is on.''',
+  'editorHelp.qa.duel.q': r'''When is a Lesson's Duel available?''',
+  'editorHelp.qa.duel.a':
+      r'''A Duel draws 25 different eligible exercises from the Lesson (single-answer choices from its Rounds, Stories excluded) and gives four lives; answering all 25 before losing them wins. With fewer than 25 eligible exercises the Duel is simply unavailable: that is normal, not an error. The last Lesson's Duel is shown as Final Duel.''',
+  'editorHelp.qa.copyMove.q':
+      r'''How do I duplicate, copy or move Lessons, Rounds and exercises?''',
+  'editorHelp.qa.copyMove.a':
+      r'''Duplicate puts an independent copy with new IDs right after the original. Copy to… and Move to… choose a Lesson or Round of this Course. Moving keeps IDs and state; a copy gets new IDs and starts as Draft. All of it happens in the working copy until you confirm the Course changes.''',
+  'editorHelp.qa.preview.q':
+      r'''How do I try the Course, a Lesson or a Round as a learner?''',
+  'editorHelp.qa.preview.a':
+      r'''Preview in the Lesson and Round editors plays the working copy as learners see it, Drafts included. Preview saves nothing and never writes progress, XP, streaks, Laurels, Review or Duel results. The Course's flag (or cover) left of the title on every Course Editor screen opens the learner page on the working copy: Drafts included, every Lesson open, nothing completed. An amber PREVIEW bar runs across the top. Rounds, Stories, GuideBooks and Duels can be played there; the bottom bar offers Course Info, Theme and Flag background, whose changes last for the preview only, and the Course you study stays as it was. Exit returns to the same screen with your changes still waiting for the Course confirmation. From an exercise form the preview shows what you have saved, not the form's unsaved changes.''',
+  'editorHelp.qa.exercises.title': r'''Exercises''',
+  'editorHelp.qa.newExercise.q': r'''How do I add an exercise?''',
+  'editorHelp.qa.newExercise.a':
+      r'''In a Round, New Exercise opens the preset picker: choose an exercise type, such as Pick the translation or Name what you see, and fill its form. In a new exercise, Fill with an example puts the example of that type from QQL Demo: Italian Exercise Lab in the form (in English and Italian, whatever the Course's languages) and Clear all returns the form to how the type starts; if you change the type after filling in fields, a message asks you to check them all. Its last choice, Canonical editor, opens the canonical editor for any primitive, with the same two buttons: Fill with an example puts a working example of the chosen primitive in it and Clear all empties it again; its Help button opens that primitive's section of the Exercise primitives reference. The preset's name is shown in bold at the top of the form.''',
+  'editorHelp.qa.pageCards.q': r'''How do I make a textbook-like Page?''',
+  'editorHelp.qa.pageCards.a':
+      r'''In the Round editor press New Exercise and choose Page (Cards and notes). Add blocks with Add block: headings, paragraphs, quotes or examples, bulleted or numbered lists, pictures, audio and video links; order them with the arrows. In body text write **bold** and *italic* (the toolbar wraps the selection). Each text block has an alignment, a colour from the palette and an optional read-aloud; each picture a size, an alignment and a caption. A video link opens an https address in the learner’s browser. The preview under the blocks shows the Page as the learner sees it. Several pages in a row are several Page cards; choose a Sequence Round to keep their order. Under each Page learners find Share, Save PDF and Print (on computers Print opens the PDF in the viewer, which prints it); the PDF credits the Course, its rights holder and licence. Turn them off in Course Info with Learners may share, save and print pages.''',
+  'editorHelp.qa.presetOrCanonical.q':
+      r'''What is the difference between a preset and the canonical editor?''',
+  'editorHelp.qa.presetOrCanonical.a':
+      r'''A preset is a simple form for one kind of exercise; it writes ordinary exercise data. The canonical editor shows every field of the exercise's primitive (select, input, arrange, match, assign and so on) with its allowed values. An exercise no preset can represent exactly opens in the canonical editor, so nothing is lost.''',
+  'editorHelp.qa.changeType.q': r'''Can I change an exercise's type?''',
+  'editorHelp.qa.changeType.a':
+      r'''No, the type is fixed once the exercise exists. Create an exercise of the other type and delete the old one.''',
+  'editorHelp.qa.exerciseWizard.q': r'''How does the Exercise Wizard work?''',
+  'editorHelp.qa.exerciseWizard.a':
+      r'''In a Round, Exercise Wizard plans 1–30 exercises: a balanced or random mix, some categories, exact types or a repeating pattern. After you confirm the plan, each step opens the ordinary form: Save checks and stays, Next checks and moves on, Finish returns the exercises in plan order. Cancelling after saving asks whether to keep the exercises already saved.''',
+  'editorHelp.qa.previewExercise.q': r'''How do I preview an exercise?''',
+  'editorHelp.qa.previewExercise.a':
+      r'''Preview beside Save plays the current form as learners see it, even for a new or Draft exercise, without saving anything or writing learner progress. Coming back restores the same values.''',
+  'editorHelp.qa.inspection.q': r'''What does Inspection show?''',
+  'editorHelp.qa.inspection.a':
+      r'''The exercise's technical data, its canonical fields. It only shows: it saves nothing and changes nothing.''',
+  'editorHelp.qa.navigate.q': r'''How do I move between exercises?''',
+  'editorHelp.qa.navigate.a':
+      r'''Previous and Next follow the Round's order. Leaving with unsaved changes offers Keep editing, Discard changes, Save as draft or Save; the breadcrumbs lead back to the Round, the Lesson and the Course.''',
+  'editorHelp.qa.fieldHelp.q':
+      r'''What does the Help button beside a field explain?''',
+  'editorHelp.qa.fieldHelp.a':
+      r'''What the field is for, what to enter, how QQL checks it and an example. Exercise Help beside the preset explains the exercise type as a whole.''',
+  'editorHelp.qa.manyAnswers.q': r'''How do I accept several typed answers?''',
+  'editorHelp.qa.manyAnswers.a':
+      r'''Write one complete answer per line. Optional words go in {…}, alternatives in [a|b] and words that may swap places in (a <> b). Answers built from blocks and the answers of listening gaps are literal: write them exactly.''',
+  'editorHelp.qa.capitals.q':
+      r'''Do capitals matter in answers built from blocks?''',
+  'editorHelp.qa.capitals.a':
+      r'''No: QQL matches the answer to its blocks whatever the capitals, so capitals never block Save. The Audit warns (ARRANGE_ANSWER_CASE_DIFFERS) when they differ, because learners build the answer from the blocks as written.''',
+  'editorHelp.qa.distractors.q': r'''How many extra blocks may I add?''',
+  'editorHelp.qa.distractors.a':
+      r'''Few extra blocks work best. Put the words in order, Build the translation and Name what you see are recommended to have 0, 1 or 2 blocks that are not in the answer, fewer in the first Rounds of a Lesson: more make the exercise slower to read and harder for the wrong reason. More are allowed, because it is a didactic choice: Course Audit lists them as Info. The spelling presets offer only the blocks of the word, and only those are recommended; a spelling exercise with extra blocks (made in the canonical editor or imported) is allowed too. A distractor in the language of the answer is recommended.''',
+  'editorHelp.qa.difficulty.q': r'''What do the difficulty bars mean?''',
+  'editorHelp.qa.difficulty.a':
+      r'''QQL computes each exercise's difficulty from what the learner does, from 0 to 4: 0 a card to read (Flashcard, Note card, Page); 1 recognize the meaning (pick or pair a source-language answer or a picture); 2 recognize the language (pick, pair or sort target-language forms); 3 build with blocks (put blocks in order or into slots); 4 write (type the answer). The Round editor shows four bars beside each exercise, filled up to its level; the Rounds page shows each Round's average. Before you start cards, Story covers and Dialogue lines have no level. The level is never stored: changing an exercise changes it. A Lesson usually works best from easier to harder Rounds: start with recognition and keep writing for later Rounds, while mixing the types within each Round. On a Round's first completion, each exercise answered correctly at the first attempt earns the learner 1 XP per level as a Difficulty bonus.''',
+  'editorHelp.qa.firstLetter.q':
+      r'''What does Show the first letter do in Type the missing word?''',
+  'editorHelp.qa.firstLetter.a':
+      r'''On, the gap shows the first letter of the word, so every accepted word must start with it. Off, the learner types the whole word and accepted words may start with different letters.''',
+  'editorHelp.qa.readAndAnswer.q':
+      r'''How do I write a Read and answer exercise?''',
+  'editorHelp.qa.readAndAnswer.a':
+      r'''Write the situation in Text to read, in the learners' own language; add dialogue lines in the target language, one “Speaker: text” per line, and choose whether they are read aloud automatically, on request or not at all; then write the question and the answers in the target language. The text to read is never read aloud, and the read-aloud never makes it an audio exercise.''',
+  'editorHelp.qa.pictures.q': r'''Which exercises use a picture?''',
+  'editorHelp.qa.pictures.a':
+      r'''What is in the picture (choose the name), Name what you see (build the name from word blocks), Type what you see (type the name), Spell the word in the picture and Picture flashcard: choose the picture under Exercise image. Match pictures to words has one picture per word instead, chosen below its words, and Select the image and Listen and pick the image one picture per answer, chosen below the answers: these three have no Exercise image. How the pictures of Select the image and Listen and pick the image look is set for the whole Course in Lesson Options › Picture answers (Picture size, Picture shape, Pictures per row; without a choice large squares, two per row), and each exercise may choose its own in its form. Square shows each picture cropped to a square: Crop square under a picture chooses the part and the zoom and keeps the cropped copy in the Course.''',
+  'editorHelp.qa.allTypes.q': r'''Where is every exercise type explained?''',
+  'editorHelp.qa.allTypes.a':
+      r'''In Technical reference › Exercise types at the top of this page, and with Exercise Help beside each preset.''',
+  'editorHelp.qa.picturesAndSound.title': r'''Pictures and sound''',
+  'editorHelp.qa.audioModes.q': r'''Which audio modes can a Course use?''',
+  'editorHelp.qa.audioModes.a':
+      r'''In the Audio Library choose On-Device TTS (the device voice, no recordings), Recorded MP3 (your recordings only) or Hybrid (recordings, else the device voice). Import MP3, Open from… and Check unused MP3 files appear only with Recorded MP3 and Hybrid.''',
+  'editorHelp.qa.addRecordings.q': r'''How do I add recordings?''',
+  'editorHelp.qa.addRecordings.a':
+      r'''Copy MP3 files to {folderAudioImports} and press Import MP3, or use Open from… to pick up to 100 files (250 MB) at a time. Each must be a real MP3 of at most 50 MB, without embedded cover art. It is copied into the Course’s own media folder, derived from the stable Course ID, and named by its content, so the same recording is stored once; the metadata and references belong to the Course. Then link each recording to the exact word or phrase it says.''',
+  'editorHelp.qa.recordingsTravel.q':
+      r'''Do recordings travel with the Course?''',
+  'editorHelp.qa.recordingsTravel.a':
+      r'''Yes, in a Course ZIP export. Verified course-version backups copy referenced recordings too. A Course JSON alone stores clip metadata and content references, not MP3 bytes.''',
+  'editorHelp.qa.addPictures.q': r'''How do I add pictures to a Course?''',
+  'editorHelp.qa.addPictures.a':
+      r'''In the Course Editor’s Image Library, Add images to this Course takes one or more pictures, or a whole Image Bank ZIP, into this Course only. The Shared Image Library, which an Admin manages, takes pictures from {folderImageImports} or with Open image files from… and Open Image Bank ZIP from…. A picture chosen for an exercise from the Shared Image Library is copied into the Course; either way it travels in the Course ZIP.''',
+  'editorHelp.qa.findPicture.q': r'''How do I find a picture?''',
+  'editorHelp.qa.findPicture.a':
+      r'''In the image library, type in Search: it looks at names, tags, Local words and categories. With Search all ticked (the default) it searches every category; untick it to search only the category you are browsing. The categories are above the pictures, related ones gathered in groups (People, Food & drink, Nature & animals…): a group opens a second row with its categories, as Characters does with the scripts, punctuation, currency and maths signs and the toy-block letters. A category also shows the pictures tagged with its name, and singular and plural count as one (“dogs” finds the dogs); the question mark at the top of the library opens its Help. In a picture’s full view the category is a link that opens it, and so is each tag: a tag shows only the pictures that carry it (or are named so), in every category, under a Tag chip; remove the chip or choose a category to go back. Typing in Search finds every word that contains what you type. The flags are the World Flags, always shown whole. Recognize characters opens the library on the characters.''',
+  'editorHelp.qa.pictureRules.q': r'''Which pictures does QQL accept?''',
+  'editorHelp.qa.pictureRules.a':
+      r'''Still PNG, JPEG or WebP pictures of at most 4096 × 4096 pixels, undamaged and without oversized metadata; QQL checks the content, not the file name. An exercise image imported from {folderImageImports} may be up to 300 KB; about 256 × 256 pixels and 15 KB is a good size.''',
+  'editorHelp.qa.imageBank.q': r'''What is an Image Bank?''',
+  'editorHelp.qa.imageBank.a':
+      r'''A ZIP of pictures with a manifest, image_bank_manifest.json, that lists each picture: an id, a label (primary_term), its file name and, if you like, keywords and an attribution. The ZIP holds only the manifest and the pictures it lists. Import Image Bank ZIP reads the one ZIP in {folderImageImports}; Open Image Bank ZIP from… uses the system dialog. Limits: a 50 MB ZIP, 2500 pictures and 300 KB per picture. A category the library does not have is filed by the Admin under one of its categories, or Other: no new category is created. A picture whose only tag is its name is pointed out, so that the Admin can add another.''',
+  'editorHelp.qa.pictureDetails.q': r'''How do I see a picture's details?''',
+  'editorHelp.qa.pictureDetails.a':
+      r'''Open it full size and hover over the picture on a computer, or long-press it on a phone: file name, size, dimensions, format, added date, Image Bank and attribution.''',
+  'editorHelp.qa.removePicture.q':
+      r'''How do I remove a picture from a Course?''',
+  'editorHelp.qa.removePicture.a':
+      r'''In the Course Editor's Image Library, Remove from this Course clears every use of the picture; the file leaves the Course when the Course changes are confirmed.''',
+  'editorHelp.qa.checkingTheCourse.title': r'''Checking the Course''',
+  'editorHelp.qa.runAudit.q': r'''How do I check a Course?''',
+  'editorHelp.qa.runAudit.a':
+      r'''Run Audit on the Course Editor page for the whole Course, or from the menu (⋮) of a Lesson or a Round on the Lessons and Rounds pages. It lists Errors, Warnings and Info, sorted by Lesson, by exercise type or by most recent change.''',
+  'editorHelp.qa.severities.q':
+      r'''What is the difference between an Error, a Warning and Info?''',
+  'editorHelp.qa.severities.a':
+      r'''An Error marks invalid content: it cannot be saved as normal content, published or imported. A Warning marks a likely problem to review. Info is guidance or a neutral fact and never blocks anything.''',
+  'editorHelp.qa.borders.q':
+      r'''What do the red and green borders and the blue badge mean?''',
+  'editorHelp.qa.borders.a':
+      r'''A red border marks an Error or a Warning somewhere in that branch; a green border means none (Info may remain). The blue badge marks Draft content in the branch. Green does not mean Published.''',
+  'editorHelp.qa.auditCodes.q': r'''Where are all the Audit codes listed?''',
+  'editorHelp.qa.auditCodes.a':
+      r'''In Technical reference › Audit Codes at the top of this page: every rule by severity, with a search.''',
+  'editorHelp.qa.auditLimits.q':
+      r'''Does the Audit check grammar or translations?''',
+  'editorHelp.qa.auditLimits.a':
+      r'''No. It checks structure and authoring: fields, IDs, blocks, audio, pictures and the like. It does not certify grammar, translation accuracy or teaching quality: preview and review your exercises.''',
+  'editorHelp.qa.searchLabel': r'''Search the questions''',
+  'editorHelp.qa.noResults': r'''No question matches your search.''',
+  'editorHelp.title': r'''Editor Help''',
+  'courseStudioHelp.title': r'''Course Studio Help''',
+  'editorHelp.technicalReference.title': r'''Technical reference''',
+  'editorHelp.technicalReference.body':
+      r'''Work in progress. These pages describe the current Course Model v12 implementation separately from the practical Editor instructions.''',
+  'courseStudioHelp.findingCourses.title': r'''Finding Courses''',
+  'courseStudioHelp.findingCourses.body':
+      r'''Search filters Course titles and source or target languages in Course Studio, including Favorites. Favorites shows shortcuts for Courses in the active learner’s personal library; each remains in its usual section too. Sort by and Show unavailable apply to both Favorites and the ordinary sections. Each section has its own Expanded / Compact / Minimal control, which QQL remembers for each learner, separately in each tab. These controls change only the view.''',
+  'courseStudioHelp.courseOperations.title': r'''Course operations''',
+  'courseStudioHelp.courseOperations.body':
+      r'''Copy as New Course creates an independent Custom Course from one you can manage. Fork creates a derivative Custom Course when the source license allows it; it keeps the source lineage and receives fresh IDs. Merge combines selected Lessons from compatible Courses into a third Course, leaving both sources unchanged. Delete course permanently removes a Custom Course from this device after two confirmations, when you have the required Course rights. Remove Publisher Course from device is available only to an Admin and is blocked while another profile includes the Course in their personal library; learner progress and version backups are kept. Remove from my courses changes only your personal membership. Hide in Learner keeps membership but removes the Course from the learner Course Selector; Unhide in Learner reverses that choice. Study makes the Course your current Course and opens the learner page; Review does the same and opens the Review page, once you have completed a Round of it. Unavailable operations are greyed out with a reason.''',
+  'courseStudioHelp.courseTypes.title': r'''Course types''',
+  'courseStudioHelp.courseTypes.intro':
+      r'''In QQL, there are three course types:''',
+  'courseStudioHelp.courseTypes.type1':
+      r'''1. Official Bundled Course: supplied with the QQL app; trusted through the app distribution.''',
+  'courseStudioHelp.courseTypes.type2':
+      r'''2. Publisher Course: distributed separately by a publisher and imported into QQL. Publisher verification is a separate status.''',
+  'courseStudioHelp.courseTypes.type3':
+      r'''3. Custom Course: created or imported by users, including copies, forks and merges.''',
+  'courseStudioHelp.courseTypes.row1.col1': r'''Aspect''',
+  'courseStudioHelp.courseTypes.row1.col2': r'''Official Bundled''',
+  'courseStudioHelp.courseTypes.row1.col3': r'''Publisher Course''',
+  'courseStudioHelp.courseTypes.row1.col4': r'''Custom''',
+  'courseStudioHelp.courseTypes.row2.col1': r'''Origin''',
+  'courseStudioHelp.courseTypes.row2.col2': r'''Included in QQL''',
+  'courseStudioHelp.courseTypes.row2.col3': r'''Imported publisher release''',
+  'courseStudioHelp.courseTypes.row2.col4': r'''Created or imported by users''',
+  'courseStudioHelp.courseTypes.row3.col1': r'''Trust''',
+  'courseStudioHelp.courseTypes.row3.col2': r'''App distribution''',
+  'courseStudioHelp.courseTypes.row3.col3':
+      r'''Valid signature from an approved publisher''',
+  'courseStudioHelp.courseTypes.row3.col4':
+      r'''No official publisher verification''',
+  'courseStudioHelp.courseTypes.row4.col1': r'''Editing''',
+  'courseStudioHelp.courseTypes.row4.col2': r'''Read only''',
+  'courseStudioHelp.courseTypes.row4.col3': r'''Read only''',
+  'courseStudioHelp.courseTypes.row4.col4': r'''Authorized Maintainer / Team''',
+  'courseStudioHelp.courseTypes.row5.col1': r'''Copying''',
+  'courseStudioHelp.courseTypes.row5.col2': r'''Use a licensed Fork''',
+  'courseStudioHelp.courseTypes.row5.col3': r'''Use a licensed Fork''',
+  'courseStudioHelp.courseTypes.row5.col4':
+      r'''Copy as New Course, if authorized''',
+  'courseStudioHelp.courseTypes.row6.col1': r'''Forking''',
+  'courseStudioHelp.courseTypes.row6.col2':
+      r'''Only if derivatives are allowed''',
+  'courseStudioHelp.courseTypes.row6.col3':
+      r'''Only if derivatives are allowed''',
+  'courseStudioHelp.courseTypes.row6.col4':
+      r'''Only if derivatives are allowed''',
+  'courseStudioHelp.courseTypes.row7.col1': r'''Merging''',
+  'courseStudioHelp.courseTypes.row7.col2': r'''Not a custom merge source''',
+  'courseStudioHelp.courseTypes.row7.col3': r'''Not a custom merge source''',
+  'courseStudioHelp.courseTypes.row7.col4':
+      r'''Two custom sources; new custom result''',
+  'courseStudioHelp.courseTypes.row8.col1': r'''Maintenance''',
+  'courseStudioHelp.courseTypes.row8.col2': r'''QQL publisher''',
+  'courseStudioHelp.courseTypes.row8.col3': r'''External publisher''',
+  'courseStudioHelp.courseTypes.row8.col4':
+      r'''Course Maintainer / Assigned Team''',
+  'courseStudioHelp.courseTypes.row9.col1': r'''Publication''',
+  'courseStudioHelp.courseTypes.row9.col2': r'''Included in app releases''',
+  'courseStudioHelp.courseTypes.row9.col3': r'''Distributed by the publisher''',
+  'courseStudioHelp.courseTypes.row9.col4': r'''Published or unpublished''',
+  'courseStudioHelp.courseTypes.row10.col1': r'''Deletion''',
+  'courseStudioHelp.courseTypes.row10.col2': r'''Personal removal only''',
+  'courseStudioHelp.courseTypes.row10.col3':
+      r'''Personal removal; admin-only uninstall if unused by others''',
+  'courseStudioHelp.courseTypes.row10.col4':
+      r'''Authorized deletion in Course Studio''',
+  'courseStudioHelp.courseTypes.row11.col1': r'''Updates''',
+  'courseStudioHelp.courseTypes.row11.col2': r'''New QQL app release''',
+  'courseStudioHelp.courseTypes.row11.col3':
+      r'''Newer release, same course ID and publisher''',
+  'courseStudioHelp.courseTypes.row11.col4': r'''Independent custom versions''',
+  'courseStudioHelp.courseTypes.note1':
+      r'''Publisher Course imports require a verified publisher signature. Unverifiable stored courses and their progress are preserved with Verification required. See Publisher signing and approval in Technical reference.''',
+  'courseStudioHelp.courseTypes.note2':
+      r'''Bundled and External are two official origins; verified / unverified describes authenticity, not a fourth course type. An unverified file is not accepted as a new Publisher Course.''',
+  'courseStudioHelp.courseTypes.note3':
+      r'''A Copy creates an independent Custom Course. A Fork is also custom, preserves its source provenance and remains subject to the original licence. Neither becomes official because its source was official.''',
+  'courseStudioHelp.courseTypes.note4':
+      r'''A Merge creates a new Custom Course from two custom sources, which remain unchanged. Created, imported, copied, forked and merged describe how a custom course originated, not additional course types.''',
+  'courseStudioHelp.courseTypes.contact':
+      r'''For bundled distribution or approval as an external publisher, contact the QQL team. The publisher signing guide explains the approval procedure.''',
+  'appInfo.versionAndBuild.title': r'''Version and Build''',
+  'appInfo.choosingAndOpeningCourses.title':
+      r'''Choosing and opening courses''',
+  'appInfo.courseIdentityAndProgress.title':
+      r'''Course identity and progress''',
+  'appInfo.progressWeekXpAndGamification.title':
+      r'''Progress, Week XP and Gamification''',
+  'appInfo.streakAndFreezeRule.title': r'''Streak and the freeze rule''',
+  'appInfo.daysStudied.title': r'''Days studied''',
+  'appInfo.laurelCrowns.title': r'''Laurel crowns''',
+  'appInfo.pathColours.title': r'''Colour code of the path''',
+  'appInfo.pathColours.enlarge': r'''Enlarge the picture''',
+  'appInfo.pathColours.body':
+      r'''Each Lesson has its own colour, one of eight that start again after Lesson 8; the picture shows them in the light and the dark theme. The Lesson's number circle is drawn in its colour, and so are the circles of its Rounds and of its Duel.
+• A pale circle ringed with the colour: a Round not completed yet (Learn).
+• A solid circle: a completed Round; Completed is written in another shade of the colour.
+• A green circle with a laurel: a Perfect Round, completed without errors.
+Learn is always blue and Perfect always green, whatever the Lesson's colour.''',
+  'appInfo.pathColours.picture':
+      r'''The eight Lesson colours in the light and the dark theme: a Round not completed, a completed Round and the word Completed.''',
+  'appInfo.audioSettings.title': r'''Audio Settings''',
+  'appInfo.betaExpiry.title': r'''Beta expiry''',
+  'appInfo.status.title': r'''Status''',
+  'appInfo.avatarAppearance.title': r'''Avatar appearance''',
+  'appInfo.review.title': r'''Review''',
+  'appInfo.guidebooks.title': r'''Guidebooks''',
+  'appInfo.wordLookup.title': r'''Word Lookup''',
+  'appInfo.languageDuels.title': r'''Language Duels''',
+  'appInfo.sourceAndTargetLanguages.title': r'''Source and target languages''',
+  'appInfo.exportAndImportLearnerData.title':
+      r'''Export and import learner data''',
+  'appInfo.updates.title': r'''Updates''',
+  'appInfo.crashLogAndDiagnosticLog.title': r'''Crash Log and Diagnostic Log''',
+  'appInfo.courseStudioAndCourseEditor.title':
+      r'''Course Studio and Course Editor''',
+  'appInfo.courseContentAndAi.title': r'''Course content and AI''',
+  'appInfo.choosingAndOpeningCourses.body':
+      r'''The learner page Course Selector lists the current course, recently opened courses, Favorites, then the other bundled and local courses; the current course is not repeated among the others. Each row shows the course's cover, or its flag when it has none. Every row has Course Info and Remove from my courses. Course Library lets you add courses again with preserved progress. Import Course opens directly and returns to study. When Animations are enabled, switching to a different course briefly shows its valid Course JSON flag before revealing the new Learner Panel. If no flag is declared, the same established course-code flag fallback used elsewhere is shown; invalid declared flag data does not receive that fallback. Selecting the current course again from Favorites, normal startup and disabled Animations enter immediately. Each learner resumes the last Lesson selected in that course, or the first Lesson when no saved selection is valid. The bottom Lesson display control cycles through Expanded, Collapse completed and Focused while the Section selector remains the sole Section-level navigation.''',
+  'appInfo.courseIdentityAndProgress.body':
+      r'''Every course has an immutable globally unique Course ID. Updates to the same course keep that ID and retain course progress. Importing a course with an existing Course ID lets you replace or update it, create a separate derived copy with a new ID, or cancel. Derived copies may record their parent Course ID and source version. Course completions, Review history, laurels and Language Duel wins are separate per Course ID. Language XP, streaks and study days remain shared by target language, while Week XP remains a total across all courses and languages.''',
+  'appInfo.progressWeekXpAndGamification.body':
+      r'''Language XP, streak, study days and Status are stored separately for each learner and target language. Profile > Statistics shows Total Study Days across languages and, for every studied language, its flag, name, canonical language ID, Study Days, Current Streak and Max Streak. Completed Rounds and laurel crowns are stored separately for each learner and Course ID. Week XP is different: it is the total XP earned by that learner across all courses during the current week. Profile > Gamification contains Weekly XP Target · All courses, Last Week XP · All courses and the Local leaderboard · All courses. Last Week XP refers to the previous completed week; tap your own Last Week XP to see the XP breakdown for each course. The local leaderboard ranks participating learner profiles on this device by their total XP across all courses during that same completed week. Participation can be turned off without deleting the learner’s XP history. A Round or Story without a scored exercise (cards, covers or dialogue lines only) counts as completed but awards no XP and no Laurel. The first time you complete a Round, each exercise you answer correctly at the first attempt also earns a Difficulty bonus: 1 XP per difficulty level, from 1 (recognize the meaning) to 4 (write). A short burst of confetti celebrates reaching your Weekly XP Target, winning a Duel and passing a Test Round (its passing threshold reached or, without one, every answer right), unless Animations are off in Do Not Disturb or your device asks for reduced motion.''',
+  'appInfo.streakAndFreezeRule.body':
+      r'''Your streak increases when you study that language on a new day. If you spend a day studying a different language, this language streak is frozen: it does not increase and it does not reset. A full day with no study in any language breaks active streaks.''',
+  'appInfo.daysStudied.body':
+      r'''A Study Day is one distinct local calendar day on which the learner completes study. Several Rounds on the same day still count as one Study Day. Total Study Days counts distinct study dates across all languages, so studying two languages on the same day still adds one total day.''',
+  'appInfo.laurelCrowns.body':
+      r'''A round earns a laurel crown when you complete one full attempt with zero errors. This can happen from the normal course path or from Review. Once earned, the crown is permanent even if a later attempt contains errors. A newly earned crown also plays the victory sound when sound effects are enabled.''',
+  'appInfo.audioSettings.body':
+      r'''Settings > Audio Settings contains Enable Audio Exercises, Text-to-speech and the existing TTS voice selector with Test Voice, in that order. Enable Audio Exercises and Text-to-speech are stored per learner and initialize Off; TTS voice is also per learner and initializes System. Test Voice opens with an empty field and speaks only the text you enter, using the selected course language for voice resolution. While audio exercises are Off, recorded-MP3, TTS and hybrid exercises are excluded before their source or playback controller is initialized. When On, the Text-to-speech switch controls TTS availability without disabling valid recorded audio. Previous shared and negative audio-setting values remain untouched and unread. Authoring Preview ignores learner Audio Settings and remains no-write. Completing only the available non-audio part of a Round preserves the established leaf-style partial-audio completion behavior rather than awarding a full laurel crown.''',
+  'appInfo.avatarAppearance.body':
+      r'''Profile > Avatar Customization contains skin and hair choices. T-shirt color is not a customization preference: it always uses the vivid color assigned to the learner’s current Status for the selected learning language, and changes automatically when Status changes.''',
+  'appInfo.review.body':
+      r'''QuisquisLingo remembers up to 50 distinct recent Rounds for each learner and Course ID. Review prioritizes Rounds where the latest attempt contained more errors. Ties are ordered by recency. Repeating a Round updates its latest error count and can also earn a permanent laurel crown.''',
+  'appInfo.guidebooks.body':
+      r'''Every Lesson has its own GuideBook with explanations and reference material. The GuideBook is the first node on the current Lesson path and opens only when you select it.''',
+  'appInfo.wordLookup.body':
+      r'''In a Round, words of the language you are learning that the Course's GuideBook vocabulary explains have a light dotted underline; tap one to see its translation and, when it comes from another Lesson, that Lesson. Only some exercise types have such words. The card shows one possible translation, a hint that does not always match the answer to the exercise. When the GuideBook has a whole expression, it is shown instead of the single word; nothing happens on a word the GuideBook does not have. Word Lookup works in every Round except Test Rounds, and never in a Duel; it gives no XP and changes nothing in your progress. It is there only when the Course uses GuideBooks, and the Course's author can turn it off.''',
+  'appInfo.languageDuels.body':
+      r'''Each Lesson has its own Duel. A standard Duel uses 25 suitable exercises from that Lesson and starts with 4 lives. Each incorrect answer costs one life. There is no score or separate pass threshold: complete all 25 questions before losing all four lives to win and unlock the next Lesson. If the Lesson does not contain 25 suitable exercises, its Duel is simply unavailable.''',
+  'appInfo.sourceAndTargetLanguages.body':
+      r'''The target language is the language you are learning. The source language is used for explanations and translations. Most sample courses use English as source; the English sample course uses Spanish as source.''',
+  'appInfo.exportAndImportLearnerData.body':
+      r'''Profile > User Data > Export my data creates a backup of the active learner profile, including learner-specific progress and preferences. It is saved directly in {folderLearnerDataExports} with an automatic filename; there is no Save As dialog. If that filename already exists, QuisquisLingo adds _2, _3 and later numeric suffixes. To import learner data, copy a supported backup to {folderLearnerDataImports}/learner_import.json and then choose Profile > User Data > Import my data. Course Editor projects, Image Bank packages and Audio Packs are separate authoring resources and are not part of this learner backup.''',
+  'appInfo.updates.body':
+      r'''At the bottom of Settings, Version and Build are shown immediately before Update. Settings > Update displays the published QuisquisLingo source repository https://github.com/Quisquisnaut/QuisquisLingo, lets you check the latest packaged GitHub Release manually, and can optionally check automatically at startup. If no packaged GitHub Release exists, the page distinguishes that from the published source repository. Automatic checks are on by default. Update checks send no learner data or course data and never download or install software. If a newer release exists, the page shows release information and installation guidance in the fixed order Windows, macOS, Linux, Android, iOS and Web, marking platforms that have no matching published release asset as not currently available.''',
+  'appInfo.crashLogAndDiagnosticLog.body':
+      r'''Settings > Debug contains both logging tools and concise reporting guidance. Use the Crash Log for startup/runtime crashes or unexpected closes. For non-crashing runtime problems, reproduce the issue when possible and export the Diagnostic Log shortly afterward; clearing it first is optional and is useful only to isolate a specific reproducible problem, while intermittent evidence should be exported before clearing. Quick Export saves copies of the Diagnostic Log and the Crash Log in {folderDiagnosticLogExports}; Settings > Debug also shows where the live Crash Log is kept. Learner audio diagnostics use short correlation IDs and bounded lifecycles with preparation, learner UI state, stable exercise ID/type, activation trigger, suppression, source, backend, playback, failure and disposal status. They are designed to avoid spoken text, answers, course content and full personal file paths.''',
+  'appInfo.courseStudioAndCourseEditor.body':
+      r'''Course Studio is opened from the learner Course Selector rather than Settings. It is the lifecycle hub: official courses provide read-only inspection, licensed Fork, Audit and supported Export; custom courses provide Edit, Copy as New Course, Merge, Audit, Export and Delete. Fork preserves the source lineage; Copy as New Course starts an independent Course lineage. Open Course Studio Help for library operations, and Editor Help from any Course Editor hierarchy page for authoring instructions.''',
+  'appInfo.courseContentAndAi.body':
+      r'''The bundled demo courses (Demo in their titles) are AI-generated, unreviewed demonstrations and are not reliable learning courses. Real QuisquisLingo course content is intended to be authored and reviewed by humans. This classification does not apply to other official or custom courses.''',
+  'appInfo.versionAndBuild.body': r'''{version}''',
+  'appInfo.betaExpiry.active':
+      r'''This is a time-limited beta build. It expires on {expiryDate}. After expiry, learner exercises and Review are blocked until a newer beta is installed. Local progress, courses, course edits and settings are not deleted, and Course Editor remains available.''',
+  'appInfo.betaExpiry.inactive': r'''This is not a time-limited beta build.''',
+  'appInfo.status.body':
+      r'''Status is calculated separately for each learner and learning language. Status points are your XP plus 40 points per current streak day, 25 per distinct study day, 15 per completed Round, and 20 per Laurel. Your current Status is the highest threshold your total has reached. Every Status has a vivid color that automatically becomes your avatar T-shirt color. The levels are Apprentice, Wanderer, Squire, Wordsmith, Knight, Lorekeeper, Language Wizard, Grand Master, Sage and Guru.''',
+  'appInfo.title': r'''Info''',
+  'appInfo.creditsButton': r'''App and image credits''',
+  'allCoursesHelp.title': r'''Courses on this device''',
+  'allCoursesHelp.allCoursesPageTitle': r'''All Courses — Help''',
+  'allCoursesHelp.courseLibraryPageTitle': r'''Course Library — Help''',
+  'allCoursesHelp.intro1':
+      r'''All Courses shows every Course installed or stored on this QQL device, including Courses outside your personal library. Each learner chooses independently which of them to include.''',
+  'allCoursesHelp.intro2':
+      r'''Courses do not have to be created on this device. You can import a Course made elsewhere. For example, a friend can send you a Course they created, or a publisher may distribute or sell you a Publisher Course to install. QQL only imports the Course package; it does not sell or license Courses itself.''',
+  'allCoursesHelp.intro3':
+      r'''If your library has no courses available for study, Home keeps Settings and All Courses. Course Studio can be unlocked for your profile by tapping Version in Settings ten times. All Courses lets you add Courses again. No course flag is shown until a playable Course is selected.''',
+  'allCoursesHelp.categories.title': r'''Categories''',
+  'allCoursesHelp.categories.body':
+      r'''Favorites: your shortcuts, also listed in their normal sections.
+Bundled Courses: supplied with QuisquisLingo.
+Publisher Courses: installed Publisher releases.
+My Local Courses: Custom Courses created by your profile.
+Other Local Courses: Custom Courses created by another profile or imported from somebody else.
+
+Each category has its own section, and its header shows how many Courses it holds. Bold titles identify Bundled Courses in black (white on black in dark mode), Publisher Courses in purple and Custom Courses in orange.''',
+  'allCoursesHelp.courseDetails.title': r'''Course details''',
+  'allCoursesHelp.courseDetails.body':
+      r'''Each row shows the Course cover, or the Course flag when there is no cover, followed by the languages, Version, Last edited date, Maintainer and, when the author declared it, Duration. Bundled and Publisher Courses show their release version; Custom Courses show their Course version. Maintainer shows the local profile responsible for a Custom Course, or the publisher for Bundled and Publisher Courses. A profile not present on this device is identified by its profile ID.''',
+  'allCoursesHelp.availability.title': r'''Availability''',
+  'allCoursesHelp.availability.body':
+      r'''Show unavailable starts on, displaying unpublished Courses, Courses needing Publisher verification and Courses with Draft authoring content. Turn it off to filter those rows from both tabs. A filtered section says how many of its Courses are shown. Blue outlined labels identify Draft, Unpublished and Verification required. Showing them does not make them playable or verified. Only published Courses are available for study. Publisher Courses also require verified signatures.''',
+  'allCoursesHelp.sortingAndCompactView.title':
+      r'''Sorting and section views''',
+  'allCoursesHelp.sortingAndCompactView.body':
+      r'''Sort by orders the Courses inside each section by Title, Language, Maintainer, Most recent or Duration. The sections themselves never change order. Most recent shows the latest edit first; Duration shows the shortest Course first and Courses without a declared duration last. Each section's button cycles through Expanded, Compact and Minimal for that section only: Compact hides version, date, maintainer and duration; Minimal hides the Courses and shows only how many are shown and how many the section holds. QQL remembers each section's view for each learner, separately in All Courses and Course Studio. Search filters titles and languages across all sections, including Favorites. Sort by and Search last while the page is open.''',
+  'allCoursesHelp.personalLibrary.title': r'''Personal library''',
+  'allCoursesHelp.personalLibrary.body':
+      r'''Add to my courses adds an installed Course to your personal Course Selector and Course Studio. It does not copy the Course or give you editing rights. Removing it from your courses does not remove it from the device. Added · Remove lets you remove it here, with the same confirmation and optional progress reset.
+
+Remove from my courses, in the Selector or Course Studio, removes the course only from your library. Progress is kept by default for when you add it again. You may explicitly reset your course progress during removal. Other learners and the shared file are unaffected. Even when Reset my progress is selected, all earned XP (including Weekly XP), total and per-language study days, streak and version backups are kept. XP earned from this course is not subtracted. Reset clears only your completed Rounds/Lessons, Perfect results, won Duels, read Guidebooks and recent Round entries for this course.''',
+  'allCoursesHelp.coursesInLearnerMode.title': r'''Courses in learner mode''',
+  'allCoursesHelp.coursesInLearnerMode.body':
+      r'''Hide in Learner keeps a Course in your personal library and Course Studio but removes it from the learner Course Selector. Unhide in Learner restores it. The Course you are studying cannot be hidden until you switch Courses. Favorites are learner-specific shortcuts; favoriting never adds a Course to your personal library. All Courses keeps hidden Courses visible with a Hidden in Learner label so you can unhide them. Study in a Course's menu adds the Course to your personal library when it is missing, makes it your current Course and opens the learner page; Review does the same and opens the Review page, once you have completed a Round of it.''',
+  'allCoursesHelp.importing.title': r'''Importing''',
+  'allCoursesHelp.importing.body':
+      r'''Courses may be transferred as QQL Course packages. Imported Custom Courses keep their ownership and provenance rules. Publisher Courses remain subject to Publisher verification.''',
+  'allCoursesHelp.removingPublisherCourse.title':
+      r'''Removing a Publisher Course from the device''',
+  'allCoursesHelp.removingPublisherCourse.body':
+      r'''Only an admin can remove a Publisher Course from the device, through its Course Studio menu. This is blocked while another profile includes the course in its library. Physical removal preserves learner progress and version backups for later reinstallation.''',
+  'technical.courseModel.title': r'''QuisquisLingo Course Model v12''',
+  'technical.courseModel.status.title': r'''Status''',
+  'technical.courseModel.status.body':
+      r'''Work in progress. QuisquisLingo uses formatVersion 12 as its only native Course Model. Earlier formats are rejected without migration or deletion. Every custom Course requires an immutable Original Course Creator and one individual Course Maintainer; an optional Assigned Team remains separate.''',
+  'technical.courseModel.hierarchy.title': r'''Hierarchy''',
+  'technical.courseModel.hierarchy.body':
+      r'''Course > Lesson > Guidebook + Round > Content. Every Lesson owns its Guidebook and Duel. Exercise is one Content kind rather than the only object allowed inside a Round.''',
+  'technical.courseModel.content.title': r'''Content''',
+  'technical.courseModel.content.body':
+      r'''Current kinds include exercise, presentation, explanation, example, vocabulary, text and dialogue. Content has a stable ID and can be required for normal completion. Lesson, Round and Exercise objects carry required UTC updatedAt timestamps. Presentation Content can be interactive without producing a correct/incorrect result.''',
+  'technical.courseModel.guidebook.title': r'''Guidebook''',
+  'technical.courseModel.guidebook.body':
+      r'''Each Lesson GuideBook is structured Content rather than a single monolithic block. Its vocabulary, examples and explanations are learner reference material and can also act as the sole source for configurable, progressively harder draft Round generation and sourceRefs.''',
+  'technical.courseModel.completionAndProgression.title':
+      r'''Completion and progression''',
+  'technical.courseModel.completionAndProgression.body':
+      r'''required means required for normal completion. Completion, correctness and unlock state are separate. Completing a Lesson or winning its available Duel can unlock the next Lesson without marking skipped Content as completed.''',
+  'technical.courseModel.languageDuel.title': r'''Language Duel''',
+  'technical.courseModel.languageDuel.body':
+      r'''Duel identity belongs directly to the Lesson. QuisquisLingo dynamically selects 25 unique eligible exercises from that Lesson and starts with 4 lives. There is no score or pass threshold. If the actual eligible pool is smaller than 25, the Lesson Duel is unavailable rather than invalid.''',
+  'technical.courseModel.friendlyEditorTemplates.title':
+      r'''Friendly Editor templates''',
+  'technical.courseModel.friendlyEditorTemplates.body':
+      r'''The Editor keeps names such as Choose a picture, What do you hear?, Build the sentence and Match the sounds. editorTemplate is optional authoring metadata. The learner executes the primitive representation.''',
+  'technical.exercisePrimitives.title': r'''Exercise primitives''',
+  'technical.exercisePrimitives.status.title': r'''Status''',
+  'technical.exercisePrimitives.status.body':
+      r'''Course Model v12 (Build 256). Every exercise is one of nine primitives with typed options, prompt elements, items, targets, an inline layout, an evaluation mode and optional feedback. Presets are recipes over this data and never change how an exercise plays or is graded; since Build 261 the learner's title of an exercise is the name of the preset that represents it, recognized from its content (never from the stored preset), in the learner panel's language. A Story shows no titles, only the instructions.''',
+  'technical.exercisePrimitives.exerciseAnatomy.title': r'''Exercise anatomy''',
+  'technical.exercisePrimitives.exerciseAnatomy.body':
+      r'''Exercise = primitive + options + prompt[] + items[] + targets[] + layout[] + evaluation + feedback, with an optional hint. Prompt elements are text, audio or image with a role (primary, question, passage, situation, clue, context, dialogue_turn, picture, character; a presentation has its own: term, meaning, usage, intro, line, title, block; the canonical editor offers them in a menu and says what each does) and the attributes language (source or target), playback (automatic or manual) and required. A primary text (else a clue) that states no language is the Instruction or context: the learner sees it in place of the standard instruction line under the heading; one with a language is material, such as a text to translate. Items are what the learner chooses, orders, places or pairs; a Match item has a side. Targets are the gaps, slots or regions the learner fills, and the layout places them in the text. Items and targets are named by stable IDs, never by position.''',
+  'technical.exercisePrimitives.primitives.title': r'''The nine primitives''',
+  'technical.exercisePrimitives.primitives.body':
+      r'''select: the learner selects one or more items. input: the learner types text or a number into a field or into inline gaps. arrange: the learner orders blocks or drags them into gaps. match: the learner pairs left and right items. assign: the learner sorts items into groups, fills slots or the gaps of a text by tapping an item and then its destination (the presets Sort into groups and Fill the slots; gaps are authored in the canonical editor; picture regions and grid cells wait for a later version). speak: the learner speaks (definitions only). ink: the learner writes by hand (definitions only). submit: the learner hands in a free answer for self-check or review (definitions only). presentation: a card or note with nothing to answer, such as a Flashcard. The primitive is locked once an exercise exists.''',
+  'technical.exercisePrimitives.primitiveSelect.title': r'''Select''',
+  'technical.exercisePrimitives.primitiveSelect.body':
+      r'''The learner picks the correct answer, or several, among the items: Choose the answer, Pick the translation, True or false, Listen and choose and most picture exercises are Select. In the canonical editor: the Prompt holds the question (role question) and, when needed, an instruction (primary), a text to read (passage) or a recording (audio, primary); each Item is one answer; Evaluation exactItem ticks the correct item, exactSet several (with selectionMode multiple). The options set the layout (list, grid or inline gaps) and whether the items are shuffled. The picture shows the example Fill with an example writes, as the learner sees it.''',
+  'technical.exercisePrimitives.primitiveInput.title': r'''Input''',
+  'technical.exercisePrimitives.primitiveInput.body':
+      r'''The learner types the answer: in one field (Type the translation, Type what you hear) or in the gaps of a sentence (Type the missing word, Complete the text). In the canonical editor: the Prompt holds the question or the sentence; Evaluation lists the accepted answers, one per line, where {a|b} accepts either word, and literal answers are kept as written; for gaps, add Targets, place them with the Layout and give the answers per target. The options caseHandling, punctuationHandling, whitespaceHandling, accentHandling and typoTolerance decide how strictly the answer is compared. The picture shows the example Fill with an example writes, as the learner sees it.''',
+  'technical.exercisePrimitives.primitiveArrange.title': r'''Arrange''',
+  'technical.exercisePrimitives.primitiveArrange.body':
+      r'''The learner puts blocks in order: words into a sentence (Word order, Build the translation), letters into a word (Spell the word, joiner none), lines into a text, or blocks into the gaps of a sentence. In the canonical editor: each Item is a block; a block left out of the correct order is a distractor (two at most); Evaluation holds one or more correct orders, each with its answer text and the item IDs in order. The picture shows the example Fill with an example writes, as the learner sees it.''',
+  'technical.exercisePrimitives.primitiveMatch.title': r'''Match''',
+  'technical.exercisePrimitives.primitiveMatch.body':
+      r'''The learner pairs each item on the left with one on the right: words with their translations (Match the words), sounds with words, pictures with words. In the canonical editor: every Item has a side, Left or Right; Evaluation lists the pairs, a Left item and its Right item. The options can shuffle either side. The picture shows the example Fill with an example writes, as the learner sees it.''',
+  'technical.exercisePrimitives.primitiveAssign.title': r'''Assign''',
+  'technical.exercisePrimitives.primitiveAssign.body':
+      r'''The learner places items in their destination, tapping an item and then its place: into groups (Sort into groups), into slots (Fill the slots) or into the gaps of a text. In the canonical editor: the option targetMode says what the targets are (categories, slots or gaps); each Target is a group, a slot or a gap, and the Layout puts gaps in the text; the Items are the words to place; Evaluation says which item IDs belong in each target. Picture regions and grid cells wait for a later version. The picture shows the example Fill with an example writes, as the learner sees it.''',
+  'technical.exercisePrimitives.primitiveSpeak.title': r'''Speak''',
+  'technical.exercisePrimitives.primitiveSpeak.body':
+      r'''The learner says something aloud, such as a greeting. The Prompt holds what to say. Speak exercises are stored and checked, but this version cannot play them: learners skip them in Rounds, and a Story or a Preview shows the card in the picture in their place.''',
+  'technical.exercisePrimitives.primitiveInk.title': r'''Ink''',
+  'technical.exercisePrimitives.primitiveInk.body':
+      r'''The learner writes by hand, such as tracing a letter. The Prompt holds what to write. Ink exercises are stored and checked, but this version cannot play them: learners skip them in Rounds, and a Story or a Preview shows the card in the picture in their place.''',
+  'technical.exercisePrimitives.primitiveSubmit.title': r'''Submit''',
+  'technical.exercisePrimitives.primitiveSubmit.body':
+      r'''The learner hands in a free answer, such as a recording or a text, to check alone or to have it reviewed. The Prompt holds the task and the option submissionType says what is handed in. Submit exercises are stored and checked, but this version cannot play them: learners skip them in Rounds, and a Story or a Preview shows the card in the picture in their place.''',
+  'technical.exercisePrimitives.primitivePresentation.title':
+      r'''Presentation''',
+  'technical.exercisePrimitives.primitivePresentation.body':
+      r'''Nothing to answer: the learner reads a card and goes on. A Flashcard has Texts with the roles term and meaning, usage and usage_translation for an example, and an audio element with the role audio for its read-aloud; the presets Before you start, Dialogue line, Story cover and Page are presentations too, with their own roles (intro, line, title, block). The option completionMode decides how the learner moves on. A presentation awards no XP and never blocks a perfect Round. The picture shows the example Fill with an example writes, as the learner sees it.''',
+  'technical.exercisePrimitives.primitiveOptions.title':
+      r'''Primitive options''',
+  'technical.exercisePrimitives.primitiveOptions.body':
+      r'''Options are typed and belong to one primitive: selectionMode, selectionTarget, minimumSelections, maximumSelections, itemReuse, layout, evaluationTiming and shuffleItems for select; inputMode, cardinality, caseHandling, punctuationHandling, whitespaceHandling, accentHandling and typoTolerance for input; placementMode, unusedItems and joiner for arrange; relationship, interactionStyle, shuffleLeft and shuffleRight for match; completionMode, navigation and mediaPlayback for presentation. Course JSON stores only the values that were set; an omitted option means the registry default. The capability registry lists every legal value, the required options and the combinations it refuses; an unknown option or an illegal value is a format error and is never silently corrected.''',
+  'technical.exercisePrimitives.layouts.title': r'''Layouts''',
+  'technical.exercisePrimitives.layouts.body':
+      r'''list and grid show items as choices; inline places selected items into gaps in the text. field and inlineGaps are typed answers: one field, or one field per gap. sequence puts arranged blocks in a row and inlineGaps drags them into gaps. dropdown Match pairs each left item with one right item. The inline layout is a sequence of text pieces and target gaps; a target may reveal its first letter, as Type the missing word does.''',
+  'technical.exercisePrimitives.evaluationModes.title': r'''Evaluation modes''',
+  'technical.exercisePrimitives.evaluationModes.body':
+      r'''The evaluation mode says how the answer is checked and which answer data applies: exactItem and exactSet (correct item IDs); exactText, acceptedTexts and expression (answers with {a|b} variants, literalAnswers that are never expanded, or targetAnswers per gap); regex (pattern); numericExact, numericRange and numericTolerance; exactOrder and acceptedOrders (correctOrders with item IDs); gapAssignments and exactAssignments (assignments per target); exactRelations (relations of left and right item IDs); acceptedTargets; none for presentations. Input normalization comes from the options, not from the evaluation. The runtime-support table decides which combinations this version can play; a readable but not playable exercise stays in the Course as it is.''',
+  'technical.exercisePrimitives.promptAndItemMedia.title':
+      r'''Prompt and Item media''',
+  'technical.exercisePrimitives.promptAndItemMedia.body':
+      r'''Text, audio and image elements carry roles and attributes. Audio with required: true makes the exercise an audio exercise, which Audio Exercises Off removes from Rounds and Duels; audio with required: false is optional, like the read-aloud button of Pick the translation. An image with the role character is a Recognize characters specimen; any other image is an illustration. Item media follow the same rules.''',
+  'technical.exercisePrimitives.presentationContent.title':
+      r'''Presentation Content''',
+  'technical.exercisePrimitives.presentationContent.body':
+      r'''A Flashcard or a note is a presentation-primitive exercise with evaluation mode none and a completionMode (continue, acknowledge or understoodReview). It awards no XP, counts as neither correct nor wrong and never blocks a perfect Round.''',
+  'technical.exercisePrimitives.presets.title': r'''Presets as recipes''',
+  'technical.exercisePrimitives.presets.body':
+      r'''A preset is a recipe: its form asks for a few fields and writes ordinary canonical data. The exercise carries the preset as authoring metadata only (presetId); the learner runtime, the Duel and the Audit read the canonical data. On every save QQL checks whether the preset still represents the exercise exactly. If another preset does, that one is named; if none does, the exercise keeps no preset and opens in the canonical editor. Other authoring metadata is dropped as soon as the content changes.''',
+  'technical.exercisePrimitives.canonicalEditor.title':
+      r'''The canonical editor''',
+  'technical.exercisePrimitives.canonicalEditor.body':
+      r'''The canonical editor (New Exercise › Canonical editor) shows every canonical field of any primitive with the values the capability registry allows: Primitive, Options, Prompt, Items, Targets, Layout, Evaluation by mode, Feedback and hint. It says whether this version can play the exercise, refuses the combinations the registry refuses, previews with the learner runtime and saves like a preset form (Save as draft, or Save with the Audit). An exercise that no preset represents opens there. Role is a menu of the roles QQL reads for the element's type, with what each does; a stored role outside the list stays and is marked. A new exercise has Fill with an example and Clear all (back to the primitive's defaults); changing its primitive when fields are filled asks you to check them. The first time each primitive opens in a Course, a popup explains it (once per user and Course; Show one-time notices again brings it back), and the Help button opens that primitive's section on this page.''',
+  'technical.jsonStructure.title': r'''JSON data structure''',
+  'technical.jsonStructure.status.title': r'''Status''',
+  'technical.jsonStructure.status.body':
+      r'''Work in progress. QuisquisLingo writes formatVersion: 12.''',
+  'technical.jsonStructure.root.title': r'''Root''',
+  'technical.jsonStructure.root.body':
+      r'''The root contains formatVersion, Course metadata and lessons[]. Bundled samples and custom Courses use the native v12 model; a merged Course also carries mergeProvenance. Custom roots require immutable originalCourseCreator provenance and one individual maintainer; optional assignedTeamId is separate, while Team membership itself remains outside Course JSON. Earlier Course Models are not read or migrated.''',
+  'technical.jsonStructure.guidebook.title': r'''Guidebook''',
+  'technical.jsonStructure.guidebook.body':
+      r'''Each Lesson contains a guidebook with optional publicationState and guidebook.content[] structured Content such as explanation, vocabulary and example entries. An omitted Guidebook publicationState means published; an explicit draft state keeps the Guidebook out of learner delivery. Its displayed Internal ID is derived from the immutable Lesson ID with the suffix _guidebook; no additional ID field is persisted. Guidebook Content retains its own stable IDs. The optional course useGuidebook switch changes learner access and the empty-Guidebook Warning, never the stored content.''',
+  'technical.jsonStructure.lessonAndRound.title': r'''Lesson and Round''',
+  'technical.jsonStructure.lessonAndRound.body':
+      r'''Course, Lesson, Guidebook, Round and authored Exercise content carry draft/published state. Guidebook defaults to published when its optional state is absent. Lesson, Round and Exercise also require UTC updatedAt timestamps. A Course stores Lesson label and numbering, Round label and numbering, a legacy-compatible fallback-icon value and optional managed custom Lesson-icon assets. Both accepted legacy fallback values now render the same number circle in the Lesson's colour, chosen by its position; nothing about the colour is stored. A Lesson contains lessonId, a required title, optional Section and themeIconAsset metadata, guidebook, rounds[] and its Duel identity. Guidebook may contain ordered Insights sections with Title and Text. Round title is optional; without one, the Round type still names it without changing identity.''',
+  'technical.jsonStructure.exerciseContent.title': r'''Exercise Content''',
+  'technical.jsonStructure.exerciseContent.body':
+      r'''Exercise Content stores editorTemplate plus exercise.prompt[], exercise.interaction and exercise.evaluation. Correctness uses stable Item IDs rather than display indexes. Build the translation stores one or more literal correctOrders with answer text and ordered Item IDs; legacy correctOrder is rejected.''',
+  'technical.jsonStructure.duel.title': r'''Duel''',
+  'technical.jsonStructure.duel.body':
+      r'''A Lesson serializes a stable Duel ID and title. Availability is derived at runtime from the actual Lesson exercise pool under the standard eligibility and deduplication rules; it is not serialized and does not depend on Round count. Course createDuels and useGuidebook default true and serialize only when false. Optional sectionNames retains non-empty trimmed reusable names; an empty catalog is omitted. Optional worldFlagId references authoritative bundled SVG artwork and is omitted when empty.''',
+  'technical.jsonStructure.compatibility.title': r'''Compatibility''',
+  'technical.jsonStructure.compatibility.body':
+      r'''Bundled Courses are native Course Model v12, and so are custom Courses. Every earlier format is unsupported and is not read, migrated, converted or deleted. Attribution, provenance and Rights Holder metadata never grant Course permissions or infer Team assignment.''',
+  'debugHelp.title': r'''Debug Help''',
+  'debugHelp.crashLog.title': r'''Crash Log''',
+  'debugHelp.crashLog.body':
+      r'''This Beta version keeps an automatic local Crash Log to help investigate crashes and other serious technical problems.
+
+For cases where QQL crashes or closes unexpectedly. If available after a crash, copy or export this file and provide it with your report. It is primarily useful for startup and runtime crashes.
+
+The live Crash Log is private to QQL; Settings > Debug shows where it is. Quick Export saves a copy as QQL_crash_log.txt in {folderLogs}, replacing the previous copy. Save log copy as… lets you choose the place, and on phones Share sends it directly.
+
+Please use the app normally and reproduce the crash. After the app closes, reopen it if necessary. When you send the Crash Log, also say what you clicked immediately before the crash. Please send the whole log file, not a screenshot of it.
+
+The Crash Log contains technical system information, session starts, uncaught errors and stack traces. It does not intentionally record learner names, exercise answers or course content.
+
+If the Crash Log file is deleted, QuisquisLingo recreates it automatically at the next app start or crash write.''',
+  'debugHelp.diagnosticLog.title': r'''Diagnostic Log''',
+  'debugHelp.diagnosticLog.body':
+      r'''For problems that do not necessarily crash QQL, including audio, TTS, Recorded MP3, unexpected playback, source-resolution problems, and other runtime anomalies. When possible, reproduce the problem and export this log shortly afterward. To isolate one specific reproducible problem, you may clear it first; clearing is optional. For intermittent or difficult-to-reproduce problems, export the current Diagnostic Log before clearing to preserve existing evidence.''',
+  'debugHelp.privacy.title': r'''Privacy''',
+  'debugHelp.privacy.body':
+      r'''Learner audio diagnostics are designed to avoid recording spoken text, answers, course content, or full personal file paths.''',
+  'imageLibraryHelp.title':
+      r'''Image Library Help''',
+  'imageLibraryHelp.saving.title':
+      r'''Saving your changes''',
+  'imageLibraryHelp.saving.paragraph1':
+      r'''In a Course's Image Library, changes are kept as you make them and are applied when you leave the screen, so there is no Save button. They are written to the Course only when you confirm the Course changes on leaving the Course Editor. Cancelling the Course discards them, and any images added in that session are removed again.''',
+  'imageLibraryHelp.saving.paragraph2':
+      r'''Shared Images, the library of this device that Admins manage, saves each change at once.''',
+  'imageLibraryHelp.finding.title':
+      r'''Finding a picture''',
+  'imageLibraryHelp.finding.paragraph1':
+      r'''Type in Search: it looks in names, tags, Local words and categories, and finds every word that contains what you type. Singular and plural count as one, so “dogs” also finds the dog pictures. With Search all ticked (the default) it searches every category; untick it to search only the category you are browsing.''',
+  'imageLibraryHelp.finding.paragraph2':
+      r'''The categories are above the pictures. Related categories are gathered in groups: People, Food & drink, Body & health, Home & things, Places & travel, Numbers & time, Language & grammar, Society & culture, History & stories, Free time and Nature & animals. A group shows all its pictures and opens a second row with its categories (the first chip, “all …”, goes back to the whole group), as Characters does with the scripts, punctuation, currency and maths signs and the toy-block letters. Every picture keeps its one category: the groups only gather them. Typing a group's whole name in Search, such as “food & drink” or “food and drink”, finds its pictures. A category also shows the pictures tagged with its name: Restaurant (in Food & drink) shows its own pictures and every picture tagged “restaurant”, so a picture can appear in more than one category.''',
+  'imageLibraryHelp.finding.paragraph3':
+      r'''In a picture's full view the category and each tag are links. A tag shows only the pictures that carry it, in singular or plural, or are named so, in every category, under a Tag chip; the category of the same name counts as that tag. Remove the chip or choose a category to go back.''',
+  'imageLibraryHelp.finding.paragraph4':
+      r'''The number at the right of the badge row says how many pictures are shown, following the category, tag, search and badge you chose.''',
+  'imageLibraryHelp.badges.title':
+      r'''Badges''',
+  'imageLibraryHelp.badges.paragraph1':
+      r'''QQL marks the pictures supplied by the app; DEVICE the pictures an Admin added to this device; COURSE a picture stored in this Course; IN USE a picture the Course uses. The badge row filters by them.''',
+  'imageLibraryHelp.badges.paragraph2':
+      r'''A DEVICE picture used in a Course is copied into the Course and travels in its ZIP; QQL pictures are part of the app on every device and are not included in the ZIP.''',
+  'imageLibraryHelp.details.title':
+      r'''A picture's details''',
+  'imageLibraryHelp.details.paragraph1':
+      r'''Open a picture full size and hover over it on a computer, or long-press it on a phone, to see its file name, size, dimensions, format, added date, Image Bank and attribution.''',
+  'deviceAdminHelp.title': r'''Advanced (Admin) Help''',
+  'deviceAdminHelp.whatThisPageIs.title': r'''What this page is''',
+  'deviceAdminHelp.whatThisPageIs.paragraph1':
+      r'''Advanced (Admin) gathers the administrator features of this QQL installation in one place. It only exists on this device: QQL has no online account, so an admin looks after the learners and data stored here and nothing else.''',
+  'deviceAdminHelp.whatThisPageIs.paragraph2':
+      r'''Every feature on this page is also still available where it always was. Only admins can open the page; other learners see it greyed out in Settings, with a tooltip saying what it holds.''',
+  'deviceAdminHelp.whoIsAnAdmin.title': r'''Who is an admin''',
+  'deviceAdminHelp.whoIsAnAdmin.paragraph1':
+      r'''The first learner created on a device is automatically an admin. QQL always has at least one admin. An admin can make other learners admins, and an admin can give up their own admin role as long as another admin remains.''',
+  'deviceAdminHelp.whatAdminsCanDo.title': r'''What admins CAN do''',
+  'deviceAdminHelp.whatAdminsCanDo.bullet1':
+      r'''Make another learner an admin.''',
+  'deviceAdminHelp.whatAdminsCanDo.bullet2':
+      r'''Delete any learner, together with that learner’s local progress and settings (see the limits below).''',
+  'deviceAdminHelp.whatAdminsCanDo.bullet3':
+      r'''Reset another learner’s PIN. This removes the PIN so the learner can choose a new one. Note that until a new PIN is set, anyone can open that profile.''',
+  'deviceAdminHelp.whatAdminsCanDo.bullet4':
+      r'''Change the QQL device name shown in the Learner Profiles list.''',
+  'deviceAdminHelp.whatAdminsCanDo.bullet5':
+      r'''Choose whether QQL asks who is learning each time it starts.''',
+  'deviceAdminHelp.whatAdminsCanDo.bullet6':
+      r'''Manage the shared image library and its descriptive metadata (Shared Image Library). It holds the images available to every course on this device, and only admins can add to or change it. Anyone who can edit a course can still add their own image to an exercise with Import custom image; that image is not added to the shared library.''',
+  'deviceAdminHelp.whatAdminsCanDo.bullet7':
+      r'''Run the reset options on this page, after setting an admin PIN and entering it for each reset.''',
+  'deviceAdminHelp.whatAdminsCannotDo.title': r'''What admins CANNOT do''',
+  'deviceAdminHelp.whatAdminsCannotDo.bullet1':
+      r'''Delete the only admin, or give up the admin role when they are the only admin. To remove the last admin, make another learner an admin first, or use “Wipe out everything”.''',
+  'deviceAdminHelp.whatAdminsCannotDo.bullet2':
+      r'''See any PIN. PINs are stored in a scrambled form that even QQL cannot read back. A forgotten PIN can only be reset, never recovered.''',
+  'deviceAdminHelp.whatAdminsCannotDo.bullet3':
+      r'''Reset their own PIN from the Learner Profiles list. Only another admin can reset an admin’s PIN.''',
+  'deviceAdminHelp.whatAdminsCannotDo.bullet4':
+      r'''Run any reset without a PIN. An admin who has not set a PIN cannot use the reset options at all, and the PIN is asked again for every reset.''',
+  'deviceAdminHelp.whatAdminsCannotDo.bullet5':
+      r'''Take ownership of courses. Being an admin gives no special right to edit or delete another person’s course. Course rights come only from being its Owner or a member of its owning Team.''',
+  'deviceAdminHelp.whatAdminsCannotDo.bullet6':
+      r'''Delete a learner who is the maintainer of a course, or the only Team Leader of a Team. Change the course maintainer or promote another Team Leader first.''',
+  'deviceAdminHelp.whatAdminsCannotDo.bullet7':
+      r'''Edit or delete the bundled official courses. They are read-only for everyone; like any learner, an admin can only fork them where their license allows it.''',
+  'deviceAdminHelp.whatAdminsCannotDo.bullet8':
+      r'''Manage Teams. Teams are run by their own Leads and members from Course Studio, not by device admins.''',
+  'deviceAdminHelp.whatAdminsCannotDo.bullet9':
+      r'''Act on other devices. Admin rights apply only to this installation.''',
+  'deviceAdminHelp.whatAdminsCannotDo.bullet10':
+      r'''Undo a reset or a deleted learner. Deleted data can only come back from a backup you made earlier.''',
+  'deviceAdminHelp.inventory.title': r'''Inventory''',
+  'deviceAdminHelp.inventory.paragraph1':
+      r'''The Inventory button lists everything QQL has stored because of what people did, so you know what a reset would remove and where your files are. For every file it shows the full location (which you can select and copy), the size, the date it was last changed and, when it can be determined, the learner it belongs to.''',
+  'deviceAdminHelp.inventory.bullet1':
+      r'''Learners and custom courses are kept inside QQL’s own settings, not as files, so they show no path. Each course shows its maintainer or creator.''',
+  'deviceAdminHelp.inventory.bullet2':
+      r'''Export: exported Courses, learner backups, User Recovery Keys and Audit reports. Backups: the Course Backups the Course Editor makes automatically before saving a change, which Version History lists.''',
+  'deviceAdminHelp.inventory.bullet3':
+      r'''Import and ToBeMerged: files you copied into those folders from outside QQL. Folders from earlier versions (Imports, Exports, Merges) are listed on their own; QQL no longer reads them.''',
+  'deviceAdminHelp.inventory.bullet4':
+      r'''Imported images, image banks and imported audio (MP3) files: the copies QQL made in its own storage. Audio shows the course it belongs to.''',
+  'deviceAdminHelp.inventory.bullet5':
+      r'''Logs: the copies of the Crash Log and Diagnostic Log saved with Quick Export. The live Crash Log and the session marker are private to QQL and listed on their own.''',
+  'deviceAdminHelp.inventory.bullet6':
+      r'''Other files in the QQL folder: anything added directly to the QuisquisLingo folder with the operating system, which QQL did not create and does not use.''',
+  'deviceAdminHelp.inventory.bullet7':
+      r'''Media and files that come with the app itself are not listed. Very large lists show the 500 most recent files per section.''',
+  'deviceAdminHelp.qqlTools.title': r'''QQL-Tools''',
+  'deviceAdminHelp.qqlTools.paragraph1':
+      r'''QQL-Tools is an optional companion project for independent validation of QQL Course JSON files and package ZIP files. Its results do not replace QQL's own Course Audit, import validation, or safety checks.''',
+  'deviceAdminHelp.qqlTools.paragraph2':
+      r'''In Advanced (Admin), an Admin uses Browse... to configure the QQL-Tools executable once per device, then Test to check it or Clear to remove it. Validate with QQL-Tools... runs in the background while QQL stays open. It does not modify or import the selected Course. Not available on mobile devices.''',
+  'deviceAdminHelp.updates.title': r'''Updates''',
+  'deviceAdminHelp.updates.paragraph1':
+      r'''The Update entry opens the same page every learner can reach in Settings > Update: it checks GitHub for a newer release and shows the installation instructions. Only an admin can change “Check automatically at startup”, because it applies to the whole device.''',
+  'deviceAdminHelp.updates.paragraph2':
+      r'''When a newer version is found at startup, each learner is told about it once a day: the popup offers “Not today”, and reminds that learner again the next day. Other learners on the device are still told.''',
+  'deviceAdminHelp.askWhoIsLearningAtStartup.title':
+      r'''Ask who is learning at startup''',
+  'deviceAdminHelp.askWhoIsLearningAtStartup.paragraph1':
+      r'''Off (default): QQL opens directly as the learner who used it last. This suits a device used by one person.''',
+  'deviceAdminHelp.askWhoIsLearningAtStartup.paragraph2':
+      r'''On: every time QQL starts, the learner list is shown and nobody is resumed automatically, so each person chooses their own profile. This suits shared devices. It has no effect when the device has only one learner. Learners with a PIN still have to enter it.''',
+  'deviceAdminHelp.resetOptions.title': r'''The reset options''',
+  'deviceAdminHelp.resetOptions.paragraph1':
+      r'''Resets delete data permanently. For that reason the Reset section is locked until you set your own 4-digit PIN. Each reset then walks you through: an explanation with the real numbers for this device, an offer to back up first, and finally your PIN. Nothing is deleted until you have finished every step. Remove imported media and the full wipe let you choose in the first step (see below), and the full wipe asks you to type NUKE EVERYTHING, exactly, before the PIN.''',
+  'deviceAdminHelp.resetOptions.bullet1':
+      r'''Reset learner progress: clears XP, streaks and completed lessons for every learner. Learners, PINs, settings and courses stay.''',
+  'deviceAdminHelp.resetOptions.bullet2':
+      r'''Remove all learners except admins: deletes every non-admin learner and their data, and removes the Team list if it names any of them. It is refused while one of them maintains a Course: change the Course Maintainer or delete the Course first.''',
+  'deviceAdminHelp.resetOptions.bullet3':
+      r'''Remove imported media: you choose whether to remove the imported images, the imported audio files (recorded MP3 files), or both; nothing is ticked at first. It deletes only the copies QQL made in its own storage. Media that comes with QQL itself (the built-in image library, flags, icons and the bundled courses’ recordings) is part of the app and is never removed; edits to the shared image library’s tags and labels go back to the defaults. Your original files are not touched.''',
+  'deviceAdminHelp.resetOptions.bullet4':
+      r'''Remove custom courses: deletes all custom and installed courses, all Teams and all imported media, meaning every imported image and every imported recorded MP3 audio file. Private courses of other learners, which you cannot see, go too; the confirmation counts them. Learners stay.''',
+  'deviceAdminHelp.resetOptions.bullet5':
+      r'''Wipe out everything: returns QQL to a brand-new installation, including all learners and admins. You can keep the Export folder, the Logs folder, the Import and ToBeMerged folders, and the Backups folder; all are kept unless you untick them in the first step. Import and ToBeMerged hold the original files you copied there yourself; Backups holds the automatic Course Backups.''',
+  'deviceAdminHelp.beforeResetBackups.title': r'''Before you reset: backups''',
+  'deviceAdminHelp.beforeResetBackups.paragraph1':
+      r'''Learner data is exported from Profile → User Data, and each backup covers only the learner who is logged in: an admin cannot export other learners’ data, so before a reset that affects other learners, ask each of them to export their own. Courses are exported one at a time from Course Studio. Exports are saved in {folderExport}, which the full wipe keeps unless you untick it.''',
+  'deviceAdminHelp.forgottenPin.title': r'''Forgotten PIN''',
+  'deviceAdminHelp.forgottenPin.paragraph1':
+      r'''If another admin exists, they can reset your PIN from the Learner Profiles list. If you are the only admin and forget your PIN, there is no way to recover it: you cannot open your profile or use the reset options. Choose a PIN you will remember, and consider making a second person an admin.''',
+  'publisherSigningHelp.title': r'''Publisher signing and approval''',
+  'publisherSigningHelp.status.title':
+      r'''Status: signature verification implemented''',
+  'publisherSigningHelp.status.body':
+      r'''Build 241 now verifies Ed25519 publisher signatures for Publisher Course imports, both with Quick Import and from the system file dialog. The storage service checks again before installation. Missing, invalid, unknown or revoked signatures are rejected. The normal trusted publisher registry currently has no approved external publishers; the Dummy identity is for explicitly enabled test builds only. Since Build 262 the registry has a place for QuisquisLingo Courses (com.quisquislingo, key ID qqlc-2026-1), the publisher of the owner's own Courses; its public key is still empty, so the app trusts none of its Courses yet.
+
+Publisher approval is a manual owner process. The owner maintains the public-key registry in lib/services/trusted_publishers.dart and distributes changes with an app update. There is no approval portal or in-app signing button. A developer command and OpenSSL provide course signing outside the app.
+
+The Course Model is v12 (Build 256); v11 Publisher Courses must be converted with tools/convert_course_to_v12.dart and signed again. The signature protocol is qql-ed25519-v1. Focused verification does not constitute final release validation; Build 241 still awaits the owner's final validation approval.''',
+  'publisherSigningHelp.rolesAndTools.title': r'''1. Roles and tools''',
+  'publisherSigningHelp.rolesAndTools.body':
+      r'''Publisher: creates and protects an Ed25519 key pair, requests approval, and signs its own releases. The QQL owner never receives private keys and does not sign each course for the publisher.
+
+QQL owner: independently checks the publisher identity and key possession, assigns a stable publisherId and records the approved public key. Trust changes are shipped in the app registry; no online service is required.
+
+Tools: a maintained OpenSSL 3.x installation, a terminal, a plain-text editor, a password manager, protected offline backup storage and an independently verified communication channel. Obtain OpenSSL from a trusted OS/package provider. Run openssl version to confirm it is on PATH. On Windows, an executable path containing spaces is invoked in PowerShell as & 'FULL PATH TO openssl.exe', followed by its arguments.
+
+Course signing additionally uses the QQL repository, its compatible Dart SDK and tools/sign_course.dart. Run flutter pub get in the repository before first use. The tool prepares canonical signing bytes and attaches a checked signature; OpenSSL alone must not sign arbitrary course JSON. A learner's User Recovery Key is unrelated to publisher keys.
+
+Use a separate private working folder per publisher, outside Git, app course/media folders and shared folders. Keep private keys there; commands run from the repository can use quoted absolute paths. Stop on every error. Choose fresh output names; never overwrite existing keys.''',
+  'publisherSigningHelp.createAndProtectKey.title':
+      r'''2. Publisher: create and protect the key''',
+  'publisherSigningHelp.createAndProtectKey.body': r'''Check your installation:
+
+openssl version
+
+It must report OpenSSL 3.x. Create an encrypted Ed25519 private key, entering a strong unique passphrase when prompted:
+
+openssl genpkey -algorithm ED25519 -aes-256-cbc -out publisher-private.pem
+
+Export its public key (enter the private-key passphrase when prompted):
+
+openssl pkey -in publisher-private.pem -pubout -out publisher-public.pem
+
+Calculate the public-key fingerprint using DER SubjectPublicKeyInfo, not the PEM text:
+
+openssl pkey -pubin -in publisher-public.pem -outform DER -out publisher-public.der
+openssl dgst -sha256 publisher-public.der
+
+Record the SHA-256 hexadecimal result. The private PEM is secret; the public PEM, public DER and fingerprint may be shared. Keep the passphrase in a password manager and an encrypted offline backup of the private PEM. Test restoring that backup in a separate secure folder: export the public key again and check that its fingerprint matches.
+
+Never send the private PEM or passphrase to the QQL owner, put them in course JSON, commit them to Git, or include them in learner backups. Do not use online key generators or paste private keys into websites or chats. Losing both the key and backup prevents signing further releases with that key.''',
+  'publisherSigningHelp.requestApproval.title':
+      r'''3. Publisher: request approval''',
+  'publisherSigningHelp.requestApproval.body':
+      r'''Use the contact channel agreed directly with the QQL owner; this guide does not establish a public submission address. Send only:
+
+- Publisher name and the person authorized to represent it.
+- Website or other independently checkable identity evidence and a contact address.
+- Requested publisherId, if any; the owner assigns the final stable identifier.
+- publisher-public.pem and its SHA-256 fingerprint from section 2.
+- Intended course IDs/titles, distribution channel and a statement that you can distribute the content and media under the declared licenses.
+
+The owner will verify your identity and send a one-use challenge file. Check that its publisherId, fingerprint, purpose and expiry match your request before signing it. Do not sign arbitrary files from an unverified sender. Approval concerns a publisher/key association, not an endorsement of all its teaching content or licenses.''',
+  'publisherSigningHelp.verifyIdentityChallenge.title':
+      r'''4. Owner: verify identity and issue a challenge''',
+  'publisherSigningHelp.verifyIdentityChallenge.body':
+      r'''Keep a private approval record. Verify the representative through an independently established channel, such as a known business contact or a contact obtained from the publisher's official website. Possessing a key or an email address alone does not establish the publisher's identity.
+
+Save the submitted public PEM in a separate request folder. Inspect it:
+
+openssl pkey -pubin -in publisher-public.pem -text -noout
+
+Confirm it is an Ed25519 public key. Calculate its fingerprint with the two commands in section 2 and compare it through the independent channel. Reject a malformed key, wrong algorithm, identity mismatch or conflicting publisherId.
+
+Assign a unique request ID and a stable publisherId. Generate a fresh random nonce:
+
+openssl rand -hex 32
+
+In a plain-text editor, create qql-approval-challenge.txt as UTF-8 text with these fields, replacing every placeholder:
+
+Purpose: QQL publisher key approval only
+Request ID: <unique request ID>
+Publisher ID: <agreed stable publisherId>
+Public key SHA-256: <fingerprint calculated by the owner>
+Nonce: <fresh random hexadecimal output>
+Expires UTC: <explicit UTC date and time>
+
+Choose a short expiry, for example 48 hours. Store the exact file you send and its pending/used/expired status. Send it to the verified representative. Do not regenerate, reformat or reuse the challenge: verification requires the exact original bytes. The owner, not the requester, supplies the nonce and challenge.''',
+  'publisherSigningHelp.proveKeyPossession.title':
+      r'''5. Publisher and owner: prove key possession''',
+  'publisherSigningHelp.proveKeyPossession.body':
+      r'''Publisher: save the original challenge attachment without editing or changing line endings. Check its contents, then sign it locally:
+
+openssl pkeyutl -sign -rawin -inkey publisher-private.pem -in qql-approval-challenge.txt -out qql-approval-proof.sig
+
+Enter the passphrase at the prompt. Return qql-approval-proof.sig and the request ID. Never return the private key. This signature proves possession for this challenge; it is not a QQL course signature.
+
+Owner: use your stored original challenge, the previously checked public PEM and the returned binary signature:
+
+openssl pkeyutl -verify -rawin -pubin -inkey publisher-public.pem -in qql-approval-challenge.txt -sigfile qql-approval-proof.sig
+
+Require a successful verification and exit code 0. In PowerShell, inspect $LASTEXITCODE immediately after the command. Also check that the request is pending, unexpired and unused, and its publisherId and fingerprint are still the ones verified independently. OpenSSL does not enforce these approval rules for you.
+
+On failure, do not approve. Resolve the identity/key mismatch, or issue a new challenge if the attachment changed or expired. Do not modify the original challenge to make a signature pass. A valid proof establishes key control, not legal identity; both checks are required.''',
+  'publisherSigningHelp.recordApproval.title':
+      r'''6. Owner: record approval and activate trust''',
+  'publisherSigningHelp.recordApproval.body':
+      r'''Keep a private record of publisherId, approved display name, public PEM/fingerprint, representative/contact, identity-check method/date, original challenge and proof, decision date and key status. Mark accepted challenges used. Never publish identity evidence or private contact details in the app registry.
+
+For an approved publisher, assign a stable keyId (1–64 ASCII letters, digits, dot, underscore or hyphen). Convert the public PEM to DER using section 2. An Ed25519 SubjectPublicKeyInfo DER is 44 bytes: the 12-byte header 302a300506032b6570032100 followed by the 32-byte public key. Store only the Base64 encoding of those 32 bytes in publicKeyBase64, not the entire DER or PEM.
+
+In PowerShell, after checking the DER header and length, obtain the registry value with:
+
+[Convert]::ToBase64String(([System.IO.File]::ReadAllBytes('C:/QQL-Publisher/publisher-public.der'))[12..43])
+
+Add a TrustedPublisherKey to TrustedPublishers.application() in lib/services/trusted_publishers.dart: publisherId, publisherName (exact approved spelling), keyId, publicKeyBase64 and revoked: false. Duplicate publisherId/keyId entries are rejected by lookup. Keep Dummy outside the normal registry. Do not approve a key supplied only inside an imported course, and never approve by editing publisherVerificationStatus in a JSON file.
+
+Review the registry change; test a course signed by that key plus altered, missing-signature and wrong-key cases. Build and distribute the app through the normal release process. Notify the publisher of the exact publisherId, publisherName, keyId, fingerprint and first app version containing the approval. Until users install it, their app will reject the unknown key.
+
+Approval authenticates the publisher identity, not ownership of every course ID or content license. A new publisher cannot overwrite a course already installed under another publisher or take a bundled/custom course identity.''',
+  'publisherSigningHelp.signAndDistribute.title':
+      r'''7. Publisher: sign and distribute a course''',
+  'publisherSigningHelp.signAndDistribute.body':
+      r'''Start with a valid externalOfficial JSON for Course Model v12, with your exact approved publisherId and publisherName, publisher lineage, stable courseId and release metadata. For an update retain the course ID/provenance and increase officialCourseVersion. Resolve blocking Course Audit errors and check content/media licenses. The tool does not convert custom courses or invent publisher metadata.
+
+Since Build 262, QQL can make that JSON from a custom Course you maintain: in Course Studio, Export as Publisher Course in the Course's menu writes an ordinary Course ZIP whose course.json is the unsigned Publisher Course (every ID kept, the approved publisherId and publisherName you type, the Course version as officialCourseVersion) and whose media folder holds its media under their SHA-256 names. Unzip it and use course.json and the media folder in the commands below. For an update, export the same Course again after a confirmed change.
+
+Run from the QQL repository. Replace dummy-1 with your approved keyId and use your actual input/output/key paths. The examples use a separate working folder named C:/QQL-Publisher:
+
+dart run tools/sign_course.dart prepare C:/QQL-Publisher/course.json dummy-1 C:/QQL-Publisher/payload.bin
+
+The command validates the model and prepares the canonical digest-based signing payload. It does not read a private key. Sign those bytes with OpenSSL, entering the private-key passphrase interactively:
+
+openssl pkeyutl -sign -rawin -inkey C:/QQL-Publisher/publisher-private.pem -in C:/QQL-Publisher/payload.bin -out C:/QQL-Publisher/signature.bin
+openssl pkey -pubin -in C:/QQL-Publisher/publisher-public.pem -outform DER -out C:/QQL-Publisher/publisher-public.der
+
+Attach the signature. This verifies the signature against the supplied public key before writing the result:
+
+dart run tools/sign_course.dart attach C:/QQL-Publisher/course.json dummy-1 C:/QQL-Publisher/signature.bin C:/QQL-Publisher/publisher-public.der C:/QQL-Publisher/course-signed.json
+
+Place each referenced recording or image in C:/QQL-Publisher/media/ under its SHA-256 filename, such as <sha256>.mp3. Then package the signed JSON:
+
+dart run tools/sign_course.dart package C:/QQL-Publisher/course-signed.json C:/QQL-Publisher/media C:/QQL-Publisher/publisher-public.der C:/QQL-Publisher/course-signed.zip
+
+The package command checks the signature against the supplied key, checks every referenced media file and its SHA-256, and includes only files the Course uses. An empty media folder is sufficient when the Course uses no separate media.
+
+Check exit code 0 after each command ($LASTEXITCODE in PowerShell). The Dart tool refuses an existing output name. OpenSSL can overwrite output files, so use fresh names. Do not modify course.json between prepare and attach; any content change requires preparing and signing again. Verification with the supplied key is not QQL registry approval.
+
+Import course-signed.zip in a QQL version containing your approved key. Check the verified publisher, version, content and media. Test an update against the previous installed release and its progress. Distribute that exact ZIP. Re-exporting through QQL preserves the normalized signed content and signature; editing signed content invalidates it.
+
+The signature covers the normalized Course JSON, including embedded data and each media: SHA-256 reference. The ZIP verifies each file against its signed reference, so replacing media bytes fails import. Signing inside QQL is not implemented yet.''',
+  'publisherSigningHelp.mediaRules.title':
+      r'''7a. Media a Publisher Course can and cannot carry''',
+  'publisherSigningHelp.mediaRules.body':
+      r'''A portable Course ZIP contains course.json, a package manifest and each non-bundled media file actually used by the Course. The app supplies bundled assets/ media.
+
+Embedded custom Lesson icons, custom flags and Recognize characters images travel inside course.json. Recorded MP3s and ordinary imported exercise images travel as content-addressed media: files in the ZIP. The ZIP includes Admin-added Shared Image Library images used by the Course, without importing them into the recipient's Shared Image Library.
+
+The Publisher must have distribution rights for every included file. A Course with media: references cannot be installed from JSON alone; use its complete ZIP. Missing, altered or oversized media is refused before installation.
+
+An update backs up the previous official Course and its media, then removes media no longer used by the new version. Uninstall keeps the Course media and backup for later reinstallation.''',
+  'publisherSigningHelp.mediaCredits.title': r'''7b. Media credits''',
+  'publisherSigningHelp.mediaCredits.body':
+      r'''Record the author and licence of any third-party image or recording in Course Info Editor, under License / Rights. The entries are stored in the course's mediaAttributions and are inside the signed payload. Admin-added Shared Image Library images may also carry per-image attribution in their metadata; this travels in the Course and ZIP manifest when used. Course Audit raises a warning when a course carries media of its own and records no credit; the warning does not block export or import. Media supplied with QuisquisLingo is already credited in the application and needs no entry.''',
+  'publisherSigningHelp.importPolicy.title':
+      r'''8. Import policy and existing courses''',
+  'publisherSigningHelp.importPolicy.body':
+      r'''New externalOfficial imports require a valid signature from an active approved key. Missing, malformed, invalid, revoked or unknown signatures are blocked before storage. A Publisher Course with media: references must arrive as a complete ZIP; package validation checks every file against its signed digest before installation. The app computes verification status; a serialized verified flag is never proof. A lower/equal official version or another publisher cannot replace an installed official course. Unsigned imports cannot downgrade verified courses.
+
+Custom courses remain unsigned and subject to ordinary import validation. Unverified official files are not automatically converted to custom. Existing Publisher Course files that cannot be verified remain on disk and in Course Studio with Verification required; their progress is preserved and they are excluded from learner delivery. To reactivate, import a newer valid signed release with matching identity/provenance and explicitly confirm association with the existing course.
+
+Authenticity is checked again when stored external courses and backup history are read. Revocation or file tampering removes verified status without deleting the course. Backups do not bypass import verification.
+
+Bundled official courses rely on app distribution and retain their existing provenance/checksum checks. They need no separate per-course signature in this phase. An external JSON claiming bundledOfficial is rejected. Imported courses cannot replace bundled identities.
+
+Signatures do not encrypt content, prevent copying, enforce payment, prove teaching quality or establish copyright ownership. Import structure, audit and licensing rules still apply. Older app versions without this verifier provide no signature assurance.''',
+  'publisherSigningHelp.keyRotation.title':
+      r'''9. Lost keys, rotation and revocation''',
+  'publisherSigningHelp.keyRotation.body':
+      r'''Publisher: restore a lost key from its protected backup. If recovery fails or compromise is suspected, stop using the key and contact the owner through the independent channel. Provide publisherId, old fingerprint, affected releases and incident details; never send the private key.
+
+Owner: record the incident, recheck the representative and require a new key pair plus a fresh challenge/proof. Never accept a replacement solely because its publisher name or ID matches. Assign a new keyId. For planned rotation, retain the old approved entry while adding the new one if historical signatures should remain trusted. For compromise, mark the old key revoked in the registry and publish an app update.
+
+A revoked key is rejected for new imports and is treated as unverified on stored-course/history reads, regardless of the release date claimed by a file. A valid newer replacement and explicit association can reactivate the preserved course. There is no trusted timestamp system for accepting historical signatures from a revoked key.
+
+Offline devices learn about revocation only after an app update. Tell publishers and users which app version contains the change. Immediate worldwide revocation is not possible with the bundled registry. Key handling never requires deleting learner progress.''',
+  'publisherSigningHelp.protocolReferences.title':
+      r'''10. Protocol and references''',
+  'publisherSigningHelp.protocolReferences.body':
+      r'''publisherSignature uses qql-ed25519-v1:<keyId>:<signatureBase64>. The signature is 64 bytes in canonical standard Base64. The signed UTF-8 message is QQL-COURSE-SIGNATURE-V1, publisherId, keyId and the lowercase officialChecksum, each on its own LF-terminated line, including the final newline. No BOM is included.
+
+The checksum is SHA-256 over model-normalized Course.toJson() after excluding officialChecksum, publisherSignature and publisherVerificationStatus, sorting object keys recursively and writing compact JSON. Array order is preserved. This is QQL canonicalization, not RFC 8785/JCS. Unknown fields discarded by the model are outside the signed payload. Use the QQL preparation tool; other-language serialization is not assumed compatible.
+
+Publisher checklist: protected key/backup; approved identity and key; completed audit and licenses; prepared payload; signed bytes; attached signature; packaged media; import/update checked on a trusted-registry app; distribute the tested ZIP.
+
+Owner checklist: independent identity check; fingerprint and one-use challenge checked; decision recorded; registry entry reviewed; valid/invalid import tests passed; media limits respected and third-party media credited in mediaAttributions; publisher informed of the supported app version. Keep the normal build free of the Dummy test opt-in.
+
+References:
+https://docs.openssl.org/3.0/man1/openssl-genpkey/
+https://docs.openssl.org/3.0/man1/openssl-pkey/
+https://docs.openssl.org/3.0/man1/openssl-pkeyutl/
+https://pub.dev/documentation/cryptography/latest/cryptography/Ed25519-class.html''',
+  'publisherSigningHelp.dummyPublisherTesting.title':
+      r'''11. Dummy publisher: automated and manual tests''',
+  'publisherSigningHelp.dummyPublisherTesting.body':
+      r'''Dummy Publisher — TEST ONLY has publisherId org.quisquislingo.test.dummy and keyId dummy-1. Its public test key pair and course fixtures live under test/fixtures/publishers. The private key is intentionally public test data: never use it for a real publisher. It is not an app asset.
+
+Automated tests inject the Dummy registry explicitly. Normal app builds do not trust it. For manual testing, enable the compile-time flag:
+
+flutter run -d windows --dart-define=QQL_ENABLE_DUMMY_PUBLISHER=true
+
+A release-mode test build is also possible:
+
+flutter build windows --release --dart-define=QQL_ENABLE_DUMMY_PUBLISHER=true
+
+These builds show a TEST ONLY banner and recognize Dummy. Do not distribute them as public production releases. A public build must omit the flag; build into a clean output location so artifacts cannot be confused.
+
+Import test/fixtures/publishers/dummy-signed-media.zip through Course Studio → Course Import → Open from… or copy it to {folderCourseImports}/import.zip. Expect the verified publisher confirmation and the packaged recording. Then import dummy-signed-v2.json to test an update that removes the unused recording. dummy-unsigned.json must be rejected; changing a signed title must also be rejected, even if an attacker recalculates the checksum. A normal build without the flag rejects the Dummy signed files as an unknown key.
+
+Dummy testing requires no approval request to a real publisher. All dummy release files must retain their TEST ONLY identification.''',
+  'exerciseHelp.title': r'''Exercise Help''',
+  'exerciseHelp.search': r'''Search Exercise Help''',
+  'exerciseHelp.clearSearch': r'''Clear search''',
+  'exerciseHelp.noResults': r'''No Exercise Help results match your search.''',
+  'exerciseHelp.category.vocabulary': r'''Vocabulary''',
+  'exerciseHelp.category.grammarAndSentences': r'''Grammar and sentences''',
+  'exerciseHelp.category.listening': r'''Listening''',
+  'exerciseHelp.category.readingAndDialogue': r'''Reading and dialogue''',
+  'exerciseHelp.category.picturesAndCharacters': r'''Pictures and characters''',
+  'exerciseHelp.category.cardsAndNotes': r'''Cards and notes''',
+  'exerciseHelp.category.comingLater': r'''Coming later''',
+  'exerciseHelp.comingLater': r'''In a later version:''',
+  'exerciseHelp.supplement.canonicalEditor.title': r'''Canonical editor''',
+  'exerciseHelp.supplement.canonicalEditor.body':
+      r'''Two ways to create an exercise. New Exercise: ready preset forms for the most common exercise types; pick one, fill in a few fields, save. Canonical editor (the last choice of New Exercise): the basic structure of any exercise, edited directly; powerful, sometimes complex. Every preset form writes ordinary canonical data. The canonical editor (New Exercise › Canonical editor) shows all of it for any primitive: options, prompt elements with roles and languages, items, targets, layout, the evaluation mode with its answer data, feedback and hint, and says whether this version can play the result. An exercise that no preset represents exactly opens there; the preset form shows it read-only and offers Open. See Exercise primitives in QQL Guide for the definitions.''',
+  'exerciseHelp.supplement.answerVariants.title': r'''Answer variants''',
+  'exerciseHelp.supplement.answerVariants.body':
+      r'''Multiple complete equivalent answers may be entered on separate lines. Compact syntax is optional: {Io} makes “Io” optional; [prendo|vorrei] chooses one independent alternative; and (non arrivo <> oggi) swaps only declared phrase parts. Grouped alternatives use *: to link by position: [*:il|i] [*:tuo|tuoi] [*:denaro|soldi] accepts “il tuo denaro” and “i tuoi soldi”, never “il tuoi soldi” or “i tuo denaro”. Two or more linked groups are required and every linked group must have the same number of alternatives. Linked groups compose with {}, ordinary [] and valid <> scopes. During reordering, terminal punctuation stays at the final sentence end. Expansion is deterministic, removes duplicates, and rejects malformed syntax or more than 128 variants instead of truncating.''',
+  'exerciseHelp.supplement.textEvaluationAndCorrections.title':
+      r'''Text evaluation and corrections''',
+  'exerciseHelp.supplement.textEvaluationAndCorrections.body':
+      r'''QQL accepts any configured complete answer or syntax-expanded variant after the established case, punctuation, whitespace, apostrophe and accent rules. Type the translation also permits one omitted or duplicated repeated letter in a word of at least five characters when every word position is otherwise unchanged. Its incorrect feedback shows up to three similarity-ranked valid answers and says Some possible translations when more exist. Its correct feedback shows up to two alternatives, excluding the matched canonical answer even after typo tolerance. No alternatives means no empty section. Ties keep author order and ranking never changes correctness. Other typed presets retain their canonical Correct answer. Feedback names only differences actually used; exact answers show no false difference reason.''',
+  'exerciseHelp.supplement.contextualComprehensionExample.title':
+      r'''Read and answer example''',
+  'exerciseHelp.supplement.contextualComprehensionExample.body':
+      r'''Question: What does Jane mean?
+
+Context:
+Jane: I thought Jim was coming with us.
+Jim: I changed my mind.
+Jane: That’s just great.
+
+Question and Context are separate. Context can be text, audio, or both. Dialogue turns are optional; an announcement, short passage or situation is equally valid. Configure answer choices separately.''',
+  'exerciseHelp.preset.choice_target.description':
+      r'''Learner reads a question and chooses the answer among target-language options: grammar, culture or meaning, not only translations.''',
+  'exerciseHelp.preset.choice_source.description':
+      r'''Learner reads a question in the source language and chooses the answer: rules, culture and meanings asked in the language the learner already knows.''',
+  'exerciseHelp.preset.listening_choose_target.description':
+      r'''Learner listens to target-language audio and picks what was heard among target-language answers; there is no question.''',
+  'exerciseHelp.preset.listening_choose_source.description':
+      r'''Learner listens to target-language audio and picks its meaning among source-language answers; there is no question.''',
+  'exerciseHelp.preset.listening_answer_target.description':
+      r'''Learner listens to target-language audio and answers a question about it, choosing among target-language answers.''',
+  'exerciseHelp.preset.listening_answer_source.description':
+      r'''Learner listens to target-language audio and answers a source-language question about it, choosing among source-language answers.''',
+  'exerciseHelp.preset.reading_answer_target.description':
+      r'''Learner reads a situation in the source language and dialogue lines in the target language, then answers a target-language question.''',
+  'exerciseHelp.preset.type_translation_to_target.description':
+      r'''Learner types a translation in the target language.''',
+  'exerciseHelp.preset.type_translation_to_source.description':
+      r'''Learner reads target-language text and types its translation in the source language.''',
+  'exerciseHelp.preset.build_translation_to_target.description':
+      r'''Learner constructs a translation using provided word blocks.''',
+  'exerciseHelp.preset.build_translation_to_source.description':
+      r'''Learner reads target-language text and builds its translation in the source language from word blocks.''',
+  'exerciseHelp.preset.picture_flashcard.description':
+      r'''Learner reviews a picture with its word, meaning and an optional usage example, with optional read-aloud.''',
+  'exerciseHelp.preset.true_false.description':
+      r'''Learner reads (or hears) a statement in the target language and answers true or false.''',
+  'exerciseHelp.preset.one_word_fills_all.description':
+      r'''Learner picks the one word that fills every gap of the sentences.''',
+  'exerciseHelp.preset.complete_text.description':
+      r'''Learner types the words missing from a text with several gaps marked ___; no audio, an optional instruction and hint.''',
+  'exerciseHelp.preset.missing_letters.description':
+      r'''Learner types the letters missing inside words (dr__); optional spoken text or picture.''',
+  'exerciseHelp.preset.gap_blocks.description':
+      r'''Learner fills the gaps of a fixed sentence by tapping words; each word fills one gap.''',
+  'exerciseHelp.preset.sentence_order.description':
+      r'''Learner puts the lines of a story or a dialogue in the right order.''',
+  'exerciseHelp.preset.sort_into_groups.description':
+      r'''Learner sorts words into groups, such as masculine and feminine or animals and plants.''',
+  'exerciseHelp.preset.fill_the_slots.description':
+      r'''Learner puts the right word into each slot, such as the article before each noun.''',
+  'exerciseHelp.preset.listening_image_choice.description':
+      r'''Learner hears a word or a sentence and picks the matching picture.''',
+  'exerciseHelp.preset.spell_heard.description':
+      r'''Learner hears a word and spells it from letter or syllable tiles.''',
+  'exerciseHelp.preset.picture_choice.description':
+      r'''Learner sees a picture and picks the word or sentence that names it.''',
+  'exerciseHelp.preset.picture_name.description':
+      r'''Learner sees a picture and types its name; several accepted answers.''',
+  'exerciseHelp.preset.picture_blocks.description':
+      r'''Learner sees a picture and builds its name from word blocks; up to two extra blocks.''',
+  'exerciseHelp.preset.spell_word.description':
+      r'''Learner spells a word from letter or syllable tiles after a clue in the source language.''',
+  'exerciseHelp.preset.picture_word_match.description':
+      r'''Learner matches pictures with their words.''',
+  'exerciseHelp.preset.dialogue_line.description':
+      r'''One line of a Story, said by the narrator or a character as text, audio or both; the learner reads or listens and continues.''',
+  'exerciseHelp.preset.before_you_start.description':
+      r'''A note shown before the Round starts, with an optional Open GuideBook button; never shown in Review.''',
+  'exerciseHelp.preset.page.description':
+      r'''A textbook-like page: headings, paragraphs with bold and italic, quotes, lists, pictures, audio and video links, with alignment and colours; the learner reads it and continues.''',
+  'exerciseHelp.preset.story_cover.description':
+      r'''The opening card of a Story: its picture and an optional title line; the learner continues.''',
+  'exerciseHelp.preset.note_card.description':
+      r'''A tip, a grammar or a cultural note the learner reads and continues.''',
+  'exerciseHelp.preset.gap_choice.description':
+      r'''Learner selects the missing word or expression.''',
+  'exerciseHelp.preset.icon_choice.description':
+      r'''Learner chooses the image corresponding to the prompt.''',
+  'exerciseHelp.preset.script_recognition.description':
+      r'''Recognize printed or handwritten characters: Image to text or Text to image.''',
+  'exerciseHelp.preset.translation_choice_to_target.description':
+      r'''Select: learner sees source-language text and picks its target-language translation.''',
+  'exerciseHelp.preset.translation_choice_to_source.description':
+      r'''Select: learner sees target-language text and picks its source-language translation.''',
+  'exerciseHelp.preset.type_missing_word.description':
+      r'''Learner types the word missing from a sentence; the first letter can be shown as a hint.''',
+  'exerciseHelp.preset.listening_spelling.description':
+      r'''Learner listens and types the heard word or passage.''',
+  'exerciseHelp.preset.missing_word.description':
+      r'''Learner listens and completes one or more gaps in a transcript.''',
+  'exerciseHelp.preset.word_match.description':
+      r'''Learner matches words with their translations.''',
+  'exerciseHelp.preset.super_match.description':
+      r'''Learner matches related target-language items.''',
+  'exerciseHelp.preset.audio_match.description':
+      r'''Learner matches audio with the corresponding item.''',
+  'exerciseHelp.preset.word_order.description':
+      r'''Learner restores target-language blocks to the correct order.''',
+  'exerciseHelp.preset.image_word.description':
+      r'''Learner builds the word represented by an image.''',
+  'exerciseHelp.preset.flashcard.description':
+      r'''Presents learning material without an ordinary scored answer.''',
+  'exerciseHelp.preset.choice_target.body':
+      r'''The learner reads a question, or a sentence to complete, and chooses the right answer among text alternatives in the target language; the question itself may be in either language. It can be anything a course needs: a grammar form, a cultural fact, a meaning, a translation. Provide the question, at least two text answers and one correct answer (a new exercise starts with answer 1; several are possible with Multiple correct answers, and the Audit warns when every answer is correct). An optional Instruction or context line, in the learners’ language, is shown instead of the standard “Find the correct answer.” line. Optional prompt audio or a picture can support the question. Keep distractors plausible but clearly wrong. The twin Choose the answer (to source) asks and answers in the source language.''',
+  'exerciseHelp.preset.choice_source.body':
+      r'''The learner reads a question, or a sentence to complete, written in the source language and chooses the right answer among alternatives in the source language: a grammar rule, a cultural fact, the meaning of an expression, anything better asked in the language the learner already knows. Provide the question, at least two text answers and one correct answer (a new exercise starts with answer 1; several are possible with Multiple correct answers, and the Audit warns when every answer is correct). An optional Instruction or context line, in the learners’ language, is shown instead of the standard “Find the correct answer.” line. Optional prompt audio is spoken with the source-language voice, and a picture can support the question. Keep distractors plausible but clearly wrong. The twin Choose the answer (to target) asks and answers in the target language.''',
+  'exerciseHelp.preset.listening_choose_target.body':
+      r'''The learner hears target-language audio and picks what was heard among written alternatives in the target language. There is no question; an optional instruction or context sets the scene and replaces the standard line. Spoken text contains exactly what the learner should hear; it plays as in Listen and answer (to target), through On-Device TTS, Recorded MP3 or Hybrid. Provide the alternatives and one correct answer; avoid visible text that gives away the audio. To ask a question about what was heard, use Listen and answer. The twin Listen and choose (to source) answers with the meaning in the source language.''',
+  'exerciseHelp.preset.listening_choose_source.body':
+      r'''The learner hears target-language audio and picks its meaning among written alternatives in the source language. There is no question; an optional instruction or context sets the scene and replaces the standard line. Spoken text, On-Device TTS, Recorded MP3 and Hybrid work as in Listen and answer (to target). Provide the alternatives and one correct answer; avoid visible text that gives away the audio.''',
+  'exerciseHelp.preset.listening_answer_target.body':
+      r'''The learner hears target-language audio and chooses the answer among written alternatives in the target language. The question is required: the learner answers it about what was heard, so make the passage long enough. To let the learner pick what was heard, with no question, use Listen and choose. Spoken text contains exactly what the learner should hear, for example: Buongiorno, come stai? On-Device TTS sends this text to the device’s native speech engine. Recorded MP3 resolves Course Audio Library text mappings; Hybrid tries a complete MP3 sequence before native TTS. For MP3, open Course Editor > Audio Library, copy files to {folderAudioImports}, press Import MP3, then Associate recording with its Word or expression and select Recorded MP3 only or Hybrid. There is no per-exercise MP3 attachment. Physical files are grouped by learning language; references belong to the Course. Verified Course backups copy referenced files; JSON alone does not transfer MP3 bytes. Provide written alternatives and exactly one correct answer; avoid visible text that gives away the audio. The twin Listen and answer (to source) asks and answers in the source language.''',
+  'exerciseHelp.preset.listening_answer_source.body':
+      r'''The learner hears target-language audio and answers a question asked in the source language, choosing among written alternatives in the source language. Provide the spoken text in the target language, the question (required), the alternatives and one correct answer. For the meaning alone, with no question, use Listen and choose (to source). Spoken text, On-Device TTS, Recorded MP3 and Hybrid work as in Listen and answer (to target). Avoid visible text that gives away the audio.''',
+  'exerciseHelp.preset.reading_answer_target.body':
+      r'''The learner reads a short text in the source language that explains the situation, then dialogue lines in the target language (one “Speaker: text” turn per line), and answers a question in the target language by choosing among target-language alternatives. Provide the text, the dialogue or both, the question, at least two answers and one correct answer. Read the dialogue aloud: Automatically speaks each line in turn with a short pause when the exercise appears; On request adds a Play dialogue button; No read-aloud keeps it silent. The text to read is never read aloud, and the read-aloud never makes this an audio exercise. An exercise image may accompany it. This preset replaces Reading comprehension, Dialogue response and Contextual comprehension; Read and answer (to source) was retired and opens here.''',
+  'exerciseHelp.preset.type_translation_to_target.body':
+      r'''The learner sees source text and freely types a target-language translation. Provide the source, one or more complete accepted translations, and an optional hint. Use lowercase except for proper names. Accepted lines may use optional {}, independent [a|b], linked [*:a|b] groups with equal counts, and valid <> reorder scopes. Expand answers opens a selectable, copyable preview without changing content. Use expanded answers adds independent explicit lines; editing or deleting the source expression never changes them. Equivalent explicit answers are not added twice, and overflow beyond 128 answers is rejected without partial changes. Wrong feedback shows up to three valid translations ranked by existing similarity; correct feedback shows up to two other translations, excluding the matched canonical answer. Ties keep author order. Ranking never changes acceptance. One omitted or duplicated repeated letter is tolerated conservatively, but substitutions and missing or extra words are not. The twin Type the translation (to source) shows target-language text and takes a source-language translation.''',
+  'exerciseHelp.preset.type_translation_to_source.body':
+      r'''The learner sees target-language text and freely types its source-language translation. Provide the text to translate in the target language, one or more complete accepted source-language translations, and an optional hint. Accepted answers use the same syntax, expansion, feedback and typo tolerance as Type the translation (to target): optional {}, independent [a|b], linked [*:a|b] groups, <> reorder scopes, Expand answers and Use expanded answers, at most 128 answers. Use lowercase except for proper names.''',
+  'exerciseHelp.preset.build_translation_to_target.body':
+      r'''The learner sees source text and constructs its target-language translation from word blocks. Provide source text, available literal blocks and one or more complete literal correct translations. Answers can be added, removed and reordered; each must be constructible from distinct block occurrences. Repeated words require repeated blocks, and no more than two unused blocks are recommended. Type-the-translation syntax, typo tolerance and similarity matching do not apply. The twin Build the translation (to source) shows target-language text and takes source-language blocks.''',
+  'exerciseHelp.preset.build_translation_to_source.body':
+      r'''The learner sees target-language text and constructs its source-language translation from word blocks. Provide the text to translate in the target language, the available literal blocks in the source language and one or more complete literal correct translations. Answers can be added, removed and reordered; each must be constructible from distinct block occurrences. Repeated words require repeated blocks, and no more than two unused blocks are recommended. Type-the-translation syntax, typo tolerance and similarity matching do not apply.''',
+  'exerciseHelp.preset.picture_flashcard.body':
+      r'''The learner sees a picture with its target-language word and source-language translation, an optional usage example with its translation, and hears the word when read-aloud is on. Provide the picture (Image), the word and the translation, optionally the usage lines, and choose Automatically, On request or No read-aloud; fill in Pronunciation TTS (if different) only when the spoken text should differ from the word. The card is never an audio exercise and is shown when Audio Exercises are off. Got it completes the card; Review again schedules it once more.''',
+  'exerciseHelp.preset.true_false.body':
+      r'''The learner reads a statement in the target language, optionally hears it, and chooses between the word for true and the word for false in the source language. Provide the statement, an optional spoken statement, the two answers (prefilled in the source language when QQL knows it) and the correct answer number: 1 when the statement is true, 2 when it is false.''',
+  'exerciseHelp.preset.one_word_fills_all.body':
+      r'''The learner reads sentences with two or more ___ gaps and picks the one word that fills them all; once chosen it appears in every gap. Write the sentences with ___ (three underscores) for each gap, the answer words and the correct answer number; only one word may fit every gap. For a single gap use Pick the missing word. An optional Instruction or context takes the place of the standard line.''',
+  'exerciseHelp.preset.complete_text.body':
+      r'''The learner reads a text with one or more gaps and types what goes into each. Write the text with ___ (three underscores) for each gap, and give one line per gap in Missing words, in order. A line may accept several answers: [il|un] gatto accepts both il gatto and un gatto. An optional Instruction or context sets the scene and replaces the standard line; an optional hint helps without giving the words away. Answers are checked with the normal Input normalization. There is no audio: for gaps heard from a recording use Listen and fill the gaps.''',
+  'exerciseHelp.preset.missing_letters.body':
+      r'''The learner sees words with missing letters and types the letters. Write the complete text and put the missing letters between underscores: My cat doesn’t dr_ink_ milk. The learner sees dr___ milk, one underscore per letter, and types ink. Several gaps are fine. An optional spoken text reads the whole sentence, an optional picture illustrates it, and an optional hint helps without giving the letters away.''',
+  'exerciseHelp.preset.gap_blocks.body':
+      r'''The learner sees a sentence with gaps and taps a word for each gap; each word fills one gap and leaves the bank, and must land in the right gap. Write the sentence with each answer between underscores: Io _vorrei_ un caffè. A word needed twice is written in both gaps and offered twice. Add distractor words (0, 1 or 2 recommended) and an optional spoken prompt. This preset joins the former Pick the words for the gaps and Drag the blocks into the gaps.''',
+  'exerciseHelp.preset.sentence_order.body':
+      r'''The learner sees the lines of a short story or dialogue as blocks and puts them in order. Enter the lines once, in the correct order, and extra lines that belong nowhere (0, 1 or 2 recommended). The Instruction or context can give the situation that decides the order; an optional hint helps without giving it away.''',
+  'exerciseHelp.preset.sort_into_groups.body':
+      r'''The learner taps a word, then the group it belongs to; a placed word can be taken back; Check grades every group at once. Enter an optional instruction or context and one group per line as “Group name: word, word, …” (at least two, each with at least one word). Every word belongs to one group, and to one group only. Sort into groups is never an audio exercise.''',
+  'exerciseHelp.preset.fill_the_slots.body':
+      r'''The learner taps a word, then the slot it fills; a second word replaces the first; Check grades every slot at once. Enter an optional instruction or context and one slot per line as “what the learner sees = the word that fills it”, for example “… gatto = il”. Extra words that fill no slot are optional. Turn on “A word may fill more than one slot” when the same word is the answer of several slots: it stays in the bank after each use.''',
+  'exerciseHelp.preset.listening_image_choice.body':
+      r'''The learner hears the spoken text and picks the picture it names. Provide the spoken text, an optional instruction or context, the answer labels (one per line) and one picture per answer, chosen with the pickers below the answers; mark the correct answer. The labels are shown under the pictures.''',
+  'exerciseHelp.preset.spell_heard.body':
+      r'''The learner hears a word and spells it by ordering letter or syllable tiles. Provide the spoken word and its tiles in order, one per line (split the word into letters or syllables as you like). No picture is needed; the tiles join without spaces.''',
+  'exerciseHelp.preset.picture_choice.body':
+      r'''The learner sees a picture and chooses the word or sentence that names it among text answers. Provide the picture (Image, required), an optional instruction or context such as What is this?, at least two answers and the correct one.''',
+  'exerciseHelp.preset.picture_name.body':
+      r'''The learner sees a picture and types what it shows. Provide the picture (Image, required), an optional instruction or context, one or more accepted answers with the same syntax as Type the translation (optional {}, alternatives [a|b], linked groups, reorder scopes) and an optional hint. Answers are checked with the normal Input normalization and typo tolerance.''',
+  'exerciseHelp.preset.picture_blocks.body':
+      r'''The learner sees a picture and builds its name by tapping word blocks in order; a placed block can be taken back; Check grades the order. Provide the picture (Exercise image, required), an optional instruction or context such as What is this?, the blocks of the name in order (one word per line) and up to two extra blocks that are not part of the name, plus an optional hint. The blocks join with spaces. Capitals that differ between the name and its blocks get an Audit warning. Type what you see is the same exercise with a typed answer.''',
+  'exerciseHelp.preset.spell_word.body':
+      r'''The learner reads a clue in the source language, the word itself or a definition, and spells the target-language word by ordering letter or syllable tiles. Provide the clue and the tiles of the word in order, one per line; a picture is optional.''',
+  'exerciseHelp.preset.picture_word_match.body':
+      r'''The learner matches each picture on the left with a word on the right. Provide the words, one per line, and one picture per word with the pickers below; at least two pairs. Pair relationships, not display positions, define correctness.''',
+  'exerciseHelp.preset.dialogue_line.body':
+      r'''A line of dialogue in a Story. Choose who speaks (the narrator or a character defined in the Course Editor's Story characters), write the line, and choose whether the learner reads it, hears it, or both. Read-aloud follows the Story's setting unless the line overrides it; with text and audio you may hide the text until the audio has played. A line is never skipped: without audio the learner reads it. There is no answer and no score; Continue moves on.''',
+  'exerciseHelp.preset.before_you_start.body':
+      r'''The note the learner reads before the Round starts, on its own page with Continue to Round. Write the note and, if you like, turn on Open GuideBook button: the card then offers the Lesson’s GuideBook (learners see the button only while the Course uses GuideBooks and the GuideBook is published). The card is placed first in the Round, is never one of its steps and is never shown in Review; there is no answer and no score. One card per Round: the Audit warns about a second one.''',
+  'exerciseHelp.preset.page.body':
+      r'''A page the learner reads and continues, built from blocks: headings, paragraphs, quotes or examples, bulleted or numbered lists, pictures, audio and video links. Write **bold** and *italic* in body text (the toolbar wraps the selection); choose each block’s alignment (start, center, end, justify for body text) and a colour from a palette that stays readable in light and dark themes; a text block may offer a read-aloud button. Pictures come small, medium, large or full width with a caption; a video link opens an https address in the browser. No answer, no score.''',
+  'exerciseHelp.preset.story_cover.body':
+      r'''The first card of a Story. Choose the cover picture and, if you like, a title line; the Story's title from the Round options is shown above it. The learner presses Continue. Create a Story with New Round → Story.''',
+  'exerciseHelp.preset.note_card.body':
+      r'''A card with a title and a note: a tip, a grammar point, a cultural remark. The learner reads it and presses Continue; there is no answer, no score and no audio. Write in the language your learners read best.''',
+  'exerciseHelp.preset.gap_choice.body':
+      r'''The learner sees a sentence containing ___ and chooses the missing word or expression. Provide one text gap, answer blocks and one correct answer. Text is supported. Use exactly one gap where possible and make only one option grammatically and semantically correct. An optional Instruction or context, such as the meaning of a short phrase (Complete the phrase meaning the dog.), takes the place of the standard line.''',
+  'exerciseHelp.preset.icon_choice.body':
+      r'''The learner sees a question and image choices, then selects the matching image. Provide one answer and image/icon entry per option plus the correct answer number. Text and images are supported. Every option needs a corresponding visual.''',
+  'exerciseHelp.preset.script_recognition.body':
+      r'''Each item pairs a character image with its corresponding text.
+
+Image to text: learners see a character image and choose the matching text.
+
+Text to image: learners see the text and choose the matching character image.
+
+The text can be the character’s name, sound, pronunciation, transliteration or another identifying label.
+
+Provide at least two options; exactly one is correct. Multiple prompt images may show print, handwriting or different fonts. Use bundled images or portable imported images, never absolute local paths. Preview uses the normal Select learner behavior.''',
+  'exerciseHelp.preset.translation_choice_to_target.body':
+      r'''Select · single answer, checked immediately. Direction, languages and the learner instruction are set by this type.
+
+The learner sees source-language text and picks its correct target-language translation. QQL generates the only learner instruction, “Choose the correct [Target language] translation”, from the course languages, so you never write it. Provide the text to translate, two to five different target-language answers and one correct answer. Text is supported, with an optional image. A wrong choice reveals the correct answer. After answering, the learner can play the correct answer with text-to-speech when it is available; the exercise never depends on audio. Keep distractors plausible but unambiguously wrong. Example (for an English → Italian course): “I am going to London” with Vado a Londra. / Sono andato a Londra. / Vengo da Londra.''',
+  'exerciseHelp.preset.translation_choice_to_source.body':
+      r'''Select · single answer, checked immediately. Direction, languages and the learner instruction are set by this type.
+
+The learner sees target-language text and picks its correct source-language translation. QQL generates the only learner instruction, “Choose the correct [Source language] translation”, from the course languages, so you never write it. Provide the text to translate, two to five different source-language answers and one correct answer. Text is supported, with an optional image. A wrong choice reveals the correct answer. The learner can play the target-language text with text-to-speech when it is available; the exercise never depends on audio. Keep distractors plausible but unambiguously wrong. Example (for an English → Italian course): “Vado a Londra.” with I am going to London. / I went to London. / I am coming from London.''',
+  'exerciseHelp.preset.type_missing_word.body':
+      r'''Enter a sentence with one ___ gap and the complete accepted words. With Show the first letter on, the gap reveals the first letter as a hint: QQL derives the first Unicode grapheme automatically and all accepted words must share exactly that first grapheme. With the switch off, the gap is empty and the learner types the word without help. Either way the learner enters the complete word, which uses normal Input normalization and feedback. Example: with the hint, the learner sees é______ and enters école, not cole. The complete sentence is shown after checking. Exercises made with the former Fill-in preset open here.''',
+  'exerciseHelp.preset.listening_spelling.body':
+      r'''The learner hears audio and types what was heard. Provide the Audio text: it is always accepted as the answer. Other accepted spellings (optional) lists other ways to write the same words, such as alle 9 for alle nove. Return or Enter submits the answer.''',
+  'exerciseHelp.preset.missing_word.body':
+      r'''The learner hears audio while reading a transcript with one or more gaps, then types each missing word. Provide the complete transcript/audio and every missing item in order. Audio and text are supported. Every missing item must occur in the transcript.''',
+  'exerciseHelp.preset.word_match.body':
+      r'''The learner matches source-language words with their target-language translations. Provide at least two text pairs; three is the usual number. Text is supported. Each visible item must be unique after ordinary normalization. Exercises made with the former Matching preset open here.''',
+  'exerciseHelp.preset.super_match.body':
+      r'''The learner matches related target-language items such as synonyms or opposites. Provide exactly three text pairs and an optional instruction or context naming the relationship, in the learners’ language. Text is supported. Do not mix unrelated relationship rules.''',
+  'exerciseHelp.preset.audio_match.body':
+      r'''The learner plays audio items and matches each one to visible text. Provide exactly three audio-text pairs with no distractors. Audio and text are supported. Each audio and visible answer must be unique.''',
+  'exerciseHelp.preset.word_order.body':
+      r'''The learner rearranges target-language blocks into their correct order. Provide the available text blocks and correct order. Text is supported. No more than two distinct distractors are recommended; this preset tests ordering rather than translation.''',
+  'exerciseHelp.preset.image_word.body':
+      r'''The learner sees an image and orders letter or syllable blocks to form its word. Provide an image, an instruction and the blocks of the word in order, one per line; the learner gets exactly those blocks, shuffled. Distractors are not allowed.''',
+  'exerciseHelp.preset.flashcard.body':
+      r'''The learner sees a target-language word or expression, its source-language translation and an optional usage example with its translation, hears the word when read-aloud is on, then chooses Got it or Review again. Provide the learning material rather than a scored answer; choose Automatically, On request or No read-aloud; fill in Pronunciation TTS (if different) only when the spoken text should differ from the word. Read-aloud never makes the card an audio exercise. Presentation content does not earn base correct-answer XP.''',
+  'exerciseHelp.field.build_translation_to_source.correctTranslation.body':
+      r'''Defines one complete literal source-language answer for Build the translation (to source).
+
+What to enter
+Each separate answer entry holds one complete source-language sentence. Use Add correct translation for another answer and the drag handle to reorder answers.
+
+Checks
+At least one non-empty answer is required. Answers must be unique after case, spacing and terminal-punctuation normalization, and constructible from distinct available block occurrences. No optional, alternative or reorder expressions, similarity matching or typo acceptance are applied.
+
+Example
+I would like a coffee.''',
+  'exerciseHelp.field.build_translation_to_source.tokens.body':
+      r'''Supplies the source-language blocks used to construct the correct translations.
+
+What to enter
+Enter one literal block per line, in the source language. Blank lines are ignored. Include enough distinct occurrences to construct every correct translation; repeated words require repeated lines. When Inline gaps is enabled, this field only adds optional distractor blocks.
+
+Checks
+Every correct translation must be constructible from these blocks. Few distractors work best: at most 2 blocks unused by every correct translation are recommended, fewer in the first Rounds of a Lesson; more are allowed.
+
+Example
+I
+would
+like
+a
+coffee
+tea''',
+  'exerciseHelp.field.choice_source.answers.body':
+      r'''The alternatives, written in the source language.
+
+What to enter
+Enter one literal answer per line, with at least two non-empty lines, in the language the learner already knows. Blank lines are ignored. The first non-empty line is answer 1.
+
+Checks
+Select one valid Correct answer number. Avoid duplicate answers and make distractors plausible but unambiguously wrong.
+
+Example
+the one before a vowel
+the one before a consonant
+none''',
+  'exerciseHelp.field.listening_answer.question.body':
+      r'''The question the learner answers about what they hear.
+
+What to enter
+One question about the recording: who, what, where, how many. Listen and answer (to source) asks it in the source language. To let the learner simply pick what was heard, with no question, use Listen and choose.
+
+Checks
+Required: a Published save refuses it empty. Make the recording long enough to answer it, and mark the correct answer.
+
+Example
+Dove fa la spesa Maria?''',
+  'exerciseHelp.field.one_word_fills_all.question.body':
+      r'''The sentences the learner completes with one word that fits every gap.
+
+What to enter
+Write the sentences in the target language with ___ (3 underscores) wherever the same word goes; at least two gaps. The chosen word appears in every gap.
+
+Checks
+Required: a Published save refuses it without two or more gaps. For one gap, use Pick the missing word.
+
+Example
+___ gatto dorme. ___ cane mangia.''',
+  'exerciseHelp.field.choice_source.question.body':
+      r'''The question, or the sentence to complete, written in the source language.
+
+What to enter
+One question in the language the learner already knows, or a sentence with ___ where the answer fits: a grammar rule, a cultural fact, the meaning of an expression. An instruction or context goes in Instruction or context.
+
+Checks
+The answers below are in the source language too; mark the correct one (or several with Multiple correct answers).
+
+Example
+Which Italian article goes with a masculine noun starting with a vowel?''',
+  'exerciseHelp.field.reading_answer.prompt.body':
+      r'''The text that explains the situation, in the learners’ own language.
+
+What to enter
+A short text in the source language: where the speakers are, who they are, what is happening. Multiple lines or paragraphs stay part of the text. It is shown before the dialogue and is never read aloud.
+
+Checks
+A text containing words, or dialogue lines, is required; punctuation alone is insufficient.
+
+Example
+Anna and Luca are in the kitchen after lunch.''',
+  'exerciseHelp.field.reading_answer.dialogueReadAloud.body':
+      r'''Whether the dialogue lines are spoken.
+
+What to enter
+Automatically: each line is spoken in turn, with a short pause, when the exercise appears. On request: a Play dialogue button speaks them. No read-aloud: the dialogue is only read.
+
+Checks
+The read-aloud is optional: the exercise is never an audio exercise and stays silent with Audio Exercises or Text-to-speech off. The lines are spoken in the target language; the speaker names are not spoken.
+
+Example
+Automatically, line by line''',
+  'exerciseHelp.field.type_missing_word.revealFirstLetter.body':
+      r'''Decides whether the gap reveals the first letter of the missing word as a hint.
+
+What to enter
+On: the learner sees the first letter followed by a blank and types the whole word. Off: the gap is empty and the learner types the word without help. Either way, enter the complete word among the accepted answers.
+
+Checks
+With the hint on, every accepted word must start with the same first letter. The setting is part of the exercise, so the Audit reads it from the exercise itself.
+
+Example
+On: é______ for école. Off: ______ for école.''',
+  'exerciseHelp.field.type_translation_to_source.accepted.body':
+      r'''Defines complete source-language translations accepted for the target-language text.
+
+What to enter
+Enter complete equivalent answers on separate lines, in the source language. Blank lines are ignored. The same syntax as Type the translation (to target) applies: optional {}, alternatives [a|b], linked [*:a|b] groups with equal counts, and <> reorder scopes.
+
+Checks
+At least one accepted answer is required. Malformed expressions are rejected; expansion is deterministic and limited to 128 answers. Declare equivalent answers explicitly.
+
+Example
+I would like a coffee.
+I’d like a coffee.''',
+  'exerciseHelp.field.type_translation_to_source.prompt.body':
+      r'''The text the learner translates into the source language.
+
+What to enter
+Enter one target-language sentence or passage. Line breaks belong to the same prompt; accepted answers or correct translations go in their own fields.
+
+Checks
+Provide non-empty target-language text and complete equivalent source-language answers. Keep the intended meaning unambiguous.
+
+Example
+Vorrei un caffè.''',
+  'exerciseHelp.field.answer_pictures.body': r'''One picture per answer.
+
+What to enter
+Use the picker under each answer: a flat image from the shared library, an imported image or a Course image. The pictures are copied into the Course. Tick Plural under a picture when its answer means several things (gatti, cats): the learner sees stacked copies of the picture, no number and no word.
+
+Checks
+Every answer needs a picture; the Audit warns otherwise. Course pictures travel with the Course package.
+
+Example
+1. gatto: a picture of a cat''',
+  'exerciseHelp.field.picture_answers.body':
+      r'''How the pictures the learner chooses from look: their size, their shape and how many stand in a row.
+
+What to enter
+As in Lesson Options follows the Course (Course Editor › Lesson Options › Picture answers); any other value is this exercise's own. Without a choice the pictures are large squares, two per row. Picture size: Large or Normal. Picture shape: Square, cropped, or Round. Pictures per row: 1 to 3, or as many as fit. A last row that is not full stands in the middle. Crop square under a picture chooses the part of it and the zoom, and stores the cropped copy in the Course.
+
+Checks
+None.
+
+Example
+Large, Square, cropped, 2 per row''',
+  'exerciseHelp.field.complete_text.missingWords.body':
+      r'''What goes into each gap, in order.
+
+What to enter
+One line per ___ gap, in the order the gaps appear. A line may accept several answers: [il|un] gatto accepts il gatto and un gatto; {il} gatto accepts gatto with or without il.
+
+Checks
+As many lines as gaps. Malformed alternatives are rejected. Answers are checked with the normal Input normalization.
+
+Example
+caffè
+[il|un] treno''',
+  'exerciseHelp.field.complete_text.prompt.body':
+      r'''The text the learner completes; each ___ is a gap.
+
+What to enter
+Write the text and put ___ (three underscores) where each missing word or phrase goes. Several sentences are fine.
+
+Checks
+At least one gap, and as many gaps as lines in Missing words.
+
+Example
+Anna beve un ___ al bar. Poi prende ___.''',
+  'exerciseHelp.field.gap_blocks.tokens.body':
+      r'''Blocks that fill no gap, offered beside the answers.
+
+What to enter
+One extra block per line. Few distractors work best: 0, 1 or 2 are recommended, fewer in the first Rounds of a Lesson.
+
+Checks
+A distractor must not repeat the text of any gap answer.
+
+Example
+sempre''',
+  'exerciseHelp.field.missing_letters.prompt.body':
+      r'''The complete text with the missing letters marked between underscores.
+
+What to enter
+Write the text and put the letters to hide between underscores, one pair per gap: My cat doesn’t dr_ink_ milk.
+
+Checks
+At least one gap, none empty. The learner sees one underscore per hidden letter and types the letters.
+
+Example
+Il ga_tt_o dor_me_ sul divano.''',
+  'exerciseHelp.field.dialogue_line.speaker.body': r'''Who says the line.
+
+What to enter
+The narrator or one of the Course's Story characters (Course Editor › Story characters).
+
+Checks
+A character must exist in the Course; the Audit reports a missing one.
+
+Example
+Anna''',
+  'exerciseHelp.field.dialogue_line.prompt.body': r'''The line itself.
+
+What to enter
+One line of dialogue, in the speaker's language. It is shown, spoken or both, as the mode says.
+
+Checks
+Required.
+
+Example
+Buongiorno! Un caffè, per favore.''',
+  'exerciseHelp.field.dialogue_line.lineMode.body':
+      r'''Whether the learner reads the line, hears it, or both.
+
+What to enter
+Text and audio, Text only, or Audio only. Audio only makes the line a listening step; when audio is unavailable the text is shown instead.
+
+Checks
+None.
+
+Example
+Text and audio''',
+  'exerciseHelp.field.dialogue_line.readAloud.body':
+      r'''When the line's audio plays.
+
+What to enter
+Story default (the Round's Read-aloud option), Automatic (plays when the line appears) or On request (the learner taps).
+
+Checks
+None.
+
+Example
+Story default''',
+  'exerciseHelp.field.dialogue_line.textReveal.body':
+      r'''Whether the text waits for the audio.
+
+What to enter
+Immediately, or After listening: the text appears once the audio has played (only with text and audio).
+
+Checks
+None.
+
+Example
+Immediately''',
+  'exerciseHelp.field.dialogue_line.language.body':
+      r'''The language the line is in.
+
+What to enter
+The speaker's language (default), or Target / Source to override it for this line.
+
+Checks
+None.
+
+Example
+Speaker's''',
+  'exerciseHelp.field.before_you_start.prompt.body':
+      r'''What the learner reads before the Round starts.
+
+What to enter
+A few sentences: what the Round practises, a tip, a reminder, in the language your learners read best.
+
+Checks
+Required: an empty card is an Audit error.
+
+Example
+This Round practises greetings.''',
+  'exerciseHelp.field.before_you_start.guidebookButton.body':
+      r'''Whether the card offers the Lesson’s GuideBook.
+
+What to enter
+On or off. Learners see Open GuideBook only while the Course uses GuideBooks (Lesson Options) and the GuideBook is published; Preview shows it for a Draft GuideBook too.
+
+Checks
+Greyed out while the Course does not use GuideBooks.
+
+Example
+On''',
+  'exerciseHelp.field.page.blocks.body':
+      r'''The blocks of the Page, top to bottom.
+
+What to enter
+Add blocks with Add block and order them with the arrows. In paragraphs, quotes and lists write **bold** and *italic*; a list takes one item per line; \* shows a star. Choose an alignment and a colour per text block, a size and a caption per picture, the spoken text of an audio block, and the label and https address of a video link.
+
+Checks
+A Page with no content is an Audit error; an unmatched mark is a warning; a link must be an https address.
+
+Example
+Heading 1: Greetings''',
+  'exerciseHelp.field.story_cover.prompt.body':
+      r'''An optional title line on the cover.
+
+What to enter
+A short line; the Story's title (Round options) is shown above the cover anyway.
+
+Checks
+Optional.
+
+Example
+At the café''',
+  'exerciseHelp.field.story_cover.image.body': r'''The cover picture.
+
+What to enter
+A picture from the Course, the Shared Image Library or a bundled image.
+
+Checks
+Recommended; a cover without a picture shows the title only.
+
+Example
+A café terrace''',
+  'exerciseHelp.field.sort_into_groups.groups.body':
+      r'''The groups and their words.
+
+What to enter
+One group per line: the group name, a colon, then its words separated by commas. At least two groups, each with at least one word.
+
+Checks
+A word can be in one group only; a line without a colon, a name or words is refused before Preview or Save.
+
+Example
+Animals: gatto, cane
+Plants: rosa, pino''',
+  'exerciseHelp.field.fill_the_slots.slots.body':
+      r'''The slots and the word that fills each one.
+
+What to enter
+One slot per line: what the learner sees, an equals sign, then the word. At least one slot. Use … or ___ for the missing part.
+
+Checks
+Every line needs both sides. The same word in two slots needs “A word may fill more than one slot”.
+
+Example
+… gatto = il
+… casa = la''',
+  'exerciseHelp.field.fill_the_slots.extraWords.body':
+      r'''Words offered that fill no slot.
+
+What to enter
+One word per line; optional.
+
+Checks
+An extra word cannot repeat a slot word.
+
+Example
+lo''',
+  'exerciseHelp.field.fill_the_slots.slotReuse.body':
+      r'''Whether one word may fill several slots.
+
+What to enter
+Off: each word is offered once and fills one slot. On: a word stays in the bank after each use, so the same word can be the answer of several slots.
+
+Checks
+None.
+
+Example
+On, for “… cane = il” and “… libro = il”''',
+  'exerciseHelp.field.flashcard.readAloud.body':
+      r'''Whether and when the word is spoken.
+
+What to enter
+Automatically (when the card appears), On request (the learner taps the speaker) or No read-aloud. The spoken text is the word or expression itself, unless Pronunciation TTS (if different) says otherwise, played with the Course audio mode.
+
+Checks
+None. Read-aloud never makes the card an audio exercise.
+
+Example
+On request''',
+  'exerciseHelp.field.flashcard.tts.body':
+      r'''What the read-aloud speaks when it should differ from the word or expression.
+
+What to enter
+Leave empty: the read-aloud speaks the word or expression above. Enter a text only when the spoken form differs, for example an abbreviation read in full. No recording path; recordings are managed in Course Audio Library.
+
+Checks
+Optional. When given, the Course audio mode must be able to play it.
+
+Example
+dottore (for the abbreviation Dott.)''',
+  'exerciseHelp.field.note_card.prompt.body': r'''The heading of the note card.
+
+What to enter
+One short title, in the language you prefer.
+
+Checks
+Required.
+
+Example
+Tu or Lei?''',
+  'exerciseHelp.field.note_card.question.body': r'''The note the learner reads.
+
+What to enter
+Plain text; several paragraphs are fine.
+
+Checks
+Required. There is no answer and no score; Continue closes the card.
+
+Example
+Use Lei with people you do not know well.''',
+  'exerciseHelp.field.picture_name.accepted.body':
+      r'''The names of what the picture shows that the learner may type.
+
+What to enter
+Complete answers on separate lines, with the Type the translation syntax: optional {}, alternatives [a|b], linked [*:a|b] groups, <> reorder scopes.
+
+Checks
+At least one accepted answer. Expansion is limited to 128 answers.
+
+Example
+[il|un] gatto
+gatto''',
+  'exerciseHelp.field.picture_blocks.order.body':
+      r'''The name of what the picture shows, as word blocks.
+
+What to enter
+One word per line, in the right order; the learner gets these blocks shuffled, with the extra blocks.
+
+Checks
+Required, with the Exercise image. The blocks joined with spaces are the answer.
+
+Example
+il
+pane''',
+  'exerciseHelp.field.image_word.extraWords.body':
+      r'''Blocks offered with the word that are not part of it: distractors.
+
+What to enter
+One letter or syllable per line; optional.
+
+Checks
+Only the blocks of the word are recommended: add extra blocks deliberately, fewer in a Lesson's first Rounds. Course Audit lists them as Info. The learner must leave them out.
+
+Example
+e''',
+  'exerciseHelp.field.picture_blocks.extraWords.body':
+      r'''Words offered with the name that are not part of it.
+
+What to enter
+One word per line; optional.
+
+Checks
+Few work best: two at most are recommended; more are allowed and Course Audit lists them as Info. The learner must leave them out.
+
+Example
+la''',
+  'exerciseHelp.field.picture_word_match.answers.body':
+      r'''The words of the pairs; each gets a picture below.
+
+What to enter
+One word per line, in the target language. At least two.
+
+Checks
+Every word needs its picture; words must be unique.
+
+Example
+gatto
+cane
+casa''',
+  'exerciseHelp.field.sentence_order.order.body':
+      r'''The lines of the story or dialogue, in the order the learner must find.
+
+What to enter
+One sentence or line per line, in the correct order; the learner gets them shuffled. Lines that belong nowhere go in Extra lines.
+
+Checks
+At least two lines to publish. The same text twice is two lines.
+
+Example
+Anna entra nel bar.
+Ordina un caffè.
+Paga e saluta.''',
+  'exerciseHelp.field.sentence_order.extraWords.body':
+      r'''Lines offered with the others that belong nowhere; the learner must leave them out.
+
+What to enter
+One line per line. Few work best: 0, 1 or 2 are recommended.
+
+Checks
+Optional. Keep them plausible but clearly out of place.
+
+Example
+Il treno parte alle nove.''',
+  'exerciseHelp.field.spell_heard.tts.body':
+      r'''The word the learner hears and spells.
+
+What to enter
+Enter the word as text; it is read aloud with the target-language voice or matched to a Course recording.
+
+Checks
+Required. The tiles must spell exactly this word.
+
+Example
+gatto''',
+  'exerciseHelp.field.spell_word.prompt.body':
+      r'''The clue that names the word to spell.
+
+What to enter
+One short clue in the source language: the word itself or a definition.
+
+Checks
+Required unless a picture or a spoken word names the word.
+
+Example
+cat (the animal)''',
+  'exerciseHelp.field.true_false.answers.body':
+      r'''The two answers: the word for true and the word for false.
+
+What to enter
+Two lines in the source language, true first. QQL prefills them when it knows the language; you can change the words.
+
+Checks
+Exactly two lines; the Audit warns when there are more or fewer.
+
+Example
+True
+False''',
+  'exerciseHelp.field.true_false.question.body':
+      r'''The statement the learner judges true or false.
+
+What to enter
+Enter one statement in the target language, as plain text. Make it clearly true or clearly false.
+
+Checks
+Required. The correct answer number is 1 when the statement is true and 2 when it is false.
+
+Example
+Roma è la capitale d’Italia.''',
+  'exerciseHelp.field.choice.question.body':
+      r'''What the learner answers: a question, or a sentence with a gap the answers complete.
+
+What to enter
+One question, or one sentence with ___ where the answer fits, as plain text; an instruction or context goes in Instruction or context. In Choose the answer (to target) the answers are in the target language and the question may be in either language; in Choose the answer (to source) question and answers are in the source language.
+
+Checks
+Required. Provide matching answers and mark the correct one (or several with Multiple correct answers).
+
+Example
+Which article goes with casa?
+Ieri ___ al cinema. (with the Instruction or context: Pick the verb form that fits.)''',
+  'exerciseHelp.field.choice.answers.body':
+      r'''Defines the alternatives presented to the learner.
+
+What to enter
+Enter one literal answer per line, with at least two non-empty lines. Blank lines are ignored. The first non-empty line is answer 1. Compact accepted-answer syntax does not create choices.
+
+Checks
+Select one valid Correct answer number. Avoid duplicate answers and make distractors plausible but unambiguously wrong. Select the image also needs one icon/image key per answer in the same order.
+
+Example
+caffè
+acqua
+pane''',
+  'exerciseHelp.field.choice.correct.body':
+      r'''Identifies the correct option or options from the answer list.
+
+What to enter
+Enter one whole number, counting non-empty answer lines from 1. When Multiple correct answers is enabled, enter every correct number separated by commas, e.g. 1, 3.
+
+Checks
+Every number must be between 1 and the number of answers. Recheck it after reordering or deleting answer lines.
+
+Example
+2 selects the second non-empty answer line.''',
+  'exerciseHelp.field.choice.requiredSelections.body':
+      r'''Sets the minimum number of options the learner must select before checking a multiple-selection Choice exercise.
+
+What to enter
+Enter a whole number between 1 and the number of answers, or leave blank to default to the number of correct answers.
+
+Checks
+The Check button stays disabled until at least this many options are selected. This does not cap how many options may be selected; correctness always requires an exact match of the selected set to the correct set.
+
+Example
+2''',
+  'exerciseHelp.field.choice.gapLayout.body':
+      r'''The fixed sentence with one or more inline gaps the learner fills, in order, by tapping options.
+
+What to enter
+Write the sentence and put each answer word or phrase between underscores: _answer_. Example: I _am_ going _to_ London. Extra options that are not the answer to any gap go in Distractor options (optional).
+
+Checks
+At least one _…_ gap is required, and every gap must contain text. A lone _ cannot appear anywhere else in the sentence.
+
+Example
+I _am_ going _to_ London.''',
+  'exerciseHelp.field.choice.tokens.body':
+      r'''Adds options the learner can select that are not the answer to any gap.
+
+What to enter
+One extra option per line. Few distractors work best: 0, 1 or 2 are recommended, fewer in the first Rounds of a Lesson.
+
+Checks
+Distractor options must not repeat any gap answer text.
+
+Example
+perhaps''',
+  'exerciseHelp.field.choice.tts.body':
+      r'''Defines the word or passage that the learner hears.
+
+What to enter
+Enter one spoken text, not an MP3 filename or path. Multiple lines form the same passage. Course Audio Library selects On-Device TTS, Recorded MP3 or Hybrid and maps recordings to exact words or expressions.
+
+Checks
+Listening exercises require non-empty audio text. For contextual comprehension, supply the text/audio context selected by Context mode. Preview playback and review missing recorded mappings in Audit.
+
+Example
+Vorrei un caffè, per favore.''',
+  'exerciseHelp.field.choice.image.body':
+      r'''Adds one image to the exercise prompt or context.
+
+What to enter
+Choose a flat image from the shared image library (managed by admins), or place exactly one PNG, JPG, JPEG or WebP file in {folderImageImports} and press Import custom image. Any course editor can import a custom image; it is not added to the shared library. Import copies the original bytes to local app storage; it does not resize, crop or change transparency.
+
+Checks
+Maximum 300 KB (307,200 bytes). 256 × 256 pixels and 15 KB or less are recommendations, not enforced dimensions. Image-prompt ordering requires an image; other current presets may omit it. Missing or multiple source files and oversized files are rejected. Preview checks that the image displays. Course JSON stores the image path, not these image bytes, so custom exercise images are not portable through course JSON alone.
+
+Example
+Bundled path: assets/exercise_images/house.webp
+Custom paths are selected and stored by the importer.''',
+  'exerciseHelp.field.gap_choice.question.body':
+      r'''Shows the sentence the learner completes by choosing a block.
+
+What to enter
+Use ___ (3 underscores) for the missing word. Example: The cat ___ black. Enter one target-language sentence with the missing word or expression replaced by that gap. Enter possible replacements as separate answer lines.
+
+Checks
+At least one ___ marker is required; more than one produces a warning. The sentence with the correct answer inserted must contain at least two words.
+
+Example
+Vorrei un ___, per favore.''',
+  'exerciseHelp.field.gap_choice.correct.body':
+      r'''Identifies the one correct option from the answer list.
+
+What to enter
+Enter one whole number, counting non-empty answer lines from 1. Do not paste the answer text or a JSON index.
+
+Checks
+The number must be between 1 and the number of answers. Dialogue response accepts 1 or 2. Recheck it after reordering or deleting answer lines.
+
+Example
+2 selects the second non-empty answer line.''',
+  'exerciseHelp.field.gap_choice.hint.body':
+      r'''Gives the learner a useful clue.
+
+What to enter
+Enter one optional plain-text clue. Leave blank if the exercise needs no hint. Line breaks remain part of the same clue.
+
+Checks
+A hint must not reveal a canonical correct answer. Merely repeating the prompt produces a warning.
+
+Example
+Think of a hot drink served in a small cup.''',
+  'exerciseHelp.field.icon_choice.question.body':
+      r'''The concrete content to which the learner responds.
+
+What to enter
+Enter one question as plain text, separately from the reading, audio or dialogue context. Line breaks do not create separate questions.
+
+Checks
+Read and answer requires a separate question. Match the question to the declared correct answer.
+
+Example
+How are you?''',
+  'exerciseHelp.field.icon_choice.icons.body':
+      r'''Associates each Select the image answer with its visual.
+
+What to enter
+Enter one icon key or existing bundled assets/ image path per line, in the same order as the answer options. Blank lines are ignored. Keys include water, home, coffee, person, hello, sun, moon, thanks, tree, flower, bread, train, bus, bike, shirt, book, food and shop.
+
+Checks
+The number of keys must equal the number of answers. An unknown key shows the generic image icon, so Preview every choice. A custom Exercise image below the form is a separate shared prompt image, not an option image.
+
+Example
+coffee
+water
+assets/exercise_images/house.webp''',
+  'exerciseHelp.field.script_recognition.scriptMode.body':
+      r'''Choose how the learner recognizes a character or syllable.
+
+What to enter
+Image to text shows one or more prompt images with text answer options. Text to image shows a text prompt with image answer options. Switching modes retains both sets of fields during this editing session; saving uses the selected mode.
+
+Checks
+Both modes use normal Select with at least two options and exactly one correct option. Mode changes do not create a different learner engine.
+
+Example
+Show several handwritten forms of 가 and ask the learner to choose ga.''',
+  'exerciseHelp.field.script_recognition.scriptPrompt.body':
+      r'''The question or sentence that names the character the learner finds among the images.
+
+What to enter
+Enter the character, syllable or sound transcription, as a question or a sentence. Keep the image answers in their separate option fields.
+
+Checks
+Text to image requires a question or sentence, at least two image-only options and exactly one correct option.
+
+Example
+Choose the character pronounced ga.''',
+  'exerciseHelp.field.script_recognition.scriptPromptImages.body':
+      r'''Shows one or more representations of the same character or syllable.
+
+What to enter
+Add printed forms, different fonts, handwriting or stylistic variants. Choose an Image Bank image or import a PNG, JPEG or WEBP from {folderImageImports}. Imported bytes belong to the course and are retained in Course JSON; no absolute local path is saved.
+
+Checks
+Image to text requires at least one readable prompt image and at least two text options. Each imported image must be at most 50 KB (51,200 bytes) and no more than 4096 pixels in either dimension. Invalid image data blocks Save and Preview.
+
+Example
+Show a printed 가 and a handwritten 가 above the options ga and na.''',
+  'exerciseHelp.field.script_recognition.scriptTextOptions.body':
+      r'''Provides the possible readings of the prompt images.
+
+What to enter
+Enter one literal reading or label in each option field. Add or remove options with the adjacent controls. Reordering keeps the same option identity and correct-answer selection.
+
+Checks
+Image to text requires at least two nonempty text-only options and exactly one correct option. Answer-expression syntax is not expanded for Select options.
+
+Example
+Option 1: ga
+Option 2: na''',
+  'exerciseHelp.field.script_recognition.scriptImageOptions.body':
+      r'''Provides the images from which the learner selects an answer.
+
+What to enter
+Choose one portable Image Bank or imported PNG, JPEG or WEBP image for each option. Imported bytes are stored with the course. Reordering keeps the image option identity and correct-answer selection.
+
+Checks
+Text to image requires at least two readable image-only options and exactly one correct option. Imported images must be at most 50 KB (51,200 bytes) and 4096 pixels in either dimension. Absolute local paths and invalid image data are rejected.
+
+Example
+For the prompt ga, offer an image of 가 and an image of 나.''',
+  'exerciseHelp.field.script_recognition.scriptCorrect.body':
+      r'''Identifies the single option that answers the prompt.
+
+What to enter
+Select the circle beside the correct option. Selecting a different circle replaces the previous correct choice. Reordering an option keeps its correct-answer status; deleting it requires choosing another correct option.
+
+Checks
+Exactly one existing option must be correct. A Draft may remain incomplete; Preview and Published Save require a valid correct choice.
+
+Example
+Mark ga correct for an image of 가.''',
+  'exerciseHelp.field.listening_choice.tts.body':
+      r'''Enter exactly what the learner should hear. On-Device TTS sends this text to the device’s native text-to-speech engine; no audio file is required in that mode. Example: Buongiorno, come stai?
+
+What to enter
+Playback follows the Course Audio Library mode. Recorded MP3 resolves this text against Course recordings; Hybrid tries a complete recording sequence before native TTS. Enter spoken words, not an MP3 filename or path. For MP3, open Course Editor > Audio Library, place files in {folderAudioImports}, press Import MP3, then Associate recording and enter its Word or expression. Select Recorded MP3 only or Hybrid. Exercises use these text mappings; there is no per-exercise file attachment.
+
+Checks
+Recordings are stored physically by learning language; metadata and references belong to the Course. Verified Course backups copy referenced recordings. Course JSON does not contain MP3 bytes and JSON alone does not transfer recordings.
+
+Example
+Buongiorno, come stai?''',
+  'exerciseHelp.field.reading_comprehension.prompt.body':
+      r'''Provides the passage needed to answer the separate comprehension question.
+
+What to enter
+Enter one passage in plain text. Multiple lines or paragraphs remain part of the passage.
+
+Checks
+A passage containing words is required. One or two lexical words produce a warning; at least three are recommended. The question should test comprehension.
+
+Example
+Maria prende il treno. Va a Roma.''',
+  'exerciseHelp.field.dialogue_response.prompt.body':
+      r'''Sets the situation for choosing the best dialogue response.
+
+What to enter
+Enter one situation in the target language. Keep the question separate and provide exactly two response options.
+
+Checks
+Context, question and both responses must be non-empty. Choose one response as correct.
+
+Example
+Un amico ti saluta al mattino.''',
+  'exerciseHelp.field.dialogue_response.answers.body':
+      r'''Provides the two possible responses to the dialogue situation.
+
+What to enter
+Enter exactly two non-empty lines, both in the target language. Each line is one complete response; blank lines are ignored.
+
+Checks
+Set Correct response number to 1 or 2. The learner sees randomized display order, while the chosen correct response remains the same.
+
+Example
+Buongiorno!
+Buonanotte!''',
+  'exerciseHelp.field.contextual_comprehension.contextMode.body':
+      r'''Text is a presentation mode: learners read the main passage entered in Context text. Example: Marta takes the train to work every morning.
+
+What to enter
+Select one mode: Text, Audio, or Text and audio. Text modes expose Context text and optional structured dialogue; audio modes expose Context audio text.
+
+Checks
+Supply usable text, audio or dialogue context plus a separate question and answer options. An image alone is not sufficient context. Preview the selected mode.
+
+Example
+Choose Text, then enter: Marta takes the train to work every morning.''',
+  'exerciseHelp.field.contextual_comprehension.context.body':
+      r'''The passage or background the learner reads to answer the question. Example: Marta is describing her daily routine. Marta takes the train to work every morning.
+
+What to enter
+Enter one plain-text context, with paragraphs if useful. Use Structured dialogue for speaker-labelled turns. The question belongs in its own field.
+
+Checks
+At least one usable text, audio or dialogue context is required. When choosing Text and audio, check both representations convey the intended context.
+
+Example
+Marta is describing her daily routine. Marta takes the train to work every morning. Question: How does Marta travel to work?''',
+  'exerciseHelp.field.contextual_comprehension.dialogue.body':
+      r'''Presents context as a sequence of named speaker turns.
+
+What to enter
+Enter one turn per line as Speaker: text. The first colon separates the speaker from the spoken text. Blank lines are ignored. Leave blank for ordinary non-dialogue context.
+
+Checks
+Every entered turn needs both a non-empty speaker and non-empty text. Speaker labels do not create separate voice settings.
+
+Example
+Jane: Are you coming?
+Jim: I changed my mind.''',
+  'exerciseHelp.field.type_translation.prompt.body':
+      r'''Supplies the text that the learner translates.
+
+What to enter
+Enter one source-language sentence or passage. Line breaks belong to the same prompt; accepted answers or correct translations go in their own fields.
+
+Checks
+Provide non-empty source text and complete equivalent target-language answers. Keep the intended meaning unambiguous.
+
+Example
+I would like a coffee.''',
+  'exerciseHelp.field.type_translation.accepted.body':
+      r'''Defines complete target-language translations accepted for the source text.
+
+What to enter
+Enter complete equivalent answers on separate lines. Blank lines are ignored. Optional text: {Io} prendo un cappuccino. Alternatives: [prendo|vorrei] un cappuccino. Linked alternatives: [*:il|i] [*:tuo|tuoi] [*:denaro|soldi] pairs alternatives by position; use at least two linked groups with equal alternative counts. Scoped reordering: (non arrivo <> oggi). Without parentheses, a casa <> domani reorders the whole expression. Terminal punctuation stays at the sentence end; generated sentence starts are capitalized. Use lowercase except for proper names.
+
+Checks
+At least one accepted answer is required. Malformed expressions are rejected. Expansion is deterministic, duplicate results are removed, and the combined limit is 128 answers; simplify an expression that exceeds it. Declare equivalent answers explicitly: syntax does not invent translations.
+
+Example
+{Io} [prendo|vorrei] un cappuccino''',
+  'exerciseHelp.field.build_translation.tokens.body':
+      r'''Supplies the blocks used to construct the configured correct translations.
+
+What to enter
+Enter one literal block per line. Blank lines are ignored. Include enough distinct occurrences to construct every correct translation; repeated words require repeated lines. When Inline gaps is enabled, this field is relabeled Extra distractor blocks: the gap answers themselves come from the _answer_ markers in Target sentence with gaps, and this field only adds optional unused distractors.
+
+Checks
+Every correct translation must be constructible from these blocks. Few distractors work best: at most 2 blocks unused by every correct translation are recommended, fewer in the first Rounds of a Lesson; more are allowed. A block used by any configured answer is not an unused distractor. Answer-expression syntax is not expanded.
+
+Example
+Io
+prendo
+vorrei
+un
+caffè''',
+  'exerciseHelp.field.build_translation.correctTranslation.body':
+      r'''Defines one complete literal answer for Build the translation.
+
+What to enter
+Each separate answer entry holds one complete target-language sentence. Use Add correct translation for another answer and the drag handle to reorder answers.
+
+Checks
+At least one non-empty answer is required. Answers must be unique after case, spacing and terminal-punctuation normalization, and constructible from distinct available block occurrences. Internal punctuation is preserved. No optional, alternative or reorder expressions, similarity matching or typo acceptance are applied.
+
+Example
+Io vorrei un caffè.''',
+  'exerciseHelp.field.build_translation.gapLayout.body':
+      r'''The fixed sentence with one or more inline gaps the learner fills with words, each word filling one gap.
+
+What to enter
+Write the fixed sentence and put each answer word or phrase between underscores: _answer_. Example: I _am_ going _to_ London. Each _…_ segment is both the gap and its correct answer. Extra distractor words that fill no gap go in Extra distractor words (optional).
+
+Checks
+At least one _…_ gap is required, and every gap must contain text. A lone _ cannot appear anywhere else in the sentence.
+
+Example
+I _am_ going _to_ London.''',
+  'exerciseHelp.field.translation_choice_to_target.question.body':
+      r'''The source-language word or phrase the learner translates.
+
+What to enter
+Enter one source-language word, phrase or sentence. Do not write an instruction: QQL adds “Choose the correct [Target language] translation” automatically. Line breaks stay part of the same text.
+
+Checks
+Required. Provide target-language answer options and mark exactly one correct.''',
+  'exerciseHelp.field.translation_choice_to_target.answers.body':
+      r'''The target-language translations the learner chooses from.
+
+What to enter
+Enter one complete target-language translation per line, from 2 to 5 options. Blank lines are ignored. Options are shown in random order.
+
+Checks
+Between 2 and 5 options, none blank and no phrase repeated (ignoring case, extra spaces and final punctuation), and exactly one correct. Keep distractors plausible but clearly wrong.''',
+  'exerciseHelp.field.translation_choice_to_target.correct.body':
+      r'''Identifies the one correct option.
+
+What to enter
+Enter one whole number, counting non-empty answer lines from 1.
+
+Checks
+Must be between 1 and the number of answers. Recheck it after reordering or deleting lines.''',
+  'exerciseHelp.field.translation_choice_to_target.image.body':
+      r'''Adds one image to the exercise prompt or context.
+
+What to enter
+Choose a flat image from the shared image library (managed by admins), or place exactly one PNG, JPG, JPEG or WebP file in {folderImageImports} and press Import custom image. Any course editor can import a custom image; it is not added to the shared library. Import copies the original bytes to local app storage; it does not resize, crop or change transparency.
+
+Checks
+Maximum 300 KB (307,200 bytes). 256 × 256 pixels and 15 KB or less are recommendations, not enforced dimensions. Image-prompt ordering requires an image; other current presets may omit it. Missing or multiple source files and oversized files are rejected. Preview checks that the image displays. Course JSON stores the image path, not these image bytes, so custom exercise images are not portable through course JSON alone.''',
+  'exerciseHelp.field.translation_choice_to_source.question.body':
+      r'''The target-language word or phrase the learner translates.
+
+What to enter
+Enter one target-language word, phrase or sentence. Do not write an instruction: QQL adds “Choose the correct [Source language] translation” automatically. The learner can play this text with text-to-speech when it is available; the exercise stays fully solvable without audio.
+
+Checks
+Required. Provide source-language answer options and mark exactly one correct.''',
+  'exerciseHelp.field.translation_choice_to_source.answers.body':
+      r'''The source-language translations the learner chooses from.
+
+What to enter
+Enter one complete source-language translation per line, from 2 to 5 options. Blank lines are ignored. Options are shown in random order.
+
+Checks
+Between 2 and 5 options, none blank and no phrase repeated (ignoring case, extra spaces and final punctuation), and exactly one correct. Keep distractors plausible but clearly wrong.''',
+  'exerciseHelp.field.fill_blank.question.body':
+      r'''Shows the word or phrase that the learner completes by typing.
+
+What to enter
+Enter one incomplete word or phrase using visible gap text where useful. In Accepted answers, enter the text the learner should type, not a list of answer choices.
+
+Checks
+Supply at least one accepted answer. This existing preset does not automatically reveal a first letter.
+
+Example
+Vorrei un ___.
+Accepted answer: caffè''',
+  'exerciseHelp.field.fill_blank.accepted.body':
+      r'''Defines the complete text the learner may type to complete the gap.
+
+What to enter
+Enter complete equivalent answers on separate lines. Blank lines are ignored. Optional text: {Io} prendo un cappuccino. Alternatives: [prendo|vorrei] un cappuccino. Linked alternatives: [*:il|i] [*:tuo|tuoi] [*:denaro|soldi] pairs alternatives by position; use at least two linked groups with equal alternative counts. Scoped reordering: (non arrivo <> oggi). Without parentheses, a casa <> domani reorders the whole expression. Terminal punctuation stays at the sentence end; generated sentence starts are capitalized. Use lowercase except for proper names.
+
+Checks
+At least one accepted answer is required. Malformed expressions are rejected. Expansion is deterministic, duplicate results are removed, and the combined limit is 128 answers; simplify an expression that exceeds it. Declare equivalent answers explicitly: syntax does not invent translations.
+
+Example
+caffè
+un caffè''',
+  'exerciseHelp.field.fill_blank.tts.body':
+      r'''Supplies optional pronunciation text for the completed phrase.
+
+What to enter
+Enter one complete phrase, including the missing answer, or leave blank. This is spoken text, not a recording filename.
+
+Checks
+Keep this text consistent with the incomplete phrase and accepted answers. Test the pronunciation in Preview.
+
+Example
+Vorrei un caffè.''',
+  'exerciseHelp.field.type_missing_word.prompt.body':
+      r'''Enter the complete missing word. The first letter is shown as a hint when Show the first letter is on.
+
+What to enter
+Enter a sentence with exactly one ___ gap and complete accepted words, one per line. The first Unicode grapheme is derived automatically; the learner enters the complete word, including that first grapheme.
+
+Checks
+With the hint on, all complete accepted words must share exactly the same first grapheme. The complete word entered uses normal Input normalization and supported typo tolerance; the hint is not prepended to the response.
+
+Example
+Je vais à l’___. Answer: école. Learner sees é______ and enters école, not cole.''',
+  'exerciseHelp.field.listening_spelling.missingWords.body':
+      r'''Other ways to write what the learner hears; the Audio text itself is always accepted.
+
+What to enter
+Leave it empty when the Audio text is the only way to write it. Otherwise enter one complete spelling per line: the whole text heard, not a single missing word. Alternatives inside a line: alle [9|nove]. Capitals, punctuation and spacing are ignored anyway.
+
+Checks
+Optional. Every line must be the same words the learner hears; do not accept words that are not heard. Malformed alternatives are rejected.
+
+Example
+arrivo alle 8''',
+  'exerciseHelp.field.missing_word.prompt.body':
+      r'''Supplies the complete text from which the learner view creates listening gaps.
+
+What to enter
+Enter one complete transcript including the word or expressions to hide. Use ordinary text, not pre-inserted dots or underscores. Line breaks remain part of the passage.
+
+Checks
+For Listen for missing words, every missing entry must occur in the transcript. Match Audio text to what the learner should hear.
+
+Example
+Vorrei un caffè, per favore.
+Missing word: caffè''',
+  'exerciseHelp.field.missing_word.missingWords.body':
+      r'''Selects the words or expressions hidden in the listening transcript.
+
+What to enter
+Enter one literal word or expression per line. Multiple lines select multiple gaps, not alternative complete answers. Blank lines are ignored; do not insert gap markers in the transcript.
+
+Checks
+At least one entry is required and each entry must occur in Passage transcript, ignoring case. Duplicate entries produce a warning. Answer-expression syntax is not expanded for this list.
+
+Example
+caffè
+per favore''',
+  'exerciseHelp.field.instruction.body':
+      r'''An optional line in the learners’ language: what to do, the situation, or the meaning the exercise needs.
+
+What to enter
+One line in the learners’ language, or nothing. In a Round it takes the place of the standard instruction line under the heading; leave it empty to keep that line. It may set the scene (Anna goes to the market in the morning) or give the meaning (Anna reads a book). The question, the sentence and the answers go in their own fields.
+
+Checks
+Optional. It is stored without a language, so it never turns the exercise into a translation. Keep it consistent with the rest of the exercise, and do not give the answer away.
+
+Example
+Put the dialogue at the bar in order.''',
+  'exerciseHelp.field.matching.pairs.body':
+      r'''Defines items that the learner matches across two columns.
+
+What to enter
+Enter one pair per line as left = right. The first equals sign separates the two sides. Blank lines are ignored.
+
+Checks
+At least one usable pair is required. Give both sides non-empty text and check every line contains its separator; fix incomplete lines before Preview or Save.
+
+Example
+casa = house
+pane = bread''',
+  'exerciseHelp.field.word_match.pairs.body':
+      r'''Matches source-language words with their target-language translations.
+
+What to enter
+Enter at least two non-empty lines as source = target; three is the usual number. The first equals sign separates the two sides. Blank lines are ignored.
+
+Checks
+Every pair needs both sides. Check unique, unambiguous matching and remove malformed lines; fix lines without a usable separator before Preview or Save.
+
+Example
+house = casa
+bread = pane
+water = acqua''',
+  'exerciseHelp.field.super_match.pairs.body':
+      r'''Matches related words, such as synonyms or opposites.
+
+What to enter
+Enter exactly three non-empty lines as left = right, with both sides in the target language. Name the relationship in Instruction or context, in the learners’ language.
+
+Checks
+All three pairs need both sides and a usable equals separator. Check that every pair follows the stated relationship and that matching is unambiguous.
+
+Example
+grande = piccolo
+caldo = freddo
+aperto = chiuso''',
+  'exerciseHelp.field.audio_match.pairs.body':
+      r'''Matches three spoken target-language items to their visible texts.
+
+What to enter
+Enter exactly three lines as audio text = visible text. Visible text may be target-language text or its translation. The three right sides become the three visible choices; there is no separate distractor field.
+
+Checks
+Both sides are required. Avoid duplicate sounds and visible choices, including punctuation-only or capitalization-only differences. No distractors are permitted. Use Course Audio Library for recording mappings.
+
+Example
+casa = house
+pane = bread
+acqua = water''',
+  'exerciseHelp.field.word_order.tokens.body':
+      r'''Supplies the blocks the learner puts into sentence order.
+
+What to enter
+Enter one literal target-language block per line. Blank lines are ignored. Repeat a line when the answer needs another occurrence of that word or block. When Inline gaps is enabled, this field is relabeled Extra distractor blocks: the gap answers themselves come from the _answer_ markers in Sentence with gaps, and this field only adds optional unused distractors.
+
+Checks
+Include every block occurrence used in Correct sentence. Few distractors work best: 0, 1 or 2 unused distractor blocks are recommended, fewer in the first Rounds of a Lesson; more are allowed. Keep block spelling and internal punctuation consistent with the correct order.
+
+Example
+Io
+bevo
+un
+caffè
+tè''',
+  'exerciseHelp.field.word_order.order.body':
+      r'''Defines the required order of the available word blocks.
+
+What to enter
+Enter one block per line in the correct order, not the whole sentence on one line. Blocks are joined with spaces. Blank lines are ignored. Not used when Inline gaps is enabled: gap answers are written directly inside braces in Sentence with gaps instead.
+
+Checks
+Each line must match an available block occurrence. Repeated words need separate available occurrences. This is one literal order; compact answer syntax is not expanded.
+
+Example
+Io
+bevo
+un
+caffè''',
+  'exerciseHelp.field.image_word.order.body':
+      r'''The blocks that spell the word, in order.
+
+What to enter
+One letter or syllable per line, in answer order; the learner gets exactly these blocks, shuffled. Repeat a line for a letter that occurs twice. The blocks are joined without spaces.
+
+Checks
+At least two blocks. Blocks that are not in the word go in Extra blocks. Spell the word in the picture also needs an Exercise image.
+
+Example
+ca
+sa
+These blocks form casa.''',
+  'exerciseHelp.field.flashcard.prompt.body':
+      r'''The word or expression the card teaches, in the target language.
+
+What to enter
+One word or expression in the language being learned. Its translation goes in the field below; Read aloud, when on, speaks this text.
+
+Checks
+Required. Flashcard content is presentation and supplies no scored answer.
+
+Example
+buongiorno''',
+  'exerciseHelp.field.flashcard.question.body':
+      r'''The translation or meaning, in the source language.
+
+What to enter
+One plain-text translation or explanation in the learners’ own language. Several lines remain one explanation.
+
+Checks
+An empty translation produces an Audit warning. Check that it matches the word above.
+
+Example
+good morning''',
+  'exerciseHelp.field.flashcard.answers.body':
+      r'''Shows the Flashcard word in context.
+
+What to enter
+First non-empty line: usage sentence. Optional second non-empty line: its translation. The learner view adds “Usage:” automatically. Blank lines are ignored.
+
+Checks
+A missing usage sentence produces an Audit warning. These lines are presentation content, not answer options.
+
+Example
+Buongiorno, Maria!
+Good morning, Maria!''',
+  'courseInfo.title': r'''Course Info''',
+  'courseInfo.authorSupportMissing':
+      r'''This course does not provide an author support link.''',
+  'courseInfo.authorSupportOpenFailed':
+      r'''The author support link could not open.''',
+  'courseInfo.authorsContributors': r'''Authors / Contributors: {value}''',
+  'courseInfo.notSpecified': r'''Not specified''',
+  'courseInfo.notRecorded': r'''Not recorded''',
+  'courseInfo.contributors': r'''Contributors''',
+  'courseInfo.illustrators': r'''Illustrators''',
+  'courseInfo.origin.bundledOfficial': r'''Bundled official''',
+  'courseInfo.origin.publisherCourse': r'''Publisher Course''',
+  'courseInfo.origin.customCourse': r'''Custom course''',
+  'courseInfo.origin.label': r'''Origin: {value}''',
+  'courseInfo.publisher': r'''Publisher: {value}''',
+  'courseInfo.originalCourseCreated': r'''Original Course Created: {value}''',
+  'courseInfo.lastVersionEditor': r'''Last Version Editor: {value}''',
+  'courseInfo.modified': r'''Modified: {value}''',
+  'courseInfo.officialCourseVersion': r'''Official course version: {value}''',
+  'courseInfo.officialRelease': r'''Official release: {value}''',
+  'courseInfo.distributionChannel': r'''Distribution channel: {value}''',
+  'courseInfo.publisherVerification': r'''Publisher verification: {value}''',
+  'courseInfo.verificationRequired':
+      r'''Verification required. The stored course and progress are preserved. Import a verified publisher release to reactivate it.''',
+  'courseInfo.signatureScope':
+      r'''Signature covers the course JSON. Separate media files are not authenticated by this signature.''',
+  'courseInfo.officialChecksum': r'''Official checksum: {value}''',
+  'courseInfo.officialReadOnly': r'''Official course - read only''',
+  'courseInfo.courseVersion': r'''Course version: {value}''',
+  'courseInfo.unconfirmed': r'''Unconfirmed''',
+  'courseInfo.versionNotes': r'''Version notes:
+{value}''',
+  'courseInfo.internalCourseData': r'''Internal course data''',
+  'courseInfo.enlargeImage': r'''Enlarge Course image''',
+  'courseInfo.courseModel': r'''Course Model: v{value}''',
+  'courseInfo.temporarySample.title': r'''Private course''',
+  'courseInfo.temporarySample.body':
+      r'''This course is visible in QQL only to its Course Maintainer and the members of its assigned Team. Turn Private course off in Course Info to show it to everyone on this device.''',
+  'courseInfo.authorshipAndDescriptiveCredits':
+      r'''Authorship and descriptive credits''',
+  'courseInfo.teamLeaderTooltip':
+      r'''This is descriptive information only. To assign or change Team Leader roles in QQL, use Team Manager.''',
+  'courseInfo.languages': r'''Languages''',
+  'courseInfo.learningLanguage': r'''Learning language: {value}''',
+  'courseInfo.baseLanguage': r'''Base language: {value}''',
+  'courseInfo.licenseRights': r'''License / Rights''',
+  'courseInfo.license': r'''License: {value}''',
+  'courseInfo.rightsHolder': r'''Rights Holder: {value}''',
+  'courseInfo.derivativeWorks': r'''Derivative works: {value}''',
+  'courseInfo.rightsHolderDisclaimer':
+      r'''Rights Holder is descriptive legal metadata and does not control QQL permissions.''',
+  'courseInfo.mediaCredits': r'''Media credits''',
+  'courseInfo.mediaCreditsDisclaimer':
+      r'''Media credits are descriptive and do not control QQL permissions.''',
+  'courseInfo.source': r'''Source: {value}''',
+  'courseInfo.courseDetails': r'''Course details''',
+  'courseInfo.lessons': r'''Lessons: {value}''',
+  'courseInfo.estimatedStudyTime': r'''Estimated study time: {value} {unit}''',
+  'courseInfo.hour': r'''hour''',
+  'courseInfo.hours': r'''hours''',
+  'courseInfo.minimumAge': r'''Minimum age: {value}+''',
+  'courseInfo.keywords': r'''Keywords: {value}''',
+  'courseInfo.requiresBuild':
+      r'''Requires QuisquisLingo build {value} or later''',
+  'courseInfo.publisherContact': r'''Publisher contact''',
+  'courseInfo.website': r'''Website: {value}''',
+  'courseInfo.email': r'''Email: {value}''',
+  'courseInfo.buyACoffee': r'''Buy a Coffee''',
+  'courseInfo.supportAuthors': r'''Support this course's authors.''',
+  'courseInfo.governance.title':
+      r'''Course responsibility, Team assignment and authorization''',
+  'courseInfo.governance.officialPublisher': r'''Official publisher: {value}''',
+  'courseInfo.governance.originalCreator':
+      r'''Original Course Creator: {value}''',
+  'courseInfo.governance.maintainer': r'''Course Maintainer: {value}''',
+  'courseInfo.governance.assignedTeam': r'''Assigned Team: {value}''',
+  'courseInfo.governance.teamLeaders': r'''Team Leaders: {value}''',
+  'courseInfo.governance.teamMembers': r'''Team Members: {value}''',
+  'courseInfo.governance.none': r'''None''',
+  'courseInfo.governance.noneAvailable': r'''None available''',
+  'courseInfo.governance.disclaimer':
+      r'''Course maintenance and Team governance are separate. Provenance, attribution and rights metadata do not grant editing permission.''',
+  'courseInfo.fork.title': r'''Fork provenance''',
+  'courseInfo.fork.notRecorded': r'''Not recorded''',
+  'courseInfo.fork.fromCourseId': r'''Forked From Course ID: {value}''',
+  'courseInfo.fork.sourceCourse': r'''Source Course: {value}''',
+  'courseInfo.fork.sourceCourseVersion': r'''Source Course version: {value}''',
+  'courseInfo.fork.sourcePublisher': r'''Source publisher: {value}''',
+  'courseInfo.fork.sourcePublisherId': r'''Source publisher ID: {value}''',
+  'courseInfo.fork.sourceAuthors': r'''Source Authors / Contributors:
+{value}''',
+  'courseInfo.fork.sourceOfficialChecksum':
+      r'''Source official checksum: {value}''',
+  'courseInfo.fork.createdBy': r'''Fork Created By: {value}''',
+  'courseInfo.fork.createdDate': r'''Fork Created Date: {value}''',
+  'courseInfo.fork.disclaimer':
+      r'''Fork provenance is immutable. Rights Holder and attribution metadata remain separate from QQL permissions.''',
+  'courseInfo.fork.creatorUser': r'''Fork creator user''',
+  'locale.label': r'''Locale''',
+  'locale.english': r'''English''',
+  'locale.italian': r'''Italiano''',
+  'locale.spanish': r'''Español''',
+};

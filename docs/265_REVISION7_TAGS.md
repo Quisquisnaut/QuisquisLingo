@@ -1,0 +1,610 @@
+# Build 265 Revision 7: tags added to the image library
+
+Generated from the catalogue (`assets/exercise_images/metadata_v2.json`) against the
+Revision 6 follow-up commit. For each record of group 3 that had fewer than five tags: its
+name, then the tags Revision 7 appended (the earlier tags are kept, in their
+order). The other catalogue changes of the revision are listed at the end.
+
+## historical_figures (1)
+
+- Cleopatra (`historical_figures_cleopatra`): queen of the Nile
+
+## hobbies_leisure (71)
+
+- Pottery (`hobbies_leisure_pottery`): potter, throw a pot
+- Filmmaking (`hobbies_leisure_filmmaking`): make a film, shooting a film
+- Origami (`hobbies_leisure_origami`): fold paper, paper art, Japanese paper folding
+- Sewing (`hobbies_leisure_sewing`): sew, needle and thread
+- Knitting (`hobbies_leisure_knitting`): knit, hand knitting
+- Crochet (`hobbies_leisure_crochet`): crocheting, crochet work
+- Embroidery (`hobbies_leisure_embroidery`): embroider, needlework
+- Woodworking (`hobbies_leisure_woodworking`): woodwork, joinery
+- Playing the Piano (`hobbies_leisure_playing_piano`): pianist, play the piano
+- Playing the Violin (`hobbies_leisure_playing_violin`): violinist, play the violin
+- Playing the Drums (`hobbies_leisure_playing_drums`): drummer
+- Playing the Flute (`hobbies_leisure_playing_flute`): flautist, play the flute
+- Playing the Trumpet (`hobbies_leisure_playing_trumpet`): trumpeter, play the trumpet
+- DJing (`hobbies_leisure_djing`): disc jockey
+- Karaoke (`hobbies_leisure_karaoke`): karaoke night, sing along
+- Chess (`hobbies_leisure_chess`): chess pieces, play chess
+- Card Games (`hobbies_leisure_card_games`): card game night, deal cards
+- Dominoes (`hobbies_leisure_dominoes`): domino tiles, play dominoes
+- Jigsaw Puzzle (`hobbies_leisure_jigsaw_puzzle`): do a puzzle
+- Video Games (`hobbies_leisure_video_games`): play video games
+- Darts (`hobbies_leisure_darts`): play darts, pub darts
+- Table Football (`hobbies_leisure_table_football`): football table, foosball table
+- Camping (`hobbies_leisure_camping`): go camping, camping trip
+- Fishing (`hobbies_leisure_fishing`): go fishing, angler
+- Birdwatching (`hobbies_leisure_birdwatching`): bird watching, birder
+- Gardening (`hobbies_leisure_gardening`): do the garden, grow plants
+- Picnicking (`hobbies_leisure_picnicking`): have a picnic, eat outdoors
+- Stargazing (`hobbies_leisure_stargazing`): look at the stars, night sky watching
+- Flying a Kite (`hobbies_leisure_flying_a_kite`): fly a kite, kite flying
+- Sunbathing (`hobbies_leisure_sunbathing`): soak up the sun, get a tan
+- Cake Decorating (`hobbies_leisure_cake_decorating`): decorate a cake, frosting
+- Making Pizza (`hobbies_leisure_making_pizza`): homemade pizza, pizza making
+- Making Pasta (`hobbies_leisure_making_pasta`): pasta making, fresh pasta
+- Collecting Stamps (`hobbies_leisure_collecting_stamps`): stamp album, postage stamps
+- Collecting Coins (`hobbies_leisure_collecting_coins`): coin album, old coins
+- Collecting Records (`hobbies_leisure_collecting_records`): record collection, vinyl
+- Going to the Cinema (`hobbies_leisure_going_to_the_cinema`): watch a film, movie theatre
+- Visiting Art Galleries (`hobbies_leisure_visiting_art_galleries`): exhibition, look at art
+- Shopping (`hobbies_leisure_shopping`): go shopping, shopper
+- Chatting (`hobbies_leisure_chatting`): chit-chat, have a chat
+- Kissing (`hobbies_leisure_kissing`): kisses, romantic kiss
+- Smoking (`hobbies_leisure_smoking`): cigarettes, smoke a cigarette
+- Guitar (`hobbies_leisure_guitar`): guitars, play the guitar
+- Drum (`hobbies_leisure_drum`): drums, snare drum
+- Accordion (`hobbies_leisure_accordion`): squeezebox, accordions
+- Concert (`hobbies_leisure_concert`): audience
+- Saxophone (`hobbies_leisure_saxophone`): saxophonist
+- Orchestra (`hobbies_leisure_orchestra`): orchestral
+- Comic (comic book) (`hobbies_leisure_comic_book`): comic panels
+- Circus (`hobbies_leisure_circus`): ringmaster
+- Puppet (puppet show) (`hobbies_leisure_puppet`): marionette
+- Magic trick (`hobbies_leisure_magic_trick`): card trick
+- Roller coaster (`hobbies_leisure_roller_coaster`): theme park
+- Carousel (merry-go-round) (`hobbies_leisure_carousel`): carousel horses
+- Ferris wheel (`hobbies_leisure_ferris_wheel`): giant wheel
+- Band (`hobbies_leisure_music_band`): musical group
+- Harp (`hobbies_leisure_harp`): harpist
+- Cello (`hobbies_leisure_cello`): cellist
+- Choir (`hobbies_leisure_choir`): choral
+- Poem (`hobbies_leisure_poem`): poems
+- Opera (`hobbies_leisure_opera`): soprano
+- Photo album (`hobbies_leisure_photo_album`): scrapbook
+- Tambourine (`hobbies_leisure_tambourine`): tambourines
+- Xylophone (`hobbies_leisure_xylophone`): xylophones
+- Recorder (instrument) (`hobbies_leisure_recorder_instrument`): descant recorder
+- Disco (`hobbies_leisure_disco`): disco lights
+- Clarinet (`hobbies_leisure_clarinet`): clarinettist
+- Trombone (`hobbies_leisure_trombone`): trombonist
+- Bumper cars (`hobbies_leisure_bumper_cars`): dodgem cars
+- Waterslide (`hobbies_leisure_waterslide`): slide into water
+- Sleeping bag (`hobbies_leisure_sleeping_bag`): sleeping bags, sleep outdoors, camping gear, bedroll
+
+## home_household (113)
+
+- House (`house`): houses, family home, detached house, my house
+- Chair (`chair`): chairs, plain chair, kitchen chair, dining chair
+- Bed (`home_household_bed`): single bed, beds, bed linen, duvet
+- Table (`home_household_table`): tables, kitchen table, wooden table, four legs
+- Lamp (`home_household_lamp`): table lamp, lampshade, reading lamp, lamps
+- Door (`home_household_door`): front door, doors, door handle, wooden door
+- Window (`home_household_window`): windows, windowpane, window frame, glass window
+- Sofa (`home_household_sofa`): settee, sofas, two-seater, sit on the sofa
+- Toilet (`home_household_toilet`): loo, WC, lavatory, toilet bowl
+- Sink (`home_household_sink`): pedestal sink, sinks, plughole, taps
+- Bathtub (`home_household_bathtub`): tub, bath time, roll-top bath, bathtubs
+- Shower (`home_household_shower`): shower head, shower spray, showers, wash under the shower
+- Refrigerator (`home_household_refrigerator`): fridge-freezer, keep cold, kitchen appliance, fridges
+- Oven (`home_household_oven`): cooker, baking oven, kitchen oven, stove
+- Frying pan (`home_household_frying_pan`): skillet, non-stick pan, fry pan, pans
+- Pot (`home_household_pot`): cooking pot, stockpot
+- Knife (`home_household_knife`): chef's knife, knives, cutting knife, kitchen knife
+- Fork (`home_household_fork`): forks, table fork, eat with a fork, prongs
+- Spoon (`home_household_spoon`): spoons, teaspoon, tablespoon, soup spoon
+- Broom (`home_household_broom`): sweeping brush, brooms, long broom, broomstick
+- Trash can (`home_household_trash_can`): dustbin
+- Vacuum cleaner (`home_household_vacuum_cleaner`): hoover, upright vacuum, vacuum cleaners, cleaning machine
+- Key (`home_household_key`): keys, door key, house key
+- Alarm Clock (`home_household_alarm_clock`): alarm, ringing clock
+- Light Bulb (`home_household_light_bulb`): bulb, lightbulb, glowing bulb
+- Plate (`home_household_plate`): dinner plate, plates, empty plate
+- Bowl (`home_household_bowl`): bowls, soup bowl, empty bowl
+- Saucepan (`home_household_saucepan`): pan with lid
+- Kettle (`home_household_kettle`): stovetop kettle, put the kettle on
+- Cutting Board (`home_household_cutting_board`): wooden board, bread board
+- Armchair (`home_household_armchair`): comfy chair, easy chair
+- Remote Control (`home_household_remote_control`): TV remote, zapper
+- Bookshelf (`home_household_bookshelf`): bookshelves, book shelf
+- Cushion (`home_household_cushion`): cushions, throw pillow
+- Rug (`home_household_rug`): rugs, mat
+- Curtains (`home_household_curtains`): curtain rail, draw the curtains
+- Pillow (`home_household_pillow`): pillows, pillowcase
+- Blanket (`home_household_blanket`): blankets, throw
+- Wardrobe (`home_household_wardrobe`): clothes cupboard, wardrobes
+- Hanger (`home_household_hanger`): hangers, clothes hanger
+- Mirror (`home_household_mirror`): mirrors, looking glass
+- Bedside Table (`home_household_bedside_table`): night table, bedside cabinet
+- Toothbrush (`home_household_toothbrush`): toothbrushes, dental care
+- Toothpaste (`home_household_toothpaste`): tube of toothpaste, mint toothpaste
+- Soap (`home_household_soap`): bar of soap, soap bar
+- Towel (`home_household_towel`): bath towel, towels
+- Toilet Paper (`home_household_toilet_paper`): loo roll, tissue roll
+- Hairdryer (`home_household_hairdryer`): blow-dryer, dry your hair
+- Dustpan (`home_household_dustpan`): dustpan and brush, pan and brush
+- Mop (`home_household_mop`): mop and bucket, floor mop
+- Bucket (`home_household_bucket`): buckets, plastic bucket
+- Sponge (`home_household_sponge`): sponges, kitchen sponge
+- Washing Machine (`home_household_washing_machine`): washing machines, front loader
+- Iron (`home_household_iron`): steam iron, clothes iron
+- Ironing Board (`home_household_ironing_board`): folding board, ironing table, pressing board
+- Laundry Basket (`home_household_laundry_basket`): washing basket, linen basket
+- Lock (`home_household_lock`): locked, keyhole
+- Light Switch (`home_household_light_switch`): wall switch, on-off switch
+- Socket (`home_household_socket`): wall socket
+- Teddy Bear (`home_household_teddy_bear`): teddy, soft toy
+- Pram (`baby_care_pram`): buggy, pushchair
+- Baby Bottle (`baby_care_baby_bottle`): feeding bottle, baby milk
+- Dummy (`baby_care_dummy`): teat, soothe a baby
+- Nappy (`baby_care_nappy`): nappies, diapers
+- Washing Line (`home_household_washing_line`): hang out the washing, laundry line
+- Clothes Peg (`home_household_clothes_peg`): clothes pegs, pegs
+- Jar (`home_household_jar`): jars, jam jar
+- Barrel (`home_household_barrel`): barrels, wooden barrel
+- Watering Can (`home_household_watering_can`): water the plants, watering
+- Wheelbarrow (`home_household_wheelbarrow`): wheelbarrows, barrow load
+- Button (`home_household_button`): buttons, sew on a button
+- Zip (`home_household_zip`): zip fastener, zips
+- Safety Pin (`home_household_safety_pin`): safety pins, nappy pin
+- Kitchen (room) (`home_household_kitchen_room`): fitted kitchen
+- Bedroom (`home_household_bedroom`): bedrooms
+- Bathroom (`home_household_bathroom`): bathrooms
+- Living room (`home_household_living_room`): TV room
+- Dining room (`home_household_dining_room`): dining area
+- Desk (`home_household_desk`): desks
+- Chest of drawers (`home_household_chest_of_drawers`): chest
+- Cupboard (`home_household_cupboard`): cupboards
+- Flowerpot (`home_household_flowerpot`): flowerpots
+- Ceiling (`home_household_ceiling`): ceiling light
+- Mattress (`home_household_mattress`): mattresses
+- Stool (`home_household_stool`): stools
+- Bathroom scales (`home_household_bathroom_scales`): body weight
+- Greenhouse (`home_household_greenhouse`): greenhouses
+- Flower bed (`home_household_flower_bed`): flowerbed
+- Vegetable garden (`home_household_vegetable_garden`): veg patch
+- Birdhouse (`home_household_birdhouse`): bird house
+- Blender (`home_household_blender`): liquidiser, smoothie maker, food blender
+- Can opener (`home_household_can_opener`): open a tin, open a can, can openers
+- Chopsticks (`home_household_chopsticks`): eat with chopsticks, pair of chopsticks, wooden chopsticks, bamboo chopsticks
+- Coffee maker (`home_household_coffee_maker`): espresso machine, make coffee, coffee pot
+- Dishwasher (`home_household_dishwasher`): dishwashers, load the dishwasher, clean dishes
+- Freezer (`home_household_freezer`): freezers, frozen food, chest freezer
+- Ladle (`home_household_ladle`): soup ladle, serving spoon, ladles
+- Lunchbox (`home_household_lunchbox`): lunch box, lunch container, sandwich box
+- Microwave (`home_household_microwave`): microwaves, heat up food, reheat
+- Oven glove (`home_household_oven_glove`): oven gloves, pot holder, heat protection
+- Rolling pin (`home_household_rolling_pin`): roll out dough, pastry roller, wooden rolling pin
+- Sieve (`home_household_sieve`): sift flour, colander, mesh strainer
+- Thermos (`home_household_thermos`): vacuum flask, keep warm, thermos flask
+- Toaster (`home_household_toaster`): toasters, slice of toast, pop-up toaster
+- Cot (`home_household_cot`): baby's cot, cots, cot bed
+- Doorbell (`home_household_doorbell`): ring the bell, door bell, front door bell
+- Extension lead (`home_household_extension_lead`): extension cable, multi-plug, plug board
+- Heater (`home_household_heater`): electric heater, heating, space heater
+- Highchair (`home_household_highchair`): baby chair, feeding chair, high chairs
+- Letterbox (`home_household_letterbox`): letter box, letter slot, front door mail
+- Picture frame (`home_household_picture_frame`): framed photo, frames, photograph frame
+- Smoke alarm (`home_household_smoke_alarm`): smoke detectors, ceiling alarm, beeping alarm
+- Vase (`home_household_vase`): flower vase, vases, ceramic vase, vase of flowers
+
+## ideas_opinions (16)
+
+- Idea (`ideas_opinions_idea`): bright idea, inspired
+- Thinking (`ideas_opinions_thinking`): deep in thought
+- Opinion (`ideas_opinions_opinion`): in my opinion, viewpoint
+- Agreeing (`ideas_opinions_agreeing`): I agree
+- Disagreeing (`ideas_opinions_disagreeing`): I disagree, not agree
+- Doubt (`ideas_opinions_doubt`): doubtful
+- Belief (`ideas_opinions_belief`): believe, trust
+- Debate (`ideas_opinions_debate`): debating
+- Advice (`ideas_opinions_advice`): advise
+- Feminism (`ideas_opinions_feminism`): feminist
+- Socialism (`ideas_opinions_socialism`): socialist
+- Capitalism (`ideas_opinions_capitalism`): capitalist
+- Communism (`ideas_opinions_communism`): communist, Marxism
+- Anarchism (`ideas_opinions_anarchism`): anarchist, no government
+- Conservatism (`ideas_opinions_conservatism`): traditional values, right-wing
+- Liberalism (`ideas_opinions_liberalism`): liberal values, freedom of choice
+
+## landmarks (8)
+
+- Eiffel Tower (`landmarks_eiffel_tower`): Tour Eiffel, iron tower
+- Colosseum (`landmarks_colosseum`): Coliseum
+- Leaning Tower of Pisa (`landmarks_leaning_tower_of_pisa`): leaning tower
+- Statue of Liberty (`landmarks_statue_of_liberty`): Lady Liberty
+- Pyramids of Giza (`landmarks_pyramids_of_giza`): Great Pyramid, Giza
+- Great Wall of China (`landmarks_great_wall_of_china`): Chinese wall, Great Wall
+- Taj Mahal (`landmarks_taj_mahal`): mausoleum, white marble
+- Sydney Opera House (`landmarks_sydney_opera_house`): opera house, Sydney Harbour
+
+## languages (40)
+
+- Italian (`languages_lang_italian`): learn Italian
+- Japanese (`languages_lang_japanese`): learn Japanese
+- Korean (`languages_lang_korean`): learn Korean
+- Greek (`languages_lang_greek`): learn Greek
+- Polish (`languages_lang_polish`): learn Polish
+- Turkish (`languages_lang_turkish`): learn Turkish
+- Dutch (`languages_lang_dutch`): learn Dutch
+- Swedish (`languages_lang_swedish`): learn Swedish
+- Norwegian (`languages_lang_norwegian`): learn Norwegian
+- Danish (`languages_lang_danish`): learn Danish
+- Finnish (`languages_lang_finnish`): learn Finnish
+- Hungarian (`languages_lang_hungarian`): learn Hungarian
+- Czech (`languages_lang_czech`): learn Czech
+- Slovak (`languages_lang_slovak`): learn Slovak
+- Slovene (`languages_lang_slovene`): learn Slovene
+- Croatian (`languages_lang_croatian`): learn Croatian
+- Serbian (`languages_lang_serbian`): learn Serbian
+- Bulgarian (`languages_lang_bulgarian`): learn Bulgarian
+- Romanian (`languages_lang_romanian`): learn Romanian
+- Russian (`languages_lang_russian`): learn Russian
+- Ukrainian (`languages_lang_ukrainian`): learn Ukrainian
+- Lithuanian (`languages_lang_lithuanian`): learn Lithuanian
+- Latvian (`languages_lang_latvian`): learn Latvian
+- Estonian (`languages_lang_estonian`): learn Estonian
+- Icelandic (`languages_lang_icelandic`): learn Icelandic
+- Albanian (`languages_lang_albanian`): learn Albanian
+- Armenian (`languages_lang_armenian`): learn Armenian
+- Georgian (`languages_lang_georgian`): learn Georgian
+- Hebrew (`languages_lang_hebrew`): learn Hebrew
+- Persian (`languages_lang_persian`): learn Persian
+- Hindi (`languages_lang_hindi`): learn Hindi
+- Bengali (`languages_lang_bengali`): learn Bengali
+- Thai (`languages_lang_thai`): learn Thai
+- Vietnamese (`languages_lang_vietnamese`): learn Vietnamese
+- Indonesian (`languages_lang_indonesian`): learn Indonesian
+- Malay (`languages_lang_malay`): learn Malay
+- Filipino (`languages_lang_filipino`): learn Filipino, Tagalog
+- Urdu (`languages_lang_urdu`): learn Urdu
+- Maltese (`languages_lang_maltese`): learn Maltese
+- Irish (`languages_lang_irish`): learn Irish
+
+## lesson_icons (17)
+
+- Home (`lesson_icon_home`): home life
+- Food (`lesson_icon_food`): food and drink
+- Café / Coffee (`lesson_icon_coffee`): at the café
+- Shopping (`lesson_icon_shopping`): at the shops
+- Directions / Map (`lesson_icon_directions`): getting around
+- Train (`lesson_icon_train`): train travel
+- Hotel (`lesson_icon_hotel`): check in
+- Work (`lesson_icon_work`): at work
+- School (`lesson_icon_school`): at school
+- Time / Calendar (`lesson_icon_time`): telling the time
+- Leisure (`lesson_icon_leisure`): spare time
+- Animals (`lesson_icon_animals`): animal world
+- Clothing (`lesson_icon_clothing`): what to wear
+- Sports (`lesson_icon_sports`): playing sport
+- Music (`lesson_icon_music`): listening to music
+- Emotions (`lesson_icon_emotions`): how you feel
+- City (`lesson_icon_city`): in town
+
+## life_stages (9)
+
+- Pregnancy (`life_stages_pregnancy`): pregnant woman, baby bump
+- Birth (`life_stages_birth`): be born
+- Newborn (`life_stages_newborn`): newborn baby, just born
+- Toddler (`life_stages_toddler`): toddlers, two-year-old
+- Teenager (`life_stages_teenager`): teenagers
+- Growing up (`life_stages_growing_up`): childhood, getting bigger
+- Aging (`life_stages_aging`): elderly
+- Life (`life_stages_life`): the circle of life, from birth to old age
+- Generations (`life_stages_generations`): generation, family generations
+
+## literary_characters (1)
+
+- Robinson Crusoe (`literary_characters_robinson_crusoe`): shipwreck
+
+## maps_navigation (26)
+
+- World map (`maps_navigation_world_map`): world
+- Street map (`maps_navigation_street_map`): town map
+- Map pin (`maps_navigation_map_pin`): pinned location
+- Route (`maps_navigation_route`): way
+- North (`maps_navigation_north`): northward
+- South (`maps_navigation_south`): southward
+- East (`maps_navigation_east`): eastward
+- West (`maps_navigation_west`): westward
+- Straight ahead (`maps_navigation_straight_ahead`): keep going
+- You are here (`maps_navigation_you_are_here`): where am I
+- Africa (map) (`maps_navigation_continent_africa`): African continent
+- Asia (map) (`maps_navigation_continent_asia`): Asian continent
+- Europe (map) (`maps_navigation_continent_europe`): European continent
+- North America (map) (`maps_navigation_continent_north_america`): North American continent
+- South America (map) (`maps_navigation_continent_south_america`): South American continent
+- Oceania (map) (`maps_navigation_continent_oceania`): Pacific islands
+- Antarctica (map) (`maps_navigation_continent_antarctica`): frozen continent
+- Turn left (`maps_navigation_turn_left`): go left
+- Turn right (`maps_navigation_turn_right`): go right
+- Compass rose (`maps_navigation_compass_rose`): compass points
+- Equator (`maps_navigation_equator`): equatorial
+- Atlantic Ocean (map) (`maps_navigation_atlantic_ocean`): North Atlantic
+- Pacific Ocean (map) (`maps_navigation_pacific_ocean`): South Pacific
+- Mediterranean Sea (map) (`maps_navigation_mediterranean_sea`): Med
+- North Pole (`maps_navigation_north_pole`): Arctic Circle
+- South Pole (`maps_navigation_south_pole`): Antarctic Circle
+
+## materials_commodities (10)
+
+- Coffee beans (`materials_commodities_coffee_beans`): coffee bean, roast coffee
+- Coal (`materials_commodities_coal`): black coal
+- Sand (`materials_commodities_sand`): sand grains
+- Wooden (`materials_commodities_wooden`): made from wood
+- Cardboard (`materials_commodities_cardboard`): cardboard box
+- Leather (`materials_commodities_leather`): cowhide
+- Silk (`materials_commodities_silk`): smooth fabric
+- Steel (`materials_commodities_steel`): steel beam
+- Concrete (`materials_commodities_concrete`): grey concrete
+- Pearl (`materials_commodities_pearl`): pearl jewellery
+
+## movement (6)
+
+- Fast (`movement_fast`): speedy, rapid
+- Spin (`movement_spin`): spinning, twirl
+- Bounce (`movement_bounce`): bouncing, rebound, bounce back
+- Fall (`movement_fall`): fall down, tumble
+- Grow (`movement_grow`): growing, get bigger
+- Shrink (`movement_shrink`): shrinking, get smaller
+
+## mythology (26)
+
+- Poseidon (`mythology_poseidon`): ancient Greek god
+- Medusa (`mythology_medusa`): monster with snakes
+- Thor (`mythology_thor`): god of thunder
+- Ra (`mythology_ra`): sun god
+- Anubis (`mythology_anubis`): god of the dead
+- Isis (`mythology_isis`): goddess of magic
+- Minotaur (`mythology_minotaur`): bull-headed monster
+- Centaur (`mythology_centaur`): centaurs, horse man
+- Pegasus (`mythology_pegasus`): winged steed, white horse with wings
+- Phoenix (`mythology_phoenix`): bird of fire
+- Mermaid (`mythology_mermaid`): mermaids
+- Unicorn (`mythology_unicorn`): unicorns
+- Cyclops (`mythology_cyclops`): giant, one eye
+- Griffin (`mythology_griffin`): griffon
+- Wizard (`mythology_wizard`): wizard hat
+- Witch (`mythology_witch`): witch's hat
+- Fairy (`mythology_fairy`): fairy wings
+- Magic wand (`mythology_magic_wand`): wave a wand
+- Ghost (`mythology_ghost`): spectre
+- Dragon (`mythology_dragon`): dragon fire
+- Elf (`mythology_elf`): pixie
+- Potion (`mythology_potion`): magic drink
+- Cauldron (`mythology_cauldron`): bubbling pot
+- Crystal ball (`mythology_crystal_ball`): see the future
+- Broomstick (`mythology_broomstick`): flying broomstick
+- Alien (`mythology_alien`): aliens
+
+## nature (92)
+
+- Tree (`tree`): trees, green tree, leafy tree, tree trunk
+- Mountain (`nature_mountain`): mountains, summit, snowy peak, mountaintop
+- Sun (`nature_sun`): sunshine, bright sun, sunny day
+- Flower (`nature_flower`): white flower, bloom, blossom
+- Moon (`nature_moon`): crescent moon, lunar, moonlit night
+- Star (`nature_star`): stars, starry, shining star
+- Rain (`nature_rain`): raindrops, rainfall, rain cloud
+- Beach (`nature_beach`): sandy beach, seashore
+- Island (`nature_island`): desert island, islands
+- Waterfall (`nature_waterfall`): waterfalls, falling water
+- Forest (`nature_forest`): forests, pine forest
+- Cave (`nature_cave`): caves, cave entrance
+- Flowers (`nature_flowers`): flower bouquet, posy
+- Nest (`nature_nest`): nests, nesting
+- Feather (`nature_feather`): feathers, plume
+- Paw Print (`nature_paw_print`): paw prints, dog footprint
+- Spiderweb (`nature_spiderweb`): spider web, spider's web
+- Seashell (`nature_seashell`): seashells, sea shell
+- Planet (`time_space_planet`): ringed planet, planets
+- Grass (`nature_grass`): green grass, grassy
+- Rose (`nature_rose`): roses, rose flower
+- Sunflower (`nature_sunflower`): sunflowers, tall flower
+- Tulip (`nature_tulip`): tulips, Dutch tulip
+- Cactus (`nature_cactus`): cacti, prickly plant
+- Fern (`nature_fern`): ferns, green fronds
+- Bamboo (`nature_bamboo`): bamboo shoots, bamboo stalks
+- Palm Tree (`nature_palm_tree`): palm trees, beach tree
+- Willow (`nature_willow`): willow tree, willows
+- Water Lily (`nature_water_lily`): water lilies, pond flower
+- Leaf (`nature_leaf`): green leaf, fallen leaf
+- Roots (`nature_roots`): root system, tree base
+- Tree Stump (`nature_tree_stump`): cut tree, tree rings
+- Pine Cone (`nature_pine_cone`): pine cones, fir cone
+- Acorn (`nature_acorn`): acorns, oak nut
+- Seedling (`nature_seedling`): young plant, shoot
+- Mountain Range (`nature_mountain_range`): mountain chain, alps
+- Valley (`nature_valley`): green valley, valleys
+- Canyon (`nature_canyon`): canyons, deep valley
+- Cliff (`nature_cliff`): cliffs, sea cliff
+- Volcano (`nature_volcano`): volcanoes, erupting volcano
+- River (`nature_river`): rivers, flowing water
+- Lake (`nature_lake`): lakes, lakeside
+- Iceberg (`nature_iceberg`): icebergs, floating ice
+- Coral Reef (`nature_coral_reef`): reef, tropical fish
+- Fire (`nature_fire`): blaze, hot fire
+- Ice (`nature_ice`): ice block, freezing
+- Snow (`nature_snow`): snowy ground, deep snow
+- Rock (`nature_rock`): rocks, big stone, rocky
+- Pebbles (`nature_pebbles`): pebble, smooth stones
+- Mud (`nature_mud`): sludge, muddy ground
+- Lava (`nature_lava`): lava flow, hot lava
+- Crystal (`nature_crystal`): crystals, amethyst
+- Cloud (`nature_cloud`): clouds, white cloud
+- Snowfall (`nature_snowfall`): falling snow, snowflakes
+- Lightning (`nature_lightning`): lightning strike, flash of lightning
+- Rainbow (`nature_rainbow`): rainbows, seven colours
+- Wind (`nature_wind`): blowing wind, breezy
+- Tornado (`nature_tornado`): tornadoes, funnel cloud
+- Rainy (`everyday_misc_rainy`): rain shower
+- Snowy (`everyday_misc_snowy`): covered in snow, snowy weather
+- Foggy (`everyday_misc_foggy`): fog bank
+- Thunder (`nature_thunder`): thunderous
+- Hail (`nature_hail`): hailstone
+- Weather forecast (`nature_weather_forecast`): weather symbols
+- Branch (`nature_branch`): branches
+- Bush (`nature_bush`): shrubbery
+- Shadow (`nature_shadow`): dark shape
+- Snowman (`nature_snowman`): build a snowman
+- Frost (`nature_frost`): frozen grass
+- Meadow (`nature_meadow`): grassy field
+- Oak tree (`nature_oak_tree`): big tree
+- Tide (`nature_tide`): tidal
+- Horizon (`nature_horizon`): edge of the sky
+- Earthquake (`nature_earthquake`): ground shaking
+- Flood (`nature_flood`): floods
+- Drought (`nature_drought`): parched
+- Avalanche (`nature_avalanche`): avalanches
+- Wildfire (`nature_wildfire`): wildfires
+- Hurricane (`nature_hurricane`): hurricanes
+- Heatwave (`nature_heatwave`): heat wave
+- Comet (`nature_comet`): comets
+- Galaxy (`nature_galaxy`): galaxies
+- Eclipse (`nature_eclipse`): lunar eclipse
+- Full moon (`nature_full_moon`): bright moon
+- Petal (`nature_petal`): flower petal
+- Lily (`nature_lily`): Easter lily
+- Daffodil (`nature_daffodil`): March flower
+- Poppy (`nature_poppy`): poppy field
+- Lavender (`nature_lavender`): fragrant herb
+- Vineyard (`nature_vineyard`): vineyards
+- Orchard (`nature_orchard`): orchards
+- Olive tree (`nature_olive_tree`): olive grove
+
+## numbers (19)
+
+- 100 (`numbers_num_100`): a hundred, century
+- 1 000 (`numbers_num_1000`): a thousand, 1000
+- 1 000 000 (`numbers_num_1000000`): a million, 1000000
+- I (`numbers_roman_1`): Roman one
+- II (`numbers_roman_2`): Roman two
+- III (`numbers_roman_3`): Roman three
+- IV (`numbers_roman_4`): Roman four
+- V (`numbers_roman_5`): Roman five
+- VI (`numbers_roman_6`): Roman six
+- VII (`numbers_roman_7`): Roman seven
+- VIII (`numbers_roman_8`): Roman eight
+- IX (`numbers_roman_9`): Roman nine
+- X (`numbers_roman_10`): Roman ten
+- −5 (`numbers_num_negative_5`): -5
+- 2.5 (`numbers_num_decimal_point`): two and a half
+- ½ (`numbers_fraction_half`): 1/2
+- ⅓ (`numbers_fraction_third`): 1/3
+- ¼ (`numbers_fraction_quarter`): 1/4
+- 50% (`numbers_num_percentage_50`): 50 percent
+
+## opposites (54)
+
+- Good (`opposites_good`): good behaviour, nice
+- Bad (`opposites_bad`): bad behaviour
+- Wet (`opposites_wet`): soaking wet
+- Dry (`opposites_dry_adj`): bone dry
+- Early (`opposites_early`): too early, before time
+- Late (`opposites_late`): too late, not punctual
+- Easy (`opposites_easy`): easy task
+- Difficult (`opposites_difficult`): tricky
+- Ugly (`opposites_ugly`): unsightly
+- Near (`opposites_near`): close by
+- Far (`opposites_far`): a long way
+- Thick (`opposites_thick`): thick book
+- Thin (`opposites_thin_adj`): thin book
+- Sharp (`opposites_sharp`): sharp knife, sharp edge
+- Blunt (`opposites_blunt`): blunt knife
+- Rotten (`opposites_rotten`): mouldy
+- Outside (`opposites_outside`): out in the open
+- Hungry (`opposites_hungry`): peckish
+- Thirsty (`opposites_thirsty`): need water
+- Safe (`opposites_safe_adj`): safe place
+- True (`opposites_true`): fact
+- False (`opposites_false`): not true
+- Possible (`opposites_possible`): doable
+- Impossible (`opposites_impossible`): no way
+- Deep (`opposites_deep`): deep sea
+- Young (`opposites_young`): young age
+- Old (`opposites_old`): not young
+- Weak (`opposites_weak`): frail
+- Cute (`opposites_cute`): cuteness
+- Shallow (`opposites_shallow`): paddling
+- Straight (`opposites_straight`): straight road
+- Crowded (`opposites_crowded`): overcrowded
+- Alive (`opposites_alive`): lively
+- Dead (`opposites_dead`): not alive
+- Awake (`opposites_awake`): eyes open
+- Blind (`opposites_blind`): cannot see
+- Rough (`opposites_rough`): rough surface
+- Sticky (`opposites_sticky`): sticks to your fingers
+- Shiny (`opposites_shiny`): polished
+- Tight (`opposites_tight`): squeezed
+- Loose (`opposites_loose`): loose clothes
+- Modern (`opposites_modern`): up to date
+- Ancient (`opposites_ancient`): age-old
+- Scary (`opposites_scary`): scare
+- Comfortable (`opposites_comfortable`): comfort
+- Wild (`opposites_wild`): wilderness
+- Steep (`opposites_steep`): steep slope
+- Bent (`opposites_bent`): bent nail
+- Torn (`opposites_torn`): torn paper
+- Rusty (`opposites_rusty`): rusty nail
+- Deserted (`opposites_deserted`): no one around
+- Poisonous (`opposites_poisonous`): poison bottle
+- Old-fashioned (`opposites_old_fashioned`): old style
+- Transparent (`opposites_transparent`): see through
+
+## people_family (37)
+
+- Man (`people_family_man`): grown man, gentleman
+- Woman (`people_family_woman`): grown woman, lady
+- Boy (`people_family_boy`): schoolboy, lad, boys, male child
+- Girl (`people_family_girl`): young lady, lass, girls, female child
+- Baby (`people_family_baby`): babies, little baby, baby face, babe
+- Grandfather (`people_family_grandfather`): granddad, elderly man
+- Grandmother (`people_family_grandmother`): granny, elderly woman
+- Family (`family_relatives_family`): my family, family members
+- Parent (`family_relatives_parent`): mum and dad, parenthood
+- Mother (`family_relatives_rel_mother`): mummy
+- Father (`family_relatives_rel_father`): daddy, papa
+- Child (`family_relatives_rel_child`): little one, son or daughter
+- Son (`family_relatives_rel_son`): sons, my son
+- Daughter (`family_relatives_rel_daughter`): daughters, my daughter
+- Brother (`family_relatives_rel_brother`): brothers, big brother, little brother
+- Sister (`family_relatives_rel_sister`): sisters, big sister, little sister
+- Siblings (`family_relatives_rel_siblings`): brothers and sisters, sibling, same parents
+- Grandmother (family tree) (`family_relatives_rel_grandmother`): nan, nana
+- Grandfather (family tree) (`family_relatives_rel_grandfather`): grandad, gramps, grandfathers
+- Grandparents (`family_relatives_rel_grandparents`): grandma and grandpa, nan and grandad, grandparent
+- Grandchild (`family_relatives_rel_grandchild`): grandchildren, grandkid
+- Aunt (`family_relatives_rel_aunt`): aunts, aunty
+- Uncle (`family_relatives_rel_uncle`): uncles, my uncle, mother's brother
+- Cousin (`family_relatives_rel_cousin`): first cousin, my cousin, aunt's child
+- Nephew (`family_relatives_rel_nephew`): nephews, brother's son, my nephew
+- Niece (`family_relatives_rel_niece`): nieces, sister's daughter, my niece
+- Twins (`family_relatives_twins`): identical twins
+- Ancestor (`family_relatives_ancestor`): forefathers
+- Descendant (`family_relatives_descendant`): future generations
+- King (`people_roles_king`): kings
+- Queen (`people_roles_queen`): queens
+- Knight (`people_roles_knight_medieval`): knights
+- People (`people_family_people`): everyone
+- Neighbour (`people_family_neighbour`): the neighbours
+- Crowd (`people_family_crowd`): crowds
+- Prince (`people_family_prince`): princes
+- Princess (`people_family_princess`): princesses
+
+## Other changes
+
+- Hot (`food_descriptions_hot`): removed hot food; added hot drink
+- Vacuuming (`actions_vacuuming`): removed hoover; added vacuum the carpet
+- You, your, yourself (`pronouns_be_have_pronoun_you`): added you singular, singular you
+- You all, your, yourselves (`pronouns_be_have_pronoun_you_all`): added you plural, plural you

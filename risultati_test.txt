@@ -1,0 +1,1298 @@
+﻿Resolving dependencies...
+Downloading packages...
+  archive 4.0.9 (4.3.0 available)
+  clock 1.1.2 (1.1.3 available)
+  code_assets 1.2.1 (2.1.0 available)
+  flutter_lints 5.0.0 (6.0.0 available)
+  hooks 2.0.2 (2.2.0 available)
+  jni_flutter 1.0.2 (1.0.3 available)
+  lints 5.1.1 (6.1.0 available)
+  material_color_utilities 0.13.0 (0.13.1 available)
+  objective_c 9.5.0 (9.6.0 available)
+  package_info_plus 8.3.1 (10.2.1 available)
+  package_info_plus_platform_interface 3.2.1 (4.1.0 available)
+  platform 3.1.6 (3.2.0 available)
+  pub_semver 2.2.0 (2.2.1 available)
+  record_use 0.6.0 (1.1.1 available)
+  share_plus 12.0.2 (13.3.0 available)
+  share_plus_platform_interface 6.1.0 (7.2.0 available)
+  shared_preferences_android 2.4.27 (2.4.28 available)
+  shared_preferences_foundation 2.5.6 (2.5.7 available)
+  stack_trace 1.12.1 (1.12.2 available)
+  synchronized 3.4.1+2 (3.4.2 available)
+  test_api 0.7.12 (0.7.14 available)
+  url_launcher_android 6.3.32 (6.3.33 available)
+  url_launcher_ios 6.4.1 (6.4.2 available)
+  url_launcher_linux 3.2.2 (3.2.3 available)
+  url_launcher_macos 3.2.5 (3.2.6 available)
+  url_launcher_windows 3.1.5 (3.1.6 available)
+  vector_math 2.4.2 (2.4.3 available)
+  vm_service 15.2.0 (15.3.0 available)
+  win32 5.15.0 (6.4.0 available)
+  yaml 3.1.3 (3.1.4 available)
+Got dependencies!
+30 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+00:00 +0: loading C:/QQL/QuisquisLingo/test/abnormal_termination_detection_test.dart
+00:00 +0: C:/QQL/QuisquisLingo/test/abnormal_termination_detection_test.dart: (setUpAll)
+00:00 +0: C:/QQL/QuisquisLingo/test/abnormal_termination_detection_test.dart: leftover session marker is reported, then removed on clean exit
+00:00 +1: C:/QQL/QuisquisLingo/test/abnormal_termination_detection_test.dart: (tearDownAll)
+00:00 +1: C:/QQL/QuisquisLingo/test/answer_contracts_226_03_test.dart: 226.03 authoritative expression contract master optional and independent example preserves expansion order
+00:00 +2: C:/QQL/QuisquisLingo/test/answer_contracts_226_03_test.dart: 226.03 authoritative expression contract optional linked groups and scoped reorder combine deterministically
+00:00 +3: C:/QQL/QuisquisLingo/test/answer_contracts_226_03_test.dart: 226.03 authoritative expression contract nested optional and independent groups preserve baseline semantics
+00:00 +4: C:/QQL/QuisquisLingo/test/answer_contracts_226_03_test.dart: 226.03 authoritative expression contract whole reorder retains terminal punctuation and proper names
+00:00 +5: C:/QQL/QuisquisLingo/test/answer_contracts_226_03_test.dart: 226.03 authoritative expression contract malformed and mismatched linked syntax cannot partially expand
+00:00 +6: C:/QQL/QuisquisLingo/test/answer_contracts_226_03_test.dart: 226.03 authoritative expression contract zero outputs reject and one literal stays exact
+00:00 +7: C:/QQL/QuisquisLingo/test/answer_contracts_226_03_test.dart: 226.03 authoritative expression contract 128 variants succeed in stable order and 129 rejects
+00:00 +8: C:/QQL/QuisquisLingo/test/answer_contracts_226_03_test.dart: 226.03 authoritative expression contract aggregate limit counts source and identical materialized variants once
+00:00 +9: C:/QQL/QuisquisLingo/test/answer_contracts_226_03_test.dart: 226.03 independent materialization inspection leaves source and explicit answers unchanged
+00:00 +10: C:/QQL/QuisquisLingo/test/answer_contracts_226_03_test.dart: 226.03 independent materialization counts normalized duplicates already explicit and keeps source independent
+00:00 +11: C:/QQL/QuisquisLingo/test/answer_contracts_226_03_test.dart: 226.03 independent materialization normalization preserves accents and honors case-preserving exercises
+00:00 +12: C:/QQL/QuisquisLingo/test/answer_contracts_226_03_test.dart: 226.03 independent materialization maximum materialization succeeds even while expression remains
+00:00 +13: C:/QQL/QuisquisLingo/test/answer_contracts_226_03_test.dart: 226.03 independent materialization overflow and later malformed source leave existing list untouched
+00:00 +14: C:/QQL/QuisquisLingo/test/answer_contracts_226_03_test.dart: 226.03 independent materialization canonical materialized answers roundtrip with complete exercise fields
+00:00 +15: C:/QQL/QuisquisLingo/test/answer_contracts_226_03_test.dart: 226.03 authoritative display ranking exact response ranks before extra and missing word candidates
+00:00 +16: C:/QQL/QuisquisLingo/test/answer_contracts_226_03_test.dart: 226.03 authoritative display ranking Vorrete ranks Volete nearest without accepting a lexical change
+00:00 +17: C:/QQL/QuisquisLingo/test/answer_contracts_226_03_test.dart: 226.03 authoritative display ranking ties retain deterministic author order and ranking never mutates answers
+00:00 +18: C:/QQL/QuisquisLingo/test/answer_contracts_226_03_test.dart: 226.03 authoritative display ranking ranking deduplicates normalized spellings without erasing diacritics
+00:00 +19: C:/QQL/QuisquisLingo/test/answer_contracts_226_03_test.dart: 226.03 authoritative display ranking display ranking shares correction ordering while acceptance stays separate
+00:01 +20: C:/QQL/QuisquisLingo/test/answer_engine_test.dart: answer-expression parser expands optional text and alternatives deterministically
+00:01 +21: C:/QQL/QuisquisLingo/test/answer_engine_test.dart: answer-expression parser reorders only declared scoped phrase parts
+00:01 +22: C:/QQL/QuisquisLingo/test/answer_engine_test.dart: answer-expression parser reordering keeps terminal punctuation terminal and fixes case
+00:01 +23: C:/QQL/QuisquisLingo/test/answer_engine_test.dart: answer-expression parser whole-expression reorder, duplicate removal and validation work
+00:01 +24: C:/QQL/QuisquisLingo/test/answer_engine_test.dart: answer-expression parser rejects combinations above the 128 expansion safety limit
+00:01 +25: C:/QQL/QuisquisLingo/test/answer_engine_test.dart: answer-expression parser linked *: groups expand by index without a cross product
+00:01 +26: C:/QQL/QuisquisLingo/test/answer_engine_test.dart: answer-expression parser linked *: groups validate count and equal cardinality
+00:01 +27: C:/QQL/QuisquisLingo/test/answer_engine_test.dart: answer acceptance accepts canonical, explicit and syntax-expanded answers
+00:01 +28: C:/QQL/QuisquisLingo/test/answer_engine_test.dart: answer acceptance preserves apostrophes and tolerates omitted but not wrong accents
+00:01 +29: C:/QQL/QuisquisLingo/test/answer_engine_test.dart: answer acceptance bounded typo tolerance accepts one small typo but no lexical change
+00:01 +30: C:/QQL/QuisquisLingo/test/answer_engine_test.dart: best correction shared words and typo-like forms select the closest valid answer
+00:01 +31: C:/QQL/QuisquisLingo/test/answer_engine_test.dart: best correction graded token similarity prefers Volete for Vorrete
+00:01 +32: C:/QQL/QuisquisLingo/test/answer_engine_test.dart: best correction incompatible extra words are penalized and ties keep author order
+00:01 +33: C:/QQL/QuisquisLingo/test/answer_engine_test.dart: best correction correction selection never changes acceptance
+00:01 +34: C:/QQL/QuisquisLingo/test/answer_engine_test.dart: structured answer diagnostics exact and accepted differences are reported only when used
+00:01 +35: C:/QQL/QuisquisLingo/test/answer_engine_test.dart: structured answer diagnostics accepted and incorrect results share nearest-answer selection
+00:02 +36: C:/QQL/QuisquisLingo/test/app_metadata_225_04_test.dart: authoritative metadata matches platform-compatible pubspec version
+00:02 +37: C:/QQL/QuisquisLingo/test/app_metadata_225_04_test.dart: complete Settings Version and Build area remains ten-tap target
+00:02 +38: C:/QQL/QuisquisLingo/test/app_metadata_225_04_test.dart: complete Settings Version and Build area remains ten-tap target
+00:02 +39: C:/QQL/QuisquisLingo/test/app_metadata_225_04_test.dart: complete Settings Version and Build area remains ten-tap target
+00:02 +40: C:/QQL/QuisquisLingo/test/app_metadata_225_04_test.dart: complete Settings Version and Build area remains ten-tap target
+00:02 +41: C:/QQL/QuisquisLingo/test/app_metadata_225_04_test.dart: complete Settings Version and Build area remains ten-tap target
+00:02 +42: C:/QQL/QuisquisLingo/test/app_metadata_225_04_test.dart: complete Settings Version and Build area remains ten-tap target
+00:02 +43: C:/QQL/QuisquisLingo/test/app_metadata_225_04_test.dart: complete Settings Version and Build area remains ten-tap target
+00:02 +44: C:/QQL/QuisquisLingo/test/app_metadata_225_04_test.dart: complete Settings Version and Build area remains ten-tap target
+00:02 +45: C:/QQL/QuisquisLingo/test/app_metadata_225_04_test.dart: complete Settings Version and Build area remains ten-tap target
+00:02 +46: C:/QQL/QuisquisLingo/test/app_metadata_225_04_test.dart: complete Settings Version and Build area remains ten-tap target
+00:02 +47: C:/QQL/QuisquisLingo/test/app_metadata_225_04_test.dart: complete Settings Version and Build area remains ten-tap target
+00:02 +48: C:/QQL/QuisquisLingo/test/app_metadata_225_04_test.dart: complete Settings Version and Build area remains ten-tap target
+00:02 +49: C:/QQL/QuisquisLingo/test/app_metadata_225_04_test.dart: complete Settings Version and Build area remains ten-tap target
+00:03 +50: C:/QQL/QuisquisLingo/test/app_metadata_225_04_test.dart: complete Settings Version and Build area remains ten-tap target
+00:03 +51: C:/QQL/QuisquisLingo/test/app_metadata_225_04_test.dart: complete Settings Version and Build area remains ten-tap target
+00:04 +52: C:/QQL/QuisquisLingo/test/arrange_gap_fill_238_test.dart: model gap layout and gap assignments round-trip through JSON
+00:04 +53: C:/QQL/QuisquisLingo/test/arrange_gap_fill_238_test.dart: model legacy whole-sentence Arrange exercises have no gaps
+00:04 +54: C:/QQL/QuisquisLingo/test/arrange_gap_fill_238_test.dart: audit a valid gap-fill Arrange exercise has no issues
+00:04 +55: C:/QQL/QuisquisLingo/test/arrange_gap_fill_238_test.dart: audit a gap without an assignment is flagged
+00:04 +56: C:/QQL/QuisquisLingo/test/arrange_gap_fill_238_test.dart: audit more than 2 unused distractor tiles is flagged
+00:04 +57: C:/QQL/QuisquisLingo/test/arrange_gap_fill_238_test.dart: learner UI filling every gap correctly enables Check and marks correct
+Crash logger initialisation failed: PlatformException(test-storage, null, null, null)
+#0      StandardMethodCodec.decodeEnvelope (package:flutter/src/services/message_codecs.dart:653:7)
+#1      MethodChannel._invokeMethod (package:flutter/src/services/platform_channel.dart:366:18)
+<asynchronous suspension>
+#2      getApplicationDocumentsDirectory (package:path_provider/path_provider.dart:119:24)
+<asynchronous suspension>
+#3      DiagnosticLogService.logsDirectory (package:quisquislingo_app/services/diagnostic_log_service.dart:39:23)
+<asynchronous suspension>
+#4      CrashLogService.initialise (package:quisquislingo_app/services/crash_log_service.dart:37:25)
+<asynchronous suspension>
+#5      CrashLogService.recordDebugEvent (package:quisquislingo_app/services/crash_log_service.dart:238:24)
+<asynchronous suspension>
+#6      _RoundScreenState._initializeRound (package:quisquislingo_app/screens/round_screen.dart:258:5)
+<asynchronous suspension>
+
+00:05 +58: C:/QQL/QuisquisLingo/test/arrange_gap_fill_editor_238_test.dart: word_order: enabling Inline gaps reveals gap fields and Save builds a valid gap-fill exercise
+00:05 +59: C:/QQL/QuisquisLingo/test/arrange_gap_fill_editor_238_test.dart: word_order: enabling Inline gaps reveals gap fields and Save builds a valid gap-fill exercise
+00:05 +60: C:/QQL/QuisquisLingo/test/arrange_gap_fill_editor_238_test.dart: word_order: enabling Inline gaps reveals gap fields and Save builds a valid gap-fill exercise
+00:06 +61: C:/QQL/QuisquisLingo/test/arrange_gap_fill_editor_238_test.dart: word_order: enabling Inline gaps reveals gap fields and Save builds a valid gap-fill exercise
+00:06 +62: C:/QQL/QuisquisLingo/test/arrange_gap_fill_editor_238_test.dart: word_order: enabling Inline gaps reveals gap fields and Save builds a valid gap-fill exercise
+00:06 +63: C:/QQL/QuisquisLingo/test/arrange_gap_fill_editor_238_test.dart: word_order: enabling Inline gaps reveals gap fields and Save builds a valid gap-fill exercise
+00:07 +64: C:/QQL/QuisquisLingo/test/arrange_gap_fill_editor_238_test.dart: word_order: enabling Inline gaps reveals gap fields and Save builds a valid gap-fill exercise
+00:07 +65: C:/QQL/QuisquisLingo/test/arrange_gap_fill_editor_238_test.dart: word_order: enabling Inline gaps reveals gap fields and Save builds a valid gap-fill exercise
+00:07 +66: C:/QQL/QuisquisLingo/test/arrange_gap_fill_editor_238_test.dart: word_order: enabling Inline gaps reveals gap fields and Save builds a valid gap-fill exercise
+00:07 +67: C:/QQL/QuisquisLingo/test/arrange_gap_fill_editor_238_test.dart: word_order: enabling Inline gaps reveals gap fields and Save builds a valid gap-fill exercise
+00:07 +68: C:/QQL/QuisquisLingo/test/arrange_gap_fill_editor_238_test.dart: word_order: enabling Inline gaps reveals gap fields and Save builds a valid gap-fill exercise
+00:07 +69: C:/QQL/QuisquisLingo/test/arrange_gap_fill_editor_238_test.dart: word_order: enabling Inline gaps reveals gap fields and Save builds a valid gap-fill exercise
+00:08 +70: C:/QQL/QuisquisLingo/test/arrange_gap_fill_editor_238_test.dart: word_order: a stray unmatched brace blocks Save with a clear error
+00:08 +71: C:/QQL/QuisquisLingo/test/arrange_gap_fill_editor_238_test.dart: word_order: an empty {} gap blocks Save with a clear error
+00:09 +72: C:/QQL/QuisquisLingo/test/arrange_gap_fill_editor_238_test.dart: word_order: an empty {} gap blocks Save with a clear error
+00:09 +73: C:/QQL/QuisquisLingo/test/arrange_gap_fill_editor_238_test.dart: word_order: an empty {} gap blocks Save with a clear error
+00:09 +74: C:/QQL/QuisquisLingo/test/arrange_gap_fill_editor_238_test.dart: word_order: an empty {} gap blocks Save with a clear error
+00:09 +75: C:/QQL/QuisquisLingo/test/audio_settings_runtime_228_04_test.dart: 228 correction Audio Settings keeps the requested controls and Test Voice
+00:09 +76: C:/QQL/QuisquisLingo/test/audio_settings_runtime_228_04_test.dart: 228 correction Audio Settings keeps the requested controls and Test Voice
+00:09 +77: C:/QQL/QuisquisLingo/test/audio_settings_runtime_228_04_test.dart: 228 correction Audio Settings keeps the requested controls and Test Voice
+00:10 +78: C:/QQL/QuisquisLingo/test/audio_settings_runtime_228_04_test.dart: 228 correction Audio Settings keeps the requested controls and Test Voice
+00:10 +79: C:/QQL/QuisquisLingo/test/audio_settings_runtime_228_04_test.dart: 228 correction Audio Settings keeps the requested controls and Test Voice
+00:10 +80: C:/QQL/QuisquisLingo/test/audio_settings_runtime_228_04_test.dart: 228 correction disabled audio excludes recorded exercises before infrastructure work
+Crash logger initialisation failed: PlatformException(test-storage, null, null, null)
+#0      StandardMethodCodec.decodeEnvelope (package:flutter/src/services/message_codecs.dart:653:7)
+#1      MethodChannel._invokeMethod (package:flutter/src/services/platform_channel.dart:366:18)
+<asynchronous suspension>
+#2      getApplicationDocumentsDirectory (package:path_provider/path_provider.dart:119:24)
+<asynchronous suspension>
+#3      DiagnosticLogService.logsDirectory (package:quisquislingo_app/services/diagnostic_log_service.dart:39:23)
+<asynchronous suspension>
+#4      CrashLogService.initialise (package:quisquislingo_app/services/crash_log_service.dart:37:25)
+<asynchronous suspension>
+#5      CrashLogService.recordDebugEvent (package:quisquislingo_app/services/crash_log_service.dart:238:24)
+<asynchronous suspension>
+#6      _RoundScreenState._initializeRound (package:quisquislingo_app/screens/round_screen.dart:258:5)
+<asynchronous suspension>
+
+00:10 +81: C:/QQL/QuisquisLingo/test/audio_settings_runtime_228_04_test.dart: 228 correction disabled audio excludes TTS exercises before playback
+00:11 +82: C:/QQL/QuisquisLingo/test/audio_settings_runtime_228_04_test.dart: 228.04 unavailable recorded audio is excluded before playback initialization
+00:11 +83: C:/QQL/QuisquisLingo/test/audio_settings_runtime_228_04_test.dart: 228 correction enabled audio admits available recorded exercises
+00:11 +84: C:/QQL/QuisquisLingo/test/audio_settings_runtime_228_04_test.dart: 228 correction enabled audio admits available recorded exercises
+00:11 +85: C:/QQL/QuisquisLingo/test/audio_settings_runtime_228_04_test.dart: 228 correction enabled audio admits available recorded exercises
+00:11 +86: C:/QQL/QuisquisLingo/test/audio_settings_runtime_228_04_test.dart: 228 correction enabled audio admits available recorded exercises
+00:11 +87: C:/QQL/QuisquisLingo/test/audit_branch_ownership_226_02_revision4_test.dart: Guidebook source references remain outside the Rounds branch
+00:11 +88: C:/QQL/QuisquisLingo/test/audit_branch_ownership_226_02_revision4_test.dart: Round titles resembling Guidebook locations do not color the Guidebook branch
+00:11 +89: C:/QQL/QuisquisLingo/test/audio_settings_runtime_228_04_test.dart: 228 correction Before you start suppresses TTS until the exercise is active
+00:11 +90: C:/QQL/QuisquisLingo/test/audio_settings_runtime_228_04_test.dart: 228 correction Before you start suppresses TTS until the exercise is active
+00:11 +91: C:/QQL/QuisquisLingo/test/audio_settings_runtime_228_04_test.dart: 228 correction Before you start suppresses TTS until the exercise is active
+00:11 +92: C:/QQL/QuisquisLingo/test/audio_settings_runtime_228_04_test.dart: 228 correction Before you start suppresses TTS until the exercise is active
+00:11 +93: C:/QQL/QuisquisLingo/test/audio_settings_runtime_228_04_test.dart: 228 correction Before you start suppresses TTS until the exercise is active
+00:12 +94: C:/QQL/QuisquisLingo/test/audit_branch_ownership_226_02_revision4_test.dart: Info-only, stale and unavailable Audit borders in dark
+00:12 +95: C:/QQL/QuisquisLingo/test/audit_branch_ownership_226_02_revision4_test.dart: Info-only, stale and unavailable Audit borders in dark
+00:12 +96: C:/QQL/QuisquisLingo/test/audit_branch_ownership_226_02_revision4_test.dart: Info-only, stale and unavailable Audit borders in dark
+00:12 +97: C:/QQL/QuisquisLingo/test/audio_settings_runtime_228_04_test.dart: 228 correction enabled audio follows the Text-to-speech setting
+00:12 +98: C:/QQL/QuisquisLingo/test/audio_settings_runtime_228_04_test.dart: 228 correction enabled audio follows the Text-to-speech setting
+00:13 +99: C:/QQL/QuisquisLingo/test/audio_settings_runtime_228_04_test.dart: 228.04 Editor Preview ignores learner Audio Settings
+00:13 +100: C:/QQL/QuisquisLingo/test/audio_settings_runtime_228_04_test.dart: 228.04 audio diagnostics are correlated, bounded, and path safe
+00:13 +101: C:/QQL/QuisquisLingo/test/audio_settings_runtime_228_04_test.dart: 228.04 TTS failures do not log spoken text
+00:14 +102: C:/QQL/QuisquisLingo/test/audit_codes_screen_226_02_test.dart: categories default visible and render Errors, Warnings, Info order
+00:14 +103: C:/QQL/QuisquisLingo/test/audit_codes_screen_226_02_test.dart: categories default visible and render Errors, Warnings, Info order
+00:14 +104: C:/QQL/QuisquisLingo/test/audit_codes_screen_226_02_test.dart: categories default visible and render Errors, Warnings, Info order
+00:14 +105: C:/QQL/QuisquisLingo/test/audit_codes_screen_226_02_test.dart: categories default visible and render Errors, Warnings, Info order
+00:14 +106: C:/QQL/QuisquisLingo/test/audit_codes_screen_226_02_test.dart: categories default visible and render Errors, Warnings, Info order
+00:14 +107: C:/QQL/QuisquisLingo/test/audit_codes_screen_226_02_test.dart: categories default visible and render Errors, Warnings, Info order
+00:14 +108: C:/QQL/QuisquisLingo/test/audit_codes_screen_226_02_test.dart: categories default visible and render Errors, Warnings, Info order
+00:14 +109: C:/QQL/QuisquisLingo/test/audit_codes_screen_226_02_test.dart: categories default visible and render Errors, Warnings, Info order
+00:14 +110: C:/QQL/QuisquisLingo/test/audit_codes_screen_226_02_test.dart: categories default visible and render Errors, Warnings, Info order
+00:14 +111: C:/QQL/QuisquisLingo/test/audit_codes_screen_226_02_test.dart: categories default visible and render Errors, Warnings, Info order
+00:14 +112: C:/QQL/QuisquisLingo/test/audit_codes_screen_226_02_test.dart: categories default visible and render Errors, Warnings, Info order
+00:14 +113: C:/QQL/QuisquisLingo/test/audit_codes_screen_226_02_test.dart: categories default visible and render Errors, Warnings, Info order
+00:14 +114: C:/QQL/QuisquisLingo/test/audit_codes_screen_226_02_test.dart: categories default visible and render Errors, Warnings, Info order
+00:14 +115: C:/QQL/QuisquisLingo/test/audit_codes_screen_226_02_test.dart: categories default visible and render Errors, Warnings, Info order
+00:14 +116: C:/QQL/QuisquisLingo/test/audit_codes_screen_226_02_test.dart: categories default visible and render Errors, Warnings, Info order
+00:14 +117: C:/QQL/QuisquisLingo/test/audit_codes_screen_226_02_test.dart: categories default visible and render Errors, Warnings, Info order
+00:14 +118: C:/QQL/QuisquisLingo/test/audit_codes_screen_226_02_test.dart: categories default visible and render Errors, Warnings, Info order
+00:15 +119: C:/QQL/QuisquisLingo/test/audit_codes_screen_226_02_test.dart: Technical Reference Audit Codes link has no subtitle
+00:15 +120: C:/QQL/QuisquisLingo/test/audit_codes_screen_226_02_test.dart: error can be selected as the only category
+00:15 +121: C:/QQL/QuisquisLingo/test/audit_codes_screen_226_02_test.dart: warning can be selected as the only category
+00:16 +122: C:/QQL/QuisquisLingo/test/audit_issue_save_propagation_226_02_revision4_test.dart: Exercise saves through a Course Audit finding update the open Course before Previous/Next leaves the editor
+00:16 +123: C:/QQL/QuisquisLingo/test/audit_issue_save_propagation_226_02_revision4_test.dart: Exercise saves through a Course Audit finding update the open Course before Previous/Next leaves the editor
+00:16 +124: C:/QQL/QuisquisLingo/test/audit_issue_save_propagation_226_02_revision4_test.dart: Exercise saves through a Course Audit finding update the open Course before Previous/Next leaves the editor
+00:21 +125: C:/QQL/QuisquisLingo/test/audit_codes_screen_226_02_test.dart: every production code is searchable and fully documented
+00:21 +126: C:/QQL/QuisquisLingo/test/audit_codes_screen_226_02_test.dart: search accepts guidance text and can be cleared
+00:21 +127: C:/QQL/QuisquisLingo/test/audit_codes_screen_226_02_test.dart: removed sample comparison has no searchable Help entry
+00:21 +128: C:/QQL/QuisquisLingo/test/audit_codes_screen_226_02_test.dart: Audit reference at 320.0 px in dark
+00:22 +129: C:/QQL/QuisquisLingo/test/authoring_audit_ui_224_test.dart: scoped Audit controls fit at 320 px
+00:22 +130: C:/QQL/QuisquisLingo/test/authoring_audit_ui_224_test.dart: scoped Audit controls fit at 320 px
+00:22 +131: C:/QQL/QuisquisLingo/test/authoring_audit_ui_224_test.dart: scoped Audit controls fit at 320 px
+00:22 +132: C:/QQL/QuisquisLingo/test/authoring_audit_ui_224_test.dart: scoped Audit controls fit at 320 px
+00:22 +133: C:/QQL/QuisquisLingo/test/authoring_audit_ui_224_test.dart: scoped Audit controls fit at 320 px
+00:22 +134: C:/QQL/QuisquisLingo/test/authoring_audit_ui_224_test.dart: scoped Audit controls fit at 320 px
+00:22 +135: C:/QQL/QuisquisLingo/test/authoring_audit_ui_224_test.dart: scoped Audit controls fit at 320 px
+00:23 +136: C:/QQL/QuisquisLingo/test/authoring_audit_ui_224_test.dart: scoped Audit controls fit at 320 px
+00:23 +137: C:/QQL/QuisquisLingo/test/authoring_audit_ui_224_test.dart: scoped Audit controls fit at 375 px
+00:24 +138: C:/QQL/QuisquisLingo/test/authoring_context_menu_224_test.dart: Lesson menu exposes all actions and duplicates after source
+00:24 +139: C:/QQL/QuisquisLingo/test/authoring_context_menu_224_test.dart: Lesson menu exposes all actions and duplicates after source
+00:24 +140: C:/QQL/QuisquisLingo/test/authoring_context_menu_224_test.dart: Lesson menu exposes all actions and duplicates after source
+00:24 +141: C:/QQL/QuisquisLingo/test/authoring_context_menu_224_test.dart: Lesson menu exposes all actions and duplicates after source
+00:26 +142: C:/QQL/QuisquisLingo/test/authoring_context_menu_224_test.dart: Lesson menu exposes all actions and duplicates after source
+00:26 +143: C:/QQL/QuisquisLingo/test/authoring_context_menu_224_test.dart: Lesson menu exposes all actions and duplicates after source
+00:26 +144: C:/QQL/QuisquisLingo/test/authoring_context_menu_224_test.dart: Lesson menu exposes all actions and duplicates after source
+00:26 +145: C:/QQL/QuisquisLingo/test/authoring_context_menu_224_test.dart: Lesson menu exposes all actions and duplicates after source
+00:26 +146: C:/QQL/QuisquisLingo/test/authoring_context_menu_224_test.dart: Lesson menu exposes all actions and duplicates after source
+00:26 +147: C:/QQL/QuisquisLingo/test/authoring_context_menu_224_test.dart: Round menu exposes all actions and duplicates after source
+00:27 +148: C:/QQL/QuisquisLingo/test/authoring_context_menu_224_test.dart: Exercise menu keeps Edit and creates an independent duplicate
+00:27 +149: C:/QQL/QuisquisLingo/test/authoring_hierarchy_indicators_226_02_test.dart: Draft and Audit status propagate from Exercise through Course links
+00:30 +150: C:/QQL/QuisquisLingo/test/authoring_transfer_ui_226_02_test.dart: Move exercise-a through explicit destination across Lesson preserves v6 content
+00:31 +151: C:/QQL/QuisquisLingo/test/authoring_transfer_ui_226_02_test.dart: Move exercise-a through explicit destination across Lesson preserves v6 content
+00:32 +152: C:/QQL/QuisquisLingo/test/authoring_hierarchy_indicators_226_02_test.dart: correcting the last Draft Error clears every inherited indicator
+00:32 +153: C:/QQL/QuisquisLingo/test/authoring_transfer_ui_226_02_test.dart: Move text-note through explicit destination across Lesson preserves v6 content
+00:32 +154: C:/QQL/QuisquisLingo/test/authoring_transfer_ui_226_02_test.dart: Move text-note through explicit destination across Lesson preserves v6 content
+00:32 +155: C:/QQL/QuisquisLingo/test/authoring_transfer_ui_226_02_test.dart: Move text-note through explicit destination across Lesson preserves v6 content
+00:33 +156: C:/QQL/QuisquisLingo/test/authoring_hierarchy_indicators_226_02_test.dart: clean sibling stays green while its Lesson ancestor is red
+00:33 +157: C:/QQL/QuisquisLingo/test/authoring_transfer_ui_226_02_test.dart: Move presentation through explicit destination across Lesson preserves v6 content
+00:33 +158: C:/QQL/QuisquisLingo/test/authoring_transfer_ui_226_02_test.dart: Move presentation through explicit destination across Lesson preserves v6 content
+00:33 +159: C:/QQL/QuisquisLingo/test/authoring_hierarchy_indicators_226_02_test.dart: empty Round uses canonical Error then turns green when filled
+00:34 +160: C:/QQL/QuisquisLingo/test/authoring_transfer_ui_226_02_test.dart: Move exercise-a through explicit destination within Lesson preserves v6 content
+00:34 +161: C:/QQL/QuisquisLingo/test/authoring_hierarchy_indicators_226_02_test.dart: empty Lesson uses canonical Warning, remains navigable, then turns green
+00:35 +162: C:/QQL/QuisquisLingo/test/authoring_hierarchy_indicators_226_02_test.dart: empty Lesson uses canonical Warning, remains navigable, then turns green
+00:36 +163: C:/QQL/QuisquisLingo/test/authoring_hierarchy_indicators_226_02_test.dart: empty Lesson uses canonical Warning, remains navigable, then turns green
+00:36 +164: C:/QQL/QuisquisLingo/test/authoring_hierarchy_indicators_226_02_test.dart: empty Lesson uses canonical Warning, remains navigable, then turns green
+00:37 +165: C:/QQL/QuisquisLingo/test/authoring_hierarchy_indicators_226_02_test.dart: empty Lesson uses canonical Warning, remains navigable, then turns green
+00:38 +166: C:/QQL/QuisquisLingo/test/authoring_hierarchy_indicators_226_02_test.dart: empty Lesson uses canonical Warning, remains navigable, then turns green
+00:38 +167: C:/QQL/QuisquisLingo/test/authoring_hierarchy_indicators_226_02_test.dart: empty Lesson uses canonical Warning, remains navigable, then turns green
+00:39 +168: C:/QQL/QuisquisLingo/test/authoring_hierarchy_indicators_226_02_test.dart: empty Lesson uses canonical Warning, remains navigable, then turns green
+00:40 +169: C:/QQL/QuisquisLingo/test/authoring_hierarchy_indicators_226_02_test.dart: empty Lesson uses canonical Warning, remains navigable, then turns green
+00:40 +170: C:/QQL/QuisquisLingo/test/authoring_hierarchy_indicators_226_02_test.dart: empty Lesson uses canonical Warning, remains navigable, then turns green
+00:41 +171: C:/QQL/QuisquisLingo/test/authoring_hierarchy_indicators_226_02_test.dart: empty Lesson uses canonical Warning, remains navigable, then turns green
+ÔòÉÔòÉÔòí EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK Ôò×ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+The following assertion was thrown running a test:
+pumpAndSettle timed out
+
+When the exception was thrown, this was the stack:
+#0      WidgetTester.pumpAndSettle.<anonymous closure> (package:flutter_test/src/widget_tester.dart:717:11)
+<asynchronous suspension>
+#1      TestAsyncUtils.guard.<anonymous closure> (package:flutter_test/src/test_async_utils.dart:130:27)
+<asynchronous suspension>
+#2      main.<anonymous closure> (file:///C:/QQL/QuisquisLingo/test/authoring_hierarchy_indicators_226_02_test.dart:640:7)
+<asynchronous suspension>
+#3      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#4      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+The test description was:
+  empty Lesson uses canonical Warning, remains navigable, then turns green
+ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+00:42 +171 -1: C:/QQL/QuisquisLingo/test/authoring_transfer_ui_226_02_test.dart: Move Round to lesson-two survives every parent return
+00:42 +171 -1: C:/QQL/QuisquisLingo/test/authoring_hierarchy_indicators_226_02_test.dart: empty Lesson uses canonical Warning, remains navigable, then turns green [E]
+  Test failed. See exception logs above.
+  The test description was: empty Lesson uses canonical Warning, remains navigable, then turns green
+  
+00:42 +172 -1: C:/QQL/QuisquisLingo/test/authoring_hierarchy_indicators_226_02_test.dart: creating the first Round through the UI refreshes every open ancestor
+00:43 +173 -1: C:/QQL/QuisquisLingo/test/authoring_hierarchy_indicators_226_02_test.dart: creating the first Round through the UI refreshes every open ancestor
+00:43 +174 -1: C:/QQL/QuisquisLingo/test/authoring_transfer_ui_226_02_test.dart: Copy Round to lesson-two survives every parent return
+00:44 +175 -1: C:/QQL/QuisquisLingo/test/authoring_hierarchy_indicators_226_02_test.dart: accepted Exercise saves refresh the canonical Audit through every open ancestor
+00:45 +176 -1: C:/QQL/QuisquisLingo/test/authoring_hierarchy_indicators_226_02_test.dart: accepted Exercise saves refresh the canonical Audit through every open ancestor
+00:47 +177 -1: C:/QQL/QuisquisLingo/test/authoring_hierarchy_indicators_226_02_test.dart: accepted Exercise saves refresh the canonical Audit through every open ancestor
+00:47 +178 -1: C:/QQL/QuisquisLingo/test/authoring_hierarchy_indicators_226_02_test.dart: accepted Exercise saves refresh the canonical Audit through every open ancestor
+00:48 +179 -1: C:/QQL/QuisquisLingo/test/beta_lifecycle_test.dart: QQL 239 Revision 4 refreshes Beta expiry and includes the expiry day
+00:48 +180 -1: C:/QQL/QuisquisLingo/test/beta_lifecycle_test.dart: no-argument lifecycle checks follow the injectable clock
+00:48 +181 -1: C:/QQL/QuisquisLingo/test/beta_lifecycle_test.dart: warning milestones are stable
+00:48 +182 -1: C:/QQL/QuisquisLingo/test/beta_lifecycle_test.dart: warning stages use next stricter milestone after skipped days
+00:48 +183 -1: C:/QQL/QuisquisLingo/test/bounded_log_writer_test.dart: bounded string logging keeps the newest diagnostics
+00:48 +184 -1: C:/QQL/QuisquisLingo/test/bounded_log_writer_test.dart: bounded string logging does not split a Unicode surrogate pair
+00:48 +185 -1: C:/QQL/QuisquisLingo/test/bounded_log_writer_test.dart: bounded file logging rotates old bytes and preserves new entries
+00:49 +186 -1: C:/QQL/QuisquisLingo/test/bounded_log_writer_test.dart: bounded file logging preserves valid UTF-8 after rotation
+00:49 +187 -1: C:/QQL/QuisquisLingo/test/bounded_log_writer_test.dart: concurrent file appends are serialized without losing entries
+00:49 +188 -1: C:/QQL/QuisquisLingo/test/bounded_log_writer_test.dart: concurrent diagnostic entries do not overwrite one another
+00:49 +189 -1: C:/QQL/QuisquisLingo/test/bundled_courses_225_02_test.dart: all production bundled courses meet the build 225.02 release gate
+00:50 +190 -1: C:/QQL/QuisquisLingo/test/bundled_courses_225_02_test.dart: all production bundled courses meet the build 225.02 release gate
+00:50 +191 -1: C:/QQL/QuisquisLingo/test/bundled_courses_225_02_test.dart: all production bundled courses meet the build 225.02 release gate
+00:50 +192 -1: C:/QQL/QuisquisLingo/test/bundled_courses_225_02_test.dart: all production bundled courses meet the build 225.02 release gate
+00:50 +193 -1: C:/QQL/QuisquisLingo/test/bundled_courses_225_02_test.dart: all production bundled courses meet the build 225.02 release gate
+00:50 +194 -1: C:/QQL/QuisquisLingo/test/bundled_courses_225_02_test.dart: Korean course loads through the registry with v9 metadata
+00:50 +195 -1: C:/QQL/QuisquisLingo/test/bundled_courses_225_02_test.dart: Korean registry code renders the South Korean flag
+00:51 +196 -1: C:/QQL/QuisquisLingo/test/course_audit_225_02_test.dart: Reading Comprehension passage length empty
+00:52 +197 -1: C:/QQL/QuisquisLingo/test/course_audit_225_02_test.dart: Reading Comprehension passage length punctuation only
+00:52 +198 -1: C:/QQL/QuisquisLingo/test/course_audit_225_02_test.dart: Reading Comprehension passage length one word
+00:52 +199 -1: C:/QQL/QuisquisLingo/test/course_audit_225_02_test.dart: Reading Comprehension passage length two words
+00:52 +200 -1: C:/QQL/QuisquisLingo/test/course_audit_225_02_test.dart: Reading Comprehension passage length three words
+00:52 +201 -1: C:/QQL/QuisquisLingo/test/course_audit_225_02_test.dart: Reading Comprehension passage length Unicode and apostrophes
+00:52 +202 -1: C:/QQL/QuisquisLingo/test/course_audit_225_02_test.dart: Reading Comprehension passage length exported report includes the stable short-passage finding
+00:52 +203 -1: C:/QQL/QuisquisLingo/test/course_audit_225_02_test.dart: missing Listening Comprehension is not itself an Audit issue
+00:52 +204 -1: C:/QQL/QuisquisLingo/test/course_audit_225_02_test.dart: malformed Listening exercises retain the blocking audio check
+00:52 +205 -1: C:/QQL/QuisquisLingo/test/course_audit_225_02_test.dart: Hints warn when repetitive and block when revealing
+00:52 +206 -1: C:/QQL/QuisquisLingo/test/course_audit_225_02_test.dart: Recently modified is descending with deterministic ties
+00:52 +207 -1: C:/QQL/QuisquisLingo/test/course_audit_225_02_test.dart: progressive numbering follows every sort and active filter
+00:52 +208 -1: C:/QQL/QuisquisLingo/test/course_audit_225_02_test.dart: untitled Round fallback follows its current position
+00:52 +209 -1: C:/QQL/QuisquisLingo/test/course_audit_report_225_test.dart: complete report includes metadata, totals and every issue context
+00:52 +210 -1: C:/QQL/QuisquisLingo/test/course_audit_report_225_test.dart: copy receives the complete deterministic report
+00:52 +211 -1: C:/QQL/QuisquisLingo/test/course_audit_report_225_test.dart: export writes the same complete report to the QQL export seam
+00:52 +212 -1: C:/QQL/QuisquisLingo/test/course_audit_report_225_test.dart: export propagates storage failure without returning a path
+00:52 +213 -1: C:/QQL/QuisquisLingo/test/course_audit_report_225_test.dart: filtered screen still copies all findings and confirms success
+00:53 +214 -1: C:/QQL/QuisquisLingo/test/course_audit_report_225_test.dart: filtered screen still copies all findings and confirms success
+00:53 +215 -1: C:/QQL/QuisquisLingo/test/course_audit_report_225_test.dart: filtered screen still copies all findings and confirms success
+00:53 +216 -1: C:/QQL/QuisquisLingo/test/course_audit_report_225_test.dart: filtered screen still copies all findings and confirms success
+00:53 +217 -1: C:/QQL/QuisquisLingo/test/course_audit_report_225_test.dart: filtered screen still copies all findings and confirms success
+00:53 +218 -1: C:/QQL/QuisquisLingo/test/course_audit_report_225_test.dart: filtered screen still copies all findings and confirms success
+00:53 +219 -1: C:/QQL/QuisquisLingo/test/course_audit_report_225_test.dart: filtered screen still copies all findings and confirms success
+00:53 +220 -1: C:/QQL/QuisquisLingo/test/course_audit_report_225_test.dart: filtered screen still copies all findings and confirms success
+00:53 +221 -1: C:/QQL/QuisquisLingo/test/course_audit_report_225_test.dart: filtered screen still copies all findings and confirms success
+00:53 +222 -1: C:/QQL/QuisquisLingo/test/course_audit_report_225_test.dart: filtered screen still copies all findings and confirms success
+00:53 +223 -1: C:/QQL/QuisquisLingo/test/course_audit_report_225_test.dart: filtered screen still copies all findings and confirms success
+00:53 +224 -1: C:/QQL/QuisquisLingo/test/course_audit_report_225_test.dart: filtered screen still copies all findings and confirms success
+00:53 +225 -1: C:/QQL/QuisquisLingo/test/course_audit_report_225_test.dart: filtered screen still copies all findings and confirms success
+00:53 +226 -1: C:/QQL/QuisquisLingo/test/course_audit_report_225_test.dart: filtered screen still copies all findings and confirms success
+00:53 +227 -1: C:/QQL/QuisquisLingo/test/course_audit_report_225_test.dart: filtered screen still copies all findings and confirms success
+00:53 +228 -1: C:/QQL/QuisquisLingo/test/course_audit_report_225_test.dart: filtered screen still copies all findings and confirms success
+00:53 +229 -1: C:/QQL/QuisquisLingo/test/course_audit_report_225_test.dart: filtered screen still copies all findings and confirms success
+00:53 +230 -1: C:/QQL/QuisquisLingo/test/course_audit_report_225_test.dart: filtered screen still copies all findings and confirms success
+00:53 +231 -1: C:/QQL/QuisquisLingo/test/course_audit_report_225_test.dart: filtered screen still copies all findings and confirms success
+00:53 +232 -1: C:/QQL/QuisquisLingo/test/course_audit_report_225_test.dart: filtered screen still copies all findings and confirms success
+00:53 +233 -1: C:/QQL/QuisquisLingo/test/course_audit_report_225_test.dart: filtered screen still copies all findings and confirms success
+00:53 +234 -1: C:/QQL/QuisquisLingo/test/course_audit_report_225_test.dart: filtered screen still copies all findings and confirms success
+00:53 +235 -1: C:/QQL/QuisquisLingo/test/course_audit_report_225_test.dart: filtered screen still copies all findings and confirms success
+00:53 +236 -1: C:/QQL/QuisquisLingo/test/course_audit_report_225_test.dart: filtered screen still copies all findings and confirms success
+00:53 +237 -1: C:/QQL/QuisquisLingo/test/course_audit_report_225_test.dart: filtered screen still copies all findings and confirms success
+00:53 +238 -1: C:/QQL/QuisquisLingo/test/course_audit_report_225_test.dart: filtered screen still copies all findings and confirms success
+00:53 +239 -1: C:/QQL/QuisquisLingo/test/course_audit_report_225_test.dart: filtered screen still copies all findings and confirms success
+00:53 +240 -1: C:/QQL/QuisquisLingo/test/course_audit_report_225_test.dart: filtered screen still copies all findings and confirms success
+00:53 +240 -2: loading C:/QQL/QuisquisLingo/test/course_authoring_transfer_226_02_test.dart [E]
+  Failed to load "C:/QQL/QuisquisLingo/test/course_authoring_transfer_226_02_test.dart":
+  Compilation failed for testPath=C:/QQL/QuisquisLingo/test/course_authoring_transfer_226_02_test.dart: test/course_authoring_transfer_226_02_test.dart:584:9: Error: No named parameter with the name 'preferenceWriter'.
+          preferenceWriter: (preferences, key, value) async {
+          ^^^^^^^^^^^^^^^^
+  lib/services/course_editor_service.dart:59:3: Context: Found this candidate, but the arguments don't match.
+    CourseEditorService({
+    ^^^^^^^^^^^^^^^^^^^
+  .
+00:54 +241 -2: C:/QQL/QuisquisLingo/test/course_audit_report_225_test.dart: export success is confirmed with the created path
+00:54 +242 -2: C:/QQL/QuisquisLingo/test/course_audit_report_225_test.dart: export failure shows an error and never claims creation
+00:56 +243 -2: C:/QQL/QuisquisLingo/test/course_author_metadata_test.dart: Course Model v9 author metadata requires structured roles
+00:57 +244 -2: C:/QQL/QuisquisLingo/test/course_author_metadata_test.dart: course metadata and Lesson Guidebook round-trip independently
+00:57 +245 -2: C:/QQL/QuisquisLingo/test/course_author_metadata_test.dart: v9 serialized Courses require canonical root version metadata
+00:57 +246 -2: C:/QQL/QuisquisLingo/test/course_author_metadata_test.dart: non-forked custom Course lineage must begin with a QQL user
+00:57 +247 -2: C:/QQL/QuisquisLingo/test/course_author_metadata_test.dart: v9 serialized Authors must be a list of structured objects
+00:57 +248 -2: C:/QQL/QuisquisLingo/test/course_author_metadata_test.dart: Buy a Coffee uses only a trimmed optional HTTPS URL
+00:57 +249 -2: C:/QQL/QuisquisLingo/test/course_author_metadata_test.dart: Course Editor uses v9 storage and leaves v8 untouched
+00:57 +250 -2: C:/QQL/QuisquisLingo/test/course_author_metadata_test.dart: Course Editor uses v9 storage and leaves v8 untouched
+00:57 +250 -3: C:/QQL/QuisquisLingo/test/course_backup_v9_clean_cut_test.dart: v9 backup format reads canonical course data without duplicate metadata
+00:57 +250 -3: C:/QQL/QuisquisLingo/test/course_author_metadata_test.dart: Course Editor uses v9 storage and leaves v8 untouched [E]
+  MissingPluginException(No implementation found for method getApplicationSupportDirectory on channel plugins.flutter.io/path_provider)
+  package:flutter/src/services/platform_channel.dart 364:7  MethodChannel._invokeMethod
+  
+00:57 +251 -3: C:/QQL/QuisquisLingo/test/course_backup_v9_clean_cut_test.dart: v9 history does not recognize obsolete local-variant manifests
+00:57 +252 -4: loading C:/QQL/QuisquisLingo/test/course_creation_flags_226_04_test.dart [E]
+  Failed to load "C:/QQL/QuisquisLingo/test/course_creation_flags_226_04_test.dart":
+  Compilation failed for testPath=C:/QQL/QuisquisLingo/test/course_creation_flags_226_04_test.dart: test/course_creation_flags_226_04_test.dart:279:9: Error: No named parameter with the name 'preferenceWriter'.
+          preferenceWriter: (preferences, key, value) async {
+          ^^^^^^^^^^^^^^^^
+  lib/services/course_editor_service.dart:59:3: Context: Found this candidate, but the arguments don't match.
+    CourseEditorService({
+    ^^^^^^^^^^^^^^^^^^^
+  .
+01:02 +252 -4: C:/QQL/QuisquisLingo/test/course_editor_224_test.dart: main Course Editor uses a compact Lessons navigation row
+01:03 +253 -4: C:/QQL/QuisquisLingo/test/course_editor_225_test.dart: Build the translation saves natural punctuation through reload and Audit
+01:04 +254 -4: C:/QQL/QuisquisLingo/test/course_editor_225_test.dart: Build the translation saves natural punctuation through reload and Audit
+01:06 +255 -4: C:/QQL/QuisquisLingo/test/course_editor_225_test.dart: Build the translation saves natural punctuation through reload and Audit
+01:06 +256 -4: C:/QQL/QuisquisLingo/test/course_editor_224_test.dart: Lesson creation preserves draft Course metadata
+ÔòÉÔòÉÔòí EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK Ôò×ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+The following PlatformException was thrown running a test:
+PlatformException(test_storage_unavailable, null, null, null)
+
+When the exception was thrown, this was the stack:
+#0      StandardMethodCodec.decodeEnvelope (package:flutter/src/services/message_codecs.dart:653:7)
+#1      MethodChannel._invokeMethod (package:flutter/src/services/platform_channel.dart:366:18)
+<asynchronous suspension>
+#2      getApplicationSupportDirectory (package:path_provider/path_provider.dart:77:24)
+<asynchronous suspension>
+#3      CourseFileStore.directoryFor (package:quisquislingo_app/services/course_file_store.dart:55:18)
+<asynchronous suspension>
+#4      CourseFileStore.readAll (package:quisquislingo_app/services/course_file_store.dart:79:23)
+<asynchronous suspension>
+#5      CourseEditorService.saveUserCourse (package:quisquislingo_app/services/course_editor_service.dart:164:10)
+<asynchronous suspension>
+#6      main.<anonymous closure> (file:///C:/QQL/QuisquisLingo/test/course_editor_224_test.dart:127:5)
+<asynchronous suspension>
+#7      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#8      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+The test description was:
+  Lesson creation preserves draft Course metadata
+ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+01:06 +256 -5: C:/QQL/QuisquisLingo/test/course_editor_224_test.dart: Lesson creation preserves draft Course metadata [E]
+  Test failed. See exception logs above.
+  The test description was: Lesson creation preserves draft Course metadata
+  
+01:06 +256 -5: C:/QQL/QuisquisLingo/test/course_editor_225_test.dart: reloaded Build the translation is playable and evaluates
+Crash logger initialisation failed: PlatformException(test_storage_unavailable, null, null, null)
+#0      StandardMethodCodec.decodeEnvelope (package:flutter/src/services/message_codecs.dart:653:7)
+#1      MethodChannel._invokeMethod (package:flutter/src/services/platform_channel.dart:366:18)
+<asynchronous suspension>
+#2      getApplicationDocumentsDirectory (package:path_provider/path_provider.dart:119:24)
+<asynchronous suspension>
+#3      DiagnosticLogService.logsDirectory (package:quisquislingo_app/services/diagnostic_log_service.dart:39:23)
+<asynchronous suspension>
+#4      CrashLogService.initialise (package:quisquislingo_app/services/crash_log_service.dart:37:25)
+<asynchronous suspension>
+#5      CrashLogService.recordDebugEvent (package:quisquislingo_app/services/crash_log_service.dart:238:24)
+<asynchronous suspension>
+#6      _RoundScreenState._initializeRound (package:quisquislingo_app/screens/round_screen.dart:258:5)
+<asynchronous suspension>
+
+01:06 +257 -5: C:/QQL/QuisquisLingo/test/course_editor_224_test.dart: preset picker is grouped, searchable and links to Help
+01:07 +258 -5: C:/QQL/QuisquisLingo/test/course_editor_225_test.dart: Build translation editor deletes and reorders literal answers
+01:07 +259 -5: C:/QQL/QuisquisLingo/test/course_editor_224_test.dart: Course Editor and Lessons subpage do not overflow at 320 px
+01:07 +260 -5: C:/QQL/QuisquisLingo/test/course_editor_225_test.dart: normalized duplicate translations show field-level errors
+01:08 +261 -5: C:/QQL/QuisquisLingo/test/course_editor_225_test.dart: Build the translation retains blocking errors for missing data
+01:08 +262 -5: C:/QQL/QuisquisLingo/test/course_editor_225_test.dart: Missing Word Editor keeps both canonical answer views
+01:09 +263 -5: C:/QQL/QuisquisLingo/test/course_editor_225_test.dart: Listening Spelling Editor omits incompatible missingWords
+01:09 +264 -5: C:/QQL/QuisquisLingo/test/course_editor_export_226_02_test.dart: custom export is the final page entry and uses existing service
+01:11 +265 -5: C:/QQL/QuisquisLingo/test/course_editor_export_226_02_test.dart: licensed custom fork exports with provenance unchanged
+01:11 +266 -5: C:/QQL/QuisquisLingo/test/course_editor_export_226_02_test.dart: bundledOfficial has no Course-page export or overflow menu
+01:11 +267 -5: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: Course Info avoids intrinsic LayoutBuilder conflict
+01:11 +268 -5: C:/QQL/QuisquisLingo/test/course_editor_export_226_02_test.dart: externalOfficial has no Course-page export or overflow menu
+01:11 +269 -5: C:/QQL/QuisquisLingo/test/course_editor_export_226_02_test.dart: externalOfficial has no Course-page export or overflow menu
+01:11 +270 -5: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: Course metadata helpers wrap at 320 logical pixels
+01:11 +271 -5: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: Course metadata helpers wrap at 320 logical pixels
+01:13 +271 -6: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: Course metadata helpers wrap at 320 logical pixels
+01:13 +271 -6: C:/QQL/QuisquisLingo/test/course_editor_storage_v6_225_02_test.dart: legacy storage namespace remains untouched and is not migrated [E]
+  MissingPluginException(No implementation found for method getApplicationSupportDirectory on channel plugins.flutter.io/path_provider)
+  package:flutter/src/services/platform_channel.dart 364:7  MethodChannel._invokeMethod
+  
+01:13 +271 -7: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: Course metadata helpers wrap at 320 logical pixels
+01:13 +271 -7: C:/QQL/QuisquisLingo/test/course_editor_storage_v6_225_02_test.dart: unsupported course in v9 storage fails clearly without deletion [E]
+  Expected: throws <Instance of 'FormatException'> with `message`: contains 'preserved' and `message`: contains 'unsupported course format'
+    Actual: <Instance of 'Future<List<Course>>'>
+     Which: threw MissingPluginException:<MissingPluginException(No implementation found for method getApplicationSupportDirectory on channel plugins.flutter.io/path_provider)>
+            stack package:flutter/src/services/platform_channel.dart 364:7  MethodChannel._invokeMethod
+                  ===== asynchronous gap ===========================
+                  package:matcher                                           expectLater
+                  package:flutter_test/src/widget_tester.dart 507:8         expectLater
+                  test\course_editor_storage_v6_225_02_test.dart 49:13      main.<fn>
+                  
+            which is not an instance of 'FormatException'
+  
+  package:matcher                                       expectLater
+  package:flutter_test/src/widget_tester.dart 507:8     expectLater
+  test\course_editor_storage_v6_225_02_test.dart 49:13  main.<fn>
+  
+01:13 +271 -8: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: Course metadata helpers wrap at 320 logical pixels
+01:13 +271 -8: C:/QQL/QuisquisLingo/test/course_editor_storage_v6_225_02_test.dart: corrupt v8 storage is ignored and left physically unchanged [E]
+  MissingPluginException(No implementation found for method getApplicationSupportDirectory on channel plugins.flutter.io/path_provider)
+  package:flutter/src/services/platform_channel.dart 364:7  MethodChannel._invokeMethod
+  
+01:13 +271 -9: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: Course metadata helpers wrap at 320 logical pixels
+01:13 +271 -9: C:/QQL/QuisquisLingo/test/course_editor_storage_v6_225_02_test.dart: corrupt v9 storage is copied aside and never silently emptied [E]
+  Expected: throws <Instance of 'FormatException'> with `message`: (contains 'preserved' and contains 'not loaded')
+    Actual: <Instance of 'Future<List<Course>>'>
+     Which: threw MissingPluginException:<MissingPluginException(No implementation found for method getApplicationSupportDirectory on channel plugins.flutter.io/path_provider)>
+            stack package:flutter/src/services/platform_channel.dart 364:7  MethodChannel._invokeMethod
+                  ===== asynchronous gap ===========================
+                  package:matcher                                           expectLater
+                  package:flutter_test/src/widget_tester.dart 507:8         expectLater
+                  test\course_editor_storage_v6_225_02_test.dart 95:13      main.<fn>
+                  
+            which is not an instance of 'FormatException'
+  
+  package:matcher                                       expectLater
+  package:flutter_test/src/widget_tester.dart 507:8     expectLater
+  test\course_editor_storage_v6_225_02_test.dart 95:13  main.<fn>
+  
+01:13 +271 -10: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: Course metadata helpers wrap at 320 logical pixels
+01:13 +271 -10: C:/QQL/QuisquisLingo/test/course_editor_storage_v6_225_02_test.dart: v9 local save/reload preserves canonical timestamp bytes [E]
+  MissingPluginException(No implementation found for method getApplicationSupportDirectory on channel plugins.flutter.io/path_provider)
+  package:flutter/src/services/platform_channel.dart 364:7  MethodChannel._invokeMethod
+  
+01:13 +271 -11: loading C:/QQL/QuisquisLingo/test/course_editor_transaction_225_04_test.dart [E]
+  Failed to load "C:/QQL/QuisquisLingo/test/course_editor_transaction_225_04_test.dart":
+  Compilation failed for testPath=C:/QQL/QuisquisLingo/test/course_editor_transaction_225_04_test.dart: test/course_editor_transaction_225_04_test.dart:379:9: Error: No named parameter with the name 'preferenceWriter'.
+          preferenceWriter: (_, key, _) async =>
+          ^^^^^^^^^^^^^^^^
+  lib/services/course_editor_service.dart:59:3: Context: Found this candidate, but the arguments don't match.
+    CourseEditorService({
+    ^^^^^^^^^^^^^^^^^^^
+  .
+01:18 +272 -11: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: Course metadata helpers wrap at 320 logical pixels
+01:19 +273 -11: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: Course metadata helpers wrap at 320 logical pixels
+01:19 +274 -11: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: Course metadata helpers wrap at 320 logical pixels
+01:19 +275 -11: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: Course metadata helpers wrap at 320 logical pixels
+01:19 +276 -11: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: Course metadata helpers wrap at 320 logical pixels
+01:19 +277 -11: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: Course metadata helpers wrap at 320 logical pixels
+01:19 +278 -11: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: Course metadata helpers wrap at 320 logical pixels
+01:19 +279 -11: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: Course metadata helpers wrap at 320 logical pixels
+01:19 +280 -11: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: Course metadata helpers wrap at 320 logical pixels
+01:19 +281 -11: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: Course metadata helpers wrap at 320 logical pixels
+01:19 +282 -11: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: Course metadata helpers wrap at 320 logical pixels
+01:20 +283 -11: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: Course metadata helpers wrap at 320 logical pixels
+01:20 +283 -11: C:/QQL/QuisquisLingo/test/course_entry_animation_228_test.dart: Home course-switch wiring course-entry animation starts only after the course picker closes
+ÔòÉÔòÉÔòí EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK Ôò×ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+The following PlatformException was thrown running a test:
+PlatformException(test_storage_unavailable, Persistent storage is unavailable in widget tests.,
+null, null)
+
+When the exception was thrown, this was the stack:
+#0      StandardMethodCodec.decodeEnvelope (package:flutter/src/services/message_codecs.dart:653:7)
+#1      MethodChannel._invokeMethod (package:flutter/src/services/platform_channel.dart:366:18)
+<asynchronous suspension>
+#2      getApplicationSupportDirectory (package:path_provider/path_provider.dart:77:24)
+<asynchronous suspension>
+#3      CourseFileStore.directoryFor (package:quisquislingo_app/services/course_file_store.dart:55:18)
+<asynchronous suspension>
+#4      CourseFileStore.readAll (package:quisquislingo_app/services/course_file_store.dart:79:23)
+<asynchronous suspension>
+#5      CourseEditorService.saveUserCourse (package:quisquislingo_app/services/course_editor_service.dart:164:10)
+<asynchronous suspension>
+#6      main.<anonymous closure>.<anonymous closure> (file:///C:/QQL/QuisquisLingo/test/course_entry_animation_228_test.dart:347:9)
+<asynchronous suspension>
+#7      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#8      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+The test description was:
+  course-entry animation starts only after the course picker closes
+ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+01:20 +283 -12: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: Course metadata helpers wrap at 320 logical pixels
+01:20 +283 -12: C:/QQL/QuisquisLingo/test/course_entry_animation_228_test.dart: Home course-switch wiring course-entry animation starts only after the course picker closes [E]
+  Test failed. See exception logs above.
+  The test description was: course-entry animation starts only after the course picker closes
+  
+01:20 +283 -12: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: Course metadata helpers wrap at 320 logical pixels
+ÔòÉÔòÉÔòí EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK Ôò×ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+The following assertion was thrown running a test:
+pumpAndSettle timed out
+
+When the exception was thrown, this was the stack:
+#0      WidgetTester.pumpAndSettle.<anonymous closure> (package:flutter_test/src/widget_tester.dart:717:11)
+<asynchronous suspension>
+#1      TestAsyncUtils.guard.<anonymous closure> (package:flutter_test/src/test_async_utils.dart:130:27)
+<asynchronous suspension>
+#2      main.<anonymous closure> (file:///C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart:114:5)
+<asynchronous suspension>
+#3      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#4      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+The test description was:
+  Course metadata helpers wrap at 320 logical pixels
+ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+01:20 +283 -13: C:/QQL/QuisquisLingo/test/course_entry_animation_228_test.dart: Home course-switch wiring actual flagged switch animates and persists; same course does not replay
+01:20 +283 -13: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: Course metadata helpers wrap at 320 logical pixels [E]
+  Test failed. See exception logs above.
+  The test description was: Course metadata helpers wrap at 320 logical pixels
+  
+01:20 +284 -13: C:/QQL/QuisquisLingo/test/course_entry_animation_228_test.dart: Home course-switch wiring actual flagged switch animates and persists; same course does not replay
+ÔòÉÔòÉÔòí EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK Ôò×ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+The following PlatformException was thrown running a test:
+PlatformException(test_storage_unavailable, Persistent storage is unavailable in widget tests.,
+null, null)
+
+When the exception was thrown, this was the stack:
+#0      StandardMethodCodec.decodeEnvelope (package:flutter/src/services/message_codecs.dart:653:7)
+#1      MethodChannel._invokeMethod (package:flutter/src/services/platform_channel.dart:366:18)
+<asynchronous suspension>
+#2      getApplicationSupportDirectory (package:path_provider/path_provider.dart:77:24)
+<asynchronous suspension>
+#3      CourseFileStore.directoryFor (package:quisquislingo_app/services/course_file_store.dart:55:18)
+<asynchronous suspension>
+#4      CourseFileStore.readAll (package:quisquislingo_app/services/course_file_store.dart:79:23)
+<asynchronous suspension>
+#5      CourseEditorService.listUserCourses (package:quisquislingo_app/services/course_editor_service.dart:237:20)
+<asynchronous suspension>
+#6      _HomeScreenState._showCoursePicker (package:quisquislingo_app/screens/home_screen.dart:1199:27)
+<asynchronous suspension>
+
+The test description was:
+  actual flagged switch animates and persists; same course does not replay
+ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+01:23 +284 -14: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: new course defaults to 3 Lessons with one sample Exercise per Round
+01:23 +284 -14: C:/QQL/QuisquisLingo/test/course_entry_animation_228_test.dart: Home course-switch wiring actual flagged switch animates and persists; same course does not replay [E]
+  Test failed. See exception logs above.
+  The test description was: actual flagged switch animates and persists; same course does not replay
+  
+01:24 +284 -14: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: new course defaults to 3 Lessons with one sample Exercise per Round
+ÔòÉÔòÉÔòí EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK Ôò×ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+The following assertion was thrown running a test:
+pumpAndSettle timed out
+
+When the exception was thrown, this was the stack:
+#0      WidgetTester.pumpAndSettle.<anonymous closure> (package:flutter_test/src/widget_tester.dart:717:11)
+<asynchronous suspension>
+#1      TestAsyncUtils.guard.<anonymous closure> (package:flutter_test/src/test_async_utils.dart:130:27)
+<asynchronous suspension>
+#2      main.<anonymous closure> (file:///C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart:264:7)
+<asynchronous suspension>
+#3      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#4      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+The test description was:
+  new course defaults to 3 Lessons with one sample Exercise per Round
+ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+01:24 +284 -15: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: new course defaults to 3 Lessons with one sample Exercise per Round [E]
+  Test failed. See exception logs above.
+  The test description was: new course defaults to 3 Lessons with one sample Exercise per Round
+  
+01:24 +284 -15: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:25 +284 -15: C:/QQL/QuisquisLingo/test/course_entry_animation_228_test.dart: Home course-switch wiring actual flagged switch animates and persists; same course does not replay
+ÔòÉÔòÉÔòí EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK Ôò×ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+The following TestFailure was thrown running a test (but after the test had completed):
+Timed out waiting for Found 0 widgets with text "Choose course": [].
+
+When the exception was thrown, this was the stack:
+#0      fail (package:matcher/src/expect/expect.dart:187:31)
+#1      _pumpUntil (file:///C:/QQL/QuisquisLingo/test/course_entry_animation_228_test.dart:768:3)
+<asynchronous suspension>
+#2      _openCoursePicker (file:///C:/QQL/QuisquisLingo/test/course_entry_animation_228_test.dart:703:3)
+<asynchronous suspension>
+#3      _selectBundledCourse (file:///C:/QQL/QuisquisLingo/test/course_entry_animation_228_test.dart:697:3)
+<asynchronous suspension>
+#4      main.<anonymous closure>.<anonymous closure> (file:///C:/QQL/QuisquisLingo/test/course_entry_animation_228_test.dart:375:9)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+01:25 +284 -15: C:/QQL/QuisquisLingo/test/course_entry_animation_228_test.dart: Home course-switch wiring actual flagged switch animates and persists; same course does not replay [E]
+  Test failed. See exception logs above.
+  The test description was: actual flagged switch animates and persists; same course does not replay
+  
+01:27 +284 -15: C:/QQL/QuisquisLingo/test/course_entry_animation_228_test.dart: Home course-switch wiring Extended source never paints behind an Off destination during switching
+ÔòÉÔòÉÔòí EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK Ôò×ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+The following PlatformException was thrown running a test:
+PlatformException(test_storage_unavailable, Persistent storage is unavailable in widget tests.,
+null, null)
+
+When the exception was thrown, this was the stack:
+#0      StandardMethodCodec.decodeEnvelope (package:flutter/src/services/message_codecs.dart:653:7)
+#1      MethodChannel._invokeMethod (package:flutter/src/services/platform_channel.dart:366:18)
+<asynchronous suspension>
+#2      getApplicationSupportDirectory (package:path_provider/path_provider.dart:77:24)
+<asynchronous suspension>
+#3      CourseFileStore.directoryFor (package:quisquislingo_app/services/course_file_store.dart:55:18)
+<asynchronous suspension>
+#4      CourseFileStore.readAll (package:quisquislingo_app/services/course_file_store.dart:79:23)
+<asynchronous suspension>
+#5      CourseEditorService.listUserCourses (package:quisquislingo_app/services/course_editor_service.dart:237:20)
+<asynchronous suspension>
+#6      _HomeScreenState._showCoursePicker (package:quisquislingo_app/screens/home_screen.dart:1199:27)
+<asynchronous suspension>
+
+The test description was:
+  Extended source never paints behind an Off destination during switching
+ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+01:27 +284 -16: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:27 +284 -16: C:/QQL/QuisquisLingo/test/course_entry_animation_228_test.dart: Home course-switch wiring Extended source never paints behind an Off destination during switching [E]
+  Test failed. See exception logs above.
+  The test description was: Extended source never paints behind an Off destination during switching
+  
+ÔòÉÔòÉÔòí EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK Ôò×ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+The following TestFailure was thrown running a test (but after the test had completed):
+Timed out waiting for Found 0 widgets with text "Choose course": [].
+
+When the exception was thrown, this was the stack:
+#0      fail (package:matcher/src/expect/expect.dart:187:31)
+#1      _pumpUntil (file:///C:/QQL/QuisquisLingo/test/course_entry_animation_228_test.dart:768:3)
+<asynchronous suspension>
+#2      _openCoursePicker (file:///C:/QQL/QuisquisLingo/test/course_entry_animation_228_test.dart:703:3)
+<asynchronous suspension>
+#3      main.<anonymous closure>.<anonymous closure> (file:///C:/QQL/QuisquisLingo/test/course_entry_animation_228_test.dart:433:9)
+<asynchronous suspension>
+#4      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#5      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+  Test failed. See exception logs above.
+  The test description was: Extended source never paints behind an Off destination during switching
+  
+01:30 +284 -16: C:/QQL/QuisquisLingo/test/course_entry_animation_228_test.dart: Home course-switch wiring a stale slow switch cannot replace the latest selected course
+ÔòÉÔòÉÔòí EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK Ôò×ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+The following PlatformException was thrown running a test:
+PlatformException(test_storage_unavailable, Persistent storage is unavailable in widget tests.,
+null, null)
+
+When the exception was thrown, this was the stack:
+#0      StandardMethodCodec.decodeEnvelope (package:flutter/src/services/message_codecs.dart:653:7)
+#1      MethodChannel._invokeMethod (package:flutter/src/services/platform_channel.dart:366:18)
+<asynchronous suspension>
+#2      getApplicationSupportDirectory (package:path_provider/path_provider.dart:77:24)
+<asynchronous suspension>
+#3      CourseFileStore.directoryFor (package:quisquislingo_app/services/course_file_store.dart:55:18)
+<asynchronous suspension>
+#4      CourseFileStore.readAll (package:quisquislingo_app/services/course_file_store.dart:79:23)
+<asynchronous suspension>
+#5      CourseEditorService.listUserCourses (package:quisquislingo_app/services/course_editor_service.dart:237:20)
+<asynchronous suspension>
+#6      _HomeScreenState._showCoursePicker (package:quisquislingo_app/screens/home_screen.dart:1199:27)
+<asynchronous suspension>
+
+The test description was:
+  a stale slow switch cannot replace the latest selected course
+ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+01:30 +284 -17: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:30 +284 -17: C:/QQL/QuisquisLingo/test/course_entry_animation_228_test.dart: Home course-switch wiring a stale slow switch cannot replace the latest selected course [E]
+  Test failed. See exception logs above.
+  The test description was: a stale slow switch cannot replace the latest selected course
+  
+ÔòÉÔòÉÔòí EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK Ôò×ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+The following TestFailure was thrown running a test (but after the test had completed):
+Timed out waiting for Found 0 widgets with text "Choose course": [].
+
+When the exception was thrown, this was the stack:
+#0      fail (package:matcher/src/expect/expect.dart:187:31)
+#1      _pumpUntil (file:///C:/QQL/QuisquisLingo/test/course_entry_animation_228_test.dart:768:3)
+<asynchronous suspension>
+#2      _openCoursePicker (file:///C:/QQL/QuisquisLingo/test/course_entry_animation_228_test.dart:703:3)
+<asynchronous suspension>
+#3      _selectBundledCourse (file:///C:/QQL/QuisquisLingo/test/course_entry_animation_228_test.dart:697:3)
+<asynchronous suspension>
+#4      main.<anonymous closure>.<anonymous closure> (file:///C:/QQL/QuisquisLingo/test/course_entry_animation_228_test.dart:509:9)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+  Test failed. See exception logs above.
+  The test description was: a stale slow switch cannot replace the latest selected course
+  
+01:34 +284 -17: C:/QQL/QuisquisLingo/test/course_entry_animation_228_test.dart: Home course-switch wiring Do Not Disturb suppresses; enabling animations allows automatic flags
+ÔòÉÔòÉÔòí EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK Ôò×ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+The following PlatformException was thrown running a test:
+PlatformException(test_storage_unavailable, Persistent storage is unavailable in widget tests.,
+null, null)
+
+When the exception was thrown, this was the stack:
+#0      StandardMethodCodec.decodeEnvelope (package:flutter/src/services/message_codecs.dart:653:7)
+#1      MethodChannel._invokeMethod (package:flutter/src/services/platform_channel.dart:366:18)
+<asynchronous suspension>
+#2      getApplicationSupportDirectory (package:path_provider/path_provider.dart:77:24)
+<asynchronous suspension>
+#3      CourseFileStore.directoryFor (package:quisquislingo_app/services/course_file_store.dart:55:18)
+<asynchronous suspension>
+#4      CourseFileStore.readAll (package:quisquislingo_app/services/course_file_store.dart:79:23)
+<asynchronous suspension>
+#5      CourseEditorService.listUserCourses (package:quisquislingo_app/services/course_editor_service.dart:237:20)
+<asynchronous suspension>
+#6      _HomeScreenState._showCoursePicker (package:quisquislingo_app/screens/home_screen.dart:1199:27)
+<asynchronous suspension>
+
+The test description was:
+  Do Not Disturb suppresses; enabling animations allows automatic flags
+ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+01:34 +284 -18: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:34 +284 -18: C:/QQL/QuisquisLingo/test/course_entry_animation_228_test.dart: Home course-switch wiring Do Not Disturb suppresses; enabling animations allows automatic flags [E]
+  Test failed. See exception logs above.
+  The test description was: Do Not Disturb suppresses; enabling animations allows automatic flags
+  
+ÔòÉÔòÉÔòí EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK Ôò×ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+The following TestFailure was thrown running a test (but after the test had completed):
+Timed out waiting for Found 0 widgets with text "Choose course": [].
+
+When the exception was thrown, this was the stack:
+#0      fail (package:matcher/src/expect/expect.dart:187:31)
+#1      _pumpUntil (file:///C:/QQL/QuisquisLingo/test/course_entry_animation_228_test.dart:768:3)
+<asynchronous suspension>
+#2      _openCoursePicker (file:///C:/QQL/QuisquisLingo/test/course_entry_animation_228_test.dart:703:3)
+<asynchronous suspension>
+#3      _selectBundledCourse (file:///C:/QQL/QuisquisLingo/test/course_entry_animation_228_test.dart:697:3)
+<asynchronous suspension>
+#4      main.<anonymous closure>.<anonymous closure> (file:///C:/QQL/QuisquisLingo/test/course_entry_animation_228_test.dart:546:9)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+  Test failed. See exception logs above.
+  The test description was: Do Not Disturb suppresses; enabling animations allows automatic flags
+  
+01:37 +284 -18: C:/QQL/QuisquisLingo/test/course_entry_animation_228_test.dart: Home course-switch wiring automatic World Flag renders on a real course switch
+ÔòÉÔòÉÔòí EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK Ôò×ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+The following PlatformException was thrown running a test:
+PlatformException(test_storage_unavailable, Persistent storage is unavailable in widget tests.,
+null, null)
+
+When the exception was thrown, this was the stack:
+#0      StandardMethodCodec.decodeEnvelope (package:flutter/src/services/message_codecs.dart:653:7)
+#1      MethodChannel._invokeMethod (package:flutter/src/services/platform_channel.dart:366:18)
+<asynchronous suspension>
+#2      getApplicationSupportDirectory (package:path_provider/path_provider.dart:77:24)
+<asynchronous suspension>
+#3      CourseFileStore.directoryFor (package:quisquislingo_app/services/course_file_store.dart:55:18)
+<asynchronous suspension>
+#4      CourseFileStore.readAll (package:quisquislingo_app/services/course_file_store.dart:79:23)
+<asynchronous suspension>
+#5      CourseEditorService.saveUserCourse (package:quisquislingo_app/services/course_editor_service.dart:164:10)
+<asynchronous suspension>
+#6      main.<anonymous closure>.<anonymous closure> (file:///C:/QQL/QuisquisLingo/test/course_entry_animation_228_test.dart:577:11)
+<asynchronous suspension>
+#7      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#8      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+The test description was:
+  automatic World Flag renders on a real course switch
+ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+01:37 +284 -19: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:37 +284 -19: C:/QQL/QuisquisLingo/test/course_entry_animation_228_test.dart: Home course-switch wiring automatic World Flag renders on a real course switch [E]
+  Test failed. See exception logs above.
+  The test description was: automatic World Flag renders on a real course switch
+  
+01:37 +284 -19: C:/QQL/QuisquisLingo/test/course_entry_animation_228_test.dart: Home course-switch wiring explicit World Flag renders on a real course switch
+ÔòÉÔòÉÔòí EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK Ôò×ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+The following PlatformException was thrown running a test:
+PlatformException(test_storage_unavailable, Persistent storage is unavailable in widget tests.,
+null, null)
+
+When the exception was thrown, this was the stack:
+#0      StandardMethodCodec.decodeEnvelope (package:flutter/src/services/message_codecs.dart:653:7)
+#1      MethodChannel._invokeMethod (package:flutter/src/services/platform_channel.dart:366:18)
+<asynchronous suspension>
+#2      getApplicationSupportDirectory (package:path_provider/path_provider.dart:77:24)
+<asynchronous suspension>
+#3      CourseFileStore.directoryFor (package:quisquislingo_app/services/course_file_store.dart:55:18)
+<asynchronous suspension>
+#4      CourseFileStore.readAll (package:quisquislingo_app/services/course_file_store.dart:79:23)
+<asynchronous suspension>
+#5      CourseEditorService.saveUserCourse (package:quisquislingo_app/services/course_editor_service.dart:164:10)
+<asynchronous suspension>
+#6      main.<anonymous closure>.<anonymous closure> (file:///C:/QQL/QuisquisLingo/test/course_entry_animation_228_test.dart:577:11)
+<asynchronous suspension>
+#7      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#8      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+The test description was:
+  explicit World Flag renders on a real course switch
+ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+01:37 +284 -20: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:37 +284 -20: C:/QQL/QuisquisLingo/test/course_entry_animation_228_test.dart: Home course-switch wiring explicit World Flag renders on a real course switch [E]
+  Test failed. See exception logs above.
+  The test description was: explicit World Flag renders on a real course switch
+  
+01:37 +284 -20: C:/QQL/QuisquisLingo/test/course_entry_animation_228_test.dart: Home course-switch wiring an explicitly invalid flag switches course without using its fallback
+ÔòÉÔòÉÔòí EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK Ôò×ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+The following PlatformException was thrown running a test:
+PlatformException(test_storage_unavailable, Persistent storage is unavailable in widget tests.,
+null, null)
+
+When the exception was thrown, this was the stack:
+#0      StandardMethodCodec.decodeEnvelope (package:flutter/src/services/message_codecs.dart:653:7)
+#1      MethodChannel._invokeMethod (package:flutter/src/services/platform_channel.dart:366:18)
+<asynchronous suspension>
+#2      getApplicationSupportDirectory (package:path_provider/path_provider.dart:77:24)
+<asynchronous suspension>
+#3      CourseFileStore.directoryFor (package:quisquislingo_app/services/course_file_store.dart:55:18)
+<asynchronous suspension>
+#4      CourseFileStore.readAll (package:quisquislingo_app/services/course_file_store.dart:79:23)
+<asynchronous suspension>
+#5      CourseEditorService.saveUserCourse (package:quisquislingo_app/services/course_editor_service.dart:164:10)
+<asynchronous suspension>
+#6      main.<anonymous closure>.<anonymous closure> (file:///C:/QQL/QuisquisLingo/test/course_entry_animation_228_test.dart:620:9)
+<asynchronous suspension>
+#7      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#8      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+The test description was:
+  an explicitly invalid flag switches course without using its fallback
+ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+01:37 +284 -21: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:37 +284 -21: C:/QQL/QuisquisLingo/test/course_entry_animation_228_test.dart: Home course-switch wiring an explicitly invalid flag switches course without using its fallback [E]
+  Test failed. See exception logs above.
+  The test description was: an explicitly invalid flag switches course without using its fallback
+  
+01:38 +285 -21: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:38 +286 -21: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:39 +287 -21: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:39 +288 -21: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:39 +289 -21: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:39 +290 -21: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:39 +291 -21: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:39 +292 -21: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:39 +293 -21: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:39 +294 -21: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:39 +295 -21: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:40 +296 -21: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:40 +297 -21: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:40 +298 -21: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:40 +299 -21: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:40 +300 -21: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:41 +301 -21: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:41 +302 -21: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:41 +303 -21: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:43 +304 -21: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:45 +305 -21: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:45 +306 -21: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:45 +307 -21: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:47 +308 -21: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:48 +309 -21: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:48 +310 -21: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:48 +311 -21: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:49 +311 -22: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:49 +311 -22: C:/QQL/QuisquisLingo/test/course_lineage_v9_test.dart: v9 namespace ignores and preserves v8 storage without fallback [E]
+  MissingPluginException(No implementation found for method getApplicationSupportDirectory on channel plugins.flutter.io/path_provider)
+  package:flutter/src/services/platform_channel.dart 364:7  MethodChannel._invokeMethod
+  
+01:49 +311 -23: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:49 +311 -23: C:/QQL/QuisquisLingo/test/course_lineage_v9_test.dart: Copy as New Course starts an independent lineage [E]
+  MissingPluginException(No implementation found for method getApplicationSupportDirectory on channel plugins.flutter.io/path_provider)
+  package:flutter/src/services/platform_channel.dart 364:7  MethodChannel._invokeMethod
+  
+01:49 +311 -24: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:49 +311 -24: C:/QQL/QuisquisLingo/test/course_lineage_v9_test.dart: Fork preserves lineage and records its immediate source [E]
+  MissingPluginException(No implementation found for method getApplicationSupportDirectory on channel plugins.flutter.io/path_provider)
+  package:flutter/src/services/platform_channel.dart 364:7  MethodChannel._invokeMethod
+  
+01:49 +311 -25: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:49 +311 -25: C:/QQL/QuisquisLingo/test/course_lineage_v9_test.dart: fork of a fork preserves root lineage and records immediate source [E]
+  MissingPluginException(No implementation found for method getApplicationSupportDirectory on channel plugins.flutter.io/path_provider)
+  package:flutter/src/services/platform_channel.dart 364:7  MethodChannel._invokeMethod
+  
+01:49 +312 -25: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:49 +313 -25: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:49 +313 -26: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:49 +313 -26: C:/QQL/QuisquisLingo/test/course_lineage_v9_test.dart: provenance identities do not retain access after Maintainer transfer [E]
+  MissingPluginException(No implementation found for method getApplicationSupportDirectory on channel plugins.flutter.io/path_provider)
+  package:flutter/src/services/platform_channel.dart 364:7  MethodChannel._invokeMethod
+  
+01:49 +314 -26: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:49 +314 -27: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:49 +314 -27: C:/QQL/QuisquisLingo/test/course_lineage_v9_test.dart: assigned Team editor updates current-version metadata without rewriting lineage [E]
+  MissingPluginException(No implementation found for method getApplicationSupportDirectory on channel plugins.flutter.io/path_provider)
+  package:flutter/src/services/platform_channel.dart 364:7  MethodChannel._invokeMethod
+  
+01:51 +315 -27: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:51 +316 -27: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:52 +317 -27: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:52 +318 -27: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:52 +319 -27: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:52 +320 -27: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:52 +321 -27: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:52 +322 -27: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:57 +322 -27: C:/QQL/QuisquisLingo/test/course_metadata_wording_226_04_r1_test.dart: authoring navigation and metadata dialog say Course Info Editor
+ÔòÉÔòÉÔòí EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK Ôò×ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+The following TestFailure was thrown running a test:
+Expected: no matching candidates
+  Actual: _TypeWidgetFinder:<Found 1 widget with type "AlertDialog": [
+            AlertDialog(dependencies: [Directionality, InheritedCupertinoTheme, MediaQuery,
+_InheritedTheme, _LocalizationsScope-[GlobalKey#12703]]),
+          ]>
+   Which: means one was found but none were expected
+
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure> (file:///C:/QQL/QuisquisLingo/test/course_metadata_wording_226_04_r1_test.dart:45:7)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///C:/QQL/QuisquisLingo/test/course_metadata_wording_226_04_r1_test.dart line 45
+The test description was:
+  authoring navigation and metadata dialog say Course Info Editor
+ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+01:57 +322 -28: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:57 +322 -28: C:/QQL/QuisquisLingo/test/course_metadata_wording_226_04_r1_test.dart: authoring navigation and metadata dialog say Course Info Editor [E]
+  Test failed. See exception logs above.
+  The test description was: authoring navigation and metadata dialog say Course Info Editor
+  
+01:57 +323 -28: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:58 +324 -28: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:59 +325 -28: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:59 +326 -28: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:59 +327 -28: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:59 +328 -28: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:59 +329 -28: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:59 +330 -28: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:59 +331 -28: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:59 +332 -28: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:59 +333 -28: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:59 +334 -28: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:59 +335 -28: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:59 +336 -28: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:59 +337 -28: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:59 +338 -28: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:59 +339 -28: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:59 +340 -28: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:59 +341 -28: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:59 +342 -28: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:59 +343 -28: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:59 +344 -28: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:59 +345 -28: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:59 +346 -28: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:59 +347 -28: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:59 +348 -28: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:59 +349 -28: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:59 +350 -28: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:59 +351 -28: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+01:59 +352 -28: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+02:00 +353 -28: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+02:00 +354 -28: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+02:00 +355 -28: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+02:00 +356 -28: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+02:00 +357 -28: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+02:02 +358 -28: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+02:03 +359 -28: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+02:03 +360 -28: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+02:03 +361 -28: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+02:03 +362 -28: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+02:03 +363 -28: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+02:03 +364 -28: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+02:03 +365 -28: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+02:03 +366 -28: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+02:03 +367 -28: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+02:03 +368 -28: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+02:03 +369 -28: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+02:03 +370 -28: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+02:03 +371 -28: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+02:03 +372 -28: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+02:03 +373 -28: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+02:03 +374 -28: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+02:03 +375 -28: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+02:04 +376 -28: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+02:05 +377 -28: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+02:05 +378 -28: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+02:05 +379 -28: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+02:05 +380 -28: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+02:05 +381 -28: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+02:05 +381 -29: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+02:05 +381 -29: C:/QQL/QuisquisLingo/test/course_ownership_team_229_r1_test.dart: Profile deletion preserves Team membership and final-Lead invariants [E]
+  Expected: throws <Instance of 'StateError'>
+    Actual: <Instance of 'Future<void>'>
+     Which: threw MissingPluginException:<MissingPluginException(No implementation found for method getApplicationSupportDirectory on channel plugins.flutter.io/path_provider)>
+            stack package:flutter/src/services/platform_channel.dart 364:7  MethodChannel._invokeMethod
+                  ===== asynchronous gap ===========================
+                  package:matcher                                           expectLater
+                  package:flutter_test/src/widget_tester.dart 507:8         expectLater
+                  test\course_ownership_team_229_r1_test.dart 307:13        main.<fn>
+                  ===== asynchronous gap ===========================
+                  dart:async                                                _CustomZone.registerUnaryCallback
+                  test\course_ownership_team_229_r1_test.dart 293:24        main.<fn>
+                  
+            which is not an instance of 'StateError'
+  
+  package:matcher                                     expectLater
+  package:flutter_test/src/widget_tester.dart 507:8   expectLater
+  test\course_ownership_team_229_r1_test.dart 307:13  main.<fn>
+  ===== asynchronous gap ===========================
+  dart:async                                          _CustomZone.registerUnaryCallback
+  test\course_ownership_team_229_r1_test.dart 293:24  main.<fn>
+  
+02:05 +381 -30: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+02:05 +381 -30: C:/QQL/QuisquisLingo/test/course_ownership_team_229_r1_test.dart: Profile deletion cannot orphan an individually owned custom course [E]
+  MissingPluginException(No implementation found for method getApplicationSupportDirectory on channel plugins.flutter.io/path_provider)
+  package:flutter/src/services/platform_channel.dart 364:7  MethodChannel._invokeMethod
+  
+02:05 +381 -31: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits
+02:05 +381 -31: C:/QQL/QuisquisLingo/test/course_ownership_team_229_r1_test.dart: Copy as New Course and Fork persist clean baselines while edits are dirty [E]
+  MissingPluginException(No implementation found for method getApplicationSupportDirectory on channel plugins.flutter.io/path_provider)
+  package:flutter/src/services/platform_channel.dart 364:7  MethodChannel._invokeMethod
+  
+11:25 +381 -32: C:/QQL/QuisquisLingo/test/course_ownership_team_229_r1_test.dart: persisted Copy as New Course and Fork close cleanly while edits prompt
+11:25 +381 -32: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course menu enters the 225.04 transaction for edits [E]
+  TimeoutException after 0:10:00.000000: Test timed out after 10 minutes.
+  dart:isolate  _RawReceivePort._handleMessage
+  
+11:27 +381 -32: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: Course Manager allowed official action set keeps licensed Fork distinct
+ÔòÉÔòÉÔòí EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK Ôò×ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+The following assertion was thrown running a test:
+pumpAndSettle timed out
+
+When the exception was thrown, this was the stack:
+#0      WidgetTester.pumpAndSettle.<anonymous closure> (package:flutter_test/src/widget_tester.dart:717:11)
+<asynchronous suspension>
+#1      TestAsyncUtils.guard.<anonymous closure> (package:flutter_test/src/test_async_utils.dart:130:27)
+<asynchronous suspension>
+#2      main.<anonymous closure> (file:///C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart:439:9)
+<asynchronous suspension>
+#3      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#4      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+The test description was:
+  Course Manager allowed official action set keeps licensed Fork distinct
+ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+11:27 +381 -33: C:/QQL/QuisquisLingo/test/course_ownership_team_229_r1_test.dart: persisted Copy as New Course and Fork close cleanly while edits prompt
+11:27 +381 -33: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: Course Manager allowed official action set keeps licensed Fork distinct [E]
+  Test failed. See exception logs above.
+  The test description was: Course Manager allowed official action set keeps licensed Fork distinct
+  
+11:30 +381 -33: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: Course Manager forbidden official action set keeps licensed Fork distinct
+ÔòÉÔòÉÔòí EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK Ôò×ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+The following assertion was thrown running a test:
+pumpAndSettle timed out
+
+When the exception was thrown, this was the stack:
+#0      WidgetTester.pumpAndSettle.<anonymous closure> (package:flutter_test/src/widget_tester.dart:717:11)
+<asynchronous suspension>
+#1      TestAsyncUtils.guard.<anonymous closure> (package:flutter_test/src/test_async_utils.dart:130:27)
+<asynchronous suspension>
+#2      main.<anonymous closure> (file:///C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart:439:9)
+<asynchronous suspension>
+#3      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#4      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+The test description was:
+  Course Manager forbidden official action set keeps licensed Fork distinct
+ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+11:30 +381 -34: C:/QQL/QuisquisLingo/test/course_ownership_team_229_r1_test.dart: persisted Copy as New Course and Fork close cleanly while edits prompt
+11:30 +381 -34: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: Course Manager forbidden official action set keeps licensed Fork distinct [E]
+  Test failed. See exception logs above.
+  The test description was: Course Manager forbidden official action set keeps licensed Fork distinct
+  
+11:33 +381 -34: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: Course Manager unspecified official action set keeps licensed Fork distinct
+ÔòÉÔòÉÔòí EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK Ôò×ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+The following assertion was thrown running a test:
+pumpAndSettle timed out
+
+When the exception was thrown, this was the stack:
+#0      WidgetTester.pumpAndSettle.<anonymous closure> (package:flutter_test/src/widget_tester.dart:717:11)
+<asynchronous suspension>
+#1      TestAsyncUtils.guard.<anonymous closure> (package:flutter_test/src/test_async_utils.dart:130:27)
+<asynchronous suspension>
+#2      main.<anonymous closure> (file:///C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart:439:9)
+<asynchronous suspension>
+#3      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#4      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+The test description was:
+  Course Manager unspecified official action set keeps licensed Fork distinct
+ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+11:33 +381 -35: C:/QQL/QuisquisLingo/test/course_ownership_team_229_r1_test.dart: persisted Copy as New Course and Fork close cleanly while edits prompt
+11:33 +381 -35: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: Course Manager unspecified official action set keeps licensed Fork distinct [E]
+  Test failed. See exception logs above.
+  The test description was: Course Manager unspecified official action set keeps licensed Fork distinct
+  
+12:05 +381 -36: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course Editor exposes Copy as New Course while Delete stays in Course Manager
+12:05 +381 -36: C:/QQL/QuisquisLingo/test/course_ownership_team_229_r1_test.dart: persisted Copy as New Course and Fork close cleanly while edits prompt [E]
+  TimeoutException after 0:10:00.000000: Test timed out after 10 minutes.
+  dart:isolate  _RawReceivePort._handleMessage
+  
+12:05 +381 -37: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course Editor exposes Copy as New Course while Delete stays in Course Manager
+12:05 +381 -37: C:/QQL/QuisquisLingo/test/course_ownership_team_229_r1_test.dart: Course metadata survives confirmation and reopen [E]
+  MissingPluginException(No implementation found for method getApplicationSupportDirectory on channel plugins.flutter.io/path_provider)
+  package:flutter/src/services/platform_channel.dart 364:7  MethodChannel._invokeMethod
+  
+12:05 +381 -38: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course Editor exposes Copy as New Course while Delete stays in Course Manager
+12:05 +381 -38: C:/QQL/QuisquisLingo/test/course_ownership_team_229_r1_test.dart: services prevent Copy as New Course bypass and permit licensed Fork [E]
+  MissingPluginException(No implementation found for method getApplicationSupportDirectory on channel plugins.flutter.io/path_provider)
+  package:flutter/src/services/platform_channel.dart 364:7  MethodChannel._invokeMethod
+  
+12:05 +381 -39: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course Editor exposes Copy as New Course while Delete stays in Course Manager
+12:05 +381 -39: C:/QQL/QuisquisLingo/test/course_ownership_team_229_r1_test.dart: Team member Copy as New Course starts independent unassigned lineage [E]
+  MissingPluginException(No implementation found for method getApplicationSupportDirectory on channel plugins.flutter.io/path_provider)
+  package:flutter/src/services/platform_channel.dart 364:7  MethodChannel._invokeMethod
+  
+12:06 +382 -39: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course Editor exposes Copy as New Course while Delete stays in Course Manager
+12:07 +383 -39: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course Editor exposes Copy as New Course while Delete stays in Course Manager
+12:08 +384 -39: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course Editor exposes Copy as New Course while Delete stays in Course Manager
+12:08 +384 -39: C:/QQL/QuisquisLingo/test/course_ownership_team_229_r1_test.dart: Course Manager opens separate Team Manager page
+ÔòÉÔòÉÔòí EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK Ôò×ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+The following assertion was thrown running a test:
+The finder "Found 0 widgets with key [<'team-manager-entry'>]: []" (used in a call to "tap()") could
+not find any matching widgets.
+
+When the exception was thrown, this was the stack:
+#0      WidgetController._getElementPoint (package:flutter_test/src/controller.dart:2095:7)
+#1      WidgetController.getCenter (package:flutter_test/src/controller.dart:1947:12)
+#2      WidgetController.tap (package:flutter_test/src/controller.dart:1080:7)
+#3      main.<anonymous closure> (file:///C:/QQL/QuisquisLingo/test/course_ownership_team_229_r1_test.dart:760:18)
+<asynchronous suspension>
+#4      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#5      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+The test description was:
+  Course Manager opens separate Team Manager page
+ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+12:08 +384 -40: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course Editor exposes Copy as New Course while Delete stays in Course Manager
+12:08 +384 -40: C:/QQL/QuisquisLingo/test/course_ownership_team_229_r1_test.dart: Course Manager opens separate Team Manager page [E]
+  Test failed. See exception logs above.
+  The test description was: Course Manager opens separate Team Manager page
+  
+12:09 +385 -40: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course Editor exposes Copy as New Course while Delete stays in Course Manager
+12:09 +386 -40: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course Editor exposes Copy as New Course while Delete stays in Course Manager
+12:09 +387 -40: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course Editor exposes Copy as New Course while Delete stays in Course Manager
+12:09 +388 -40: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course Editor exposes Copy as New Course while Delete stays in Course Manager
+12:09 +389 -40: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course Editor exposes Copy as New Course while Delete stays in Course Manager
+12:09 +390 -40: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course Editor exposes Copy as New Course while Delete stays in Course Manager
+12:10 +391 -40: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course Editor exposes Copy as New Course while Delete stays in Course Manager
+12:10 +392 -40: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course Editor exposes Copy as New Course while Delete stays in Course Manager
+12:12 +393 -40: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course Editor exposes Copy as New Course while Delete stays in Course Manager
+12:16 +394 -40: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course Editor exposes Copy as New Course while Delete stays in Course Manager
+12:17 +395 -40: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course Editor exposes Copy as New Course while Delete stays in Course Manager
+12:18 +396 -40: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course Editor exposes Copy as New Course while Delete stays in Course Manager
+12:19 +397 -40: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course Editor exposes Copy as New Course while Delete stays in Course Manager
+12:20 +398 -40: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course Editor exposes Copy as New Course while Delete stays in Course Manager
+12:20 +399 -40: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course Editor exposes Copy as New Course while Delete stays in Course Manager
+12:21 +400 -40: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course Editor exposes Copy as New Course while Delete stays in Course Manager
+12:21 +401 -40: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course Editor exposes Copy as New Course while Delete stays in Course Manager
+12:22 +402 -40: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course Editor exposes Copy as New Course while Delete stays in Course Manager
+12:22 +403 -40: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course Editor exposes Copy as New Course while Delete stays in Course Manager
+12:22 +404 -40: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course Editor exposes Copy as New Course while Delete stays in Course Manager
+12:23 +405 -40: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course Editor exposes Copy as New Course while Delete stays in Course Manager
+12:24 +406 -40: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course Editor exposes Copy as New Course while Delete stays in Course Manager
+12:27 +407 -40: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course Editor exposes Copy as New Course while Delete stays in Course Manager
+12:28 +408 -40: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course Editor exposes Copy as New Course while Delete stays in Course Manager
+12:28 +409 -40: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course Editor exposes Copy as New Course while Delete stays in Course Manager
+12:28 +410 -40: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course Editor exposes Copy as New Course while Delete stays in Course Manager
+12:29 +411 -40: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course Editor exposes Copy as New Course while Delete stays in Course Manager
+12:31 +412 -40: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course Editor exposes Copy as New Course while Delete stays in Course Manager
+12:32 +413 -40: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course Editor exposes Copy as New Course while Delete stays in Course Manager
+12:33 +414 -40: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course Editor exposes Copy as New Course while Delete stays in Course Manager
+12:33 +415 -40: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course Editor exposes Copy as New Course while Delete stays in Course Manager
+12:33 +416 -40: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course Editor exposes Copy as New Course while Delete stays in Course Manager
+12:33 +417 -40: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course Editor exposes Copy as New Course while Delete stays in Course Manager
+12:36 +418 -40: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course Editor exposes Copy as New Course while Delete stays in Course Manager
+12:36 +419 -40: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course Editor exposes Copy as New Course while Delete stays in Course Manager
+12:37 +420 -40: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course Editor exposes Copy as New Course while Delete stays in Course Manager
+12:39 +421 -40: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course Editor exposes Copy as New Course while Delete stays in Course Manager
+12:40 +422 -40: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course Editor exposes Copy as New Course while Delete stays in Course Manager
+12:41 +423 -40: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course Editor exposes Copy as New Course while Delete stays in Course Manager
+12:41 +424 -40: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course Editor exposes Copy as New Course while Delete stays in Course Manager
+12:42 +425 -40: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course Editor exposes Copy as New Course while Delete stays in Course Manager
+12:42 +426 -40: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course Editor exposes Copy as New Course while Delete stays in Course Manager
+12:43 +427 -40: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course Editor exposes Copy as New Course while Delete stays in Course Manager
+12:44 +428 -40: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course Editor exposes Copy as New Course while Delete stays in Course Manager
+12:44 +429 -40: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course Editor exposes Copy as New Course while Delete stays in Course Manager
+12:44 +429 -41: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course Editor exposes Copy as New Course while Delete stays in Course Manager
+12:44 +429 -41: C:/QQL/QuisquisLingo/test/device_administration_239_test.dart: startup policy asks only when there is more than one learner [E]
+  MissingPluginException(No implementation found for method getApplicationSupportDirectory on channel plugins.flutter.io/path_provider)
+  package:flutter/src/services/platform_channel.dart 364:7  MethodChannel._invokeMethod
+  
+12:44 +430 -41: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course Editor exposes Copy as New Course while Delete stays in Course Manager
+12:44 +430 -42: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course Editor exposes Copy as New Course while Delete stays in Course Manager
+12:44 +430 -42: C:/QQL/QuisquisLingo/test/device_administration_239_test.dart: deleting the active learner does not auto-pick another in ask mode [E]
+  MissingPluginException(No implementation found for method getApplicationSupportDirectory on channel plugins.flutter.io/path_provider)
+  package:flutter/src/services/platform_channel.dart 364:7  MethodChannel._invokeMethod
+  
+12:45 +431 -42: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course Editor exposes Copy as New Course while Delete stays in Course Manager
+12:45 +432 -42: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course Editor exposes Copy as New Course while Delete stays in Course Manager
+12:45 +433 -42: C:/QQL/QuisquisLingo/test/course_editor_layout_regression_test.dart: custom Course Editor exposes Copy as New Course while Delete stays in Course Manager

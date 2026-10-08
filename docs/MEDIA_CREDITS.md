@@ -1,0 +1,57 @@
+# Media credits
+
+Current for QQL 235.
+
+The startup screen uses the repository-owned QuisquisLingo logo from
+`assets/branding/quisquislingo_logo.png`. The former public-domain olive
+startup artwork was retired in QQL 234 and is no longer distributed.
+
+## Other images
+
+The in-app Image credits page lists the built-in Flat Image Bank,
+programmatically drawn Status avatars, and the flat
+multicolor Lesson icons generated specifically for QuisquisLingo. Exercise
+Image Bank replacements generated for QQL 234 contain no third-party source
+artwork. Repository-local provenance for the Lesson icons remains recorded in
+`assets/lesson_icons/LICENSE.md`.
+
+The six legacy files under `assets/lesson_plants/` have no production resolver
+or source reference in QQL 234. They remain distributed but are classified as
+unused retained assets pending a separate explicit removal decision; they are
+therefore not presented as current in-app artwork.
+
+## World and language-related flags
+
+The 249 ISO flag files and ten approved shortlist files (the European Union
+and the United Nations added in Build 264) come from `lipis/flag-icons`
+v7.5.0 under the MIT License. The flag of Quebec (Build 264; public domain;
+René Chaloult, vector by Krun) and the additional twenty-four community or
+regional flags associated with languages come from Wikimedia Commons. Since
+Build 264 Revision 1 the image library offers these flags directly; each
+flag record carries its credit. Nineteen are public domain or CC0; the five attribution-required
+files are:
+
+- Aragonese flag — Willtron, CC BY-SA 3.0;
+- Friulian flag — Ipankonin, CC BY-SA 3.0;
+- Sardinian flag — Angelus, CC BY-SA 3.0;
+- Mirandese proposed cultural-region flag — ItsGandaM1ke, CC BY 4.0;
+- Venetian flag — F l a n k e r, CC BY-SA 3.0.
+
+Exact source pages, license links, authors, source checksums and any distinct
+renderer-normalized bundled checksums are recorded in
+`assets/world_flags/LICENSE-language-related-flags.md`. The same five
+attributions are presented in the in-app Image credits page.
+
+## Sounds
+
+Duel result tones are original synthesized audio created specifically for
+QuisquisLingo. The sixteen retained language sample MP3s are byte-for-byte
+unchanged in QQL 234. No per-file author/source metadata for those legacy
+examples was found in the tracked repository, so the QQL 234 audit records
+their provenance as uncertain rather than inventing an attribution.
+
+## Course authors
+
+Credits reserves a separate author area for each bundled course. Names are
+intentionally left as `To be added` until course authorship information is
+supplied.

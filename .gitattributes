@@ -1,0 +1,16 @@
+/assets/world_flags/flags/breton.svg -text whitespace=cr-at-eol
+/test/fixtures/publishers/*.bin -text -diff
+/test/fixtures/publishers/*.der -text -diff
+/test/fixtures/publishers/*.zip -text -diff
+/assets/world_flags/flags/cornish.svg -text
+/assets/world_flags/flags/corsican.svg -text
+/assets/world_flags/flags/friulian.svg -text
+/assets/world_flags/flags/occitan.svg -text
+/assets/world_flags/flags/roma.svg -text
+/assets/world_flags/flags/sami.svg -text
+/assets/world_flags/flags/sardinian.svg -text
+/assets/world_flags/flags/sorbian.svg -text
+/matXpack/*.pdf -text -diff
+/matXpack/*.pdf -text -diff
+/matXpack/*.pdf -text -diff
+/demo_image_banks/*.zip -text -diff

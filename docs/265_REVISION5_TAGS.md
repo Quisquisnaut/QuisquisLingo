@@ -1,0 +1,602 @@
+# Build 265 Revision 5: tags added to the image library
+
+Generated from the catalogue (`assets/exercise_images/metadata_v2.json`) against the
+Revision 4 commit. For each record: its name, then the tags Revision 5 appended
+(the earlier tags are kept, in their order). Group 1 of the owner's brief of
+7 October 2026. The owner's own additions (point 1) to Wrong (not) and Eye
+(see, look, sight) are in their lines; the others are listed at the end.
+
+## actions (102)
+
+- Walk (`actions_walk`): on foot, stroll, go for a walk, walk along
+- Run (`actions_run`): jog, jogging, sprint, run fast
+- Saltare (`actions_jump`): hop, jump for joy
+- Sit (`actions_sit`): sit down, seated, take a seat, on a chair
+- Stand (`actions_stand`): upright, on your feet, stand up, stand still
+- Write (`actions_write`): handwriting, pencil, write down, take notes
+- Brush teeth (`actions_brush_teeth`): toothbrush, toothpaste, clean your teeth, dental hygiene
+- Sleep (`actions_sleep`): asleep, bedtime, in bed, nap
+- Eat (`actions_eat`): have a meal, hungry
+- Drink (`actions_drink`): glass of water, sip
+- Cook (`actions_cook`): cook a meal, saucepan
+- Read (`actions_read`): read a book
+- Watch TV (`actions_watch_tv`): remote control
+- Wash the Dishes (`actions_wash_dishes`): dishwashing
+- Sweep (`actions_sweep`): dustpan, sweep the floor
+- Iron Clothes (`actions_iron_clothes`): ironing board, creases
+- Do the Laundry (`actions_do_laundry`): laundry basket
+- Wash Hands (`actions_wash_hands`): handwashing
+- Comb Hair (`actions_comb_hair`): do your hair
+- Clean (`actions_clean`): cleaning spray, wipe the table
+- Bake (`actions_bake`): baked, bake cookies
+- Boil (`actions_boil`): boiling water, steam
+- Fry (`actions_fry`): pan-fry, sizzle
+- Grill (`actions_grill`): grilled
+- Roast (`actions_roast`): roasted, over a fire
+- Chop (`actions_chop`): chop vegetables, cut up
+- Slice (`actions_slice`): slice bread, cut into slices
+- Peel (`actions_peel`): peel potatoes, potato skin
+- Grate (`actions_grate`): grated cheese, cheese grater
+- Stir (`actions_stir`): stir the soup, soup pot
+- Mix (`actions_mix`): mixing bowl, whisking
+- Pour (`actions_pour`): pour water, pour a drink
+- Season (`actions_season`): salt shaker, salt and pepper
+- Taste (`actions_taste`): try the food, flavour
+- Serve (`actions_serve`): serve food, dinner is served
+- Order (`actions_order_food`): place an order, I would like
+- Pay (`actions_pay`): card reader
+- Shaving (`actions_shaving`): shave your beard, clean-shaven
+- Showering (`actions_showering`): shampoo, have a shower
+- Vacuuming (`actions_vacuuming`): vacuum the floor, hoover
+- Cutting (`actions_cutting`): cut paper, snip
+- Clapping (`actions_clapping`): clap your hands, bravo
+- Swinging (`actions_swinging`): on a swing, swing set
+- Sliding (`actions_sliding`): slide down, go down the slide
+- Playing on a Seesaw (`actions_seesaw`): see-saw, go up and down
+- Crawling (`actions_crawling`): on all fours, creep
+- Throwing (`actions_throwing`): throw a ball, fling
+- Climbing Stairs (`actions_climbing_stairs`): climb, staircase
+- Give (`actions_give`): give a present, hand to someone
+- Take (`actions_take`): cookie jar, help yourself
+- Bring (`actions_bring`): bring food, bring over
+- Look for (`actions_look_for`): magnifying glass, looking for
+- Find (`actions_find`): find the key, come across
+- Lose (`actions_lose`): lose your wallet, misplace
+- Want (`actions_want`): would like, craving
+- Need (`actions_need`): need help, require
+- Make (`actions_make`): make a cake
+- Begin (`actions_begin`): kick off
+- Finish (`actions_finish`): chequered flag
+- Learn (`actions_learn`): learner, studying
+- Teach (`actions_teach`): blackboard
+- Speak (`actions_speak`): speak up
+- Know (`actions_know`): be sure, know the answer
+- Live (`actions_live`): where I live
+- Push (`actions_push`): push a box, push hard
+- Pull (`actions_pull`): haul, pull a rope
+- Lie down (`actions_lie_down`): relax, stretch out
+- Wake up (`actions_wake_up`): alarm clock
+- Get dressed (`actions_get_dressed`): get ready, put on a shirt
+- Carry (`actions_carry`): carry a box, heavy load
+- Catch (`actions_catch`): catch it, ball game
+- Send (`actions_send`): send a letter, posting
+- Remember (`actions_remember`): don't forget, remind
+- Forget (`actions_forget`): forgetful, can't remember
+- Build (`actions_build`): building blocks, build a tower
+- Break (`actions_break`): broken, break in two
+- Fix (`actions_fix`): repair a chair, screwdriver
+- Fill (`actions_fill`): full, fill a glass
+- Hide (`actions_hide`): hidden, behind a tree
+- Meet (`actions_meet`): meet a friend, bump into
+- Arrive (`actions_arrive`): arrive home
+- Have a bath (`actions_have_a_bath`): bathtub
+- Hit (`actions_hit`): hit the ball
+- Enter (`actions_enter`): doorway
+- Visit (`actions_visit`): family visit
+- Knock (`actions_knock`): knock knock
+- Chew (`actions_chew`): chew gum
+- Pick fruit (`actions_pick_fruit`): orchard
+- Dream (`actions_dream`): daydream
+- Snore (`actions_snore`): zzz
+- Fold (`actions_fold`): neat pile
+- Switch on (turn on) (`actions_switch_on`): switch on the light
+- Switch off (turn off) (`actions_switch_off`): switch off the light
+- Juggle (`actions_juggle`): juggling balls
+- Kneel (`actions_kneel`): bend the knee
+- Bend (`actions_bend`): lean over
+- Chase (`actions_chase`): dog chasing a cat
+- Splash (`actions_splash`): splash about
+- Float (`actions_float`): buoyant
+- Melt (`actions_melt`): melting ice cream
+- Slip (`actions_slip`): lose your balance
+- Scratch (`actions_scratch`): dog scratching
+
+## animals (139)
+
+- Cat (`cat`): feline, house cat, meow, pussycat
+- Dog (`animals_dog`): puppy, animal, canine, woof
+- Rabbit (`animals_rabbit`): bunny, long ears, pet rabbit, burrow
+- Bird (`animals_bird`): songbird, tweet
+- Fish (`animals_fish`): gills, fish scales, swimming fish, fishes
+- Horse (`animals_horse`): stallion, mare, neigh, horse riding
+- Cow (`animals_cow`): moo, dairy cow, spotted cow, cows
+- Pig (`animals_pig`): oink, hog, piggy, pigs
+- Sheep (`animals_sheep`): wool, baa, flock, ewe
+- Duck (`animals_duck`): quack, mallard, duck pond, pond bird
+- Butterfly (`animals_butterfly`): colourful wings, flutter, butterflies, garden insect
+- Ladybug (`animals_ladybug`): ladybirds, red beetle, black spots
+- Snail (`animals_snail`): snails, spiral shell, escargot
+- Donkey (`animals_donkey`): mule, hee-haw, burro
+- Goat (`animals_goat`): billy goat, nanny goat
+- Mouse (`animals_mouse`): mice, squeak, field mouse
+- Hedgehog (`animals_hedgehog`): prickly, hedgehogs, spiky
+- Squirrel (`animals_squirrel`): acorn, red squirrel
+- Bat (`animals_bat`): nocturnal, flying mammal
+- Fox (`animals_fox`): foxes, vixen
+- Polar Bear (`animals_polar_bear`): white bear, North Pole
+- Panda (`animals_panda`): panda bear, black and white bear
+- Deer (`animals_deer`): doe, roe deer
+- Moose (`animals_moose`): large deer, Canadian wildlife
+- Giraffe (`animals_giraffe`): tall animal, giraffes
+- Zebra (`animals_zebra`): zebras, striped horse
+- Elephant (`animals_elephant`): tusks, big ears
+- Rhinoceros (`animals_rhinoceros`): rhinos, thick skin
+- Hippopotamus (`animals_hippopotamus`): hippos, river horse
+- Lion (`animals_lion`): lioness, roar
+- Tiger (`animals_tiger`): tigers, Bengal tiger
+- Kangaroo (`animals_kangaroo`): kangaroos, marsupial
+- Koala (`animals_koala`): koala bear, koalas
+- Camel (`animals_camel`): camels, desert animal
+- Sloth (`animals_sloth`): sloths, upside down, tree-dwelling
+- Hen (`animals_hen`): cluck, laying hen
+- Rooster (`animals_rooster`): cock-a-doodle-doo, cock
+- Swan (`animals_swan`): swans, graceful
+- Owl (`animals_owl`): hoot, owls, nocturnal bird
+- Parrot (`animals_parrot`): parrots, talking bird
+- Toucan (`animals_toucan`): toucans, colourful beak
+- Flamingo (`animals_flamingo`): flamingos, wading bird
+- Peacock (`animals_peacock`): peacocks, proud
+- Penguin (`animals_penguin`): penguins, waddle
+- Ostrich (`animals_ostrich`): ostriches, long legs
+- Woodpecker (`animals_woodpecker`): woodpeckers, pecking
+- Snake (`animals_snake`): snakes, hiss, slither
+- Crocodile (`animals_crocodile`): crocodiles, croc
+- Tortoise (`animals_tortoise`): tortoises, land turtle, pet tortoise
+- Sea Turtle (`animals_sea_turtle`): sea turtles, marine turtle
+- Chameleon (`animals_chameleon`): colour change, chameleons
+- Frog (`animals_frog`): frogs, ribbit
+- Earthworm (`animals_earthworm`): worms, wriggle
+- Dragonfly (`animals_dragonfly`): dragonflies, flying insect
+- Grasshopper (`animals_grasshopper`): grasshoppers, locust
+- Spider (`animals_spider`): spiders, creepy crawly
+- Scorpion (`animals_scorpion`): scorpions, pincers
+- Shark (`animals_shark`): sharks, great white shark
+- Dolphin (`animals_dolphin`): dolphins, porpoise
+- Whale (`animals_whale`): whales, humpback
+- Walrus (`animals_walrus`): walruses, sea mammal
+- Octopus (`animals_octopus`): octopuses, sea creature
+- Jellyfish (`animals_jellyfish`): sea jelly, jellyfish sting
+- Starfish (`animals_starfish`): five arms, rock pool
+- Seahorse (`animals_seahorse`): seahorses, sea horse
+- Crab (`animals_crab`): crabs, sideways
+- Lobster (`animals_lobster`): lobsters, red lobster
+- Rook (`animals_rook_bird`): rookery
+- Puppy (`animals_puppy`): doggy
+- Kitten (`animals_kitten`): baby cat
+- Black cat (`animals_black_cat`): bad luck
+- Ginger cat (`animals_ginger_cat`): ginger tom
+- Labrador (`animals_labrador`): yellow lab
+- German shepherd (`animals_german_shepherd`): guard dog
+- Poodle (`animals_poodle`): French poodle
+- Dachshund (`animals_dachshund`): doxie
+- Beagle (`animals_beagle`): hunting dog
+- Bulldog (`animals_bulldog`): British bulldog
+- Chihuahua (`animals_chihuahua`): tiny dog
+- Golden retriever (`animals_golden_retriever`): family dog
+- Border collie (`animals_border_collie`): herding dog
+- Dalmatian (`animals_dalmatian`): firehouse dog
+- Husky (`animals_husky`): snow dog
+- Bee (`animals_bee`): worker bee
+- Fly (insect) (`animals_fly_insect`): bluebottle
+- Wolf (`animals_wolf`): wolf pack
+- Turkey (`animals_turkey`): Thanksgiving
+- Lamb (`animals_lamb`): baby sheep
+- Hamster (`animals_hamster`): cheek pouches
+- Guinea pig (`animals_guinea_pig`): furry pet
+- Rat (`animals_rat`): long tail
+- Goldfish (`animals_goldfish`): aquarium
+- Pony (`animals_pony`): pony ride
+- Bull (`animals_bull`): nose ring
+- Chick (`animals_chick`): yellow chick
+- Goose (`animals_goose`): honk
+- Eagle (`animals_eagle`): bald eagle
+- Pigeon (`animals_pigeon`): coo
+- Seagull (`animals_seagull`): herring gull
+- Wasp (`animals_wasp`): hornet
+- Beetle (`animals_beetle`): black beetle
+- Caterpillar (`animals_caterpillar`): crawling insect
+- Dinosaur (`animals_dinosaur`): extinct
+- Leopard (`animals_leopard`): panther
+- Gorilla (`animals_gorilla`): great ape
+- Brown bear (`animals_brown_bear`): brown bears
+- Seal (`animals_seal_animal`): sea lion
+- Cage (`animals_cage`): pet bird
+- Calf (`animals_calf`): mother and calf
+- Duckling (`animals_duckling`): mother duck
+- Sparrow (`animals_sparrow`): brown bird
+- Robin (`animals_robin`): robins
+- Slug (`animals_slug`): slime
+- Toad (`animals_toad`): bumpy skin
+- Cheetah (`animals_cheetah`): cheetahs
+- Chimpanzee (`animals_chimpanzee`): chimpanzees
+- Tail (`animals_dog_tail`): wag
+- Beak (`animals_beak`): pointed beak
+- Kennel (`animals_kennel`): dog bowl
+- Mole (`animals_mole`): tunnel digger
+- Buffalo (`animals_buffalo`): bison
+- Otter (`animals_otter`): floating on its back
+- Beaver (`animals_beaver`): beaver dam
+- Badger (`animals_badger`): digging animal
+- Raccoon (`animals_raccoon`): trash panda
+- Llama (`animals_llama`): Peru
+- Hummingbird (`animals_hummingbird`): hovering
+- Cockroach (`animals_cockroach`): cockroaches
+- Moth (`animals_moth`): drawn to light
+- Reindeer (`animals_reindeer`): Santa's reindeer
+- Piglet (`animals_piglet`): little pig
+- Tadpole (`animals_tadpole`): polliwog
+- Beehive (`animals_beehive`): honeycomb
+- Stable (`animals_stable`): stable door
+- Lead (dog lead) (`animals_dog_lead`): dog collar
+- Guide dog (`animals_guide_dog`): harness
+- Ant (`animals_ant`): ants, anthill, colony, tiny insect
+- Monkey (`animals_monkey`): monkeys, cheeky monkey, tree climber
+- Mosquito (`animals_mosquito`): mosquitoes, mozzie, itchy bite
+
+## appearance (20)
+
+- Comb (`health_care_comb`): hair comb, combing, pocket comb
+- Hairbrush (`health_care_hairbrush`): hair brush, brushing hair, paddle brush
+- Razor (`health_care_razor`): safety razor, disposable razor
+- Long-haired (`appearance_long_haired`): flowing hair, long locks
+- Short-haired (`appearance_short_haired`): short haircut
+- Curly-haired (`appearance_curly_haired`): frizzy hair
+- Straight-haired (`appearance_straight_haired`): smooth hair
+- Bearded (`appearance_bearded`): facial hair
+- Moustache (`appearance_moustache`): tache
+- Freckled (`appearance_freckled`): freckle
+- Slim (`appearance_slim`): skinny, lean
+- Muscular (`appearance_muscular`): flexing
+- Handsome (`appearance_handsome`): good looks, charming
+- Beautiful (`appearance_beautiful`): gorgeous
+- Wrinkles (`appearance_wrinkles`): wrinkled face
+- Ponytail (`appearance_ponytail`): ponytails
+- Hairy (`appearance_hairy`): hairy dog
+- Fashionable (`appearance_fashionable`): chic
+- Nail clippers (`appearance_nail_clippers`): nail cutter, clip your nails, toenail clippers
+- Tweezers (`appearance_tweezers`): pluck eyebrows, remove a splinter, tweezer, precision tool
+
+## architecture (16)
+
+- Skyscraper (`architecture_skyscraper`): skyline
+- Cottage (`architecture_cottage`): country cottage
+- Mosque (`architecture_mosque`): Islamic architecture
+- Tower (`architecture_tower`): turret, lookout tower
+- Arch (`architecture_arch`): arches, Roman arch
+- Dome (`architecture_dome`): domed roof, rotunda
+- Column (`architecture_column`): Greek column
+- Staircase (`architecture_staircase`): banister
+- Balcony (`architecture_balcony`): balconies, window box
+- Roof (`architecture_roof`): red roof
+- Chimney (`architecture_chimney`): flue
+- Fence (`architecture_fence`): white fence
+- Gate (`architecture_gate`): iron gate
+- Drawbridge (`architecture_drawbridge`): lowered bridge
+- Moat (`architecture_moat`): water around a castle
+- Dungeon (`architecture_dungeon`): underground cell
+
+## art_cinema (17)
+
+- Portrait (`art_cinema_portrait`): portrait painting, framed picture
+- Landscape Painting (`art_cinema_landscape_painting`): scenery, framed landscape
+- Sculpture (`art_cinema_sculpture`): stone figure, carved statue
+- Abstract Art (`art_cinema_abstract_art`): geometric art, primary colours
+- Mosaic (`art_cinema_mosaic`): tesserae, tiled picture
+- Palette (`art_cinema_palette`): paint palette, oil paints
+- Easel (`art_cinema_easel`): art stand, painting stand
+- Clapperboard (`art_cinema_clapperboard`): clapper, film set
+- Film Reel (`art_cinema_film_reel`): reel of film, old film reel
+- Popcorn (`art_cinema_popcorn`): popped corn, movie snack
+- Science Fiction (`art_cinema_science_fiction`): UFO, flying saucer
+- Fantasy (`art_cinema_fantasy`): dragons and castles, fantasy film
+- Western (`art_cinema_western`): cowboy film, saloon
+- Horror (`art_cinema_horror`): horror film, frightening film
+- Black and White (`art_cinema_black_and_white`): old photo, black-and-white film
+- Cartoon (`art_cinema_cartoon`): kids' TV
+- Graffiti (`art_cinema_graffiti`): tagging
+
+## body_parts (43)
+
+- Ear (`body_parts_ear`): hearing, ears, earlobe, outer ear
+- Eye (`body_parts_eye`): see, look, sight, eyes
+- Nose (`body_parts_nose`): nostrils, sniff, sense of smell, nasal
+- Mouth (`body_parts_mouth`): open mouth, mouths, oral, lips and teeth
+- Hand (`body_parts_hand`): palm of the hand, hands, five fingers, open hand
+- Foot (`body_parts_foot`): feet, sole, barefoot, arch of the foot
+- Tongue (`body_parts_tongue`): stick out your tongue, tongues
+- Tooth (`body_parts_tooth`): white tooth, dental
+- Knee (`body_parts_knee`): knees, kneecap
+- Elbow (`body_parts_elbow`): elbows, bend your arm
+- Body (`body_parts_body`): physique, person's body
+- Chest (`body_parts_chest`): pecs, front of the body
+- Back (`body_parts_back_body`): lower back, upper back
+- Stomach (`body_parts_belly`): abs, midriff
+- Shoulder (`body_parts_shoulder`): shoulder blade, shoulder joint, broad shoulders
+- Hip (`body_parts_hip`): hip joint, pelvis, side of the body
+- Neck (`body_parts_neck`): nape, necks, Adam's apple
+- Skin (`body_parts_skin`): skin care, complexion
+- Bone (`body_parts_bone`): femur, calcium
+- Skeleton (`body_parts_skeleton`): X-ray, ribs
+- Nail (`body_parts_fingernail`): cuticle, toenail
+- Heart (organ) (`body_parts_heart_organ`): heartbeat
+- Brain (`body_parts_brain`): grey matter
+- Lungs (`body_parts_lungs`): breath
+- Face (`body_parts_face`): faces
+- Arm (`body_parts_arm`): biceps
+- Leg (`body_parts_leg`): shin
+- Head (`body_parts_head`): skull
+- Lips (`body_parts_lips`): pout
+- Chin (`body_parts_chin`): chins
+- Cheek (`body_parts_cheek`): blush
+- Forehead (`body_parts_forehead`): foreheads
+- Eyebrow (`body_parts_eyebrow`): arched brow
+- Eyelashes (`body_parts_eyelashes`): mascara
+- Wrist (`body_parts_wrist`): wrist bone
+- Bottom (`body_parts_bottom_body`): rear end
+- Ankle (`body_parts_ankle`): sprained ankle
+- Heel (`body_parts_heel_foot`): Achilles heel
+- Waist (`body_parts_waist`): waist size
+- Fist (`body_parts_fist`): clenched hand
+- Thigh (`body_parts_thigh`): lap
+- Belly button (`body_parts_belly_button`): umbilicus
+- Thumb (`body_parts_thumb`): thumbs up, thumbs, opposable thumb
+
+## business_work (13)
+
+- Factory (`business_work_factory`): smokestack
+- Office (`business_work_office`): office space
+- Business meeting (`business_work_business_meeting`): boardroom
+- Shipping container (`business_work_shipping_container`): steel box
+- Construction site (`business_work_construction_site`): building in progress
+- Counting money (`business_work_counting_money`): count the cash
+- Cash register (`business_work_cash_register`): cash desk
+- Job interview (`business_work_job_interview`): recruiter
+- Briefcase (`business_work_briefcase`): business bag
+- Photocopier (`business_work_photocopier`): photocopying
+- CV (résumé) (`business_work_cv_resume`): work experience
+- Business card (`business_work_business_card`): contact details
+- Coffee break (`business_work_coffee_break`): break time
+
+## celebrations (19)
+
+- Birthday Cake (`celebrations_birthday_cake`): birthday party, happy birthday
+- Candle (`celebrations_candle`): candlelight, lit candle
+- Present (`celebrations_present`): presents, wrapped present
+- Balloon (`celebrations_balloon`): balloons, red balloon
+- Christmas Tree (`celebrations_christmas_tree`): fir tree, star on top
+- New Year's Eve (`celebrations_new_years_eve`): New Year's party
+- Fireworks (`celebrations_fireworks`): bonfire night
+- Greeting card (birthday card) (`celebrations_greeting_card`): birthday wishes
+- Santa Claus (`celebrations_santa_claus`): Saint Nicholas
+- Blow out candles (`celebrations_blow_out_candles`): birthday wish
+- Decorations (`celebrations_party_decorations`): party garland
+- Festival (`celebrations_festival`): outdoor event
+- Wedding cake (`celebrations_wedding_cake`): white cake
+- Party hat (`celebrations_party_hat`): pointed hat
+- Wreath (`celebrations_christmas_wreath`): front door decoration
+- Christmas stocking (`celebrations_christmas_stocking`): stocking filler
+- Christmas lights (`celebrations_christmas_lights`): tree lights
+- Easter bunny (`celebrations_easter_bunny`): Easter basket
+- Wrapping paper (`celebrations_wrapping_paper`): wrap a present
+
+## city_places (54)
+
+- Shop (`city_public_places_shop`): corner shop, shopfront, local shop, awning
+- Hospital (`city_public_places_hospital`): medical centre, ward, A&E, emergency room
+- School (`city_public_places_school`): schoolhouse, primary school, go to school
+- Traffic Light (`city_public_places_traffic_light`): stop light, traffic signal
+- Restaurant (`city_public_places_restaurant`): eatery, dinner out, fork and knife
+- Café (`city_public_places_cafe`): tea room, café terrace
+- Bar (`city_public_places_bar`): cocktail bar, local pub
+- Pizzeria (`city_public_places_pizzeria`): pizza place, pizza restaurant, wood-fired oven
+- Trattoria (`city_public_places_trattoria`): family restaurant, Italian cooking
+- Airport (`city_public_places_airport`): terminal, air travel
+- Railway Station (`city_public_places_railway_station`): station platform, trains
+- Harbour (`city_public_places_harbour`): marina
+- Castle (`city_public_places_castle`): medieval castle, fort
+- Apartment Building (`city_public_places_apartment_building`): tower block, residential building
+- Playground (`city_public_places_playground`): play area, children's park
+- Petrol Station (`city_public_places_petrol_station`): filling station, service station
+- Lighthouse (`city_public_places_lighthouse`): light tower, lamp beam
+- Bridge (`city_public_places_bridge`): arch bridge, stone bridge
+- Windmill (`city_public_places_windmill`): mill sails, old mill
+- Fountain (`city_public_places_fountain`): fountains, spray of water
+- Street (`urban_places_street`): high street
+- Pavement (`urban_places_pavement`): walkway
+- Crossroads (`urban_places_crossroads`): road junction, four-way junction
+- Roundabout (`urban_places_roundabout`): round junction, go round
+- Pedestrian crossing (`urban_places_pedestrian_crossing`): cross the road, crossing point
+- Square (`urban_places_town_square`): main square
+- Park (`urban_places_park`): city park
+- Car park (`urban_places_car_park`): parking garage, parking area
+- Bus stop (`urban_places_bus_stop`): bus sign, catch the bus
+- Cycle lane (`urban_places_cycle_lane`): cycle path, bike path
+- Streetlight (`urban_places_streetlight`): street light, street lighting
+- Bench (`urban_places_bench`): wooden bench, sit outside
+- Village (`everyday_misc_village`): rural, cottages
+- Lift (elevator) (`city_places_lift_elevator`): lifts
+- Stadium (`city_places_stadium`): football ground
+- Zoo (`city_places_zoo`): safari park
+- Aquarium (`city_places_aquarium`): oceanarium
+- Shopping centre (mall) (`city_places_shopping_centre`): shopping arcade
+- Bus station (`city_places_bus_station`): bus depot
+- Motorway (`city_places_motorway`): fast road
+- City centre (`city_places_city_centre`): town center
+- Emergency exit (`city_places_emergency_exit`): escape route
+- Escalator (`city_places_escalator`): escalators
+- Sports centre (`city_places_sports_centre`): fitness centre
+- Monument (`city_places_monument`): commemorative column
+- Nightclub (`city_places_nightclub`): disco
+- Concert hall (`city_places_concert_hall`): music venue
+- Ruins (`city_places_ruins`): ancient site
+- Old town (`city_places_old_town`): medieval town
+- Parking meter (`city_places_parking_meter`): pay and display, parking ticket, meter
+- Petrol pump (`city_places_petrol_pump`): petrol, fill up the car, diesel
+- Phone box (`city_places_phone_box`): red phone box, phone booth, telephone booth
+- Post box (`city_places_post_box`): letterbox, mailbox, pillar box
+- Tunnel (`city_places_tunnel`): underpass, through the mountain, dark tunnel
+
+## clothing_accessories (64)
+
+- T-shirt (`clothing_accessories_t_shirt`): tee, short sleeves, casual top, T-shirts
+- Pants (`clothing_accessories_pants`): slacks, chinos, long trousers, pair of trousers
+- Dress (`clothing_accessories_dress`): summer dress, sundress
+- Jacket (`clothing_accessories_jacket`): zip-up jacket, bomber jacket
+- Shoes (`clothing_accessories_shoes`): shoe, canvas shoes, lace-ups
+- Hat (`clothing_accessories_hat`): sun hat, straw hat, brim
+- Glasses (`clothing_accessories_glasses`): spectacles, specs, reading glasses, frames
+- Backpack (`clothing_accessories_backpack`): school bag, knapsack, daypack, hiking bag
+- Umbrella (`clothing_accessories_umbrella`): brolly, open umbrella, keep dry, umbrellas
+- Scarf (`clothing_accessories_scarf`): woolly scarf, muffler
+- Gloves (`clothing_accessories_gloves`): pair of gloves, winter gloves, woolly gloves, warm hands
+- Shorts (`clothing_accessories_shorts`): khaki shorts, bermuda shorts
+- Socks (`clothing_accessories_socks`): sock, ankle socks
+- Watch (`clothing_accessories_watch`): wrist watch, analogue watch, watch strap, timepiece
+- Ring (`clothing_accessories_ring`): gold ring, engagement ring, finger ring
+- Necklace (`clothing_accessories_necklace`): pendant, locket
+- Wallet (`clothing_accessories_wallet`): leather wallet, billfold
+- Tie (`clothing_accessories_tie`): school tie, striped tie, tie a knot
+- Sunglasses (`clothing_accessories_sunglasses`): sunnies, dark glasses
+- Coat (`clothing_accessories_coat`): trench coat, warm coat
+- Boots (`clothing_accessories_boots`): leather boots, pair of boots
+- Handbag (`clothing_accessories_handbag`): shoulder bag, ladies' bag
+- Cap (`clothing_accessories_cap`): peaked cap, sports cap
+- Belt (`clothing_accessories_belt`): waist belt, trouser belt
+- Helmet (`clothing_accessories_helmet`): cycling helmet, crash helmet
+- Slippers (`clothing_accessories_slippers`): pair of slippers, indoor shoes
+- Sweater (`everyday_misc_sweater`): woolly jumper
+- Shirt (`clothing_accessories_shirt`): long-sleeved shirt
+- Skirt (`clothing_accessories_skirt`): skirts
+- Blouse (`clothing_accessories_blouse`): blouses
+- Suit (`clothing_accessories_suit`): smart clothes
+- Flip-flops (`clothing_accessories_flip_flops`): pool shoes
+- High heels (`clothing_accessories_high_heels`): court shoes
+- Woolly hat (`clothing_accessories_woolly_hat`): pom-pom hat
+- Swimming trunks (`clothing_accessories_swimming_trunks`): swimming shorts
+- Bikini (`clothing_accessories_bikini`): beach outfit
+- Cardigan (`clothing_accessories_cardigan`): button-up sweater
+- Leggings (`clothing_accessories_leggings`): tight trousers
+- Tights (`clothing_accessories_tights`): leg wear
+- Nightdress (`clothing_accessories_nightdress`): nightshirt
+- Dressing gown (bathrobe) (`clothing_accessories_dressing_gown`): towelling robe
+- Bra (`clothing_accessories_bra`): undergarment
+- Pocket (`clothing_accessories_pocket`): hand in pocket
+- Tracksuit (`clothing_accessories_tracksuit`): sweatsuit
+- Sleeve (`clothing_accessories_sleeve`): shirt sleeve
+- Shoelace (`clothing_accessories_shoelace`): lace up
+- Headscarf (`clothing_accessories_headscarf`): head covering
+- Nail polish (`clothing_accessories_nail_polish`): painted nails
+- Lipstick (`clothing_accessories_lipstick`): lip colour, red lips, lip gloss
+- Make-up (`clothing_accessories_makeup`): face powder, blusher
+- Perfume (`clothing_accessories_perfume`): eau de toilette, cologne, smell nice
+- Bracelet (`clothing_accessories_bracelet`): bangle, charm bracelet, wrist jewellery, bracelets
+- Earrings (`clothing_accessories_earrings`): earring, drop earrings, pierced ears, ear jewellery
+- Apron (`clothing_accessories_apron`): pinafore, chef's apron, protect your clothes
+- Hoodie (`clothing_accessories_hoodie`): hooded sweatshirt, hood, hoody, kangaroo pocket
+- Jeans (`clothing_accessories_jeans`): blue jeans, denim jeans, pair of jeans
+- Pyjamas (`clothing_accessories_pyjamas`): PJs, bedtime clothes, striped pyjamas
+- Raincoat (`clothing_accessories_raincoat`): waterproof, mac, rain jacket
+- Sandals (`clothing_accessories_sandals`): sandal, open shoes, leather sandals
+- Swimsuit (`clothing_accessories_swimsuit`): one-piece, bathing suit, cossie
+- Trainers (`clothing_accessories_trainers`): running shoes, gym shoes, pair of trainers
+- Underwear (`clothing_accessories_underwear`): underpants, briefs, undies, underclothes
+- Uniform (`clothing_accessories_uniform`): blazer, work uniform, uniforms, school blazer
+- Vest (`clothing_accessories_vest`): singlet, sleeveless top, vest top
+
+## colors (17)
+
+- Red (`colors_red`): scarlet, crimson, cherry red
+- Orange (`colors_orange_color`): orange colour, amber, tangerine
+- Yellow (`colors_yellow`): lemon yellow, canary yellow, bright yellow
+- Green (`colors_green`): emerald, grass green, lime green
+- Blue (`colors_blue`): royal blue, cobalt, azure
+- Purple (`colors_purple`): violet, lilac, mauve
+- Pink (`colors_pink`): hot pink, baby pink, rosy
+- Brown (`colors_brown`): chocolate brown, coffee brown, dark brown
+- Black (`colors_black`): jet black, pitch black, ebony
+- Gray (`colors_gray`): grey, ash grey, slate grey
+- White (`colors_white`): pure white, ivory, off-white
+- Gold (`colors_gold`): gold colour, metallic gold
+- Silver (`colors_silver`): silvery, metallic, silver colour
+- Light (`colors_light_color`): light shades, soft colours
+- Dark (`colors_dark_color`): dark shades, deep colours, darker
+- Colorful (`colors_colorful`): bright colours
+- Light blue (`colors_light_blue`): baby blue
+
+## communication (20)
+
+- Asking (`communication_asking`): enquire, want to know
+- Answering (`communication_answering`): respond, give an answer
+- Calling out (`communication_calling_out`): shout for attention
+- Looking at someone (`communication_looking_at_someone`): stare
+- Listening (`communication_listening`): listener
+- Explaining (`communication_explaining`): describe
+- Inviting (`communication_inviting`): invitation card
+- Refusing (`communication_refusing`): turn down
+- Accepting (`communication_accepting`): say yes
+- Helping (`communication_helping`): give a hand
+- Comforting (`communication_comforting`): cheer up
+- Promising (`communication_promising`): swear
+- Forgiving (`communication_forgiving`): make up
+- Shouting (`communication_shouting`): scream
+- Poster (`communication_poster`): framed print
+- Email (`communication_email`): send an email
+- Video call (`communication_video_call`): face-to-face online
+- Emoji (`communication_emoji`): smileys
+- Social media (`communication_social_media`): notifications
+- Sign language (`communication_sign_language`): hand signs
+
+## concepts (22)
+
+- Love (`concepts_love`): love heart, in love
+- Calm (`concepts_calm`): tranquil
+- Confusion (`concepts_confusion`): muddle
+- Energy (`concepts_energy`): lightning bolt, energetic
+- Question (`concepts_question`): query, doubt
+- Correct (`concepts_correct`): tick
+- Wrong (`concepts_wrong`): not, cross mark
+- Same (`concepts_same`): matching, the same
+- Different (`concepts_different`): difference, unlike, not equal
+- More (`concepts_more`): add more, extra
+- Less (`concepts_less`): smaller amount, subtract
+- Together (`concepts_together`): unity, united
+- Alone (`concepts_alone`): on your own, solitary
+- Balance (`concepts_balance`): stacked stones, zen
+- Broken (`concepts_broken`): broken glass, shattered
+- Fragile (`concepts_fragile`): this way up, easily broken
+- Open (`concepts_open`): open door, ajar, wide open
+- Closed (`concepts_closed`): closed door, shut the door, not open
+- Clean (`concepts_clean_plate`): clean plate, squeaky clean
+- Dirty (`concepts_dirty`): dirty plate, grubby
+- Centre (`concepts_centre`): focus point
+- List (`concepts_list`): tick list
+
+## Outside group 1 (point 1)
+
+- Man (`people_family_man`): removed friend
+- Woman (`people_family_woman`): removed friend
+- Angry (`emotions_angry`): added angry face
+- Waving (`emotions_waving`): added hi, wave hand
+- I am (`pronouns_be_have_pronoun_i_am`): added myself, me
+- Dry (`opposites_dry_adj`): added dried
+- Tourist (`travel_tourist`): added travel

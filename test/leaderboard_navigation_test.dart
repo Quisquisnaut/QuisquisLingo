@@ -1,0 +1,4037 @@
+import 'support/edge_case_fixture.dart';
+import 'support/korean_fixture.dart';
+import 'support/test_directories.dart';
+import 'support/pump_file_io.dart';
+import 'dart:io';
+import 'dart:math';
+import 'dart:ui' show SemanticsAction;
+
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:quisquislingo_app/models/course_models.dart';
+import 'package:quisquislingo_app/screens/course_editor_screen.dart';
+import 'package:quisquislingo_app/screens/course_info_screen.dart';
+import 'package:quisquislingo_app/screens/course_projects_screen.dart';
+import 'package:quisquislingo_app/screens/courses_screen.dart';
+import 'package:quisquislingo_app/screens/guidebook_screen.dart';
+import 'package:quisquislingo_app/screens/home_screen.dart';
+import 'package:quisquislingo_app/services/lesson_color_palette.dart';
+import 'package:quisquislingo_app/screens/info_screen.dart';
+import 'package:quisquislingo_app/screens/profile_screen.dart';
+import 'package:quisquislingo_app/screens/review_screen.dart';
+import 'package:quisquislingo_app/screens/round_screen.dart';
+import 'package:quisquislingo_app/screens/settings_screen.dart';
+import 'package:quisquislingo_app/services/app_metadata.dart';
+import 'package:quisquislingo_app/services/beta_lifecycle_service.dart';
+import 'package:quisquislingo_app/services/course_editor_service.dart';
+import 'package:quisquislingo_app/services/course_favorite_service.dart';
+import 'package:quisquislingo_app/services/course_learner_visibility_service.dart';
+import 'package:quisquislingo_app/services/course_library_service.dart';
+import 'package:quisquislingo_app/services/course_media_store.dart';
+import 'package:quisquislingo_app/services/course_service.dart';
+import 'package:quisquislingo_app/services/profile_service.dart';
+import 'package:quisquislingo_app/services/progress_service.dart';
+import 'package:quisquislingo_app/services/settings_service.dart';
+import 'package:quisquislingo_app/services/xp_service.dart';
+import 'package:quisquislingo_app/widgets/course_artwork.dart';
+import 'package:quisquislingo_app/widgets/flag_art.dart';
+import 'package:quisquislingo_app/services/update_notice_service.dart';
+import 'package:quisquislingo_app/services/update_service.dart';
+import 'package:quisquislingo_app/widgets/learner_bottom_actions.dart';
+import 'package:quisquislingo_app/widgets/learner_navigation.dart';
+import 'package:quisquislingo_app/widgets/learner_shell.dart';
+import 'package:quisquislingo_app/widgets/unified_learner_top_bar.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+const _navigationCourseCode = 'KO';
+
+void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  setUp(() async {
+    registerKoreanFixture();
+    for (final asset in CourseService.courseAssets.values) {
+      rootBundle.evict(asset);
+    }
+    resetLockedLessonPreviewSessionForTesting();
+    resetLearnerStatusRouteObserver();
+    final messenger =
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+    messenger.setMockMethodCallHandler(
+      const MethodChannel('plugins.flutter.io/path_provider'),
+      (call) async {
+        if (call.method == 'getApplicationSupportDirectory') {
+          return testSupportDirectory.path;
+        }
+        throw PlatformException(
+          code: 'test_storage_unavailable',
+          message: 'Persistent logging is unavailable in widget tests.',
+        );
+      },
+    );
+    keepCrashLogUnavailable();
+    messenger.setMockMethodCallHandler(
+      const MethodChannel('xyz.luan/audioplayers.global'),
+      (_) async => null,
+    );
+    messenger.setMockMethodCallHandler(
+      const MethodChannel('xyz.luan/audioplayers'),
+      (call) async {
+        if (call.method == 'create') {
+          final arguments = call.arguments as Map<Object?, Object?>;
+          _installEventChannelMock(
+            messenger,
+            'xyz.luan/audioplayers/events/${arguments['playerId']}',
+          );
+        }
+        return null;
+      },
+    );
+    _installEventChannelMock(messenger, 'xyz.luan/audioplayers.global/events');
+    PackageInfo.setMockInitialValues(
+      appName: 'QuisquisLingo',
+      packageName: 'com.quisquislingo.app',
+      version: '2.0.23',
+      buildNumber: '223',
+      buildSignature: '',
+    );
+    SharedPreferences.setMockInitialValues({
+      'one_time_notice_seen_welcome_${AppMetadata.technicalVersion}': true,
+      'sound_effects_enabled': false,
+    });
+    await ProfileService().addProfile('Navigation Learner');
+    await SettingsService().completeWelcomeWizard();
+  });
+
+  test(
+    'Section navigation groups consecutive metadata without persistence',
+    () {
+      Lesson lesson(String id, {String? sectionName}) => Lesson(
+        lessonId: id,
+        title: id,
+        rounds: const [],
+        section: sectionName != null,
+        sectionName: sectionName,
+      );
+
+      final lessons = [
+        lesson('a', sectionName: 'Foundations'),
+        lesson('b', sectionName: 'Foundations'),
+        lesson('c'),
+        lesson('d'),
+        lesson('e', sectionName: 'Foundations'),
+      ];
+      final blocks = learnerSectionBlocks(lessons);
+      expect(blocks.map((block) => block.label), [
+        'Foundations',
+        'Other lessons',
+        'Foundations',
+      ]);
+      expect(blocks.map((block) => block.firstLessonIndex), [0, 2, 4]);
+      expect(blocks.map((block) => block.lastLessonIndex), [1, 3, 4]);
+      expect(blocks[1].synthetic, isTrue);
+      expect(lessons[2].toJson().containsKey('sectionName'), isFalse);
+      expect(learnerSectionBlocks([lesson('x'), lesson('y')]), isEmpty);
+    },
+  );
+
+  testWidgets('Unified Home opens a Round directly from the active Lesson', (
+    tester,
+  ) async {
+    final course = await _loadNavigationCourse(tester);
+    await _openHome(tester, scrollToActions: false);
+    final firstLesson = course.lessons.first;
+    final firstRound = firstLesson.rounds.first;
+    // "Round 1: <title>" on one line since Build 261 Revision 0.
+    final firstRoundCard = find.byKey(
+      ValueKey('unified-round-title-${firstRound.id}'),
+    );
+    expect(
+      find.byKey(
+        ValueKey('unified-guidebook-lesson-title-${firstLesson.lessonId}'),
+      ),
+      findsOneWidget,
+    );
+    await tester.ensureVisible(firstRoundCard);
+    await tester.tap(firstRoundCard);
+    await _pumpUntil(tester, find.byType(RoundScreen));
+    await tester.pumpAndSettle();
+    expect(find.byType(RoundScreen), findsOneWidget);
+
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+    expect(find.byType(RoundScreen), findsNothing);
+    expect(find.byType(HomeScreen), findsOneWidget);
+  });
+
+  testWidgets(
+    'Guidebooks own Lesson identity while Guidebook and Duel stay centered',
+    (tester) async {
+      final course = await _loadNavigationCourse(tester);
+      await _openHome(tester, scrollToActions: false);
+      final viewport = tester.getRect(
+        find.byKey(const Key('unified-learner-scroll')),
+      );
+
+      final guidebook = find.byKey(const Key('unified-guidebook-node')).first;
+      final guidebookRect = tester.getRect(guidebook);
+      final guidebookWidth = tester.widget<FractionallySizedBox>(
+        find.ancestor(
+          of: guidebook,
+          matching: find.byType(FractionallySizedBox),
+        ),
+      );
+      expect(guidebookWidth.widthFactor, .78);
+      expect(guidebookRect.width, lessThan(352));
+      expect(guidebookRect.center.dx, closeTo(viewport.center.dx, 1));
+      expect(guidebookRect.height, lessThanOrEqualTo(156));
+      // A faint borderless background since Build 261 Revision 8 (owner
+      // decision).
+      expect(
+        tester.widget<Material>(guidebook).color!.a,
+        closeTo(learnerPathSurfaceOpacity, .01),
+      );
+      final firstLesson = course.lessons.first;
+      final identity = find.byKey(
+        ValueKey('unified-guidebook-lesson-title-${firstLesson.lessonId}'),
+      );
+      final identityText = tester.widget<Text>(identity);
+      expect(identityText.maxLines, 3);
+      expect(identityText.overflow, TextOverflow.ellipsis);
+      expect(identityText.data, firstLesson.title);
+      expect(identityText.style?.fontWeight, FontWeight.w500);
+      expect(identityText.style?.fontSize, 17);
+      final identityLabel = tester.widget<Text>(
+        find.byKey(
+          ValueKey('unified-guidebook-lesson-label-${firstLesson.lessonId}'),
+        ),
+      );
+      expect(identityLabel.data, 'Lesson 1');
+      expect(identityLabel.style?.fontSize, 12);
+      // The whole title as a tooltip (Build 261 Revision 0).
+      expect(
+        tester
+            .widget<Tooltip>(
+              find.byKey(
+                ValueKey(
+                  'unified-guidebook-lesson-tooltip-${firstLesson.lessonId}',
+                ),
+              ),
+            )
+            .message,
+        'Lesson 1: ${firstLesson.title}',
+      );
+      expect(find.text('Guidebook'), findsNothing);
+      expect(find.text('Start Here'), findsNothing);
+      final guidebookAction = find.byKey(
+        ValueKey('unified-guidebook-action-${firstLesson.lessonId}'),
+      );
+      expect(guidebookAction, findsOneWidget);
+      expect(find.byTooltip('GuideBook'), findsOneWidget);
+      expect(
+        find.text('Your roadmap to ${course.lessons.first.title}'),
+        findsNothing,
+      );
+      for (final lesson in course.lessons) {
+        expect(
+          find.byKey(ValueKey('flag-backdrop-lesson-title-${lesson.lessonId}')),
+          findsNothing,
+        );
+      }
+      await tester.tap(guidebookAction);
+      await tester.pumpAndSettle();
+      expect(find.byType(GuidebookScreen), findsOneWidget);
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+
+      final duel = find.byKey(
+        ValueKey('unified-duel-${course.lessons.first.lessonId}'),
+      );
+      await tester.scrollUntilVisible(
+        duel,
+        240,
+        scrollable: _mainLearnerScrollable(),
+      );
+      await tester.pumpAndSettle();
+      final duelCardFinder = find.descendant(
+        of: duel,
+        matching: find.byKey(const Key('unified-duel-card')),
+      );
+      final duelRect = tester.getRect(duelCardFinder);
+      final learnerPosition = tester
+          .state<ScrollableState>(_mainLearnerScrollable())
+          .position;
+      final duelContentBottom = duelRect.bottom + learnerPosition.pixels;
+      expect(duelRect.width, lessThanOrEqualTo(400));
+      expect(duelRect.center.dx, closeTo(viewport.center.dx, 1));
+      expect(
+        tester.widget<Material>(duelCardFinder).color!.a,
+        closeTo(learnerPathSurfaceOpacity, .01),
+      );
+      // The Duel is a circle where the path line arrives, centred.
+      final duelCircle = find.descendant(
+        of: duel,
+        matching: find.byKey(const Key('unified-duel-icon')),
+      );
+      expect(
+        tester.getRect(duelCircle).center.dx,
+        closeTo(viewport.center.dx, 1),
+      );
+
+      final nextGuidebook = find.byKey(
+        ValueKey(
+          'unified-guidebook-lesson-title-${course.lessons[1].lessonId}',
+        ),
+      );
+      await tester.scrollUntilVisible(
+        nextGuidebook,
+        240,
+        scrollable: _mainLearnerScrollable(),
+      );
+      await tester.pumpAndSettle();
+      final transitionGap = find.byKey(
+        ValueKey('unified-lesson-transition-${course.lessons[1].lessonId}'),
+      );
+      expect(tester.getSize(transitionGap).height, 32);
+      expect(
+        tester.getRect(nextGuidebook).top +
+            learnerPosition.pixels -
+            duelContentBottom,
+        greaterThanOrEqualTo(48),
+      );
+      expect(find.text('Start Here'), findsNothing);
+    },
+  );
+
+  testWidgets('Guidebook uses one 84 px icon slot for theme and fallback', (
+    tester,
+  ) async {
+    var course = Course(
+      courseId: 'icon_slot_course',
+      learningLanguage: 'Italian',
+      interfaceLanguage: 'English',
+      sourceLanguage: 'English',
+      targetLanguage: 'Italian',
+      title: 'Icon slots',
+      ttsLanguage: 'it-IT',
+      flagCode: 'IT',
+      lessons: [
+        Lesson(
+          lessonId: 'with-icon',
+          title: 'With icon',
+          rounds: const [],
+          themeIconAsset: 'assets/lesson_icons/train.png',
+        ),
+        Lesson(
+          lessonId: 'without-icon',
+          title: 'Without icon',
+          rounds: const [],
+        ),
+      ],
+    );
+    (await tester.runAsync(() => CourseEditorService().saveUserCourse(course)));
+    expect(tester.takeException(), isNull, reason: 'initial icon course save');
+    course = ((await tester.runAsync(
+      () => CourseEditorService().listUserCourses(),
+    ))!).singleWhere((saved) => saved.courseId == course.courseId);
+    await SettingsService().setLastSelectedCourseCode(
+      'custom:${course.courseId}',
+    );
+    await SettingsService().setIddqdModeEnabled(course.courseId, true);
+    await _openHome(tester, scrollToActions: false);
+
+    Finder guidebookCard(Lesson lesson) => find.ancestor(
+      of: find.byKey(
+        ValueKey('unified-guidebook-lesson-title-${lesson.lessonId}'),
+      ),
+      matching: find.byKey(const Key('unified-guidebook-node')),
+    );
+
+    final withIcon = course.lessons.first;
+    final withIconCard = guidebookCard(withIcon);
+    final iconSlot = find.descendant(
+      of: withIconCard,
+      matching: find.byKey(const Key('guidebook-lesson-icon-slot')),
+    );
+    final icon = find.descendant(
+      of: withIconCard,
+      matching: find.byKey(const Key('guidebook-theme-icon-image')),
+    );
+    expect(iconSlot, findsOneWidget);
+    expect(tester.getSize(iconSlot), const Size(84, 84));
+    expect(icon, findsOneWidget);
+    expect(tester.widget<Image>(icon).fit, BoxFit.contain);
+    expect(
+      (tester.widget<Image>(icon).image as AssetImage).assetName,
+      withIcon.themeIconAsset,
+    );
+    final withoutIcon = course.lessons[1];
+    final withoutIconTitle = find.byKey(
+      ValueKey('unified-guidebook-lesson-title-${withoutIcon.lessonId}'),
+    );
+    await tester.scrollUntilVisible(
+      withoutIconTitle,
+      260,
+      scrollable: _mainLearnerScrollable(),
+    );
+    await tester.pumpAndSettle();
+    final withoutIconCard = guidebookCard(withoutIcon);
+    expect(
+      tester.getSize(
+        find.descendant(
+          of: withoutIconCard,
+          matching: find.byKey(const Key('guidebook-lesson-icon-slot')),
+        ),
+      ),
+      const Size(84, 84),
+    );
+    expect(
+      find.descendant(
+        of: withoutIconCard,
+        matching: find.byKey(const Key('guidebook-theme-icon-image')),
+      ),
+      findsNothing,
+    );
+    final fallback = find.descendant(
+      of: withoutIconCard,
+      matching: find.byType(CircleAvatar),
+    );
+    expect(fallback, findsOneWidget);
+    expect(
+      tester.widget<CircleAvatar>(fallback).backgroundColor,
+      LessonColorPalette.of(
+        1,
+        Theme.of(tester.element(fallback)).brightness,
+      ).solid,
+    );
+    expect(find.text('Start Here'), findsNothing);
+
+    course = Course.fromJson({
+      ...course.toJson(),
+      'defaultLessonIconStyle': 'coloredLessonNumbers',
+    });
+    await tester.runAsync(() => CourseEditorService().saveUserCourse(course));
+    expect(tester.takeException(), isNull, reason: 'updated icon course save');
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
+    await _openHome(tester, scrollToActions: false);
+    await tester.scrollUntilVisible(
+      withoutIconTitle,
+      260,
+      scrollable: _mainLearnerScrollable(),
+    );
+    await tester.pumpAndSettle();
+    expect(
+      find.descendant(
+        of: withoutIconCard,
+        matching: find.byKey(const Key('guidebook-monochrome-fallback-icon')),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: withoutIconCard, matching: find.byType(CircleAvatar)),
+      findsOneWidget,
+    );
+    await tester.scrollUntilVisible(
+      find.byKey(
+        ValueKey('unified-guidebook-lesson-title-${withIcon.lessonId}'),
+      ),
+      -260,
+      scrollable: _mainLearnerScrollable(),
+    );
+    await tester.pumpAndSettle();
+    final reloadedExplicitIcon = find.descendant(
+      of: withIconCard,
+      matching: find.byKey(const Key('guidebook-theme-icon-image')),
+    );
+    expect(reloadedExplicitIcon, findsOneWidget);
+    expect(
+      (tester.widget<Image>(reloadedExplicitIcon).image as AssetImage)
+          .assetName,
+      withIcon.themeIconAsset,
+    );
+
+    await tester.scrollUntilVisible(
+      withoutIconTitle,
+      260,
+      scrollable: _mainLearnerScrollable(),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(withoutIconCard);
+    await tester.pumpAndSettle();
+    expect(find.byType(GuidebookScreen), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets(
+    'persisted completion with errors keeps the Round icon bright after rebuild and repeat',
+    (tester) async {
+      final course = await _loadNavigationCourse(tester);
+      final lesson = course.lessons.first;
+      final completedRound = lesson.rounds.first;
+      final incompleteRound = lesson.rounds.last;
+      final progress = ProgressService();
+      await progress.completeRound(
+        completedRound.id,
+        courseId: course.courseId,
+        courseCode: _navigationCourseCode,
+      );
+      await progress.recordRecentRound(
+        course.courseId,
+        lesson.lessonId,
+        completedRound.id,
+        errors: 3,
+      );
+
+      Color iconColor(LearningRound round) {
+        final container = tester.widget<Container>(
+          find.byKey(ValueKey('unified-round-icon-${round.id}')),
+        );
+        return (container.decoration! as BoxDecoration).color!;
+      }
+
+      LessonColors colors() => LessonColorPalette.of(
+        0,
+        Theme.of(
+          tester.element(
+            find.byKey(ValueKey('unified-round-icon-${completedRound.id}')),
+          ),
+        ).brightness,
+      );
+
+      await _openHome(tester, scrollToActions: false);
+      expect(iconColor(completedRound), colors().solid);
+      expect(iconColor(incompleteRound), colors().tint);
+
+      await tester.pumpWidget(const SizedBox.shrink());
+      await _openHome(tester, scrollToActions: false);
+      expect(iconColor(completedRound), colors().solid);
+
+      await progress.completeRound(
+        completedRound.id,
+        courseId: course.courseId,
+        courseCode: _navigationCourseCode,
+      );
+      await tester.pumpWidget(const SizedBox.shrink());
+      await _openHome(tester, scrollToActions: false);
+      expect(iconColor(completedRound), colors().solid);
+    },
+  );
+
+  testWidgets(
+    'learner content flows through subsequent Lessons once in course order',
+    (tester) async {
+      final course = await _loadNavigationCourse(tester);
+      await _openHome(tester, scrollToActions: false);
+
+      final listView = tester.widget<ListView>(
+        find.byKey(const Key('unified-learner-scroll')),
+      );
+      expect(listView.childrenDelegate, isA<SliverChildBuilderDelegate>());
+      expect(
+        listView.childrenDelegate.estimatedChildCount,
+        course.lessons.length,
+      );
+
+      final scrollable = _mainLearnerScrollable();
+      final position = tester.state<ScrollableState>(scrollable).position;
+      final visitedOffsets = <double>[];
+      for (final lesson in course.lessons) {
+        final section = find.byKey(
+          ValueKey('unified-lesson-section-${lesson.lessonId}'),
+        );
+        await tester.scrollUntilVisible(section, 260, scrollable: scrollable);
+        await tester.pumpAndSettle();
+        expect(section, findsOneWidget, reason: lesson.lessonId);
+        visitedOffsets.add(position.pixels);
+      }
+
+      expect(visitedOffsets.first, lessThan(20));
+      for (var index = 1; index < visitedOffsets.length; index++) {
+        expect(visitedOffsets[index], greaterThan(visitedOffsets[index - 1]));
+      }
+    },
+  );
+
+  testWidgets(
+    'restored intermediate Lesson is the initial target with earlier and later Lessons retained',
+    (tester) async {
+      final course = await _loadNavigationCourse(tester);
+      final restoredLesson = course.lessons[1];
+      await SettingsService().setLastVisitedLessonId(
+        course.courseId,
+        restoredLesson.lessonId,
+      );
+
+      await _openHome(tester, scrollToActions: false);
+      await tester.pumpAndSettle();
+
+      final scrollable = _mainLearnerScrollable();
+      final restoredSection = find.byKey(
+        ValueKey('unified-lesson-section-${restoredLesson.lessonId}'),
+      );
+      expect(_sectionSelectorLabel(course, 1), findsOneWidget);
+      expect(restoredSection, findsOneWidget);
+      expect(
+        tester.getRect(restoredSection).overlaps(tester.getRect(scrollable)),
+        isTrue,
+      );
+      expect(
+        tester.state<ScrollableState>(scrollable).position.pixels,
+        greaterThan(0),
+      );
+
+      final firstSection = find.byKey(
+        ValueKey('unified-lesson-section-${course.lessons.first.lessonId}'),
+      );
+      await tester.scrollUntilVisible(
+        firstSection,
+        -260,
+        scrollable: scrollable,
+      );
+      await tester.drag(
+        find.byKey(const Key('unified-learner-scroll')),
+        const Offset(0, 260),
+      );
+      await tester.pumpAndSettle();
+      expect(firstSection, findsOneWidget);
+      expect(_sectionSelectorLabel(course, 0), findsOneWidget);
+
+      final thirdSection = find.byKey(
+        ValueKey('unified-lesson-section-${course.lessons[2].lessonId}'),
+      );
+      await tester.scrollUntilVisible(
+        thirdSection,
+        260,
+        scrollable: scrollable,
+      );
+      await tester.pumpAndSettle();
+      expect(thirdSection, findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'restored final Lesson is the initial target with previous Lessons retained',
+    (tester) async {
+      final course = await _loadNavigationCourse(tester);
+      final finalIndex = course.lessons.length - 1;
+      final finalLesson = course.lessons[finalIndex];
+      await SettingsService().setLastVisitedLessonId(
+        course.courseId,
+        finalLesson.lessonId,
+      );
+
+      await _openHome(tester, scrollToActions: false);
+      await tester.pumpAndSettle();
+
+      final scrollable = _mainLearnerScrollable();
+      final finalSection = find.byKey(
+        ValueKey('unified-lesson-section-${finalLesson.lessonId}'),
+      );
+      expect(_sectionSelectorLabel(course, finalIndex), findsOneWidget);
+      expect(finalSection, findsOneWidget);
+      expect(
+        tester.getRect(finalSection).overlaps(tester.getRect(scrollable)),
+        isTrue,
+      );
+      expect(
+        tester
+            .widget<IconButton>(_sectionArrowButton('Next Section'))
+            .onPressed,
+        isNull,
+      );
+      expect(
+        tester
+            .widget<IconButton>(_sectionArrowButton('Previous Section'))
+            .onPressed,
+        isNotNull,
+      );
+
+      final firstSection = find.byKey(
+        ValueKey('unified-lesson-section-${course.lessons.first.lessonId}'),
+      );
+      await tester.scrollUntilVisible(
+        firstSection,
+        -400,
+        scrollable: scrollable,
+      );
+      await tester.pumpAndSettle();
+      expect(firstSection, findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'Section picker scrolls to the first Lesson in the selected block',
+    (tester) async {
+      final course = await _loadNavigationCourse(tester);
+      await _openHome(tester, scrollToActions: false);
+
+      final selector = find.byKey(const Key('unified-section-selector'));
+      expect(selector, findsOneWidget);
+      expect(find.byKey(const Key('browse-all-lessons')), findsNothing);
+      expect(
+        tester.widget<OutlinedButton>(selector).style?.alignment,
+        Alignment.centerLeft,
+      );
+      await tester.tap(selector);
+      final selectedLesson = course.lessons[7];
+      final selectedSectionFinder = find.text('Getting around');
+      await _pumpUntil(tester, selectedSectionFinder);
+      await tester.pumpAndSettle();
+      expect(find.text('Browse All Lessons'), findsNothing);
+      expect(selectedSectionFinder, findsWidgets);
+      final selectedSectionTile = find.ancestor(
+        of: selectedSectionFinder.last,
+        matching: find.byType(ListTile),
+      );
+      expect(
+        find.descendant(
+          of: selectedSectionTile,
+          matching: find.byIcon(Icons.view_agenda_outlined),
+        ),
+        findsOneWidget,
+      );
+      await tester.tap(selectedSectionFinder.last);
+      await tester.pumpAndSettle();
+      expect(
+        find.descendant(of: selector, matching: find.text('Getting around')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(
+          ValueKey('unified-lesson-section-${selectedLesson.lessonId}'),
+        ),
+        findsOneWidget,
+      );
+      final firstSection = find.byKey(
+        ValueKey('unified-lesson-section-${course.lessons.first.lessonId}'),
+      );
+      expect(
+        tester.state<ScrollableState>(_mainLearnerScrollable()).position.pixels,
+        greaterThan(0),
+      );
+      late String? persistedLessonId;
+      await tester.runAsync(() async {
+        persistedLessonId = await SettingsService().getLastVisitedLessonId(
+          course.courseId,
+        );
+      });
+      expect(persistedLessonId, selectedLesson.lessonId);
+      final selectedDuel = find.byKey(
+        ValueKey('unified-duel-${selectedLesson.lessonId}'),
+      );
+      await tester.scrollUntilVisible(
+        selectedDuel,
+        240,
+        scrollable: _mainLearnerScrollable(),
+      );
+      await tester.pump();
+      expect(selectedDuel, findsOneWidget);
+      tester
+          .state<ScrollableState>(_mainLearnerScrollable())
+          .position
+          .jumpTo(0);
+      await tester.pumpAndSettle();
+      expect(firstSection, findsOneWidget);
+      expect(find.byType(HomeScreen), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'Lesson arrows navigate within the full flow without opening the picker',
+    (tester) async {
+      final course = await _loadNavigationCourse(tester, enableIddqd: false);
+      await _openHome(tester, scrollToActions: false);
+
+      expect(
+        tester
+            .widget<IconButton>(_sectionArrowButton('Previous Section'))
+            .onPressed,
+        isNull,
+      );
+      expect(
+        tester
+            .widget<IconButton>(_sectionArrowButton('Next Section'))
+            .onPressed,
+        isNotNull,
+      );
+
+      await tester.tap(_sectionArrowButton('Next Section'));
+      await tester.pumpAndSettle();
+      expect(find.byType(BottomSheet), findsNothing);
+      expect(_sectionSelectorLabel(course, 1), findsOneWidget);
+      final lockedLesson = course.lessons[1];
+      expect(
+        find.byKey(ValueKey('unified-lesson-locked-${lockedLesson.lessonId}')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(ValueKey('unified-round-${lockedLesson.rounds.first.id}')),
+        findsNothing,
+      );
+      expect(
+        tester
+            .widget<IconButton>(_sectionArrowButton('Previous Section'))
+            .onPressed,
+        isNotNull,
+      );
+      expect(
+        tester
+            .widget<IconButton>(_sectionArrowButton('Next Section'))
+            .onPressed,
+        isNotNull,
+      );
+
+      await tester.tap(_sectionArrowButton('Previous Section'));
+      await tester.pumpAndSettle();
+      expect(find.byType(BottomSheet), findsNothing);
+      expect(_sectionSelectorLabel(course, 0), findsOneWidget);
+      expect(
+        tester
+            .widget<ListView>(find.byKey(const Key('unified-learner-scroll')))
+            .childrenDelegate
+            .estimatedChildCount,
+        course.lessons.length,
+      );
+
+      await tester.tap(_sectionSelectorLabel(course, 0));
+      await tester.pumpAndSettle();
+      expect(find.byType(BottomSheet), findsOneWidget);
+    },
+  );
+
+  testWidgets('continuous flow keeps locked Lesson content inaccessible', (
+    tester,
+  ) async {
+    final course = await _loadNavigationCourse(tester, enableIddqd: false);
+    await _openHome(tester, scrollToActions: false);
+
+    final lockedLesson = course.lessons[1];
+    final lockedSection = find.byKey(
+      ValueKey('unified-lesson-section-${lockedLesson.lessonId}'),
+    );
+    await tester.scrollUntilVisible(
+      lockedSection,
+      260,
+      scrollable: _mainLearnerScrollable(),
+    );
+    await tester.pumpAndSettle();
+
+    expect(lockedSection, findsOneWidget);
+    expect(
+      find.byKey(ValueKey('unified-lesson-locked-${lockedLesson.lessonId}')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(
+        ValueKey('flag-backdrop-locked-message-${lockedLesson.lessonId}'),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(
+        ValueKey('unified-guidebook-lesson-title-${lockedLesson.lessonId}'),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(ValueKey('unified-round-${lockedLesson.rounds.first.id}')),
+      findsNothing,
+    );
+  });
+
+  testWidgets(
+    'Collapse completed expands every incomplete accessible Lesson only',
+    (tester) async {
+      final course = await _loadNavigationCourse(tester, enableIddqd: false);
+      await ProgressService().completeLesson(
+        course.lessons.first.lessonId,
+        courseId: course.courseId,
+        courseCode: _navigationCourseCode,
+      );
+      await SettingsService().setLessonExpansionMode(
+        course.courseId,
+        LearnerLessonExpansionMode.collapseCompleted,
+      );
+      await _openHome(tester, scrollToActions: false);
+
+      expect(
+        find.byTooltip(
+          'Lessons: Collapse completed\n'
+          'Completed Lessons are collapsed; incomplete accessible Lessons are expanded.',
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(
+          ValueKey('unified-round-${course.lessons.first.rounds.first.id}'),
+        ),
+        findsNothing,
+      );
+
+      final incompleteUnlocked = course.lessons[1];
+      await tester.scrollUntilVisible(
+        find.byKey(
+          ValueKey('unified-lesson-section-${incompleteUnlocked.lessonId}'),
+        ),
+        260,
+        scrollable: _mainLearnerScrollable(),
+      );
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(
+          ValueKey('unified-round-${incompleteUnlocked.rounds.first.id}'),
+        ),
+        findsOneWidget,
+      );
+
+      final locked = course.lessons[2];
+      await tester.scrollUntilVisible(
+        find.byKey(ValueKey('unified-lesson-section-${locked.lessonId}')),
+        260,
+        scrollable: _mainLearnerScrollable(),
+      );
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(ValueKey('unified-round-${locked.rounds.first.id}')),
+        findsNothing,
+      );
+    },
+  );
+
+  testWidgets(
+    'Focused opens one accessible Lesson and manual opening closes the previous one',
+    (tester) async {
+      final course = await _loadNavigationCourse(tester);
+      final settings = SettingsService();
+      await settings.setLessonExpansionMode(
+        course.courseId,
+        LearnerLessonExpansionMode.focused,
+      );
+      await _openHome(tester, scrollToActions: false);
+
+      final first = course.lessons.first;
+      final second = course.lessons[1];
+      expect(
+        find.byKey(ValueKey('unified-round-${first.rounds.first.id}')),
+        findsOneWidget,
+      );
+      await tester.scrollUntilVisible(
+        find.byKey(ValueKey('unified-lesson-section-${second.lessonId}')),
+        260,
+        scrollable: _mainLearnerScrollable(),
+      );
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(ValueKey('unified-round-${second.rounds.first.id}')),
+        findsNothing,
+      );
+      await tester.tap(
+        find.byKey(Key('lesson-expansion-action-${second.lessonId}')),
+      );
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(ValueKey('unified-round-${second.rounds.first.id}')),
+        findsOneWidget,
+      );
+      expect(
+        await settings.getLastVisitedLessonId(course.courseId),
+        second.lessonId,
+      );
+
+      await tester.scrollUntilVisible(
+        find.byKey(ValueKey('unified-lesson-section-${first.lessonId}')),
+        -260,
+        scrollable: _mainLearnerScrollable(),
+      );
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(ValueKey('unified-round-${first.rounds.first.id}')),
+        findsNothing,
+      );
+      expect(
+        find.byKey(Key('lesson-expansion-action-${first.lessonId}')),
+        findsOneWidget,
+      );
+
+      final iddqdControl = find.byKey(const Key('learner-bottom-iddqd'));
+      await tester.tap(iddqdControl);
+      await tester.pumpAndSettle();
+      await tester.tap(iddqdControl);
+      await tester.pumpAndSettle();
+      expect(
+        find.byTooltip('IDDQD: Off\nNormal progression locks apply.'),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(ValueKey('unified-round-${first.rounds.first.id}')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(ValueKey('unified-round-${second.rounds.first.id}')),
+        findsNothing,
+      );
+      expect(
+        await settings.getLastVisitedLessonId(course.courseId),
+        first.lessonId,
+      );
+    },
+  );
+
+  testWidgets(
+    'bottom IDDQD toggles access immediately without authoritative progress',
+    (tester) async {
+      final course = await _loadNavigationCourse(tester, enableIddqd: false);
+      await SettingsService().setAudioExercisesEnabled(true);
+      await SettingsService().setTtsEnabled(true);
+      final progress = ProgressService();
+      final xp = XpService();
+      final completedBefore = await progress.getCompletedRounds(
+        courseId: course.courseId,
+      );
+      final xpBefore = await xp.getXp(courseCode: _navigationCourseCode);
+      await _openHome(tester, scrollToActions: false);
+
+      final lockedLesson = course.lessons[1];
+      final lockedRound = find.byKey(
+        ValueKey('unified-round-${lockedLesson.rounds.first.id}'),
+      );
+      final iddqdAccess = find.byKey(
+        ValueKey('unified-lesson-iddqd-access-${lockedLesson.lessonId}'),
+      );
+      expect(lockedRound, findsNothing);
+      expect(iddqdAccess, findsNothing);
+      final control = find.byKey(const Key('learner-bottom-iddqd'));
+      expect(
+        find.byTooltip('IDDQD: Off\nNormal progression locks apply.'),
+        findsOneWidget,
+      );
+      expect(find.text('Normal progression locks apply.'), findsNothing);
+      await tester.tap(control);
+      await tester.pumpAndSettle();
+      expect(
+        find.byTooltip(
+          'IDDQD: On\nLocked content can be opened. '
+          'Study progress is recorded normally.',
+        ),
+        findsOneWidget,
+      );
+      expect(find.text(iddqdOnExplanation), findsNothing);
+
+      final lockedSection = find.byKey(
+        ValueKey('unified-lesson-section-${lockedLesson.lessonId}'),
+      );
+      await tester.scrollUntilVisible(
+        lockedSection,
+        260,
+        scrollable: _mainLearnerScrollable(),
+      );
+      await tester.pumpAndSettle();
+      expect(lockedRound, findsOneWidget);
+      expect(iddqdAccess, findsOneWidget);
+      expect(find.text('Accessible with IDDQD'), findsOneWidget);
+      expect(
+        find.bySemanticsLabel(
+          'Lesson is locked in normal progression. Accessible with IDDQD.',
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(
+          ValueKey('unified-lesson-preview-lock-${lockedLesson.lessonId}'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.bySemanticsLabel(RegExp(r'^Locked .+\. Accessible with IDDQD\.$')),
+        findsOneWidget,
+      );
+      expect(
+        tester
+            .widget<IconButton>(
+              find.byKey(
+                ValueKey('unified-guidebook-action-${lockedLesson.lessonId}'),
+              ),
+            )
+            .onPressed,
+        isNotNull,
+      );
+      expect(
+        tester
+            .widget<InkWell>(
+              find.descendant(of: lockedRound, matching: find.byType(InkWell)),
+            )
+            .onTap,
+        isNotNull,
+      );
+      final lockedDuel = find.byKey(
+        ValueKey('unified-duel-${lockedLesson.lessonId}'),
+      );
+      expect(lockedDuel, findsOneWidget);
+      expect(
+        tester
+            .widget<InkWell>(
+              find.descendant(of: lockedDuel, matching: find.byType(InkWell)),
+            )
+            .onTap,
+        isNotNull,
+      );
+
+      await tester.tap(control);
+      await tester.pumpAndSettle();
+      expect(
+        find.byTooltip(
+          'IDDQD: View Only\nLocked content can be previewed. '
+          'No learning progress is recorded.',
+        ),
+        findsOneWidget,
+      );
+      expect(find.text('Preview with IDDQD'), findsOneWidget);
+      expect(
+        find.bySemanticsLabel(
+          'Lesson is locked in normal progression. Preview with IDDQD.',
+        ),
+        findsOneWidget,
+      );
+      expect(lockedRound, findsOneWidget);
+
+      await tester.tap(
+        find.descendant(of: lockedRound, matching: find.byType(InkWell)),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(RoundScreen), findsOneWidget);
+      expect(
+        tester.widget<RoundScreen>(find.byType(RoundScreen)).viewOnlyMode,
+        isTrue,
+      );
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+
+      await tester.tap(control);
+      await tester.pumpAndSettle();
+      expect(
+        find.byTooltip('IDDQD: Off\nNormal progression locks apply.'),
+        findsOneWidget,
+      );
+      expect(find.text('Normal progression locks apply.'), findsNothing);
+      expect(lockedRound, findsNothing);
+      expect(iddqdAccess, findsNothing);
+      expect(
+        await SettingsService().isIddqdModeEnabled(course.courseId),
+        isFalse,
+      );
+      expect(
+        await progress.getCompletedRounds(courseId: course.courseId),
+        completedBefore,
+      );
+      expect(await xp.getXp(courseCode: _navigationCourseCode), xpBefore);
+    },
+  );
+
+  testWidgets(
+    'three same-Lesson lock taps keep view-only previews for the app session',
+    (tester) async {
+      final course = await _loadNavigationCourse(tester, enableIddqd: false);
+      await _openHome(tester, scrollToActions: false);
+      final progress = ProgressService();
+      final xp = XpService();
+      final lockedLesson = course.lessons[1];
+      final otherLockedLesson = course.lessons[2];
+      final lockedSection = find.byKey(
+        ValueKey('unified-lesson-section-${lockedLesson.lessonId}'),
+      );
+      await tester.scrollUntilVisible(
+        lockedSection,
+        260,
+        scrollable: _mainLearnerScrollable(),
+      );
+      await tester.pumpAndSettle();
+
+      final lock = find.byKey(
+        ValueKey('unified-lesson-preview-lock-${lockedLesson.lessonId}'),
+      );
+      final preview = find.byKey(
+        ValueKey('unified-lesson-preview-${lockedLesson.lessonId}'),
+      );
+      final firstRound = find.byKey(
+        ValueKey('unified-round-${lockedLesson.rounds.first.id}'),
+      );
+      final completedRoundsBefore = await progress.getCompletedRounds(
+        courseId: course.courseId,
+      );
+      final completedLessonsBefore = await progress.getCompletedLessons(
+        courseId: course.courseId,
+      );
+      final xpBefore = await xp.getXp(courseCode: _navigationCourseCode);
+      final weeklyXpBefore = await xp.getWeeklyXp();
+
+      expect(lock, findsOneWidget);
+      expect(preview, findsNothing);
+      expect(firstRound, findsNothing);
+      for (var tap = 0; tap < 2; tap++) {
+        await tester.tap(lock);
+        await tester.pump(const Duration(milliseconds: 40));
+      }
+      expect(preview, findsNothing);
+      expect(firstRound, findsNothing);
+
+      await tester.pump(const Duration(seconds: 6));
+      await tester.tap(lock);
+      await tester.pump();
+      expect(preview, findsNothing, reason: 'A stale sequence must reset.');
+
+      await tester.tap(lock);
+      await tester.pump(const Duration(milliseconds: 40));
+      expect(preview, findsNothing, reason: 'Two fresh taps are insufficient.');
+      await tester.tap(lock);
+      await tester.pumpAndSettle();
+
+      expect(preview, findsOneWidget);
+      expect(
+        find.descendant(of: preview, matching: find.text('Preview only')),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: preview,
+          matching: find.text('Lesson still locked'),
+        ),
+        findsOneWidget,
+      );
+      expect(lock, findsOneWidget, reason: 'The genuine lock remains visible.');
+      expect(firstRound, findsOneWidget);
+      final roundInkWell = tester.widget<InkWell>(
+        find.descendant(of: firstRound, matching: find.byType(InkWell)),
+      );
+      expect(roundInkWell.onTap, isNull);
+      await tester.tap(firstRound);
+      await tester.pumpAndSettle();
+      expect(find.byType(RoundScreen), findsNothing);
+
+      final otherLockedSection = find.byKey(
+        ValueKey('unified-lesson-section-${otherLockedLesson.lessonId}'),
+      );
+      await tester.scrollUntilVisible(
+        otherLockedSection,
+        260,
+        scrollable: _mainLearnerScrollable(),
+      );
+      await tester.pumpAndSettle();
+      final otherPreview = find.byKey(
+        ValueKey('unified-lesson-preview-${otherLockedLesson.lessonId}'),
+      );
+      final otherLock = find.byKey(
+        ValueKey('unified-lesson-preview-lock-${otherLockedLesson.lessonId}'),
+      );
+      final otherRound = find.byKey(
+        ValueKey('unified-round-${otherLockedLesson.rounds.first.id}'),
+      );
+      expect(otherPreview, findsNothing);
+      expect(otherRound, findsNothing);
+      for (var tap = 0; tap < 3; tap++) {
+        await tester.tap(otherLock);
+        await tester.pump(const Duration(milliseconds: 40));
+      }
+      await tester.pumpAndSettle();
+      expect(otherPreview, findsOneWidget);
+      expect(otherRound, findsOneWidget);
+
+      await tester.scrollUntilVisible(
+        lockedSection,
+        -260,
+        scrollable: _mainLearnerScrollable(),
+      );
+      await tester.pumpAndSettle();
+      expect(preview, findsOneWidget, reason: 'Lesson changes retain preview.');
+      expect(firstRound, findsOneWidget);
+
+      await tester.tap(find.byKey(const Key('learner-bottom-profile')));
+      await _pumpUntil(tester, find.byType(ProfileScreen));
+      await tester.pageBack();
+      await _pumpUntil(tester, find.byType(HomeScreen));
+      await _pumpFrames(tester);
+      await tester.scrollUntilVisible(
+        lockedSection,
+        -260,
+        scrollable: _mainLearnerScrollable(),
+      );
+      await tester.pumpAndSettle();
+      expect(
+        preview,
+        findsOneWidget,
+        reason: 'Ordinary in-app navigation and reload retain preview.',
+      );
+
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpAndSettle();
+      await _openHome(tester, scrollToActions: false);
+      await tester.scrollUntilVisible(
+        lockedSection,
+        260,
+        scrollable: _mainLearnerScrollable(),
+      );
+      await tester.pumpAndSettle();
+      expect(
+        preview,
+        findsOneWidget,
+        reason: 'Returning to Home in the same app session retains preview.',
+      );
+      expect(firstRound, findsOneWidget);
+      await tester.scrollUntilVisible(
+        otherLockedSection,
+        260,
+        scrollable: _mainLearnerScrollable(),
+      );
+      await tester.pumpAndSettle();
+      expect(
+        otherPreview,
+        findsOneWidget,
+        reason: 'Each activated Lesson remains previewable for the session.',
+      );
+      expect(otherRound, findsOneWidget);
+
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpAndSettle();
+      resetLockedLessonPreviewSessionForTesting();
+      await _openHome(tester, scrollToActions: false);
+      await tester.scrollUntilVisible(
+        lockedSection,
+        260,
+        scrollable: _mainLearnerScrollable(),
+      );
+      await tester.pumpAndSettle();
+      expect(
+        preview,
+        findsNothing,
+        reason: 'A fresh app session clears preview.',
+      );
+      expect(firstRound, findsNothing);
+
+      await tester.scrollUntilVisible(
+        otherLockedSection,
+        260,
+        scrollable: _mainLearnerScrollable(),
+      );
+      await tester.pumpAndSettle();
+      expect(otherPreview, findsNothing);
+      expect(otherRound, findsNothing);
+
+      expect(
+        await progress.getCompletedRounds(courseId: course.courseId),
+        completedRoundsBefore,
+      );
+      expect(
+        await progress.getCompletedLessons(courseId: course.courseId),
+        completedLessonsBefore,
+      );
+      expect(await xp.getXp(courseCode: _navigationCourseCode), xpBefore);
+      expect(await xp.getWeeklyXp(), weeklyXpBefore);
+    },
+  );
+
+  testWidgets(
+    'only text exposed directly to the course flag receives a contrast outline',
+    (tester) async {
+      final dispatcher = tester.binding.platformDispatcher;
+      dispatcher.platformBrightnessTestValue = Brightness.light;
+      addTearDown(dispatcher.clearPlatformBrightnessTestValue);
+      final course = await _loadNavigationCourse(tester, enableIddqd: false);
+      await _openHome(tester, scrollToActions: false);
+
+      final guidebookAction = find.byKey(
+        ValueKey('unified-guidebook-action-${course.lessons.first.lessonId}'),
+      );
+      expect(guidebookAction, findsOneWidget);
+      expect(tester.widget<IconButton>(guidebookAction).color, Colors.black87);
+
+      final secondLesson = course.lessons[3];
+      final secondSection = find.byKey(
+        ValueKey('unified-lesson-section-${secondLesson.lessonId}'),
+      );
+      await tester.scrollUntilVisible(
+        secondSection,
+        260,
+        scrollable: _mainLearnerScrollable(),
+      );
+      await tester.pumpAndSettle();
+
+      final guidebookIdentity = find.byKey(
+        ValueKey('unified-guidebook-lesson-title-${secondLesson.lessonId}'),
+      );
+      expect(guidebookIdentity, findsOneWidget);
+      expect(
+        find.ancestor(of: guidebookIdentity, matching: _flagBackdropText()),
+        findsNothing,
+      );
+      final outlinedMessage = find.byKey(
+        ValueKey('flag-backdrop-locked-message-${secondLesson.lessonId}'),
+      );
+      expect(outlinedMessage, findsOneWidget);
+      var messageLayers = tester
+          .widgetList<Text>(
+            find.descendant(of: outlinedMessage, matching: find.byType(Text)),
+          )
+          .toList();
+      expect(messageLayers, hasLength(2));
+      var outlineLayer = messageLayers.singleWhere(
+        (text) => text.style?.foreground != null,
+      );
+      expect(outlineLayer.style!.foreground!.style, PaintingStyle.stroke);
+      expect(outlineLayer.style!.foreground!.strokeWidth, 2);
+      expect(outlineLayer.style!.foreground!.color, Colors.white);
+
+      dispatcher.platformBrightnessTestValue = Brightness.dark;
+      await _pumpFrames(tester, count: 4);
+
+      messageLayers = tester
+          .widgetList<Text>(
+            find.descendant(of: outlinedMessage, matching: find.byType(Text)),
+          )
+          .toList();
+      outlineLayer = messageLayers.singleWhere(
+        (text) => text.style?.foreground != null,
+      );
+      expect(outlineLayer.style!.foreground!.color, Colors.black);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
+    'scrolling into the next Lesson updates the fixed selector once',
+    (tester) async {
+      final course = await _loadNavigationCourse(tester);
+      await _openHome(tester, scrollToActions: false);
+      final secondLesson = course.lessons[4];
+      final secondSection = find.byKey(
+        ValueKey('unified-lesson-section-${secondLesson.lessonId}'),
+      );
+
+      await tester.scrollUntilVisible(
+        secondSection,
+        260,
+        scrollable: _mainLearnerScrollable(),
+      );
+      await tester.drag(
+        find.byKey(const Key('unified-learner-scroll')),
+        const Offset(0, -520),
+      );
+      await tester.pumpAndSettle();
+
+      final selectedLessonLabel = find.descendant(
+        of: find.byKey(const Key('unified-section-selector')),
+        matching: find.text('Everyday life'),
+      );
+      expect(
+        selectedLessonLabel,
+        findsOneWidget,
+        reason: tester
+            .widgetList<Text>(
+              find.descendant(
+                of: find.byKey(const Key('unified-section-selector')),
+                matching: find.byType(Text),
+              ),
+            )
+            .map((text) => text.data)
+            .join(', '),
+      );
+      late String? persistedLessonId;
+      await tester.runAsync(() async {
+        persistedLessonId = await SettingsService().getLastVisitedLessonId(
+          course.courseId,
+        );
+      });
+      expect(
+        course.lessons
+            .singleWhere((lesson) => lesson.lessonId == persistedLessonId)
+            .sectionName,
+        'Everyday life',
+      );
+    },
+  );
+
+  testWidgets('Home Profile opens Profile and back returns Home', (
+    tester,
+  ) async {
+    await _openHome(tester);
+
+    final semantics = tester.ensureSemantics();
+    expect(find.text('Leaderboard'), findsNothing);
+    expect(find.bySemanticsLabel('Leaderboard'), findsNothing);
+    expect(
+      find.bySemanticsLabel('Profile, Navigation Learner'),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const Key('learner-bottom-profile-avatar')),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.byKey(const Key('learner-bottom-profile')));
+    await _pumpUntil(tester, find.byType(ProfileScreen));
+    await _pumpFrames(tester);
+    expect(find.text('Profile'), findsOneWidget);
+
+    await tester.pageBack();
+    await _pumpFrames(tester);
+    await _pumpUntil(
+      tester,
+      find.bySemanticsLabel('Profile, Navigation Learner'),
+    );
+    expect(find.byType(HomeScreen), findsOneWidget);
+    expect(find.byType(ProfileScreen), findsNothing);
+    semantics.dispose();
+  });
+
+  testWidgets('Home Review and Course Info destinations remain unchanged', (
+    tester,
+  ) async {
+    await _openHome(tester);
+
+    await tester.tap(find.byKey(const Key('learner-bottom-review')));
+    await _pumpUntil(tester, find.byType(ReviewScreen));
+    expect(find.text('Review'), findsOneWidget);
+    await tester.pageBack();
+    await _pumpFrames(tester);
+
+    await tester.tap(find.byKey(const Key('learner-bottom-course-info')));
+    await _pumpUntil(tester, find.byType(CourseInfoScreen));
+    expect(find.text('Course Info'), findsOneWidget);
+    await tester.pageBack();
+    await _pumpFrames(tester);
+    expect(find.byType(HomeScreen), findsOneWidget);
+  });
+
+  testWidgets(
+    'selectors and bottom controls stay fixed while learner content scrolls',
+    (tester) async {
+      final course = await _loadNavigationCourse(tester);
+      await _openHome(
+        tester,
+        scrollToActions: false,
+        includeLearnerShell: true,
+      );
+      final semantics = tester.ensureSemantics();
+      final learnerHeader = find.byKey(const Key('unified-learner-header'));
+      final topBar = find.byKey(const Key('unified-learner-top-bar'));
+      final courseSelector = find.byKey(
+        const Key('unified-topbar-course-selector'),
+      );
+      final lessonSelector = find.byKey(const Key('unified-section-selector'));
+      final controls = find.byKey(const Key('unified-bottom-controls'));
+      expect(learnerHeader, findsOneWidget);
+      expect(topBar, findsOneWidget);
+      expect(find.byKey(const Key('learner-status-position')), findsNothing);
+      expect(courseSelector, findsOneWidget);
+      expect(lessonSelector, findsOneWidget);
+      expect(controls, findsOneWidget);
+      expect(
+        find.ancestor(
+          of: controls,
+          matching: find.byKey(const Key('unified-learner-scroll')),
+        ),
+        findsNothing,
+      );
+      expect(tester.getSize(controls).height, learnerBottomActionsHeight);
+      final learnerList = tester.widget<ListView>(
+        find.byKey(const Key('unified-learner-scroll')),
+      );
+      expect(
+        (learnerList.padding! as EdgeInsets).bottom,
+        learnerBottomActionsHeight + 44,
+      );
+      expect(
+        find.bySemanticsLabel('Profile, Navigation Learner'),
+        findsOneWidget,
+      );
+      for (final label in ['Review', 'Course Info']) {
+        expect(find.text(label), findsNothing);
+        final control = find.bySemanticsLabel(label);
+        expect(control, findsOneWidget);
+        expect(
+          tester
+              .getSemantics(control)
+              .getSemanticsData()
+              .hasAction(SemanticsAction.tap),
+          isTrue,
+        );
+      }
+      expect(find.bySemanticsLabel('Leaderboard'), findsNothing);
+      expect(find.bySemanticsLabel('Buy a coffee'), findsNothing);
+      final controlIcons = [
+        find.byKey(const Key('learner-bottom-profile-avatar')),
+        find.byIcon(Icons.history_edu_outlined),
+        find.byIcon(Icons.info_outline),
+      ];
+      for (final icon in controlIcons) {
+        expect(icon, findsOneWidget);
+      }
+      final controlPositions = controlIcons
+          .map((icon) => tester.getRect(icon).center.dx)
+          .toList();
+      expect(
+        controlPositions,
+        orderedEquals(controlPositions.toList()..sort()),
+      );
+      expect(
+        find.descendant(
+          of: controls,
+          matching: find.byWidgetPredicate(
+            (widget) =>
+                widget is Container && widget.decoration is BoxDecoration,
+          ),
+        ),
+        findsNothing,
+      );
+
+      final learnerHeaderBefore = tester.getRect(learnerHeader);
+      final topBarBefore = tester.getRect(topBar);
+      final courseSelectorBefore = tester.getRect(courseSelector);
+      final lessonSelectorBefore = tester.getRect(lessonSelector);
+      final controlsBefore = tester.getRect(controls);
+      final scrollable = _mainLearnerScrollable();
+      final position = tester.state<ScrollableState>(scrollable).position;
+      final contentOffsetBefore = position.pixels;
+      await tester.drag(
+        find.byKey(const Key('unified-learner-scroll')),
+        const Offset(0, -500),
+      );
+      await tester.pumpAndSettle();
+
+      expect(tester.getRect(learnerHeader), learnerHeaderBefore);
+      expect(tester.getRect(topBar), topBarBefore);
+      expect(tester.getRect(courseSelector), courseSelectorBefore);
+      expect(tester.getRect(lessonSelector), lessonSelectorBefore);
+      expect(tester.getRect(controls), controlsBefore);
+      expect(position.pixels, greaterThan(contentOffsetBefore));
+      expect(
+        controlsBefore.bottom,
+        lessThanOrEqualTo(
+          tester.getRect(find.byKey(const Key('unified-learner-page'))).bottom,
+        ),
+      );
+      final finalDuel = find.byKey(
+        ValueKey('unified-duel-${course.lessons.last.lessonId}'),
+      );
+      await tester.scrollUntilVisible(finalDuel, 320, scrollable: scrollable);
+      await tester.pumpAndSettle();
+      expect(
+        tester.getRect(finalDuel).bottom,
+        lessThanOrEqualTo(tester.getRect(controls).top),
+      );
+      semantics.dispose();
+    },
+  );
+
+  testWidgets(
+    'phone learner scroll viewport stays above every bottom control',
+    (tester) async {
+      final course = await _loadNavigationCourse(tester);
+      await _openHome(tester, scrollToActions: false);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetDevicePixelRatio);
+      addTearDown(tester.view.resetPhysicalSize);
+
+      for (final width in const [320.0, 375.0, 430.0]) {
+        tester.view.physicalSize = Size(width, 720);
+        await tester.pumpAndSettle();
+
+        final page = tester.getRect(
+          find.byKey(const Key('unified-learner-page')),
+        );
+        final scroll = find.byKey(const Key('unified-learner-scroll'));
+        final controls = find.byKey(const Key('unified-bottom-controls'));
+        final scrollRect = tester.getRect(scroll);
+        final controlsRect = tester.getRect(controls);
+        expect(
+          scrollRect.bottom,
+          lessThanOrEqualTo(controlsRect.top),
+          reason: '$width px content viewport must end above controls',
+        );
+        expect(controlsRect.bottom, lessThanOrEqualTo(page.bottom));
+
+        final list = tester.widget<ListView>(scroll);
+        expect(
+          (list.padding! as EdgeInsets).bottom,
+          greaterThanOrEqualTo(learnerBottomActionsHeight + 12),
+        );
+        for (final key in const [
+          Key('learner-bottom-profile'),
+          Key('learner-bottom-review'),
+          Key('learner-bottom-course-info'),
+          Key('learner-bottom-theme'),
+          Key('learner-bottom-flag-background'),
+        ]) {
+          final controlRect = tester.getRect(find.byKey(key));
+          expect(controlRect.top, greaterThanOrEqualTo(controlsRect.top));
+          expect(controlRect.bottom, lessThanOrEqualTo(controlsRect.bottom));
+          expect(controlRect.left, greaterThanOrEqualTo(page.left));
+          expect(controlRect.right, lessThanOrEqualTo(page.right));
+        }
+
+        final scrollable = _mainLearnerScrollable();
+        final position = tester.state<ScrollableState>(scrollable).position;
+        position.jumpTo(position.minScrollExtent);
+        await tester.pump();
+        final controlsBefore = tester.getRect(controls);
+        final finalDuel = find.byKey(
+          ValueKey('unified-duel-${course.lessons.last.lessonId}'),
+        );
+        await tester.scrollUntilVisible(finalDuel, 320, scrollable: scrollable);
+        await tester.pumpAndSettle();
+        expect(tester.getRect(controls), controlsBefore);
+        expect(
+          tester.getRect(finalDuel).bottom,
+          lessThanOrEqualTo(tester.getRect(controls).top),
+        );
+        expect(tester.takeException(), isNull);
+      }
+    },
+  );
+
+  testWidgets(
+    'Home reloads the selected custom course after returning from Settings',
+    (tester) async {
+      final profileId =
+          (await ProfileService().getActiveProfileRecord())!.learnerProfileId;
+      final course = Course(
+        courseId: 'settings-reload-custom',
+        originType: CourseOriginType.custom,
+        originalCourseCreator: CourseProvenanceIdentity.qqlUser(
+          profileId: profileId,
+          displayName: 'Settings Reload Creator',
+        ),
+        maintainer: CourseMaintainer(profileId),
+        originalCreatedAtUtc: '2026-09-01T09:00:00.000Z',
+        modifiedAtUtc: '2026-09-01T09:00:00.000Z',
+        courseVersion: '1',
+        learningLanguage: 'Italian',
+        interfaceLanguage: 'English',
+        sourceLanguage: 'English',
+        targetLanguage: 'Italian',
+        title: 'Custom course before Settings',
+        ttsLanguage: 'it-IT',
+        flagCode: 'IT',
+        lessons: [
+          Lesson(lessonId: 'reload-lesson', title: 'Lesson', rounds: const []),
+        ],
+      );
+      (await tester.runAsync(
+        () => CourseEditorService().saveUserCourse(course),
+      ));
+      await SettingsService().setLastSelectedCourseCode(
+        'custom:${course.courseId}',
+      );
+      await _openHome(tester, scrollToActions: false);
+      const updatedTitle = 'Custom course after Settings';
+      final updatedJson = course.toJson()..['title'] = updatedTitle;
+      await tester.runAsync(() async {
+        await CourseEditorService().saveUserCourse(
+          Course.fromJson(updatedJson),
+        );
+      });
+
+      await tester.tap(find.byTooltip('Settings'));
+      await _pumpUntil(tester, find.byType(SettingsScreen));
+      await _pumpFrames(tester);
+      await tester.pageBack();
+      await _pumpFrames(tester);
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 300)),
+      );
+      await _pumpUntil(
+        tester,
+        find.byKey(const Key('unified-topbar-course-selector')),
+      );
+      await tester.tap(find.byKey(const Key('unified-topbar-course-selector')));
+      await _pumpUntilWithIo(
+        tester,
+        find.text('Choose course'),
+        failureMessage: 'Timed out loading the refreshed course picker.',
+      );
+      expect(find.text(updatedTitle), findsWidgets);
+    },
+  );
+
+  testWidgets('Settings exposes Profile as the learner identity entry point', (
+    tester,
+  ) async {
+    await _openHome(tester, scrollToActions: false, includeLearnerShell: true);
+
+    expect(find.byKey(const Key('unified-topbar-user')), findsNothing);
+    await tester.tap(find.byTooltip('Settings'));
+    await _pumpUntil(tester, find.byType(SettingsScreen));
+    await _pumpFrames(tester);
+    expect(find.widgetWithText(ListTile, 'Profile'), findsOneWidget);
+    expect(find.widgetWithText(ListTile, 'Avatar'), findsNothing);
+    expect(find.widgetWithText(ListTile, 'Learner profiles'), findsNothing);
+    await tester.tap(find.widgetWithText(ListTile, 'Profile'));
+    await _pumpUntil(tester, find.byType(ProfileScreen));
+    await tester.tap(find.widgetWithText(ListTile, 'Learner profiles'));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Learners on '), findsOneWidget);
+    expect(find.text('Navigation Learner (admin)'), findsOneWidget);
+    expect(find.text('Add learner'), findsOneWidget);
+
+    // The only admin cannot be deleted: the item is disabled and explained.
+    await tester.tap(find.byTooltip('Learner actions'));
+    await tester.pumpAndSettle();
+    expect(find.text('Delete learner (only admin)'), findsOneWidget);
+    expect(
+      find.text(
+        'The only admin cannot be deleted. However, you can make another '
+        'user admin. As last resort, you can reset QQL.',
+      ),
+      findsOneWidget,
+    );
+    await tester.tap(find.text('Delete learner (only admin)'));
+    await tester.pumpAndSettle();
+    expect(find.text('Delete learner?'), findsNothing);
+  });
+
+  testWidgets('Home tells the learner about an update once a day', (
+    tester,
+  ) async {
+    UpdateNoticeService.setPending(
+      const UpdateRelease(
+        tagName: 'v9.9.9',
+        version: '9.9.9',
+        title: 'Release 9.9.9',
+        notes: '',
+        htmlUrl: 'https://github.com/example/releases/tag/v9.9.9',
+        assets: [],
+      ),
+    );
+    addTearDown(() => UpdateNoticeService.setPending(null));
+
+    await _openHome(tester, scrollToActions: false);
+    await _pumpUntil(tester, find.text('QuisquisLingo update available'));
+    expect(find.text('Not today'), findsOneWidget);
+    expect(find.textContaining('9.9.9'), findsWidgets);
+    await tester.tap(find.byKey(const Key('update-notice-not-today')));
+    await tester.pumpAndSettle();
+    expect(find.text('QuisquisLingo update available'), findsNothing);
+
+    // The same learner opening Home again the same day is not asked again.
+    await tester.pumpWidget(const SizedBox());
+    await _openHome(tester, scrollToActions: false);
+    for (var i = 0; i < 20; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    expect(find.text('QuisquisLingo update available'), findsNothing);
+  });
+
+  testWidgets('Profile logout returns Home to learner selection', (
+    tester,
+  ) async {
+    await _openHome(tester);
+
+    await tester.tap(find.byKey(const Key('learner-bottom-profile')));
+    await _pumpUntil(tester, find.byType(ProfileScreen));
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('profile-logout')),
+      300,
+      scrollable: find.descendant(
+        of: find.byType(ProfileScreen),
+        matching: find.byType(Scrollable),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('profile-logout')));
+    await _pumpUntil(tester, find.text('Log out of this local profile?'));
+    await tester.tap(find.widgetWithText(FilledButton, 'Log out'));
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 300)),
+    );
+    await _pumpUntil(tester, find.textContaining('Learners on '));
+    await _pumpFrames(tester);
+
+    expect(find.text('Navigation Learner (admin)'), findsOneWidget);
+    expect(find.text('Add learner'), findsOneWidget);
+    expect(await ProfileService().getActiveProfile(), isNull);
+  });
+
+  testWidgets(
+    'Learner Profiles shows admin and Discord while PIN gates switching',
+    (tester) async {
+      final profiles = ProfileService();
+      final pinLearner = await profiles.createProfile(
+        'PIN Learner',
+        discordHandle: 'pin_user',
+        generateScreenNameSuffix: false,
+      );
+      await profiles.setOwnAccessPin(
+        actorProfileId: pinLearner.learnerProfileId,
+        pin: '2468',
+      );
+      await profiles.setActiveProfile('Navigation Learner');
+      await _openHome(tester, scrollToActions: false);
+      await _pumpUntil(
+        tester,
+        find.byKey(const Key('unified-bottom-controls')),
+      );
+      await _openLearnerChooserFromHome(tester);
+
+      expect(find.text('Navigation Learner (admin)'), findsOneWidget);
+      expect(find.text('@pin_user on Discord'), findsOneWidget);
+      await tester.scrollUntilVisible(
+        find.widgetWithText(ListTile, 'PIN Learner'),
+        150,
+        scrollable: find.descendant(
+          of: find.byType(BottomSheet),
+          matching: find.byType(Scrollable),
+        ),
+      );
+      await tester.tap(find.widgetWithText(ListTile, 'PIN Learner'));
+      await _pumpUntil(tester, find.text('Enter Access PIN'));
+      await tester.enterText(
+        find.byKey(const Key('profile-access-pin-prompt')),
+        '0000',
+      );
+      await tester.tap(find.widgetWithText(FilledButton, 'Access profile'));
+      await tester.pumpAndSettle();
+      expect(find.text('The Access PIN is incorrect.'), findsOneWidget);
+      expect(await profiles.getActiveProfile(), 'Navigation Learner');
+
+      await tester.tap(find.widgetWithText(ListTile, 'Learner profiles'));
+      await _pumpUntil(tester, find.textContaining('Learners on '));
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(
+        find.widgetWithText(ListTile, 'PIN Learner'),
+        150,
+        scrollable: find.descendant(
+          of: find.byType(BottomSheet),
+          matching: find.byType(Scrollable),
+        ),
+      );
+      await tester.tap(find.widgetWithText(ListTile, 'PIN Learner'));
+      await _pumpUntil(tester, find.text('Enter Access PIN'));
+      await tester.enterText(
+        find.byKey(const Key('profile-access-pin-prompt')),
+        '2468',
+      );
+      await tester.tap(find.widgetWithText(FilledButton, 'Access profile'));
+      for (var attempt = 0; attempt < 40; attempt++) {
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 50)),
+        );
+        await tester.pump(const Duration(milliseconds: 50));
+        if (await profiles.getActiveProfile() == 'PIN Learner') break;
+      }
+      expect(await profiles.getActiveProfile(), 'PIN Learner');
+      await _pumpUntil(tester, find.byKey(const Key('welcome-wizard')));
+      await tester.tap(find.byKey(const Key('welcome-wizard-skip')));
+      await tester.pumpAndSettle();
+      expect(await SettingsService().hasCompletedWelcomeWizard(), isTrue);
+    },
+  );
+
+  testWidgets('admin can change the descriptive Learner Profiles device name', (
+    tester,
+  ) async {
+    await _openHome(tester, scrollToActions: false);
+    await _pumpUntil(tester, find.byKey(const Key('unified-bottom-controls')));
+    await _openLearnerChooserFromHome(tester);
+    await tester.tap(find.byKey(const Key('edit-qql-device-name')));
+    await _pumpUntil(tester, find.text('QQL device name'));
+    await tester.enterText(
+      find.byKey(const Key('qql-device-name-field')),
+      'Studio PC',
+    );
+    await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(ListTile, 'Learner profiles'));
+    await _pumpUntil(tester, find.textContaining('Learners on '));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Learners on Studio PC'), findsOneWidget);
+  });
+
+  testWidgets('Top Bar cat logo opens the existing App Info screen', (
+    tester,
+  ) async {
+    await _openHome(tester, scrollToActions: false, includeLearnerShell: true);
+
+    await tester.tap(find.byKey(const Key('unified-topbar-logo')));
+    await _pumpUntil(tester, find.byType(InfoScreen));
+    await _pumpFrames(tester);
+
+    expect(find.byKey(const Key('app-info-full-logo')), findsOneWidget);
+  });
+
+  testWidgets('Settings no longer exposes Gamification or IDDQD', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: SettingsScreen(
+          course: _courseFixture(),
+          onManageLearners: (_) async {},
+        ),
+      ),
+    );
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 300)),
+    );
+    await _pumpUntil(tester, find.byType(SettingsScreen));
+    expect(find.text('Settings'), findsOneWidget);
+    expect(find.text('Gamification'), findsNothing);
+    expect(find.text('IDDQD Mode (you can walk through locks)'), findsNothing);
+  });
+
+  testWidgets('Unified Home loading follows system dark appearance', (
+    tester,
+  ) async {
+    final dispatcher = tester.binding.platformDispatcher;
+    dispatcher.platformBrightnessTestValue = Brightness.dark;
+    addTearDown(dispatcher.clearPlatformBrightnessTestValue);
+
+    await tester.pumpWidget(const MaterialApp(home: HomeScreen()));
+
+    final loadingPage = tester.widget<Scaffold>(
+      find.byKey(const Key('unified-learner-loading-page')),
+    );
+    expect(loadingPage.backgroundColor, const Color(0xFF080B09));
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets(
+    'Unified Home preserves the learner strip and follows system appearance',
+    (tester) async {
+      final dispatcher = tester.binding.platformDispatcher;
+      dispatcher.platformBrightnessTestValue = Brightness.light;
+      addTearDown(dispatcher.clearPlatformBrightnessTestValue);
+      final course = await _loadNavigationCourse(tester);
+      await _openHome(
+        tester,
+        scrollToActions: false,
+        includeLearnerShell: true,
+      );
+
+      final topBar = find.byKey(const Key('unified-learner-top-bar'));
+      final logoFinder = find.byKey(const Key('unified-topbar-logo-image'));
+      expect(logoFinder, findsOneWidget);
+      final logo = tester.widget<Image>(logoFinder);
+      expect(
+        (logo.image as AssetImage).assetName,
+        'assets/branding/quisquislingo_logo.png',
+      );
+      expect(logo.height, 52);
+      expect(logo.width, 156);
+      expect(logo.fit, BoxFit.fill);
+      expect(logo.filterQuality, FilterQuality.high);
+      expect(
+        find.ancestor(of: logoFinder, matching: find.byType(ClipRect)),
+        findsOneWidget,
+      );
+      expect(find.byIcon(Icons.forum_rounded), findsNothing);
+
+      var page = tester.widget<Scaffold>(
+        find.byKey(const Key('unified-learner-page')),
+      );
+      var pageTheme = Theme.of(
+        tester.element(find.byKey(const Key('unified-learner-page'))),
+      );
+      expect(find.text('Navigation Learner'), findsNothing);
+      expect(find.byIcon(Icons.face_outlined), findsNothing);
+      expect(find.byTooltip('Settings'), findsOneWidget);
+      expect(find.byIcon(Icons.settings_outlined), findsOneWidget);
+      final topBarOrder = [
+        find.byKey(const Key('unified-topbar-course-selector')),
+        find.byKey(const Key('unified-topbar-streak')),
+        find.byKey(const Key('unified-topbar-laurels')),
+        find.byKey(const Key('unified-topbar-weekly-xp')),
+        find.byKey(const Key('unified-topbar-logo')),
+        find.byKey(const Key('unified-topbar-settings')),
+      ].map((finder) => tester.getRect(finder).center.dx).toList();
+      expect(topBarOrder, orderedEquals(topBarOrder.toList()..sort()));
+      expect(
+        find.descendant(of: topBar, matching: find.text(course.title)),
+        findsNothing,
+      );
+      expect(find.text(course.title), findsNothing);
+      expect(
+        find.descendant(of: topBar, matching: find.byType(CourseFlagBadge)),
+        findsOneWidget,
+      );
+      expect(find.byKey(const Key('unified-course-selector')), findsNothing);
+      expect(find.textContaining('Course Progress'), findsNothing);
+      expect(find.byKey(const Key('learner-status-position')), findsNothing);
+      final topBarRect = tester.getRect(topBar);
+      final lessonSelectorRect = tester.getRect(
+        find.byKey(const Key('unified-section-selector')),
+      );
+      expect(topBarRect.bottom, lessThanOrEqualTo(lessonSelectorRect.top));
+      expect(pageTheme.brightness, Brightness.light);
+      expect(page.backgroundColor, const Color(0xFFF7F3E8));
+      var topBarMaterial = tester.widget<Material>(topBar);
+      expect(topBarMaterial.color, Colors.white);
+      expect(topBarMaterial.color!.computeLuminance(), greaterThan(.5));
+      var background = tester.widget<CourseFlagBackdrop>(
+        find.byKey(const Key('unified-learner-flag-background')),
+      );
+      expect(background.course.courseId, course.courseId);
+      expect(background.fallbackCode, _navigationCourseCode);
+      expect(background.opacity, 1);
+      expect(
+        find.image(const AssetImage('assets/olive_tree.png')),
+        findsNothing,
+      );
+      expect(
+        find.byKey(const Key('unified-learner-background-tint')),
+        findsNothing,
+      );
+      expect(find.byKey(const Key('unified-learner-dark-veil')), findsNothing);
+      final lightVeil = tester.widget<ColoredBox>(
+        find.byKey(const Key('unified-learner-light-veil')),
+      );
+      expect(lightVeil.color.a, closeTo(.10, .01));
+      expect(
+        lightVeil.color.withValues(alpha: 1),
+        pageTheme.colorScheme.surface,
+      );
+      expect(
+        find.ancestor(of: topBar, matching: find.byType(Opacity)),
+        findsNothing,
+      );
+      final selector = find.byKey(const Key('unified-section-selector'));
+      final courseSelector = find.byKey(
+        const Key('unified-topbar-course-selector'),
+      );
+      expect(courseSelector, findsOneWidget);
+      final courseSelectorRect = tester.getRect(courseSelector);
+      final courseSelectorInkWell = tester.widget<InkWell>(
+        find.descendant(of: courseSelector, matching: find.byType(InkWell)),
+      );
+      expect(courseSelectorInkWell.onTap, isNotNull);
+      expect(
+        find.descendant(of: courseSelector, matching: find.byType(Text)),
+        findsNothing,
+      );
+      expect(
+        tester.widget<OutlinedButton>(selector).style?.padding?.resolve({}),
+        const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      );
+      expect(courseSelectorRect.height, greaterThanOrEqualTo(48));
+      expect(courseSelectorRect.width, lessThanOrEqualTo(56));
+      expect(tester.getRect(selector).height, greaterThanOrEqualTo(48));
+      expect(
+        _buttonBackgroundColor(tester, selector),
+        Colors.white.withValues(alpha: .5),
+      );
+
+      dispatcher.platformBrightnessTestValue = Brightness.dark;
+      await _pumpFrames(tester, count: 4);
+
+      page = tester.widget<Scaffold>(
+        find.byKey(const Key('unified-learner-page')),
+      );
+      pageTheme = Theme.of(
+        tester.element(find.byKey(const Key('unified-learner-page'))),
+      );
+      topBarMaterial = tester.widget<Material>(topBar);
+      background = tester.widget<CourseFlagBackdrop>(
+        find.byKey(const Key('unified-learner-flag-background')),
+      );
+      expect(pageTheme.brightness, Brightness.dark);
+      expect(page.backgroundColor, const Color(0xFF080B09));
+      expect(topBarMaterial.color, pageTheme.colorScheme.surface);
+      expect(topBarMaterial.color!.computeLuminance(), lessThan(.2));
+      expect(background.course.courseId, course.courseId);
+      expect(background.fallbackCode, _navigationCourseCode);
+      expect(background.opacity, 1);
+      final darkVeil = tester.widget<ColoredBox>(
+        find.byKey(const Key('unified-learner-dark-veil')),
+      );
+      expect(darkVeil.color.a, closeTo(.25, .01));
+      expect(
+        darkVeil.color.withValues(alpha: 1),
+        pageTheme.colorScheme.surface,
+      );
+      expect(
+        pageTheme.colorScheme.onSurface.computeLuminance(),
+        greaterThan(.5),
+      );
+      expect(tester.getRect(courseSelector), courseSelectorRect);
+      expect(
+        _buttonBackgroundColor(tester, selector),
+        pageTheme.colorScheme.surface.withValues(alpha: .5),
+      );
+      final sectionTitle = tester.widget<Text>(
+        find.descendant(
+          of: selector,
+          matching: find.text(course.lessons.first.sectionName!),
+        ),
+      );
+      expect(sectionTitle.style?.color, Colors.white);
+      expect(
+        sectionTitle.style?.fontSize,
+        pageTheme.textTheme.titleMedium?.fontSize,
+      );
+      expect(sectionTitle.maxLines, 2);
+      expect(sectionTitle.overflow, TextOverflow.ellipsis);
+      expect(sectionTitle.style?.fontWeight, FontWeight.normal);
+      expect(sectionTitle.data, course.lessons.first.sectionName);
+      expect(
+        find.descendant(
+          of: selector,
+          matching: find.textContaining('Rounds completed'),
+        ),
+        findsNothing,
+      );
+      expect(
+        _contrastRatio(Colors.white, page.backgroundColor!),
+        greaterThanOrEqualTo(4.5),
+      );
+
+      await tester.tap(selector);
+      await tester.pumpAndSettle();
+      final lessonSheet = find.byType(BottomSheet);
+      expect(lessonSheet, findsOneWidget);
+      expect(Theme.of(tester.element(lessonSheet)).brightness, Brightness.dark);
+      Navigator.of(tester.element(lessonSheet)).pop();
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets('Unified Home supports narrow width and enlarged text', (
+    tester,
+  ) async {
+    await _loadNavigationCourse(tester);
+    await tester.binding.setSurfaceSize(const Size(320, 900));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await tester.pumpWidget(
+      MaterialApp(
+        builder: (context, child) => MediaQuery(
+          data: MediaQuery.of(
+            context,
+          ).copyWith(textScaler: TextScaler.linear(1.5)),
+          child: child!,
+        ),
+        home: const HomeScreen(),
+      ),
+    );
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 300)),
+    );
+    await _pumpUntil(tester, find.byKey(const Key('unified-learner-page')));
+
+    expect(find.byType(HomeScreen), findsOneWidget);
+    final pageWidth = tester
+        .getRect(find.byKey(const Key('unified-learner-page')))
+        .width;
+    final courseSelector = find.byKey(
+      const Key('unified-topbar-course-selector'),
+    );
+    final courseSelectorWidth = tester.getRect(courseSelector).width;
+    final lessonSelectorWidth = tester
+        .getRect(find.byKey(const Key('unified-section-selector')))
+        .width;
+    expect(courseSelectorWidth, lessThanOrEqualTo(56));
+    expect(lessonSelectorWidth, lessThan(pageWidth - 28));
+    expect(lessonSelectorWidth, greaterThanOrEqualTo(pageWidth * .85));
+    for (final key in const [
+      Key('unified-topbar-course-selector'),
+      Key('unified-topbar-streak'),
+      Key('unified-topbar-laurels'),
+      Key('unified-topbar-weekly-xp'),
+      Key('unified-topbar-logo'),
+      Key('unified-topbar-settings'),
+    ]) {
+      expect(find.byKey(key), findsOneWidget);
+    }
+    expect(
+      find.descendant(of: courseSelector, matching: find.byType(Text)),
+      findsNothing,
+    );
+    final layoutException = tester.takeException();
+    expect(
+      layoutException,
+      isNull,
+      reason: layoutException is FlutterError
+          ? layoutException.toStringDeep()
+          : '$layoutException',
+    );
+  });
+
+  testWidgets('Guidebook Lesson identities stay at three lines on narrow pages', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(320, 900));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    const longTitle =
+        'A very long restaurant Lesson title that must never grow beyond three visible lines on a narrow learner page';
+    final course = Course(
+      courseId: 'user_long_lesson_heading',
+      learningLanguage: 'Italian',
+      interfaceLanguage: 'English',
+      sourceLanguage: 'English',
+      targetLanguage: 'Italian',
+      title: 'Long Lesson Heading Course',
+      ttsLanguage: 'it-IT',
+      flagCode: 'IT',
+      lessons: [
+        Lesson(lessonId: 'first', title: 'First Lesson', rounds: const []),
+        Lesson(lessonId: 'long', title: longTitle, rounds: const []),
+      ],
+    );
+    (await tester.runAsync(() => CourseEditorService().saveUserCourse(course)));
+    await SettingsService().setLastSelectedCourseCode(
+      'custom:${course.courseId}',
+    );
+    await _openHome(tester, scrollToActions: false);
+    expect(find.byKey(const Key('unified-section-selector')), findsNothing);
+    final lesson = course.lessons[1];
+    final heading = find.byKey(
+      ValueKey('unified-guidebook-lesson-title-${lesson.lessonId}'),
+    );
+    await tester.scrollUntilVisible(
+      heading,
+      260,
+      scrollable: _mainLearnerScrollable(),
+    );
+    await tester.pumpAndSettle();
+
+    final headingText = tester.widget<Text>(heading);
+    expect(headingText.style?.fontSize, 17);
+    expect(headingText.maxLines, 3);
+    expect(headingText.overflow, TextOverflow.ellipsis);
+    expect(headingText.data, longTitle);
+    expect(headingText.style?.fontWeight, FontWeight.w500);
+    expect(
+      tester
+          .widget<Text>(
+            find.byKey(
+              ValueKey('unified-guidebook-lesson-label-${lesson.lessonId}'),
+            ),
+          )
+          .data,
+      'Lesson 2',
+    );
+    expect(
+      tester.getSize(heading).height,
+      lessThanOrEqualTo(17 * 1.25 * 3 + 1),
+    );
+    expect(
+      find.byKey(ValueKey('flag-backdrop-lesson-title-${lesson.lessonId}')),
+      findsNothing,
+    );
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets(
+    'Section selector stays at most two normal-weight lines at requested phone widths',
+    (tester) async {
+      const longSection = 'Travel conversations and practical directions';
+      final course = Course(
+        courseId: 'user_selector_ellipsis',
+        learningLanguage: 'Italian',
+        interfaceLanguage: 'English',
+        sourceLanguage: 'English',
+        targetLanguage: 'Italian',
+        title: 'Selector Ellipsis Course',
+        ttsLanguage: 'it-IT',
+        flagCode: 'IT',
+        lessons: [
+          Lesson(
+            lessonId: 'short',
+            title: 'Hello',
+            rounds: const [],
+            section: true,
+            sectionName: 'Foundations',
+          ),
+          Lesson(
+            lessonId: 'long',
+            title: 'Transport',
+            rounds: const [],
+            section: true,
+            sectionName: longSection,
+          ),
+        ],
+      );
+      (await tester.runAsync(
+        () => CourseEditorService().saveUserCourse(course),
+      ));
+      await SettingsService().setLastSelectedCourseCode(
+        'custom:${course.courseId}',
+      );
+      await SettingsService().setIddqdModeEnabled(course.courseId, true);
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      for (final width in [320.0, 375.0, 430.0]) {
+        await SettingsService().setLastVisitedLessonId(
+          course.courseId,
+          course.lessons.first.lessonId,
+        );
+        await tester.binding.setSurfaceSize(Size(width, 900));
+        await _openHome(tester, scrollToActions: false);
+
+        final selector = find.byKey(const Key('unified-section-selector'));
+        final initialHeight = tester.getSize(selector).height;
+        await tester.tap(selector);
+        await tester.pumpAndSettle();
+        final longLesson = find.descendant(
+          of: find.byType(BottomSheet),
+          matching: find.text(longSection),
+        );
+        await tester.tap(longLesson);
+        await tester.pumpAndSettle();
+
+        final titleFinder = find.byKey(
+          const Key('unified-section-selector-title'),
+        );
+        final title = tester.widget<Text>(titleFinder);
+        expect(title.data, longSection);
+        expect(title.maxLines, 2);
+        expect(title.overflow, TextOverflow.ellipsis);
+        expect(title.style?.fontWeight, FontWeight.normal);
+        expect(tester.getSize(selector).height, initialHeight);
+        expect(tester.getSize(titleFinder).height, lessThanOrEqualTo(48));
+        expect(find.byTooltip(longSection), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      }
+    },
+  );
+
+  testWidgets(
+    'Section and icon/no-icon Guidebooks fit requested phone widths',
+    (tester) async {
+      final course = Course(
+        courseId: 'user_responsive_lesson_metadata',
+        learningLanguage: 'Italian',
+        interfaceLanguage: 'English',
+        sourceLanguage: 'English',
+        targetLanguage: 'Italian',
+        title: 'Responsive Lesson Metadata',
+        ttsLanguage: 'it-IT',
+        flagCode: 'IT',
+        lessons: [
+          Lesson(
+            lessonId: 'icon',
+            title: 'At the railway station with a deliberately long title',
+            rounds: const [],
+            section: true,
+            sectionName: 'Travel',
+            themeIconAsset: 'assets/lesson_icons/train.png',
+          ),
+          Lesson(
+            lessonId: 'plain',
+            title: 'At the hotel',
+            rounds: const [],
+            section: true,
+            sectionName: 'Travel',
+          ),
+        ],
+      );
+      (await tester.runAsync(
+        () => CourseEditorService().saveUserCourse(course),
+      ));
+      await SettingsService().setLastSelectedCourseCode(
+        'custom:${course.courseId}',
+      );
+      await SettingsService().setIddqdModeEnabled(course.courseId, true);
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      for (final width in [320.0, 375.0, 430.0]) {
+        await SettingsService().setLastVisitedLessonId(
+          course.courseId,
+          course.lessons.first.lessonId,
+        );
+        await tester.binding.setSurfaceSize(Size(width, 900));
+        await _openHome(tester, scrollToActions: false);
+
+        final page = tester.getRect(
+          find.byKey(const Key('unified-learner-page')),
+        );
+        final firstHeader = find.byKey(
+          ValueKey('lesson-section-header-${course.lessons.first.lessonId}'),
+        );
+        expect(firstHeader, findsOneWidget);
+        expect(
+          tester.getRect(firstHeader).left,
+          greaterThanOrEqualTo(page.left),
+        );
+        expect(
+          tester.getRect(firstHeader).right,
+          lessThanOrEqualTo(page.right),
+        );
+
+        Finder cardFor(Lesson lesson) => find.ancestor(
+          of: find.byKey(
+            ValueKey('unified-guidebook-lesson-title-${lesson.lessonId}'),
+          ),
+          matching: find.byKey(const Key('unified-guidebook-node')),
+        );
+        final withIconCard = cardFor(course.lessons.first);
+        final withIconTitle = tester.widget<Text>(
+          find.byKey(
+            ValueKey(
+              'unified-guidebook-lesson-title-${course.lessons.first.lessonId}',
+            ),
+          ),
+        );
+        expect(withIconTitle.maxLines, 3);
+        expect(withIconTitle.overflow, TextOverflow.ellipsis);
+        expect(
+          find.descendant(
+            of: withIconCard,
+            matching: find.byKey(const Key('guidebook-theme-icon-image')),
+          ),
+          findsOneWidget,
+        );
+        expect(
+          tester.getRect(withIconCard).left,
+          greaterThanOrEqualTo(page.left),
+        );
+        expect(
+          tester.getRect(withIconCard).right,
+          lessThanOrEqualTo(page.right),
+        );
+        expect(
+          find.descendant(
+            of: withIconCard,
+            matching: find.byTooltip('GuideBook'),
+          ),
+          findsOneWidget,
+        );
+
+        final secondTitle = find.byKey(
+          ValueKey(
+            'unified-guidebook-lesson-title-${course.lessons[1].lessonId}',
+          ),
+        );
+        await tester.scrollUntilVisible(
+          secondTitle,
+          260,
+          scrollable: _mainLearnerScrollable(),
+        );
+        await tester.pumpAndSettle();
+        final withoutIconCard = cardFor(course.lessons[1]);
+        expect(
+          find.descendant(
+            of: withoutIconCard,
+            matching: find.byKey(const Key('guidebook-theme-icon-image')),
+          ),
+          findsNothing,
+        );
+        expect(
+          tester.getSize(
+            find.descendant(
+              of: withoutIconCard,
+              matching: find.byKey(const Key('guidebook-lesson-icon-slot')),
+            ),
+          ),
+          const Size(84, 84),
+        );
+        expect(
+          find.descendant(
+            of: withoutIconCard,
+            matching: find.byTooltip('GuideBook'),
+          ),
+          findsOneWidget,
+        );
+        expect(
+          tester.getRect(withoutIconCard).left,
+          greaterThanOrEqualTo(page.left),
+        );
+        expect(
+          tester.getRect(withoutIconCard).right,
+          lessThanOrEqualTo(page.right),
+        );
+        expect(tester.takeException(), isNull);
+      }
+    },
+  );
+
+  testWidgets('requested phone widths keep both learner themes overflow-free', (
+    tester,
+  ) async {
+    final dispatcher = tester.binding.platformDispatcher;
+    addTearDown(dispatcher.clearPlatformBrightnessTestValue);
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    final course = await _loadNavigationCourse(tester);
+
+    for (final brightness in [Brightness.light, Brightness.dark]) {
+      dispatcher.platformBrightnessTestValue = brightness;
+      for (final width in [320.0, 375.0, 430.0]) {
+        await tester.binding.setSurfaceSize(Size(width, 900));
+        await _openHome(tester, scrollToActions: false);
+
+        final page = tester.getRect(
+          find.byKey(const Key('unified-learner-page')),
+        );
+        final selector = tester.getRect(
+          find.byKey(const Key('unified-section-selector')),
+        );
+        final backdrop = find.byKey(
+          const Key('unified-learner-flag-background'),
+        );
+        final flagPaint = find.descendant(
+          of: backdrop,
+          matching: find.byWidgetPredicate(
+            (widget) => widget is CustomPaint && widget.painter is FlagPainter,
+          ),
+        );
+        final veil = tester.widget<ColoredBox>(
+          find.byKey(
+            brightness == Brightness.dark
+                ? const Key('unified-learner-dark-veil')
+                : const Key('unified-learner-light-veil'),
+          ),
+        );
+        final guidebook = find.byKey(const Key('unified-guidebook-node')).first;
+        final guidebookRect = tester.getRect(guidebook);
+        final controls = find.byKey(const Key('unified-bottom-controls'));
+
+        expect(page.width, width);
+        expect(selector.left, greaterThanOrEqualTo(page.left));
+        expect(selector.right, lessThanOrEqualTo(page.right));
+        expect(tester.getSize(flagPaint).aspectRatio, closeTo(3 / 2, .001));
+        expect(
+          veil.color.a,
+          closeTo(brightness == Brightness.dark ? .25 : .10, .01),
+        );
+        expect(guidebookRect.left, greaterThanOrEqualTo(page.left));
+        expect(guidebookRect.right, lessThanOrEqualTo(page.right));
+        expect(guidebookRect.center.dx, closeTo(page.center.dx, 1));
+        expect(tester.getSize(controls).height, learnerBottomActionsHeight);
+        expect(tester.getRect(controls).bottom, lessThanOrEqualTo(page.bottom));
+        final finalDuel = find.byKey(
+          ValueKey('unified-duel-${course.lessons.last.lessonId}'),
+        );
+        await tester.scrollUntilVisible(
+          finalDuel,
+          320,
+          scrollable: _mainLearnerScrollable(),
+        );
+        await tester.pumpAndSettle();
+        expect(
+          tester.getRect(finalDuel).bottom,
+          lessThanOrEqualTo(tester.getRect(controls).top),
+        );
+        expect(tester.takeException(), isNull);
+      }
+    }
+  });
+
+  testWidgets(
+    'learner flag background modes retain artwork and add static inspired surfaces',
+    (tester) async {
+      final dispatcher = tester.binding.platformDispatcher;
+      addTearDown(dispatcher.clearPlatformBrightnessTestValue);
+      final course = await _loadNavigationCourse(tester);
+
+      for (final brightness in Brightness.values) {
+        dispatcher.platformBrightnessTestValue = brightness;
+        for (final mode in LearnerFlagBackgroundMode.values) {
+          await _openHome(
+            tester,
+            scrollToActions: false,
+            flagBackgroundMode: mode,
+            flagBackgroundCourseId: course.courseId,
+          );
+
+          final backdrop = find.byKey(
+            const Key('unified-learner-flag-background'),
+          );
+          final expectedVeil = find.byKey(
+            brightness == Brightness.dark
+                ? const Key('unified-learner-dark-veil')
+                : const Key('unified-learner-light-veil'),
+          );
+          if (mode == LearnerFlagBackgroundMode.off) {
+            expect(backdrop, findsNothing);
+            expect(expectedVeil, findsNothing);
+            expect(
+              find.byKey(const Key('unified-learner-light-veil')),
+              findsNothing,
+            );
+            expect(
+              find.byKey(const Key('unified-learner-dark-veil')),
+              findsNothing,
+            );
+            final page = tester.widget<Scaffold>(
+              find.byKey(const Key('unified-learner-page')),
+            );
+            expect(
+              page.backgroundColor,
+              brightness == Brightness.dark
+                  ? const Color(0xFF080B09)
+                  : const Color(0xFFF7F3E8),
+            );
+          } else if (mode == LearnerFlagBackgroundMode.small ||
+              mode == LearnerFlagBackgroundMode.extended) {
+            expect(backdrop, findsOneWidget);
+            expect(expectedVeil, findsOneWidget);
+            expect(
+              tester.widget<CourseFlagBackdrop>(backdrop).fit,
+              mode == LearnerFlagBackgroundMode.extended
+                  ? BoxFit.cover
+                  : BoxFit.contain,
+            );
+            expect(
+              tester.widget<ColoredBox>(expectedVeil).color.a,
+              closeTo(brightness == Brightness.dark ? .25 : .10, .01),
+            );
+          } else {
+            expect(backdrop, findsNothing);
+            expect(expectedVeil, findsNothing);
+            final inspired = find.byKey(
+              ValueKey(
+                mode == LearnerFlagBackgroundMode.tinted
+                    ? 'unified-learner-flag-background-tinted'
+                    : 'unified-learner-flag-background-inspired',
+              ),
+            );
+            expect(inspired, findsOneWidget);
+            final decoration =
+                tester.widget<DecoratedBox>(inspired).decoration
+                    as BoxDecoration;
+            expect(
+              decoration.color,
+              mode == LearnerFlagBackgroundMode.tinted ? isNotNull : isNull,
+            );
+            expect(
+              decoration.gradient,
+              mode == LearnerFlagBackgroundMode.softInspired
+                  ? isA<LinearGradient>()
+                  : isNull,
+            );
+          }
+          expect(tester.takeException(), isNull);
+        }
+      }
+    },
+  );
+
+  testWidgets(
+    'new flag background modes replace the learner surface immediately',
+    (tester) async {
+      final course = await _loadNavigationCourse(tester);
+      await _openHome(
+        tester,
+        scrollToActions: false,
+        flagBackgroundMode: LearnerFlagBackgroundMode.extended,
+        flagBackgroundCourseId: course.courseId,
+      );
+
+      expect(find.byTooltip('Flag background: Extended'), findsOneWidget);
+      expect(
+        find.byKey(const Key('unified-learner-flag-background')),
+        findsOneWidget,
+      );
+
+      await tester.tap(find.byKey(const Key('learner-bottom-flag-background')));
+      await _pumpUntilWithIo(
+        tester,
+        find.byKey(const Key('unified-learner-flag-background-tinted')),
+        failureMessage: 'Timed out applying Tinted to the learner surface.',
+      );
+      expect(find.byTooltip('Flag background: Tinted'), findsOneWidget);
+      expect(
+        find.byKey(const Key('unified-learner-flag-background')),
+        findsNothing,
+      );
+
+      await tester.tap(find.byKey(const Key('learner-bottom-flag-background')));
+      await _pumpUntilWithIo(
+        tester,
+        find.byKey(const Key('unified-learner-flag-background-inspired')),
+        failureMessage: 'Timed out applying Inspired to the learner surface.',
+      );
+      expect(find.byTooltip('Flag background: Inspired'), findsOneWidget);
+      expect(find.byType(AnimatedContainer), findsNothing);
+      expect(find.byType(AnimatedOpacity), findsNothing);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets('selected course restores its learner-scoped flag background', (
+    tester,
+  ) async {
+    final italianCourse = await _loadItalianCourse(tester);
+    final koreanCourse = await _loadCourse(tester, 'KO');
+    final profiles = ProfileService();
+    await profiles.setFlagBackgroundMode(
+      italianCourse.courseId,
+      LearnerFlagBackgroundMode.small,
+    );
+    await profiles.setFlagBackgroundMode(
+      koreanCourse.courseId,
+      LearnerFlagBackgroundMode.off,
+    );
+    await _openHome(tester, scrollToActions: false);
+
+    var background = tester.widget<CourseFlagBackdrop>(
+      find.byKey(const Key('unified-learner-flag-background')),
+    );
+    expect(background.course.courseId, italianCourse.courseId);
+    expect(background.fallbackCode, 'IT');
+    expect(find.byTooltip('Flag background: Small'), findsOneWidget);
+
+    Future<void> chooseCourse(String code) async {
+      await _pumpUntilGone(
+        tester,
+        find.byKey(const Key('course-entry-animation')),
+      );
+      await tester.tap(find.byKey(const Key('unified-topbar-course-selector')));
+      await _pumpUntilWithIo(
+        tester,
+        find.text('Choose course'),
+        failureMessage: 'Timed out loading the course picker.',
+      );
+      final recent = await SettingsService().getRecentCourseRefs();
+      final selected = await SettingsService().getLastSelectedCourseCode();
+      final tile = recent.where((ref) => ref != selected).take(3).contains(code)
+          ? find.byKey(ValueKey('recent-course-$code'))
+          : find.byKey(ValueKey('bundled-course-$code'));
+      tester.widget<ListTile>(tile).onTap!();
+      await tester.pump();
+      final expectedCourseId = code == 'IT'
+          ? italianCourse.courseId
+          : koreanCourse.courseId;
+      await _pumpUntilWithIo(
+        tester,
+        _courseInTopBar(expectedCourseId),
+        failureMessage: 'Timed out switching the learner course to $code.',
+      );
+      expect(find.byType(BottomSheet), findsNothing);
+    }
+
+    await tester.tap(find.byKey(const Key('unified-topbar-course-selector')));
+    await _pumpUntilWithIo(
+      tester,
+      find.text('Choose course'),
+      failureMessage: 'Timed out loading the course picker.',
+    );
+    final fullPicker = tester.widget<FractionallySizedBox>(
+      find.descendant(
+        of: find.byType(BottomSheet),
+        matching: find.byType(FractionallySizedBox),
+      ),
+    );
+    expect(fullPicker.heightFactor, greaterThanOrEqualTo(.65));
+    expect(find.text('Choose course'), findsOneWidget);
+    expect(find.text('Current course'), findsOneWidget);
+    expect(find.text('Other courses'), findsOneWidget);
+    expect(find.text(italianCourse.title), findsWidgets);
+    // Build 260 Revision 2: a fourth bundled Course moves the Korean row
+    // below the picker's first screen.
+    final koreanTile = find.byKey(const ValueKey('bundled-course-KO'));
+    await tester.scrollUntilVisible(
+      koreanTile,
+      120,
+      scrollable: find
+          .descendant(
+            of: find.byType(BottomSheet),
+            matching: find.byType(Scrollable),
+          )
+          .first,
+    );
+    tester.widget<ListTile>(koreanTile).onTap!();
+    await tester.pump();
+    await _pumpUntilWithIo(
+      tester,
+      find.byTooltip('Flag background: Off'),
+      failureMessage: 'Timed out restoring the Korean flag preference.',
+    );
+    expect(find.byType(BottomSheet), findsNothing);
+    expect(_activeCourse(tester).courseId, koreanCourse.courseId);
+    expect(
+      find.byKey(const Key('unified-learner-flag-background')),
+      findsNothing,
+    );
+    expect(find.byTooltip('Flag background: Off'), findsOneWidget);
+    final compactFlag = tester.widget<CourseFlagBadge>(
+      find.descendant(
+        of: find.byKey(const Key('unified-topbar-course-selector')),
+        matching: find.byType(CourseFlagBadge),
+      ),
+    );
+    expect(compactFlag.course.courseId, koreanCourse.courseId);
+    expect(compactFlag.fallbackCode, 'KO');
+
+    await chooseCourse('IT');
+    await _pumpUntilWithIo(
+      tester,
+      find.byTooltip('Flag background: Small'),
+      failureMessage: 'Timed out restoring the Italian flag preference.',
+    );
+    background = tester.widget<CourseFlagBackdrop>(
+      find.byKey(const Key('unified-learner-flag-background')),
+    );
+    expect(background.course.courseId, italianCourse.courseId);
+    expect(find.byTooltip('Flag background: Small'), findsOneWidget);
+    expect(
+      await profiles.getFlagBackgroundMode(italianCourse.courseId),
+      LearnerFlagBackgroundMode.small,
+    );
+    expect(
+      await profiles.getFlagBackgroundMode(koreanCourse.courseId),
+      LearnerFlagBackgroundMode.off,
+    );
+  });
+
+  testWidgets(
+    'course selector links open the requested Courses tab without changing selection',
+    (tester) async {
+      await _openHome(tester, scrollToActions: false);
+      await _pumpUntilWithIo(
+        tester,
+        find.byType(UnifiedLearnerTopBar),
+        failureMessage: 'Timed out loading the current Course in the top bar.',
+      );
+      final settings = SettingsService();
+      await settings.setCourseEditorUnlocked(true);
+      final selectedBefore = await settings.getLastSelectedCourseCode();
+      final selectedCourseId = _activeCourse(tester).courseId;
+
+      Future<void> openSelectorAndRevealActions() async {
+        await tester.tap(
+          find.byKey(const Key('unified-topbar-course-selector')),
+        );
+        await _pumpUntilWithIo(
+          tester,
+          find.text('Choose course'),
+          failureMessage: 'Timed out loading the course picker.',
+        );
+        final list = find.descendant(
+          of: find.byType(BottomSheet),
+          matching: find.byType(Scrollable),
+        );
+        await tester.scrollUntilVisible(
+          find.byKey(const Key('course-selector-edit-current')),
+          350,
+          scrollable: list,
+        );
+        await _pumpFrames(tester, count: 8);
+      }
+
+      await openSelectorAndRevealActions();
+      final all = find.byKey(const Key('course-selector-all-courses'));
+      final edit = find.byKey(const Key('course-selector-edit-current'));
+      final manager = find.byKey(const Key('course-selector-course-manager'));
+      expect(all, findsOneWidget);
+      expect(edit, findsOneWidget);
+      expect(manager, findsOneWidget);
+      expect(tester.getRect(all).top, lessThan(tester.getRect(manager).top));
+      expect(tester.getRect(manager).top, lessThan(tester.getRect(edit).top));
+
+      await tester.tap(manager);
+      await tester.pumpUntilFileIoState(
+        () =>
+            find.byType(CoursesScreen).evaluate().isNotEmpty &&
+            find.byType(CircularProgressIndicator).evaluate().isEmpty,
+      );
+      expect(
+        tester.widget<CoursesScreen>(find.byType(CoursesScreen)).initialTab,
+        CoursesTab.manager,
+      );
+      expect(await settings.getLastSelectedCourseCode(), selectedBefore);
+      await tester.tap(find.byType(BackButton).last);
+      await tester.pumpAndSettle();
+
+      await openSelectorAndRevealActions();
+      await tester.tap(find.byKey(const Key('course-selector-all-courses')));
+      await tester.pumpUntilFileIoState(
+        () => find.byType(CoursesScreen).evaluate().isNotEmpty,
+      );
+      expect(
+        tester.widget<CoursesScreen>(find.byType(CoursesScreen)).initialTab,
+        CoursesTab.allCourses,
+      );
+      await tester.tap(find.byType(BackButton).last);
+      await tester.pumpAndSettle();
+
+      await openSelectorAndRevealActions();
+      await tester.tap(find.byKey(const Key('course-selector-edit-current')));
+      await _pumpUntilWithIo(
+        tester,
+        find.byType(CourseEditorScreen),
+        failureMessage: 'Timed out opening the current Course by stable ID.',
+      );
+      final inspection = tester.widget<CourseEditorScreen>(
+        find.byType(CourseEditorScreen),
+      );
+      expect(inspection.course.courseId, selectedCourseId);
+      expect(await settings.getLastSelectedCourseCode(), selectedBefore);
+    },
+  );
+
+  testWidgets(
+    'locked Selector keeps Manager and Editor greyed and explains the profile unlock',
+    (tester) async {
+      await _openHome(tester, scrollToActions: false);
+      await _pumpUntilWithIo(
+        tester,
+        find.byType(UnifiedLearnerTopBar),
+        failureMessage: 'Home did not load for locked Selector test.',
+      );
+      await SettingsService().setCourseEditorUnlocked(false);
+      await tester.tap(find.byKey(const Key('unified-topbar-course-selector')));
+      await _pumpUntilWithIo(
+        tester,
+        find.text('Choose course'),
+        failureMessage: 'Locked Selector did not open.',
+      );
+      final list = find.descendant(
+        of: find.byType(BottomSheet),
+        matching: find.byType(Scrollable),
+      );
+      for (final key in [
+        const Key('course-selector-course-manager'),
+        const Key('course-selector-edit-current'),
+      ]) {
+        await tester.scrollUntilVisible(find.byKey(key), 350, scrollable: list);
+        final tile = tester.widget<ListTile>(find.byKey(key));
+        expect(tile.enabled, isFalse);
+        await tester.tap(find.byKey(key));
+        await tester.pumpAndSettle();
+        expect(find.text(courseManagerUnlockMessage), findsOneWidget);
+        await tester.tap(find.text('OK'));
+        await tester.pumpAndSettle();
+      }
+      expect(find.byType(CoursesScreen), findsNothing);
+    },
+  );
+
+  testWidgets(
+    'course selector offers Review only on Current course and preserves Home scroll',
+    (tester) async {
+      // The Edge Case is a test fixture since Build 259 Revision 5.
+      registerEdgeCaseFixture();
+      final italianCourse = await _loadItalianCourse(tester);
+      await SettingsService().setIddqdMode(
+        italianCourse.courseId,
+        LearnerIddqdMode.viewOnly,
+      );
+      await _openHome(tester, scrollToActions: false);
+      await _pumpUntilWithIo(
+        tester,
+        find.byType(UnifiedLearnerTopBar),
+        failureMessage: 'Timed out loading Home for Review navigation.',
+      );
+      final learnerScroll = _mainLearnerScrollable();
+      final position = tester.state<ScrollableState>(learnerScroll).position;
+      position.jumpTo(position.maxScrollExtent / 2);
+      await tester.pump();
+      final offsetBefore = position.pixels;
+
+      await tester.tap(find.byKey(const Key('unified-topbar-course-selector')));
+      await _pumpUntilWithIo(
+        tester,
+        find.text('Choose course'),
+        failureMessage: 'Timed out opening the Course Selector.',
+      );
+      final selectorScroll = find.descendant(
+        of: find.byType(BottomSheet),
+        matching: find.byType(Scrollable),
+      );
+
+      await tester.tap(
+        find.byKey(const Key('course-selector-actions-current')),
+      );
+      await _settleSelector(tester);
+      expect(
+        tester
+            .widgetList<PopupMenuItem<String>>(
+              find.byType(PopupMenuItem<String>),
+            )
+            .map((item) => item.value),
+        ['info', 'review', 'favorite', 'hide', 'remove_personal'],
+      );
+      final currentHide = tester.widget<PopupMenuItem<String>>(
+        find.byWidgetPredicate(
+          (widget) => widget is PopupMenuItem<String> && widget.value == 'hide',
+        ),
+      );
+      expect(currentHide.enabled, isFalse);
+      expect(find.text("You're studying this Course"), findsOneWidget);
+      expect(find.text('Unhide in Learner'), findsNothing);
+      expect(
+        find.byWidgetPredicate(
+          (widget) =>
+              widget is PopupMenuItem<String> && widget.value == 'review',
+        ),
+        findsOneWidget,
+      );
+      await tester.tapAt(const Offset(4, 4));
+      await _settleSelector(tester);
+
+      await tester.scrollUntilVisible(
+        find.byKey(const Key('course-selector-actions-bundled-EN_EDGE')),
+        260,
+        scrollable: selectorScroll,
+      );
+      // The Edge Case fixture is the last Course of the list since Build 259
+      // Revision 5: bring its whole row into view before tapping.
+      await tester.ensureVisible(
+        find.byKey(const Key('course-selector-actions-bundled-EN_EDGE')),
+      );
+      await tester.pump();
+      await tester.tap(
+        find.byKey(const Key('course-selector-actions-bundled-EN_EDGE')),
+      );
+      await _settleSelector(tester);
+      expect(
+        find.byWidgetPredicate(
+          (widget) =>
+              widget is PopupMenuItem<String> && widget.value == 'review',
+        ),
+        findsNothing,
+      );
+      expect(
+        tester
+            .widget<PopupMenuItem<String>>(
+              find.byWidgetPredicate(
+                (widget) =>
+                    widget is PopupMenuItem<String> && widget.value == 'hide',
+              ),
+            )
+            .enabled,
+        isTrue,
+      );
+      await tester.tapAt(const Offset(4, 4));
+      await _settleSelector(tester);
+
+      await tester.scrollUntilVisible(
+        find.byKey(const Key('current-course')),
+        -260,
+        scrollable: selectorScroll,
+      );
+      await tester.pump();
+      await tester.tap(
+        find.byKey(const Key('course-selector-actions-current')),
+      );
+      await _settleSelector(tester);
+      await tester.tap(find.text('Review').last);
+      await _pumpUntilWithIo(
+        tester,
+        find.byType(ReviewScreen),
+        failureMessage: 'Timed out opening Review from Current course.',
+      );
+      final review = tester.widget<ReviewScreen>(find.byType(ReviewScreen));
+      expect(review.course.courseId, italianCourse.courseId);
+      expect(review.viewOnlyMode, isFalse);
+
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+      expect(find.byType(HomeScreen), findsOneWidget);
+      expect(
+        tester.state<ScrollableState>(_mainLearnerScrollable()).position.pixels,
+        closeTo(offsetBefore, 1),
+      );
+    },
+  );
+
+  testWidgets(
+    'hidden Courses leave the Selector while direct Import remains available',
+    (tester) async {
+      await _loadItalianCourse(tester);
+      final koreanCourse = await _loadCourse(tester, 'KO');
+      final profiles = ProfileService();
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(
+        profiles.keyForProfileId(
+          (await profiles.getActiveProfileId())!,
+          'course_hidden_${koreanCourse.courseId}',
+        ),
+        true,
+      );
+      await _openHome(tester, scrollToActions: false);
+      await _pumpUntilWithIo(
+        tester,
+        find.byType(UnifiedLearnerTopBar),
+        failureMessage: 'Home did not load',
+      );
+      await tester.tap(find.byKey(const Key('unified-topbar-course-selector')));
+      await _pumpUntilWithIo(
+        tester,
+        find.text('Choose course'),
+        failureMessage: 'Selector did not open',
+      );
+      expect(find.byKey(const Key('bundled-course-KO')), findsNothing);
+      await tester.tap(
+        find.byKey(const Key('course-selector-actions-current')),
+      );
+      await tester.pump(const Duration(milliseconds: 350));
+      expect(find.text('Hide in Learner'), findsOneWidget);
+      expect(find.text('Unhide in Learner'), findsNothing);
+      expect(find.text('Remove from my courses'), findsOneWidget);
+      await tester.tapAt(const Offset(4, 4));
+      await tester.pump(const Duration(milliseconds: 350));
+      await tester.scrollUntilVisible(
+        find.byKey(const Key('course-selector-import')),
+        400,
+        scrollable: find.descendant(
+          of: find.byType(BottomSheet),
+          matching: find.byType(Scrollable),
+        ),
+      );
+      await tester.tap(find.byKey(const Key('course-selector-import')));
+      await _pumpUntilWithIo(
+        tester,
+        find.byKey(const Key('import-course-json-primary')),
+        failureMessage: 'Direct import did not load',
+      );
+      expect(find.text('Course Studio'), findsNothing);
+      await tester.tap(find.byType(BackButton).last);
+      await _pumpUntilWithIo(
+        tester,
+        find.byType(UnifiedLearnerTopBar),
+        failureMessage: 'Home did not load',
+      );
+      expect(find.text('Course Studio'), findsNothing);
+      expect(await SettingsService().isCourseEditorUnlocked(), isFalse);
+    },
+  );
+
+  testWidgets('course picker places three other recent courses before Other', (
+    tester,
+  ) async {
+    // The Edge Case is a test fixture since Build 259 Revision 5.
+    registerEdgeCaseFixture();
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(1200, 1400);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetPhysicalSize);
+    // Four other Courses were opened; only the three most recent are listed.
+    // Build 255 Revision 6 left three other bundled demos, so the oldest one
+    // is a local Course.
+    final oldest = Course(
+      courseId: 'user_oldest_recent_course',
+      learningLanguage: 'Italian',
+      interfaceLanguage: 'English',
+      sourceLanguage: 'English',
+      targetLanguage: 'Italian',
+      title: 'Oldest Recent Course',
+      ttsLanguage: 'it-IT',
+      flagCode: 'IT',
+      lessons: [
+        Lesson(lessonId: 'oldest_first', title: 'First', rounds: const []),
+      ],
+    );
+    (await tester.runAsync(() => CourseEditorService().saveUserCourse(oldest)));
+    final settings = SettingsService();
+    for (final ref in [
+      'custom:${oldest.courseId}',
+      'KO',
+      'EN_EDGE',
+      'EN_IT',
+      'IT',
+    ]) {
+      await settings.setLastSelectedCourseCode(ref);
+    }
+    await _openHome(tester, scrollToActions: false);
+
+    await tester.tap(find.byKey(const Key('unified-topbar-course-selector')));
+    await _pumpUntilWithIo(
+      tester,
+      find.text('Choose course'),
+      failureMessage: 'Timed out loading recent courses.',
+    );
+
+    final currentTop = tester.getRect(find.text('Current course')).top;
+    final recentTop = tester.getRect(find.text('Recently opened')).top;
+    final allTop = tester.getRect(find.text('Other courses')).top;
+    expect(currentTop, lessThan(recentTop));
+    expect(recentTop, lessThan(allTop));
+
+    final recentTiles = find.byType(ListTile).evaluate().where((element) {
+      final center = tester
+          .getRect(
+            find.byElementPredicate(
+              (candidate) => identical(candidate, element),
+            ),
+          )
+          .center
+          .dy;
+      return center > recentTop && center < allTop;
+    }).toList();
+    expect(recentTiles, hasLength(3));
+
+    final recentTitles = [
+      'QQL Demo: English from Italian',
+      'Temporary Demo: Edge Case Course',
+      'AI-Slop Demo: Korean for English Speakers',
+    ];
+    final recentPositions = recentTitles
+        .map((title) => tester.getRect(find.text(title).first).center.dy)
+        .toList();
+    expect(recentPositions, orderedEquals(recentPositions.toList()..sort()));
+    for (final position in recentPositions) {
+      expect(position, greaterThan(recentTop));
+      expect(position, lessThan(allTop));
+    }
+    // The oldest opened Course is under Other. The current Course keeps its
+    // own row and, from Build 255 Revision 7, is not repeated under Other.
+    const oldestRow = Key('local-course-user_oldest_recent_course');
+    await tester.scrollUntilVisible(
+      find.byKey(oldestRow),
+      250,
+      scrollable: find.descendant(
+        of: find.byType(BottomSheet),
+        matching: find.byType(Scrollable),
+      ),
+    );
+    expect(find.byKey(oldestRow), findsOneWidget);
+    expect(find.byKey(const Key('bundled-course-IT')), findsNothing);
+  });
+
+  testWidgets('Build 255 Revision 7: a Selector row shows the cover', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(1200, 1400);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetPhysicalSize);
+    const id = 'user_selector_cover_course';
+    final cover = (await tester.runAsync(() async {
+      final bytes = await File(
+        'test/fixtures/import/valid_cover.png',
+      ).readAsBytes();
+      return CourseMediaStore().addBytes(id, bytes, 'png', cover: true);
+    }))!;
+    final covered = Course(
+      courseId: id,
+      learningLanguage: 'Italian',
+      interfaceLanguage: 'English',
+      sourceLanguage: 'English',
+      targetLanguage: 'Italian',
+      title: 'Selector Cover Course',
+      ttsLanguage: 'it-IT',
+      flagCode: 'IT',
+      coverImage: cover,
+      lessons: [
+        Lesson(
+          lessonId: 'selector_cover_first',
+          title: 'First',
+          rounds: const [],
+        ),
+      ],
+    );
+    (await tester.runAsync(
+      () => CourseEditorService().saveUserCourse(covered),
+    ));
+    await _openHome(tester, scrollToActions: false);
+    await tester.tap(find.byKey(const Key('unified-topbar-course-selector')));
+    await _pumpUntilWithIo(
+      tester,
+      find.text('Choose course'),
+      failureMessage: 'Selector did not open for covers.',
+    );
+
+    // A Course without a cover keeps its flag.
+    final current = find.byKey(const Key('current-course'));
+    expect(
+      find.descendant(of: current, matching: find.byType(CourseFlagBadge)),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: current, matching: find.byType(CourseArtwork)),
+      findsNothing,
+    );
+    const row = Key('local-course-$id');
+    await tester.scrollUntilVisible(
+      find.byKey(row),
+      250,
+      scrollable: find.descendant(
+        of: find.byType(BottomSheet),
+        matching: find.byType(Scrollable),
+      ),
+    );
+    final artwork = tester.widget<CourseArtwork>(
+      find.descendant(
+        of: find.byKey(row),
+        matching: find.byType(CourseArtwork),
+      ),
+    );
+    expect(artwork.size, 44);
+    expect(artwork.course.coverImage, cover);
+  });
+
+  testWidgets(
+    'Favorites may repeat Current and Recent; Hide removes a noncurrent row only',
+    (tester) async {
+      // The Edge Case is a test fixture since Build 259 Revision 5.
+      registerEdgeCaseFixture();
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = const Size(1200, 2000);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      addTearDown(tester.view.resetPhysicalSize);
+      final settings = SettingsService();
+      for (final ref in ['EN_IT', 'KO', 'IT']) {
+        await settings.setLastSelectedCourseCode(ref);
+      }
+      await _openHome(tester, scrollToActions: false);
+      final current = _activeCourse(tester);
+      final korean = (await tester.runAsync(
+        () => CourseService().loadCourse('KO'),
+      ))!;
+      final english = (await tester.runAsync(
+        () => CourseService().loadCourse('EN_IT'),
+      ))!;
+      final favorites = CourseFavoriteService();
+      await favorites.setFavorite(current.courseId, true);
+      await favorites.setFavorite(korean.courseId, true);
+      await favorites.setFavorite(english.courseId, true);
+
+      await tester.tap(find.byKey(const Key('unified-topbar-course-selector')));
+      await _pumpUntilWithIo(
+        tester,
+        find.text('Choose course'),
+        failureMessage: 'Selector did not open for Favorites.',
+      );
+      final selectorScroll = find.descendant(
+        of: find.byType(BottomSheet),
+        matching: find.byType(Scrollable),
+      );
+      expect(find.byKey(const Key('current-course')), findsOneWidget);
+      expect(find.byKey(const Key('recent-course-KO')), findsOneWidget);
+      for (final ref in ['IT', 'KO', 'EN_IT']) {
+        await tester.scrollUntilVisible(
+          find.byKey(ValueKey('favorite-course-$ref')),
+          250,
+          scrollable: selectorScroll,
+        );
+        expect(find.byKey(ValueKey('favorite-course-$ref')), findsOneWidget);
+      }
+      expect(find.text('Favorites'), findsOneWidget);
+
+      await tester.scrollUntilVisible(
+        find.byKey(const Key('course-selector-actions-favorite-EN_IT')),
+        250,
+        scrollable: selectorScroll,
+      );
+      await tester.tap(
+        find.byKey(const Key('course-selector-actions-favorite-EN_IT')),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Remove from Favorites'), findsOneWidget);
+      await tester.tap(find.text('Hide in Learner'));
+      await tester.pumpAndSettle();
+      expect(
+        await CourseLearnerVisibilityService().isHidden(english.courseId),
+        isTrue,
+      );
+      expect(await CourseLibraryService().contains(english), isTrue);
+      expect(await settings.getLastSelectedCourseCode(), 'IT');
+      expect(find.byKey(const Key('favorite-course-EN_IT')), findsNothing);
+
+      await tester.scrollUntilVisible(
+        find.byKey(const Key('course-selector-actions-current')),
+        -300,
+        scrollable: selectorScroll,
+      );
+      await tester.tap(
+        find.byKey(const Key('course-selector-actions-current')),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Remove from Favorites'));
+      await tester.pumpAndSettle();
+      expect(await favorites.isFavorite(current.courseId), isFalse);
+      expect(await CourseLibraryService().contains(current), isTrue);
+      // No longer a Favorite, the current Course keeps only its own row: from
+      // Build 255 Revision 7 it is not repeated under Other courses.
+      await tester.scrollUntilVisible(
+        find.byKey(const Key('bundled-course-EN_EDGE')),
+        250,
+        scrollable: selectorScroll,
+      );
+      expect(find.byKey(const Key('bundled-course-EN_EDGE')), findsOneWidget);
+      expect(find.byKey(const Key('bundled-course-IT')), findsNothing);
+    },
+  );
+
+  testWidgets('Selector Import offers Study now for a playable Course', (
+    tester,
+  ) async {
+    await _loadItalianCourse(tester);
+    final korean = await _loadCourse(tester, 'KO');
+    await _openHome(tester, scrollToActions: false);
+    await tester.tap(find.byKey(const Key('unified-topbar-course-selector')));
+    await _pumpUntilWithIo(
+      tester,
+      find.text('Choose course'),
+      failureMessage: 'Selector did not open for Import.',
+    );
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('course-selector-import')),
+      350,
+      scrollable: find.descendant(
+        of: find.byType(BottomSheet),
+        matching: find.byType(Scrollable),
+      ),
+    );
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('course-selector-import')));
+    await _pumpUntilWithIo(
+      tester,
+      find.byKey(const Key('import-course-json-primary')),
+      failureMessage: 'Import screen did not open.',
+    );
+    Navigator.of(tester.element(find.byType(CourseProjectsScreen))).pop(korean);
+    await _pumpUntilWithIo(
+      tester,
+      find.textContaining(
+        'Imported “${korean.title}” and added to your courses.',
+      ),
+      failureMessage: 'Import result was not shown on Home.',
+    );
+    expect(find.byType(CourseProjectsScreen), findsNothing);
+    await tester.tap(find.text('Study now'));
+    await _pumpUntilWithIo(
+      tester,
+      _courseInTopBar(korean.courseId),
+      failureMessage: 'Study now did not select the imported Course.',
+    );
+    expect(await SettingsService().getLastSelectedCourseCode(), 'KO');
+  });
+
+  testWidgets('Selector Import explains when a Course cannot be studied', (
+    tester,
+  ) async {
+    await _loadItalianCourse(tester);
+    await _openHome(tester, scrollToActions: false);
+    await tester.tap(find.byKey(const Key('unified-topbar-course-selector')));
+    await _pumpUntilWithIo(
+      tester,
+      find.text('Choose course'),
+      failureMessage: 'Selector did not open for Import.',
+    );
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('course-selector-import')),
+      350,
+      scrollable: find.descendant(
+        of: find.byType(BottomSheet),
+        matching: find.byType(Scrollable),
+      ),
+    );
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('course-selector-import')));
+    await _pumpUntilWithIo(
+      tester,
+      find.byKey(const Key('import-course-json-primary')),
+      failureMessage: 'Import screen did not open.',
+    );
+    final draft = Course(
+      courseId: 'imported_draft',
+      learningLanguage: 'Italian',
+      interfaceLanguage: 'English',
+      sourceLanguage: 'English',
+      targetLanguage: 'Italian',
+      title: 'Received Draft',
+      ttsLanguage: 'it-IT',
+      publicationState: PublicationState.draft,
+      lessons: const [],
+    );
+    Navigator.of(tester.element(find.byType(CourseProjectsScreen))).pop(draft);
+    await _pumpUntilWithIo(
+      tester,
+      find.textContaining(
+        'Imported “Received Draft” and added to your courses.',
+      ),
+      failureMessage: 'Draft Import result was not shown on Home.',
+    );
+    expect(
+      find.textContaining('Publish this Course before you can study it.'),
+      findsOneWidget,
+    );
+    expect(find.text('Study now'), findsNothing);
+  });
+
+  testWidgets(
+    'Welcome and Beta expiry dialogs retain their structure and controls',
+    (tester) async {
+      SharedPreferences.setMockInitialValues({'sound_effects_enabled': false});
+      await ProfileService().addProfile('Popup Learner');
+      await SettingsService().completeWelcomeWizard();
+      // Build 255 Revision 7: the Beta notice shows only in its last seven
+      // days; this one is five days before expiry.
+      final pinned = BetaLifecycleService.clock;
+      final expiry = BetaLifecycleService.expiryDate;
+      BetaLifecycleService.clock = () =>
+          DateTime(expiry.year, expiry.month, expiry.day - 5, 12);
+      addTearDown(() => BetaLifecycleService.clock = pinned);
+
+      await tester.pumpWidget(const MaterialApp(home: HomeScreen()));
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 300)),
+      );
+      await _pumpUntil(tester, find.text('Welcome to QuisquisLingo'));
+
+      expect(find.byType(AlertDialog), findsOneWidget);
+      final dialogTexts = tester
+          .widgetList<Text>(
+            find.descendant(
+              of: find.byType(AlertDialog),
+              matching: find.byType(Text),
+            ),
+          )
+          .where((text) => text.data != null)
+          .toList();
+      final phrase = dialogTexts.singleWhere(
+        (text) =>
+            text.data != 'Welcome to QuisquisLingo' &&
+            text.data != 'Version ${AppMetadata.releaseVersion}' &&
+            text.data != AppMetadata.publicBuildLabel &&
+            text.data != 'Continue',
+      );
+      final welcomeDialog = tester.widget<AlertDialog>(
+        find.byType(AlertDialog),
+      );
+      expect(welcomeDialog.backgroundColor, const Color(0xFFFFE600));
+      expect(welcomeDialog.surfaceTintColor, Colors.transparent);
+      expect(
+        tester.widget<Text>(find.text('Welcome to QuisquisLingo')).style?.color,
+        const Color(0xFF0756DF),
+      );
+      expect(
+        tester
+            .widget<Text>(find.text('Version ${AppMetadata.releaseVersion}'))
+            .style
+            ?.color,
+        const Color(0xFF0756DF),
+      );
+      expect(
+        tester
+            .widget<Text>(find.text(AppMetadata.publicBuildLabel))
+            .style
+            ?.color,
+        const Color(0xFF0756DF),
+      );
+      expect(find.textContaining('22621'), findsNothing);
+      expect(find.textContaining('+228'), findsNothing);
+      expect(phrase.style?.color, const Color(0xFF0756DF));
+      expect(find.widgetWithText(FilledButton, 'Continue'), findsOneWidget);
+      expect(
+        tester
+            .widgetList<ModalBarrier>(find.byType(ModalBarrier))
+            .any((barrier) => !barrier.dismissible),
+        isTrue,
+      );
+
+      await tester.tap(find.text('Continue'));
+      await _pumpUntil(tester, find.text('Beta expiry'));
+
+      late bool welcomeSeen;
+      await tester.runAsync(() async {
+        welcomeSeen = await SettingsService().hasSeenOneTimeNotice(
+          'welcome_${AppMetadata.technicalVersion}',
+        );
+      });
+      expect(welcomeSeen, isTrue);
+      expect(find.byType(AlertDialog), findsOneWidget);
+      final betaDialog = tester.widget<AlertDialog>(find.byType(AlertDialog));
+      expect(betaDialog.backgroundColor, isNull);
+      expect(betaDialog.surfaceTintColor, isNull);
+      expect(
+        find.textContaining('This beta expires in 5 days.'),
+        findsOneWidget,
+      );
+      expect(
+        find.textContaining(
+          'Expiry date: ${BetaLifecycleService.expiryIsoDate}.',
+        ),
+        findsOneWidget,
+      );
+      expect(find.widgetWithText(FilledButton, 'OK'), findsOneWidget);
+      expect(
+        tester
+            .widgetList<ModalBarrier>(find.byType(ModalBarrier))
+            .any((barrier) => !barrier.dismissible),
+        isTrue,
+      );
+
+      await tester.tap(find.widgetWithText(FilledButton, 'OK'));
+      await _pumpUntil(tester, find.byKey(const Key('unified-learner-page')));
+      await tester.pumpWidget(const MaterialApp(home: HomeScreen()));
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 300)),
+      );
+      await _pumpUntil(tester, find.byKey(const Key('unified-learner-page')));
+      expect(find.text('Welcome to QuisquisLingo'), findsNothing);
+    },
+  );
+
+  testWidgets('Welcome popup keeps its yellow and blue palette in dark mode', (
+    tester,
+  ) async {
+    final dispatcher = tester.binding.platformDispatcher;
+    dispatcher.platformBrightnessTestValue = Brightness.dark;
+    addTearDown(dispatcher.clearPlatformBrightnessTestValue);
+    SharedPreferences.setMockInitialValues({'sound_effects_enabled': false});
+    await ProfileService().addProfile('Dark Popup Learner');
+    await SettingsService().completeWelcomeWizard();
+
+    await tester.pumpWidget(const MaterialApp(home: HomeScreen()));
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 300)),
+    );
+    await _pumpUntil(tester, find.text('Welcome to QuisquisLingo'));
+
+    final dialog = tester.widget<AlertDialog>(find.byType(AlertDialog));
+    expect(dialog.backgroundColor, const Color(0xFFFFE600));
+    expect(dialog.surfaceTintColor, Colors.transparent);
+    final popupText = tester
+        .widgetList<Text>(
+          find.descendant(
+            of: find.byType(AlertDialog),
+            matching: find.byType(Text),
+          ),
+        )
+        .where((text) => text.data != null && text.data != 'Continue');
+    expect(popupText, isNotEmpty);
+    for (final text in popupText) {
+      expect(text.style?.color, const Color(0xFF0756DF));
+    }
+    expect(find.widgetWithText(FilledButton, 'Continue'), findsOneWidget);
+    expect(
+      tester
+          .widgetList<ModalBarrier>(find.byType(ModalBarrier))
+          .any((barrier) => !barrier.dismissible),
+      isTrue,
+    );
+  });
+
+  testWidgets(
+    'direct switching and logout chooser restore learner-scoped courses',
+    (tester) async {
+      final italianCourse = await _loadItalianCourse(tester);
+      final koreanCourse = await _loadCourse(tester, 'KO');
+      final profiles = ProfileService();
+      final prefs = await SharedPreferences.getInstance();
+      final navigationLearnerId = (await profiles.getActiveProfileId())!;
+      await prefs.setString(
+        profiles.keyForProfileId(
+          navigationLearnerId,
+          'last_selected_course_code',
+        ),
+        'IT',
+      );
+      final koreanLearner = await profiles.createProfile(
+        'Korean Learner',
+        generateScreenNameSuffix: false,
+      );
+      await SettingsService().completeWelcomeWizard();
+      await prefs.setString(
+        profiles.keyForProfileId(
+          koreanLearner.learnerProfileId,
+          'last_selected_course_code',
+        ),
+        'KO',
+      );
+      await profiles.setActiveProfile('Navigation Learner');
+
+      await _openHome(tester);
+      expect(_activeCourse(tester).courseId, italianCourse.courseId);
+
+      await _openLearnerChooserFromHome(tester);
+      await _chooseLearner(tester, 'Korean Learner');
+      Navigator.of(tester.element(find.byType(ProfileScreen))).pop();
+      await _pumpUntilWithIo(
+        tester,
+        _courseInTopBar(koreanCourse.courseId),
+        failureMessage: 'Timed out restoring Korean Learner Home.',
+      );
+      expect(await profiles.getActiveProfile(), 'Korean Learner');
+      expect(_activeCourse(tester).courseId, koreanCourse.courseId);
+
+      await _openLearnerChooserFromHome(tester);
+      await _chooseLearner(tester, 'Navigation Learner');
+      Navigator.of(tester.element(find.byType(ProfileScreen))).pop();
+      await _pumpUntilWithIo(
+        tester,
+        _courseInTopBar(italianCourse.courseId),
+        failureMessage: 'Timed out restoring Navigation Learner Home.',
+      );
+      expect(await profiles.getActiveProfile(), 'Navigation Learner');
+      expect(_activeCourse(tester).courseId, italianCourse.courseId);
+
+      await _logoutToLearnerChooser(tester);
+      expect(await profiles.getActiveProfile(), isNull);
+      await _chooseLearner(tester, 'Korean Learner');
+      await _pumpUntilWithIo(
+        tester,
+        _courseInTopBar(koreanCourse.courseId),
+        failureMessage: 'Timed out restoring Korean Learner after logout.',
+      );
+      expect(await profiles.getActiveProfile(), 'Korean Learner');
+      expect(_activeCourse(tester).courseId, koreanCourse.courseId);
+
+      await _logoutToLearnerChooser(tester);
+      expect(await profiles.getActiveProfile(), isNull);
+      await _chooseLearner(tester, 'Navigation Learner');
+      await _pumpUntilWithIo(
+        tester,
+        _courseInTopBar(italianCourse.courseId),
+        failureMessage: 'Timed out restoring Navigation Learner after logout.',
+      );
+      expect(await profiles.getActiveProfile(), 'Navigation Learner');
+      expect(_activeCourse(tester).courseId, italianCourse.courseId);
+    },
+  );
+}
+
+void _installEventChannelMock(
+  TestDefaultBinaryMessenger messenger,
+  String channel,
+) {
+  messenger.setMockMessageHandler(channel, (message) async {
+    return const StandardMethodCodec().encodeSuccessEnvelope(null);
+  });
+}
+
+Course _courseFixture() => Course(
+  courseId: 'navigation_course',
+  learningLanguage: 'Italian',
+  interfaceLanguage: 'English',
+  sourceLanguage: 'English',
+  targetLanguage: 'Italian',
+  title: 'Navigation Course',
+  ttsLanguage: 'it-IT',
+  lessons: const [],
+);
+
+// Structural navigation needs Sections and Duels. The retained Korean sample
+// provides both (Build 255 Revision 6 removed the German one); IT points to the
+// Laboratory, which deliberately has neither.
+Future<Course> _loadNavigationCourse(
+  WidgetTester tester, {
+  bool enableIddqd = true,
+}) async {
+  final course = await _loadCourse(
+    tester,
+    _navigationCourseCode,
+    enableIddqd: enableIddqd,
+  );
+  await SettingsService().setLastSelectedCourseCode(_navigationCourseCode);
+  return course;
+}
+
+Future<Course> _loadItalianCourse(
+  WidgetTester tester, {
+  bool enableIddqd = true,
+}) async {
+  return _loadCourse(tester, 'IT', enableIddqd: enableIddqd);
+}
+
+Future<Course> _loadCourse(
+  WidgetTester tester,
+  String code, {
+  bool enableIddqd = true,
+}) async {
+  late Course course;
+  await tester.runAsync(() async {
+    course = await CourseService().loadCourse(code);
+    await SettingsService().setIddqdModeEnabled(course.courseId, enableIddqd);
+    await ProfileService().setFlagBackgroundMode(
+      course.courseId,
+      LearnerFlagBackgroundMode.small,
+    );
+  });
+  return course;
+}
+
+Future<void> _openHome(
+  WidgetTester tester, {
+  bool scrollToActions = true,
+  bool includeLearnerShell = false,
+  LearnerFlagBackgroundMode? flagBackgroundMode,
+  String? flagBackgroundCourseId,
+}) async {
+  if (flagBackgroundMode != null && flagBackgroundCourseId != null) {
+    await tester.runAsync(
+      () => ProfileService().setFlagBackgroundMode(
+        flagBackgroundCourseId,
+        flagBackgroundMode,
+      ),
+    );
+  }
+  await tester.pumpWidget(
+    MaterialApp(
+      navigatorKey: includeLearnerShell ? learnerNavigatorKey : null,
+      navigatorObservers: includeLearnerShell
+          ? [learnerStatusRouteObserver]
+          : const [],
+      builder: includeLearnerShell
+          ? (context, child) => LearnerShell(child: child!)
+          : null,
+      home: const HomeScreen(),
+    ),
+  );
+  // Build 255 Revision 7: the Beta notice shows only in the last seven days,
+  // and the test clock sits fifteen days before expiry.
+  await tester.pumpUntilFileIoState(() {
+    final topBar = find.byType(UnifiedLearnerTopBar);
+    if (topBar.evaluate().isEmpty) return false;
+    final widget = tester.widget<UnifiedLearnerTopBar>(topBar);
+    return widget.controller.state.course?.courseId == widget.course.courseId;
+  });
+  if (scrollToActions) {
+    await tester.ensureVisible(
+      find.byKey(const Key('unified-bottom-controls')),
+    );
+  }
+}
+
+Course _activeCourse(WidgetTester tester) => tester
+    .widget<UnifiedLearnerTopBar>(find.byType(UnifiedLearnerTopBar))
+    .course;
+
+Finder _courseInTopBar(String courseId) => find.byWidgetPredicate(
+  (widget) =>
+      widget is UnifiedLearnerTopBar && widget.course.courseId == courseId,
+);
+
+Future<void> _openLearnerChooserFromHome(WidgetTester tester) async {
+  await tester.tap(find.byKey(const Key('learner-bottom-profile')));
+  await _pumpUntil(tester, find.byType(ProfileScreen));
+  await tester.pumpAndSettle();
+  final learnerProfiles = find.widgetWithText(ListTile, 'Learner profiles');
+  await tester.ensureVisible(learnerProfiles);
+  await tester.tap(learnerProfiles);
+  await _pumpUntil(tester, find.textContaining('Learners on '));
+  await tester.pumpAndSettle();
+}
+
+Future<void> _logoutToLearnerChooser(WidgetTester tester) async {
+  await tester.tap(find.byKey(const Key('learner-bottom-profile')));
+  await _pumpUntil(tester, find.byType(ProfileScreen));
+  await tester.pumpAndSettle();
+  await tester.scrollUntilVisible(
+    find.byKey(const Key('profile-logout')),
+    300,
+    scrollable: find.descendant(
+      of: find.byType(ProfileScreen),
+      matching: find.byType(Scrollable),
+    ),
+  );
+  await tester.pumpAndSettle();
+  await tester.tap(find.byKey(const Key('profile-logout')));
+  await _pumpUntil(tester, find.text('Log out of this local profile?'));
+  await tester.tap(find.widgetWithText(FilledButton, 'Log out'));
+  await tester.runAsync(
+    () => Future<void>.delayed(const Duration(milliseconds: 300)),
+  );
+  await _pumpUntil(tester, find.textContaining('Learners on '));
+  await tester.pumpAndSettle();
+}
+
+Future<void> _chooseLearner(WidgetTester tester, String learnerName) async {
+  final learner = find.byWidgetPredicate((widget) {
+    if (widget is! ListTile || widget.title is! Text) return false;
+    final title = (widget.title! as Text).data;
+    return title == learnerName || title == '$learnerName (admin)';
+  });
+  await tester.ensureVisible(learner);
+  await tester.tap(learner);
+  await _pumpUntilGone(tester, find.byType(BottomSheet));
+  for (var attempt = 0; attempt < 40; attempt++) {
+    await tester.pump(const Duration(milliseconds: 50));
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 50)),
+    );
+    if (await ProfileService().getActiveProfile() == learnerName) {
+      await tester.pump(const Duration(milliseconds: 100));
+      return;
+    }
+  }
+  fail('Timed out switching to learner $learnerName.');
+}
+
+Future<void> _pumpUntilWithIo(
+  WidgetTester tester,
+  Finder finder, {
+  required String failureMessage,
+}) async {
+  for (var attempt = 0; attempt < 40; attempt++) {
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 50)),
+    );
+    await tester.pump(const Duration(milliseconds: 50));
+    if (finder.evaluate().isNotEmpty) {
+      await _pumpFrames(tester, count: 8);
+      return;
+    }
+  }
+  final activeLearner = await ProfileService().getActiveProfile();
+  final visibleText = tester
+      .widgetList<Text>(find.byType(Text))
+      .map((widget) => widget.data)
+      .whereType<String>()
+      .toList();
+  fail('$failureMessage Active: $activeLearner. Text: $visibleText');
+}
+
+double _contrastRatio(Color foreground, Color background) {
+  final lighter = max(
+    foreground.computeLuminance(),
+    background.computeLuminance(),
+  );
+  final darker = min(
+    foreground.computeLuminance(),
+    background.computeLuminance(),
+  );
+  return (lighter + .05) / (darker + .05);
+}
+
+Finder _mainLearnerScrollable() => find.byWidgetPredicate(
+  (widget) =>
+      widget is Scrollable && widget.physics is AlwaysScrollableScrollPhysics,
+);
+
+Finder _sectionSelectorLabel(Course course, int lessonIndex) => find.descendant(
+  of: find.byKey(const Key('unified-section-selector')),
+  matching: find.text(
+    course.lessons[lessonIndex].section
+        ? course.lessons[lessonIndex].sectionName!
+        : 'Other lessons',
+  ),
+);
+
+/// The Course Selector's World Flag rows (English from Italian) show an indeterminate
+/// progress indicator while their SVG loads, so pumpAndSettle never settles
+/// once such a row is built. Ten 100 ms frames cover the sheet and menu
+/// transitions.
+Future<void> _settleSelector(WidgetTester tester) async {
+  for (var frame = 0; frame < 10; frame++) {
+    await tester.pump(const Duration(milliseconds: 100));
+  }
+}
+
+Finder _sectionArrowButton(String tooltip) => find.widgetWithIcon(
+  IconButton,
+  tooltip == 'Previous Section' ? Icons.chevron_left : Icons.chevron_right,
+);
+
+Finder _flagBackdropText() => find.byWidgetPredicate((widget) {
+  final key = widget.key;
+  return key is ValueKey<String> && key.value.startsWith('flag-backdrop-');
+});
+
+Color? _buttonBackgroundColor(WidgetTester tester, Finder button) => tester
+    .widget<OutlinedButton>(button)
+    .style
+    ?.backgroundColor
+    ?.resolve(const {});
+
+Future<void> _pumpFrames(WidgetTester tester, {int count = 16}) async {
+  for (var frame = 0; frame < count; frame++) {
+    await tester.pump(const Duration(milliseconds: 50));
+  }
+}
+
+Future<void> _pumpUntil(WidgetTester tester, Finder finder) async {
+  await tester.pumpUntilFileIoState(() => finder.evaluate().isNotEmpty);
+}
+
+Future<void> _pumpUntilGone(WidgetTester tester, Finder finder) async {
+  for (var frame = 0; frame < 120; frame++) {
+    await tester.pump(const Duration(milliseconds: 50));
+    if (finder.evaluate().isEmpty) return;
+  }
+  fail('Timed out waiting for the widget to disappear: $finder');
+}

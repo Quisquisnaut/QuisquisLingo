@@ -1,0 +1,86 @@
+import 'package:flutter/material.dart';
+
+import '../models/course_models.dart';
+import '../services/course_media_store.dart';
+import '../services/course_service.dart';
+import 'course_media_image.dart';
+import 'enlarged_image_dialog.dart';
+import 'flag_art.dart';
+
+/// Opens [course]'s artwork enlarged and uncropped: its cover, or its flag
+/// when it has none, under its title and languages. Courses rows and Course
+/// Info both use it.
+Future<void> showCourseArtworkPreview(
+  BuildContext context,
+  Course course, {
+  CourseMediaStore? mediaStore,
+  String? closeTooltip,
+}) => showEnlargedImage(
+  context,
+  dialogKey: ValueKey('course-artwork-preview-${course.courseId}'),
+  closeKey: const ValueKey('course-artwork-preview-close'),
+  title: course.title,
+  subtitle: '${course.sourceLanguage} → ${course.targetLanguage}',
+  closeTooltip: closeTooltip,
+  builder: (_, size) => CourseArtwork(
+    course: course,
+    size: size,
+    coverFit: BoxFit.contain,
+    mediaStore: mediaStore,
+  ),
+);
+
+/// A fixed square slot showing the Course cover, or the Course flag when the
+/// Course has no cover or its cover cannot be shown. The slot never changes
+/// size, so rows stay aligned whichever artwork they get.
+class CourseArtwork extends StatelessWidget {
+  const CourseArtwork({
+    super.key,
+    required this.course,
+    this.size = 64,
+    this.coverFit = BoxFit.cover,
+    this.mediaStore,
+  });
+
+  final Course course;
+  final double size;
+  final BoxFit coverFit;
+  final CourseMediaStore? mediaStore;
+
+  @override
+  Widget build(BuildContext context) {
+    final flag = Center(
+      key: ValueKey('course-artwork-flag-${course.courseId}'),
+      child: CourseFlagBadge(
+        course: course,
+        fallbackCode: CourseService.codeForCourse(course),
+        width: size * 0.69,
+        height: size * 0.48,
+      ),
+    );
+    final hasCover = Course.coverImagePattern.hasMatch(course.coverImage);
+    return SizedBox.square(
+      key: ValueKey('course-artwork-${course.courseId}'),
+      dimension: size,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: hasCover
+            ? CourseMediaImage(
+                key: ValueKey('course-artwork-cover-${course.courseId}'),
+                courseId: course.courseId,
+                asset: course.coverImage,
+                width: size,
+                height: size,
+                fit: coverFit,
+                // Bound decoding to the artwork's displayed size.
+                cacheWidth: (size * MediaQuery.devicePixelRatioOf(context))
+                    .ceil(),
+                semanticLabel: '${course.title} cover',
+                missing: flag,
+                mediaStore: mediaStore,
+              )
+            : flag,
+      ),
+    );
+  }
+}

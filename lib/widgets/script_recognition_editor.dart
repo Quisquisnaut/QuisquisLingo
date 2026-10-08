@@ -1,0 +1,721 @@
+import 'dart:io';
+
+import 'package:flutter/material.dart';
+
+import '../models/course_models.dart';
+import '../models/exercise_image_metadata.dart';
+import '../models/image_categories.dart';
+import '../screens/flat_image_library_screen.dart';
+import '../services/exercise_field_help.dart';
+import '../services/file_dialog_service.dart';
+import '../services/import/import_stager.dart';
+import '../services/import/selected_external_file.dart';
+import '../services/portable_exercise_image.dart';
+import '../services/storage/qql_storage.dart';
+import 'file_dialog_feedback.dart';
+import 'image_credit_reminder.dart';
+import 'portable_exercise_image.dart';
+import 'quick_import_access.dart';
+
+// The editor is a const StatelessWidget, so its dialog service is shared.
+final FileDialogService _dialogs = FileDialogService();
+final QqlStorage _storage = QqlStorage();
+
+enum ScriptRecognitionMode { imageToText, textToImage }
+
+/// Owns the unsaved canonical Select fields, including stable option identities.
+class ScriptRecognitionController extends ChangeNotifier {
+  ScriptRecognitionController(Exercise exercise) : _original = exercise {
+    _mode =
+        exercise.items.any(
+              (item) => item.content.any((element) => element.type == 'image'),
+            ) ||
+            (exercise.items.isEmpty &&
+                exercise.promptElements.any(
+                  (element) =>
+                      element.type == 'text' && element.text.trim().isNotEmpty,
+                ) &&
+                !exercise.promptElements.any(
+                  (element) => element.type == 'image',
+                ))
+        ? ScriptRecognitionMode.textToImage
+        : ScriptRecognitionMode.imageToText;
+    _initialMode = _mode;
+    _textPrompt = exercise.promptElements.indexWhere(
+      (element) => element.type == 'text' && element.role == 'primary',
+    );
+    if (_textPrompt < 0) {
+      _textPrompt = exercise.promptElements.indexWhere(
+        (element) => element.type == 'text',
+      );
+    }
+    prompt = TextEditingController(
+      text: _textPrompt < 0 ? '' : exercise.promptElements[_textPrompt].text,
+    )..addListener(notifyListeners);
+    _promptImages.addAll(
+      exercise.promptElements.where((element) => element.type == 'image'),
+    );
+    _usedIds.addAll(exercise.items.map((item) => item.id));
+    for (final item in exercise.items) {
+      _options.add(_ScriptOption(item, notifyListeners));
+    }
+    _correctIds.addAll(exercise.canonicalEvaluation.correctItemIds);
+  }
+
+  final Exercise _original;
+  late final TextEditingController prompt;
+  late int _textPrompt;
+  late ScriptRecognitionMode _mode;
+  late final ScriptRecognitionMode _initialMode;
+  final List<PromptElement> _promptImages = [];
+  final List<_ScriptOption> _options = [];
+  final Set<String> _usedIds = {};
+  final List<String> _correctIds = [];
+  int _nextId = 1;
+
+  ScriptRecognitionMode get mode => _mode;
+  List<PromptElement> get promptImages => List.unmodifiable(_promptImages);
+  int get optionCount => _options.length;
+  TextEditingController optionText(int index) => _options[index].text;
+  String optionImage(int index) => _options[index].image;
+  String optionId(int index) => _options[index].original.id;
+  bool isCorrect(int index) => _correctIds.contains(optionId(index));
+
+  void setMode(ScriptRecognitionMode mode) {
+    if (_mode == mode) return;
+    _mode = mode;
+    notifyListeners();
+  }
+
+  void addPromptImage(String asset) {
+    // A Recognize characters image is a character specimen (Build 256).
+    _promptImages.add(
+      PromptElement(role: 'character', type: 'image', asset: asset),
+    );
+    notifyListeners();
+  }
+
+  void removePromptImage(int index) {
+    _promptImages.removeAt(index);
+    notifyListeners();
+  }
+
+  void replacePromptImage(int index, String asset) {
+    final previous = _promptImages[index];
+    _promptImages[index] = PromptElement(
+      role: previous.role,
+      type: previous.type,
+      text: previous.text,
+      asset: asset,
+      speaker: previous.speaker,
+    );
+    notifyListeners();
+  }
+
+  void addOption() {
+    String id;
+    do {
+      id = 'script_option_${_nextId++}';
+    } while (_usedIds.contains(id));
+    _usedIds.add(id);
+    _options.add(
+      _ScriptOption(ExerciseItem(id: id, content: const []), notifyListeners),
+    );
+    notifyListeners();
+  }
+
+  void removeOption(int index) {
+    final removed = _options.removeAt(index);
+    _correctIds.removeWhere((id) => id == removed.original.id);
+    removed.dispose();
+    notifyListeners();
+  }
+
+  void moveOption(int from, int to) {
+    if (from == to) return;
+    final option = _options.removeAt(from);
+    _options.insert(to, option);
+    notifyListeners();
+  }
+
+  void setCorrect(int index) {
+    _correctIds
+      ..clear()
+      ..add(optionId(index));
+    notifyListeners();
+  }
+
+  void setOptionImage(int index, String asset) {
+    _options[index].image = asset;
+    notifyListeners();
+  }
+
+  Exercise build(PublicationState publicationState) {
+    final elements = <PromptElement>[];
+    var imageIndex = 0;
+    // Text to image names the character to find in its question; image to
+    // text may carry an instruction (Build 259, owner decisions of
+    // 29 September 2026).
+    final textToImage = _mode == ScriptRecognitionMode.textToImage;
+    for (var index = 0; index < _original.promptElements.length; index++) {
+      final original = _original.promptElements[index];
+      if (original.type == 'image') {
+        if ((_mode == ScriptRecognitionMode.imageToText ||
+                _mode == _initialMode) &&
+            imageIndex < _promptImages.length) {
+          elements.add(_promptImages[imageIndex++]);
+        }
+      } else if (index == _textPrompt) {
+        elements.add(
+          PromptElement(
+            role: textToImage
+                ? 'question'
+                : original.role == 'question'
+                ? 'primary'
+                : original.role,
+            type: original.type,
+            text: prompt.text,
+            asset: original.asset,
+            speaker: original.speaker,
+          ),
+        );
+      } else {
+        elements.add(original);
+      }
+    }
+    if (_textPrompt < 0 && (prompt.text.isNotEmpty || textToImage)) {
+      elements.add(
+        PromptElement(
+          role: textToImage ? 'question' : 'primary',
+          type: 'text',
+          text: prompt.text,
+        ),
+      );
+    }
+    if (_mode == ScriptRecognitionMode.imageToText) {
+      elements.addAll(_promptImages.skip(imageIndex));
+    }
+    // Copied canonically from the original (Course Model v12): options,
+    // targets, layout, feedback, hint and the other metadata stay as they
+    // are; only the prompt, the items and the correct item change.
+    final evaluation = _original.canonicalEvaluation;
+    return _original
+        .copyWith(
+          publicationState: publicationState,
+          promptElements: elements,
+          items: _options
+              .map((option) => option.build(_mode, _mode != _initialMode))
+              .toList(),
+          canonicalEvaluation: CanonicalEvaluation(
+            mode: evaluation.mode == EvaluationMode.none
+                ? EvaluationMode.exactItem
+                : evaluation.mode,
+            correctItemIds: List.of(_correctIds),
+            assignments: evaluation.assignments,
+            answers: evaluation.answers,
+            literalAnswers: evaluation.literalAnswers,
+            targetAnswers: evaluation.targetAnswers,
+            numeric: evaluation.numeric,
+            pattern: evaluation.pattern,
+            correctOrders: evaluation.correctOrders,
+            relations: evaluation.relations,
+            acceptedTargets: evaluation.acceptedTargets,
+          ),
+        )
+        .withAuthoringMetadata({
+          ..._original.authoringMetadata,
+          'presetId': 'script_recognition',
+        });
+  }
+
+  @override
+  void dispose() {
+    prompt.dispose();
+    for (final option in _options) {
+      option.dispose();
+    }
+    super.dispose();
+  }
+}
+
+class _ScriptOption {
+  _ScriptOption(this.original, VoidCallback onChanged)
+    : text = TextEditingController(text: original.text),
+      image = original.image {
+    text.addListener(onChanged);
+  }
+
+  final ExerciseItem original;
+  final TextEditingController text;
+  String image;
+
+  ExerciseItem build(ScriptRecognitionMode mode, bool modeChanged) {
+    final desiredType = mode == ScriptRecognitionMode.imageToText
+        ? 'text'
+        : 'image';
+    var replaced = false;
+    final elements = <PromptElement>[];
+    for (final element in original.content) {
+      // The alternate mode stays in the controller until the user saves.
+      if (modeChanged &&
+          element.type == (desiredType == 'text' ? 'image' : 'text')) {
+        continue;
+      }
+      if (element.type == desiredType && !replaced) {
+        replaced = true;
+        elements.add(
+          PromptElement(
+            role: element.role,
+            type: element.type,
+            text: desiredType == 'text' ? text.text : element.text,
+            asset: desiredType == 'image' ? image : element.asset,
+            speaker: element.speaker,
+          ),
+        );
+      } else {
+        elements.add(element);
+      }
+    }
+    if (!replaced) {
+      elements.add(
+        PromptElement(
+          role: desiredType == 'image' ? 'character' : 'primary',
+          type: desiredType,
+          text: desiredType == 'text' ? text.text : '',
+          asset: desiredType == 'image' ? image : '',
+        ),
+      );
+    }
+    return ExerciseItem(id: original.id, content: elements);
+  }
+
+  void dispose() => text.dispose();
+}
+
+class ScriptRecognitionEditor extends StatelessWidget {
+  const ScriptRecognitionEditor({
+    super.key,
+    required this.controller,
+    this.readOnly = false,
+  });
+
+  final ScriptRecognitionController controller;
+  final bool readOnly;
+
+  Widget _help(BuildContext context, String fieldKey) {
+    final help = ExerciseFieldHelpRegistry.forEditorField(
+      'script_recognition',
+      fieldKey,
+    );
+    return IconButton(
+      key: ValueKey('exercise-field-help-$fieldKey'),
+      tooltip: help.purpose,
+      onPressed: () => showDialog<void>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text(help.title),
+          content: SingleChildScrollView(child: Text(help.text)),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Close'),
+            ),
+          ],
+        ),
+      ),
+      icon: const Icon(Icons.help_outline),
+    );
+  }
+
+  Future<String?> _pickImage(BuildContext context) async {
+    var source = await showDialog<String>(
+      context: context,
+      builder: (context) => SimpleDialog(
+        title: const Text('Choose character image'),
+        children: [
+          SimpleDialogOption(
+            onPressed: () => Navigator.pop(context, 'bundled'),
+            child: const Text('Choose from Image Bank'),
+          ),
+          SimpleDialogOption(
+            onPressed: () => Navigator.pop(context, 'import'),
+            child: const Text('Import portable image'),
+          ),
+          if (_dialogs.isAvailable)
+            SimpleDialogOption(
+              key: const Key('open-portable-image-from'),
+              onPressed: () => Navigator.pop(context, 'open_from'),
+              child: const Text('Open portable image from…'),
+            ),
+        ],
+      ),
+    );
+    if (source == null || !context.mounted) return null;
+    if (source == 'import') {
+      switch (await ensureQuickImportAccess(
+        context,
+        offerOpenFrom: _dialogs.isAvailable,
+      )) {
+        case QuickImportAccess.ready:
+          break;
+        case QuickImportAccess.openFrom:
+          source = 'open_from';
+        case QuickImportAccess.stop:
+          return null;
+      }
+      if (!context.mounted) return null;
+    }
+    try {
+      if (source == 'bundled') {
+        final selected = await Navigator.of(context)
+            .push<ExerciseImageMetadata>(
+              MaterialPageRoute(
+                // Opens on the characters; another category can be chosen
+                // (Build 264 Revision 2).
+                builder: (_) => const FlatImageLibraryScreen(
+                  readOnly: true,
+                  initialCategory: characterCategoryGroup,
+                ),
+              ),
+            );
+        if (selected == null) return null;
+        final asset = selected.assetPath;
+        // Existing locally imported bank images become course-owned bytes.
+        final image = PortableExerciseImageService.isPortable(asset)
+            ? asset
+            : await PortableExerciseImageService.fromFile(File(asset));
+        if (context.mounted) _remindCredit(context, image);
+        return image;
+      }
+      if (source == 'open_from') {
+        // Open from…: same bytes check as the fixed-folder import below.
+        final picked = await _dialogs.openBytes(
+          extensions: const ['png', 'jpg', 'jpeg', 'webp'],
+          maxBytes: PortableExerciseImageService.maxImageBytes,
+          artifact: 'portable-image',
+        );
+        if (picked.outcome == FileDialogOutcome.tooLarge) {
+          throw const FormatException('Exercise images must not exceed 50 KB.');
+        }
+        if (picked.outcome != FileDialogOutcome.opened) {
+          if (context.mounted) {
+            showFileDialogFeedback(
+              context,
+              picked,
+              saving: false,
+              fallbackHint:
+                  'Copy the image to ${_storage.label(QqlStorageRole.imageImports)} and use Import portable image instead.',
+            );
+          }
+          return null;
+        }
+        final image = await PortableExerciseImageService.fromBytes(
+          picked.bytes!,
+        );
+        if (context.mounted) _remindCredit(context, image);
+        return image;
+      }
+      final folder = await _storage.importFolder(QqlStorageRole.imageImports);
+      final files = (await folder.files())
+          .where(
+            (file) => const {
+              'png',
+              'jpg',
+              'jpeg',
+              'webp',
+            }.contains(file.name.toLowerCase().split('.').last),
+          )
+          .toList();
+      files.sort((a, b) => a.name.compareTo(b.name));
+      if (files.isEmpty) {
+        throw StateError(
+          'Copy a PNG, JPEG or WEBP image to ${folder.location}, then try again. '
+          'Each image must be at most 50 KB.',
+        );
+      }
+      if (!context.mounted) return null;
+      final picked = files.length == 1
+          ? files.single
+          : await showDialog<QuickImportFile>(
+              context: context,
+              builder: (context) => SimpleDialog(
+                title: const Text('Choose image to import'),
+                children: [
+                  for (final file in files)
+                    SimpleDialogOption(
+                      onPressed: () => Navigator.pop(context, file),
+                      child: Text(file.displayName),
+                    ),
+                ],
+              ),
+            );
+      if (picked == null) return null;
+      const tooLarge = FormatException(
+        'Exercise image is too large. Export a smaller picture and try again.',
+      );
+      if ((picked.reportedSize ?? 0) >
+          PortableExerciseImageService.maxImageBytes) {
+        throw tooLarge;
+      }
+      try {
+        final image = await PortableExerciseImageService.fromBytes(
+          await readQuickImportFile(
+            picked,
+            maxBytes: PortableExerciseImageService.maxImageBytes,
+          ),
+        );
+        if (context.mounted) _remindCredit(context, image);
+        return image;
+      } on ImportTooLargeException {
+        throw tooLarge;
+      } on ImportAccessException catch (error) {
+        throw FormatException(error.message);
+      }
+    } catch (error) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Image could not be loaded: $error')),
+        );
+      }
+      return null;
+    }
+  }
+
+  /// Build 255 Revision 7: a character image that did not come with QQL gets
+  /// the credit reminder.
+  void _remindCredit(BuildContext context, String image) {
+    if (!image.startsWith('assets/')) showImageCreditReminder(context);
+  }
+
+  Widget _image(BuildContext context, String asset, String label) => Tooltip(
+    message: label,
+    child: asset.isEmpty
+        ? const SizedBox(
+            width: 96,
+            height: 96,
+            child: Icon(Icons.image_outlined),
+          )
+        : PortableExerciseImage(asset: asset, width: 96, height: 96),
+  );
+
+  @override
+  Widget build(BuildContext context) => AnimatedBuilder(
+    animation: controller,
+    builder: (context, _) => Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const Text(
+          'Each item pairs a character image with its corresponding text.\n\n'
+          'Image to text: learners see a character image and choose the matching text.\n\n'
+          'Text to image: learners see the text and choose the matching character image.\n\n'
+          'The text can be the character’s name, sound, pronunciation, transliteration or another identifying label.',
+        ),
+        const SizedBox(height: 12),
+        DropdownButtonFormField<ScriptRecognitionMode>(
+          key: const ValueKey('script-mode'),
+          initialValue: controller.mode,
+          isExpanded: true,
+          decoration: InputDecoration(
+            labelText: 'Recognition mode',
+            suffixIcon: _help(context, 'scriptMode'),
+          ),
+          items: const [
+            DropdownMenuItem(
+              value: ScriptRecognitionMode.imageToText,
+              child: Text('Image to text'),
+            ),
+            DropdownMenuItem(
+              value: ScriptRecognitionMode.textToImage,
+              child: Text('Text to image'),
+            ),
+          ],
+          onChanged: readOnly
+              ? null
+              : (mode) {
+                  if (mode != null) controller.setMode(mode);
+                },
+        ),
+        const SizedBox(height: 8),
+        Text(
+          key: const ValueKey('script-mode-explanation'),
+          controller.mode == ScriptRecognitionMode.imageToText
+              ? 'Learners see an image and choose the matching text.'
+              : 'Learners see text and choose the matching image.',
+        ),
+        Text(
+          controller.mode == ScriptRecognitionMode.imageToText
+              ? 'Show one or more images of the same character or syllable, '
+                    'with at least two text options and exactly one correct option.'
+              : 'Enter the question or sentence that names the character, '
+                    'and choose at least two image options, with exactly one '
+                    'correct option.',
+        ),
+        const Text(
+          'Switching modes keeps both sets of fields for this editing session. '
+          'Saving uses only the selected mode. Imported images are stored with '
+          'the course; use PNG, JPEG or WEBP up to 50 KB.',
+        ),
+        const SizedBox(height: 12),
+        if (controller.mode == ScriptRecognitionMode.textToImage)
+          TextField(
+            key: const ValueKey('script-prompt'),
+            controller: controller.prompt,
+            readOnly: readOnly,
+            decoration: InputDecoration(
+              labelText: 'Question or sentence',
+              suffixIcon: _help(context, 'scriptPrompt'),
+            ),
+            minLines: 1,
+            maxLines: 3,
+          )
+        else ...[
+          Row(
+            children: [
+              const Expanded(child: Text('Prompt images')),
+              _help(context, 'scriptPromptImages'),
+            ],
+          ),
+          for (var i = 0; i < controller.promptImages.length; i++)
+            Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 8,
+              children: [
+                _image(
+                  context,
+                  controller.promptImages[i].asset,
+                  'Prompt image ${i + 1}',
+                ),
+                TextButton(
+                  onPressed: readOnly
+                      ? null
+                      : () async {
+                          final asset = await _pickImage(context);
+                          if (asset != null && context.mounted) {
+                            controller.replacePromptImage(i, asset);
+                          }
+                        },
+                  child: Text('Replace image ${i + 1}'),
+                ),
+                IconButton(
+                  tooltip: 'Remove prompt image ${i + 1}',
+                  onPressed: readOnly
+                      ? null
+                      : () => controller.removePromptImage(i),
+                  icon: const Icon(Icons.delete_outline),
+                ),
+              ],
+            ),
+          TextButton.icon(
+            key: const ValueKey('script-add-prompt-image'),
+            onPressed: readOnly
+                ? null
+                : () async {
+                    final asset = await _pickImage(context);
+                    if (asset != null && context.mounted) {
+                      controller.addPromptImage(asset);
+                    }
+                  },
+            icon: const Icon(Icons.add_photo_alternate_outlined),
+            label: const Text('Add prompt image'),
+          ),
+        ],
+        const SizedBox(height: 12),
+        for (var i = 0; i < controller.optionCount; i++)
+          Card(
+            key: ValueKey('script-option-${controller.optionId(i)}'),
+            child: Padding(
+              padding: const EdgeInsets.all(8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  if (controller.mode == ScriptRecognitionMode.imageToText)
+                    TextField(
+                      key: ValueKey('script-option-text-$i'),
+                      controller: controller.optionText(i),
+                      readOnly: readOnly,
+                      decoration: InputDecoration(
+                        labelText: 'Option ${i + 1}',
+                        suffixIcon: _help(context, 'scriptTextOptions'),
+                      ),
+                    )
+                  else
+                    Wrap(
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        _image(
+                          context,
+                          controller.optionImage(i),
+                          'Option ${i + 1}',
+                        ),
+                        TextButton(
+                          key: ValueKey('script-option-image-$i'),
+                          onPressed: readOnly
+                              ? null
+                              : () async {
+                                  final asset = await _pickImage(context);
+                                  if (asset != null && context.mounted) {
+                                    controller.setOptionImage(i, asset);
+                                  }
+                                },
+                          child: Text('Choose image for option ${i + 1}'),
+                        ),
+                        _help(context, 'scriptImageOptions'),
+                      ],
+                    ),
+                  Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      IconButton(
+                        key: ValueKey('script-correct-$i'),
+                        tooltip: controller.isCorrect(i)
+                            ? 'Correct option ${i + 1}'
+                            : 'Mark option ${i + 1} correct',
+                        isSelected: controller.isCorrect(i),
+                        onPressed: readOnly
+                            ? null
+                            : () => controller.setCorrect(i),
+                        icon: Icon(
+                          controller.isCorrect(i)
+                              ? Icons.radio_button_checked
+                              : Icons.radio_button_unchecked,
+                        ),
+                      ),
+                      const Text('Correct'),
+                      _help(context, 'scriptCorrect'),
+                      IconButton(
+                        tooltip: 'Move option ${i + 1} up',
+                        onPressed: readOnly || i == 0
+                            ? null
+                            : () => controller.moveOption(i, i - 1),
+                        icon: const Icon(Icons.arrow_upward),
+                      ),
+                      IconButton(
+                        tooltip: 'Move option ${i + 1} down',
+                        onPressed: readOnly || i + 1 == controller.optionCount
+                            ? null
+                            : () => controller.moveOption(i, i + 1),
+                        icon: const Icon(Icons.arrow_downward),
+                      ),
+                      IconButton(
+                        tooltip: 'Delete option ${i + 1}',
+                        onPressed: readOnly
+                            ? null
+                            : () => controller.removeOption(i),
+                        icon: const Icon(Icons.delete_outline),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        TextButton.icon(
+          key: const ValueKey('script-add-option'),
+          onPressed: readOnly ? null : controller.addOption,
+          icon: const Icon(Icons.add),
+          label: const Text('Add answer option'),
+        ),
+      ],
+    ),
+  );
+}

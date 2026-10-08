@@ -1,0 +1,496 @@
+import 'dart:io';
+
+import 'package:flutter_test/flutter_test.dart';
+import 'package:quisquislingo_app/screens/editor_help_content.dart';
+import 'package:quisquislingo_app/widgets/help_language_toggle.dart';
+import 'package:quisquislingo_app/models/exercise_authoring.dart';
+import 'package:quisquislingo_app/services/answer_engine.dart';
+import 'package:quisquislingo_app/services/exercise_field_help.dart';
+
+void main() {
+  ExerciseFieldHelp help(String preset, String field) =>
+      ExerciseFieldHelpRegistry.forEditorField(preset, field);
+
+  test('current preset fields have purpose, entry rules and checks', () {
+    // Inventory of the real form values, including fields visible only in one
+    // context mode. Widget tests separately check their direct Help controls.
+    const fieldsByPreset = <String, List<String>>{
+      'translation_choice_to_target': ['question', 'answers', 'correct'],
+      'translation_choice_to_source': ['question', 'answers', 'correct'],
+      'type_translation_to_target': ['prompt', 'accepted', 'hint'],
+      'type_translation_to_source': ['prompt', 'accepted', 'hint'],
+      'build_translation_to_target': [
+        'prompt',
+        'tokens',
+        'correctTranslation',
+        'gapLayout',
+        'tts',
+      ],
+      'build_translation_to_source': [
+        'prompt',
+        'tokens',
+        'correctTranslation',
+        'gapLayout',
+        'tts',
+      ],
+      'word_match': ['prompt', 'pairs'],
+      'super_match': ['prompt', 'pairs'],
+      'flashcard': ['prompt', 'question', 'readAloud', 'tts', 'answers'],
+      'choice_target': [
+        'prompt',
+        'question',
+        'answers',
+        'correct',
+        'requiredSelections',
+        'gapLayout',
+        'tokens',
+        'tts',
+      ],
+      'choice_source': [
+        'prompt',
+        'question',
+        'answers',
+        'correct',
+        'requiredSelections',
+        'gapLayout',
+        'tokens',
+        'tts',
+      ],
+      'gap_choice': ['question', 'answers', 'correct', 'hint'],
+      'type_missing_word': ['revealFirstLetter', 'prompt', 'accepted', 'hint'],
+      'word_order': ['prompt', 'gapLayout', 'tokens', 'order', 'tts'],
+      'listening_choose_target': ['tts', 'prompt', 'answers', 'correct'],
+      'listening_choose_source': ['tts', 'prompt', 'answers', 'correct'],
+      'listening_answer_target': ['tts', 'question', 'answers', 'correct'],
+      'listening_answer_source': ['tts', 'question', 'answers', 'correct'],
+      'listening_spelling': ['prompt', 'tts', 'missingWords'],
+      'missing_word': ['prompt', 'tts', 'missingWords'],
+      'audio_match': ['prompt', 'pairs'],
+      // Read and answer keeps only "to target" and loses Spoken text (Build
+      // 256 Revision 7 fourth follow-up).
+      'reading_answer_target': [
+        'prompt',
+        'dialogue',
+        'dialogueReadAloud',
+        'question',
+        'answers',
+        'correct',
+      ],
+      // The look of picture answers (Build 263 Revision 2).
+      'icon_choice': [
+        'question',
+        'answers',
+        'correct',
+        'icons',
+        'pictureSize',
+        'pictureShape',
+        'picturesPerRow',
+      ],
+      'script_recognition': [
+        'scriptMode',
+        'scriptPrompt',
+        'scriptPromptImages',
+        'scriptTextOptions',
+        'scriptImageOptions',
+        'scriptCorrect',
+      ],
+      'image_word': ['prompt', 'order', 'extraWords'],
+      'picture_flashcard': [
+        'prompt',
+        'question',
+        'readAloud',
+        'tts',
+        'answers',
+      ],
+      'true_false': ['question', 'tts', 'answers', 'correct'],
+      // Build 259 Revision 4: gap_choice_inline merged into gap_blocks.
+      'one_word_fills_all': ['question', 'answers', 'correct', 'hint'],
+      // Build 259 Revision 1: an instruction (question value) and a hint.
+      'complete_text': ['question', 'prompt', 'missingWords', 'hint'],
+      'missing_letters': ['prompt', 'tts', 'hint'],
+      'gap_blocks': ['prompt', 'gapLayout', 'tokens', 'tts'],
+      'sentence_order': ['prompt', 'order', 'extraWords', 'hint'],
+      'listening_image_choice': [
+        'tts',
+        'prompt',
+        'answers',
+        'correct',
+        'icons',
+        'pictureSize',
+        'pictureShape',
+        'picturesPerRow',
+      ],
+      'spell_heard': ['tts', 'order', 'extraWords'],
+      // Their optional questions became Instruction or context (Build 259).
+      'picture_choice': ['prompt', 'answers', 'correct'],
+      'picture_name': ['prompt', 'accepted', 'hint'],
+      'picture_blocks': ['prompt', 'order', 'extraWords', 'hint'],
+      'spell_word': ['prompt', 'order', 'extraWords'],
+      'picture_word_match': ['prompt', 'answers', 'icons'],
+      'note_card': ['prompt', 'question'],
+      'dialogue_line': [
+        'speaker',
+        'prompt',
+        'lineMode',
+        'readAloud',
+        'textReveal',
+        'language',
+      ],
+      'story_cover': ['prompt', 'image'],
+      // Before you start has no picture (Build 257).
+      'before_you_start': ['prompt', 'guidebookButton'],
+      // Every Page block field shares one Help entry (Build 258).
+      'page': ['blocks'],
+      // The Assign presets (Build 256 Revision 7 follow-up).
+      'sort_into_groups': ['prompt', 'groups'],
+      'fill_the_slots': ['prompt', 'slots', 'extraWords', 'slotReuse'],
+    };
+    expect(
+      fieldsByPreset.keys.toSet(),
+      ExercisePresetRegistry.presets.map((preset) => preset.id).toSet(),
+    );
+    final covered = <ExerciseAuthoringField>{};
+    for (final preset in fieldsByPreset.entries) {
+      for (final key in [
+        ...preset.value,
+        if (preset.key != 'script_recognition') 'image',
+      ]) {
+        final definition = help(preset.key, key);
+        expect(definition.title, isNotEmpty, reason: '${preset.key}/$key');
+        expect(definition.purpose, isNotEmpty, reason: '${preset.key}/$key');
+        expect(definition.entryRules, isNotEmpty, reason: '${preset.key}/$key');
+        expect(definition.validation, isNotEmpty, reason: '${preset.key}/$key');
+        covered.add(ExerciseFieldHelpRegistry.fieldForEditor(preset.key, key));
+      }
+    }
+    expect(covered, ExerciseAuthoringField.values.toSet());
+  });
+
+  test('Instruction or context and Question have distinct examples', () {
+    final prompt = help('choice_target', 'prompt');
+    final question = help('choice_target', 'question');
+    // Build 259: the shared Instruction or context (owner decisions of
+    // 29 September 2026).
+    expect(prompt.title, 'Instruction or context (optional)');
+    expect(
+      prompt.purpose,
+      'An optional line in the learners’ language: what to do, the situation, or the meaning the exercise needs. Example: Put the dialogue at the bar in order.',
+    );
+    expect(prompt.example, 'Put the dialogue at the bar in order.');
+    expect(question.title, 'Question or sentence');
+    expect(
+      prompt.entryRules,
+      contains('takes the place of the standard instruction line'),
+    );
+    expect(
+      question.purpose,
+      'What the learner answers: a question, or a sentence with a gap the answers complete. Example: Which article goes with casa?',
+    );
+    expect(question.example, 'Which article goes with casa?');
+    expect(
+      prompt.text,
+      contains('Example\nPut the dialogue at the bar in order.'),
+    );
+    expect(question.text, contains('Example\nWhich article goes with casa?'));
+  });
+
+  test('concise examples clarify common field formats', () {
+    expect(help('choice_target', 'answers').example, 'caffè\nacqua\npane');
+    expect(
+      help('word_match', 'pairs').example,
+      'house = casa\nbread = pane\nwater = acqua',
+    );
+    expect(
+      help('reading_answer_target', 'prompt').example,
+      'Anna and Luca are in the kitchen after lunch.',
+    );
+    expect(
+      help('type_translation_to_target', 'accepted').example,
+      contains('[prendo|vorrei]'),
+    );
+    expect(
+      help('icon_choice', 'icons').example,
+      contains('assets/exercise_images/house.webp'),
+    );
+    expect(
+      help('image_word', 'image').example,
+      contains('Bundled path: assets/exercise_images/house.webp'),
+    );
+    expect(
+      help('listening_answer_target', 'tts').example,
+      'Buongiorno, come stai?',
+    );
+    expect(
+      help('listening_answer_target', 'tts').entryRules,
+      contains('not an MP3 filename or path'),
+    );
+  });
+
+  test('accepted-answer Help examples run through the production parser', () {
+    final definition = help('type_translation_to_target', 'accepted');
+    expect(AnswerExpressionParser.expand(definition.example!), [
+      'Prendo un cappuccino',
+      'Vorrei un cappuccino',
+      'Io prendo un cappuccino',
+      'Io vorrei un cappuccino',
+    ]);
+    expect(
+      definition.entryRules,
+      contains('[*:il|i] [*:tuo|tuoi] [*:denaro|soldi]'),
+    );
+    expect(
+      AnswerExpressionParser.expand('[*:il|i] [*:tuo|tuoi] [*:denaro|soldi]'),
+      ['Il tuo denaro', 'I tuoi soldi'],
+    );
+    expect(
+      definition.validation,
+      contains('${AnswerExpressionParser.expansionLimit} answers'),
+    );
+    expect(definition.entryRules, contains('separate lines'));
+    expect(definition.entryRules, contains('equal alternative counts'));
+    expect(definition.entryRules, contains('(non arrivo <> oggi)'));
+    expect(definition.entryRules, contains('a casa <> domani'));
+  });
+
+  test('typed-answer fields share syntax while listening gaps are literal', () {
+    for (final definition in [
+      help('type_translation_to_target', 'accepted'),
+      help('type_translation_to_source', 'accepted'),
+    ]) {
+      expect(
+        definition.entryRules,
+        contains(ExerciseFieldHelpRegistry.answerSyntax),
+      );
+      expect(
+        definition.validation,
+        contains('Malformed expressions are rejected'),
+      );
+    }
+    // Type what you hear lists only other spellings, with alternatives
+    // (Build 259 Revision 3).
+    final spellings = help('listening_spelling', 'missingWords');
+    expect(spellings.entryRules, contains('alle [9|nove]'));
+    expect(
+      spellings.validation,
+      contains('Malformed alternatives are rejected'),
+    );
+    final gaps = help('missing_word', 'missingWords');
+    expect(gaps.entryRules, contains('Multiple lines select multiple gaps'));
+    expect(
+      gaps.validation,
+      contains('each entry must occur in Passage transcript'),
+    );
+    expect(gaps.validation, contains('syntax is not expanded'));
+  });
+
+  test(
+    'Arrange Help distinguishes answer rows, word lines and letter lines',
+    () {
+      final sentence = help(
+        'build_translation_to_target',
+        'correctTranslation',
+      );
+      expect(sentence.entryRules, contains('Each separate answer entry'));
+      expect(
+        sentence.entryRules,
+        contains('one complete target-language sentence'),
+      );
+      expect(
+        sentence.validation,
+        contains('distinct available block occurrences'),
+      );
+      expect(
+        sentence.validation,
+        contains('unique after case, spacing and terminal-punctuation'),
+      );
+      expect(
+        sentence.validation,
+        contains('Internal punctuation is preserved'),
+      );
+      expect(
+        sentence.validation,
+        contains('No optional, alternative or reorder expressions'),
+      );
+      final wordOrder = help('word_order', 'order');
+      expect(wordOrder.entryRules, contains('one block per line'));
+      expect(wordOrder.entryRules, contains('joined with spaces'));
+      final imageOrder = help('image_word', 'order');
+      expect(imageOrder.entryRules, contains('joined without spaces'));
+      // Build 265 Revision 11: distractors have their own field.
+      expect(imageOrder.validation, contains('go in Extra blocks'));
+    },
+  );
+
+  test('block Help explains the different actual distractor rules', () {
+    expect(
+      help('word_order', 'tokens').validation,
+      contains('0, 1 or 2 unused distractor blocks are recommended'),
+    );
+    final translation = help('build_translation_to_target', 'tokens');
+    expect(
+      translation.validation,
+      contains('unused by every correct translation'),
+    );
+    expect(translation.validation, contains('used by any configured answer'));
+    expect(
+      translation.entryRules,
+      contains('repeated words require repeated lines'),
+    );
+    // The spelling presets' distractors have their own field (Build 265
+    // Revision 11, owner decision).
+    expect(help('image_word', 'order').validation, contains('Extra blocks'));
+    expect(
+      help('spell_word', 'extraWords').validation,
+      contains('Course Audit lists them as Info'),
+    );
+  });
+
+  test('matching Help preserves ordinary and specialized cardinalities', () {
+    // Build 256 Revision 4: Match the words absorbs Matching and takes any
+    // number of pairs from two; Match by meaning keeps three.
+    expect(help('word_match', 'pairs').entryRules, contains('at least two'));
+    expect(help('super_match', 'pairs').entryRules, contains('exactly three'));
+    final audio = help('audio_match', 'pairs');
+    expect(audio.entryRules, contains('exactly three lines'));
+    expect(audio.entryRules, contains('audio text = visible text'));
+    expect(audio.entryRules, contains('three visible choices'));
+    expect(audio.validation, contains('No distractors are permitted'));
+  });
+
+  test('presentation fields do not reuse answer-choice Help', () {
+    final usage = help('flashcard', 'answers');
+    expect(usage.entryRules, contains('First non-empty line: usage sentence'));
+    expect(
+      usage.entryRules,
+      contains('second non-empty line: its translation'),
+    );
+    expect(usage.validation, contains('presentation content'));
+    expect(
+      help('choice_target', 'answers').entryRules,
+      contains('one literal answer per line'),
+    );
+    expect(
+      help('choice_target', 'correct').entryRules,
+      contains('counting non-empty answer lines from 1'),
+    );
+  });
+
+  test(
+    'Read and answer Help covers the text, the turns and the read-aloud',
+    () {
+      final text = help('reading_answer_target', 'prompt');
+      expect(text.title, 'Text to read (source language)');
+      expect(text.purpose, contains('never read aloud'));
+      expect(text.example, 'Anna and Luca are in the kitchen after lunch.');
+      final dialogue = help('reading_answer_target', 'dialogue');
+      expect(
+        dialogue.entryRules,
+        contains('one turn per line as Speaker: text'),
+      );
+      expect(
+        dialogue.validation,
+        contains('non-empty speaker and non-empty text'),
+      );
+      final readAloud = help('reading_answer_target', 'dialogueReadAloud');
+      expect(readAloud.title, 'Read the dialogue aloud');
+      expect(readAloud.validation, contains('never an audio exercise'));
+    },
+  );
+
+  test('image Help separates imported prompt image from choice icon keys', () {
+    final image = help('image_word', 'image');
+    expect(image.entryRules, contains('exactly one PNG, JPG, JPEG or WebP'));
+    expect(image.entryRules, contains('copies the original bytes'));
+    // 300 KB since Build 258 Revision 1 (owner decision).
+    expect(image.validation, contains('300 KB (307,200 bytes)'));
+    expect(
+      image.validation,
+      contains('recommendations, not enforced dimensions'),
+    );
+    expect(
+      image.validation,
+      contains('Image-prompt ordering requires an image'),
+    );
+    expect(
+      image.validation,
+      contains('not portable through course JSON alone'),
+    );
+    final icons = help('icon_choice', 'icons');
+    expect(icons.entryRules, contains('same order as the answer options'));
+    expect(
+      icons.validation,
+      contains('unknown key shows the generic image icon'),
+    );
+    expect(icons.validation, contains('not an option image'));
+  });
+
+  test('listening Help does not promise unimplemented automatic gaps', () {
+    // Type what you hear's visible text is its Instruction or context
+    // (Build 259): the label no longer invites the transcript.
+    expect(
+      help('listening_spelling', 'prompt').title,
+      'Instruction or context (optional)',
+    );
+    expect(
+      help('listening_spelling', 'prompt').entryRules,
+      contains('The question, the sentence and the answers go in their own'),
+    );
+    expect(
+      help('listening_spelling', 'missingWords').purpose,
+      contains('the Audio text itself is always accepted'),
+    );
+    expect(
+      help('missing_word', 'prompt').entryRules,
+      contains('including the word or expressions to hide'),
+    );
+  });
+
+  test(
+    'unknown field keys cannot silently acquire irrelevant generic Help',
+    () {
+      expect(() => help('choice_target', 'speakerVoice'), throwsArgumentError);
+    },
+  );
+
+  test('MP3 Help distinguishes file storage from Course ownership', () {
+    // Build 256 Revision 8: the Editor Help answers about recordings.
+    final helpText = editorHelpTopics(HelpLanguage.english)
+        .expand((topic) => topic.questions)
+        .where(
+          (question) =>
+              question.id == 'addRecordings' ||
+              question.id == 'recordingsTravel',
+        )
+        .map((question) => question.answer)
+        .join('\n');
+    for (final entry in {
+      'Audio Library Help': helpText,
+      'docs/COURSE_EDITOR.md': File('docs/COURSE_EDITOR.md').readAsStringSync(),
+    }.entries) {
+      final path = entry.key;
+      final text = entry.value;
+      expect(text, contains('derived from the stable Course ID'), reason: path);
+      expect(
+        text,
+        contains('metadata and references belong to the Course'),
+        reason: path,
+      );
+      expect(
+        text,
+        contains('Verified course-version backups copy referenced'),
+        reason: path,
+      );
+      expect(text, contains('not MP3 bytes'), reason: path);
+      expect(
+        text,
+        isNot(contains('course-scoped local app storage')),
+        reason: path,
+      );
+      expect(
+        text,
+        isNot(contains('course-scoped local support storage')),
+        reason: path,
+      );
+    }
+  });
+}

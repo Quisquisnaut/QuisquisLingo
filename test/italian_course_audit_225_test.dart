@@ -1,0 +1,42 @@
+import 'dart:convert';
+
+import 'package:flutter/services.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:quisquislingo_app/models/course_models.dart';
+import 'package:quisquislingo_app/services/course_audit_service.dart';
+import 'package:quisquislingo_app/services/round_playability_service.dart';
+
+void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  test('production bundled Italian course has no Audit Errors', () async {
+    final raw = await rootBundle.loadString(
+      'assets/courses/exercise_laboratory_en_it.json',
+    );
+    final course = Course.fromJson(
+      Map<String, dynamic>.from(jsonDecode(raw) as Map),
+    );
+    final result = CourseAuditService().auditCourse(course);
+    final errors = result.issues
+        .where((issue) => issue.severity == AuditSeverity.error)
+        .toList(growable: false);
+
+    final auditReport =
+        'TOTALS: ${result.count(AuditSeverity.error)} errors, '
+        '${result.count(AuditSeverity.warning)} warnings, '
+        '${result.count(AuditSeverity.info)} info\n'
+        '${result.issues.map((issue) => '${issue.severity.name.toUpperCase()} | ${issue.code} | '
+            '${issue.location} | ${issue.message}').join('\n')}';
+
+    expect(errors, isEmpty, reason: auditReport);
+    for (final lesson in course.lessons) {
+      for (final round in lesson.rounds) {
+        expect(
+          RoundPlayabilityService().playableExerciseIndices(round),
+          isNotEmpty,
+          reason: '${lesson.lessonId}/${round.id} must be learner-playable',
+        );
+      }
+    }
+  });
+}

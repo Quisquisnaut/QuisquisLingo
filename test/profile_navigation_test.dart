@@ -1,0 +1,927 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:quisquislingo_app/controllers/learner_status_controller.dart';
+import 'package:quisquislingo_app/main.dart';
+import 'package:quisquislingo_app/models/course_models.dart';
+import 'package:quisquislingo_app/screens/avatar_settings_screen.dart';
+import 'package:quisquislingo_app/screens/course_info_screen.dart';
+import 'package:quisquislingo_app/screens/gamification_settings_screen.dart';
+import 'package:quisquislingo_app/screens/profile_screen.dart';
+import 'package:quisquislingo_app/services/profile_service.dart';
+import 'package:quisquislingo_app/services/settings_service.dart';
+import 'package:quisquislingo_app/widgets/learner_avatar.dart';
+import 'package:quisquislingo_app/widgets/learner_bottom_actions.dart';
+import 'package:quisquislingo_app/widgets/learner_theme_mode_scope.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  setUp(() {
+    SharedPreferences.setMockInitialValues({});
+  });
+
+  test('local logout clears only the active learner reference', () async {
+    final profiles = ProfileService();
+    await profiles.addProfile(
+      'Stored Learner',
+      skinTone: 'light',
+      hairTone: 'light',
+    );
+    final learnerId = (await profiles.getActiveProfileId())!;
+    final learnerPrefix = ProfileService.prefixForProfileId(learnerId);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('${learnerPrefix}xp_IT', 275);
+    await prefs.setStringList('${learnerPrefix}completed_rounds_v4', [
+      'round-1',
+    ]);
+    final beforeKeys = prefs.getKeys().where(
+      (key) => key != ProfileService.activeProfileIdKey,
+    );
+    final beforeValues = {for (final key in beforeKeys) key: prefs.get(key)};
+
+    await profiles.clearActiveProfile();
+
+    final statusController = LearnerStatusController(
+      profileService: profiles,
+      observeLifecycle: false,
+    );
+    await statusController.refresh();
+    statusController.dispose();
+
+    expect(await profiles.getActiveProfile(), isNull);
+    expect(await profiles.getProfiles(), ['Stored Learner']);
+    expect(prefs.containsKey(ProfileService.activeProfileIdKey), isFalse);
+    expect(prefs.getKeys(), beforeValues.keys.toSet());
+    expect({
+      for (final key in beforeValues.keys) key: prefs.get(key),
+    }, beforeValues);
+
+    await profiles.setActiveProfile('Stored Learner');
+    expect(await profiles.getActiveProfile(), 'Stored Learner');
+    expect(await profiles.getSkinTone(), 'light');
+    expect(await profiles.getHairTone(), 'light');
+    expect(prefs.getInt('${learnerPrefix}xp_IT'), 275);
+  });
+
+  test(
+    'theme modes are learner-scoped and survive logout and service restart',
+    () async {
+      final profiles = ProfileService();
+      await profiles.addProfile('Learner A');
+      final learnerAId = (await profiles.getActiveProfileId())!;
+      expect(await profiles.getThemeMode(), LearnerThemeMode.defaultMode);
+      await profiles.setThemeMode(LearnerThemeMode.dark);
+
+      await profiles.addProfile('Learner B');
+      final learnerBId = (await profiles.getActiveProfileId())!;
+      await profiles.setThemeMode(LearnerThemeMode.light);
+      expect(await profiles.getThemeMode(), LearnerThemeMode.light);
+
+      await profiles.setActiveProfileById(learnerAId);
+      expect(await profiles.getThemeMode(), LearnerThemeMode.dark);
+      await profiles.clearActiveProfile();
+      expect(await profiles.getThemeMode(), LearnerThemeMode.defaultMode);
+      await profiles.setThemeMode(LearnerThemeMode.dark);
+      expect(await profiles.getThemeMode(), LearnerThemeMode.defaultMode);
+
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.containsKey('learner_default_theme_mode'), isFalse);
+      expect(
+        prefs.getString(profiles.keyForProfileId(learnerAId, 'theme_mode')),
+        'dark',
+      );
+      expect(
+        prefs.getString(profiles.keyForProfileId(learnerBId, 'theme_mode')),
+        'light',
+      );
+
+      final restartedProfiles = ProfileService();
+      await restartedProfiles.setActiveProfile('Learner A');
+      expect(await restartedProfiles.getThemeMode(), LearnerThemeMode.dark);
+      await restartedProfiles.setActiveProfile('Learner B');
+      expect(await restartedProfiles.getThemeMode(), LearnerThemeMode.light);
+    },
+  );
+
+  test(
+    'flag background modes are learner-and-course-scoped and survive restart',
+    () async {
+      final profiles = ProfileService();
+      await profiles.addProfile('Learner A');
+      final learnerAId = (await profiles.getActiveProfileId())!;
+      expect(
+        await profiles.getFlagBackgroundMode('course-a'),
+        LearnerFlagBackgroundMode.off,
+      );
+      await profiles.setFlagBackgroundMode(
+        'course-a',
+        LearnerFlagBackgroundMode.small,
+      );
+      expect(
+        await profiles.getFlagBackgroundMode('course-b'),
+        LearnerFlagBackgroundMode.off,
+      );
+
+      await profiles.addProfile('Learner B');
+      final learnerBId = (await profiles.getActiveProfileId())!;
+      await profiles.setFlagBackgroundMode(
+        'course-a',
+        LearnerFlagBackgroundMode.extended,
+      );
+      expect(
+        await profiles.getFlagBackgroundMode('course-a'),
+        LearnerFlagBackgroundMode.extended,
+      );
+
+      await profiles.setActiveProfileById(learnerAId);
+      expect(
+        await profiles.getFlagBackgroundMode('course-a'),
+        LearnerFlagBackgroundMode.small,
+      );
+      await profiles.clearActiveProfile();
+      expect(
+        await profiles.getFlagBackgroundMode('course-a'),
+        LearnerFlagBackgroundMode.off,
+      );
+      await profiles.setFlagBackgroundMode(
+        'course-a',
+        LearnerFlagBackgroundMode.extended,
+      );
+
+      final prefs = await SharedPreferences.getInstance();
+      expect(
+        prefs.containsKey('learner_default_flag_background_mode'),
+        isFalse,
+      );
+      expect(
+        await profiles.getFlagBackgroundModeForProfile(learnerBId, 'course-a'),
+        LearnerFlagBackgroundMode.extended,
+      );
+
+      final restartedProfiles = ProfileService();
+      await restartedProfiles.setActiveProfile('Learner A');
+      expect(
+        await restartedProfiles.getFlagBackgroundMode('course-a'),
+        LearnerFlagBackgroundMode.small,
+      );
+    },
+  );
+
+  testWidgets(
+    'learner bottom keeps Profile primary and all other actions compact',
+    (tester) async {
+      await ProfileService().addProfile('Bottom Learner');
+      var reviewTaps = 0;
+      var courseInfoTaps = 0;
+      var profileTaps = 0;
+      LearnerIddqdMode? iddqdValue;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: LearnerBottomActions(
+              onProfile: () => profileTaps++,
+              onReview: () => reviewTaps++,
+              onCourseInfo: () => courseInfoTaps++,
+              iddqdMode: LearnerIddqdMode.off,
+              onIddqdChanged: (value) => iddqdValue = value,
+            ),
+          ),
+        ),
+      );
+      await _pumpFrames(tester);
+
+      expect(find.byKey(const Key('learner-bottom-profile')), findsOneWidget);
+      expect(find.byKey(const Key('learner-bottom-review')), findsOneWidget);
+      expect(
+        find.byKey(const Key('learner-bottom-course-info')),
+        findsOneWidget,
+      );
+      expect(find.bySemanticsLabel('Leaderboard'), findsNothing);
+      expect(find.bySemanticsLabel('Buy a coffee'), findsNothing);
+      expect(find.byIcon(Icons.emoji_events_outlined), findsNothing);
+      expect(find.byIcon(Icons.coffee_outlined), findsNothing);
+      expect(find.byKey(const Key('learner-bottom-theme')), findsOneWidget);
+      expect(find.byKey(const Key('learner-bottom-iddqd')), findsOneWidget);
+      expect(
+        find.byKey(const Key('learner-bottom-lesson-expansion')),
+        findsOneWidget,
+      );
+      expect(
+        find.byTooltip('IDDQD: Off\nNormal progression locks apply.'),
+        findsOneWidget,
+      );
+      expect(find.text('Normal progression locks apply.'), findsNothing);
+      expect(
+        find.byKey(const Key('learner-bottom-iddqd-explanation')),
+        findsNothing,
+      );
+      expect(
+        find.bySemanticsLabel('IDDQD: Off. Normal progression locks apply.'),
+        findsOneWidget,
+      );
+      expect(find.byTooltip('Theme: System'), findsOneWidget);
+      expect(find.bySemanticsLabel('Theme: System'), findsOneWidget);
+      expect(
+        find.byTooltip(
+          'Lessons: Expanded\nAll accessible Lessons are expanded.',
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.bySemanticsLabel(
+          'Lessons: Expanded. All accessible Lessons are expanded.',
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const Key('learner-bottom-flag-background')),
+        findsOneWidget,
+      );
+      expect(find.byTooltip('Flag background: Off'), findsOneWidget);
+      expect(find.bySemanticsLabel('Flag background: Off'), findsOneWidget);
+
+      final bottomKeys = <Key>[
+        const Key('learner-bottom-profile'),
+        const Key('learner-bottom-review'),
+        const Key('learner-bottom-course-info'),
+        const Key('learner-bottom-iddqd'),
+        const Key('learner-bottom-lesson-expansion'),
+        const Key('learner-bottom-theme'),
+        const Key('learner-bottom-flag-background'),
+      ];
+      final centers = bottomKeys
+          .map((key) => tester.getCenter(find.byKey(key)))
+          .toList(growable: false);
+      for (var index = 1; index < centers.length; index++) {
+        expect(centers[index - 1].dx, lessThan(centers[index].dx));
+      }
+
+      await tester.tap(find.byKey(const Key('learner-bottom-profile')));
+      await tester.tap(find.byKey(const Key('learner-bottom-review')));
+      await tester.tap(find.byKey(const Key('learner-bottom-course-info')));
+      await tester.tap(find.byKey(const Key('learner-bottom-iddqd')));
+      expect((profileTaps, reviewTaps, courseInfoTaps), (1, 1, 1));
+      expect(iddqdValue, LearnerIddqdMode.on);
+      expect(
+        tester.getSize(find.byKey(const Key('learner-bottom-review'))),
+        const Size(40, 40),
+      );
+      expect(
+        tester.getSize(find.byKey(const Key('learner-bottom-course-info'))),
+        const Size(40, 40),
+      );
+    },
+  );
+
+  testWidgets('IDDQD tooltip updates immediately with the selected mode', (
+    tester,
+  ) async {
+    var mode = LearnerIddqdMode.off;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: StatefulBuilder(
+          builder: (context, setState) => Scaffold(
+            body: LearnerBottomActions(
+              onProfile: () {},
+              onReview: () {},
+              onCourseInfo: () {},
+              iddqdMode: mode,
+              onIddqdChanged: (value) => setState(() => mode = value),
+            ),
+          ),
+        ),
+      ),
+    );
+    await _pumpFrames(tester);
+
+    expect(find.text('Normal progression locks apply.'), findsNothing);
+    await tester.tap(find.byKey(const Key('learner-bottom-iddqd')));
+    await tester.pump();
+    expect(
+      find.byTooltip(
+        'IDDQD: On\nLocked content can be opened. '
+        'Study progress is recorded normally.',
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.bySemanticsLabel(
+        'IDDQD: On. Locked content can be opened. '
+        'Study progress is recorded normally.',
+      ),
+      findsOneWidget,
+    );
+    await tester.tap(find.byKey(const Key('learner-bottom-iddqd')));
+    await tester.pump();
+    expect(find.text(iddqdViewOnlyExplanation), findsNothing);
+    expect(
+      find.byTooltip('IDDQD: View Only\n$iddqdViewOnlyExplanation'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('Lesson expansion control cycles with concise accessible state', (
+    tester,
+  ) async {
+    var mode = LearnerLessonExpansionMode.expanded;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: StatefulBuilder(
+          builder: (context, setState) => Scaffold(
+            body: LearnerBottomActions(
+              onProfile: () {},
+              onReview: () {},
+              onCourseInfo: () {},
+              lessonExpansionMode: mode,
+              onLessonExpansionChanged: (value) => setState(() => mode = value),
+            ),
+          ),
+        ),
+      ),
+    );
+    await _pumpFrames(tester);
+
+    final control = find.byKey(const Key('learner-bottom-lesson-expansion'));
+    await tester.tap(control);
+    await tester.pump();
+    expect(mode, LearnerLessonExpansionMode.collapseCompleted);
+    expect(
+      find.byTooltip(
+        'Lessons: Collapse completed\n'
+        'Completed Lessons are collapsed; incomplete accessible Lessons are expanded.',
+      ),
+      findsOneWidget,
+    );
+
+    await tester.tap(control);
+    await tester.pump();
+    expect(mode, LearnerLessonExpansionMode.focused);
+    expect(
+      find.bySemanticsLabel(
+        'Lessons: Focused. Only the current accessible Lesson is expanded.',
+      ),
+      findsOneWidget,
+    );
+
+    await tester.tap(control);
+    await tester.pump();
+    expect(mode, LearnerLessonExpansionMode.expanded);
+  });
+
+  testWidgets(
+    'flag background utility cycles through the five modes from Off',
+    (tester) async {
+      final profiles = ProfileService();
+      await profiles.addProfile('Flag Learner');
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: LearnerBottomActions(
+              profileService: profiles,
+              courseId: 'course-a',
+              onProfile: () {},
+              onReview: () {},
+              onCourseInfo: () {},
+            ),
+          ),
+        ),
+      );
+      await _pumpFrames(tester);
+
+      final control = find.byKey(const Key('learner-bottom-flag-background'));
+
+      expect(find.byTooltip('Flag background: Off'), findsOneWidget);
+
+      Future<void> tapAndExpect(LearnerFlagBackgroundMode mode) async {
+        await tester.tap(control);
+        await _pumpFrames(tester);
+        expect(await profiles.getFlagBackgroundMode('course-a'), mode);
+        expect(
+          find.byTooltip('Flag background: ${mode.label}'),
+          findsOneWidget,
+        );
+        expect(
+          find.bySemanticsLabel('Flag background: ${mode.label}'),
+          findsOneWidget,
+        );
+      }
+
+      await tapAndExpect(LearnerFlagBackgroundMode.extended);
+      await tapAndExpect(LearnerFlagBackgroundMode.tinted);
+      await tapAndExpect(LearnerFlagBackgroundMode.softInspired);
+      await tapAndExpect(LearnerFlagBackgroundMode.small);
+      await tapAndExpect(LearnerFlagBackgroundMode.off);
+    },
+  );
+
+  testWidgets(
+    'theme utility cycles Light, Dark, System, Day/Night and applies each mode',
+    (tester) async {
+      final dispatcher = tester.binding.platformDispatcher;
+      dispatcher.platformBrightnessTestValue = Brightness.light;
+      addTearDown(dispatcher.clearPlatformBrightnessTestValue);
+      final profiles = ProfileService();
+      await profiles.addProfile('Theme Learner');
+
+      await tester.pumpWidget(
+        QuisquisLingoApp(
+          profileService: profiles,
+          now: () => DateTime(2026, 9, 7, 12),
+          home: Scaffold(
+            body: LearnerBottomActions(
+              profileService: profiles,
+              onProfile: () {},
+              onReview: () {},
+              onCourseInfo: () {},
+            ),
+          ),
+        ),
+      );
+      await _pumpFrames(tester);
+
+      MaterialApp app() => tester.widget<MaterialApp>(find.byType(MaterialApp));
+      LearnerThemeMode scopedMode() => tester
+          .widget<LearnerThemeModeScope>(find.byType(LearnerThemeModeScope))
+          .mode;
+      final control = find.byKey(const Key('learner-bottom-theme'));
+
+      expect(app().themeMode, ThemeMode.system);
+      expect(scopedMode(), LearnerThemeMode.defaultMode);
+      expect(find.byIcon(Icons.brightness_auto_outlined), findsOneWidget);
+
+      Future<void> tapAndExpect({
+        required LearnerThemeMode mode,
+        required ThemeMode materialMode,
+        required IconData icon,
+      }) async {
+        await tester.tap(control);
+        await _pumpFrames(tester);
+        expect(await profiles.getThemeMode(), mode);
+        expect(app().themeMode, materialMode);
+        expect(scopedMode(), mode);
+        expect(find.byTooltip('Theme: ${mode.label}'), findsOneWidget);
+        expect(find.bySemanticsLabel('Theme: ${mode.label}'), findsOneWidget);
+        expect(find.byIcon(icon), findsOneWidget);
+      }
+
+      await tapAndExpect(
+        mode: LearnerThemeMode.dayNight,
+        materialMode: ThemeMode.light,
+        icon: Icons.bedtime_outlined,
+      );
+      await tapAndExpect(
+        mode: LearnerThemeMode.light,
+        materialMode: ThemeMode.light,
+        icon: Icons.light_mode_outlined,
+      );
+      await tapAndExpect(
+        mode: LearnerThemeMode.dark,
+        materialMode: ThemeMode.dark,
+        icon: Icons.dark_mode_outlined,
+      );
+      expect(Theme.of(tester.element(control)).brightness, Brightness.dark);
+      await tapAndExpect(
+        mode: LearnerThemeMode.defaultMode,
+        materialMode: ThemeMode.system,
+        icon: Icons.brightness_auto_outlined,
+      );
+      await tapAndExpect(
+        mode: LearnerThemeMode.dayNight,
+        materialMode: ThemeMode.light,
+        icon: Icons.bedtime_outlined,
+      );
+    },
+  );
+
+  testWidgets(
+    'active learner immediately restores theme and no learner falls back to System',
+    (tester) async {
+      final profiles = ProfileService();
+      await profiles.addProfile('Dark Learner');
+      await profiles.setThemeMode(LearnerThemeMode.dark);
+      await profiles.addProfile('Light Learner');
+      await profiles.setThemeMode(LearnerThemeMode.light);
+
+      Widget app() => QuisquisLingoApp(
+        profileService: profiles,
+        home: Scaffold(
+          body: LearnerBottomActions(
+            profileService: profiles,
+            onProfile: () {},
+            onReview: () {},
+            onCourseInfo: () {},
+          ),
+        ),
+      );
+
+      await tester.pumpWidget(app());
+      await _pumpFrames(tester);
+      expect(
+        tester.widget<MaterialApp>(find.byType(MaterialApp)).themeMode,
+        ThemeMode.light,
+      );
+      expect(find.byTooltip('Theme: Light'), findsOneWidget);
+
+      await profiles.setActiveProfile('Dark Learner');
+      await _pumpFrames(tester);
+      expect(
+        tester.widget<MaterialApp>(find.byType(MaterialApp)).themeMode,
+        ThemeMode.dark,
+      );
+      expect(find.byTooltip('Theme: Dark'), findsOneWidget);
+
+      await profiles.clearActiveProfile();
+      await _pumpFrames(tester);
+      expect(
+        tester.widget<MaterialApp>(find.byType(MaterialApp)).themeMode,
+        ThemeMode.system,
+      );
+      expect(
+        tester
+            .widget<LearnerThemeModeScope>(find.byType(LearnerThemeModeScope))
+            .mode,
+        LearnerThemeMode.defaultMode,
+      );
+      expect(find.byTooltip('Theme: System'), findsOneWidget);
+      await tester.tap(find.byKey(const Key('learner-bottom-theme')));
+      await _pumpFrames(tester);
+      expect(
+        tester.widget<MaterialApp>(find.byType(MaterialApp)).themeMode,
+        ThemeMode.system,
+      );
+      expect(find.byTooltip('Theme: System'), findsOneWidget);
+
+      await profiles.setActiveProfile('Dark Learner');
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpWidget(app());
+      await _pumpFrames(tester);
+      expect(
+        tester.widget<MaterialApp>(find.byType(MaterialApp)).themeMode,
+        ThemeMode.dark,
+      );
+    },
+  );
+
+  testWidgets('Profile bottom action follows the complete fallback hierarchy', (
+    tester,
+  ) async {
+    const longName = 'A learner name that needs two centered lines';
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: LearnerBottomActions(
+            key: const ValueKey('name-fallback-actions'),
+            profileService: _ProfileServiceWithoutAvatar(longName),
+            onProfile: () {},
+            onReview: () {},
+            onCourseInfo: () {},
+          ),
+        ),
+      ),
+    );
+    await _pumpFrames(tester);
+
+    final fallback = tester.widget<Text>(
+      find.byKey(const Key('learner-bottom-profile-name')),
+    );
+    expect(fallback.data, longName);
+    expect(fallback.maxLines, 2);
+    expect(fallback.overflow, TextOverflow.ellipsis);
+    expect(fallback.textAlign, TextAlign.center);
+    expect(find.byTooltip(longName), findsOneWidget);
+    expect(find.bySemanticsLabel('Profile, $longName'), findsOneWidget);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: LearnerBottomActions(
+            key: const ValueKey('icon-fallback-actions'),
+            profileService: _ProfileServiceWithoutAvatar(null),
+            onProfile: () {},
+            onReview: () {},
+            onCourseInfo: () {},
+          ),
+        ),
+      ),
+    );
+    await _pumpFrames(tester);
+    expect(
+      find.byKey(const Key('learner-bottom-profile-icon')),
+      findsOneWidget,
+    );
+    expect(find.byIcon(Icons.person_outline), findsOneWidget);
+    expect(find.bySemanticsLabel('Profile'), findsOneWidget);
+  });
+
+  testWidgets(
+    'Profile avatar reacts to active learner and appearance changes',
+    (tester) async {
+      final profiles = ProfileService();
+      await profiles.addProfile('First Learner');
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: LearnerBottomActions(
+              onProfile: () {},
+              onReview: () {},
+              onCourseInfo: () {},
+            ),
+          ),
+        ),
+      );
+      await _pumpFrames(tester);
+
+      expect(find.bySemanticsLabel('Profile, First Learner'), findsOneWidget);
+      expect(
+        tester.getSize(find.byKey(const Key('learner-bottom-profile-avatar'))),
+        const Size(32, 32),
+      );
+
+      await profiles.addProfile(
+        'Second Learner',
+        skinTone: 'dark',
+        hairTone: 'light',
+      );
+      await _pumpFrames(tester);
+      expect(find.bySemanticsLabel('Profile, Second Learner'), findsOneWidget);
+      var avatar = tester.widget<LearnerAvatar>(
+        find.byKey(const Key('learner-bottom-profile-avatar')),
+      );
+      expect(avatar.skinTone, 'dark');
+      expect(avatar.hairTone, 'light');
+
+      await profiles.setHairTone('dark');
+      await _pumpFrames(tester);
+      avatar = tester.widget<LearnerAvatar>(
+        find.byKey(const Key('learner-bottom-profile-avatar')),
+      );
+      expect(avatar.hairTone, 'dark');
+    },
+  );
+
+  testWidgets('compact bottom actions fit required responsive widths', (
+    tester,
+  ) async {
+    await ProfileService().addProfile('Responsive Learner');
+    final heights = <double>[];
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    for (final brightness in Brightness.values) {
+      for (final iddqdMode in LearnerIddqdMode.values) {
+        for (final width in const [320.0, 375.0, 430.0, 1100.0]) {
+          tester.view.physicalSize = Size(width, 720);
+          tester.view.devicePixelRatio = 1;
+          await tester.pumpWidget(
+            MaterialApp(
+              theme: ThemeData(brightness: brightness, useMaterial3: true),
+              home: Scaffold(
+                body: Align(
+                  alignment: Alignment.bottomCenter,
+                  child: LearnerBottomActions(
+                    onProfile: () {},
+                    onReview: () {},
+                    onCourseInfo: () {},
+                    iddqdMode: iddqdMode,
+                  ),
+                ),
+              ),
+            ),
+          );
+          await _pumpFrames(tester);
+
+          final actions = tester.getRect(
+            find.byKey(const Key('learner-bottom-actions')),
+          );
+          final themeControl = tester.getRect(
+            find.byKey(const Key('learner-bottom-theme')),
+          );
+          final flagControl = tester.getRect(
+            find.byKey(const Key('learner-bottom-flag-background')),
+          );
+          final profile = tester.getRect(
+            find.byKey(const Key('learner-bottom-profile')),
+          );
+          final review = tester.getRect(
+            find.byKey(const Key('learner-bottom-review')),
+          );
+          final courseInfo = tester.getRect(
+            find.byKey(const Key('learner-bottom-course-info')),
+          );
+          final iddqd = tester.getRect(
+            find.byKey(const Key('learner-bottom-iddqd')),
+          );
+          expect(actions.left, greaterThanOrEqualTo(0));
+          expect(actions.right, lessThanOrEqualTo(width));
+          expect(flagControl.right, lessThanOrEqualTo(actions.right));
+          expect(themeControl.left, greaterThan(courseInfo.right));
+          expect(flagControl.left, greaterThan(themeControl.right));
+          expect(themeControl.size, const Size(40, 40));
+          expect(flagControl.size, const Size(40, 40));
+          expect(profile.width, greaterThan(themeControl.width));
+          expect(review.size, const Size(40, 40));
+          expect(courseInfo.size, const Size(40, 40));
+          expect(iddqd.size, const Size(40, 40));
+          expect(find.text(learnerIddqdExplanation(iddqdMode)), findsNothing);
+          heights.add(actions.height);
+          expect(tester.takeException(), isNull);
+        }
+      }
+    }
+    expect(heights.toSet(), {learnerBottomActionsHeight});
+  });
+
+  testWidgets('Profile links return naturally to Profile', (tester) async {
+    await ProfileService().addProfile(
+      'Profile Learner',
+      skinTone: 'light',
+      hairTone: 'dark',
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ProfileScreen(
+          course: _courseFixture(buyACoffeeUrl: ''),
+          onManageLearners: (context) => Navigator.of(context).push<void>(
+            MaterialPageRoute(
+              builder: (_) => Scaffold(
+                appBar: AppBar(title: Text('Learner profiles')),
+                body: const Center(child: Text('Learner profiles destination')),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await _pumpFrames(tester);
+
+    expect(find.text('Profile Learner'), findsOneWidget);
+    expect(find.byKey(const Key('profile-large-avatar')), findsOneWidget);
+
+    await tester.tap(find.widgetWithText(ListTile, 'Avatar'));
+    await _pumpUntil(tester, find.byType(AvatarSettingsScreen));
+    await tester.pumpAndSettle();
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+
+    final learnerProfiles = find.widgetWithText(ListTile, 'Learner profiles');
+    await tester.ensureVisible(learnerProfiles);
+    await tester.tap(learnerProfiles);
+    await _pumpUntil(tester, find.text('Learner profiles destination'));
+    await tester.pumpAndSettle();
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+
+    final gamification = find.widgetWithText(ListTile, 'Gamification');
+    await tester.ensureVisible(gamification);
+    await tester.tap(gamification);
+    await _pumpUntil(tester, find.byType(GamificationSettingsScreen));
+    await _pumpFrames(tester);
+    await tester.pageBack();
+    await _pumpFrames(tester);
+    expect(find.byType(ProfileScreen), findsOneWidget);
+  });
+
+  testWidgets(
+    'Profile logout confirms and returns to the initial learner flow',
+    (tester) async {
+      final profiles = ProfileService();
+      await profiles.addProfile('Logout Learner');
+      final learnerPrefix = ProfileService.prefixForProfileId(
+        (await profiles.getActiveProfileId())!,
+      );
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt('${learnerPrefix}xp_IT', 90);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Builder(
+            builder: (context) => Scaffold(
+              body: Center(
+                child: FilledButton(
+                  onPressed: () => Navigator.of(context).push<void>(
+                    MaterialPageRoute(
+                      builder: (_) => ProfileScreen(
+                        course: _courseFixture(buyACoffeeUrl: ''),
+                        onManageLearners: (_) async {},
+                      ),
+                    ),
+                  ),
+                  child: const Text('Open Profile'),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('Open Profile'));
+      await _pumpUntil(tester, find.byType(ProfileScreen));
+
+      await tester.drag(find.byType(ListView), const Offset(0, -260));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text(
+          'This is a local profile only. Logging out does not contact any '
+          'remote server. Your learner profile and progress remain stored on '
+          'this device.',
+        ),
+        findsOneWidget,
+      );
+      final logout = find.byKey(const Key('profile-logout'));
+      await tester.scrollUntilVisible(
+        logout,
+        240,
+        scrollable: find.byType(Scrollable),
+      );
+      await tester.tap(logout);
+      await _pumpUntil(tester, find.text('Log out of this local profile?'));
+      await tester.tap(find.widgetWithText(TextButton, 'Cancel'));
+      await tester.pumpAndSettle();
+      expect(await profiles.getActiveProfile(), 'Logout Learner');
+
+      await tester.ensureVisible(logout);
+      await tester.tap(logout);
+      await _pumpUntil(tester, find.text('Log out of this local profile?'));
+      await tester.tap(find.widgetWithText(FilledButton, 'Log out'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Open Profile'), findsOneWidget);
+      expect(await profiles.getActiveProfile(), isNull);
+      expect(await profiles.getProfiles(), ['Logout Learner']);
+      expect(prefs.getInt('${learnerPrefix}xp_IT'), 90);
+    },
+  );
+
+  testWidgets('Course Info owns the existing Buy a coffee destination', (
+    tester,
+  ) async {
+    Uri? openedUri;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CourseInfoScreen(
+          course: _courseFixture(
+            buyACoffeeUrl: 'https://example.com/course-support',
+          ),
+          launchExternal: (uri) async {
+            openedUri = uri;
+            return true;
+          },
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final supportAction = find.byKey(const Key('course-info-buy-coffee'));
+    await tester.drag(find.byType(ListView), const Offset(0, -500));
+    await tester.pumpAndSettle();
+    expect(supportAction, findsOneWidget);
+    await tester.tap(supportAction);
+    await tester.pump();
+    expect(openedUri, Uri.parse('https://example.com/course-support'));
+  });
+}
+
+class _ProfileServiceWithoutAvatar extends ProfileService {
+  final String? activeProfile;
+
+  _ProfileServiceWithoutAvatar(this.activeProfile);
+
+  @override
+  Future<String?> getActiveProfile() async => activeProfile;
+
+  @override
+  Future<ProfileAvatarAppearance?> getAvatarAppearanceForProfile(
+    String profileName,
+  ) async => null;
+}
+
+Course _courseFixture({required String buyACoffeeUrl}) => Course(
+  courseId: 'profile-navigation-course',
+  learningLanguage: 'Italian',
+  interfaceLanguage: 'English',
+  sourceLanguage: 'English',
+  targetLanguage: 'Italian',
+  title: 'Profile Navigation Course',
+  ttsLanguage: 'it-IT',
+  buyACoffeeUrl: buyACoffeeUrl,
+  lessons: const [],
+);
+
+Future<void> _pumpFrames(WidgetTester tester, {int count = 12}) async {
+  for (var frame = 0; frame < count; frame++) {
+    await tester.pump(const Duration(milliseconds: 50));
+  }
+}
+
+Future<void> _pumpUntil(WidgetTester tester, Finder finder) async {
+  for (var frame = 0; frame < 80; frame++) {
+    await tester.pump(const Duration(milliseconds: 50));
+    if (finder.evaluate().isNotEmpty) return;
+  }
+  fail('Timed out waiting for $finder');
+}

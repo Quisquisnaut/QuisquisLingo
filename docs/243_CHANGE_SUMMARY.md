@@ -1,0 +1,812 @@
+# Build 243 — change summary
+
+Revision 0 (`2.0.43+243000`) introduces Course Model v11; Revision 1
+(`2.0.43+243001`) stops one unreadable stored Course from hiding the others;
+Revision 2 (`2.0.43+243002`) gives every Course its own content-addressed
+media.
+
+## Revision 0 — Course Model v11
+
+Version: **2.0.43+243000**. Beta expiry: **2026-10-21 23:59:59 local**, the
+30-day policy applied to this release's own date, 21 September 2026.
+
+This is Tranche 0 of the portable course package described in
+[docs/COURSE_PACKAGE_PLAN.md](COURSE_PACKAGE_PLAN.md): it introduces the Course
+Model that the package will carry. Media handling, the ZIP package and the
+Publisher changes are Tranches 1–3 (Revisions 2–4); Revision 1 makes an
+unreadable stored Course stop hiding the readable ones.
+
+## Course Model v11, a clean cut
+
+`Course.currentFormatVersion` is 11 and is the only accepted value.
+`formatVersion` 9 and 10 are refused with
+`Unsupported course formatVersion … supports Course Model format 11 only …
+convert them with tools/convert_course_to_v11.dart`. The application contains no
+conversion code.
+
+v11 = v9, plus:
+
+- `mergeProvenance` as an optional field of any custom Course. v10 existed only
+  to carry it; `Course.mergedFormatVersion` is removed and a merge now produces
+  an ordinary v11 Course. It remains custom-only.
+- The Build 242 `mediaAttributions` list, unchanged.
+- Six optional descriptive fields (below).
+
+Owner decision: a single model rather than more format numbers, and a clean cut
+because there are no existing Courses to preserve. The version number now tells
+an older build the truth: it refuses a v11 Course instead of re-saving it and
+silently dropping fields it does not know, the compatibility gap Build 242
+documented for media credits.
+
+## New optional fields
+
+All omitted from JSON when unset, all descriptive, none granting permissions.
+One validator, `Course.validateDescriptiveMetadata`, serves the constructor and
+the Course Info Editor.
+
+| Field | Rule |
+|---|---|
+| `minimumAppBuild` | Positive integer; a value above `AppMetadata.buildNumber` is refused with "Update QuisquisLingo". |
+| `publisherContact` | `websiteUrl` (HTTPS, ≤ 500) and/or `email` (≤ 254), at least one. Plain text only. |
+| `estimatedStudyHours` | Integer 1–1000. |
+| `minimumAge` | 4, 9, 13, 16 or 18 — the App Store age classes (owner's choice over audience bands). |
+| `keywords` | ≤ 20 trimmed, non-empty, ≤ 32 characters, no case-insensitive duplicates. No search yet. |
+| `coverImage` | `media:<lowercase sha256>.<png\|jpg\|jpeg\|webp>`. Stored and validated only. |
+
+`minimumAppBuild` is the mechanism for later additions: a Course that needs a
+newer feature can say so without another format number.
+
+Course Info Editor adds the five editable fields after Buy a Coffee URL, with
+inline guidance, and refuses invalid values with a message while keeping the
+dialog open. Cleared fields are removed, never stored as `null`. Course Info
+shows them under Course details and a separate Publisher contact card.
+
+Fork, Copy as New Course and in-Course transfers carry the fields. A merge keeps
+the left Course's values except `minimumAppBuild`, which takes the higher
+value, and the fields are excluded from the merge compatibility check so they
+never block a merge.
+
+A defect this exposed: `CourseAuthoringTransferService._withLessons` rebuilt the
+Course without `mergeProvenance`. Under v10 that failed loudly; under v11 it
+would have dropped the provenance silently. It now keeps it.
+
+## Storage clean cut
+
+Found during implementation: `CourseEditorService.listUserCourses` throws when
+any stored Course cannot be parsed, so a single leftover v9 Course would have
+blocked Course Manager, the Course Selector and import — including importing
+its converted replacement. Version History behaves the same way for backups.
+
+Owner decision: new folders, following the established clean-cut pattern.
+
+- `CourseFileStore.rootDirectoryName`: `qql_courses_v1` → `qql_courses_v2`.
+- Course backups: `Exports/Course Backups v9` → `Exports/Course Backups v11`,
+  manifest format `QuisquisLingo Course Backup v11`.
+
+The old folders stay on disk, untouched, unread and outside resets; the
+Inventory still labels files in any `Course Backups v<n>` folder as backups.
+Storage preference keys that contain `v9` keep their names.
+
+## Conversion tool and converted content
+
+`tools/convert_course_to_v11.dart INPUT OUTPUT [--overwrite]
+[--official-version V]` changes only `formatVersion`, recomputes
+`officialChecksum` for official Courses, removes a Publisher signature (the
+result must be signed again) and preserves key order and layout. It refuses a
+Course that names media outside `assets/`, listing each location.
+
+- The ten bundled Courses: three lines each change — format, official version
+  one minor step up (1.6.1 → 1.7.0; Korean 1.0.1 → 1.1.0; Neapolitan
+  1.0.0 → 1.1.0) and checksum. Course IDs are unchanged, so learner progress
+  is kept. `tools/validate_courses.py` now requires format 11.
+- `demo_courses/italian_demo_2_pick_the_translation.json`: only the format
+  number changes. Its ZIP version comes with the package in Tranche 2.
+- Dummy publisher fixtures: `dummy-unsigned.json` converted; `dummy-signed-v1`
+  and `-v2` converted and signed again through the documented route
+  (`sign_course.dart prepare` → `openssl pkeyutl -sign -rawin` →
+  `sign_course.dart attach`, which verifies before writing).
+  `dummy-payload.bin` and `dummy-signature.bin` are the new v1 payload and
+  signature. Publisher signatures necessarily change: the format number is
+  part of the signed checksum.
+
+## Not in this revision
+
+Course media references (`media:` for images and MP3s), the ZIP package,
+Publisher media, cover display and keyword search. See the plan.
+
+## Revision 1 — an unreadable stored Course no longer hides the others
+
+Version **2.0.43+243001**, same Beta expiry (same release date).
+
+Found while planning Revision 0 and made its own revision by the owner.
+`CourseFileStore.readAll` and `CourseEditorService.listUserCourses` stopped at
+the first file they could not load, so one damaged, unsupported or duplicated
+Course file blocked Course Manager, the Course Selector, import and every save.
+The store's own comment and the test `one unreadable Course does not hide the
+others` claimed the opposite; the test in fact asserted the failure.
+
+- `CourseFileStore.readReadable` returns the readable records and a list of
+  `SkippedCourseFile` (file name and reason). When two files claim one Course
+  ID, both are skipped.
+- `readAll` stays strict and keeps its messages. It is now used only where an
+  unreadable Course must not be mistaken for a missing one: the unused-MP3
+  cleanup (which then deletes nothing) and the profile-deletion guard (which
+  then refuses, naming the file).
+- `CourseEditorService` lists and saves through `readReadable`. Files that are
+  readable JSON but not a valid Course are skipped as well.
+  `unreadableCourseFiles` exposes the result of the last listing.
+- `CourseFileStore.write` refuses to replace a file that cannot be read or that
+  holds another Course ID, so a skipped file is never lost by saving or
+  importing; the message names the file to move.
+- Course Manager shows a notice card listing each skipped file and its reason
+  above the Course lists, instead of the whole-page load error. The Inventory
+  names the skipped files in its course section.
+- Three tests that asserted the old failure now assert the notice, keeping
+  their intent (the file is preserved, the problem is reported): the Build 230
+  Course Manager test, the Build 225 unsupported-course and corrupt-file tests;
+  the file-store test was renamed to what it actually checks.
+
+## Revision 2 — course media
+
+Version **2.0.43+243002**, same Beta expiry. Tranche 1 of the plan.
+
+### The reference
+
+`CourseMediaStore` (`lib/services/course_media_store.dart`) is the single
+authority. A Course's own image or recording is `media:<sha256>.<ext>`
+(`mp3`, `png`, `jpg`, `jpeg`, `webp`), the lowercase SHA-256 of its bytes. The
+file lives in `<AppSupport>/quisquislingo_course_media/course_<sha256(courseId)>/<sha256>.<ext>`.
+The same Course JSON is therefore valid on every device, and a signature over
+it pins the media bytes too.
+
+`Course.fromJson` refuses any Audio Library `filePath` that is not empty,
+`assets/…` or `media:<sha256>.mp3`, and any `image` element `asset` that is not
+empty, `assets/…`, `data:image/…` or an image `media:` reference. Portable
+`data:` images (Recognize characters) and Lesson icons are unchanged.
+
+### Where media is created, shown and removed
+
+- `RecordedAudioService` imports (fixed folder and Open from…) store through
+  the media store; clip IDs gain a random suffix because identical recordings
+  now share a file. Playback, availability and preview resolve with the
+  Course ID (`resolveSourceForClip(clip, courseId:)`,
+  `playConcatenated(…, courseId:)`); the synchronous `sourceForClip` is gone.
+- The Exercise editor copies an imported image or a library/bank choice into
+  course media. `CourseMediaImage` shows any Course image (bundled, embedded or
+  course media) in study, Duel and the editor; it reads bytes rather than
+  using `Image.file`, which memory-maps the file and on Windows keeps it from
+  being deleted.
+- `CourseEditorService`: Copy as New Course and Fork copy the referenced media
+  into the new Course folder before creation and remove it if creation fails;
+  a confirmed save deletes files the saved Course does not reference
+  (including files added and then dropped while editing); deleting a Course
+  deletes its folder. `CourseMergeService.copyMedia` copies from the left and
+  then the right source, called by Course Manager just before saving a merge.
+- `CourseBackupService` copies every referenced file as `<sha256>.<ext>`,
+  verifies it, and records `reference` + `sha256` (or a gap:
+  `reference` + `missing`). Loading requires the checksum to equal the
+  reference's digest. `reinstateMedia` puts files back; Version History calls
+  it before Restore. No path remapping remains. Images are now backed up too.
+
+### Retired
+
+`ManagedAudioCleanup` and `MediaReferenceIndex` are removed. Their job was to
+avoid deleting an MP3 another Course shared; with one folder per Course nothing
+is shared. The Revision 1 note that the MP3 cleanup stays strict about
+unreadable stored Courses no longer applies: cleanup reads only the Course
+being saved. The Shared Image Library delete dialog, which listed Courses
+"still using" an image (Build 242), now states that Courses keep their own
+copy.
+
+### Storage, reset and backup
+
+- Reset → imported media: images removes the library, banks and course-media
+  images; audio removes course-media MP3s; both removes the whole
+  course-media folder. Custom-course and full resets remove it too.
+- Inventory: section "Course media", owner by Course, note by type.
+- Android Auto Backup excludes `quisquislingo_course_media/` and still
+  excludes the retired `quisquislingo_audio/`, which is no longer read.
+- `docs/239_RESET_STORAGE_INVENTORY.md`, `docs/SECURITY_AND_ROBUSTNESS.md`,
+  `docs/AUDIO_LIBRARY.md`, `docs/COURSE_EDITOR.md` and Editor Help (English and
+  Italian) describe the new storage.
+
+### Also fixed
+
+Revision 0 had left the in-app Publisher Help and `docs/PUBLISHER_SIGNING_GUIDE.md`
+with different wording for the Course Model line; the test that keeps them
+identical was not in Revision 0's focused set. They are identical again.
+
+## Revision 3 — portable Course ZIP
+
+Version **2.0.43+243003**, same Beta expiry. Tranche 2 of the plan.
+
+- Fixed-folder Export and Save to… produce a Course ZIP containing
+  `qql-course-package.json`, the canonical `course.json`, and only the
+  Course-owned `media:` files the Course actually references. Bundled QQL
+  assets and unreferenced Shared Image Library images are not copied.
+- Fixed-folder Import, Open from… and Merge From… accept the Course ZIP or a
+  media-free v11 JSON. Import checks ZIP names, links, compressed and expanded
+  size, media digests, the Course, and the optional 512 × 512 cover before
+  writing. Collision choices and Merge carry the media; a failed save removes
+  newly copied files.
+- Choosing an Admin-added Shared Image Library image records a snapshot of its
+  library ID, label, category, tags and origin on the Course image. The ZIP
+  manifest lists that provenance with the media SHA-256. Import keeps the
+  image in the Course folder and does not add it to the destination Shared
+  Image Library. The library screen gives app-bundled entries the fixed `QQL`
+  label and Admin-added entries the fixed `DEVICE` label for every viewer.
+  Using an image in a Course does not change its Shared Image Library label.
+  In the Course Editor, a used bundled image shows `QQL` and `USED`;
+  a used Admin-added library image shows `DEVICE`, `COURSE` and `USED`;
+  and a directly imported image shows `COURSE` and `USED`. `COURSE` means
+  the bytes are in the Course folder; `USED` means the Course references
+  the image, regardless of storage.
+  Admins may enter optional per-image attribution (author, license, work title
+  and source) in the Shared Image Library's Edit metadata dialog; Image Banks
+  may supply the same optional attribution per entry. The Course and ZIP
+  manifest retain the attribution snapshot when the image is selected.
+  Existing Course-level media credits remain in `course.json`.
+- The demo Course now has a `.zip` beside its media-free `.json`. Publisher
+  recordings remain subject to the Revision 2 import restriction until
+  Revision 4 adds signed publisher packages with media.
+## Revision 4 — signed Publisher Course media
+
+Version **2.0.43+243004**, same Beta expiry. Tranche 3 of the plan.
+
+- Publisher Courses can distribute recordings and ordinary images as verified
+  `media:` files inside a signed Course ZIP. The signed JSON pins each file by
+  SHA-256; package import checks its actual bytes before changing storage.
+- `CourseEditorService.installExternalOfficialUpdate` installs package media
+  into the Course folder and refuses missing or damaged media when called
+  without a package. A newer signed update backs up the previous Course and
+  media, then removes files no longer referenced. Uninstall keeps media.
+- `tools/sign_course.dart package` takes signed JSON, a media directory and
+  the Publisher public key; it verifies the signature and referenced files,
+  then writes a ZIP containing only those dependencies. The signed Dummy
+  media ZIP exercises import and update. Publisher Help, the signing guide
+  and the historical audio-pack notes reflect the portable package.
+- Course Editor calls its browser **Image Library** and shows the Course's
+  stored images beside the shared catalogue. In that browser, images used by
+  an exercise add `USED` to their source label: `QQL · USED` for bundled assets,
+  `DEVICE · USED` for an Admin-added image, and `DEVICE · COURSE · USED` for
+  its Course-stored copy. Direct Course images show `COURSE` and add `USED`
+  when referenced. The separate **Shared Image Library** management entry
+  remains Admin-only in Course Manager and Device Administration; its entries
+  show `QQL` or `DEVICE` without Course-use badges.
+
+## Revision 5 — Image Library usability
+
+Version **2.0.43+243005**, same Beta expiry. Owner-requested interface changes
+to the Image Library and Shared Image Library; no Course, storage or import
+behavior changes.
+
+- `USED` is renamed `IN USE`. Badges (`QQL`, `DEVICE`, `COURSE`, `IN USE`)
+  are small labels on a translucent backing over the image's bottom-left
+  corner, one per row (`lib/widgets/image_badges.dart`), in the library grid
+  and in the exercise image preview.
+- A badge filter (All badges plus each badge present) sits below the category
+  filter when the listed images carry more than one kind of badge.
+- A sort menu orders the grid by Name (A–Z, default), Newest or Oldest added,
+  Largest or Smallest file. No record stores an added date, so it is derived
+  from QQL-generated values: the stamp in a single import's `local_<µs>` ID or
+  its Image Bank's `bank_<µs>` ID, or the Course file's write time. Bundled
+  images count as the oldest. File sizes are measured only when a size order is
+  first chosen. The choice is not persisted.
+- In a Course's Image Library, a Shared Image Library image and its Course copy
+  appear as one tile labelled `DEVICE`, `COURSE` and `IN USE`. The copy is
+  listed alone, as `COURSE`, when the original record is gone or its file is
+  missing.
+- Tiles show the image with its badges, the lowercase name and, only when the
+  image has tags, a lowercase `Tags:` line. The category line is removed, since
+  the category filter shows it. For an Admin, the delete and remove-bank buttons
+  are 22 px controls over the image's bottom-right corner instead of a row.
+- Category and badge filter chips are compact, without a checkmark; the
+  selected chip is filled.
+
+## Revision 6 — import memory-safety fixes
+
+Version **2.0.43+243006**, same Beta expiry. Tranche 0 of
+`docs/IMPORT_HARDENING_PLAN.md`.
+
+- **Course cover:** `CoursePackageService._checkCover` reads the dimensions
+  with `ImageDescriptor.encoded` and refuses anything but 512 × 512 before
+  `instantiateCodec`. Previously a ≤100 KB PNG declaring 30,000 × 30,000 was
+  fully decoded first.
+- **Image Bank ZIP:** `ImageBankService.importBankZip` reads the central
+  directory before `ZipDecoder`, because `decodeBytes` in `archive` 4.0.9
+  eagerly inflates symlink entries. It rejects, before inflating anything:
+  - an empty or unreadable directory;
+  - more than 5,000 entries;
+  - any symlink;
+  - a declared total above 50 MB across all entries
+    (`maxInflatedArchiveBytes`).
+
+  The manifest and every image are inflated through `readBoundedEntry`, which
+  stops at the declared size and requires an exact match. Previously each
+  entry was fully inflated before its 50 KB check.
+- **Shared bounded reader:** `lib/services/bounded_archive_entry.dart` holds
+  `readBoundedEntry` and `LimitedOutputStream`, moved from
+  `CoursePackageService`. Course packages and Image Banks share it.
+- **Lesson icon and custom flag:** `maxSourceDimension` is 4096 (was 8192).
+  An 8192² Lesson icon could allocate about 256 MB when decoded at full size.
+  The error text, English and Italian Help and `docs/COURSE_EDITOR.md` match.
+- **Animated images:** `PortableExerciseImageService.fromBytes`, and so
+  `fromFile`, rejects APNG `acTL`, WebP `ANIM`/`ANMF` and the VP8X animation
+  flag. `decode` and `validate` are unchanged, so images already stored in a
+  Course keep loading, rendering and saving.
+- **Changed messages:**
+  - A truncated Course package entry reports "is damaged" (was "could not be
+    read").
+  - A non-ZIP Image Bank reports "This is not a readable Image Bank ZIP".
+  - An understated Image Bank entry reports that it expands beyond its
+    declared size.
+
+## Revision 7 — image library tidy-up
+
+Version **2.0.43+243007**, same Beta expiry. Plan §6c of
+`docs/IMPORT_HARDENING_PLAN.md`: structural, with one owner-approved
+behavior change.
+
+- **`CourseImageUsage`** (`lib/services/course_image_usage.dart`) is the
+  single answer to where a Course uses an image. It covers every image
+  element in the content of each Round and each GuideBook, whether that
+  content is an exercise (prompt, answer items, layout) or a presentation
+  (flashcards, explanations, the Lesson introduction), plus the cover. Each
+  use has a readable location, such as `Lesson 2 › Round 1 › item 3`.
+  - `CourseMediaStore.referencesOf` delegates to it. A test keeps the
+    previous whole-JSON search as a reference and confirms identical results
+    for every bundled and demo Course, and for a Course with an image in
+    every possible place. Storage keeps exactly what it kept.
+  - The Image Library's IN USE and the Exercise editor's Shared Image
+    Library source also delegate to it.
+- **Behavior change (owner decision):** before this revision the Image
+  Library and the Exercise editor looked only at `round.exercises`, which
+  skips the Lesson introduction and drops presentation images. Images used
+  only there now show `IN USE`, as storage always counted them. QQL's own
+  editor places images only in exercises, so only Course JSON written outside
+  QQL is affected.
+- **`image_library_rules.dart`** holds the Image Library's rules as plain
+  functions, moved unchanged out of the screen:
+  - search;
+  - the sort orders and derived added date;
+  - the badges, their order and meanings;
+  - the tile tag line and source wording;
+  - the merge of a device original with its Course copy.
+
+  `flat_image_library_screen.dart` shrinks from 1,219 to 1,081 lines.
+- **`ExerciseImageField`** (`lib/widgets/exercise_image_field.dart`) is the
+  Exercise editor's image section as a separate widget. It takes the Course,
+  the image, its Shared Image Library source, read-only mode and the Help
+  button, and reports each change through a callback.
+  `course_editor_screen.dart` shrinks from 11,383 to 11,150 lines.
+- **Tests:** the existing Image Library and Exercise editor tests pass
+  unchanged. New tests are `course_image_usage_test.dart`,
+  `image_library_rules_test.dart` and `exercise_image_field_test.dart`.
+
+## Revision 8 — remove an image from a Course; badge order
+
+Version **2.0.43+243008**, same Beta expiry. Plan §6b of
+`docs/IMPORT_HARDENING_PLAN.md`, built on the Revision 7 structure.
+
+- **Badge order:** `IN USE`, then `QQL`, `DEVICE`, `COURSE`
+  (`imageBadgeOrder` and `imageBadgesOf` in `image_library_rules.dart`, and
+  `ExerciseImageField`).
+- **`CourseImageRemoval`** (`lib/services/course_image_removal.dart`) takes a
+  Course and a set of assets and returns the changed Course.
+  - It clears every image element using those assets from exercise prompts,
+    answer items, layouts and presentation content, in Rounds and
+    GuideBooks, plus the cover.
+  - It stamps `updatedAt` on the changed exercises, Rounds and Lessons.
+  - It makes Draft every changed item whose runnable exercise then has an
+    Audit error, the same rule publication uses. Content already Draft is
+    left alone.
+- **Image Library:** a new `onCourseChanged` callback, passed only by the
+  Course Editor's main Image Library entry, shows **Remove from this Course**
+  on every image the Course uses:
+  - a 22 px bin in the bottom-right corner, and a button in the preview;
+  - a confirmation listing each use with its location;
+  - for a merged tile, both the device original and its Course copy.
+
+  The Course Editor applies the result through `_updateDraft`. That requires
+  Edit on a Course the user may edit, and runs the existing Draft
+  reconciliation, which never republishes an exercise. The Exercise editor's
+  image chooser does not offer removal.
+- **What stays:** a QQL image stays in the library, and a Shared Image Library
+  original stays on the device.
+- **Course image library (owner addition).** A new optional Course field,
+  `imageLibrary`, holds `CourseImageLibraryEntry` items.
+  - Each entry has an `asset` (an image `media:` reference, listed once) and
+    an optional `sharedImageSource`. It is omitted when empty.
+  - `CourseMediaStore.referencesOf` includes the entries, so cleanup, the
+    Course ZIP and backups keep those files.
+  - Duplicate/Fork and authoring transfer carry the list. Merge keeps both
+    Courses' entries, the left Course's entry winning for an image both list.
+  - Builds before Revision 8 ignore the field.
+- **Second question and bins (owner addition).** Every Course-stored image
+  (`COURSE`, including a device image's Course copy) has the bin, used or
+  not.
+  - After its uses are cleared, **Remove from Course** or **Keep in library**
+    is offered. Keep adds an `imageLibrary` entry; closing the question also
+    keeps it.
+  - A kept image shows as `COURSE` without `IN USE`.
+  - **Remove from Course** drops any entry. The file leaves through
+    `deleteUnreferenced` after the confirmed save. It is deleted at once
+    (`CourseMediaStore.deleteStored`) only when neither the saved Course
+    (`savedCourse`, the editor's `_transaction.originalCourse`) nor the
+    edited Course references it, so Discard always stays possible.
+  - QQL and Shared Library images never get the second question.
+- The model part of Tranche 2b (`imageLibrary`) is therefore done. Tranche 2b
+  keeps the import of images and Image Banks into it.
+
+## Revision 9 — QQL image metadata read-only; Local words; device categories
+
+Version **2.0.43+243009**, same Beta expiry. Tranche 0b of
+`docs/IMPORT_HARDENING_PLAN.md`.
+
+- **The defect.** Every Admin edit or import stored a snapshot of the
+  **whole** catalog, bundled QQL records included, in
+  `quisquislingo_exercise_image_metadata_v2` (schema 1). From then on the
+  snapshot replaced the app's catalog. A later release adding a QQL image
+  would have thrown `Current exercise-image metadata is missing …`, and the
+  library would have stopped loading. Relabelled QQL images and improved QQL
+  tags would never have arrived either.
+- **Schema 2**, same preference key. The document holds only device-owned
+  records (`local`, `bank:<id>`), `localWords` keyed by QQL image ID, and
+  `deviceCategories`. `loadCatalog` always merges the app's bundled catalog
+  (with its Local words) with the device records. A device record can never
+  shadow a QQL ID or path, and Local words for an image no longer shipped
+  are ignored.
+- **One-time conversion** of a schema-1 snapshot:
+  - bundled records leave the document;
+  - tags an Admin had added to a QQL image become its Local words (at most
+    32, 80 characters each);
+  - tags an Admin had removed come back;
+  - category changes to QQL images are dropped;
+  - device records are kept.
+- **QQL metadata is read-only:** `updateMetadata` refuses a QQL image with a
+  `StateError`, in the service and not only in the UI.
+- **Local words:** set with `updateLocalWords` (Admin only, QQL images only).
+  They are trimmed, lose case-insensitive repeats, and are limited to 32 words
+  of 80 characters without control characters. The tile shows
+  `Tags: … · Local: …`, each part only when present. Search matches them,
+  the preview lists them, and they are never exported (a QQL image in a
+  Course carries no `sharedImageSource`).
+- **Device categories:** `addDeviceCategory`, `renameDeviceCategory` (moves
+  every image using it) and `removeDeviceCategory` (refused while in use).
+  - Names are 2–40 lowercase letters, digits or underscores, starting with a
+    letter. A name may not repeat a QQL category, the `food`/`home` aliases
+    or an existing device category. At most 64 per device.
+  - Admin-added and bank images may use them.
+  - UI: **Manage device categories** in the Admin menu, and **New category…**
+    in Edit metadata.
+- **UI:** a QQL image's preview offers **Local words** instead of Edit
+  metadata. Its category and tags are shown read-only.
+- **Reset:** unchanged; the same preference key is already cleared by
+  `AppResetService` and listed in the storage inventory.
+
+## Revision 10 — safe import foundation
+
+Version **2.0.43+243010**, same Beta expiry. Tranche 1 of
+`docs/IMPORT_HARDENING_PLAN.md`.
+
+- **`lib/services/import/`**, new:
+  - `selected_external_file.dart`: `SelectedExternalFile` (display name,
+    advisory reported size, a byte stream; no path crosses the interface).
+    `FileSystemSelectedFile` opens only an ordinary file, checked without
+    following links; links, folders, pipes, sockets and devices are refused.
+    Also `MemorySelectedFile` and `isOrdinaryFile`.
+  - `import_stager.dart`: `ImportStager` streams a source into
+    `<AppSupport>/qql_import_staging/<random>.part`. It counts the actual
+    bytes against the limit and stops reading once it is passed, computes
+    SHA-256 while reading, rejects empty files, and turns read, provider and
+    storage failures into typed errors. It honours a `CancellationToken` and
+    deletes the staging file on any failure. `stageBatch` applies 100 files
+    and 250 MB of actual bytes per selection. `removeLeftovers` runs at
+    startup.
+  - `import_result.dart`: `ImportItemOutcome` and `ImportBatchResult`, one
+    result per file plus summary lines.
+  - `safe_file_name.dart`: `safeDisplayName`. It keeps the last path segment
+    and strips control characters, `.`/`..` and trailing dots or spaces. It
+    prefixes Windows reserved names and caps the length at 120. It is for
+    display and logs only; Dart has no built-in Unicode normalisation, so
+    names are not normalised.
+- **`FileDialogService`:**
+  - The backend now returns `SelectedExternalFile`s (`pickFiles`, single or
+    multiple, through `file_selector`'s `openFile`/`openFiles`) instead of
+    bytes.
+  - `openBytes` streams the chosen file through the stager under the
+    caller's real limit and reports the new `FileDialogOutcome.tooLarge`.
+  - New `openFiles` stages a multiple selection and returns an
+    `ImportBatchResult`.
+- **Callers:** the nine callers pass their real limits (exercise and portable
+  images 50 KB, MP3 50 MB, Lesson icon 2 MB, Image Bank 50 MB, learner backup
+  10 MB, Recovery Key 64 KB, Course ZIP or JSON 300 MB, Course JSON 10 MB). They
+  map `tooLarge` to the message each already used. The oversized per-service
+  "dialog read caps" (up to 128 MB) are gone.
+- **Fixed-folder names:** `flag.png`/`.jpg`/`.jpeg`, `import.json`/`.zip`,
+  `merge.json`/`.zip` and `learner_import.json` are refused when they are not
+  ordinary files. The Recovery Key and folder scans already listed without
+  following links.
+- **Course media:** `CourseMediaStore` verifies a stored file's SHA-256 by
+  streaming it instead of reading it whole.
+- **Storage:** `qql_import_staging` is removed by the full reset, listed by
+  the Inventory, and recorded in `docs/239_RESET_STORAGE_INVENTORY.md`.
+- **Tests:** `FakeFileDialogBackend` turns scripted results into in-memory
+  selections; the dialog tests pass a temporary-folder stager.
+
+## Revision 11 — one image check for every image import
+
+Version **2.0.43+243011**, same Beta expiry. Tranche 2 of
+`docs/IMPORT_HARDENING_PLAN.md`.
+
+- **`ImageValidator`** (`lib/services/import/image_validator.dart`).
+  - `inspect` is pure Dart and decodes no pixels. It detects the format from
+    the bytes and checks, per format:
+    - **PNG:** signature, every chunk's CRC, a valid IHDR (depth and colour
+      combinations, compression, filter, interlace), no unknown critical
+      chunk, no `acTL`/`fcTL`/`fdAT`, and nothing after `IEND`;
+    - **JPEG:** SOI, well-formed segments, a valid frame header (precision
+      8/12, 1–4 components, non-zero width and height, so no DNL), and EOI;
+    - **WebP:** RIFF size, chunk layout and padding, no `ANIM`/`ANMF` or
+      animation flag, and pixel data present.
+
+    On top of that it applies the ancillary metadata budget (256 KB), a
+    per-profile ICC limit (128 KB), and at most 4096 px per side and
+    16,777,216 pixels (kept separate on purpose).
+  - `validate` runs `inspect` plus one bounded decode (header dimensions must
+    match, exactly one frame) and is the only way to obtain a
+    `ValidatedImage`.
+  - `ImageProfile`s: exercise image (50 KB), Lesson icon (2 MB), Course flag
+    (2 MB, PNG or JPEG), Course cover (100 KB).
+- **Routes:**
+  - Shared Image Library and Course Editor go through
+    `ExerciseImageService.readImage`, `readImageFromDialog` or
+    `readImagesFromDialog`, which stage and validate and write nothing.
+  - The Shared Image Library commits through `addToSharedLibrary`: Admin
+    check first, then `exercise_images/image_local_<µs>.<ext>`, with the
+    extension from the content. The file is removed if the metadata record
+    fails (N7).
+  - The Course Editor stores through `CourseMediaStore.addValidated`, with no
+    write to `exercise_images` (N6).
+  - `PortableExerciseImageService.fromBytes` uses `validate`, replacing the
+    Tranche 0 animation check.
+  - Lesson icons and flags run `inspect` between their header dimension
+    check and their single decode.
+  - Image Bank entries and imported Course ZIP image media run `inspect`,
+    and a Course ZIP image must be the type its name says. Export never
+    re-checks.
+- **Shared Image Library:** **Open image files from…** takes up to 100 files
+  through `FileDialogService.openFiles` and ends with `showImportSummary`
+  (`lib/widgets/import_summary.dart`). **Import single image** (fixed
+  folder) stays single.
+- **Not re-checked:** stored images. `PortableExerciseImageService.decode`
+  and `validate` keep their earlier rules for stored Courses.
+- **Help:** English and Italian Help name **Open image files from…** and
+  explain the content check.
+
+## Revision 12 — add images and Image Banks to a Course
+
+Version **2.0.43+243012**, same Beta expiry. Tranche 2b of
+`docs/IMPORT_HARDENING_PLAN.md`.
+
+- **Model:** `CourseImageLibraryEntry` gains optional `label` (1–200),
+  `category` (a lowercase Course-scoped name), `tags` (at most 32 of 80) and
+  `attribution`. Control characters are refused. Each field is omitted when
+  empty, so earlier Courses stay byte-identical. `CourseImageLibraryEntry.checked`
+  enforces the limits for JSON and Image Bank data alike.
+  `CourseImageRemoval.updateLibrary(add:)` adds entries.
+- **Image Bank reading is separate from writing.**
+  `ImageBankService.readBank` performs every check (pre-scan, bounded
+  inflation, manifest, image structure) and writes nothing.
+  `importBankZip` (Shared Image Library) writes what `readBank` returned, so
+  its behaviour is unchanged. `readBankFromFolder` and `readBankFromDialog`
+  serve Course imports.
+- **Image Library (Course Editor):** **Add images to this Course**
+  (`course-image-add`) offers Import image (fixed folder), Open image files
+  from… (up to 100), Import Image Bank ZIP and Open Image Bank ZIP from….
+  - Images come from `ExerciseImageService.read*` or `readBank*`.
+  - The Course folder's stored bytes plus the incoming bytes must stay within
+    `CoursePackageService.maxPackageBytes` (300 MB). Otherwise nothing is
+    written and the room left is shown.
+  - An image the Course already keeps is `DuplicateSkipped`.
+  - Each new image is stored with `addBytes` under its content-derived
+    extension and listed in `imageLibrary` through the editor's working copy.
+  - It ends with `showImportSummary`.
+  - The screen shows an entry's own name, category, tags and credit.
+- **Authorization:** the menu appears only when the Course Editor passes
+  `onCourseChanged` (Edit mode on a Course the user may edit), and the change
+  goes through `_updateDraft`.
+- **Help:** English and Italian Help and `docs/COURSE_EDITOR.md` describe it.
+
+## Revision 13 — real MP3 validation
+
+Version **2.0.43+243013**, same Beta expiry. Tranche 3 of
+`docs/IMPORT_HARDENING_PLAN.md`.
+
+- **`Mp3Validator`** (`lib/services/import/mp3_validator.dart`) walks the
+  file's structure without decoding audio:
+  - an optional ID3v2.2–2.4 tag with valid synchsafe sizes, an extended
+    header that fits and well-formed frames; `APIC`/`PIC` artwork is refused
+    (owner decision);
+  - zero padding after the tag;
+  - MPEG-1, 2 or 2.5 Layer III frames only (no reserved values, no free
+    format), at least four, each starting where the previous one ends, with
+    version and sample rate constant (variable bit rate is fine);
+  - after the last frame only an ID3v1 and/or APEv2 trailer;
+  - at most 2 MB of tags in total (`Mp3MetadataTooLargeException`), at most
+    50 MB per file;
+  - duration comes from the frames walked. `validate` runs `inspect` in
+    `Isolate.run` under a 30 s watchdog.
+- **Routes:**
+  - `RecordedAudioService.importMp3Files` (fixed folder) stages each file
+    under 50 MB and checks all of them before storing any;
+  - `importMp3FromDialog` checks the single file;
+  - new `importMp3sFromDialog` uses `FileDialogService.openFiles` (100 files,
+    250 MB) and returns a result per file: `Imported`, `DuplicateSkipped`
+    (same content already in the Course or earlier in the batch),
+    `Malformed`, `MetadataTooLarge`, `InvalidType`, `TooLarge`;
+  - `CoursePackageService.parse` checks every `.mp3` media entry on import
+    only (export is unchanged).
+- **Course Editor:** Audio Library **Open from…** is multi-file and ends with
+  `showImportSummary`; both import actions pass the Course's existing
+  recordings so duplicates are skipped.
+- **Tests:** `test/support/synthetic_mp3.dart` builds valid MP3s;
+  `mp3_validation_tranche3_test.dart` covers the adversarial cases. The
+  signed Dummy media fixture was re-signed with the Dummy test key because
+  its 7-byte placeholder recording is no longer accepted.
+- **Help:** English and Italian Help and `docs/COURSE_EDITOR.md` describe the
+  check and the multi-file dialog.
+
+## Revision 14 — safer archives and structured files
+
+Version **2.0.43+243014**, same Beta expiry. Tranche 4 (part 1) of
+`docs/IMPORT_HARDENING_PLAN.md`; part 2 (Course package media kept on disk)
+follows as Revision 15.
+
+- **`BoundedZipReader`** (`lib/services/import/bounded_zip_reader.dart`) is
+  the only import ZIP reader. It reads the central directory with
+  `ZipDirectory` (never `ZipDecoder`) and refuses, before inflating: more
+  than `maxEntries`; declared sizes above `maxTotalBytes` or negative;
+  absolute paths, drive letters, `.`/`..`/empty segments, control
+  characters; names equal after `\`→`/` and case folding; symlink, device,
+  FIFO and socket modes; encrypted entries (flag bits 0 and 6); compression
+  other than stored/deflate; nested archive extensions; stored entries whose
+  sizes disagree; a local header name that differs from the central one.
+  `read(entry, limit:)` inflates through `LimitedOutputStream` up to the
+  declared size and checks length and CRC-32. `readBoundedEntry` is removed.
+- **Image Banks:** `readBank` uses the reader; the ZIP may hold only the
+  manifest and listed images (anywhere in folders; basenames unique case
+  -insensitively), with a message pointing credits to `attribution`. The
+  manifest may be an object with `images`, a bank-wide default `attribution`
+  (an entry's own wins) and `name` (≤120). Bounds: id
+  `^[A-Za-z0-9._-]{1,128}$`, label 1–200, ≤32 tags × ≤80, no control
+  characters. `normalizeCategory` maps `food`/`home`, defaults to `other`,
+  and rejects the bank on an invalid name.
+- **New categories:** `ImageBankService.importToSharedLibrary` (Admin only)
+  checks tags, counts new categories (≤16 per bank, within 64 on the
+  device), asks through `chooseNewCategories` (`NewCategoryChoice.add`,
+  `useOther`, `cancel`), then adds categories, writes the bank and registers
+  the records; any failure removes the bank and the added categories. The
+  Image Library's Import menu uses it with a dialog (`bank-categories-add`,
+  `bank-categories-other`). `pickAndImportBank` is removed;
+  `readBankFromFolder`/`readBankFromDialog` take `existingIds`.
+- **Course packages:** `CoursePackageService.parse` uses the reader
+  (`maxPackageEntries` 20,000, 300 MB declared total). Folder entries are
+  now accepted and ignored.
+- **JSON:** `JsonLimits` (`lib/services/import/json_limits.dart`) scans text
+  before `jsonDecode`: depth ≤64, string ≤1 MB (the custom-flag limit),
+  list ≤100,000. `CourseShapeLimits` checks the decoded Course: ≤500
+  Lessons, ≤100 Rounds per Lesson, ≤1,000 content items per Round or
+  GuideBook, ≤20,000 recordings, and no NUL in identity/name fields. Used by
+  `courseFromBytes` (so Course ZIPs too), learner backup and Recovery Key
+  decoding, and the Image Bank manifest.
+- **Tests:** `import_archives_tranche4_test.dart` (25); Tranche 0 and Image
+  Bank tests follow the new messages.
+- **Docs:** Help EN/IT, `docs/IMAGE_BANK_PACKAGES.md` (new rules, object
+  manifest example), `docs/COURSE_EDITOR.md`, `docs/EXTERNAL_CONTENT_PACKS.md`.
+
+## Revision 15 — Course packages read from disk
+
+Version **2.0.43+243015**, same Beta expiry. Tranche 4 (part 2) of
+`docs/IMPORT_HARDENING_PLAN.md`, finding N3 (peak memory about 600 MB).
+
+- **`CoursePackageService.parseFile(File, …)`** reads the ZIP through
+  `InputFileStream` and `BoundedZipReader`; `parse(Uint8List, …)` remains for
+  in-memory callers and tests. Both run `_parse`, which now validates
+  `course.json` first and then reads only the media the Course references,
+  one entry at a time (hash, image check, MP3 check, cover check), writing
+  each to `ImportStager.stageBytes` (a `.part` file in `qql_import_staging`)
+  before reading the next. Unused media entries are never inflated. On a
+  failure the staged files are deleted.
+- **`CoursePackage`** no longer exposes `media`: `mediaReferences`,
+  `mediaBytes(reference)` and `discard()` replace it. `withInstalledMedia`
+  installs one file at a time from staging. The in-memory constructor stays
+  for media-free JSON packages and Copy/Fork.
+- **Routes:** the fixed-folder import uses `parseFile`. Open from… uses the
+  new `FileDialogService.openStaged`, which leaves the picked file in
+  staging instead of reading it into memory; a ZIP is parsed from there, a
+  JSON file (≤10 MB) is read, and the staged copy is always removed.
+- **Lifecycle:** the Course import flow discards the package in `finally`;
+  the merge screen discards a replaced package and its package on dispose;
+  startup cleanup removes any `.part` left behind.
+- **Tests:** `course_package_on_disk_tranche4b_test.dart` (8); package and
+  Publisher tests use `mediaReferences`/`mediaBytes`.
+
+## Revision 16 — duplicates and provenance
+
+Version **2.0.43+243016**, same Beta expiry. Tranche 5 (part 1) of
+`docs/IMPORT_HARDENING_PLAN.md`.
+
+- **Provenance:** `ImageProvenance` (`sha256`, `byteLength`,
+  `detectedFormat`, `sourceName`, `source` = `single_import` /
+  `image_bank` / `course_package`, `bankId`, `importedBy`,
+  `importedAtUtc`; strict JSON, never a path) is an optional `provenance`
+  on `ExerciseImageMetadata`, stored with device records.
+- **Content index:** `ExerciseImageMetadataService.contentIndex` maps the
+  SHA-256 of every QQL image (hashed once per run from the asset bundle) and
+  device image (hashed once, then kept in the record's provenance).
+  `applyLocalRecords(add:, replace:)` adds and replaces in one write; QQL
+  images can never be replaced.
+- **Single and multiple image imports:** an exact duplicate throws
+  `DuplicateImageException` (summary: Duplicates skipped); new images record
+  provenance.
+- **Image Banks:** `importToSharedLibrary` skips content duplicates
+  silently; an entry whose ID is taken by a different picture goes to
+  `chooseConflict` (`ConflictChoice.skip` / `replace` / `keepBoth`, with
+  `applyToAll`; replace only for device images; keep both uses `id-2`,
+  `id-3`…). The result counts duplicates, skipped conflicts, replacements
+  and copies. The screen asks with `bank-conflict-*` keys; readBank no
+  longer refuses existing IDs from this screen. Removing a bank keeps
+  records a later bank replaced. A replaced single import's old file is
+  deleted.
+- **Date sort:** `stampedAddedDate` prefers `provenance.importedAtUtc`.
+- **Owner requests:** the screen is titled **Shared Images** (title, Device
+  Administration tile, Course Manager button); `web_page_detector.dart`
+  explains a web page saved as `.mp3` in plain words.
+- **Tests:** `duplicates_provenance_tranche5_test.dart` (12); Tranche 4
+  Shared Library tests use `uniquePng` (`test/support/unique_png.dart`) and
+  a failing metadata stub; MP3 tests cover the web-page message.
+
+## Revision 17 — clearer media errors and Audio Library modes
+
+Version **2.0.43+243017**, same Beta expiry. Import errors now identify
+common files saved under the wrong extension (web pages, ZIPs, PDFs,
+pictures and recordings) and tell the author how to correct the file.
+Image, MP3, Image Bank, Course package, Lesson icon and flag failures give
+actionable recovery text without exact byte counts. A missing Image Bank
+manifest explains what `image_bank_manifest.json` is, how to create it and
+add it to the ZIP, and points to **Editor Help > Image Bank**. The Help and
+`docs/IMAGE_BANK_PACKAGES.md` include a minimal manifest example.
+
+The Audio Library calls the default source **On-Device TTS**. Its three
+audio modes each show their own explanation. **Check unused MP3 files**,
+**Import MP3**, and **Open MP3 from…** appear only for Recorded MP3 only
+and Hybrid. The stored `tts` / `recorded` / `hybrid` values and Course
+audio playback are unchanged.
+
+## Revision 18 — image preview details
+
+Version **2.0.43+243018**, same Beta expiry. In both Shared Images and the
+Course Editor's Image Library, the full-size picture has a details tooltip:
+hover on desktop or long-press on a phone. It shows the QQL asset name,
+recorded original name for new device imports, stored name for older device
+imports, or “Course file (named by content)” for Course media. It also shows
+approximate file size, pixel dimensions, detected format, added date (or
+“Included with QQL”), Image Bank name and attribution when available. A
+missing file shows “File missing”; a merged device/Course tile says “Also
+stored in this Course”. This tooltip appears only in the full-size preview.
+Stored images are read for details without import validation. English Editor
+Help explains the hover and long-press gestures.
+
+## Revision 19 — Phase 20 import route matrix
+
+Version **2.0.43+243019**, same Beta expiry. `tools/generate_import_matrix_fixtures.py`
+produces small, synthetic image, MP3, JSON and ZIP fixtures in
+`test/fixtures/import/`. `test/import_route_matrix_revision19_test.dart`
+asserts each applicable fixed-folder, Open from…, batch, Course ZIP and
+embedded Course JSON route. Positive controls confirm that valid synthetic
+media still imports. The suite exposed an import gap: Course JSON accepted
+animated embedded exercise images, Lesson icons and flags. The Course import
+reader now runs those bytes through `ImageValidator` after parsing the Course,
+using `CourseImageUsage` for every embedded exercise image. It applies only
+while importing; existing stored Course images are not rechecked.

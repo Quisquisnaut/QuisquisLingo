@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" id="flag-icons-um" viewBox="0 0 640 480">
+  <path fill="#bd3d44" d="M0 0h640v480H0"/>
+  <path stroke="#fff" stroke-width="37" d="M0 55.3h640M0 129h640M0 203h640M0 277h640M0 351h640M0 425h640"/>
+  <path fill="#192f5d" d="M0 0h364.8v258.5H0"/>
+  <g fill="#fff">
+    <path d="m14 0 9 27L0 10h28L5 27z" transform="translate(16 11)"/>
+    <path d="m14 0 9 27L0 10h28L5 27z" transform="translate(77 11)"/>
+    <path d="m14 0 9 27L0 10h28L5 27z" transform="translate(138 11)"/>
+    <path d="m14 0 9 27L0 10h28L5 27z" transform="translate(199 11)"/>
+    <path d="m14 0 9 27L0 10h28L5 27z" transform="translate(260 11)"/>
+    <path d="m14 0 9 27L0 10h28L5 27z" transform="translate(320 11)"/>
+    <path d="m14 0 9 27L0 10h28L5 27z" transform="translate(47 37)"/>
+    <path d="m14 0 9 27L0 10h28L5 27z" transform="translate(108 37)"/>
+    <path d="m14 0 9 27L0 10h28L5 27z" transform="translate(169 37)"/>
+    <path d="m14 0 9 27L0 10h28L5 27z" transform="translate(229 37)"/>
+    <path d="m14 0 9 27L0 10h28L5 27z" transform="translate(290 37)"/>
+    <path d="m14 0 9 27L0 10h28L5 27z" transform="translate(16 63)"/>
+    <path d="m14 0 9 27L0 10h28L5 27z" transform="translate(77 63)"/>
+    <path d="m14 0 9 27L0 10h28L5 27z" transform="translate(138 63)"/>
+    <path d="m14 0 9 27L0 10h28L5 27z" transform="translate(199 63)"/>
+    <path d="m14 0 9 27L0 10h28L5 27z" transform="translate(260 63)"/>
+    <path d="m14 0 9 27L0 10h28L5 27z" transform="translate(320 63)"/>
+    <path d="m14 0 9 27L0 10h28L5 27z" transform="translate(47 89)"/>
+    <path d="m14 0 9 27L0 10h28L5 27z" transform="translate(108 89)"/>
+    <path d="m14 0 9 27L0 10h28L5 27z" transform="translate(169 89)"/>
+    <path d="m14 0 9 27L0 10h28L5 27z" transform="translate(229 89)"/>
+    <path d="m14 0 9 27L0 10h28L5 27z" transform="translate(290 89)"/>
+    <path d="m14 0 9 27L0 10h28L5 27z" transform="translate(16 115)"/>
+    <path d="m14 0 9 27L0 10h28L5 27z" transform="translate(77 115)"/>
+    <path d="m14 0 9 27L0 10h28L5 27z" transform="translate(138 115)"/>
+    <path d="m14 0 9 27L0 10h28L5 27z" transform="translate(199 115)"/>
+    <path d="m14 0 9 27L0 10h28L5 27z" transform="translate(260 115)"/>
+    <path d="m14 0 9 27L0 10h28L5 27z" transform="translate(320 115)"/>
+    <path d="m14 0 9 27L0 10h28L5 27z" transform="translate(47 141)"/>
+    <path d="m14 0 9 27L0 10h28L5 27z" transform="translate(108 141)"/>
+    <path d="m14 0 9 27L0 10h28L5 27z" transform="translate(169 141)"/>
+    <path d="m14 0 9 27L0 10h28L5 27z" transform="translate(229 141)"/>
+    <path d="m14 0 9 27L0 10h28L5 27z" transform="translate(290 141)"/>
+    <path d="m14 0 9 27L0 10h28L5 27z" transform="translate(16 166)"/>
+    <path d="m14 0 9 27L0 10h28L5 27z" transform="translate(77 166)"/>
+    <path d="m14 0 9 27L0 10h28L5 27z" transform="translate(138 166)"/>
+    <path d="m14 0 9 27L0 10h28L5 27z" transform="translate(199 166)"/>
+    <path d="m14 0 9 27L0 10h28L5 27z" transform="translate(260 166)"/>
+    <path d="m14 0 9 27L0 10h28L5 27z" transform="translate(320 166)"/>
+    <path d="m14 0 9 27L0 10h28L5 27z" transform="translate(47 192)"/>
+    <path d="m14 0 9 27L0 10h28L5 27z" transform="translate(108 192)"/>
+    <path d="m14 0 9 27L0 10h28L5 27z" transform="translate(169 192)"/>
+    <path d="m14 0 9 27L0 10h28L5 27z" transform="translate(229 192)"/>
+    <path d="m14 0 9 27L0 10h28L5 27z" transform="translate(290 192)"/>
+    <path d="m14 0 9 27L0 10h28L5 27z" transform="translate(16 218)"/>
+    <path d="m14 0 9 27L0 10h28L5 27z" transform="translate(77 218)"/>
+    <path d="m14 0 9 27L0 10h28L5 27z" transform="translate(138 218)"/>
+    <path d="m14 0 9 27L0 10h28L5 27z" transform="translate(199 218)"/>
+    <path d="m14 0 9 27L0 10h28L5 27z" transform="translate(260 218)"/>
+    <path d="m14 0 9 27L0 10h28L5 27z" transform="translate(320 218)"/>
+  </g>
+</svg>

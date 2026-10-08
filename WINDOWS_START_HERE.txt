@@ -1,0 +1,30 @@
+QuisquisLingo 0.5.5+55 - Windows source
+
+IMPORTANT
+This folder itself is the Flutter project root. pubspec.yaml must be visible here.
+Do not run Flutter commands from a parent folder.
+
+1. Open THIS folder in VS Code.
+2. In the terminal verify:
+   Get-Location
+   Test-Path .\pubspec.yaml
+   Select-String -Path .\lib\main.dart -Pattern "QuisquisLingoApp","Flutter Demo Home Page"
+
+The last command must find QuisquisLingoApp and must NOT find Flutter Demo Home Page.
+
+3. Run:
+   flutter clean
+   flutter pub get
+   flutter analyze
+   flutter test
+
+4. If the windows folder is missing, while still in THIS SAME folder run once:
+   flutter create --platforms=windows --project-name quisquislingo_app .
+
+Then re-check main.dart with the Select-String command above.
+
+5. Run:
+   flutter run -d windows
+
+Release build:
+   flutter build windows --release

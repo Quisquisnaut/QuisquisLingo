@@ -1,0 +1,861 @@
+# QuisquisLingo App
+
+**Current source version: 2.0.65+265011 · Build 265, Revision 11 · Course Model v12 (`formatVersion: 12`).**
+
+**QuisquisLingo 2.0.65 Beta — QQL 265 Word Lookup (Course Model v12)**
+
+Build 265 lets a learner tap a word of the language they are learning and
+see its translation from the Course's own GuideBook vocabulary, offline
+([plan](docs/265_WORD_LOOKUP_PLAN.md),
+[change summary](docs/265_CHANGE_SUMMARY.md)). Revision 0 lays the
+groundwork without changing the screens: one reader for GuideBook
+vocabulary lines, which are now read as learning language = learner's
+language (QQL Demo: English from Italian's 36 entries are turned so that
+English comes first, and the Round Wizard no longer takes its Italian words
+for English), and the lookup rules themselves: the longest expression wins,
+counted in words (in characters for Chinese, Japanese, Thai and other
+scripts written without spaces), then the word alone, then an expression
+that contains the word; the learner's own Lesson first. Revision 1 puts it
+on screen: in a Round the learner taps a word of a question, a text to
+translate, a passage, a dialogue line, a Page or the correct answer, and a
+small card shows the GuideBook entry, its Lesson and "One possible
+translation from this Course's GuideBook." Never in Test Rounds or Duels,
+never on text in the learner's own language; a one-time notice per Course
+introduces it, and authors can turn it off with **Word Lookup** in Lesson
+Options. Revision 2 opens it to the keyboard and screen readers (Tab
+reaches a text with entries, Enter lists them; screen readers offer
+"Vocabulary in this text") and renames the Laboratory **QQL Demo: Italian
+Exercise Lab**. Revision 3 gives the Lab 98 GuideBook vocabulary entries,
+translates mass nouns without "the" (bread, water, milk…) in both QQL
+Demos, and lets a word show an expression the text does not contain only
+when the expression's other words are articles ("gatto" shows `il gatto`,
+"è" does not show `dov'è`); words with an entry get a light dotted
+underline, and gapped sentences are looked up too. Revision 4 turns the
+distractor and Match limits into recommendations (Course Audit Info, never
+an error): more than two unused blocks, a distractor in another language
+and a Match that repeats a value are the author's choice, and a Match with
+a repeated value accepts any matching that reads the same. It also fixes
+three Word Lookup details: a long card stays open while scrolled, a quoted
+word (‘gatto’) is found, and `acqua` in `d'acqua` shows `l'acqua`.
+Revision 5 begins four revisions on the image library's tags: ten new
+pictures (Artichoke, Fig, Macaroni, Provolone, Orange soda, Asteroid, Dry
+soil, a pair of tennis players, Friends: 4,244 pictures), the tennis racket
+redrawn so it no longer looks like Tennis, "friend" moved from Man and
+Woman to Friends, and at least five tags for every picture of the first
+13 categories (546 pictures); the image validator reports the pictures
+still below five. Revision 6 completes the next 17 categories (539
+pictures, the flags among them) and adds 15 pictures: the personal
+pronouns, one per person ("I, me, my, myself" … "They, them, their,
+themselves"), Friend (man) and (woman), Kid (boy) and (girl), Hello!, Bye!
+and Goodbye! (4,259 pictures); Vest and Mango are drawn whole again and
+"Saltare" is named Jump. Revision 7 completes the next 17 categories (546
+pictures, the Lesson icons among them). Revision 8 completes the last 22
+(515 pictures): every picture outside the character categories now has at
+least five tags, and the image validator and the catalogue test refuse
+fewer than five, more than 32 or a tag longer than 80 characters. Revision
+9 gathers related categories in eleven groups (people, food & drink,
+nature & animals…), shown like the characters: a chip per group and a
+second row of its categories; every picture keeps its own category.
+Revision 10 adds forty historical figures from more places (Bolívar,
+Rembrandt, Lincoln, Hokusai, Mansa Musa, King Sejong, Queen Nzinga…) and
+twenty-two landmarks (Big Ben, Mount Fuji, Machu Picchu, Petra…), removes
+Columbus and tags every figure and landmark with its country (4,320
+pictures). Revision 11 adds a Plural switch to every picture in an
+exercise: the learner sees stacked copies, for a plural word ("gatti"),
+draws family members as small scenes (Father, Mother, Uncle…), adds Man and
+Woman in other colours and Friends (women) (4,334 pictures), and asks
+spelling exercises for two blocks or more.
+
+**QQL 264 The image catalog**
+
+Build 264 puts the expanded Image Bank (3,425 pictures) in order
+([change summary](docs/264_CHANGE_SUMMARY.md)). Revision 0 makes the
+catalog load inside the tests again (the complete suite stopped), keeps
+Copilot's caches with two corrections, and tests the catalog's rules: every
+picture has its file, a QQL category, a name unique in its category and at
+least one tag besides its name, which is never repeated as a tag; the
+professions shown by a man and a woman are named "(man)" and "(woman)".
+Revision 1 gives the library the World Flags themselves (with the European
+Union, the United Nations and Quebec added, and cleaner country names),
+removes the country maps and a few pictures, and ships the mascots as
+WebP. Revision 2 reorganizes the categories: the characters become one
+category with subcategories (Latin, Greek, Chinese, punctuation…), a
+**Search all** box searches every category, the category in a picture's
+card opens it, and an Admin no longer creates categories (an Image Bank's
+unknown category is filed under an existing one). Revision 3 celebrates a
+won Duel and a passed Test Round with confetti, and the Duel shows QQL
+picture answers as pictures. Revision 4 gives 230 light pictures (white
+objects, pale scenes) a soft grey edge where they touched the white page,
+and the image validator now refuses a picture whose edge is mostly
+near-white. Revision 5 makes the tags in a picture's card links: a tag
+shows only the pictures that carry it, in every category.
+Revision 6 adds the owner's three new series, 798 pictures of common
+words, jobs, animals, continent maps and places and figures of several
+religions. Revision 7 adds 110 everyday objects and the letters A–Z built
+from toy blocks (Characters › toy blocks). Revision 8 adds the owner's 16
+Lesson icons (30 in all, also in the library as lesson icons) and lets a
+Lesson icon be any QQL picture of the library: 4,234 pictures.
+Revision 9 brings the World Flags generator back in line with the flags
+QQL ships, with a check that it stays so.
+Revision 10 lets a category and the tag of the same name show each
+other's pictures, with singular and plural as one, and moves the image
+library's explanations into its own Help.
+
+**QQL 263 Preset forms and picture answers**
+
+Build 263 follows the owner review of 4 October 2026
+([change summary](docs/263_CHANGE_SUMMARY.md)). Revision 0: no standard
+line under an exercise title opens with the title's first word any more
+(PICK THE TRANSLATION now says "Choose the correct Italian translation"), in
+all seven learner languages; a picture answer never shows its word under
+the picture (a Course picture of an apple showed "mela"); Select the image
+and Listen and pick the image no longer offer an Exercise image, only the
+pictures of their answers. Revision 1 gives the preset forms the two
+buttons of the canonical editor: **Fill with an example** fills a new
+exercise with the Exercise Laboratory's example of its type and **Clear all**
+returns the form to how the type starts; changing the type after filling in
+fields asks you to check them all. Revision 2 lets picture answers be
+large, square and a set number per row (without a choice: large squares,
+two per row, a short last row in the middle): the Course chooses in Lesson
+Options › Picture answers, each exercise may choose its own, and **Crop
+square** under a picture picks the part and the zoom, keeping a cropped copy
+in the Course.
+
+**QQL 262 Publisher Courses**
+
+Build 262 prepares Courses published by a publisher of their own, outside
+the app's open-source code ([plan](docs/PUBLISHER_COURSES_PLAN.md),
+[change summary](docs/262_CHANGE_SUMMARY.md)). Revision 0 removes the two
+Piedmontese demos from the app and from the repository: QQL now ships
+**QQL Demo: Exercise Laboratory** and **QQL Demo: English from Italian**.
+Revision 1 gives the publisher **QuisquisLingo Courses**
+(`com.quisquislingo`) its place among the trusted publishers; its signing
+key is still to be created, so the app trusts none for it yet. Revision 2
+adds **Export as Publisher Course** to Course Studio: a Course you maintain
+becomes a Publisher Course ready to be signed, with every ID kept and its
+Course version as official version, so an update keeps learners' progress.
+Revision 3 gives each Lesson its own path shape: the circles no longer
+follow the same zigzag in every Lesson and every Course.
+
+**QQL 261 Learner polish**
+
+Build 261 Revision 0 shows each Round's name on one line in the learner
+path ("Round 2:" in normal weight before the title in bold; "Story:" and
+"Sequence:" the same way), gives the Round name and the Lesson title a
+tooltip with their whole text, and celebrates the Weekly XP Target with a
+short burst of confetti unless Animations are off or the device asks for
+reduced motion ([change summary](docs/261_CHANGE_SUMMARY.md)). Revision 1
+adds Study and Review to the Course menus of All Courses and Course Studio
+(the Course joins your courses when needed and becomes current) and a
+Course Editor opening mode in Do Not Disturb. Revision 2 puts the Course's
+flag left of the title on every Course Editor screen: a tap previews the
+working copy on the learner page (Drafts included, every Lesson open,
+nothing recorded) and "Preview · Exit" returns to the same screen.
+Revision 3 titles every exercise with the name of its preset (PICK THE
+TRANSLATION, TRUE OR FALSE, …) in the learner panel's language; a Story
+shows only the instructions. Revision 4 marks the preview with an amber
+PREVIEW bar and gives it Theme and Flag background buttons that change
+the preview only. Revision 5 rewrites the reading questions whose answer
+copied the text (and the Audit now warns about them), leaves the English
+course's practice Rounds untitled, folds New Canonical into New Exercise
+and adds Fill with an example to the canonical editor. Revision 6 makes
+the canonical editor explain its primitives: a popup the first time each
+one opens in a Course, Clear all, a message when the primitive changes over
+filled fields, a Help section with a screenshot for each primitive (opened
+by the editor's Help button) and a Role menu instead of free text.
+Revision 7 gives every Round a type (Discover, Practice, Sequence, Listen,
+Read, Story, FlashCard, Test, Timed; Speak shown as coming later): New
+Round asks for it, the exercise choices and the Audit follow it, and the
+learner path shows it before the Round's title. Test shows its results
+only at the end; Timed must be finished before a countdown reaches zero and
+earns an On Time bonus for each time limit. Lesson Options sets the Lesson
+and Round label and numbering, and Editor Help has a Round Types topic.
+Revision 8 redraws the learner path: each Lesson has its own colour (eight,
+by position, never green) on its number circle and its Round circles, which
+turn solid when completed and green with the laurel when perfect; faint
+backgrounds replace the cards, a small grey label sits above lighter titles,
+the circles wander between the edges and the centre, and long rounded
+curves of varying thickness join them without crossing a text.
+
+**QQL 260 Course languages**
+
+Build 260 lets New Course choose its languages from a list of 227 (or type
+one by hand), stores each language's tag, and shows the learner panel
+(its lines, and since Revision 1 its buttons and messages) in the
+Course's base language when QQL has it (English, Spanish, Italian,
+German, Portuguese, Dutch, French), naming languages in that language
+([plan](docs/260_LANGUAGES_PLAN.md), [change summary](docs/260_CHANGE_SUMMARY.md)).
+Revision 2 adds a bundled **QQL Demo: English from Italian**: one Lesson
+with a GuideBook, six Rounds of exercises mixed at random and two Stories.
+Revision 3 gives Pick the missing word an Instruction or context, makes the
+Piedmontese demo open every exercise in its preset's form again and keeps
+the Before you start card on each Lesson's first Round in the QQL Demos.
+Revision 4 titles every bundled Course "QQL Demo: …". Revision 5 shows
+each exercise's computed difficulty (0 read to 4 write) in the editor;
+Revision 6 adds 1 XP per level for each exercise answered correctly at the
+first attempt, on a Round's first completion; Revision 7 orders the two
+QQL Demo Courses from easier to harder.
+
+**QQL 259 Instructions and questions**
+
+Build 259 makes exercise prompts unambiguous
+([plan](docs/CONTEXT_AND_HINT_PLAN.md), [change summary](docs/259_CHANGE_SUMMARY.md)).
+Revision 0: an optional **Instruction or context**, written in the
+learners' language, takes the place of the standard instruction line in
+every exercise; a question or sentence is never optional; the form labels
+say which is which. Revision 1: Complete the text gets an Instruction or
+context and a hint, Put the sentences in order takes its lines once with
+extra lines and a hint, and a gap exercise without audio no longer shows
+a Play audio button. Revision 2: Listen and answer splits into **Listen and
+choose** (no question, an optional Instruction or context) and **Listen and
+answer** (a required question). Revision 3 applies the owner's review:
+Type what you hear accepts its Audio text, clearer listening, picture and
+gap lines, Complete the text with ___ gaps and alternative answers, and the
+feedback scrolled into view. Revision 4 applies the second review: gaps
+written `_word_`, Pick the words for the gaps with one word per gap, the
+new One word fills all, required pictures and clearer demo hints.
+Revision 5 applies the third review: Match pictures to words needs two
+words and has no Exercise image, a Story shows its step count only above
+its title block and no line under a Dialogue line, and the Edge Case Course
+leaves the bundle for `demo_courses/`, as a Course to import. Revision 6
+adds **QQL Demo: Piedmontese** (the Piedmontese exercises mixed at random
+in 20 Rounds, then the Story) and renames the other demo Demo: Piedmontese
+(sorted by exercise type). Revision 7 names the language of the answer in
+Type and Build the translation, rewords the instruction lines that repeated
+their exercise title, and gives QQL Demo: Piedmontese its GuideBooks.
+Revision 8 makes the course flag shown as Temporary Sample a **Private
+course** (visible only to its Maintainer and Team; set in Course Info
+Editor) and fixes three Exercise Laboratory examples.
+
+Build 258 adds textbook-like **Page** cards: formatted blocks (headings,
+paragraphs with bold and italic, quotes, lists, pictures, audio and video
+links) with alignment and a named colour palette
+([plan](docs/258_PAGE_CARD_PLAN.md), [change summary](docs/258_CHANGE_SUMMARY.md)).
+Revision 0 brings the model and the learner display, Revision 1 raises
+the Course picture limit to 300 KB, Revision 2 adds the Page form,
+Revision 3 the Exercise Laboratory's Page Lesson and Revision 4 Share, Save
+PDF and Print under every Page.
+
+Build 257 makes the note a learner reads before a Round starts an ordinary,
+editable card of the Round: the **Before you start** preset (a presentation
+card with an optional Open GuideBook button), shown on its own page before
+the Round and never in Review. It is the first slice of interactive
+presentation cards ([change summary](docs/257_CHANGE_SUMMARY.md)).
+
+Build 256 redesigns how QQL describes exercises, in six sessions that are its
+Revisions 0 to 5 ([plan](docs/256_EXERCISE_ARCHITECTURE_PLAN.md)). Every
+exercise becomes one of nine **primitives** (Select, Input, Arrange, Match,
+Assign, Speak, Ink, Submit, Presentation) with typed **options**, media,
+items or targets, a neutral **layout** and an **evaluation** mode; editor
+**presets** become optional authoring recipes, and Rounds gain **content
+flows** so Stories and branching lessons can be imported without a Story
+exercise type. Revision 0 adds the canonical definitions and the capability
+registry that the Audit, the editor, import and the learner runtime will all
+read ([reference](docs/EXERCISE_ARCHITECTURE_V12.md)). Revision 1 is the
+clean cut to **Course Model v12**: exercises are stored in that canonical
+form, the app reads v12 only, stored Courses move to `QQL_Courses_v12`, and
+`tools/convert_course_to_v12.dart` converts a Build 255 export (JSON or
+Course ZIP) for Quick Import ([format](docs/COURSE_JSON_FORMAT.md)).
+Revision 2 moves the learner runtime, the Duel and the Course Audit onto
+that canonical data: what an exercise shows, plays and grades is derived
+from its primitive, options, elements and evaluation, never from the
+preset that authored it; the Audit validates through the capability
+registry and treats preset rules as non-blocking warnings; every
+single-answer Select joins the Duel pool (Contextual comprehension and
+Recognize characters included, a multiple-answer Choose excluded);
+inline-gap Arrange grades block content; a Round with a linear content
+flow plays as a Story. Revision 3 makes presets **recipes** over that
+data: an exercise opens in the preset that represents it exactly, keeps a
+preset only while one does, and any exercise of any primitive can be
+edited field by field in the **canonical editor**, which shows whether
+this version can play it; the Round editor's **Play as a sequence** switch (Play as a Story until the Revision 7 follow-up)
+authors a linear flow, and Stories now survive every edit, move, copy and
+duplication (they used to lose their flow). Help describes the v12
+architecture in EN/IT/ES. Revision 4 delivers the **preset catalogue**
+([decisions](docs/256_PRESET_CATALOGUE_PLAN.md)): 38 presets in six skill
+groups, paired to target / to source where the direction matters, seven
+greyed presets for later versions, pictures on answers, and the runtime
+additions the new presets need; retired preset IDs read as their
+successors and every stored exercise keeps its shape. Revision 5 adds
+**Stories** ([plan](docs/256_STORY_PLAN.md)): a narrator and reusable
+characters with avatars and voice preferences, the Dialogue line and Story
+cover presets, the Story options in the Round editor (title, scrolling,
+dialogue-only log, read-aloud, exercises that need the Story's audio), the
+New Story button on the Rounds page, and a Story Lesson in each bundled demo.
+Revision 6 adds **interoperability**: an exercise this version cannot play
+is kept, skipped by learners (a Story shows a card in its place) and
+reported by the Audit; a stand-alone flow engine resolves branching flows;
+the interoperability catalog maps external exercise types to canonical
+semantics with presets as hints only; and `docs/capabilities_v12.json`, the
+machine-readable capability description, feeds the Python tools. Revision 7
+closes the redesign: **Assign** plays (sort into groups, fill slots, fill
+the gaps of a text, by tapping an item and then its destination; the presets
+Sort into groups and Fill the slots since the same-version follow-up of 29
+September, gaps in the canonical editor), the Exercise Laboratory gains an Assign Lesson and a
+test-only fixture of what still waits (Speak, Ink, Submit, branching
+Stories), and the negative and semantic-equality tests close the plan's
+verification list. Scoring and learner data are unchanged. The Beta expiry
+is 29 October 2026, 23:59:59 local time.
+
+**QuisquisLingo 2.0.55 Beta — QQL 255 logical storage and Quick folders**
+
+Build 255 gives QQL's user folders logical storage roles (Imports or Exports,
+and a category such as Courses), resolved per platform, so feature code never
+builds a platform path. On Windows, Linux and macOS, Course packages now use
+`Documents/QuisquisLingo/Imports/Courses` (**Quick Import**) and
+`Documents/QuisquisLingo/Exports/Courses` (**Quick Export**); every other folder
+keeps its place. Dialog saves are named **Save as…**; **Open from…** is
+unchanged. Screens and Help name each platform's folders. Revision 1 brings
+**Save as…** and **Open from…** to Android through its own document screens.
+Revision 2 moves Android's Quick folders to `Download/QuisquisLingo`: Quick
+Export needs no dialog, and Quick Import asks once for folder access (with Open
+from… as the alternative). Revision 3 gives every system the same folders
+below its QuisquisLingo folder: `Import` and `Export` with one subfolder per
+kind, `Logs`, and `ToBeMerged/Courses` for Course Merge. The custom flag is read
+from `Import/Flags`, exported files start with `QQL_`, Settings › Debug can
+Quick Export the Crash Log, and the live Crash Log and Course Backups are
+private on every system. Revision 4 gives QQL's private folders `QQL_`
+names (`QQL_Courses`, `QQL_CourseMedia`, `QQL_CourseBackups`, …) and puts
+the Course's language pair, source then target, in every per-Course name:
+`QQL_EN_IT_<ID>.json`, exports `QQL_EN_IT_<title>.zip`, backups
+`QQL_bkp_EN_IT_…`. Earlier private folders are no longer read; the one-off
+`tools/move_private_storage_255.dart` moves earlier Courses, media and
+backups to the new names. Revision 5 moves the Course Backups out of private
+storage into a new `Backups/Courses` folder beside `Import` and `Export`, on
+every system; Wipe everything keeps it unless its tick is removed. Revision
+6 gathers small corrections: four bundled demos remain (Exercise Laboratory,
+Korean, Edge Case Course and **AI-Slop Demo: Piedmontese**, renamed from
+Piedmontais), all *All rights reserved*, with Fork kept on the two test demos;
+Courses sections add a **Minimal** view and remember each view per learner;
+the startup Beta testing dialog is gone; Device Administration is called
+**Advanced (Admin)** and follows Do Not Disturb in Settings; Flag Game flags
+and the Course Info image open enlarged; the Course Info Editor sets a
+**cover image** (cropped and scaled to 512 × 512, up to 1 MB); and a Team can
+link its shared Google Drive folder. Revision 7 renews the first launch: Create
+Profile asks the language for explanations (English, Italiano, Español) and
+only a five-step **Welcome Wizard** with mascots follows, in that language;
+this version's Welcome appears only after an update and the Beta reminder only
+in its last seven days. The cover can be chosen in Create new course, its
+square is chosen in **Crop the cover**, a known credit is added to Media
+credits by itself and every picture of unknown origin reminds its author to
+credit it; the Course Selector shows covers and no longer repeats the current
+Course; Advanced (Admin) is shown greyed out to learners who are not admins;
+and the Edge Case demo gets its English flag. See the [Build 255 plan and
+audit](docs/255_STORAGE_PLAN.md), the [handoff](docs/255_HANDOFF.md) and
+[validation](docs/255_VALIDATION.md).
+
+**QuisquisLingo 2.0.54 Beta — QQL 254 bundled exercise demos**
+
+Build 254 replaces the Italian, Finnish and Dutch demos with **Exercise
+Laboratory** (English → Italian), **AI-Slop Demo: Edge Case Course**
+(Italian → English), and **AI-Slop Demo: Piedmontais** (English → Piedmontais).
+The Laboratory is organized by Select, Input, Arrange, Match and Presentation;
+Piedmontais uses one Lesson per named exercise type. Edge Case Course covers
+valid text, media and publication boundaries, including deliberate Audit
+warnings and Draft content. **Show unavailable** controls its visibility in Courses.
+Fork these bundled originals to author changes, switch audio modes, Copy or
+Merge. The existing Spanish → English demo remains separately selectable.
+Course Model v11, package format 1, scoring and learner data remain unchanged.
+See the [Build 254 coverage and handoff](docs/254_HANDOFF.md) and
+[validation](docs/254_VALIDATION.md).
+
+**QuisquisLingo 2.0.53 Beta — QQL 253 Help localization and QQL Guide**
+
+Current project version: 2.0.53
+
+Build 253 adds English, Italian and Spanish to standalone Help pages, App
+Info and Course Info. Their EN/IT/ES selectors share one per-learner Locale
+preference that persists across restart and follows learner backup and restore.
+Missing translated text falls back to English without
+changing the selected Locale. QQL command names in Help and Course Info stay
+in English. Revision 1 adds **QQL Guide** after Do Not Disturb in Settings.
+It holds the shared selector as **Help Language**, the App Info link and an
+alphabetically sorted list of standalone Help pages in the selected language.
+All Courses Help and Course Library Help have separate links. The listed Audit
+Codes technical registry, inline Help and the rest of the interface remain
+English. This is a source release without a Windows package. See the
+[Build 253 plan](docs/253_LOCALIZATION_PLAN.md),
+[validation](docs/253_VALIDATION.md) and [handoff](docs/253_HANDOFF.md).
+
+**QuisquisLingo 2.0.52 Beta — QQL 252 Exercise Authoring**
+
+Current project version: 2.0.52
+
+Build 252 Revision 0 extracts Exercise candidate construction into a pure
+draft builder that returns an Exercise or typed field errors. The Exercise
+Editor keeps controllers, dialogs, navigation and feedback; the Course
+authoring session still owns the single final Course update. This source-only
+architectural revision preserves Exercise behavior and Course Model v11.
+See the [Build 252 plan](docs/252_ARCHITECTURE_PLAN.md),
+[change summary](docs/252_CHANGE_SUMMARY.md),
+[validation](docs/252_VALIDATION.md) and [handoff](docs/252_HANDOFF.md).
+
+**QuisquisLingo 2.0.51 Beta — QQL 251 architecture**
+
+Current project version: 2.0.51
+
+Build 251 Revision 0 shares the five Course Library sections, their
+categories and filters across All Courses and Course Studio. Each tab keeps
+its data and actions. Revision 1 gives the Course Editor's immediately saved
+mode and View-only notice preferences, and its seven-day orphan MP3 check
+schedule, one testable owner. These are source-only architectural changes;
+Course data, behavior and the top-level Editor confirmation are unchanged.
+See the [Build 251 plan](docs/251_ARCHITECTURE_PLAN.md),
+[change summary](docs/251_CHANGE_SUMMARY.md),
+[validation](docs/251_VALIDATION.md) and [handoff](docs/251_HANDOFF.md).
+
+**QuisquisLingo 2.0.50 Beta — QQL 250 Courses**
+
+Current project version: 2.0.50
+
+The **Courses** screen brings All Courses and Course Studio into two tabs
+with shared rows, Search, sorting and availability controls. All Courses adds
+Favorites. Favorite is a learner shortcut; Hide in Learner removes a Course
+from the learner Selector without removing it from the Personal Library. The
+Selector now groups Current, Recent, Favorites and Other Courses, and shows
+Course Studio and Course Editor greyed out with an unlock explanation for
+locked profiles.
+
+Import is available from both Courses and the Selector. A successful import
+returns to its opening screen; the Selector offers **Study now** when the
+Course is playable. Eligible received Custom Courses can be updated from a
+newer matching version while locally authored Courses keep their existing
+rights. Course Studio Help now covers operations separately from Course
+Editor Help. Course Model v11 and Course package format 1 are unchanged. See
+the [Build 250 plan](docs/250_COURSES_SCREEN_PLAN.md),
+[change summary](docs/250_CHANGE_SUMMARY.md),
+[validation](docs/250_VALIDATION.md) and [handoff](docs/250_HANDOFF.md).
+
+Build 250 Revision 1 keeps each Course's three-dot menu at the right of its
+row and puts Sort by and Show unavailable on one line. The Search icon works
+in both tabs;
+its field opens below Sort. Each tab has its own Help icon, while New course
+appears only in Course Studio. Favorites use a soft amber accent instead of
+inverted row colors, and Course Studio includes Favorites from the active
+learner's Personal Library. Other Local Courses uses a neutral gray border in
+both tabs, separate from red Audit errors and green/blue Course status colors.
+Course Studio's three-dot menu includes Course Info, and tapping a Course
+cover or flag in either tab opens a larger image popup. This source release
+does not include a Windows package or change Course data, preferences or
+authoring rights.
+
+**QuisquisLingo 2.0.49 Beta — QQL 249 Course library operations**
+
+Current project version: 2.0.49
+
+Build 249 gives Course Manager's workflow one owner. The storage operations
+already had owners; what sat inline in the screen was everything around them:
+which Courses are listed, which menu actions each Course offers, the titles of
+copies and merges, where a Fork of an official Course takes its source, what
+an import may do with a Course ID already in use, and the result messages.
+`CourseLibraryOperations` now owns all of it and can be tested without the
+screen, which keeps its layout, dialogs and confirmations. Course Manager looks
+and behaves exactly as before. See the
+[Build 249 plan](docs/249_LIBRARY_OPERATIONS_PLAN.md),
+[change summary](docs/249_CHANGE_SUMMARY.md),
+[validation](docs/249_VALIDATION.md) and [handoff](docs/249_HANDOFF.md).
+Revision 1 stops Course Manager's menu from silently hiding what you may not
+do: an action that depends on your rights, the Course's license, Publisher
+verification or admin status is shown greyed out with a one-line reason, such
+as "Only the Maintainer or assigned Team can delete this Course." Actions that
+can never apply to that kind of Course, such as deleting an official Course,
+stay hidden.
+Revision 2 reports a Course deletion that fails at the storage step, instead
+of losing the error silently, and the Course stays listed.
+
+**QuisquisLingo 2.0.48 Beta — QQL 248 Audio Library media lifetime**
+
+Current project version: 2.0.48
+
+Build 248 gives one owner the lifetime of the recordings a Course editing
+session imports. An MP3 is copied into the Course's media folder as soon as it
+is imported, long before the single top-level Course confirmation, so a
+cancelled session, a back-out of the Audio Library or a partly failed batch
+used to leave files that nothing referred to. The session now removes exactly
+the recordings it created and no stored Course uses; it removes nothing when
+the stored Course cannot be read, so the media stay for recovery, and a
+confirmed Course still tidies up inside its own confirmation. The author's own
+files are never touched. See the
+[Build 248 plan](docs/248_AUDIO_LIBRARY_PLAN.md),
+[change summary](docs/248_CHANGE_SUMMARY.md),
+[validation](docs/248_VALIDATION.md) and [handoff](docs/248_HANDOFF.md).
+Revision 1 reorganises the Course Editor: the Course-level Lesson settings move
+into a collapsed Lesson Options section on the Course screen, the Lesson and
+Round editors drop the Rename and Audit links their list pages' menus already
+provide, and the Audio Library saves when you leave it, with a notice in both
+media libraries explaining that the Course confirmation still decides. It also
+extends the media clean-up from recordings to images. See the
+[Revision 1 plan](docs/248_EDITOR_LAYOUT_PLAN.md).
+Revision 2 moves Course export and Copy as New Course out of the Editor, where
+they worked on unconfirmed changes, into Course Manager, and adds a Course
+Export screen matching the Import one. The Lesson editor gains bottom-bar
+Preview and Round Wizard buttons and top breadcrumbs. See the
+[Revision 2 plan](docs/248_EXPORT_AND_LESSON_ACTIONS_PLAN.md).
+Revision 3 removes Fork from the Editor too: it was the third action working
+on unconfirmed changes, and Course Manager's Fork is both the survivor and the
+more correct one. See the [Revision 3 plan](docs/248_FORK_FIX_PLAN.md).
+
+**QuisquisLingo 2.0.47 Beta — QQL 247 Package Import workflow**
+
+Current project version: 2.0.47
+
+Build 247 gives one import attempt ownership of a Course package from reading
+until installation or cancellation. Media go straight into the destination
+Course's own folder under that Course's lock, and staged files are removed as
+soon as the import ends. See the [Build 247 plan](docs/247_PACKAGE_IMPORT_PLAN.md),
+[change summary](docs/247_CHANGE_SUMMARY.md),
+[validation](docs/247_VALIDATION.md) and [handoff](docs/247_HANDOFF.md).
+Revision 1 makes a failed import keep only the media a committed import would
+own, so a rejected Replace leaves no unused file behind.
+
+**QuisquisLingo 2.0.46 Beta — QQL 246 Merge workflow**
+
+The [approved architecture roadmap](docs/ARCHITECTURE_ROADMAP_246_PLUS.md)
+starts with Build 246: one Course Editor service operation owns Merge media
+copying, Course confirmation and failure cleanup. It keeps copied media when
+a saved Course may reference it. See the [Build 246 plan](docs/246_MERGE_PLAN.md),
+[change summary](docs/246_CHANGE_SUMMARY.md) and
+[validation](docs/246_VALIDATION.md) and [handoff](docs/246_HANDOFF.md).
+Revision 1 accepts a Course ZIP whose package files are all inside a single
+folder exactly matching the ZIP filename stem, with a non-blocking warning.
+
+**QuisquisLingo 2.0.45 Beta — QQL 245 authoring architecture**
+
+See the [Build 245 architecture plan](docs/245_ARCHITECTURE_PLAN.md),
+[change summary](docs/245_CHANGE_SUMMARY.md) and
+[validation](docs/245_VALIDATION.md). Revision 0 gives Course Info metadata
+updates one owner. Revision 1 gives the authoring session ownership of draft
+adoption, Audit freshness and final confirm/cancel around the existing
+working-copy transaction. Revision 2 introduces typed hierarchy updates so
+Lesson, Round and Exercise changes can be applied through that session while
+the editor keeps form and navigation state. Revision 3 gives integrated nested
+editor routes one authoritative update path through the authoring session;
+standalone routes retain their public callbacks. Revision 4 gives per-Course
+create, update and delete commands ownership of storage mutations, keeping the
+Course Editor's final confirmation and recovery ordering. Each architecture
+revision is tested, versioned, handed off and committed separately.
+
+**QuisquisLingo 2.0.44 Beta — QQL 244 Course Library**
+
+See the [Build 244 change summary](docs/244_CHANGE_SUMMARY.md). Build 244 turns Available on this device into the Course Library; the plan is in [docs/COURSE_LIBRARY_244_PLAN.md](docs/COURSE_LIBRARY_244_PLAN.md). Revision 1 moves the Course Draft rule out of the Course Editor into a shared model helper, with no visible change. Revision 2 renames the page to Course Library and adds a Show unavailable or Draft Courses switch, off by default, with separate Draft, Unpublished and Verification required labels. Revision 3 separates the four categories into bordered sections with counts and renames the Custom sections to My Local Courses and Other Local Courses; a Find Courses on the web section stays hidden until the web site exists. Revision 4 gives each row a cover-or-flag picture and shows version, last edited date, maintainer and declared duration; it is the first screen to display Course covers. Revision 5 adds Sort by (Title, Language, Maintainer, Most recent, Duration) inside each section and moves the Beta expiry to 22 October 2026. Revision 6 adds an Expanded/Compact view per section. Revision 7 rewrites the Course Library Help and updates Editor Help.
+
+**QuisquisLingo 2.0.43 Beta — QQL 243 Course Model v11**
+
+See the [Build 243 change summary](docs/243_CHANGE_SUMMARY.md) for Course Model v11 and portable Course ZIPs. Export includes only referenced Course media, including images selected from the Admin Shared Image Library; bundled QQL assets remain supplied by the app. Import keeps those images with the Course and does not add them to the destination Shared Image Library. Revision 4 lets signed Publisher ZIPs carry recordings and images; updates archive the previous media and remove files no longer used. The Course Editor's Image Library lists shared and Course-owned images with source and use labels; Admins manage the device-wide Shared Image Library from Course Manager or Device Administration. Revision 5 overlays small `QQL`/`DEVICE`/`COURSE`/`IN USE` badges on each image and adds a badge filter and sorting to the Image Library. Revision 6 hardens Course cover and Image Bank ZIP import against memory-exhaustion files and limits Lesson icon and flag sources to 4096 pixels. Revision 7 gives image usage a single rule and reorganizes the Image Library code; images used only in presentations or GuideBooks now show `IN USE`. Revision 8 lists `IN USE` first and lets Course editors remove an image from a Course, turning exercises that need it into Drafts, and keep unused images in the Course's own image library. Revision 9 makes QQL's own image metadata read-only and adds Admin Local words and device categories. Revision 10 streams every Open from… file into a private staging folder under its real size limit and opens only ordinary files. Revision 11 checks every imported image by its content and lets Admins import up to 100 Shared Library images at once. Revision 12 lets Course editors add images and whole Image Banks to a Course's own library. Revision 13 checks every imported MP3 by its content and lets the Audio Library open several MP3s at once. Revision 14 reads Image Bank and Course ZIPs through one hardened reader, lets an Admin decide about new bank categories, and bounds imported JSON. Revision 15 reads Course ZIPs from disk a piece at a time instead of loading them into memory. Revision 16 renames the library to Shared Images, skips pictures that are already there, lets an Admin resolve Image Bank ID clashes, and records where each imported image came from. Revision 17 explains media import errors, including how to create a missing Image Bank manifest, and makes the Audio Library modes and their available MP3 tools clearer. Revision 18 adds file details on hover or long-press in the full-size image preview, including the original name, format, size, date, bank and credit when known. Revision 19 tests every import route with synthetic adversarial files and checks embedded Course JSON images at import. See the [course package plan](docs/COURSE_PACKAGE_PLAN.md).
+
+QQL 241 completes the course file-store integration: custom and installed official courses use individual files under application support, Reset removes those files for the appropriate scopes, and Inventory reports their real paths and sizes. Tests use isolated directories and explicit save/UI completion conditions. Old course preference blobs are not migrated. Final validation passed (1,879 full-suite tests, plus 8 focused tests for the final Publisher title color); see `docs/241_VALIDATION.md`.
+
+**QuisquisLingo 2.0.40 Beta — QQL 240 native file dialogs (Save to… / Open from…)**
+
+QQL 240 adds the operating system's Save and Open dialogs next to the existing fixed-folder Export and Import (which are unchanged): `Save to…` for Course JSON, my data, the User Recovery Key and copies of the Crash and Diagnostic Logs, and `Open from…` for Course import, Merge From…, Image Bank ZIPs, single images, custom Lesson icons, recorded MP3s, my data and the User Recovery Key. Cloud folders such as Google Drive appear only if the device already shows them; QQL does not sign in to any cloud service. A failed or unavailable dialog explains how to use the fixed-folder route and is logged. Windows, macOS and Linux are supported; Android followed in Build 255 Revision 1 (Storage Access Framework), and iOS is not supported. See `docs/240_FILE_DIALOGS_PLAN.md`, `docs/240_VALIDATION.md` and `CHANGELOG.md`.
+
+**QuisquisLingo 2.0.39 Beta — QQL 239 Pick the translation (Select)**
+
+QQL 239 adds two Select-based exercise types to the Translation category: **Pick the translation (to target)** and **Pick the translation (to source)**. Each shows one generated learner instruction (`Pick the correct [language] translation`), the text to translate, an optional illustration and answer options; a tap is validated immediately and a wrong answer reveals the correct one. An optional audio button speaks target-language text only and is greyed out, never skipping the exercise, when audio or TTS is off. Existing exercise types, including the older translation choice, are unchanged.
+
+**QuisquisLingo 2.0.38 Beta — QQL 238 Arrange & Select gap-fill authoring**
+
+QQL 238 extends both the existing Arrange and Select primitives with inline gap-fill authoring: the fixed sentence/question is typed once, with each gap's literal answer written directly inside braces (`I {am} going {to} London.`), optional extra distractor blocks/options, and clear validation when braces are unbalanced or empty. Existing whole-sentence Arrange and single-select Select exercises are unaffected. Select also gains multiple-selection mode with optional required-selection count and set-based exact-match correctness. In both primitives, filling a gap out of order (the right answer in the wrong blank) is checked per gap and marked incorrect; Select's linked-gap options are never consumed, so the same option can be tapped again to fill a later gap that needs it. Revision 1 fixes a Revision 0 defect where a gap-based Select exercise could only ever be filled by its correct option, making an incorrect attempt impossible to submit, and improves several authoring labels/Help texts based on manual review.
+
+**QuisquisLingo 2.0.37 Beta — QQL 237 Course Merge**
+
+QQL 237 adds authorized custom Course Merge from Course Manager. The selected Course and `Documents/QuisquisLingo/Merges/merge.json` must have matching identity, rights, language and media information; users choose the left or right source for each included Lesson and permitted differing Course settings. The result is a third independent Course with fresh authoring IDs, preserved selected publication state, no transferred learner state, and immutable v10 merge provenance for both immediate sources. Existing v9 Courses remain readable without migration; only merged Courses use Course Model v10. See the [QQL 237 validation](docs/237_VALIDATION.md).
+
+**QuisquisLingo 2.0.33 Alpha — QQL 233 Linux Update, Learner Status Avatar, and Course/Team Governance**
+
+QQL 233 is delivered through three planned phases. Phase 233.1 recognizes the actual generic Linux Alpha ZIP while preserving Windows and GitHub Releases policy. Phase 233.2 adds the two-step Learner profile/avatar flow, optional normalized Discord presentation, random initial skin and hair, and the authoritative ten-level Status display whose vivid current-level color drives the avatar T-shirt. Phase 233.3 separates individual Course responsibility from optional Team assignment and Team governance, adds assignment warnings and experimental-model Help, corrects role identity/ID presentation, and keeps the Learner status bar exclusively inside the Learner Panel. The same-version QQL 233.03 correction makes Course Model v9 a clean cut with no v8 migration or fallback reads. See [QQL 233 validation](docs/233_VALIDATION.md).
+
+The same-version QQL 233 correction keeps `2.0.33+233030` and the existing Alpha expiry unchanged. Review now waits on **Ready for Review** before the first Round; profile identity adds formal naming/Discord warnings, immutable five-digit Screen Name suffixes, admin invariants, optional Access PINs, a descriptive device name and private stable-identity Recovery Keys; and Team/Course names receive the shared safe-label policy. The application identity is the clean-cut `org.quisquislingo.app`, and the single crash log lives under the platform Documents/application-documents `QuisquisLingo/Logs` structure.
+
+Course Model v9 separates immutable lineage (**Original Course Creator**, **Original Course Created**, and fork-specific source/creator/date metadata) from operational responsibility (**Course Maintainer**, **Assigned Team**), structured attribution, descriptive legal metadata (**License**, **Rights Holder**) and current-version metadata (**Last Version Editor**, **Modified**). **Fork** preserves lineage; **Copy as New Course** starts an independent lineage while retaining content, structured attribution, Rights Holder and applicable License. None of the provenance, attribution or legal fields grants QQL permissions. v8 data remains physically untouched and is not read, migrated or used as fallback.
+
+QQL 232 remains the completed Review and Vocabulary reinforcement baseline. See [QQL 232 validation](docs/232_VALIDATION.md).
+
+QQL 231 remains the completed Course Editor Search & Access baseline. See [QQL 231 validation](docs/231_VALIDATION.md), [Exercise Type inventory](docs/EXERCISE_TYPE_INVENTORY_231.md), and [Course Manager and Editor](docs/COURSE_EDITOR.md).
+
+QQL 230 remains the completed robustness and modularity baseline. See [QQL 230 validation](docs/230_VALIDATION.md).
+
+QQL 229 remains the completed Course Actions, ownership/Teams and Learner Panel baseline. See [QQL 229 validation](docs/229_VALIDATION.md).
+
+QQL 228 remains the completed Settings/Profile, Statistics, Debug/logging, learner Audio Settings and Course Entry Animation baseline. See [QQL 228 validation](docs/228_VALIDATION.md).
+
+Phase 227.04 remains the closed QQL 227 baseline. Flag Background remains **Small / Off / Extended / Tinted / Inspired** per learner and Course, initialized Off, with the compatible `soft_inspired` identity. IDDQD remains **Off / On / View Only** per learner and Course, and Theme remains **Light / Dark / System / Day/Night** per learner. See [227.01 baseline](docs/227_01_VALIDATION.md), [227.02 validation](docs/227_02_VALIDATION.md), [227.03 validation](docs/227_03_VALIDATION.md) and [227.04 validation](docs/227_04_VALIDATION.md).
+
+Phase 226.04 adds one-time Course scaffolding (default 3 Lessons with 1 Round and 1 Draft sample Exercise per Round), reusable Sections, clear Lesson naming modes, optional GuideBook and Duel paths, World Flag selection, the upper Lessons Lock icon and passive GuideBook IDs. Revision 2 gives newly added Rounds the same single sample, removes fallback-icon style selection in favor of one theme-colored circle, adds Course Import navigation and learner-selector Editor actions, presents the last Lesson's Duel as Final Duel, and adds ordered GuideBook Insights. Creation counts do not restrict existing/imported courses or later editing. Course Model remains v6, with backward-compatible defaults and 102 Audit rules. See [226.04 validation](docs/226_04_VALIDATION.md). Templates, Napoletano and future exercise links remain deferred.
+
+Revision-1 completion lets ready provisional Lesson/Round parents become non-Draft after their required content is saved, without a second parent-save pass. Explicit Save Draft and legacy unmarked Drafts remain protected; Course delivery and the final Course confirmation stay explicit. The optional parent eligibility marker is backward compatible within Course Model v6.
+
+Phase 226.03 adds selectable answer expansion and independent materialization for Type the translation, deterministic similarity-ranked feedback (up to three corrections or two other correct translations), Type the missing word with an automatically derived first Unicode grapheme, and Recognize characters with Image to text and Text to image modes. Existing Input/Select models, correctness rules, Course Model v6, official read-only boundaries and no-write Preview are preserved. See [226.03 validation](docs/226_03_VALIDATION.md). Revision 1 corrects nullable/linked answer generation and terminal punctuation, requires the complete Missing Word, adds searchable Exercise Help and concrete field/audio guidance, resolves custom-course native TTS from canonical language metadata, and imports JSON from `QuisquisLingo/Imports/import.json` while preserving exports in `Exports`. These behaviors remain preserved in 226.04.
+
+Phase 226.02 revision 4 uses actual Course titles in every learner selector entry, including selected, recent and unselected bundled/custom courses. Its historical fallback-icon choice remains readable in Course JSON, while 226.04 revision 2 renders either legacy value as the single theme-colored Lesson-number circle; explicit Lesson icons remain unchanged. Authoring mutations refresh current canonical Audit findings through the visible hierarchy; Info alone stays green, unavailable or stale Audit stays neutral, and the blue Draft badge remains independent. Lesson, Round and Exercise entries place passive Internal IDs below their actionable lines. GuideBook status exposes its own Audit border and Draft state, inherited by Lesson and Lessons indicators without affecting an otherwise clean Rounds branch; an empty Draft GuideBook is both red and blue. Shared Editor Help, the global ID toggle, Preview, guarded navigation, transactional Move/Copy and custom-course export remain available.
+
+Build 226.01 makes bundled and external official courses locally read-only, with Info, Audit, Preview and publisher Version History inspection. An explicit publisher policy may allow a custom fork with fresh IDs, permanent original authorship/provenance and a separately recorded fork creator. Forks use the existing custom working-copy transaction, backups and version rules, and remain unchanged by later official updates. Build 225 official local overrides are ignored without migration or deletion. Ordinary custom courses, Course Model v6, progression, XP, Review, Duel and learner identity remain compatible. The official repository is `Quisquisnaut/QuisquisLingo`.
+
+
+A Flutter prototype for an offline-first language-learning app.
+
+## Baseline 200
+
+Version **2.0.0+200** remains the historical Course Model v3 baseline. Current development starts from this Course Model v9 source tree rather than an older archive. Repository-level agent instructions are in `AGENTS.md`.
+
+## Project authorship
+
+Project and code design: **Quisquisnaut (Quisquis on Discord)**.
+Code generation and software development assistance: ChatGPT.
+
+The MPL-2.0 covers the QuisquisLingo software source. Courses, the Image Bank and other content/assets retain their separately stated licenses or rights.
+
+
+## Beta lifecycle
+
+Version 2.0.65, Build 265, Revision 11 is a time-limited Beta with an expiry of **2026-11-06 23:59:59 local time** (30 days after the 7 October 2026 release date). In its last seven days it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
+
+## Core logic
+
+Course
+- Lesson (shown to learners as Lesson)
+  - GuideBook
+  - Round
+    - Content / Exercise
+  - Duel
+
+Each Lesson has its own GuideBook, ordered Rounds and Lesson-scoped Duel in Course Model v9. The first Content item of a Lesson’s first Round may present a short essential introduction drawn from that GuideBook.
+
+The learner page shows a continuous Lesson path, opens the Section picker from the fixed Section selector when real Sections exist, and opens GuideBooks, Rounds and Duels directly. Its Lesson display control cycles through Expanded, Collapse completed and Focused; it never collapses Sections or changes progression. The Course Selector can hide non-active Courses separately for each learner without uninstalling them or changing Course or learner data.
+
+The next Lesson unlocks when the current Lesson is completed or its Duel is won. A Duel remains unavailable when its effective eligible pool has fewer than the required 25 exercises after the learner's Audio Exercises setting and runtime audio availability are applied; Home and Duel entry use the same calculation. Round count is not used to decide availability.
+
+All learner data stays on the device and on any backup the device itself makes. QuisquisLingo has no account, no server and no synchronization of its own, and never uploads anything.
+
+On Android, the platform's own Auto Backup is deliberately left enabled, because without a server it is the only way a learner keeps progress through a lost or replaced phone. It covers learner profiles, progress, XP, streaks, Review history, local course edits, settings and the Access PIN verifier. Imported Image Banks, exercise images and recorded MP3s are excluded from cloud backup only because Android's 25 MB backup quota is smaller than a single Image Bank import, and an app that exceeds the quota has its backup silently switched off altogether; that media is re-importable from the user's own files, while progress is not. A direct phone-to-phone transfer has no such quota and still carries the media. Whether Auto Backup runs at all remains an Android setting the device owner controls. See `docs/SECURITY_AND_ROBUSTNESS.md`.
+
+## Included in this prototype
+
+- Course-language selector
+- Unified Course → Lesson → Round learner page
+- Section selector with consecutive-block navigation
+- Lesson-scoped Duel skip mechanism with actual-pool availability
+- Round and exercise model
+- Local progress persistence
+- Local streak
+- Local daily quest
+- XP
+- Local TTS service with generated-file caching
+- Two bundled sample courses, titled QQL Demo: Exercise Laboratory and QQL Demo: English from Italian; the Edge Case Course is in `demo_courses/`, to import
+- Local authoring Teams with stable profile-ID membership and one or more Team Leaders
+- No account
+- Local offline leaderboard for the previous completed week, based on each participating learner’s XP across all courses
+- No server dependency
+
+## Run
+
+If Flutter is installed:
+
+```bash
+flutter pub get
+flutter run
+```
+
+If you create native platform folders separately, you can run:
+
+```bash
+flutter create .
+flutter pub get
+flutter run
+```
+
+The official Flutter CLI can bootstrap any missing Android/iOS host files.
+
+On Windows, keep the repository path's capitalization the same for every
+Flutter command, including when switching between Debug and Release. If a
+build reports C1083 for missing files under
+`windows\flutter\ephemeral\cpp_client_wrapper`, stop other Flutter builds,
+then run `flutter clean`, `flutter pub get`, and `flutter build windows` from
+one consistently spelled project path. Those wrapper files are generated
+build output.
+
+## TTS
+
+`TtsCacheService` hashes language + voice + rate + text to derive a cache filename.
+On iOS and Android it asks the native TTS engine to synthesize to a local file, then reuses that file.
+
+This is an architectural prototype. Native TTS file-format behavior can differ by platform and voice engine, so playback/caching should be tested on actual iOS and Android devices before production.
+
+
+## Linux preview mode
+
+On Linux the complete learner interface works. TTS uses a locally installed `espeak-ng` or `espeak` backend when available, and can be disabled in Settings. The desktop layout remains constrained to a phone-like width to make low-memory Linux preview/testing practical.
+
+### Run on Linux
+
+From the project folder:
+
+```bash
+flutter create .
+flutter pub get
+flutter run -d linux
+```
+
+If Flutter reports missing Linux desktop build packages, install the packages it names through your Debian/antiX package manager.
+
+
+## TTS setting
+
+Version 0.1.2 adds a persistent user setting:
+
+- Text-to-speech: ON/OFF
+- Default: ON
+- Stored only on the device
+- When OFF, the app does not request TTS generation
+- Existing cached audio files are left untouched
+
+
+## Error handling
+
+Version 0.1.3 adds application-level error codes and a local diagnostic log.
+
+Examples:
+- COURSE-001: missing course file
+- COURSE-002: invalid course data
+- TTS-003: TTS generation failed
+- APP-001: unexpected internal error
+
+User-facing dialogs show a short message plus the error code.
+Technical details remain in a local log file and are never uploaded automatically.
+
+
+## Italian sample course
+
+Version 0.3.0 includes a larger Italian course sample with:
+- 3 chapters
+- 11 topics
+- 33 rounds
+- 165 exercises
+- 5 exercise types
+- chapter Language Duels
+
+
+## QuisquisLingo 0.3.0 interface
+
+- Uses the supplied 250 px olive-tree image unchanged as a local asset.
+- Overlays UK, German, Italian and Spanish flags at runtime; the source image itself is not edited.
+- No accounts or sign-up flow. Progress remains local.
+- Prominent local learning streak.
+- Each chapter has a visible branching topic tree.
+- All topics and rounds inside an unlocked chapter can be opened in any order.
+- The next chapter remains gated by the normal completion rule, but winning the current chapter's Language Duel unlocks it immediately.
+- The Language Duel gate is shown at the bottom of the chapter tree.
+- The visual palette is cream and olive green and is intended to remain light enough for low-memory antiX Linux preview use.
+
+
+## Reporting problems
+
+During any exercise, tap the flag in the top-right corner and choose **Course error** or **App bug**. QuisquisLingo copies a ready-to-paste report containing the exact course, Lesson, Round and exercise context. Nothing is uploaded automatically. See `docs/REPORTING.md`.
+
+## Cross-platform text-to-speech
+
+TTS can be enabled or disabled at any time in **Settings > Audio Settings > Text-to-speech**. Enable Audio Exercises and Text-to-speech are stored per learner and initialize Off; TTS voice is also per learner and initializes System. Enable Audio Exercises excludes recorded-MP3, TTS and hybrid audio exercises before learner playback initialization when Off. When On, the Text-to-speech setting, course audio configuration and actual source availability determine eligibility. Test Voice opens an empty field and speaks only the text the user enters; voice resolution still follows the selected course language, not the UI locale or typed text. Authoring Preview ignores these learner settings. QQL 228 makes a clean persistence cut and does not read or migrate previous shared or negative audio-setting values.
+
+- Windows: native `System.Speech` through a dedicated backend, avoiding the current `flutter_tts` Windows platform-thread issue.
+- Android, iOS/iPadOS, macOS and Web: platform/browser TTS through `flutter_tts`.
+- Linux: eSpeak NG, with eSpeak fallback.
+
+See `docs/TTS_ALL_PLATFORMS.md` for platform-specific setup and run instructions.
+
+## Listening comprehension
+
+Rounds can include `listening_comprehension` exercises. The learner hears a short sentence or mini-dialogue, may replay it, and answers a comprehension question with randomized choices. Learner runtime filters audio exercises whose configured recorded or TTS source is unavailable before playback initialization.
+
+
+## Authoring safety
+
+The local Course Editor includes a Course Audit that reports structural errors, warnings and suggestions before course content is used. See `docs/COURSE_EDITOR.md`.
+
+- Security/robustness notes: `docs/SECURITY_AND_ROBUSTNESS.md`
+
+
+## QuisquisLingo 0.5.1
+
+Version 0.5.1 consolidates the authoring, review and visual changes developed during the 0.4.x prototype cycle.
+
+Highlights:
+- richer startup animation with Italian, German, Spanish, Portuguese, Dutch, Welsh, UK English and Finnish flags
+- language-specific transition when entering a course
+- more visible flag-inspired Chapter and Topic backgrounds
+- first-open Topic Guidebook availability notice per learner
+- Finnish, Welsh, Dutch and Portuguese empty course shells that can be authored in Course Editor
+- per-language reset for each learner
+- Windows System.Speech TTS backend and Female/Male/System voice preference
+- optional skipping of every TTS exercise, with a non-laurel zero-error completion mark
+- permanent laurel crowns after any full zero-error attempt, including Review, with victory sound when first earned
+- Review keeps 50 distinct recent rounds and prioritizes the latest attempts with the most errors
+- Course Editor supports empty courses, Topic Guidebooks and create/delete/reorder at Chapter, Topic, Round and Exercise level
+- exercise type is immutable after creation
+- Word Blocks use 0 to 2 same-language distractors; early Topic rounds should normally use fewer distractors than later rounds
+- Image Credits are alphabetically indexed, with the olive and Status avatar notes on the main Image Credits page
+- MPL-2.0 software license, separate human-authored course-content rights, and third-party notices
+
+See `docs/COURSE_EDITOR.md`, `docs/TTS_ALL_PLATFORMS.md`, `docs/AUDIO_PACKS.md`, `docs/LICENSING.md` and `docs/SECURITY_AND_ROBUSTNESS.md`.
+
+## Image Bank packages (0.6.1)
+
+Large vocabulary image collections can be distributed separately from the app. Place exactly one Image Bank ZIP in `Documents/QuisquisLingo/Imports/Images`, then open **Settings > Image Bank** or **Course Editor > Image Bank** and choose **Import Image Bank ZIP**. The package must contain `image_bank_manifest.json` plus its referenced image assets, and nothing else (see `docs/IMAGE_BANK_PACKAGES.md`). This allows new banks to be installed without recompiling QuisquisLingo.
+
+Course Studio has its own operations Help; Course Editor hierarchy pages provide **Editor Help** for authoring.
+
+The **Image Word** exercise displays an image and asks the learner to build the corresponding target-language word from letter or syllable blocks.
+
+
+## v0.6.3
+- Historical Duel variants existed in earlier prototypes. The current standard is 25 questions and 4 lives, with no score and no pass threshold. The learner wins by completing all 25 questions before losing all four lives.
+- Audio Match: no distractors; target audio may match target-language text or translated text.
+- Added Word Match: exactly three source-to-target translation pairs.
+- Added Super Match: exactly three target-language relationship pairs such as synonyms or opposites.
+- Sample rounds regenerated at 13 exercises with examples of the new match types.
+
+## Platform runners
+
+The shared QuisquisLingo code is primarily validated for Android, Windows and Linux. iOS/macOS use Flutter-compatible code paths but require macOS/Xcode for builds. Web remains an experimental target because local authoring/import features rely on native file APIs and must be disabled or adapted before a production web build. If a source archive does not already contain a runner folder for the platform you are building on, run the included `tools/prepare_flutter_platforms.ps1` (Windows PowerShell) or `tools/prepare_flutter_platforms.sh` (Linux/macOS shell) once from the project root with Flutter installed. The script asks Flutter to generate the standard Android, Windows, Linux and Web runner folders without creating a separate application project.
+
+See `docs/PLATFORM_COMPATIBILITY.md` for target-specific validation and macOS build guidance.
+
+Recommended validation sequence after dependencies are available:
+
+```text
+flutter doctor
+flutter pub get
+flutter analyze
+flutter test
+```
+
+Then use `flutter run -d <device>` for development or the appropriate `flutter build ...` command for a release build.
+
+
+
+## Updates
+
+Settings shows the installed **Current version** immediately before **Update**. The Update subpage links to the published source repository `https://github.com/Quisquisnaut/QuisquisLingo` and checks its GitHub Releases for packaged application updates. If no GitHub Release exists, the status says that the source repository is published but no packaged application release is available. Automatic checks at startup are on by default, run asynchronously after the startup notice is dismissed, and use strict connection/request/response timeouts without delaying `runApp` or the first interactive UI. QuisquisLingo does not download or install updates itself; when a newer packaged release is available, the page links to the official GitHub release and shows installation guidance for Windows, macOS, Linux antiX, Android, iOS and Web, explicitly marking platforms with no matching release asset as not currently available.
+
+The update check is metadata-only and sends no learner or course data. Offline use is never blocked by GitHub availability.
+
+## Windows Beta diagnostic logging (0.8.1)
+
+Both debug and standalone release Beta builds display tester instructions at startup. QuisquisLingo creates or re-creates one authoritative **Crash Log** at `Documents/QuisquisLingo/Logs/quisquislingo_crash.log` on desktop, using the platform's native Documents directory. On Android and iOS the same logical `QuisquisLingo/Logs/quisquislingo_crash.log` path is inside the app's private application-documents directory, and **Settings > Debug > Share Crash Log** provides access through the platform share UI. QQL does not write another active crash-log copy in application preferences or migrate an older preferences-folder log. The log appends a session snapshot and records uncaught errors in all non-web build modes; detailed navigation breadcrumbs remain debug-only. The separate **Diagnostic Log** stores application troubleshooting events internally and can be exported from **Settings > Debug** to `Documents/QuisquisLingo/Logs/quisquislingo_diagnostic_log.txt`. Bounded learner-audio lifecycle events use correlation IDs and omit spoken text, answers, course content and full personal file paths.
+
+Beta builds also keep a privacy-safe **Startup Trace** at `%LOCALAPPDATA%\QuisquisLingo\Logs\quisquislingo_startup_trace.log`, with `%TEMP%\quisquislingo_startup_trace.log` as fallback. Normal lifecycle tracing is enabled by default. Set `QUISQUISLINGO_STARTUP_DIAGNOSTICS=verbose` before launch only when low-level Windows startup detail is needed. The active trace rotates at approximately 1 MiB and retains two previous generations. See [docs/LOGGING.md](docs/LOGGING.md).
+
+
+### Publisher signatures (Build 241 working tree)
+
+External official imports require an approved Ed25519 publisher key. See
+[Publisher signing and approval](docs/PUBLISHER_SIGNING_GUIDE.md) for approval,
+signing commands and manual Dummy tests. The normal registry has no approved
+external publishers yet. Dummy is trusted only with the explicit compile-time
+`QQL_ENABLE_DUMMY_PUBLISHER=true` flag and a TEST ONLY banner; this is also
+available for release-mode **test** builds. Never distribute that configuration
+as a public production release. Bundled courses and unsigned custom courses
+retain their distinct trust rules. Course Model is v12; v11 Publisher Courses must be converted with `tools/convert_course_to_v12.dart` and signed again.
+
+Final Build 241 Revision 2 validation passed; see the report for full-suite and final focused evidence. Build 242 evidence is in [242 validation](docs/242_VALIDATION.md); Build 243 evidence is in [243 validation](docs/243_VALIDATION.md); Build 244 evidence is in [244 validation](docs/244_VALIDATION.md).
+
+Manual inspection: [Build 242 visual checklist (Italian)](docs/242_VISUAL_CHECKLIST_IT.md), and the previous [Build 241 Revision 2 checklist](docs/241_REVISION_2_VISUAL_CHECKLIST_IT.md).

@@ -1,0 +1,16 @@
+QUISQUISLINGO 0.7.8 - WINDOWS DEBUG BUILD
+
+Open PowerShell in the QuisquisLingo source folder and run, one command at a time:
+
+flutter clean
+flutter pub get
+flutter analyze
+flutter test
+flutter build windows --debug
+
+If all commands succeed, the debug application is normally under:
+build\windows\x64\runner\Debug\
+
+Send the WHOLE Debug folder to the tester, not just the .exe. The executable depends on the DLLs and data files in that folder.
+
+Also include SEND_DEBUG_LOG_TO_DEVELOPER.txt in the package you send to the tester.

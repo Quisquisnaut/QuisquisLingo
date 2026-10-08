@@ -1,0 +1,397 @@
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:quisquislingo_app/models/course_models.dart';
+import 'package:quisquislingo_app/screens/device_administration_screen.dart';
+import 'package:quisquislingo_app/screens/inventory_screen.dart';
+import 'package:quisquislingo_app/services/inventory_service.dart';
+import 'package:quisquislingo_app/services/course_file_store.dart';
+import 'package:quisquislingo_app/services/profile_service.dart';
+import 'package:quisquislingo_app/services/storage/course_storage_names.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import 'support/pump_file_io.dart';
+
+final _course = Course(
+  courseId: 'qql-239-inventory-course',
+  learningLanguage: 'Italian',
+  interfaceLanguage: 'English',
+  sourceLanguage: 'English',
+  targetLanguage: 'Italian',
+  title: 'Inventory Course',
+  ttsLanguage: 'it-IT',
+  lessons: const [],
+);
+
+void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  late Directory root;
+  late Directory documents;
+  late Directory support;
+  late ProfileService profiles;
+  late String adminId;
+  late InventoryService service;
+  final sep = Platform.pathSeparator;
+
+  File touch(String path, [String content = 'x']) {
+    final file = File(path);
+    file.createSync(recursive: true);
+    file.writeAsStringSync(content);
+    return file;
+  }
+
+  String qql(String relative) =>
+      '${documents.path}${sep}QuisquisLingo$sep${relative.replaceAll('/', sep)}';
+
+  setUp(() async {
+    SharedPreferences.setMockInitialValues({});
+    root = await Directory.systemTemp.createTemp('qql_inventory_');
+    documents = Directory('${root.path}${sep}docs')..createSync();
+    support = Directory('${root.path}${sep}support')..createSync();
+    profiles = ProfileService();
+    adminId = (await profiles.createProfile(
+      'Admin One',
+      generateScreenNameSuffix: false,
+    )).learnerProfileId;
+    service = InventoryService(
+      profiles: profiles,
+      documentsDirectory: () async => documents,
+      supportDirectory: () async => support,
+      courses: () async => [_course],
+      teams: () async => const [],
+    );
+  });
+
+  tearDown(() async {
+    try {
+      await root.delete(recursive: true);
+    } on FileSystemException {
+      // Windows may briefly retain a handle.
+    }
+  });
+
+  InventorySection sectionOf(List<InventorySection> all, String title) =>
+      all.firstWhere((s) => s.title == title);
+
+  test(
+    'lists learners as records and courses with their actual files',
+    () async {
+      final store = CourseFileStore(supportDirectory: () async => support);
+      await store.write(CourseStoreKind.custom, _course.courseId, {
+        'course': _course.toJson(),
+      });
+      final all = await service.load();
+      final learners = sectionOf(all, 'Learners');
+      expect(learners.items.single.name, 'Admin One');
+      expect(learners.items.single.owner, 'Admin One (admin)');
+      expect(learners.items.single.path, isNull);
+
+      final courses = sectionOf(all, 'Custom and installed courses');
+      expect(courses.items.single.name, 'Inventory Course');
+      final item = courses.items.single;
+      expect(item.path, isNotNull);
+      final file = File(item.path!);
+      expect(file.existsSync(), isTrue);
+      expect(item.sizeBytes, file.lengthSync());
+      expect(item.modified, file.statSync().modified);
+      expect(courses.totalBytes, file.lengthSync());
+      expect(courses.location, endsWith('QQL_Courses_v12'));
+      // Revision 4: QQL_<pair>_<ID>.json, the ID without its course_ prefix.
+      expect(file.uri.pathSegments.last, startsWith('QQL_EN_IT_'));
+      expect(courses.items.single.owner, isNotNull);
+    },
+  );
+
+  test('lists device-level received Custom Course flags', () async {
+    const key = 'quisquislingo_received_custom_course_friend%2Fcourse';
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(key, true);
+
+    final all = await service.load();
+    final received = sectionOf(all, 'Received Custom Courses');
+    expect(received.count, 1);
+    expect(received.items.single.name, 'friend/course');
+    expect(received.items.single.path, isNull);
+  });
+
+  test('lists the remembered publisher of each Course', () async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(
+      'qql_publisher_export_friend%2Fcourse',
+      '{"publisherId": "org.example.courses", "publisherName": "Example"}',
+    );
+
+    final all = await service.load();
+    final remembered = sectionOf(all, 'Remembered publishers');
+    expect(remembered.count, 1);
+    expect(remembered.items.single.name, 'friend/course');
+    expect(
+      remembered.items.single.note,
+      contains('Example (org.example.courses)'),
+    );
+    expect(remembered.items.single.path, isNull);
+  });
+
+  test('lists active learner Course Favorite flags with their owner', () async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(
+      'learner_${adminId}_course_favorite_friend%2Fcourse%201',
+      true,
+    );
+    await prefs.setBool(
+      'learner_${adminId}_course_favorite_not-favorite',
+      false,
+    );
+
+    final favorites = sectionOf(await service.load(), 'Course Favorites');
+    expect(favorites.count, 1);
+    expect(favorites.items.single.name, 'friend/course 1');
+    expect(favorites.items.single.owner, 'Admin One');
+    expect(favorites.items.single.path, isNull);
+  });
+
+  test(
+    'inventory lists unreadable course files without altering them',
+    () async {
+      final file = touch(
+        '${support.path}${sep}QQL_Courses_v12${sep}Custom${sep}broken.json',
+        'broken-json',
+      );
+      final actual = InventoryService(
+        profiles: profiles,
+        documentsDirectory: () async => documents,
+        supportDirectory: () async => support,
+      );
+      final courses = sectionOf(
+        await actual.load(),
+        'Custom and installed courses',
+      );
+      expect(courses.items.single.path, file.path);
+      expect(courses.items.single.sizeBytes, file.lengthSync());
+      expect(courses.description, contains('could not be read'));
+      expect(file.readAsStringSync(), 'broken-json');
+    },
+  );
+
+  test(
+    'finds exports, imports, logs, media and outside files with owners',
+    () async {
+      touch(
+        qql('Export/UserData/QQL_admin_one_backup.json'),
+        jsonEncode({'learnerProfileId': adminId, 'displayName': 'Admin One'}),
+      );
+      touch(
+        qql('Export/RecoveryKeys/gone.user-recovery-key.json'),
+        jsonEncode({
+          'learnerProfileId': '11111111-1111-4111-8111-111111111111',
+          'displayName': 'Old Learner',
+        }),
+      );
+      // Course backups are in the public Backups folder since Build 255
+      // Revision 5.
+      touch(
+        qql('Backups/Courses/QQL_bkp_EN_IT_c/QQL_bkp_EN_IT_c_v1_2026.json'),
+        jsonEncode({'reason': 'Pre-change Course Editor transaction backup'}),
+      );
+      touch(
+        qql('Exports/Course Backups v11/c_0_2025.json'),
+        jsonEncode({'reason': 'Pre-change Course Editor transaction backup'}),
+      );
+      touch(qql('Import/Audio/word.mp3'));
+      touch(qql('ToBeMerged/Courses/merge.json'));
+      touch(qql('Logs/QQL_crash_log.txt'));
+      touch(qql('notes.txt'));
+      touch(qql('Stuff/inner.bin'));
+      // Images and banks from before Revision 4 keep working where they are.
+      touch('${support.path}${sep}exercise_images${sep}a.png');
+      touch('${support.path}${sep}QQL_SharedImages${sep}b.png');
+      touch('${support.path}${sep}image_banks${sep}bank_1${sep}manifest.json');
+      touch(
+        '${support.path}${sep}QQL_ImageBanks${sep}bank_2${sep}manifest.json',
+      );
+      final folder = CourseStorageNames.mediaFolderName(
+        _course.courseId,
+        pair: CourseStorageNames.pairOfCourse(_course),
+      );
+      touch(
+        '${support.path}${sep}QQL_CourseMedia$sep$folder$sep${'a' * 64}.mp3',
+      );
+      touch(
+        '${support.path}${sep}QQL_CourseMedia${sep}course_unknown$sep${'b' * 64}.png',
+      );
+      // Private folders from before Revision 4, which QQL no longer reads.
+      touch('${support.path}${sep}qql_courses_v2${sep}custom${sep}old.json');
+      touch(
+        '${support.path}${sep}quisquislingo_course_media${sep}course_old$sep${'c' * 64}.png',
+      );
+
+      final all = await service.load();
+
+      final exports = sectionOf(all, 'Export folder');
+      expect(exports.count, 2);
+      InventoryItem byName(String part) =>
+          exports.items.firstWhere((i) => i.name.contains(part));
+      expect(byName('admin_one_backup').owner, 'Admin One');
+      expect(byName('admin_one_backup').note, 'Learner backup');
+      expect(
+        byName('gone.user-recovery-key').owner,
+        'Old Learner (no longer on this device)',
+      );
+      expect(byName('gone.user-recovery-key').note, 'User Recovery Key');
+      expect(
+        exports.items.every((i) => i.path!.contains('QuisquisLingo')),
+        isTrue,
+      );
+      final backups = sectionOf(all, 'Backups folder');
+      expect(
+        backups.items.single.note,
+        'Automatic course backup (made before a change)',
+      );
+      expect(backups.items.single.path, contains('QuisquisLingo'));
+      expect(
+        backups.items.single.name.replaceAll(r'\', '/'),
+        'Courses/QQL_bkp_EN_IT_c/QQL_bkp_EN_IT_c_v1_2026.json',
+      );
+      final earlier = sectionOf(all, 'Folders from earlier versions');
+      expect(earlier.items.single.name, contains('c_0_2025'));
+      expect(
+        earlier.items.single.note,
+        'Automatic course backup (made before a change)',
+      );
+
+      expect(sectionOf(all, 'Import folder').count, 1);
+      expect(sectionOf(all, 'ToBeMerged folder').count, 1);
+      expect(sectionOf(all, 'Logs folder').count, 1);
+      expect(sectionOf(all, 'Imported images').count, 2);
+      expect(sectionOf(all, 'Image banks').count, 2);
+
+      final media = sectionOf(all, 'Course media');
+      expect(media.count, 2);
+      final known = media.items.firstWhere((i) => i.name.startsWith(folder));
+      expect(known.owner, contains('Inventory Course'));
+      expect(known.note, 'Course recording (MP3).');
+      final unknown = media.items.firstWhere(
+        (i) => i.name.startsWith('course_unknown'),
+      );
+      expect(unknown.owner, 'A course no longer on this device');
+      expect(unknown.note, 'Course image.');
+
+      final earlierPrivate = sectionOf(
+        all,
+        'Private folders from earlier versions',
+      );
+      expect(
+        {for (final item in earlierPrivate.items) item.note},
+        {
+          'Stored course from an earlier version.',
+          'Course media from an earlier version.',
+        },
+      );
+
+      final other = sectionOf(all, 'Other files in the QQL folder');
+      expect(other.count, 2);
+      expect(
+        other.items.map((i) => i.name),
+        containsAll(['notes.txt', 'Stuff${sep}inner.bin']),
+      );
+      expect(other.items.first.note, contains('added to the QQL folder'));
+    },
+  );
+
+  test('reports sizes and never lists media bundled with the app', () async {
+    touch(qql('Import/a.bin'), 'x' * 2048);
+    final all = await service.load();
+    expect(sectionOf(all, 'Import folder').totalBytes, 2048);
+    expect(
+      all
+          .expand((s) => s.items)
+          .where((i) => (i.path ?? '').contains('assets')),
+      isEmpty,
+    );
+  });
+
+  test(
+    'a very large folder lists only the newest files and counts the rest',
+    () async {
+      for (var i = 0; i < InventoryService.maxListedPerSection + 3; i++) {
+        touch(qql('Import/f$i.txt'));
+      }
+      final imports = sectionOf(await service.load(), 'Import folder');
+      expect(imports.items.length, InventoryService.maxListedPerSection);
+      expect(imports.hiddenCount, 3);
+      expect(imports.count, InventoryService.maxListedPerSection + 3);
+    },
+  );
+
+  testWidgets('the Inventory screen shows selectable paths, owners and notes', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(900, 6000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    touch(qql('Import/Audio/word.mp3'));
+    touch(qql('notes.txt'));
+
+    await tester.pumpWidget(
+      MaterialApp(home: InventoryScreen(service: service)),
+    );
+    // The load uses real file-system calls, so give them real time.
+    await tester.pumpUntilFileIoState(
+      () => find.byType(CircularProgressIndicator).evaluate().isEmpty,
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('inventory-summary')), findsOneWidget);
+    expect(find.textContaining('Files found: 2'), findsOneWidget);
+    expect(find.textContaining('Import folder (1)'), findsOneWidget);
+    expect(find.textContaining('Added from outside QQL.'), findsWidgets);
+    expect(
+      find.textContaining('Belongs to: Admin One (admin)'),
+      findsOneWidget,
+    );
+    expect(find.byType(SelectableText), findsWidgets);
+    expect(
+      find.byWidgetPredicate(
+        (w) =>
+            w is SelectableText &&
+            (w.data ?? '').contains('word.mp3') &&
+            (w.data ?? '').contains('QuisquisLingo'),
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('Nothing found.'), findsWidgets);
+  });
+
+  testWidgets('Advanced (Admin) shows Inventory before Reset', (tester) async {
+    await profiles.setActiveProfileById(adminId);
+    tester.view.physicalSize = const Size(800, 3600);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: DeviceAdministrationScreen(
+          course: _course,
+          onManageLearners: (_) async {},
+          profileService: profiles,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final inventory = find.byKey(const Key('admin-inventory'));
+    expect(inventory, findsOneWidget);
+    expect(find.text('Reset'), findsOneWidget);
+    expect(
+      tester.getTopLeft(inventory).dy,
+      lessThan(tester.getTopLeft(find.text('Reset')).dy),
+    );
+    // The explanation is visible text, not a tooltip.
+    expect(
+      find.textContaining('automatic course backups and logs'),
+      findsOneWidget,
+    );
+  });
+}

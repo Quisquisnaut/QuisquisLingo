@@ -1,0 +1,638 @@
+import 'services/trusted_publishers.dart';
+import 'dart:async';
+import 'dart:ui' as ui;
+
+import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
+import 'services/app_metadata.dart';
+import 'services/window_setup.dart';
+import 'services/crash_log_service.dart';
+import 'screens/home_screen.dart';
+import 'screens/new_learner_flow_screen.dart';
+import 'services/settings_service.dart';
+import 'services/profile_service.dart';
+import 'services/learner_theme_schedule.dart';
+import 'services/learner_status_events.dart';
+import 'services/startup_diagnostic_service.dart';
+import 'services/diagnostic_log_service.dart';
+import 'services/update_notice_service.dart';
+import 'services/update_service.dart';
+import 'widgets/app_restart_scope.dart';
+import 'widgets/learner_shell.dart';
+import 'widgets/learner_navigation.dart';
+import 'widgets/learner_theme_mode_scope.dart';
+import 'services/import/import_stager.dart';
+
+Future<void> main() async {
+  StartupDiagnosticService.checkpoint('DART_MAIN_ENTER');
+  // Keep Flutter binding initialization and runApp in the same Dart zone.
+  // This preserves global crash capture without triggering Flutter's
+  // Zone mismatch warning or zone-dependent state inconsistencies.
+  await runZonedGuarded<Future<void>>(
+    () async {
+      StartupDiagnosticService.verboseCheckpoint('DART_ZONE_ENTER');
+      StartupDiagnosticService.verboseCheckpoint('DART_BINDING_BEGIN');
+      WidgetsFlutterBinding.ensureInitialized();
+      ProfileService.beginAccessSession();
+      StartupDiagnosticService.checkpoint('DART_BINDING_OK');
+      StartupDiagnosticService.verboseCheckpoint('DART_CRASH_LOG_INIT_BEGIN');
+      await CrashLogService.instance.initialise();
+      StartupDiagnosticService.checkpoint('DART_CRASH_LOG_INIT_RETURNED');
+      try {
+        await ProfileService().applyStartupProfilePolicy();
+      } catch (_) {
+        // A failure here only means the previous learner is resumed.
+      }
+      CrashLogService.instance.installFlutterHandler();
+      _installStartupDiagnosticErrorHandlers();
+      StartupDiagnosticService.checkpoint('DART_ERROR_HANDLERS_INSTALLED');
+      StartupDiagnosticService.checkpoint('DART_WINDOW_SETUP_BEGIN');
+      await configureQuisquisLingoWindow();
+      StartupDiagnosticService.checkpoint('DART_WINDOW_SETUP_RETURNED');
+      StartupDiagnosticService.checkpoint('DART_RUNAPP_BEGIN');
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        StartupDiagnosticService.checkpointOnce('DART_FIRST_FRAME');
+      });
+      runApp(const QuisquisLingoApp());
+      StartupDiagnosticService.checkpoint('DART_RUNAPP_RETURNED');
+      // Staging files left by an interrupted import; never throws.
+      unawaited(ImportStager().removeLeftovers());
+    },
+    (error, stackTrace) {
+      StartupDiagnosticService.recordError(
+        'runZonedGuarded',
+        error,
+        stackTrace,
+      );
+      unawaited(
+        CrashLogService.instance.record(
+          error,
+          stackTrace,
+          source: 'runZonedGuarded',
+        ),
+      );
+    },
+  );
+}
+
+void _installStartupDiagnosticErrorHandlers() {
+  final existingFlutterHandler = FlutterError.onError;
+  FlutterError.onError = (FlutterErrorDetails details) {
+    StartupDiagnosticService.recordError(
+      'FlutterError.onError',
+      details.exception,
+      details.stack ?? StackTrace.current,
+    );
+    existingFlutterHandler?.call(details);
+  };
+
+  final existingPlatformHandler = ui.PlatformDispatcher.instance.onError;
+  ui.PlatformDispatcher.instance.onError = (Object error, StackTrace stack) {
+    StartupDiagnosticService.recordError(
+      'PlatformDispatcher.onError',
+      error,
+      stack,
+    );
+    return existingPlatformHandler?.call(error, stack) ?? false;
+  };
+}
+
+class QuisquisLingoApp extends StatefulWidget {
+  @visibleForTesting
+  final ProfileService? profileService;
+
+  @visibleForTesting
+  final Widget? home;
+
+  @visibleForTesting
+  final DateTime Function()? now;
+
+  const QuisquisLingoApp({super.key, this.profileService, this.home, this.now});
+
+  @override
+  State<QuisquisLingoApp> createState() => _QuisquisLingoAppState();
+}
+
+class _QuisquisLingoAppState extends State<QuisquisLingoApp>
+    with WidgetsBindingObserver {
+  late final ProfileService _profiles;
+  late final DateTime Function() _now;
+  StreamSubscription<LearnerStatusInvalidation>? _appearanceSubscription;
+  Timer? _dayNightTimer;
+  LearnerThemeMode _themeMode = LearnerThemeMode.defaultMode;
+  Brightness _dayNightBrightness = Brightness.light;
+  int _loadGeneration = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _profiles = widget.profileService ?? ProfileService();
+    _now = widget.now ?? DateTime.now;
+    _dayNightBrightness = LearnerThemeSchedule.brightnessAt(_now());
+    WidgetsBinding.instance.addObserver(this);
+    _appearanceSubscription = LearnerStatusEvents.stream.listen((event) {
+      if (event == LearnerStatusInvalidation.activeProfile ||
+          event == LearnerStatusInvalidation.theme) {
+        _loadAppearance();
+      }
+    });
+    _loadAppearance();
+  }
+
+  Future<void> _loadAppearance() async {
+    final generation = ++_loadGeneration;
+    var themeMode = LearnerThemeMode.defaultMode;
+    try {
+      themeMode = await _profiles.getThemeMode();
+    } catch (_) {
+      // Appearance loading falls back to the application's normal defaults.
+    }
+    if (!mounted || generation != _loadGeneration) return;
+    _applyThemeMode(themeMode);
+  }
+
+  void _applyThemeMode(LearnerThemeMode themeMode) {
+    final brightness = themeMode == LearnerThemeMode.dayNight
+        ? LearnerThemeSchedule.brightnessAt(_now())
+        : _dayNightBrightness;
+    if (themeMode != _themeMode || brightness != _dayNightBrightness) {
+      setState(() {
+        _themeMode = themeMode;
+        _dayNightBrightness = brightness;
+      });
+    }
+    _scheduleDayNightBoundary();
+  }
+
+  void _refreshDayNightTheme() {
+    if (!mounted || _themeMode != LearnerThemeMode.dayNight) return;
+    final brightness = LearnerThemeSchedule.brightnessAt(_now());
+    if (brightness != _dayNightBrightness) {
+      setState(() => _dayNightBrightness = brightness);
+    }
+    _scheduleDayNightBoundary();
+  }
+
+  void _scheduleDayNightBoundary() {
+    _dayNightTimer?.cancel();
+    _dayNightTimer = null;
+    if (_themeMode != LearnerThemeMode.dayNight) return;
+    final currentTime = _now();
+    final delay = LearnerThemeSchedule.nextBoundaryAfter(
+      currentTime,
+    ).difference(currentTime);
+    _dayNightTimer = Timer(delay, _refreshDayNightTheme);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.detached) {
+      CrashLogService.instance.markCleanShutdown();
+    } else {
+      unawaited(CrashLogService.instance.recordLifecycleState(state.name));
+    }
+    if (state == AppLifecycleState.resumed) _refreshDayNightTheme();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _dayNightTimer?.cancel();
+    _appearanceSubscription?.cancel();
+    super.dispose();
+  }
+
+  ThemeMode get _materialThemeMode => switch (_themeMode) {
+    LearnerThemeMode.defaultMode => ThemeMode.system,
+    LearnerThemeMode.light => ThemeMode.light,
+    LearnerThemeMode.dark => ThemeMode.dark,
+    LearnerThemeMode.dayNight =>
+      _dayNightBrightness == Brightness.light
+          ? ThemeMode.light
+          : ThemeMode.dark,
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    StartupDiagnosticService.verboseCheckpointOnce('DART_APP_BUILD');
+    const olive = Color(0xFF4F622D);
+    const cream = Color(0xFFF7F3E8);
+    return AppRestartScope(
+      child: MaterialApp(
+        title: 'QuisquisLingo',
+        scrollBehavior: const MaterialScrollBehavior().copyWith(
+          dragDevices: {
+            PointerDeviceKind.touch,
+            PointerDeviceKind.mouse,
+            PointerDeviceKind.trackpad,
+            PointerDeviceKind.stylus,
+          },
+        ),
+        debugShowCheckedModeBanner: false,
+        navigatorKey: learnerNavigatorKey,
+        navigatorObservers: [learnerStatusRouteObserver],
+        builder: (context, child) {
+          final content = child == null
+              ? const SizedBox.shrink()
+              : LearnerShell(child: child);
+          final scopedContent = LearnerThemeModeScope(
+            mode: _themeMode,
+            child: TrustedPublishers.dummyEnabled
+                ? Banner(
+                    message: 'TEST ONLY',
+                    location: BannerLocation.topEnd,
+                    child: content,
+                  )
+                : content,
+          );
+          final portraitDesktop =
+              !kIsWeb &&
+              (defaultTargetPlatform == TargetPlatform.windows ||
+                  defaultTargetPlatform == TargetPlatform.linux ||
+                  defaultTargetPlatform == TargetPlatform.macOS);
+          if (!portraitDesktop) {
+            return scopedContent;
+          }
+          return ColoredBox(
+            color: const Color(0xFFE7E1CF),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 430),
+                child: scopedContent,
+              ),
+            ),
+          );
+        },
+        theme: ThemeData(
+          useMaterial3: true,
+          scaffoldBackgroundColor: cream,
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: olive,
+            brightness: Brightness.light,
+            surface: cream,
+          ),
+          // Desktop users should get an unmistakable hover response on every
+          // Material button without requiring each screen to define its own
+          // MouseRegion or local style. The stronger hover is visual only and
+          // does not alter button enabled/disabled behaviour.
+          hoverColor: olive.withValues(alpha: .18),
+          focusColor: olive.withValues(alpha: .12),
+          filledButtonTheme: FilledButtonThemeData(
+            style: ButtonStyle(
+              overlayColor: WidgetStateProperty.resolveWith<Color?>((states) {
+                if (states.contains(WidgetState.pressed)) {
+                  return olive.withValues(alpha: .24);
+                }
+                if (states.contains(WidgetState.hovered)) {
+                  return olive.withValues(alpha: .20);
+                }
+                if (states.contains(WidgetState.focused)) {
+                  return olive.withValues(alpha: .14);
+                }
+                return null;
+              }),
+            ),
+          ),
+          elevatedButtonTheme: ElevatedButtonThemeData(
+            style: ButtonStyle(
+              overlayColor: WidgetStateProperty.resolveWith<Color?>((states) {
+                if (states.contains(WidgetState.pressed)) {
+                  return olive.withValues(alpha: .24);
+                }
+                if (states.contains(WidgetState.hovered)) {
+                  return olive.withValues(alpha: .20);
+                }
+                if (states.contains(WidgetState.focused)) {
+                  return olive.withValues(alpha: .14);
+                }
+                return null;
+              }),
+            ),
+          ),
+          outlinedButtonTheme: OutlinedButtonThemeData(
+            style: ButtonStyle(
+              overlayColor: WidgetStateProperty.resolveWith<Color?>((states) {
+                if (states.contains(WidgetState.pressed)) {
+                  return olive.withValues(alpha: .24);
+                }
+                if (states.contains(WidgetState.hovered)) {
+                  return olive.withValues(alpha: .20);
+                }
+                if (states.contains(WidgetState.focused)) {
+                  return olive.withValues(alpha: .14);
+                }
+                return null;
+              }),
+            ),
+          ),
+          textButtonTheme: TextButtonThemeData(
+            style: ButtonStyle(
+              overlayColor: WidgetStateProperty.resolveWith<Color?>((states) {
+                if (states.contains(WidgetState.pressed)) {
+                  return olive.withValues(alpha: .24);
+                }
+                if (states.contains(WidgetState.hovered)) {
+                  return olive.withValues(alpha: .20);
+                }
+                if (states.contains(WidgetState.focused)) {
+                  return olive.withValues(alpha: .14);
+                }
+                return null;
+              }),
+            ),
+          ),
+          iconButtonTheme: IconButtonThemeData(
+            style: ButtonStyle(
+              overlayColor: WidgetStateProperty.resolveWith<Color?>((states) {
+                if (states.contains(WidgetState.pressed)) {
+                  return olive.withValues(alpha: .24);
+                }
+                if (states.contains(WidgetState.hovered)) {
+                  return olive.withValues(alpha: .20);
+                }
+                if (states.contains(WidgetState.focused)) {
+                  return olive.withValues(alpha: .14);
+                }
+                return null;
+              }),
+            ),
+          ),
+          cardTheme: const CardThemeData(
+            elevation: 0,
+            margin: EdgeInsets.zero,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(18)),
+              side: BorderSide(color: Color(0x1F4F622D)),
+            ),
+          ),
+        ),
+        darkTheme: ThemeData.dark(useMaterial3: true).copyWith(
+          scaffoldBackgroundColor: const Color(0xFF080B09),
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: const Color(0xFF54D8FF),
+            brightness: Brightness.dark,
+            surface: const Color(0xFF151A17),
+          ),
+          cardTheme: const CardThemeData(
+            color: Color(0xFF151A17),
+            surfaceTintColor: Colors.transparent,
+          ),
+        ),
+        themeAnimationDuration: Duration.zero,
+        themeMode: _materialThemeMode,
+        home:
+            widget.home ??
+            _InitialProfileStartupGate(
+              profileService: _profiles,
+              normalStartup: const _StartupGate(),
+            ),
+      ),
+    );
+  }
+}
+
+class _InitialProfileStartupGate extends StatefulWidget {
+  final ProfileService profileService;
+  final Widget normalStartup;
+
+  const _InitialProfileStartupGate({
+    required this.profileService,
+    required this.normalStartup,
+  });
+
+  @override
+  State<_InitialProfileStartupGate> createState() =>
+      _InitialProfileStartupGateState();
+}
+
+class _InitialProfileStartupGateState
+    extends State<_InitialProfileStartupGate> {
+  late Future<bool> _hasProfiles;
+  bool _firstProfileComplete = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _hasProfiles = _loadProfileState();
+  }
+
+  Future<bool> _loadProfileState() => widget.profileService
+      .getProfileRecords()
+      .then((profiles) => profiles.isNotEmpty);
+
+  @override
+  Widget build(BuildContext context) {
+    if (_firstProfileComplete) return widget.normalStartup;
+    return FutureBuilder<bool>(
+      future: _hasProfiles,
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return Scaffold(
+            body: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text(
+                      'Unable to load learner profiles.',
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 12),
+                    FilledButton(
+                      key: const Key('startup-profile-retry'),
+                      onPressed: () {
+                        setState(() {
+                          _hasProfiles = _loadProfileState();
+                        });
+                      },
+                      child: const Text('Retry'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }
+        if (snapshot.data == true) {
+          return widget.normalStartup;
+        }
+        if (snapshot.data == false) {
+          return NewLearnerFlowScreen(
+            profileService: widget.profileService,
+            canCancel: false,
+            onComplete: (_) {
+              if (mounted) setState(() => _firstProfileComplete = true);
+            },
+          );
+        }
+        return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      },
+    );
+  }
+}
+
+class _StartupGate extends StatefulWidget {
+  const _StartupGate();
+
+  @override
+  State<_StartupGate> createState() => _StartupGateState();
+}
+
+class _StartupGateState extends State<_StartupGate>
+    with SingleTickerProviderStateMixin {
+  static const _gateDuration = Duration(milliseconds: 1800);
+  static const _entranceEnd = 1500 / 1800;
+  static const _fadeEnd = 150 / 1800;
+  static const _logoAsset = 'assets/branding/qql_logo_4.png';
+
+  late final AnimationController _c;
+  bool _show = true;
+  bool _showStaticArtwork = false;
+
+  @override
+  void initState() {
+    super.initState();
+    StartupDiagnosticService.checkpointOnce('DART_STARTUP_GATE_INIT');
+    _c = AnimationController(
+      vsync: this,
+      duration: _gateDuration,
+      animationBehavior: AnimationBehavior.preserve,
+    );
+    _start();
+  }
+
+  Future<void> _start() async {
+    StartupDiagnosticService.checkpoint('DART_STARTUP_SETTINGS_BEGIN');
+    final enabled = await SettingsService().areAnimationsEnabled();
+    StartupDiagnosticService.checkpoint(
+      'DART_STARTUP_SETTINGS_OK',
+      'animations_enabled=$enabled',
+    );
+    if (!mounted) return;
+    final reducedMotion =
+        MediaQuery.maybeOf(context)?.disableAnimations == true;
+    if (!enabled || reducedMotion) {
+      setState(() => _showStaticArtwork = true);
+    }
+    await precacheImage(
+      AssetImage(_logoAsset, bundle: DefaultAssetBundle.of(context)),
+      context,
+    );
+    if (!mounted) return;
+    await _c.forward();
+    if (mounted) setState(() => _show = false);
+  }
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_show) {
+      StartupDiagnosticService.checkpointOnce('DART_HOME_GATE_ENTER');
+      return const _StartupUpdateCheck(child: HomeScreen());
+    }
+    StartupDiagnosticService.verboseCheckpointOnce('DART_SPLASH_BUILD');
+    return Scaffold(
+      key: const Key('qql-startup-animation'),
+      body: SizedBox.expand(
+        child: FadeTransition(
+          key: const Key('qql-startup-logo-fade'),
+          opacity: _showStaticArtwork
+              ? const AlwaysStoppedAnimation<double>(1)
+              : CurvedAnimation(parent: _c, curve: const Interval(0, _fadeEnd)),
+          child: ScaleTransition(
+            key: const Key('qql-startup-logo-scale'),
+            scale: _showStaticArtwork
+                ? const AlwaysStoppedAnimation<double>(1)
+                : Tween<double>(begin: .30, end: 1).animate(
+                    CurvedAnimation(
+                      parent: _c,
+                      curve: const Interval(0, _entranceEnd),
+                    ),
+                  ),
+            child: Image.asset(
+              _logoAsset,
+              key: const Key('qql-startup-logo'),
+              fit: BoxFit.contain,
+              filterQuality: FilterQuality.high,
+              semanticLabel: 'QuisquisLingo',
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Starts the automatic update check once Home is on screen.
+///
+/// Build 255 Revision 6 removed the one-time "QuisquisLingo Beta testing"
+/// notice that used to open first: startup already has enough screens. The
+/// Crash Log itself is unchanged; Settings › Debug still exports it.
+class _StartupUpdateCheck extends StatefulWidget {
+  final Widget child;
+
+  const _StartupUpdateCheck({required this.child});
+
+  @override
+  State<_StartupUpdateCheck> createState() => _StartupUpdateCheckState();
+}
+
+class _StartupUpdateCheckState extends State<_StartupUpdateCheck> {
+  bool _started = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_started) return;
+    _started = true;
+    // The update check runs on every launch.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) unawaited(_checkForUpdateAtStartup());
+    });
+  }
+
+  Future<void> _checkForUpdateAtStartup() async {
+    final settings = SettingsService();
+    if (!await settings.isAutomaticUpdateCheckEnabled()) return;
+    final updates = UpdateService();
+    final diagnostics = DiagnosticLogService();
+    try {
+      final checkedAt = DateTime.now();
+      await settings.setUpdateLastCheckedAt(checkedAt);
+      final result = await updates.check(AppMetadata.technicalVersion);
+      await diagnostics.logInfo(
+        'Automatic GitHub update check completed: ${result.status.name}; '
+        'current=${AppMetadata.technicalVersion}; latest=${result.release?.version ?? 'none'}.',
+      );
+      final release = result.release;
+      if (!mounted ||
+          result.status != UpdateCheckStatus.updateAvailable ||
+          release == null) {
+        return;
+      }
+      // The notice is shown by the Home screen to each learner separately
+      // (once a day), not here where no learner is known yet.
+      UpdateNoticeService.setPending(release);
+    } on UpdateCheckException catch (error) {
+      // Automatic checks fail silently so offline use is never interrupted.
+      await diagnostics.logInfo(
+        'Automatic GitHub update check failed: ${error.message}',
+      );
+    } catch (_) {
+      // Update checks are optional and must never interfere with app startup.
+      await diagnostics.logInfo(
+        'Automatic GitHub update check failed with an unexpected local error.',
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
+}

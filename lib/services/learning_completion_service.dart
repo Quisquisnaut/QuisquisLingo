@@ -1,0 +1,339 @@
+import 'progress_service.dart';
+import 'xp_calculator.dart';
+
+class LearningCompletionRequest {
+  final String roundId;
+  final String lessonId;
+  final String courseId;
+  final String courseCode;
+  final String? completedLessonId;
+
+  /// Reads screen-owned attempt state at the same await boundaries used before
+  /// extraction. Concurrent completion requests for the same Course and Round
+  /// share one in-flight operation, so these facts are consumed only once.
+  final LearningCompletionAttemptFacts Function() readAttemptFacts;
+  final Future<bool> Function()? claimOnTimeBonus;
+
+  const LearningCompletionRequest({
+    required this.roundId,
+    required this.lessonId,
+    required this.courseId,
+    required this.courseCode,
+    this.completedLessonId,
+    required this.readAttemptFacts,
+    this.claimOnTimeBonus,
+  });
+}
+
+class LearningCompletionAttemptFacts {
+  final int errorsThisAttempt;
+  final int firstPassCorrect;
+  final int evaluableExerciseCount;
+  final bool wasCompletedAtStart;
+  final bool ttsWasSkipped;
+
+  /// The sum of the difficulty levels of the exercises answered correctly
+  /// at the first attempt (Build 260 Revision 6).
+  final int firstPassDifficulty;
+
+  const LearningCompletionAttemptFacts({
+    required this.errorsThisAttempt,
+    required this.firstPassCorrect,
+    this.evaluableExerciseCount = 0,
+    required this.wasCompletedAtStart,
+    required this.ttsWasSkipped,
+    this.firstPassDifficulty = 0,
+  });
+}
+
+class LearningCompletionResult {
+  final RoundXpResult roundXp;
+  final int weeklyXpBefore;
+  final int weeklyXpAfter;
+  final int weeklyXpTarget;
+  final bool newlyEarnedLaurel;
+  final int lessonCompletionXp;
+  final int firstPassCorrect;
+  final int evaluableExerciseCount;
+
+  const LearningCompletionResult({
+    required this.roundXp,
+    required this.weeklyXpBefore,
+    required this.weeklyXpAfter,
+    required this.weeklyXpTarget,
+    required this.newlyEarnedLaurel,
+    required this.lessonCompletionXp,
+    required this.firstPassCorrect,
+    required this.evaluableExerciseCount,
+  });
+
+  int get awardedXp => roundXp.totalXp + lessonCompletionXp;
+
+  bool get crossedWeeklyXpTarget =>
+      weeklyXpBefore < weeklyXpTarget && weeklyXpAfter >= weeklyXpTarget;
+}
+
+/// The narrow progress/accounting boundary used by [LearningCompletionService].
+abstract interface class LearningCompletionProgress {
+  Future<void> completeRound(
+    String id, {
+    required String courseId,
+    required String courseCode,
+  });
+
+  Future<void> recordRecentRound(
+    String courseId,
+    String lessonId,
+    String roundId, {
+    required int errors,
+  });
+
+  Future<bool> markPerfectRound(String roundId, {required String courseId});
+
+  Future<void> markTtsSkippedPerfectRound(
+    String roundId, {
+    required String courseId,
+  });
+
+  Future<int> getWeeklyXp();
+
+  Future<void> addXp(
+    int amount, {
+    required String courseCode,
+    required String courseId,
+  });
+
+  Future<void> registerLearningActivity({required String courseCode});
+
+  Future<int> completeLesson(
+    String id, {
+    required String courseId,
+    required String courseCode,
+  });
+
+  Future<bool> isWeeklyGoalCelebrated();
+
+  Future<void> markWeeklyGoalCelebrated();
+}
+
+class LearningCompletionService {
+  final LearningCompletionProgress _progress;
+  final XpCalculator _xpCalculator;
+  final Map<(String, String), Future<LearningCompletionResult>> _inFlight = {};
+
+  LearningCompletionService({
+    ProgressService? progressService,
+    XpCalculator xpCalculator = const XpCalculator(),
+  }) : _progress = _ProgressServiceLearningCompletionProgress(
+         progressService ?? ProgressService(),
+       ),
+       _xpCalculator = xpCalculator;
+
+  LearningCompletionService.withProgress(
+    this._progress, {
+    XpCalculator xpCalculator = const XpCalculator(),
+  }) : _xpCalculator = xpCalculator;
+
+  Future<LearningCompletionResult> completeRound(
+    LearningCompletionRequest request, {
+    required Future<void> Function() onNewLaurel,
+    required Future<int> Function() getWeeklyXpTarget,
+  }) {
+    final key = (request.courseId.trim(), request.roundId.trim());
+    final existing = _inFlight[key];
+    if (existing != null) return existing;
+
+    final future = _completeRoundOnce(
+      request,
+      onNewLaurel: onNewLaurel,
+      getWeeklyXpTarget: getWeeklyXpTarget,
+    );
+    late final Future<LearningCompletionResult> guarded;
+    guarded = future.whenComplete(() {
+      if (identical(_inFlight[key], guarded)) _inFlight.remove(key);
+    });
+    _inFlight[key] = guarded;
+    return guarded;
+  }
+
+  Future<LearningCompletionResult> _completeRoundOnce(
+    LearningCompletionRequest request, {
+    required Future<void> Function() onNewLaurel,
+    required Future<int> Function() getWeeklyXpTarget,
+  }) async {
+    await _progress.completeRound(
+      request.roundId,
+      courseId: request.courseId,
+      courseCode: request.courseCode,
+    );
+    // These staged reads deliberately do not collapse attempt state into one
+    // earlier snapshot; RoundScreen remains the authority for mutable facts.
+    final recentRoundFacts = request.readAttemptFacts();
+    await _progress.recordRecentRound(
+      request.courseId,
+      request.lessonId,
+      request.roundId,
+      errors: recentRoundFacts.errorsThisAttempt,
+    );
+
+    final perfectFacts = request.readAttemptFacts();
+    var newlyEarnedLaurel = false;
+    // A Round without an evaluable exercise (cards, covers or lines only)
+    // earns no Laurel and no perfect mark (owner decision, 28 September
+    // 2026); its completion still counts for progression.
+    final scorable = perfectFacts.evaluableExerciseCount > 0;
+    if (scorable &&
+        perfectFacts.errorsThisAttempt == 0 &&
+        !perfectFacts.ttsWasSkipped) {
+      // A perfect result is permanent once earned, regardless of how the round
+      // is entered (course path or Review) or of later imperfect attempts.
+      newlyEarnedLaurel = await _progress.markPerfectRound(
+        request.roundId,
+        courseId: request.courseId,
+      );
+      // Laurel feedback is optional. A settings or audio failure must not stop
+      // the already-started persistence and XP accounting operation.
+      if (newlyEarnedLaurel) {
+        try {
+          await onNewLaurel();
+        } catch (_) {
+          // SoundEffectService is normally failure-tolerant; keep this boundary
+          // safe for injected/platform settings failures too.
+        }
+      }
+    } else if (scorable &&
+        perfectFacts.errorsThisAttempt == 0 &&
+        perfectFacts.ttsWasSkipped) {
+      // Zero errors among presented exercises gets a separate mark when any
+      // TTS exercise was skipped. A later full zero-error attempt can still
+      // replace this with the permanent laurel crown.
+      await _progress.markTtsSkippedPerfectRound(
+        request.roundId,
+        courseId: request.courseId,
+      );
+    }
+
+    final scoringFacts = request.readAttemptFacts();
+    final firstOnTimeCompletion =
+        await request.claimOnTimeBonus?.call() ?? false;
+    final roundXp = _xpCalculator.calculateRoundAward(
+      RoundXpAwardContext(
+        completed: true,
+        errorsThisAttempt: scoringFacts.errorsThisAttempt,
+        firstPassCorrect: scoringFacts.firstPassCorrect,
+        wasCompletedAtStart: scoringFacts.wasCompletedAtStart,
+        newlyEarnedLaurel: newlyEarnedLaurel,
+        firstOnTimeCompletion: firstOnTimeCompletion,
+        evaluableExerciseCount: scoringFacts.evaluableExerciseCount,
+        firstPassDifficulty: scoringFacts.firstPassDifficulty,
+      ),
+    );
+    final weeklyXpBefore = await _progress.getWeeklyXp();
+    final lessonCompletionXp = request.completedLessonId == null
+        ? 0
+        : await _progress.completeLesson(
+            request.completedLessonId!,
+            courseId: request.courseId,
+            courseCode: request.courseCode,
+          );
+    await _progress.addXp(
+      roundXp.totalXp,
+      courseCode: request.courseCode,
+      courseId: request.courseId,
+    );
+    final weeklyXpAfter = await _progress.getWeeklyXp();
+    // Keep this read before the explicit second activity registration, matching
+    // the current RoundScreen partial-failure and clock-dependent ordering.
+    int weeklyXpTarget;
+    try {
+      weeklyXpTarget = await getWeeklyXpTarget();
+    } catch (_) {
+      // The target controls celebration presentation, not earned progress.
+      // A corrupt/unavailable setting must not turn a completed XP write into
+      // a retryable completion failure.
+      weeklyXpTarget = 1000;
+    }
+    await _progress.registerLearningActivity(courseCode: request.courseCode);
+
+    return LearningCompletionResult(
+      roundXp: roundXp,
+      weeklyXpBefore: weeklyXpBefore,
+      weeklyXpAfter: weeklyXpAfter,
+      weeklyXpTarget: weeklyXpTarget,
+      newlyEarnedLaurel: newlyEarnedLaurel,
+      lessonCompletionXp: lessonCompletionXp,
+      firstPassCorrect: scoringFacts.firstPassCorrect,
+      evaluableExerciseCount: scoringFacts.evaluableExerciseCount,
+    );
+  }
+
+  /// Claims the current week's celebration only when RoundScreen has decided
+  /// that its mounted lifecycle permits the claim.
+  Future<bool> claimWeeklyGoalCelebration() async {
+    if (await _progress.isWeeklyGoalCelebrated()) return false;
+    await _progress.markWeeklyGoalCelebrated();
+    return true;
+  }
+}
+
+class _ProgressServiceLearningCompletionProgress
+    implements LearningCompletionProgress {
+  final ProgressService _progress;
+
+  const _ProgressServiceLearningCompletionProgress(this._progress);
+
+  @override
+  Future<void> completeRound(
+    String id, {
+    required String courseId,
+    required String courseCode,
+  }) => _progress.completeRound(id, courseId: courseId, courseCode: courseCode);
+
+  @override
+  Future<void> recordRecentRound(
+    String courseId,
+    String lessonId,
+    String roundId, {
+    required int errors,
+  }) =>
+      _progress.recordRecentRound(courseId, lessonId, roundId, errors: errors);
+
+  @override
+  Future<bool> markPerfectRound(String roundId, {required String courseId}) =>
+      _progress.markPerfectRound(roundId, courseId: courseId);
+
+  @override
+  Future<void> markTtsSkippedPerfectRound(
+    String roundId, {
+    required String courseId,
+  }) => _progress.markTtsSkippedPerfectRound(roundId, courseId: courseId);
+
+  @override
+  Future<int> getWeeklyXp() => _progress.getWeeklyXp();
+
+  @override
+  Future<void> addXp(
+    int amount, {
+    required String courseCode,
+    required String courseId,
+  }) => _progress.addXp(amount, courseCode: courseCode, courseId: courseId);
+
+  @override
+  Future<void> registerLearningActivity({required String courseCode}) =>
+      _progress.registerLearningActivity(courseCode: courseCode);
+
+  @override
+  Future<int> completeLesson(
+    String id, {
+    required String courseId,
+    required String courseCode,
+  }) =>
+      _progress.completeLesson(id, courseId: courseId, courseCode: courseCode);
+
+  @override
+  Future<bool> isWeeklyGoalCelebrated() => _progress.isWeeklyGoalCelebrated();
+
+  @override
+  Future<void> markWeeklyGoalCelebrated() =>
+      _progress.markWeeklyGoalCelebrated();
+}

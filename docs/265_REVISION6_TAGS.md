@@ -1,0 +1,617 @@
+# Build 265 Revision 6: tags added to the image library
+
+Generated from the catalogue (`assets/exercise_images/metadata_v2.json`) against the
+Revision 5 commit. For each record of group 2 that had fewer than five tags: its
+name, then the tags Revision 6 appended (the earlier tags are kept, in their
+order). The other catalogue changes of the revision are listed at the end.
+
+## construction_farming (10)
+
+- Brick (`construction_farming_brick`): brick wall, red brick
+- Crane (`construction_farming_crane`): construction crane, lifting
+- Excavator (`construction_farming_excavator`): earth digger, mechanical shovel
+- Cement Mixer (`construction_farming_cement_mixer`): cement truck, concrete
+- Tractor (`construction_farming_tractor`): farm tractor, farm vehicle
+- Scarecrow (`construction_farming_scarecrow`): straw man, scare birds
+- Hay Bale (`construction_farming_hay_bale`): bale, haystack
+- Bulldozer (`construction_farming_bulldozer`): earthmoving
+- Barn (`construction_farming_barn`): red barn
+- Pitchfork (`construction_farming_pitchfork`): toss hay
+
+## crime_law (8)
+
+- Thief (`crime_law_thief`): burglar, robbery
+- Shoplifting (`crime_law_shoplifting`): shoplift, store theft
+- Vandalism (`crime_law_vandalism`): vandalise, broken window
+- Handcuffs (`crime_law_handcuffs`): cuffed, police handcuffs
+- Arresting Someone (`crime_law_arresting`): under arrest, detain
+- Prisoner (`crime_law_prisoner`): convict, behind bars
+- Prison Cell (`crime_law_prison_cell`): jail cell, bars
+- Police Car (`crime_law_police_car`): police vehicle, cop car
+
+## culture_traditions (36)
+
+- Russian Nesting Dolls (`culture_traditions_russian_nesting_dolls`): nesting dolls, babushka dolls
+- Folding Fan (`culture_traditions_folding_fan`): Spanish fan, paper fan
+- Chinese Lantern (`culture_traditions_chinese_lantern`): red lantern, hanging lantern
+- Piñata (`culture_traditions_pinata`): candy-filled, party game
+- Boomerang (`culture_traditions_boomerang`): curved stick, comes back
+- Bagpipes (`culture_traditions_bagpipes`): bagpiper, Scottish music
+- Maracas (`culture_traditions_maracas`): shakers, percussion instrument
+- Gondola (`culture_traditions_gondola`): Venetian boat, boat ride
+- Venetian Mask (`culture_traditions_venetian_mask`): masked ball, carnival mask
+- Kimono (`culture_traditions_kimono`): Japanese dress, yukata
+- Kilt (`culture_traditions_kilt`): Scottish skirt, Highland dress
+- Sari (`culture_traditions_sari`): Indian dress, wrapped dress
+- Sombrero (`culture_traditions_sombrero`): wide-brimmed hat, mariachi hat
+- Poncho (`culture_traditions_poncho`): blanket coat, Andean clothing
+- Clogs (`culture_traditions_clogs`): Dutch shoes, carved shoes
+- Cowboy Hat (`culture_traditions_cowboy_hat`): ten-gallon hat, cowboy
+- Cowboy Boots (`culture_traditions_cowboy_boots`): western boots, riding boots
+- Dragon Dance (`culture_traditions_dragon_dance`): dragon costume, Chinese festival
+- Flamenco (`culture_traditions_flamenco`): flamenco dancer, Andalusia
+- Halloween (`culture_traditions_halloween`): trick or treat, 31 October
+- Easter Eggs (`culture_traditions_easter_eggs`): egg hunt, decorated eggs
+- Bonsai (`culture_traditions_bonsai`): dwarf tree, small tree in a pot
+- Duel (`culture_traditions_duel`): sword duel
+- Sword (`culture_traditions_sword`): sharp blade
+- Shield (`culture_traditions_shield`): medieval shield
+- Throne (`culture_traditions_throne`): royal throne
+- Treasure chest (`culture_traditions_treasure_chest`): gold coins
+- Pirate (`culture_traditions_pirate`): pirate captain
+- Spear (`culture_traditions_spear`): spearhead
+- Catapult (`culture_traditions_catapult`): trebuchet
+- Goblet (`culture_traditions_goblet`): chalice
+- Feast (`culture_traditions_feast`): royal banquet
+- Dagger (`culture_traditions_dagger`): small sword
+- Cannon (`culture_traditions_cannon`): cannon fire
+- Treasure map (`culture_traditions_treasure_map`): old map
+- Pirate ship (`culture_traditions_pirate_ship`): skull and crossbones
+
+## death_remembrance (13)
+
+- Death (`death_remembrance_death`): dead, passing away
+- Dying (`death_remembrance_dying`): terminally ill, last moments
+- Funeral (`death_remembrance_funeral`): funeral service
+- Coffin (`death_remembrance_coffin`): wooden coffin, bury
+- Grave (`death_remembrance_grave`): gravestone
+- Cemetery (`death_remembrance_cemetery`): burial ground
+- Cremation (`death_remembrance_cremation`): funeral urn
+- Mourning (`death_remembrance_mourning`): mourn
+- Remembrance (`death_remembrance_remembrance`): remember the dead
+- Heir (`inheritance_heir`): successor
+- Inheritance (`inheritance_inheritance`): bequest
+- Will (`inheritance_will`): last wishes
+- Inheriting (`inheritance_inheriting`): inherit money, receive an estate
+
+## directions_positions (15)
+
+- Up (`directions_positions_up`): upwards, go up
+- Down (`directions_positions_down`): downwards, go down
+- Left (`directions_positions_left`): left side, turn left, to the left
+- Right (`directions_positions_right`): right side, turn right, to the right
+- On (`directions_positions_on`): on the table, resting on
+- Under (`directions_positions_under`): underneath
+- Above (`directions_positions_above`): higher up, higher than
+- Inside (`directions_positions_inside`): in the box
+- Next To (`directions_positions_next_to`): by the side of, alongside
+- Between (`directions_positions_between`): in between, sandwiched
+- In Front Of (`directions_positions_in_front_of`): ahead of, facing
+- Behind (`directions_positions_behind`): at the back, hidden behind
+- Upside down (`directions_positions_upside_down`): turned over
+- Upstairs (`directions_positions_upstairs`): go upstairs
+- Downstairs (`directions_positions_downstairs`): go downstairs
+
+## economy_finance (49)
+
+- Business (`economy_finance_business`): big business, corporate
+- Trade (`economy_finance_trade`): international trade, swap goods
+- Import (`economy_finance_import`): importing, goods in
+- Export (`economy_finance_export`): exporting, goods out
+- Economic Growth (`economy_finance_economic_growth`): growing economy, economic boom
+- Recession (`economy_finance_recession`): economic crisis, falling economy
+- Inflation (`economy_finance_inflation`): price rise, money worth less
+- Profit (`economy_finance_profit`): make a profit, profitable
+- Loss (`economy_finance_loss`): make a loss, loss-making
+- Taxes (`economy_finance_taxes`): tax office, pay taxes
+- Salary (`economy_finance_salary`): monthly pay, paycheck
+- Rich (`economy_finance_rich`): millionaire, affluent
+- Poor (`economy_finance_poor`): penniless, hard up
+- Contract (`economy_finance_contract`): sign a contract, legal document
+- Invoice (`economy_finance_invoice`): total amount, billing
+- Currency (`economy_finance_currency`): money of a country, world currencies
+- Euro (`economy_finance_euro`): euro coin, EUR
+- Dollar (`economy_finance_dollar`): US dollar, dollar bill
+- Pound Sterling (`economy_finance_pound_sterling`): British pound, GBP
+- Yen (`economy_finance_yen`): Japanese yen, JPY
+- Currency Exchange (`economy_finance_currency_exchange`): money exchange, foreign exchange
+- Exchange Rate (`economy_finance_exchange_rate`): euro to dollar, conversion rate
+- Savings (`economy_finance_savings`): nest egg
+- Debt (`economy_finance_debt`): unpaid bill, in debt
+- Budget (`economy_finance_budget`): household budget, money plan
+- Bank (`economy_finance_bank`): bank building, high street bank
+- Bank Account (`economy_finance_bank_account`): current account, my account
+- Account balance (`economy_finance_account_balance`): bank balance, money in the bank
+- Deposit (`economy_finance_deposit`): pay in money, bank deposit
+- Withdrawal (`economy_finance_withdrawal`): withdraw cash, cash point
+- Bank Transfer (`economy_finance_bank_transfer`): wire transfer, money transfer
+- Loan (`economy_finance_loan`): bank loan, borrowing
+- Mortgage (`economy_finance_mortgage`): buy a house, property loan
+- Interest (`economy_finance_interest`): interest on savings, percent
+- Credit Card (`economy_finance_credit_card`): pay by credit card, credit limit
+- Debit Card (`economy_finance_debit_card`): contactless card, cash card
+- Safe (`economy_finance_safe`): safe box, combination lock
+- Trading (`economy_finance_trading`): trading screen, buy and sell shares
+- Stock Market (`economy_finance_stock_market`): share prices, stock prices
+- Shares (`economy_finance_shares`): company shares, stock shares
+- Investment (`economy_finance_investment`): investing, invest money
+- Dividend (`economy_finance_dividend`): dividends, share payout
+- Rising Price (`economy_finance_rising_price`): price increase, going up
+- Falling Price (`economy_finance_falling_price`): price drop, going down
+- Fluctuating Price (`economy_finance_fluctuating_price`): price swings, changing price
+- Line Chart (`economy_finance_line_chart`): trend line, two lines
+- Bar Chart (`economy_finance_bar_chart`): column chart, bar diagram
+- Pie Chart (`economy_finance_pie_chart`): pie graph, circle chart
+- Candlestick Chart (`economy_finance_candlestick_chart`): candle chart, stock chart
+
+## emotions (35)
+
+- Happy (`emotions_happy`): happy face, joyful, glad, cheerful
+- Sad (`emotions_sad`): sad face, miserable, feeling sad
+- Angry (`emotions_angry`): furious, mad, rage
+- Surprised (`emotions_surprised`): surprised face, amazed, taken aback, raised eyebrows
+- Laugh (`emotions_laugh`): laughter, giggle, funny, burst out laughing
+- Scared (`emotions_scared`): scared face, terrified
+- Bored (`emotions_bored`): boredom, nothing to do
+- Crying (`emotions_crying`): sobbing, weeping
+- Pointing (`emotions_pointing`): point at, look there
+- Shrugging (`emotions_shrugging`): don't know, no idea
+- Winking (`emotions_winking`): cheeky, just kidding
+- Yawning (`emotions_yawning`): tiredness, need sleep
+- Whispering (`emotions_whispering`): tell a secret, speak softly
+- Arguing (`emotions_arguing`): quarrelling, disagreement
+- Smile (`emotions_smile`): beam
+- Excited (`emotions_excited`): excited face
+- Worried (`emotions_worried`): worried face
+- Nervous (`emotions_nervous`): butterflies in the stomach
+- Embarrassed (`emotions_embarrassed`): red face
+- Jealous (`emotions_jealous`): green with envy
+- Stressed (`emotions_stressed`): stressful
+- Disappointed (`emotions_disappointed`): disappointed face
+- Shocked (`emotions_shocked`): in shock
+- Disgusted (`emotions_disgusted`): disgusting
+- In love (`emotions_in_love`): heart eyes
+- Annoyed (`emotions_annoyed`): annoyance
+- Scream (`emotions_scream`): screaming face
+- Grateful (`emotions_grateful`): gratefulness
+- Ashamed (`emotions_ashamed`): ashamed face
+- Guilty (`emotions_guilty`): feel guilty
+- Homesick (`emotions_homesick`): miss home
+- Frustrated (`emotions_frustrated`): frustrating
+- Panic (`emotions_panic`): panic attack
+- Frown (`emotions_frown`): unhappy face
+- Blush (`emotions_blush`): go red
+
+## everyday_objects (25)
+
+- Fire Extinguisher (`safety_emergency_fire_extinguisher`): put out a fire, red cylinder
+- Lifebuoy (`safety_emergency_lifebuoy`): life preserver, lifesaver ring
+- Rope (`everyday_objects_rope`): rope coil, thick rope
+- Chain (`everyday_objects_chain`): chains, steel chain
+- Match (`everyday_objects_match`): lit match, strike a match
+- Matchbox (`everyday_objects_matchbox`): safety matches, matchboxes, strike a light
+- Lighter (`everyday_objects_lighter`): gas lighter, flick lighter
+- Cork (`everyday_objects_cork`): corks, pop the cork
+- Corkscrew (`everyday_objects_corkscrew`): open a bottle, uncork, waiter's friend
+- Magnet (`everyday_objects_magnet`): magnetic, pull metal
+- Spring (`everyday_objects_spring`): springs, bouncy coil
+- Funnel (`everyday_objects_funnel`): pour liquid, funnels, narrow spout
+- Tape (`everyday_objects_tape`): roll of tape
+- Paint (`everyday_objects_paint`): tin of paint
+- Glue (`everyday_objects_glue`): glue stick, stick together
+- Rubber band (`everyday_objects_rubber_band`): rubber bands, stretchy band
+- Tarpaulin (`everyday_objects_tarpaulin`): plastic sheet
+- Fishing net (`everyday_objects_fishing_net`): net for fish
+- Anchor (`everyday_objects_anchor`): drop anchor
+- Bell (`everyday_objects_bell`): ding-dong
+- Whistle (`everyday_objects_whistle`): whistles, blow
+- Water bottle (`everyday_objects_water_bottle`): bottle of water
+- Magnifying glass (`everyday_objects_magnifying_glass`): look closely
+- Fire alarm (`everyday_objects_fire_alarm`): alarm button
+- Ribbon (`everyday_objects_ribbon`): hair ribbon
+
+## flags (23)
+
+- Antarctica (`flags_flag_antarctica`): Antarctic, South Pole, Antarctic Treaty, polar region
+- Bouvet Island (`flags_flag_bouvet_island`): Norway, Norwegian territory, South Atlantic, uninhabited island
+- Corsican (`flags_flag_corsican`): Moor's head
+- French Guiana (`flags_flag_french_guiana`): Guiana, France, South America, overseas region of France
+- Friulian (`flags_flag_friulian`): Friuli-Venezia Giulia
+- Guadeloupe (`flags_flag_guadeloupe`): Caribbean, France, overseas region of France, Guadeloupean
+- Heard Island and McDonald Islands (`flags_flag_heard_island_and_mcdonald_islands`): Australia, Australian territory, Southern Ocean, uninhabited islands
+- Ligurian (`flags_flag_ligurian`): Genoa
+- Lombard (`flags_flag_lombard`): Milan
+- Martinique (`flags_flag_martinique`): Caribbean, France, overseas region of France, Martinican
+- Mayotte (`flags_flag_mayotte`): Indian Ocean, France, overseas region of France, Mahoran
+- Mirandese (`flags_flag_mirandese`): Portugal
+- Northern Ireland (`flags_flag_northern_ireland`): Ulster, United Kingdom, Europe, Northern Irish
+- Occitan (`flags_flag_occitan`): Occitan cross
+- Roma (`flags_flag_roma`): Romani people
+- Réunion (`flags_flag_reunion`): Indian Ocean, France, overseas region of France, Reunion Island
+- Saint Barthélemy (`flags_flag_saint_barthelemy`): Caribbean, France, St Barts, overseas collectivity
+- Saint Martin (French part) (`flags_flag_saint_martin_french_part`): Caribbean, France, Saint-Martin, overseas collectivity
+- Saint Pierre and Miquelon (`flags_flag_saint_pierre_and_miquelon`): North America, France, overseas collectivity, Atlantic islands
+- Sardinian (`flags_flag_sardinian`): Four Moors
+- Svalbard and Jan Mayen (`flags_flag_svalbard_and_jan_mayen`): Norway, Arctic, Norwegian territory, Europe
+- United States Minor Outlying Islands (`flags_flag_united_states_minor_outlying_islands`): United States, US territory, Pacific Ocean, Oceania
+- Venetian (`flags_flag_venetian`): Lion of Saint Mark
+
+## food_descriptions (19)
+
+- Hot (`food_descriptions_hot`): hot food, steaming
+- Cold (`food_descriptions_cold`): cold drink, ice-cold
+- Sweet (`food_descriptions_sweet`): sweet taste, sugar-coated
+- Salty (`food_descriptions_salty`): salted, salty snack
+- Sour (`food_descriptions_sour`): sour taste
+- Bitter (`food_descriptions_bitter`): bitter taste, strong flavour
+- Spicy (`food_descriptions_spicy`): spicy food
+- Fresh (`food_descriptions_fresh`): freshly picked, fresh food
+- Ripe (`food_descriptions_ripe`): ripened, ripe fruit, ready to pick
+- Raw (`food_descriptions_raw`): not cooked, raw food, raw vegetables
+- Cooked (`food_descriptions_cooked`): cooked food, heated
+- Crispy (`food_descriptions_crispy`): crunchy snack, crackling
+- Soft (`food_descriptions_soft`): soft food, spongy
+- Tender (`food_descriptions_tender`): tender meat, easy to chew
+- Creamy (`food_descriptions_creamy`): creamy texture, creamy sauce
+- Delicious (`food_descriptions_delicious`): mouth-watering
+- Disgusting (`food_descriptions_disgusting`): nasty taste
+- Burnt (`food_descriptions_burnt`): blackened
+- Unhealthy (`food_descriptions_unhealthy`): greasy food
+
+## food_drinks (145)
+
+- Bread (`bread`): slice of bread, white bread, breads, bakery
+- Apple (`apple`): apples, red apple, eat an apple, crunchy fruit
+- Water (`water`): glass of water, tap water, still water
+- Coffee (`coffee`): cup of coffee, black coffee
+- Orange (`food_drinks_orange`): oranges, citrus fruit, navel orange, orange fruit
+- Bananas (`food_drinks_bananas`): bunch of bananas, ripe bananas, banana skin, yellow bananas
+- Strawberry (`food_drinks_strawberry`): strawberries, red berry, summer fruit, fresh strawberry
+- Carrot (`food_drinks_carrot`): root vegetable, orange vegetable, raw carrot
+- Tomato (`food_drinks_tomato`): red tomato, ripe tomato, salad vegetable
+- Broccoli (`food_drinks_broccoli`): green vegetable, florets, broccoli head, calabrese
+- Potato (`food_drinks_potato`): spud, raw potato, jacket potato
+- Cheese (`food_drinks_cheese`): wedge of cheese, cheese with holes, Swiss cheese, Emmental
+- Egg (`food_drinks_egg`): hen's egg, brown egg, raw egg
+- Burger (`food_drinks_burger`): cheeseburger, fast food, beefburger, burger and bun
+- Pizza (`food_drinks_pizza`): slice of pizza, pizzas, takeaway pizza, Italian pizza
+- Rice (`food_drinks_rice`): bowl of rice, white rice, boiled rice, steamed rice
+- Soup (`food_drinks_soup`): vegetable soup, broth
+- Salad (`food_drinks_salad`): green salad, mixed salad, salad bowl, side salad
+- Milk (`food_drinks_milk`): glass of milk, cow's milk, fresh milk, dairy drink
+- Juice (`food_drinks_juice`): orange juice, glass of juice, juices, fresh juice
+- Tea (`food_drinks_tea`): cup of tea, hot tea
+- Ice cream (`food_drinks_ice_cream`): ice cream cone, scoop of ice cream, ice-cream, cornet
+- Chocolate (`food_drinks_chocolate`): chocolate bar, bar of chocolate, dark chocolate, milk chocolate
+- Cake (`food_drinks_cake`): slice of cake, cream cake, sponge cake, layer cake
+- Croissant (`food_drinks_croissant`): croissants, French pastry, breakfast pastry, flaky pastry
+- Watermelon (`food_drinks_watermelon`): watermelons, juicy fruit, slice of watermelon
+- Grapes (`food_drinks_grapes`): bunch of grapes, grape, red grapes
+- Lemon (`food_drinks_lemon`): lemons, sour, yellow citrus
+- Cherries (`food_drinks_cherries`): pair of cherries, red cherries, sweet cherries
+- Pear (`food_drinks_pear`): pears, green pear, juicy pear, orchard fruit
+- Pasta (`food_drinks_pasta`): pasta shapes
+- Flour (`food_drinks_flour`): bag of flour, plain flour
+- Butter (`food_drinks_butter`): pat of butter, butter dish, salted butter
+- Cream (`food_drinks_cream`): whipping cream, jug of cream
+- Yogurt (`food_drinks_yogurt`): pot of yogurt, plain yogurt, dairy dessert
+- Meat (`food_drinks_meat`): joint of meat, meat on the bone, leg of ham
+- Beef (`food_drinks_beef`): beef cut, sirloin
+- Pork (`food_drinks_pork`): raw pork, pig meat, pork loin
+- Chicken (`food_drinks_chicken`): chicken legs
+- Shrimp (`food_drinks_shrimp`): king prawn, cooked prawn, shrimps
+- Mussels (`food_drinks_mussels`): mussel shells, bivalve
+- Seafood (`food_drinks_seafood`): seafood platter, fruits of the sea
+- Vegetables (`food_drinks_vegetables`): vegetable box, fresh vegetables
+- Onions (`food_drinks_onions`): red onion, sliced onion, brown onion
+- Garlic (`food_drinks_garlic`): garlic cloves, bulb of garlic
+- Lettuce (`food_drinks_lettuce`): head of lettuce, iceberg lettuce
+- Peas (`food_drinks_peas`): pea pod, garden peas
+- Beans (`food_drinks_beans`): bowl of beans, mixed beans
+- Lentils (`food_drinks_lentils`): red lentils, bowl of lentils, dried lentils
+- Fruit (`food_drinks_fruit`): mixed fruit, fresh fruit, fruit basket
+- Olives (`food_drinks_olives`): black and green olives, pitted olives
+- Olive Oil (`food_drinks_olive_oil`): bottle of oil, cooking oil
+- Vinegar (`food_drinks_vinegar`): bottle of vinegar, red wine vinegar, malt vinegar
+- Salt (`food_drinks_salt`): table salt, bowl of salt, salty
+- Pepper (`food_drinks_pepper`): ground pepper
+- Sugar (`food_drinks_sugar`): lumps of sugar, white sugar
+- Honey (`food_drinks_honey`): honey pot, honey dipper
+- Basil (`food_drinks_basil`): basil leaves, fresh basil
+- Parsley (`food_drinks_parsley`): flat-leaf parsley, fresh herbs, garnish
+- Rosemary (`food_drinks_rosemary`): rosemary sprig, herb sprig, aromatic herb
+- Sandwich (`food_drinks_sandwich`): sandwiches, club sandwich, triangle sandwich, sarnie
+- Omelette (`food_drinks_omelette`): egg dish, folded omelette
+- Steak (`food_drinks_steak`): sirloin steak, steak dinner
+- Roast Chicken (`food_drinks_roast_chicken`): roast dinner, whole chicken
+- Grilled Fish (`food_drinks_grilled_fish`): whole fish, fish dinner
+- Mashed Potatoes (`food_drinks_mashed_potatoes`): mashed potato, creamy mash
+- Fries (`food_drinks_fries`): fried potatoes, portion of chips
+- Biscuits (`food_drinks_biscuits`): chocolate chip cookies, sweet biscuits
+- Sparkling Water (`food_drinks_sparkling_water`): mineral water, carbonated water
+- Lemonade (`food_drinks_lemonade`): glass of lemonade, lemon slice
+- Beer (`food_drinks_beer`): glass of beer, beer mug
+- Wine (`food_drinks_wine`): bottle of wine, wine glass
+- Bruschetta (`food_drinks_bruschetta`): toasted bread
+- Spaghetti (`food_drinks_spaghetti`): long pasta, plate of spaghetti
+- Tagliatelle (`food_drinks_tagliatelle`): ribbon pasta
+- Lasagne (`food_drinks_lasagne`): pasta bake
+- Tortellini (`food_drinks_tortellini`): filled pasta, pasta parcels
+- Gnocchi (`food_drinks_gnocchi`): dumplings, potato gnocchi
+- Mozzarella (`food_drinks_mozzarella`): fresh cheese, white cheese
+- Prosciutto (`food_drinks_prosciutto`): Italian ham
+- Salame (`food_drinks_salame`): salami slices
+- Gelato (`food_drinks_gelato`): Italian dessert
+- Espresso (`food_drinks_espresso`): small coffee
+- Cappuccino (`food_drinks_cappuccino`): frothy coffee
+- Sushi (`food_drinks_sushi`): raw fish, nigiri
+- Taco (`food_drinks_taco`): tacos, taco shell, street food
+- Nachos (`food_drinks_nachos`): corn chips, cheesy nachos
+- Hot Dog (`food_drinks_hot_dog`): hotdog, frankfurter
+- Fish and Chips (`food_drinks_fish_and_chips`): chippy, fish supper
+- Paella (`food_drinks_paella`): rice and seafood, paella pan
+- Fondue (`food_drinks_fondue`): cheese fondue, fondue forks
+- Baguette (`food_drinks_baguette`): French stick, long loaf
+- Waffle (`food_drinks_waffle`): waffles, waffle with butter
+- Pancakes (`food_drinks_pancakes`): pancake stack, pancake
+- Doughnut (`food_drinks_doughnut`): ring doughnut, sprinkles
+- Churros (`food_drinks_churros`): fried dough, churros with chocolate
+- Fortune Cookie (`food_drinks_fortune_cookie`): fortune slip, lucky message
+- Gingerbread Man (`food_drinks_gingerbread_man`): gingerbread biscuit, spiced biscuit
+- Dinner (`everyday_misc_dinner`): dinner time, eating together
+- Tin (can) (`food_drinks_tin_can`): tinned food
+- Avocado (`food_drinks_avocado`): avocado stone
+- Bell pepper (`food_drinks_bell_pepper`): red pepper
+- Salmon (`food_drinks_salmon`): pink fish
+- Noodles (`food_drinks_noodles`): Asian noodles
+- Fried egg (`food_drinks_fried_egg`): egg yolk
+- Ketchup (`food_drinks_ketchup`): ketchup bottle
+- Cereal (breakfast) (`food_drinks_breakfast_cereal`): flakes
+- Lime (`food_drinks_lime`): lime wedge
+- Apricot (`food_drinks_apricot`): apricot half
+- Blueberries (`food_drinks_blueberries`): blue berries
+- Raspberries (`food_drinks_raspberries`): fresh raspberries
+- Grapefruit (`food_drinks_grapefruit`): grapefruit half
+- Coconut (`food_drinks_coconut`): coconut shell
+- Cauliflower (`food_drinks_cauliflower`): cauliflower head
+- Spinach (`food_drinks_spinach`): spinach plant
+- Muffin (`food_drinks_muffin`): chocolate muffin
+- Lollipop (`food_drinks_lollipop`): rainbow lollipop
+- Porridge (`food_drinks_porridge`): porridge oats
+- Sauce (`food_drinks_sauce`): pour sauce
+- Mayonnaise (`food_drinks_mayonnaise`): mayo jar
+- Mustard (`food_drinks_mustard`): mustard sauce
+- Cola (`food_drinks_cola`): can of cola
+- Milkshake (`food_drinks_milkshake`): strawberry shake
+- Curry (`food_drinks_curry`): Indian food
+- Kebab (`food_drinks_kebab`): kebab skewers
+- Celery (`food_drinks_celery`): celery bunch
+- Asparagus (`food_drinks_asparagus`): asparagus bunch
+- Sweet potato (`food_drinks_sweet_potato`): orange flesh
+- Scrambled eggs (`food_drinks_scrambled_eggs`): scrambled egg
+- Cocktail (`food_drinks_cocktail`): tropical cocktail
+- Chewing gum (`food_drinks_chewing_gum`): blow a bubble
+- Peanut butter (`food_drinks_peanut_butter`): peanut butter jar
+- Meatballs (`food_drinks_meatballs`): meatballs in sauce
+- Risotto (`food_drinks_risotto`): risotto rice
+- Aubergine (`food_drinks_aubergine`): aubergines, purple vegetable, brinjal
+- Bacon (`food_drinks_bacon`): rashers, bacon rashers, streaky bacon
+- Cabbage (`food_drinks_cabbage`): green cabbage, head of cabbage, cabbage leaves, savoy cabbage
+- Courgette (`food_drinks_courgette`): courgettes, green squash, summer squash
+- Cucumber (`food_drinks_cucumber`): cucumber slices, cucumbers, long green vegetable
+- Kiwi (`food_drinks_kiwi`): kiwis, half a kiwi, Chinese gooseberry
+- Mango (`food_drinks_mango`): mangoes, ripe mango, juicy mango, exotic fruit
+- Melon (`food_drinks_melon`): melons, melon slice, honeydew
+- Peach (`food_drinks_peach`): peaches, juicy peach, peach skin, nectarine
+- Pineapple (`food_drinks_pineapple`): pineapples, pineapple slice, spiky leaves, sweet tropical fruit
+- Plum (`food_drinks_plum`): plums, purple plum, two plums, damson
+
+## games (55)
+
+- Dice (`everyday_objects_dice`): pair of dice
+- Hearts (`games_cards_suit_hearts`): suit of hearts
+- Diamonds (`games_cards_suit_diamonds`): suit of diamonds
+- Clubs (`games_cards_suit_clubs`): suit of clubs
+- Spades (`games_cards_suit_spades`): suit of spades
+- Ace (`games_cards_card_ace`): ace card, highest card
+- Joker (`games_cards_card_joker`): joker card
+- Deck of cards (`games_cards_deck_of_cards`): card deck, shuffle
+- Hand of cards (`games_cards_hand_of_cards`): holding cards, play cards
+- Draughts piece (`games_checker_piece`): game counter
+- Playing piece (`games_playing_piece`): counter
+- Poker chip (`games_poker_chip`): casino
+- Board game (`games_board_game`): board games
+- Puzzle piece (`games_puzzle_piece`): jigsaw puzzle, missing piece
+- Dart (`games_dart`): dart flight, pointed dart
+- Spinner (`games_spinner`): spinning arrow
+- Tile (`games_letter_tile`): letter tiles
+- Marble (`games_marble`): play marbles, small glass ball
+- Trophy (`games_trophy`): trophies
+- Medal (`games_medal`): medals
+- Scoreboard (`games_scoreboard`): final score
+- Winner (`games_winner`): the winner
+- Winning (`games_winning`): win
+- Turn (`games_your_turn`): it's your go
+- Draw (`games_draw_game`): no winner
+- Checkmate (`games_chess_checkmate`): end of the game
+- Strategy (`games_strategy`): game plan
+- Cheating (`games_cheating`): cheater
+- Doll (`games_doll`): dolly
+- Toy car (`games_toy_car`): toy vehicle
+- Toy train (`games_toy_train`): toy locomotive
+- Building blocks (`games_building_blocks`): construction toy
+- Dollhouse (`games_dollhouse`): playhouse
+- Skipping rope (`games_skipping_rope`): rope game
+- Sandpit (`games_sandpit`): sand play
+- Beach ball (`games_beach_ball`): blow-up ball
+- Bubbles (soap bubbles) (`games_soap_bubbles`): bubble mixture
+- Yo-yo (`games_yo_yo`): yo-yos
+- Rocking horse (`games_rocking_horse`): wooden rocking horse
+- Water pistol (`games_water_pistol`): squirt
+- Frisbee (`games_frisbee`): frisbees
+- Spinning top (`games_spinning_top`): spin top
+- Colouring book (`games_colouring_book`): colouring pages
+- Stickers (`games_stickers`): sticky labels
+- Snowball (`games_snowball`): throw snowballs
+- Tricycle (`games_tricycle`): three wheels
+- Trampoline (`games_trampoline`): trampolining
+- Hula hoop (`games_hula_hoop`): hula
+- Rubber duck (`games_rubber_duck`): rubber ducky
+- Crossword (`games_crossword`): crossword grid
+- Hopscotch (`games_hopscotch`): number squares
+- Paper plane (`games_paper_plane`): folded plane
+- Tug of war (`games_tug_of_war`): pull the rope
+- Rock, paper, scissors (`games_rock_paper_scissors`): rock paper scissors
+- Noughts and crosses (`games_noughts_and_crosses`): Xs and Os
+
+## grammar (15)
+
+- Noun (`grammar_noun`): nouns
+- Pronoun (`grammar_pronoun`): pronouns
+- Verb (`grammar_verb`): verbs
+- Adjective (`grammar_adjective`): adjectives, quality word
+- Adverb (`grammar_adverb`): adverbs, how something is done
+- Preposition (`grammar_preposition`): prepositions, place word
+- Conjunction (`grammar_conjunction`): conjunctions
+- Singular (`grammar_singular`): one thing, singular noun
+- Plural (`grammar_plural`): plural noun
+- Infinitive (`grammar_infinitive`): to-infinitive
+- Negation (`grammar_negation`): negative
+- Subject (`grammar_subject`): doer
+- Object (`grammar_object`): object of the verb
+- Sentence (`grammar_sentence`): sentences
+- Exclamation (`grammar_exclamation`): exclaim
+
+## grammar_time (2)
+
+- Present (`grammar_time_present_tense`): present simple
+- Imperative (`grammar_time_imperative`): commands
+
+## greetings_expressions (23)
+
+- Good morning! (`greetings_expressions_good_morning`): say good morning
+- Good night! (`greetings_expressions_good_night`): say good night
+- Welcome! (`greetings_expressions_welcome`): warm welcome
+- Maybe (`greetings_expressions_maybe`): who knows
+- Please (`greetings_expressions_please`): polite word, may I
+- Thank you (`greetings_expressions_thank_you`): say thank you, many thanks
+- You're welcome (`greetings_expressions_youre_welcome`): don't mention it, glad to help
+- Excuse me (`greetings_expressions_excuse_me`): sorry to bother you, pardon me
+- Take care! (`greetings_expressions_take_care`): be safe
+- Forbidden (`greetings_expressions_forbidden`): not permitted
+- No problem! (`greetings_expressions_no_problem`): sure thing
+- Wait! (`greetings_expressions_wait`): wait a minute
+- Hurry up! (`greetings_expressions_hurry_up`): quick
+- Let's go! (`greetings_expressions_lets_go`): time to go
+- Good luck! (`greetings_expressions_good_luck`): break a leg
+- See you soon! (`greetings_expressions_see_you_soon`): see you
+- Stop! (`greetings_expressions_stop_expression`): stop it
+- Really? (`greetings_expressions_really`): are you sure
+- Never mind (`greetings_expressions_never_mind`): doesn't matter, it's nothing
+- After you (`greetings_expressions_after_you`): please go first, be my guest
+- Bless you! (`greetings_expressions_bless_you`): atishoo
+- Oh no! (`greetings_expressions_oh_no`): uh-oh
+- Phew! (`greetings_expressions_phew`): close call
+
+## health_care (30)
+
+- Plaster (`health_care_plaster`): plasters, adhesive bandage
+- Bandage (`health_care_bandage`): roll of bandage, bandages
+- Thermometer (`health_care_thermometer`): take your temperature, digital thermometer
+- Crutches (`health_care_crutches`): on crutches, broken leg
+- Wheelchair (`health_care_wheelchair`): wheelchair user, disabled
+- Stethoscope (`health_care_stethoscope`): listen to the heart, doctor's tool
+- Syringe (`health_care_syringe`): syringes, hypodermic
+- Pills (`health_care_pills`): pill, take pills
+- Tissues (`health_care_tissues`): paper tissues, blow your nose
+- X-ray (`health_care_x_ray`): radiography
+- Stretcher (`health_care_stretcher`): carry a patient
+- Waiting room (`health_care_waiting_room`): waiting chairs
+- Inhaler (`health_care_inhaler`): breathing
+- Blood test (`health_care_blood_test`): test tube
+- Blood pressure (`health_care_blood_pressure`): hypertension
+- Prescription (`health_care_prescription`): prescription form
+- Hospital bed (`health_care_hospital_bed`): in hospital
+- Vitamins (`health_care_vitamins`): multivitamins
+- Eye test (`health_care_eye_test`): letter chart
+- Shower gel (`health_care_shower_gel`): body soap
+- Face mask (`health_care_face_mask`): masks, protective mask
+- First aid kit (`health_care_first_aid_kit`): first aid box, medical box, plasters and bandages
+- Hand sanitizer (`health_care_hand_sanitizer`): hand gel, clean hands
+- Hearing aid (`health_care_hearing_aid`): hearing device, hard of hearing, behind-the-ear
+- Walking stick (`health_care_walking_stick`): walking support, walking cane, mobility aid
+- Contact lens (`health_care_contact_lens`): contacts, contact lenses, eye lens
+- Cotton bud (`health_care_cotton_bud`): Q-tip, cotton buds, ear cleaning
+- Shampoo (`health_care_shampoo`): hair wash, shampoo bottle
+- Deodorant (`health_care_deodorant`): antiperspirant, body spray, roll-on
+- Sunscreen (`health_care_sunscreen`): sun lotion, SPF, sun protection
+
+## health_illness (36)
+
+- Sick (`health_illness_sick`): feeling ill
+- Fever (`health_illness_fever`): feverish
+- Coughing (`health_illness_coughing`): chesty cough, coughs
+- Sneezing (`health_illness_sneezing`): runny nose
+- Headache (`health_illness_headache`): sore head, aching head
+- Toothache (`health_illness_toothache`): tooth hurts, dental pain
+- Stomach ache (`health_illness_stomach_ache`): stomach hurts, upset stomach
+- Vomiting (`health_illness_vomiting`): be sick
+- Injury (`health_illness_injury`): injured
+- Bleeding (`health_illness_bleeding`): bleed
+- Broken arm (`health_illness_broken_arm`): broken bone
+- Allergy (`health_illness_allergy`): allergies
+- Medicine (`health_illness_medicine`): medicines
+- Capsule (`health_illness_capsule`): capsules, gel capsule
+- Cough syrup (`health_illness_cough_syrup`): medicine spoon
+- Eye drops (`health_illness_eye_drops`): eye medicine, drops
+- Ointment (`health_illness_ointment`): salve
+- Injection (`health_illness_injection`): get a shot
+- Vaccination (`health_illness_vaccination`): vaccinate
+- Bandaging (`health_illness_bandaging`): wrap a bandage
+- Surgery (`health_illness_surgery`): surgical operation
+- Treatment (`health_illness_treatment`): treat
+- Recovery (`health_illness_recovery`): feel better
+- First aid (`health_illness_first_aid`): basic care
+- Earache (`health_illness_earache`): ear hurts
+- Sore throat (`health_illness_sore_throat`): throat hurts
+- Healthy (`health_illness_healthy`): in good health
+- Sunburn (`health_illness_sunburn`): red skin
+- Bruise (`health_illness_bruise`): bruises
+- Burn (`health_illness_burn_injury`): burned
+- Rash (`health_illness_rash`): spots
+- Itch (`health_illness_itch`): itches
+- Scar (`health_illness_scar`): scarred
+- Blister (`health_illness_blister`): foot blister
+- Nosebleed (`health_illness_nosebleed`): nose bleeding
+- Dizzy (`health_illness_dizzy`): feel dizzy
+
+## Other changes
+
+- Jump (`actions_jump`): renamed from 'Saltare'; removed jump; added jump up
+- Drink (`actions_drink`): removed glass of water; added have a drink
+- I am (`pronouns_be_have_pronoun_i_am`): removed myself, me
+- New: I, me, my, myself (`pronouns_be_have_pronoun_i`, pronouns_be_have): I, me, my, mine, myself, first person singular
+- New: You, your, yourself (`pronouns_be_have_pronoun_you`, pronouns_be_have): you, your, yours, yourself, second person singular
+- New: He, him, his, himself (`pronouns_be_have_pronoun_he`, pronouns_be_have): he, him, his, himself, third person masculine
+- New: She, her, herself (`pronouns_be_have_pronoun_she`, pronouns_be_have): she, her, hers, herself, third person feminine
+- New: It, its, itself (`pronouns_be_have_pronoun_it`, pronouns_be_have): it, its, itself, third person neuter, neuter pronoun
+- New: We, us, our, ourselves (`pronouns_be_have_pronoun_we`, pronouns_be_have): we, us, our, ours, ourselves, first person plural
+- New: You all, your, yourselves (`pronouns_be_have_pronoun_you_all`, pronouns_be_have): you all, your, yours, yourselves, you guys, second person plural
+- New: They, them, their, themselves (`pronouns_be_have_pronoun_they`, pronouns_be_have): they, them, their, theirs, themselves, third person plural
+- New: Friend (man) (`relationships_friend_man`, relationships): friend, male friend, buddy, pal, high five, man, male
+- New: Friend (woman) (`relationships_friend_woman`, relationships): friend, female friend, buddy, pal, high five, woman, female
+- New: Kid (boy) (`people_family_kid_boy`, people_family): kid, little boy, young boy, child, playing child, boy
+- New: Kid (girl) (`people_family_kid_girl`, people_family): kid, little girl, young girl, child, playing child, girl
+- New: Hello! (`greetings_expressions_hello`, greetings_expressions): hello, hi, hi there, greeting, say hello
+- New: Bye! (`greetings_expressions_bye`, greetings_expressions): bye, bye-bye, see ya, casual goodbye, wave bye
+- New: Goodbye! (`greetings_expressions_goodbye`, greetings_expressions): goodbye, farewell, say goodbye, parting, leaving

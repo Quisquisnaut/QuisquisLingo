@@ -1,0 +1,175 @@
+import 'dart:io';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:quisquislingo_app/models/exercise_image_metadata.dart';
+import 'package:quisquislingo_app/screens/flat_image_library_screen.dart';
+import 'package:quisquislingo_app/services/exercise_image_metadata_service.dart';
+import 'package:quisquislingo_app/services/profile_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+const _adminId = '11111111-1111-4111-8111-111111111111';
+
+void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  setUp(() {
+    SharedPreferences.setMockInitialValues({
+      ProfileService.profilesKey: [
+        const LearnerProfile(
+          learnerProfileId: _adminId,
+          displayName: 'Admin',
+        ).encode(),
+      ],
+      ProfileService.adminProfileIdsKey: [_adminId],
+    });
+  });
+
+  testWidgets('Admin adds Local words to a QQL image from media management', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1000, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: FlatImageLibraryScreen(
+          selectMode: false,
+          metadataEditingEnabled: true,
+          actorProfileId: _adminId,
+        ),
+      ),
+    );
+    await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+    for (
+      var attempt = 0;
+      attempt < 20 &&
+          find.byKey(const Key('exercise-image-search')).evaluate().isEmpty;
+      attempt++
+    ) {
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+
+    expect(find.text('Admin media management'), findsOneWidget);
+    expect(
+      find.text('Categories and tags must be written in English.'),
+      findsNothing,
+    );
+    // Build 265 Revision 5: "friend" finds the picture Friends, no longer
+    // the man.
+    await tester.enterText(
+      find.byKey(const Key('exercise-image-search')),
+      'adult man',
+    );
+    await tester.pump();
+    await tester.tap(
+      find.byKey(const ValueKey('exercise-image-people_family_man')),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 350));
+    await tester.pump();
+    expect(
+      find.byKey(const Key('exercise-image-metadata-edit')),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.byKey(const Key('exercise-image-metadata-edit')));
+    await tester.pumpAndSettle();
+    expect(
+      find.text('Categories and tags must be written in English.'),
+      findsNothing,
+    );
+    // QQL's category and tags are read-only; only Local words can change.
+    expect(find.byKey(const Key('exercise-image-tags-editor')), findsNothing);
+    await tester.enterText(
+      find.byKey(const Key('exercise-image-local-editor')),
+      'colleague',
+    );
+    await tester.tap(find.byKey(const Key('exercise-image-metadata-save')));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(
+      find.byKey(const Key('exercise-image-search')),
+      'colleague',
+    );
+    await tester.pump();
+    expect(find.text('man'), findsOneWidget);
+    expect(find.textContaining('Local: colleague'), findsOneWidget);
+    final record = await ExerciseImageMetadataService().metadataFor(
+      'people_family_man',
+    );
+    expect(record.tags, isNot(contains('colleague')));
+    expect(record.localWords, ['colleague']);
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+  });
+
+  testWidgets('Admin edits attribution for a device image in Metadata edit', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1000, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final metadata = ExerciseImageMetadataService();
+    await metadata.addLocalRecord(
+      actorProfileId: _adminId,
+      record: ExerciseImageMetadata(
+        id: 'credited_cat',
+        label: 'Credited cat',
+        category: 'animals',
+        tags: const ['cat'],
+        assetPath: File('assets/exercise_images/apple.webp').absolute.path,
+        origin: 'local',
+      ),
+    );
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: FlatImageLibraryScreen(
+          selectMode: false,
+          metadataEditingEnabled: true,
+          actorProfileId: _adminId,
+        ),
+      ),
+    );
+    await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+    for (
+      var attempt = 0;
+      attempt < 20 &&
+          find.byKey(const Key('exercise-image-search')).evaluate().isEmpty;
+      attempt++
+    ) {
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+    await tester.enterText(
+      find.byKey(const Key('exercise-image-search')),
+      'Credited cat',
+    );
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('exercise-image-credited_cat')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('exercise-image-metadata-edit')));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const Key('exercise-image-attribution-author')),
+      'A. Artist',
+    );
+    await tester.enterText(
+      find.byKey(const Key('exercise-image-attribution-license')),
+      'CC BY 4.0',
+    );
+    await tester.tap(find.byKey(const Key('exercise-image-metadata-save')));
+    await tester.pumpAndSettle();
+    expect(
+      (await metadata.metadataFor('credited_cat')).attribution?.author,
+      'A. Artist',
+    );
+    await tester.tap(find.byKey(const ValueKey('exercise-image-credited_cat')));
+    await tester.pumpAndSettle();
+    expect(
+      find.textContaining('Attribution: A. Artist · CC BY 4.0'),
+      findsOneWidget,
+    );
+  });
+}

@@ -1,0 +1,321 @@
+import 'support/test_directories.dart';
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:quisquislingo_app/services/course_file_store.dart';
+import 'package:quisquislingo_app/models/course_models.dart';
+import 'package:quisquislingo_app/screens/course_editor_screen.dart';
+import 'package:quisquislingo_app/screens/round_screen.dart';
+import 'package:quisquislingo_app/services/course_access_policy.dart';
+import 'package:quisquislingo_app/services/course_backup_service.dart';
+import 'package:quisquislingo_app/services/course_editor_service.dart';
+import 'package:quisquislingo_app/services/profile_service.dart';
+import 'package:quisquislingo_app/widgets/script_recognition_editor.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import 'exercise_workflow_226_02_test.dart' as workflow;
+
+void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  setUp(() async {
+    SharedPreferences.setMockInitialValues({'sound_effects_enabled': false});
+    await ProfileService().addProfile('Read-only reviewer');
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+          const MethodChannel('plugins.flutter.io/path_provider'),
+          (call) async {
+            if (call.method == 'getApplicationSupportDirectory') {
+              return testSupportDirectory.path;
+            }
+            throw PlatformException(code: 'test_storage_unavailable');
+          },
+        );
+    keepCrashLogUnavailable();
+  });
+
+  for (final origin in [
+    CourseOriginType.bundledOfficial,
+    CourseOriginType.externalOfficial,
+  ]) {
+    for (final preset in [
+      'script_recognition',
+      'type_missing_word',
+      'type_translation',
+    ]) {
+      testWidgets(
+        '$origin $preset remains read-only from the real Course Editor entry',
+        (tester) async {
+          tester.view.devicePixelRatio = 1;
+          tester.view.physicalSize = const Size(1200, 1500);
+          addTearDown(tester.view.resetDevicePixelRatio);
+          addTearDown(tester.view.resetPhysicalSize);
+          final course = _official(origin, preset);
+          final profileId = await ProfileService().getActiveProfileId();
+          if (origin == CourseOriginType.externalOfficial) {
+            await tester.runAsync(
+              () => CourseFileStore().write(
+                CourseStoreKind.externalOfficial,
+                course.courseId,
+                {'source': course.toJson()},
+              ),
+            );
+          }
+          var beforePrefs = await workflow.preferences();
+          final beforeCourse = jsonEncode(course.toJson());
+          final service = CourseEditorService(
+            backupService: _ReadOnlyBackups(),
+          );
+          await tester.pumpWidget(
+            MaterialApp(
+              home: Builder(
+                builder: (context) => FilledButton(
+                  onPressed: () => Navigator.of(context).push<void>(
+                    MaterialPageRoute(
+                      builder: (_) => CourseEditorScreen(
+                        course: course,
+                        access: CourseAccessPolicy.evaluate(
+                          course,
+                          profileId: profileId,
+                        ),
+                        editorService: service,
+                      ),
+                    ),
+                  ),
+                  child: const Text('Open official'),
+                ),
+              ),
+            ),
+          );
+          await tester.tap(find.text('Open official'));
+          await workflow.settle(tester);
+          expect(find.byType(CourseEditorScreen), findsOneWidget);
+          expect(find.text('Read-only course'), findsOneWidget);
+          _expectNoAuthorControls();
+
+          await tester.tap(
+            find.byKey(const Key('course-editor-lessons-navigation')),
+          );
+          await workflow.settle(tester);
+          expect(
+            find.byKey(const Key('course-editor-view-mode-notice')),
+            findsOneWidget,
+          );
+          await tester.tap(find.text('Continue'));
+          await workflow.settle(tester);
+          // The QQL 231 View notice acknowledgement is the only expected
+          // preference write during this read-only workflow.
+          beforePrefs = await workflow.preferences();
+          await tester.tap(find.byKey(const ValueKey('lesson-entry-lesson')));
+          await workflow.settle(tester);
+          _expectNoAuthorControls();
+          await tester.tap(find.byKey(const Key('lesson-rounds-navigation')));
+          await workflow.settle(tester);
+          await tester.tap(find.byKey(const ValueKey('round-entry-round')));
+          await workflow.settle(tester);
+          await tester.tap(
+            find.byKey(const ValueKey('exercise-entry-exercise')),
+          );
+          await workflow.settle(tester);
+          expect(find.text('View Exercise 1'), findsOneWidget);
+          expect(
+            find.byKey(const Key('exercise-read-only-notice')),
+            findsOneWidget,
+          );
+          expect(
+            find.byKey(const Key('exercise-inspection-presentation')),
+            findsNothing,
+          );
+          _expectReadOnlyExercise(tester);
+          await tester.ensureVisible(find.byKey(const Key('exercise-preview')));
+          await tester.tap(find.byKey(const Key('exercise-preview')));
+          await workflow.settle(tester);
+          expect(find.byType(RoundScreen), findsOneWidget);
+          expect(
+            tester.widget<RoundScreen>(find.byType(RoundScreen)).previewMode,
+            isTrue,
+          );
+          expect(find.byType(ExerciseEditorScreen), findsNothing);
+          expect(find.byType(ScriptRecognitionEditor), findsNothing);
+          expect(find.byKey(const ValueKey('exercise-save')), findsNothing);
+          expect(await workflow.preferences(), beforePrefs);
+          expect(jsonEncode(course.toJson()), beforeCourse);
+          expect(
+            (await tester.runAsync(() => service.listUserCourses()))!,
+            origin == CourseOriginType.externalOfficial
+                ? hasLength(1)
+                : isEmpty,
+          );
+          expect(tester.takeException(), isNull);
+        },
+      );
+    }
+  }
+}
+
+void _expectNoAuthorControls() {
+  expect(find.byType(ExerciseEditorScreen), findsNothing);
+  expect(find.byType(ScriptRecognitionEditor), findsNothing);
+  expect(find.byType(TextField), findsNothing);
+  expect(find.byType(TextFormField), findsNothing);
+  for (final key in [
+    'script-mode',
+    'script-add-option',
+    'script-add-prompt-image',
+    'exercise-save',
+    'exercise-save-draft',
+    'exercise-preset-selector',
+  ]) {
+    expect(find.byKey(ValueKey(key)), findsNothing);
+  }
+  for (final label in [
+    'Expand answers',
+    'Use expanded answers',
+    'Add answer option',
+    'Save',
+    'Save as draft',
+  ]) {
+    expect(find.text(label), findsNothing);
+  }
+}
+
+void _expectReadOnlyExercise(WidgetTester tester) {
+  expect(find.byType(ExerciseEditorScreen), findsOneWidget);
+  final fields = find.byType(TextField);
+  expect(fields, findsWidgets);
+  for (final element in fields.evaluate()) {
+    expect((element.widget as TextField).readOnly, isTrue);
+  }
+  expect(
+    tester
+        .widget<OutlinedButton>(find.byKey(const Key('exercise-save-draft')))
+        .onPressed,
+    isNull,
+  );
+  expect(
+    tester
+        .widget<FilledButton>(find.byKey(const Key('exercise-save')))
+        .onPressed,
+    isNull,
+  );
+  expect(
+    tester
+        .widget<OutlinedButton>(find.byKey(const Key('exercise-preview')))
+        .onPressed,
+    isNotNull,
+  );
+}
+
+Course _official(CourseOriginType origin, String preset) {
+  final exercise = Exercise.v2(
+    id: 'exercise',
+    editorTemplate: preset,
+    updatedAt: DateTime.utc(2026, 9, 6),
+    promptElements: preset == 'script_recognition'
+        ? const [
+            PromptElement(
+              type: 'image',
+              asset: 'assets/exercise_images/apple.webp',
+            ),
+          ]
+        : [
+            PromptElement(
+              type: 'text',
+              text: preset == 'type_missing_word'
+                  ? 'Eat an ____.'
+                  : 'Translate: apple',
+            ),
+          ],
+    interaction: preset == 'script_recognition'
+        ? const ExerciseInteraction(
+            kind: 'select',
+            items: [
+              ExerciseItem(
+                id: 'apple',
+                content: [PromptElement(type: 'text', text: 'apple')],
+              ),
+              ExerciseItem(
+                id: 'bread',
+                content: [PromptElement(type: 'text', text: 'bread')],
+              ),
+            ],
+          )
+        : const ExerciseInteraction(kind: 'input'),
+    evaluation: preset == 'script_recognition'
+        ? const ExerciseEvaluation(
+            kind: 'selected_items',
+            correctItemIds: ['apple'],
+          )
+        : ExerciseEvaluation(
+            kind: 'text_match',
+            accepted: preset == 'type_translation'
+                ? const ['{an} apple', 'fruit']
+                : const ['apple'],
+          ),
+  );
+  final course = Course(
+    courseId: 'official-$preset',
+    originType: origin,
+    publisherId: 'original-publisher',
+    publisherName: 'Original Publisher',
+    officialCourseVersion: '1',
+    officialReleaseDateUtc: '2026-09-06T00:00:00.000Z',
+    officialChecksum: '0' * 64,
+    distributionChannel: origin == CourseOriginType.bundledOfficial
+        ? 'app'
+        : 'package',
+    learningLanguage: 'English',
+    interfaceLanguage: 'Italian',
+    sourceLanguage: 'Italian',
+    targetLanguage: 'English',
+    title: 'Official $preset',
+    ttsLanguage: 'en-US',
+    authors: const [
+      CourseAuthor(name: 'Original Author', roles: ['Author']),
+    ],
+    license: 'Publisher content license',
+    derivativeWorksPolicy: DerivativeWorksPolicy.forbidden,
+    lessons: [
+      Lesson(
+        lessonId: 'lesson',
+        title: 'Publisher Lesson',
+        updatedAt: DateTime.utc(2026, 9, 6),
+        rounds: [
+          LearningRound(
+            id: 'round',
+            title: 'Publisher Round',
+            updatedAt: DateTime.utc(2026, 9, 6),
+            exercises: [exercise],
+          ),
+        ],
+      ),
+    ],
+  );
+  return Course.fromJson({
+    ...course.toJson(),
+    'officialChecksum': CourseBackupService.officialContentChecksum(course),
+  });
+}
+
+class _ReadOnlyBackups extends CourseBackupService {
+  @override
+  Future<Directory> courseBackupDirectory(
+    String courseId, {
+    bool create = false,
+    String? pair,
+  }) async =>
+      Directory('${Directory.systemTemp.path}/qql_22603_readonly_ui/$courseId');
+  @override
+  Future<List<CourseBackupRecord>> listOfficialBackups(
+    String courseId, {
+    List<String>? skipped,
+  }) async => [];
+  @override
+  Future<List<CourseBackupRecord>> listBackups(
+    String courseId, {
+    List<String>? skipped,
+  }) async => [];
+}

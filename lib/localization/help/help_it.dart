@@ -1,0 +1,1348 @@
+/// Italian text for the first localized Help and Course Info slice.
+///
+/// QQL command, setting and mode labels intentionally remain in English.
+const Map<String, String> helpIt = {
+  // Existing Editor Help and Course Studio Help text.
+  'editorHelp.coursesInLearnerMode.title': 'I corsi in modalità studente',
+  'editorHelp.coursesInLearnerMode.body':
+      'Course Library, in fondo al Course Selector, elenca tutti i corsi presenti sul dispositivo in Bundled Courses, Publisher Courses, My Local Courses e Other Local Courses. Per impostazione predefinita nasconde i corsi non disponibili o con contenuti Draft; un interruttore li mostra. Sort by e il pulsante Expanded / Compact / Minimal di ogni sezione cambiano solo la visualizzazione. Add to my courses aggiunge il corso condiviso al tuo Selector e Course Studio senza concedere permessi di modifica. Remove from my courses lo rimuove da entrambi solo per il tuo profilo; i progressi restano salvo scelta esplicita di Reset my progress. Anche scegliendo il reset, restano tutti gli XP (compresi quelli settimanali), i giorni di studio totali e per lingua e la streak; gli XP ottenuti con questo corso non vengono sottratti. Solo un admin può usare Remove Publisher Course from device, purché nessun altro profilo includa il corso. Progressi e backup delle versioni restano dopo la disinstallazione. Senza corsi disponibili per lo studio, Home conserva Settings e Course Studio se attivato; non mostra una bandiera di corso. La pagina ha un proprio Help, copertina o bandiera del corso, dettagli Version, Last edited, Maintainer e Duration, e azione Added · Remove. Import Course nel Selector torna direttamente allo studio senza attivare Course Studio. Continue to Editor prepara il nuovo corso, salvato solo con Confirm course changes. Change course elenca i corsi Published della tua libreria personale: quelli ufficiali inclusi in QuisquisLingo e i corsi Published che stanno sotto Local courses. I corsi Not published restano disponibili per l’authoring, ma non possono diventare il corso attivo dello studente. Se selezioni un corso Published, quello diventa il corso corrente. La pagina di studio riprende dalla Lesson Published attiva per quello studente e quel corso. Se il corso ha delle Section vere, il Section selector fisso apre i blocchi di Section Published in ordine consecutivo e salta alla prima Lesson di ogni blocco.',
+  'editorHelp.courseOrigin.title': 'Origine del corso',
+  'editorHelp.courseOrigin.body':
+      'I corsi ufficiali inclusi nell’app sono copie sorgente verificate e immutabili, distribuite insieme a QuisquisLingo. Gli import Publisher Course richiedono una firma Ed25519 valida di un editore approvato. I corsi già salvati non verificabili vengono conservati con Verification required ed esclusi dallo studio. I corsi custom nascono in locale oppure vengono importati senza provenienza ufficiale. Entrambe le origini ufficiali si aprono come Official course - read only: puoi consultare Course Info, Audit, Preview, Version History e Lessons/Rounds/Exercises senza aprire nessuna transazione di authoring. Course Info mostra editore, versione ufficiale, stato di verifica e checksum. Solo un derivativeWorksPolicy esplicitamente allowed abilita il Fork; se il permesso è forbidden o non è indicato, la pagina spiega perché non è disponibile. Un Fork ha ID nuovi e una storia custom indipendente, ma conserva la discendenza dalla sorgente. Copy as New Course è invece un’azione separata, che fa partire una discendenza nuova e indipendente.',
+  'editorHelp.localCourseEditsAndBackups.title': 'Modifiche locali e backup',
+  'editorHelp.localCourseEditsAndBackups.body':
+      'Ogni modifica confermata a un corso custom già esistente archivia prima il corso salvato in quel momento in {folderBackups}/Courses, in una cartella per ogni corso, con la sua coppia di lingue e il suo ID. Su Android 7–10 QQL chiede una volta il permesso di usare quella cartella; su Android, Version History elenca solo i backup fatti da questa installazione di QQL. Il manifest del backup contiene il corso v11 completo, il Course Maintainer, l’eventuale Assigned Team, la provenienza, le versioni, gli autori, la data di modifica UTC, le note facoltative, il checksum e i riferimenti agli audio gestiti. I backup non vengono mai eliminati automaticamente. Version History elenca la versione attuale e i backup verificati, dal più recente, con Open backup folder ed Export JSON. Solo la storia dei corsi custom permette il Restore into working copy. La storia dei corsi ufficiali contiene soltanto le sorgenti dell’editore; le cartelle di backup più vecchie non vengono né caricate né cancellate. Anche un restore resta una modifica alla sola copia di lavoro, finché la conferma di primo livello non va a buon fine.',
+  'editorHelp.androidDeviceBackupTechnical.title':
+      'Backup del dispositivo Android (tecnico)',
+  'editorHelp.androidDeviceBackupTechnical.body':
+      'QuisquisLingo non ha account né server, quindi su Android l’Auto Backup della piattaforma è lasciato attivo di proposito: è l’unico modo in cui uno studente conserva il suo lavoro quando perde o cambia telefono. Vengono salvati di proposito: profili degli studenti, progressi, XP, streak, cronologia di Review, modifiche locali ai corsi, Team di authoring, impostazioni, il verificatore dell’Access PIN e la credenziale della User Recovery Key. L’Access PIN è incluso consapevolmente: è una protezione contro l’accesso distratto su un dispositivo di famiglia, non una barriera di sicurezza, ed escluderlo significherebbe solo che uno studente ripristinato si ritrova senza PIN senza capire perché. Sono esclusi dal backup in cloud gli Image Bank importati, le immagini degli esercizi importate e gli MP3 registrati. Il motivo è lo spazio, non la riservatezza: Android concede a un’app 25 MB di Auto Backup, un singolo Image Bank può arrivare a 50 MB, e un’app che supera la soglia non ottiene un backup parziale — smette semplicemente di essere salvata, senza avvisi. Quei file multimediali puoi reimportarli dai tuoi originali; i progressi no. Il trasferimento diretto da telefono a telefono non ha questa soglia e porta con sé anche i file multimediali. Per chi crea corsi la cosa conta in modo molto concreto: il corso che hai scritto viene salvato, le immagini e gli audio che ci hai importato dentro no. Tieni quindi da parte i file originali e il tuo export del Course JSON. Se l’Auto Backup sia attivo o no è comunque una scelta di chi possiede il dispositivo; QQL non carica niente per conto proprio. Due file di risorse definiscono tutto questo e vanno sempre modificati insieme, perché android:dataExtractionRules viene ignorato prima delle API 31: res/xml/data_extraction_rules.xml per API 31 e successive, e res/xml/backup_rules.xml per API 30 e precedenti. Un reset da Advanced (Admin) cancella i dati locali, ma non può raggiungere un backup che Android ha già fatto. I Course Backups sono in {folderBackups}, fuori dall’Auto Backup dell’app: restano se QQL viene disinstallato, e un telefono ripristinato non li recupera.',
+  'editorHelp.officialCourseUpdates.title': 'Aggiornamenti dei corsi ufficiali',
+  'editorHelp.officialCourseUpdates.body':
+      'Un aggiornamento ufficiale più recente viene accettato solo per lo stesso courseId e lo stesso editore, e solo se il checksum è valido. Prima di sostituire, QuisquisLingo archivia la sorgente ufficiale precedente. La nuova sorgente diventa quella corrente. I fork custom già esistenti e la loro storia restano come sono: non c’è nessun merge e nessun rebase. Le vecchie sostituzioni ufficiali della Build 225 non vengono usate, convertite o cancellate. Se la firma dell’editore non è verificabile, l’import viene bloccato. Un corso esistente non verificato viene conservato e richiede l’associazione esplicita a una release firmata più recente per essere riattivato.',
+  'editorHelp.courseInfoEditorAndLicense.title': 'Course Info Editor e licenza',
+  'editorHelp.courseInfoEditorAndLicense.body':
+      'Course Info Editor conserva Authors / Contributors strutturati, Rights Holder, la licenza del contenuto e un link HTTPS facoltativo Buy a Coffee, tenuti separati dalla licenza MPL-2.0 del software QuisquisLingo. Le informazioni su attribuzione e diritti sono descrittive e non concedono mai permessi a QQL. Rights Holder può indicare una o più persone od organizzazioni, senza bisogno che esistano come utenti locali. Puoi scegliere All rights reserved, CC0 1.0, CC BY 4.0, CC BY-SA 4.0, CC BY-NC 4.0, CC BY-NC-SA 4.0 oppure Other / Custom license; una licenza personalizzata registra anche la sua politica sulle opere derivate da parte di esterni. I contenuti e la provenienza dei corsi ufficiali restano in sola lettura.',
+  'editorHelp.courseResponsibilityPermissionsAndTeams.title':
+      'Responsabilità del corso, permessi e Team',
+  'editorHelp.courseResponsibilityPermissionsAndTeams.body':
+      'Original Course Creator, Course Maintainer, Assigned Team, Authors / Contributors, Rights Holder, License e la provenienza di fork e merge sono cose distinte. Ogni corso custom v12 ha un Original Course Creator immutabile e un solo Course Maintainer individuale. Solo il Course Maintainer attuale può passare la manutenzione a qualcun altro, oppure assegnare e revocare un Team per la gestione. Il Course Maintainer e tutti i membri attuali dell’Assigned Team possono gestire il contenuto del corso secondo i permessi QQL; la leadership del Team riguarda invece solo i membri del Team e i loro ruoli. I Team sono un modello di collaborazione sperimentale di QQL e possono gestire corsi mantenuti o creati da persone diverse. I permessi QQL regolano il comportamento dentro QQL e non stabiliscono da soli la titolarità del diritto d’autore, i diritti contrattuali o l’autorità di un’organizzazione esterna. Attribuzione, provenienza e Rights Holder non concedono mai permessi. Con la politica di accesso attuale, chi è esterno non può modificare il corso né usare Copy as New Course, e può fare un Fork solo dove le opere derivate sono permesse. I corsi inclusi nell’app usano questa stessa interfaccia dell’Editor, in sola lettura.',
+  'editorHelp.importCustomCourse.title': 'Importare un corso personalizzato',
+  'editorHelp.importCustomCourse.body':
+      '1. Copia uno ZIP di corso supportato in {folderCourseImports}/import.zip, oppure un JSON Course Model v12 senza media propri in import.json; tienine uno solo. Di norma course.json, qql-course-package.json e media/ si trovano alla radice dello ZIP. QQL accetta anche una sola cartella contenitore il cui nome corrisponde esattamente al nome dello ZIP senza .zip e mostra un avviso non bloccante; per import.zip, la cartella deve chiamarsi import. 2. In Course Studio apri Course Import e scegli Quick Import. 3. QQL controlla l’intero pacchetto e il Course Audit prima di installare il corso e i suoi media. Gli errori dell’Audit bloccano l’importazione; gli avvisi vengono segnalati. Le immagini copiate da una Shared Image Library gestita dall’Admin restano nel corso importato e non vengono aggiunte alla libreria condivisa del dispositivo di arrivo. Un corso external-official richiede la firma valida di un editore approvato; un normale import custom resta custom. Il file sorgente resta in {folderCourseImports}. Il JSON deve essere UTF-8 valido e non superare 10 MB; lo ZIP non può superare 300 MB, né compresso né espanso. I modelli di corso precedenti vengono rifiutati senza migrazione o cancellazione.',
+  'editorHelp.exportCustomCourse.title': 'Esportare un corso personalizzato',
+  'editorHelp.exportCustomCourse.body':
+      'Quick Export in Export Course salva in {folderCourseExports} un solo ZIP con il JSON completo del Course Model v12 e le immagini e registrazioni proprie effettivamente usate dal corso. I media inclusi nell’app restano forniti da QQL. Le immagini aggiunte dall’Admin alla Shared Image Library viaggiano come media del corso, con ID, etichetta, categoria, tag, origine e attribuzione per immagine disponibile. L’Admin può inserire autore, licenza, titolo e fonte in Edit metadata della libreria; importare lo ZIP non aggiunge le immagini alla libreria condivisa del dispositivo di arrivo. Il JSON conserva Creator, Maintainer, eventuale Team, autori, diritti, License, provenienza di Fork e Merge, stato Draft/Published e metadati di versione. Fork conserva la discendenza dalla sorgente; Copy as New Course ne avvia una indipendente. Dove disponibile, Save as… salva lo stesso ZIP nella cartella scelta con il dialogo di sistema.',
+  'editorHelp.exportAsPublisherCourse.title': 'Esportare come Corso Editore',
+  'editorHelp.exportAsPublisherCourse.body':
+      'Export as Publisher Course, nel menu di un corso personalizzato in Course Studio, scrive il corso come Publisher Course dell’editore che indichi, qualunque editore: scrivi il suo ID e il suo nome esattamente come sono stati approvati con la sua chiave di firma. Ottieni le stesse Lesson, gli stessi Round ed esercizi con gli stessi ID, l’editore come Original Course Creator, niente Maintainer, Team né Course version, non privato, e la Course version come versione ufficiale, così ogni esportazione dopo una modifica confermata è più alta. Autori, Rights Holder e License restano. Può farlo solo il Maintainer o un membro del Team assegnato, e solo per un corso pubblicato, con una License, senza contenuti Draft, errori dell’Audit né discendenza da Fork o fusione; la pagina indica che cosa lo impedisce. Quick Export scrive lo ZIP in {folderCourseExports}; Save as… lo scrive dove scegli. Il Publisher Course non è firmato e QQL rifiuta un Publisher Course senza una firma valida: decomprimilo, firma course.json con tools/sign_course.dart e la chiave dell’editore, poi impacchettalo con la sua cartella media (docs/PUBLISHER_SIGNING_GUIDE.md, sezione 7). QQL lo installa solo dove l’app si fida della chiave di quell’editore; la pagina avvisa, senza fermare l’esportazione, quando questa versione di QQL non accetta l’editore, ne ha revocato la chiave di firma o lo conosce con un altro nome. Per un aggiornamento modifica il tuo corso, confermalo ed esportalo di nuovo con lo stesso ID e lo stesso nome dell’editore, che QQL riprende dall’ultima esportazione del corso: chi studia conserva i progressi. Il tuo corso non cambia mai; poiché il Publisher Course ha lo stesso Course ID, questo dispositivo non può installarlo accanto al tuo corso.',
+  'editorHelp.courseCreationRules.title': 'Regole per creare i corsi',
+  'editorHelp.courseCreationRules.body':
+      'Una Lesson dovrebbe contenere di norma almeno 6 Round, che con contenuti tipici possono voler dire circa 48 esercizi. È un’indicazione per chi scrive: non è un requisito di validità e non decide mai la disponibilità del Duel. Il Round standard contiene 15 esercizi. Evita di ripetere per sbaglio lo stesso contenuto dentro un Round. Le parole isolate di solito vanno in minuscolo, a meno che la lingua non richieda la maiuscola, come per i sostantivi tedeschi o i nomi propri. Gli esercizi sui contrari stanno bene nei Round più avanzati, dopo che lo studente ha già incontrato quei vocaboli. Sentence Word Order funziona meglio con 0, 1 o 2 distrattori (una raccomandazione, non un limite): pochi all’inizio di una Lesson, di più più avanti. I distrattori devono essere plausibili ma inequivocabilmente sbagliati. Le istruzioni operative rivolte allo studente vanno scritte nella lingua di partenza del corso. I primi Round dovrebbero introdurre e consolidare il materiale; quelli successivi possono chiedere distinzioni più fini e combinazioni più difficili.',
+  'editorHelp.auditSeverityAndCodes.title': 'Gravità e codici dell’Audit',
+  'editorHelp.auditSeverityAndCodes.body':
+      'Il Course Audit segnala Error, Warning e Info. Error impedisce la pubblicazione o l’importazione, perché il contenuto non è valido dal punto di vista strutturale o funzionale. Warning indica un problema probabile, da rivedere. Info è un’indicazione o un fatto neutro e da solo non blocca mai la pubblicazione. L’Audit può ordinare per Lesson, per nome leggibile del tipo di esercizio o per Recently modified, e si può aprire su un corso intero, su una Lesson o su un Round. L’ordine per data usa updatedAt decrescente con criteri deterministici a parità di valore; le segnalazioni vengono numerate progressivamente dentro ogni gruppo di gravità, dopo i filtri. Il bordo rosso segnala un Error o un Warning e si propaga lungo il ramo che rappresenta. Il bordo verde acceso vuol dire che in quel ramo non ci sono Error né Warning; possono restare indicazioni Info. Un unico indicatore blu Draft comprende lo stato Draft della Lesson o del Round e segue i GuideBook e i contenuti Draft lungo gli elementi che li contengono. Un bordo verde dell’Audit non vuol dire che l’elemento è pubblicato. Una Lesson o un Round esplicitamente Draft tengono nascosti i figli pubblicati finché quel contenitore non viene salvato. Un problema nel GuideBook riguarda la sua Lesson e la gerarchia Lessons, ma non il ramo Rounds. Meno di 3 Round è Info; meno di 25 esercizi idonei per il Duel è Info soltanto quando Create Duels è ON. La mancanza di esercizi di comprensione scritta o orale non produce nessuna segnalazione; il contenuto di comprensione già presente ma malformato viene comunque controllato. Le bozze sono incluse perché chi scrive possa rivederle, senza che questo renda non valido il contenuto pubblicato che non c’entra. Course Editor Help > Technical reference > Audit Codes mostra il registro condiviso delle regole, nell’ordine Error, Warning, Info. Le tre categorie si possono selezionare indipendentemente e partono tutte attive; la ricerca testuale agisce dentro le categorie selezionate.',
+  'editorHelp.courseAudit.title': 'Course Audit',
+  'editorHelp.courseAudit.body':
+      'Il Course Audit controlla problemi di struttura e di scrittura: campi non validi negli esercizi, ID duplicati, problemi nei Word Block, mancate corrispondenze audio ed errori di Missing Word. Un brano di lettura vuoto è un Error; con una o due parole lessicali, riconosciute tenendo conto di Unicode e apostrofi, si ottiene READING_PASSAGE_TOO_SHORT, mentre da tre in su no. HINT_REPEATS_PROMPT è un Warning, e rivelare una qualsiasi risposta corretta canonica resta un Error. L’Audit non certifica la grammatica, la correttezza delle traduzioni o la qualità didattica.',
+  'editorHelp.createNewCourse.title': 'Creare un corso nuovo',
+  'editorHelp.createNewCourse.body':
+      'Course Studio crea un progetto Course Model v12 indipendente e lo apre nel Course Editor. New Course ripropone gli stessi campi License / Rights, Authors / Contributors, variante della lingua, livelli, descrizione e metadati di supporto che usa Course Info Editor. Il profilo attivo diventa l’Original Course Creator immutabile ed è anche il Course Maintainer predefinito; in alternativa puoi scegliere come Maintainer un’altra persona locale. L’Assigned Team resta una cosa a parte e non si sceglie durante la creazione. Number of Lessons parte da 3 (numeri interi da 1 a 100) e Rounds per Lesson parte da 1 (numeri interi da 1 a 20). I valori non validi o mancanti mostrano un errore accanto al campo e disattivano Create. L’intera gerarchia iniziale viene creata in blocco, con ID stabili nuovi e Round senza titolo, ciascuno con esattamente un esercizio di esempio Draft di tipo Pick the translation (to target). Rivedi e salva esplicitamente i contenuti didattici prima di pubblicare. Il nuovo corso Not published resta soltanto una copia di lavoro finché Confirm course changes non crea la versione 1; se annulli, non viene salvato nessun corso. I contenuti di authoring v11 importati devono dichiarare esplicitamente provenienza, Maintainer, stato Draft/Published e le date UTC richieste; i Course Model precedenti non vengono né dedotti né convertiti.',
+  'courseStudioHelp.findingCourses.title': 'Trovare i corsi',
+  'courseStudioHelp.findingCourses.body':
+      'Search filtra titoli e lingue di partenza o di arrivo in Course Studio, anche in Favorites. Favorites mostra scorciatoie per i corsi nella libreria personale dello studente attivo; ciascun corso resta anche nella sua sezione abituale. Sort by e Show unavailable si applicano a Favorites e alle sezioni normali. Ogni sezione ha il proprio controllo Expanded / Compact / Minimal, che QQL ricorda per ciascuno studente, separatamente in ogni scheda. Questi controlli cambiano solo la visualizzazione.',
+  'courseStudioHelp.courseOperations.title': 'Operazioni sui corsi',
+  'courseStudioHelp.courseOperations.body':
+      'Copy as New Course crea un corso Custom indipendente a partire da uno che puoi gestire. Fork crea un corso Custom derivato quando la licenza della sorgente lo permette; conserva la provenienza e assegna nuovi ID. Merge unisce le Lesson scelte da corsi compatibili in un terzo corso, lasciando invariati entrambi i corsi di partenza. Delete course elimina definitivamente un corso Custom dal dispositivo dopo due conferme, se hai i permessi necessari. Remove Publisher Course from device è disponibile soltanto all’Admin e viene bloccato se un altro profilo ha il corso nella propria libreria; i progressi degli studenti e i backup delle versioni restano. Remove from my courses cambia soltanto l’appartenenza alla tua libreria personale. Hide in Learner conserva questa appartenenza ma toglie il corso dal Course Selector dello studente; Unhide in Learner annulla la scelta. Study rende il corso quello corrente e apre la pagina dello studente; Review fa lo stesso e apre la pagina Review, dopo che ne hai completato un Round. Le operazioni non disponibili appaiono in grigio con una spiegazione.',
+  // Page titles and Course types comparison.
+  "editorHelp.qa.gettingStarted.title": "Per iniziare",
+  "editorHelp.qa.accessModes.q":
+      "Che cosa fanno Locked, View only, Inspection mode ed Edit?",
+  "editorHelp.qa.accessModes.a":
+      "Il controllo di accesso nella pagina del Course Editor decide che cosa puoi fare. Locked tiene chiuse le Lesson. View only, l’impostazione di partenza, apre ogni modulo in sola lettura; Search, Help, gli ID interni, Preview e Audit funzionano comunque. Inspection mode apre gli esercizi nella loro rappresentazione tecnica, anche questa in sola lettura. Edit ti permette di modificare il Course, se hai il diritto di farlo. Settings > Do Not Disturb > Course Editor opening mode sceglie la modalità con cui un Course si apre la prima volta che lo apri; poi ogni Course ricorda la propria, e Edit si apre come View only dove non puoi modificare.",
+  "editorHelp.qa.whyNoEdit.q": "Perché non posso scegliere Edit?",
+  "editorHelp.qa.whyNoEdit.a":
+      "Edit richiede i permessi di modifica: devi essere il Course Maintainer o un membro del Team assegnato al Course. I Course ufficiali, inclusi in QQL o di un Publisher, sono sempre in sola lettura: per cambiarne uno, fanne un Fork in Course Studio, se la sua licenza permette le opere derivate. L’Editor spiega perché Edit non è disponibile. Crediti, licenze e Rights Holders non concedono mai permessi di modifica.",
+  "editorHelp.qa.viewOnlyNotice.q":
+      "Perché compare un avviso la prima volta che apro un Course in View only?",
+  "editorHelp.qa.viewOnlyNotice.a":
+      "Spiega che View only non cambia niente. Compare una volta sola per ogni utente e per ogni Course; Show one-time notices again, in Settings, lo fa ricomparire senza cambiare la modalità di accesso.",
+  "editorHelp.qa.structure.q": "Come è organizzato un Course?",
+  "editorHelp.qa.structure.a":
+      "Un Course contiene delle Lesson. Ogni Lesson ha un GuideBook, dei Round e un Duel; ogni Round contiene degli esercizi. Nel Course Editor apri Lessons, poi una Lesson, i suoi Rounds e un Round. Le briciole di navigazione in cima a ogni pagina mostrano dove ti trovi e ti riportano indietro.",
+  "editorHelp.qa.search.q": "Come trovo un esercizio?",
+  "editorHelp.qa.search.a":
+      "Usa l’icona Search nelle pagine Lessons, Lesson, Rounds o Round. Da Lessons cerca in tutto il Course, da una Lesson o dai suoi Rounds in quella Lesson, da un Round solo in quel Round. Trova parole intere, più parole di seguito e ID di esercizio, ignorando maiuscole e accenti, e può filtrare per tipo di esercizio. Un risultato si apre nel modulo adatto alla modalità di accesso; Search non cambia mai il Course.",
+  "editorHelp.qa.internalIds.q": "Come vedo gli ID interni?",
+  "editorHelp.qa.internalIds.a":
+      "Tocca l’icona a forma di badge nella barra in alto dell’Editor. Mostra o nasconde gli ID stabili del Course, delle Lesson, dei Round e degli esercizi nelle pagine dell’Editor e nei risultati di Search, e non cambia niente nel Course.",
+  "editorHelp.qa.findHelp.q": "Dove trovo l’Help mentre modifico?",
+  "editorHelp.qa.findHelp.a":
+      "L’icona Help nella barra in alto apre questa pagina. Ogni campo dell’esercizio ha il suo pulsante Help, ed Exercise Help accanto al preset spiega tutto il tipo di esercizio. Riferimento tecnico, in cima a questa pagina, porta ai tipi di esercizio, ai codici dell’Audit e al Course Model.",
+  "editorHelp.qa.savingAndVersions.title": "Salvataggio e versioni",
+  "editorHelp.qa.workingCopy.q": "Quando vengono salvate le mie modifiche?",
+  "editorHelp.qa.workingCopy.a":
+      "Mentre modifichi, ogni cambiamento va in una copia di lavoro del Course. Save e Save as draft su una Lesson, un Round o un esercizio lo salvano solo in quella copia di lavoro. Niente arriva agli studenti, e non si crea nessuna versione né backup, finché non esci dal Course Editor e scegli Confirm course changes.",
+  "editorHelp.qa.saveOrDraft.q": "Che differenza c’è tra Save e Save as draft?",
+  "editorHelp.qa.saveOrDraft.a":
+      "Save salva un elemento come contenuto normale; Save as draft lo salva come Draft, che gli studenti non vedono mai. Un badge blu segna un Draft sull’elemento e sugli elementi che lo contengono. Una Lesson o un Round in Draft nasconde tutto ciò che contiene, anche il contenuto Published.",
+  "editorHelp.qa.provisionalDraft.q":
+      "Perché una Lesson o un Round nuovi sono Draft anche se non l’ho mai scelto?",
+  "editorHelp.qa.provisionalDraft.a":
+      "Una Lesson o un Round nuovi partono come Draft provvisori e diventano Published da soli quando il loro contenuto è completo e salvato: per un Round, i suoi esercizi salvati come contenuto normale; per una Lesson, i suoi Round e, finché Use GuideBook è attivo, il suo GuideBook. Con Save as draft sulla Lesson o sul Round, restano Draft finché non usi Save. Copie, fork e Course importati restano Draft, in attesa della tua revisione.",
+  "editorHelp.qa.leaveEditor.q":
+      "Che cosa succede quando esco dal Course Editor?",
+  "editorHelp.qa.leaveEditor.a":
+      "Se la copia di lavoro è diversa dal Course salvato, una sola finestra propone Confirm course changes o Cancel course changes, con una nota facoltativa per la versione. Confirm prima crea e verifica un backup completo, poi salva l’intero Course e ne aumenta la versione di uno. Cancel butta via tutta la copia di lavoro. Se il backup o il salvataggio non riescono, la copia di lavoro resta aperta e il Course salvato non cambia.",
+  "editorHelp.qa.leaveExercise.q":
+      "Che cosa succede se lascio un esercizio senza salvare?",
+  "editorHelp.qa.leaveExercise.a":
+      "Scegli tra Keep editing, Discard changes, Save as draft o Save. Discard scarta solo le modifiche di quel modulo; il resto della copia di lavoro resta com’è.",
+  "editorHelp.qa.publishCourse.q":
+      "Come rendo un Course disponibile agli studenti?",
+  "editorHelp.qa.publishCourse.a":
+      "Imposta Course delivery status su Published nella pagina del Course Editor (Not published lo riserva all’authoring), poi conferma le modifiche del Course. I Draft dentro un Course Published restano nascosti agli studenti.",
+  "editorHelp.qa.backups.q": "Dove sono conservate le versioni precedenti?",
+  "editorHelp.qa.backups.a":
+      "Ogni modifica confermata archivia prima la versione precedente in {folderBackups}/Courses, in una cartella per ogni Course. I backup non vengono mai eliminati automaticamente. Su Android 7–10 QQL chiede una volta il permesso di usare quella cartella; su Android, Version History elenca solo i backup fatti da questa installazione.",
+  "editorHelp.qa.restore.q": "Come torno a una versione precedente?",
+  "editorHelp.qa.restore.a":
+      "Apri Version History nel Course Editor. Elenca la versione attuale e i backup, dal più recente, con Open backup folder ed Export JSON. Restore into working copy carica il backup di un Course custom nella copia di lavoro; sostituisce il Course salvato solo quando confermi le modifiche del Course. I Course ufficiali conservano solo le versioni dell’editore.",
+  "editorHelp.qa.courseSettings.title": "Impostazioni del Course",
+  "editorHelp.qa.privateCourse.q": "Che cos’è un Private course?",
+  "editorHelp.qa.privateCourse.a":
+      "Un Course personalizzato visibile in QQL solo al suo Course Maintainer e ai membri del Team assegnato: nessun altro su questo dispositivo lo vede in Course Library, nel Course Selector o in Course Studio, admin compresi. Attiva o disattiva Private course in Course Info Editor. Un file esportato resta privato, quindi su un altro dispositivo solo il Maintainer e il Team possono importarlo; QQL rifiuta di importare il Private course di un’altra persona o di usarlo in un Merge. Fork e Copy as New Course partono non privati. Uno studente che fa da Maintainer a un Course non può essere rimosso finché il Maintainer non cambia; Remove custom courses e Wipe out everything rimuovono anche i Private course, e la loro conferma conta quelli che non vedi.",
+  "editorHelp.qa.courseLanguages.q": "Come scelgo le lingue del Course?",
+  "editorHelp.qa.courseLanguages.a":
+      "Tre impostazioni di lingua agiscono in modo indipendente. L’interfaccia di QQL è in inglese. L’Help e Course Info sono in inglese, spagnolo o italiano: la Help Language di ciascuno studente, scelta in QQL Guide. Il pannello per chi studia di un Course (titoli e righe di istruzione degli esercizi, pulsanti come Check e Continue, il riscontro, il riepilogo di fine Round, il Duel e la pagina Review) è nella Source language del Course quando è una tra inglese, spagnolo, italiano, tedesco, portoghese, olandese e francese, altrimenti in inglese; i messaggi su errori, impostazioni audio e versioni dell’app restano in inglese. In New Course, Source language e Target language elencano le lingue con il nome inglese: scrivi per trovarne una, oppure apri l’elenco. Una lingua che non è nell’elenco resta come la scrivi, con un tag facoltativo come nap o pt-BR. Il Course salva ogni nome con il suo tag, e la voce e la bandiera automatica seguono la Target language. Il pannello per chi studia chiama le lingue nella sua lingua: “Traduci in tedesco.” Le lingue non cambiano dopo la creazione: Course Info può solo aggiungere il tag di una lingua che un Course creato prima ha scritto per nome, e Learning language name for learners cambia il nome usato dalle righe.",
+  "editorHelp.qa.courseInfo.q":
+      "Dove cambio il nome e la descrizione del Course?",
+  "editorHelp.qa.courseInfo.a":
+      "In Course Info Editor, disponibile in Edit nella pagina del Course Editor. Il nome può cambiare; il Course ID mai. La lingua di partenza e la lingua studiata sono mostrate con i loro codici e non si possono cambiare; un Course creato prima può aggiungere i tag delle sue lingue dall’elenco, e Learning language name for learners decide come le righe per chi studia chiamano la lingua che insegni. Niente viene conservato finché non salvi la finestra e confermi le modifiche del Course.",
+  "editorHelp.qa.license.q": "Quale licenza posso scegliere?",
+  "editorHelp.qa.license.a":
+      "All rights reserved, CC0 1.0, CC BY 4.0, CC BY-SA 4.0, CC BY-NC 4.0, CC BY-NC-SA 4.0, oppure Other / Custom license, che indica anche se altri possono fare opere derivate. La licenza riguarda il contenuto del tuo Course, non il software QuisquisLingo (MPL-2.0), e non concede mai permessi di modifica in QQL.",
+  "editorHelp.qa.authors.q":
+      "Come do credito ad autori e titolari dei diritti?",
+  "editorHelp.qa.authors.a":
+      "Course Info Editor conserva gli Authors / Contributors con i loro ruoli, uno o più Rights Holders e un link facoltativo Buy a Coffee (HTTPS). Descrivono il Course e non danno a nessuno permessi di modifica. L’Original Course Creator, il Course Maintainer, chi ha creato un Fork e il Last Version Editor sono registrati a parte.",
+  "editorHelp.qa.mediaCredits.q":
+      "Come do credito a immagini e registrazioni fatte da altri?",
+  "editorHelp.qa.mediaCredits.a":
+      "Aggiungi i crediti in Media credits: l’autore, la licenza e, se la conosci, la provenienza dell’opera. Quando la libreria di immagini sa chi ha fatto un’immagine (un’immagine QQL, o una con un credito registrato), QQL aggiunge il credito al posto tuo. L’Audit avvisa quando un Course con media propri non ha Media credits.",
+  "editorHelp.qa.cover.q": "Come do al Course un’immagine di copertina?",
+  "editorHelp.qa.cover.a":
+      "Usa Cover image in Course Info Editor o in Create new course. Choose image prende un’immagine dalla libreria di immagini, Quick Import legge l’unica immagine presente in {folderImageImports} e Open from… usa la finestra di sistema. In Crop the cover scegli il quadrato che la copertina mostra; viene salvata a 512 × 512 pixel. La copertina sostituisce la bandiera negli elenchi, in Course Info e nell’intestazione dell’Editor; la bandiera resta nella barra in alto e nel Flag Background. Remove cover rimette la bandiera.",
+  "editorHelp.qa.flag.q": "Come scelgo la bandiera del Course?",
+  "editorHelp.qa.flag.a":
+      "Create new course e Course Info Editor condividono un selettore di bandiere con ricerca, con le bandiere QQL FlagPainter, le WORLD Flags e Upload custom flag. Cerca per nome, nome alternativo, ID, codice di lingua o codice territoriale. Use Automatic sceglie la bandiera della lingua del Course. Aprire il selettore o cercare non cambia niente finché non scegli.",
+  "editorHelp.qa.customFlag.q": "Come uso una bandiera mia?",
+  "editorHelp.qa.customFlag.a":
+      "Copia un PNG o un JPEG chiamato flag.png, flag.jpg o flag.jpeg in {folderCourseFlagImports} e premi Upload custom flag nel selettore di bandiere. Può pesare fino a 2 MB e misurare tra 64 × 40 e 4096 pixel. QQL la riduce a 256 pixel sul lato più lungo, mantiene la trasparenza del PNG e la salva dentro il Course.",
+  "editorHelp.qa.lessonOptions.q":
+      "Dove sono Use GuideBook, Word Lookup, Create Duels e le opzioni per le etichette?",
+  "editorHelp.qa.lessonOptions.a":
+      "In Lesson Options, sotto il riquadro Lessons della pagina del Course Editor. Con Use GuideBook disattivato, gli studenti non vedono i GuideBook, il cui contenuto viene conservato; Word Lookup, presente solo con Use GuideBook attivo, permette agli studenti di toccare una parola per vederne la traduzione dal GuideBook; con Create Duels disattivato, non vedono i Duel. Lesson label and numbering e Round label and numbering cambiano la presentazione dei nomi. Nessuna di queste opzioni cancella contenuti, vittorie, completamenti o XP.",
+  "editorHelp.qa.labelsAndNumbering.q":
+      "Come funzionano Lesson label and numbering e Round label and numbering?",
+  "editorHelp.qa.labelsAndNumbering.a":
+      "Entrambi i selettori sono in Lesson Options. Ognuno offre Off, la propria etichetta + numero, Number only e Custom + number. Cambiano il prefisso visualizzato, non il titolo né l’ID. A ogni Lesson va assegnato un titolo; per un Round il titolo è facoltativo, perché il tipo gli dà comunque un nome. Un titolo assegnato resta visibile con ogni opzione, anche Off. I numeri seguono la posizione attuale e l’editor mostra sempre i numeri d’ordine. Nei vecchi Course un’etichetta Lesson scelta in passato resta valida finché non si sceglie una delle quattro opzioni attuali.",
+  "editorHelp.qa.sections.q": "Come raggruppo le Lesson in Section?",
+  "editorHelp.qa.sections.a":
+      "In una Lesson, il selettore Section propone No section, i nomi esistenti, Add new section… e Manage sections…. Le Lesson consecutive con la stessa Section formano un solo blocco nel percorso dello studente. Una nuova Lesson prende la Section della Lesson che la precede. Un nome ancora usato da una Lesson non si può rimuovere. Le Section non hanno progressi né sblocchi propri.",
+  "editorHelp.qa.lessonIcon.q": "Come scelgo l’icona di una Lesson?",
+  "editorHelp.qa.lessonIcon.a":
+      "Nell’editor della Lesson scegli Preinstalled icon, Custom Course icon oppure Numbers; Choose from the image library prende come icona qualsiasi immagine QQL della libreria (non una bandiera), e un Course che ne usa una richiede questa versione di QQL o successiva. Per Import custom icon, tieni esattamente un PNG, JPG/JPEG o WebP fino a 2 MB e 4096 pixel in {folderLessonIconImports}; QQL lo centra su un quadrato trasparente di 256 × 256 e lo salva nel Course. Senza icona, una Lesson mostra il suo numero in un cerchio del colore della Lesson: QQL dà a ogni Lesson uno di otto colori secondo la sua posizione, e i cerchi dei suoi Round nel percorso dello studente usano lo stesso colore.",
+  "editorHelp.qa.whoMayEdit.q": "Chi può modificare un Course?",
+  "editorHelp.qa.whoMayEdit.a":
+      "Il suo Course Maintainer e tutti i membri del Team assegnato. Solo il Maintainer può passare la manutenzione a qualcun altro o assegnare o rimuovere il Team, e un Team conserva sempre almeno un Team Leader. Le altre persone possono fare un Fork del Course in Course Studio solo quando la sua licenza permette le opere derivate.",
+  "editorHelp.qa.lessonsAndRounds.title": "Lesson e Round",
+  "editorHelp.qa.roundTypes.title": "Tipi di Round",
+  "editorHelp.qa.roundTypeContract.q": "Che cosa controlla il tipo di Round?",
+  "editorHelp.qa.roundTypeContract.a":
+      "Ogni Round ha un tipo che determina nome e icona nel percorso, suggerimenti nell’editor, controlli di pubblicazione e, per Sequence, Story, FlashCard e Test, il modo di giocare. Il comportamento degli esercizi dipende sempre dai dati canonici; i preset servono solo a crearli.",
+  "editorHelp.qa.discover.q": "Quando uso Discover?",
+  "editorHelp.qa.discover.a":
+      "Discover introduce parole, concetti, strutture o esempi. Puoi combinare spiegazioni, schede e primi esercizi guidati. Le domande hanno risposta immediata e normale ripasso degli errori.",
+  "editorHelp.qa.practice.q": "Quando uso Practice?",
+  "editorHelp.qa.practice.a":
+      "Practice è il Round generale di esercizi: normalmente mescola le domande, mostra subito la correzione e ripropone gli errori. I vecchi Round ordinari diventano Practice.",
+  "editorHelp.qa.listening.q": "Che cosa va in un Round Listen?",
+  "editorHelp.qa.listening.a":
+      "Ogni esercizio obbligatorio deve richiedere l’audio per rispondere. Il selettore propone preset compatibili e resta disponibile l’editor canonico. Un audio facoltativo non basta. L’editor avvisa e l’Audit blocca i contenuti incompatibili.",
+  "editorHelp.qa.reading.q": "Che cosa va in un Round Read?",
+  "editorHelp.qa.reading.a":
+      "Ogni esercizio obbligatorio deve avere un testo da leggere e una domanda verificabili. Una risposta copiata dal testo non basta. Il selettore propone preset di lettura e l’editor canonico; l’Audit blocca la pubblicazione incompatibile.",
+  "editorHelp.qa.flashcardRound.q": "Che cos’è un Round FlashCard?",
+  "editorHelp.qa.flashcardRound.a":
+      "Contiene solo Flashcard o Picture Flashcard valide con termine e significato. Le schede avanzano una alla volta, senza giudizio di correttezza né normale ripasso degli errori. L’Audit rifiuta altri contenuti.",
+  "editorHelp.qa.testRound.q": "Come funziona un Test?",
+  "editorHelp.qa.testRound.a":
+      "Un Test accetta solo esercizi valutabili. Lo studente risponde a tutte le domande senza vedere correzioni, poi vede i risultati. Puoi fissare o mescolare l’ordine e impostare una percentuale di superamento facoltativa. La soglia cambia solo l’etichetta dei risultati: completamento, XP, sblocchi e Laurel restano normali. Anteprima e uscita anticipata non registrano nulla.",
+  "editorHelp.qa.timedRound.q": "Come funziona un Round Timed?",
+  "editorHelp.qa.timedRound.a":
+      "Scegli Timed in New Round, imposta un limite fra 30 secondi e 10 minuti e aggiungi esercizi compatibili. In Lesson Options puoi impostare limiti Timed predefiniti per il Corso: ogni nuovo Round Timed li copia, mentre i Round esistenti conservano i propri. Nell’editor del Round puoi aggiungere limiti diversi e ordinarli. Il limite successivo si sblocca dopo il primo completamento in tempo del precedente. Il conto alla rovescia parte quando inizia il gioco, dopo l’eventuale Before you start. Se il tempo scade, l’input si blocca, gli XP delle risposte corrette restano e il Round rimane incompleto: puoi riprovare. Completare prima dello zero dà gli XP normali e, una sola volta per ciascun limite, un bonus On Time separato di 10 XP. L’Audit blocca limiti assenti, ripetuti o non validi e contenuti che non possono finire in modo affidabile.",
+  "editorHelp.qa.speakRound.q": "Posso creare un Round Speak?",
+  "editorHelp.qa.speakRound.a":
+      "Speak appare per ultimo in New Round come Coming soon e non si può scegliere. Un Round Speak importato resta leggibile ma non pubblicabile né giocabile in questa versione.",
+  "editorHelp.qa.roundCompatibility.q":
+      "Come vengono controllati gli esercizi?",
+  "editorHelp.qa.roundCompatibility.a":
+      "Il selettore filtra i preset suggeriti, ma il controllo finale legge l’esercizio canonico. Puoi salvare come Draft un Round incompleto; l’Audit blocca la pubblicazione di Listen, Read, FlashCard, Test, Story, Sequence o Speak incompatibili.",
+  "editorHelp.qa.roundNumbering.q": "Come funzionano i numeri dei Round?",
+  "editorHelp.qa.roundNumbering.a":
+      "Round label and numbering in Lesson Options offre Off, Round + number, Number only e Custom + number. Con Off restano visibili il tipo e il titolo, per esempio «Practice · Saluti». Il numero segue la posizione nella Lesson, mai l’ID o il progresso. Nell’editor i numeri d’ordine sono sempre visibili.",
+  "editorHelp.qa.newRound.q": "Come aggiungo un Round?",
+  "editorHelp.qa.newRound.a":
+      "Nella pagina Rounds di una Lesson premi New Round e scegli il tipo; Speak non è ancora disponibile. Story apre il suo Wizard; gli altri tipi iniziano come Draft provvisori, con un esempio solo per Discover, Practice e Sequence. Il titolo può restare vuoto: lo studente vede comunque il tipo. Round Wizard resta accanto a New Round per creare più Round.",
+  "editorHelp.qa.beforeYouStart.q":
+      "Come scrivo la nota Before you start di un Round?",
+  "editorHelp.qa.beforeYouStart.a":
+      "Aggiungi una scheda Before you start: New Exercise nell’editor del Round, poi scegli Before you start (Cards and notes). Scrivi la nota e, se il Corso usa i GuideBook, attiva Open GuideBook button. La scheda va per prima nel Round; gli studenti la leggono su una pagina a sé prima che il Round inizi, mai in Review. Modificala, pubblicala o eliminala come qualsiasi esercizio. Il Round Wizard aggiunge una scheda in Draft al primo Round che crea, e l’Audit segnala una Lesson il cui primo Round non ne ha.",
+  "editorHelp.qa.roundWizard.q": "Come crea i Round il Round Wizard?",
+  "editorHelp.qa.roundWizard.a":
+      "Premi Round Wizard nella pagina Rounds; richiede Use GuideBook attivo. Costruisce i Round a partire dalle coppie di vocaboli e dagli esempi del GuideBook della Lesson (almeno tre coppie). Scegli da 1 a 12 Round e da 1 a 15 esercizi per Round (6 e 8 di partenza) e rivedi i tipi proposti e la difficoltà crescente. Puoi cambiare il tipo prima di generare, quando il GuideBook offre esercizi compatibili. Crea solo esercizi da preset, ciascuno dei quali si apre nel modulo del suo preset, e i suoi Round restano Draft finché non li rivedi e li approvi.",
+  "editorHelp.qa.sequence.q": "Che cos’è un Round Sequence?",
+  "editorHelp.qa.sequence.a":
+      "Scegli Sequence in New Round. Il flusso lineare riproduce gli esercizi nell’ordine scritto, senza mescolarli né ripassare gli errori. Il titolo facoltativo del flusso compare nelle schermate dello studente. Restano New Exercise ed Exercise Wizard; le domande idonee possono entrare nel Duel. Scegli Step by step o Scrolling nell’editor.",
+  "editorHelp.qa.story.q": "Che cos’è una Story?",
+  "editorHelp.qa.story.a":
+      "Una Story è un Round narrativo ordinato con copertina, battute ed esercizi di comprensione. Solo gli esercizi valutabili danno punti; completamento, XP e Laurel seguono le regole normali. Le domande della Story restano fuori dal Duel.",
+  "editorHelp.qa.newStory.q": "Come costruisco una Story?",
+  "editorHelp.qa.newStory.a":
+      "Premi New Round → Story (senza bisogno di GuideBook). Indica titolo, copertina e lettura ad alta voce, controlla narratore e personaggi del Course, poi costruisci i passi con Add line e Add exercise. Finish richiede almeno una battuta e aggiunge la Story alla copia di lavoro.",
+  "editorHelp.qa.editStory.q": "Come modifico una Story in seguito?",
+  "editorHelp.qa.editStory.a":
+      "Apri il suo Round. Add Step propone Title block (uno per Story), Dialogue line ed Exercise. Le opzioni della Story impostano il titolo, Step by step o Scrolling, che cosa conserva il registro dello scorrimento (Dialogue only o Everything) e la lettura ad alta voce. “Needs the Story's audio” nel menu di un esercizio segna un esercizio che viene saltato quando Audio Exercises è disattivato; le battute non vengono mai saltate.",
+  "editorHelp.qa.characters.q": "Dove sono il narratore e i personaggi?",
+  "editorHelp.qa.characters.a":
+      "In Story characters, nella pagina del Course Editor: un nome, un avatar (una figura in dotazione, nessuno, oppure una tua immagine ritagliata in quadrato), una lingua e una preferenza di voce (qualsiasi, maschile o femminile, abbinata alle voci del dispositivo). Un personaggio ancora nominato da battute non si può rimuovere.",
+  "editorHelp.qa.guidebook.q": "Che cosa va nel GuideBook di una Lesson?",
+  "editorHelp.qa.guidebook.a":
+      "Overview, Usage examples, Vocabulary e Grammar, e Insights con sezioni dotate di titolo. Gli studenti lo vedono quando è salvato come contenuto normale e Use GuideBook è attivo; Save Guidebook as draft lo tiene nascosto. I suoi vocaboli e i suoi esempi alimentano il Round Wizard, la Review dello studente e Word Lookup. Scrivi ogni vocabolo come lingua studiata = lingua dello studente, uno per riga, per esempio casa = house in un Corso che insegna l'italiano.",
+  "editorHelp.qa.wordLookup.q":
+      "Come usa Word Lookup il vocabolario del GuideBook?",
+  "editorHelp.qa.wordLookup.a":
+      "In un Round le parole della lingua studiata che hanno voci nel GuideBook hanno una leggera sottolineatura a puntini, e lo studente può toccarne una per vedere le voci che la contengono, da tutto il Corso: quelle della Lesson corrente se ce ne sono, altrimenti quelle di tutte le Lesson, indicando la Lesson di una voce che viene da un'altra Lesson. Un'espressione intera scritta nel testo (il pane, l'acqua) prevale sulla parola singola; una parola che compare solo dentro un'espressione la mostra quando le altre parole dell'espressione sono articoli (gatto mostra il gatto, è non mostra dov'è); le forme flesse non vengono trovate, quindi aggiungi le forme che vuoi rendere consultabili. Il testo nella lingua dello studente, l'Instruction or context e le note di Before you start non si consultano mai, e nemmeno le opzioni di risposta, i Round di tipo Test e i Duel. La scheda dice che mostra una delle traduzioni possibili. Word Lookup è attivo di default; si spegne in Lesson Options. Esiste solo con Use GuideBook attivo.",
+  "editorHelp.qa.duel.q": "Quando è disponibile il Duel di una Lesson?",
+  "editorHelp.qa.duel.a":
+      "Un Duel prende dalla Lesson 25 esercizi idonei e diversi tra loro (esercizi a scelta con una sola risposta dai suoi Round, escluse le Story) e dà quattro vite; vinci se rispondi a tutti e 25 prima di perderle. Con meno di 25 esercizi idonei il Duel semplicemente non è disponibile: è normale, non è un errore. Il Duel dell’ultima Lesson viene mostrato come Final Duel.",
+  "editorHelp.qa.copyMove.q":
+      "Come duplico, copio o sposto Lesson, Round ed esercizi?",
+  "editorHelp.qa.copyMove.a":
+      "Duplicate mette una copia indipendente, con ID nuovi, subito dopo l’originale. Copy to… e Move to… ti fanno scegliere una Lesson o un Round di questo Course. Lo spostamento conserva ID e stato; una copia riceve ID nuovi e parte come Draft. Tutto avviene nella copia di lavoro finché non confermi le modifiche del Course.",
+  "editorHelp.qa.preview.q":
+      "Come provo il Course, una Lesson o un Round come uno studente?",
+  "editorHelp.qa.preview.a":
+      "Preview negli editor della Lesson e del Round fa giocare la copia di lavoro come la vedono gli studenti, Draft compresi. Preview non salva niente e non scrive mai progressi, XP, streak, Laurel, Review o risultati dei Duel. La bandiera (o la copertina) del Course a sinistra del titolo, in ogni schermata del Course Editor, apre la pagina dello studente sulla copia di lavoro: Draft compresi, ogni Lesson aperta, niente completato. In alto corre una barra ambra PREVIEW. Lì si possono giocare Round, Story, GuideBook e Duel; in basso ci sono Course Info, Theme e Flag background, i cui cambi valgono solo per l’anteprima, e il Course che studi resta quello di prima. Exit torna alla stessa schermata con le modifiche ancora in attesa della conferma del Course. Da un modulo di esercizio l’anteprima mostra ciò che hai salvato, non le modifiche non salvate del modulo.",
+  "editorHelp.qa.exercises.title": "Esercizi",
+  "editorHelp.qa.newExercise.q": "Come aggiungo un esercizio?",
+  "editorHelp.qa.newExercise.a":
+      "In un Round, New Exercise apre la scelta dei preset: scegli un tipo di esercizio, come Pick the translation o Name what you see, e compila il suo modulo. In un esercizio nuovo, Fill with an example mette nel modulo l’esempio di quel tipo preso da QQL Demo: Italian Exercise Lab (in inglese e in italiano, qualunque siano le lingue del corso) e Clear all riporta il modulo a come il tipo comincia; se cambi tipo dopo aver compilato dei campi, un messaggio ti chiede di controllarli tutti. L’ultima voce, Canonical editor, apre l’editor canonico per qualsiasi primitiva, con gli stessi due pulsanti: Fill with an example vi mette un esempio funzionante della primitiva scelta e Clear all lo svuota di nuovo; il suo pulsante Help apre la sezione di quella primitiva nel riferimento Exercise primitives. Il nome del preset compare in grassetto in cima al modulo.",
+  "editorHelp.qa.pageCards.q": "Come creo una Page simile a un libro di testo?",
+  "editorHelp.qa.pageCards.a":
+      "Nell’editor del Round premi New Exercise e scegli Page (Cards and notes). Aggiungi blocchi con Add block: titoli, paragrafi, citazioni o esempi, elenchi puntati o numerati, immagini, audio e link video; ordinali con le frecce. Nel testo scrivi **grassetto** e *corsivo* (la barra degli strumenti avvolge la selezione). Ogni blocco di testo ha un allineamento, un colore della tavolozza e una lettura ad alta voce facoltativa; ogni immagine una dimensione, un allineamento e una didascalia. Un link video apre un indirizzo https nel browser dello studente. L’anteprima sotto i blocchi mostra la Page come la vede lo studente. Più pagine di seguito sono più schede Page; scegli un Round Sequence per mantenerne l’ordine. Sotto ogni Page gli studenti trovano Share, Save PDF e Print (sui computer Print apre il PDF nel visualizzatore, che lo stampa); il PDF cita il Corso, il titolare dei diritti e la licenza. Puoi disattivarli in Course Info con Learners may share, save and print pages.",
+  "editorHelp.qa.presetOrCanonical.q":
+      "Che differenza c’è tra un preset e l’editor canonico?",
+  "editorHelp.qa.presetOrCanonical.a":
+      "Un preset è un modulo semplice per un solo tipo di esercizio; scrive normali dati di esercizio. L’editor canonico mostra ogni campo della primitiva dell’esercizio (select, input, arrange, match, assign e così via) con i suoi valori ammessi. Un esercizio che nessun preset riesce a rappresentare esattamente si apre nell’editor canonico, così non si perde niente.",
+  "editorHelp.qa.changeType.q": "Posso cambiare il tipo di un esercizio?",
+  "editorHelp.qa.changeType.a":
+      "No, il tipo è fisso una volta che l’esercizio esiste. Crea un esercizio dell’altro tipo ed elimina quello vecchio.",
+  "editorHelp.qa.exerciseWizard.q": "Come funziona l’Exercise Wizard?",
+  "editorHelp.qa.exerciseWizard.a":
+      "In un Round, Exercise Wizard pianifica da 1 a 30 esercizi: un mix bilanciato o casuale, alcune categorie, tipi esatti o uno schema che si ripete. Dopo che hai confermato il piano, ogni passo apre il modulo normale: Save controlla e resta lì, Next controlla e va avanti, Finish restituisce gli esercizi nell’ordine del piano. Se annulli dopo aver salvato, QQL ti chiede se tenere gli esercizi già salvati.",
+  "editorHelp.qa.previewExercise.q": "Come vedo l’anteprima di un esercizio?",
+  "editorHelp.qa.previewExercise.a":
+      "Preview accanto a Save fa giocare il modulo attuale come lo vedono gli studenti, anche per un esercizio nuovo o Draft, senza salvare niente e senza scrivere progressi dello studente. Tornando indietro ritrovi gli stessi valori.",
+  "editorHelp.qa.inspection.q": "Che cosa mostra Inspection?",
+  "editorHelp.qa.inspection.a":
+      "I dati tecnici dell’esercizio, cioè i suoi campi canonici. Si limita a mostrarli: non salva niente e non cambia niente.",
+  "editorHelp.qa.navigate.q": "Come passo da un esercizio all’altro?",
+  "editorHelp.qa.navigate.a":
+      "Previous e Next seguono l’ordine del Round. Se esci con modifiche non salvate, puoi scegliere Keep editing, Discard changes, Save as draft o Save; le briciole di navigazione riportano al Round, alla Lesson e al Course.",
+  "editorHelp.qa.fieldHelp.q":
+      "Che cosa spiega il pulsante Help accanto a un campo?",
+  "editorHelp.qa.fieldHelp.a":
+      "A che cosa serve il campo, che cosa inserire, come QQL lo controlla e un esempio. Exercise Help accanto al preset spiega il tipo di esercizio nel suo insieme.",
+  "editorHelp.qa.manyAnswers.q": "Come accetto più risposte digitate?",
+  "editorHelp.qa.manyAnswers.a":
+      "Scrivi una risposta completa per riga. Le parole facoltative vanno tra {…}, le alternative in [a|b] e le parole che possono scambiarsi di posto in (a <> b). Le risposte composte con i blocchi e le risposte dei vuoti negli esercizi di ascolto sono letterali: scrivile esattamente.",
+  "editorHelp.qa.capitals.q":
+      "Le maiuscole contano nelle risposte composte con i blocchi?",
+  "editorHelp.qa.capitals.a":
+      "No: QQL abbina la risposta ai suoi blocchi qualunque siano le maiuscole, quindi le maiuscole non bloccano mai Save. L’Audit avvisa (ARRANGE_ANSWER_CASE_DIFFERS) quando sono diverse, perché gli studenti compongono la risposta con i blocchi così come sono scritti.",
+  "editorHelp.qa.distractors.q": "Quanti blocchi in più posso aggiungere?",
+  "editorHelp.qa.distractors.a":
+      "Pochi blocchi in più funzionano meglio. Per Put the words in order, Build the translation e Name what you see si consigliano 0, 1 o 2 blocchi che non fanno parte della risposta, meno nei primi Round di una Lesson: di più rendono l’esercizio più lento da leggere e difficile per la ragione sbagliata. Di più sono ammessi, perché è una scelta didattica: il Course Audit li elenca come Info. I preset di spelling offrono solo i blocchi della parola, e solo quelli sono consigliati; anche un esercizio di spelling con blocchi in più (fatto nel canonical editor o importato) è ammesso. Si consiglia un distrattore nella lingua della risposta.",
+  "editorHelp.qa.difficulty.q": "Che cosa indicano le barre di difficoltà?",
+  "editorHelp.qa.difficulty.a":
+      "QQL calcola la difficoltà di ogni esercizio da ciò che fa chi studia, da 0 a 4: 0 una scheda da leggere (Flashcard, Note card, Page); 1 riconoscere il significato (scegliere o abbinare una risposta nella lingua di partenza o un’immagine); 2 riconoscere la lingua (scegliere, abbinare o raggruppare forme della lingua d’arrivo); 3 comporre con blocchi (mettere blocchi in ordine o negli spazi); 4 scrivere (digitare la risposta). Il Round editor mostra quattro barre accanto a ogni esercizio, piene fino al suo livello; la pagina Rounds mostra la media di ogni Round. Le schede Before you start, le copertine delle Story e le Dialogue line non hanno livello. Il livello non viene mai salvato: se cambi un esercizio cambia anche il livello. Di solito una Lesson funziona meglio dai Round più facili ai più difficili: comincia dal riconoscimento e lascia la scrittura ai Round successivi, mescolando comunque i tipi in ogni Round. Al primo completamento di un Round, ogni esercizio risolto correttamente al primo tentativo vale per chi studia 1 XP per livello come Bonus difficoltà.",
+  "editorHelp.qa.firstLetter.q":
+      "Che cosa fa Show the first letter in Type the missing word?",
+  "editorHelp.qa.firstLetter.a":
+      "Se è attivo, lo spazio vuoto mostra la prima lettera della parola, quindi ogni parola accettata deve cominciare con quella lettera. Se è disattivato, lo studente scrive la parola intera e le parole accettate possono cominciare con lettere diverse.",
+  "editorHelp.qa.readAndAnswer.q": "Come scrivo un esercizio Read and answer?",
+  "editorHelp.qa.readAndAnswer.a":
+      "Scrivi la situazione in Text to read, nella lingua degli studenti; aggiungi le battute nella lingua studiata, una “Speaker: testo” per riga, e scegli se vengono lette ad alta voce automaticamente, a richiesta o per niente; poi scrivi la domanda e le risposte nella lingua studiata. Il testo da leggere non viene mai letto ad alta voce, e la lettura ad alta voce non ne fa mai un esercizio audio.",
+  "editorHelp.qa.pictures.q": "Quali esercizi usano un’immagine?",
+  "editorHelp.qa.pictures.a":
+      "What is in the picture (scegli il nome), Name what you see (componi il nome con blocchi di parole), Type what you see (scrivi il nome), Spell the word in the picture e Picture flashcard: scegli l’immagine in Exercise image. Match pictures to words ha invece un’immagine per parola, scelta sotto le sue parole, e Select the image e Listen and pick the image un’immagine per risposta, scelta sotto le risposte: questi tre non hanno Exercise image. L’aspetto delle immagini di Select the image e Listen and pick the image si sceglie per tutto il corso in Lesson Options › Picture answers (Picture size, Picture shape, Pictures per row; senza una scelta quadrati grandi, due per riga), e ogni esercizio può sceglierne uno suo nel proprio modulo. Square mostra ogni immagine ritagliata a quadrato: Crop square sotto un’immagine sceglie la parte e lo zoom e conserva la copia ritagliata nel corso.",
+  "editorHelp.qa.allTypes.q": "Dove è spiegato ogni tipo di esercizio?",
+  "editorHelp.qa.allTypes.a":
+      "In Riferimento tecnico › Exercise types, in cima a questa pagina, e con Exercise Help accanto a ogni preset.",
+  "editorHelp.qa.picturesAndSound.title": "Immagini e audio",
+  "editorHelp.qa.audioModes.q": "Quali modalità audio può usare un Course?",
+  "editorHelp.qa.audioModes.a":
+      "In Audio Library scegli On-Device TTS (la voce del dispositivo, nessuna registrazione), Recorded MP3 (solo le tue registrazioni) o Hybrid (le registrazioni, altrimenti la voce del dispositivo). Import MP3, Open from… e Check unused MP3 files compaiono solo con Recorded MP3 e Hybrid.",
+  "editorHelp.qa.addRecordings.q": "Come aggiungo delle registrazioni?",
+  "editorHelp.qa.addRecordings.a":
+      "Copia i file MP3 in {folderAudioImports} e premi Import MP3, oppure usa Open from… per sceglierne fino a 100 (250 MB) alla volta. Ognuno deve essere un vero MP3 di al massimo 50 MB, senza copertina incorporata. Viene copiato nella cartella dei media propria del Course, ricavata dal Course ID stabile, e nominato in base al suo contenuto, così la stessa registrazione viene salvata una volta sola; i metadati e i riferimenti appartengono al Course. Poi associa ogni registrazione alla parola o all’espressione esatta che pronuncia.",
+  "editorHelp.qa.recordingsTravel.q":
+      "Le registrazioni viaggiano con il Course?",
+  "editorHelp.qa.recordingsTravel.a":
+      "Sì, in un export ZIP del Course, e anche i backup verificati delle versioni del Course copiano le registrazioni a cui fa riferimento. Un Course JSON da solo contiene i metadati delle clip e i riferimenti al contenuto, non i byte degli MP3.",
+  "editorHelp.qa.addPictures.q": "Come aggiungo immagini a un Course?",
+  "editorHelp.qa.addPictures.a":
+      "Nella Image Library del Course Editor, Add images to this Course aggiunge una o più immagini, o un intero ZIP di Image Bank, solo a questo Course. La Shared Image Library, gestita da un Admin, riceve immagini da {folderImageImports} oppure con Open image files from… e Open Image Bank ZIP from…. Un’immagine scelta per un esercizio dalla Shared Image Library viene copiata nel Course; in entrambi i casi viaggia nello ZIP del Course.",
+  "editorHelp.qa.findPicture.q": "Come trovo un’immagine?",
+  "editorHelp.qa.findPicture.a":
+      "Nella libreria delle immagini scrivi in Search: cerca nei nomi, nei tag, nelle Local words e nelle categorie. Con Search all spuntato (è l’impostazione iniziale) cerca in tutte le categorie; togli la spunta per cercare solo nella categoria che stai sfogliando. Le categorie sono sopra le immagini, quelle affini riunite in gruppi (People, Food & drink, Nature & animals…): un gruppo apre una seconda riga con le sue categorie, come fa Characters con le scritture, la punteggiatura, i simboli di valuta e di matematica e le lettere a mattoncini. Una categoria mostra anche le immagini con il suo nome come tag, e singolare e plurale valgono come una cosa sola (“dogs” trova i cani); il punto interrogativo in alto nella libreria apre la sua Guida. Nella vista grande di un’immagine la categoria è un collegamento che la apre, e così ogni tag: un tag mostra solo le immagini che lo portano (o che si chiamano così), in tutte le categorie, sotto un chip Tag; togli il chip o scegli una categoria per tornare indietro. Scrivendo in Search si trovano invece tutte le parole che contengono ciò che scrivi. Le bandiere sono le World Flags, mostrate sempre intere. Recognize characters apre la libreria sui caratteri.",
+  "editorHelp.qa.pictureRules.q": "Quali immagini accetta QQL?",
+  "editorHelp.qa.pictureRules.a":
+      "Immagini fisse PNG, JPEG o WebP di al massimo 4096 × 4096 pixel, integre e senza metadati eccessivi; QQL controlla il contenuto, non il nome del file. Un’immagine di esercizio importata da {folderImageImports} può arrivare a 300 KB; circa 256 × 256 pixel e 15 KB sono una buona misura.",
+  "editorHelp.qa.imageBank.q": "Che cos’è un Image Bank?",
+  "editorHelp.qa.imageBank.a":
+      "Uno ZIP di immagini con un manifest, image_bank_manifest.json, che elenca ogni immagine: un id, un’etichetta (primary_term), il nome del file e, se vuoi, parole chiave e un’attribuzione. Lo ZIP contiene solo il manifest e le immagini che elenca. Import Image Bank ZIP legge l’unico ZIP presente in {folderImageImports}; Open Image Bank ZIP from… usa la finestra di sistema. Limiti: 50 MB per lo ZIP, 2500 immagini e 300 KB per immagine. Una categoria che la libreria non ha viene assegnata dall’Admin a una delle sue categorie, oppure a Other: non si crea nessuna categoria nuova. Un’immagine il cui unico tag è il suo nome viene segnalata, perché l’Admin ne aggiunga un altro.",
+  "editorHelp.qa.pictureDetails.q": "Come vedo i dettagli di un’immagine?",
+  "editorHelp.qa.pictureDetails.a":
+      "Aprila a grandezza piena e passaci sopra con il puntatore su un computer, oppure tienila premuta su un telefono: nome del file, peso, dimensioni, formato, data di aggiunta, Image Bank e attribuzione.",
+  "editorHelp.qa.removePicture.q": "Come tolgo un’immagine da un Course?",
+  "editorHelp.qa.removePicture.a":
+      "Nella Image Library del Course Editor, Remove from this Course cancella ogni uso dell’immagine; il file lascia il Course quando le modifiche del Course vengono confermate.",
+  "editorHelp.qa.checkingTheCourse.title": "Controllare il Course",
+  "editorHelp.qa.runAudit.q": "Come controllo un Course?",
+  "editorHelp.qa.runAudit.a":
+      "Esegui Audit nella pagina del Course Editor per l’intero Course, oppure dal menu (⋮) di una Lesson o di un Round nelle pagine Lessons e Rounds. Elenca Error, Warning e Info, ordinati per Lesson, per tipo di esercizio o per modifica più recente.",
+  "editorHelp.qa.severities.q": "Che differenza c’è tra Error, Warning e Info?",
+  "editorHelp.qa.severities.a":
+      "Un Error segnala un contenuto non valido: non si può salvare come contenuto normale, pubblicare o importare. Un Warning segnala un probabile problema da rivedere. Info è un’indicazione o un fatto neutro e non blocca mai niente.",
+  "editorHelp.qa.borders.q":
+      "Che cosa significano i bordi rossi e verdi e il badge blu?",
+  "editorHelp.qa.borders.a":
+      "Un bordo rosso segnala un Error o un Warning da qualche parte in quel ramo; un bordo verde significa che non ce ne sono (possono restare indicazioni Info). Il badge blu segnala contenuto Draft nel ramo. Verde non significa Published.",
+  "editorHelp.qa.auditCodes.q": "Dove sono elencati tutti i codici dell’Audit?",
+  "editorHelp.qa.auditCodes.a":
+      "In Riferimento tecnico › Audit Codes, in cima a questa pagina: ogni regola per gravità, con una ricerca.",
+  "editorHelp.qa.auditLimits.q":
+      "L’Audit controlla la grammatica o le traduzioni?",
+  "editorHelp.qa.auditLimits.a":
+      "No. Controlla la struttura e la scrittura: campi, ID, blocchi, audio, immagini e simili. Non certifica la grammatica, la correttezza delle traduzioni o la qualità didattica: guarda i tuoi esercizi in anteprima e rivedili.",
+  "editorHelp.qa.searchLabel": "Cerca tra le domande",
+  "editorHelp.qa.noResults": "Nessuna domanda corrisponde alla ricerca.",
+  'editorHelp.title': 'Guida all’Editor',
+  'courseStudioHelp.title': 'Guida al Course Studio',
+  'editorHelp.technicalReference.title': 'Riferimento tecnico',
+  'editorHelp.technicalReference.body':
+      'Work in progress. Queste pagine descrivono l’implementazione attuale dei Course Model v12, separatamente dalle istruzioni pratiche dell’Editor.',
+  'courseStudioHelp.courseTypes.title': "Tipi di corso",
+  'courseStudioHelp.courseTypes.intro': "In QQL i tipi di corso sono tre:",
+  'courseStudioHelp.courseTypes.type1':
+      "1. Official Bundled Course: distribuito insieme all’app QQL; la fiducia deriva dalla distribuzione dell’app.",
+  'courseStudioHelp.courseTypes.type2':
+      "2. Publisher Course: distribuito separatamente da un editore e importato in QQL. La verifica dell’editore è uno stato distinto.",
+  'courseStudioHelp.courseTypes.type3':
+      "3. Custom Course: creato o importato dagli utenti, comprese copie, fork e merge.",
+  'courseStudioHelp.courseTypes.row1.col1': "Aspetto",
+  'courseStudioHelp.courseTypes.row1.col2': "Official Bundled",
+  'courseStudioHelp.courseTypes.row1.col3': "Publisher Course",
+  'courseStudioHelp.courseTypes.row1.col4': "Custom",
+  'courseStudioHelp.courseTypes.row2.col1': "Origine",
+  'courseStudioHelp.courseTypes.row2.col2': "Incluso in QQL",
+  'courseStudioHelp.courseTypes.row2.col3': "Release importata di un editore",
+  'courseStudioHelp.courseTypes.row2.col4': "Creato o importato dagli utenti",
+  'courseStudioHelp.courseTypes.row3.col1': "Autenticità",
+  'courseStudioHelp.courseTypes.row3.col2': "Distribuzione dell’app",
+  'courseStudioHelp.courseTypes.row3.col3':
+      "Firma valida di un editore approvato",
+  'courseStudioHelp.courseTypes.row3.col4':
+      "Nessuna verifica come editore ufficiale",
+  'courseStudioHelp.courseTypes.row4.col1': "Modifica",
+  'courseStudioHelp.courseTypes.row4.col2': "Sola lettura",
+  'courseStudioHelp.courseTypes.row4.col3': "Sola lettura",
+  'courseStudioHelp.courseTypes.row4.col4': "Maintainer / Team autorizzati",
+  'courseStudioHelp.courseTypes.row5.col1': "Copia",
+  'courseStudioHelp.courseTypes.row5.col2': "Usare Fork se consentito",
+  'courseStudioHelp.courseTypes.row5.col3': "Usare Fork se consentito",
+  'courseStudioHelp.courseTypes.row5.col4':
+      "Copy as New Course, se autorizzati",
+  'courseStudioHelp.courseTypes.row6.col1': "Fork",
+  'courseStudioHelp.courseTypes.row6.col2':
+      "Solo se i derivati sono consentiti",
+  'courseStudioHelp.courseTypes.row6.col3':
+      "Solo se i derivati sono consentiti",
+  'courseStudioHelp.courseTypes.row6.col4':
+      "Solo se i derivati sono consentiti",
+  'courseStudioHelp.courseTypes.row7.col1': "Merge",
+  'courseStudioHelp.courseTypes.row7.col2': "Non è una sorgente custom",
+  'courseStudioHelp.courseTypes.row7.col3': "Non è una sorgente custom",
+  'courseStudioHelp.courseTypes.row7.col4':
+      "Due sorgenti custom; nuovo corso custom",
+  'courseStudioHelp.courseTypes.row8.col1': "Manutenzione",
+  'courseStudioHelp.courseTypes.row8.col2': "Editore QQL",
+  'courseStudioHelp.courseTypes.row8.col3': "Editore esterno",
+  'courseStudioHelp.courseTypes.row8.col4': "Course Maintainer / Assigned Team",
+  'courseStudioHelp.courseTypes.row9.col1': "Pubblicazione",
+  'courseStudioHelp.courseTypes.row9.col2': "Release dell’app",
+  'courseStudioHelp.courseTypes.row9.col3': "Distribuzione dell’editore",
+  'courseStudioHelp.courseTypes.row9.col4': "Published o Not published",
+  'courseStudioHelp.courseTypes.row10.col1': "Eliminazione",
+  'courseStudioHelp.courseTypes.row10.col2': "Solo rimozione personale",
+  'courseStudioHelp.courseTypes.row10.col3':
+      "Rimozione personale; disinstallazione admin se non usato da altri",
+  'courseStudioHelp.courseTypes.row10.col4': "Da Course Studio, se autorizzati",
+  'courseStudioHelp.courseTypes.row11.col1': "Aggiornamenti",
+  'courseStudioHelp.courseTypes.row11.col2': "Nuova release di QQL",
+  'courseStudioHelp.courseTypes.row11.col3':
+      "Release più recente, stesso ID e editore",
+  'courseStudioHelp.courseTypes.row11.col4': "Versioni custom indipendenti",
+  'courseStudioHelp.courseTypes.note1':
+      "Gli import ufficiali esterni richiedono una firma verificata dell’editore. I corsi già salvati non verificabili e i loro progressi vengono conservati con Verification required. Vedi Publisher signing and approval nel Riferimento tecnico.",
+  'courseStudioHelp.courseTypes.note2':
+      "Bundled ed External distinguono due origini ufficiali; verified / unverified indica l’autenticità, non un quarto tipo di corso. Un file non verificato non è accettato come nuovo Publisher Course.",
+  'courseStudioHelp.courseTypes.note3':
+      "Una copia crea un Custom Course indipendente. Anche un Fork è custom, conserva la provenienza ed è soggetto alla licenza originale. Una sorgente ufficiale non rende ufficiali la copia o il fork.",
+  'courseStudioHelp.courseTypes.note4':
+      "Un Merge crea un nuovo Custom Course da due sorgenti custom, che restano invariate. Creato, importato, copiato, forkato e unito descrivono l’origine di un custom, non altri tipi di corso.",
+  'courseStudioHelp.courseTypes.contact':
+      "Per la distribuzione insieme all’app o l’approvazione come editore esterno, contatta il team QQL. La guida sulle firme descrive la procedura di approvazione.",
+  // App Info text, retaining the existing Italian wording.
+  'appInfo.versionAndBuild.title': 'Versione e build',
+  'appInfo.versionAndBuild.body': '{version}',
+  'appInfo.choosingAndOpeningCourses.title': 'Scegliere e aprire i corsi',
+  'appInfo.choosingAndOpeningCourses.body':
+      'Il Course Selector, nella pagina di studio, elenca il corso attuale, quelli aperti di recente, i Favorites e poi gli altri corsi, inclusi nell’app o locali; il corso attuale non viene ripetuto tra gli altri. Ogni riga mostra la cover del corso, o la sua bandiera se non ne ha una. Ogni riga offre Course Info e Remove from my courses. Course Library permette di aggiungere nuovamente i corsi con i progressi conservati. Import Course apre direttamente la pagina di importazione e torna allo studio. Se le animazioni sono attive, quando passi a un altro corso vedi per un attimo la bandiera dichiarata nel suo Course JSON, poi si apre il nuovo Learner Panel. Se il corso non dichiara nessuna bandiera, si usa quella ricavata dal codice della lingua, come altrove nell’app; se invece i dati della bandiera dichiarata non sono validi, quel ripiego non viene applicato. Se riselezioni il corso già attivo dai Favorites, o all’avvio normale, o con le animazioni disattivate, si entra subito. Ogni studente riprende dall’ultima Lesson aperta in quel corso, o dalla prima se non c’è una scelta valida salvata. Il comando in basso per la visualizzazione delle Lesson alterna Expanded, Collapse completed e Focused; per spostarti tra le Section c’è solo il Section selector.',
+  'appInfo.courseIdentityAndProgress.title': 'Identità del corso e progressi',
+  'appInfo.courseIdentityAndProgress.body':
+      'Ogni corso ha un Course ID unico che non cambia mai. Se aggiorni lo stesso corso, l’ID resta quello e i progressi restano al loro posto. Se importi un corso con un Course ID già presente, puoi sostituirlo o aggiornarlo, crearne una copia separata con un ID nuovo, oppure annullare. Le copie derivate possono conservare il Course ID di origine e la versione di partenza. Round completati, cronologia di Review, allori e vittorie nei Language Duel sono contati separatamente per ogni Course ID. XP della lingua, streak e giorni di studio restano invece condivisi per lingua studiata, e i Week XP restano un totale su tutti i corsi e tutte le lingue.',
+  'appInfo.progressWeekXpAndGamification.title':
+      'Progressi, Week XP e Gamification',
+  'appInfo.progressWeekXpAndGamification.body':
+      'XP della lingua, streak, giorni di studio e Status sono salvati separatamente per ogni studente e per ogni lingua studiata. In Profile > Statistics trovi i Total Study Days su tutte le lingue e, per ogni lingua studiata, la bandiera, il nome, l’identificativo ufficiale della lingua, gli Study Days, il Current Streak e il Max Streak. I Round completati e le corone d’alloro sono salvati separatamente per ogni studente e per ogni Course ID. I Week XP funzionano diversamente: sono il totale degli XP guadagnati da quello studente in tutti i corsi nella settimana in corso. In Profile > Gamification ci sono Weekly XP Target · All courses, Last Week XP · All courses e Local leaderboard · All courses. Last Week XP si riferisce all’ultima settimana conclusa; tocca il tuo Last Week XP per vedere quanti XP vengono da ciascun corso. La classifica locale mette in ordine i profili di questo dispositivo che partecipano, in base al totale di XP su tutti i corsi nella stessa settimana conclusa. Puoi smettere di partecipare senza perdere lo storico degli XP. Un Round o una Story senza esercizi con punteggio (solo carte, copertine o battute) conta come completato ma non assegna XP né Laurel. La prima volta che completi un Round, ogni esercizio risolto correttamente al primo tentativo ti dà anche un Bonus difficoltà: 1 XP per livello di difficoltà, da 1 (riconoscere il significato) a 4 (scrivere). Una breve esplosione di coriandoli festeggia il Weekly XP Target raggiunto, un Duel vinto e un Round Test superato (soglia raggiunta o, senza soglia, tutte le risposte giuste), a meno che le Animations siano spente in Do Not Disturb o il dispositivo chieda di ridurre il movimento.',
+  'appInfo.streakAndFreezeRule.title': 'Streak e regola del congelamento',
+  'appInfo.streakAndFreezeRule.body':
+      'Lo streak di una lingua cresce quando studi quella lingua in un giorno nuovo. Se passi una giornata a studiare un’altra lingua, lo streak di questa lingua si congela: non sale, ma non si azzera. Se invece passa un giorno intero senza studiare nessuna lingua, gli streak attivi si interrompono.',
+  'appInfo.daysStudied.title': 'Giorni di studio',
+  'appInfo.daysStudied.body':
+      'Uno Study Day è un singolo giorno di calendario, secondo l’ora locale, in cui hai studiato. Più Round nello stesso giorno contano comunque come un solo Study Day. I Total Study Days contano i giorni diversi in cui hai studiato, su tutte le lingue: se in un giorno studi due lingue, il totale aumenta comunque di uno.',
+  'appInfo.laurelCrowns.title': 'Corone d’alloro',
+  'appInfo.laurelCrowns.body':
+      'Un Round ti fa guadagnare una corona d’alloro quando lo completi per intero senza nessun errore. Può succedere sia nel percorso normale del corso sia da Review. Una volta ottenuta, la corona resta per sempre, anche se in un tentativo successivo sbagli qualcosa. Quando ne guadagni una nuova senti anche il suono della vittoria, se gli effetti sonori sono attivi.',
+  "appInfo.pathColours.title": "Codice colori del percorso",
+  "appInfo.pathColours.enlarge": "Ingrandisci l'immagine",
+  "appInfo.pathColours.body":
+      "Ogni Lesson ha un suo colore, uno di otto che ricominciano dopo la Lesson 8; l'immagine li mostra nel tema chiaro e in quello scuro. Il cerchio con il numero della Lesson è del suo colore, come i cerchi dei suoi Round e del suo Duel.\n• Un cerchio chiaro bordato del colore: un Round non ancora completato (Learn).\n• Un cerchio pieno: un Round completato; Completed è scritto in un'altra tonalità del colore.\n• Un cerchio verde con l'alloro: un Round Perfect, completato senza errori.\nLearn è sempre blu e Perfect sempre verde, qualunque sia il colore della Lesson.",
+  "appInfo.pathColours.picture":
+      "Gli otto colori delle Lesson nel tema chiaro e in quello scuro: un Round non completato, un Round completato e la parola Completed.",
+  'appInfo.audioSettings.title': 'Audio Settings',
+  'appInfo.audioSettings.body':
+      'In Settings > Audio Settings trovi, in quest’ordine, Enable Audio Exercises, Text-to-speech e il selettore della voce TTS con Test Voice. Enable Audio Exercises e Text-to-speech valgono per ogni studente separatamente e partono da Off; anche la voce TTS è per studente e parte da System. Test Voice si apre con il campo vuoto e legge solo il testo che scrivi tu, usando la lingua del corso selezionato per scegliere la voce. Se gli esercizi audio sono Off, gli esercizi con MP3 registrato, con TTS o misti vengono esclusi prima ancora di preparare la sorgente o il controller di riproduzione. Se sono On, l’interruttore Text-to-speech decide se il TTS è disponibile, senza disattivare gli audio registrati validi. I vecchi valori condivisi o negativi di queste impostazioni restano dove sono e non vengono letti. La Preview dell’Editor ignora le Audio Settings dello studente e non scrive nulla. Se completi solo la parte non audio di un Round, vale il comportamento già previsto per il completamento parziale: non ottieni la corona d’alloro piena.',
+  'appInfo.betaExpiry.title': 'Scadenza della beta',
+  'appInfo.betaExpiry.active':
+      'Questa è una beta a tempo. Scade il {expiryDate}. Dopo quella data gli esercizi e Review restano bloccati finché non installi una beta più recente. Progressi, corsi, modifiche ai corsi e impostazioni non vengono cancellati, e il Course Editor resta utilizzabile.',
+  'appInfo.betaExpiry.inactive': 'Questa non è una beta a tempo.',
+  'appInfo.status.title': 'Status',
+  'appInfo.status.body':
+      'Lo Status è calcolato separatamente per ogni studente e per ogni lingua studiata. I punti Status sono i tuoi XP più 40 punti per ogni giorno di streak in corso, 25 per ogni giorno di studio, 15 per ogni Round completato e 20 per ogni alloro. Il tuo Status attuale è la soglia più alta che il totale ha raggiunto. Ogni Status ha un colore acceso che diventa automaticamente il colore della maglietta del tuo avatar. I livelli sono Apprentice, Wanderer, Squire, Wordsmith, Knight, Lorekeeper, Language Wizard, Grand Master, Sage e Guru.',
+  'appInfo.avatarAppearance.title': 'Aspetto dell’avatar',
+  'appInfo.avatarAppearance.body':
+      'In Profile > Avatar Customization scegli pelle e capelli. Il colore della maglietta non si sceglie: è sempre il colore acceso dello Status che hai in quel momento nella lingua selezionata, e cambia da solo quando cambia lo Status.',
+  'appInfo.review.title': 'Review',
+  'appInfo.review.body':
+      'QuisquisLingo ricorda fino a 50 Round recenti diversi per ogni studente e per ogni Course ID. Review propone per primi i Round in cui l’ultimo tentativo aveva più errori. A parità di errori vengono prima i più vecchi. Se rifai un Round, il conteggio degli errori si aggiorna e puoi anche guadagnare una corona d’alloro permanente.',
+  'appInfo.guidebooks.title': 'GuideBook',
+  'appInfo.guidebooks.body':
+      'Ogni Lesson ha il suo GuideBook, con spiegazioni e materiale di consultazione. Il GuideBook è il primo elemento del percorso della Lesson e si apre solo se lo selezioni.',
+  'appInfo.wordLookup.title': 'Word Lookup',
+  'appInfo.wordLookup.body':
+      'In un Round le parole della lingua che studi spiegate dal vocabolario del GuideBook del Corso hanno una leggera sottolineatura a puntini; toccane una per vederne la traduzione e, se viene da un\'altra Lesson, quella Lesson. Solo alcuni tipi di esercizio hanno queste parole. La scheda mostra una delle traduzioni possibili, un aiuto che non sempre coincide con la soluzione dell\'esercizio. Quando nel GuideBook c\'è un\'espressione intera, compare quella al posto della parola singola; su una parola che il GuideBook non ha non succede nulla. Word Lookup funziona in tutti i Round tranne i Round di tipo Test, e mai nel Duel; non dà XP e non cambia nulla nei tuoi progressi. C\'è solo quando il Corso usa i GuideBook, e chi ha creato il Corso può spegnerlo.',
+  'appInfo.languageDuels.title': 'Language Duel',
+  'appInfo.languageDuels.body':
+      'Ogni Lesson ha il suo Duel. Un Duel normale usa 25 esercizi adatti presi da quella Lesson e parte con 4 vite. Ogni risposta sbagliata costa una vita. Non c’è un punteggio né una soglia di promozione: per vincere e sbloccare la Lesson successiva devi arrivare in fondo a tutte e 25 le domande prima di perdere le quattro vite. Se la Lesson non contiene 25 esercizi adatti, il suo Duel semplicemente non è disponibile.',
+  'appInfo.sourceAndTargetLanguages.title':
+      'Lingua di partenza e lingua studiata',
+  'appInfo.sourceAndTargetLanguages.body':
+      'La lingua studiata è quella che stai imparando. La lingua di partenza è quella usata per spiegazioni e traduzioni. Quasi tutti i corsi di esempio partono dall’inglese; il corso di esempio di inglese parte dallo spagnolo.',
+  'appInfo.exportAndImportLearnerData.title':
+      'Esportare e importare i tuoi dati',
+  'appInfo.exportAndImportLearnerData.body':
+      'Profile > User Data > Export my data crea una copia del profilo attivo, con i progressi e le preferenze di quello studente. Il file viene salvato direttamente in {folderLearnerDataExports} con un nome automatico: non c’è una finestra Salva con nome. Se quel nome esiste già, QuisquisLingo aggiunge _2, _3 e così via. Per importare, copia una copia compatibile in {folderLearnerDataImports}/learner_import.json e poi scegli Profile > User Data > Import my data. I progetti del Course Editor, i pacchetti Image Bank e gli Audio Pack sono materiale di authoring a parte e non rientrano in questa copia.',
+  'appInfo.updates.title': 'Aggiornamenti',
+  'appInfo.updates.body':
+      'In fondo a Settings, Version e Build compaiono subito prima di Update. Settings > Update mostra il repository pubblico del codice sorgente di QuisquisLingo, https://github.com/Quisquisnaut/QuisquisLingo, ti permette di controllare a mano l’ultima GitHub Release pacchettizzata e, se vuoi, può controllare da solo all’avvio. Se non esiste nessuna GitHub Release pacchettizzata, la pagina lo distingue chiaramente dal repository del codice. Il controllo automatico è attivo per impostazione predefinita. I controlli non inviano dati dello studente né dei corsi, e non scaricano né installano niente. Se esiste una versione più recente, la pagina mostra le informazioni sulla release e le istruzioni di installazione sempre nello stesso ordine — Windows, macOS, Linux, Android, iOS e Web — segnalando come non disponibili le piattaforme per cui non è stato pubblicato un file corrispondente.',
+  'appInfo.crashLogAndDiagnosticLog.title': 'Crash Log e Diagnostic Log',
+  'appInfo.crashLogAndDiagnosticLog.body':
+      'In Settings > Debug trovi sia gli strumenti di log sia una guida breve su come segnalare i problemi. Usa il Crash Log per i crash all’avvio o durante l’uso e per le chiusure inattese. Per i problemi che non fanno chiudere l’app, riproduci il problema quando puoi ed esporta il Diagnostic Log subito dopo; svuotarlo prima è facoltativo e serve solo a isolare un problema ben riproducibile, mentre se il problema è intermittente conviene esportare prima di svuotare. Quick Export salva le copie del Diagnostic Log e del Crash Log in {folderDiagnosticLogExports}; Settings > Debug mostra anche dove si trova il Crash Log vero e proprio. La diagnostica audio usa codici di correlazione brevi e cicli di vita delimitati, con preparazione, stato dell’interfaccia, ID e tipo stabile dell’esercizio, motivo di attivazione, soppressione, sorgente, backend, riproduzione, errore e chiusura. È pensata per non registrare il testo letto, le risposte, i contenuti dei corsi e i percorsi completi dei tuoi file.',
+  'appInfo.courseStudioAndCourseEditor.title': 'Course Studio e Course Editor',
+  'appInfo.courseStudioAndCourseEditor.body':
+      'Il Course Studio si apre dal Course Selector della pagina di studio, non da Settings. È il punto da cui si gestisce tutto il ciclo di vita dei corsi: quelli ufficiali permettono la consultazione in sola lettura, il Fork su licenza, l’Audit e l’Export supportato; quelli personalizzati permettono Edit, Copy as New Course, Merge, Audit, Export e Delete. Il Fork mantiene la discendenza dal corso di origine; Copy as New Course fa partire una discendenza indipendente. Per le operazioni della libreria apri Course Studio Help; per creare e modificare i corsi apri Editor Help da una pagina del Course Editor.',
+  'appInfo.courseContentAndAi.title': 'Contenuti dei corsi e IA',
+  'appInfo.courseContentAndAi.body':
+      'I corsi dimostrativi inclusi nell’app (Demo nel titolo) sono dimostrazioni generate dall’IA e non revisionate: non sono corsi affidabili per studiare. I veri contenuti di QuisquisLingo sono pensati per essere scritti e revisionati da persone. Questa classificazione non riguarda gli altri corsi, ufficiali o personalizzati.',
+  'appInfo.creditsButton': 'App and image credits',
+  // Course Info and the shared Locale selector.
+  "courseInfo.title": "Course Info",
+  "courseInfo.authorSupportMissing":
+      "Questo corso non indica un link per sostenere gli autori.",
+  "courseInfo.authorSupportOpenFailed":
+      "Non è stato possibile aprire il link per sostenere gli autori.",
+  "courseInfo.authorsContributors": "Authors / Contributors: {value}",
+  "courseInfo.notSpecified": "Non indicato",
+  "courseInfo.contributors": "Collaboratori",
+  "courseInfo.illustrators": "Illustratori",
+  "courseInfo.origin.bundledOfficial": "Bundled official",
+  "courseInfo.origin.publisherCourse": "Publisher Course",
+  "courseInfo.origin.customCourse": "Custom course",
+  "courseInfo.origin.label": "Origine: {value}",
+  "courseInfo.publisher": "Editore: {value}",
+  "courseInfo.originalCourseCreated": "Original Course Created: {value}",
+  "courseInfo.lastVersionEditor": "Last Version Editor: {value}",
+  "courseInfo.modified": "Modified: {value}",
+  "courseInfo.officialCourseVersion": "Versione ufficiale del corso: {value}",
+  "courseInfo.officialRelease": "Release ufficiale: {value}",
+  "courseInfo.distributionChannel": "Canale di distribuzione: {value}",
+  "courseInfo.publisherVerification": "Verifica dell’editore: {value}",
+  "courseInfo.verificationRequired":
+      "Verification required. Il corso salvato e i progressi restano. Importa una release verificata dell’editore per riattivarlo.",
+  "courseInfo.signatureScope":
+      "La firma copre il Course JSON. I file multimediali separati non sono autenticati da questa firma.",
+  "courseInfo.officialChecksum": "Checksum ufficiale: {value}",
+  "courseInfo.officialReadOnly": "Official course - read only",
+  "courseInfo.courseVersion": "Versione del corso: {value}",
+  "courseInfo.unconfirmed": "Non confermata",
+  "courseInfo.versionNotes": "Note della versione:\n{value}",
+  "courseInfo.internalCourseData": "Dati interni del corso",
+  "courseInfo.enlargeImage": "Ingrandisci l’immagine del corso",
+  "courseInfo.courseModel": "Course Model: v{value}",
+  "courseInfo.temporarySample.title": "Private course",
+  "courseInfo.temporarySample.body":
+      "Questo corso è visibile in QQL solo al suo Course Maintainer e ai membri del Team assegnato. Disattiva Private course in Course Info per mostrarlo a tutti su questo dispositivo.",
+  "courseInfo.authorshipAndDescriptiveCredits": "Autori e riconoscimenti",
+  "courseInfo.teamLeaderTooltip":
+      "Queste informazioni sono solo descrittive. Per assegnare o cambiare i ruoli Team Leader in QQL, usa Team Manager.",
+  "courseInfo.languages": "Lingue",
+  "courseInfo.learningLanguage": "Lingua studiata: {value}",
+  "courseInfo.baseLanguage": "Lingua di partenza: {value}",
+  "courseInfo.licenseRights": "License / Rights",
+  "courseInfo.license": "Licenza: {value}",
+  "courseInfo.rightsHolder": "Rights Holder: {value}",
+  "courseInfo.derivativeWorks": "Opere derivate: {value}",
+  "courseInfo.rightsHolderDisclaimer":
+      "Rights Holder è un dato legale descrittivo e non controlla i permessi QQL.",
+  "courseInfo.mediaCredits": "Crediti dei media",
+  "courseInfo.mediaCreditsDisclaimer":
+      "I crediti dei media sono descrittivi e non controllano i permessi QQL.",
+  "courseInfo.source": "Fonte: {value}",
+  "courseInfo.courseDetails": "Dettagli del corso",
+  "courseInfo.lessons": "Lessons: {value}",
+  "courseInfo.estimatedStudyTime": "Tempo di studio stimato: {value} {unit}",
+  "courseInfo.hour": "ora",
+  "courseInfo.hours": "ore",
+  "courseInfo.minimumAge": "Età minima: {value}+",
+  "courseInfo.keywords": "Parole chiave: {value}",
+  "courseInfo.requiresBuild":
+      "Richiede QuisquisLingo build {value} o successiva",
+  "courseInfo.publisherContact": "Contatti dell’editore",
+  "courseInfo.website": "Sito web: {value}",
+  "courseInfo.email": "Email: {value}",
+  "courseInfo.buyACoffee": "Buy a Coffee",
+  "courseInfo.supportAuthors": "Sostieni gli autori di questo corso.",
+  "courseInfo.governance.title":
+      "Responsabilità del corso, Team assegnato e autorizzazioni",
+  "courseInfo.governance.officialPublisher": "Editore ufficiale: {value}",
+  "courseInfo.governance.originalCreator": "Original Course Creator: {value}",
+  "courseInfo.governance.maintainer": "Course Maintainer: {value}",
+  "courseInfo.governance.assignedTeam": "Assigned Team: {value}",
+  "courseInfo.governance.teamLeaders": "Team Leaders: {value}",
+  "courseInfo.governance.teamMembers": "Team Members: {value}",
+  "courseInfo.governance.none": "Nessuno",
+  "courseInfo.governance.noneAvailable": "Nessuno disponibile",
+  "courseInfo.governance.disclaimer":
+      "La manutenzione del corso e la gestione del Team sono separate. Provenienza, attribuzioni e diritti non concedono permessi di modifica.",
+  "courseInfo.fork.title": "Provenienza del Fork",
+  "courseInfo.fork.notRecorded": "Non registrata",
+  "courseInfo.fork.fromCourseId": "Forked From Course ID: {value}",
+  "courseInfo.fork.sourceCourse": "Corso di origine: {value}",
+  "courseInfo.fork.sourceCourseVersion":
+      "Versione del corso di origine: {value}",
+  "courseInfo.fork.sourcePublisher": "Editore del corso di origine: {value}",
+  "courseInfo.fork.sourcePublisherId": "ID dell’editore di origine: {value}",
+  "courseInfo.fork.sourceAuthors":
+      "Autori / collaboratori del corso di origine:\n{value}",
+  "courseInfo.fork.sourceOfficialChecksum":
+      "Checksum ufficiale di origine: {value}",
+  "courseInfo.fork.createdBy": "Fork creato da: {value}",
+  "courseInfo.fork.createdDate": "Data di creazione del Fork: {value}",
+  "courseInfo.fork.disclaimer":
+      "La provenienza del Fork non si può modificare. Rights Holder e attribuzioni restano separati dai permessi QQL.",
+  "courseInfo.fork.creatorUser": "Utente che ha creato il Fork",
+  "locale.label": "Locale",
+  "locale.english": "English",
+  "locale.italian": "Italiano",
+  "locale.spanish": "Español",
+  // Technical reference pages.
+  "technical.courseModel.title": "QuisquisLingo Course Model v12",
+  "technical.courseModel.status.title": "Stato",
+  "technical.courseModel.status.body":
+      "Work in progress. QuisquisLingo usa solo formatVersion 12 come Course Model nativo. I formati precedenti vengono rifiutati senza migrazione né cancellazione. Ogni corso Custom richiede un Original Course Creator immutabile e un Course Maintainer individuale; l’eventuale Assigned Team resta separato.",
+  "technical.courseModel.hierarchy.title": "Gerarchia",
+  "technical.courseModel.hierarchy.body":
+      "Course > Lesson > GuideBook + Round > Content. Ogni Lesson possiede il proprio GuideBook e Duel. Un Exercise è un tipo di Content, non l’unico oggetto possibile in un Round.",
+  "technical.courseModel.content.title": "Content",
+  "technical.courseModel.content.body":
+      "I tipi attuali comprendono exercise, presentation, explanation, example, vocabulary, text e dialogue. Content ha un ID stabile e può essere obbligatorio per il completamento normale. Lesson, Round ed Exercise richiedono timestamp UTC updatedAt. Presentation Content può essere interattivo senza produrre un risultato giusto o sbagliato.",
+  "technical.courseModel.guidebook.title": "GuideBook",
+  "technical.courseModel.guidebook.body":
+      "Il GuideBook di ogni Lesson è Content strutturato, non un blocco unico. Vocabolario, esempi e spiegazioni sono materiale di consultazione per lo studente e possono anche essere la sola fonte per generare Round Draft configurabili e via via più difficili, con sourceRefs.",
+  "technical.courseModel.completionAndProgression.title":
+      "Completamento e progressione",
+  "technical.courseModel.completionAndProgression.body":
+      "required indica ciò che serve per il completamento normale. Completamento, correttezza e sblocco sono stati separati. Completare una Lesson o vincere il suo Duel disponibile può sbloccare la Lesson successiva senza segnare come completato il Content saltato.",
+  "technical.courseModel.languageDuel.title": "Language Duel",
+  "technical.courseModel.languageDuel.body":
+      "L’identità del Duel appartiene direttamente alla Lesson. QuisquisLingo sceglie in modo dinamico 25 esercizi idonei e distinti da quella Lesson e parte con 4 vite. Non c’è punteggio né soglia di promozione. Se gli esercizi idonei sono meno di 25, il Duel non è disponibile, ma non è invalido.",
+  "technical.courseModel.friendlyEditorTemplates.title": "Template dell’Editor",
+  "technical.courseModel.friendlyEditorTemplates.body":
+      "L’Editor conserva nomi come Choose a picture, What do you hear?, Build the sentence e Match the sounds. editorTemplate è un metadato facoltativo di authoring. Lo studente usa la rappresentazione primitiva.",
+  "technical.exercisePrimitives.title": "Primitive degli esercizi",
+  "technical.exercisePrimitives.status.title": "Stato",
+  "technical.exercisePrimitives.status.body":
+      "Course Model v12 (Build 256). Ogni esercizio è una delle nove primitive, con opzioni tipizzate, elementi del prompt, item, target, un layout inline, una modalità di valutazione e un feedback facoltativo. I preset sono ricette su questi dati e non cambiano mai come un esercizio si gioca o si valuta; dalla Build 261 il titolo che lo studente vede su un esercizio è il nome del preset che lo rappresenta, riconosciuto dal suo contenuto (mai dal preset salvato), nella lingua del pannello dello studente. Una Story non mostra titoli, solo le istruzioni.",
+  "technical.exercisePrimitives.exerciseAnatomy.title":
+      "Struttura di un esercizio",
+  "technical.exercisePrimitives.exerciseAnatomy.body":
+      "Exercise = primitive + options + prompt[] + items[] + targets[] + layout[] + evaluation + feedback, con hint facoltativo. Gli elementi del prompt sono text, audio o image con un ruolo (primary, question, passage, situation, clue, context, dialogue_turn, picture, character; una presentation ha i suoi: term, meaning, usage, intro, line, title, block; l’editor canonico li offre in un menu e dice a che cosa serve ciascuno) e gli attributi language (source o target), playback (automatic o manual) e required. Un testo primary (altrimenti un clue) senza lingua è l’Instruction or context: lo studente lo vede al posto della riga di istruzioni standard sotto l’intestazione; con una lingua è materiale, per esempio un testo da tradurre. Gli item sono ciò che lo studente sceglie, ordina, colloca o abbina; un item di Match ha un lato. I target sono gli spazi, le caselle o le regioni che lo studente riempie, e il layout li colloca nel testo. Item e target hanno ID stabili, mai posizioni.",
+  "technical.exercisePrimitives.primitives.title": "Le nove primitive",
+  "technical.exercisePrimitives.primitives.body":
+      "select: lo studente sceglie uno o più item. input: lo studente scrive testo o un numero in un campo o negli spazi inline. arrange: lo studente ordina blocchi o li trascina negli spazi. match: lo studente abbina item di sinistra e di destra. assign: lo studente smista item in gruppi, riempie caselle o gli spazi di un testo toccando un item e poi la sua destinazione (i preset Sort into groups e Fill the slots; gli spazi si creano nell’editor canonico; regioni di un’immagine e celle di una griglia in una versione futura). speak: lo studente parla (solo definizioni). ink: lo studente scrive a mano (solo definizioni). submit: lo studente consegna una risposta libera per autoverifica o revisione (solo definizioni). presentation: una scheda o una nota senza risposta, come una Flashcard. La primitiva è bloccata una volta che l’esercizio esiste.",
+  "technical.exercisePrimitives.primitiveSelect.title": "Select",
+  "technical.exercisePrimitives.primitiveSelect.body":
+      "Lo studente sceglie la risposta giusta, o più di una, tra gli item: Choose the answer, Pick the translation, True or false, Listen and choose e la maggior parte degli esercizi con immagini sono Select. Nell’editor canonico: il Prompt contiene la domanda (ruolo question) e, se serve, un’istruzione (primary), un testo da leggere (passage) o una registrazione (audio, primary); ogni Item è una risposta; la Evaluation exactItem segna l’item giusto, exactSet più item (con selectionMode multiple). Le opzioni scelgono il layout (list, grid o spazi inline) e se gli item vengono mescolati. L’immagine mostra l’esempio scritto da Fill with an example, come lo vede lo studente.",
+  "technical.exercisePrimitives.primitiveInput.title": "Input",
+  "technical.exercisePrimitives.primitiveInput.body":
+      "Lo studente scrive la risposta: in un campo (Type the translation, Type what you hear) o negli spazi di una frase (Type the missing word, Complete the text). Nell’editor canonico: il Prompt contiene la domanda o la frase; la Evaluation elenca le risposte accettate, una per riga, dove {a|b} accetta l’una o l’altra parola, e le risposte letterali restano come sono scritte; per gli spazi aggiungi dei Targets, collocali con il Layout e dai le risposte di ogni target. Le opzioni caseHandling, punctuationHandling, whitespaceHandling, accentHandling e typoTolerance decidono quanto è severo il confronto. L’immagine mostra l’esempio scritto da Fill with an example, come lo vede lo studente.",
+  "technical.exercisePrimitives.primitiveArrange.title": "Arrange",
+  "technical.exercisePrimitives.primitiveArrange.body":
+      "Lo studente mette in ordine dei blocchi: parole in una frase (Word order, Build the translation), lettere in una parola (Spell the word, joiner none), righe in un testo, o blocchi negli spazi di una frase. Nell’editor canonico: ogni Item è un blocco; un blocco escluso dall’ordine giusto è un distrattore (al massimo due); la Evaluation contiene uno o più ordini giusti, ciascuno con il testo della risposta e gli ID degli item in ordine. L’immagine mostra l’esempio scritto da Fill with an example, come lo vede lo studente.",
+  "technical.exercisePrimitives.primitiveMatch.title": "Match",
+  "technical.exercisePrimitives.primitiveMatch.body":
+      "Lo studente abbina ogni item di sinistra a uno di destra: parole e traduzioni (Match the words), suoni e parole, immagini e parole. Nell’editor canonico: ogni Item ha un lato, Left o Right; la Evaluation elenca le coppie, un item Left e il suo item Right. Le opzioni possono mescolare l’uno o l’altro lato. L’immagine mostra l’esempio scritto da Fill with an example, come lo vede lo studente.",
+  "technical.exercisePrimitives.primitiveAssign.title": "Assign",
+  "technical.exercisePrimitives.primitiveAssign.body":
+      "Lo studente colloca gli item al loro posto, toccando un item e poi la destinazione: in gruppi (Sort into groups), in caselle (Fill the slots) o negli spazi di un testo. Nell’editor canonico: l’opzione targetMode dice che cosa sono i target (categories, slots o gaps); ogni Target è un gruppo, una casella o uno spazio, e il Layout mette gli spazi nel testo; gli Items sono le parole da collocare; la Evaluation dice quali ID di item vanno in ogni target. Regioni di un’immagine e celle di una griglia arriveranno in una versione futura. L’immagine mostra l’esempio scritto da Fill with an example, come lo vede lo studente.",
+  "technical.exercisePrimitives.primitiveSpeak.title": "Speak",
+  "technical.exercisePrimitives.primitiveSpeak.body":
+      "Lo studente dice qualcosa ad alta voce, per esempio un saluto. Il Prompt contiene che cosa dire. Gli esercizi Speak si salvano e si controllano, ma questa versione non li sa giocare: nei Round lo studente li salta, e una Story o un’anteprima mostrano al loro posto la scheda dell’immagine.",
+  "technical.exercisePrimitives.primitiveInk.title": "Ink",
+  "technical.exercisePrimitives.primitiveInk.body":
+      "Lo studente scrive a mano, per esempio ricalcando una lettera. Il Prompt contiene che cosa scrivere. Gli esercizi Ink si salvano e si controllano, ma questa versione non li sa giocare: nei Round lo studente li salta, e una Story o un’anteprima mostrano al loro posto la scheda dell’immagine.",
+  "technical.exercisePrimitives.primitiveSubmit.title": "Submit",
+  "technical.exercisePrimitives.primitiveSubmit.body":
+      "Lo studente consegna una risposta libera, per esempio una registrazione o un testo, da controllare da solo o da far rivedere. Il Prompt contiene il compito e l’opzione submissionType dice che cosa si consegna. Gli esercizi Submit si salvano e si controllano, ma questa versione non li sa giocare: nei Round lo studente li salta, e una Story o un’anteprima mostrano al loro posto la scheda dell’immagine.",
+  "technical.exercisePrimitives.primitivePresentation.title": "Presentation",
+  "technical.exercisePrimitives.primitivePresentation.body":
+      "Niente a cui rispondere: lo studente legge una scheda e va avanti. Una Flashcard ha dei Text con i ruoli term e meaning, usage e usage_translation per un esempio, e un elemento audio con il ruolo audio per la lettura ad alta voce; anche i preset Before you start, Dialogue line, Story cover e Page sono presentation, con i loro ruoli (intro, line, title, block). L’opzione completionMode decide come lo studente va avanti. Una presentation non dà XP e non impedisce mai un Round perfetto. L’immagine mostra l’esempio scritto da Fill with an example, come lo vede lo studente.",
+  "technical.exercisePrimitives.primitiveOptions.title":
+      "Opzioni delle primitive",
+  "technical.exercisePrimitives.primitiveOptions.body":
+      "Le opzioni sono tipizzate e appartengono a una primitiva: selectionMode, selectionTarget, minimumSelections, maximumSelections, itemReuse, layout, evaluationTiming e shuffleItems per select; inputMode, cardinality, caseHandling, punctuationHandling, whitespaceHandling, accentHandling e typoTolerance per input; placementMode, unusedItems e joiner per arrange; relationship, interactionStyle, shuffleLeft e shuffleRight per match; completionMode, navigation e mediaPlayback per presentation. Il JSON del Course salva solo i valori impostati; un’opzione omessa vale il valore predefinito del registro. Il registro delle capacità elenca ogni valore lecito, le opzioni obbligatorie e le combinazioni che rifiuta; un’opzione sconosciuta o un valore illecito è un errore di formato e non viene mai corretto in silenzio.",
+  "technical.exercisePrimitives.layouts.title": "Layout",
+  "technical.exercisePrimitives.layouts.body":
+      "list e grid mostrano gli item come scelte; inline colloca gli item scelti negli spazi del testo. field e inlineGaps sono risposte scritte: un campo, oppure un campo per ogni spazio. sequence mette i blocchi ordinati in fila e inlineGaps li trascina negli spazi. Il Match dropdown abbina ogni item di sinistra a uno di destra. Il layout inline è una sequenza di pezzi di testo e spazi target; un target può rivelare la prima lettera, come fa Type the missing word.",
+  "technical.exercisePrimitives.evaluationModes.title":
+      "Modalità di valutazione",
+  "technical.exercisePrimitives.evaluationModes.body":
+      "La modalità di valutazione dice come si controlla la risposta e quali dati di risposta valgono: exactItem ed exactSet (ID degli item corretti); exactText, acceptedTexts ed expression (answers con varianti {a|b}, literalAnswers mai espanse, oppure targetAnswers per spazio); regex (pattern); numericExact, numericRange e numericTolerance; exactOrder e acceptedOrders (correctOrders con ID degli item); gapAssignments ed exactAssignments (assignments per target); exactRelations (relations tra ID di sinistra e di destra); acceptedTargets; none per le presentazioni. La normalizzazione dell’input viene dalle opzioni, non dalla valutazione. La tabella di supporto del runtime decide quali combinazioni questa versione può giocare; un esercizio leggibile ma non giocabile resta nel Course così com’è.",
+  "technical.exercisePrimitives.promptAndItemMedia.title":
+      "Media di Prompt e Item",
+  "technical.exercisePrimitives.promptAndItemMedia.body":
+      "Gli elementi text, audio e image hanno ruoli e attributi. Un audio con required: true rende l’esercizio un esercizio audio, che Audio Exercises Off toglie da Round e Duel; un audio con required: false è facoltativo, come il pulsante di lettura di Pick the translation. Un’immagine con ruolo character è un campione di Recognize characters; ogni altra immagine è un’illustrazione. I media degli item seguono le stesse regole.",
+  "technical.exercisePrimitives.presentationContent.title":
+      "Presentation Content",
+  "technical.exercisePrimitives.presentationContent.body":
+      "Una Flashcard o una nota è un esercizio con primitiva presentation, modalità di valutazione none e un completionMode (continue, acknowledge o understoodReview). Non dà XP, non conta né come corretta né come sbagliata e non impedisce mai un Round perfetto.",
+  "technical.exercisePrimitives.presets.title": "Preset come ricette",
+  "technical.exercisePrimitives.presets.body":
+      "Un preset è una ricetta: il suo modulo chiede pochi campi e scrive dati canonici ordinari. L’esercizio porta il preset solo come metadato di authoring (presetId); il runtime dello studente, il Duel e l’Audit leggono i dati canonici. A ogni salvataggio QQL verifica se il preset rappresenta ancora esattamente l’esercizio. Se lo fa un altro preset, viene indicato quello; se nessuno lo fa, l’esercizio non ha preset e si apre nell’editor canonico. Gli altri metadati di authoring vengono eliminati appena il contenuto cambia.",
+  "technical.exercisePrimitives.canonicalEditor.title": "L’editor canonico",
+  "technical.exercisePrimitives.canonicalEditor.body":
+      "L’editor canonico (New Exercise › Canonical editor) mostra ogni campo canonico di qualsiasi primitiva con i valori ammessi dal registro delle capacità: Primitive, Options, Prompt, Items, Targets, Layout, Evaluation per modalità, Feedback e hint. Dice se questa versione può giocare l’esercizio, rifiuta le combinazioni rifiutate dal registro, mostra l’anteprima con il runtime dello studente e salva come un modulo preset (Save as draft, oppure Save con l’Audit). Un esercizio che nessun preset rappresenta si apre lì. Role è un menu dei ruoli che QQL legge per il tipo dell’elemento, con a che cosa serve ciascuno; un ruolo salvato fuori dall’elenco resta ed è segnalato. Un esercizio nuovo ha Fill with an example e Clear all (torna ai valori predefiniti della primitiva); se cambi la primitiva con dei campi già compilati, un messaggio ti chiede di controllarli. La prima volta che una primitiva si apre in un corso, un popup la spiega (una volta per utente e corso; Show one-time notices again lo fa tornare), e il pulsante Help apre la sua sezione in questa pagina.",
+  "technical.jsonStructure.title": "Struttura dati JSON",
+  "technical.jsonStructure.status.title": "Stato",
+  "technical.jsonStructure.status.body":
+      "Work in progress. QuisquisLingo scrive formatVersion: 12.",
+  "technical.jsonStructure.root.title": "Radice",
+  "technical.jsonStructure.root.body":
+      "La radice contiene formatVersion, metadati del Course e lessons[]. I corsi di esempio inclusi e quelli Custom usano il modello nativo v12; un Course nato da Merge contiene anche mergeProvenance. Le radici Custom richiedono la provenienza immutabile originalCourseCreator e un Maintainer individuale; assignedTeamId è facoltativo e separato, mentre l’appartenenza al Team resta fuori dal Course JSON. I Course Model precedenti non vengono letti né migrati.",
+  "technical.jsonStructure.guidebook.title": "GuideBook",
+  "technical.jsonStructure.guidebook.body":
+      "Ogni Lesson contiene un guidebook con publicationState facoltativo e guidebook.content[] strutturato, per esempio explanation, vocabulary ed example. Senza publicationState, il GuideBook si considera pubblicato; draft esplicito lo esclude dalla consegna allo studente. L’Internal ID mostrato deriva dall’ID immutabile della Lesson con suffisso _guidebook; non viene salvato un campo ID aggiuntivo. Il Content del GuideBook conserva i propri ID stabili. L’interruttore useGuidebook del Course cambia l’accesso dello studente e il Warning per GuideBook vuoto, mai il contenuto salvato.",
+  "technical.jsonStructure.lessonAndRound.title": "Lesson e Round",
+  "technical.jsonStructure.lessonAndRound.body":
+      "Course, Lesson, GuideBook, Round e Content di tipo Exercise scritto nell’Editor hanno stato draft/published. GuideBook è published per impostazione predefinita se lo stato facoltativo manca. Lesson, Round ed Exercise richiedono anche timestamp UTC updatedAt. Un Course salva Lesson label and numbering, Round label and numbering, un valore compatibile con il vecchio ripiego per l’icona e gli eventuali asset gestiti delle icone Lesson personalizzate. Entrambi i valori precedenti ammessi disegnano lo stesso cerchio numerato nel colore della Lesson, scelto dalla sua posizione; del colore non si salva nulla. Una Lesson contiene lessonId, un titolo obbligatorio, Section facoltativa, metadati themeIconAsset, guidebook, rounds[] e identità del Duel. GuideBook può contenere sezioni Insights ordinate con Title e Text. Il titolo del Round è facoltativo; se manca, il tipo gli dà comunque un nome senza cambiarne l’identità.",
+  "technical.jsonStructure.exerciseContent.title": "Exercise Content",
+  "technical.jsonStructure.exerciseContent.body":
+      "Exercise Content salva editorTemplate insieme a exercise.prompt[], exercise.interaction e exercise.evaluation. La correttezza usa ID stabili degli Item, non gli indici mostrati. Build the translation salva uno o più correctOrders letterali con testo della risposta e ID degli Item ordinati; il vecchio correctOrder viene rifiutato.",
+  "technical.jsonStructure.duel.title": "Duel",
+  "technical.jsonStructure.duel.body":
+      "Una Lesson serializza ID e titolo stabili del Duel. La disponibilità viene calcolata durante l’uso dal vero insieme di esercizi della Lesson, secondo le regole standard di idoneità e deduplicazione; non è serializzata e non dipende dal numero di Round. createDuels e useGuidebook del Course partono da true e vengono serializzati solo quando false. sectionNames facoltativo conserva nomi riutilizzabili non vuoti dopo trim; un catalogo vuoto viene omesso. worldFlagId facoltativo punta all’illustrazione SVG inclusa autorevole e viene omesso se vuoto.",
+  "technical.jsonStructure.compatibility.title": "Compatibilità",
+  "technical.jsonStructure.compatibility.body":
+      "I Bundled Courses e i Custom Courses usano il Course Model v12 nativo. Tutti i formati precedenti non sono supportati e non vengono letti, migrati, convertiti o cancellati. Attribuzione, provenienza e metadati Rights Holder non concedono mai permessi sul Course né implicano l’assegnazione a un Team.",
+  // All Courses and Course Library Help.
+  "allCoursesHelp.title": "Corsi su questo dispositivo",
+  "allCoursesHelp.allCoursesPageTitle": "All Courses — Guida",
+  "allCoursesHelp.courseLibraryPageTitle": "Course Library — Guida",
+  "allCoursesHelp.intro1":
+      "All Courses mostra tutti i Courses installati o salvati su questo dispositivo QQL, anche quelli fuori dalla tua libreria personale. Ogni studente sceglie separatamente quali includere.",
+  "allCoursesHelp.intro2":
+      "I Courses possono arrivare anche da altri dispositivi. Puoi importare un Course creato altrove: per esempio, uno inviato da un amico o un Publisher Course distribuito o venduto da un editore. QQL importa soltanto il pacchetto Course; non vende né concede licenze per i Courses.",
+  "allCoursesHelp.intro3":
+      "Se nella tua libreria non ci sono Courses disponibili per studiare, Home conserva Settings e All Courses. Puoi sbloccare Course Studio per il tuo profilo toccando Version dieci volte in Settings. Da All Courses puoi aggiungere nuovamente i Courses. Finché non scegli un Course utilizzabile, non viene mostrata alcuna bandiera.",
+  "allCoursesHelp.categories.title": "Categorie",
+  "allCoursesHelp.categories.body":
+      "Favorites: scorciatoie personali, presenti anche nelle sezioni normali.\nBundled Courses: distribuiti con QuisquisLingo.\nPublisher Courses: release Publisher installate.\nMy Local Courses: Custom Courses creati dal tuo profilo.\nOther Local Courses: Custom Courses creati da un altro profilo o importati da qualcun altro.\n\nOgni categoria ha una sezione propria; l’intestazione indica quanti Courses contiene. I titoli in grassetto distinguono Bundled Courses in nero (bianco su nero in tema scuro), Publisher Courses in viola e Custom Courses in arancione.",
+  "allCoursesHelp.courseDetails.title": "Dettagli del Course",
+  "allCoursesHelp.courseDetails.body":
+      "Ogni riga mostra la copertina del Course o, se manca, la bandiera. Seguono lingue, Version, Last edited, Maintainer e Duration quando l’autore l’ha indicata. Bundled e Publisher Courses mostrano la versione della release; Custom Courses mostrano la versione del Course. Maintainer indica il profilo locale responsabile di un Custom Course o l’editore per Bundled e Publisher Courses. Un profilo assente da questo dispositivo viene indicato con il suo ID.",
+  "allCoursesHelp.availability.title": "Disponibilità",
+  "allCoursesHelp.availability.body":
+      "Show unavailable parte da On e mostra i Courses non pubblicati, quelli che richiedono la verifica del Publisher e quelli con contenuti Draft. Disattivalo per filtrare queste righe in entrambe le schede. Una sezione filtrata indica quanti Courses sono visibili. Le etichette con contorno blu indicano Draft, Unpublished e Verification required. Mostrarli non li rende disponibili per lo studio né verificati. Si possono studiare solo i Courses pubblicati. I Publisher Courses richiedono anche firme verificate.",
+  "allCoursesHelp.sortingAndCompactView.title":
+      "Ordinamento e viste delle sezioni",
+  "allCoursesHelp.sortingAndCompactView.body":
+      "Sort by ordina i Courses dentro ciascuna sezione per Title, Language, Maintainer, Most recent o Duration. L’ordine delle sezioni non cambia. Most recent mette per prime le modifiche più recenti; Duration mette per primi i Courses più brevi e per ultimi quelli senza durata dichiarata. Il pulsante di ogni sezione passa da Expanded a Compact a Minimal, solo per quella sezione: Compact nasconde versione, data, Maintainer e durata; Minimal nasconde i corsi e mostra solo quanti sono visibili e quanti ne contiene la sezione. QQL ricorda la vista di ogni sezione per ciascuno studente, separatamente in All Courses e Course Studio. Search filtra titoli e lingue in tutte le sezioni, compresa Favorites. Sort by e Search durano finché la pagina resta aperta.",
+  "allCoursesHelp.personalLibrary.title": "Libreria personale",
+  "allCoursesHelp.personalLibrary.body":
+      "Add to my courses aggiunge un Course installato al tuo Course Selector e a Course Studio. Non copia il Course e non ti dà permessi di modifica. Rimuoverlo dalla tua libreria non lo elimina dal dispositivo. Con Added · Remove puoi rimuoverlo da qui, con la stessa conferma e il reset facoltativo dei progressi.\n\nRemove from my courses, nel Selector o in Course Studio, rimuove il Course solo dalla tua libreria. Per impostazione predefinita i progressi restano, così li ritrovi se lo aggiungi di nuovo. Puoi scegliere esplicitamente di azzerare i tuoi progressi in quel Course. Gli altri studenti e il file condiviso non cambiano. Anche selezionando Reset my progress, restano tutti gli XP guadagnati, compresi i Weekly XP, i giorni di studio totali e per lingua, la streak e i backup delle versioni. Gli XP ottenuti in questo Course non vengono sottratti. Il reset cancella solo i tuoi Round e Lessons completati, risultati Perfect, Duels vinti, GuideBooks letti e Round recenti di questo Course.",
+  "allCoursesHelp.coursesInLearnerMode.title": "Courses in learner mode",
+  "allCoursesHelp.coursesInLearnerMode.body":
+      "Hide in Learner tiene un Course nella tua libreria personale e in Course Studio ma lo toglie dal Course Selector dello studente. Unhide in Learner lo ripristina. Non puoi nascondere il Course che stai studiando finché non ne scegli un altro. Favorites contiene scorciatoie specifiche dello studente; segnare un Course come preferito non lo aggiunge alla libreria personale. All Courses continua a mostrare i Courses nascosti con l’etichetta Hidden in Learner, così puoi renderli di nuovo visibili. Study nel menu di un Course lo aggiunge alla tua libreria personale se manca, lo rende il Course corrente e apre la pagina dello studente; Review fa lo stesso e apre la pagina Review, dopo che ne hai completato un Round.",
+  "allCoursesHelp.importing.title": "Importazione",
+  "allCoursesHelp.importing.body":
+      "I Courses possono essere trasferiti come pacchetti QQL Course. I Custom Courses importati conservano le proprie regole di proprietà e provenienza. I Publisher Courses restano soggetti alla verifica del Publisher.",
+  "allCoursesHelp.removingPublisherCourse.title":
+      "Rimuovere un Publisher Course dal dispositivo",
+  "allCoursesHelp.removingPublisherCourse.body":
+      "Solo un admin può rimuovere un Publisher Course dal dispositivo tramite il menu di Course Studio. L’operazione è bloccata se un altro profilo include quel Course nella propria libreria. La rimozione fisica conserva i progressi degli studenti e i backup delle versioni per una futura reinstallazione.",
+  // Advanced (Admin) Help (keys keep the earlier Device Administration name).
+  "imageLibraryHelp.title":
+      "Guida alla libreria delle immagini",
+  "imageLibraryHelp.saving.title":
+      "Salvare le modifiche",
+  "imageLibraryHelp.saving.paragraph1":
+      "Nella Image Library di un Course le modifiche restano mentre le fai e valgono quando esci dalla schermata, quindi non c’è un pulsante Save. Vengono scritte nel Course solo quando confermi le modifiche del Course uscendo dal Course Editor. Annullando il Course vengono scartate, e le immagini aggiunte in quella sessione vengono tolte di nuovo.",
+  "imageLibraryHelp.saving.paragraph2":
+      "Shared Images, la libreria di questo dispositivo gestita dagli Admin, salva subito ogni modifica.",
+  "imageLibraryHelp.finding.title":
+      "Trovare un’immagine",
+  "imageLibraryHelp.finding.paragraph1":
+      "Scrivi in Search: cerca nei nomi, nei tag, nelle Local words e nelle categorie, e trova ogni parola che contiene ciò che scrivi. Singolare e plurale valgono come una cosa sola, quindi “dogs” trova anche le immagini dei cani. Con Search all spuntato (è l’impostazione iniziale) cerca in tutte le categorie; togli la spunta per cercare solo nella categoria che stai sfogliando.",
+  "imageLibraryHelp.finding.paragraph2":
+      "Le categorie sono sopra le immagini. Le categorie affini sono riunite in gruppi: People, Food & drink, Body & health, Home & things, Places & travel, Numbers & time, Language & grammar, Society & culture, History & stories, Free time e Nature & animals. Un gruppo mostra tutte le sue immagini e apre una seconda riga con le sue categorie (il primo chip, “all …”, torna al gruppo intero), come fa Characters con le scritture, la punteggiatura, i simboli di valuta e di matematica e le lettere a mattoncini. Ogni immagine conserva la sua unica categoria: i gruppi le riuniscono soltanto. Scrivere in Search il nome intero di un gruppo, per esempio “food & drink” o “food and drink”, trova le sue immagini. Una categoria mostra anche le immagini che hanno il suo nome come tag: Restaurant (in Food & drink) mostra le sue immagini e ogni immagine con il tag “restaurant”, quindi un’immagine può comparire in più di una categoria.",
+  "imageLibraryHelp.finding.paragraph3":
+      "Nella vista grande di un’immagine la categoria e ogni tag sono collegamenti. Un tag mostra solo le immagini che lo portano, al singolare o al plurale, o che si chiamano così, in tutte le categorie, sotto un chip Tag; la categoria con lo stesso nome vale come quel tag. Togli il chip o scegli una categoria per tornare indietro.",
+  "imageLibraryHelp.finding.paragraph4":
+      "Il numero a destra della riga dei badge dice quante immagini sono mostrate, secondo la categoria, il tag, la ricerca e il badge che hai scelto.",
+  "imageLibraryHelp.badges.title":
+      "Badge",
+  "imageLibraryHelp.badges.paragraph1":
+      "QQL indica le immagini fornite dall’app; DEVICE quelle aggiunte da un Admin a questo dispositivo; COURSE un’immagine salvata in questo Course; IN USE un’immagine che il Course usa. La riga dei badge filtra per questi.",
+  "imageLibraryHelp.badges.paragraph2":
+      "Un’immagine DEVICE usata in un Course viene copiata nel Course e viaggia nel suo ZIP; le immagini QQL fanno parte dell’app su ogni dispositivo e non entrano nello ZIP.",
+  "imageLibraryHelp.details.title":
+      "I dettagli di un’immagine",
+  "imageLibraryHelp.details.paragraph1":
+      "Apri un’immagine a grandezza piena e passaci sopra col mouse su un computer, o tienila premuta su un telefono, per vedere nome del file, dimensione, pixel, formato, data di aggiunta, Image Bank e attribuzione.",
+  "deviceAdminHelp.title": "Guida ad Advanced (Admin)",
+  "deviceAdminHelp.whatThisPageIs.title": "A cosa serve questa pagina",
+  "deviceAdminHelp.whatThisPageIs.paragraph1":
+      "Advanced (Admin) raccoglie in un solo posto le funzioni di amministrazione di questa installazione QQL. Vale solo per questo dispositivo: QQL non ha un account online, quindi un admin gestisce solo gli studenti e i dati salvati qui.",
+  "deviceAdminHelp.whatThisPageIs.paragraph2":
+      "Ogni funzione resta disponibile anche dove si trovava già. Solo gli admin possono aprire questa pagina; gli altri studenti la vedono in grigio in Settings, con un suggerimento che dice cosa contiene.",
+  "deviceAdminHelp.whoIsAnAdmin.title": "Chi è un admin",
+  "deviceAdminHelp.whoIsAnAdmin.paragraph1":
+      "Il primo studente creato su un dispositivo diventa automaticamente admin. QQL mantiene sempre almeno un admin. Un admin può assegnare il ruolo ad altri studenti e può rinunciarvi se ne resta almeno un altro.",
+  "deviceAdminHelp.whatAdminsCanDo.title": "Cosa possono fare gli admin",
+  "deviceAdminHelp.whatAdminsCanDo.bullet1": "Rendere admin un altro studente.",
+  "deviceAdminHelp.whatAdminsCanDo.bullet2":
+      "Eliminare qualsiasi studente insieme ai suoi progressi e impostazioni locali, con i limiti spiegati sotto.",
+  "deviceAdminHelp.whatAdminsCanDo.bullet3":
+      "Azzerare il PIN di un altro studente. Il PIN viene rimosso e lo studente può sceglierne uno nuovo. Fino ad allora, chiunque può aprire quel profilo.",
+  "deviceAdminHelp.whatAdminsCanDo.bullet4":
+      "Cambiare il nome del dispositivo QQL mostrato in Learner Profiles.",
+  "deviceAdminHelp.whatAdminsCanDo.bullet5":
+      "Scegliere se QQL chiede chi sta studiando a ogni avvio.",
+  "deviceAdminHelp.whatAdminsCanDo.bullet6":
+      "Gestire la libreria condivisa delle immagini e i suoi metadati descrittivi (Shared Image Library). Contiene le immagini disponibili per tutti i Courses su questo dispositivo; solo gli admin possono aggiungerle o modificarle. Chi può modificare un Course può comunque aggiungere un’immagine al proprio esercizio con Import custom image: quell’immagine non entra nella libreria condivisa.",
+  "deviceAdminHelp.whatAdminsCanDo.bullet7":
+      "Usare le opzioni di reset di questa pagina, dopo aver impostato un PIN admin e averlo inserito per ogni reset.",
+  "deviceAdminHelp.whatAdminsCannotDo.title": "Cosa non possono fare gli admin",
+  "deviceAdminHelp.whatAdminsCannotDo.bullet1":
+      "Eliminare l’unico admin o rinunciare al ruolo quando sono l’unico admin. Per rimuovere l’ultimo admin, rendi admin un altro studente oppure usa Wipe out everything.",
+  "deviceAdminHelp.whatAdminsCannotDo.bullet2":
+      "Vedere i PIN. Vengono salvati in forma non leggibile anche per QQL. Un PIN dimenticato può soltanto essere azzerato, non recuperato.",
+  "deviceAdminHelp.whatAdminsCannotDo.bullet3":
+      "Azzerare il proprio PIN da Learner Profiles. Solo un altro admin può azzerare il PIN di un admin.",
+  "deviceAdminHelp.whatAdminsCannotDo.bullet4":
+      "Eseguire un reset senza PIN. Un admin senza PIN non può usare le opzioni di reset; il PIN viene richiesto di nuovo a ogni reset.",
+  "deviceAdminHelp.whatAdminsCannotDo.bullet5":
+      "Diventare proprietari dei Courses. Il ruolo di admin non dà permessi speciali per modificare o eliminare il Course di un’altra persona. I permessi dipendono solo dal ruolo Owner o dall’appartenenza al Team proprietario.",
+  "deviceAdminHelp.whatAdminsCannotDo.bullet6":
+      "Eliminare uno studente che è Maintainer di un Course o l’unico Team Leader di un Team. Prima cambia il Maintainer o promuovi un altro Team Leader.",
+  "deviceAdminHelp.whatAdminsCannotDo.bullet7":
+      "Modificare o eliminare i Bundled official courses. Sono in sola lettura per tutti; anche un admin può soltanto fare Fork quando la licenza lo consente.",
+  "deviceAdminHelp.whatAdminsCannotDo.bullet8":
+      "Gestire i Teams. Li gestiscono i rispettivi Leads e membri da Course Studio, non gli admin del dispositivo.",
+  "deviceAdminHelp.whatAdminsCannotDo.bullet9":
+      "Agire su altri dispositivi. I diritti admin valgono solo per questa installazione.",
+  "deviceAdminHelp.whatAdminsCannotDo.bullet10":
+      "Annullare un reset o l’eliminazione di uno studente. I dati eliminati possono tornare solo da un backup precedente.",
+  "deviceAdminHelp.inventory.title": "Inventory",
+  "deviceAdminHelp.inventory.paragraph1":
+      "Il pulsante Inventory elenca tutto ciò che QQL ha salvato in seguito alle azioni delle persone. Così puoi vedere cosa verrebbe rimosso da un reset e dove si trovano i file. Per ogni file mostra il percorso completo, che puoi selezionare e copiare, la dimensione, l’ultima modifica e, quando possibile, lo studente a cui appartiene.",
+  "deviceAdminHelp.inventory.bullet1":
+      "Studenti e Custom Courses sono salvati nelle impostazioni interne di QQL, non come file, quindi non mostrano un percorso. Ogni Course indica Maintainer o Creator.",
+  "deviceAdminHelp.inventory.bullet2":
+      "Export: Courses esportati, backup degli studenti, User Recovery Keys e report di Audit. Backups: i Course Backups che Course Editor crea da solo prima di salvare una modifica, elencati da Version History.",
+  "deviceAdminHelp.inventory.bullet3":
+      "Import e ToBeMerged: file copiati in quelle cartelle dall’esterno di QQL. Le cartelle delle versioni precedenti (Imports, Exports, Merges) compaiono in una sezione a parte; QQL non le legge più.",
+  "deviceAdminHelp.inventory.bullet4":
+      "Immagini, Image Banks e audio MP3 importati: copie create da QQL nella propria memoria. L’audio indica il Course a cui appartiene.",
+  "deviceAdminHelp.inventory.bullet5":
+      "Logs: le copie del Crash Log e del Diagnostic Log salvate con Quick Export. Il Crash Log vero e proprio e l’indicatore della sessione sono privati di QQL e compaiono in una sezione a parte.",
+  "deviceAdminHelp.inventory.bullet6":
+      "Altri file nella cartella QQL: tutto ciò che è stato aggiunto direttamente alla cartella QuisquisLingo dal sistema operativo e che QQL non crea né usa.",
+  "deviceAdminHelp.inventory.bullet7":
+      "I media e i file inclusi nell’app non compaiono. Per elenchi molto grandi vengono mostrati i 500 file più recenti per sezione.",
+  "deviceAdminHelp.qqlTools.title": "QQL-Tools",
+  "deviceAdminHelp.qqlTools.paragraph1":
+      "QQL-Tools è un progetto complementare facoltativo per la convalida indipendente dei file Course JSON e dei package ZIP di QQL. I suoi risultati non sostituiscono Course Audit, la convalida delle importazioni o i controlli di sicurezza di QQL.",
+  "deviceAdminHelp.qqlTools.paragraph2":
+      "In Advanced (Admin), un Admin usa Browse... per configurare l’eseguibile QQL-Tools una sola volta per dispositivo, poi Test per verificarlo o Clear per rimuoverlo. Validate with QQL-Tools... viene eseguito in background mentre QQL rimane aperto. Non modifica né importa il Course selezionato. Not available on mobile devices.",
+  "deviceAdminHelp.updates.title": "Updates",
+  "deviceAdminHelp.updates.paragraph1":
+      "Update apre la stessa pagina disponibile a ogni studente in Settings > Update: controlla GitHub per una release più recente e mostra le istruzioni di installazione. Solo un admin può cambiare Check automatically at startup, perché vale per tutto il dispositivo.",
+  "deviceAdminHelp.updates.paragraph2":
+      "Quando viene trovata una versione nuova all’avvio, ogni studente riceve un avviso una volta al giorno. Il popup offre Not today e ripropone l’avviso il giorno dopo. Anche gli altri studenti del dispositivo vengono avvisati.",
+  "deviceAdminHelp.askWhoIsLearningAtStartup.title":
+      "Ask who is learning at startup",
+  "deviceAdminHelp.askWhoIsLearningAtStartup.paragraph1":
+      "Off (predefinito): QQL si apre direttamente con l’ultimo studente che l’ha usato. È adatto a un dispositivo usato da una sola persona.",
+  "deviceAdminHelp.askWhoIsLearningAtStartup.paragraph2":
+      "On: a ogni avvio QQL mostra l’elenco degli studenti e non riprende automaticamente nessun profilo. Ognuno sceglie il proprio; è adatto ai dispositivi condivisi. Non ha effetto se c’è un solo studente. Chi ha un PIN deve comunque inserirlo.",
+  "deviceAdminHelp.resetOptions.title": "Opzioni di reset",
+  "deviceAdminHelp.resetOptions.paragraph1":
+      "I reset cancellano dati in modo permanente. Per questo la sezione Reset resta bloccata finché non imposti il tuo PIN di 4 cifre. Ogni reset mostra una spiegazione con i numeri reali del dispositivo, offre la possibilità di fare prima un backup e infine chiede il PIN. Nulla viene eliminato prima di completare tutti i passaggi. Per Remove imported media e Wipe out everything fai una scelta nel primo passaggio, come spiegato sotto. Per Wipe out everything devi anche digitare NUKE EVERYTHING prima del PIN.",
+  "deviceAdminHelp.resetOptions.bullet1":
+      "Reset learner progress: cancella XP, streak e Lessons completate di tutti gli studenti. Studenti, PIN, impostazioni e Courses restano.",
+  "deviceAdminHelp.resetOptions.bullet2":
+      "Remove all learners except admins: elimina ogni studente non admin con i suoi dati e rimuove l’elenco Team se contiene uno di loro. Viene rifiutato finché uno di loro fa da Maintainer a un Course: cambia prima il Course Maintainer o elimina il Course.",
+  "deviceAdminHelp.resetOptions.bullet3":
+      "Remove imported media: scegli se rimuovere le immagini importate, i file audio MP3 importati o entrambi; all’inizio non è selezionato nulla. Elimina solo le copie create da QQL nella sua memoria. I media inclusi in QQL, come immagini, bandiere, icone e registrazioni dei Bundled Courses, fanno parte dell’app e non vengono mai rimossi. Tag ed etichette della libreria immagini condivisa tornano ai valori predefiniti. I file originali non vengono toccati.",
+  "deviceAdminHelp.resetOptions.bullet4":
+      "Remove custom courses: elimina tutti i Custom e Installed Courses, tutti i Teams e tutti i media importati: immagini e registrazioni MP3. Anche i Private course di altri studenti, che non vedi, vengono rimossi; la conferma li conta. Gli studenti restano.",
+  "deviceAdminHelp.resetOptions.bullet5":
+      "Wipe out everything: riporta QQL allo stato di una nuova installazione, eliminando studenti e admin. Puoi conservare la cartella Export, la cartella Logs, le cartelle Import e ToBeMerged e la cartella Backups; restano tutte se non le deselezioni nel primo passaggio. Import e ToBeMerged contengono i file originali che hai copiato lì; Backups contiene i Course Backups automatici.",
+  "deviceAdminHelp.beforeResetBackups.title": "Prima del reset: backup",
+  "deviceAdminHelp.beforeResetBackups.paragraph1":
+      "I dati dello studente si esportano da Profile → User Data. Ogni backup contiene solo il profilo attivo: un admin non può esportare i dati degli altri studenti. Prima di un reset che li riguarda, chiedi a ciascuno di esportare i propri dati. I Courses si esportano uno per volta da Course Studio. Le esportazioni vengono salvate in {folderExport}, che Wipe out everything conserva finché non la deselezioni.",
+  "deviceAdminHelp.forgottenPin.title": "PIN dimenticato",
+  "deviceAdminHelp.forgottenPin.paragraph1":
+      "Se esiste un altro admin, può azzerare il tuo PIN da Learner Profiles. Se sei l’unico admin e dimentichi il PIN, non puoi recuperarlo: non potrai aprire il profilo né usare le opzioni di reset. Scegli un PIN che ricorderai e valuta di rendere admin una seconda persona.",
+  // Debug Help.
+  "debugHelp.title": "Guida a Debug",
+  "debugHelp.crashLog.title": "Crash Log",
+  "debugHelp.crashLog.body":
+      "Questa versione Beta conserva un Crash Log locale automatico per aiutare a capire i crash e altri problemi tecnici gravi.\n\nUsalo quando QQL va in crash o si chiude all’improvviso. Se il file è disponibile dopo il crash, copialo o esportalo e allegalo alla segnalazione. È utile soprattutto per i crash all’avvio e durante l’uso.\n\nIl Crash Log vero e proprio resta nello spazio privato di QQL; Settings > Debug mostra dove si trova. Quick Export ne salva una copia chiamata QQL_crash_log.txt in {folderLogs}, al posto della copia precedente. Con Save log copy as… scegli tu dove salvarla; sui telefoni, Share la invia direttamente.\n\nUsa normalmente l’app e riproduci il crash. Se l’app si chiude, riaprila se serve. Quando invii il Crash Log, scrivi anche cosa hai toccato subito prima. Invia il file intero, non uno screenshot.\n\nIl Crash Log contiene informazioni tecniche sul sistema, avvii di sessione, errori non gestiti e stack trace. Non registra intenzionalmente nomi degli studenti, risposte agli esercizi o contenuti dei Courses.\n\nSe elimini il file Crash Log, QuisquisLingo lo ricrea automaticamente al prossimo avvio o alla prossima scrittura dovuta a un crash.",
+  "debugHelp.diagnosticLog.title": "Diagnostic Log",
+  "debugHelp.diagnosticLog.body":
+      "Per problemi che non fanno necessariamente chiudere QQL, compresi audio, TTS, Recorded MP3, riproduzione inattesa, risoluzione della sorgente e altre anomalie durante l’uso. Quando puoi, riproduci il problema ed esporta il log poco dopo. Per isolare un problema preciso e riproducibile, puoi prima svuotarlo: è facoltativo. Per problemi intermittenti o difficili da riprodurre, esporta il Diagnostic Log corrente prima di svuotarlo, così conservi le informazioni già raccolte.",
+  "debugHelp.privacy.title": "Privacy",
+  "debugHelp.privacy.body":
+      "La diagnostica audio dello studente è progettata per evitare di registrare il testo letto ad alta voce, le risposte, i contenuti dei Courses o i percorsi completi dei file personali.",
+  // Exercise Help page and preset guidance.
+  "exerciseHelp.title": "Guida agli esercizi",
+  "exerciseHelp.search": "Search Exercise Help",
+  "exerciseHelp.clearSearch": "Clear search",
+  "exerciseHelp.noResults":
+      "Nessun risultato in Exercise Help corrisponde alla ricerca.",
+  "exerciseHelp.supplement.canonicalEditor.title": "Editor canonico",
+  "exerciseHelp.supplement.canonicalEditor.body":
+      "Due modi per creare un esercizio. New Exercise: moduli preset pronti per i tipi di esercizio più comuni; scegline uno, compila pochi campi, salva. Canonical editor (l’ultima voce di New Exercise): la struttura di base di qualsiasi esercizio, modificata direttamente; potente, a volte complessa. Ogni modulo preset scrive dati canonici ordinari. L’editor canonico (New Exercise › Canonical editor) li mostra tutti per qualsiasi primitiva: opzioni, elementi del prompt con ruoli e lingue, item, target, layout, la modalità di valutazione con i suoi dati di risposta, feedback e hint, e dice se questa versione può giocare il risultato. Un esercizio che nessun preset rappresenta esattamente si apre lì; il modulo preset lo mostra in sola lettura e offre Open. Le definizioni sono in Exercise primitives nella QQL Guide.",
+  "exerciseHelp.supplement.answerVariants.title": "Varianti delle risposte",
+  "exerciseHelp.supplement.answerVariants.body":
+      "Puoi inserire più risposte complete equivalenti, una per riga. La sintassi compatta è facoltativa: {Io} rende “Io” facoltativo; [prendo|vorrei] sceglie un’alternativa indipendente; (non arrivo <> oggi) scambia solo le parti indicate. I gruppi collegati usano *: per abbinare le alternative nella stessa posizione: [*:il|i] [*:tuo|tuoi] [*:denaro|soldi] accetta “il tuo denaro” e “i tuoi soldi”, mai “il tuoi soldi” o “i tuo denaro”. Servono almeno due gruppi collegati, tutti con lo stesso numero di alternative. I gruppi collegati si combinano con {}, [] normali e ambiti <> validi. Quando riordini, la punteggiatura finale resta alla fine della frase. L’espansione è deterministica, elimina i duplicati e rifiuta sintassi errata o più di 128 varianti senza troncare il risultato.",
+  "exerciseHelp.supplement.textEvaluationAndCorrections.title":
+      "Valutazione del testo e correzioni",
+  "exerciseHelp.supplement.textEvaluationAndCorrections.body":
+      "QQL accetta qualsiasi risposta completa configurata o variante espansa dalla sintassi, dopo le normali regole su maiuscole, punteggiatura, spazi, apostrofi e accenti. Type the translation ammette anche una lettera ripetuta omessa o duplicata in una parola di almeno cinque caratteri, se tutte le altre parole restano nelle stesse posizioni. Il feedback per una risposta errata mostra fino a tre risposte valide ordinate per somiglianza e dice Some possible translations quando ce ne sono altre. Il feedback per una risposta corretta mostra fino a due alternative, escludendo la risposta canonica riconosciuta anche dopo la tolleranza ai refusi. Se non ci sono alternative, non compare una sezione vuota. A parità di somiglianza resta l’ordine dell’autore, e l’ordinamento non cambia mai ciò che è corretto. Gli altri esercizi con risposta scritta conservano il loro Correct answer canonico. Il feedback nomina solo le differenze davvero usate; una risposta esatta non mostra motivi di differenza falsi.",
+  "exerciseHelp.supplement.contextualComprehensionExample.title":
+      "Esempio di Read and answer",
+  "exerciseHelp.supplement.contextualComprehensionExample.body":
+      "Question: Che cosa intende Jane?\n\nContext:\nJane: Pensavo che Jim venisse con noi.\nJim: Ho cambiato idea.\nJane: Fantastico.\n\nQuestion e Context sono separati. Context può contenere testo, audio o entrambi. I turni di dialogo sono facoltativi: va bene anche un annuncio, un brano breve o una situazione. Configura a parte le risposte possibili.",
+  "exerciseHelp.preset.type_missing_word.body":
+      "Scrivi una frase con un solo spazio ___ e le parole complete accettate. Con Show the first letter attivo lo spazio mostra la prima lettera come aiuto: QQL ricava automaticamente il primo grafema Unicode e tutte le parole accettate devono avere esattamente lo stesso. Con l’interruttore spento lo spazio è vuoto e lo studente scrive la parola senza aiuto. In entrambi i casi lo studente inserisce la parola intera, che usa la normale normalizzazione Input e il normale feedback. Esempio: con l’aiuto lo studente vede é______ e scrive école, non cole. Dopo la verifica viene mostrata la frase completa. Gli esercizi creati con il vecchio preset Fill-in si aprono qui.",
+  "exerciseHelp.preset.script_recognition.body":
+      "Ogni elemento abbina l’immagine di un carattere al testo corrispondente.\n\nImage to text: lo studente vede l’immagine e sceglie il testo giusto.\n\nText to image: vede il testo e sceglie l’immagine giusta.\n\nIl testo può essere il nome, il suono, la pronuncia, la traslitterazione o un’altra etichetta che identifichi il carattere.\n\nFornisci almeno due opzioni, con una sola risposta corretta. Più immagini per il prompt possono mostrare stampa, scrittura a mano o caratteri tipografici diversi. Usa immagini incluse nell’app o importate in forma trasferibile, mai percorsi locali assoluti. Preview usa il normale comportamento Select dello studente.",
+  "exerciseHelp.preset.choice_target.body":
+      "Lo studente legge una domanda, o una frase da completare, e sceglie la risposta giusta tra alternative di testo nella lingua studiata; la domanda stessa può essere in una delle due lingue. Può essere qualsiasi cosa serva al corso: una forma grammaticale, un fatto culturale, un significato, una traduzione. Scrivi la domanda, almeno due risposte di testo e una risposta corretta (un nuovo esercizio parte dalla risposta 1; con Multiple correct answers possono essere più di una, e l’Audit avvisa se tutte le risposte sono corrette). Una riga Instruction or context facoltativa, nella lingua di chi studia, appare al posto della riga standard “Find the correct answer.”. Un audio o un’immagine facoltativi possono accompagnare la domanda. Rendi i distrattori plausibili ma chiaramente sbagliati. Il gemello Choose the answer (to source) chiede e risponde nella lingua di partenza.",
+  "exerciseHelp.preset.choice_source.body":
+      "Lo studente legge una domanda, o una frase da completare, scritta nella lingua di partenza e sceglie la risposta giusta tra alternative nella lingua di partenza: una regola grammaticale, un fatto culturale, il significato di un’espressione, tutto ciò che è meglio chiedere nella lingua che lo studente già conosce. Scrivi la domanda, almeno due risposte di testo e una risposta corretta (un nuovo esercizio parte dalla risposta 1; con Multiple correct answers possono essere più di una, e l’Audit avvisa se tutte le risposte sono corrette). Una riga Instruction or context facoltativa, nella lingua di chi studia, appare al posto della riga standard “Find the correct answer.”. L’audio facoltativo del prompt viene letto con la voce della lingua di partenza e un’immagine può accompagnare la domanda. Rendi i distrattori plausibili ma chiaramente sbagliati. Il gemello Choose the answer (to target) chiede e risponde nella lingua studiata.",
+  "exerciseHelp.preset.listening_choose_target.body":
+      "Lo studente ascolta un audio nella lingua studiata e sceglie ciò che ha sentito tra alternative scritte nella lingua studiata. Non c’è domanda; un’istruzione o un contesto facoltativi descrivono la situazione e sostituiscono la riga standard. Spoken text contiene esattamente ciò che lo studente deve sentire e viene riprodotto come in Listen and answer (to target), con On-Device TTS, Recorded MP3 o Hybrid. Fornisci le alternative e una risposta corretta; non mostrare testo che sveli l’audio. Per porre una domanda su ciò che si è sentito, usa Listen and answer. Il gemello Listen and choose (to source) risponde con il significato nella lingua di partenza.",
+  "exerciseHelp.preset.listening_choose_source.body":
+      "Lo studente ascolta un audio nella lingua studiata e ne sceglie il significato tra alternative scritte nella lingua di partenza. Non c’è domanda; un’istruzione o un contesto facoltativi descrivono la situazione e sostituiscono la riga standard. Spoken text, On-Device TTS, Recorded MP3 e Hybrid funzionano come in Listen and answer (to target). Fornisci le alternative e una risposta corretta; non mostrare testo che sveli l’audio.",
+  "exerciseHelp.preset.listening_answer_target.body":
+      "Lo studente ascolta un audio nella lingua studiata e sceglie la risposta tra alternative scritte nella lingua studiata. La domanda è obbligatoria: lo studente vi risponde su ciò che ha sentito, quindi rendi il brano abbastanza lungo. Per far scegliere ciò che si è sentito, senza domanda, usa Listen and choose. Spoken text contiene esattamente ciò che deve sentire, per esempio: Buongiorno, come stai? On-Device TTS invia quel testo al sintetizzatore vocale del dispositivo. Recorded MP3 cerca le corrispondenze testuali nella Course Audio Library; Hybrid prova prima una sequenza MP3 completa, poi il TTS del dispositivo. Per usare MP3, apri Course Editor > Audio Library, copia i file in {folderAudioImports}, premi Import MP3, poi Associate recording con la sua Word or expression e scegli Recorded MP3 only o Hybrid. Non esiste un MP3 allegato al singolo esercizio. I file sono raggruppati fisicamente per lingua studiata; i riferimenti appartengono al Course. I backup verificati del Course copiano i file usati; il solo JSON non trasferisce i byte MP3. Fornisci risposte scritte e una sola corretta; non mostrare testo che sveli l’audio. Il gemello Listen and answer (to source) chiede e risponde nella lingua di partenza.",
+  "exerciseHelp.preset.listening_answer_source.body":
+      "Lo studente ascolta un audio nella lingua studiata e risponde a una domanda posta nella lingua di partenza, scegliendo tra alternative scritte nella lingua di partenza. Fornisci il testo parlato nella lingua studiata, la domanda (obbligatoria), le alternative e una risposta corretta. Per il solo significato, senza domanda, usa Listen and choose (to source). Spoken text, On-Device TTS, Recorded MP3 e Hybrid funzionano come in Listen and answer (to target). Non mostrare testo che sveli l’audio.",
+  "exerciseHelp.preset.reading_answer_target.body":
+      "Lo studente legge un breve testo nella lingua di partenza che spiega la situazione, poi righe di dialogo nella lingua studiata (un turno “Speaker: testo” per riga), e risponde a una domanda nella lingua studiata scegliendo tra alternative nella lingua studiata. Fornisci il testo, il dialogo o entrambi, la domanda, almeno due risposte e una risposta corretta. Read the dialogue aloud: Automatically legge ogni riga a turno con una breve pausa quando l’esercizio compare; On request aggiunge il pulsante Play dialogue; No read-aloud lo lascia silenzioso. Il testo da leggere non viene mai letto ad alta voce e la lettura non rende mai l’esercizio un esercizio audio. Un’immagine dell’esercizio può accompagnarlo. Questo preset sostituisce Reading comprehension, Dialogue response e Contextual comprehension; Read and answer (to source) è stato ritirato e si apre qui.",
+  "exerciseHelp.preset.type_translation_to_target.body":
+      "Lo studente vede un testo nella lingua di partenza e scrive liberamente la traduzione nella lingua studiata. Fornisci il testo di partenza, una o più traduzioni complete accettate e un Hint facoltativo. Usa le minuscole tranne per i nomi propri. Le righe accettate possono usare {}, alternative indipendenti [a|b], gruppi collegati [*:a|b] con lo stesso numero di alternative e ambiti <> validi. Expand answers apre un’anteprima selezionabile e copiabile senza cambiare il contenuto. Use expanded answers aggiunge righe esplicite indipendenti; modificare o cancellare l’espressione di partenza non le cambia. Le risposte esplicite equivalenti non vengono aggiunte due volte e un’espansione oltre 128 risposte viene rifiutata senza modifiche parziali. Il feedback errato mostra fino a tre traduzioni valide ordinate per somiglianza; quello corretto mostra fino a due alternative, escludendo la risposta canonica riconosciuta. A parità resta l’ordine dell’autore. L’ordinamento non cambia ciò che viene accettato. Una lettera ripetuta omessa o duplicata è tollerata con prudenza; sostituzioni e parole mancanti o in più no. Il gemello Type the translation (to source) mostra un testo nella lingua studiata e accetta una traduzione nella lingua di partenza.",
+  "exerciseHelp.preset.type_translation_to_source.body":
+      "Lo studente vede un testo nella lingua studiata e scrive liberamente la traduzione nella lingua di partenza. Fornisci il testo da tradurre nella lingua studiata, una o più traduzioni complete accettate nella lingua di partenza e un Hint facoltativo. Le risposte accettate usano la stessa sintassi, espansione, feedback e tolleranza ai refusi di Type the translation (to target): {} facoltativo, alternative indipendenti [a|b], gruppi collegati [*:a|b], ambiti <> di riordino, Expand answers e Use expanded answers, al massimo 128 risposte. Usa le minuscole tranne per i nomi propri.",
+  "exerciseHelp.preset.build_translation_to_target.body":
+      "Lo studente vede il testo di partenza e costruisce la traduzione nella lingua studiata usando blocchi di parole. Fornisci il testo di partenza, i blocchi letterali disponibili e una o più traduzioni corrette complete e letterali. Puoi aggiungere, rimuovere e riordinare le risposte; ognuna deve poter essere costruita con occorrenze distinte dei blocchi. Parole ripetute richiedono blocchi ripetuti e si consiglia di lasciare inutilizzati al massimo due blocchi. La sintassi di Type the translation, la tolleranza ai refusi e il confronto per somiglianza non si applicano. Il gemello Build the translation (to source) mostra un testo nella lingua studiata e usa blocchi nella lingua di partenza.",
+  "exerciseHelp.preset.build_translation_to_source.body":
+      "Lo studente vede un testo nella lingua studiata e costruisce la traduzione nella lingua di partenza usando blocchi di parole. Fornisci il testo da tradurre nella lingua studiata, i blocchi letterali disponibili nella lingua di partenza e una o più traduzioni corrette complete e letterali. Puoi aggiungere, rimuovere e riordinare le risposte; ognuna deve poter essere costruita con occorrenze distinte dei blocchi. Parole ripetute richiedono blocchi ripetuti e si consiglia di lasciare inutilizzati al massimo due blocchi. La sintassi di Type the translation, la tolleranza ai refusi e il confronto per somiglianza non si applicano.",
+  "exerciseHelp.preset.picture_flashcard.body":
+      "Lo studente vede un’immagine con la sua parola nella lingua studiata e la traduzione nella lingua di partenza, un esempio d’uso facoltativo con la traduzione, e ascolta la parola se la lettura ad alta voce è attiva. Fornisci l’immagine (Image), la parola e la traduzione, se vuoi le righe d’uso, e scegli Automatically, On request o No read-aloud; compila Pronunciation TTS (if different) solo quando il testo letto deve differire dalla parola. La scheda non è mai un esercizio audio e viene mostrata anche con Audio Exercises spento. Got it completa la scheda; Review again la ripropone una volta.",
+  "exerciseHelp.preset.true_false.body":
+      "Lo studente legge un’affermazione nella lingua studiata, se vuoi la ascolta, e sceglie tra la parola per vero e quella per falso nella lingua di partenza. Fornisci l’affermazione, un’affermazione parlata facoltativa, le due risposte (precompilate nella lingua di partenza quando QQL la conosce) e il numero della risposta corretta: 1 se l’affermazione è vera, 2 se è falsa.",
+  "exerciseHelp.preset.one_word_fills_all.body":
+      "Lo studente legge frasi con due o più spazi ___ e sceglie l’unica parola che li riempie tutti; una volta scelta compare in ogni spazio. Scrivi le frasi con ___ (tre trattini bassi) per ogni spazio, le parole di risposta e il numero della risposta corretta; una sola parola deve andare bene in ogni spazio. Per un solo spazio usa Pick the missing word. Un’Instruction or context facoltativa prende il posto della riga standard.",
+  "exerciseHelp.preset.complete_text.body":
+      "Lo studente legge un testo con uno o più spazi e scrive ciò che va in ognuno. Scrivi il testo con ___ (tre trattini bassi) per ogni spazio e in Missing words una riga per spazio, in ordine. Una riga può accettare più risposte: [il|un] gatto accetta sia il gatto sia un gatto. Un’Instruction or context facoltativa descrive la scena e sostituisce la riga standard; un suggerimento facoltativo aiuta senza rivelare le parole. Le risposte usano la normale normalizzazione Input. Non c’è audio: per spazi ascoltati da una registrazione usa Listen and fill the gaps.",
+  "exerciseHelp.preset.missing_letters.body":
+      "Lo studente vede parole con lettere mancanti e scrive le lettere. Scrivi il testo completo e metti le lettere mancanti tra trattini bassi: My cat doesn’t dr_ink_ milk. Lo studente vede dr___ milk, un trattino per lettera, e scrive ink. Più spazi vanno bene. Un testo parlato facoltativo legge la frase intera, un’immagine facoltativa la illustra e un suggerimento facoltativo aiuta senza rivelare le lettere.",
+  "exerciseHelp.preset.gap_blocks.body":
+      "Lo studente vede una frase con spazi e tocca una parola per ogni spazio; ogni parola riempie uno spazio, lascia la riserva e deve finire nello spazio giusto. Scrivi la frase con ogni risposta tra trattini bassi: Io _vorrei_ un caffè. Una parola che serve due volte si scrive in entrambi gli spazi e viene offerta due volte. Aggiungi parole distrattrici (consigliate 0, 1 o 2) e un audio facoltativo. Questo preset riunisce i precedenti Pick the words for the gaps e Drag the blocks into the gaps.",
+  "exerciseHelp.preset.sentence_order.body":
+      "Lo studente vede le righe di una breve storia o di un dialogo come blocchi e le mette in ordine. Inserisci le righe una volta sola, nell’ordine corretto, e le righe estranee (consigliate 0, 1 o 2). L’Instruction or context può dare la situazione che decide l’ordine; un suggerimento facoltativo aiuta senza rivelarlo.",
+  "exerciseHelp.preset.sort_into_groups.body":
+      "Lo studente tocca una parola, poi il gruppo a cui appartiene; una parola già messa si può riprendere; Check valuta tutti i gruppi insieme. Inserisci un’istruzione o un contesto facoltativi e un gruppo per riga come “Nome del gruppo: parola, parola, …” (almeno due, ognuno con almeno una parola). Ogni parola appartiene a un gruppo, e a uno solo. Sort into groups non è mai un esercizio audio.",
+  "exerciseHelp.preset.fill_the_slots.body":
+      "Lo studente tocca una parola, poi la casella che riempie; una seconda parola sostituisce la prima; Check valuta tutte le caselle insieme. Inserisci un’istruzione o un contesto facoltativi e una casella per riga come “ciò che lo studente vede = la parola che la riempie”, per esempio “… gatto = il”. Le parole extra che non riempiono nessuna casella sono facoltative. Attiva “A word may fill more than one slot” quando la stessa parola è la risposta di più caselle: resta nel mazzo dopo ogni uso.",
+  "exerciseHelp.preset.listening_image_choice.body":
+      "Lo studente ascolta il testo parlato e sceglie l’immagine che nomina. Fornisci il testo parlato, un’istruzione o un contesto facoltativi, le etichette delle risposte (una per riga) e un’immagine per risposta, scelta con i selettori sotto le risposte; indica la risposta corretta. Le etichette compaiono sotto le immagini.",
+  "exerciseHelp.preset.spell_heard.body":
+      "Lo studente ascolta una parola e la compone ordinando tessere di lettere o sillabe. Fornisci la parola parlata e le sue tessere in ordine, una per riga (dividi la parola in lettere o sillabe come preferisci). Non serve un’immagine; le tessere si uniscono senza spazi.",
+  "exerciseHelp.preset.picture_choice.body":
+      "Lo studente vede un’immagine e sceglie tra risposte di testo la parola o la frase che la descrive. Fornisci l’immagine (Image, obbligatoria), un’istruzione o un contesto facoltativi come Che cos’è?, almeno due risposte e quella corretta.",
+  "exerciseHelp.preset.picture_name.body":
+      "Lo studente vede un’immagine e scrive cosa mostra. Fornisci l’immagine (Image, obbligatoria), un’istruzione o un contesto facoltativi, una o più risposte accettate con la stessa sintassi di Type the translation ({} facoltativo, alternative [a|b], gruppi collegati, ambiti di riordino) e un suggerimento facoltativo. Le risposte usano la normale normalizzazione Input e la tolleranza ai refusi.",
+  "exerciseHelp.preset.picture_blocks.body":
+      "Lo studente vede un’immagine e ne compone il nome toccando i blocchi di parole nell’ordine giusto; un blocco già messo si può riprendere; Check valuta l’ordine. Fornisci l’immagine (Exercise image, obbligatoria), un’istruzione o un contesto facoltativi come What is this?, i blocchi del nome nell’ordine giusto (una parola per riga) e fino a due blocchi in più che non fanno parte del nome, più un aiuto facoltativo. I blocchi si uniscono con spazi. Se le maiuscole del nome e dei blocchi differiscono, l’Audit dà un avviso. Type what you see è lo stesso esercizio con la risposta scritta.",
+  "exerciseHelp.preset.spell_word.body":
+      "Lo studente legge un indizio nella lingua di partenza, la parola stessa o una definizione, e compone la parola nella lingua studiata ordinando tessere di lettere o sillabe. Fornisci l’indizio e le tessere della parola in ordine, una per riga; l’immagine è facoltativa.",
+  "exerciseHelp.preset.picture_word_match.body":
+      "Lo studente abbina ogni immagine a sinistra a una parola a destra. Fornisci le parole, una per riga, e un’immagine per parola con i selettori sotto; almeno due coppie. Contano le relazioni tra le coppie, non le posizioni.",
+  "exerciseHelp.preset.dialogue_line.body":
+      "Una battuta di dialogo in una Storia. Scegli chi parla (il narratore o un personaggio definito in Story characters del Course Editor), scrivi la battuta e scegli se lo studente la legge, la ascolta o entrambe le cose. La lettura ad alta voce segue l’impostazione della Storia, salvo che la battuta la sovrascriva; con testo e audio puoi nascondere il testo finché l’audio non è stato riprodotto. Una battuta non viene mai saltata: senza audio lo studente la legge. Non c’è risposta né punteggio; Continue va avanti.",
+  "exerciseHelp.preset.before_you_start.body":
+      "La nota che lo studente legge prima che il Round inizi, su una pagina a sé con Continue to Round. Scrivi la nota e, se vuoi, attiva Open GuideBook button: la scheda offre allora il GuideBook della Lesson (gli studenti vedono il pulsante solo se il Corso usa i GuideBook e il GuideBook è pubblicato). La scheda sta per prima nel Round, non è mai uno dei suoi passi e non appare mai in Review; non c’è risposta né punteggio. Una scheda per Round: l’Audit segnala la seconda.",
+  "exerciseHelp.preset.page.body":
+      "Una pagina che lo studente legge e poi continua, fatta di blocchi: titoli, paragrafi, citazioni o esempi, elenchi puntati o numerati, immagini, audio e link video. Nel testo scrivi **grassetto** e *corsivo* (la barra degli strumenti avvolge la selezione); scegli per ogni blocco l’allineamento (inizio, centro, fine, giustificato per il testo) e un colore da una tavolozza leggibile nel tema chiaro e in quello scuro; un blocco di testo può offrire la lettura ad alta voce. Le immagini sono piccole, medie, grandi o a tutta larghezza, con didascalia; un link video apre un indirizzo https nel browser. Nessuna risposta, nessun punteggio.",
+  "exerciseHelp.preset.story_cover.body":
+      "La prima scheda di una Storia. Scegli l’immagine di copertina e, se vuoi, una riga di titolo; il titolo della Storia dalle opzioni del Round appare sopra. Lo studente preme Continue. Crea una Story con New Round → Story.",
+  "exerciseHelp.preset.note_card.body":
+      "Una scheda con un titolo e una nota: un consiglio, un punto di grammatica, un’osservazione culturale. Lo studente la legge e preme Continue; non c’è risposta, punteggio né audio. Scrivi nella lingua che i tuoi studenti leggono meglio.",
+  "exerciseHelp.preset.gap_choice.body":
+      "Lo studente vede una frase con ___ e sceglie la parola o l’espressione mancante. Fornisci uno spazio nel testo, blocchi di risposta e una sola risposta corretta. È supportato il testo. Quando possibile, usa un solo spazio e fai in modo che una sola opzione sia corretta per grammatica e significato. Un’Instruction or context facoltativa, come il significato di una frase breve (Completa la frase che significa il cane.), prende il posto della riga standard.",
+  "exerciseHelp.preset.icon_choice.body":
+      "Lo studente vede una domanda e alcune immagini; sceglie quella corrispondente. Fornisci una risposta e un’immagine o un’icona per ogni opzione, più il numero della risposta corretta. Testo e immagini sono supportati. Ogni opzione deve avere un elemento visivo.",
+  "exerciseHelp.preset.translation_choice_to_target.body":
+      "Select · risposta singola, verificata subito. Questo tipo stabilisce direzione, lingue e istruzione allo studente.\n\nLo studente vede un testo nella lingua di partenza e sceglie la traduzione nella lingua studiata. QQL genera da solo l’istruzione “Choose the correct [Target language] translation” dalle lingue del Course, quindi non devi scriverla. Fornisci il testo da tradurre, da due a cinque risposte diverse nella lingua studiata e una risposta corretta. È supportato il testo, con un’immagine facoltativa. Una scelta sbagliata mostra la risposta giusta. Dopo la risposta, lo studente può ascoltare la risposta corretta con il TTS, se disponibile; l’esercizio non dipende mai dall’audio. I distrattori devono essere plausibili ma chiaramente sbagliati. Esempio (per un Course inglese → italiano): “I am going to London” con Vado a Londra. / Sono andato a Londra. / Vengo da Londra.",
+  "exerciseHelp.preset.translation_choice_to_source.body":
+      "Select · risposta singola, verificata subito. Questo tipo stabilisce direzione, lingue e istruzione allo studente.\n\nLo studente vede un testo nella lingua studiata e sceglie la traduzione nella lingua di partenza. QQL genera da solo l’istruzione “Choose the correct [Source language] translation” dalle lingue del Course, quindi non devi scriverla. Fornisci il testo da tradurre, da due a cinque risposte diverse nella lingua di partenza e una risposta corretta. È supportato il testo, con un’immagine facoltativa. Una scelta sbagliata mostra la risposta giusta. Lo studente può ascoltare il testo nella lingua studiata con il TTS, se disponibile; l’esercizio non dipende mai dall’audio. I distrattori devono essere plausibili ma chiaramente sbagliati. Esempio (per un Course inglese → italiano): “Vado a Londra.” con I am going to London. / I went to London. / I am coming from London.",
+  "exerciseHelp.preset.listening_spelling.body":
+      "Lo studente ascolta un audio e scrive ciò che ha sentito. Fornisci l’Audio text: è sempre accettato come risposta. Other accepted spellings (optional) elenca altri modi di scrivere le stesse parole, come alle 9 per alle nove. Return o Enter invia la risposta.",
+  "exerciseHelp.preset.missing_word.body":
+      "Lo studente ascolta un audio mentre legge una trascrizione con uno o più spazi, poi scrive ogni parola mancante. Fornisci la trascrizione e l’audio completi e tutti gli elementi mancanti nell’ordine. Audio e testo sono supportati. Ogni elemento mancante deve comparire nella trascrizione.",
+  "exerciseHelp.preset.word_match.body":
+      "Lo studente abbina parole nella lingua di partenza alle traduzioni nella lingua studiata. Fornisci almeno due coppie di testo; tre è il numero abituale. È supportato il testo. Ogni elemento visibile deve essere unico dopo la normale normalizzazione. Gli esercizi creati con il vecchio preset Matching si aprono qui.",
+  "exerciseHelp.preset.super_match.body":
+      "Lo studente abbina elementi collegati nella lingua studiata, come sinonimi o contrari. Fornisci esattamente tre coppie di testo e un’istruzione o un contesto facoltativi che nominino il tipo di relazione, nella lingua di chi studia. È supportato il testo. Non mescolare regole di relazione diverse.",
+  "exerciseHelp.preset.audio_match.body":
+      "Lo studente riproduce elementi audio e abbina ciascuno al testo visibile. Fornisci esattamente tre coppie audio-testo senza distrattori. Audio e testo sono supportati. Ogni audio e ogni risposta visibile devono essere unici.",
+  "exerciseHelp.preset.word_order.body":
+      "Lo studente rimette in ordine i blocchi nella lingua studiata. Fornisci i blocchi testuali disponibili e l’ordine corretto. È supportato il testo. Si consigliano non più di due distrattori distinti; questo esercizio verifica l’ordine, non la traduzione.",
+  "exerciseHelp.preset.image_word.body":
+      "Lo studente vede un’immagine e mette in ordine lettere o sillabe per formare la parola. Fornisci un’immagine, un’istruzione e i blocchi della parola in ordine, uno per riga; lo studente riceve esattamente quei blocchi, mescolati. Non sono ammessi distrattori.",
+  "exerciseHelp.preset.flashcard.body":
+      "Lo studente vede una parola o espressione nella lingua studiata, la sua traduzione nella lingua di partenza e un eventuale esempio d’uso con traduzione, ascolta la parola se la lettura ad alta voce è attiva, poi sceglie Got it o Review again. Fornisci materiale da studiare, non una risposta valutata; scegli Automatically, On request o No read-aloud; compila Pronunciation TTS (if different) solo quando il testo letto deve differire dalla parola. La lettura ad alta voce non rende mai la scheda un esercizio audio. Il Presentation Content non dà gli XP di base di una risposta corretta.",
+  "publisherSigningHelp.title": "Firma e approvazione degli editori",
+  "publisherSigningHelp.status.title":
+      "Stato: verifica delle firme implementata",
+  "publisherSigningHelp.status.body":
+      "Build 241 verifica le firme Ed25519 degli editori quando si importano Publisher Courses, sia con Quick Import sia dalla finestra di sistema. Il servizio di archiviazione ricontrolla prima dell’installazione. Le firme mancanti, non valide, sconosciute o revocate vengono rifiutate. Il registro normale degli editori attendibili al momento non contiene editori esterni approvati; l’identità Dummy è disponibile solo nelle build di test abilitate esplicitamente. Da Build 262 il registro ha un posto per QuisquisLingo Courses (com.quisquislingo, key ID qqlc-2026-1), l’editore dei corsi del proprietario; la sua chiave pubblica è ancora vuota, quindi l’app non si fida ancora di nessuno dei suoi corsi.\n\nL’approvazione di un editore è una procedura manuale del proprietario di QQL. Il proprietario mantiene il registro delle chiavi pubbliche in lib/services/trusted_publishers.dart e distribuisce le modifiche con un aggiornamento dell’app. Non esistono un portale di approvazione o un pulsante per firmare nell’app. La firma dei Courses avviene fuori dall’app con un comando per sviluppatori e OpenSSL.\n\nIl Course Model è v12 (Build 256); i Publisher Courses v11 devono essere convertiti con tools/convert_course_to_v12.dart e firmati di nuovo. Il protocollo è qql-ed25519-v1. I controlli mirati non sostituiscono la validazione finale della release; Build 241 attende ancora l’approvazione finale del proprietario.",
+  "publisherSigningHelp.rolesAndTools.title": "1. Ruoli e strumenti",
+  "publisherSigningHelp.rolesAndTools.body":
+      "Publisher: crea e protegge una coppia di chiavi Ed25519, chiede l’approvazione e firma le proprie release. Il proprietario di QQL non riceve mai chiavi private e non firma ogni Course al posto dell’editore.\n\nProprietario di QQL: verifica indipendentemente l’identità dell’editore e il possesso della chiave, assegna un publisherId stabile e registra la chiave pubblica approvata. Le modifiche alla fiducia arrivano con il registro incluso nell’app; non serve un servizio online.\n\nStrumenti: un’installazione aggiornata di OpenSSL 3.x, un terminale, un editor di testo semplice, un gestore di password, uno spazio protetto per backup offline e un canale di comunicazione verificato indipendentemente. Ottieni OpenSSL da un fornitore affidabile del sistema operativo o dei pacchetti. Esegui openssl version per verificare che sia nel PATH. Su Windows, se il percorso dell’eseguibile contiene spazi, in PowerShell usa & 'FULL PATH TO openssl.exe' seguito dagli argomenti.\n\nPer firmare un Course servono anche il repository QQL, un Dart SDK compatibile e tools/sign_course.dart. Prima del primo uso esegui flutter pub get nel repository. Lo strumento prepara i byte canonici da firmare e allega una firma verificata; OpenSSL da solo non deve firmare un Course JSON arbitrario. La User Recovery Key di uno studente non ha legami con le chiavi del Publisher.\n\nUsa una cartella di lavoro privata separata per ogni Publisher, fuori da Git, dalle cartelle Course/media dell’app e dalle cartelle condivise. Conserva lì le chiavi private; i comandi eseguiti dal repository possono usare percorsi assoluti tra virgolette. Fermati a ogni errore. Scegli nomi di output nuovi; non sovrascrivere chiavi esistenti.",
+  "publisherSigningHelp.createAndProtectKey.title":
+      "2. Publisher: creare e proteggere la chiave",
+  "publisherSigningHelp.createAndProtectKey.body":
+      "Controlla l’installazione:\n\nopenssl version\n\nDeve indicare OpenSSL 3.x. Crea una chiave privata Ed25519 cifrata e inserisci una passphrase forte e unica quando richiesto:\n\nopenssl genpkey -algorithm ED25519 -aes-256-cbc -out publisher-private.pem\n\nEsporta la chiave pubblica (inserisci la passphrase della chiave privata quando richiesto):\n\nopenssl pkey -in publisher-private.pem -pubout -out publisher-public.pem\n\nCalcola l’impronta della chiave pubblica usando DER SubjectPublicKeyInfo, non il testo PEM:\n\nopenssl pkey -pubin -in publisher-public.pem -outform DER -out publisher-public.der\nopenssl dgst -sha256 publisher-public.der\n\nAnnota il risultato esadecimale SHA-256. Il PEM privato è segreto; PEM pubblico, DER pubblico e impronta possono essere condivisi. Conserva la passphrase in un gestore di password e una copia cifrata offline del PEM privato. Prova a ripristinare quel backup in una cartella sicura separata: riesporta la chiave pubblica e controlla che l’impronta coincida.\n\nNon inviare mai il PEM privato o la passphrase al proprietario di QQL, non metterli nel Course JSON, in Git o nei backup degli studenti. Non usare generatori di chiavi online e non incollare chiavi private in siti o chat. Se perdi sia la chiave sia il backup, non potrai firmare altre release con quella chiave.",
+  "publisherSigningHelp.requestApproval.title":
+      "3. Publisher: chiedere l’approvazione",
+  "publisherSigningHelp.requestApproval.body":
+      "Usa il canale di contatto concordato direttamente con il proprietario di QQL; questa guida non indica un indirizzo pubblico per le richieste. Invia soltanto:\n\n- Nome del Publisher e persona autorizzata a rappresentarlo.\n- Sito web o altra prova d’identità verificabile in modo indipendente, con un recapito.\n- publisherId richiesto, se ne hai uno; l’identificativo stabile finale viene assegnato dal proprietario.\n- publisher-public.pem e la sua impronta SHA-256 dalla sezione 2.\n- ID e titoli dei Courses previsti, canale di distribuzione e dichiarazione di poter distribuire contenuti e media con le licenze indicate.\n\nIl proprietario verificherà l’identità e invierà un file challenge utilizzabile una sola volta. Prima di firmarlo, controlla che publisherId, impronta, scopo e scadenza corrispondano alla richiesta. Non firmare file arbitrari ricevuti da mittenti non verificati. L’approvazione riguarda l’associazione tra editore e chiave, non approva automaticamente tutti i contenuti didattici o le licenze.",
+  "publisherSigningHelp.verifyIdentityChallenge.title":
+      "4. Proprietario: verificare l’identità e inviare il challenge",
+  "publisherSigningHelp.verifyIdentityChallenge.body":
+      "Conserva un registro privato delle approvazioni. Verifica il rappresentante tramite un canale indipendente già stabilito, per esempio un contatto aziendale noto o un recapito trovato sul sito ufficiale dell’editore. Possedere una chiave o un indirizzo email non basta a dimostrare l’identità dell’editore.\n\nSalva il PEM pubblico ricevuto in una cartella separata per la richiesta. Esaminalo:\n\nopenssl pkey -pubin -in publisher-public.pem -text -noout\n\nControlla che sia una chiave pubblica Ed25519. Calcola l’impronta con i due comandi della sezione 2 e confrontala tramite il canale indipendente. Rifiuta una chiave malformata, un algoritmo sbagliato, un’identità non corrispondente o un publisherId in conflitto.\n\nAssegna un ID di richiesta unico e un publisherId stabile. Genera un nonce casuale nuovo:\n\nopenssl rand -hex 32\n\nIn un editor di testo semplice crea qql-approval-challenge.txt come testo UTF-8 con questi campi, sostituendo ogni segnaposto:\n\nPurpose: QQL publisher key approval only\nRequest ID: <unique request ID>\nPublisher ID: <agreed stable publisherId>\nPublic key SHA-256: <fingerprint calculated by the owner>\nNonce: <fresh random hexadecimal output>\nExpires UTC: <explicit UTC date and time>\n\nScegli una scadenza breve, per esempio 48 ore. Conserva il file esatto che invii e il suo stato pending/used/expired. Invialo al rappresentante verificato. Non rigenerare, riformattare o riutilizzare il challenge: la verifica richiede gli stessi byte originali. Il nonce e il challenge devono arrivare dal proprietario, non dal richiedente.",
+  "publisherSigningHelp.proveKeyPossession.title":
+      "5. Publisher e proprietario: dimostrare il possesso della chiave",
+  "publisherSigningHelp.proveKeyPossession.body":
+      "Publisher: salva l’allegato originale del challenge senza modificarlo né cambiare le terminazioni delle righe. Controllane il contenuto, poi firmalo localmente:\n\nopenssl pkeyutl -sign -rawin -inkey publisher-private.pem -in qql-approval-challenge.txt -out qql-approval-proof.sig\n\nInserisci la passphrase quando richiesta. Restituisci qql-approval-proof.sig e l’ID della richiesta. Non inviare mai la chiave privata. Questa firma dimostra il possesso della chiave per questo challenge; non è una firma di Course QQL.\n\nProprietario: usa il challenge originale conservato, il PEM pubblico già controllato e la firma binaria ricevuta:\n\nopenssl pkeyutl -verify -rawin -pubin -inkey publisher-public.pem -in qql-approval-challenge.txt -sigfile qql-approval-proof.sig\n\nRichiedi una verifica riuscita e codice di uscita 0. In PowerShell controlla \$LASTEXITCODE subito dopo il comando. Verifica anche che la richiesta sia pending, non scaduta e non usata, e che publisherId e impronta coincidano ancora con quelli verificati indipendentemente. OpenSSL non applica queste regole di approvazione al posto tuo.\n\nSe il controllo fallisce, non approvare. Risolvi il problema di identità o chiave, oppure invia un nuovo challenge se l’allegato è cambiato o scaduto. Non modificare il challenge originale per far passare la firma. Una prova valida dimostra il controllo della chiave, non l’identità legale: servono entrambi i controlli.",
+  "publisherSigningHelp.recordApproval.title":
+      "6. Proprietario: registrare l’approvazione e attivare la fiducia",
+  "publisherSigningHelp.recordApproval.body":
+      "Conserva un registro privato di publisherId, nome visualizzato approvato, PEM pubblico e impronta, rappresentante e recapito, metodo e data della verifica d’identità, challenge e prova originali, data della decisione e stato della chiave. Segna i challenge accettati come usati. Non pubblicare prove d’identità o recapiti privati nel registro dell’app.\n\nPer un editore approvato, assegna un keyId stabile (da 1 a 64 lettere ASCII, cifre, punti, underscore o trattini). Converti il PEM pubblico in DER come nella sezione 2. Un DER Ed25519 SubjectPublicKeyInfo è lungo 44 byte: intestazione di 12 byte 302a300506032b6570032100, seguita dalla chiave pubblica di 32 byte. Salva in publicKeyBase64 solo la codifica Base64 di quei 32 byte, non l’intero DER o PEM.\n\nIn PowerShell, dopo aver controllato intestazione e lunghezza DER, ottieni il valore per il registro con:\n\n[Convert]::ToBase64String(([System.IO.File]::ReadAllBytes('C:/QQL-Publisher/publisher-public.der'))[12..43])\n\nAggiungi un TrustedPublisherKey a TrustedPublishers.application() in lib/services/trusted_publishers.dart: publisherId, publisherName (scrittura approvata esatta), keyId, publicKeyBase64 e revoked: false. La ricerca rifiuta voci duplicate publisherId/keyId. Tieni Dummy fuori dal registro normale. Non approvare una chiave fornita soltanto dentro un Course importato e non approvare mai modificando publisherVerificationStatus in un file JSON.\n\nRivedi la modifica al registro; prova un Course firmato da quella chiave e casi di contenuto alterato, firma mancante e chiave sbagliata. Compila e distribuisci l’app con la normale procedura di release. Comunica al Publisher publisherId, publisherName, keyId e impronta esatti, più la prima versione dell’app che contiene l’approvazione. Finché gli utenti non la installano, l’app rifiuta la chiave sconosciuta.\n\nL’approvazione autentica l’identità dell’editore, non la proprietà di ogni Course ID o licenza dei contenuti. Un nuovo editore non può sovrascrivere un Course installato sotto un altro Publisher né usare l’identità di un Bundled o Custom Course.",
+  // Publisher signing guide, continued.
+  "publisherSigningHelp.signAndDistribute.title":
+      "7. Publisher: firmare e distribuire un Course",
+  "publisherSigningHelp.signAndDistribute.body":
+      "Parti da un JSON externalOfficial valido per Course Model v12, con publisherId e publisherName approvati esatti, discendenza del Publisher, courseId stabile e metadati della release. Per un aggiornamento conserva ID e provenienza del Course e aumenta officialCourseVersion. Risolvi gli errori bloccanti del Course Audit e controlla le licenze dei contenuti e dei media. Lo strumento non converte Custom Courses e non inventa metadati dell’editore.\n\nDa Build 262 QQL può creare quel JSON da un Custom Course di cui sei Maintainer: in Course Studio, Export as Publisher Course nel menu del corso scrive un normale ZIP del corso in cui course.json è il Publisher Course non firmato (ogni ID conservato, il publisherId e il publisherName approvati che scrivi, la Course version come officialCourseVersion) e la cartella media contiene i suoi media con il loro nome SHA-256. Decomprimilo e usa course.json e la cartella media nei comandi seguenti. Per un aggiornamento esporta di nuovo lo stesso corso dopo una modifica confermata.\n\nEsegui i comandi dal repository QQL. Sostituisci dummy-1 con il tuo keyId approvato e usa i veri percorsi di input, output e chiave. Gli esempi usano una cartella di lavoro separata C:/QQL-Publisher:\n\ndart run tools/sign_course.dart prepare C:/QQL-Publisher/course.json dummy-1 C:/QQL-Publisher/payload.bin\n\nIl comando valida il modello e prepara i byte canonici basati sul digest da firmare. Non legge la chiave privata. Firma quei byte con OpenSSL, inserendo la passphrase della chiave privata in modo interattivo:\n\nopenssl pkeyutl -sign -rawin -inkey C:/QQL-Publisher/publisher-private.pem -in C:/QQL-Publisher/payload.bin -out C:/QQL-Publisher/signature.bin\nopenssl pkey -pubin -in C:/QQL-Publisher/publisher-public.pem -outform DER -out C:/QQL-Publisher/publisher-public.der\n\nAllega la firma. Il comando la verifica con la chiave pubblica fornita prima di scrivere il risultato:\n\ndart run tools/sign_course.dart attach C:/QQL-Publisher/course.json dummy-1 C:/QQL-Publisher/signature.bin C:/QQL-Publisher/publisher-public.der C:/QQL-Publisher/course-signed.json\n\nMetti ogni registrazione o immagine referenziata in C:/QQL-Publisher/media/ usando il suo nome SHA-256, per esempio <sha256>.mp3. Poi crea il pacchetto del JSON firmato:\n\ndart run tools/sign_course.dart package C:/QQL-Publisher/course-signed.json C:/QQL-Publisher/media C:/QQL-Publisher/publisher-public.der C:/QQL-Publisher/course-signed.zip\n\nIl comando package verifica la firma con la chiave fornita, controlla ogni file media referenziato e il suo SHA-256 e include solo i file usati dal Course. Se il Course non usa media separati, basta una cartella media vuota.\n\nControlla il codice di uscita 0 dopo ogni comando (\$LASTEXITCODE in PowerShell). Lo strumento Dart rifiuta un nome di output già esistente. OpenSSL può sovrascrivere i file di output: usa nomi nuovi. Non modificare course.json tra prepare e attach; dopo qualsiasi modifica devi preparare e firmare di nuovo. La verifica con la chiave fornita non equivale all’approvazione nel registro QQL.\n\nImporta course-signed.zip in una versione QQL che contiene la tua chiave approvata. Controlla Publisher verificato, versione, contenuti e media. Prova un aggiornamento sulla release precedente già installata e sui suoi progressi. Distribuisci esattamente quello ZIP. La riesportazione tramite QQL conserva contenuto firmato normalizzato e firma; modificare contenuti firmati invalida la firma.\n\nLa firma copre il Course JSON normalizzato, compresi dati incorporati e ogni riferimento media: SHA-256. Lo ZIP verifica ciascun file contro il riferimento firmato; sostituire i byte media fa fallire l’importazione. La firma dentro QQL non è ancora disponibile.",
+  "publisherSigningHelp.mediaRules.title":
+      "7a. Media ammessi in un Publisher Course",
+  "publisherSigningHelp.mediaRules.body":
+      "Uno ZIP Course trasferibile contiene course.json, un manifest del pacchetto e ogni file media non incluso nell’app realmente usato dal Course. L’app fornisce gli asset inclusi in assets/ media.\n\nLe icone Lesson personalizzate incorporate, le bandiere personalizzate e le immagini Recognize characters viaggiano dentro course.json. Gli MP3 registrati e le normali immagini importate degli esercizi viaggiano come file media identificati dal contenuto nello ZIP. Lo ZIP include anche le immagini della Shared Image Library aggiunte da un Admin e usate dal Course, senza importarle nella Shared Image Library del destinatario.\n\nIl Publisher deve avere i diritti di distribuzione per ogni file incluso. Un Course con riferimenti media: non può essere installato dal solo JSON; usa lo ZIP completo. Media mancanti, modificati o troppo grandi vengono rifiutati prima dell’installazione.\n\nUn aggiornamento fa il backup del Course ufficiale precedente e dei suoi media, poi rimuove i media che la nuova versione non usa più. La disinstallazione conserva media e backup del Course per una futura reinstallazione.",
+  "publisherSigningHelp.mediaCredits.title": "7b. Crediti dei media",
+  "publisherSigningHelp.mediaCredits.body":
+      "Registra autore e licenza di ogni immagine o registrazione di terze parti in Course Info Editor, sotto License / Rights. Le voci vengono salvate in mediaAttributions del Course e fanno parte del contenuto firmato. Le immagini aggiunte da un Admin alla Shared Image Library possono anche avere un’attribuzione per singola immagine nei metadati; quando vengono usate, questa viaggia nel Course e nel manifest dello ZIP. Course Audit mostra un Warning se un Course contiene media propri senza alcun credito; il Warning non blocca esportazione o importazione. I media inclusi in QuisquisLingo sono già accreditati nell’app e non richiedono una voce.",
+  "publisherSigningHelp.importPolicy.title":
+      "8. Regole d’importazione e Courses esistenti",
+  "publisherSigningHelp.importPolicy.body":
+      "I nuovi import externalOfficial richiedono una firma valida di una chiave attiva e approvata. Firme mancanti, malformate, non valide, revocate o sconosciute vengono bloccate prima del salvataggio. Un Publisher Course con riferimenti media: deve arrivare come ZIP completo; il pacchetto controlla ogni file rispetto al digest firmato prima dell’installazione. Lo stato di verifica viene calcolato dall’app: un flag verified nel JSON non è una prova. Una versione ufficiale minore o uguale, o un altro Publisher, non può sostituire un Course ufficiale installato. Import senza firma non possono declassare Courses verificati.\n\nI Custom Courses restano senza firma e seguono la normale validazione dell’importazione. I file ufficiali non verificati non vengono convertiti automaticamente in Custom. I Publisher Courses già salvati ma non verificabili restano sul disco e in Course Studio con Verification required; i progressi si conservano e gli studenti non possono aprirli. Per riattivarli, importa una release firmata valida più recente con identità e provenienza corrispondenti, poi conferma esplicitamente l’associazione al Course esistente.\n\nL’autenticità viene ricontrollata quando si leggono Courses esterni salvati e cronologia dei backup. Revoca o alterazione del file tolgono lo stato verificato senza cancellare il Course. I backup non aggirano la verifica dell’importazione.\n\nI Bundled official courses si affidano alla distribuzione dell’app e conservano i controlli già esistenti su provenienza e checksum. In questa fase non richiedono una firma separata per Course. Un JSON esterno che dichiara bundledOfficial viene rifiutato. I Courses importati non possono sostituire identità incluse nell’app.\n\nLe firme non cifrano i contenuti, non impediscono la copia, non applicano pagamenti, non dimostrano la qualità didattica e non stabiliscono la titolarità dei diritti d’autore. Restano valide le regole di struttura, Audit e licenza. Le vecchie versioni dell’app senza questa verifica non offrono garanzia sulla firma.",
+  "publisherSigningHelp.keyRotation.title":
+      "9. Chiavi perse, rotazione e revoca",
+  "publisherSigningHelp.keyRotation.body":
+      "Publisher: ripristina una chiave persa dal backup protetto. Se non riesci o sospetti una compromissione, smetti di usarla e contatta il proprietario tramite il canale indipendente. Fornisci publisherId, vecchia impronta, release interessate e dettagli dell’incidente; non inviare la chiave privata.\n\nProprietario: registra l’incidente, verifica di nuovo il rappresentante e richiedi una nuova coppia di chiavi con un nuovo challenge e una nuova prova. Non accettare una chiave sostitutiva solo perché nome o ID dell’editore coincidono. Assegna un nuovo keyId. Per una rotazione programmata, conserva la vecchia voce approvata mentre aggiungi la nuova se vuoi che le firme storiche restino affidabili. In caso di compromissione, segna la vecchia chiave come revoked nel registro e pubblica un aggiornamento dell’app.\n\nUna chiave revocata viene rifiutata per nuovi import e considerata non verificata quando si leggono Courses salvati o la cronologia, qualunque data di release dichiari il file. Una sostituzione valida più recente con associazione esplicita può riattivare il Course conservato. Non esiste un sistema di timestamp attendibili che permetta di accettare firme storiche fatte con una chiave revocata.\n\nI dispositivi offline apprendono della revoca solo dopo un aggiornamento dell’app. Comunica a editori e utenti quale versione contiene la modifica. Con il registro incluso nell’app non è possibile una revoca immediata su tutti i dispositivi. La gestione delle chiavi non richiede mai di cancellare i progressi degli studenti.",
+  "publisherSigningHelp.protocolReferences.title":
+      "10. Protocollo e riferimenti",
+  "publisherSigningHelp.protocolReferences.body":
+      "publisherSignature usa qql-ed25519-v1:<keyId>:<signatureBase64>. La firma è lunga 64 byte in Base64 standard canonico. Il messaggio UTF-8 firmato contiene QQL-COURSE-SIGNATURE-V1, publisherId, keyId e officialChecksum in minuscolo, ognuno su una riga terminata da LF, compresa l’ultima. Non include BOM.\n\nIl checksum è SHA-256 di Course.toJson() normalizzato dal modello, dopo aver escluso officialChecksum, publisherSignature e publisherVerificationStatus, ordinando ricorsivamente le chiavi degli oggetti e scrivendo JSON compatto. L’ordine degli array resta. Questa è la canonizzazione QQL, non RFC 8785/JCS. I campi sconosciuti scartati dal modello non fanno parte del contenuto firmato. Usa lo strumento di preparazione QQL; non è garantita la compatibilità con serializzazioni di altri linguaggi.\n\nLista di controllo del Publisher: chiave e backup protetti; identità e chiave approvate; Audit e licenze controllati; contenuto preparato; byte firmati; firma allegata; media nel pacchetto; import e aggiornamento verificati su un’app con registro attendibile; distribuzione dello ZIP provato.\n\nLista di controllo del proprietario: identità verificata indipendentemente; impronta e challenge monouso controllati; decisione registrata; voce del registro riveduta; test di import valido e non valido passati; limiti dei media rispettati e media di terze parti accreditati in mediaAttributions; Publisher informato della versione dell’app supportata. Tieni la build normale priva dell’opzione di test Dummy.\n\nRiferimenti:\nhttps://docs.openssl.org/3.0/man1/openssl-genpkey/\nhttps://docs.openssl.org/3.0/man1/openssl-pkey/\nhttps://docs.openssl.org/3.0/man1/openssl-pkeyutl/\nhttps://pub.dev/documentation/cryptography/latest/cryptography/Ed25519-class.html",
+  "publisherSigningHelp.dummyPublisherTesting.title":
+      "11. Publisher Dummy: test automatici e manuali",
+  "publisherSigningHelp.dummyPublisherTesting.body":
+      "Dummy Publisher — TEST ONLY ha publisherId org.quisquislingo.test.dummy e keyId dummy-1. La sua coppia di chiavi pubbliche di test e i Courses di esempio sono in test/fixtures/publishers. La chiave privata è intenzionalmente un dato di test pubblico: non usarla mai per un vero Publisher. Non è un asset dell’app.\n\nI test automatici inseriscono esplicitamente il registro Dummy. Le build normali non si fidano di questa chiave. Per prove manuali abilita il flag alla compilazione:\n\nflutter run -d windows --dart-define=QQL_ENABLE_DUMMY_PUBLISHER=true\n\nPuoi creare anche una build di test release:\n\nflutter build windows --release --dart-define=QQL_ENABLE_DUMMY_PUBLISHER=true\n\nQueste build mostrano un banner TEST ONLY e riconoscono Dummy. Non distribuirle come release pubbliche. Una build pubblica deve omettere il flag; compila in una cartella di output pulita per non confondere gli artefatti.\n\nImporta test/fixtures/publishers/dummy-signed-media.zip tramite Course Studio → Course Import → Open from… oppure copialo in {folderCourseImports}/import.zip. Aspettati la conferma del Publisher verificato e la registrazione nel pacchetto. Poi importa dummy-signed-v2.json per provare un aggiornamento che elimina la registrazione non più usata. dummy-unsigned.json deve essere rifiutato; anche un titolo firmato modificato deve essere rifiutato, pure se un attaccante ricalcola il checksum. Una build normale senza il flag rifiuta i file firmati Dummy come chiave sconosciuta.\n\nI test Dummy non richiedono una richiesta di approvazione a un vero Publisher. Tutti i file delle release Dummy devono conservare l’indicazione TEST ONLY.",
+  // Exercise field guidance.
+  "exerciseHelp.field.build_translation_to_source.correctTranslation.body":
+      "Definisce una risposta completa e letterale nella lingua di partenza per Build the translation (to source).\n\nCosa inserire\nOgni voce di risposta contiene una frase completa nella lingua di partenza. Usa Add correct translation per un’altra risposta e la maniglia per riordinare.\n\nControlli\nServe almeno una risposta non vuota. Le risposte devono essere uniche dopo la normalizzazione di maiuscole, spazi e punteggiatura finale, e costruibili con occorrenze distinte dei blocchi disponibili. Non si applicano espressioni facoltative, alternative o di riordino, confronto per somiglianza o tolleranza ai refusi.\n\nEsempio\nI would like a coffee.",
+  "exerciseHelp.field.build_translation_to_source.tokens.body":
+      "Fornisce i blocchi nella lingua di partenza con cui costruire le traduzioni corrette.\n\nCosa inserire\nScrivi un blocco letterale per riga, nella lingua di partenza. Le righe vuote vengono ignorate. Includi abbastanza occorrenze distinte per costruire ogni traduzione corretta; le parole ripetute richiedono righe ripetute. Con Inline gaps attivo questo campo aggiunge solo distrattori facoltativi.\n\nControlli\nOgni traduzione corretta deve poter essere costruita con questi blocchi. Pochi distrattori funzionano meglio: si consiglia che al massimo 2 blocchi restino inutilizzati da tutte le traduzioni corrette, meno nei primi Round di una Lesson; di più sono ammessi.\n\nEsempio\nI\nwould\nlike\na\ncoffee\ntea",
+  "exerciseHelp.field.choice_source.answers.body":
+      "Le alternative, scritte nella lingua di partenza.\n\nCosa inserire\nScrivi una risposta letterale per riga, almeno due righe non vuote, nella lingua che lo studente già conosce. Le righe vuote vengono ignorate. La prima riga non vuota è la risposta 1.\n\nControlli\nScegli un Correct answer number valido. Evita risposte duplicate e rendi i distrattori plausibili ma chiaramente sbagliati.\n\nEsempio\nquello davanti a vocale\nquello davanti a consonante\nnessuno",
+  "exerciseHelp.field.listening_answer.question.body":
+      "La domanda a cui lo studente risponde su ciò che sente.\n\nCosa inserire\nUna domanda sulla registrazione: chi, che cosa, dove, quanti. Listen and answer (to source) la pone nella lingua di partenza. Per far scegliere soltanto ciò che si è sentito, senza domanda, usa Listen and choose.\n\nControlli\nObbligatoria: un salvataggio Published la rifiuta vuota. Rendi la registrazione abbastanza lunga per rispondere e segna la risposta corretta.\n\nEsempio\nDove fa la spesa Maria?",
+  "exerciseHelp.field.one_word_fills_all.question.body":
+      "Le frasi che lo studente completa con una parola che va bene in ogni spazio.\n\nCosa inserire\nScrivi le frasi nella lingua studiata con ___ (tre trattini bassi) dove va la stessa parola; almeno due spazi. La parola scelta compare in ogni spazio.\n\nControlli\nObbligatorio: un salvataggio Published lo rifiuta senza due o più spazi. Per un solo spazio usa Pick the missing word.\n\nEsempio\n___ gatto dorme. ___ cane mangia.",
+  "exerciseHelp.field.choice_source.question.body":
+      "La domanda, o la frase da completare, scritta nella lingua di partenza.\n\nCosa inserire\nUna domanda nella lingua che lo studente già conosce, oppure una frase con ___ dove va la risposta: una regola grammaticale, un fatto culturale, il significato di un’espressione. Un’istruzione o il contesto vanno in Instruction or context.\n\nControlli\nAnche le risposte sotto sono nella lingua di partenza; segna quella corretta (o più di una, con Multiple correct answers).\n\nEsempio\nQuale articolo italiano si usa con un nome maschile che inizia per vocale?",
+  "exerciseHelp.field.reading_answer.prompt.body":
+      "Il testo che spiega la situazione, nella lingua di chi studia.\n\nCosa inserire\nUn breve testo nella lingua di partenza: dove sono i personaggi, chi sono, cosa succede. Più righe o paragrafi restano parte del testo. Viene mostrato prima del dialogo e non viene mai letto ad alta voce.\n\nControlli\nServe un testo con parole, oppure righe di dialogo; la sola punteggiatura non basta.\n\nEsempio\nAnna and Luca are in the kitchen after lunch.",
+  "exerciseHelp.field.reading_answer.dialogueReadAloud.body":
+      "Se le righe del dialogo vengono lette ad alta voce.\n\nCosa inserire\nAutomatically: ogni riga viene letta a turno, con una breve pausa, quando l’esercizio compare. On request: il pulsante Play dialogue le legge. No read-aloud: il dialogo si legge soltanto.\n\nControlli\nLa lettura è facoltativa: l’esercizio non è mai un esercizio audio e resta silenzioso con Audio Exercises o Text-to-speech disattivati. Le righe si leggono nella lingua studiata; i nomi di chi parla non vengono letti.\n\nEsempio\nAutomatically, line by line",
+  "exerciseHelp.field.type_missing_word.revealFirstLetter.body":
+      "Decide se lo spazio mostra la prima lettera della parola mancante come aiuto.\n\nCosa inserire\nOn: lo studente vede la prima lettera seguita da uno spazio e scrive tutta la parola. Off: lo spazio è vuoto e lo studente scrive la parola senza aiuto. In entrambi i casi inserisci la parola completa tra le risposte accettate.\n\nControlli\nCon l’aiuto attivo, ogni parola accettata deve iniziare con la stessa prima lettera. L’impostazione fa parte dell’esercizio, quindi l’Audit la legge dall’esercizio stesso.\n\nEsempio\nOn: é______ per école. Off: ______ per école.",
+  "exerciseHelp.field.type_translation_to_source.accepted.body":
+      "Definisce le traduzioni complete nella lingua di partenza accettate per il testo nella lingua studiata.\n\nCosa inserire\nScrivi risposte complete equivalenti su righe separate, nella lingua di partenza. Le righe vuote vengono ignorate. Vale la stessa sintassi di Type the translation (to target): {} facoltativo, alternative [a|b], gruppi collegati [*:a|b] con lo stesso numero di alternative e ambiti <> di riordino.\n\nControlli\nServe almeno una risposta accettata. Le espressioni malformate vengono rifiutate; l’espansione è deterministica e limitata a 128 risposte. Dichiara esplicitamente le risposte equivalenti.\n\nEsempio\nI would like a coffee.\nI’d like a coffee.",
+  "exerciseHelp.field.type_translation_to_source.prompt.body":
+      "Il testo che lo studente traduce nella lingua di partenza.\n\nCosa inserire\nScrivi una frase o un brano nella lingua studiata. Gli a capo appartengono allo stesso prompt; le risposte accettate o le traduzioni corrette vanno nei loro campi.\n\nControlli\nFornisci un testo non vuoto nella lingua studiata e risposte complete equivalenti nella lingua di partenza. Mantieni il significato inequivocabile.\n\nEsempio\nVorrei un caffè.",
+  "exerciseHelp.field.answer_pictures.body":
+      "Un’immagine per risposta.\n\nCosa inserire\nUsa il selettore sotto ogni risposta: un’immagine piatta della libreria condivisa, un’immagine importata o un’immagine del Course. Le immagini vengono copiate nel Course. Spunta Plural sotto un’immagine quando la sua risposta indica più cose (gatti): lo studente vede copie sovrapposte dell’immagine, senza numeri né parole.\n\nControlli\nOgni risposta ha bisogno della sua immagine; altrimenti l’Audit avvisa. Le immagini del Course viaggiano con il pacchetto del Course.\n\nEsempio\n1. gatto: l’immagine di un gatto",
+  "exerciseHelp.field.picture_answers.body":
+      "L’aspetto delle immagini tra cui lo studente sceglie: la dimensione, la forma e quante stanno in una riga.\n\nCosa inserire\nAs in Lesson Options segue il corso (Course Editor › Lesson Options › Picture answers); ogni altro valore vale solo per questo esercizio. Senza una scelta le immagini sono quadrati grandi, due per riga. Picture size: Large o Normal. Picture shape: Square, cropped, oppure Round. Pictures per row: da 1 a 3, oppure quante ne stanno. Un’ultima riga non piena sta al centro. Crop square sotto un’immagine sceglie la parte da mostrare e lo zoom, e salva la copia ritagliata nel corso.\n\nControlli\nNessuno.\n\nEsempio\nLarge, Square, cropped, 2 per riga",
+  "exerciseHelp.field.complete_text.missingWords.body":
+      "Ciò che va in ogni spazio, in ordine.\n\nCosa inserire\nUna riga per ogni spazio ___, nell’ordine in cui compaiono. Una riga può accettare più risposte: [il|un] gatto accetta il gatto e un gatto; {il} gatto accetta gatto con o senza il.\n\nControlli\nTante righe quanti spazi. Le alternative malformate vengono rifiutate. Le risposte usano la normale normalizzazione Input.\n\nEsempio\ncaffè\n[il|un] treno",
+  "exerciseHelp.field.complete_text.prompt.body":
+      "Il testo che lo studente completa; ogni ___ è uno spazio.\n\nCosa inserire\nScrivi il testo e metti ___ (tre trattini bassi) dove va ogni parola o espressione mancante. Più frasi vanno bene.\n\nControlli\nAlmeno uno spazio, e tanti spazi quante sono le righe di Missing words.\n\nEsempio\nAnna beve un ___ al bar. Poi prende ___.",
+  "exerciseHelp.field.gap_blocks.tokens.body":
+      "Blocchi che non riempiono alcuno spazio, offerti accanto alle risposte.\n\nCosa inserire\nUn blocco in più per riga. Pochi distrattori funzionano meglio: ne sono consigliati 0, 1 o 2, meno nei primi Round di una Lesson.\n\nControlli\nUn distrattore non deve ripetere il testo di una risposta.\n\nEsempio\nsempre",
+  "exerciseHelp.field.missing_letters.prompt.body":
+      "Il testo completo con le lettere mancanti segnate tra trattini bassi.\n\nCosa inserire\nScrivi il testo e metti le lettere da nascondere tra trattini bassi, una coppia per spazio: My cat doesn’t dr_ink_ milk.\n\nControlli\nAlmeno uno spazio, nessuno vuoto. Lo studente vede un trattino per ogni lettera nascosta e scrive le lettere.\n\nEsempio\nIl ga_tt_o dor_me_ sul divano.",
+  "exerciseHelp.field.dialogue_line.speaker.body":
+      "Chi dice la battuta.\n\nCosa inserire\nIl narratore o uno dei personaggi della Storia del Corso (Course Editor › Story characters).\n\nControlli\nIl personaggio deve esistere nel Corso; l’Audit segnala quello mancante.\n\nEsempio\nAnna",
+  "exerciseHelp.field.dialogue_line.prompt.body":
+      "La battuta stessa.\n\nCosa inserire\nUna battuta di dialogo, nella lingua di chi parla. Viene mostrata, letta ad alta voce o entrambe le cose, come dice la modalità.\n\nControlli\nObbligatoria.\n\nEsempio\nBuongiorno! Un caffè, per favore.",
+  "exerciseHelp.field.dialogue_line.lineMode.body":
+      "Se lo studente legge la battuta, la ascolta o entrambe le cose.\n\nCosa inserire\nText and audio, Text only oppure Audio only. Audio only rende la battuta un passaggio di ascolto; quando l’audio non è disponibile viene mostrato il testo.\n\nControlli\nNessuno.\n\nEsempio\nText and audio",
+  "exerciseHelp.field.dialogue_line.readAloud.body":
+      "Quando viene riprodotto l’audio della battuta.\n\nCosa inserire\nStory default (l’opzione Read-aloud del Round), Automatic (parte quando appare la battuta) oppure On request (lo studente tocca).\n\nControlli\nNessuno.\n\nEsempio\nStory default",
+  "exerciseHelp.field.dialogue_line.textReveal.body":
+      "Se il testo aspetta l’audio.\n\nCosa inserire\nImmediately, oppure After listening: il testo appare dopo che l’audio è stato riprodotto (solo con testo e audio).\n\nControlli\nNessuno.\n\nEsempio\nImmediately",
+  "exerciseHelp.field.dialogue_line.language.body":
+      "La lingua della battuta.\n\nCosa inserire\nLa lingua di chi parla (predefinita), oppure Target / Source per cambiarla solo in questa battuta.\n\nControlli\nNessuno.\n\nEsempio\nSpeaker’s",
+  "exerciseHelp.field.before_you_start.prompt.body":
+      "Ciò che lo studente legge prima che il Round inizi.\n\nCosa inserire\nQualche frase: che cosa esercita il Round, un consiglio, un promemoria, nella lingua che i tuoi studenti leggono meglio.\n\nControlli\nObbligatoria: una scheda vuota è un errore dell’Audit.\n\nEsempio\nQuesto Round esercita i saluti.",
+  "exerciseHelp.field.before_you_start.guidebookButton.body":
+      "Se la scheda offre il GuideBook della Lesson.\n\nCosa inserire\nAttivo o no. Gli studenti vedono Open GuideBook solo se il Corso usa i GuideBook (Lesson Options) e il GuideBook è pubblicato; Preview lo mostra anche per un GuideBook in Draft.\n\nControlli\nDisattivato finché il Corso non usa i GuideBook.\n\nEsempio\nAttivo",
+  "exerciseHelp.field.page.blocks.body":
+      "I blocchi della Page, dall’alto in basso.\n\nCosa inserire\nAggiungi blocchi con Add block e ordinali con le frecce. In paragrafi, citazioni ed elenchi scrivi **grassetto** e *corsivo*; un elenco ha una voce per riga; \\* mostra un asterisco. Scegli allineamento e colore per ogni blocco di testo, dimensione e didascalia per ogni immagine, il testo parlato di un blocco audio, l’etichetta e l’indirizzo https di un link video.\n\nControlli\nUna Page senza contenuto è un errore dell’Audit; un segno senza chiusura è un avviso; un link deve essere un indirizzo https.\n\nEsempio\nHeading 1: Saluti",
+  "exerciseHelp.field.story_cover.prompt.body":
+      "Una riga di titolo facoltativa sulla copertina.\n\nCosa inserire\nUna riga breve; il titolo della Storia (opzioni del Round) appare comunque sopra la copertina.\n\nControlli\nFacoltativa.\n\nEsempio\nAl bar",
+  "exerciseHelp.field.story_cover.image.body":
+      "L’immagine di copertina.\n\nCosa inserire\nUn’immagine del Corso, della Shared Image Library o un’immagine integrata.\n\nControlli\nConsigliata; una copertina senza immagine mostra solo il titolo.\n\nEsempio\nUn tavolino di caffè",
+  "exerciseHelp.field.sort_into_groups.groups.body":
+      "I gruppi e le loro parole.\n\nCosa inserire\nUn gruppo per riga: il nome del gruppo, i due punti, poi le sue parole separate da virgole. Almeno due gruppi, ognuno con almeno una parola.\n\nControlli\nUna parola può stare in un solo gruppo; una riga senza due punti, senza nome o senza parole viene rifiutata prima di Preview o Save.\n\nEsempio\nAnimals: gatto, cane\nPlants: rosa, pino",
+  "exerciseHelp.field.fill_the_slots.slots.body":
+      "Le caselle e la parola che riempie ciascuna.\n\nCosa inserire\nUna casella per riga: ciò che lo studente vede, un segno di uguale, poi la parola. Almeno una casella. Usa … o ___ per la parte mancante.\n\nControlli\nOgni riga ha bisogno di entrambe le parti. La stessa parola in due caselle richiede “A word may fill more than one slot”.\n\nEsempio\n… gatto = il\n… casa = la",
+  "exerciseHelp.field.fill_the_slots.extraWords.body":
+      "Parole offerte che non riempiono nessuna casella.\n\nCosa inserire\nUna parola per riga; facoltativo.\n\nControlli\nUna parola extra non può ripetere la parola di una casella.\n\nEsempio\nlo",
+  "exerciseHelp.field.fill_the_slots.slotReuse.body":
+      "Se una parola può riempire più caselle.\n\nCosa inserire\nOff: ogni parola è offerta una volta e riempie una casella. On: la parola resta nel mazzo dopo ogni uso, così la stessa parola può essere la risposta di più caselle.\n\nControlli\nNessuno.\n\nEsempio\nOn, per “… cane = il” e “… libro = il”",
+  "exerciseHelp.field.flashcard.readAloud.body":
+      "Se e quando la parola viene letta ad alta voce.\n\nCosa inserire\nAutomatically (quando la scheda appare), On request (lo studente tocca l’altoparlante) o No read-aloud. Il testo letto è la parola o espressione stessa, salvo che Pronunciation TTS (if different) dica altrimenti, con la modalità audio del Course.\n\nControlli\nNessuno. La lettura ad alta voce non rende mai la scheda un esercizio audio.\n\nEsempio\nOn request",
+  "exerciseHelp.field.flashcard.tts.body":
+      "Ciò che la lettura ad alta voce dice quando deve differire dalla parola o espressione.\n\nCosa inserire\nLascia vuoto: la lettura ad alta voce dice la parola o espressione sopra. Scrivi un testo solo quando la forma parlata è diversa, per esempio un’abbreviazione letta per esteso. Nessun percorso di registrazione; le registrazioni si gestiscono in Course Audio Library.\n\nControlli\nFacoltativo. Se presente, la modalità audio del Course deve poterlo riprodurre.\n\nEsempio\ndottore (per l’abbreviazione Dott.)",
+  "exerciseHelp.field.note_card.prompt.body":
+      "Il titolo della scheda.\n\nCosa inserire\nUn titolo breve, nella lingua che preferisci.\n\nControlli\nObbligatorio.\n\nEsempio\nTu o Lei?",
+  "exerciseHelp.field.note_card.question.body":
+      "La nota che lo studente legge.\n\nCosa inserire\nTesto semplice; più paragrafi vanno bene.\n\nControlli\nObbligatoria. Non c’è risposta né punteggio; Continue chiude la scheda.\n\nEsempio\nUsa Lei con le persone che non conosci bene.",
+  "exerciseHelp.field.picture_name.accepted.body":
+      "I nomi di ciò che l’immagine mostra che lo studente può scrivere.\n\nCosa inserire\nRisposte complete su righe separate, con la sintassi di Type the translation: {} facoltativo, alternative [a|b], gruppi collegati [*:a|b], ambiti <> di riordino.\n\nControlli\nAlmeno una risposta accettata. L’espansione è limitata a 128 risposte.\n\nEsempio\n[il|un] gatto\ngatto",
+  "exerciseHelp.field.picture_blocks.order.body":
+      "Il nome di ciò che l’immagine mostra, in blocchi di parole.\n\nCosa inserire\nUna parola per riga, nell’ordine giusto; lo studente riceve questi blocchi mescolati, con i blocchi in più.\n\nControlli\nObbligatorio, con l’Exercise image. I blocchi uniti da spazi sono la risposta.\n\nEsempio\nil\npane",
+  "exerciseHelp.field.image_word.extraWords.body":
+      "Blocchi offerti con la parola che non ne fanno parte: distrattori.\n\nCosa inserire\nUna lettera o sillaba per riga; facoltativo.\n\nControlli\nSono consigliati solo i blocchi della parola: aggiungi blocchi in più di proposito, meno nei primi Round di una Lesson. Il Course Audit li elenca come Info. Lo studente deve lasciarli fuori.\n\nEsempio\ne",
+  "exerciseHelp.field.picture_blocks.extraWords.body":
+      "Parole offerte con il nome che non ne fanno parte.\n\nCosa inserire\nUna parola per riga; facoltativo.\n\nControlli\nPochi funzionano meglio: ne sono consigliati al massimo due; di più sono ammessi e il Course Audit li elenca come Info. Lo studente deve lasciarli fuori.\n\nEsempio\nla",
+  "exerciseHelp.field.picture_word_match.answers.body":
+      "Le parole delle coppie; ognuna riceve un’immagine sotto.\n\nCosa inserire\nUna parola per riga, nella lingua studiata. Almeno due.\n\nControlli\nOgni parola ha bisogno della sua immagine; le parole devono essere uniche.\n\nEsempio\ngatto\ncane\ncasa",
+  "exerciseHelp.field.sentence_order.order.body":
+      "Le righe della storia o del dialogo, nell’ordine che lo studente deve trovare.\n\nCosa inserire\nUna frase o riga per riga, nell’ordine corretto; lo studente le riceve mescolate. Le righe che non appartengono a nulla vanno in Extra lines.\n\nControlli\nAlmeno due righe per pubblicare. Lo stesso testo due volte vale due righe.\n\nEsempio\nAnna entra nel bar.\nOrdina un caffè.\nPaga e saluta.",
+  "exerciseHelp.field.sentence_order.extraWords.body":
+      "Righe offerte insieme alle altre che non appartengono a nulla; lo studente deve lasciarle fuori.\n\nCosa inserire\nUna riga per riga. Poche funzionano meglio: consigliate 0, 1 o 2.\n\nControlli\nFacoltative. Devono essere plausibili ma chiaramente fuori posto.\n\nEsempio\nIl treno parte alle nove.",
+  "exerciseHelp.field.spell_heard.tts.body":
+      "La parola che lo studente ascolta e compone.\n\nCosa inserire\nScrivi la parola come testo; viene letta con la voce della lingua studiata o abbinata a una registrazione del Course.\n\nControlli\nObbligatoria. Le tessere devono comporre esattamente questa parola.\n\nEsempio\ngatto",
+  "exerciseHelp.field.spell_word.prompt.body":
+      "L’indizio che indica la parola da comporre.\n\nCosa inserire\nUn indizio breve nella lingua di partenza: la parola stessa o una definizione.\n\nControlli\nObbligatorio a meno che un’immagine o una parola parlata indichi la parola.\n\nEsempio\ncat (the animal)",
+  "exerciseHelp.field.true_false.answers.body":
+      "Le due risposte: la parola per vero e quella per falso.\n\nCosa inserire\nDue righe nella lingua di partenza, prima vero. QQL le precompila quando conosce la lingua; puoi cambiare le parole.\n\nControlli\nEsattamente due righe; l’Audit avvisa se sono di più o di meno.\n\nEsempio\nVero\nFalso",
+  "exerciseHelp.field.true_false.question.body":
+      "L’affermazione che lo studente giudica vera o falsa.\n\nCosa inserire\nScrivi un’affermazione nella lingua studiata, in testo semplice. Rendila chiaramente vera o chiaramente falsa.\n\nControlli\nObbligatoria. Il numero della risposta corretta è 1 se l’affermazione è vera e 2 se è falsa.\n\nEsempio\nRoma è la capitale d’Italia.",
+  "exerciseHelp.field.choice.question.body":
+      "Ciò a cui lo studente risponde: una domanda, oppure una frase con uno spazio che le risposte completano.\n\nCosa inserire\nUna domanda, oppure una frase con ___ dove va la risposta, in testo semplice; un’istruzione o il contesto vanno in Instruction or context. In Choose the answer (to target) le risposte sono nella lingua studiata e la domanda può essere in una delle due lingue; in Choose the answer (to source) domanda e risposte sono nella lingua di partenza.\n\nControlli\nObbligatoria. Fornisci risposte corrispondenti e segna quella corretta (o più di una, con Multiple correct answers).\n\nEsempio\nWhich article goes with casa?\nIeri ___ al cinema. (con Instruction or context: Pick the verb form that fits.)",
+  "exerciseHelp.field.choice.answers.body":
+      "Definisce le alternative mostrate allo studente.\n\nCosa inserire\nScrivi una risposta letterale per riga, con almeno due righe non vuote. Le righe vuote vengono ignorate. La prima riga non vuota è la risposta 1. La sintassi compatta delle risposte accettate non crea opzioni.\n\nControlli\nScegli un Correct answer number valido. Evita risposte duplicate; i distrattori devono essere plausibili ma inequivocabilmente sbagliati. Select the image richiede anche una chiave icona/immagine per ogni risposta, nello stesso ordine.\n\nEsempio\ncaffè\nacqua\npane",
+  "exerciseHelp.field.choice.correct.body":
+      "Indica l’opzione o le opzioni corrette nell’elenco delle risposte.\n\nCosa inserire\nScrivi un numero intero contando le righe di risposta non vuote a partire da 1. Quando Multiple correct answers è attivo, separa con virgole tutti i numeri corretti, per esempio 1, 3.\n\nControlli\nOgni numero deve essere compreso tra 1 e il numero delle risposte. Ricontrolla dopo aver riordinato o eliminato righe.\n\nEsempio\n2 seleziona la seconda riga di risposta non vuota.",
+  "exerciseHelp.field.choice.requiredSelections.body":
+      "Imposta il numero minimo di opzioni da scegliere prima di controllare un esercizio Choice con più selezioni.\n\nCosa inserire\nScrivi un numero intero tra 1 e il numero delle risposte, oppure lascia vuoto per usare il numero delle risposte corrette.\n\nControlli\nIl pulsante Check resta disattivato finché non viene selezionato almeno questo numero di opzioni. Non è un limite massimo: la risposta è corretta solo quando l’insieme scelto coincide esattamente con quello corretto.\n\nEsempio\n2",
+  "exerciseHelp.field.choice.gapLayout.body":
+      "Mostra una frase fissa con uno o più spazi che lo studente riempie in ordine toccando le opzioni.\n\nCosa inserire\nScrivi la frase e metti ogni parola o espressione di risposta tra trattini bassi: _answer_. Esempio: I _am_ going _to_ London. Le opzioni che non rispondono a nessuno spazio vanno in Distractor options (optional).\n\nControlli\nServe almeno uno spazio _…_ e ognuno deve contenere testo. Un _ isolato non può comparire altrove nella frase.\n\nEsempio\nI _am_ going _to_ London.",
+  "exerciseHelp.field.choice.tokens.body":
+      "Aggiunge opzioni che lo studente può scegliere ma che non rispondono a nessuno spazio.\n\nCosa inserire\nScrivi un’opzione in più per riga. Pochi distrattori funzionano meglio: consigliate zero, una o due, meno nei primi Round di una Lesson.\n\nControlli\nLe opzioni distrattrici non devono ripetere il testo di una risposta agli spazi.\n\nEsempio\nperhaps",
+  "exerciseHelp.field.choice.tts.body":
+      "Definisce la parola o il brano che lo studente ascolta.\n\nCosa inserire\nScrivi un solo testo parlato, non un nome di file MP3 o un percorso. Più righe formano lo stesso brano. Course Audio Library seleziona On-Device TTS, Recorded MP3 o Hybrid e associa le registrazioni a parole o espressioni esatte.\n\nControlli\nGli esercizi di ascolto richiedono un testo audio non vuoto. Per contextual comprehension, fornisci il contesto testuale/audio scelto in Context mode. Controlla la riproduzione in Preview e le associazioni mancanti delle registrazioni in Audit.\n\nEsempio\nVorrei un caffè, per favore.",
+  "exerciseHelp.field.choice.image.body":
+      "Aggiunge un’immagine al prompt o al contesto dell’esercizio.\n\nCosa inserire\nScegli un’immagine dalla shared image library, gestita dagli admin, oppure metti esattamente un file PNG, JPG, JPEG o WebP in {folderImageImports} e premi Import custom image. Chiunque possa modificare un Course può importare un’immagine personalizzata; non viene aggiunta alla libreria condivisa. L’importazione copia i byte originali nella memoria locale dell’app, senza ridimensionare, ritagliare o cambiare la trasparenza.\n\nControlli\nDimensione massima: 300 KB (307.200 byte). 256 × 256 pixel e non oltre 15 KB sono consigli, non limiti obbligatori. I prompt basati su immagini richiedono un’immagine; altri tipi attuali possono farne a meno. File di origine mancanti, multipli o troppo grandi vengono rifiutati. In Preview controlla che l’immagine compaia. Course JSON salva il percorso, non i byte dell’immagine: le immagini personalizzate degli esercizi non viaggiano con il solo Course JSON.\n\nEsempio\nPercorso incluso: assets/exercise_images/house.webp\nI percorsi personalizzati vengono scelti e salvati dall’importatore.",
+  "exerciseHelp.field.gap_choice.question.body":
+      "Mostra la frase che lo studente completa scegliendo un blocco.\n\nCosa inserire\nUsa ___ (3 trattini bassi) per la parola mancante. Esempio: The cat ___ black. Scrivi una frase nella lingua studiata con la parola o l’espressione mancante sostituita da quello spazio. Scrivi le possibili sostituzioni su righe separate.\n\nControlli\nServe almeno un indicatore ___; più di uno produce un Warning. La frase con la risposta corretta inserita deve contenere almeno due parole.\n\nEsempio\nVorrei un ___, per favore.",
+  "exerciseHelp.field.gap_choice.correct.body":
+      "Indica l’unica opzione corretta nell’elenco delle risposte.\n\nCosa inserire\nScrivi un numero intero contando le righe non vuote da 1. Non incollare il testo della risposta o un indice JSON.\n\nControlli\nIl numero deve essere tra 1 e il numero delle risposte. Dialogue response accetta 1 o 2. Ricontrolla dopo aver riordinato o eliminato righe.\n\nEsempio\n2 seleziona la seconda riga di risposta non vuota.",
+  "exerciseHelp.field.gap_choice.hint.body":
+      "Dà allo studente un suggerimento utile.\n\nCosa inserire\nScrivi un suggerimento facoltativo in testo semplice. Lascia vuoto se non serve. Gli a capo restano parte dello stesso suggerimento.\n\nControlli\nUn Hint non deve rivelare una risposta corretta canonica. Ripetere soltanto il prompt produce un Warning.\n\nEsempio\nPensa a una bevanda calda servita in una tazzina.",
+  "exerciseHelp.field.icon_choice.question.body":
+      "Il contenuto concreto a cui lo studente risponde.\n\nCosa inserire\nScrivi una domanda in testo semplice, separata dal contesto di lettura, audio o dialogo. Gli a capo non creano domande distinte.\n\nControlli\nRead and answer richiede una domanda separata. La domanda deve corrispondere alla risposta indicata come corretta.\n\nEsempio\nHow are you?",
+  "exerciseHelp.field.icon_choice.icons.body":
+      "Abbina ogni risposta di Select the image alla sua immagine.\n\nCosa inserire\nScrivi una chiave icona o un percorso assets/ già incluso per riga, nello stesso ordine delle risposte. Le righe vuote vengono ignorate. Le chiavi comprendono water, home, coffee, person, hello, sun, moon, thanks, tree, flower, bread, train, bus, bike, shirt, book, food e shop.\n\nControlli\nIl numero delle chiavi deve coincidere con quello delle risposte. Una chiave sconosciuta mostra l’icona immagine generica: controlla ogni scelta in Preview. L’immagine personalizzata Exercise sotto il modulo è un’immagine condivisa del prompt, separata dalle immagini delle opzioni.\n\nEsempio\ncoffee\nwater\nassets/exercise_images/house.webp",
+  "exerciseHelp.field.script_recognition.scriptMode.body":
+      "Scegli come lo studente riconosce un carattere o una sillaba.\n\nCosa inserire\nImage to text mostra una o più immagini nel prompt e opzioni di risposta testuali. Text to image mostra un prompt testuale e opzioni con immagini. Passare da una modalità all’altra conserva entrambi i gruppi di campi durante questa sessione di modifica; il salvataggio usa la modalità selezionata.\n\nControlli\nEntrambe le modalità usano il normale Select, con almeno due opzioni e una sola corretta. Cambiare modalità non crea un motore di studio diverso.\n\nEsempio\nMostra più forme scritte a mano di 가 e chiedi di scegliere ga.",
+  "exerciseHelp.field.script_recognition.scriptPrompt.body":
+      "La domanda o la frase che nomina il carattere da trovare tra le immagini.\n\nCosa inserire\nScrivi il carattere, la sillaba o la trascrizione del suono, come domanda o come frase. Lascia le immagini di risposta nei rispettivi campi delle opzioni.\n\nControlli\nText to image richiede una domanda o una frase, almeno due opzioni solo immagine e una sola corretta.\n\nEsempio\nChoose the character pronounced ga.",
+  "exerciseHelp.field.script_recognition.scriptPromptImages.body":
+      "Mostra una o più rappresentazioni dello stesso carattere o della stessa sillaba.\n\nCosa inserire\nAggiungi forme stampate, caratteri tipografici diversi, scrittura a mano o varianti stilistiche. Scegli un’immagine da Image Bank oppure importa un PNG, JPEG o WEBP da {folderImageImports}. I byte importati appartengono al Course e restano nel Course JSON; non viene salvato un percorso locale assoluto.\n\nControlli\nImage to text richiede almeno un’immagine leggibile nel prompt e almeno due opzioni testuali. Ogni immagine importata può pesare al massimo 50 KB (51.200 byte) e misurare al massimo 4096 pixel per lato. Dati immagine non validi bloccano Save e Preview.\n\nEsempio\nMostra una 가 stampata e una scritta a mano sopra le opzioni ga e na.",
+  "exerciseHelp.field.script_recognition.scriptTextOptions.body":
+      "Fornisce le possibili letture delle immagini nel prompt.\n\nCosa inserire\nScrivi una lettura o etichetta letterale in ogni campo opzione. Aggiungi o rimuovi opzioni con i controlli accanto. Riordinare mantiene la stessa identità dell’opzione e la scelta della risposta corretta.\n\nControlli\nImage to text richiede almeno due opzioni non vuote composte solo da testo e una sola corretta. La sintassi delle espressioni di risposta non viene espansa nelle opzioni Select.\n\nEsempio\nOption 1: ga\nOption 2: na",
+  "exerciseHelp.field.script_recognition.scriptImageOptions.body":
+      "Fornisce le immagini tra cui lo studente sceglie la risposta.\n\nCosa inserire\nScegli per ogni opzione un’immagine trasferibile da Image Bank o un PNG, JPEG o WEBP importato. I byte importati vengono salvati con il Course. Riordinare mantiene l’identità dell’opzione immagine e la scelta della risposta corretta.\n\nControlli\nText to image richiede almeno due opzioni solo immagine leggibili e una sola corretta. Le immagini importate possono pesare al massimo 50 KB (51.200 byte) e misurare al massimo 4096 pixel per lato. Percorsi locali assoluti e immagini non valide vengono rifiutati.\n\nEsempio\nPer il prompt ga, offri un’immagine di 가 e un’immagine di 나.",
+  "exerciseHelp.field.script_recognition.scriptCorrect.body":
+      "Indica l’unica opzione che risponde al prompt.\n\nCosa inserire\nSeleziona il cerchio accanto all’opzione corretta. Sceglierne un altro sostituisce la scelta precedente. Riordinare un’opzione mantiene il suo stato di risposta corretta; se la elimini, devi sceglierne un’altra.\n\nControlli\nEsattamente un’opzione esistente deve essere corretta. Un Draft può restare incompleto; Preview e Published Save richiedono una scelta valida.\n\nEsempio\nSegna ga come corretta per un’immagine di 가.",
+  "exerciseHelp.field.listening_choice.tts.body":
+      "Scrivi esattamente ciò che lo studente deve sentire. On-Device TTS invia il testo al sintetizzatore vocale del dispositivo; in questa modalità non serve un file audio. Esempio: Buongiorno, come stai?\n\nCosa inserire\nLa riproduzione segue la modalità di Course Audio Library. Recorded MP3 cerca il testo tra le registrazioni del Course; Hybrid prova prima una sequenza registrata completa e poi il TTS del dispositivo. Scrivi parole da pronunciare, non il nome o percorso di un MP3. Per gli MP3, apri Course Editor > Audio Library, metti i file in {folderAudioImports}, premi Import MP3, poi Associate recording e inserisci la sua Word or expression. Scegli Recorded MP3 only o Hybrid. Gli esercizi usano queste associazioni testuali; non esiste un file allegato al singolo esercizio.\n\nControlli\nLe registrazioni sono salvate fisicamente per lingua studiata; metadati e riferimenti appartengono al Course. I backup verificati del Course copiano le registrazioni usate. Il Course JSON non contiene i byte MP3 e il solo JSON non trasferisce le registrazioni.\n\nEsempio\nBuongiorno, come stai?",
+  "exerciseHelp.field.reading_comprehension.prompt.body":
+      "Fornisce il brano necessario per rispondere alla domanda di comprensione separata.\n\nCosa inserire\nScrivi un brano in testo semplice. Più righe o paragrafi restano parte dello stesso brano.\n\nControlli\nServe un brano che contenga parole. Una o due parole lessicali producono un Warning; ne sono consigliate almeno tre. La domanda deve verificare la comprensione.\n\nEsempio\nMaria prende il treno. Va a Roma.",
+  "exerciseHelp.field.dialogue_response.prompt.body":
+      "Imposta la situazione in cui scegliere la migliore risposta di dialogo.\n\nCosa inserire\nScrivi una situazione nella lingua studiata. Tieni la domanda separata e fornisci esattamente due risposte possibili.\n\nControlli\nContesto, domanda e due risposte devono essere non vuoti. Segna una risposta come corretta.\n\nEsempio\nUn amico ti saluta al mattino.",
+  "exerciseHelp.field.dialogue_response.answers.body":
+      "Fornisce le due possibili risposte alla situazione di dialogo.\n\nCosa inserire\nScrivi esattamente due righe non vuote, entrambe nella lingua studiata. Ogni riga è una risposta completa; le righe vuote vengono ignorate.\n\nControlli\nImposta Correct response number su 1 o 2. Lo studente vede le risposte in ordine casuale, ma la scelta corretta resta la stessa.\n\nEsempio\nBuongiorno!\nBuonanotte!",
+  "exerciseHelp.field.contextual_comprehension.contextMode.body":
+      "Text è una modalità di presentazione: lo studente legge il brano principale inserito in Context text. Esempio: Marta takes the train to work every morning.\n\nCosa inserire\nScegli una modalità: Text, Audio oppure Text and audio. Le modalità Text mostrano Context text e l’eventuale dialogo strutturato; le modalità Audio mostrano Context audio text.\n\nControlli\nFornisci un contesto testuale, audio o di dialogo utilizzabile, oltre a domanda e risposte separate. Un’immagine da sola non basta come contesto. Controlla la modalità scelta in Preview.\n\nEsempio\nScegli Text, poi scrivi: Marta takes the train to work every morning.",
+  "exerciseHelp.field.contextual_comprehension.context.body":
+      "Il brano o lo sfondo che lo studente legge per rispondere alla domanda. Esempio: Marta is describing her daily routine. Marta takes the train to work every morning.\n\nCosa inserire\nScrivi un contesto in testo semplice, con paragrafi se utili. Usa Structured dialogue per i turni con il nome del parlante. La domanda va nel suo campo.\n\nControlli\nServe almeno un contesto testuale, audio o di dialogo utilizzabile. Se scegli Text and audio, controlla che entrambe le forme comunichino il contesto voluto.\n\nEsempio\nMarta is describing her daily routine. Marta takes the train to work every morning. Question: How does Marta travel to work?",
+  "exerciseHelp.field.contextual_comprehension.dialogue.body":
+      "Presenta il contesto come una serie di battute con i nomi dei parlanti.\n\nCosa inserire\nScrivi un turno per riga nel formato Speaker: text. Il primo due punti separa il nome del parlante dal testo. Le righe vuote vengono ignorate. Lascia vuoto per un contesto normale senza dialogo.\n\nControlli\nOgni turno inserito richiede un nome del parlante e un testo non vuoti. Le etichette dei parlanti non creano impostazioni vocali separate.\n\nEsempio\nJane: Are you coming?\nJim: I changed my mind.",
+  "exerciseHelp.field.type_translation.prompt.body":
+      "Fornisce il testo che lo studente traduce.\n\nCosa inserire\nScrivi una frase o un brano nella lingua di partenza. Gli a capo fanno parte dello stesso prompt; le risposte accettate o traduzioni corrette vanno nei loro campi.\n\nControlli\nFornisci un testo di partenza non vuoto e risposte complete equivalenti nella lingua studiata. Il significato richiesto deve essere chiaro.\n\nEsempio\nI would like a coffee.",
+  "exerciseHelp.field.type_translation.accepted.body":
+      "Definisce le traduzioni complete accettate per il testo di partenza.\n\nCosa inserire\nScrivi risposte complete equivalenti su righe separate. Le righe vuote vengono ignorate. Testo facoltativo: {Io} prendo un cappuccino. Alternative: [prendo|vorrei] un cappuccino. Alternative collegate: [*:il|i] [*:tuo|tuoi] [*:denaro|soldi] abbina le alternative per posizione; servono almeno due gruppi collegati con lo stesso numero di alternative. Riordino limitato: (non arrivo <> oggi). Senza parentesi, a casa <> domani riordina tutta l’espressione. La punteggiatura finale resta alla fine della frase; l’inizio delle frasi generate viene messo in maiuscolo. Usa le minuscole, tranne per i nomi propri.\n\nControlli\nServe almeno una risposta accettata. Le espressioni malformate vengono rifiutate. L’espansione è deterministica, elimina i duplicati e ha un limite complessivo di 128 risposte; semplifica le espressioni che lo superano. Dichiara esplicitamente le risposte equivalenti: la sintassi non inventa traduzioni.\n\nEsempio\n{Io} [prendo|vorrei] un cappuccino",
+  "exerciseHelp.field.build_translation.tokens.body":
+      "Fornisce i blocchi usati per costruire le traduzioni corrette configurate.\n\nCosa inserire\nScrivi un blocco letterale per riga. Le righe vuote vengono ignorate. Includi abbastanza occorrenze distinte per costruire ogni traduzione corretta; le parole ripetute richiedono righe ripetute. Quando Inline gaps è attivo, questo campo diventa Extra distractor blocks: le risposte agli spazi derivano dali segni _answer_ in Target sentence with gaps e qui aggiungi solo distrattori facoltativi non usati.\n\nControlli\nOgni traduzione corretta deve poter essere costruita con questi blocchi. Pochi distrattori funzionano meglio: si consiglia che al massimo 2 blocchi restino inutilizzati in tutte le traduzioni corrette, meno nei primi Round di una Lesson; di più sono ammessi. Un blocco usato da una qualsiasi risposta configurata non è un distrattore inutilizzato. La sintassi delle espressioni di risposta non viene espansa.\n\nEsempio\nIo\nprendo\nvorrei\nun\ncaffè",
+  "exerciseHelp.field.build_translation.correctTranslation.body":
+      "Definisce una risposta completa e letterale per Build the translation.\n\nCosa inserire\nOgni voce di risposta separata contiene una frase completa nella lingua studiata. Usa Add correct translation per aggiungerne un’altra e la maniglia di trascinamento per riordinarle.\n\nControlli\nServe almeno una risposta non vuota. Le risposte devono essere uniche dopo la normalizzazione di maiuscole, spazi e punteggiatura finale, e costruibili con occorrenze distinte dei blocchi disponibili. La punteggiatura interna resta. Non si applicano espressioni facoltative, alternative o di riordino, confronti per somiglianza o tolleranza ai refusi.\n\nEsempio\nIo vorrei un caffè.",
+  "exerciseHelp.field.build_translation.gapLayout.body":
+      "Mostra una frase fissa con uno o più spazi che lo studente riempie con parole, una per spazio.\n\nCosa inserire\nScrivi la frase fissa e metti ogni parola o espressione di risposta tra trattini bassi: _answer_. Esempio: I _am_ going _to_ London. Ogni segmento _…_ è insieme lo spazio e la sua risposta corretta. Le parole distrattrici che non riempiono nessuno spazio vanno in Extra distractor words (optional).\n\nControlli\nServe almeno uno spazio _…_ e ognuno deve contenere testo. Un _ isolato non può comparire altrove nella frase.\n\nEsempio\nI _am_ going _to_ London.",
+  "exerciseHelp.field.translation_choice_to_target.question.body":
+      "La parola o frase nella lingua di partenza che lo studente traduce.\n\nCosa inserire\nScrivi una parola, espressione o frase nella lingua di partenza. Non scrivere un’istruzione: QQL aggiunge automaticamente “Choose the correct [Target language] translation”. Gli a capo restano parte dello stesso testo.\n\nControlli\nCampo obbligatorio. Fornisci risposte nella lingua studiata e segna esattamente una corretta.",
+  "exerciseHelp.field.translation_choice_to_target.answers.body":
+      "Le traduzioni nella lingua studiata tra cui lo studente sceglie.\n\nCosa inserire\nScrivi una traduzione completa per riga, da 2 a 5 opzioni. Le righe vuote vengono ignorate. Le opzioni appaiono in ordine casuale.\n\nControlli\nServono da 2 a 5 opzioni non vuote e senza frasi ripetute, ignorando maiuscole, spazi extra e punteggiatura finale; una sola corretta. I distrattori devono essere plausibili ma chiaramente sbagliati.",
+  "exerciseHelp.field.translation_choice_to_target.correct.body":
+      "Indica l’unica opzione corretta.\n\nCosa inserire\nScrivi un numero intero contando le righe di risposta non vuote da 1.\n\nControlli\nDeve essere tra 1 e il numero delle risposte. Ricontrolla dopo aver riordinato o eliminato righe.",
+  "exerciseHelp.field.translation_choice_to_target.image.body":
+      "Aggiunge un’immagine al prompt o al contesto dell’esercizio.\n\nCosa inserire\nScegli un’immagine dalla shared image library, gestita dagli admin, oppure metti esattamente un file PNG, JPG, JPEG o WebP in {folderImageImports} e premi Import custom image. Chiunque possa modificare un Course può importare un’immagine personalizzata; non viene aggiunta alla libreria condivisa. L’importazione copia i byte originali nella memoria locale dell’app, senza ridimensionare, ritagliare o cambiare la trasparenza.\n\nControlli\nDimensione massima: 300 KB (307.200 byte). 256 × 256 pixel e non oltre 15 KB sono consigli, non limiti obbligatori. I prompt basati su immagini richiedono un’immagine; altri tipi attuali possono farne a meno. File di origine mancanti, multipli o troppo grandi vengono rifiutati. In Preview controlla che l’immagine compaia. Course JSON salva il percorso, non i byte dell’immagine: le immagini personalizzate degli esercizi non viaggiano con il solo Course JSON.",
+  "exerciseHelp.field.translation_choice_to_source.question.body":
+      "La parola o frase nella lingua studiata che lo studente traduce.\n\nCosa inserire\nScrivi una parola, espressione o frase nella lingua studiata. Non scrivere un’istruzione: QQL aggiunge automaticamente “Choose the correct [Source language] translation”. Lo studente può ascoltare questo testo con il TTS quando disponibile; l’esercizio resta interamente risolvibile senza audio.\n\nControlli\nCampo obbligatorio. Fornisci risposte nella lingua di partenza e segna esattamente una corretta.",
+  "exerciseHelp.field.translation_choice_to_source.answers.body":
+      "Le traduzioni nella lingua di partenza tra cui lo studente sceglie.\n\nCosa inserire\nScrivi una traduzione completa per riga, da 2 a 5 opzioni. Le righe vuote vengono ignorate. Le opzioni appaiono in ordine casuale.\n\nControlli\nServono da 2 a 5 opzioni non vuote e senza frasi ripetute, ignorando maiuscole, spazi extra e punteggiatura finale; una sola corretta. I distrattori devono essere plausibili ma chiaramente sbagliati.",
+  "exerciseHelp.field.fill_blank.question.body":
+      "Mostra la parola o frase che lo studente completa scrivendo.\n\nCosa inserire\nScrivi una parola o frase incompleta usando uno spazio visibile quando utile. In Accepted answers inserisci il testo che lo studente deve scrivere, non un elenco di opzioni tra cui scegliere.\n\nControlli\nFornisci almeno una risposta accettata. Questo tipo esistente non mostra automaticamente la prima lettera.\n\nEsempio\nVorrei un ___.\nAccepted answer: caffè",
+  "exerciseHelp.field.fill_blank.accepted.body":
+      "Definisce il testo completo che lo studente può scrivere per completare lo spazio.\n\nCosa inserire\nScrivi risposte complete equivalenti su righe separate. Le righe vuote vengono ignorate. Testo facoltativo: {Io} prendo un cappuccino. Alternative: [prendo|vorrei] un cappuccino. Alternative collegate: [*:il|i] [*:tuo|tuoi] [*:denaro|soldi] abbina le alternative per posizione; servono almeno due gruppi collegati con lo stesso numero di alternative. Riordino limitato: (non arrivo <> oggi). Senza parentesi, a casa <> domani riordina tutta l’espressione. La punteggiatura finale resta alla fine della frase; l’inizio delle frasi generate viene messo in maiuscolo. Usa le minuscole, tranne per i nomi propri.\n\nControlli\nServe almeno una risposta accettata. Le espressioni malformate vengono rifiutate. L’espansione è deterministica, elimina i duplicati e ha un limite complessivo di 128 risposte; semplifica le espressioni che lo superano. Dichiara esplicitamente le risposte equivalenti: la sintassi non inventa traduzioni.\n\nEsempio\ncaffè\nun caffè",
+  "exerciseHelp.field.fill_blank.tts.body":
+      "Fornisce il testo facoltativo da pronunciare per la frase completata.\n\nCosa inserire\nScrivi una frase completa, con la risposta mancante, oppure lascia vuoto. È un testo da pronunciare, non il nome di una registrazione.\n\nControlli\nMantieni il testo coerente con la frase incompleta e le risposte accettate. Prova la pronuncia in Preview.\n\nEsempio\nVorrei un caffè.",
+  "exerciseHelp.field.type_missing_word.prompt.body":
+      "Scrivi la parola mancante completa. La prima lettera viene mostrata come aiuto quando Show the first letter è attivo.\n\nCosa inserire\nScrivi una frase con esattamente uno spazio ___ e le parole complete accettate, una per riga. Il primo grafema Unicode viene ricavato automaticamente; lo studente scrive tutta la parola, incluso quel primo grafema.\n\nControlli\nCon l’aiuto attivo, tutte le parole complete accettate devono avere esattamente lo stesso primo grafema. La parola inserita usa la normale normalizzazione Input e la tolleranza ai refusi prevista; la lettera mostrata non viene aggiunta alla risposta.\n\nEsempio\nJe vais à l’___. Answer: école. Lo studente vede é______ e scrive école, non cole.",
+  "exerciseHelp.field.listening_spelling.missingWords.body":
+      "Altri modi di scrivere ciò che lo studente sente; l’Audio text è sempre accettato.\n\nCosa inserire\nLascialo vuoto quando l’Audio text si scrive in un solo modo. Altrimenti una grafia completa per riga: tutto il testo ascoltato, non una sola parola mancante. Alternative dentro una riga: alle [9|nove]. Maiuscole, punteggiatura e spazi vengono comunque ignorati.\n\nControlli\nFacoltativo. Ogni riga deve contenere le stesse parole che lo studente sente; non accettare parole che non si sentono. Le alternative malformate vengono rifiutate.\n\nEsempio\narrivo alle 8",
+  "exerciseHelp.field.missing_word.prompt.body":
+      "Fornisce il testo completo da cui lo studente vede gli spazi dell’esercizio di ascolto.\n\nCosa inserire\nScrivi una trascrizione completa che contenga le parole o espressioni da nascondere. Usa testo normale, non punti o trattini bassi già inseriti. Gli a capo restano parte del brano.\n\nControlli\nPer Listen for missing words, ogni elemento mancante deve comparire nella trascrizione. Audio text deve corrispondere a ciò che lo studente ascolta.\n\nEsempio\nVorrei un caffè, per favore.\nMissing word: caffè",
+  "exerciseHelp.field.missing_word.missingWords.body":
+      "Seleziona le parole o espressioni nascoste nella trascrizione di ascolto.\n\nCosa inserire\nScrivi una parola o espressione letterale per riga. Più righe scelgono più spazi, non risposte complete alternative. Le righe vuote vengono ignorate; non inserire indicatori di spazio nella trascrizione.\n\nControlli\nServe almeno una voce e ciascuna deve comparire in Passage transcript, ignorando maiuscole e minuscole. Le voci duplicate producono un Warning. La sintassi delle espressioni di risposta non viene espansa in questo elenco.\n\nEsempio\ncaffè\nper favore",
+  "exerciseHelp.field.instruction.body":
+      "Una riga facoltativa nella lingua di chi studia: che cosa fare, la situazione o il significato di cui l’esercizio ha bisogno.\n\nCosa inserire\nUna riga nella lingua di chi studia, oppure niente. In un Round prende il posto della riga di istruzioni standard sotto l’intestazione; lasciala vuota per tenere quella riga. Può descrivere la scena (Anna va al mercato la mattina) o dare il significato (Anna legge un libro). La domanda, la frase e le risposte vanno nei loro campi.\n\nControlli\nFacoltativa. Viene salvata senza lingua, quindi non trasforma mai l’esercizio in una traduzione. Deve essere coerente con il resto dell’esercizio e non deve rivelare la risposta.\n\nEsempio\nMetti in ordine il dialogo al bar.",
+  "exerciseHelp.field.matching.pairs.body":
+      "Definisce gli elementi che lo studente abbina tra due colonne.\n\nCosa inserire\nScrivi una coppia per riga nel formato sinistra = destra. Il primo segno uguale separa i due lati. Le righe vuote vengono ignorate.\n\nControlli\nServe almeno una coppia utilizzabile. Entrambi i lati devono contenere testo e ogni riga deve avere il separatore. Correggi le righe incomplete prima di Preview o Save.\n\nEsempio\ncasa = house\npane = bread",
+  "exerciseHelp.field.word_match.pairs.body":
+      "Abbina parole nella lingua di partenza alle traduzioni nella lingua studiata.\n\nCosa inserire\nScrivi almeno due righe non vuote nel formato partenza = arrivo; tre è il numero abituale. Il primo segno uguale separa i due lati. Le righe vuote vengono ignorate.\n\nControlli\nOgni coppia richiede testo su entrambi i lati. Controlla che gli abbinamenti siano unici e chiari; correggi le righe malformate o senza separatore valido prima di Preview o Save.\n\nEsempio\nhouse = casa\nbread = pane\nwater = acqua",
+  "exerciseHelp.field.super_match.pairs.body":
+      "Abbina parole collegate, per esempio sinonimi o contrari.\n\nCosa inserire\nScrivi esattamente tre righe non vuote nel formato sinistra = destra, con entrambi i lati nella lingua studiata. Indica la relazione in Instruction or context, nella lingua di chi studia.\n\nControlli\nTutte e tre le coppie richiedono testo su entrambi i lati e un separatore uguale valido. Verifica che ogni coppia segua la relazione dichiarata e che gli abbinamenti siano chiari.\n\nEsempio\ngrande = piccolo\ncaldo = freddo\naperto = chiuso",
+  "exerciseHelp.field.audio_match.pairs.body":
+      "Abbina tre elementi parlati nella lingua studiata ai rispettivi testi visibili.\n\nCosa inserire\nScrivi esattamente tre righe nel formato testo audio = testo visibile. Il testo visibile può essere nella lingua studiata o essere una traduzione. I tre lati destri diventano le tre scelte visibili; non esiste un campo separato per distrattori.\n\nControlli\nServono entrambi i lati. Evita suoni e scelte visibili duplicati, anche se cambiano solo punteggiatura o maiuscole. Non sono ammessi distrattori. Usa Course Audio Library per associare le registrazioni.\n\nEsempio\ncasa = house\npane = bread\nacqua = water",
+  "exerciseHelp.field.word_order.tokens.body":
+      "Fornisce i blocchi che lo studente mette nell’ordine giusto per formare una frase.\n\nCosa inserire\nScrivi un blocco letterale nella lingua studiata per riga. Le righe vuote vengono ignorate. Ripeti una riga se nella risposta serve un’altra occorrenza di quella parola o blocco. Quando Inline gaps è attivo, questo campo diventa Extra distractor blocks: le risposte agli spazi derivano dali segni _answer_ in Sentence with gaps e qui aggiungi solo distrattori facoltativi non usati.\n\nControlli\nIncludi ogni occorrenza dei blocchi usati in Correct sentence. Pochi distrattori funzionano meglio: sono consigliati zero, uno o due blocchi distrattori inutilizzati, meno nei primi Round di una Lesson; di più sono ammessi. Mantieni scrittura e punteggiatura interna coerenti con l’ordine corretto.\n\nEsempio\nIo\nbevo\nun\ncaffè\ntè",
+  "exerciseHelp.field.word_order.order.body":
+      "Definisce l’ordine richiesto dei blocchi di parole disponibili.\n\nCosa inserire\nScrivi un blocco per riga nell’ordine corretto, non tutta la frase su una sola riga. I blocchi vengono uniti con spazi. Le righe vuote vengono ignorate. Il campo non si usa quando Inline gaps è attivo: le risposte agli spazi si scrivono direttamente tra graffe in Sentence with gaps.\n\nControlli\nOgni riga deve corrispondere a un’occorrenza di un blocco disponibile. Parole ripetute richiedono occorrenze disponibili separate. È un solo ordine letterale; la sintassi compatta delle risposte non viene espansa.\n\nEsempio\nIo\nbevo\nun\ncaffè",
+  "exerciseHelp.field.image_word.order.body":
+      "I blocchi che compongono la parola, in ordine.\n\nCosa inserire\nUna lettera o sillaba per riga, nell’ordine della risposta; lo studente riceve esattamente questi blocchi, mescolati. Ripeti una riga per una lettera che compare due volte. I blocchi si uniscono senza spazi.\n\nControlli\nAlmeno due blocchi. I blocchi che non fanno parte della parola vanno in Extra blocks. Spell the word in the picture ha bisogno anche di un’Exercise image.\n\nEsempio\nca\nsa\nQuesti blocchi formano casa.",
+  "exerciseHelp.field.flashcard.prompt.body":
+      "La parola o espressione che la scheda insegna, nella lingua studiata.\n\nCosa inserire\nUna parola o espressione nella lingua che si impara. La traduzione va nel campo sotto; Read aloud, se attivo, legge questo testo.\n\nControlli\nObbligatoria. La Flashcard è materiale di presentazione e non ha una normale risposta valutata.\n\nEsempio\nbuongiorno",
+  "exerciseHelp.field.flashcard.question.body":
+      "La traduzione o il significato, nella lingua di partenza.\n\nCosa inserire\nUna traduzione o spiegazione in testo semplice nella lingua degli studenti. Più righe restano una sola spiegazione.\n\nControlli\nUna traduzione vuota produce un Warning nell’Audit. Controlla che corrisponda alla parola sopra.\n\nEsempio\ngood morning",
+  "exerciseHelp.field.flashcard.answers.body":
+      "Mostra la parola della Flashcard nel suo contesto.\n\nCosa inserire\nPrima riga non vuota: frase d’uso. Seconda riga non vuota facoltativa: sua traduzione. La pagina dello studente aggiunge automaticamente “Usage:”. Le righe vuote vengono ignorate.\n\nControlli\nSe manca la frase d’uso, l’Audit mostra un Warning. Queste righe sono Presentation Content, non risposte tra cui scegliere.\n\nEsempio\nBuongiorno, Maria!\nGood morning, Maria!",
+  "exerciseHelp.category.vocabulary": "Vocabulary",
+  "exerciseHelp.category.grammarAndSentences": "Grammar and sentences",
+  "exerciseHelp.category.listening": "Listening",
+  "exerciseHelp.category.readingAndDialogue": "Reading and dialogue",
+  "exerciseHelp.category.picturesAndCharacters": "Pictures and characters",
+  "exerciseHelp.category.cardsAndNotes": "Cards and notes",
+  "exerciseHelp.category.comingLater": "Coming later",
+  "exerciseHelp.comingLater": "In una versione futura:",
+  "appInfo.title": "Info",
+  "courseInfo.notRecorded": "Non registrato",
+  "exerciseHelp.preset.choice_target.description":
+      "Lo studente legge una domanda e sceglie la risposta tra opzioni nella lingua studiata: grammatica, cultura o significato, non solo traduzioni.",
+  "exerciseHelp.preset.choice_source.description":
+      "Lo studente legge una domanda nella lingua di partenza e sceglie la risposta: regole, cultura e significati chiesti nella lingua che già conosce.",
+  "exerciseHelp.preset.listening_choose_target.description":
+      "Lo studente ascolta un audio nella lingua studiata e sceglie ciò che ha sentito tra risposte nella lingua studiata; non c’è domanda.",
+  "exerciseHelp.preset.listening_choose_source.description":
+      "Lo studente ascolta un audio nella lingua studiata e ne sceglie il significato tra risposte nella lingua di partenza; non c’è domanda.",
+  "exerciseHelp.preset.listening_answer_target.description":
+      "Lo studente ascolta un audio nella lingua studiata e risponde a una domanda sul brano, scegliendo tra risposte nella lingua studiata.",
+  "exerciseHelp.preset.listening_answer_source.description":
+      "Lo studente ascolta un audio nella lingua studiata e risponde a una domanda nella lingua di partenza, scegliendo tra risposte nella lingua di partenza.",
+  "exerciseHelp.preset.reading_answer_target.description":
+      "Lo studente legge una situazione nella lingua di partenza e righe di dialogo nella lingua studiata, poi risponde a una domanda nella lingua studiata.",
+  "exerciseHelp.preset.type_translation_to_target.description":
+      "Lo studente scrive una traduzione nella lingua studiata.",
+  "exerciseHelp.preset.type_translation_to_source.description":
+      "Lo studente legge un testo nella lingua studiata e scrive la traduzione nella lingua di partenza.",
+  "exerciseHelp.preset.build_translation_to_target.description":
+      "Lo studente costruisce una traduzione con i blocchi di parole forniti.",
+  "exerciseHelp.preset.build_translation_to_source.description":
+      "Lo studente legge un testo nella lingua studiata e costruisce la traduzione nella lingua di partenza con blocchi di parole.",
+  "exerciseHelp.preset.picture_flashcard.description":
+      "Lo studente rivede un’immagine con la sua parola, il significato e un esempio d’uso facoltativo, con lettura ad alta voce facoltativa.",
+  "exerciseHelp.preset.true_false.description":
+      "Lo studente legge (o ascolta) un’affermazione nella lingua studiata e risponde vero o falso.",
+  "exerciseHelp.preset.one_word_fills_all.description":
+      "Lo studente sceglie l’unica parola che riempie tutti gli spazi delle frasi.",
+  "exerciseHelp.preset.complete_text.description":
+      "Lo studente scrive le parole mancanti in un testo con spazi segnati da ___; senza audio, con istruzione e suggerimento facoltativi.",
+  "exerciseHelp.preset.missing_letters.description":
+      "Lo studente scrive le lettere mancanti dentro le parole (be__); testo parlato o immagine facoltativi.",
+  "exerciseHelp.preset.gap_blocks.description":
+      "Lo studente riempie gli spazi di una frase fissa toccando le parole; ogni parola riempie uno spazio.",
+  "exerciseHelp.preset.sentence_order.description":
+      "Lo studente mette in ordine le righe di una storia o di un dialogo.",
+  "exerciseHelp.preset.sort_into_groups.description":
+      "Lo studente smista le parole in gruppi, come maschile e femminile o animali e piante.",
+  "exerciseHelp.preset.fill_the_slots.description":
+      "Lo studente mette la parola giusta in ogni casella, per esempio l’articolo davanti a ogni nome.",
+  "exerciseHelp.preset.listening_image_choice.description":
+      "Lo studente ascolta una parola o una frase e sceglie l’immagine corrispondente.",
+  "exerciseHelp.preset.spell_heard.description":
+      "Lo studente ascolta una parola e la compone con tessere di lettere o sillabe.",
+  "exerciseHelp.preset.picture_choice.description":
+      "Lo studente vede un’immagine e sceglie la parola o la frase che la descrive.",
+  "exerciseHelp.preset.picture_name.description":
+      "Lo studente vede un’immagine e ne scrive il nome; più risposte accettate.",
+  "exerciseHelp.preset.picture_blocks.description":
+      "Lo studente vede un’immagine e ne compone il nome con blocchi di parole; fino a due blocchi in più.",
+  "exerciseHelp.preset.spell_word.description":
+      "Lo studente compone una parola con tessere di lettere o sillabe dopo un indizio nella lingua di partenza.",
+  "exerciseHelp.preset.picture_word_match.description":
+      "Lo studente abbina le immagini alle loro parole.",
+  "exerciseHelp.preset.dialogue_line.description":
+      "Una battuta di una Storia, detta dal narratore o da un personaggio come testo, audio o entrambi; lo studente legge o ascolta e continua.",
+  "exerciseHelp.preset.before_you_start.description":
+      "Una nota mostrata prima che il Round inizi, con un pulsante Open GuideBook facoltativo; mai mostrata in Review.",
+  "exerciseHelp.preset.page.description":
+      "Una pagina simile a un libro di testo: titoli, paragrafi con grassetto e corsivo, citazioni, elenchi, immagini, audio e link video, con allineamento e colori; lo studente la legge e continua.",
+  "exerciseHelp.preset.story_cover.description":
+      "La scheda di apertura di una Storia: la sua immagine e una riga di titolo facoltativa; lo studente continua.",
+  "exerciseHelp.preset.note_card.description":
+      "Un consiglio, una nota grammaticale o culturale che lo studente legge e poi continua.",
+  "exerciseHelp.preset.gap_choice.description":
+      "Lo studente sceglie la parola o espressione mancante.",
+  "exerciseHelp.preset.icon_choice.description":
+      "Lo studente sceglie l’immagine corrispondente al prompt.",
+  "exerciseHelp.preset.script_recognition.description":
+      "Riconosce caratteri stampati o scritti a mano: Image to text o Text to image.",
+  "exerciseHelp.preset.translation_choice_to_target.description":
+      "Select: lo studente vede il testo nella lingua di partenza e sceglie la traduzione nella lingua studiata.",
+  "exerciseHelp.preset.translation_choice_to_source.description":
+      "Select: lo studente vede il testo nella lingua studiata e sceglie la traduzione nella lingua di partenza.",
+  "exerciseHelp.preset.type_missing_word.description":
+      "Lo studente scrive la parola mancante in una frase; la prima lettera può essere mostrata come aiuto.",
+  "exerciseHelp.preset.listening_spelling.description":
+      "Lo studente ascolta e scrive la parola o il brano sentito.",
+  "exerciseHelp.preset.missing_word.description":
+      "Lo studente ascolta e completa uno o più spazi nella trascrizione.",
+  "exerciseHelp.preset.word_match.description":
+      "Lo studente abbina parole alle rispettive traduzioni.",
+  "exerciseHelp.preset.super_match.description":
+      "Lo studente abbina elementi collegati nella lingua studiata.",
+  "exerciseHelp.preset.audio_match.description":
+      "Lo studente abbina un audio all’elemento corrispondente.",
+  "exerciseHelp.preset.word_order.description":
+      "Lo studente rimette i blocchi nella lingua studiata nell’ordine corretto.",
+  "exerciseHelp.preset.image_word.description":
+      "Lo studente compone la parola rappresentata da un’immagine.",
+  "exerciseHelp.preset.flashcard.description":
+      "Presenta materiale di studio senza una normale risposta valutata.",
+};

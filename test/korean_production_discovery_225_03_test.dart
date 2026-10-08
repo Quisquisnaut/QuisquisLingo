@@ -1,0 +1,488 @@
+import 'support/edge_case_fixture.dart';
+import 'support/korean_fixture.dart';
+import 'support/test_directories.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:quisquislingo_app/models/course_models.dart';
+import 'package:quisquislingo_app/screens/duel_screen.dart';
+import 'package:quisquislingo_app/screens/home_screen.dart';
+import 'package:quisquislingo_app/screens/round_screen.dart';
+import 'package:quisquislingo_app/services/app_metadata.dart';
+import 'package:quisquislingo_app/services/course_editor_service.dart';
+import 'package:quisquislingo_app/services/course_service.dart';
+import 'package:quisquislingo_app/services/profile_service.dart';
+import 'package:quisquislingo_app/services/progress_service.dart';
+import 'package:quisquislingo_app/services/settings_service.dart';
+import 'package:quisquislingo_app/widgets/course_entry_animation.dart';
+import 'package:quisquislingo_app/widgets/flag_art.dart';
+import 'package:quisquislingo_app/widgets/unified_learner_top_bar.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  setUp(() async {
+    registerKoreanFixture();
+    registerEdgeCaseFixture();
+    for (final asset in CourseService.courseAssets.values) {
+      rootBundle.evict(asset);
+    }
+    final messenger =
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+    messenger.setMockMethodCallHandler(
+      const MethodChannel('plugins.flutter.io/path_provider'),
+      (call) async {
+        if (call.method == 'getApplicationSupportDirectory') {
+          return testSupportDirectory.path;
+        }
+        throw PlatformException(code: 'test-storage');
+      },
+    );
+    keepCrashLogUnavailable();
+    messenger.setMockMethodCallHandler(
+      const MethodChannel('xyz.luan/audioplayers.global'),
+      (_) async => null,
+    );
+    messenger.setMockMethodCallHandler(
+      const MethodChannel('xyz.luan/audioplayers'),
+      (call) async {
+        if (call.method == 'create') {
+          final arguments = call.arguments as Map<Object?, Object?>;
+          _installEventChannelMock(
+            messenger,
+            'xyz.luan/audioplayers/events/${arguments['playerId']}',
+          );
+        }
+        return null;
+      },
+    );
+    _installEventChannelMock(messenger, 'xyz.luan/audioplayers.global/events');
+    SharedPreferences.setMockInitialValues({
+      'one_time_notice_seen_welcome_${AppMetadata.technicalVersion}': true,
+      'sound_effects_enabled': false,
+      CourseService.bundledCourseIndexStorageKey: const [
+        'IT',
+        'DE',
+        'ES',
+        'EN',
+        'CY',
+        'NL',
+        'PT',
+        'FI',
+      ],
+    });
+    await ProfileService().addProfile('Existing Korean tester');
+    await SettingsService().completeWelcomeWizard();
+    await SettingsService().setAudioExercisesEnabled(false);
+  });
+
+  // Build 255 Revision 6 removed the Spanish-to-English bundle; the Edge
+  // Course and English from Italian, two English Courses, still switch and
+  // restart independently (Build 262 Revision 0 removed Piedmontese).
+  testWidgets('two bundled Courses switch and restart independently', (
+    tester,
+  ) async {
+    final settings = SettingsService();
+    await settings.setLastSelectedCourseCode('EN_EDGE');
+    await _openHome(tester);
+    UnifiedLearnerTopBar current() =>
+        tester.widget<UnifiedLearnerTopBar>(find.byType(UnifiedLearnerTopBar));
+    expect(current().course.title, 'Temporary Demo: Edge Case Course');
+    expect(current().course.sourceLanguage, 'Italian');
+    await _openCoursePicker(tester);
+    await _expectCourseTile(
+      tester,
+      const ValueKey('bundled-course-EN_IT'),
+      'QQL Demo: English from Italian',
+      selected: false,
+    );
+    await tester.tap(find.byKey(const ValueKey('bundled-course-EN_IT')));
+    await _pumpIo(tester, frames: 30);
+    expect(
+      current().course.courseId,
+      'course_65dce83b-fd0a-4b83-a5a1-8f8b97a58d05',
+    );
+    expect(await settings.getLastSelectedCourseCode(), 'EN_IT');
+    await tester.pump(
+      CourseEntryAnimationPolicy.duration + const Duration(milliseconds: 50),
+    );
+    await tester.pump();
+    await _openCoursePicker(tester);
+    await _expectCourseTile(
+      tester,
+      const ValueKey('recent-course-EN_EDGE'),
+      'Temporary Demo: Edge Case Course',
+      selected: false,
+    );
+    await tester.tap(find.byKey(const ValueKey('recent-course-EN_EDGE')));
+    await _pumpIo(tester, frames: 30);
+    expect(current().course.sourceLanguage, 'Italian');
+    expect(await settings.getLastSelectedCourseCode(), 'EN_EDGE');
+    await tester.pumpWidget(const SizedBox.shrink());
+    await _pumpIo(tester, frames: 4);
+    await _openHome(tester);
+    expect(current().course.title, 'Temporary Demo: Edge Case Course');
+    expect(await settings.getLastSelectedCourseCode(), 'EN_EDGE');
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets(
+    'existing v6 installation discovers, opens, and retains one Korean bundled course through the real selector',
+    (tester) async {
+      await SettingsService().setAudioExercisesEnabled(true);
+      await SettingsService().setTtsEnabled(true);
+      final custom = _customCourse();
+      (await tester.runAsync(
+        () => CourseEditorService().saveUserCourse(custom),
+      ));
+      final progress = ProgressService();
+      await progress.completeRound(
+        'preserved-round',
+        courseId: 'preserved-course',
+        courseCode: 'IT',
+      );
+
+      await _openHome(tester);
+      await _openCoursePicker(tester);
+      await _expectEveryBundledTile(tester);
+      final koreanTile = find.byKey(const ValueKey('bundled-course-KO'));
+      expect(koreanTile, findsOneWidget);
+      expect(
+        find.descendant(
+          of: koreanTile,
+          matching: find.text('AI-Slop Demo: Korean for English Speakers'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: koreanTile,
+          matching: find.text('English → Korean · Bundled official'),
+        ),
+        findsOneWidget,
+      );
+      final flag = tester.widget<FlagBadge>(
+        find.descendant(of: koreanTile, matching: find.byType(FlagBadge)),
+      );
+      // The selector keeps the KO registry route, while its course-aware
+      // badge uses the unchanged persisted KR flag (the same Korean artwork).
+      expect(flag.code, 'KR');
+
+      final selectorScrollable = find.descendant(
+        of: find.byType(BottomSheet),
+        matching: find.byType(Scrollable),
+      );
+      await tester.scrollUntilVisible(
+        koreanTile,
+        180,
+        scrollable: selectorScrollable,
+      );
+      await tester.drag(selectorScrollable, const Offset(0, -120));
+      await tester.pump(const Duration(milliseconds: 350));
+      await tester.pump();
+      await tester.tap(koreanTile);
+      await _pumpIo(tester, frames: 30);
+      expect(find.byType(BottomSheet), findsNothing);
+      await tester.pump(
+        CourseEntryAnimationPolicy.duration + const Duration(milliseconds: 50),
+      );
+      final topBar = tester.widget<UnifiedLearnerTopBar>(
+        find.byType(UnifiedLearnerTopBar),
+      );
+      expect(topBar.course.courseId, 'sample_ko_en_ko');
+      expect(topBar.course.title, 'AI-Slop Demo: Korean for English Speakers');
+      expect(topBar.course.sourceLanguage, 'English');
+      expect(topBar.course.targetLanguage, 'Korean');
+      expect(topBar.course.flagCode, 'KR');
+      expect(topBar.course.ttsLanguage, 'ko-KR');
+      expect(topBar.course.lessons, hasLength(9));
+
+      final firstLesson = topBar.course.lessons.first;
+      final firstRound = firstLesson.rounds.first;
+      final roundCard = find.byKey(ValueKey('unified-round-${firstRound.id}'));
+      await tester.ensureVisible(roundCard);
+      await tester.tap(roundCard);
+      await _pumpIo(tester, frames: 20);
+      final roundScreen = tester.widget<RoundScreen>(find.byType(RoundScreen));
+      expect(roundScreen.course.courseId, 'sample_ko_en_ko');
+      expect(roundScreen.lesson.lessonId, firstLesson.lessonId);
+      expect(roundScreen.round.id, firstRound.id);
+      expect(roundScreen.ttsLanguage, 'ko-KR');
+      Navigator.of(tester.element(find.byType(RoundScreen))).pop();
+      await _pumpIo(tester, frames: 12);
+
+      final duelCard = find.byKey(
+        ValueKey('unified-duel-${firstLesson.lessonId}'),
+      );
+      await tester.ensureVisible(duelCard);
+      await tester.tap(duelCard);
+      await _pumpIo(tester, frames: 20);
+      final duelScreen = tester.widget<DuelScreen>(find.byType(DuelScreen));
+      expect(duelScreen.course.courseId, 'sample_ko_en_ko');
+      expect(duelScreen.lesson.lessonId, firstLesson.lessonId);
+      expect(duelScreen.ttsLanguage, 'ko-KR');
+      Navigator.of(tester.element(find.byType(DuelScreen))).pop();
+      await _pumpIo(tester, frames: 12);
+
+      await tester.pumpWidget(const SizedBox.shrink());
+      await _pumpIo(tester, frames: 4);
+      await _openHome(tester);
+      final restartedTopBar = tester.widget<UnifiedLearnerTopBar>(
+        find.byType(UnifiedLearnerTopBar),
+      );
+      expect(restartedTopBar.course.courseId, 'sample_ko_en_ko');
+      await _openCoursePicker(tester);
+      await _expectEveryBundledTile(tester);
+      // Korean is now the current Course: its own row, not repeated below.
+      expect(find.byKey(const ValueKey('bundled-course-KO')), findsNothing);
+      await _expectCourseTile(
+        tester,
+        ValueKey('local-course-${custom.courseId}'),
+        custom.title,
+        selected: false,
+      );
+
+      final preferences = await SharedPreferences.getInstance();
+      final reconciled = preferences.getStringList(
+        CourseService.bundledCourseIndexStorageKey,
+      );
+      expect(reconciled, CourseService.bundledAssets.keys);
+      expect(reconciled!.where((code) => code == 'KO'), hasLength(1));
+      expect(
+        ((await tester.runAsync(
+          () => CourseEditorService().listUserCourses(),
+        ))!).map((course) => course.courseId),
+        contains(custom.courseId),
+      );
+      expect(
+        await progress.getCompletedRounds(courseId: 'preserved-course'),
+        contains('preserved-round'),
+      );
+    },
+  );
+
+  for (final width in [320.0, 800.0]) {
+    for (final selectCustom in [false, true]) {
+      testWidgets(
+        'course selector uses actual titles for every entry at width $width with ${selectCustom ? 'custom' : 'bundled'} selected',
+        (tester) async {
+          final custom = _customCourse();
+          final otherCustom = Course.fromJson({
+            ...custom.toJson(),
+            'courseId': 'other_selector_custom_course',
+            'title': 'A custom course title that is longer than Esperanto',
+          });
+          final editor = CourseEditorService();
+          (await tester.runAsync(() => editor.saveUserCourse(custom)));
+          (await tester.runAsync(() => editor.saveUserCourse(otherCustom)));
+          final settings = SettingsService();
+          for (final ref in [
+            'custom:${otherCustom.courseId}',
+            'EN_EDGE',
+            'EN_IT',
+            selectCustom ? 'custom:${custom.courseId}' : 'IT',
+          ]) {
+            await settings.setLastSelectedCourseCode(ref);
+          }
+
+          await _openHome(tester, width: width);
+          await _openCoursePicker(tester);
+          await _expectCourseTile(
+            tester,
+            const Key('current-course'),
+            selectCustom ? custom.title : 'QQL Demo: Italian Exercise Lab',
+            selected: true,
+          );
+          for (final entry in {
+            'EN_IT': 'QQL Demo: English from Italian',
+            'EN_EDGE': 'Temporary Demo: Edge Case Course',
+            'custom:${otherCustom.courseId}': otherCustom.title,
+          }.entries) {
+            await _expectCourseTile(
+              tester,
+              ValueKey('recent-course-${entry.key}'),
+              entry.value,
+              selected: false,
+            );
+          }
+          // The current Course keeps its own row and, from Build 255
+          // Revision 7, is not repeated under Other courses.
+          if (selectCustom) {
+            await _expectCourseTile(
+              tester,
+              const ValueKey('bundled-course-IT'),
+              'QQL Demo: Italian Exercise Lab',
+              selected: false,
+            );
+          }
+          await _expectCourseTile(
+            tester,
+            const ValueKey('recent-course-EN_IT'),
+            'QQL Demo: English from Italian',
+            selected: false,
+          );
+          await _expectCourseTile(
+            tester,
+            const ValueKey('recent-course-EN_EDGE'),
+            'Temporary Demo: Edge Case Course',
+            selected: false,
+          );
+          await _expectCourseTile(
+            tester,
+            ValueKey('recent-course-custom:${otherCustom.courseId}'),
+            otherCustom.title,
+            selected: false,
+          );
+          if (!selectCustom) {
+            await _expectCourseTile(
+              tester,
+              ValueKey('local-course-${custom.courseId}'),
+              custom.title,
+              selected: false,
+            );
+          }
+          expect(
+            find.byKey(
+              selectCustom
+                  ? ValueKey('local-course-${custom.courseId}')
+                  : const ValueKey('bundled-course-IT'),
+            ),
+            findsNothing,
+          );
+          expect(tester.takeException(), isNull);
+        },
+      );
+    }
+  }
+}
+
+void _installEventChannelMock(
+  TestDefaultBinaryMessenger messenger,
+  String channel,
+) {
+  messenger.setMockMessageHandler(channel, (message) async {
+    return const StandardMethodCodec().encodeSuccessEnvelope(null);
+  });
+}
+
+Future<void> _openHome(WidgetTester tester, {double width = 1200}) async {
+  tester.view.devicePixelRatio = 1;
+  tester.view.physicalSize = Size(width, 1400);
+  addTearDown(tester.view.resetDevicePixelRatio);
+  addTearDown(tester.view.resetPhysicalSize);
+  await tester.pumpWidget(const MaterialApp(home: HomeScreen()));
+  // Build 255 Revision 7: no Beta notice fifteen days before expiry.
+  await _pumpUntilWithIo(tester, find.byType(UnifiedLearnerTopBar));
+}
+
+Future<void> _expectCourseTile(
+  WidgetTester tester,
+  Key key,
+  String title, {
+  required bool selected,
+}) async {
+  final tileFinder = find.byKey(key);
+  await tester.scrollUntilVisible(
+    tileFinder,
+    180,
+    scrollable: find.descendant(
+      of: find.byType(BottomSheet),
+      matching: find.byType(Scrollable),
+    ),
+  );
+  final tile = tester.widget<ListTile>(tileFinder);
+  expect((tile.title! as Text).data, title);
+  expect(
+    find.descendant(of: tileFinder, matching: find.byIcon(Icons.check)),
+    selected ? findsOneWidget : findsNothing,
+  );
+  expect(
+    find.descendant(of: tileFinder, matching: find.byTooltip('Course actions')),
+    findsOneWidget,
+  );
+  expect(
+    find.descendant(of: tileFinder, matching: find.text(title)),
+    findsOneWidget,
+  );
+  expect(
+    tester.getSize(tileFinder).width,
+    lessThanOrEqualTo(tester.view.physicalSize.width),
+  );
+  expect(tester.takeException(), isNull);
+}
+
+Future<void> _openCoursePicker(WidgetTester tester) async {
+  await tester.tap(find.byKey(const Key('unified-topbar-course-selector')));
+  await _pumpUntilWithIo(tester, find.text('Choose course'));
+  // The Napoletano row resolves its World Flag asynchronously. Complete only
+  // the bottom-sheet transition instead of waiting on that animated loader.
+  await tester.pump(const Duration(milliseconds: 350));
+  await tester.pump();
+}
+
+Future<void> _pumpUntilWithIo(WidgetTester tester, Finder finder) async {
+  for (var frame = 0; frame < 160; frame++) {
+    await _pumpIo(tester, frames: 1);
+    if (finder.evaluate().isNotEmpty) return;
+  }
+  final visibleText = tester
+      .widgetList<Text>(find.byType(Text))
+      .map((text) => text.data);
+  fail('Timed out waiting for $finder. Visible text: $visibleText');
+}
+
+Future<void> _expectEveryBundledTile(WidgetTester tester) async {
+  // IT, EN_IT (Build 260 Revision 2), KO and EN_EDGE fixtures; the two
+  // Piedmontese demos left in Build 262 Revision 0.
+  expect(CourseService.bundledAssets, hasLength(4));
+  final settings = SettingsService();
+  final selected = await settings.getLastSelectedCourseCode();
+  final recent = (await settings.getRecentCourseRefs())
+      .where((ref) => ref != selected)
+      .take(3)
+      .toSet();
+  final selectorScroll = find.descendant(
+    of: find.byType(BottomSheet),
+    matching: find.byType(Scrollable),
+  );
+  final current = tester
+      .widget<UnifiedLearnerTopBar>(find.byType(UnifiedLearnerTopBar))
+      .course;
+  for (final code in CourseService.bundledAssets.keys) {
+    final course = await tester.runAsync(
+      () => CourseService().loadCourse(code),
+    );
+    // Build 255 Revision 7: the current Course has only its own row.
+    final tile = find.byKey(
+      course!.courseId == current.courseId
+          ? const Key('current-course')
+          : ValueKey(
+              '${recent.contains(code) ? 'recent' : 'bundled'}-course-$code',
+            ),
+    );
+    await tester.scrollUntilVisible(tile, 180, scrollable: selectorScroll);
+    expect(tile, findsOneWidget);
+  }
+}
+
+Future<void> _pumpIo(WidgetTester tester, {required int frames}) async {
+  for (var frame = 0; frame < frames; frame++) {
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 30)),
+    );
+    await tester.pump(const Duration(milliseconds: 50));
+  }
+}
+
+Course _customCourse() => Course(
+  courseId: 'user_preserved_during_korean_reconciliation',
+  publicationState: PublicationState.published,
+  learningLanguage: 'Esperanto',
+  interfaceLanguage: 'English',
+  sourceLanguage: 'English',
+  targetLanguage: 'Esperanto',
+  title: 'Preserved custom course',
+  ttsLanguage: 'eo',
+  lessons: const [],
+);

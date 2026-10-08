@@ -1,0 +1,929 @@
+import 'support/test_directories.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:quisquislingo_app/models/course_models.dart';
+import 'package:quisquislingo_app/screens/round_screen.dart';
+import 'package:quisquislingo_app/services/profile_service.dart';
+import 'package:quisquislingo_app/services/progress_service.dart';
+import 'package:quisquislingo_app/services/settings_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  const learner = 'Round Characterization Learner';
+  const courseId = 'characterization_course';
+  const courseCode = 'IT';
+
+  setUp(() async {
+    _installDesktopPluginMocks();
+    SharedPreferences.setMockInitialValues({
+      'sound_effects_enabled': false,
+      'weekly_xp_target': 1000,
+    });
+    await ProfileService().addProfile(learner);
+  });
+
+  testWidgets(
+    'imperfect first completion records progress and awards only first-pass-correct XP',
+    (tester) async {
+      final fixture = _roundFixture(exerciseCount: 2);
+      final routeResults = <bool?>[];
+      await _openRound(tester, fixture, routeResults: routeResults);
+
+      await _answerChoice(tester, correctly: false);
+      await _tapAndPump(tester, 'Continue');
+      await _answerChoice(tester, correctly: true);
+      await _tapAndPump(tester, 'Review mistakes');
+      await _tapAndPump(tester, 'Continue');
+      await _answerChoice(tester, correctly: true);
+      await _tapAndPump(tester, 'Finish round');
+
+      final progress = ProgressService();
+      expect(routeResults, [true]);
+      expect(await progress.getCompletedRounds(courseId: courseId), {
+        fixture.round.id,
+      });
+      expect(await progress.getPerfectRounds(courseId: courseId), isEmpty);
+      expect(
+        await progress.getTtsSkippedPerfectRounds(courseId: courseId),
+        isEmpty,
+      );
+      // 5 for the answer and 2 Difficulty bonus for a level-2 Choose
+      // (Build 260 Revision 6).
+      expect(await progress.getXp(courseCode: courseCode), 7);
+      expect(await progress.getWeeklyXp(), 7);
+      final recent = await progress.getRecentRounds(courseId: courseId);
+      expect(recent, hasLength(1));
+      expect(recent.single.roundId, fixture.round.id);
+      expect(recent.single.errors, 1);
+    },
+  );
+
+  testWidgets(
+    'a Round of cards only is completed without XP, bonus or Laurel',
+    (tester) async {
+      // Owner decision, 28 September 2026: nothing to score, nothing awarded.
+      final fixture = _roundFixture(exerciseCount: 0, flashcardCount: 2);
+      final routeResults = <bool?>[];
+      await _openRound(
+        tester,
+        fixture,
+        routeResults: routeResults,
+        waitForChoice: false,
+      );
+      // Two cards, each left with Got it; the advance button may sit below
+      // the lazily built area, so scroll when it is not built yet.
+      var cards = 0;
+      for (var step = 0; step < 40; step++) {
+        await _pumpFrames(tester, count: 4);
+        if (find.text('Round completed').evaluate().isNotEmpty) break;
+        expect(
+          find.byType(RoundScreen),
+          findsOneWidget,
+          reason: 'step $step after $cards cards',
+        );
+        if (find.text('Got it').evaluate().isNotEmpty &&
+            find.text('Card reviewed.').evaluate().isEmpty) {
+          await _tapAndPump(tester, 'Got it');
+          cards++;
+          continue;
+        }
+        final advance = find.text('Finish round').evaluate().isNotEmpty
+            ? find.text('Finish round')
+            : find.text('Continue');
+        if (advance.evaluate().isEmpty) {
+          await tester.drag(
+            find.byType(Scrollable).first,
+            const Offset(0, -500),
+          );
+          continue;
+        }
+        await tester.ensureVisible(advance);
+        await tester.tap(advance);
+        await _pumpFrames(tester);
+      }
+      expect(cards, greaterThanOrEqualTo(2));
+      expect(find.text('Round completed'), findsOneWidget);
+      expect(find.byKey(const Key('round-completed-unscored')), findsOneWidget);
+      expect(find.textContaining('Correct answers'), findsNothing);
+      expect(find.textContaining('Perfect bonus'), findsNothing);
+      expect(find.textContaining('First Laurel'), findsNothing);
+      expect(find.textContaining('Total:'), findsNothing);
+      await _tapAndPump(tester, 'Continue');
+
+      final progress = ProgressService();
+      expect(routeResults, [true]);
+      expect(await progress.getCompletedRounds(courseId: courseId), {
+        fixture.round.id,
+      });
+      expect(await progress.getPerfectRounds(courseId: courseId), isEmpty);
+      expect(await progress.getXp(courseCode: courseCode), 0);
+      expect(await progress.getWeeklyXp(), 0);
+    },
+  );
+
+  testWidgets(
+    'perfect first completion records a laurel and all three XP components',
+    (tester) async {
+      final fixture = _roundFixture(exerciseCount: 2);
+      final routeResults = <bool?>[];
+      await _openRound(tester, fixture, routeResults: routeResults);
+
+      final progress = ProgressService();
+      await _answerChoice(tester, correctly: true);
+      await _tapAndPump(tester, 'Continue');
+      await _answerChoice(tester, correctly: true);
+      final finish = find.text('Finish round');
+      await tester.ensureVisible(finish);
+      await tester.tap(finish);
+      await _pumpFrames(tester);
+
+      expect(find.text('Correct answers: 2/2 — 10 XP'), findsOneWidget);
+      // Build 260 Revision 6: two level-2 Choose exercises.
+      expect(find.text('Difficulty bonus: +4 XP'), findsOneWidget);
+      expect(find.text('Perfect bonus: +5 XP'), findsOneWidget);
+      expect(find.text('First Laurel: +25 XP'), findsOneWidget);
+      expect(find.text('Total: 44 XP'), findsOneWidget);
+      expect(await progress.getXp(courseCode: courseCode), 44);
+      expect(await progress.getWeeklyXp(), 44);
+
+      await _tapAndPump(tester, 'Continue');
+      expect(routeResults, [true]);
+      expect(await progress.getCompletedRounds(courseId: courseId), {
+        fixture.round.id,
+      });
+      expect(await progress.getPerfectRounds(courseId: courseId), {
+        fixture.round.id,
+      });
+      expect(await progress.getStreak(courseCode: courseCode), 1);
+      expect(await progress.getDaysStudied(courseCode: courseCode), 1);
+      final recent = await progress.getRecentRounds(courseId: courseId);
+      expect(recent.single.errors, 0);
+    },
+  );
+
+  testWidgets('perfect repeat awards repeat XP and a first Laurel', (
+    tester,
+  ) async {
+    final fixture = _roundFixture(exerciseCount: 2);
+    final progress = ProgressService();
+    await progress.completeRound(
+      fixture.round.id,
+      courseId: courseId,
+      courseCode: courseCode,
+    );
+    final routeResults = <bool?>[];
+    await _openRound(tester, fixture, routeResults: routeResults);
+
+    await _completePerfectRound(tester, exerciseCount: 2);
+
+    expect(routeResults, [true]);
+    expect(await progress.getPerfectRounds(courseId: courseId), {
+      fixture.round.id,
+    });
+    expect(await progress.getXp(courseCode: courseCode), 34);
+    expect(await progress.getWeeklyXp(), 34);
+    final recent = await progress.getRecentRounds(courseId: courseId);
+    expect(recent.single.errors, 0);
+  });
+
+  testWidgets(
+    'a perfect presented subset records the TTS-skipped mark without a laurel',
+    (tester) async {
+      await SettingsService().setAudioExercisesEnabled(false);
+      final fixture = _roundFixture(exerciseCount: 1, includeTtsExercise: true);
+      final routeResults = <bool?>[];
+      await _openRound(tester, fixture, routeResults: routeResults);
+
+      await _completePerfectRound(tester, exerciseCount: 1);
+
+      final progress = ProgressService();
+      expect(routeResults, [true]);
+      expect(await progress.getPerfectRounds(courseId: courseId), isEmpty);
+      expect(await progress.getTtsSkippedPerfectRounds(courseId: courseId), {
+        fixture.round.id,
+      });
+      // With the Difficulty bonus of a level-2 Choose (Build 260 Revision 6).
+      expect(await progress.getXp(courseCode: courseCode), 12);
+      expect(await progress.getWeeklyXp(), 12);
+    },
+  );
+
+  testWidgets('preview completion writes no learner progress or XP', (
+    tester,
+  ) async {
+    final fixture = _roundFixture(exerciseCount: 1);
+    final routeResults = <bool?>[];
+    await _openRound(
+      tester,
+      fixture,
+      routeResults: routeResults,
+      previewMode: true,
+    );
+
+    await _answerChoice(tester, correctly: true);
+    await _tapAndPump(tester, 'Finish round');
+    expect(find.text('Preview complete'), findsOneWidget);
+    await _tapAndPump(tester, 'Close');
+
+    final progress = ProgressService();
+    expect(routeResults, [null]);
+    expect(await progress.getCompletedRounds(courseId: courseId), isEmpty);
+    expect(await progress.getPerfectRounds(courseId: courseId), isEmpty);
+    expect(await progress.getRecentRounds(courseId: courseId), isEmpty);
+    expect(await progress.getXp(courseCode: courseCode), 0);
+    expect(await progress.getWeeklyXp(), 0);
+    expect(await progress.getStreak(courseCode: courseCode), 0);
+    expect(await progress.getDaysStudied(courseCode: courseCode), 0);
+  });
+
+  testWidgets(
+    'View Only permits exercise completion without persistent learner state',
+    (tester) async {
+      final fixture = _roundFixture(exerciseCount: 1);
+      final routeResults = <bool?>[];
+      await _openRound(
+        tester,
+        fixture,
+        routeResults: routeResults,
+        viewOnlyMode: true,
+        completeLessonOnFinish: true,
+      );
+
+      expect(
+        tester.widget<RoundScreen>(find.byType(RoundScreen)).viewOnlyMode,
+        isTrue,
+      );
+      await _answerChoice(tester, correctly: true);
+      expect(find.text('Finish round'), findsOneWidget);
+      await _tapAndPump(tester, 'Finish round');
+      expect(find.text('View Only result'), findsOneWidget);
+      expect(
+        find.textContaining('No learning progress or rewards were recorded.'),
+        findsOneWidget,
+      );
+      expect(find.textContaining('XP'), findsNothing);
+      await _tapAndPump(tester, 'Close');
+
+      final restartedProgress = ProgressService();
+      expect(routeResults, [null]);
+      expect(
+        await restartedProgress.getCompletedRounds(courseId: courseId),
+        isEmpty,
+      );
+      expect(
+        await restartedProgress.getCompletedLessons(courseId: courseId),
+        isEmpty,
+      );
+      expect(
+        await restartedProgress.getPerfectRounds(courseId: courseId),
+        isEmpty,
+      );
+      expect(
+        await restartedProgress.getTtsSkippedPerfectRounds(courseId: courseId),
+        isEmpty,
+      );
+      expect(
+        await restartedProgress.getRecentRounds(courseId: courseId),
+        isEmpty,
+      );
+      expect(await restartedProgress.getXp(courseCode: courseCode), 0);
+      expect(await restartedProgress.getWeeklyXp(), 0);
+      expect(await restartedProgress.getStreak(courseCode: courseCode), 0);
+      expect(await restartedProgress.getDaysStudied(courseCode: courseCode), 0);
+
+      await _openRound(
+        tester,
+        fixture,
+        routeResults: routeResults,
+        completeLessonOnFinish: true,
+      );
+      await _completePerfectRound(tester, exerciseCount: 1);
+      expect(routeResults, [null, true]);
+      expect(await restartedProgress.getCompletedRounds(courseId: courseId), {
+        fixture.round.id,
+      });
+      expect(await restartedProgress.getCompletedLessons(courseId: courseId), {
+        fixture.lesson.lessonId,
+      });
+      // With the Difficulty bonus of a level-2 Choose (Build 260 Revision 6).
+      expect(await restartedProgress.getXp(courseCode: courseCode), 62);
+    },
+  );
+
+  testWidgets('abandoning a Round before completion awards no XP', (
+    tester,
+  ) async {
+    final fixture = _roundFixture(exerciseCount: 2);
+    final routeResults = <bool?>[];
+    await _openRound(tester, fixture, routeResults: routeResults);
+
+    await _answerChoice(tester, correctly: true);
+    await tester.pageBack();
+    await _pumpFrames(tester);
+
+    final progress = ProgressService();
+    expect(routeResults, [null]);
+    expect(await progress.getCompletedRounds(courseId: courseId), isEmpty);
+    expect(await progress.getPerfectRounds(courseId: courseId), isEmpty);
+    expect(await progress.getXp(courseCode: courseCode), 0);
+    expect(await progress.getWeeklyXp(), 0);
+  });
+
+  testWidgets(
+    'Flashcard, Info, and Guide items are excluded from evaluable X/Y',
+    (tester) async {
+      final fixture = _roundFixture(exerciseCount: 8, flashcardCount: 2);
+      final routeResults = <bool?>[];
+      await _openRound(
+        tester,
+        fixture,
+        routeResults: routeResults,
+        waitForChoice: false,
+      );
+
+      await _completeMixedPerfectRound(
+        tester,
+        itemCount: 12,
+        closeCompletionDialog: false,
+      );
+
+      expect(find.text('Correct answers: 8/8 — 40 XP'), findsOneWidget);
+      // Build 260 Revision 6: eight level-2 Choose exercises; the cards add
+      // nothing.
+      expect(find.text('Difficulty bonus: +16 XP'), findsOneWidget);
+      expect(find.text('Perfect bonus: +5 XP'), findsOneWidget);
+      expect(find.text('First Laurel: +25 XP'), findsOneWidget);
+      expect(find.text('Total: 86 XP'), findsOneWidget);
+      await _tapAndPump(tester, 'Continue');
+
+      final progress = ProgressService();
+      expect(routeResults, [true]);
+      expect(await progress.getPerfectRounds(courseId: courseId), {
+        fixture.round.id,
+      });
+      expect(await progress.getXp(courseCode: courseCode), 86);
+      expect(await progress.getWeeklyXp(), 86);
+
+      await _openRound(
+        tester,
+        fixture,
+        routeResults: routeResults,
+        waitForChoice: false,
+      );
+      await _completeMixedPerfectRound(tester, itemCount: 12);
+
+      // A repeat earns no Difficulty bonus: 8 × 2 + 5.
+      expect(routeResults, [true, true]);
+      expect(await progress.getXp(courseCode: courseCode), 107);
+      expect(await progress.getWeeklyXp(), 107);
+    },
+  );
+
+  testWidgets('an unavailable TTS-only round is excluded before completion', (
+    tester,
+  ) async {
+    await SettingsService().setAudioExercisesEnabled(true);
+    await SettingsService().setTtsEnabled(false);
+    final fixture = _roundFixture(exerciseCount: 0, includeTtsExercise: true);
+    final routeResults = <bool?>[];
+    await _openRound(
+      tester,
+      fixture,
+      routeResults: routeResults,
+      waitForChoice: false,
+    );
+    await _pumpUntilText(
+      tester,
+      'All audio exercises in this round are currently unavailable.',
+    );
+
+    final progress = ProgressService();
+    expect(routeResults, isEmpty);
+    expect(await progress.getCompletedRounds(courseId: courseId), isEmpty);
+    expect(await progress.getPerfectRounds(courseId: courseId), isEmpty);
+    expect(
+      await progress.getTtsSkippedPerfectRounds(courseId: courseId),
+      isEmpty,
+    );
+    expect(await progress.getXp(courseCode: courseCode), 0);
+    expect(await progress.getWeeklyXp(), 0);
+    expect(await progress.getStreak(courseCode: courseCode), 0);
+    expect(await progress.getDaysStudied(courseCode: courseCode), 0);
+    expect(await progress.getRecentRounds(courseId: courseId), isEmpty);
+  });
+
+  testWidgets(
+    'weekly goal state and completion persist before dialog and celebrate once',
+    (tester) async {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt('weekly_xp_target', 10);
+      final fixture = _roundFixture(exerciseCount: 2);
+      final routeResults = <bool?>[];
+      await _openRound(tester, fixture, routeResults: routeResults);
+
+      await _completePerfectRound(tester, exerciseCount: 2);
+      expect(find.text('Weekly goal reached!'), findsOneWidget);
+      // Confetti over the dialog (Build 261 Revision 0); about two seconds.
+      expect(find.byKey(const Key('weekly-goal-confetti')), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('weekly-goal-confetti')),
+          matching: find.byType(IgnorePointer),
+        ),
+        findsOneWidget,
+      );
+
+      final progress = ProgressService();
+      expect(routeResults, isEmpty);
+      expect(await progress.getCompletedRounds(courseId: courseId), {
+        fixture.round.id,
+      });
+      expect(await progress.getPerfectRounds(courseId: courseId), {
+        fixture.round.id,
+      });
+      // With the Difficulty bonus of two level-2 Choose exercises.
+      expect(await progress.getXp(courseCode: courseCode), 44);
+      expect(await progress.getWeeklyXp(), 44);
+      expect(await progress.getStreak(courseCode: courseCode), 1);
+      expect(await progress.getDaysStudied(courseCode: courseCode), 1);
+      expect(await progress.isWeeklyGoalCelebrated(), isTrue);
+      final recent = await progress.getRecentRounds(courseId: courseId);
+      expect(recent.single.roundId, fixture.round.id);
+      expect(recent.single.errors, 0);
+
+      await _tapAndPump(tester, 'Continue');
+      expect(routeResults, [true]);
+
+      await _openRound(tester, fixture, routeResults: routeResults);
+      await _completePerfectRound(tester, exerciseCount: 2);
+
+      expect(find.text('Weekly goal reached!'), findsNothing);
+      expect(find.byKey(const Key('weekly-goal-confetti')), findsNothing);
+      expect(routeResults, [true, true]);
+      // 44 and a repeat without Difficulty bonus: 2 × 2 + 5.
+      expect(await progress.getWeeklyXp(), 53);
+      expect(await progress.isWeeklyGoalCelebrated(), isTrue);
+    },
+  );
+
+  for (final (name, animationsOff, reducedMotion) in [
+    ('Animations off', true, false),
+    ('reduced motion', false, true),
+  ]) {
+    testWidgets('weekly goal shows no confetti with $name', (tester) async {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt('weekly_xp_target', 10);
+      if (animationsOff) await SettingsService().setAnimationsEnabled(false);
+      if (reducedMotion) {
+        tester.platformDispatcher.accessibilityFeaturesTestValue =
+            const FakeAccessibilityFeatures(disableAnimations: true);
+        addTearDown(
+          tester.platformDispatcher.clearAccessibilityFeaturesTestValue,
+        );
+      }
+      final fixture = _roundFixture(exerciseCount: 2);
+      final routeResults = <bool?>[];
+      await _openRound(tester, fixture, routeResults: routeResults);
+
+      await _completePerfectRound(tester, exerciseCount: 2);
+      expect(find.text('Weekly goal reached!'), findsOneWidget);
+      expect(find.byKey(const Key('weekly-goal-confetti')), findsNothing);
+      await _tapAndPump(tester, 'Continue');
+      expect(routeResults, [true]);
+    });
+  }
+
+  testWidgets('imperfect repeat keeps first-pass-correct scoring', (
+    tester,
+  ) async {
+    final fixture = _roundFixture(exerciseCount: 2);
+    final progress = ProgressService();
+    await progress.completeRound(
+      fixture.round.id,
+      courseId: courseId,
+      courseCode: courseCode,
+    );
+    final routeResults = <bool?>[];
+    await _openRound(tester, fixture, routeResults: routeResults);
+
+    await _answerChoice(tester, correctly: false);
+    await _tapAndPump(tester, 'Continue');
+    await _answerChoice(tester, correctly: true);
+    await _tapAndPump(tester, 'Review mistakes');
+    await _tapAndPump(tester, 'Continue');
+    await _answerChoice(tester, correctly: true);
+    await _tapAndPump(tester, 'Finish round');
+
+    expect(routeResults, [true]);
+    expect(await progress.getXp(courseCode: courseCode), 2);
+    expect(await progress.getWeeklyXp(), 2);
+    expect(await progress.getPerfectRounds(courseId: courseId), isEmpty);
+    final recent = await progress.getRecentRounds(courseId: courseId);
+    expect(recent.single.errors, 1);
+  });
+
+  testWidgets('six-exercise repeat displays and persists exactly 10 XP', (
+    tester,
+  ) async {
+    final fixture = _roundFixture(exerciseCount: 6);
+    final progress = ProgressService();
+    await progress.completeRound(
+      fixture.round.id,
+      courseId: courseId,
+      courseCode: courseCode,
+    );
+    final routeResults = <bool?>[];
+    await _openRound(tester, fixture, routeResults: routeResults);
+
+    await _answerChoice(tester, correctly: false);
+    await _tapAndPump(tester, 'Continue');
+    for (var index = 1; index < 6; index++) {
+      await _answerChoice(tester, correctly: true);
+      if (index < 5) await _tapAndPump(tester, 'Continue');
+    }
+
+    expect(
+      find.text('Perfect completion awards up to 15 XP (repeat cap).'),
+      findsNothing,
+    );
+    await _tapAndPump(tester, 'Review mistakes');
+    await _tapAndPump(tester, 'Continue');
+    await _answerChoice(tester, correctly: true);
+    final finish = find.text('Finish round');
+    await tester.ensureVisible(finish);
+    await tester.tap(finish);
+    await _pumpFrames(tester);
+
+    expect(find.text('Correct answers: 5/6 — 10 XP'), findsOneWidget);
+    expect(find.text('Perfect bonus: +5 XP'), findsNothing);
+    expect(find.text('First Laurel: +25 XP'), findsNothing);
+    expect(find.text('Total: 10 XP'), findsOneWidget);
+    expect(await progress.getXp(courseCode: courseCode), 10);
+    expect(await progress.getWeeklyXp(), 10);
+
+    await _tapAndPump(tester, 'Continue');
+
+    expect(routeResults, [true]);
+  });
+
+  testWidgets('course reset restores perfect first-completion XP eligibility', (
+    tester,
+  ) async {
+    final fixture = _roundFixture(exerciseCount: 2);
+    final progress = ProgressService();
+    await progress.completeRound(
+      fixture.round.id,
+      courseId: courseId,
+      courseCode: courseCode,
+    );
+    await progress.markPerfectRound(fixture.round.id, courseId: courseId);
+    await progress.addXp(10, courseCode: courseCode, courseId: courseId);
+    await progress.resetCourse(courseId);
+    expect(await progress.getCompletedRounds(courseId: courseId), isEmpty);
+    expect(await progress.getPerfectRounds(courseId: courseId), isEmpty);
+
+    final routeResults = <bool?>[];
+    await _openRound(tester, fixture, routeResults: routeResults);
+    await _completePerfectRound(tester, exerciseCount: 2);
+
+    expect(routeResults, [true]);
+    expect(await progress.getCompletedRounds(courseId: courseId), {
+      fixture.round.id,
+    });
+    expect(await progress.getPerfectRounds(courseId: courseId), {
+      fixture.round.id,
+    });
+    // The reset restores the first completion, Difficulty bonus included.
+    expect(await progress.getXp(courseCode: courseCode), 54);
+    expect(await progress.getWeeklyXp(), 54);
+  });
+}
+
+void _installDesktopPluginMocks() {
+  final messenger =
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+  messenger.setMockMethodCallHandler(
+    const MethodChannel('plugins.flutter.io/path_provider'),
+    (call) async {
+      if (call.method == 'getApplicationSupportDirectory') {
+        return testSupportDirectory.path;
+      }
+      throw PlatformException(
+        code: 'test_storage_unavailable',
+        message: 'Persistent crash logging is unavailable in widget tests.',
+      );
+    },
+  );
+  keepCrashLogUnavailable();
+  messenger.setMockMethodCallHandler(
+    const MethodChannel('xyz.luan/audioplayers.global'),
+    (_) async => null,
+  );
+  messenger.setMockMethodCallHandler(
+    const MethodChannel('xyz.luan/audioplayers'),
+    (call) async {
+      if (call.method == 'create') {
+        final arguments = call.arguments as Map<Object?, Object?>;
+        final playerId = arguments['playerId'] as String;
+        _installEventChannelMock(
+          messenger,
+          'xyz.luan/audioplayers/events/$playerId',
+        );
+      }
+      return null;
+    },
+  );
+  _installEventChannelMock(messenger, 'xyz.luan/audioplayers.global/events');
+}
+
+void _installEventChannelMock(
+  TestDefaultBinaryMessenger messenger,
+  String channel,
+) {
+  messenger.setMockMessageHandler(channel, (message) async {
+    return const StandardMethodCodec().encodeSuccessEnvelope(null);
+  });
+}
+
+class _RoundFixture {
+  final Course course;
+  final Lesson lesson;
+  final LearningRound round;
+
+  const _RoundFixture({
+    required this.course,
+    required this.lesson,
+    required this.round,
+  });
+}
+
+_RoundFixture _roundFixture({
+  required int exerciseCount,
+  int flashcardCount = 0,
+  bool includeTtsExercise = false,
+}) {
+  final exercises = <Exercise>[
+    for (var index = 0; index < exerciseCount; index++)
+      _choiceExercise('choice_${index + 1}'),
+    for (var index = 0; index < flashcardCount; index++)
+      _flashcardExercise('flashcard_${index + 1}'),
+    if (includeTtsExercise) _listeningExercise('listening_1'),
+  ];
+  final round = LearningRound(
+    id: 'round_characterization',
+    title: 'Characterization Round',
+    content: [
+      for (final exercise in exercises) LearningContent.fromExercise(exercise),
+      if (flashcardCount > 0) ...[
+        LearningContent.textual(
+          id: 'info_1',
+          kind: 'explanation',
+          role: 'round_note',
+          text: 'Informational content.',
+        ),
+        LearningContent.textual(
+          id: 'guide_1',
+          kind: 'example',
+          role: 'round_note',
+          text: 'Guide content.',
+        ),
+      ],
+    ],
+  );
+  final lesson = Lesson(
+    lessonId: 'lesson_characterization',
+    title: 'Characterization Lesson',
+    rounds: [round],
+    guidebook: Guidebook.empty(),
+  );
+  final course = Course(
+    courseId: 'characterization_course',
+    learningLanguage: 'Italian',
+    interfaceLanguage: 'English',
+    sourceLanguage: 'English',
+    targetLanguage: 'Italian',
+    title: 'Characterization Course',
+    ttsLanguage: 'it-IT',
+    lessons: [lesson],
+  );
+  return _RoundFixture(course: course, lesson: lesson, round: round);
+}
+
+Exercise _choiceExercise(String id) => Exercise(
+  id: id,
+  type: 'choice',
+  prompt: 'Choose the characterized answer.',
+  question: '',
+  answers: const ['Correct characterization', 'Wrong characterization'],
+  correct: 0,
+  tts: null,
+  accepted: const [],
+  tokens: const [],
+  orderAnswer: const [],
+  pairs: const [],
+  hint: '',
+  icons: const [],
+);
+
+Exercise _listeningExercise(String id) => Exercise(
+  id: id,
+  type: 'listening_choice',
+  prompt: '',
+  question: 'What do you hear?',
+  answers: const ['casa', 'pane'],
+  correct: 0,
+  tts: 'casa',
+  accepted: const [],
+  tokens: const [],
+  orderAnswer: const [],
+  pairs: const [],
+  hint: '',
+  icons: const [],
+);
+
+Exercise _flashcardExercise(String id) => Exercise(
+  id: id,
+  type: 'flashcard',
+  prompt: 'Informational card',
+  question: '',
+  answers: const ['Word', 'Meaning'],
+  correct: null,
+  tts: null,
+  accepted: const [],
+  tokens: const [],
+  orderAnswer: const [],
+  pairs: const [],
+  hint: '',
+  icons: const [],
+);
+
+Future<void> _openRound(
+  WidgetTester tester,
+  _RoundFixture fixture, {
+  required List<bool?> routeResults,
+  bool previewMode = false,
+  bool viewOnlyMode = false,
+  bool completeLessonOnFinish = false,
+  bool waitForChoice = true,
+}) async {
+  await tester.pumpWidget(
+    MaterialApp(
+      home: Builder(
+        builder: (context) => Scaffold(
+          body: Center(
+            child: FilledButton(
+              onPressed: () async {
+                routeResults.add(
+                  await Navigator.of(context).push<bool>(
+                    MaterialPageRoute(
+                      builder: (_) => RoundScreen(
+                        course: fixture.course,
+                        lesson: fixture.lesson,
+                        round: fixture.round,
+                        ttsLanguage: fixture.course.ttsLanguage,
+                        roundIndex: 0,
+                        previewMode: previewMode,
+                        viewOnlyMode: viewOnlyMode,
+                        completeLessonOnFinish: completeLessonOnFinish,
+                      ),
+                    ),
+                  ),
+                );
+              },
+              child: const Text('Open round'),
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+  await tester.tap(find.text('Open round'));
+  await tester.pump();
+  await tester.runAsync(
+    () => Future<void>.delayed(const Duration(milliseconds: 250)),
+  );
+  if (!waitForChoice) return;
+  await _pumpUntilText(tester, 'Correct characterization');
+  expect(find.byType(RoundScreen), findsOneWidget);
+  expect(find.text('Correct characterization'), findsOneWidget);
+}
+
+Future<void> _pumpUntil(
+  WidgetTester tester,
+  bool Function() condition, {
+  int maxFrames = 100,
+}) async {
+  for (var frame = 0; frame < maxFrames; frame++) {
+    await tester.pump(const Duration(milliseconds: 50));
+    if (condition()) return;
+  }
+  fail('Timed out waiting for the expected completion state.');
+}
+
+Future<void> _answerChoice(
+  WidgetTester tester, {
+  required bool correctly,
+}) async {
+  final label = correctly
+      ? 'Correct characterization'
+      : 'Wrong characterization';
+  final finder = find.text(label);
+  expect(finder, findsOneWidget);
+  await tester.ensureVisible(finder);
+  await tester.tap(finder);
+  await _pumpFrames(tester, count: 3);
+}
+
+Future<void> _completePerfectRound(
+  WidgetTester tester, {
+  required int exerciseCount,
+}) async {
+  for (var index = 0; index < exerciseCount; index++) {
+    await _answerChoice(tester, correctly: true);
+    await _tapAndPump(
+      tester,
+      index + 1 == exerciseCount ? 'Finish round' : 'Continue',
+    );
+  }
+}
+
+Future<void> _completeMixedPerfectRound(
+  WidgetTester tester, {
+  required int itemCount,
+  bool closeCompletionDialog = true,
+}) async {
+  for (var index = 0; index < itemCount; index++) {
+    await _pumpUntil(
+      tester,
+      () =>
+          find.text('Got it').evaluate().isNotEmpty ||
+          find.text('Correct characterization').evaluate().isNotEmpty,
+    );
+    if (find.text('Got it').evaluate().isNotEmpty) {
+      await _tapAndPump(tester, 'Got it');
+      expect(find.text('Card reviewed.'), findsOneWidget);
+    } else {
+      await _answerChoice(tester, correctly: true);
+    }
+    final label = index + 1 == itemCount ? 'Finish round' : 'Continue';
+    // A card with usage can leave the advance button outside the lazy
+    // ListView's built area; scroll to build it before locating the control.
+    await tester.scrollUntilVisible(
+      find.text(label),
+      200,
+      scrollable: find.descendant(
+        of: find.byType(RoundScreen),
+        matching: find.byType(Scrollable),
+      ),
+      maxScrolls: 10,
+    );
+    if (label == 'Finish round' && !closeCompletionDialog) {
+      final finder = find.text(label);
+      await tester.ensureVisible(finder);
+      await tester.tap(finder);
+      await _pumpFrames(tester);
+    } else {
+      await _tapAndPump(tester, label);
+    }
+  }
+}
+
+Future<void> _tapAndPump(WidgetTester tester, String label) async {
+  final finder = find.text(label);
+  expect(finder, findsOneWidget);
+  await tester.ensureVisible(finder);
+  await tester.tap(finder);
+  await _pumpFrames(tester);
+  if (label == 'Finish round' &&
+      find.text('Round completed').evaluate().isNotEmpty) {
+    await tester.tap(find.text('Continue'));
+    await _pumpFrames(tester);
+  }
+}
+
+Future<void> _pumpFrames(WidgetTester tester, {int count = 12}) async {
+  for (var frame = 0; frame < count; frame++) {
+    await tester.pump(const Duration(milliseconds: 50));
+  }
+}
+
+Future<void> _pumpUntilText(
+  WidgetTester tester,
+  String text, {
+  int maxFrames = 100,
+}) async {
+  final finder = find.text(text);
+  for (var frame = 0; frame < maxFrames; frame++) {
+    await tester.pump(const Duration(milliseconds: 50));
+    if (finder.evaluate().isNotEmpty) return;
+  }
+  final visibleText = tester
+      .widgetList<Text>(find.byType(Text))
+      .map((widget) => widget.data)
+      .whereType<String>()
+      .join(' | ');
+  fail('Timed out waiting for "$text". Visible text: $visibleText');
+}

@@ -1,0 +1,203 @@
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:flutter_test/flutter_test.dart';
+import 'package:quisquislingo_app/localization/learner_panel/learner_panel_en.dart';
+import 'package:quisquislingo_app/models/course_models.dart';
+import 'package:quisquislingo_app/services/course_library_operations.dart';
+import 'package:quisquislingo_app/services/course_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+const _maintainerId = '12345678-1234-4234-9234-123456789abc';
+
+void main() {
+  test('legacy v5 course is rejected instead of partially loaded', () {
+    final json =
+        jsonDecode(r'''
+{
+  "formatVersion": 5,
+  "courseId": "imported",
+  "publicationState": "published",
+  "lessonNumberingMode": "lesson",
+  "defaultLessonIconStyle": "monochrome",
+  "learningLanguage": "Italian",
+  "interfaceLanguage": "English",
+  "sourceLanguage": "English",
+  "targetLanguage": "Italian",
+  "title": "Imported",
+  "ttsLanguage": "it-IT",
+  "version": "1",
+  "lessons": [{
+      "lessonId": "lesson_1",
+      "publicationState": "published",
+      "title": "Lesson 1",
+      "guidebook": {"content": [{"id":"g1","publicationState":"published","kind":"vocabulary","required":false,"role":"vocabulary","text":"ecco = there"}]},
+      "rounds": [{
+        "id": "r1",
+        "publicationState": "published",
+        "title": "Round 1",
+        "visualType": "listening",
+        "content": [{
+          "id": "ls1",
+          "publicationState": "published",
+          "kind": "exercise",
+          "required": true,
+          "editorTemplate": "listening_spelling",
+          "exercise": {
+            "prompt": [{"role":"primary","type":"audio","text":"ecco"},{"role":"question","type":"text","text":"Type what you hear."}],
+            "interaction": {"kind":"input"},
+            "evaluation": {"kind":"text_match","acceptedAnswers":["ecco"]}
+          }
+        }]
+      }],
+      "duel": {"id":"lesson_1_duel","title":"Duel"}
+    }]
+}
+''')
+            as Map<String, dynamic>;
+
+    expect(
+      () => Course.fromJson(json),
+      throwsA(
+        isA<FormatException>().having(
+          (error) => error.message,
+          'message',
+          contains('format 12 only'),
+        ),
+      ),
+    );
+  });
+
+  test('selected_items resolves stable correct Item ID to visible answer', () {
+    final exercise = Exercise.v2(
+      id: 'read1',
+      editorTemplate: 'reading_comprehension',
+      promptElements: const [
+        PromptElement(
+          role: 'passage',
+          type: 'text',
+          text: 'Va bene, ci sentiamo dopo.',
+        ),
+        PromptElement(
+          role: 'question',
+          type: 'text',
+          text: 'Which expression means all right?',
+        ),
+      ],
+      interaction: const ExerciseInteraction(
+        kind: 'select',
+        items: [
+          ExerciseItem(
+            id: 'wrong',
+            content: [PromptElement(type: 'text', text: 'ecco')],
+          ),
+          ExerciseItem(
+            id: 'right',
+            content: [PromptElement(type: 'text', text: 'va bene')],
+          ),
+        ],
+      ),
+      evaluation: const ExerciseEvaluation(
+        kind: 'selected_items',
+        correctItemIds: ['right'],
+      ),
+    );
+    expect(exercise.correct, 1);
+    expect(exercise.answers[exercise.correct!], 'va bene');
+  });
+
+  test('learner source has a dedicated listening spelling input renderer', () {
+    final source = File('lib/screens/round_screen.dart').readAsStringSync();
+    expect(
+      source.contains('Widget _listeningSpellingExercise(Exercise ex)'),
+      isTrue,
+    );
+    // Build 256: the renderer is chosen from canonical data (an Input with
+    // automatic audio and no first-grapheme reveal), never from a preset.
+    expect(
+      RegExp(
+        r"if \(f\.automaticAudio != null && f\.revealTarget == null\) \{\r?\n[ \t]+return _listeningSpellingExercise\(ex\);",
+      ).hasMatch(source),
+      isTrue,
+    );
+    // Build 260 Revision 1: the label is learner panel text, English
+    // "Your answer".
+    expect(source.contains("labelText: _t('yourAnswer')"), isTrue);
+    expect(learnerPanelEn['yourAnswer'], 'Your answer');
+  });
+
+  test(
+    'Course Manager retains bundled sources and classifies current origins',
+    () async {
+      // Since Build 249 the listing is CourseLibraryOperations.load, so the rule
+      // is checked by behaviour rather than by searching the screen's source.
+      SharedPreferences.setMockInitialValues({});
+      final ops = CourseLibraryOperations();
+      final italian = await CourseService().loadCourse('IT');
+
+      final bundledCurrent = Course.fromJson({
+        ...italian.toJson(),
+        'title': 'Current bundled copy',
+      });
+      final withBundled = await ops.load(currentCourse: bundledCurrent);
+      expect(withBundled.bundledCourses.first.toJson(), italian.toJson());
+      expect(withBundled.activeCourseId, italian.courseId);
+      expect(
+        withBundled.bundledCourses.where((c) => c.courseId == italian.courseId),
+        hasLength(1),
+      );
+
+      final customCurrent = Course(
+        courseId: 'custom-current',
+        originType: CourseOriginType.custom,
+        originalCourseCreator: const CourseProvenanceIdentity.qqlUser(
+          profileId: _maintainerId,
+          displayName: 'Maintainer',
+        ),
+        maintainer: const CourseMaintainer(_maintainerId),
+        originalCreatedAtUtc: '2026-09-20T09:00:00.000Z',
+        learningLanguage: 'Italian',
+        interfaceLanguage: 'English',
+        sourceLanguage: 'English',
+        targetLanguage: 'Italian',
+        title: 'Custom current',
+        ttsLanguage: 'it-IT',
+        lessons: [
+          Lesson(lessonId: 'lesson', title: 'Lesson', rounds: const []),
+        ],
+      );
+      final withCustom = await ops.load(currentCourse: customCurrent);
+      expect(
+        withCustom.bundledCourses.map((c) => c.courseId),
+        isNot(contains('custom-current')),
+      );
+      expect(
+        withCustom.bundledCourses.where((c) => c.courseId == italian.courseId),
+        hasLength(1),
+      );
+      expect(withCustom.activeCourseId, customCurrent.courseId);
+
+      final externalCurrent = Course.fromJson(
+        jsonDecode(
+              await File(
+                'test/fixtures/publishers/dummy-signed-v1.json',
+              ).readAsString(),
+            )
+            as Map<String, dynamic>,
+      );
+      expect(externalCurrent.originType, CourseOriginType.externalOfficial);
+      final withExternal = await ops.load(currentCourse: externalCurrent);
+      expect(withExternal.activeCourseId, externalCurrent.courseId);
+      expect(
+        withExternal.bundledCourses.map((course) => course.courseId),
+        unorderedEquals(
+          withBundled.bundledCourses.map((course) => course.courseId),
+        ),
+      );
+      expect(
+        withExternal.bundledCourses.map((course) => course.courseId),
+        isNot(contains(externalCurrent.courseId)),
+      );
+    },
+  );
+}

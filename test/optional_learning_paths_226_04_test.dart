@@ -1,0 +1,696 @@
+import 'support/test_directories.dart';
+import 'support/pump_file_io.dart';
+import 'dart:convert';
+
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:quisquislingo_app/models/course_models.dart';
+import 'package:quisquislingo_app/screens/course_editor_screen.dart';
+import 'package:quisquislingo_app/screens/duel_screen.dart';
+import 'package:quisquislingo_app/screens/guidebook_screen.dart';
+import 'package:quisquislingo_app/screens/home_screen.dart';
+import 'package:quisquislingo_app/screens/round_screen.dart';
+import 'package:quisquislingo_app/services/app_metadata.dart';
+import 'package:quisquislingo_app/services/course_audit_service.dart';
+import 'package:quisquislingo_app/services/course_editor_service.dart';
+import 'package:quisquislingo_app/services/duel_eligibility_service.dart';
+import 'package:quisquislingo_app/services/profile_service.dart';
+import 'package:quisquislingo_app/services/progress_service.dart';
+import 'package:quisquislingo_app/services/settings_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+const _optionalPathsProfileId = '00000000-0000-4000-8000-000000000001';
+const _optionalPathsCreatedAtUtc = '2026-01-01T00:00:00.000Z';
+
+void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  setUp(() async {
+    SharedPreferences.setMockInitialValues({
+      'sound_effects_enabled': false,
+      'one_time_notice_seen_welcome_${AppMetadata.technicalVersion}': true,
+    });
+    await ProfileService().createProfile(
+      'Optional paths learner',
+      learnerProfileId: _optionalPathsProfileId,
+      generateScreenNameSuffix: false,
+    );
+    await SettingsService().completeWelcomeWizard();
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+          const MethodChannel('plugins.flutter.io/path_provider'),
+          (call) async {
+            if (call.method == 'getApplicationSupportDirectory') {
+              return testSupportDirectory.path;
+            }
+            throw PlatformException(code: 'test_storage_unavailable');
+          },
+        );
+    keepCrashLogUnavailable();
+  });
+
+  for (final enabled in [false, true]) {
+    for (final count in [24, 25]) {
+      test('Duel enabled=$enabled count=$count uses canonical eligibility', () {
+        final course = _course(createDuels: enabled, count: count);
+        final eligibility = const DuelEligibilityService().evaluate(
+          course.lessons.single,
+        );
+        expect(eligibility.eligibleCount, count);
+        expect(eligibility.isAvailable, count == 25);
+        final unavailable = CourseAuditService()
+            .auditCourse(course)
+            .issues
+            .where((issue) => issue.code == 'DUEL_UNAVAILABLE');
+        expect(unavailable.length, enabled && count < 25 ? 1 : 0);
+      });
+
+      testWidgets(
+        'Home Duel enabled=$enabled count=$count has no placeholder',
+        (tester) async {
+          final course = _course(createDuels: enabled, count: count);
+          await _openHome(tester, course);
+          final visible = enabled && count == 25;
+          expect(
+            find.byKey(const ValueKey('unified-duel-optional-lesson')),
+            visible ? findsOneWidget : findsNothing,
+          );
+          // The path line leaves the Lesson circle itself since Build 261
+          // Revision 8; only the Duel keeps its 24px connector.
+          expect(
+            find.byKey(const Key('learner-tree-connector')),
+            findsNWidgets(visible ? 1 : 0),
+            reason: 'The unavailable Duel must not leave its 24px connector.',
+          );
+          final dynamic painter = tester
+              .widget<CustomPaint>(
+                find.byKey(const Key('learner-round-connector')),
+              )
+              .painter;
+          expect(painter.leadsToDuel, visible);
+          expect(find.textContaining('suitable exercises'), findsNothing);
+          if (visible) {
+            expect(find.text('Final Duel'), findsOneWidget);
+            expect(
+              find.byTooltip('Final challenge for the last Lesson.'),
+              findsOneWidget,
+            );
+            expect(find.textContaining('skip ahead'), findsNothing);
+          }
+          expect(tester.takeException(), isNull);
+        },
+      );
+    }
+  }
+
+  testWidgets('Audio On keeps an audio-dependent Duel available on Home', (
+    tester,
+  ) async {
+    await SettingsService().setAudioExercisesEnabled(true);
+    await SettingsService().setTtsEnabled(true);
+    final course = _course(count: 24, audioCount: 1);
+
+    await _openHome(tester, course);
+
+    final duel = find.byKey(const ValueKey('unified-duel-optional-lesson'));
+    expect(duel, findsOneWidget);
+    expect(
+      tester
+          .widget<InkWell>(
+            find.descendant(of: duel, matching: find.byType(InkWell)),
+          )
+          .onTap,
+      isNotNull,
+    );
+    expect(find.text('Final challenge'), findsOneWidget);
+  });
+
+  testWidgets(
+    'Audio Off keeps Duel available and openable with 25 non-audio exercises',
+    (tester) async {
+      final course = _course(count: 25, audioCount: 1);
+
+      await _openHome(tester, course);
+
+      final duel = find.byKey(const ValueKey('unified-duel-optional-lesson'));
+      final tapTarget = find.descendant(
+        of: duel,
+        matching: find.byType(InkWell),
+      );
+      expect(duel, findsOneWidget);
+      expect(tester.widget<InkWell>(tapTarget).onTap, isNotNull);
+
+      await tester.tap(tapTarget);
+      await _pumpFrames(tester);
+
+      expect(find.byType(DuelScreen), findsOneWidget);
+      expect(find.text('Question 1/25 · 4 lives'), findsOneWidget);
+    },
+  );
+
+  testWidgets('Audio Off shows a disabled Duel when only 24 exercises remain', (
+    tester,
+  ) async {
+    final course = _course(count: 24, audioCount: 1);
+
+    await _openHome(tester, course);
+
+    final duel = find.byKey(const ValueKey('unified-duel-optional-lesson'));
+    final tapTarget = find.descendant(of: duel, matching: find.byType(InkWell));
+    expect(duel, findsOneWidget);
+    expect(tester.widget<InkWell>(tapTarget).onTap, isNull);
+    expect(
+      find.text('Unavailable for this Lesson: not enough suitable exercises.'),
+      findsOneWidget,
+    );
+    expect(find.byType(DuelScreen), findsNothing);
+  });
+
+  test(
+    'Use GuideBook suppresses only the empty rule and restores canonical red',
+    () {
+      // Keep this branch free of the independent ROUND_CONTENT_LONG Warning.
+      final enabled = _course(emptyGuidebook: true, count: 3);
+      final disabled = _preferences(enabled, useGuidebook: false);
+      final audit = CourseAuditService();
+      final before = audit.auditCourse(enabled).issues;
+      final after = audit.auditCourse(disabled).issues;
+      expect(
+        before
+            .where((issue) => issue.severity != AuditSeverity.info)
+            .map((issue) => issue.code),
+        ['LESSON_GUIDEBOOK_EMPTY'],
+      );
+      expect(
+        before.any((issue) => issue.code == 'LESSON_GUIDEBOOK_EMPTY'),
+        isTrue,
+      );
+      expect(
+        after.map((issue) => '${issue.code}|${issue.location}'),
+        before
+            .where((issue) => issue.code != 'LESSON_GUIDEBOOK_EMPTY')
+            .map((issue) => '${issue.code}|${issue.location}'),
+      );
+      final enabledStatus = AuthoringHierarchyStatus.fromCourse(enabled);
+      final disabledStatus = AuthoringHierarchyStatus.fromCourse(disabled);
+      expect(
+        enabledStatus.lessonHasAuditConcern(enabled.lessons.single),
+        isTrue,
+      );
+      expect(enabledStatus.hasLessonsAuditConcern, isTrue);
+      expect(
+        disabledStatus.lessonHasAuditConcern(disabled.lessons.single),
+        isFalse,
+      );
+      expect(disabledStatus.hasLessonsAuditConcern, isFalse);
+      final restored = _preferences(disabled, useGuidebook: true);
+      expect(
+        AuthoringHierarchyStatus.fromCourse(restored).hasLessonsAuditConcern,
+        isTrue,
+      );
+    },
+  );
+
+  test(
+    'disabled GuideBook preserves malformed source findings and Draft state',
+    () {
+      final enabled = _course(malformedGuidebook: true, draftGuidebook: true);
+      final disabled = _preferences(enabled, useGuidebook: false);
+      final findings = CourseAuditService().auditCourse(disabled).issues;
+      expect(
+        findings.any((issue) => issue.code == 'SOURCE_REF_MISSING'),
+        isTrue,
+      );
+      final status = AuthoringHierarchyStatus.fromCourse(disabled);
+      expect(
+        status.lessonGuidebookHasAuditConcern(disabled.lessons.single),
+        isTrue,
+      );
+      // The stored Draft state is preserved, but a turned-off GuideBook shows
+      // no Draft badge and does not count in the Lesson or Course badge.
+      expect(
+        disabled.lessons.single.guidebook.publicationState.isPublished,
+        isFalse,
+      );
+      expect(status.lessonGuidebookHasDraft(disabled.lessons.single), isFalse);
+      expect(status.hasLessonsAuditConcern, isTrue);
+      expect(disabled.lessons.single.toJson(), enabled.lessons.single.toJson());
+    },
+  );
+
+  testWidgets('Lessons toggle immediately recomputes canonical red and green', (
+    tester,
+  ) async {
+    // Tall enough to keep the Lessons card built while Lesson Options, with
+    // its Picture answers (Build 263 Revision 2), scrolls to the toggle.
+    await tester.binding.setSurfaceSize(const Size(700, 1800));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    final course = _course(emptyGuidebook: true, count: 3);
+    await tester.pumpWidget(
+      MaterialApp(home: CourseEditorScreen(course: course, userCourse: true)),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('course-editor-lock')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Edit'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('course-lesson-options')));
+    await tester.pumpAndSettle();
+    final indicator = find.byWidgetPredicate(
+      (widget) =>
+          widget is AuthoringStatusCard &&
+          widget.indicatorKey == const Key('course-lessons-status-indicator'),
+      skipOffstage: false,
+    );
+    expect(
+      tester.widget<AuthoringStatusCard>(indicator).hasAuditConcern,
+      isTrue,
+    );
+    final toggle = find.byKey(const Key('course-use-guidebook'));
+    await tester.ensureVisible(toggle);
+    await tester.tap(toggle);
+    await tester.pumpAndSettle();
+    expect(
+      tester.widget<AuthoringStatusCard>(indicator).hasAuditConcern,
+      isFalse,
+    );
+    await tester.tap(toggle);
+    await tester.pumpAndSettle();
+    expect(
+      tester.widget<AuthoringStatusCard>(indicator).hasAuditConcern,
+      isTrue,
+    );
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets(
+    'GuideBook toggle refreshes the still-mounted Course Lessons link in both directions',
+    (tester) async {
+      final course = _course(emptyGuidebook: true, count: 3);
+      await tester.pumpWidget(
+        MaterialApp(home: CourseEditorScreen(course: course, userCourse: true)),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('course-editor-lock')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Edit'));
+      await tester.pumpAndSettle();
+      final ancestor = find.byWidgetPredicate(
+        (widget) =>
+            widget is AuthoringStatusCard &&
+            widget.indicatorKey == const Key('course-lessons-status-indicator'),
+        skipOffstage: false,
+      );
+      expect(
+        tester.widget<AuthoringStatusCard>(ancestor).hasAuditConcern,
+        isTrue,
+      );
+      await tester.tap(find.byKey(const Key('course-lesson-options')));
+      await tester.pumpAndSettle();
+      final toggle = find.byKey(const Key('course-use-guidebook'));
+      await tester.ensureVisible(toggle);
+      await tester.tap(toggle);
+      await tester.pumpAndSettle();
+      await tester.drag(find.byType(ListView).first, const Offset(0, 1200));
+      await tester.pumpAndSettle();
+      expect(
+        tester.widget<AuthoringStatusCard>(ancestor).hasAuditConcern,
+        isFalse,
+      );
+      await tester.ensureVisible(toggle);
+      await tester.tap(toggle);
+      await tester.pumpAndSettle();
+      await tester.drag(find.byType(ListView).first, const Offset(0, 1200));
+      await tester.pumpAndSettle();
+      expect(
+        tester.widget<AuthoringStatusCard>(ancestor).hasAuditConcern,
+        isTrue,
+      );
+      expect(
+        (await tester.runAsync(() => CourseEditorService().listUserCourses()))!,
+        isEmpty,
+      );
+    },
+  );
+
+  for (final brightness in Brightness.values) {
+    testWidgets(
+      'disabled GuideBook keeps identity and icon geometry in $brightness',
+      (tester) async {
+        final course = _course(createDuels: false);
+        final title = find.byKey(
+          const ValueKey('unified-guidebook-lesson-title-optional-lesson'),
+        );
+        final action = find.byKey(
+          const ValueKey('unified-guidebook-action-optional-lesson'),
+        );
+        await _openHome(tester, course, brightness: brightness);
+        final titleRect = tester.getRect(title);
+        final actionRect = tester.getRect(action);
+        final iconColor = _renderedBookColor(tester, action);
+        expect(find.byTooltip('GuideBook'), findsOneWidget);
+        await tester.pumpWidget(const SizedBox.shrink());
+        await _openHome(
+          tester,
+          _preferences(course, useGuidebook: false),
+          brightness: brightness,
+        );
+        expect(tester.getRect(title), titleRect);
+        expect(tester.getRect(action), actionRect);
+        expect(_renderedBookColor(tester, action), iconColor);
+        expect(find.byTooltip('GuideBook'), findsNothing);
+        expect(
+          find.descendant(of: action, matching: find.byType(Icon)),
+          findsOneWidget,
+        );
+        _expectPassiveBook(tester, action);
+        final node = find.ancestor(of: title, matching: find.byType(InkWell));
+        expect(tester.widget<InkWell>(node).onTap, isNull);
+        expect(tester.widget<InkWell>(node).excludeFromSemantics, isTrue);
+        await tester.tap(title);
+        await _pumpFrames(tester);
+        expect(find.byType(GuidebookScreen), findsNothing);
+        expect(tester.takeException(), isNull);
+      },
+    );
+    for (final state in ['Draft', 'locked']) {
+      testWidgets(
+        'disabled GuideBook preserves $state icon tint in $brightness',
+        (tester) async {
+          final semantics = tester.ensureSemantics();
+          try {
+            final source = _course(
+              createDuels: false,
+              count: 1,
+              draftGuidebook: state == 'Draft',
+            );
+            final course = state == 'locked'
+                ? Course.fromJson({
+                    ...source.toJson(),
+                    'lessons': [
+                      Lesson(
+                        lessonId: 'preceding-uncompleted-lesson',
+                        title: 'Preceding Lesson',
+                        rounds: const [],
+                      ).toJson(),
+                      source.lessons.single.toJson(),
+                    ],
+                  })
+                : source;
+            final action = find.byKey(
+              const ValueKey('unified-guidebook-action-optional-lesson'),
+            );
+            await _openHome(tester, course, brightness: brightness);
+            await tester.ensureVisible(action);
+            await _pumpFrames(tester);
+            expect(tester.widget<IconButton>(action).onPressed, isNull);
+            final rect = tester.getRect(action);
+            final color = _renderedBookColor(tester, action);
+            expect(color, isNotNull);
+            await tester.pumpWidget(const SizedBox.shrink());
+            await _openHome(
+              tester,
+              _preferences(course, useGuidebook: false),
+              brightness: brightness,
+            );
+            await tester.ensureVisible(action);
+            await _pumpFrames(tester);
+            expect(tester.getRect(action), rect);
+            expect(_renderedBookColor(tester, action), color);
+            expect(find.byTooltip('GuideBook'), findsNothing);
+            expect(find.bySemanticsLabel('GuideBook'), findsNothing);
+            _expectPassiveBook(tester, action);
+            await tester.tap(action, warnIfMissed: false);
+            await _pumpFrames(tester);
+            expect(find.byType(GuidebookScreen), findsNothing);
+            expect(tester.takeException(), isNull);
+          } finally {
+            semantics.dispose();
+          }
+        },
+      );
+    }
+  }
+
+  for (final preview in [false, true]) {
+    for (final enabled in [false, true]) {
+      testWidgets('Round intro GuideBook enabled=$enabled Preview=$preview', (
+        tester,
+      ) async {
+        final course = _course(useGuidebook: enabled, count: 1);
+        await tester.pumpWidget(
+          MaterialApp(
+            home: RoundScreen(
+              course: course,
+              lesson: course.lessons.single,
+              round: course.lessons.single.rounds.single,
+              ttsLanguage: course.ttsLanguage,
+              roundIndex: 0,
+              previewMode: preview,
+            ),
+          ),
+        );
+        await _pumpFrames(tester);
+        expect(find.text('Optional paths introduction.'), findsOneWidget);
+        expect(
+          find.text('Open Guidebook'),
+          enabled ? findsOneWidget : findsNothing,
+        );
+        expect(find.text('Continue to Round'), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      });
+    }
+  }
+
+  testWidgets(
+    'disabling and reenabling optional paths preserves earned progress',
+    (tester) async {
+      final course = _course();
+      final progress = ProgressService();
+      await progress.completeRound(
+        'optional-round',
+        courseId: course.courseId,
+        courseCode: 'IT',
+      );
+      await progress.winDuel(
+        'optional-lesson',
+        courseId: course.courseId,
+        courseCode: 'IT',
+      );
+      final prefs = await SharedPreferences.getInstance();
+      final snapshot = {
+        for (final key in prefs.getKeys()) key: jsonEncode(prefs.get(key)),
+      };
+      await _openHome(
+        tester,
+        _preferences(course, createDuels: false, useGuidebook: false),
+      );
+      await tester.pumpWidget(const SizedBox.shrink());
+      await _openHome(tester, course);
+      expect(await progress.getCompletedRounds(courseId: course.courseId), {
+        'optional-round',
+      });
+      expect(await progress.getWonDuels(courseId: course.courseId), {
+        'optional-lesson',
+      });
+      for (final entry in snapshot.entries.where(
+        (entry) =>
+            entry.key.contains('xp') ||
+            entry.key.contains('completed') ||
+            entry.key.contains('won_duels'),
+      )) {
+        expect(
+          jsonEncode(prefs.get(entry.key)),
+          entry.value,
+          reason: entry.key,
+        );
+      }
+      expect(tester.takeException(), isNull);
+    },
+  );
+}
+
+Color? _renderedBookColor(WidgetTester tester, Finder action) {
+  final icon = find.descendant(of: action, matching: find.byType(Icon));
+  final text = find.descendant(of: icon, matching: find.byType(RichText));
+  return tester.widget<RichText>(text).text.style?.color;
+}
+
+void _expectPassiveBook(WidgetTester tester, Finder action) {
+  expect(
+    tester
+        .widget<IgnorePointer>(
+          find.ancestor(of: action, matching: find.byType(IgnorePointer)).first,
+        )
+        .ignoring,
+    isTrue,
+  );
+  expect(
+    tester
+        .widget<ExcludeFocus>(
+          find.ancestor(of: action, matching: find.byType(ExcludeFocus)).first,
+        )
+        .excluding,
+    isTrue,
+  );
+  expect(
+    tester
+        .widget<ExcludeSemantics>(
+          find
+              .ancestor(of: action, matching: find.byType(ExcludeSemantics))
+              .first,
+        )
+        .excluding,
+    isTrue,
+  );
+}
+
+Course _preferences(Course course, {bool? createDuels, bool? useGuidebook}) =>
+    Course.fromJson({
+      ...course.toJson(),
+      if (createDuels != null) 'createDuels': createDuels,
+      if (useGuidebook != null) 'useGuidebook': useGuidebook,
+    });
+
+Future<void> _openHome(
+  WidgetTester tester,
+  Course course, {
+  Brightness brightness = Brightness.light,
+}) async {
+  await tester.binding.setSurfaceSize(const Size(430, 1000));
+  addTearDown(() => tester.binding.setSurfaceSize(null));
+  await tester.runAsync(() => CourseEditorService().saveUserCourse(course));
+  await SettingsService().setLastSelectedCourseCode(
+    'custom:${course.courseId}',
+  );
+  await tester.pumpWidget(
+    MaterialApp(
+      theme: ThemeData(brightness: brightness),
+      home: const HomeScreen(),
+    ),
+  );
+  await tester.pumpUntilFileIoState(
+    () => find
+        .byKey(const Key('unified-topbar-course-selector'))
+        .evaluate()
+        .isNotEmpty,
+  );
+  if (find.text('Beta expiry').evaluate().isNotEmpty) {
+    await tester.tap(find.widgetWithText(FilledButton, 'OK'));
+    await _pumpFrames(tester);
+  }
+}
+
+Future<void> _pumpFrames(WidgetTester tester) async {
+  for (var frame = 0; frame < 20; frame++) {
+    await tester.pump(const Duration(milliseconds: 50));
+  }
+}
+
+Course _course({
+  bool createDuels = true,
+  bool useGuidebook = true,
+  int count = 25,
+  int audioCount = 0,
+  bool emptyGuidebook = false,
+  bool malformedGuidebook = false,
+  bool draftGuidebook = false,
+}) => Course(
+  courseId: 'optional-paths',
+  originalCourseCreator: const CourseProvenanceIdentity.qqlUser(
+    profileId: _optionalPathsProfileId,
+    displayName: 'Optional paths learner',
+  ),
+  originalCreatedAtUtc: _optionalPathsCreatedAtUtc,
+  maintainer: const CourseMaintainer(_optionalPathsProfileId),
+  lastVersionEditorProfileId: _optionalPathsProfileId,
+  lastVersionEditorDisplayName: 'Optional paths learner',
+  modifiedAtUtc: _optionalPathsCreatedAtUtc,
+  title: 'Optional learning paths',
+  learningLanguage: 'Italian',
+  interfaceLanguage: 'English',
+  sourceLanguage: 'English',
+  targetLanguage: 'Italian',
+  ttsLanguage: 'it-IT',
+  createDuels: createDuels,
+  useGuidebook: useGuidebook,
+  lessons: [
+    Lesson(
+      lessonId: 'optional-lesson',
+      title: 'Optional paths Lesson',
+      guidebook: Guidebook(
+        publicationState: draftGuidebook
+            ? PublicationState.draft
+            : PublicationState.published,
+        content: emptyGuidebook
+            ? []
+            : [
+                LearningContent(
+                  id: 'optional-guide-content',
+                  kind: 'explanation',
+                  role: 'overview',
+                  text: 'Learner-facing explanation.',
+                  sourceRefs: malformedGuidebook
+                      ? const ['missing-source']
+                      : const [],
+                ),
+              ],
+      ),
+      rounds: [
+        LearningRound(
+          id: 'optional-round',
+          title: 'Optional paths Round',
+          content: [
+            // Build 257: the introduction is a Before you start card.
+            LearningContent.fromExercise(
+              Exercise.beforeYouStart(
+                id: 'optional-intro',
+                text: 'Optional paths introduction.',
+                guidebookButton: true,
+              ),
+            ),
+            for (var index = 0; index < count; index++)
+              LearningContent.fromExercise(
+                Exercise(
+                  id: 'optional-exercise-$index',
+                  type: 'choice',
+                  editorTemplate: 'choice',
+                  prompt: 'Choose the matching answer.',
+                  question: 'Question $index',
+                  answers: ['Answer $index', 'Another answer $index'],
+                  correct: 0,
+                  tts: null,
+                  accepted: const [],
+                  tokens: const [],
+                  orderAnswer: const [],
+                  pairs: const [],
+                  hint: '',
+                  icons: const [],
+                ),
+              ),
+            for (var index = 0; index < audioCount; index++)
+              LearningContent.fromExercise(
+                Exercise(
+                  id: 'optional-audio-exercise-$index',
+                  type: 'listening_choice',
+                  editorTemplate: 'listening_choice',
+                  prompt: 'Choose what you hear.',
+                  question: 'Audio question $index',
+                  answers: ['Audio answer $index', 'Wrong audio answer $index'],
+                  correct: 0,
+                  tts: 'Audio prompt $index',
+                  accepted: const [],
+                  tokens: const [],
+                  orderAnswer: const [],
+                  pairs: const [],
+                  hint: '',
+                  icons: const [],
+                ),
+              ),
+          ],
+        ),
+      ],
+    ),
+  ],
+);

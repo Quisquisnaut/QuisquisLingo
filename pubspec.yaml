@@ -1,0 +1,58 @@
+name: quisquislingo_app
+description: Offline-first language learning prototype with lessons, rounds, exercises, streaks, duels, profiles, and optional cross-platform TTS.
+publish_to: "none"
+version: 2.0.65+265011
+environment:
+  sdk: ">=3.9.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  flutter_tts: ^4.2.5
+  quisquislingo_flutter_tts_windows:
+    path: packages/quisquislingo_flutter_tts_windows
+  audioplayers: ^6.8.1
+  shared_preferences: ^2.5.5
+  window_manager: ^0.5.2
+  path_provider: ^2.1.5
+  package_info_plus: ^8.3.0
+  archive: ^4.0.9
+  crypto: ^3.0.6
+  characters: ^1.4.0
+  share_plus: ^12.0.2
+  unorm_dart: ^0.3.2
+  url_launcher: ^6.3.2
+  flutter_svg: ^2.3.0
+  file_selector: ^1.1.0
+  cryptography: ^2.9.0
+  pdf: ^3.13.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/courses/
+    - assets/branding/
+    - assets/lesson_icons/
+    - assets/audio/
+    - assets/audio/cy_sample/
+    - assets/audio/de_sample/
+    - assets/audio/en_sample/
+    - assets/audio/es_sample/
+    - assets/audio/fi_sample/
+    - assets/audio/it_sample/
+    - assets/audio/nl_sample/
+    - assets/audio/pt_sample/
+    - assets/exercise_images/
+    - assets/avatars/
+    - assets/mascots/
+    - assets/primitives_screenshots/
+    - assets/rounds_screenshots/
+    - assets/world_flags/
+    - assets/world_flags/flags/

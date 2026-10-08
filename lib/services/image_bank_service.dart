@@ -1,0 +1,987 @@
+import 'dart:convert';
+import 'dart:io';
+import 'dart:typed_data';
+
+import 'package:archive/archive.dart';
+import 'package:crypto/crypto.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../models/exercise_image_metadata.dart';
+import '../models/image_categories.dart';
+import 'exercise_image_metadata_service.dart';
+import 'file_dialog_service.dart';
+import 'image_library_rules.dart';
+import 'import/bounded_zip_reader.dart';
+import 'import/image_validator.dart';
+import 'import/json_limits.dart';
+import 'import/import_stager.dart';
+import 'import/media_file_kind.dart';
+import 'import/selected_external_file.dart';
+import 'storage/qql_storage.dart';
+
+class ImportedImageBank {
+  final String id;
+  final String path;
+  final String name;
+  const ImportedImageBank({
+    required this.id,
+    required this.path,
+    required this.name,
+  });
+
+  Map<String, dynamic> toJson() => {'id': id, 'path': path, 'name': name};
+  factory ImportedImageBank.fromJson(Map<String, dynamic> json) =>
+      ImportedImageBank(
+        id: json['id'] as String,
+        path: json['path'] as String,
+        name: json['name'] as String,
+      );
+}
+
+class ImageBankImportResult {
+  final String bankName;
+  final int imported;
+  final List<String> warnings;
+  final List<ExerciseImageMetadata> records;
+
+  /// Pictures already in the library, byte for byte (skipped silently).
+  final int duplicatesSkipped;
+
+  /// Same ID, different picture: how each was resolved.
+  final int conflictsSkipped;
+  final int replaced;
+  final int keptBoth;
+  const ImageBankImportResult({
+    required this.bankName,
+    required this.imported,
+    required this.warnings,
+    required this.records,
+    this.duplicatesSkipped = 0,
+    this.conflictsSkipped = 0,
+    this.replaced = 0,
+    this.keptBoth = 0,
+  });
+}
+
+/// One image of an Image Bank, checked and held in memory.
+class BankImage {
+  const BankImage({
+    required this.id,
+    required this.label,
+    required this.category,
+    required this.tags,
+    required this.filename,
+    required this.bytes,
+    this.attribution,
+    this.detectedFormat,
+  });
+
+  final String id;
+  final String label;
+  final String category;
+  final List<String> tags;
+  final String filename;
+  final Uint8List bytes;
+  final ImageAttribution? attribution;
+
+  /// `png`, `jpg` or `webp`, from the content.
+  final String? detectedFormat;
+
+  BankImage withCategory(String value) => _copy(category: value);
+
+  BankImage withId(String value) => _copy(id: value);
+
+  BankImage _copy({String? id, String? category}) => BankImage(
+    id: id ?? this.id,
+    label: label,
+    category: category ?? this.category,
+    tags: tags,
+    filename: filename,
+    bytes: bytes,
+    attribution: attribution,
+    detectedFormat: detectedFormat,
+  );
+}
+
+/// What to do with a bank image whose ID is already in the library with a
+/// different picture.
+enum ConflictChoice { skip, replace, keepBoth }
+
+/// A bank image whose ID is already in Shared Images with a different
+/// picture. [canReplace] is false for QQL's own images, which never change.
+class BankIdConflict {
+  const BankIdConflict({
+    required this.incoming,
+    required this.existing,
+    required this.canReplace,
+  });
+
+  final BankImage incoming;
+  final ExerciseImageMetadata existing;
+  final bool canReplace;
+}
+
+/// The Admin's answer for one conflict, optionally for all the rest.
+typedef ConflictDecision = ({ConflictChoice choice, bool applyToAll});
+
+/// What the Admin decided about categories a bank adds.
+/// How the Admin files an Image Bank's unknown categories: each name to
+/// one of QQL's categories (Build 264 Revision 2: an Admin no longer adds
+/// categories). Null cancels the import.
+typedef MapNewCategories =
+    Future<Map<String, String>?> Function(List<String> names);
+
+/// An Image Bank that passed every check. Nothing has been written.
+class ParsedImageBank {
+  const ParsedImageBank({
+    required this.name,
+    required this.warnings,
+    required this.images,
+  });
+
+  final String name;
+  final List<String> warnings;
+  final List<BankImage> images;
+}
+
+class ImageBankService {
+  static const int maxImageBytes = ImageProfile.courseImageMaxBytes;
+  static const int maxZipBytes = 50 * 1024 * 1024;
+  static const int maxManifestBytes = 2 * 1024 * 1024;
+  static const int maxArchiveEntries = 5000;
+  static const int maxImportedImages = 2500;
+  static const int maxTotalImageBytes = 50 * 1024 * 1024;
+
+  /// Every entry's inflated bytes together, referenced or not.
+  static const int maxInflatedArchiveBytes = 50 * 1024 * 1024;
+  static const banksKey = 'quisquislingo_imported_image_banks_v2';
+
+  /// One folder per imported bank, in QQL's private storage. Build 255
+  /// Revision 4 renamed it from `image_banks`; banks imported before keep
+  /// working from there, because their entries hold full paths.
+  static const banksDirectoryName = 'QQL_ImageBanks';
+
+  ImageBankService({
+    FileDialogService? fileDialogs,
+    Future<Directory> Function()? temporaryDirectory,
+    QqlStorage? storage,
+  }) : _fileDialogs = fileDialogs ?? FileDialogService(),
+       _temporaryDirectory = temporaryDirectory ?? getTemporaryDirectory,
+       _storage = storage ?? QqlStorage();
+
+  final FileDialogService _fileDialogs;
+  final Future<Directory> Function() _temporaryDirectory;
+  final QqlStorage _storage;
+
+  /// False when the system dialog is unsupported; hide Open from….
+  bool get fileDialogsAvailable => _fileDialogs.isAvailable;
+
+  /// Open from…: pick one Image Bank ZIP in the system dialog. The picked
+  /// bytes are staged as a temporary file (keeping the ZIP's own name, which
+  /// names the bank) and go through the ordinary [importBankZip]; the temporary
+  /// copy is always deleted. The result is null when the user cancelled or the
+  /// dialog failed; see the dialog result.
+  Future<({FileDialogResult dialog, ImageBankImportResult? result})>
+  importBankZipFromDialog({Set<String> existingIds = const {}}) async {
+    ImageBankImportResult? result;
+    final dialog = await _withDialogZip((file) async {
+      result = await importBankZip(file, existingIds: existingIds);
+    });
+    return (dialog: dialog, result: result);
+  }
+
+  /// Picks a ZIP in the system dialog and hands it to [body] as a temporary
+  /// file that keeps the ZIP's own name (which names the bank); the copy is
+  /// always deleted.
+  Future<FileDialogResult> _withDialogZip(
+    Future<void> Function(File zip) body,
+  ) async {
+    final picked = await _fileDialogs.openBytes(
+      extensions: const ['zip'],
+      maxBytes: maxZipBytes,
+      artifact: 'image-bank',
+    );
+    if (picked.outcome == FileDialogOutcome.tooLarge) throw _zipTooLarge;
+    if (picked.outcome != FileDialogOutcome.opened) return picked;
+    await _withZipBytes(picked.displayName!, picked.bytes!, body);
+    return picked;
+  }
+
+  static const _zipTooLarge = FormatException(
+    'Image Bank ZIP is too large. Remove images or shrink them, then make a new ZIP.',
+  );
+
+  /// Hands [bytes] to [body] as a temporary file named [name], the ZIP's own
+  /// name (which names the bank). The copy is always deleted.
+  Future<void> _withZipBytes(
+    String name,
+    Uint8List bytes,
+    Future<void> Function(File zip) body,
+  ) async {
+    final staging = await (await _temporaryDirectory()).createTemp(
+      'QQL_ImageBank_',
+    );
+    try {
+      final safeName = name.replaceAll(RegExp(r'[\\/:*?"<>|]'), '_');
+      final file = File('${staging.path}${Platform.pathSeparator}$safeName');
+      await file.writeAsBytes(bytes, flush: true);
+      await body(file);
+    } finally {
+      try {
+        await staging.delete(recursive: true);
+      } catch (_) {}
+    }
+  }
+
+  Future<List<ImportedImageBank>> banks() async {
+    final prefs = await SharedPreferences.getInstance();
+    final out = <ImportedImageBank>[];
+    for (final raw in prefs.getStringList(banksKey) ?? const []) {
+      try {
+        final item = ImportedImageBank.fromJson(
+          Map<String, dynamic>.from(jsonDecode(raw) as Map),
+        );
+        if (await Directory(item.path).exists()) out.add(item);
+      } catch (_) {}
+    }
+    return out;
+  }
+
+  /// The one Image Bank ZIP in the Quick Import folder for images, which it
+  /// shares with single images ([QqlStorageRole.imageImports]), read and
+  /// checked without writing anything (a Course's own library imports from
+  /// this).
+  Future<ParsedImageBank> readBankFromFolder({
+    Set<String> existingIds = const {},
+  }) async {
+    final zip = await _folderZip();
+    final Uint8List bytes;
+    if ((zip.reportedSize ?? 0) > maxZipBytes) throw _zipTooLarge;
+    try {
+      bytes = await readQuickImportFile(zip, maxBytes: maxZipBytes);
+    } on ImportTooLargeException {
+      throw _zipTooLarge;
+    } on ImportAccessException catch (error) {
+      throw FormatException(error.message);
+    }
+    late final ParsedImageBank bank;
+    await _withZipBytes(zip.displayName, bytes, (file) async {
+      bank = await readBank(file, existingIds: existingIds);
+    });
+    return bank;
+  }
+
+  /// Open from…: an Image Bank ZIP read and checked without writing anything.
+  Future<({FileDialogResult dialog, ParsedImageBank? bank})>
+  readBankFromDialog({Set<String> existingIds = const {}}) async {
+    ParsedImageBank? bank;
+    final dialog = await _withDialogZip((file) async {
+      bank = await readBank(file, existingIds: existingIds);
+    });
+    return (dialog: dialog, bank: bank);
+  }
+
+  Future<QuickImportFile> _folderZip() async {
+    final folder = await _storage.importFolder(QqlStorageRole.imageImports);
+    final zipFiles = (await folder.files())
+        .where((file) => file.name.toLowerCase().endsWith('.zip'))
+        .toList();
+    zipFiles.sort(
+      (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()),
+    );
+    if (zipFiles.isEmpty) {
+      throw StateError(
+        'No Image Bank ZIP found in ${folder.location}. Copy one ZIP there and try again.',
+      );
+    }
+    if (zipFiles.length > 1) {
+      throw StateError(
+        'More than one ZIP was found in ${folder.location}. Keep only the Image Bank ZIP you want to import, then try again.',
+      );
+    }
+    return zipFiles.single;
+  }
+
+  /// Reads and checks an Image Bank ZIP without writing anything. The ZIP
+  /// goes through [BoundedZipReader]; it may hold only
+  /// `image_bank_manifest.json` and the images the manifest lists (in any
+  /// folder), each image passing the image check. Both the Shared Image
+  /// Library and a Course's own library import from this.
+  ///
+  /// The manifest is either a list of entries or an object with `images`
+  /// (that list), an optional bank-wide `attribution` used by every entry
+  /// without its own, and an optional display `name`.
+  Future<ParsedImageBank> readBank(
+    File zipFile, {
+    Set<String> existingIds = const {},
+  }) async {
+    try {
+      return await _readBank(zipFile, existingIds: existingIds);
+    } on FormatException catch (error) {
+      if (error.message.contains('Editor Help > Image Bank')) rethrow;
+      throw FormatException(
+        '${error.message} Correct the ZIP or its manifest and try again. '
+        'See Editor Help > Image Bank for the required layout.',
+      );
+    }
+  }
+
+  Future<ParsedImageBank> _readBank(
+    File zipFile, {
+    Set<String> existingIds = const {},
+  }) async {
+    if (await zipFile.length() > maxZipBytes) {
+      throw const FormatException(
+        'Image Bank ZIP is too large. Remove images or shrink them, then make a new ZIP.',
+      );
+    }
+    final zipBytes = await zipFile.readAsBytes();
+    final kind = unexpectedMediaKind(zipBytes);
+    if (kind != null && kind != 'ZIP archive') {
+      throw FormatException(
+        'This file is a $kind, not an Image Bank ZIP. Select a ZIP containing '
+        'image_bank_manifest.json and its listed images.',
+      );
+    }
+    final zip = BoundedZipReader.open(
+      InputMemoryStream(zipBytes),
+      label: 'Image Bank ZIP',
+      maxEntries: maxArchiveEntries,
+      maxTotalBytes: maxInflatedArchiveBytes,
+    );
+    final byBasename = <String, BoundedZipEntry>{};
+    for (final entry in zip.entries) {
+      final key = entry.baseName.toLowerCase();
+      if (byBasename.containsKey(key)) {
+        throw FormatException(
+          'Image Bank ZIP contains duplicate filenames: ${entry.baseName}',
+        );
+      }
+      byBasename[key] = entry;
+    }
+    final manifestFile = byBasename[manifestName];
+    if (manifestFile == null) {
+      throw const FormatException(
+        'Image Bank ZIP has no image_bank_manifest.json. This manifest is a '
+        'small JSON file that lists each picture and its name, ID, category '
+        'and keywords. Create it as UTF-8 text, add it to the ZIP beside '
+        'the images it lists, and try again. See Editor Help > Image Bank '
+        'for the format and an example.',
+      );
+    }
+    if (manifestFile.size > maxManifestBytes) {
+      throw const FormatException(
+        'Image Bank manifest is too large. Remove unnecessary text and make a new ZIP.',
+      );
+    }
+    final String manifestText;
+    try {
+      manifestText = utf8.decode(zip.read(manifestFile));
+    } on FormatException catch (error) {
+      if (error.message.contains('Image Bank ZIP')) rethrow;
+      throw const FormatException(
+        'Image Bank manifest is not UTF-8 text. Save it as UTF-8 JSON and make a new ZIP.',
+      );
+    }
+    final decoded = JsonLimits.imports.decode(
+      manifestText,
+      what: 'The Image Bank manifest',
+      invalidMessage: 'Image Bank manifest is not valid JSON.',
+    );
+    final List<Object?> list;
+    ImageAttribution? bankAttribution;
+    String? manifestNameField;
+    if (decoded is List) {
+      list = decoded;
+    } else if (decoded is Map) {
+      if (decoded.keys.any(
+            (key) => key != 'images' && key != 'attribution' && key != 'name',
+          ) ||
+          decoded['images'] is! List) {
+        throw const FormatException(
+          'An Image Bank manifest object has "images" (a list) and '
+          'optionally "attribution" and "name", nothing else.',
+        );
+      }
+      list = decoded['images'] as List;
+      if (decoded.containsKey('attribution')) {
+        bankAttribution = _attribution(
+          decoded['attribution'],
+          'Invalid default attribution in the Image Bank manifest.',
+        );
+      }
+      if (decoded.containsKey('name')) {
+        manifestNameField = _text(
+          decoded['name'],
+          'Image Bank name',
+          maxDisplayNameLength,
+        );
+      }
+    } else {
+      throw const FormatException(
+        'Image Bank manifest must contain a JSON list.',
+      );
+    }
+    if (list.length > maxImportedImages) {
+      throw const FormatException(
+        'Image Bank manifest contains too many images.',
+      );
+    }
+
+    final ids = <String>{};
+    final filenames = <String>{};
+    final parsed =
+        <
+          ({
+            String id,
+            String label,
+            String category,
+            List<String> tags,
+            String filename,
+            ImageAttribution? attribution,
+          })
+        >[];
+    for (final raw in list) {
+      if (raw is! Map) {
+        throw const FormatException(
+          'Image Bank manifest contains a non-object entry.',
+        );
+      }
+      final item = Map<String, dynamic>.from(raw);
+      final id = (item['id'] ?? '').toString().trim();
+      final filename = (item['filename'] ?? '').toString().trim();
+      final rawLabel = item['primary_term'] ?? item['label'] ?? '';
+      if (id.isEmpty ||
+          filename.isEmpty ||
+          rawLabel.toString().trim().isEmpty) {
+        throw const FormatException(
+          'Each Image Bank entry needs id, primary_term/label and filename.',
+        );
+      }
+      if (!idPattern.hasMatch(id)) {
+        throw FormatException(
+          'Image Bank ID must be 1–128 letters, digits, dots, hyphens or '
+          'underscores: $id',
+        );
+      }
+      if (filename.contains('/') ||
+          filename.contains('\\') ||
+          filename == '.' ||
+          filename == '..' ||
+          !RegExp(r'^[A-Za-z0-9._-]+$').hasMatch(filename)) {
+        throw FormatException('Unsafe Image Bank filename: $filename');
+      }
+      if (!ids.add(id)) throw FormatException('Duplicate Image Bank ID: $id');
+      if (existingIds.contains(id)) {
+        throw FormatException('Image Bank ID already exists in the app: $id');
+      }
+      if (!filenames.add(filename.toLowerCase())) {
+        throw FormatException(
+          'Two Image Bank entries use the same file: $filename',
+        );
+      }
+      final label = _text(rawLabel, 'Image Bank label for $id', maxLabelLength);
+      final rawTags = item['keywords'] ?? item['tags'];
+      if (rawTags != null && rawTags is! List) {
+        throw FormatException('Image Bank tags for $id must be a list.');
+      }
+      final tags = [
+        for (final tag in (rawTags as List?) ?? const [])
+          _text(tag, 'Image Bank tag for $id', maxTagLength),
+      ];
+      if (tags.length > maxTags) {
+        throw FormatException(
+          'Image Bank entry $id has more than $maxTags tags.',
+        );
+      }
+      final category = normalizeCategory(item['category']);
+      parsed.add((
+        id: id,
+        label: label,
+        category: category,
+        tags: tags,
+        filename: filename,
+        attribution: item.containsKey('attribution')
+            ? _attribution(
+                item['attribution'],
+                'Invalid Image Bank attribution for $id.',
+              )
+            : bankAttribution,
+      ));
+    }
+
+    // Only the manifest and the images it lists may be in the ZIP.
+    for (final entry in zip.entries) {
+      final key = entry.baseName.toLowerCase();
+      if (key != manifestName && !filenames.contains(key)) {
+        throw FormatException(
+          'Image Bank ZIP contains a file the manifest does not list: '
+          '${entry.name}. An Image Bank may hold only '
+          'image_bank_manifest.json and its images; put credits in the '
+          'manifest\'s "attribution" field.',
+        );
+      }
+    }
+    // Cheap pre-flight on declared sizes; the real limits are enforced on
+    // the inflated bytes below.
+    var declaredImageBytes = 0;
+    for (final item in parsed) {
+      final source = byBasename[item.filename.toLowerCase()];
+      if (source == null) {
+        throw FormatException(
+          'Image asset is missing from ZIP: ${item.filename}',
+        );
+      }
+      final ext = item.filename.toLowerCase().split('.').last;
+      if (!const {'png', 'jpg', 'jpeg', 'webp'}.contains(ext)) {
+        throw FormatException(
+          'Unsupported Image Bank file format: ${item.filename}',
+        );
+      }
+      if (source.size > maxImageBytes) {
+        throw FormatException(
+          'Image asset is too large: ${item.filename}. Export a smaller picture.',
+        );
+      }
+      declaredImageBytes += source.size;
+      if (declaredImageBytes > maxTotalImageBytes) {
+        throw const FormatException(
+          'Image Bank expands to too much image data. Remove or shrink pictures and make a new ZIP.',
+        );
+      }
+    }
+
+    final images = <BankImage>[];
+    var inflatedImageBytes = 0;
+    for (final item in parsed) {
+      final sourceBytes = zip.read(
+        byBasename[item.filename.toLowerCase()]!,
+        limit: maxImageBytes,
+      );
+      final ImageFacts facts;
+      try {
+        facts = ImageValidator.inspect(sourceBytes, ImageProfile.exerciseImage);
+      } on ImageValidationException catch (error) {
+        throw FormatException(
+          'Image Bank image ${item.filename}: ${error.message}',
+        );
+      }
+      inflatedImageBytes += sourceBytes.length;
+      if (inflatedImageBytes > maxTotalImageBytes) {
+        throw const FormatException(
+          'Image Bank expands to too much image data. Remove or shrink pictures and make a new ZIP.',
+        );
+      }
+      images.add(
+        BankImage(
+          id: item.id,
+          label: item.label,
+          category: item.category,
+          tags: item.tags,
+          filename: item.filename,
+          bytes: sourceBytes,
+          attribution: item.attribution,
+          detectedFormat: facts.format.extension,
+        ),
+      );
+    }
+    final fileName = zipFile.uri.pathSegments.last.replaceFirst(
+      RegExp(r'\.zip$', caseSensitive: false),
+      '',
+    );
+    return ParsedImageBank(
+      name:
+          manifestNameField ??
+          (fileName.length > maxDisplayNameLength
+              ? fileName.substring(0, maxDisplayNameLength)
+              : fileName),
+      warnings: const [],
+      images: images,
+    );
+  }
+
+  static const manifestName = 'image_bank_manifest.json';
+  static final idPattern = RegExp(r'^[A-Za-z0-9._-]{1,128}$');
+  static const maxLabelLength = 200;
+  static const maxTags = 32;
+  static const maxTagLength = 80;
+  static const maxDisplayNameLength = 120;
+
+  /// At most this many categories the device does not know yet, per bank.
+  static const maxNewCategoriesPerBank = 16;
+
+  /// A bank's category: an earlier name is read under its current one
+  /// (`food`, `letters_latin`…), a missing one is `other`, and anything else
+  /// must be a valid category name; an unknown one is filed by the Admin.
+  static String normalizeCategory(Object? raw) {
+    final value = (raw ?? '').toString().trim();
+    if (value.isEmpty) return 'other';
+    final mapped = canonicalImageCategory(value);
+    if (!ExerciseImageMetadataService.categories.contains(mapped) &&
+        !ExerciseImageMetadataService.deviceCategoryPattern.hasMatch(mapped)) {
+      throw FormatException(
+        'Image Bank category "$value" is not a valid name: use 2–40 '
+        'lowercase letters, digits or underscores, starting with a letter.',
+      );
+    }
+    return mapped;
+  }
+
+  static String _text(Object? raw, String what, int maxLength) {
+    if (raw is! String && raw is! num) {
+      throw FormatException('$what must be text.');
+    }
+    final value = raw.toString().trim();
+    if (value.isEmpty || value.length > maxLength) {
+      throw FormatException('$what must be 1–$maxLength characters.');
+    }
+    if (RegExp(r'[\x00-\x1f\x7f]').hasMatch(value)) {
+      throw FormatException('$what contains control characters.');
+    }
+    return value;
+  }
+
+  static ImageAttribution _attribution(Object? raw, String message) {
+    if (raw is! Map) throw FormatException(message);
+    try {
+      return ImageAttribution.fromJson(Map<String, dynamic>.from(raw));
+    } on FormatException {
+      rethrow;
+    } catch (_) {
+      throw FormatException(message);
+    }
+  }
+
+  /// Imports an Image Bank into the Shared Image Library: [readBank], then
+  /// the bank's own folder, manifest and records.
+  Future<ImageBankImportResult> importBankZip(
+    File zipFile, {
+    Set<String> existingIds = const {},
+  }) async => _install(await readBank(zipFile, existingIds: existingIds));
+
+  /// Adds a checked [bank] to the Shared Image Library (Admin only).
+  ///
+  /// Categories QQL does not have (at most [maxNewCategoriesPerBank]) are
+  /// shown to the Admin through [mapNewCategories] before anything is
+  /// written: each goes to one of QQL's categories (`other` when unsure), or
+  /// the import is cancelled (the result is then null). The bank's folder,
+  /// images and records are written only after that; a failure removes all
+  /// of them again.
+  ///
+  /// Duplicates are decided by content first: a picture already in the
+  /// library (QQL's or this device's, or earlier in the same bank) is skipped
+  /// without asking. A bank image whose ID is taken by a different picture
+  /// goes to [chooseConflict]: skip it, replace the device's image (never one
+  /// of QQL's), or keep both under a fresh ID; the answer can apply to all the
+  /// remaining conflicts. Without [chooseConflict] conflicts are skipped.
+  Future<ImageBankImportResult?> importToSharedLibrary(
+    ParsedImageBank bank, {
+    required ExerciseImageMetadataService metadata,
+    required String actorProfileId,
+    required MapNewCategories mapNewCategories,
+    Future<ConflictDecision> Function(BankIdConflict conflict)? chooseConflict,
+  }) async {
+    await metadata.requireAdmin(actorProfileId);
+    // The Shared Image Library needs at least one tag per image.
+    for (final image in bank.images) {
+      if (image.tags.isEmpty) {
+        throw FormatException(
+          'Image Bank entry ${image.id} needs at least one keyword for the '
+          'Shared Image Library.',
+        );
+      }
+    }
+    final index = await metadata.contentIndex(actorProfileId: actorProfileId);
+    final byId = {
+      for (final record in await metadata.loadCatalog()) record.id: record,
+    };
+    final taken = {...byId.keys, for (final image in bank.images) image.id};
+    final planned = <BankImage>[];
+    final replacing = <String, ExerciseImageMetadata>{};
+    final seen = <String>{};
+    var duplicates = 0;
+    var conflictsSkipped = 0;
+    var keptBoth = 0;
+    ConflictDecision? forAll;
+    for (final image in bank.images) {
+      final hash = sha256.convert(image.bytes).toString();
+      if (index.containsKey(hash) || !seen.add(hash)) {
+        duplicates++;
+        continue;
+      }
+      final existing = byId[image.id];
+      if (existing == null) {
+        planned.add(image);
+        continue;
+      }
+      final canReplace = !isBundledImage(existing);
+      var decision = forAll;
+      if (decision == null ||
+          (decision.choice == ConflictChoice.replace && !canReplace)) {
+        decision = chooseConflict == null
+            ? (choice: ConflictChoice.skip, applyToAll: true)
+            : await chooseConflict(
+                BankIdConflict(
+                  incoming: image,
+                  existing: existing,
+                  canReplace: canReplace,
+                ),
+              );
+        if (decision.applyToAll) forAll = decision;
+      }
+      switch (decision.choice) {
+        case ConflictChoice.replace when canReplace:
+          planned.add(image);
+          replacing[image.id] = existing;
+        case ConflictChoice.keepBoth:
+          final fresh = _freshId(image.id, taken);
+          taken.add(fresh);
+          planned.add(image.withId(fresh));
+          keptBoth++;
+        case ConflictChoice.skip || ConflictChoice.replace:
+          conflictsSkipped++;
+      }
+    }
+    if (planned.isEmpty) {
+      return ImageBankImportResult(
+        bankName: bank.name,
+        imported: 0,
+        warnings: bank.warnings,
+        records: const [],
+        duplicatesSkipped: duplicates,
+        conflictsSkipped: conflictsSkipped,
+      );
+    }
+
+    final known = (await metadata.allCategories()).toSet();
+    final newCategories = {
+      for (final image in planned)
+        if (!known.contains(image.category)) image.category,
+    }.toList()..sort();
+    var images = planned;
+    if (newCategories.isNotEmpty) {
+      if (newCategories.length > maxNewCategoriesPerBank) {
+        throw FormatException(
+          'This Image Bank adds ${newCategories.length} new categories; at '
+          'most $maxNewCategoriesPerBank are allowed per bank.',
+        );
+      }
+      final mapping = await mapNewCategories(newCategories);
+      if (mapping == null) return null;
+      for (final name in newCategories) {
+        final target = mapping[name] ?? 'other';
+        if (!known.contains(target)) {
+          throw FormatException('"$target" is not a category of this library.');
+        }
+      }
+      images = [
+        for (final image in images)
+          newCategories.contains(image.category)
+              ? image.withCategory(mapping[image.category] ?? 'other')
+              : image,
+      ];
+    }
+    ImageBankImportResult? result;
+    try {
+      final installed = await _install(
+        ParsedImageBank(
+          name: bank.name,
+          warnings: bank.warnings,
+          images: images,
+        ),
+      );
+      result = installed;
+      final byImageId = {for (final image in images) image.id: image};
+      final now = DateTime.now().toUtc();
+      final records = [
+        for (final record in installed.records)
+          record.copyWith(
+            provenance: ImageProvenance(
+              sha256: sha256.convert(byImageId[record.id]!.bytes).toString(),
+              byteLength: byImageId[record.id]!.bytes.length,
+              detectedFormat: byImageId[record.id]!.detectedFormat,
+              sourceName: byImageId[record.id]!.filename,
+              source: ImageProvenance.imageBank,
+              bankId: imageBankIdOf(record),
+              importedBy: actorProfileId,
+              importedAtUtc: now,
+            ),
+          ),
+      ];
+      await metadata.applyLocalRecords(
+        actorProfileId: actorProfileId,
+        add: [
+          for (final record in records)
+            if (!replacing.containsKey(record.id)) record,
+        ],
+        replace: [
+          for (final record in records)
+            if (replacing.containsKey(record.id)) record,
+        ],
+      );
+      // A replaced single import's old file is no longer used by anything.
+      // A replaced bank image's file belongs to its bank and stays with it.
+      for (final old in replacing.values) {
+        if (old.origin != 'local') continue;
+        try {
+          final file = File(old.assetPath);
+          if (await file.exists()) await file.delete();
+        } catch (_) {}
+      }
+      return ImageBankImportResult(
+        bankName: installed.bankName,
+        imported: installed.imported,
+        warnings: installed.warnings,
+        records: List.unmodifiable(records),
+        duplicatesSkipped: duplicates,
+        conflictsSkipped: conflictsSkipped,
+        replaced: replacing.length,
+        keptBoth: keptBoth,
+      );
+    } catch (_) {
+      if (result != null && result.records.isNotEmpty) {
+        final origin = result.records.first.origin;
+        if (origin.startsWith('bank:')) {
+          try {
+            await removeBank(origin.substring('bank:'.length));
+          } catch (_) {}
+        }
+      }
+      rethrow;
+    }
+  }
+
+  /// [id] with the first free `-2`, `-3`, … suffix, within 128 characters.
+  static String _freshId(String id, Set<String> taken) {
+    for (var n = 2; ; n++) {
+      final suffix = '-$n';
+      final base = id.length + suffix.length > 128
+          ? id.substring(0, 128 - suffix.length)
+          : id;
+      final candidate = '$base$suffix';
+      if (!taken.contains(candidate)) return candidate;
+    }
+  }
+
+  /// Writes a checked [bank]: its own folder, images, manifest and entry.
+  Future<ImageBankImportResult> _install(ParsedImageBank bank) async {
+    final support = await getApplicationSupportDirectory();
+    final bankId = 'bank_${DateTime.now().microsecondsSinceEpoch}';
+    final dir = Directory(
+      '${support.path}${Platform.pathSeparator}$banksDirectoryName'
+      '${Platform.pathSeparator}$bankId',
+    );
+    await dir.create(recursive: true);
+    final imagesDir = Directory('${dir.path}${Platform.pathSeparator}images');
+    try {
+      await imagesDir.create(recursive: true);
+      final normalizedManifest = <Map<String, dynamic>>[];
+      final records = <ExerciseImageMetadata>[];
+      for (final image in bank.images) {
+        final target = File(
+          '${imagesDir.path}${Platform.pathSeparator}${image.filename}',
+        );
+        await target.writeAsBytes(image.bytes, flush: true);
+        normalizedManifest.add({
+          'id': image.id,
+          'label': image.label,
+          'assetPath': target.path,
+          'bankId': bankId,
+        });
+        records.add(
+          ExerciseImageMetadata(
+            id: image.id,
+            label: image.label,
+            category: image.category,
+            tags: image.tags,
+            assetPath: target.path,
+            origin: 'bank:$bankId',
+            attribution: image.attribution,
+          ),
+        );
+      }
+      await File(
+        '${dir.path}${Platform.pathSeparator}manifest.json',
+      ).writeAsString(jsonEncode(normalizedManifest), flush: true);
+
+      final prefs = await SharedPreferences.getInstance();
+      final current = prefs.getStringList(banksKey) ?? <String>[];
+      final entry = ImportedImageBank(
+        id: bankId,
+        path: dir.path,
+        name: bank.name,
+      );
+      await prefs.setStringList(banksKey, [
+        ...current,
+        jsonEncode(entry.toJson()),
+      ]);
+      return ImageBankImportResult(
+        bankName: bank.name,
+        imported: normalizedManifest.length,
+        warnings: bank.warnings,
+        records: List.unmodifiable(records),
+      );
+    } catch (_) {
+      try {
+        if (await dir.exists()) await dir.delete(recursive: true);
+      } catch (_) {}
+      rethrow;
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> loadImportedEntries() async {
+    final out = <Map<String, dynamic>>[];
+    for (final bank in await banks()) {
+      final manifest = File(
+        '${bank.path}${Platform.pathSeparator}manifest.json',
+      );
+      if (!await manifest.exists()) continue;
+      try {
+        final decoded = jsonDecode(await manifest.readAsString());
+        if (decoded is! List) continue;
+        for (final raw in decoded.whereType<Map>()) {
+          final item = Map<String, dynamic>.from(raw);
+          final path = (item['assetPath'] ?? '').toString();
+          if (path.isEmpty || !await File(path).exists()) {
+            item['missing'] = true;
+          }
+          item['bankName'] = bank.name;
+          out.add(item);
+        }
+      } catch (_) {}
+    }
+    return out;
+  }
+
+  Future<Set<String>> removeBank(String bankId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final all = await banks();
+    final target = all.where((e) => e.id == bankId).toList();
+    final removedIds = <String>{};
+    if (target.isNotEmpty) {
+      final dir = Directory(target.first.path);
+      final manifest = File(
+        '${dir.path}${Platform.pathSeparator}manifest.json',
+      );
+      if (await manifest.exists()) {
+        try {
+          final decoded = jsonDecode(await manifest.readAsString());
+          if (decoded is List) {
+            for (final raw in decoded.whereType<Map>()) {
+              final id = raw['id']?.toString().trim() ?? '';
+              if (id.isNotEmpty) removedIds.add(id);
+            }
+          }
+        } catch (_) {}
+      }
+      if (await dir.exists()) await dir.delete(recursive: true);
+    }
+    final kept = all
+        .where((e) => e.id != bankId)
+        .map((e) => jsonEncode(e.toJson()))
+        .toList();
+    await prefs.setStringList(banksKey, kept);
+    return removedIds;
+  }
+}

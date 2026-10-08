@@ -1,0 +1,36 @@
+import 'course_models.dart';
+
+/// Immutable, presentation-ready snapshot of authoritative learner status.
+class LearnerStatusState {
+  final String? activeProfile;
+  final Course? course;
+  final String? courseCode;
+  final int weeklyXp;
+  final int? weeklyXpGoal;
+  final int? streak;
+  final int? laurels;
+  final int? laurelMaximum;
+
+  const LearnerStatusState({
+    required this.activeProfile,
+    required this.course,
+    required this.courseCode,
+    required this.weeklyXp,
+    required this.weeklyXpGoal,
+    required this.streak,
+    required this.laurels,
+    required this.laurelMaximum,
+  });
+
+  const LearnerStatusState.loading()
+    : activeProfile = null,
+      course = null,
+      courseCode = null,
+      weeklyXp = 0,
+      weeklyXpGoal = null,
+      streak = null,
+      laurels = null,
+      laurelMaximum = null;
+
+  bool get hasCourse => course != null;
+}

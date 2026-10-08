@@ -1,0 +1,430 @@
+# QuisquisLingo Course Manager and Course Editor
+
+The authoring details below were written for Build 234. Current Course Model v11 and portable transfer rules are in [Course JSON format](COURSE_JSON_FORMAT.md) and [Build 243 change summary](243_CHANGE_SUMMARY.md). Build 243 exports a Course ZIP containing only referenced Course-owned media, including Admin-added Shared Image Library images selected for the Course. Bundled images remain supplied by the app. Import leaves the destination Shared Image Library untouched. The Course Editor's **Image Library** includes shared and Course-stored images; `QQL` and `DEVICE` identify the source, `COURSE` means stored in the Course folder, and `IN USE` means referenced by the Course. The Admin-only management entry in Course Manager and Device Administration is **Shared Image Library**; its shared entries show only their source label.
+
+## Unlocking the editor
+
+Course Manager is an Easter Egg so ordinary learners do not encounter authoring controls accidentally. Open **Settings** and tap/click anywhere in the complete **Version and Build** row ten times. `Course Manager unlocked` appears and the Editor actions become available from the learner **Course Selector**. The unlock is an ordinary setting in the active opaque learner namespace: each learner starts locked, unlocks independently, regains their own state after switching/restart, participates in learner backup/restore, and loses it through normal profile deletion. It changes visibility only and never overrides Course Model v9 Maintainer/assigned-Team permissions. Course Manager is no longer listed in Settings. Course Manager lists and manages courses; Course Editor edits one selected course.
+
+## Capability-driven Editor hierarchy
+
+Bundled official, external official, Maintainer-managed custom, assigned-Team-managed custom, and outsider custom courses use the same Course Editor page and hierarchy. Capability state changes which actions can mutate data; it does not replace the Editor with a conceptually separate inspection UI. Course Info, Audit, Help, IDs, metadata, Version History, Lessons, Rounds, Exercises, and read-only inspection remain available where appropriate.
+
+Course Manager remains the lifecycle hub. Its AppBar icon buttons are the single **Course Import** and **Create new course** controls; their actions, tooltips, accessibility and keyboard behavior are retained without redundant adjacent text buttons. Official rows provide **Inspect (read only)**, **Fork** only when derivative works are explicitly allowed, **Audit**, and **Export JSON** where supported. An individual Maintainer and every current member of an assigned Team receive **Edit**, **Copy as New Course**, **Merge**, **Audit**, **Export JSON**, and manager-only **Delete course**. Only the individual Maintainer may transfer maintenance or assign/revoke a Team. An outsider receives View/read-only Editor and Course Info, plus Fork only when derivatives are allowed; they never receive direct Edit, Copy as New Course or Merge. Delete retains the established double confirmation and is never offered inside Course Editor. The same policy is enforced again by authoring services, so disabled UI cannot mutate an official or outsider original. Each Course row independently shows **Draft** when authored descendants are Draft and **Unpublished** when Course delivery is off. Neither state is inferred from the other; when both apply, the two blue badges appear in Draft/Unpublished order and wrap on narrow layouts.
+
+**Merge** reads a second custom Course only from `Documents/QuisquisLingo/ToBeMerged/Courses/merge.json`. Author, Maintainer, source/target language, Original Course Creator, Assigned Team, authors/roles, Rights Holders, license/derivative policy, language/TTS metadata, language variant, custom Lesson icons and audio configuration/library must match. Course ID, original-created/modified dates, Course version/version notes, restore metadata, Last Version Editor details, merge provenance and Lessons may differ. A matching Course ID and Course version is allowed when the Last edited timestamps differ; identical ID, version and Last edited timestamp is rejected. Publication state may differ and makes the result Unpublished when either input is Unpublished. When Title, Create Duels, Use GuideBooks, Lesson numbering/custom label, Section names, Buy a Coffee URL, description, flag, start level or target level differ, choose the Left or Right setting in the merge page. The chosen Title receives the ` merged` suffix. Choose Left or Right for each included positional Lesson; a missing position can be omitted. The page identifies sources as Left/Right with title, version and last-edited date, reuses the Editor’s Show/Hide IDs badge control, places bulk Left/Right selection after the available Course-setting selectors, and provides a compact aligned Lesson table with Left and Right columns. The result is a third independent Course with fresh owned identities, retained selected Lesson publication state, no learner state, earliest source Original Course Created date, merge-time Modified/Last Version Editor, version 1 and v10 immediate-source merge provenance. The source Courses and `merge.json` remain unchanged.
+
+Fork and Copy as New Course use the authoritative services and remain different operations. Copy as New Course is available only to an authorized Maintainer or assigned-Team member and starts an independent lineage; it does not inherit Assigned Team. Fork is a licensed derivative with fresh identity and retained lineage plus immutable immediate-source/Fork Created By/Fork Created Date provenance. A newly copied-as-new Course or Fork is persisted as its confirmed baseline before its first normal Editor session, so opening and immediately closing it is clean; a real semantic edit still invokes the normal course-level confirmation.
+
+The Editor supports the whole hierarchy:
+
+- Course → open **Lessons**, the first content section
+- Course Editor → choose the authoritative four-state access mode
+- Lessons → Search the whole Course and create/reorder Lessons in Edit; each Lesson menu provides the actions allowed by the selected mode
+- Lesson → Search that Lesson; inspect or edit its title, Section metadata, theme icon and GuideBook; open the linked Rounds page
+- Rounds → Search that Lesson and inspect or create/reorder Rounds according to the selected mode
+- Round → Search that Round; Preview from the bottom action area and create/reorder Exercises in Edit
+
+New objects receive generated local IDs. Deleting an object removes its descendants from the current working copy. Read-only Editors disable or omit mutating controls, and official source content is never modified by local authoring.
+
+Each Lesson has a **Section** selector with **No section**, existing course Section names, **Add new section...** and **Manage sections...**. New names are trimmed and blank names are refused. The course catalog retains unused names, while existing Lesson assignments also populate the selector. Removing a used name is blocked with the number of Lessons using it; change those assignments first. A name selected in the current unsaved Lesson is also protected. A newly added Lesson initially copies the preceding Lesson's Section assignment; **No section** explicitly clears an assignment. Reordering, moving and duplicating Lessons preserve their assigned metadata. Section remains consecutive-order display metadata, with no ID, owned progress or unlock state.
+
+The single access control appears only on the Course Editor root. **Locked** uses a closed lock, leaves the root visible and blocks entry to the hierarchy. **View only**, the default for a course with no saved choice, uses an eye and enables read-only navigation, Search, Help, Show/Hide IDs, Preview and Audit. It opens Exercises in the same ordinary preset-specific form used by Edit, but every mutation-capable control is disabled. **Inspection mode** uses the code `</>` icon and defaults Exercises to their read-only technical representation; selecting their local Inspection toggle off shows the same normal form read-only. **Edit** uses the pencil and enables authoring only when the existing Maintainer/assigned-Team policy already permits it; official courses and outsiders cannot select it. The mode is user/course-local and independent from the per-user × Course one-time View notice. Settings → Show one-time notices again resets the notice without resetting the access state. The Lessons page contains **Use GuideBook** and **Create Duels**, both ON by default; they are inspectable in View only and Inspection mode and changeable only in Edit. Turning **Use GuideBook** OFF preserves every GuideBook and its Draft state, hides only the canonical `LESSON_GUIDEBOOK_EMPTY` Warning, and keeps the learner's Lesson identity and book artwork in place without a GuideBook tooltip, click action or action semantics. The Round introduction also omits its GuideBook action, including in Preview. Malformed existing GuideBook content still receives its normal findings; reenabling the preference restores the current canonical empty-state finding and ancestor borders immediately.
+
+Search appears on Lessons, Lesson, Rounds and Round whenever the Course Editor is unlocked. Its scope is respectively the whole Course, the current Lesson, the current Lesson and the current Round. It matches complete words and contiguous multi-word phrases case- and diacritic-insensitively, or exact/partial Exercise IDs case-insensitively. The optional Exercise Type filter defaults to All exercise types. Results show Lesson > Round > friendly Exercise type, an authored-text excerpt and the Exercise ID when IDs are shown. In View only, a result opens the normal read-only form; in Inspection mode, it opens technical inspection; in Edit, it opens the normal editable form. Locked exposes no Search. Searchable fields are defined per preset in the shared inventory documented in `docs/EXERCISE_TYPE_INVENTORY_231.md`; internal configuration and asset paths are excluded.
+
+**Create Duels** uses the existing shared eligibility service: an enabled Lesson needs 25 actual eligible, deduplicated Exercises. A structurally insufficient Duel has no learner card or reserved Duel spacing. When the structural pool is sufficient but the active learner's Audio Exercises setting or runtime audio availability reduces the effective pool below 25, Home keeps the Duel card visible but disabled; Home and Duel entry use the same effective calculation. `DUEL_UNAVAILABLE` remains a Course-authoring Info finding only when Create Duels is ON and therefore evaluates the structural source rather than learner settings. Disabling either Course preference does not erase course content, stable Duel identities, completed Rounds, previous Duel victories or XP. Winning an enabled available non-final Duel still unlocks the next Lesson without marking the preceding Lesson complete. The last Lesson's Duel is labelled **Final Duel**, uses tooltip **Final challenge for the last Lesson.**, reports **Final Duel completed!**, and never claims to unlock another Lesson.
+
+The controlled **Lesson theme icon** picker separates **Preinstalled** and **Custom**. For **Import custom icon**, keep exactly one PNG/JPG/JPEG/WebP in `Documents/QuisquisLingo/Import/LessonIcons`. The input must be non-empty, no larger than 2 MB (2,097,152 bytes), and 1–4096 pixels on each side. QQL decodes the first frame, scales it up or down proportionally, and centers it without cropping or distortion on a transparent 256 × 256 PNG canvas. Existing transparency survives; an opaque background is not removed. Missing/multiple files, unsupported or unreadable image data, excessive size/dimensions and failed PNG conversion stop import. The source is left in place. The Course-owned managed asset stores embedded PNG data, so no external source path is serialized or needed later. Managed icons survive Course export/import and Course duplication; Lesson duplication within the Course reuses the immutable asset. `None` uses the single theme-colored Lesson-number circle in both Editor and learner views. Legacy fallback-style values still load safely but no longer change this rendering or rewrite Course JSON. Explicitly selected icons remain unchanged. Every learner icon uses the established 84 × 84 footprint.
+
+## One course-level editing transaction
+
+Opening an editable custom course loads the current persisted course, preserves an immutable original snapshot, and creates a separate editable working copy. Course Info Editor, Lesson, Round, Exercise, GuideBook, generated-content acceptance, deletion, duplication and reordering mutate only that working copy. The live learner course remains unchanged during the editing session. The same transaction object can hold a read-only official or outsider course for shared inspection, but its mutation entry points reject writes.
+
+Nested editors use **Save**, or **Save as draft** when Draft status is supported. Save stores a normal non-Draft item in the working copy; Save as draft stores a Draft item there. Neither action persists the course, creates a backup, increments the internal course version, or represents final publication. Nested pages return without a course-level confirmation. Leaving an Exercise with unsaved changes offers **Keep editing**, **Discard changes**, **Save as draft** or **Save**. Discard affects only that Exercise form; earlier working-copy changes remain. Other nested pages retain their established Back behavior.
+
+Automatically created Lesson and Round Drafts can carry provisional eligibility. After reviewed Exercises are saved as normal content, a provisional Round becomes Published when its complete required Content is ready and normal Save validation passes. A provisional Lesson also requires ready Published Rounds and, when **Use GuideBook** is ON, a Published nonempty GuideBook with all required GuideBook Content Published. Existing nonblocking Audit guidance remains independent from publication. This shared reconciliation runs on immutable working-copy mutations, including GuideBook saves, toggling **Use GuideBook**, deletion and Move. It does not publish Exercises or GuideBooks automatically, delete pending content, or change Course delivery status.
+
+An explicit **Save as draft** clears a Lesson or Round's provisional eligibility, including when it is already Draft. Such an explicit Draft, and any older Draft without the marker, remains Draft until its own normal **Save**, or until its last Draft child is saved as Published: a Round whose last Draft Exercise is saved as Published becomes Published, and a Lesson whose last Draft Round becomes Published does too (when its GuideBook is ready or turned off). Copies and licensed forks retain their reviewed-Draft policy without provisional eligibility. Import keeps the publication states stored in the JSON and never asks. Move retains the moved object's intent; changes in either branch may make other provisional parents ready. Blue badges show each container's own Draft state as well as descendant Drafts. A provisional container's tooltip explains its readiness conditions; an explicit Draft container's tooltip explains the required own Save. The Course remains **Published** or **Not published** by explicit author choice, and only top-level **Confirm course changes** applies the complete working copy to storage and learner delivery.
+
+Course Editor compares canonical course content rather than a one-way dirty flag. Restoring the original semantic values makes the session clean again. Transient focus, selection, controllers and scroll state are not course content. Only an attempt to leave the top-level Course Editor can show the single unapplied-course dialog, with these explicit actions:
+
+- **Confirm course changes** — optionally records a multiline version note, creates and verifies a complete backup of the currently persisted course, increments its separate internal course version by exactly one, atomically applies and verifies the whole working copy, shows the resulting version and backup path, and exits only after success.
+- **Cancel course changes** — discards the complete working copy, creates no backup, performs no version increment, leaves the persisted course untouched, and exits.
+
+If the working copy equals the original, the Editor exits directly. A backup or persistence failure leaves the original unchanged, preserves the working copy and version note, and keeps the Editor open with a clear error.
+
+Course delivery status is labelled **Published** or **Not published**, separately from authoring Draft indicators. Publishing a Course does not publish its Draft descendants. Internally, Course, Lesson, Guidebook, Round and Exercise content retains explicit `Draft` / `Published` state for learner projection. A Published child below a Draft parent remains hidden. Draft Courses are not learner-selectable; Draft Lessons do not affect numbering, Sections or unlock order; Draft Guidebooks, Rounds and Exercises do not affect learner delivery, play, completion, Review, Duel or XP. Nested Save is the replacement for the former nested Publish label; final application of the complete course happens only through Confirm course changes.
+
+The Lessons page controls the Lesson numbering prefix shared by the Editor hierarchy, breadcrumbs, learner panel and Preview. **Lesson + number**, **Number only** and **Title only** give the established `lesson`, `numberOnly` and `none` values literal names; Unit, Topic, Module, Skill, Chapter, Stage, Step, Part and the trimmed custom label remain available. Learner numbers use Published Lesson order; Editor numbers use the complete authored order. A title identical to its generated prefix appears once; the default `Lesson N` also becomes the selected prefix (for example `Module N`) or just `N` in Number only mode. This affects display only: an author-entered title remains stored, and all existing Unit/Module/custom choices remain available. Learner rendering and Lesson Preview use the same naming choice. A Lesson with no explicit icon uses the theme-colored Lesson-number circle; preinstalled and managed custom Lesson icons override it and keep their original artwork and colors. Course Info Editor also stores an optional validated **Buy a Coffee** HTTPS URL.
+
+The Lesson form keeps Lesson metadata readily accessible and links to one dedicated **Rounds** page instead of expanding the complete list inline. The page reuses the existing Round workflow and returns naturally to the Lesson working copy. Navigation alone writes nothing. Every stable ID remains intact unless an explicit duplication creates a new identity.
+
+For the retained Lesson, Round and Exercise actions, **Duplicate** inserts the independent subtree copy immediately after its source. Lesson duplication recursively allocates fresh Lesson, Duel, GuideBook Content, Round, Exercise and item IDs; Round and Exercise duplication applies the corresponding subtree rule. Internal ID references are remapped while shared immutable image/audio asset paths remain references. Editing a duplicated subtree cannot mutate its source. Rename changes only the title and preserves identity and descendants. Preview uses learner rendering without writing completion, XP, streak, Laurel, Review, Duel or unlock state. This subtree action is distinct from the Course-level **Copy as New Course** action and its lineage semantics.
+
+With Internal IDs shown, the Lesson GuideBook entry and its editor expose the read-only GuideBook identity derived as `${lessonId}_guidebook`. It appears after the GuideBook's actionable rows, remains passive, uses selectable monospaced text and has a tooltip containing the complete ID. The shared global preference updates it immediately. It stays stable when the owning Lesson is renamed or moved and follows the new Lesson identity on duplication. No extra GuideBook ID field is added to Course JSON; existing GuideBook Content IDs remain distinct. Displaying the ID in official inspection writes no course data.
+
+**Move Exercise to…** and **Copy Exercise to…** choose an explicit Course → Lesson → Round destination within the current course working copy. **Move Round to…** and **Copy Round to…** choose a Lesson there. Move preserves the moved object's stable identity, content and Draft/Published state while removing it from its original parent. Copy allocates fresh IDs throughout the owned subtree and remaps internal references. Copies use the existing duplication policy: the copied object and owned descendants start as Draft. Neither action confirms the course or changes the persisted learner course.
+
+Exercise **Previous** and **Next** follow the current Round order, stop at its boundaries and use the same unsaved-change protection as Back. Breadcrumbs show readable Course, Lesson, Round and Exercise context; navigating a safe parent level also protects unsaved Exercise values. **Preview** sits beside **Inspection** and the Save actions and uses the complete current unsaved form, including a new or Draft Exercise. The local Inspection toggle changes only presentation: it never changes the root access state, grants permission, saves, discards or marks content dirty. View only returns to a normal read-only form, Inspection mode returns to a normal read-only form, and Edit returns to the same editable form with its unsaved values and dirty state intact. Insufficient runtime data produces a validation message without losing edits. Returning restores the same form values; Preview does not save content or change publication state, versions, backups or learner data.
+
+An empty Round title is intentionally supported in Create and Edit Round. Rename Round labels the field **Title, or Enter to skip**. Enter skips title entry for a new untitled Round, leaves an existing untitled Round unchanged, and preserves an existing title when no replacement is supplied. Learner and editor labels use its current **Round N** position without creating a stored title or changing its ID.
+
+Audit and Draft status propagate through the current authoring hierarchy. A red border means the represented element or one of its descendants has an Audit Error or Warning. A luminous green border means the current shared Audit result contains neither Error nor Warning for that branch; Info guidance alone remains green. A separate blue **Draft** badge means the represented Lesson, Round, GuideBook or Content itself, or a descendant, is Draft. An own Lesson/Round Draft badge also appears beside its Save controls; its tooltip distinguishes provisional readiness from an explicit Draft that needs the container's own Save. Exercise and Round items, Lesson and Course items, the Lesson page's **Rounds** link, the Course page's **Lessons** link and Course Manager use the same presentation, so red/green Audit status and the blue Draft badge remain independently visible. The badge is the only Draft-state label; Round rows show total Exercise counts with correct singular/plural wording. Status derives from the current working copy and shared Audit result after saves, publication changes, creation, deletion, duplication, Move, Copy and return from child editors. An empty Published Round shows exactly **0 Exercises**, no Draft badge, and remains red through the canonical `ROUND_CONTENT_EMPTY` Error until valid Content is added. An empty Published Lesson with no Draft GuideBook shows exactly **0 Rounds**, keeps its Rounds link usable, has no Draft badge and remains red through the canonical `LESSON_ROUNDS_EMPTY` Warning until a valid Round is added.
+
+Every Course Manager and Course Editor hierarchy AppBar provides the same **Editor Help** action. The direct internal-ID toggle is available in the Editor hierarchy, but omitted from Course Manager because that list has no toggle-controlled ID fields. Its current-state tooltip is **Internal IDs hidden. Tap to show** or **Internal IDs shown. Tap to hide**. The device-local preference defaults off, persists globally outside Course JSON, and immediately reveals read-only selectable IDs as secondary text. In Course Info Editor it also reveals the individual Maintainer User ID, optional assigned Team ID and the read-only model line obtained from `Course.formatVersion`, for example **Course Model: v9**. IDs remain absent from breadcrumbs; Rename and Move preserve them, while copy operations create fresh IDs.
+
+Rounds normally contain 15 exercises. The editor does not enforce 15 as a hard maximum. Course Audit reports unusually short or long rounds so the author can review them.
+
+## Exercise type is immutable
+
+### Phase 226.03 writing and character presets
+
+**Type the translation** accepts complete equivalent answers, one per line. The authoritative parser supports `{optional}`, `[a|b]`, linked `[*:a|b]` groups paired by index (at least two groups with equal alternative counts), scoped `(part <> part)` and whole-expression `<>` reordering. For example, `{Io} [prendo|vorrei] un cappuccino` expands in order to `Prendo un cappuccino`, `Vorrei un cappuccino`, `Io prendo un cappuccino`, `Io vorrei un cappuccino`. **Use lowercase except for proper names.** This guidance does not transform saved content. Syntactically present operands may produce empty strings; absent operands remain invalid. Optional linked groups keep their original positional pairing. Final empty answers are omitted, and sentence punctuation follows final expansion and empty-result removal. The existing 128 intermediate-variant safety cap remains unchanged. See the revision-1 examples in `docs/226_03_VALIDATION.md`.
+
+**Expand answers** opens a read-only, selectable preview with **Copy all**. **Use expanded answers** appends independent explicit lines and reports generated, added and already-present counts using established normalization. Editing or deleting the original expression does not change these lines. Expansion and candidate materialization are validated atomically against the existing 128-answer hard limit; overflow shows a clear error, never a truncated list or partial save.
+
+Incorrect translation feedback shows the closest three valid answers, or fewer when fewer exist; **Some possible translations:** identifies a non-exhaustive list. Correct feedback shows at most two other correct translations and no empty section. A typo-tolerated response excludes the canonical answer matched by evaluation. Ranking reuses the existing similarity score with stable author-order ties; it never changes correctness, normalization or typo tolerance.
+
+**Type the missing word** is a separate canonical Input preset from the existing audio/transcript Missing Word. Enter a sentence with one `___` gap and complete accepted words, such as `I would like a ___.` and `cappuccino`. The learner sees `I would like a c______.` and enters `cappuccino`. **Enter the complete missing word. The first letter shown is a hint.** For `é______`, enter `école`, not `cole`. QQL derives the first Unicode grapheme automatically, evaluates the full entered word with the normal Input engine, and shows the completed sentence after checking. All accepted words must share one exact initial grapheme; incompatible initials and phrases produce clear validation errors.
+
+**Recognize characters** uses canonical Select. **Image to text** has one or more prompt images, two or more text options and exactly one correct option. **Text to image** has a nonempty text prompt, two or more image options and exactly one correct option. Prompt images can show alternate fonts or handwriting. Use the bundled image picker or import PNG/JPEG/WEBP files through the displayed transfer folder. Imported images must be at most 50 KB and 4096 pixels per dimension; their original bytes are embedded in existing Course JSON media fields. Absolute local paths are rejected. Imports are read-only and need no original file after transfer. Each item pairs a character image with its corresponding text. Image to text shows an image and asks learners to choose matching text; Text to image shows text and asks learners to choose the matching image. The text can be a name, sound, pronunciation, transliteration or another identifying label. Each field has Help; both modes support unsaved Preview, Draft and normal Save. Official courses remain read-only.
+
+### Existing type and navigation rules
+
+Choose the exercise type only when creating an exercise. Once created, the type is locked. This prevents stale fields from one type being reinterpreted as another. To replace a type, create a new exercise, copy/adapt the content, then delete the old exercise.
+
+The editor displays only fields used by the current exercise type. Examples:
+
+- Flashcard: Word/expression, Translation/meaning, Pronunciation TTS, Usage sentence
+- Reading comprehension: Reading passage, Comprehension question, Answers, Correct answer
+- Listening comprehension: Spoken passage, Comprehension question, Answers, Correct answer
+- Word Blocks: Translation prompt, Available word blocks, Correct sentence
+- Audio Match: Three sound matches producing exactly three visible choices, with no distractors
+
+Technical fields such as numeric JSON indices are minimized. Correct choice remains an author-facing answer number for compact editing.
+
+## Exercise presets and Help
+
+When creating an exercise, the grouped searchable picker offers concrete teaching presets rather than internal model names:
+
+- **Translation:** Type the translation, Build the translation, Pick the translation (to target), Pick the translation (to source)
+- **Translation:** Type the translation, Build the translation
+- **Text input:** Type a missing word, Type what you hear, Listen for missing words
+- **Matching:** Match the pairs, Match the words, Match related words, Listen and match
+- **Ordering:** Word order, Image-prompt ordering
+- **Presentation:** Flashcard
+
+The **Exercise Help** action next to the preset control uses the same registry as the picker and validation. It explains what the learner sees and does, the fields and media the author supplies, how correctness is defined, and any restrictions for every available preset.
+
+**Search Exercise Help** filters exercise names, field names, descriptions and examples immediately without regard to case. Clearing restores the full list and prior scroll position; keyboard navigation remains available. This search is separate from Audit Code search.
+
+For **Choose**, Prompt is the instruction (for example, “How do you say this in Italian?”), while Question is the phrase to translate (“Good morning”). For **Contextual comprehension**, Text is the presentation mode; Context text contains the passage and any background, for example: “Marta is describing her daily routine. Marta takes the train to work every morning.” These are not two independent passage fields.
+
+Field Help is directly accessible beside each non-obvious Exercise field, including Context mode, correct-translation entries and Exercise image. Shared definitions explain the field's purpose, what to enter, one versus multiple values, line rules, formatting, validation and useful examples. The same controller can have different semantics in different presets: Flashcard usage lines are presentation, answer-option lines are choices, Build the translation has separate complete-answer entries, and Word order requires one ordered block per line. Help preserves those distinctions. Typed-answer fields explain the existing accepted-answer syntax below; literal Arrange answers and Listen for missing words gap lists do not expand it.
+
+### Type the translation
+
+Provide source-language text and one or more complete accepted target-language translations, one per line. A hint is optional and must not reveal the solution. The learner types freely. A conservative typo allowance accepts only one accidentally omitted or duplicated repeated letter in a sufficiently long single token while preserving word count, order, diacritics and negation safeguards; substitutions and broader lexical or grammatical changes are not treated as spelling mistakes.
+
+### Pick the translation (to target / to source)
+
+Select exercises in the Translation category. Enter only the text to translate, an optional exercise image, the answer options (one complete translation per line) and the number of the one correct option. To target: the text is in the course source language and the options are target-language translations. To source: the text is in the course target language and the options are source-language translations. Direction, languages, selection mode and the learner instruction are implied by the type; QQL generates the single learner instruction `Choose the correct [language] translation`, so do not write one. A tap is checked immediately, a wrong answer reveals the correct answer, and there is no Check button. An optional audio button plays target-language text only (the text itself for to source; the correct answer after answering for to target) and is greyed out when the learner has audio or TTS off; the exercise is never skipped for lack of audio. Answer options: 2 to 5, each a different phrase (repeats are detected ignoring case, extra spaces and final punctuation); the editor refuses to save more than 5 or repeated options. Audit reports a blank text to translate (`TRANSLATION_CHOICE_TEXT_REQUIRED`), more than 5 options (`TRANSLATION_CHOICE_TOO_MANY_ANSWERS`), too few, repeated or invalid answers, and unused fields such as a prompt or spoken text.
+
+### Build the translation
+
+Provide source-language text, literal target-language blocks and one or more complete correct translations. Add, delete and reorder answers directly; their order is preserved in saved JSON and feedback. Each answer must be non-empty, unique after case/spacing/terminal-punctuation normalization and constructible from distinct block occurrences. Repeated words require repeated block occurrences, internal punctuation is preserved, and no more than two unused blocks are recommended (Course Audit Info, not an error). Build the translation uses literal matching only: it does not expand Type-the-translation syntax and does not apply similarity or typo acceptance. After either a correct or incorrect response, every configured correct translation is shown in author order.
+
+### Contextual comprehension
+
+Question and Context are separate. Choose text, audio, or text and audio context, then provide answer choices and the correct answer. Dialogue is optional and is entered as one `Speaker: text` turn per line; ordinary prose is also valid context. An exercise image may supplement the context. The learner reads and/or listens, then answers the separate question.
+
+### Accepted-answer variants
+
+Multiple complete equivalent answers can always be entered as separate lines. Compact syntax is optional:
+
+- `{Io} prendo un cappuccino` makes `Io` optional.
+- `{Io} [prendo|vorrei] un cappuccino` declares alternatives.
+- `[*:I want|We want] [*:a coffee|two coffees]` links alternatives by index, producing two paired answers rather than four cross-combinations. Use at least two linked groups with equal counts.
+- `(non arrivo <> oggi)` allows only those declared phrase parts to swap inside the parentheses.
+- `a casa <> domani` applies reordering to the whole expression when no parentheses are present.
+
+Syntax is validated before save. Expansion is deterministic, duplicate results are removed, and the combined limit is 128 answers; larger combinations must be split or simplified. During `<>` reordering, final punctuation such as `.`, `?`, `!`, `…` and `?!` is detached and reattached only at the generated sentence end; internal punctuation is not moved. Generated variants capitalize the first alphabetic character of the sentence and after `.`, `?` or `!`, remove merely structural capitalization when a common phrase starter moves inward, and preserve distinguishable proper names/acronyms such as Jane, Roma and USA.
+
+QQL applies its established case, punctuation, whitespace, apostrophe and accent rules for acceptance. Typed feedback names only differences actually used—such as capitalization, ignored punctuation, normalized whitespace, omitted diacritic or the explicitly allowed typo. Exact answers show no false reason. Translation feedback uses the three-correction/two-alternative limits described above; other typed presets retain their canonical Correct answer. Display ranking independently scores exact shared words, graded word-level spelling similarity, incompatible extra words, missing candidate words and common word order, with author order as the exact-tie fallback. This display choice never turns an incorrect response into a correct one.
+
+## Exercise Creation Wizard
+
+In the Round editor, **Creation Wizard** sits beside the unchanged **New exercise** action. Choose between 1 and 30 Exercises, then select one criterion:
+
+- **Balanced mix:** deterministic distribution across registry categories without unnecessary consecutive identical presets
+- **Random mix:** registry-backed selection using deterministic seedable randomness
+- **By category:** cycle through every preset in the chosen categories
+- **Selected exercise types:** cycle through the exact selected registry presets
+- **Repeat a pattern:** preserve the author's selection order and repeat it to the requested count
+
+Reviewing the exact N-entry plan creates no Exercise objects. Confirming starts `Exercise 1 of N` and reuses the normal preset-specific Exercise editor. **Save** validates and remains on the current step. **Preview** uses the same draft and returns without copying or advancing. **Next** validates/saves and advances exactly once; the final action is **Finish**, which returns the created Exercises in order. Cancelling after explicit saves requires confirmation and keeps only those valid saved Exercises; future and invalid placeholders are never inserted.
+
+## Generate Rounds from GuideBook
+
+The Lesson Editor generator uses only the current Lesson GuideBook. It requires at least three usable `target = source` vocabulary pairs and never fabricates material from another Lesson. Authors choose 1–12 Rounds and 1–15 Exercises per Round; defaults are 6 and 8, displayed as `6 Rounds × 8 exercises = 48 exercises`.
+
+Before generation, the plan shows the counts, total, normalized difficulty per Round and registry-backed preset distribution without creating final objects. Difficulty is `0…1` by Round position (or `0.5` for a single Round). Early plans emphasize guided recognition/comprehension and fewer distractors; middle plans add matching, ordering, construction and context; late plans emphasize Type the translation and less-scaffolded production, using only media and example-dependent presets supported by the GuideBook. Concise draft titles use the phase and a relevant vocabulary target.
+
+Generated Rounds remain review drafts. Authors can edit them in the authoritative Round editor, preview, delete or regenerate them. **Approve and add Rounds** first requires a clean error-level Course Audit, then allocates final fresh IDs and appends the result after every existing Round. Cancelling or merely viewing the plan changes nothing. Automated generation does not guarantee pedagogical correctness; every Round and Exercise needs human review.
+
+## Word Blocks
+
+A Word Block exercise is recommended to have 0, 1 or 2 extra distractor blocks; more are allowed and Course Audit lists them as Info (owner decision of 6 October 2026). The correct sentence is reconstructed from the required block occurrences. Repeated words are counted by occurrence, not only by distinct spelling. Early Lesson rounds should normally use fewer distractors and later rounds may use more.
+
+## Generate exercise set from reading
+
+Open the menu of a Reading comprehension exercise and select **Generate exercise set**. Generation is optional. The reading remains the source exercise.
+
+The author chooses which linked exercises to generate:
+
+- Listening comprehension using the passage, with at least one word-recognition question
+- Audio Match using three distinct words from the passage plus two visible distractors
+- Translation exercises when an exact source/target sentence pair can be inferred from existing course content
+- Word Block translations when an exact sentence pair can be inferred, including one distractor block
+
+Generated exercises are previewed before insertion and passed through Course Audit. QuisquisLingo does not invent a translation when no reliable pair exists; the author can create that translation manually.
+
+## Course Audit
+
+Run **Course Audit** from the retained text entry at the top of Course Editor. The duplicate AppBar Audit icon is absent; Audit behavior, rules, counts, filters, results, navigation and other entry points are unchanged. Severity levels:
+
+- Error: structural or functional problem likely to make an exercise invalid
+- Warning: likely authoring problem or non-standard structure
+- Info: non-blocking guidance or neutral authoring information
+
+Checks include:
+
+- duplicate or missing IDs
+- empty courses/lessons/rounds
+- round length versus the standard 15
+- unsupported exercise types
+- missing/out-of-range correct answers
+- duplicate/blank options
+- listening exercises without TTS
+- empty Reading passages (Error), or one- and two-word lexical Reading passages (`READING_PASSAGE_TOO_SHORT` Warning); three or more Unicode/apostrophe-aware words do not warn
+- hints that repeat the prompt (`HINT_REPEATS_PROMPT` Warning) or reveal any canonical accepted answer (Error)
+- Word Blocks with more than two distractors or with impossible token counts
+- Flashcards without usage or pronunciation
+- Audio Match repeated sounds, repeated correct matches, repeated visible choices, missing matches, or a count other than three sound/text pairs without distractors
+- icon/answer count mismatch
+- fields that do not belong to the selected exercise type
+- likely source/target capitalization inconsistency
+- repeated prompt/question inside one round
+- unavailable Lesson Duels after applying the actual eligibility rules
+
+Audit does not certify grammar, translation accuracy, cultural appropriateness or teaching quality. Those remain human editorial responsibilities.
+
+A Lesson with fewer than six Rounds receives author guidance only. Missing Reading- or Listening-comprehension coverage produces no finding. Existing malformed Reading comprehension still receives its normal validation findings. Duel availability never depends on Round count: when Create Duels is ON, fewer than 25 actual eligible Lesson exercises produces the non-blocking `DUEL_UNAVAILABLE` Info finding. Turning Create Duels OFF suppresses only this Duel finding.
+
+Audit can sort by Lesson, friendly Exercise type or **Recently modified**. Recent order is `updatedAt` descending with deterministic stable tie-breaks. Displayed and exported findings are numbered progressively inside each severity group after the active scope, filter and sort are applied.
+
+Open **Editor Help → Technical reference → Audit Codes** to browse the shared registry grouped in Errors, Warnings and Info order. All three independently selectable category filters start enabled; any one, any two or all three may be shown, and code/descriptive-text search applies only within the selected categories. Every currently emitted rule is defined in the registry shared by Audit and this reference, with its severity, scope, meaning, trigger, creator action and blocking status. Known rules have specific stable codes; `GENERAL` is only a defensive fallback for an unexpected unclassified finding.
+
+## Storage and recovery
+
+QQL 233.03 uses clean Course Model v9/build-233030 namespaces for custom Courses, external official Courses, corrupt-backup data and bundled discovery. Course Model v8 namespaces and earlier Course formats remain physically untouched but are not read, migrated, transformed or used as fallback. Every v9 custom Course requires immutable Original Course Creator/Created provenance plus one stable individual Maintainer; optional Team management uses a separate assigned Team ID. External official storage loads only its publisher source; bundled loading uses only the bundled asset. Old official overrides remain physically untouched but are not read as content, migrated or converted into forks. A complete custom Course is validated structurally before saving and before learner use. Malformed current-namespace JSON is preserved and copied aside before loading fails clearly; it is never silently replaced with an empty collection. Local authoring data has an 8 MB safety limit.
+
+Each successful confirmation of an existing custom course first writes a verified backup below:
+
+the public Backups folder beside Import and Export, `Documents/QuisquisLingo/Backups/Courses/QQL_bkp_<pair>_<ID>` (`Download/QuisquisLingo/Backups/Courses/…` on Android; Build 255 Revision 5). `<pair>` is the Course's language pair, source then target, such as `EN_IT` or `IT_NAP`, and a QQL-made ID is written without its `course_` prefix. Each saved version is `QQL_bkp_<pair>_<ID>_v<version>_<date-time>.json` with its `…_assets` folder. When a confirmed change alters the Course's languages, the folder is renamed to the new pair; saved versions keep the names of the languages they had. On Android the backups are ordinary files QQL writes itself: Android 7–10 ask once for the storage permission (a refusal stops the confirmation, and the working copy stays open), and Version History lists only the backups this installation of QQL made. Version History lists the versions it can read and names any other file in the folder. Revision 4's private `QQL_CourseBackups`, Revision 3's `qql_course_backups_v11`, the backups a desktop kept in `Documents/QuisquisLingo/Exports/Course Backups v11` before then, and the former `Course Backups v9` folder of v9/v10 Courses are kept but no longer read; the one-off `tools/move_private_storage_255.dart` moves the first three to the Backups folder.
+
+The manifest contains the complete Course Model v9 JSON, Original Course Creator/Created and fork provenance, individual Maintainer, optional Team assignment, structured attribution, License/Rights Holder metadata, custom or official versions, Last Version Editor, Modified timestamp, reason, optional version notes, SHA-256 integrity data and referenced managed audio. Timestamps are displayed in local date and time. Asset copies are verified before persistence begins. Backups are never pruned or silently deleted.
+
+**Version History** lists the current version and verified backups newest first, with the exact backup folder and portable JSON export. An earlier version exported from there is named `QQL_bkp_<pair>_<title>_v<version>.zip`, so it is not mistaken for the current Course. Custom history permits restore into the working copy. Official history contains publisher versions only, with no local restore/copy action; the explicit licensed fork workflow is on the official inspection page. Obsolete local-variant history files remain on disk and are not loaded or presented as official versions. Restore never writes directly to the live course: it becomes another pending working-copy mutation and the next confirmed version remains monotonic. Corrupt or incomplete history is reported and never silently accepted.
+
+## Course origin and official updates
+
+Course Model v9 distinguishes `custom`, `bundledOfficial` and `externalOfficial` origin. Bundled official Course assets are immutable source versions. External official files retain publisher identity and a verified or unverified status. Custom Courses created or imported locally never acquire official provenance by title or Course ID.
+
+An official update requires the same stable course ID and publisher, a newer official version, and a matching content checksum. QuisquisLingo archives the previous official source first, then installs the new official source without a content merge. Only the official source changes; existing custom forks and their histories remain unchanged. A file whose publisher authenticity cannot be established can only be installed after an explicit warning and is labeled **External official — unverified**. A failed archive or write leaves the previous course unchanged.
+
+For custom Courses, the first confirmed creation is internal version 1. Later confirmations increment by exactly one. Official Courses use only their publisher's official version and cannot be confirmed through a local authoring transaction. The active local QQL profile is required: New Course and Copy as New Course record it as Original Course Creator and Maintainer; Fork records it as Fork Created By and Maintainer; every confirmed custom version records the responsible profile as Last Version Editor and updates Modified. A missing active profile blocks confirmation rather than inventing identity.
+
+## Provenance, maintenance, rights, Copy as New Course and Fork
+
+Every Course keeps distinct semantic groups. **Original Course Creator** and **Original Course Created** are immutable lineage provenance. **Course Maintainer** is the current individual operationally responsible for a custom Course; optional **Assigned Team** is separate management access. Structured Authors/Contributors are attribution. **License** and one-or-more person/organization **Rights Holder** entries are descriptive legal metadata. **Last Version Editor** and automatic **Modified** describe the current Course version. Fork-only source, Fork Created By and Fork Created Date metadata describes a particular derivative instance. Provenance, attribution and rights metadata never grant QQL permissions.
+
+The individual Maintainer and every current member of the assigned Team can edit and Copy as New Course regardless of the selected license, but only the Maintainer can transfer maintenance or assign/revoke a Team. Team leadership governs Team administration, not Course maintenance. An outsider cannot edit or Copy as New Course from the source; they may Fork only when derivative works are explicitly allowed. See [Team Manager](TEAM_MANAGER.md).
+
+Course Info Editor exposes the Maintainer and Team controls only to the current Maintainer while the Editor is in Edit mode. Everyone else sees them read-only. Any user with normal Edit permission may edit Rights Holder; naming a person or organization there does not grant access. Assigning a Team requires confirmation of the practical consequences: the Course remains maintained by the individual Maintainer, current and future Team Members or Team Leaders may receive QQL management access as membership changes, and the Maintainer may revoke the assignment. QQL permissions do not by themselves decide copyright, contracts or authority outside QQL.
+
+**Fork as custom course** is enabled only when `derivativeWorksPolicy` is `allowed`. Forbidden and unspecified policies do not enable a fork. The restored standard license selector supplies the established derivative meaning, while a custom license also records the explicit derivative policy. A human-readable credit/name is never interpreted as a grant. No bundled course currently grants derivative permission.
+
+A **Fork** receives fresh Course/content IDs, the active profile as Maintainer and Last Version Editor, no automatic Team assignment, and a persisted version-1 baseline before its first ordinary Editor session. It inherits Original Course Creator/Created, structured Authors/Contributors, Rights Holder and applicable License; records its immediate source Course and version; and adds immutable Fork Created By/Date. Later changes use ordinary custom backups and version history. Official updates never merge, rebase, or replace an existing fork.
+
+**Copy as New Course** also receives fresh IDs and a persisted baseline, but starts a new independent lineage. The active profile becomes Original Course Creator, Maintainer and Last Version Editor; Original Course Created and Modified initialize for the new instance; Assigned Team and all fork fields are absent. Content, structured attribution, Rights Holder and applicable License are copied without implying a transfer of legal rights. Copy as New Course remains available only to an authorized Maintainer or assigned-Team member.
+
+## Word Blocks language rule (0.4.25)
+
+A Word Blocks exercise is recommended to contain 0, 1 or 2 extra distractor blocks (Course Audit Info when more). A distractor in the same language as the other visible blocks is recommended (Course Audit Info when a distractor is recognized as another language). This is determined by the language of the answer blocks, not simply by the course target language, because translation exercises can run in either direction.
+
+For **Build the translation**, enter every correct translation as a separate complete literal answer. Terminal `.`, `!`, `?` or `…` punctuation is not an artificial block: each answer resolves to stable canonical Item occurrences while retaining its literal display text.
+
+The bundled-course validator builds conservative source/target lexicons from explicitly oriented matching pairs and flashcards and reports high-confidence cross-language distractors. The in-app audit validates the structural invariant of 0 to 2 usable extra blocks. Language identification is intentionally conservative: ambiguous words shared by two languages must not be auto-rejected solely on spelling.
+
+Capitalization should be consistent across paired sentences and expressions while preserving language-specific orthography, especially German noun capitalization.
+
+## 0.5 authoring behavior
+
+Course Manager is an unlockable Creator mode inside the same QuisquisLingo app. Tap
+or click the version label 10 times within about five seconds to unlock it. The
+Duel victory sound confirms the unlock when sound effects are enabled.
+
+The editor can work with an entirely empty course. An empty course shows
+**Create first Lesson** rather than failing. Lessons, Rounds and
+Exercises can be created, deleted and reordered within their parent. Every learning
+Lesson has its own editable Guidebook. Deletions require confirmation. Exercise type is selected only at
+creation time and cannot be changed afterwards; create a replacement exercise
+when a different type is needed.
+
+Word Blocks are recommended to contain 0, 1 or 2 extra distractors in the same
+language as the blocks. The learner is expected to leave any distractor blocks
+unused. Early Lesson rounds should normally use fewer distractors than later ones.
+
+A Reading comprehension exercise can optionally generate a linked draft set:
+Listening comprehension, Audio Match, translation exercises and Word Blocks.
+Generation is opt-in and previews the drafts before insertion. Automatically
+generated Word Blocks only take a distractor from the same-language passage;
+when no safe distractor exists, that derived Word Block is not generated.
+
+Each learning Lesson has a dedicated **Lesson GuideBook** available from the Lesson
+page. Its primary fields are **Overview**, **Usage examples**, **Vocabulary** and
+**Grammar**, in that order. **Insights** opens a second authoring page for ordered
+sections containing **Title** and **Text**. Add, edit, confirmed removal and reorder
+operations remain in the current GuideBook working copy until **Save Guidebook** or
+**Save Guidebook as draft**; saved Insights reload with the Course. Older v6 files
+without Insights load an empty list, and existing GuideBook content that does not
+map to the primary fields is retained. GuideBook vocabulary and examples remain
+the sole source for the configurable draft-Round generator described above.
+Planning, generation and approval remain separate; existing Rounds are never
+replaced.
+
+Course Audit treats an empty course/Lesson as authoring guidance rather
+than a learner-runtime crash. It continues to report invalid answer indices,
+missing fields, duplicate IDs, duplicate Audio Match words, malformed Word
+Blocks, malformed actual Reading/Listening content, oversized text and other structural
+problems. Audit does not certify grammar or translation accuracy.
+
+The Audit can be scoped to a Course, Lesson or Round and sorted by Lesson, friendly Exercise type or Recently modified. Error, Warning and Info retain their distinct semantics: only Error is structurally blocking, while Error and Warning both produce the red authoring border. A current branch with neither receives the luminous green border; Info alone remains green. The independent blue Draft badge follows each container's own Draft state and Draft descendants through the same hierarchy. Emptiness alone does not create Draft state; an explicitly Draft empty container still displays its blue badge. A Lesson with fewer than three Rounds receives Info guidance; missing Reading or Listening comprehension does not. Results derive from the current authoring candidate after mutations.
+
+## Temporary sample courses
+Bundled or custom Courses may carry the course-level `temporarySample` flag. **View Course Info** presents its Temporary Sample description. The main Course Editor does not repeat the badge, description or reopen warning. The flag remains canonical metadata, survives unrelated saves, Copy as New Course/Fork paths and export, and has no editor menu action. Sample material must still be replaced and human-reviewed before publication.
+
+## Preview mode
+Round and exercise previews launch the learner renderer but suppress all progress writes, XP, streaks, Review history, unlocks, Status and laurel crowns. A temporary result may be shown and is discarded on exit.
+
+## One-time notice
+The first Course Editor opening explains that bundled material is sample content. Settings > Do Not Disturb > Show one-time notices again makes this and future one-time notices eligible to appear again. The learner-level Guidebook availability notice is deliberately separate.
+
+## Course Audit filters and reports
+Course Audit can show All, Errors, Warnings or Info without changing the underlying audit result.
+
+**Copy report** copies the complete current Audit result as deterministic plain text. **Export report** writes that same complete result to `Documents/QuisquisLingo/Export/AuditReports` with a filesystem-safe Course/timestamp filename. Report filtering affects only the visible list: reports retain every Error, Warning and Info plus their stable codes and Course/Lesson/Round/Exercise context. A failed export displays an error and never claims that a file was created.
+
+
+## Recorded audio
+
+**What do you hear? > Spoken text** stores the exact requested utterance, for example `Buongiorno, come stai?`, not a filename. System TTS sends it to the device’s native speech engine; no MP3 is required. Recorded mode resolves it using Course Audio Library text mappings; Hybrid tries a complete recorded sequence before native TTS. The Editor explains the current Course mode beside the field. Associate imported recordings through **Course Editor > Audio Library > Associate recording > Word or expression**. There is no per-exercise file attachment.
+
+Bundled and custom courses share one speech-language resolver. A valid explicit locale is preferred; otherwise unambiguous learning/target language metadata resolves legacy values such as `und` plus `Italian`. Case and underscore/hyphen differences are normalized. Voice selection prefers an exact locale, then the same complete base language only. Missing/conflicting metadata is reported separately from installed-voice availability; Windows enumerates voices for each request. Existing course data is not rewritten.
+
+Course Editor > Audio Library supports System TTS, Recorded MP3 only, and Hybrid playback. See `docs/AUDIO_LIBRARY.md`.
+
+**Import MP3** reads all `.mp3` files in `Documents/QuisquisLingo/Import/Audio`, up to 50 MB (52,428,800 bytes) per file, and copies their original bytes into the Course's own media folder, derived from the stable Course ID, named by content (`media:<sha256>.mp3`; Build 243). It reports a missing source set or oversized file. **Open from…** picks one or more MP3s (up to 100 files and 250 MB per batch) and ends with a per-file summary. Since Build 243 Revision 13 every route (fixed folder, Open from…, and `.mp3` media in an imported Course ZIP) runs `Mp3Validator`: MPEG-1/2/2.5 Layer III frames only, at least four back to back with no truncated or trailing bytes, ID3v2/ID3v1/APEv2 tags within 2 MB, and no embedded artwork (`APIC`/`PIC`). A fixed-folder batch with one refused file imports nothing; a recording already in the Course is skipped. It does not re-encode audio or impose duration, bitrate or sample-rate rules. Preview each imported recording and map it to its exact spoken word or expression. The source files remain in place, so remove them from the transfer folder after a successful import to avoid repeated imports. The metadata and references belong to the Course; Course JSON stores metadata and content references, not MP3 bytes. Verified course-version backups copy referenced recordings; JSON alone and learner **Export my data** do not transfer course audio. A distributable Audio Pack exporter is future work, not an available authoring action.
+
+
+## Flat image library
+
+The editor can assign, change or remove an optional image on any exercise. Choose from 111 bundled, audited 256 × 256 lossless flat WebP assets or import a custom PNG/JPG/WebP. The Media Library searches localized display labels, stable IDs, categories and bilingual semantic tags; its cards and selected-image preview expose those tags to authors. Tags are never written onto or displayed beside learner exercise cards. Built-in assets are referenced by stable path and are not duplicated when reused. Sample courses use images only where they support the task without revealing an answer.
+
+For **Import custom image**, keep exactly one PNG, JPG/JPEG or WebP in `Documents/QuisquisLingo/Import/Images`. Maximum size is 50 KB (51,200 bytes). The suggested 256 × 256 resolution and 15 KB or less are recommendations, not enforced pixel dimensions. Import checks the extension, file count and byte size, then copies the original bytes to local app storage without decoding, resizing, cropping or changing transparency. Missing/multiple sources and oversized files stop import; Preview reports missing or unreadable images. The source stays in place. Course JSON retains the local image path and does not embed custom exercise image bytes, so these images are not portable through course JSON alone. Image-prompt ordering requires an image; other current presets may omit it.
+
+**Import Image Bank ZIP** uses the same folder and requires exactly one ZIP containing `image_bank_manifest.json` and its referenced PNG/JPG/JPEG/WebP assets, and nothing else (see `docs/IMAGE_BANK_PACKAGES.md`). Each entry needs a unique `id`, `primary_term` or `label`, and a safe `filename`. Since Build 243 Revision 14 the ZIP is read by `BoundedZipReader`, and categories the library does not have go to the Admin, who files them under one of the library's categories or Other (Build 264 Revision 2), before anything is written. Limits are 50 MB ZIP, 2 MB manifest, 5000 archive entries, 2500 image entries, 50 KB per image and 50 MB total decompressed image bytes. Import rejects missing files, duplicate/colliding IDs, duplicate filenames, unsafe paths, unsupported extensions and exceeded limits. It copies unchanged image bytes and a local manifest to app storage. It does not normalize dimensions or transparency, and imported bank image paths in course JSON are still device-local. Keep the original bank package separately; the source ZIP is not deleted by import.
+
+
+## Missing Word
+Course Editor supports `missing_word` exercises. Enter the complete passage transcript, the audio text, and one or more words/expressions to hide. Learner mode plays TTS/recorded/hybrid course audio, shows the transcript with blanks, and enables Check as soon as at least one answer field contains text. Course Audit verifies that every hidden word occurs in the transcript and that audio text is present.
+
+
+## Small-screen authoring
+
+Course Editor dialogs and author rows are designed to stack vertically on narrow screens. Long labels, custom roles, course metadata and audit messages must remain scrollable and must not require a desktop-width window. Test the editor at approximately 320 logical pixels wide and with enlarged system text before release.
+
+## Audit and edge cases
+
+Course Audit should be run after structural edits and before distribution. It checks IDs, Round structure, exercise invariants, the actual Lesson-local Duel eligible pool, suspicious duplicate content, early Opposite exercises, isolated-word capitalization, author metadata and long descriptions. Automatic `modifiedAtUtc` is version metadata rather than a manually editable audit field. Audit codes are stable identifiers for reporting a rule even if its explanatory text changes.
+
+
+## Course Info Editor metadata, languages and flag
+
+Course Info and Course Info Editor display **Base language** and **Learning language** as read-only names with their authoritative general or variant codes, for example `English (en-GB)`, `Italian (it-IT)`, or `English (en)` when only a general code exists. Valid stored variants are preserved; absent/malformed codes use the established language-name fallback without inventing a region, and `und` is never presented. Editing the language identity remains disabled because it can affect TTS, instructions, validation and content semantics.
+
+Both surfaces format **Original Course Created** and **Modified** through the current interface locale with a four-digit year. Opening or inspecting a course does not write either timestamp. A confirmed content save preserves Original Course Created and advances Modified through the existing authoring transaction.
+
+Course Info Editor shows a live resolved Course flag. **Automatic** removes all explicit flag fields and uses the authoritative learning-language code fallback. **Choose Course flag** opens the same searchable visual picker used by New Course. It orders deduplicated choices as **Suggested for [learning language]**, **Flags from installed QQL courses**, **Built-in QQL collection**, and the remaining **World Flags collection**. Search covers names, aliases, IDs, flag codes, language names/tags and source Course names. Suggestions come from explicit manifest metadata, may offer several meaningful flags and never change the current choice until the author selects one. Read-only courses show the same resolved preview in Course Info without editable controls. Course Info, Course Selector, Learner Page, flag-derived backgrounds and Course Entry Animation all consume the shared resolver and retain a neutral result when no suitable flag exists.
+
+A shared built-in or World Flag stores only its stable value. An authorized reusable custom raster discovered in another installed Course is decoded, validated, normalized and embedded in the destination Course; identical normalized bytes are deduplicated in the picker. The stored selection contains no source-Course identity, so deleting the source Course cannot break the destination, and existing v9 export/import and Copy as New Course portability remain authoritative. This reuse does not grant editing or derivative rights and is exposed only through the existing Course access policy.
+
+An author can have multiple roles. The standard set is Author, Team Leader, Contributor, Editor, Reviewer, Native Speaker, Audio Contributor and Illustrator, plus custom roles. Author means original authorship/design of a substantial part of the Course; Editor means ongoing maintenance or substantial revision of existing content; Contributor means a specific or limited contribution. Team Leader is a credit label and is unrelated to the stable-ID Team Leader permission in Team Manager. Reviewer, Native Speaker, Audio Contributor and Illustrator describe narrower contributions. Roles describe contributions, not authorization or hierarchy. They are also distinct from Original Course Creator, Course Maintainer, Fork Created By, Rights Holder and Last Version Editor.
+
+## Beta expiry and authoring
+
+The current time-limited Beta expires on 2026-10-16 under the established 30-day release policy. Expiry blocks learner exercises and Review but deliberately leaves Course Manager and Course Editor available so authoring work can be inspected, recovered and exported. Expiry never deletes local data.
+
+
+## Bundled official and local courses
+
+The Course Manager entry screen identifies bundled official sources and groups stored custom or external-official installations under **Local courses**. A created or ordinarily imported Course remains custom even when it is currently selected. Temporary sample material refers to bundled sample Courses supplied with early/current development builds and is progressively replaced by reviewed Course content. **New Course** uses the shared v9 metadata model: standard/custom License, structured multi-role Authors/Contributors, optional structured Rights Holders, variant, level range, description/information and optional Buy a Coffee URL. The active profile becomes Original Course Creator and may remain Course Maintainer or select another local individual; Teams are never Maintainer choices. Original Course Created is set automatically, and Last Version Editor/Modified are managed by confirmation rather than manual fields. It asks for **Number of Lessons** (default **3**, whole numbers **1–100**) and **Rounds per Lesson** (default **1**, whole numbers **1–20**). Missing, non-numeric and out-of-range values show inline errors and disable creation. Accepting the defaults prepares exactly three Lessons with one untitled Round each: three Rounds total, each containing exactly one Draft **Choose** sample Exercise. **Each Round starts with a sample exercise.** Valid custom counts create the full ordered hierarchy atomically with fresh stable Lesson/Round/Exercise/Item IDs. Each Lesson retains a stable Lesson-scoped Duel identity. Samples use language-labelled editable placeholders for the source instruction/question and target answer, plus the literal `Wrong Answer` distractor. They require author review and explicit normal Save; neither opening nor editing a Course creates more samples. Canonical Audit and Draft propagation remain active; genuinely empty Rounds still receive `ROUND_CONTENT_EMPTY`. The Course remains an unpersisted working copy until its first **Confirm course changes** creates internal version 1; cancellation leaves no stored Course.
+
+Create Course and Course Info Editor render helper/secondary text in multiline wrapping layouts at normal and narrower reasonable widths. The Course Maintainer helper is concise and does not include the redundant `Choose an individual user.` sentence. Assigned Team, Course Name, Custom Role(s), Buy a Coffee and the other metadata helpers wrap rather than being clipped or forced into smaller type.
+
+These two counts control initial scaffolding only. They are not stored in App Settings or Course Info Editor and introduce no model, import or editing limits. Existing and imported courses may exceed 100 Lessons or 20 Rounds per Lesson. You can add or delete Lessons and Rounds later through the normal editor workflow. A manually added Round starts with exactly one Draft **Choose** sample from the same language-adapted factory used by New Course; copied, moved and imported Rounds are unchanged.
+
+When creating a custom course, the visual **Choose Course flag** picker offers Automatic, language-aware suggestions, reusable flags from installed Courses, built-in QQL flags, the World Flags SVG library and a custom upload. World Flags stores its stable `worldFlagId`, preserving the source artwork rather than inventing a one-language/one-country mapping. Custom uploads keep the validated PNG/JPEG workflow described below and embed the processed PNG so the original transfer file is no longer needed.
+
+Courses can be imported from and exported to `.json` files without a file chooser. In Course Manager, **Course Import** opens its own page with visible **Import instructions** and the primary **Import Course JSON** button. For import, copy the Course file to `Documents/QuisquisLingo/Import/Courses/import.json`, then use that button. The imported Course is added under **Local courses** and `import.json` is left in place. Course Audit errors block import; warnings are reported for review but do not block it. Imports must be UTF-8 Course Model v9 JSON and are validated through the normal `Course` parser. v8 and older formats are unsupported and are not read, migrated, converted or deleted; export writes the canonical v9 structure. A custom import must already contain valid Original Course Creator/Created provenance and an individual Maintainer identity; no credit/name/rights fallback is applied. An optional assigned Team is a separate stable ID. Files larger than 10 MB are refused. Origin collisions are handled explicitly: custom content cannot overwrite a bundled or external official identity, and external official replacements require the same Course ID and declared publisher ID, a newer official version and a valid content checksum. An imported outsider custom Course remains read-only unless the active user belongs to its assigned Team. Same-ID custom replacement requires current Maintainer/assigned-Team-member authorization and passes through the ordinary backup, immutable lineage and fork provenance, protected governance changes, monotonic version, verified write and rollback transaction. Publisher authenticity remains unverified in Build 226.01 file imports; installation requires the explicit unverified-publisher warning described above. Exports contain the complete canonical v9 object, including lineage, Maintainer, optional Team assignment, attribution, rights, origin/version metadata and optional custom flag data. Learner **Export my data** remains separate and does not contain Courses.
+
+
+### Home course selection and navigation
+
+The compact flag in the Home Top Bar opens the full-size course selector, which lists bundled courses and every locally available custom course, including courses created in the editor and courses imported from JSON. Selecting one makes it the current course. The unified learner page resumes the active learner at the last Lesson opened in that specific course; first use falls back to Lesson 1. When real Section metadata exists, the fixed Section selector opens the ordered consecutive Section blocks and jumps to each block's first Lesson; consecutive unsectioned runs appear only in that UI as `Other lessons`. Courses with no real Sections show no Section selector. Back from a Round returns directly to the unified Home learner page.
+
+### Copy edits as JSON vs Export course JSON
+
+**Copy edits as JSON** copies the current working Course Model v11 object to the clipboard and does not create a file. **Export Course ZIP** writes the canonical v11 JSON and every referenced Course-owned image and recording to one ZIP in `Documents/QuisquisLingo/Export/Courses`, named `QQL_<pair>_<title>.zip` with the Course's language pair, source then target, such as `QQL_EN_IT_my_course.zip` (Build 255: the **Quick Export** button on the Export Course screen). An unused Shared Image Library image does not enter the ZIP; a selected one is copied into Course media and does. Bundled QQL assets remain supplied by the app. Export does not confirm or persist the editing transaction.
+
+Image labels in the Course Editor describe source, storage and use: a bundled image shows `QQL` and `IN USE`; an Admin-added shared image shows `DEVICE`, `COURSE` and `IN USE`; and a directly imported image shows `COURSE` and `IN USE`. `COURSE` means the bytes are in the Course folder, while `IN USE` means the Course references the image, wherever it is stored. The Shared Image Library itself shows only `QQL` or `DEVICE`; using an image in a Course does not change its library label. In a Course's Image Library, an Admin-added image and its Course copy appear as one tile labelled `DEVICE`, `COURSE` and `IN USE`; if the original has since been deleted from the device, the copy appears alone as `COURSE`. Badges are deliberately small and sit over the image's bottom-left corner, one per row on a translucent backing, in both the Image Library and the exercise image preview. The category and badge filters use compact chips without a checkmark; the selected chip is filled. Badges are listed with `IN USE` first, then `QQL`, `DEVICE`, `COURSE`. The Image Library search offers a badge filter (All badges, `IN USE`, `QQL`, `DEVICE`, `COURSE`) beside the category filter whenever the listed images carry more than one kind of badge. The sort menu orders images by Name (A–Z, the default), Newest or Oldest added, or Largest or Smallest file. The added date is derived from the stamp QQL puts in an imported image's ID or Image Bank ID, or from when a Course-stored file was written; bundled images count as the oldest. For an Admin, the delete (single import) or remove-bank control sits in the bottom-right corner of the image rather than on a row of its own. In the Course Editor's Image Library, anyone editing the Course sees **Remove from this Course** (bin in the same corner, and in the image preview) on every image the Course uses and on every image stored in the Course, used or not. For a used image, a confirmation lists each place it is used (exercises, presentations, GuideBooks, the cover); removal clears all of them from the working copy, and exercises the Audit then reports as invalid become Draft. For an image stored in the Course, a second question follows: **Remove from Course**, or **Keep in library**, which keeps it in the Course's own library (`imageLibrary`), unused and ready to use again. Closing that question keeps the image. Nothing is stored until the Course is confirmed. **Add images to this Course** (same library, same editors) imports one image, several at once, or a whole Image Bank ZIP into the Course's own library: every image passes the image check, duplicates are skipped, nothing is written if the Course would pass its 300 MB package limit, and a summary lists each file's result. The images stay unused until an exercise uses them, travel in the Course ZIP, keep an Image Bank's names, categories, tags and credits inside the Course, and never enter the Shared Image Library. A QQL image stays in the library and a Shared Image Library original stays on the device. A Course-stored file leaves the Course folder after the confirmed save; a leftover file that neither the saved nor the edited Course uses is deleted at once. Below the image a tile shows only the image name and, when the image has tags, its `Tags:` line, both in lowercase; the category is not repeated because the category filter already shows it.
+
+QQL's own images keep the category and tags QQL gives them; an Admin cannot change them, but can add **Local** words (extra search words on this device, never exported), shown on the tile as `Tags: … · Local: …`. Since Build 264 Revision 2 the categories are QQL's fixed list: an Admin no longer creates or renames categories, and **Manage device categories** appears only to remove one added before. The characters are one category with a second row of subcategories, and since Build 265 Revision 9 related categories are gathered the same way in groups (people, food & drink, body & health, home & things, places & travel, numbers & time, language & grammar, society & culture, history & stories, free time, nature & animals; display only, every picture keeps its one category, and a group's whole name typed in Search finds its pictures); **Search all** (on by default) searches every category; the category in a picture's full view opens that category; Edit metadata suggests, without blocking, a tag different from the picture's name. For an Admin-added image, an Admin can add optional author, license, title and source in the Shared Image Library's **Edit metadata** dialog. Author and license are both required when a credit is entered. Every viewer can read the attribution in the image preview. Choosing the image for a Course captures its current metadata and attribution; a later library edit does not silently rewrite an existing Course snapshot. Export puts that snapshot in both `course.json` and the ZIP manifest.
+
+When `Documents/QuisquisLingo/Import/Courses/import.json` (Build 255; the **Quick Import** button) is imported successfully, QuisquisLingo validates it and lists it under **Local courses**. The stored course no longer depends on `import.json`; the transfer file is left in place. The stable `courseId` identifies the course internally. Course Info Editor remains available even when the course content is locked. Renaming the visible Course name in Course Info Editor does not change `courseId`; the Lock protects structural/content editing, not course metadata.
+
+### Custom course flags
+
+Custom flag import also avoids desktop file choosers. Copy a PNG or JPEG flag image to `Documents/QuisquisLingo/Import/Flags/` and name it `flag.png`, `flag.jpg`, or `flag.jpeg`, then press **Import flag** in **Create new course**. If multiple supported names exist, the first in that order wins. The input must be no larger than 2 MB (2,097,152 bytes), at least 64 × 40 pixels, and at most 4096 pixels on either side. QQL checks the actual PNG/JPEG signature, decodes the first frame and reduces large images to at most 256 pixels on the longest side while preserving proportions; smaller accepted images are not enlarged. There is no square canvas or cropping. Existing PNG transparency is retained, while JPEG keeps its opaque background. The result is embedded base64 PNG in the Course and survives course JSON export/import, backups and duplication without the original source. Import leaves the source in place. Missing, empty, unsupported, unreadable, oversized, too-small or over-resolution images and failed PNG conversion produce errors. Course JSON import separately checks the embedded flag's base64 validity and its 1 MB encoded-data safety limit.
+
+
+## Fixed authoring import folders (1.1.8)
+
+Build 255 names every such folder by a logical storage role (see `docs/255_STORAGE_PLAN.md`). Since Revision 3 every system uses the same folders below its QuisquisLingo folder (`Documents/QuisquisLingo` on desktops, `Download/QuisquisLingo` on Android): `Import` and `Export` with one subfolder per kind, `Logs`, and `ToBeMerged/Courses` for Course Merge.
+
+To avoid desktop file-picker and portal dependencies, creator media imports use fixed folders under the user's Documents directory:
+
+- Images and Image Bank ZIPs: `Documents/QuisquisLingo/Import/Images`
+- Recorded MP3 files: `Documents/QuisquisLingo/Import/Audio`
+- Custom Lesson icons: `Documents/QuisquisLingo/Import/LessonIcons`
+- Custom course flags: `Documents/QuisquisLingo/Import/Flags` with the exact supported flag filename
+
+For a single-image import, keep exactly one supported image file in the Images folder. For an Image Bank package, keep exactly one ZIP in that folder. Audio Library imports every MP3 currently present in the Audio folder. Source files are not deleted automatically.
+
+## 226.04 revision 1 exercise guidance and Audit
+
+Fill in the blank uses **Use ___ (3 underscores) for the missing word. Example: The cat ___ black.** A nonempty Hint appears through the shared learner and Preview renderer, both before Save and after reloading saved content. Empty Hints remain absent and correct-answer validation remains unchanged.
+
+The canonical Audit Registry contains **101 rules**. The obsolete `COURSE_DATE_INVALID` warning was removed with the manual Last Updated field; automatic `Modified` metadata is validated by the Course Model instead. The sample-only `ROUND_CONTENT_SHORT` Info comparison remains removed. Real empty-content, integrity, minimum-content guidance and Error/Warning predicates remain; `ROUND_CONTENT_LONG` retains its existing pacing Warning without sample-comparison wording.
