@@ -25,6 +25,7 @@ import 'publisher_course_export.dart';
 import 'publisher_export_memory.dart';
 import 'settings_service.dart';
 import 'team_service.dart';
+import 'stored_course_reader.dart';
 
 /// The Course Manager menu entries, in menu order. [study] and [review]
 /// (Build 261 Revision 1) come from [CourseManagerLibrary.studyEntriesFor],
@@ -255,6 +256,7 @@ class CourseImportReview {
     this.receivedUpdate = false,
     this.replaceUnavailableReason,
     this.notExecutableCount = 0,
+    this.existingUnopenable,
   });
 
   final Course course;
@@ -267,6 +269,10 @@ class CourseImportReview {
 
   /// The stored Course already using this Course ID, if any.
   final Course? existing;
+
+  /// The stored Course using this Course ID when this version cannot open
+  /// it (Build 266 Revision 2): importing the Course again replaces it.
+  final UnopenableStoredCourse? existingUnopenable;
 
   /// Offered for a matching custom Course ID; Cancel is always offered.
   final List<CourseImportChoice> choices;
@@ -537,6 +543,12 @@ class CourseLibraryOperations {
     final existing = installed
         .where((candidate) => candidate.courseId == course.courseId)
         .firstOrNull;
+    final unopenable =
+        existing == null && course.originType == CourseOriginType.custom
+        ? await editor.unopenableCourse(course.courseId)
+        : null;
+    final mayReplaceUnopenable =
+        unopenable != null && await editor.mayRemoveUnopenable(unopenable);
     final imported = library.capabilitiesFor(course);
     final ordinaryReplace =
         existing != null &&
@@ -567,18 +579,26 @@ class CourseLibraryOperations {
           .where((issue) => issue.code == AuditCode.exerciseNotExecutable.code)
           .length,
       existing: existing,
+      existingUnopenable: unopenable,
       receivedUpdate: receivedDecision?.allowed ?? false,
-      replaceUnavailableReason: ordinaryReplace
+      replaceUnavailableReason: unopenable != null
+          ? (mayReplaceUnopenable
+                ? null
+                : 'Only its Maintainer, a member of its Team or an admin can '
+                      'replace it.')
+          : ordinaryReplace
           ? null
           : receivedDecision?.unavailableReason,
       choices: [
-        if (existing != null &&
+        if ((existing != null || unopenable != null) &&
             course.originType != CourseOriginType.externalOfficial) ...[
           if (library.importAuthoringEnabled && imported.canCopyAsNewCourse)
             CourseImportChoice.copyAsNewCourse,
           if (library.importAuthoringEnabled && imported.canFork)
             CourseImportChoice.fork,
-          if (ordinaryReplace || receivedDecision?.allowed == true)
+          if (ordinaryReplace ||
+              receivedDecision?.allowed == true ||
+              mayReplaceUnopenable)
             CourseImportChoice.replace,
         ],
       ],

@@ -66,7 +66,7 @@ Future<void> main() async {
         stackTrace,
       );
       unawaited(
-        CrashLogService.instance.record(
+        CrashLogService.instance.recordUnhandled(
           error,
           stackTrace,
           source: 'runZonedGuarded',

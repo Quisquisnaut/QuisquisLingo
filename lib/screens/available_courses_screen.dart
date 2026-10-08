@@ -592,7 +592,7 @@ class _AvailableCoursesScreenState extends State<AvailableCoursesScreen> {
             ),
             const SizedBox(height: 6),
             Text(
-              'The other Courses are listed normally. These files were kept untouched and are not shown. Saving a Course over one of them is refused until the file is moved away.',
+              'The other Courses are listed normally. These files were kept untouched and are not shown. Importing a Course with the same ID replaces one; its Maintainer, a member of its Team or an admin can also remove it in Course Studio or in Advanced (Admin) › Inventory.',
               style: TextStyle(color: scheme.onErrorContainer),
             ),
             for (final file in _unreadable)

@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 
+import 'app_errors.dart';
 import 'app_metadata.dart';
 import 'bounded_log_writer.dart';
 import 'diagnostic_log_service.dart';
@@ -323,7 +324,7 @@ class CrashLogService {
     FlutterError.onError = (FlutterErrorDetails details) {
       FlutterError.presentError(details);
       unawaited(
-        record(
+        recordUnhandled(
           details.exception,
           details.stack ?? StackTrace.current,
           source: 'FlutterError.onError',
@@ -332,8 +333,34 @@ class CrashLogService {
     };
 
     PlatformDispatcher.instance.onError = (Object error, StackTrace stack) {
-      unawaited(record(error, stack, source: 'PlatformDispatcher.onError'));
+      unawaited(
+        recordUnhandled(error, stack, source: 'PlatformDispatcher.onError'),
+      );
       return true;
     };
+  }
+
+  /// An error nothing caught: the full report in the Crash Log, and a short
+  /// entry in the Diagnostic Log, where people look first (Build 266
+  /// Revision 2: an error that made the reset buttons do nothing reached
+  /// only the Crash Log).
+  Future<void> recordUnhandled(
+    Object error,
+    StackTrace stackTrace, {
+    required String source,
+    DiagnosticLogService? diagnostics,
+  }) async {
+    await record(error, stackTrace, source: source);
+    final lines = '$stackTrace'.split('\n');
+    await (diagnostics ?? DiagnosticLogService()).log(
+      AppErrorCode.unexpectedError,
+      context:
+          'Unhandled error ($source). The full report is in the Crash Log '
+          '(Settings › Debug).',
+      exception: error,
+      stackTrace: StackTrace.fromString(
+        [...lines.take(8), if (lines.length > 8) '…'].join('\n'),
+      ),
+    );
   }
 }

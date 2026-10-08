@@ -1,9 +1,11 @@
+import 'dart:async';
 import 'course_library_service.dart';
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import 'course_flag_service.dart';
 import 'course_editor_storage.dart';
 import 'course_file_store.dart';
+import 'stored_course_reader.dart';
 import 'publisher_verification_service.dart';
 
 import '../models/course_models.dart';
@@ -378,7 +380,12 @@ class CourseEditorService {
     }
     final stored = await _customRecord(course.courseId);
     if (stored != null) {
-      final current = _courseFromEntry(stored.entry);
+      final opened = StoredCourseReader.open(course.courseId, stored.entry);
+      if (opened.unopenable case final unopenable?) {
+        await _replaceUnopenable(stored, unopenable, course);
+        return;
+      }
+      final current = opened.course!;
       if (!(await _access.forCurrentProfile(current)).canEditOriginal) {
         final decision = await _receivedCourses.reviewUpdate(
           existing: current,
@@ -435,6 +442,78 @@ class CourseEditorService {
     });
   }
 
+  /// The stored Course with [courseId] when this version cannot open it,
+  /// else null (none stored, or it opens).
+  Future<UnopenableStoredCourse?> unopenableCourse(String courseId) async {
+    final stored = await _customRecord(courseId);
+    return stored == null
+        ? null
+        : StoredCourseReader.open(courseId, stored.entry).unopenable;
+  }
+
+  /// Whether the active learner may remove or replace [unopenable] (Build
+  /// 266 Revision 2): its Maintainer as its JSON names them, a member of its
+  /// assigned Team, or an admin. The access policy needs an opened Course,
+  /// so these are the rules it would apply, read from the JSON.
+  Future<bool> mayRemoveUnopenable(UnopenableStoredCourse unopenable) async {
+    final profileId = await _profiles.getActiveProfileId();
+    if (profileId == null) return false;
+    if (unopenable.maintainerProfileId == profileId) return true;
+    final team = unopenable.assignedTeamId;
+    if (team != null) {
+      try {
+        if ((await _teams.teamsForProfile(
+          profileId,
+        )).any((candidate) => candidate.teamId == team)) {
+          return true;
+        }
+      } catch (_) {
+        // An unreadable Teams registry grants nothing.
+      }
+    }
+    return _profiles.isAdmin(profileId);
+  }
+
+  static String _unopenableRefusal(UnopenableStoredCourse unopenable) =>
+      'The stored Course ${unopenable.shownName} cannot be opened by this '
+      'version. Only its Maintainer, a member of its Team or an admin can '
+      'remove or replace it.';
+
+  /// Replaces a stored Course this version cannot open with [course], the
+  /// same Course ID imported again (Build 266 Revision 2: before, the import
+  /// failed with the old Course's own error, and nothing could remove it).
+  Future<void> _replaceUnopenable(
+    CourseStoredRecord stored,
+    UnopenableStoredCourse unopenable,
+    Course course,
+  ) async {
+    if (!await mayRemoveUnopenable(unopenable)) {
+      throw StateError(_unopenableRefusal(unopenable));
+    }
+    final when = _clock().toUtc();
+    await _store.replaceIfUnchanged(
+      CourseStoreKind.custom,
+      course.courseId,
+      _entry(course, when),
+      expectedToken: stored.token,
+    );
+    final verified = await _customRecord(course.courseId);
+    if (verified == null ||
+        jsonEncode(_courseFromEntry(verified.entry).toJson()) !=
+            jsonEncode(course.toJson())) {
+      throw StateError('Course persistence verification failed.');
+    }
+    await _receivedCourses.clear(course.courseId);
+    await _receivedCourses.recordNewImport(course);
+    await _alignStorageNames(course);
+    await _media.deleteUnreferenced(
+      course.courseId,
+      CourseMediaStore.referencesOf(course),
+    );
+    await _addToImporterLibrary(course);
+    LearnerStatusEvents.publish(LearnerStatusInvalidation.courseMetadata);
+  }
+
   /// The exceptional import-only path keeps the friend's supplied version and
   /// the previous Course backup; no Course Editor working copy is created.
   Future<void> _installReceivedCustomUpdate(
@@ -478,16 +557,25 @@ class CourseEditorService {
     final customSnapshot = await _store.readReadable(CourseStoreKind.custom);
     unreadable.addAll(customSnapshot.skipped);
     for (final item in customSnapshot.records.entries) {
-      try {
-        out.add(_courseFromEntry(item.value));
-      } on FormatException catch (error) {
-        unreadable.add(
-          SkippedCourseFile(
-            item.key,
-            'Stored custom course ${item.key} has an unsupported course format or invalid data. It was preserved and was not loaded. ${error.message}',
-          ),
-        );
+      final opened = StoredCourseReader.open(item.key, item.value);
+      final unopenable = opened.unopenable;
+      if (unopenable == null) {
+        out.add(opened.course!);
+        continue;
       }
+      final fileName = customSnapshot.fileNames[item.key] ?? item.key;
+      unreadable.add(
+        SkippedCourseFile(
+          fileName,
+          'Stored custom Course ${unopenable.shownName} (ID ${item.key}) '
+          'has an unsupported course format or invalid data, so this '
+          'version cannot open it. It was preserved and was not loaded. '
+          '${unopenable.reason}',
+          courseId: item.key,
+          kind: CourseStoreKind.custom,
+        ),
+      );
+      unawaited(StoredCourseReader.log(unopenable, fileName: fileName));
     }
     final externalSnapshot = await _store.readReadable(
       CourseStoreKind.externalOfficial,
@@ -511,11 +599,14 @@ class CourseEditorService {
           );
         }
         out.add(await _publisherVerification.assessStored(source));
-      } on FormatException catch (error) {
+      } catch (error) {
+        if (!StoredCourseReader.isDataError(error)) rethrow;
         unreadable.add(
           SkippedCourseFile(
-            item.key,
-            'Stored Publisher Course ${item.key} could not be loaded. It was preserved. ${error.message}',
+            externalSnapshot.fileNames[item.key] ?? item.key,
+            'Stored Publisher Course ${item.key} could not be loaded. It was preserved. ${StoredCourseReader.reasonOf(error)}',
+            courseId: item.key,
+            kind: CourseStoreKind.externalOfficial,
           ),
         );
       }
@@ -621,7 +712,24 @@ class CourseEditorService {
   Future<void> _deleteUserCourseLocked(String courseId) async {
     final stored = await _customRecord(courseId);
     if (stored == null) return;
-    final course = _courseFromEntry(stored.entry);
+    final opened = StoredCourseReader.open(courseId, stored.entry);
+    if (opened.unopenable case final unopenable?) {
+      // A Course this version cannot open is removed with its media under
+      // the rules its JSON names (Build 266 Revision 2).
+      if (!await mayRemoveUnopenable(unopenable)) {
+        throw StateError(_unopenableRefusal(unopenable));
+      }
+      await _store.removeIfUnchanged(
+        CourseStoreKind.custom,
+        courseId,
+        expectedToken: stored.token,
+      );
+      await _receivedCourses.clear(courseId);
+      await _media.deleteCourse(courseId);
+      LearnerStatusEvents.publish(LearnerStatusInvalidation.courseMetadata);
+      return;
+    }
+    final course = opened.course!;
     if (!(await _access.forCurrentProfile(course)).canDelete) {
       throw StateError(
         'Only the Course Maintainer or a member of the assigned Team can delete this Course.',
@@ -1251,9 +1359,43 @@ class CourseEditorService {
       throw const FormatException('The stored official course is invalid.');
     }
     final record = Map<String, dynamic>.from(raw);
-    final previousSource = Course.fromJson(
-      Map<String, dynamic>.from(record['source'] as Map),
-    );
+    final rawSource = Map<String, dynamic>.from(record['source'] as Map);
+    final Course previousSource;
+    try {
+      previousSource = Course.fromJson(rawSource);
+    } catch (error) {
+      if (!StoredCourseReader.isDataError(error)) rethrow;
+      // Build 266 Revision 2: a stored source this version cannot open (an
+      // earlier GuideBook shape) no longer blocks the publisher's signed
+      // update. Only the same publisher may replace it, as its JSON names.
+      if (rawSource['courseId'] != normalizedUpdate.courseId ||
+          rawSource['publisherId'] != normalizedUpdate.publisherId) {
+        throw const FormatException(
+          'A different publisher cannot replace this official course identity.',
+        );
+      }
+      await _store.replaceIfUnchanged(
+        CourseStoreKind.externalOfficial,
+        normalizedUpdate.courseId,
+        {
+          ...record,
+          'source': normalizedUpdate.toJson(),
+          'savedAt': _clock().toUtc().toIso8601String(),
+        },
+        expectedToken: stored.token,
+      );
+      await _alignStorageNames(normalizedUpdate);
+      await _addToImporterLibrary(normalizedUpdate);
+      await _media.deleteUnreferenced(
+        normalizedUpdate.courseId,
+        CourseMediaStore.referencesOf(normalizedUpdate),
+      );
+      LearnerStatusEvents.publish(LearnerStatusInvalidation.courseMetadata);
+      return OfficialCourseUpdateResult(
+        officialCourse: normalizedUpdate,
+        backupPath: null,
+      );
+    }
     final assessedPrevious = await _publisherVerification.assessStored(
       previousSource,
     );

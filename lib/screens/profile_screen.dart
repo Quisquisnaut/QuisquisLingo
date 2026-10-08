@@ -13,6 +13,7 @@ import 'avatar_settings_screen.dart';
 import 'gamification_settings_screen.dart';
 import 'statistics_screen.dart';
 import 'user_data_settings_screen.dart';
+import '../widgets/reported_action.dart';
 
 class ProfileScreen extends StatefulWidget {
   final Course? course;
@@ -100,7 +101,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _openLearnerProfiles() async {
-    await widget.onManageLearners(context);
+    await runReported(
+      context,
+      'Learner profiles',
+      () => widget.onManageLearners(context),
+    );
     if (mounted) await _load();
   }
 

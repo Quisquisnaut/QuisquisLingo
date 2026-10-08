@@ -11,6 +11,7 @@ import 'update_settings_screen.dart';
 import 'device_administration_help_screen.dart';
 import 'user_data_settings_screen.dart';
 import '../services/storage/qql_storage.dart';
+import '../widgets/reported_action.dart';
 
 /// Admin-only page that gathers the device-level administration features.
 ///
@@ -225,7 +226,11 @@ class _DeviceAdministrationScreenState
 
   Future<void> _manageLearners() async {
     try {
-      await widget.onManageLearners(context);
+      await runReported(
+        context,
+        'Learner profiles',
+        () => widget.onManageLearners(context),
+      );
     } finally {
       if (mounted) {
         setState(() => _loading = true);

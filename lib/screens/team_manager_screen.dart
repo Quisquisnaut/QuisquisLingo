@@ -7,6 +7,7 @@ import '../services/formal_name_policy.dart';
 import '../services/profile_service.dart';
 import '../services/team_service.dart';
 import '../widgets/editor_app_bar_actions.dart';
+import '../widgets/reported_action.dart';
 
 Future<void> _showExperimentalTeamHelp(
   BuildContext context,
@@ -55,14 +56,21 @@ class _TeamManagerScreenState extends State<TeamManagerScreen> {
   }
 
   Future<void> _reload() async {
-    final active = await _profiles.getActiveProfileRecord();
-    final teams = active == null
-        ? const <AuthoringTeam>[]
-        : await _teams.teamsForProfile(active.learnerProfileId);
+    // Build 266 Revision 2: a Teams registry that cannot be read ends the
+    // spinner with a message instead of spinning for ever.
+    final loaded = await runReported(context, 'Team Manager', () async {
+      final active = await _profiles.getActiveProfileRecord();
+      final teams = active == null
+          ? const <AuthoringTeam>[]
+          : await _teams.teamsForProfile(active.learnerProfileId);
+      return (active: active, teams: teams);
+    });
     if (!mounted) return;
     setState(() {
-      _active = active;
-      _mine = teams;
+      if (loaded != null) {
+        _active = loaded.active;
+        _mine = loaded.teams;
+      }
       _loading = false;
     });
   }
@@ -262,16 +270,23 @@ class _TeamDetailScreenState extends State<TeamDetailScreen> {
   }
 
   Future<void> _reload() async {
-    final team = await widget.teamService.teamById(widget.teamId);
-    final active = await widget.profileService.getActiveProfileRecord();
-    final profiles = await widget.profileService.getProfileRecords();
+    final loaded = await runReported(context, 'The Team', () async {
+      return (
+        team: await widget.teamService.teamById(widget.teamId),
+        active: await widget.profileService.getActiveProfileRecord(),
+        profiles: await widget.profileService.getProfileRecords(),
+      );
+    });
     if (!mounted) return;
     setState(() {
-      _team = team;
-      _active = active;
-      _profiles = {
-        for (final profile in profiles) profile.learnerProfileId: profile,
-      };
+      if (loaded != null) {
+        _team = loaded.team;
+        _active = loaded.active;
+        _profiles = {
+          for (final profile in loaded.profiles)
+            profile.learnerProfileId: profile,
+        };
+      }
       _loading = false;
     });
   }

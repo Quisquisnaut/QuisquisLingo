@@ -9,10 +9,11 @@ import '../services/user_recovery_key_service.dart';
 import '../widgets/file_dialog_feedback.dart';
 import '../services/storage/qql_storage.dart';
 import '../widgets/quick_import_access.dart';
-
+import '../widgets/reported_action.dart';
 
 String _folder(QqlStorageRole role) =>
     QqlStorageLayout.current.folderLabel(role);
+
 class UserDataSettingsScreen extends StatefulWidget {
   final Course? course;
   const UserDataSettingsScreen({super.key, required this.course});
@@ -523,10 +524,13 @@ class _UserDataSettingsScreenState extends State<UserDataSettingsScreen> {
         ],
       ),
     );
-    if (second != true) return;
+    if (second != true || !mounted) return;
 
-    await _progress.resetCourse(course.courseId);
-    if (!mounted) return;
+    final reset = await runReported(context, 'Reset current course', () async {
+      await _progress.resetCourse(course.courseId);
+      return true;
+    });
+    if (reset != true || !mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         duration: const Duration(seconds: 8),

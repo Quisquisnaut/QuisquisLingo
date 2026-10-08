@@ -59,6 +59,7 @@ import '../widgets/unified_learner_top_bar.dart';
 import '../widgets/learner_theme_mode_scope.dart';
 import '../widgets/welcome_wizard_dialog.dart';
 import '../localization/locale_service.dart';
+import '../widgets/reported_action.dart';
 
 part 'course_preview_screen.dart';
 
@@ -1007,9 +1008,13 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _promoteAdmin(String targetProfileId) async {
     final actor = _activeLearnerId;
     if (actor == null) return;
-    await _profiles.promoteToAdmin(
-      actorProfileId: actor,
-      targetProfileId: targetProfileId,
+    await runReported(
+      context,
+      'Make admin',
+      () => _profiles.promoteToAdmin(
+        actorProfileId: actor,
+        targetProfileId: targetProfileId,
+      ),
     );
     await _reload();
   }
@@ -2514,8 +2519,11 @@ class _HomeScreenState extends State<HomeScreen> {
                               controller: _topBarController(learnerContext),
                               course: course,
                               courseCode: _selectedLanguage,
-                              onCoursePressed: () =>
-                                  _showCoursePicker(learnerContext),
+                              onCoursePressed: () => runReported(
+                                learnerContext,
+                                'The Course Selector',
+                                () => _showCoursePicker(learnerContext),
+                              ),
                               onLogoPressed: () {
                                 _resetLockedLessonTapSequence();
                                 Navigator.of(context).push(

@@ -7,6 +7,7 @@ import '../services/custom_course_transfer_service.dart';
 import '../services/storage/course_storage_names.dart';
 import '../widgets/file_dialog_feedback.dart';
 import '../widgets/course_preview_flag.dart';
+import '../widgets/reported_action.dart';
 
 /// What Version History shows: the readable versions, where they are, and
 /// the files in that folder it could not read.
@@ -221,18 +222,22 @@ class _CourseVersionHistoryScreenState
               const SizedBox(height: 8),
               Text(
                 key: const Key('course-history-skipped-files'),
-                'These files in the backup folder are not backups of this '
-                'Course that QQL can read, so they are not listed. They were '
-                'left unchanged: ${data.skipped.join(', ')}.',
+                'These files in the backup folder cannot be opened by this '
+                'version (for example backups made before Build 266, whose '
+                'GuideBooks have the earlier shape, or files that are not '
+                'Course backups), so they are not listed. They were left '
+                'unchanged: ${data.skipped.join(', ')}.',
               ),
             ],
             const SizedBox(height: 8),
             OutlinedButton.icon(
               onPressed: () async {
-                final opened = await widget.backupService.openBackupFolder(
-                  widget.course,
+                final opened = await runReported(
+                  context,
+                  'Open backup folder',
+                  () => widget.backupService.openBackupFolder(widget.course),
                 );
-                if (!opened && context.mounted) {
+                if (opened == false && context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text(

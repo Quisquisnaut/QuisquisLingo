@@ -7,6 +7,7 @@ import '../models/course_flag_selection.dart';
 import '../models/course_models.dart';
 import '../models/course_metadata_options.dart';
 import '../services/course_editor_service.dart';
+import '../services/course_file_store.dart' show SkippedCourseFile;
 import '../services/course_favorite_service.dart';
 import '../services/course_library_view_service.dart';
 import '../services/custom_course_transfer_service.dart';
@@ -40,6 +41,7 @@ import 'flat_image_library_screen.dart';
 import 'publisher_course_export_screen.dart';
 import '../services/storage/qql_storage.dart';
 import '../widgets/quick_import_access.dart';
+import '../widgets/reported_action.dart';
 
 String _folder(QqlStorageRole role) =>
     QqlStorageLayout.current.folderLabel(role);
@@ -964,17 +966,33 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
             const SizedBox(height: 6),
             Text(
               'The other Courses are listed normally. These files were kept '
-              'untouched and are not shown. Saving a Course over one of them '
-              'is refused until the file is moved away.',
+              'untouched and are not shown. Importing a Course with the same '
+              'ID replaces one; its Maintainer, a member of its Team or an '
+              'admin can also remove it (Remove here, or Delete in Advanced '
+              '(Admin) › Inventory).',
               style: TextStyle(color: scheme.onErrorContainer),
             ),
             const SizedBox(height: 6),
-            for (final file in _library.unreadable)
+            for (final (index, file) in _library.unreadable.indexed)
               Padding(
                 padding: const EdgeInsets.only(top: 4),
-                child: SelectableText(
-                  '${file.fileName}: ${file.reason}',
-                  style: TextStyle(color: scheme.onErrorContainer),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SelectableText(
+                      '${file.fileName}: ${file.reason}',
+                      style: TextStyle(color: scheme.onErrorContainer),
+                    ),
+                    if (file.isRemovableCustomCourse)
+                      TextButton.icon(
+                        key: ValueKey(
+                          'course-manager-unreadable-remove-$index',
+                        ),
+                        onPressed: () => _removeUnopenable(file),
+                        icon: const Icon(Icons.delete_outline),
+                        label: const Text('Remove…'),
+                      ),
+                  ],
                 ),
               ),
           ],
@@ -1021,9 +1039,17 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
 
   /// Export as Publisher Course (Build 262 Revision 2).
   Future<void> _openPublisherExport(Course course) async {
-    final refusals = await _ops.publisherExportRefusals(course);
-    final remembered = await _ops.rememberedPublisher(course);
-    if (!mounted) return;
+    final loaded = await runReported(
+      context,
+      'Export as Publisher Course',
+      () async => (
+        refusals: await _ops.publisherExportRefusals(course),
+        remembered: await _ops.rememberedPublisher(course),
+      ),
+    );
+    if (loaded == null || !mounted) return;
+    final refusals = loaded.refusals;
+    final remembered = loaded.remembered;
     await Navigator.of(context).push<void>(
       MaterialPageRoute(
         builder: (_) => PublisherCourseExportScreen(
@@ -2111,8 +2137,12 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
   }
 
   Future<void> _auditCourse(Course course) async {
-    final audit = await _ops.audit(course);
-    if (!mounted) return;
+    final audit = await runReported(
+      context,
+      'The Audit',
+      () => _ops.audit(course),
+    );
+    if (audit == null || !mounted) return;
     final flagProblem = audit.flagProblem;
     if (flagProblem != null) {
       ScaffoldMessenger.of(
@@ -2264,7 +2294,8 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
         return;
       }
       final existing = review.existing;
-      if (existing != null) {
+      final unopenable = review.existingUnopenable;
+      if (existing != null || unopenable != null) {
         final choice =
             await showDialog<String>(
               context: context,
@@ -2276,7 +2307,9 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      existing.originType.isOfficial
+                      existing == null
+                          ? 'The stored Course ${unopenable!.shownName} with ID “${course.courseId}” cannot be opened by this version (${unopenable.reason}). Replace it with the Course you are importing, create an available Copy as New Course or Fork, or cancel?'
+                          : existing.originType.isOfficial
                           ? 'Official Course “${existing.title}” already uses ID “${course.courseId}”. It cannot be replaced by custom content; create an available Copy as New Course or Fork, or cancel.'
                           : review.receivedUpdate
                           ? 'A newer version of the received Custom Course “${existing.title}” is available. Update to version ${course.courseVersion}, create an available Copy as New Course or Fork, or cancel?'
@@ -2544,6 +2577,66 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
         ).showSnackBar(SnackBar(content: Text('$error')));
       }
     }
+  }
+
+  /// Removes a stored Course this version cannot open (Build 266 Revision
+  /// 2), with the same two confirmations as Delete; the service allows it to
+  /// its Maintainer, a member of its Team or an admin, as its JSON names them.
+  Future<void> _removeUnopenable(SkippedCourseFile file) async {
+    Future<bool> confirm(String title, String message, String action) async =>
+        await showDialog<bool>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: Text(title),
+            content: Text(message),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text('Cancel'),
+              ),
+              FilledButton(
+                key: const Key('course-manager-unreadable-remove-confirm'),
+                onPressed: () => Navigator.pop(ctx, true),
+                child: Text(action),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+    if (!await confirm(
+          'Remove the stored Course?',
+          'Remove ${file.fileName} (Course ID ${file.courseId}) from this '
+              'device? This version cannot open it.',
+          'Continue',
+        ) ||
+        !mounted) {
+      return;
+    }
+    if (!await confirm(
+      'Confirm permanent deletion',
+      'This will permanently delete ${file.fileName} and the Course media '
+          'stored for it from this device. This action cannot be undone.',
+      'Delete permanently',
+    )) {
+      return;
+    }
+    try {
+      await _ops.editor.deleteUserCourse(file.courseId!);
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            duration: const Duration(seconds: 8),
+            content: Text(
+              'Could not remove ${file.fileName}: '
+              '${error.toString().replaceFirst(RegExp(r'^(StateError|FormatException): '), '')}',
+            ),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
+    }
+    await _reload();
   }
 
   Future<void> _delete(Course course) async {

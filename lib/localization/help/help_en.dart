@@ -701,10 +701,14 @@ Please use the app normally and reproduce the crash. After the app closes, reope
 
 The Crash Log contains technical system information, session starts, uncaught errors and stack traces. It does not intentionally record learner names, exercise answers or course content.
 
-If the Crash Log file is deleted, QuisquisLingo recreates it automatically at the next app start or crash write.''',
+If the Crash Log file is deleted, QuisquisLingo recreates it automatically at the next app start or crash write.
+
+Save&Open (Windows, macOS, Linux), under the icons, saves a fresh copy in {folderLogs} and opens that folder, so the file can be attached to a report at once.''',
   'debugHelp.diagnosticLog.title': r'''Diagnostic Log''',
   'debugHelp.diagnosticLog.body':
-      r'''For problems that do not necessarily crash QQL, including audio, TTS, Recorded MP3, unexpected playback, source-resolution problems, and other runtime anomalies. When possible, reproduce the problem and export this log shortly afterward. To isolate one specific reproducible problem, you may clear it first; clearing is optional. For intermittent or difficult-to-reproduce problems, export the current Diagnostic Log before clearing to preserve existing evidence.''',
+      r'''For problems that do not necessarily crash QQL, including audio, TTS, Recorded MP3, unexpected playback, source-resolution problems, and other runtime anomalies. When possible, reproduce the problem and export this log shortly afterward. To isolate one specific reproducible problem, you may clear it first; clearing is optional. For intermittent or difficult-to-reproduce problems, export the current Diagnostic Log before clearing to preserve existing evidence.
+
+Since Build 266 it also records every error nothing else caught (a short entry; the full report is in the Crash Log) and every stored Course this version cannot open (once per session, with its file name and the reason). Save&Open (Windows, macOS, Linux), under the icons, saves a fresh copy in {folderLogs} and opens that folder.''',
   'debugHelp.privacy.title': r'''Privacy''',
   'debugHelp.privacy.body':
       r'''Learner audio diagnostics are designed to avoid recording spoken text, answers, course content, or full personal file paths.''',
@@ -793,6 +797,8 @@ If the Crash Log file is deleted, QuisquisLingo recreates it automatically at th
       r'''Other files in the QQL folder: anything added directly to the QuisquisLingo folder with the operating system, which QQL did not create and does not use.''',
   'deviceAdminHelp.inventory.bullet7':
       r'''Media and files that come with the app itself are not listed. Very large lists show the 500 most recent files per section.''',
+  'deviceAdminHelp.inventory.bullet8':
+      r'''Delete, Forget and Open folder: each item has Delete (a file, a learner, a Course, an Image Bank) or Forget (a record in QQL's settings: a Favorite, a Received flag, a remembered publisher) where it applies, and Open folder on Windows, macOS and Linux. Every Delete and Forget says what it removes and asks for your admin PIN, and follows the same rules as the rest of QQL: the only admin and a learner who maintains a Course cannot be deleted, a Course only by its Maintainer or Team (one this version cannot open also by an admin), Course media only when no stored Course uses it, and the live Crash Log stays.''',
   'deviceAdminHelp.qqlTools.title': r'''QQL-Tools''',
   'deviceAdminHelp.qqlTools.paragraph1':
       r'''QQL-Tools is an optional companion project for independent validation of QQL Course JSON files and package ZIP files. Its results do not replace QQL's own Course Audit, import validation, or safety checks.''',

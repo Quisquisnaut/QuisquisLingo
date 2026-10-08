@@ -95,6 +95,7 @@ import '../widgets/lesson_fallback_icon.dart';
 import '../widgets/import_summary.dart';
 import '../services/storage/qql_storage.dart';
 import '../widgets/quick_import_access.dart';
+import '../widgets/reported_action.dart';
 
 export 'guidebook_editor_screen.dart'
     show GuidebookEditorScreen, GuidebookModuleEditorScreen;
@@ -792,13 +793,24 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
   }
 
   Future<void> _editCourseInfo() async {
-    final resolvedGovernance = await CourseGovernanceResolver(
-      profileService: _profiles,
-      teamService: _teams,
-    ).resolve(_course);
-    final profiles = await _profiles.getProfileRecords();
-    final teams = await _teams.listTeams();
-    final activeProfileId = await _profiles.getActiveProfileId();
+    final loaded = await runReported(
+      context,
+      'Course Info',
+      () async => (
+        governance: await CourseGovernanceResolver(
+          profileService: _profiles,
+          teamService: _teams,
+        ).resolve(_course),
+        profiles: await _profiles.getProfileRecords(),
+        teams: await _teams.listTeams(),
+        activeProfileId: await _profiles.getActiveProfileId(),
+      ),
+    );
+    if (loaded == null || !mounted) return;
+    final resolvedGovernance = loaded.governance;
+    final profiles = loaded.profiles;
+    final teams = loaded.teams;
+    final activeProfileId = loaded.activeProfileId;
     final canGovern =
         _editorMode == CourseEditorMode.edit &&
         widget.access.canTransferMaintainership &&
@@ -2006,12 +2018,19 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                   );
                   return;
                 }
-                final duplicate = (await _service.listUserCourses()).any(
-                  (course) =>
-                      course.courseId != _course.courseId &&
-                      FormalNamePolicy.comparisonKey(course.title) ==
-                          FormalNamePolicy.comparisonKey(title),
-                );
+                final duplicate =
+                    (await runReported(
+                              ctx,
+                              'Checking the Course name',
+                              _service.listUserCourses,
+                            ) ??
+                            const <Course>[])
+                        .any(
+                          (course) =>
+                              course.courseId != _course.courseId &&
+                              FormalNamePolicy.comparisonKey(course.title) ==
+                                  FormalNamePolicy.comparisonKey(title),
+                        );
                 if (duplicate) {
                   if (!ctx.mounted) return;
                   final continueAnyway = await showDialog<bool>(
@@ -2221,12 +2240,17 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
       customLicense.dispose();
     });
     if (result == null || !mounted) return;
-    final update = await CourseInfoUpdateService(
-      governanceService: CourseGovernanceService(
-        profileService: _profiles,
-        teamService: _teams,
-      ),
-    ).apply(_course, result, activeProfileId);
+    final update = await runReported(
+      context,
+      'Course Info changes',
+      () => CourseInfoUpdateService(
+        governanceService: CourseGovernanceService(
+          profileService: _profiles,
+          teamService: _teams,
+        ),
+      ).apply(_course, result, activeProfileId),
+    );
+    if (update == null || !mounted) return;
     setState(() {
       _session.stageCourse(
         update.course,
@@ -3144,10 +3168,15 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
         context,
       ).showSnackBar(SnackBar(content: Text(error.message)));
     }
-    await _checkOrphanAudio(prompt: _canModify);
+    if (!mounted) return;
+    await runReported(
+      context,
+      'The Audio Library check',
+      () => _checkOrphanAudio(prompt: _canModify),
+    );
+    if (!mounted) return;
     final fresh = _course;
     final result = _session.runAudit();
-    if (!mounted) return;
     setState(() {});
     final selected = await Navigator.of(context).push<CourseAuditIssue>(
       MaterialPageRoute(

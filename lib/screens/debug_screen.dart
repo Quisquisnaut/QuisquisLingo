@@ -8,11 +8,13 @@ import 'package:share_plus/share_plus.dart';
 import '../localization/help/help_structure.dart';
 import '../localization/help/help_text.dart';
 import '../localization/locale_builder.dart';
+import '../services/app_errors.dart';
 import '../services/crash_log_service.dart';
 import '../services/diagnostic_log_service.dart';
 import '../services/file_dialog_service.dart';
 import '../widgets/app_locale_selector.dart';
 import '../widgets/file_dialog_feedback.dart';
+import '../widgets/folder_opener.dart';
 import '../services/storage/qql_storage.dart';
 
 class DebugScreen extends StatefulWidget {
@@ -152,6 +154,81 @@ class _DebugScreenState extends State<DebugScreen> {
       );
     }
   }
+
+  /// Save&Open (owner's name, Build 266 Revision 2): a fresh copy of the log
+  /// in the Logs folder, as Quick Export writes it, then that folder opened,
+  /// so the copy can be sent at once.
+  Future<void> _saveAndOpen({required bool crash}) async {
+    final name = crash ? 'Crash Log' : 'Diagnostic Log';
+    String? location;
+    try {
+      location = crash
+          ? (await CrashLogService.instance.exportCopy())?.location
+          : await _logs.exportToFile();
+    } catch (error, stackTrace) {
+      unawaited(
+        _logs.log(
+          AppErrorCode.unexpectedError,
+          context: 'Save&Open $name could not save the copy.',
+          exception: error,
+          stackTrace: stackTrace,
+        ),
+      );
+    }
+    if (!mounted) return;
+    if (location == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          duration: const Duration(seconds: 8),
+          content: Text(
+            crash
+                ? 'The Crash Log copy could not be saved.'
+                : 'The Diagnostic Log is empty or could not be saved.',
+          ),
+        ),
+      );
+      return;
+    }
+    if (!crash) setState(() => _hasDiagnosticLog = true);
+    var opened = false;
+    try {
+      opened = await FolderOpener.open(File(location).parent.path);
+    } catch (error, stackTrace) {
+      unawaited(
+        _logs.log(
+          AppErrorCode.unexpectedError,
+          context: 'Save&Open $name could not open the Logs folder.',
+          exception: error,
+          stackTrace: stackTrace,
+        ),
+      );
+    }
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        duration: const Duration(seconds: 8),
+        content: Text(
+          opened
+              ? '$name copy saved to $location; its folder is open.'
+              : '$name copy saved to $location. The folder could not be '
+                    'opened; find the file there.',
+        ),
+      ),
+    );
+  }
+
+  Widget _saveAndOpenButton({required bool crash, required bool enabled}) =>
+      Tooltip(
+        message:
+            'Save a fresh copy in the Logs folder and open the folder, to send '
+            'it with a report.',
+        child: TextButton.icon(
+          key: Key(crash ? 'save-open-crash-log' : 'save-open-diagnostic-log'),
+          onPressed: enabled ? () => _saveAndOpen(crash: crash) : null,
+          icon: const Icon(Icons.folder_open_outlined, size: 18),
+          label: const Text('Save&Open'),
+        ),
+      );
 
   /// Quick Export: a copy of the live Crash Log in the Logs folder, with no
   /// dialog, replacing the previous copy.
@@ -314,6 +391,17 @@ class _DebugScreenState extends State<DebugScreen> {
                     ],
                   ),
                 ),
+                if (FolderOpener.available())
+                  Padding(
+                    padding: const EdgeInsets.only(right: 12),
+                    child: Align(
+                      alignment: AlignmentDirectional.centerEnd,
+                      child: _saveAndOpenButton(
+                        crash: true,
+                        enabled: _crashLogPath != null,
+                      ),
+                    ),
+                  ),
                 ListTile(
                   leading: const Icon(Icons.bug_report_outlined),
                   title: const Text('Diagnostic Log'),
@@ -348,6 +436,17 @@ class _DebugScreenState extends State<DebugScreen> {
                     ],
                   ),
                 ),
+                if (FolderOpener.available())
+                  Padding(
+                    padding: const EdgeInsets.only(right: 12),
+                    child: Align(
+                      alignment: AlignmentDirectional.centerEnd,
+                      child: _saveAndOpenButton(
+                        crash: false,
+                        enabled: _hasDiagnosticLog,
+                      ),
+                    ),
+                  ),
                 const Padding(
                   padding: EdgeInsets.fromLTRB(16, 8, 16, 0),
                   child: Text(

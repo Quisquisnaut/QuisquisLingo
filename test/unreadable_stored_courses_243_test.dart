@@ -146,9 +146,17 @@ void main() {
       final service = CourseEditorService();
       final courses = await service.listUserCourses();
       expect(courses.map((course) => course.courseId), ['good']);
+      // Build 266 Revision 2: a Course that cannot be opened is named by its
+      // file, as an unreadable file is, and keeps its Course ID.
       expect(
         service.unreadableCourseFiles.map((file) => file.fileName),
-        unorderedEquals(['broken.json', 'old-format']),
+        unorderedEquals(['broken.json', 'old-format.json']),
+      );
+      expect(
+        service.unreadableCourseFiles
+            .where((file) => file.isRemovableCustomCourse)
+            .map((file) => file.courseId),
+        ['old-format'],
       );
       expect(await broken.readAsString(), '{ not json');
       expect(await oldFile.readAsString(), oldBytes);

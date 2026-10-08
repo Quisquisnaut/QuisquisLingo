@@ -308,7 +308,10 @@ class CourseFileStore {
         ),
       );
     }
-    return CourseStoreSnapshot(out, skipped);
+    for (final courseId in duplicateIds) {
+      fileById.remove(courseId);
+    }
+    return CourseStoreSnapshot(out, skipped, fileNames: fileById);
   }
 
   Future<({Map<String, dynamic> record, List<int> bytes})> _readRecord(
@@ -545,17 +548,40 @@ class CourseFileStore {
 
 /// The readable part of one store, plus every file that was skipped.
 class CourseStoreSnapshot {
-  const CourseStoreSnapshot(this.records, this.skipped);
+  const CourseStoreSnapshot(
+    this.records,
+    this.skipped, {
+    this.fileNames = const {},
+  });
 
   /// Stored records keyed by Course ID, as [CourseFileStore.readAll] returns.
   final Map<String, dynamic> records;
   final List<SkippedCourseFile> skipped;
+
+  /// The file holding each record of [records], by Course ID (Build 266
+  /// Revision 2: a Course that cannot be opened is named by its file).
+  final Map<String, String> fileNames;
 }
 
 /// A stored Course file that could not be loaded. It stays on disk untouched.
 class SkippedCourseFile {
-  const SkippedCourseFile(this.fileName, this.reason);
+  const SkippedCourseFile(
+    this.fileName,
+    this.reason, {
+    this.courseId,
+    this.kind,
+  });
 
   final String fileName;
   final String reason;
+
+  /// The Course ID the file names and the store it is in, when the file is
+  /// a Course this version cannot open (Build 266 Revision 2): such a Course
+  /// can still be removed or replaced.
+  final String? courseId;
+  final CourseStoreKind? kind;
+
+  /// A custom Course this version cannot open: Course Studio offers Remove.
+  bool get isRemovableCustomCourse =>
+      courseId != null && kind == CourseStoreKind.custom;
 }

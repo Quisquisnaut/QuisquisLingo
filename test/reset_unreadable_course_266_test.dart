@@ -121,7 +121,12 @@ void main() {
     await storeCourses();
     final preview = await reset.preview();
     expect(preview.hasCustomCourses, isTrue);
-    expect(preview.coursesMaintainedByNonAdmins, ['“Course readable”']);
+    // Revision 2: a Course this version cannot open counts by the
+    // Maintainer its JSON names, so the learner is not removed with it.
+    expect(preview.coursesMaintainedByNonAdmins, [
+      '“Course readable”',
+      '“Course earlier” (which this version cannot open)',
+    ]);
   });
 
   test('Remove custom courses removes the unreadable one too', () async {

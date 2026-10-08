@@ -5,6 +5,7 @@ import '../services/profile_service.dart';
 import '../services/progress_service.dart';
 import '../services/settings_service.dart';
 import '../widgets/learner_avatar.dart';
+import '../widgets/reported_action.dart';
 
 class GamificationSettingsScreen extends StatefulWidget {
   const GamificationSettingsScreen({super.key});
@@ -56,7 +57,15 @@ class _GamificationSettingsScreenState
         names[code] = CourseService.targetLabels[code] ?? code;
       }
     }
-    for (final course in await _courseEditor.listUserCourses()) {
+    // Course names only label the rows: a store that cannot be listed is
+    // reported, and the page still opens (Build 266 Revision 2).
+    if (!mounted) return;
+    final courses = await runReported(
+      context,
+      'Course names',
+      _courseEditor.listUserCourses,
+    );
+    for (final course in courses ?? const []) {
       names[course.courseId] = course.title;
     }
 

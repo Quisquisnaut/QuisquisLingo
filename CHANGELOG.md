@@ -1,3 +1,60 @@
+# 2.0.66 (Build 266, Revision 2) - Resilience - 2026-10-08
+
+Owner decisions of 8 October 2026, after the reset buttons did nothing
+(fixed in Revision 1): "fix same class", "test extensively edge cases", the
+Diagnostic Log must say what happened, Save&Open for both logs, Delete /
+Forget / Open folder in the Inventory. The Round Wizard moves to Revision 3.
+
+- **A stored Course this version cannot open never stops a feature.**
+  `StoredCourseReader` is the one way QQL opens a stored Course: a Course
+  `Course.fromJson` refuses for any data reason (a GuideBook in the earlier
+  shape, an old formatVersion, a field of the wrong type) is reported with
+  what its JSON still says (title, Maintainer, Team, Course ID), named by
+  its file, logged once per session in the Diagnostic Log and left on disk.
+  The Course list, the resets, learner deletion and the Inventory all use
+  it. Before, a Course that threw anything but a FormatException hid every
+  Course, and one in the earlier GuideBook shape refused every learner's
+  deletion.
+- **It can be removed or replaced in the app.** Course Studio's card of
+  stored Courses that cannot be read has **Remove…** (two confirmations,
+  as Delete) for such a Course; its Maintainer as the JSON names them, a
+  member of its Team or an admin may remove it, with its Course media.
+  Importing a Course with the same ID now offers **Replace** to the same
+  people (before, the import failed with the old Course's own error); a
+  Publisher's signed update replaces a stored source this version cannot
+  open, the same publisher only. A learner who maintains such a Course is
+  not deleted (alone or by the reset), and the message names the Course.
+  A stored file that is not readable at all still blocks learner deletion
+  (QQL cannot tell who maintains it) and the message says to remove it in
+  the Inventory.
+- **No button fails silently.** `runReported` shows what failed and writes
+  it to the Diagnostic Log: Version History's Open backup folder, Course
+  Info (opening, the name check, applying), both Audit buttons, Export as
+  Publisher Course, the Course Selector, Make admin, Team Manager (no
+  endless spinner), Learner profiles, Shared Images delete and remove bank,
+  Reset current course, Gamification's Course names.
+- **The Diagnostic Log records what happened.** Every error nothing caught
+  also gets a short entry there (the full report stays in the Crash Log);
+  a Course this version cannot open is recorded with its file and reason.
+- **Save&Open** (owner's name), under each log's icons in Settings › Debug
+  (Windows, macOS, Linux): a fresh copy in the Logs folder, then that
+  folder opened.
+- **Inventory: Delete, Forget, Open folder.** Every item has Delete (a
+  file, a learner, a Course, an Image Bank) or Forget (a Favorite, a
+  Received flag, a remembered publisher) where it applies, and Open folder
+  on desktops. Each asks for the admin PIN (the resets' gate, now shared:
+  `AdminPinGate`) and follows the existing rules: never the only admin or a
+  learner who maintains a Course, a Course only by its Maintainer or Team
+  (one that cannot be opened also by an admin), Course media only when no
+  stored Course uses it, files only inside QQL's folders, never the live
+  Crash Log.
+- Version History says plainly why a backup is not listed (made before
+  Build 266, or not a backup). The Inventory's Refresh no longer returns a
+  Future from setState.
+
+Version 2.0.66+266002. Scoring, progression, Course files and learner data
+are unchanged. Beta expiry unchanged: 2026-11-07 23:59:59 local time.
+
 # 2.0.66 (Build 266, Revision 1) - GuideBook authoring aids - 2026-10-08
 
 The authoring aids of the GuideBook module page (plan §5, owner decisions

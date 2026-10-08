@@ -262,7 +262,7 @@ const deviceAdminHelpSectionShape = <String, ({int paragraphs, int bullets})>{
   'whoIsAnAdmin': (paragraphs: 1, bullets: 0),
   'whatAdminsCanDo': (paragraphs: 0, bullets: 7),
   'whatAdminsCannotDo': (paragraphs: 0, bullets: 10),
-  'inventory': (paragraphs: 1, bullets: 7),
+  'inventory': (paragraphs: 1, bullets: 8),
   'qqlTools': (paragraphs: 2, bullets: 0),
   'updates': (paragraphs: 2, bullets: 0),
   'askWhoIsLearningAtStartup': (paragraphs: 2, bullets: 0),

@@ -6,7 +6,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/course_models.dart';
 import 'course_access_policy.dart';
 import 'course_editor_storage.dart';
+import 'admin_pin_gate.dart';
 import 'course_file_store.dart';
+import 'stored_course_reader.dart';
 import 'course_received_service.dart';
 import 'course_media_store.dart';
 import 'course_privacy.dart';
@@ -210,7 +212,7 @@ class AppResetService {
               ) >
               0,
       hasImageLibraryRecords: _mediaKeys.any(prefs.containsKey),
-      hiddenPrivateCourseCount: await _hiddenPrivateCourseCount(courses),
+      hiddenPrivateCourseCount: await _hiddenPrivateCourseCount(courses.opened),
       coursesMaintainedByNonAdmins: await _maintainedCourseNames(
         courses,
         learners
@@ -267,15 +269,10 @@ class AppResetService {
   }
 
   Future<void> _authorize(String actorProfileId, String pin) async {
-    if (!await _profiles.isAdmin(actorProfileId)) {
-      throw const AppResetException('Only an admin may reset QQL.');
-    }
-    if (!await _profiles.hasAccessPin(actorProfileId)) {
-      throw const AppResetException('Set a PIN before using reset options.');
-    }
-    if (!await _profiles.verifyAccessPin(actorProfileId, pin)) {
-      throw const AppResetException('Incorrect PIN. Nothing was changed.');
-    }
+    final problem = await AdminPinGate(
+      _profiles,
+    ).problem(actorProfileId, pin, what: 'reset QQL');
+    if (problem != null) throw AppResetException(problem);
   }
 
   // Personal course membership is a setting, not progress: keep it here.
@@ -295,27 +292,25 @@ class AppResetService {
     }
   }
 
-  /// The stored custom Courses that can be read. An unreadable file names
-  /// no Maintainer and is listed by nobody anyway, so it is skipped; so is a
-  /// Course this version cannot open (a GuideBook in the shape before Build
-  /// 266, for example), as Course Studio lists it among the unreadable
-  /// files. Before this, one such Course made every reset button do nothing.
-  Future<List<Course>> _storedCustomCourses() async {
+  /// The stored custom Courses, opened, and those this version cannot open
+  /// (`StoredCourseReader`): an unreadable file names no Maintainer and is
+  /// skipped. A Course that cannot be opened (a GuideBook in the shape before
+  /// Build 266, for example) must never stop a reset: one such Course once
+  /// made every reset button do nothing, the reset that removes it included.
+  /// What its JSON says still counts for the Maintainer rule.
+  Future<({List<Course> opened, List<UnopenableStoredCourse> unopenable})>
+  _storedCustomCourses() async {
     final records = (await CourseFileStore(
       supportDirectory: _support,
     ).readReadable(CourseStoreKind.custom)).records;
-    final courses = <Course>[];
-    for (final record in records.values) {
-      if (record is! Map || record['course'] is! Map) continue;
-      try {
-        courses.add(
-          Course.fromJson(Map<String, dynamic>.from(record['course'] as Map)),
-        );
-      } on FormatException {
-        continue;
-      }
+    final opened = <Course>[];
+    final unopenable = <UnopenableStoredCourse>[];
+    for (final entry in records.entries) {
+      final read = StoredCourseReader.open(entry.key, entry.value);
+      if (read.course != null) opened.add(read.course!);
+      if (read.unopenable != null) unopenable.add(read.unopenable!);
     }
-    return courses;
+    return (opened: opened, unopenable: unopenable);
   }
 
   Future<int> _hiddenPrivateCourseCount(List<Course> courses) async {
@@ -332,9 +327,10 @@ class AppResetService {
   }
 
   /// The Courses maintained by [maintainers], by title, except another
-  /// learner's Private course, which [viewerProfileId] cannot see.
+  /// learner's Private course, which [viewerProfileId] cannot see. A Course
+  /// this version cannot open counts by the Maintainer its JSON names.
   Future<List<String>> _maintainedCourseNames(
-    List<Course> courses,
+    ({List<Course> opened, List<UnopenableStoredCourse> unopenable}) courses,
     Set<String> maintainers,
     String? viewerProfileId,
   ) async {
@@ -342,12 +338,17 @@ class AppResetService {
       accessPolicy: CourseAccessPolicy(profileService: _profiles),
     );
     return [
-      for (final course in courses)
+      for (final course in courses.opened)
         if (course.originType == CourseOriginType.custom &&
             maintainers.contains(course.maintainer?.profileId))
           await privacy.isVisibleTo(course, viewerProfileId)
               ? '“${course.title}”'
               : 'a Private course',
+      for (final course in courses.unopenable)
+        if (maintainers.contains(course.maintainerProfileId))
+          course.private && course.maintainerProfileId != viewerProfileId
+              ? 'a Private course'
+              : '${course.shownName} (which this version cannot open)',
     ];
   }
 

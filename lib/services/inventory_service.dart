@@ -22,6 +22,55 @@ import 'storage/course_storage_names.dart';
 import 'storage/qql_earlier_private_folders.dart';
 import 'storage/qql_storage.dart';
 
+/// What Delete or Forget does to an Inventory item (Build 266 Revision 2,
+/// owner decisions of 8 October 2026). `InventoryActionService` runs it,
+/// after the admin's PIN, through the rules the rest of QQL applies.
+enum InventoryActionKind {
+  /// A learner profile (ProfileService's rules: never the only admin, never
+  /// a learner who maintains a Course).
+  deleteLearner,
+
+  /// One record in QQL's settings: a Favorite, a Received flag, a
+  /// remembered publisher.
+  forget,
+
+  /// A stored custom Course (its Maintainer or Team; a Course this version
+  /// cannot open also by an admin), with its Course media.
+  deleteCourse,
+
+  /// An installed Publisher Course.
+  deletePublisherCourse,
+
+  /// A file no stored Course or library record depends on.
+  deleteFile,
+
+  /// A Shared Image Library image an Admin added: its record and its file.
+  deleteDeviceImage,
+
+  /// An imported Image Bank with its images.
+  removeImageBank,
+}
+
+class InventoryAction {
+  const InventoryAction(
+    this.kind,
+    this.target, {
+    required this.label,
+    required this.explanation,
+  });
+
+  final InventoryActionKind kind;
+
+  /// A learner ID, a settings key, a Course ID, a file path or a bank ID.
+  final String target;
+
+  /// The button: Delete, Forget or Remove bank.
+  final String label;
+
+  /// What it removes and what stays, for the confirmation.
+  final String explanation;
+}
+
 /// One thing QQL stores because of user activity: a file, a folder, or a
 /// record kept inside QQL's own settings (which has no file of its own).
 class InventoryItem {
@@ -36,6 +85,12 @@ class InventoryItem {
   final String? owner;
   final String? note;
 
+  /// Delete or Forget, where it applies (Build 266 Revision 2).
+  final InventoryAction? action;
+
+  /// The folder Open folder shows, where there is one.
+  final String? folder;
+
   const InventoryItem({
     required this.name,
     this.path,
@@ -43,6 +98,8 @@ class InventoryItem {
     this.modified,
     this.owner,
     this.note,
+    this.action,
+    this.folder,
   });
 }
 
@@ -179,13 +236,23 @@ class InventoryService {
                   ? '${learner.displayName} (admin)'
                   : learner.displayName,
               note: 'Stored inside QQL settings (no file).',
+              action: InventoryAction(
+                InventoryActionKind.deleteLearner,
+                learner.learnerProfileId,
+                label: 'Delete',
+                explanation:
+                    'Delete the learner ${learner.displayName} with their '
+                    'progress and settings. The usual rules apply: the only '
+                    'admin cannot be deleted, nor a learner who maintains a '
+                    'Course.',
+              ),
             ),
         ],
       ),
     );
 
     final preferences = await SharedPreferences.getInstance();
-    final favoriteFlags = <({String courseId, String profileId})>[];
+    final favoriteFlags = <({String courseId, String profileId, String key})>[];
     const learnerPrefix = 'learner_';
     const favoriteMarker = '_${CourseFavoriteService.keyPrefix}';
     for (final key in preferences.getKeys()) {
@@ -205,7 +272,7 @@ class InventoryService {
       } on FormatException {
         courseId = encodedCourseId;
       }
-      favoriteFlags.add((courseId: courseId, profileId: profileId));
+      favoriteFlags.add((courseId: courseId, profileId: profileId, key: key));
     }
     favoriteFlags.sort((a, b) {
       final byCourse = a.courseId.compareTo(b.courseId);
@@ -224,6 +291,15 @@ class InventoryService {
                   names[favorite.profileId] ??
                   'a learner no longer on this device',
               note: 'Course Favorite flag in QQL settings (no file).',
+              action: InventoryAction(
+                InventoryActionKind.forget,
+                favorite.key,
+                label: 'Forget',
+                explanation:
+                    'Forget that this Course is a Favorite of '
+                    '${names[favorite.profileId] ?? 'this learner'}. The '
+                    'Course, its membership and its progress stay.',
+              ),
             ),
         ],
         hiddenCount: favoriteFlags.length > maxListedPerSection
@@ -261,6 +337,15 @@ class InventoryService {
             InventoryItem(
               name: receivedCourseId(key),
               note: 'Received Custom Course flag in QQL settings (no file).',
+              action: InventoryAction(
+                InventoryActionKind.forget,
+                key,
+                label: 'Forget',
+                explanation:
+                    'Forget that this Custom Course was received. The Course '
+                    'stays; a newer version from its Maintainer is then '
+                    'offered only as a copy.',
+              ),
             ),
         ],
         hiddenCount: receivedKeys.length > maxListedPerSection
@@ -291,6 +376,14 @@ class InventoryService {
       publisherItems.add(
         InventoryItem(
           name: courseId,
+          action: InventoryAction(
+            InventoryActionKind.forget,
+            key,
+            label: 'Forget',
+            explanation:
+                'Forget the publisher this Course was last exported for. The '
+                'next Export as Publisher Course starts with empty fields.',
+          ),
           note: publisher == null
               ? 'Unreadable remembered publisher in QQL settings (no file).'
               : 'Last exported as a Publisher Course of '
@@ -349,21 +442,49 @@ class InventoryService {
       );
     }
 
+    /// A file, its folder to open and, unless [deletable] is false or
+    /// [action] says otherwise, Delete.
     Future<InventoryItem> plain(
       File file,
       Directory root, {
       String? note,
       String? owner,
+      bool deletable = true,
+      InventoryAction? action,
     }) async {
       final stat = await file.stat();
+      final name = _relative(file, root);
       return InventoryItem(
-        name: _relative(file, root),
+        name: name,
         path: file.path,
         sizeBytes: stat.size,
         modified: stat.modified,
         owner: owner,
         note: note,
+        folder: file.parent.path,
+        action:
+            action ??
+            (deletable
+                ? InventoryAction(
+                    InventoryActionKind.deleteFile,
+                    file.path,
+                    label: 'Delete',
+                    explanation:
+                        'Delete the file $name from this device. QQL does '
+                        'not need it to run.',
+                  )
+                : null),
       );
+    }
+
+    Future<String?> rawCourseIdOf(File file) async {
+      try {
+        final decoded = jsonDecode(await file.readAsString());
+        final id = decoded is Map ? decoded['courseId'] : null;
+        return id is String && id.trim().isNotEmpty ? id : null;
+      } catch (_) {
+        return null;
+      }
     }
 
     Future<String?> ownerFromJson(File file) async {
@@ -421,19 +542,67 @@ class InventoryService {
           '$supportRoot$sep${CourseFileStore.rootDirectoryName}',
         ),
         describe: (file, root) async {
-          final course = storedCourse(_relative(file, root));
+          final relative = _relative(file, root);
+          final course = storedCourse(relative);
           final stat = await file.stat();
+          final inCustom = relative.startsWith(
+            CourseStoreKind.custom.directoryName,
+          );
+          // A Course this version cannot open is deleted through the Course
+          // rules by its ID when its JSON names one; any other file is
+          // deleted as a file (Build 266 Revision 2).
+          final rawId = course == null && inCustom
+              ? await rawCourseIdOf(file)
+              : null;
+          final title = course == null
+              ? relative
+              : (course.title.isEmpty ? course.courseId : course.title);
           return InventoryItem(
-            name: course == null
-                ? _relative(file, root)
-                : (course.title.isEmpty ? course.courseId : course.title),
+            name: title,
             path: file.path,
             sizeBytes: stat.size,
             modified: stat.modified,
-            owner: course == null ? null : ownerOf(course),
+            owner: course == null ? await ownerFromJson(file) : ownerOf(course),
             note: course == null
-                ? 'Stored course file; course metadata unavailable.'
+                ? (rawId == null
+                      ? 'Stored course file; course metadata unavailable.'
+                      : 'Stored custom Course (ID $rawId) that this version '
+                            'cannot open.')
                 : '${course.originType == CourseOriginType.custom ? 'Custom course' : 'Installed external course'} · ID ${course.courseId}',
+            folder: file.parent.path,
+            action: course != null
+                ? InventoryAction(
+                    course.originType == CourseOriginType.custom
+                        ? InventoryActionKind.deleteCourse
+                        : InventoryActionKind.deletePublisherCourse,
+                    course.courseId,
+                    label: 'Delete',
+                    explanation: course.originType == CourseOriginType.custom
+                        ? 'Delete the Course “$title” and its Course media '
+                              'from this device. Only its Maintainer or a '
+                              'member of its Team may. Its backups stay.'
+                        : 'Remove the Publisher Course “$title” from this '
+                              'device. Its progress and media stay for a '
+                              'reinstallation.',
+                  )
+                : rawId != null
+                ? InventoryAction(
+                    InventoryActionKind.deleteCourse,
+                    rawId,
+                    label: 'Delete',
+                    explanation:
+                        'Delete this stored Course, which this version cannot '
+                        'open, and its Course media from this device. Its '
+                        'Maintainer, a member of its Team or an admin may.',
+                  )
+                : InventoryAction(
+                    InventoryActionKind.deleteFile,
+                    file.path,
+                    label: 'Delete',
+                    explanation:
+                        'Delete the file $relative, which QQL cannot read, '
+                        'from this device.',
+                  ),
           );
         },
       ),
@@ -485,7 +654,10 @@ class InventoryService {
         directory: Directory(
           '$supportRoot$sep${DiagnosticLogService.logsDirectoryName}',
         ),
-        describe: (file, root) => plain(file, root, note: 'Written by QQL.'),
+        // The live Crash Log and session marker stay: Settings › Debug saves
+        // copies (Save&Open).
+        describe: (file, root) =>
+            plain(file, root, note: 'Written by QQL.', deletable: false),
       ),
     );
 
@@ -654,6 +826,24 @@ class InventoryService {
       mediaOwners[CourseStorageNames.hashOf(course.courseId)] =
           '${course.title.isEmpty ? course.courseId : course.title} · ${ownerOf(course)}';
     }
+    // The media of a Course this version cannot open stays with it: it goes
+    // when that Course is deleted.
+    final unopenableMedia = <String>{};
+    for (final file in _courseService?.unreadableCourseFiles ?? const []) {
+      final id = file.courseId;
+      if (id == null) continue;
+      final hash = CourseStorageNames.hashOf(id);
+      final mediaRoot = Directory(
+        '$supportRoot$sep${CourseMediaStore.rootDirectoryName}',
+      );
+      if (!await mediaRoot.exists()) continue;
+      await for (final entity in mediaRoot.list(followLinks: false)) {
+        final name = entity.uri.pathSegments.lastWhere((s) => s.isNotEmpty);
+        if (CourseStorageNames.hashOfMediaFolder(name) == hash) {
+          unopenableMedia.add(name);
+        }
+      }
+    }
     sections.add(
       await folder(
         title: 'Imported images',
@@ -666,8 +856,19 @@ class InventoryService {
           ExerciseImageService.sharedImagesDirectoryName,
           QqlEarlierPrivateFolders.sharedImages,
         ],
-        describe: (file, root) =>
-            plain(file, root, note: 'Imported exercise image.'),
+        describe: (file, root) => plain(
+          file,
+          root,
+          note: 'Imported exercise image.',
+          action: InventoryAction(
+            InventoryActionKind.deleteDeviceImage,
+            file.path,
+            label: 'Delete',
+            explanation:
+                'Delete this image from the Shared Image Library: its record '
+                'and its file. Courses keep their own copies.',
+          ),
+        ),
       ),
     );
     sections.add(
@@ -694,8 +895,27 @@ class InventoryService {
           ImageBankService.banksDirectoryName,
           QqlEarlierPrivateFolders.imageBanks,
         ],
-        describe: (file, root) =>
-            plain(file, root, note: 'Part of an imported image bank.'),
+        describe: (file, root) {
+          final parts = _relative(file, root).split(RegExp(r'[\\/]'));
+          final bankId = parts.length > 2 ? parts[1] : null;
+          return plain(
+            file,
+            root,
+            note: 'Part of an imported image bank.',
+            deletable: false,
+            action: bankId == null
+                ? null
+                : InventoryAction(
+                    InventoryActionKind.removeImageBank,
+                    bankId,
+                    label: 'Remove bank',
+                    explanation:
+                        'Remove the whole Image Bank $bankId and its images '
+                        'from the Shared Image Library. Courses keep their '
+                        'own copies.',
+                  ),
+          );
+        },
       ),
     );
     sections.add(
@@ -709,17 +929,18 @@ class InventoryService {
         describe: (file, root) async {
           final rel = _relative(file, root);
           final courseFolder = rel.split(RegExp(r'[\\/]')).first;
+          final owner =
+              mediaOwners[CourseStorageNames.hashOfMediaFolder(courseFolder)];
+          // Media a stored Course uses has no Delete (Build 266 Revision 2):
+          // only the folders no Course on this device uses can go.
           return plain(
             file,
             root,
             note: file.path.toLowerCase().endsWith('.mp3')
                 ? 'Course recording (MP3).'
                 : 'Course image.',
-            owner:
-                mediaOwners[CourseStorageNames.hashOfMediaFolder(
-                  courseFolder,
-                )] ??
-                'A course no longer on this device',
+            owner: owner ?? 'A course no longer on this device',
+            deletable: owner == null && !unopenableMedia.contains(courseFolder),
           );
         },
       ),
@@ -751,6 +972,16 @@ class InventoryService {
                 modified: stat.modified,
                 note:
                     'Not created by QQL: added to the QQL folder from outside.',
+                folder: file.parent.path,
+                action: InventoryAction(
+                  InventoryActionKind.deleteFile,
+                  file.path,
+                  label: 'Delete',
+                  explanation:
+                      'Delete the file ${_relative(file, documentsRoot)}, '
+                      'which someone added to the QQL folder, from this '
+                      'device.',
+                ),
               ),
             );
           }

@@ -1,5 +1,31 @@
 # Build 266 validation
 
+## Revision 2 (2.0.66+266002, 8 October 2026): resilience
+
+- A read-only audit of the whole app (stored-data readers that parse each
+  item without a per-item catch; awaited calls in button handlers without
+  one) gave the list this revision fixes; the places it found already
+  correct were left alone.
+- `test/stored_course_edge_cases_266_test.dart`: **14 passed**. Its first
+  runs found two more defects, both fixed: the Inventory's reload (and its
+  existing Refresh) returned a Future from `setState`, and Save&Open inside
+  a ListTile's trailing slot overflowed by 40 pixels (it now stands on its
+  own row under the tile).
+- Focused batch of 85 test files (Course storage, imports, Publisher
+  installs and updates, the resets, Advanced (Admin), Inventory, Debug, the
+  Crash Log, Course Studio, All Courses, Team Manager, Version History,
+  User Data, Gamification, the Shared Image Library, learner profiles;
+  `--concurrency=2`, `TEMP`/`TMP` on `D:\QQL_test_temp`): **841 passed,
+  2 failed**, both expected: a 225.02 test reads the words "unsupported
+  course format" (kept in the new message) and the Revision 1 reset test
+  pinned the old Maintainer rule (updated: the JSON's Maintainer counts).
+- Rerun with the Help, localization, Debug, Inventory, version pin and
+  admin tests: **152 passed**.
+- `flutter analyze` on the whole project: **no issues**.
+- `dart format` on the changed Dart files only.
+- **Complete suite** (`flutter test --concurrency=1`): **3,924 passed, 1
+  skipped** (the POSIX symlink test), 0 failed, in 36 minutes.
+
 ## Revision 1 (2.0.66+266001, 8 October 2026): authoring aids
 
 - `test/guidebook_authoring_aids_266_test.dart`: **22 passed** (the first

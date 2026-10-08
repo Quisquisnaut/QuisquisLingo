@@ -36,6 +36,127 @@ Revisions:
 - Revision 4 (266004): content (English from Italian in modules, the
   Lab's two-module Lesson, the Edge Case module cases).
 
+## Revision 2 (2.0.66+266002, 8 October 2026): resilience
+
+Owner decisions of 8 October 2026, after the reset buttons did nothing (the
+fix is in Revision 1): fix the same class of bug everywhere, test the edge
+cases, make the Diagnostic Log say what happened, Save&Open for both logs,
+Delete / Forget / Open folder in the Inventory ("yes to all": the admin PIN,
+the same rules as elsewhere, its own revision). A read-only audit of the
+whole app listed where one bad stored item or an awaited call without a
+catch could stop a feature; this revision fixes those.
+
+### Stored Courses this version cannot open
+
+- `StoredCourseReader` (`lib/services/stored_course_reader.dart`) is the one
+  way QQL opens a stored custom Course entry: a Course, or an
+  `UnopenableStoredCourse` with what the JSON still says (title, Maintainer,
+  assigned Team, Private flag, Course ID) and the reason. Any data error of
+  `Course.fromJson` counts (`isDataError`: FormatException, TypeError,
+  ArgumentError, StateError, RangeError), not only FormatException: a field
+  of the wrong type used to throw a TypeError that hid every Course.
+  `log` writes it to the Diagnostic Log once per session (COURSE-002, with
+  the file name).
+- `CourseFileStore.readReadable` reports each record's file
+  (`CourseStoreSnapshot.fileNames`), so the Course list names the file, not
+  the ID; `SkippedCourseFile` gains `courseId` and `kind`
+  (`isRemovableCustomCourse`).
+- `CourseEditorService`: `listUserCourses` reads through the reader;
+  `unopenableCourse(id)`; `mayRemoveUnopenable` (the JSON's Maintainer, a
+  member of its Team, or an admin); `deleteUserCourse` removes such a Course
+  with its media under that rule; `installImportedCustomCourse` replaces it
+  (`_replaceUnopenable`) under the same rule; the Publisher update replaces
+  a stored source it cannot open, when the JSON names the same publisher.
+- `CourseLibraryOperations.reviewImport`: `existingUnopenable`, and Replace
+  offered to those people (`replaceUnavailableReason` otherwise); Course
+  Studio's Matching Course ID dialog explains it.
+- Course Studio's card of stored Courses that could not be read has
+  **Remove…** (`course-manager-unreadable-remove-<i>`, two confirmations as
+  Delete); both cards explain how to remove or replace one.
+- `CourseMaintainerGuard` (learner deletion) and `AppResetService` (the
+  preview and Remove non-admin learners) count the JSON's Maintainer: a
+  learner who maintains such a Course is refused, the message naming it (or
+  "a Private course"). A stored file that is not readable at all still
+  refuses learner deletion, now with a StateError that points to the
+  Inventory.
+
+### Buttons and first loads that failed silently
+
+- `runReported` (`lib/widgets/reported_action.dart`): the error is written
+  to the Diagnostic Log (APP-001) and shown as a SnackBar
+  (`reported-action-error`, "… could not finish: …"); `readableError` drops
+  the Dart type names. Used by Version History's Open backup folder, Course
+  Info (opening, the name check, applying the changes), the Course Editor's
+  Audit (its Audio Library check), Course Studio's Audit and Export as
+  Publisher Course, the Course Selector, Make admin, Team Manager and the
+  Team page (the spinner ends), Learner profiles (Advanced (Admin) and
+  Profile), Shared Images delete and remove bank, Reset current course,
+  Gamification's Course names.
+- Version History says why backups are not listed (made before Build 266,
+  or not backups).
+
+### Logs
+
+- `CrashLogService.recordUnhandled`: the zone, FlutterError and
+  PlatformDispatcher handlers write the full report to the Crash Log and a
+  short entry (the error, the first lines of the stack, "the full report is
+  in the Crash Log") to the Diagnostic Log, where people look first.
+- **Save&Open** (the owner's name) under each log's icons in Settings ›
+  Debug, on Windows, macOS and Linux (`save-open-crash-log`,
+  `save-open-diagnostic-log`): a fresh copy in the Logs folder (Quick
+  Export), then that folder opened (`FolderOpener`,
+  `lib/widgets/folder_opener.dart`, test seams `available` and `open`). It
+  stands on its own row under the tile: a ListTile's trailing slot has a
+  fixed height.
+
+### Inventory: Delete, Forget, Open folder
+
+- `InventoryItem.action` (`InventoryAction`: kind, target, label,
+  explanation) and `folder`. Kinds (`InventoryActionKind`): deleteLearner
+  (Learners), forget (Course Favorites, Received Custom Courses, Remembered
+  publishers), deleteCourse (a stored custom Course; an unopenable one by
+  the ID its JSON names), deletePublisherCourse, deleteFile (Export,
+  Import, ToBeMerged, Logs, Backups, the earlier folders, Import staging,
+  Other files, a stored file that is not a Course, Course media no stored
+  Course uses), deleteDeviceImage (Imported images: record and file),
+  removeImageBank. The live Crash Log and session marker have Open folder
+  only; Course media a stored Course uses has none.
+- `InventoryActionService` (`lib/services/inventory_action_service.dart`)
+  runs them after `AdminPinGate` (`lib/services/admin_pin_gate.dart`, also
+  the resets' check now), through ProfileService, CourseEditorService, the
+  Shared Image Library and ImageBankService; Forget removes only the keys
+  the Inventory lists; files only inside QQL's folders, never the live
+  Crash Log; each action is written to the Diagnostic Log.
+- `InventoryScreen`: per item `inventory-<section>-<i>-action` and
+  `-open-folder` (desktops); the dialog `inventory-action-dialog` with what
+  it removes, the PIN (`-pin`), `-run`, the refusal in `-error`; the list
+  reloads. Refresh no longer returns a Future from setState (found by the
+  new test).
+
+### Help (EN/IT/ES)
+
+- Debug Help: Save&Open under the Crash Log; the Diagnostic Log records the
+  unhandled errors and the Courses that cannot be opened, and Save&Open.
+- Advanced (Admin) Help, Inventory: bullet 8 (Delete, Forget, Open folder,
+  the PIN, the rules).
+
+### Tests
+
+- New: `test/stored_course_edge_cases_266_test.dart` (14): the reader on
+  six kinds of broken entry; the Course list beside seven kinds of bad
+  stored file (earlier GuideBook shape, formatVersion 11, a field of the
+  wrong type, broken JSON, empty, no Course ID, two files with one ID),
+  named by file and logged once; the reset preview; Remove custom courses;
+  learner deletion (refused while a file cannot be read, then by the
+  Maintainer rule, then allowed); removal by Maintainer or admin with the
+  media, nobody else; the import review's Replace; replacing by import;
+  the Inventory's actions for every stored file and learner; the PIN, the
+  folders and the forgettable keys; the Inventory dialog end to end;
+  `runReported`; `recordUnhandled`; Save&Open.
+- Updated: `test/unreadable_stored_courses_243_test.dart` (the file name),
+  `test/reset_unreadable_course_266_test.dart` (the JSON's Maintainer
+  counts); the version pins.
+
 ## Revision 1 (2.0.66+266001, 8 October 2026): authoring aids
 
 The module page's aids (plan §5 and §10). No format change.

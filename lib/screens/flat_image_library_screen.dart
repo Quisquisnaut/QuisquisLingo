@@ -30,6 +30,7 @@ import '../services/import/image_validator.dart';
 import '../widgets/quick_import_access.dart';
 import '../widgets/course_preview_flag.dart';
 import 'image_library_help_screen.dart';
+import '../widgets/reported_action.dart';
 
 class FlatImageLibraryScreen extends StatefulWidget {
   final bool selectMode;
@@ -666,10 +667,14 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
           ),
         ) ??
         false;
-    if (!confirmed) return;
-    await _metadata.removeLocalRecords(
-      actorProfileId: actor,
-      imageIds: {item.id},
+    if (!confirmed || !mounted) return;
+    await runReported(
+      context,
+      'Delete image',
+      () => _metadata.removeLocalRecords(
+        actorProfileId: actor,
+        imageIds: {item.id},
+      ),
     );
     try {
       final file = File(item.assetPath);
@@ -703,17 +708,20 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
           ),
         ) ??
         false;
-    if (!confirmed) return;
-    final removedIds = await _banks.removeBank(bankId);
-    // An image a later bank replaced keeps its new record.
-    await _metadata.removeLocalRecords(
-      actorProfileId: actor,
-      imageIds: {
-        for (final record in _all)
-          if (removedIds.contains(record.id) && record.origin == 'bank:$bankId')
-            record.id,
-      },
-    );
+    if (!confirmed || !mounted) return;
+    await runReported(context, 'Remove Image Bank', () async {
+      final removedIds = await _banks.removeBank(bankId);
+      // An image a later bank replaced keeps its new record.
+      await _metadata.removeLocalRecords(
+        actorProfileId: actor,
+        imageIds: {
+          for (final record in _all)
+            if (removedIds.contains(record.id) &&
+                record.origin == 'bank:$bankId')
+              record.id,
+        },
+      );
+    });
     await _load();
   }
 
