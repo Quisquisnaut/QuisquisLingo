@@ -2,7 +2,9 @@ import 'dart:convert';
 
 import '../models/course_flag_selection.dart';
 import '../models/course_models.dart';
+import '../models/exercise_features.dart';
 import 'authoring_duplication_service.dart';
+import 'duel_eligibility_service.dart';
 import 'guidebook_module_sample.dart';
 import 'guidebook_round_generator.dart';
 import 'guidebook_round_links.dart';
@@ -19,15 +21,16 @@ import 'lesson_icon_catalog.dart';
 /// save (owner decision of 6 October 2026); nothing of the Wizard is stored
 /// in the Course file.
 
-/// The Wizard's steps, in order. Revision 1 has the first six; the Rounds
-/// and Check and publish follow in Revisions 2–3.
+/// The Wizard's steps, in order. Revision 2 has the first seven; Check and
+/// publish follows in Revision 3.
 enum CourseWizardStep {
   basics('Basics'),
   about('About the Course'),
   credits('Credits and rights'),
   options('Course options'),
   lessons('Lessons'),
-  guidebook('GuideBook');
+  guidebook('GuideBook'),
+  rounds('Rounds');
 
   const CourseWizardStep(this.title);
 
@@ -62,7 +65,7 @@ class CourseWizardPause {
 
   final CourseWizardStep step;
 
-  /// The Lesson of the GuideBook and Rounds steps (Revisions 1–2).
+  /// The Lesson of the GuideBook and Rounds steps.
   final String? lessonId;
   final DateTime savedAtUtc;
 
@@ -101,8 +104,8 @@ class CourseWizardPause {
   /// "Course Wizard paused: step 3 of 6 (Credits and rights)".
   String get description => describe(null);
 
-  /// [description], naming the Lesson of the GuideBook step when [course]
-  /// still has it: "… step 6 of 6 (GuideBook, Lesson 2)".
+  /// [description], naming the Lesson of the GuideBook or Rounds step when
+  /// [course] still has it: "… step 6 of 7 (GuideBook, Lesson 2)".
   String describe(Course? course) {
     final index = lessonId == null || course == null
         ? -1
@@ -686,6 +689,67 @@ abstract final class CourseWizardGuidebook {
         '$doing its modules does not remove '
         '${count == 1 ? 'it' : 'them'}, but $focusing '
         '${focusing == 1 ? 'loses its' : 'lose their'} focus module.';
+  }
+}
+
+/// The Rounds step, Lesson by Lesson (Build 267 Revision 2): the Round
+/// Wizard makes each Lesson's Rounds from its GuideBook, plan first.
+abstract final class CourseWizardRounds {
+  /// Why Lesson [index] (zero-based) is not done yet, or null.
+  static String? problem(Lesson lesson, int index) => lesson.rounds.isEmpty
+      ? 'Lesson ${index + 1} (${lesson.title}) has no Rounds yet: make them '
+            'with the Round Wizard.'
+      : null;
+
+  /// The first Lesson without Rounds, with its problem; null when every
+  /// Lesson has Rounds.
+  static ({int index, String problem})? firstProblem(Course course) {
+    for (final (index, lesson) in course.lessons.indexed) {
+      final problem = CourseWizardRounds.problem(lesson, index);
+      if (problem != null) return (index: index, problem: problem);
+    }
+    return null;
+  }
+
+  /// [course] with [rounds] after the Rounds of Lesson [lessonId] (or in
+  /// their place, with [replace]).
+  static Course withRounds(
+    Course course,
+    String lessonId,
+    List<LearningRound> rounds, {
+    required DateTime now,
+    bool replace = false,
+  }) => Course.fromJson({
+    ...course.toJson(),
+    'lessons': [
+      for (final lesson in course.lessons)
+        if (lesson.lessonId != lessonId)
+          lesson.toJson()
+        else
+          {
+            ...lesson.toJson(),
+            'rounds': [
+              if (!replace)
+                for (final round in lesson.rounds) round.toJson(),
+              for (final round in rounds) round.toJson(),
+            ],
+            'updatedAt': now.toUtc().toIso8601String(),
+          },
+    ],
+  });
+
+  /// The Lesson's Duel questions, Drafts included, as the Duel counts them
+  /// (`DuelEligibilityService`); the ones that need audio apart.
+  static ({int questions, int audio}) duelCount(Lesson lesson) {
+    final candidates = const DuelEligibilityService()
+        .evaluate(lesson, includeDrafts: true)
+        .candidates;
+    final audio = candidates
+        .where(
+          (candidate) => ExerciseFeatures(candidate.exercise).requiresAudio,
+        )
+        .length;
+    return (questions: candidates.length - audio, audio: audio);
   }
 }
 

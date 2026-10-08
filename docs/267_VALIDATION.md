@@ -63,7 +63,8 @@ Run on the owner's Windows PC (4 cores, 8 GB), `TEMP`/`TMP` on
 
 - `dart format` on the changed Dart files only; `flutter analyze --no-pub`:
   **No issues found.**
-- `test/course_wizard_267_test.dart`: **21 passed**. New or changed for the
+- `test/course_wizard_267_test.dart`: **20 passed** (written 21 at first,
+  corrected on 9 October). New or changed for the
   GuideBook step:
   - the step's logic: a new Lesson is not done; a module with three Words &
     Expressions written as a Draft is usable but not done; approved
@@ -88,3 +89,31 @@ Run on the owner's Windows PC (4 cores, 8 GB), `TEMP`/`TMP` on
 - Complete suite (`flutter test --no-pub --concurrency=1 --reporter compact`,
   Windows kept awake, 22:48–23:21): **3,961 passed, 1 skipped** (POSIX only),
   exit code 0.
+
+## Revision 2 (2.0.67+267002), 8–9 October 2026
+
+- `dart format` on the changed Dart files only; `flutter analyze --no-pub`:
+  **No issues found.**
+- `test/course_wizard_267_test.dart`: **22 passed**. New or changed:
+  - the Round Wizard makes untitled Rounds on request, the same number as
+    titled ones; `CourseWizardRounds` (first Lesson without Rounds, adding,
+    replacing, the Duel count of a Lesson);
+  - the GuideBook flow now ends with Next to step 7 and Save for now, the
+    row reading "step 7 of 7 (Rounds, Lesson 1)";
+  - the Rounds step: a one-Lesson Course with an approved GuideBook, paused
+    at step 7; "No Rounds yet", "Duel: 0 questions (25 needed)"; Finish
+    refused naming the Lesson; Make Rounds opens the Round Wizard, Round
+    titles off, the plan shows the Duel count, Generate and Approve; the
+    Rounds are saved untitled and Draft ("Course Wizard: Rounds, Lesson 1");
+    Finish opens the Course Editor and forgets the Wizard;
+  - the step counts read "of 7"; the 360-pixel test covers step 7.
+- Beta: the expiry moves to 8 November (the revision is committed on
+  9 October); `beta_lifecycle_test.dart` shifts its dates by one day.
+- First complete suite (8–9 October, 23:34–00:07): 3,961 passed, 1 skipped,
+  **2 failed**: `exercise_responsive_224_test.dart` at 320 and 375 logical
+  pixels tapped Review generation plan without scrolling, and the new Round
+  titles switch had moved it below the fold. The app is right (the button
+  scrolls into view); the test now scrolls the Round Wizard's list to the
+  button first (`scrollUntilVisible`). The file passes alone (4 tests).
+- Second complete suite (9 October, 00:10–00:43): **3,963 passed, 1 skipped**
+  (POSIX only), exit code 0.

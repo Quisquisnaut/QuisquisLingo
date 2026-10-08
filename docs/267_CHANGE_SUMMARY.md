@@ -129,3 +129,32 @@ The plan's §3 step 6.
   `CourseWizardSample.guidebook`, `CourseWizardPause.describe`; the screen's
   GuideBook fields; Course Studio and the Course Editor name the Lesson.
 - Help EN/IT/ES: the Course Wizard answer.
+
+## Revision 2 (2.0.67+267002): the Rounds step
+
+The plan's §3 step 7 and §6, without the five further picture presets and
+Prefer picture exercises (they wait for the owner's answer).
+
+- **Step 7, Rounds**, after GuideBook (Next from GuideBook now saves and goes
+  on; Finish moved to step 7). A chip per Lesson, ticked when it has Rounds;
+  the Lesson's Rounds as learners see them ("Round 2 · Practice"), its
+  exercises and, with Create Duels on, its Duel questions.
+- **Make Rounds** opens the Round Wizard on the Lesson with its recommended
+  settings; its plan comes first; the Rounds it makes are Drafts, added to
+  the Lesson and saved ("Course Wizard: Rounds, Lesson N"); then the next
+  Lesson without Rounds is shown. Fill with an example opens the Round
+  Wizard too; Clear all removes the Lesson's Rounds, asking first. Finish
+  needs Rounds in every Lesson.
+- **The Round Wizard**, for the Wizard and the Rounds page alike:
+  - **Round titles**, on by default: "Practice: Al bar"; off, the Rounds
+    have no title and learners see the Round type and number.
+  - **The Duel count**, with Create Duels on: "27 Duel questions (25
+    needed) · 3 more need audio", counted by the Duel's own rule on the
+    Rounds the plan makes plus the Lesson's own; below 25 it says to raise
+    Rounds per module or Exercises per Round.
+- Code: `CourseWizardStep.rounds`, `CourseWizardRounds`, the screen's Rounds
+  fields and shared Lesson chips; `GuidebookRoundGenerator.createDrafts(
+  roundTitles:)`; the Round Wizard screen's switch and Duel line.
+- Help EN/IT/ES: the Course Wizard and Round Wizard answers; the Round
+  Wizard's Help dialog.
+- Beta expiry 8 November 2026 (release 9 October).

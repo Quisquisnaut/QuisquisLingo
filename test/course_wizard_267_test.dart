@@ -13,6 +13,7 @@ import 'package:quisquislingo_app/services/course_library_operations.dart';
 import 'package:quisquislingo_app/services/course_wizard.dart';
 import 'package:quisquislingo_app/services/course_wizard_memory.dart';
 import 'package:quisquislingo_app/services/formal_name_policy.dart';
+import 'package:quisquislingo_app/services/guidebook_round_generator.dart';
 import 'package:quisquislingo_app/services/lesson_icon_catalog.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:quisquislingo_app/services/settings_service.dart';
@@ -43,7 +44,7 @@ void main() {
       });
       expect(
         pause.description,
-        'Course Wizard paused: step 3 of 6 (Credits and rights)',
+        'Course Wizard paused: step 3 of 7 (Credits and rights)',
       );
       // Unusable records are ignored, never guessed.
       for (final raw in [
@@ -57,7 +58,7 @@ void main() {
         expect(CourseWizardPause.decode(raw), isNull, reason: raw);
       }
       // A step of a later build reads as this build's last step.
-      expect(CourseWizardStep.byNumber(8), CourseWizardStep.guidebook);
+      expect(CourseWizardStep.byNumber(8), CourseWizardStep.rounds);
     });
 
     test('the memory keeps one record per Course ID on the device', () async {
@@ -392,9 +393,62 @@ void main() {
     );
     expect(
       pause.describe(course),
-      'Course Wizard paused: step 6 of 6 (GuideBook, Lesson 2)',
+      'Course Wizard paused: step 6 of 7 (GuideBook, Lesson 2)',
     );
-    expect(pause.description, 'Course Wizard paused: step 6 of 6 (GuideBook)');
+    expect(pause.description, 'Course Wizard paused: step 6 of 7 (GuideBook)');
+  });
+
+  test('the Round Wizard makes untitled Rounds on request', () {
+    final ids = _Ids();
+    final modules = CourseWizardSample.guidebook(ids);
+    final guidebook = Guidebook(modules: modules);
+    final generator = GuidebookRoundGenerator(
+      randomSeed: 1,
+      draftIds: ids,
+      now: () => _now,
+    );
+    final plan = generator.plan(
+      guidebook,
+      focusModuleId: null,
+      roundCount: 3,
+      exercisesPerRound: 8,
+    );
+    final titled = generator.createDrafts(guidebook, plan);
+    expect(titled.every((round) => round.title.isNotEmpty), isTrue);
+    final untitled = generator.createDrafts(
+      guidebook,
+      plan,
+      roundTitles: false,
+    );
+    expect(untitled, hasLength(titled.length));
+    expect(untitled.every((round) => round.title.isEmpty), isTrue);
+
+    // The Rounds step: a Lesson without Rounds is not done.
+    var course = CourseWizardLessons.applyTo(
+      _wizardCourse(),
+      CourseWizardSample.lessons,
+      now: _now,
+      ids: ids,
+    );
+    expect(CourseWizardRounds.firstProblem(course)!.index, 0);
+    course = CourseWizardRounds.withRounds(
+      course,
+      course.lessons.first.lessonId,
+      untitled,
+      now: _now,
+    );
+    expect(course.lessons.first.rounds, hasLength(untitled.length));
+    expect(CourseWizardRounds.firstProblem(course)!.index, 1);
+    final duel = CourseWizardRounds.duelCount(course.lessons.first);
+    expect(duel.questions + duel.audio, greaterThan(0));
+    course = CourseWizardRounds.withRounds(
+      course,
+      course.lessons.first.lessonId,
+      const [],
+      now: _now,
+      replace: true,
+    );
+    expect(course.lessons.first.rounds, isEmpty);
   });
 
   test('one session saves a new Course at every step', () async {
@@ -486,7 +540,7 @@ void main() {
         find.byKey(const Key('course-wizard-explanation')),
         findsOneWidget,
       );
-      expect(find.text('Step 1 of 6: Basics'), findsOneWidget);
+      expect(find.text('Step 1 of 7: Basics'), findsOneWidget);
       expect(find.byKey(const Key('course-wizard-continue')), findsOneWidget);
       expect(find.byKey(const Key('course-wizard-manual')), findsOneWidget);
       expect(find.byKey(const Key('course-wizard-can-wait-variant')), findsOne);
@@ -533,7 +587,7 @@ void main() {
       await tester.pump();
       await tester.tap(find.byKey(const Key('course-wizard-continue')));
       await tester.pumpUntilFileIoState(
-        () => find.text('Step 2 of 6: About the Course').evaluate().isNotEmpty,
+        () => find.text('Step 2 of 7: About the Course').evaluate().isNotEmpty,
       );
       var stored = (await tester.runAsync(
         () => CourseEditorService().listUserCourses(),
@@ -560,7 +614,7 @@ void main() {
       await tester.tap(find.byKey(const Key('course-wizard-next')));
       await tester.pumpUntilFileIoState(
         () =>
-            find.text('Step 3 of 6: Credits and rights').evaluate().isNotEmpty,
+            find.text('Step 3 of 7: Credits and rights').evaluate().isNotEmpty,
       );
       stored = (await tester.runAsync(
         () => CourseEditorService().listUserCourses(),
@@ -578,7 +632,7 @@ void main() {
       await tester.pumpUntilFileIoState(() => paused.evaluate().isNotEmpty);
       expect(find.byType(CourseWizardScreen), findsNothing);
       expect(
-        find.text('Course Wizard paused: step 3 of 6 (Credits and rights)'),
+        find.text('Course Wizard paused: step 3 of 7 (Credits and rights)'),
         findsOneWidget,
       );
       // No change on this step: no new version.
@@ -602,11 +656,11 @@ void main() {
       );
       await tester.tap(continueItem);
       await tester.pumpAndSettle();
-      expect(find.text('Step 3 of 6: Credits and rights'), findsOneWidget);
+      expect(find.text('Step 3 of 7: Credits and rights'), findsOneWidget);
       expect(find.byKey(const Key('course-wizard-step-done-2')), findsOne);
     });
 
-    testWidgets('Lessons, then each GuideBook approved, then Finish', (
+    testWidgets('Lessons, then each GuideBook approved, then the Rounds', (
       tester,
     ) async {
       final stored = (await tester.runAsync(() => _store(_wizardCourse())))!;
@@ -628,7 +682,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('Continue Course Wizard'));
       await tester.pumpAndSettle();
-      expect(find.text('Step 5 of 6: Lessons'), findsOneWidget);
+      expect(find.text('Step 5 of 7: Lessons'), findsOneWidget);
       expect(find.text('Next'), findsOneWidget);
 
       await tester.tap(find.byKey(const Key('course-wizard-next')));
@@ -656,7 +710,7 @@ void main() {
       await tester.enterText(_field('Lesson title *').first, 'Coffee');
       await tester.tap(find.byKey(const Key('course-wizard-next')));
       await tester.pumpUntilFileIoState(
-        () => find.text('Step 6 of 6: GuideBook').evaluate().isNotEmpty,
+        () => find.text('Step 6 of 7: GuideBook').evaluate().isNotEmpty,
       );
       var saved = (await tester.runAsync(
         () => CourseEditorService().listUserCourses(),
@@ -673,9 +727,9 @@ void main() {
         ))!.lessonId,
         saved.lessons.first.lessonId,
       );
-      expect(find.text('Finish'), findsOneWidget);
+      expect(find.text('Next'), findsOneWidget);
 
-      // Finish needs every Lesson's GuideBook.
+      // Next needs every Lesson's GuideBook.
       await tester.tap(find.byKey(const Key('course-wizard-next')));
       await tester.pumpAndSettle();
       expect(
@@ -721,6 +775,108 @@ void main() {
 
       await tester.tap(find.byKey(const Key('course-wizard-next')));
       await tester.pumpUntilFileIoState(
+        () => find.text('Step 7 of 7: Rounds').evaluate().isNotEmpty,
+      );
+      expect(find.text('Finish'), findsOneWidget);
+      // Save for now remembers the Lesson of the Rounds step.
+      await tester.tap(find.byKey(const Key('course-wizard-save-for-now')));
+      await tester.pumpUntilFileIoState(
+        () => find
+            .text('Course Wizard paused: step 7 of 7 (Rounds, Lesson 1)')
+            .evaluate()
+            .isNotEmpty,
+      );
+    });
+
+    testWidgets('the Rounds step makes Rounds with the Round Wizard', (
+      tester,
+    ) async {
+      final ids = _Ids();
+      var course = CourseWizardLessons.applyTo(
+        _wizardCourse(),
+        [CourseWizardSample.lessons.first],
+        now: _now,
+        ids: ids,
+      );
+      course = CourseWizardGuidebook.withModules(
+        course,
+        course.lessons.single.lessonId,
+        CourseWizardSample.guidebook(ids),
+        state: PublicationState.published,
+        now: _now,
+      );
+      final stored = (await tester.runAsync(() => _store(course)))!;
+      await tester.runAsync(
+        () => CourseWizardMemory().remember(
+          stored.courseId,
+          CourseWizardPause(
+            step: CourseWizardStep.rounds,
+            savedAtUtc: DateTime.utc(2026, 10, 8),
+          ),
+        ),
+      );
+      await _openStudio(tester);
+      final actions = find.byKey(
+        ValueKey('course-manager-actions-${stored.courseId}'),
+      );
+      await tester.ensureVisible(actions);
+      await tester.tap(actions);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Continue Course Wizard'));
+      await tester.pumpAndSettle();
+      expect(find.text('Step 7 of 7: Rounds'), findsOneWidget);
+      expect(find.text('No Rounds yet.'), findsOneWidget);
+      expect(find.text('Duel: 0 questions (25 needed)'), findsOneWidget);
+
+      // Finish needs Rounds in every Lesson.
+      await tester.tap(find.byKey(const Key('course-wizard-next')));
+      await tester.pumpAndSettle();
+      expect(
+        find.text(
+          'Lesson 1 (Coffee and pastries) has no Rounds yet: make them with '
+          'the Round Wizard.',
+        ),
+        findsOneWidget,
+      );
+
+      await tester.tap(find.byKey(const Key('course-wizard-make-rounds')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('generator-round-titles')), findsOneWidget);
+      // Untitled Rounds, as the Italian demo wants them.
+      await tester.tap(find.byKey(const Key('generator-round-titles')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('generator-review-plan')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('generator-duel-count')), findsOneWidget);
+      expect(find.textContaining('(25 needed)'), findsWidgets);
+      final generate = find.byKey(const Key('generator-generate'));
+      await tester.ensureVisible(generate);
+      await tester.tap(generate);
+      await tester.pumpAndSettle();
+      final approve = find.byKey(const Key('generator-approve'));
+      await tester.ensureVisible(approve);
+      await tester.tap(approve);
+      await tester.pumpUntilFileIoState(
+        () => find
+            .textContaining('Rounds added to Lesson 1')
+            .evaluate()
+            .isNotEmpty,
+      );
+      final saved = (await tester.runAsync(
+        () => CourseEditorService().listUserCourses(),
+      ))!.single;
+      expect(saved.versionNotes, 'Course Wizard: Rounds, Lesson 1');
+      final rounds = saved.lessons.single.rounds;
+      expect(rounds, isNotEmpty);
+      expect(rounds.every((round) => round.title.isEmpty), isTrue);
+      expect(
+        rounds.every((round) => round.publicationState.isPublished),
+        isFalse,
+      );
+      expect(find.byKey(const Key('course-wizard-round-2')), findsOneWidget);
+
+      await tester.tap(find.byKey(const Key('course-wizard-next')));
+      await tester.pumpUntilFileIoState(
         () => find.byType(CourseEditorScreen).evaluate().isNotEmpty,
       );
       expect(
@@ -760,14 +916,14 @@ void main() {
             .isNotEmpty,
       );
       expect(
-        find.text('Course Wizard paused: step 4 of 6 (Course options)'),
+        find.text('Course Wizard paused: step 4 of 7 (Course options)'),
         findsOneWidget,
       );
       await tester.tap(find.byKey(const Key('course-editor-continue-wizard')));
       await tester.pumpUntilFileIoState(
         () => find.byType(CourseWizardScreen).evaluate().isNotEmpty,
       );
-      expect(find.text('Step 4 of 6: Course options'), findsOneWidget);
+      expect(find.text('Step 4 of 7: Course options'), findsOneWidget);
       expect(find.byType(CourseEditorScreen), findsNothing);
 
       // Continue by hand forgets the Wizard and opens the Editor.
@@ -889,7 +1045,7 @@ void main() {
         ('lo scontrino', 'the receipt'),
       ],
     );
-    expect(find.text('Step 6 of 6: GuideBook'), findsOneWidget);
+    expect(find.text('Step 6 of 7: GuideBook'), findsOneWidget);
     expect(find.text('Il conto'), findsOneWidget);
     expect(find.text('0 sentences · 3 words'), findsOneWidget);
     expect(find.textContaining('Not approved yet'), findsOneWidget);
@@ -955,7 +1111,7 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(
-        find.text('Step ${step.number} of 6: ${step.title}'),
+        find.text('Step ${step.number} of 7: ${step.title}'),
         findsOneWidget,
       );
       await tester.drag(

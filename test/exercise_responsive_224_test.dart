@@ -125,6 +125,18 @@ void main() {
           find.byKey(const Key('guidebook-generator-configure')),
           findsOneWidget,
         );
+        // Build 267 Revision 2: the Round titles switch moved the button
+        // below the fold of the narrowest windows.
+        await tester.scrollUntilVisible(
+          find.byKey(const Key('generator-review-plan')),
+          200,
+          scrollable: find
+              .descendant(
+                of: find.byKey(const Key('guidebook-generator-configure')),
+                matching: find.byType(Scrollable),
+              )
+              .first,
+        );
         await tester.tap(find.byKey(const Key('generator-review-plan')));
         await tester.pumpAndSettle();
         expect(

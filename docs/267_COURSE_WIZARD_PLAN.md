@@ -28,18 +28,20 @@ Build 266 delivered parts of this plan before Build 267 started:
   singular (marked Plural), then the name before a bracket; never a tag;
   only on typing, Paste list or Fill, never on reopening. Not done: a
   **Suggest pictures** button for rows that already exist (asked on
-  8 October 2026).
+  8 October 2026; owner: yes, with 266's rules, 9 October).
 - **§6, picture exercises:** 266 Revision 3 added Select the image, Match
   pictures to words and Picture flashcard. Not done: the five other presets
   of the table below and **Prefer picture exercises** (asked on 8 October
-  2026).
+  2026; owner: yes, all five and the switch, 9 October). Both come in
+  Revision 3; Check and publish becomes Revision 4.
 - **§10:** learners see a word's picture in the GuideBook, on Review cards
   and in Word Lookup (266 Revision 0).
 
 Revision 0 (2.0.67+267000) shows only the steps that exist: steps 1–5, with
 **Finish** on step 5 (it saves, ends the Wizard and opens the Course
 Editor). Each later revision adds its step to the bar: Revision 1
-(2.0.67+267001) adds step 6, with Finish there. §4's unfinished rows never
+(2.0.67+267001) adds step 6 and Revision 2 (2.0.67+267002) step 7, with
+Finish on the last step. §4's unfinished rows never
 reach the Wizard: Build 266's module page refuses a half row, or offers to
 discard it, before it returns the module.
 
@@ -291,7 +293,9 @@ When the focus module has at least 3 words with pictures:
   - the slot's module first, then the Lesson;
   - never two entries with the same picture or the same target;
   - with the context rules of the 266 plan, §7.
-- Spelling blocks only for single words of at most 10 letters.
+- Spelling blocks only for single words of at most 12 letters (owner, 9
+  October 2026; 10 was the first proposal), spelled without their leading
+  article ("il gatto" → g-a-t-t-o).
 - Every picture exercise follows the Course's Picture answers style.
 
 ### Round titles

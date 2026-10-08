@@ -34,6 +34,7 @@ import '../services/course_service.dart';
 import '../services/course_wizard.dart';
 import '../services/course_wizard_memory.dart';
 import '../services/course_audit_service.dart';
+import '../services/duel_eligibility_service.dart';
 import '../services/audit_code_registry.dart' show AuditCode;
 import '../services/course_audit_report_service.dart';
 import '../services/settings_service.dart';
@@ -5422,6 +5423,15 @@ class _GuidebookRoundGeneratorScreenState
   List<LearningRound> _drafts = const [];
   int _seed = 0;
 
+  /// Build 267 Revision 2: "phase: module title" on each Round, or no
+  /// title (learners then see the Round type and number).
+  bool _roundTitles = true;
+
+  /// The Duel questions of the Lesson once the plan's Rounds are made, for
+  /// the plan the count was made for.
+  GuidebookGenerationPlan? _duelPlan;
+  ({int questions, int audio})? _duelCount;
+
   @override
   void dispose() {
     _roundCount.dispose();
@@ -5467,7 +5477,11 @@ class _GuidebookRoundGeneratorScreenState
 
   void _generateDrafts() {
     try {
-      final drafts = _generator().createDrafts(widget.lesson.guidebook, _plan!);
+      final drafts = _generator().createDrafts(
+        widget.lesson.guidebook,
+        _plan!,
+        roundTitles: _roundTitles,
+      );
       setState(() {
         _drafts = drafts;
         _stage = _GuidebookGeneratorStage.drafts;
@@ -5565,6 +5579,7 @@ class _GuidebookRoundGeneratorScreenState
       final drafts = _generator().createDrafts(
         widget.lesson.guidebook,
         revisedPlan,
+        roundTitles: _roundTitles,
       );
       setState(() {
         _plan = revisedPlan;
@@ -5575,13 +5590,69 @@ class _GuidebookRoundGeneratorScreenState
     }
   }
 
-  Lesson get _draftLesson => Lesson(
+  Lesson get _draftLesson => _lessonWith(_drafts);
+
+  /// The Duel questions of the Lesson with the plan's Rounds (Build 267
+  /// Revision 2, plan §6): counted on the Rounds the plan makes, by
+  /// [DuelEligibilityService] (Drafts included); the questions that need
+  /// audio apart. Null while Create Duels is off or the plan cannot be made.
+  ({int questions, int audio})? get _plannedDuel {
+    final plan = _plan;
+    if (plan == null || !widget.course.createDuels) return null;
+    if (!identical(plan, _duelPlan)) {
+      _duelPlan = plan;
+      try {
+        final drafts = _generator().createDrafts(widget.lesson.guidebook, plan);
+        final candidates = const DuelEligibilityService()
+            .evaluate(_lessonWith(drafts), includeDrafts: true)
+            .candidates;
+        final audio = candidates
+            .where(
+              (candidate) => ExerciseFeatures(candidate.exercise).requiresAudio,
+            )
+            .length;
+        _duelCount = (questions: candidates.length - audio, audio: audio);
+      } on GuidebookGenerationException {
+        _duelCount = null;
+      }
+    }
+    return _duelCount;
+  }
+
+  Widget? _duelCountLine() {
+    final count = _plannedDuel;
+    if (count == null) return null;
+    const needed = DuelEligibilityService.requiredQuestionCount;
+    final enough = count.questions >= needed;
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: Text(
+        [
+          '${count.questions} Duel question${count.questions == 1 ? '' : 's'} '
+              '($needed needed)',
+          if (count.audio > 0)
+            '${count.audio} more need${count.audio == 1 ? 's' : ''} audio',
+          if (!enough)
+            'raise Rounds per module or Exercises per Round to reach $needed',
+        ].join(' · '),
+        key: const Key('generator-duel-count'),
+        style: TextStyle(
+          fontWeight: FontWeight.w600,
+          color: enough
+              ? Theme.of(context).colorScheme.primary
+              : Theme.of(context).colorScheme.error,
+        ),
+      ),
+    );
+  }
+
+  Lesson _lessonWith(List<LearningRound> drafts) => Lesson(
     lessonId: widget.lesson.lessonId,
     publicationState: widget.lesson.publicationState,
     provisionalDraft: widget.lesson.provisionalDraft,
     updatedAt: widget.lesson.updatedAt,
     title: widget.lesson.title,
-    rounds: [...widget.lesson.rounds, ..._drafts],
+    rounds: [...widget.lesson.rounds, ...drafts],
     section: widget.lesson.section,
     sectionName: widget.lesson.sectionName,
     themeIconAsset: widget.lesson.themeIconAsset,
@@ -5693,7 +5764,7 @@ class _GuidebookRoundGeneratorScreenState
       title: const Text('GuideBook Round Generator'),
       content: const SingleChildScrollView(
         child: Text(
-          'The current Lesson GuideBook is the only source. Choose the module the Rounds practise, or All modules, in order (each module then gets its own Rounds, from Foundations through Practice to Use in context), the number of Rounds (1–12; with All modules per module, at most 24 Rounds in all) and the exercises per Round (1–15). A module needs at least three Words & Expressions entries.\n\n'
+          'The current Lesson GuideBook is the only source. Choose the module the Rounds practise, or All modules, in order (each module then gets its own Rounds, from Foundations through Practice to Use in context), the number of Rounds (1–12; with All modules per module, at most 24 Rounds in all) and the exercises per Round (1–15). A module needs at least three Words & Expressions entries. Round titles (on by default) titles each Round like Practice: Al bar; off, the Rounds have no title. With Create Duels on, the plan counts the Lesson\'s Duel questions once its Rounds are made (25 needed), the ones that need audio apart.\n\n'
           'About a third of each Round reviews the earlier modules of the Lesson, nearest first, never as the first exercise. Each exercise shows an entry\'s Context with its translation, so it has one right answer; entries that differ only by their Context are offered as wrong answers, synonyms never are, and a typed answer accepts every synonym. Sentences give Build the translation and Word order. A module with at least three Words & Expressions with pictures also gets Select the image, Match pictures to words and Picture flashcard, Plural marks included.\n\n'
           'Each Round records its focus module (Open GuideBook opens there) and the earlier modules it reviews; the first Round of each module opens with a Before you start card holding a copy of the module\'s Overview. Generated material remains draft: review, edit or delete every Round and Exercise before explicit approval. Generation can assist authoring but cannot guarantee pedagogical correctness.',
         ),
@@ -5794,7 +5865,20 @@ class _GuidebookRoundGeneratorScreenState
             helperText: 'Choose 1–15. Default: 8.',
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 4),
+        SwitchListTile(
+          key: const Key('generator-round-titles'),
+          contentPadding: EdgeInsets.zero,
+          title: const Text('Round titles'),
+          subtitle: const Text(
+            'On: each Round is titled like “Practice: Al bar”. Off: the '
+            'Rounds have no title, and learners see the Round type and '
+            'number.',
+          ),
+          value: _roundTitles,
+          onChanged: (value) => setState(() => _roundTitles = value),
+        ),
+        const SizedBox(height: 12),
         Text(
           all
               ? '$modules modules × $rounds Rounds × $exercises exercises = '
@@ -5823,6 +5907,7 @@ class _GuidebookRoundGeneratorScreenState
           '${_plan!.rounds.length} Rounds × ${_plan!.exercisesPerRound} exercises = ${_plan!.totalExercises} exercises',
           style: Theme.of(context).textTheme.titleLarge,
         ),
+        ?_duelCountLine(),
         if (_plan!.skippedModules.isNotEmpty)
           Padding(
             padding: const EdgeInsets.only(top: 4),
@@ -5843,7 +5928,10 @@ class _GuidebookRoundGeneratorScreenState
             dense: true,
             leading: CircleAvatar(child: Text('${round.index + 1}')),
             title: Text(
-              '${RoundTypePresentation.label(round.roundType)} · ${round.title}',
+              _roundTitles
+                  ? '${RoundTypePresentation.label(round.roundType)} · ${round.title}'
+                  : '${RoundTypePresentation.label(round.roundType)} · no title '
+                        '(${round.title})',
             ),
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

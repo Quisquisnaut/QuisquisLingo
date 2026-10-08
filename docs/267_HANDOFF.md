@@ -21,12 +21,21 @@ open a pull request without the owner's word.
   **Prefer picture exercises**.
 - §10: the learner thumbnail is done (266 Revision 0).
 
-**Questions sent to the owner on 8 October 2026, not answered yet** (they
-decide Revisions 1 and 2, not Revision 0):
-1. Add the Suggest pictures button (with 266's rules, not the plan's tag
-   rule)?
-2. Add the five other picture presets and Prefer picture exercises in
-   Revision 2? (Recommended: yes, the demo is picture-led.)
+**Owner's answers of 9 October 2026** (to the questions of 8 October):
+1. **Yes**: a Suggest pictures button on the module page, with 266's
+   matching rules (exact name, singular, name before a bracket; never tags),
+   filling only empty picture slots, never replacing a chosen picture.
+2. **Yes, all five and the switch**: What is in the picture, Spell the word
+   in the picture, Name what you see, Type what you see and Listen and pick
+   the image join the Round Wizard, with **Prefer picture exercises** (on
+   by default when a module has pictured words: about half of each Round's
+   focus slots).
+3. **Spelling (9 October 2026, later):** Spell the word in the picture takes
+   words of **at most 12 letters** (one tile per letter; the plan's 10 was
+   only a proposal), and the Wizard spells **the word without its leading
+   article** ("il gatto" → g-a-t-t-o; QQL's article lists of Word Lookup,
+   `WordLookupArticles`, decide what an article is).
+They come in Revision 3 (picture aids); Check and publish becomes Revision 4.
 
 ## Revision 0 (2.0.67+267000), the frame: committed
 
@@ -68,10 +77,24 @@ a focused batch of 218 passed; complete suite 3,961 passed, 1 skipped.
 Committed locally on 8 October 2026 as "Build 267 Revision 1: the Course
 Wizard's GuideBook step".
 
+## Revision 2 (2.0.67+267002), the Rounds step: committed
+
+Implemented: step 7 (`CourseWizardStep.rounds`, `CourseWizardRounds`, Make
+Rounds through `GuidebookRoundGeneratorScreen`, the Rounds list and Duel
+line, shared Lesson chips), the Round Wizard's Round titles switch and Duel
+count, Help EN/IT/ES, docs, version 2.0.67+267002 dated 9 October (Beta
+expiry 8 November: the suite ends after midnight). Not in: the five further
+picture presets and Prefer picture exercises (owner's answer pending).
+Analyzer clean; `course_wizard_267_test.dart` 22 passed; focused batch 191
+passed; the first complete suite failed 2 narrow-window tests (the Round
+titles switch moved Review generation plan below the fold; the test now
+scrolls), the second passed 3,963, 1 skipped. Committed on 9 October 2026.
+
 ## Next
 
 - If the owner says yes to question 1: the Suggest pictures button on the
   module page (a Revision 1 follow-up).
-- Revision 2: step 7 (Round Wizard with All modules, Round titles switch,
-  Duel count) plus the answer to question 2.
+- If the owner says yes to question 2: the five further picture presets and
+  Prefer picture exercises in the Round Wizard (a Revision 2 follow-up or its
+  own revision).
 - Revision 3: step 8 (Check and publish, Publish, Finish).

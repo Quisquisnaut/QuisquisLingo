@@ -331,10 +331,14 @@ class GuidebookRoundGenerator {
     ].join(' · ');
   }
 
+  /// The draft Rounds of [plan]. [roundTitles] (Build 267 Revision 2,
+  /// default on) titles each Round "phase: module title"; off, the Rounds
+  /// have no title and learners see the Round type and number.
   List<LearningRound> createDrafts(
     Guidebook guidebook,
-    GuidebookGenerationPlan plan,
-  ) {
+    GuidebookGenerationPlan plan, {
+    bool roundTitles = true,
+  }) {
     final material = _Material(guidebook);
     if (material.allWords.length < minimumWords) {
       throw const GuidebookGenerationException(
@@ -345,7 +349,13 @@ class GuidebookRoundGenerator {
     final duplication = AuthoringDuplicationService(ids: _draftIds);
     return [
       for (final roundPlan in plan.rounds)
-        _createRound(roundPlan, material, random, duplication),
+        _createRound(
+          roundPlan,
+          material,
+          random,
+          duplication,
+          roundTitles: roundTitles,
+        ),
     ];
   }
 
@@ -353,8 +363,9 @@ class GuidebookRoundGenerator {
     GuidebookRoundPlan plan,
     _Material material,
     Random random,
-    AuthoringDuplicationService duplication,
-  ) {
+    AuthoringDuplicationService duplication, {
+    required bool roundTitles,
+  }) {
     if (!supportsType(plan.roundType)) {
       throw GuidebookGenerationException(unsupportedReason(plan.roundType));
     }
@@ -432,7 +443,7 @@ class GuidebookRoundGenerator {
       id: _draftIds.next('round'),
       publicationState: PublicationState.draft,
       updatedAt: _now(),
-      title: plan.title,
+      title: roundTitles ? plan.title : '',
       roundType: plan.roundType,
       content: content,
       flow: plan.roundType == RoundType.sequence

@@ -1,3 +1,37 @@
+# 2.0.67 (Build 267, Revision 2) - The Course Wizard: the Rounds step - 2026-10-09
+
+The plan's §3 step 7 and §6 (owner decisions of 6 October 2026), without
+the five further picture presets and Prefer picture exercises (owner's answer
+pending).
+
+- **Step 7, Rounds, Lesson by Lesson.** The GuideBook step is no longer the
+  last: Next saves the GuideBooks and opens the Rounds step. A chip per Lesson
+  (ticked when it has Rounds); the Lesson's Rounds as learners see them, its
+  exercises and, with Create Duels on, its Duel questions ("Duel: 27
+  questions (25 needed) · 3 more need audio").
+- **Make Rounds** opens the Round Wizard on the shown Lesson, with its
+  recommended settings; its plan comes first, and the Rounds it makes are
+  Drafts, added and saved ("Course Wizard: Rounds, Lesson N"); the next
+  Lesson without Rounds is shown. A Lesson whose GuideBook has no usable
+  module says so (step 6). Fill with an example opens the Round Wizard too;
+  Clear all removes the Lesson's Rounds, asking first. **Finish**, now on
+  step 7, needs Rounds in every Lesson and names the first without.
+- **The Round Wizard** (the Wizard and the Rounds page alike):
+  - **Round titles** (`generator-round-titles`, on by default): on, each
+    Round is titled "Practice: Al bar"; off, the Rounds have no title and
+    learners see the Round type and number (`createDrafts(roundTitles:)`).
+  - **The Duel count** (`generator-duel-count`), shown with Create Duels on:
+    the Lesson's Duel questions once the plan's Rounds are made, counted by
+    the Duel's own rule on the planned exercises, those that need audio
+    apart, and, below 25, what to raise.
+- Paused on step 7, the Wizard remembers the Lesson ("step 7 of 7 (Rounds,
+  Lesson 1)").
+- Help EN/IT/ES: the Course Wizard and Round Wizard answers; the Round
+  Wizard's own Help dialog.
+- Scoring, progression, Course files and learner data are unchanged. Beta
+  expiry `2026-11-08 23:59:59` local time (30 days from the 9 October 2026
+  release date).
+
 # 2.0.67 (Build 267, Revision 1) - The Course Wizard: the GuideBook step - 2026-10-08
 
 The plan's §3 step 6 (owner decisions of 6 October 2026).

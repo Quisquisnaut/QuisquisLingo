@@ -14,6 +14,7 @@ import '../services/course_language_resolver.dart';
 import '../services/course_library_operations.dart';
 import '../services/course_service.dart';
 import '../services/course_wizard.dart';
+import '../services/duel_eligibility_service.dart';
 import '../services/formal_name_policy.dart';
 import '../services/guidebook_picture_match.dart';
 import '../services/guidebook_round_links.dart';
@@ -27,6 +28,7 @@ import '../widgets/course_flag_picker.dart';
 import '../widgets/language_field.dart';
 import '../widgets/lesson_fallback_icon.dart';
 import '../widgets/reported_action.dart';
+import 'course_editor_screen.dart' show GuidebookRoundGeneratorScreen;
 import 'editor_help_screen.dart';
 import 'flat_image_library_screen.dart';
 import 'guidebook_editor_screen.dart';
@@ -208,9 +210,9 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
   // Step 5.
   final _lessonRows = <_LessonRow>[];
 
-  // Step 6: the Lesson whose GuideBook is shown, and the Lesson a paused
-  // Wizard stopped at (read once).
-  int _guidebookLesson = 0;
+  // Steps 6 and 7: the Lesson shown, and the Lesson a paused Wizard stopped
+  // at (read once).
+  int _shownLesson = 0;
   late String? _pausedLessonId = widget.pause?.lessonId;
 
   static const _customLicenseChoice = 'Other / Custom license';
@@ -304,15 +306,19 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
         _setOptions(CourseWizardOptions.of(course));
       case CourseWizardStep.lessons:
         _setLessons(CourseWizardLessons.of(course));
-      case CourseWizardStep.guidebook:
+      case CourseWizardStep.guidebook || CourseWizardStep.rounds:
         final paused = _pausedLessonId;
         _pausedLessonId = null;
         final index = paused == null
             ? -1
             : course.lessons.indexWhere((lesson) => lesson.lessonId == paused);
-        _guidebookLesson = index >= 0
+        _shownLesson = index >= 0
             ? index
-            : CourseWizardGuidebook.firstProblem(course)?.index ?? 0;
+            : (step == CourseWizardStep.guidebook
+                          ? CourseWizardGuidebook.firstProblem(course)
+                          : CourseWizardRounds.firstProblem(course))
+                      ?.index ??
+                  0;
         _generation++;
     }
   }
@@ -488,8 +494,8 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
         return _optionsValue.problem;
       case CourseWizardStep.lessons:
         return CourseWizardLessons.problem(_lessonDrafts);
-      case CourseWizardStep.guidebook:
-        // Its changes go into the working copy as they are made.
+      case CourseWizardStep.guidebook || CourseWizardStep.rounds:
+        // Their changes go into the working copy as they are made.
         return null;
     }
   }
@@ -506,7 +512,7 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
       now: _clock(),
       ids: _ids,
     ),
-    CourseWizardStep.guidebook => _working,
+    CourseWizardStep.guidebook || CourseWizardStep.rounds => _working,
   };
 
   /// Whether the current step holds something Fill or Clear all would
@@ -540,6 +546,7 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
     CourseWizardStep.lessons => _lessonRows.isNotEmpty,
     CourseWizardStep.guidebook =>
       _currentLesson?.guidebook.modules.isNotEmpty ?? false,
+    CourseWizardStep.rounds => _currentLesson?.rounds.isNotEmpty ?? false,
   };
 
   /// Whether leaving now would lose something: a change not yet saved.
@@ -605,7 +612,10 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
     final session = _session;
     if (session == null) return;
     final course = session.workingCourse;
-    final lesson = step == CourseWizardStep.guidebook ? _currentLesson : null;
+    final lesson =
+        step == CourseWizardStep.guidebook || step == CourseWizardStep.rounds
+        ? _currentLesson
+        : null;
     try {
       await _ops.wizardMemory.remember(
         course.courseId,
@@ -727,10 +737,13 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
       _tell('Add at least one Lesson.');
       return;
     }
-    if (_step == CourseWizardStep.guidebook) {
-      final problem = CourseWizardGuidebook.firstProblem(_working);
+    if (_step == CourseWizardStep.guidebook ||
+        _step == CourseWizardStep.rounds) {
+      final problem = _step == CourseWizardStep.guidebook
+          ? CourseWizardGuidebook.firstProblem(_working)
+          : CourseWizardRounds.firstProblem(_working);
       if (problem != null) {
-        setState(() => _guidebookLesson = problem.index);
+        setState(() => _shownLesson = problem.index);
         _tell(problem.problem);
         return;
       }
@@ -878,6 +891,12 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
   /// Fill with an example: the built-in sample Course's values for this
   /// step, asking first when the step holds something.
   Future<void> _fillExample() async {
+    // The Rounds step's example is the Round Wizard with its recommended
+    // settings, which it starts with; its plan comes before anything.
+    if (_step == CourseWizardStep.rounds) {
+      await _makeRounds();
+      return;
+    }
     if (_stepHoldsSomething &&
         !await _confirm(
           key: const Key('course-wizard-fill-example-confirm'),
@@ -916,6 +935,8 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
           _setLessons(CourseWizardSample.lessons);
         case CourseWizardStep.guidebook:
           _setModules(CourseWizardSample.guidebook(_ids));
+        case CourseWizardStep.rounds:
+          break;
       }
     });
   }
@@ -934,6 +955,11 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
               'Clear all removes this Lesson\'s modules.',
               'Clearing',
             ),
+            CourseWizardStep.rounds =>
+              'Clear all removes the ${_currentLesson?.rounds.length ?? 0} '
+                  'Rounds of Lesson ${_shownLesson + 1}, with their '
+                  'exercises. Nothing is saved until you press Next or Save '
+                  'for now; Version History can bring back any earlier save.',
             _ =>
               'Clear all empties this step. Steps you have already saved '
                   'stay as they are; Version History can bring back any '
@@ -958,6 +984,20 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
           _setLessons(const []);
         case CourseWizardStep.guidebook:
           _setModules(const []);
+        case CourseWizardStep.rounds:
+          final lesson = _currentLesson;
+          if (lesson != null) {
+            _session!.stageCourse(
+              CourseWizardRounds.withRounds(
+                _working,
+                lesson.lessonId,
+                const [],
+                now: _clock(),
+                replace: true,
+              ),
+            );
+            _generation++;
+          }
       }
     });
   }
@@ -980,7 +1020,7 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
     final lesson = _currentLesson;
     final note = lesson == null
         ? null
-        : CourseWizardGuidebook.roundsNote(lesson, _guidebookLesson, doing);
+        : CourseWizardGuidebook.roundsNote(lesson, _shownLesson, doing);
     return [
       lead,
       ?note,
@@ -995,7 +1035,7 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
   Lesson? get _currentLesson {
     final lessons = _working.lessons;
     if (lessons.isEmpty) return null;
-    return lessons[_guidebookLesson.clamp(0, lessons.length - 1)];
+    return lessons[_shownLesson.clamp(0, lessons.length - 1)];
   }
 
   /// The shown Lesson's modules, in the working copy. A GuideBook being
@@ -1090,10 +1130,10 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
     setState(() => _setModules(modules));
   }
 
-  void _chooseGuidebookLesson(int index) {
-    if (index == _guidebookLesson) return;
+  void _chooseLesson(int index) {
+    if (index == _shownLesson) return;
     setState(() {
-      _guidebookLesson = index;
+      _shownLesson = index;
       _generation++;
     });
     unawaited(_remember(_step));
@@ -1112,7 +1152,7 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
       );
       return;
     }
-    final number = _guidebookLesson + 1;
+    final number = _shownLesson + 1;
     setState(
       () => _setModules(
         lesson.guidebook.modules,
@@ -1131,16 +1171,76 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
     if (saved == null || !mounted) return;
     final next = CourseWizardGuidebook.firstProblem(_working);
     setState(() {
-      if (next != null) _guidebookLesson = next.index;
+      if (next != null) _shownLesson = next.index;
       _generation++;
     });
     await _remember(_step);
     _tell(
       next == null
           ? 'Lesson $number\'s GuideBook is ready, and so is every Lesson\'s. '
-                'Finish saves the Course and opens the Course Editor.'
+                'Next goes on to the Rounds.'
           : 'Lesson $number\'s GuideBook is ready. Now Lesson '
                 '${next.index + 1}.',
+    );
+  });
+
+  // ---- Rounds (step 7)
+
+  /// Make Rounds: the Round Wizard on the shown Lesson, its plan before
+  /// anything; the Rounds it makes are added and saved.
+  Future<void> _makeRounds() => _run(() async {
+    final lesson = _currentLesson;
+    if (lesson == null) return;
+    if (!CourseWizardGuidebook.hasUsableModule(lesson)) {
+      _tell(
+        'Lesson ${_shownLesson + 1}\'s GuideBook needs a module with at '
+        'least ${CourseWizardGuidebook.minimumWords} Words & Expressions '
+        '(step 6).',
+      );
+      return;
+    }
+    final generated = await Navigator.of(context).push<List<LearningRound>>(
+      MaterialPageRoute(
+        builder: (_) => GuidebookRoundGeneratorScreen(
+          course: _working,
+          lesson: lesson,
+          clock: _clock,
+        ),
+      ),
+    );
+    if (generated == null || generated.isEmpty || !mounted) return;
+    final number = _shownLesson + 1;
+    setState(() {
+      _session!.stageCourse(
+        CourseWizardRounds.withRounds(
+          _working,
+          lesson.lessonId,
+          generated,
+          now: _clock(),
+        ),
+      );
+      _generation++;
+    });
+    final session = _session!;
+    final saved = await runReported(
+      context,
+      'Saving the Course',
+      () => session.confirm(
+        languageCode: CourseService.codeForCourse(session.workingCourse),
+        versionNotes: 'Course Wizard: Rounds, Lesson $number',
+      ),
+    );
+    if (saved == null || !mounted) return;
+    final next = CourseWizardRounds.firstProblem(_working);
+    setState(() {
+      if (next != null) _shownLesson = next.index;
+      _generation++;
+    });
+    await _remember(_step);
+    _tell(
+      '${generated.length} Round${generated.length == 1 ? '' : 's'} added to '
+      'Lesson $number. '
+      '${next == null ? 'Every Lesson has Rounds: Finish saves the Course and opens the Course Editor.' : 'Now Lesson ${next.index + 1}.'}',
     );
   });
 
@@ -1519,8 +1619,29 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
           '“This Lesson\'s GuideBook is ready”: it saves the GuideBook as '
           'Published, so learners can read it. Changing it afterwards asks for '
           'that again.',
-      'Finish saves the Course and opens the Course Editor, where you make '
-          'each Lesson\'s Rounds with the Round Wizard.',
+      'Next saves the GuideBooks; then the Round Wizard makes each Lesson\'s '
+          'Rounds from them.',
+    ],
+    CourseWizardStep.rounds => [
+      'The Round Wizard makes each Lesson\'s Rounds from its GuideBook: '
+          'Rounds that practise each module in turn, from recognizing its '
+          'words to using them, with about a third of each Round reviewing '
+          'the earlier modules.',
+      'Choose a Lesson and press Make Rounds. The Round Wizard starts with '
+          'its recommended settings (All modules with 3 Rounds each, or 6 '
+          'Rounds for a Lesson with one module; 8 exercises per Round) and '
+          'shows its plan, the Rounds with their focus module and words, '
+          'before it makes anything. The Rounds it makes are Drafts: you can '
+          'edit them in the Course Editor.',
+      'Round titles: on, each Round is titled like “Practice: Al bar”; off, '
+          'learners see only the Round type and number.',
+      if (_working.createDuels)
+        'Duel: the plan counts the Duel questions the Lesson will have. A '
+            'Duel needs 25; if there are fewer, raise Rounds per module or '
+            'exercises per Round.',
+      'Needed now: every Lesson needs Rounds. Fill with an example opens the '
+          'Round Wizard with its recommended settings.',
+      'Finish saves the Course and opens the Course Editor.',
     ],
   };
 
@@ -2466,25 +2587,7 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
               'Words & Expressions.';
     return [
       _heading('Lesson', tooltip: 'Write the GuideBook Lesson by Lesson.'),
-      Wrap(
-        spacing: 6,
-        runSpacing: 6,
-        children: [
-          for (final (index, each) in lessons.indexed)
-            ChoiceChip(
-              key: ValueKey('course-wizard-guidebook-lesson-$index'),
-              avatar: CourseWizardGuidebook.isReady(each)
-                  ? Icon(Icons.check_circle, color: scheme.primary)
-                  : null,
-              label: Text(
-                '${index + 1}. ${each.title}',
-                overflow: TextOverflow.ellipsis,
-              ),
-              selected: index == _guidebookLesson,
-              onSelected: (_) => _chooseGuidebookLesson(index),
-            ),
-        ],
-      ),
+      _lessonChips('guidebook', CourseWizardGuidebook.isReady),
       const SizedBox(height: 8),
       Text(
         key: const Key('course-wizard-guidebook-status'),
@@ -2495,7 +2598,7 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
         ),
       ),
       _heading(
-        'Modules of Lesson ${_guidebookLesson + 1}',
+        'Modules of Lesson ${_shownLesson + 1}',
         tooltip: 'One short topic each, in the order learners read them.',
       ),
       if (modules.isEmpty)
@@ -2581,6 +2684,119 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
     ];
   }
 
+  /// One chip per Lesson, ticked when [done]; keys
+  /// `course-wizard-<step>-lesson-<i>`.
+  Widget _lessonChips(String step, bool Function(Lesson lesson) done) {
+    final scheme = Theme.of(context).colorScheme;
+    return Wrap(
+      spacing: 6,
+      runSpacing: 6,
+      children: [
+        for (final (index, each) in _working.lessons.indexed)
+          ChoiceChip(
+            key: ValueKey('course-wizard-$step-lesson-$index'),
+            avatar: done(each)
+                ? Icon(Icons.check_circle, color: scheme.primary)
+                : null,
+            label: Text(
+              '${index + 1}. ${each.title}',
+              overflow: TextOverflow.ellipsis,
+            ),
+            selected: index == _shownLesson,
+            onSelected: (_) => _chooseLesson(index),
+          ),
+      ],
+    );
+  }
+
+  List<Widget> _roundsFields() {
+    final course = _working;
+    final lessons = course.lessons;
+    if (lessons.isEmpty) {
+      return [
+        const Padding(
+          padding: EdgeInsets.symmetric(vertical: 12),
+          child: Text('No Lessons yet: go back to Lessons and add one.'),
+        ),
+      ];
+    }
+    final lesson = _currentLesson!;
+    final scheme = Theme.of(context).colorScheme;
+    final rounds = lesson.rounds;
+    final duel = CourseWizardRounds.duelCount(lesson);
+    const needed = DuelEligibilityService.requiredQuestionCount;
+    final usable = CourseWizardGuidebook.hasUsableModule(lesson);
+    return [
+      _heading('Lesson', tooltip: 'Make the Rounds Lesson by Lesson.'),
+      _lessonChips('rounds', (each) => each.rounds.isNotEmpty),
+      const SizedBox(height: 8),
+      Text(
+        key: const Key('course-wizard-rounds-status'),
+        rounds.isEmpty
+            ? 'No Rounds yet.'
+            : '${rounds.length} Round${rounds.length == 1 ? '' : 's'}, '
+                  '${rounds.fold<int>(0, (sum, round) => sum + round.exercises.length)} '
+                  'exercises.',
+        style: TextStyle(
+          color: rounds.isEmpty ? scheme.onSurfaceVariant : scheme.primary,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+      if (course.createDuels)
+        Padding(
+          padding: const EdgeInsets.only(top: 4),
+          child: Text(
+            key: const Key('course-wizard-rounds-duel'),
+            [
+              'Duel: ${duel.questions} question${duel.questions == 1 ? '' : 's'} '
+                  '($needed needed)',
+              if (duel.audio > 0)
+                '${duel.audio} more need${duel.audio == 1 ? 's' : ''} audio',
+            ].join(' · '),
+          ),
+        ),
+      _heading(
+        'Rounds of Lesson ${_shownLesson + 1}',
+        tooltip: 'In the order learners play them.',
+      ),
+      for (final (index, round) in rounds.indexed)
+        Padding(
+          key: ValueKey('course-wizard-round-$index'),
+          padding: const EdgeInsets.only(bottom: 2),
+          child: Text(
+            '${RoundTypePresentation.title(round, index + 1, course.roundNumberingMode, customPrefix: course.customRoundLabel)}'
+            ' · ${round.exercises.length} exercises'
+            '${round.publicationState.isPublished ? '' : ' · Draft'}',
+          ),
+        ),
+      if (!usable)
+        Padding(
+          padding: const EdgeInsets.only(top: 4),
+          child: Text(
+            'This Lesson\'s GuideBook needs a module with at least '
+            '${CourseWizardGuidebook.minimumWords} Words & Expressions first '
+            '(step 6).',
+            style: TextStyle(color: scheme.error),
+          ),
+        ),
+      const SizedBox(height: 8),
+      Align(
+        alignment: Alignment.centerLeft,
+        child: Tooltip(
+          message:
+              'Open the Round Wizard on this Lesson: its plan comes before '
+              'anything is made.',
+          child: FilledButton.tonalIcon(
+            key: const Key('course-wizard-make-rounds'),
+            onPressed: _busy || !usable ? null : _makeRounds,
+            icon: const Icon(Icons.auto_awesome_motion_outlined),
+            label: Text(rounds.isEmpty ? 'Make Rounds' : 'Make more Rounds'),
+          ),
+        ),
+      ),
+    ];
+  }
+
   List<Widget> _fields() => switch (_step) {
     CourseWizardStep.basics => _basicsFields(),
     CourseWizardStep.about => _aboutFields(),
@@ -2588,6 +2804,7 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
     CourseWizardStep.options => _optionsFields(),
     CourseWizardStep.lessons => _lessonFields(),
     CourseWizardStep.guidebook => _guidebookFields(),
+    CourseWizardStep.rounds => _roundsFields(),
   };
 
   /// Done: the step was passed and what it needs now is there.
@@ -2598,6 +2815,9 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
       CourseWizardStep.guidebook =>
         _working.lessons.isNotEmpty &&
             CourseWizardGuidebook.firstProblem(_working) == null,
+      CourseWizardStep.rounds =>
+        _working.lessons.isNotEmpty &&
+            CourseWizardRounds.firstProblem(_working) == null,
       _ => true,
     };
   }
