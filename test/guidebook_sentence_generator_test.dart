@@ -156,7 +156,9 @@ void main() {
       expect(ExerciseFeatures(intro.exercise!).introText, isNotEmpty);
       expect(ExerciseFeatures(intro.exercise!).guidebookButton, isTrue);
       expect(intro.publicationState, PublicationState.draft);
-      expect(intro.sourceRefs, isNotEmpty);
+      // Build 266 Revision 3: the card copies the module's Overview and has
+      // no sourceRefs; each exercise names the entries it uses.
+      expect(intro.sourceRefs, isEmpty);
 
       final generatedIds = generatedContent
           .map((content) => content.id)

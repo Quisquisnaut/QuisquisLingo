@@ -77,11 +77,21 @@ void main() {
     });
 
     test('the Round Wizard takes English as the target', () {
-      final plan = GuidebookRoundGenerator(
-        randomSeed: 3,
-      ).plan(lesson.guidebook, roundCount: 2, exercisesPerRound: 3);
-      expect(plan.rounds.first.title, 'Foundations: hello, hi');
-      expect(plan.rounds.last.title, 'Use in context: good morning');
+      final generator = GuidebookRoundGenerator(randomSeed: 3);
+      final plan = generator.plan(
+        lesson.guidebook,
+        roundCount: 2,
+        exercisesPerRound: 3,
+      );
+      // Build 266 Revision 3: a Round is titled after its module; the words
+      // it practises are the English side.
+      final module = lesson.guidebook.modules.single.title;
+      expect(plan.rounds.first.title, 'Foundations: $module');
+      expect(plan.rounds.last.title, 'Use in context: $module');
+      expect(
+        generator.wordsOf(lesson.guidebook, plan.rounds.first),
+        contains('hello'),
+      );
     });
   });
 }

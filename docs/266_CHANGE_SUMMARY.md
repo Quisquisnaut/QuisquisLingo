@@ -33,8 +33,86 @@ Revisions:
   edge-case tests over stored data this version cannot open.
 - Revision 3 (266003): the Round Wizard (focus module, All modules, the
   review mix, real `sourceRefs`, picture exercises).
-- Revision 4 (266004): content (English from Italian in modules, the
-  Lab's two-module Lesson, the Edge Case module cases).
+- Revision 4 (content: English from Italian in modules, the Lab's
+  two-module Lesson, the Edge Case module cases) is not part of Build 266:
+  the owner moved it to Build 267 on 8 October 2026 (option 3), where the
+  Course Wizard builds a new Italian demo. The bundled Courses keep one
+  module per Lesson.
+
+## Revision 3 (2.0.66+266003, 8 October 2026): the Round Wizard over modules
+
+Plan §7, as decided on 5–8 October 2026.
+
+### The generator (`lib/services/guidebook_round_generator.dart`)
+
+- `plan(guidebook, focusModuleId:, roundCount:, exercisesPerRound:)`: a
+  focus module, or null for All modules, in order; `roundCount` is then
+  Rounds per module and each module has its own curve (difficulty from 0 to
+  1 within the module). Limits: 1–12 Rounds (per module), 1–15 exercises,
+  at most 24 Rounds per run (the message says how many per module fit),
+  three Words & Expressions per module (`moduleProblem`; All modules leaves
+  the others out and lists them in `skippedModules`).
+- `GuidebookRoundPlan`: `focusModuleId`, `reviewPositions` (round(0.3 × M)
+  positions spread evenly, never the first, none when no earlier module has
+  words), `opensModule` (the first Round of each module); title
+  "<phase>: <module title>". `changeFocus` replans a Round for another
+  module; `changeType` keeps the focus; `wordsOf` names what a Round uses.
+- One resolution (`_Material.resolve` → `_Slot`: preset, the entries of its
+  question and answer, review or focus) serves the plan's words and the
+  drafts. A review slot takes earlier modules nearest first (a Match its
+  three entries from them together); a preset they cannot fill (a
+  sentence, pictures) stays a focus slot.
+- Pools per phase, from the focus module's material: Foundations Pick the
+  translation, Pick the missing word (a sentence containing the word),
+  Listen and choose, Match the words, and with three distinct pictures
+  Select the image and Match pictures to words; Practice Build the
+  translation, Word order (Sentences), Listen and match, Pick the missing
+  word and the two picture presets; Use in context Type the translation,
+  Pick the missing word, Build the translation, Word order. FlashCard
+  Rounds: Flashcard, and Picture flashcard with pictures.
+- Exercises: the Context in the clue ("the bill (restaurant)"); wrong
+  answers from entries that differ only by Context first, then the slot's
+  module, then the Lesson, never the same Target or a synonym; typed
+  answers accept every synonym's Target with `{…}`; shown text and blocks
+  without optional words; Build the translation and Word order on
+  Sentences with their meaning; the picture presets built through
+  `ExerciseDraftBuilder` (so each preset represents its exercise, with the
+  Plural marks of `pluralPictures`); one picture per exercise, Plural or
+  not.
+- Drafts record `focusModuleId` and `supportingModuleIds` (the earlier
+  modules used, in module order); each exercise's `sourceRefs` are its
+  question's and answer's entries; the Before you start card (the first
+  Round of a run, or of each module with All modules; not FlashCard or
+  Test) holds a copy of the focus module's Overview, or "Review the
+  “<title>” module of the GuideBook before you start.", and no
+  `sourceRefs`.
+
+### The screen (`GuidebookRoundGeneratorScreen`)
+
+- Focus module (`generator-focus-module`, tooltip): All modules, in order,
+  and each module, greyed out with its reason below three entries; All by
+  default when more than one module can be practised. The count is Rounds
+  per module (3) or Number of Rounds (6), switching with the choice; the
+  field shows the 24-Round limit; the total names the modules.
+- The plan: the modules left out (`generator-skipped-modules`); per Round
+  the entries it uses (`generator-round-words-<i>`) and its focus
+  (`generator-round-focus-<i>`, when more than one module can be
+  practised); Regenerate keeps each Round's focus and type.
+- Help: the Wizard's dialog and Editor Help `roundWizard` (EN/IT/ES).
+
+### Tests
+
+- New: `test/round_wizard_modules_266_test.dart` (15): All modules and its
+  curve, titles and cards; a focus module and the limits; review slots;
+  changing a Round's focus and its words; the picture presets; drafts
+  valid, represented and naming their entries; focus and supporting
+  modules; the cards' Overviews; the Context; wrong answers without
+  synonyms; the Context-only wrong answer; typed synonyms and `{…}`;
+  Plural carried and one picture per exercise; the screen's counts, limit
+  and plan.
+- Updated: `guidebook_sentence_generator_test` (the card has no
+  `sourceRefs`), `guidebook_vocabulary_265_test` (titles name the module;
+  the English side is what the Rounds practise); the version pins.
 
 ## Revision 2 (2.0.66+266002, 8 October 2026): resilience
 

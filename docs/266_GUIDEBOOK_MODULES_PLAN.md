@@ -782,7 +782,11 @@ Owner decision of 8 October 2026: the plan's Revision 0 is split in two
 Revision 3. Later the same day the owner inserted a resilience revision
 (266002: the reset bug's class fixed everywhere, the logs, Open folder,
 the Inventory's Delete / Forget / Open folder), so the Round Wizard is
-Revision 3 (266003) and the content Revision 4 (266004). The complete suite runs once, at the end of Revision 1; Revision
+Revision 3 (266003) and the content Revision 4 (266004). Then the owner
+chose (8 October 2026, option 3) to skip Revision 4 for now: its demo
+content (English from Italian in modules, the Lab's two-module Lesson, the
+Edge Case module cases) goes to Build 267, whose plan builds a new Italian
+demo with the Course Wizard. Revision 3 is Build 266's last revision. The complete suite runs once, at the end of Revision 1; Revision
 0 is checked with the analyzer and focused tests.
 
 - **Revision 0: modules.**

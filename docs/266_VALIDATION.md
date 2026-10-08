@@ -1,5 +1,21 @@
 # Build 266 validation
 
+## Revision 3 (2.0.66+266003, 8 October 2026): the Round Wizard over modules
+
+- `test/round_wizard_modules_266_test.dart`: **15 passed** (the first run
+  found the test of the Context-only wrong answer too narrow to meet its
+  case; it now uses a module of its own).
+- The earlier Round Wizard tests (the generator, the sentence generator UI,
+  Before you start, the responsive layout, the Round type wizard, the Lab
+  and English from Italian vocabulary, the production transaction, the
+  GuideBook modules): **74 passed**, after two planned updates (the card
+  has no `sourceRefs`; titles name the module).
+- Help, localization, version pins and the new tests together: **61
+  passed**. `flutter analyze` on the whole project: **no issues**.
+- `dart format` on the changed Dart files only.
+- **Complete suite** (`flutter test --concurrency=1`): **3,939 passed, 1
+  skipped** (the POSIX symlink test), 0 failed, in 37 minutes.
+
 ## Revision 2 (2.0.66+266002, 8 October 2026): resilience
 
 - A read-only audit of the whole app (stored-data readers that parse each

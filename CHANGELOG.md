@@ -1,3 +1,55 @@
+# 2.0.66 (Build 266, Revision 3) - Round Wizard over modules - 2026-10-08
+
+The plan's §7 (owner decisions of 5–8 October 2026).
+
+- **Focus module or All modules.** The Round Wizard practises one module
+  (Number of Rounds, 1–12, 6 by default) or All modules, in order, each
+  with its own curve from Foundations through Practice to Use in context
+  (Rounds per module, 1–12, 3 by default; at most 24 Rounds per run, the
+  field says how many per module fit). A module needs three Words &
+  Expressions entries: the others are greyed out, or left out and named.
+- **Review.** About a third of each Round (round(0.3 × exercises)) reviews
+  the earlier modules of the same Lesson, nearest first, spread evenly and
+  never as the first exercise; a Lesson's first module has none. A slot
+  its preset cannot fill from earlier modules stays a focus slot; a Match
+  takes its three entries from the earlier modules together.
+- **One right answer.** The Context is shown with the learners'-language
+  text (Pick the translation, Type and Build the translation, the Match
+  side, the flashcard meaning). Entries that differ only by their Context
+  are preferred wrong answers ("you eat (formal)" offers "mangi"); two
+  entries with the same Target, or synonyms (same Source and Context), are
+  never offered against each other or share a Match; wrong answers come
+  from the slot's own module first. A typed answer accepts every synonym's
+  Target, with its optional words `{…}`; blocks and shown text leave them
+  out.
+- **Sentences** give Build the translation (a module without Sentences
+  builds its words) and Word order, with the sentence's meaning as the
+  clue; Pick the missing word uses them as before.
+- **Pictures.** A module with three pictured Words & Expressions adds
+  Select the image and Match pictures to words (Foundations and Practice)
+  and Picture flashcard (FlashCard Rounds), built as their forms build
+  them; a Plural mark carries over; the same picture with and without
+  Plural is never offered twice in one exercise.
+- **Generated Rounds** are titled "<phase>: <module title>", record their
+  `focusModuleId` (Open GuideBook opens there) and, as
+  `supportingModuleIds`, the earlier modules they reviewed. The first Round
+  of each module opens with a Draft Before you start card holding a copy of
+  the module's Overview (or "Review the “<title>” module…"), with no
+  `sourceRefs`. Each exercise's `sourceRefs` are the entries of its
+  question and answer, no longer the first six of the GuideBook.
+- **The plan** shows each Round's focus and the entries it uses ("Focus:
+  Al bar — il conto, buongiorno · Review: Saluti — ciao"); a Round's focus
+  and type can be changed before generation. Help (the Wizard's own
+  dialog; Editor Help EN/IT/ES) describes all of it.
+
+Build 266 ends with this revision (owner decision of 8 October 2026): the
+planned content revision (the demos in several modules) moves to Build 267,
+with the Course Wizard's new Italian demo; the bundled Courses keep one
+module per Lesson.
+
+Version 2.0.66+266003. Scoring, progression, Course files and learner data
+are unchanged. Beta expiry unchanged: 2026-11-07 23:59:59 local time.
+
 # 2.0.66 (Build 266, Revision 2) - Resilience - 2026-10-08
 
 Owner decisions of 8 October 2026, after the reset buttons did nothing

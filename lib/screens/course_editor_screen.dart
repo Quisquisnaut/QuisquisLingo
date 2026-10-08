@@ -5292,9 +5292,33 @@ class GuidebookRoundGeneratorScreen extends StatefulWidget {
 
 class _GuidebookRoundGeneratorScreenState
     extends State<GuidebookRoundGeneratorScreen> {
-  final _roundCount = TextEditingController(
-    text: '${GuidebookRoundGenerator.defaultRoundCount}',
+  /// Build 266 Revision 3: the module the Rounds practise, or null for All
+  /// modules, in order (the default when more than one module can be
+  /// practised).
+  late String? _focusModuleId = _defaultFocus();
+  late final _roundCount = TextEditingController(
+    text:
+        '${_focusModuleId == null ? GuidebookRoundGenerator.defaultRoundsPerModule : GuidebookRoundGenerator.defaultRoundCount}',
   );
+
+  List<GuidebookModule> get _practisable => [
+    for (final module in widget.lesson.guidebook.modules)
+      if (GuidebookRoundGenerator.moduleProblem(module) == null) module,
+  ];
+
+  String? _defaultFocus() {
+    final practisable = _practisable;
+    return practisable.length == 1 ? practisable.single.id : null;
+  }
+
+  void _chooseFocus(String? moduleId) => setState(() {
+    final wasAll = _focusModuleId == null;
+    _focusModuleId = moduleId;
+    if (wasAll != (moduleId == null)) {
+      _roundCount.text =
+          '${moduleId == null ? GuidebookRoundGenerator.defaultRoundsPerModule : GuidebookRoundGenerator.defaultRoundCount}';
+    }
+  });
   final _exerciseCount = TextEditingController(
     text: '${GuidebookRoundGenerator.defaultExercisesPerRound}',
   );
@@ -5333,6 +5357,7 @@ class _GuidebookRoundGeneratorScreenState
     try {
       final plan = _generator().plan(
         widget.lesson.guidebook,
+        focusModuleId: _focusModuleId,
         roundCount: rounds,
         exercisesPerRound: exercises,
       );
@@ -5359,6 +5384,31 @@ class _GuidebookRoundGeneratorScreenState
     }
   }
 
+  void _changePlanFocus(GuidebookRoundPlan round, String moduleId) {
+    try {
+      final revised = _generator().changeFocus(
+        widget.lesson.guidebook,
+        round,
+        moduleId,
+      );
+      final original = _plan!;
+      setState(
+        () => _plan = GuidebookGenerationPlan(
+          roundCount: original.roundCount,
+          exercisesPerRound: original.exercisesPerRound,
+          focusModuleId: original.focusModuleId,
+          skippedModules: original.skippedModules,
+          rounds: [
+            for (final item in original.rounds)
+              item.index == round.index ? revised : item,
+          ],
+        ),
+      );
+    } on GuidebookGenerationException catch (error) {
+      _message(error.message);
+    }
+  }
+
   void _changePlanType(GuidebookRoundPlan round, RoundType type) {
     try {
       final revised = _generator().changeType(
@@ -5371,6 +5421,8 @@ class _GuidebookRoundGeneratorScreenState
         () => _plan = GuidebookGenerationPlan(
           roundCount: original.roundCount,
           exercisesPerRound: original.exercisesPerRound,
+          focusModuleId: original.focusModuleId,
+          skippedModules: original.skippedModules,
           rounds: [
             for (final item in original.rounds)
               item.index == round.index ? revised : item,
@@ -5387,20 +5439,35 @@ class _GuidebookRoundGeneratorScreenState
     try {
       final plan = _generator().plan(
         widget.lesson.guidebook,
+        focusModuleId: _plan!.focusModuleId,
         roundCount: _plan!.roundCount,
         exercisesPerRound: _plan!.exercisesPerRound,
       );
+      // The author's focus and type for each Round stay.
+      GuidebookRoundPlan kept(int i) {
+        var round = plan.rounds[i];
+        final chosen = _plan!.rounds[i];
+        if (chosen.focusModuleId != null &&
+            chosen.focusModuleId != round.focusModuleId) {
+          round = _generator().changeFocus(
+            widget.lesson.guidebook,
+            round,
+            chosen.focusModuleId!,
+          );
+        }
+        return _generator().changeType(
+          widget.lesson.guidebook,
+          round,
+          chosen.roundType,
+        );
+      }
+
       final revisedPlan = GuidebookGenerationPlan(
         roundCount: plan.roundCount,
         exercisesPerRound: plan.exercisesPerRound,
-        rounds: [
-          for (var i = 0; i < plan.rounds.length; i++)
-            _generator().changeType(
-              widget.lesson.guidebook,
-              plan.rounds[i],
-              _plan!.rounds[i].roundType,
-            ),
-        ],
+        focusModuleId: plan.focusModuleId,
+        skippedModules: plan.skippedModules,
+        rounds: [for (var i = 0; i < plan.rounds.length; i++) kept(i)],
       );
       final drafts = _generator().createDrafts(
         widget.lesson.guidebook,
@@ -5533,7 +5600,9 @@ class _GuidebookRoundGeneratorScreenState
       title: const Text('GuideBook Round Generator'),
       content: const SingleChildScrollView(
         child: Text(
-          'The current Lesson GuideBook is the only source. Choose the number of Rounds and Exercises per Round. The plan increases production demand and reduces scaffolding across the selected Round count. Generated material remains draft: review, edit or delete every Round and Exercise before explicit approval. Generation can assist authoring but cannot guarantee pedagogical correctness.',
+          'The current Lesson GuideBook is the only source. Choose the module the Rounds practise, or All modules, in order (each module then gets its own Rounds, from Foundations through Practice to Use in context), the number of Rounds (1–12; with All modules per module, at most 24 Rounds in all) and the exercises per Round (1–15). A module needs at least three Words & Expressions entries.\n\n'
+          'About a third of each Round reviews the earlier modules of the Lesson, nearest first, never as the first exercise. Each exercise shows an entry\'s Context with its translation, so it has one right answer; entries that differ only by their Context are offered as wrong answers, synonyms never are, and a typed answer accepts every synonym. Sentences give Build the translation and Word order. A module with at least three Words & Expressions with pictures also gets Select the image, Match pictures to words and Picture flashcard, Plural marks included.\n\n'
+          'Each Round records its focus module (Open GuideBook opens there) and the earlier modules it reviews; the first Round of each module opens with a Before you start card holding a copy of the module\'s Overview. Generated material remains draft: review, edit or delete every Round and Exercise before explicit approval. Generation can assist authoring but cannot guarantee pedagogical correctness.',
         ),
       ),
       actions: [
@@ -5548,6 +5617,9 @@ class _GuidebookRoundGeneratorScreenState
   Widget _configure() {
     final rounds = int.tryParse(_roundCount.text.trim()) ?? 0;
     final exercises = int.tryParse(_exerciseCount.text.trim()) ?? 0;
+    final all = _focusModuleId == null;
+    final modules = all ? _practisable.length : 1;
+    final total = modules * rounds;
     return ListView(
       key: const Key('guidebook-generator-configure'),
       padding: const EdgeInsets.all(16),
@@ -5556,15 +5628,65 @@ class _GuidebookRoundGeneratorScreenState
           'Generation uses only the current Lesson GuideBook. Nothing is created while configuring or previewing the plan.',
         ),
         const SizedBox(height: 16),
+        Tooltip(
+          message:
+              'The module these Rounds practise. About a third of each Round '
+              'reviews earlier modules.',
+          child: DropdownButtonFormField<String>(
+            key: const Key('generator-focus-module'),
+            initialValue: _focusModuleId ?? '',
+            isExpanded: true,
+            decoration: const InputDecoration(
+              border: OutlineInputBorder(),
+              labelText: 'Focus module',
+            ),
+            items: [
+              const DropdownMenuItem(
+                value: '',
+                child: Text('All modules, in order'),
+              ),
+              for (final module in widget.lesson.guidebook.modules)
+                DropdownMenuItem(
+                  value: module.id,
+                  enabled:
+                      GuidebookRoundGenerator.moduleProblem(module) == null,
+                  child: Text(
+                    GuidebookRoundGenerator.moduleProblem(module) == null
+                        ? module.title
+                        : '${module.title} (fewer than '
+                              '${GuidebookRoundGenerator.minimumWords} Words '
+                              '& Expressions)',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+            ],
+            onChanged: (value) =>
+                _chooseFocus(value == null || value.isEmpty ? null : value),
+          ),
+        ),
+        const SizedBox(height: 12),
         TextField(
           key: const Key('generator-round-count'),
           controller: _roundCount,
           keyboardType: TextInputType.number,
           onChanged: (_) => setState(() {}),
-          decoration: const InputDecoration(
-            border: OutlineInputBorder(),
-            labelText: 'Number of Rounds',
-            helperText: 'Choose 1–12. Default: 6.',
+          decoration: InputDecoration(
+            border: const OutlineInputBorder(),
+            labelText: all ? 'Rounds per module' : 'Number of Rounds',
+            helperText: all
+                ? 'Choose 1–12 per module, at most '
+                      '${GuidebookRoundGenerator.maximumRoundsPerRun} Rounds in '
+                      'all. Default: 3.'
+                : 'Choose 1–12. Default: 6.',
+            helperMaxLines: 2,
+            errorText: total > GuidebookRoundGenerator.maximumRoundsPerRun
+                ? 'At most ${GuidebookRoundGenerator.maximumRoundsPerRun} '
+                      'Rounds per run. With $modules modules, choose up to '
+                      '${GuidebookRoundGenerator.maximumRoundsPerRun ~/ modules} '
+                      'Rounds per module.'
+                : null,
+            errorMaxLines: 3,
           ),
         ),
         const SizedBox(height: 12),
@@ -5581,7 +5703,10 @@ class _GuidebookRoundGeneratorScreenState
         ),
         const SizedBox(height: 16),
         Text(
-          '$rounds Rounds × $exercises exercises = ${rounds * exercises} exercises',
+          all
+              ? '$modules modules × $rounds Rounds × $exercises exercises = '
+                    '${total * exercises} exercises'
+              : '$rounds Rounds × $exercises exercises = ${rounds * exercises} exercises',
           key: const Key('generator-total'),
           style: Theme.of(context).textTheme.titleMedium,
         ),
@@ -5602,9 +5727,19 @@ class _GuidebookRoundGeneratorScreenState
       padding: const EdgeInsets.all(16),
       children: [
         Text(
-          '${_plan!.roundCount} Rounds × ${_plan!.exercisesPerRound} exercises = ${_plan!.totalExercises} exercises',
+          '${_plan!.rounds.length} Rounds × ${_plan!.exercisesPerRound} exercises = ${_plan!.totalExercises} exercises',
           style: Theme.of(context).textTheme.titleLarge,
         ),
+        if (_plan!.skippedModules.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: Text(
+              'Left out, with fewer than '
+              '${GuidebookRoundGenerator.minimumWords} Words & Expressions: '
+              '${_plan!.skippedModules.join(', ')}.',
+              key: const Key('generator-skipped-modules'),
+            ),
+          ),
         const SizedBox(height: 8),
         const Text(
           'Difficulty rises from guided recognition and comprehension through construction and context to freer production. The plan contains no final Round or Exercise objects.',
@@ -5617,10 +5752,37 @@ class _GuidebookRoundGeneratorScreenState
             title: Text(
               '${RoundTypePresentation.label(round.roundType)} · ${round.title}',
             ),
-            subtitle: Text(
-              'Difficulty ${(round.difficulty * 100).round()}% · ${round.presetIds.map((id) => ExercisePresetRegistry.byId(id)!.name).join(', ')}',
-              maxLines: 3,
-              overflow: TextOverflow.ellipsis,
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Difficulty ${(round.difficulty * 100).round()}% · ${round.presetIds.map((id) => ExercisePresetRegistry.byId(id)!.name).join(', ')}',
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Text(
+                  _generator().wordsOf(widget.lesson.guidebook, round),
+                  key: ValueKey('generator-round-words-${round.index}'),
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                if (_practisable.length > 1)
+                  DropdownButton<String>(
+                    key: ValueKey('generator-round-focus-${round.index}'),
+                    value: round.focusModuleId,
+                    isDense: true,
+                    items: [
+                      for (final module in _practisable)
+                        DropdownMenuItem(
+                          value: module.id,
+                          child: Text('Focus: ${module.title}'),
+                        ),
+                    ],
+                    onChanged: (moduleId) {
+                      if (moduleId != null) _changePlanFocus(round, moduleId);
+                    },
+                  ),
+              ],
             ),
             trailing: DropdownButton<RoundType>(
               key: ValueKey('generator-round-type-${round.index}'),

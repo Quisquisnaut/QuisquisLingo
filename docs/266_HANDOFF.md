@@ -1,12 +1,15 @@
 # Build 266 handoff
 
-Saved 8 October 2026. **Revisions 0, 1 and 2 are committed locally**
-(`50512d2`, `f6891bf`, then Revision 2) in the worktree
+Saved 8 October 2026. **Build 266 is complete and committed locally**:
+Revisions 0 (`50512d2`), 1 (`f6891bf`), 2 (`16bc9ff`) and 3 in the worktree
 `C:\QQL\QuisquisLingo\.claude\worktrees\dazzling-hawking-a3ca2e`, branch
-`claude/266-guidebook-modules` (from main `5cfb227`). **Revision 2
-(2.0.66+266002), resilience, is committed; Revision 3 (266003), the Round Wizard, is in progress** (owner: "at the end, commit
-and start next revision immediately"). Never push or open a pull request
-without the owner's word.
+`claude/266-guidebook-modules` (from main `5cfb227`). Revision 4 (content)
+moved to Build 267 (owner, 8 October 2026). Never push or open a pull
+request without the owner's word. After the merge to main, the owner's
+private generators in `D:\QQL_plus\Corsi_Privati` must be run again: their
+four Course files still have the GuideBook shape before Build 266
+(`make_short_courses.py` converts through the main checkout's
+`tools/qql_course_v12.py`).
 
 Plan: `docs/266_GUIDEBOOK_MODULES_PLAN.md` (copied from the main checkout,
 where it is untracked, and amended with the decisions of 8 October; it is
@@ -93,10 +96,38 @@ Not done, noted for later: Android's public Quick folders have no Inventory
 actions (their files have no path); a Publisher update over an unopenable
 source has no test (it needs a signed package).
 
-## Then: Revision 3 (2.0.66+266003), the Round Wizard; Revision 4 (266004), content
+## Revision 3 (2.0.66+266003), the Round Wizard: committed
 
-Plan §7 and §11. The Course Wizard stays Build 267
-(`docs/267_COURSE_WIZARD_PLAN.md`, owner: leave it as it is).
+See the change summary's Revision 3 section. The generator is rewritten on
+modules (`plan(focusModuleId:)`, `changeFocus`, `wordsOf`, `_Material`,
+`_Slot`), the screen has the Focus module menu and the per-Round focus and
+words, Help EN/IT/ES. Version 2.0.66+266003. Complete suite 3,939 passed,
+1 skipped (POSIX only); committed. Build 266 is complete: nothing is pushed
+and no pull request is open until the owner says so.
+
+## Revision 4: moved to Build 267 (owner, 8 October 2026)
+
+The owner asked why Revision 4 was needed (it is demo and test content,
+not a feature) and chose option 3: skip it for now and do the demo content
+in Build 267, whose plan builds a new Italian demo with the Course Wizard.
+Build 266 ends with Revision 3. For Build 267, the content planned here
+(plan §11):
+
+- QQL Demo: English from Italian in modules matching its topics (for
+  example Saluti e cortesia, Al bar: cibo e bevande, Animali, Colori e
+  aggettivi, Alla stazione), the four grammar notes as short module
+  Overviews, Sentences with translations and Contexts, word pictures by the
+  prefill rule (a Python matcher mirroring `GuidebookPictureIndex` is
+  drafted in this session's scratchpad: exact name, singular marked
+  Plural, name before a bracket; never characters, Lesson icons, one-letter
+  names), each Round's `focusModuleId` (the mixed Rounds take the module
+  whose words they use most; the two Stories their topic). Its Review
+  vocabulary memory restarts when the entries change.
+- The Lab: one Lesson with two modules, a word with two senses, `{…}`, at
+  least three pictured words in one module.
+- The Edge Case: two modules, an empty module and a long Overview (the
+  Warning and the Info on purpose), a Draft GuideBook, `sourceRefs` to
+  entries, a Round whose focus is missing (the Warning on purpose).
 
 ## Open, not this session's
 
