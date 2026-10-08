@@ -3498,7 +3498,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
               ListTile(
                 key: const Key('course-editor-wizard-paused'),
                 leading: const Icon(Icons.assistant_outlined),
-                title: Text(pause.description),
+                title: Text(pause.describe(_course)),
                 subtitle: widget.onContinueCourseWizard == null
                     ? const Text(
                         'Continue it from the Course\'s ⋮ menu in Course '

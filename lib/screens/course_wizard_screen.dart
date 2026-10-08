@@ -15,6 +15,8 @@ import '../services/course_library_operations.dart';
 import '../services/course_service.dart';
 import '../services/course_wizard.dart';
 import '../services/formal_name_policy.dart';
+import '../services/guidebook_picture_match.dart';
+import '../services/guidebook_round_links.dart';
 import '../services/lesson_icon_catalog.dart';
 import '../services/lesson_presentation_service.dart';
 import '../services/round_type_presentation.dart';
@@ -27,6 +29,7 @@ import '../widgets/lesson_fallback_icon.dart';
 import '../widgets/reported_action.dart';
 import 'editor_help_screen.dart';
 import 'flat_image_library_screen.dart';
+import 'guidebook_editor_screen.dart';
 
 /// The Course Wizard (Build 267, `docs/267_COURSE_WIZARD_PLAN.md`).
 ///
@@ -205,6 +208,11 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
   // Step 5.
   final _lessonRows = <_LessonRow>[];
 
+  // Step 6: the Lesson whose GuideBook is shown, and the Lesson a paused
+  // Wizard stopped at (read once).
+  int _guidebookLesson = 0;
+  late String? _pausedLessonId = widget.pause?.lessonId;
+
   static const _customLicenseChoice = 'Other / Custom license';
 
   Course get _working => _session!.workingCourse;
@@ -296,6 +304,16 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
         _setOptions(CourseWizardOptions.of(course));
       case CourseWizardStep.lessons:
         _setLessons(CourseWizardLessons.of(course));
+      case CourseWizardStep.guidebook:
+        final paused = _pausedLessonId;
+        _pausedLessonId = null;
+        final index = paused == null
+            ? -1
+            : course.lessons.indexWhere((lesson) => lesson.lessonId == paused);
+        _guidebookLesson = index >= 0
+            ? index
+            : CourseWizardGuidebook.firstProblem(course)?.index ?? 0;
+        _generation++;
     }
   }
 
@@ -470,6 +488,9 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
         return _optionsValue.problem;
       case CourseWizardStep.lessons:
         return CourseWizardLessons.problem(_lessonDrafts);
+      case CourseWizardStep.guidebook:
+        // Its changes go into the working copy as they are made.
+        return null;
     }
   }
 
@@ -485,6 +506,7 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
       now: _clock(),
       ids: _ids,
     ),
+    CourseWizardStep.guidebook => _working,
   };
 
   /// Whether the current step holds something Fill or Clear all would
@@ -516,6 +538,8 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
           ].any((controller) => controller.text.trim().isNotEmpty),
     CourseWizardStep.options => !_optionsValue.isDefault,
     CourseWizardStep.lessons => _lessonRows.isNotEmpty,
+    CourseWizardStep.guidebook =>
+      _currentLesson?.guidebook.modules.isNotEmpty ?? false,
   };
 
   /// Whether leaving now would lose something: a change not yet saved.
@@ -581,10 +605,15 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
     final session = _session;
     if (session == null) return;
     final course = session.workingCourse;
+    final lesson = step == CourseWizardStep.guidebook ? _currentLesson : null;
     try {
       await _ops.wizardMemory.remember(
         course.courseId,
-        CourseWizardPause(step: step, savedAtUtc: _clock().toUtc()),
+        CourseWizardPause(
+          step: step,
+          savedAtUtc: _clock().toUtc(),
+          lessonId: lesson?.lessonId,
+        ),
       );
     } catch (_) {
       // The Course is saved either way; Course Studio then shows no pause.
@@ -697,6 +726,14 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
     if (_step == CourseWizardStep.lessons && _lessonRows.isEmpty) {
       _tell('Add at least one Lesson.');
       return;
+    }
+    if (_step == CourseWizardStep.guidebook) {
+      final problem = CourseWizardGuidebook.firstProblem(_working);
+      if (problem != null) {
+        setState(() => _guidebookLesson = problem.index);
+        _tell(problem.problem);
+        return;
+      }
     }
     if (!await _save()) return;
     final next = _step.next;
@@ -845,11 +882,16 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
         !await _confirm(
           key: const Key('course-wizard-fill-example-confirm'),
           title: 'Fill with an example?',
-          message: _step == CourseWizardStep.lessons
-              ? _lessonReplaceMessage(
-                  'The example replaces the Lessons of this step.',
-                )
-              : 'The example replaces what this step holds.',
+          message: switch (_step) {
+            CourseWizardStep.lessons => _lessonReplaceMessage(
+              'The example replaces the Lessons of this step.',
+            ),
+            CourseWizardStep.guidebook => _moduleReplaceMessage(
+              'The example replaces this Lesson\'s modules.',
+              'Replacing',
+            ),
+            _ => 'The example replaces what this step holds.',
+          },
           action: 'Fill',
         )) {
       return;
@@ -872,6 +914,8 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
           _setOptions(CourseWizardSample.options);
         case CourseWizardStep.lessons:
           _setLessons(CourseWizardSample.lessons);
+        case CourseWizardStep.guidebook:
+          _setModules(CourseWizardSample.guidebook(_ids));
       }
     });
   }
@@ -882,11 +926,19 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
         !await _confirm(
           key: const Key('course-wizard-clear-all-confirm'),
           title: 'Clear this step?',
-          message: _step == CourseWizardStep.lessons
-              ? _lessonReplaceMessage('Clear all removes every Lesson.')
-              : 'Clear all empties this step. Steps you have already saved '
-                    'stay as they are; Version History can bring back any '
-                    'earlier save.',
+          message: switch (_step) {
+            CourseWizardStep.lessons => _lessonReplaceMessage(
+              'Clear all removes every Lesson.',
+            ),
+            CourseWizardStep.guidebook => _moduleReplaceMessage(
+              'Clear all removes this Lesson\'s modules.',
+              'Clearing',
+            ),
+            _ =>
+              'Clear all empties this step. Steps you have already saved '
+                  'stay as they are; Version History can bring back any '
+                  'earlier save.',
+          },
           action: 'Clear all',
         )) {
       return;
@@ -904,6 +956,8 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
           _setOptions(CourseWizardOptions.defaults);
         case CourseWizardStep.lessons:
           _setLessons(const []);
+        case CourseWizardStep.guidebook:
+          _setModules(const []);
       }
     });
   }
@@ -920,6 +974,175 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
           'History can bring back any earlier save.',
     ].join('\n\n');
   }
+
+  /// What replacing the shown Lesson's modules does, for Fill and Clear all.
+  String _moduleReplaceMessage(String lead, String doing) {
+    final lesson = _currentLesson;
+    final note = lesson == null
+        ? null
+        : CourseWizardGuidebook.roundsNote(lesson, _guidebookLesson, doing);
+    return [
+      lead,
+      ?note,
+      'Nothing is saved until you press Next, This Lesson\'s GuideBook is '
+          'ready or Save for now; Version History can bring back any earlier '
+          'save.',
+    ].join('\n\n');
+  }
+
+  // ---- GuideBook (step 6)
+
+  Lesson? get _currentLesson {
+    final lessons = _working.lessons;
+    if (lessons.isEmpty) return null;
+    return lessons[_guidebookLesson.clamp(0, lessons.length - 1)];
+  }
+
+  /// The shown Lesson's modules, in the working copy. A GuideBook being
+  /// written is a Draft until it is approved with "This Lesson's GuideBook
+  /// is ready".
+  void _setModules(
+    List<GuidebookModule> modules, {
+    PublicationState state = PublicationState.draft,
+  }) {
+    final lesson = _currentLesson;
+    if (lesson == null) return;
+    _session!.stageCourse(
+      CourseWizardGuidebook.withModules(
+        _working,
+        lesson.lessonId,
+        modules,
+        state: state,
+        now: _clock(),
+      ),
+    );
+    _generation++;
+  }
+
+  Future<GuidebookModule?> _editModule(GuidebookModule module) =>
+      Navigator.of(context).push<GuidebookModule>(
+        MaterialPageRoute(
+          builder: (_) => GuidebookModuleEditorScreen(
+            module: module,
+            course: _working,
+            ids: _ids,
+          ),
+        ),
+      );
+
+  Future<void> _addModule() async {
+    final added = await _editModule(
+      GuidebookModule(id: _ids.next('module'), title: ''),
+    );
+    final lesson = _currentLesson;
+    if (added == null || lesson == null || !mounted) return;
+    setState(() => _setModules([...lesson.guidebook.modules, added]));
+  }
+
+  Future<void> _openModule(int index) async {
+    final lesson = _currentLesson;
+    if (lesson == null) return;
+    final edited = await _editModule(lesson.guidebook.modules[index]);
+    final current = _currentLesson;
+    if (edited == null || current == null || !mounted) return;
+    final modules = [...current.guidebook.modules];
+    if (index >= modules.length) return;
+    // A module returned unchanged leaves the GuideBook as it is.
+    if (jsonEncode(modules[index].toJson()) == jsonEncode(edited.toJson())) {
+      return;
+    }
+    modules[index] = edited;
+    setState(() => _setModules(modules));
+  }
+
+  Future<void> _removeModule(int index) async {
+    final lesson = _currentLesson;
+    if (lesson == null) return;
+    final module = lesson.guidebook.modules[index];
+    final focusing = GuidebookRoundLinks.focusCount(lesson.rounds, module.id);
+    final title = module.title.trim().isEmpty
+        ? 'Untitled module'
+        : module.title.trim();
+    if (!await _confirm(
+      key: const Key('course-wizard-module-remove-confirm'),
+      title: 'Remove this module?',
+      message: [
+        'Remove “$title” with its Sentences and Words & Expressions?',
+        if (focusing > 0)
+          '$focusing ${focusing == 1 ? 'Round focuses' : 'Rounds focus'} on '
+              'this module; ${focusing == 1 ? 'it keeps its' : 'they keep '
+                        'their'} exercises and '
+              '${focusing == 1 ? 'loses' : 'lose'} the link.',
+      ].join('\n\n'),
+      action: 'Remove',
+    )) {
+      return;
+    }
+    if (!mounted) return;
+    setState(() => _setModules([...lesson.guidebook.modules]..removeAt(index)));
+  }
+
+  void _moveModule(int index, int offset) {
+    final lesson = _currentLesson;
+    if (lesson == null) return;
+    final modules = [...lesson.guidebook.modules];
+    modules.insert(index + offset, modules.removeAt(index));
+    setState(() => _setModules(modules));
+  }
+
+  void _chooseGuidebookLesson(int index) {
+    if (index == _guidebookLesson) return;
+    setState(() {
+      _guidebookLesson = index;
+      _generation++;
+    });
+    unawaited(_remember(_step));
+  }
+
+  /// This Lesson's GuideBook is ready: saves it as Published, then shows
+  /// the next Lesson still to do.
+  Future<void> _guidebookReady() => _run(() async {
+    final lesson = _currentLesson;
+    if (lesson == null) return;
+    if (!CourseWizardGuidebook.hasUsableModule(lesson)) {
+      _tell(
+        'This Lesson needs a module with at least '
+        '${CourseWizardGuidebook.minimumWords} Words & Expressions: the '
+        'Round Wizard makes its Rounds from them.',
+      );
+      return;
+    }
+    final number = _guidebookLesson + 1;
+    setState(
+      () => _setModules(
+        lesson.guidebook.modules,
+        state: PublicationState.published,
+      ),
+    );
+    final session = _session!;
+    final saved = await runReported(
+      context,
+      'Saving the Course',
+      () => session.confirm(
+        languageCode: CourseService.codeForCourse(session.workingCourse),
+        versionNotes: 'Course Wizard: GuideBook, Lesson $number',
+      ),
+    );
+    if (saved == null || !mounted) return;
+    final next = CourseWizardGuidebook.firstProblem(_working);
+    setState(() {
+      if (next != null) _guidebookLesson = next.index;
+      _generation++;
+    });
+    await _remember(_step);
+    _tell(
+      next == null
+          ? 'Lesson $number\'s GuideBook is ready, and so is every Lesson\'s. '
+                'Finish saves the Course and opens the Course Editor.'
+          : 'Lesson $number\'s GuideBook is ready. Now Lesson '
+                '${next.index + 1}.',
+    );
+  });
 
   // ---- Lessons
 
@@ -1271,8 +1494,33 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
       'Needed now: at least one Lesson, and every Lesson\'s title. Icons and '
           'sections can wait (the Lesson\'s page in the Course Editor), and '
           'Lessons can be added, moved and removed there later too.',
-      'Finish saves the Course and opens the Course Editor, where you write '
-          'each Lesson\'s GuideBook and make its Rounds.',
+      'Next saves the Lessons; then you write each Lesson\'s GuideBook.',
+    ],
+    CourseWizardStep.guidebook => [
+      'The GuideBook is each Lesson\'s reference: learners read it, and the '
+          'Round Wizard makes the Lesson\'s Rounds from it. It is made of '
+          'modules, one short topic each, like “Al bar: ordering and paying”.',
+      'A module has a title, Sentences (example sentences with their '
+          'translation), Words & Expressions (single words and fixed '
+          'expressions with their translation, an optional Context such as '
+          '“restaurant”, and an optional picture) and a short Overview. '
+          'Learners see the pictures in the GuideBook, on Review cards and in '
+          'Word Lookup.',
+      if (GuidebookPictureIndex.sideFor(_working) != null)
+        'In a Course to or from English, typing a word suggests its picture '
+            'from QQL\'s library when a picture has that name; you can change '
+            'or remove it.',
+      'Choose a Lesson and write its modules. Fill with an example fills the '
+          'Lesson with a sample module, in Italian and English whatever the '
+          'Course\'s languages.',
+      'Needed now: in every Lesson, a module with at least '
+          '${CourseWizardGuidebook.minimumWords} Words & Expressions, which the '
+          'Round Wizard needs. When a Lesson\'s GuideBook is ready, press '
+          '“This Lesson\'s GuideBook is ready”: it saves the GuideBook as '
+          'Published, so learners can read it. Changing it afterwards asks for '
+          'that again.',
+      'Finish saves the Course and opens the Course Editor, where you make '
+          'each Lesson\'s Rounds with the Round Wizard.',
     ],
   };
 
@@ -2194,12 +2442,152 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
     ),
   ];
 
+  List<Widget> _guidebookFields() {
+    final lessons = _working.lessons;
+    if (lessons.isEmpty) {
+      return [
+        const Padding(
+          padding: EdgeInsets.symmetric(vertical: 12),
+          child: Text('No Lessons yet: go back to Lessons and add one.'),
+        ),
+      ];
+    }
+    final lesson = _currentLesson!;
+    final modules = lesson.guidebook.modules;
+    final scheme = Theme.of(context).colorScheme;
+    final ready = CourseWizardGuidebook.isReady(lesson);
+    final status = ready
+        ? 'Ready: approved, with ${modules.length} '
+              'module${modules.length == 1 ? '' : 's'}.'
+        : CourseWizardGuidebook.hasUsableModule(lesson)
+        ? 'Not approved yet: press “This Lesson\'s GuideBook is ready” when '
+              'it is.'
+        : 'Needs a module with at least ${CourseWizardGuidebook.minimumWords} '
+              'Words & Expressions.';
+    return [
+      _heading('Lesson', tooltip: 'Write the GuideBook Lesson by Lesson.'),
+      Wrap(
+        spacing: 6,
+        runSpacing: 6,
+        children: [
+          for (final (index, each) in lessons.indexed)
+            ChoiceChip(
+              key: ValueKey('course-wizard-guidebook-lesson-$index'),
+              avatar: CourseWizardGuidebook.isReady(each)
+                  ? Icon(Icons.check_circle, color: scheme.primary)
+                  : null,
+              label: Text(
+                '${index + 1}. ${each.title}',
+                overflow: TextOverflow.ellipsis,
+              ),
+              selected: index == _guidebookLesson,
+              onSelected: (_) => _chooseGuidebookLesson(index),
+            ),
+        ],
+      ),
+      const SizedBox(height: 8),
+      Text(
+        key: const Key('course-wizard-guidebook-status'),
+        status,
+        style: TextStyle(
+          color: ready ? scheme.primary : scheme.onSurfaceVariant,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+      _heading(
+        'Modules of Lesson ${_guidebookLesson + 1}',
+        tooltip: 'One short topic each, in the order learners read them.',
+      ),
+      if (modules.isEmpty)
+        const Padding(
+          padding: EdgeInsets.symmetric(vertical: 8),
+          child: Text(
+            'No modules yet. Add the first one, for example “Al bar: '
+            'ordering and paying”, or press Fill with an example.',
+          ),
+        ),
+      for (final (index, module) in modules.indexed)
+        Card(
+          key: ValueKey('course-wizard-module-$index'),
+          child: ListTile(
+            title: Text(
+              module.title.trim().isEmpty
+                  ? 'Untitled module'
+                  : module.title.trim(),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontWeight: FontWeight.w700),
+            ),
+            subtitle: Text(
+              '${module.sentences.length} '
+              'sentence${module.sentences.length == 1 ? '' : 's'} · '
+              '${module.words.length} '
+              'word${module.words.length == 1 ? '' : 's'}',
+            ),
+            onTap: () => _openModule(index),
+            trailing: Wrap(
+              children: [
+                IconButton(
+                  key: ValueKey('course-wizard-module-up-$index'),
+                  tooltip: 'Move up',
+                  visualDensity: VisualDensity.compact,
+                  onPressed: index == 0 ? null : () => _moveModule(index, -1),
+                  icon: const Icon(Icons.arrow_upward),
+                ),
+                IconButton(
+                  key: ValueKey('course-wizard-module-down-$index'),
+                  tooltip: 'Move down',
+                  visualDensity: VisualDensity.compact,
+                  onPressed: index == modules.length - 1
+                      ? null
+                      : () => _moveModule(index, 1),
+                  icon: const Icon(Icons.arrow_downward),
+                ),
+                IconButton(
+                  key: ValueKey('course-wizard-module-remove-$index'),
+                  tooltip: 'Remove this module',
+                  visualDensity: VisualDensity.compact,
+                  onPressed: () => _removeModule(index),
+                  icon: const Icon(Icons.delete_outline),
+                ),
+              ],
+            ),
+          ),
+        ),
+      const SizedBox(height: 4),
+      Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: [
+          OutlinedButton.icon(
+            key: const Key('course-wizard-add-module'),
+            onPressed: _busy ? null : _addModule,
+            icon: const Icon(Icons.add),
+            label: const Text('Add a module'),
+          ),
+          Tooltip(
+            message:
+                'Save this Lesson\'s GuideBook as Published, then go on to '
+                'the next Lesson.',
+            child: FilledButton.tonalIcon(
+              key: const Key('course-wizard-guidebook-ready'),
+              onPressed: _busy ? null : _guidebookReady,
+              icon: const Icon(Icons.task_alt),
+              label: const Text('This Lesson\'s GuideBook is ready'),
+            ),
+          ),
+        ],
+      ),
+    ];
+  }
+
   List<Widget> _fields() => switch (_step) {
     CourseWizardStep.basics => _basicsFields(),
     CourseWizardStep.about => _aboutFields(),
     CourseWizardStep.credits => _creditsFields(),
     CourseWizardStep.options => _optionsFields(),
     CourseWizardStep.lessons => _lessonFields(),
+    CourseWizardStep.guidebook => _guidebookFields(),
   };
 
   /// Done: the step was passed and what it needs now is there.
@@ -2207,6 +2595,9 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
     if (_starting || step.index >= _furthest.index) return false;
     return switch (step) {
       CourseWizardStep.lessons => _working.lessons.isNotEmpty,
+      CourseWizardStep.guidebook =>
+        _working.lessons.isNotEmpty &&
+            CourseWizardGuidebook.firstProblem(_working) == null,
       _ => true,
     };
   }

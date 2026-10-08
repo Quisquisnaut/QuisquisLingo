@@ -96,3 +96,36 @@ owner's go of 8 October 2026).
 
 The Course format (no new Course field), scoring, progression, learner
 data and the Course Editor's single confirmation.
+
+## Revision 1 (2.0.67+267001): the GuideBook step
+
+The plan's §3 step 6.
+
+- **Step 6, GuideBook**, after Lessons (Next from Lessons now saves and goes
+  on; Finish moved to step 6). A chip per Lesson chooses the Lesson, ticked
+  once its GuideBook is done. The Lesson's modules are listed with their
+  counts and opened on the Course Editor's module page (Build 266: rows with
+  Target, Source and Context, pictures with the English suggestions, Paste
+  list, Fill with an example, Clear all, field Help); Add a module, move up
+  and down, Remove (asking first, naming the Rounds that focus on it).
+- **This Lesson's GuideBook is ready** saves the GuideBook as Published,
+  version notes "Course Wizard: GuideBook, Lesson N", and shows the next
+  Lesson still to do. While it is being written the GuideBook is a Draft;
+  changing an approved GuideBook asks for the approval again.
+- **Done:** a module with at least three Words & Expressions (the Round
+  Wizard's minimum) and the approval. Finish names the first Lesson not done
+  and shows it.
+- **Fill with an example** fills the shown Lesson with Build 266's sample
+  module ("Al bar"); **Clear all** empties it; both ask first when the
+  Lesson has modules and say when Rounds lose their focus module ("Lesson 2
+  has 6 Rounds. Clearing its modules does not remove them, but 6 lose their
+  focus module.").
+- **Paused** on this step, the Wizard remembers the Lesson: "Course Wizard
+  paused: step 6 of 6 (GuideBook, Lesson 2)", and Continue opens it.
+- **Unfinished rows** (a Target without a Source, or the reverse) never reach
+  the Wizard: the module page refuses them, or offers to discard them,
+  before it returns the module.
+- Code: `CourseWizardStep.guidebook`, `CourseWizardGuidebook`,
+  `CourseWizardSample.guidebook`, `CourseWizardPause.describe`; the screen's
+  GuideBook fields; Course Studio and the Course Editor name the Lesson.
+- Help EN/IT/ES: the Course Wizard answer.

@@ -55,12 +55,23 @@ batch of 639 tests, the complete suite 3,959 passed and 1 skipped (POSIX
 only). Committed on 8 October 2026 as "Build 267 Revision 0: the Course
 Wizard's frame" (the hash is in `git log`), local only.
 
+## Revision 1 (2.0.67+267001), the GuideBook step: committed
+
+Implemented: step 6 (`CourseWizardStep.guidebook`, `CourseWizardGuidebook`,
+the screen's GuideBook fields, the pause's `lessonId`, `describe(course)`),
+Help EN/IT/ES, docs, version pins. Decisions: a GuideBook being written in
+the Wizard is a Draft and needs "This Lesson's GuideBook is ready" again
+after a change; done = a module with 3+ words and Published; Finish names
+the first Lesson not done. The Suggest pictures button is not in (owner's
+answer pending). Analyzer clean; `course_wizard_267_test.dart` 21 tests and
+a focused batch of 218 passed; complete suite 3,961 passed, 1 skipped.
+Committed locally on 8 October 2026 as "Build 267 Revision 1: the Course
+Wizard's GuideBook step".
+
 ## Next
 
-- Revision 1 (2.0.67+267001): step 6, the GuideBook Lesson by Lesson on
-  266's module page; "This Lesson's GuideBook is ready" (Published);
-  unfinished rows on Save for now; the pause's `lessonId`; plus the owner's
-  answer to question 1.
+- If the owner says yes to question 1: the Suggest pictures button on the
+  module page (a Revision 1 follow-up).
 - Revision 2: step 7 (Round Wizard with All modules, Round titles switch,
   Duel count) plus the answer to question 2.
 - Revision 3: step 8 (Check and publish, Publish, Finish).

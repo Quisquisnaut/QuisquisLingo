@@ -38,7 +38,10 @@ Build 266 delivered parts of this plan before Build 267 started:
 
 Revision 0 (2.0.67+267000) shows only the steps that exist: steps 1–5, with
 **Finish** on step 5 (it saves, ends the Wizard and opens the Course
-Editor). Each later revision adds its step to the bar.
+Editor). Each later revision adds its step to the bar: Revision 1
+(2.0.67+267001) adds step 6, with Finish there. §4's unfinished rows never
+reach the Wizard: Build 266's module page refuses a half row, or offers to
+discard it, before it returns the module.
 
 ## 1. What exists today
 

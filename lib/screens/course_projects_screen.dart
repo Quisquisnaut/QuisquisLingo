@@ -2789,12 +2789,12 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
     return _profileNames[id] ?? 'Profile not on this device ($id)';
   }
 
-  /// "Course Wizard paused: step 3 of 5 (Credits and rights)" (Build 267).
+  /// "Course Wizard paused: step 6 of 6 (GuideBook, Lesson 2)" (Build 267).
   Widget? _wizardNote(Course course) {
     final pause = _library.pausedWizards[course.courseId];
     if (pause == null) return null;
     return Text(
-      pause.description,
+      pause.describe(course),
       key: ValueKey('course-wizard-paused-${course.courseId}'),
     );
   }

@@ -58,3 +58,33 @@ Run on the owner's Windows PC (4 cores, 8 GB), `TEMP`/`TMP` on
   Windows kept awake, 22:05–22:36): **3,959 passed, 1 skipped** (POSIX only),
   exit code 0. The Wizard's 18th test (the greyed menu entry) was added
   before the runner reached its file and ran in this suite.
+
+## Revision 1 (2.0.67+267001), 8 October 2026
+
+- `dart format` on the changed Dart files only; `flutter analyze --no-pub`:
+  **No issues found.**
+- `test/course_wizard_267_test.dart`: **21 passed**. New or changed for the
+  GuideBook step:
+  - the step's logic: a new Lesson is not done; a module with three Words &
+    Expressions written as a Draft is usable but not done; approved
+    (Published) it is done; `firstProblem` moves to the next Lesson; a
+    Round focusing on a removed module loses the link, and `roundsNote` says
+    so before; the paused line names the Lesson ("step 6 of 6 (GuideBook,
+    Lesson 2)");
+  - Course Studio: Next from Lessons saves them and opens step 6 with the
+    first Lesson remembered; Finish names the Lesson without a usable
+    module, then the one not approved; Fill and This Lesson's GuideBook is
+    ready for each of three Lessons, each a saved version ("Course Wizard:
+    GuideBook, Lesson N", Published, the module "Al bar"); Finish opens the
+    Course Editor and forgets the Wizard;
+  - the step on its own: the paused Lesson is shown; Add a module through
+    the module page (title and three words, Done); Fill asks first over a
+    module; move up; Remove asks first;
+  - every step, the GuideBook included, fits a 360-pixel window.
+- Inventory test: "step 3 of 6".
+- Focused batch (the Wizard, Inventory, reset, Help, version pins, Course
+  Studio and Course Manager, the GuideBook module tests of Build 266):
+  **218 passed.**
+- Complete suite (`flutter test --no-pub --concurrency=1 --reporter compact`,
+  Windows kept awake, 22:48–23:21): **3,961 passed, 1 skipped** (POSIX only),
+  exit code 0.

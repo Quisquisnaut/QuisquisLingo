@@ -3,6 +3,9 @@ import 'dart:convert';
 import '../models/course_flag_selection.dart';
 import '../models/course_models.dart';
 import 'authoring_duplication_service.dart';
+import 'guidebook_module_sample.dart';
+import 'guidebook_round_generator.dart';
+import 'guidebook_round_links.dart';
 import 'lesson_icon_catalog.dart';
 
 /// The Course Wizard (Build 267, `docs/267_COURSE_WIZARD_PLAN.md`): it guides
@@ -16,14 +19,15 @@ import 'lesson_icon_catalog.dart';
 /// save (owner decision of 6 October 2026); nothing of the Wizard is stored
 /// in the Course file.
 
-/// The Wizard's steps, in order. Revision 0 has the first five; the
-/// GuideBook, the Rounds and Check and publish follow in Revisions 1–3.
+/// The Wizard's steps, in order. Revision 1 has the first six; the Rounds
+/// and Check and publish follow in Revisions 2–3.
 enum CourseWizardStep {
   basics('Basics'),
   about('About the Course'),
   credits('Credits and rights'),
   options('Course options'),
-  lessons('Lessons');
+  lessons('Lessons'),
+  guidebook('GuideBook');
 
   const CourseWizardStep(this.title);
 
@@ -94,10 +98,19 @@ class CourseWizardPause {
     }
   }
 
-  /// "Course Wizard paused: step 3 of 5 (Credits and rights)".
-  String get description =>
-      'Course Wizard paused: step ${step.number} of '
-      '${CourseWizardStep.values.length} (${step.title})';
+  /// "Course Wizard paused: step 3 of 6 (Credits and rights)".
+  String get description => describe(null);
+
+  /// [description], naming the Lesson of the GuideBook step when [course]
+  /// still has it: "… step 6 of 6 (GuideBook, Lesson 2)".
+  String describe(Course? course) {
+    final index = lessonId == null || course == null
+        ? -1
+        : course.lessons.indexWhere((lesson) => lesson.lessonId == lessonId);
+    final where = index < 0 ? step.title : '${step.title}, Lesson ${index + 1}';
+    return 'Course Wizard paused: step ${step.number} of '
+        '${CourseWizardStep.values.length} ($where)';
+  }
 }
 
 /// What the Wizard screen hands back to the screen that opened it.
@@ -576,6 +589,106 @@ abstract final class CourseWizardLessons {
   }
 }
 
+/// The GuideBook step, Lesson by Lesson (Build 267 Revision 1): the Lesson's
+/// modules are written on Build 266's module page and approved with "This
+/// Lesson's GuideBook is ready", which saves the GuideBook as Published.
+abstract final class CourseWizardGuidebook {
+  /// The Round Wizard's minimum, so the Rounds step can use the module.
+  static const minimumWords = GuidebookRoundGenerator.minimumWords;
+
+  /// A module the Round Wizard can use.
+  static bool hasUsableModule(Lesson lesson) => lesson.guidebook.modules.any(
+    (module) => module.words.length >= minimumWords,
+  );
+
+  /// Done: a usable module, and the GuideBook approved (Published).
+  static bool isReady(Lesson lesson) =>
+      hasUsableModule(lesson) && lesson.guidebook.publicationState.isPublished;
+
+  /// Why Lesson [index] (zero-based) is not done yet, or null.
+  static String? problem(Lesson lesson, int index) {
+    if (!hasUsableModule(lesson)) {
+      return 'Lesson ${index + 1} (${lesson.title}) needs a module with at '
+          'least $minimumWords Words & Expressions.';
+    }
+    if (!lesson.guidebook.publicationState.isPublished) {
+      return 'Lesson ${index + 1} (${lesson.title}): press “This Lesson\'s '
+          'GuideBook is ready” when its GuideBook is ready.';
+    }
+    return null;
+  }
+
+  /// The first Lesson not done yet, with its problem; null when every
+  /// Lesson is done.
+  static ({int index, String problem})? firstProblem(Course course) {
+    for (final (index, lesson) in course.lessons.indexed) {
+      final problem = CourseWizardGuidebook.problem(lesson, index);
+      if (problem != null) return (index: index, problem: problem);
+    }
+    return null;
+  }
+
+  /// [course] with the modules of Lesson [lessonId] replaced, the GuideBook
+  /// in [state]: a GuideBook being written is a Draft, one approved is
+  /// Published. Rounds lose their links to removed modules, as after Save
+  /// Guidebook in the Course Editor.
+  static Course withModules(
+    Course course,
+    String lessonId,
+    List<GuidebookModule> modules, {
+    required PublicationState state,
+    required DateTime now,
+  }) => Course.fromJson({
+    ...course.toJson(),
+    'lessons': [
+      for (final lesson in course.lessons)
+        if (lesson.lessonId != lessonId)
+          lesson.toJson()
+        else
+          _withModules(lesson, modules, state, now).toJson(),
+    ],
+  });
+
+  static Lesson _withModules(
+    Lesson lesson,
+    List<GuidebookModule> modules,
+    PublicationState state,
+    DateTime now,
+  ) {
+    final guidebook = lesson.guidebook.copyWith(
+      publicationState: state,
+      modules: modules,
+    );
+    final rounds = GuidebookRoundLinks.afterGuidebookSave(
+      lesson.guidebook,
+      guidebook,
+      lesson.rounds,
+    );
+    return Lesson.fromJson({
+      ...lesson.toJson(),
+      'guidebook': guidebook.toJson(),
+      'rounds': [for (final round in rounds) round.toJson()],
+      'updatedAt': now.toUtc().toIso8601String(),
+    });
+  }
+
+  /// What replacing the modules of [lesson] does to its Rounds, as in
+  /// "Lesson 2 has 6 Rounds. Clearing its modules does not remove them, but
+  /// they lose their focus module."; null when no Round focuses on them.
+  static String? roundsNote(Lesson lesson, int index, String doing) {
+    final ids = {for (final module in lesson.guidebook.modules) module.id};
+    final focusing = lesson.rounds
+        .where((round) => ids.contains(round.focusModuleId))
+        .length;
+    if (focusing == 0) return null;
+    final count = lesson.rounds.length;
+    return 'Lesson ${index + 1} has $count Round${count == 1 ? '' : 's'}. '
+        '$doing its modules does not remove '
+        '${count == 1 ? 'it' : 'them'}, but $focusing '
+        '${focusing == 1 ? 'loses its' : 'lose their'} focus module.';
+  }
+}
+
 /// Fill with an example: one built-in Course, so filling every step gives a
 /// coherent whole (an English → Italian Course for the bar).
 abstract final class CourseWizardSample {
@@ -625,6 +738,12 @@ abstract final class CourseWizardSample {
     wordLookup: true,
     createDuels: true,
   );
+
+  /// The GuideBook step's example: Build 266's sample module, in Italian and
+  /// English whatever the Course's languages, every ID fresh.
+  static List<GuidebookModule> guidebook(AuthoringIdGenerator ids) => [
+    GuidebookModuleSample.module(id: ids.next('module'), ids: ids),
+  ];
 
   static final lessons = [
     CourseWizardLessonDraft(

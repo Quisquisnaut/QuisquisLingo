@@ -43,7 +43,7 @@ void main() {
       });
       expect(
         pause.description,
-        'Course Wizard paused: step 3 of 5 (Credits and rights)',
+        'Course Wizard paused: step 3 of 6 (Credits and rights)',
       );
       // Unusable records are ignored, never guessed.
       for (final raw in [
@@ -57,7 +57,7 @@ void main() {
         expect(CourseWizardPause.decode(raw), isNull, reason: raw);
       }
       // A step of a later build reads as this build's last step.
-      expect(CourseWizardStep.byNumber(8), CourseWizardStep.lessons);
+      expect(CourseWizardStep.byNumber(8), CourseWizardStep.guidebook);
     });
 
     test('the memory keeps one record per Course ID on the device', () async {
@@ -298,6 +298,105 @@ void main() {
     });
   });
 
+  test('the GuideBook step: modules, approval and the Rounds that follow', () {
+    final ids = _Ids();
+    var course = CourseWizardLessons.applyTo(
+      _wizardCourse(),
+      CourseWizardSample.lessons,
+      now: _now,
+      ids: ids,
+    );
+    final lesson = course.lessons.first;
+    expect(CourseWizardGuidebook.isReady(lesson), isFalse);
+    expect(
+      CourseWizardGuidebook.problem(lesson, 0),
+      contains('needs a module with at least 3'),
+    );
+    final modules = CourseWizardSample.guidebook(ids);
+    course = CourseWizardGuidebook.withModules(
+      course,
+      lesson.lessonId,
+      modules,
+      state: PublicationState.draft,
+      now: _now,
+    );
+    var written = course.lessons.first;
+    expect(written.guidebook.publicationState, PublicationState.draft);
+    expect(CourseWizardGuidebook.hasUsableModule(written), isTrue);
+    expect(CourseWizardGuidebook.isReady(written), isFalse);
+    expect(
+      CourseWizardGuidebook.problem(written, 0),
+      contains('GuideBook is ready'),
+    );
+    expect(CourseWizardGuidebook.firstProblem(course)!.index, 0);
+    course = CourseWizardGuidebook.withModules(
+      course,
+      lesson.lessonId,
+      modules,
+      state: PublicationState.published,
+      now: _now,
+    );
+    expect(CourseWizardGuidebook.isReady(course.lessons.first), isTrue);
+    expect(CourseWizardGuidebook.firstProblem(course)!.index, 1);
+    expect(
+      Course.fromJson(
+        course.toJson(),
+      ).lessons.first.guidebook.modules.single.words,
+      hasLength(modules.single.words.length),
+    );
+
+    // A Round focusing on a module loses the link when the module goes.
+    written = course.lessons.first;
+    final focused = Lesson.fromJson({
+      ...written.toJson(),
+      'rounds': [
+        LearningRound(
+          id: 'round_1',
+          title: '',
+          content: const [],
+          updatedAt: _now,
+          focusModuleId: modules.single.id,
+        ).toJson(),
+      ],
+    });
+    course = Course.fromJson({
+      ...course.toJson(),
+      'lessons': [
+        focused.toJson(),
+        for (final other in course.lessons.skip(1)) other.toJson(),
+      ],
+    });
+    expect(
+      CourseWizardGuidebook.roundsNote(course.lessons.first, 0, 'Clearing'),
+      'Lesson 1 has 1 Round. Clearing its modules does not remove it, but 1 '
+      'loses its focus module.',
+    );
+    course = CourseWizardGuidebook.withModules(
+      course,
+      focused.lessonId,
+      const [],
+      state: PublicationState.draft,
+      now: _now,
+    );
+    expect(course.lessons.first.rounds.single.focusModuleId, isNull);
+    expect(
+      CourseWizardGuidebook.roundsNote(course.lessons.first, 0, 'Clearing'),
+      isNull,
+    );
+
+    // The paused line names the Lesson of the GuideBook step.
+    final pause = CourseWizardPause(
+      step: CourseWizardStep.guidebook,
+      savedAtUtc: DateTime.utc(2026, 10, 8),
+      lessonId: course.lessons[1].lessonId,
+    );
+    expect(
+      pause.describe(course),
+      'Course Wizard paused: step 6 of 6 (GuideBook, Lesson 2)',
+    );
+    expect(pause.description, 'Course Wizard paused: step 6 of 6 (GuideBook)');
+  });
+
   test('one session saves a new Course at every step', () async {
     final editor = CourseEditorService();
     final course = _wizardCourse();
@@ -387,7 +486,7 @@ void main() {
         find.byKey(const Key('course-wizard-explanation')),
         findsOneWidget,
       );
-      expect(find.text('Step 1 of 5: Basics'), findsOneWidget);
+      expect(find.text('Step 1 of 6: Basics'), findsOneWidget);
       expect(find.byKey(const Key('course-wizard-continue')), findsOneWidget);
       expect(find.byKey(const Key('course-wizard-manual')), findsOneWidget);
       expect(find.byKey(const Key('course-wizard-can-wait-variant')), findsOne);
@@ -434,7 +533,7 @@ void main() {
       await tester.pump();
       await tester.tap(find.byKey(const Key('course-wizard-continue')));
       await tester.pumpUntilFileIoState(
-        () => find.text('Step 2 of 5: About the Course').evaluate().isNotEmpty,
+        () => find.text('Step 2 of 6: About the Course').evaluate().isNotEmpty,
       );
       var stored = (await tester.runAsync(
         () => CourseEditorService().listUserCourses(),
@@ -461,7 +560,7 @@ void main() {
       await tester.tap(find.byKey(const Key('course-wizard-next')));
       await tester.pumpUntilFileIoState(
         () =>
-            find.text('Step 3 of 5: Credits and rights').evaluate().isNotEmpty,
+            find.text('Step 3 of 6: Credits and rights').evaluate().isNotEmpty,
       );
       stored = (await tester.runAsync(
         () => CourseEditorService().listUserCourses(),
@@ -479,7 +578,7 @@ void main() {
       await tester.pumpUntilFileIoState(() => paused.evaluate().isNotEmpty);
       expect(find.byType(CourseWizardScreen), findsNothing);
       expect(
-        find.text('Course Wizard paused: step 3 of 5 (Credits and rights)'),
+        find.text('Course Wizard paused: step 3 of 6 (Credits and rights)'),
         findsOneWidget,
       );
       // No change on this step: no new version.
@@ -503,11 +602,11 @@ void main() {
       );
       await tester.tap(continueItem);
       await tester.pumpAndSettle();
-      expect(find.text('Step 3 of 5: Credits and rights'), findsOneWidget);
+      expect(find.text('Step 3 of 6: Credits and rights'), findsOneWidget);
       expect(find.byKey(const Key('course-wizard-step-done-2')), findsOne);
     });
 
-    testWidgets('Finish needs a Lesson, saves them and opens the Editor', (
+    testWidgets('Lessons, then each GuideBook approved, then Finish', (
       tester,
     ) async {
       final stored = (await tester.runAsync(() => _store(_wizardCourse())))!;
@@ -529,8 +628,8 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('Continue Course Wizard'));
       await tester.pumpAndSettle();
-      expect(find.text('Step 5 of 5: Lessons'), findsOneWidget);
-      expect(find.text('Finish'), findsOneWidget);
+      expect(find.text('Step 5 of 6: Lessons'), findsOneWidget);
+      expect(find.text('Next'), findsOneWidget);
 
       await tester.tap(find.byKey(const Key('course-wizard-next')));
       await tester.pumpAndSettle();
@@ -557,9 +656,9 @@ void main() {
       await tester.enterText(_field('Lesson title *').first, 'Coffee');
       await tester.tap(find.byKey(const Key('course-wizard-next')));
       await tester.pumpUntilFileIoState(
-        () => find.byType(CourseEditorScreen).evaluate().isNotEmpty,
+        () => find.text('Step 6 of 6: GuideBook').evaluate().isNotEmpty,
       );
-      final saved = (await tester.runAsync(
+      var saved = (await tester.runAsync(
         () => CourseEditorService().listUserCourses(),
       ))!.single;
       expect(saved.lessons.map((lesson) => lesson.title), [
@@ -568,6 +667,62 @@ void main() {
         'Back to the station',
       ]);
       expect(saved.versionNotes, 'Course Wizard: Lessons');
+      expect(
+        (await tester.runAsync(
+          () => CourseWizardMemory().recall(stored.courseId),
+        ))!.lessonId,
+        saved.lessons.first.lessonId,
+      );
+      expect(find.text('Finish'), findsOneWidget);
+
+      // Finish needs every Lesson's GuideBook.
+      await tester.tap(find.byKey(const Key('course-wizard-next')));
+      await tester.pumpAndSettle();
+      expect(
+        find.text(
+          'Lesson 1 (Coffee) needs a module with at least 3 Words & '
+          'Expressions.',
+        ),
+        findsOneWidget,
+      );
+      await tester.tap(find.byKey(const Key('course-wizard-fill-example')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('course-wizard-module-0')), findsOneWidget);
+      expect(find.textContaining('Not approved yet'), findsOneWidget);
+      await tester.tap(find.byKey(const Key('course-wizard-next')));
+      await tester.pumpAndSettle();
+      expect(
+        find.textContaining('press “This Lesson\'s GuideBook is ready”'),
+        findsWidgets,
+      );
+
+      for (var lesson = 1; lesson <= 3; lesson++) {
+        if (lesson > 1) {
+          await tester.tap(find.byKey(const Key('course-wizard-fill-example')));
+          await tester.pumpAndSettle();
+        }
+        final ready = find.byKey(const Key('course-wizard-guidebook-ready'));
+        await tester.ensureVisible(ready);
+        await tester.tap(ready);
+        await tester.pumpUntilFileIoState(
+          () => find
+              .textContaining('Lesson $lesson\'s GuideBook is ready')
+              .evaluate()
+              .isNotEmpty,
+        );
+        saved = (await tester.runAsync(
+          () => CourseEditorService().listUserCourses(),
+        ))!.single;
+        expect(saved.versionNotes, 'Course Wizard: GuideBook, Lesson $lesson');
+        final guidebook = saved.lessons[lesson - 1].guidebook;
+        expect(guidebook.publicationState, PublicationState.published);
+        expect(guidebook.modules.single.title, 'Al bar');
+      }
+
+      await tester.tap(find.byKey(const Key('course-wizard-next')));
+      await tester.pumpUntilFileIoState(
+        () => find.byType(CourseEditorScreen).evaluate().isNotEmpty,
+      );
       expect(
         await tester.runAsync(
           () => CourseWizardMemory().recall(stored.courseId),
@@ -605,14 +760,14 @@ void main() {
             .isNotEmpty,
       );
       expect(
-        find.text('Course Wizard paused: step 4 of 5 (Course options)'),
+        find.text('Course Wizard paused: step 4 of 6 (Course options)'),
         findsOneWidget,
       );
       await tester.tap(find.byKey(const Key('course-editor-continue-wizard')));
       await tester.pumpUntilFileIoState(
         () => find.byType(CourseWizardScreen).evaluate().isNotEmpty,
       );
-      expect(find.text('Step 4 of 5: Course options'), findsOneWidget);
+      expect(find.text('Step 4 of 6: Course options'), findsOneWidget);
       expect(find.byType(CourseEditorScreen), findsNothing);
 
       // Continue by hand forgets the Wizard and opens the Editor.
@@ -690,6 +845,87 @@ void main() {
     );
   });
 
+  testWidgets('the GuideBook step adds, moves and removes modules', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1000, 1800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final course = CourseWizardLessons.applyTo(
+      _wizardCourse(),
+      CourseWizardSample.lessons,
+      now: _now,
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CourseWizardScreen(
+          course: course,
+          access: CourseAccessPolicy.evaluate(course, profileId: _profileId),
+          pause: CourseWizardPause(
+            step: CourseWizardStep.guidebook,
+            savedAtUtc: DateTime.utc(2026, 10, 8),
+            lessonId: course.lessons[1].lessonId,
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    // The paused Lesson is shown.
+    expect(
+      tester
+          .widget<ChoiceChip>(
+            find.byKey(const ValueKey('course-wizard-guidebook-lesson-1')),
+          )
+          .selected,
+      isTrue,
+    );
+    expect(find.textContaining('Needs a module'), findsOneWidget);
+    await _addModule(
+      tester,
+      title: 'Il conto',
+      words: const [
+        ('il conto', 'the bill'),
+        ('pagare', 'to pay'),
+        ('lo scontrino', 'the receipt'),
+      ],
+    );
+    expect(find.text('Step 6 of 6: GuideBook'), findsOneWidget);
+    expect(find.text('Il conto'), findsOneWidget);
+    expect(find.text('0 sentences · 3 words'), findsOneWidget);
+    expect(find.textContaining('Not approved yet'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('course-wizard-fill-example')));
+    await tester.pumpAndSettle();
+    // The Lesson holds a module: Fill asks first.
+    await tester.tap(
+      find.byKey(const Key('course-wizard-fill-example-confirm')),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Al bar'), findsOneWidget);
+    expect(find.text('Il conto'), findsNothing);
+    await _addModule(
+      tester,
+      title: 'Saluti',
+      words: const [('ciao', 'hi'), ('buongiorno', 'good morning')],
+    );
+    await tester.tap(find.byKey(const ValueKey('course-wizard-module-up-1')));
+    await tester.pumpAndSettle();
+    expect(
+      tester.getTopLeft(find.text('Saluti')).dy,
+      lessThan(tester.getTopLeft(find.text('Al bar')).dy),
+    );
+    await tester.tap(
+      find.byKey(const ValueKey('course-wizard-module-remove-0')),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(const Key('course-wizard-module-remove-confirm')),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Saluti'), findsNothing);
+    expect(find.byKey(const ValueKey('course-wizard-module-0')), findsOne);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('every step fits a 360-pixel window', (tester) async {
     tester.view.physicalSize = const Size(360, 780);
     tester.view.devicePixelRatio = 1;
@@ -719,7 +955,7 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(
-        find.text('Step ${step.number} of 5: ${step.title}'),
+        find.text('Step ${step.number} of 6: ${step.title}'),
         findsOneWidget,
       );
       await tester.drag(
@@ -848,6 +1084,36 @@ Future<void> _openStudio(WidgetTester tester) async {
             .isNotEmpty &&
         find.byType(CircularProgressIndicator).evaluate().isEmpty,
   );
+}
+
+/// Add a module on the Wizard's GuideBook step: the module page, its
+/// [title] and [words], then Done.
+Future<void> _addModule(
+  WidgetTester tester, {
+  required String title,
+  List<(String, String)> words = const [],
+}) async {
+  Future<void> tapKey(Key key) async {
+    await tester.ensureVisible(find.byKey(key));
+    await tester.tap(find.byKey(key));
+    await tester.pumpAndSettle();
+  }
+
+  Future<void> type(Key key, String text) async {
+    await tester.ensureVisible(find.byKey(key));
+    await tester.enterText(find.byKey(key), text);
+    await tester.pumpAndSettle();
+  }
+
+  await tapKey(const Key('course-wizard-add-module'));
+  await type(const Key('guidebook-module-title'), title);
+  for (var i = 0; i < words.length; i++) {
+    await tapKey(const ValueKey('guidebook-module-add-word'));
+    await type(ValueKey('guidebook-module-word-$i-target'), words[i].$1);
+    await type(ValueKey('guidebook-module-word-$i-source'), words[i].$2);
+  }
+  await tester.tap(find.byKey(const Key('guidebook-module-done')));
+  await tester.pumpAndSettle();
 }
 
 Finder _field(String label) => find.byWidgetPredicate(

@@ -1,3 +1,33 @@
+# 2.0.67 (Build 267, Revision 1) - The Course Wizard: the GuideBook step - 2026-10-08
+
+The plan's §3 step 6 (owner decisions of 6 October 2026).
+
+- **Step 6, GuideBook, Lesson by Lesson.** Lessons is no longer the last
+  step: Next saves the Lessons and opens the GuideBook step. A chip per
+  Lesson (ticked when done) chooses the Lesson; its modules are listed with
+  their counts, opened on the Course Editor's module page (Sentences, Words &
+  Expressions with pictures and the English picture suggestions of Build
+  266, Overview, Paste list, Fill with an example, Clear all), added, moved
+  and removed (asking first, naming the Rounds that focus on the module).
+- **This Lesson's GuideBook is ready** saves the GuideBook as Published
+  (version notes "Course Wizard: GuideBook, Lesson 2") and shows the next
+  Lesson still to do. A GuideBook being written is a Draft; changing an
+  approved one asks for the approval again.
+- **Done** means a module with at least three Words & Expressions (the
+  Round Wizard's minimum) and the approval; Finish, now on step 6, names the
+  first Lesson that is not done and shows it. Fill with an example fills the
+  shown Lesson with Build 266's sample module; Clear all empties it; both ask
+  first when it has modules, saying when Rounds lose their focus module.
+- **Paused on step 6**, the Wizard remembers the Lesson (`lessonId`):
+  Course Studio and the Course Editor read "Course Wizard paused: step 6 of
+  6 (GuideBook, Lesson 2)", and Continue opens that Lesson.
+- Unfinished rows never reach the Wizard: the module page refuses a row with
+  a Target but no Source (or the reverse), or offers to discard them, before
+  it returns the module.
+- Help EN/IT/ES: the Course Wizard answer names the GuideBook step.
+- Scoring, progression, Course files and learner data are unchanged. Beta
+  expiry `2026-11-07 23:59:59` local time.
+
 # 2.0.67 (Build 267, Revision 0) - The Course Wizard: its frame - 2026-10-08
 
 The plan `docs/267_COURSE_WIZARD_PLAN.md`, §2–§4 and §8 (owner decisions of
