@@ -25,11 +25,133 @@ Revisions:
   learner screens, the Audit, the converters and the content.
 - Revision 1 (266001): the authoring aids: picture prefill, Paste list,
   Fill with an example, Clear all, the Overview counter, tooltips and
-  examples, field Help, two new Editor Help questions.
-- Revision 2 (266002): the Round Wizard (focus module, All modules, the
+  examples, field Help, two new Editor Help questions (below).
+- Revision 2 (266002, owner decisions of 8 October 2026): resilience: the
+  class of bug found in the reset buttons fixed wherever it occurs, the
+  Diagnostic Log records what the Crash Log alone recorded, Open folder for
+  both logs, Delete / Forget / Open folder on the Inventory's items, and
+  edge-case tests over stored data this version cannot open.
+- Revision 3 (266003): the Round Wizard (focus module, All modules, the
   review mix, real `sourceRefs`, picture exercises).
-- Revision 3 (266003): content (English from Italian in modules, the
+- Revision 4 (266004): content (English from Italian in modules, the
   Lab's two-module Lesson, the Edge Case module cases).
+
+## Revision 1 (2.0.66+266001, 8 October 2026): authoring aids
+
+The module page's aids (plan §5 and §10). No format change.
+
+### Picture prefill
+
+- `GuidebookPictureIndex` (`lib/services/guidebook_picture_match.dart`,
+  pure Dart) indexes the QQL catalog (`ExerciseImageMetadataService`
+  `loadCatalog`, bundled records only). `sideFor(course)`: the Target when
+  the Course teaches English, the Source when its learners speak English,
+  otherwise no prefill. `find(word)` tries, in order:
+  1. a name equal to the word, capitals, spacing, a leading *a*, *an* or
+     *the* and closing punctuation ignored ("an apple" → Apple, "the
+     bill" → Bill);
+  2. the word's singular by the library's rule (`imageTagKey`): "cats" →
+     Cat, `plural: true`;
+  3. the part of a name before its bracket, for the word, then for its
+     singular: "baker" → Baker (man), Baker (woman); "Africa" → Africa
+     (map).
+  Exact names come first: "glasses" → Glasses, "father" → the Father
+  scene, not Father (family tree). Never matched: the `characters` group,
+  `lesson_icons`, one-letter names. A target's optional words are tried
+  with and without them ("{to} eat": "to eat", then "eat").
+- The module page reads the catalog once
+  (`GuidebookModuleEditorScreen(metadataService:)`, also passed through
+  `GuidebookEditorScreen`). On leaving a word's Target or Source box:
+  - one match fills the picture with **Suggested** (or **Suggested,
+    plural**, the picture marked Plural) and a tooltip naming why;
+  - several show **N matching pictures** (`…-picture-matches`), which
+    opens the image library already searched for the word; the chosen
+    picture is marked Plural when the match was by the singular;
+  - none does nothing.
+  It never replaces a picture the author chose (a suggestion follows its
+  word), never runs on a reopened GuideBook (stored words count as read),
+  and a removed picture stays removed until the word changes
+  (`_EntryRow.prefillWords`). Touching the picture (the dialog, Remove,
+  Plural) drops the mark. Paste list and Fill with an example run it on
+  their new words.
+- `chooseLibraryPicture` (`lib/widgets/exercise_image_field.dart`) is
+  Choose flat image as one function, used by `ExerciseImageField` and the
+  matches; `FlatImageLibraryScreen(initialSearch:)` opens searched.
+
+### The other aids
+
+- **Paste list** (`GuidebookPasteList`, `lib/services/guidebook_paste_list.dart`):
+  one entry per line, `target = source [context]` (the separators of
+  `GuidebookVocabulary.parse`), blank lines skipped; a line with no pair, a
+  bad `{…}`, a bracket in the Source or a Context over 40 characters is
+  listed with its reason (`guidebook-module-paste-unread`) and not added.
+- **Fill with an example** (`GuidebookModuleSample`,
+  `lib/services/guidebook_module_sample.dart`): "Al bar", four Sentences
+  (one with a Context, one with `{Io}`), six Words & Expressions (*il
+  conto* twice, *per favore*, `{io} sono stanco`, *il caffè* with
+  `coffee.webp`, *i gatti* with `cat.webp` marked Plural), a two-sentence
+  Overview; fresh entry IDs; asks first when the page holds something.
+- **Clear all** empties the page, pictures included, asking first unless it
+  is empty.
+- **Overview**: a character counter (`guidebook-module-overview-count`) and
+  from 500 characters the hint (`guidebook-module-overview-long`); the
+  limit is `GuidebookText.longOverviewLength`, which the Audit's
+  `GUIDEBOOK_MODULE_OVERVIEW_LONG` now reads too.
+- **Tooltips and examples**: the field Help controls carry a tooltip; the
+  list descriptions give examples (*Lei è stanca?* with its Context; *il
+  conto* twice; *buongiorno*); a line under each list explains `{…}` with a
+  tooltip; Paste list, Fill, Clear all and the counter have tooltips.
+- **Field Help** (EN/IT/ES, read in the Help Language like the Help pages;
+  the exercise forms' field dialogs stay English): Title, Sentences, Words
+  & Expressions, Target, Source, Context, Picture (also in the picture
+  dialog), Overview, Paste list (`guidebookFieldHelpIds`,
+  `guidebookHelp.field.<id>.title`/`.body`).
+- **Editor Help** (86 questions): "How do I write GuideBook entries?"
+  (`guidebookEntries`, opened by the module page's Help) and "How long
+  should a module be?" (`moduleLength`), after the GuideBook question.
+- The Paste list dialog owns its text controller (`_PasteListDialog`), so
+  it is disposed after the closing animation (found by the new tests).
+- **The library opened from a word is searched for it** (owner request of
+  8 October 2026): the picture dialog's Choose flat image
+  (`ExerciseImageField(librarySearch:)`) and N matching pictures open the
+  library with the word's English side as the prefill compares it (no
+  article, no closing punctuation: "an apple" → "apple", "The cats." →
+  "cats"), if and only if the Course is to or from English; otherwise
+  unsearched.
+
+### Fix: the reset buttons (owner report of 8 October 2026)
+
+- The reset buttons of Advanced (Admin) did nothing. Revision 0 made a
+  stored Course whose GuideBook has the earlier shape unopenable;
+  `AppResetService.preview` (and the non-admin learners reset) read every
+  stored Course with `Course.fromJson`, which threw at the owner's own test
+  Course (3.6 MB, the earlier shape), and `_begin` awaited the preview
+  without a catch, so nothing was shown. The only in-app way to remove the
+  Course (Remove custom courses) was blocked by the Course itself. The
+  Crash Log had the error five times, without naming the Course; the
+  Diagnostic Log had nothing.
+- `_storedCustomCourses` skips a Course it cannot open, as it already
+  skipped an unreadable file (such a Course names no Maintainer anyone
+  could see); the full wipe and Remove custom courses delete it with the
+  others.
+- `_begin` catches a failing preview and shows why
+  (`admin-reset-preview-error`), with nothing changed.
+- `test/reset_unreadable_course_266_test.dart` (4): the preview with an
+  earlier-shape Course, its removal, the button opening its explanation,
+  a failing preview reported. Without the fix the preview test and the
+  button test fail.
+
+### Tests
+
+- New: `test/guidebook_authoring_aids_266_test.dart` (26: the matcher on
+  the real catalog, device pictures, the sides; Paste list; the sample;
+  the shared 500 limit; the Help keys; the prefill on the page, its
+  removal and reopening rules, a Course without English; Paste list,
+  Fill, Clear all, the counter, field Help, 360 pixels; the library opened
+  searched, from the picture dialog in the three kinds of Course and from
+  the matches).
+- Pins: the Editor Help count (84 → 86) in `editor_help_qa_256_test` and
+  `editor_help_translation_test`; the version pins.
 
 ## Revision 0 (2.0.66+266000, 8 October 2026): GuideBook modules
 

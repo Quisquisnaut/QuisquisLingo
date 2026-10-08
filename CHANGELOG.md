@@ -1,3 +1,62 @@
+# 2.0.66 (Build 266, Revision 1) - GuideBook authoring aids - 2026-10-08
+
+The authoring aids of the GuideBook module page (plan §5, owner decisions
+of 6–8 October 2026); the second half of the plan's Revision 0.
+
+- **Picture prefill.** In a Course whose Target or Source language is
+  English, leaving a word's box looks for the QQL picture with the word's
+  name (capitals and a leading "a", "an" or "the" ignored: "an apple"
+  finds Apple). One match fills the row with a **Suggested** mark; when no
+  name matches, the singular is tried ("cats" fills Cat, marked Plural:
+  "Suggested, plural"), then the name before a bracket ("baker" offers
+  Baker (man) and Baker (woman)). Exact names come first ("glasses" is
+  Glasses, "father" the Father scene). Several matches show **N matching
+  pictures**, which opens the image library already searched for the word.
+  Character pictures, Lesson icons, one-letter names (the numeral I, the
+  units g, l, m) and device pictures never match. It runs only after a
+  word is typed, pasted or filled, never over a picture the author chose,
+  never when a GuideBook is reopened; a removed picture stays removed until
+  the word changes; the mark lasts for the editing session.
+- **Paste list** on both lists: one entry per line, `target = source
+  [context]` (also ` → `, ` - `, `:`), appended with fresh IDs; the lines it
+  cannot read are listed with the reason and not added.
+- **Fill with an example** (a complete Italian–English sample module: a
+  Context, `{Io}`, "il conto" with two senses, a fixed expression, "il
+  caffè" with its picture, "i gatti" marked Plural) and **Clear all**, each
+  asking first when the page holds something.
+- **Overview counter** and, from 500 characters, the hint "Long overview.
+  Consider splitting this topic into shorter modules." (never blocking; the
+  Audit's `GUIDEBOOK_MODULE_OVERVIEW_LONG` uses the same limit,
+  `GuidebookText.longOverviewLength`).
+- **Tooltips and examples** on the fields, the `{…}` line, Paste list and
+  the counter; **field Help** on every module field (Title, Sentences,
+  Words & Expressions, Target, Source, Context, Picture, Overview, Paste
+  list) in the Help Language, EN/IT/ES (`guidebookHelp.field.*`).
+- **Editor Help**: "How do I write GuideBook entries?" and "How long should
+  a module be?" (86 questions); the module page's Help opens the first.
+- The image library takes an initial search (`FlatImageLibraryScreen
+  initialSearch`); Choose flat image is one shared function
+  (`chooseLibraryPicture`). Opened from a word's picture (Choose flat
+  image in the picture dialog, or N matching pictures), the library is
+  already searched for the word's English side without its article ("an
+  apple" → "apple"), if and only if the Course is to or from English
+  (owner request of 8 October 2026).
+- **Fix (owner report of 8 October 2026): the reset buttons of Advanced
+  (Admin) did nothing.** Since Revision 0 a stored Course whose GuideBook
+  has the earlier shape cannot be opened; the reset preview parsed every
+  stored Course and stopped at it, and the button ignored the error, so
+  the reset that could remove that Course was blocked by it. The reset
+  service now skips a Course it cannot open, as it skips an unreadable
+  file (Remove custom courses still deletes it), and a reset that cannot
+  start says why instead of doing nothing.
+
+Version 2.0.66+266001. Scoring, progression, Course files and learner data
+are unchanged. Beta expiry unchanged: 2026-11-07 23:59:59 local time.
+Next (owner decision of 8 October 2026): Revision 2 (266002) makes the app
+more resilient (the same class of bug elsewhere, the logs, Open folder for
+the logs, Delete / Forget / Open folder in the Inventory); the Round Wizard
+moves to Revision 3 and the content to Revision 4.
+
 # 2.0.66 (Build 266, Revision 0) - GuideBook modules - 2026-10-08
 
 The owner's plan of 5–7 October 2026 (`docs/266_GUIDEBOOK_MODULES_PLAN.md`)

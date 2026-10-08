@@ -1,6 +1,7 @@
 import '../models/course_models.dart';
 import '../models/exercise_features.dart';
 import '../models/exercise_authoring.dart';
+import '../models/guidebook_text.dart';
 import '../models/preset_successors.dart';
 import 'answer_engine.dart';
 import 'first_letter_answer_service.dart';
@@ -515,7 +516,7 @@ class CourseAuditService {
             ),
           );
         }
-        if (module.overview.trim().length >= 500) {
+        if (module.overview.trim().length >= GuidebookText.longOverviewLength) {
           issues.add(
             CourseAuditIssue.fromCode(
               AuditCode.guidebookModuleOverviewLong,
@@ -1016,8 +1017,7 @@ class CourseAuditService {
     for (final lesson in course.lessons) {
       // Build 266: a GuideBook word's picture is a Course picture too.
       for (final word in lesson.guidebook.words) {
-        if (word.picture case final picture?
-            when isOwnMedia(picture.asset)) {
+        if (word.picture case final picture? when isOwnMedia(picture.asset)) {
           return true;
         }
       }

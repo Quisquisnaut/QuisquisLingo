@@ -219,6 +219,39 @@ const Map<String, String> helpIt = {
   "editorHelp.qa.guidebook.q": "Che cosa va nel GuideBook di una Lesson?",
   "editorHelp.qa.guidebook.a":
       "Un GuideBook è un elenco di moduli, nell'ordine in cui si insegnano. Un modulo è un argomento breve con un Title (il suo nome, per esempio Al bar), Sentences (frasi d'esempio, ciascuna con la sua traduzione), Words & Expressions (parole singole ed espressioni fisse come buongiorno, ciascuna con la sua traduzione) e una breve Overview. Ogni voce ha un Target (la lingua studiata), una Source (la traduzione nella lingua dello studente) e un Context facoltativo di al massimo 40 caratteri (il significato, l'ambito, il registro o chi parla: restaurant o bank per il conto). Una parola può avere un'immagine, scelta come quella di un esercizio e segnata Plural quando indica più cose (i gatti, the cats); {io} segna le parole che si possono omettere, come un soggetto sottinteso. Gli studenti vedono il GuideBook quando è salvato come contenuto normale e Use GuideBook è attivo; Save Guidebook as draft lo tiene nascosto. Le sue Words & Expressions alimentano la Review e Word Lookup, e il Round Wizard costruisce i Round dai suoi moduli. Un Round può indicare il suo Focus module nel Round editor; Open GuideBook sulla sua scheda Before you start si apre allora su quel modulo.",
+  "editorHelp.qa.guidebookEntries.q": "Come scrivo le voci del GuideBook?",
+  "editorHelp.qa.guidebookEntries.a":
+      "Apri un modulo dalla pagina del GuideBook. Ogni riga di Sentences e di Words & Expressions ha un Target (la lingua studiata), una Source (la traduzione nella lingua dello studente) e un Context facoltativo di al massimo 40 caratteri. Il Context distingue i significati: in un Corso di inglese per italiani, string = stringa [informatica] e string = laccio [scarpe] sono due voci, e lo studente vede il Context in grigio dopo la traduzione. Una parola con più significati è più voci. Scrivi {…} attorno alle parole che si possono omettere, come un soggetto sottinteso: {io} sono stanco si vede (io) sono stanco e Word Lookup trova le due forme; nessun'altra sintassi delle risposte è ammessa. Una voce di Words & Expressions può avere un'immagine, scelta come quella di un esercizio; Plural segna una parola che indica più cose (i gatti, the cats) e lo studente vede copie sovrapposte. In un Corso verso l'inglese o dall'inglese, il lato inglese di una parola propone un'immagine QQL quando lasci la casella: se una sola immagine ha il nome della parola (maiuscole e un a, an o the iniziale ignorati) riempie la riga con il segno Suggested; se nessuna lo ha, si prova il singolare (cats trova Cat, segnata Plural e Suggested, plural), poi il nome prima di una parentesi (baker trova Baker (man) e Baker (woman)). Se corrispondono più immagini, N matching pictures apre la libreria già cercata per la parola. Nulla viene proposto al posto di un'immagine scelta da te, un'immagine che rimuovi resta rimossa finché la parola non cambia, e lettere, cifre, icone delle Lezioni e nomi di una lettera non vengono mai proposti. Paste list aggiunge molte voci in una volta, una per riga come target = source [context]; le righe che non riesce a leggere vengono elencate e non aggiunte. Fill with an example riempie la pagina con un modulo d'esempio completo (in italiano e inglese) e Clear all la svuota; entrambi chiedono prima. Done tiene il modulo; una riga con Target e senza Source, o il contrario, viene indicata, e una riga vuota viene scartata. Il GuideBook si salva con Save Guidebook.",
+  "editorHelp.qa.moduleLength.q": "Quanto deve essere lungo un modulo?",
+  "editorHelp.qa.moduleLength.a":
+      "Breve: un argomento coerente che lo studente afferra in una volta, come i saluti o ordinare al bar, con poche Sentences, le Words & Expressions che usano e una Overview di due o tre frasi. La pagina del modulo conta i caratteri della Overview; da 500 suggerisce di dividere l'argomento e l'Audit segnala GUIDEBOOK_MODULE_OVERVIEW_LONG (Info). Nessuno dei due blocca il salvataggio. Un argomento più lungo si legge meglio come due moduli in ordine: ogni Round può indicare il suo Focus module e Open GuideBook si apre lì. Un modulo senza voci riceve il Warning GUIDEBOOK_MODULE_EMPTY.",
+  "guidebookHelp.field.title.title": "Title",
+  "guidebookHelp.field.title.body":
+      "Il nome del modulo: un argomento breve, per esempio Al bar o Saluti. Lo studente lo vede come intestazione del modulo nel GuideBook e il menu Focus module del Round editor lo elenca. Obbligatorio: Done rifiuta un modulo senza titolo.",
+  "guidebookHelp.field.sentences.title": "Sentences",
+  "guidebookHelp.field.sentences.body":
+      "Frasi d'esempio nell'uso, ciascuna con la sua traduzione: Lei è stanca? = Are you tired?, con il Context formal, to a woman. Ogni riga ha un Target, una Source e un Context facoltativo. Lo studente le legge nel GuideBook e il Round Wizard ne ricava esercizi; Review e Word Lookup leggono solo le Words & Expressions, e una frase non ha immagine.",
+  "guidebookHelp.field.words.title": "Words & Expressions",
+  "guidebookHelp.field.words.body":
+      "Parole singole ed espressioni fisse (buongiorno, a lungo andare), ciascuna con la sua traduzione. Una parola con due significati è due voci, distinte dal loro Context: il conto = the bill [restaurant] e il conto = the account [bank]. Una voce può avere un'immagine. La Review del vocabolario e Word Lookup leggono queste voci, e il Round Wizard ne ricava esercizi.",
+  "guidebookHelp.field.target.title": "Target",
+  "guidebookHelp.field.target.body":
+      "La parola, l'espressione o la frase nella lingua che il Corso insegna, come lo studente deve impararla: il caffè, buongiorno. Scrivi {…} attorno alle parole che si possono omettere, come un soggetto sottinteso: {io} sono stanco si vede (io) sono stanco con io in grigio, e Word Lookup trova le due forme. È ammesso solo {…}, non annidato e mai vuoto; [, ], | e <> vengono rifiutati. Obbligatorio quando la riga ha una Source.",
+  "guidebookHelp.field.source.title": "Source",
+  "guidebookHelp.field.source.body":
+      "La traduzione nella lingua dello studente: coffee, good morning. Scrivi la traduzione di questo significato; un altro significato è un'altra voce, con il suo Context. Obbligatoria quando la riga ha un Target.",
+  "guidebookHelp.field.context.title": "Context (facoltativo)",
+  "guidebookHelp.field.context.body":
+      "Una breve nota nella lingua dello studente, al massimo 40 caratteri: il significato, l'ambito, formale o informale, chi parla. Esempi: restaurant e bank per il conto; formal, to a woman per Lei è stanca?. Lo studente la vede in grigio dopo la traduzione, nel GuideBook, nelle schede di Review e in Word Lookup. Lasciala vuota quando la voce non ha bisogno di note.",
+  "guidebookHelp.field.picture.title": "Picture (facoltativa)",
+  "guidebookHelp.field.picture.body":
+      "L'aspetto di una voce di Words & Expressions, scelto come l'immagine di un esercizio: la libreria delle immagini, le immagini del Corso o un file. Plural segna una parola che indica più cose (i gatti, the cats): lo studente vede copie sovrapposte. Lo studente vede l'immagine nel GuideBook, nelle schede di Review dopo la risposta e in Word Lookup. In un Corso il cui Target o la cui Source è l'inglese, lasciare la casella di una parola propone l'immagine QQL che ha il nome della parola (maiuscole e un a, an o the iniziale ignorati), segnata Suggested; poi il suo singolare (cats trova Cat, segnata Suggested, plural); poi il nome prima di una parentesi (baker trova Baker (man) e Baker (woman)). Se corrispondono più immagini, N matching pictures apre la libreria già cercata per la parola. Nulla viene proposto al posto di un'immagine scelta da te; un'immagine che rimuovi resta rimossa finché la parola non cambia; lettere, cifre, icone delle Lezioni e nomi di una lettera non vengono mai proposti.",
+  "guidebookHelp.field.overview.title": "Overview",
+  "guidebookHelp.field.overview.body":
+      "Due o tre frasi sull'argomento: di che cosa tratta, una regola, una nota sull'uso. Lo studente la legge dopo le voci. Il contatore ne mostra la lunghezza; da 500 caratteri un avviso, e un Info nell'Audit, suggeriscono di dividere l'argomento in moduli più brevi. Nessuno dei due blocca il salvataggio.",
+  "guidebookHelp.field.pasteList.title": "Paste list",
+  "guidebookHelp.field.pasteList.body":
+      "Aggiunge molte voci in una volta, una per riga: target = source [context], il Context tra parentesi quadre alla fine e facoltativo. Oltre a = vengono letti i separatori →, - (con gli spazi) e :. Righe d'esempio: il conto = the bill [restaurant]; buongiorno = good morning. Ogni voce riceve il suo ID; le righe che non si possono leggere vengono elencate con il motivo e non aggiunte. Le Words & Expressions incollate ricevono le immagini proposte.",
   "editorHelp.qa.wordLookup.q":
       "Come usa Word Lookup il vocabolario del GuideBook?",
   "editorHelp.qa.wordLookup.a":
@@ -735,16 +768,13 @@ const Map<String, String> helpIt = {
   "allCoursesHelp.removingPublisherCourse.body":
       "Solo un admin può rimuovere un Publisher Course dal dispositivo tramite il menu di Course Studio. L’operazione è bloccata se un altro profilo include quel Course nella propria libreria. La rimozione fisica conserva i progressi degli studenti e i backup delle versioni per una futura reinstallazione.",
   // Advanced (Admin) Help (keys keep the earlier Device Administration name).
-  "imageLibraryHelp.title":
-      "Guida alla libreria delle immagini",
-  "imageLibraryHelp.saving.title":
-      "Salvare le modifiche",
+  "imageLibraryHelp.title": "Guida alla libreria delle immagini",
+  "imageLibraryHelp.saving.title": "Salvare le modifiche",
   "imageLibraryHelp.saving.paragraph1":
       "Nella Image Library di un Course le modifiche restano mentre le fai e valgono quando esci dalla schermata, quindi non c’è un pulsante Save. Vengono scritte nel Course solo quando confermi le modifiche del Course uscendo dal Course Editor. Annullando il Course vengono scartate, e le immagini aggiunte in quella sessione vengono tolte di nuovo.",
   "imageLibraryHelp.saving.paragraph2":
       "Shared Images, la libreria di questo dispositivo gestita dagli Admin, salva subito ogni modifica.",
-  "imageLibraryHelp.finding.title":
-      "Trovare un’immagine",
+  "imageLibraryHelp.finding.title": "Trovare un’immagine",
   "imageLibraryHelp.finding.paragraph1":
       "Scrivi in Search: cerca nei nomi, nei tag, nelle Local words e nelle categorie, e trova ogni parola che contiene ciò che scrivi. Singolare e plurale valgono come una cosa sola, quindi “dogs” trova anche le immagini dei cani. Con Search all spuntato (è l’impostazione iniziale) cerca in tutte le categorie; togli la spunta per cercare solo nella categoria che stai sfogliando.",
   "imageLibraryHelp.finding.paragraph2":
@@ -753,14 +783,12 @@ const Map<String, String> helpIt = {
       "Nella vista grande di un’immagine la categoria e ogni tag sono collegamenti. Un tag mostra solo le immagini che lo portano, al singolare o al plurale, o che si chiamano così, in tutte le categorie, sotto un chip Tag; la categoria con lo stesso nome vale come quel tag. Togli il chip o scegli una categoria per tornare indietro.",
   "imageLibraryHelp.finding.paragraph4":
       "Il numero a destra della riga dei badge dice quante immagini sono mostrate, secondo la categoria, il tag, la ricerca e il badge che hai scelto.",
-  "imageLibraryHelp.badges.title":
-      "Badge",
+  "imageLibraryHelp.badges.title": "Badge",
   "imageLibraryHelp.badges.paragraph1":
       "QQL indica le immagini fornite dall’app; DEVICE quelle aggiunte da un Admin a questo dispositivo; COURSE un’immagine salvata in questo Course; IN USE un’immagine che il Course usa. La riga dei badge filtra per questi.",
   "imageLibraryHelp.badges.paragraph2":
       "Un’immagine DEVICE usata in un Course viene copiata nel Course e viaggia nel suo ZIP; le immagini QQL fanno parte dell’app su ogni dispositivo e non entrano nello ZIP.",
-  "imageLibraryHelp.details.title":
-      "I dettagli di un’immagine",
+  "imageLibraryHelp.details.title": "I dettagli di un’immagine",
   "imageLibraryHelp.details.paragraph1":
       "Apri un’immagine a grandezza piena e passaci sopra col mouse su un computer, o tienila premuta su un telefono, per vedere nome del file, dimensione, pixel, formato, data di aggiunta, Image Bank e attribuzione.",
   "deviceAdminHelp.title": "Guida ad Advanced (Admin)",

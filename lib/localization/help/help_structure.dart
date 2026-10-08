@@ -1,4 +1,18 @@
 // Ordered semantic IDs shared by all Help languages.
+/// The fields of the GuideBook module page with a Help control (Build 266
+/// Revision 1): `guidebookHelp.field.<id>.title` and `.body`, EN/IT/ES.
+const guidebookFieldHelpIds = [
+  'title',
+  'sentences',
+  'words',
+  'target',
+  'source',
+  'context',
+  'picture',
+  'overview',
+  'pasteList',
+];
+
 /// Editor Help as questions and answers (Build 256 Revision 8): each topic
 /// with its questions, in reading order. A topic is titled
 /// `editorHelp.qa.<topic>.title`; a question is `editorHelp.qa.<id>.q` and
@@ -47,6 +61,9 @@ const editorHelpQuestionsByTopic = <String, List<String>>{
     'roundWizard',
     'characters',
     'guidebook',
+    // Build 266 Revision 1.
+    'guidebookEntries',
+    'moduleLength',
     // Build 265.
     'wordLookup',
     'duel',

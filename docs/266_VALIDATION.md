@@ -1,5 +1,38 @@
 # Build 266 validation
 
+## Revision 1 (2.0.66+266001, 8 October 2026): authoring aids
+
+- `test/guidebook_authoring_aids_266_test.dart`: **22 passed** (the first
+  run found the Paste list dialog disposing its text controller while the
+  dialog was still closing: the dialog now owns it, `_PasteListDialog`).
+- Focused batch (`--concurrency=2`, `TEMP`/`TMP` on `D:\QQL_test_temp`):
+  the GuideBook editor and module tests, the image field and every image
+  library test, the Help and localization tests, the Audit registry, the
+  version pins and the lifecycle test, the Course Editor flows that write a
+  GuideBook (47 files): **436 passed**.
+- `flutter analyze` on the whole project: **no issues**.
+- `python tools/validate_courses.py`: both bundled Courses OK;
+  `python tools/validate_images.py`: 4,334 records, 0 issues.
+- `dart format` on the changed Dart files only.
+- **Complete suite** (`flutter test --concurrency=1`, the owner's decision
+  of 8 October: once, at the end of 266001, covering Revisions 0 and 1):
+  **3,902 passed, 1 skipped** (`qql_tools_settings_test`: the POSIX
+  symlink test, skipped on Windows by design), 0 failed, in 34 minutes.
+  Free memory before the run 2.7 GB; `ES_CONTINUOUS | ES_SYSTEM_REQUIRED`
+  held by the supervising PowerShell and cleared at the end.
+- Then, the same day, two additions on the owner's word: the library opened
+  from a word is searched for its English side, and the reset buttons fix.
+  `test/reset_unreadable_course_266_test.dart`: **4 passed**; without the
+  service fix its preview test and its button test fail (checked by
+  reverting `app_reset_service.dart` and running it). The authoring aids
+  test: **26 passed** (4 new: the picture dialog's search in a Course from
+  English, to English and without English, and N matching pictures without
+  the article). Focused batch (the admin screen, Private courses, the image
+  field and library, plural pictures, Recognize characters, the GuideBook
+  tests): **131 passed**. `flutter analyze`: **no issues**.
+- **Complete suite again** on the final tree: **3,910 passed, 1 skipped**
+  (the same POSIX symlink test), 0 failed, in 39 minutes.
+
 ## Revision 0 (2.0.66+266000, 8 October 2026): GuideBook modules
 
 By the owner's decision of 8 October 2026 the complete suite runs once, at
@@ -46,5 +79,5 @@ focused tests and the validators.
   `test/fixtures/publishers/dummy-private.pem`), the media package with
   `package`; the Publisher tests verify them.
 - `dart format` on the changed Dart files only.
-- Complete suite: not run in this revision (owner's decision); it runs at
-  the end of Revision 1.
+- Complete suite: not run in this revision (owner's decision); it ran at
+  the end of Revision 1 and covers this revision (above).

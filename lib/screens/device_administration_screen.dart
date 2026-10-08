@@ -634,9 +634,30 @@ class _ResetSection extends StatelessWidget {
   }
 
   Future<void> _begin(BuildContext context, _ResetPlan plan) async {
-    final preview = await service.preview();
-    final learners = await profiles.getProfileRecords();
-    final admins = await profiles.getAdminProfileIds();
+    final AppResetPreview preview;
+    final List<LearnerProfile> learners;
+    final Set<String> admins;
+    try {
+      preview = await service.preview();
+      learners = await profiles.getProfileRecords();
+      admins = await profiles.getAdminProfileIds();
+    } catch (error) {
+      // Never a button that silently does nothing: say why the reset cannot
+      // start. Nothing has been changed at this point.
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            key: const Key('admin-reset-preview-error'),
+            duration: const Duration(seconds: 10),
+            content: Text(
+              '${plan.title}: QQL could not read what this reset would '
+              'remove, so nothing was changed. $error',
+            ),
+          ),
+        );
+      }
+      return;
+    }
     if (!context.mounted) return;
     final others = learners
         .where((l) => l.learnerProfileId != actorId)

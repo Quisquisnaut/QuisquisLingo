@@ -2,9 +2,15 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 
+import '../localization/help/help_text.dart';
+import '../localization/locale_service.dart';
 import '../models/course_models.dart';
 import '../models/guidebook_text.dart';
 import '../services/authoring_duplication_service.dart';
+import '../services/exercise_image_metadata_service.dart';
+import '../services/guidebook_module_sample.dart';
+import '../services/guidebook_paste_list.dart';
+import '../services/guidebook_picture_match.dart';
 import '../services/guidebook_round_links.dart';
 import '../widgets/course_preview_flag.dart';
 import '../widgets/editor_app_bar_actions.dart';
@@ -29,6 +35,9 @@ class GuidebookEditorScreen extends StatefulWidget {
   /// Where new module and entry IDs come from (a test seam).
   final AuthoringIdGenerator? ids;
 
+  /// The image catalog the picture prefill reads (a test seam).
+  final ExerciseImageMetadataService? metadataService;
+
   const GuidebookEditorScreen({
     super.key,
     required this.guidebook,
@@ -36,6 +45,7 @@ class GuidebookEditorScreen extends StatefulWidget {
     this.course,
     this.rounds = const [],
     this.ids,
+    this.metadataService,
   });
 
   @override
@@ -62,6 +72,7 @@ class _GuidebookEditorScreenState extends State<GuidebookEditorScreen> {
             module: module,
             course: widget.course,
             ids: _ids,
+            metadataService: widget.metadataService,
           ),
         ),
       );
@@ -199,7 +210,8 @@ class _GuidebookEditorScreenState extends State<GuidebookEditorScreen> {
               child: Text(
                 'No modules yet. A module is one short, coherent topic, for '
                 'example "Al bar: ordering and paying". Press Add module to '
-                'write its Sentences and Words & Expressions.',
+                'write its Sentences and Words & Expressions; on the module '
+                'page, Fill with an example shows a complete one.',
               ),
             ),
           )
@@ -283,6 +295,19 @@ class _EntryRow {
   String? sourceError;
   final key = GlobalKey();
 
+  /// The words the picture prefill last read (Build 266 Revision 1): it
+  /// runs again only when they change, so a removed picture stays removed
+  /// until the word changes.
+  String? prefillWords;
+
+  /// The picture is the prefill's choice: the Suggested mark, for this
+  /// editing session only.
+  bool suggested = false;
+
+  /// Several pictures have the word's name: "N matching pictures".
+  GuidebookPictureMatch matches = GuidebookPictureMatch.none;
+  String matchWord = '';
+
   bool get isEmpty => target.text.trim().isEmpty && source.text.trim().isEmpty;
 
   GuidebookEntry entry() => GuidebookEntry(
@@ -322,6 +347,7 @@ class GuidebookModuleEditorScreen extends StatefulWidget {
     required this.module,
     this.course,
     this.ids,
+    this.metadataService,
   });
 
   final GuidebookModule module;
@@ -329,6 +355,9 @@ class GuidebookModuleEditorScreen extends StatefulWidget {
   /// The working copy: pictures become its own media.
   final Course? course;
   final AuthoringIdGenerator? ids;
+
+  /// The image catalog the picture prefill reads (a test seam).
+  final ExerciseImageMetadataService? metadataService;
 
   @override
   State<GuidebookModuleEditorScreen> createState() =>
@@ -340,7 +369,8 @@ class _GuidebookModuleEditorScreenState
   late final AuthoringIdGenerator _ids =
       widget.ids ?? TimestampAuthoringIdGenerator();
   late final _title = TextEditingController(text: widget.module.title);
-  late final _overview = TextEditingController(text: widget.module.overview);
+  late final _overview = TextEditingController(text: widget.module.overview)
+    ..addListener(_overviewChanged);
   late final List<_EntryRow> _sentences = [
     for (final entry in widget.module.sentences) _EntryRow.of(entry),
   ];
@@ -351,6 +381,43 @@ class _GuidebookModuleEditorScreenState
   final _scroll = ScrollController();
   String? _titleError;
   bool _leaving = false;
+  late int _overviewLength = _overview.text.trim().length;
+
+  /// The picture prefill (Build 266 Revision 1): the side whose words name
+  /// QQL pictures in this Course (null: no prefill), and the catalog once
+  /// read.
+  late final GuidebookPictureSide? _side = widget.course == null
+      ? null
+      : GuidebookPictureIndex.sideFor(widget.course!);
+  GuidebookPictureIndex? _pictures;
+
+  @override
+  void initState() {
+    super.initState();
+    // A reopened GuideBook is never prefilled: its words count as read.
+    for (final row in _words) {
+      row.prefillWords = _wordsKey(row);
+    }
+    if (_side != null) _loadPictures();
+  }
+
+  Future<void> _loadPictures() async {
+    try {
+      final catalog =
+          await (widget.metadataService ?? ExerciseImageMetadataService())
+              .loadCatalog();
+      if (mounted) _pictures = GuidebookPictureIndex(catalog);
+    } catch (_) {
+      // Without the catalog there is no prefill; choosing still works.
+    }
+  }
+
+  void _overviewChanged() {
+    final length = _overview.text.trim().length;
+    if (length != _overviewLength && mounted) {
+      setState(() => _overviewLength = length);
+    }
+  }
 
   @override
   void dispose() {
@@ -487,6 +554,293 @@ class _GuidebookModuleEditorScreenState
   void _addRow(List<_EntryRow> rows) =>
       setState(() => rows.add(_EntryRow(_ids.next('entry'))));
 
+  List<String> _wordsOf(_EntryRow row) => _side == null
+      ? const []
+      : GuidebookPictureIndex.wordsOf(
+          _side,
+          target: row.target.text,
+          source: row.source.text,
+        );
+
+  String? _wordsKey(_EntryRow row) => _side == null
+      ? null
+      : _wordsOf(row).map(GuidebookPictureIndex.key).join('\n');
+
+  /// Fills [row]'s picture when exactly one QQL picture has its word's name
+  /// (Suggested), or offers the matches when several do. Only after the
+  /// word changed, never over a picture the author chose.
+  void _prefill(_EntryRow row) {
+    final pictures = _pictures;
+    final key = _wordsKey(row);
+    if (pictures == null || key == null || key == row.prefillWords) return;
+    setState(() {
+      row.prefillWords = key;
+      row.matches = GuidebookPictureMatch.none;
+      if (row.picture != null && !row.suggested) return;
+      row.picture = null;
+      row.suggested = false;
+      for (final word in _wordsOf(row)) {
+        final match = pictures.find(word);
+        if (match.isEmpty) continue;
+        if (match.isSingle) {
+          row.picture = GuidebookPicture(
+            asset: match.pictures.single.assetPath,
+            plural: match.plural,
+          );
+          row.suggested = true;
+        } else {
+          row.matches = match;
+          row.matchWord = GuidebookPictureIndex.key(word);
+        }
+        return;
+      }
+    });
+  }
+
+  /// The author touched the picture: it is no longer the prefill's choice.
+  void _authorChose(_EntryRow row) {
+    row.suggested = false;
+    row.matches = GuidebookPictureMatch.none;
+    row.prefillWords = _wordsKey(row);
+  }
+
+  /// What the image library is searched for when it opens from [row]: its
+  /// English word as the prefill compares it ("an apple" → "apple"), only
+  /// in a Course to or from English (owner request of 8 October 2026);
+  /// otherwise null, an unsearched library.
+  String? _librarySearch(_EntryRow row) {
+    for (final word in _wordsOf(row)) {
+      final key = GuidebookPictureIndex.key(word);
+      if (key.isNotEmpty) return key;
+    }
+    return null;
+  }
+
+  Future<void> _chooseMatch(_EntryRow row) async {
+    final plural = row.matches.plural;
+    final change = await chooseLibraryPicture(
+      context,
+      course: widget.course,
+      initialSearch: row.matchWord,
+      appliesTo: 'GuideBook picture',
+    );
+    if (change == null || !mounted) return;
+    setState(() {
+      _authorChose(row);
+      row.picture = GuidebookPicture(
+        asset: change.asset,
+        sharedImageSource: change.source,
+        plural: plural,
+      );
+    });
+  }
+
+  bool get _isBlank =>
+      _title.text.trim().isEmpty &&
+      _overview.text.trim().isEmpty &&
+      [
+        ..._sentences,
+        ..._words,
+      ].every((row) => row.isEmpty && row.picture == null);
+
+  Future<bool> _confirm({
+    required String title,
+    required String message,
+    required String action,
+    required Key key,
+  }) async =>
+      await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text(title),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              key: key,
+              onPressed: () => Navigator.pop(context, true),
+              child: Text(action),
+            ),
+          ],
+        ),
+      ) ??
+      false;
+
+  void _replaceRows(List<_EntryRow> rows, Iterable<GuidebookEntry> entries) {
+    for (final row in rows) {
+      row.dispose();
+    }
+    rows
+      ..clear()
+      ..addAll(entries.map(_EntryRow.of));
+  }
+
+  /// Fill with an example: the built-in sample module, every entry with a
+  /// fresh ID; it asks first when the form holds something.
+  Future<void> _fillExample() async {
+    if (!_isBlank &&
+        !await _confirm(
+          title: 'Fill with an example?',
+          message:
+              'The example replaces everything on this page: the title, '
+              'the Sentences, the Words & Expressions and the Overview.',
+          action: 'Fill',
+          key: const Key('guidebook-module-fill-example-confirm'),
+        )) {
+      return;
+    }
+    if (!mounted) return;
+    final sample = GuidebookModuleSample.module(
+      id: widget.module.id,
+      ids: _ids,
+    );
+    setState(() {
+      _title.text = sample.title;
+      _overview.text = sample.overview;
+      _titleError = null;
+      _replaceRows(_sentences, sample.sentences);
+      _replaceRows(_words, sample.words);
+    });
+    for (final row in _words) {
+      _prefill(row);
+    }
+  }
+
+  /// Clear all: an empty module, pictures included; it asks first unless
+  /// the page is empty already.
+  Future<void> _clearAll() async {
+    if (_isBlank) return;
+    if (!await _confirm(
+      title: 'Clear all?',
+      message:
+          'This empties the title, every Sentence and Words & Expressions '
+          'entry (pictures included) and the Overview.',
+      action: 'Clear all',
+      key: const Key('guidebook-module-clear-all-confirm'),
+    )) {
+      return;
+    }
+    if (!mounted) return;
+    setState(() {
+      _title.clear();
+      _overview.clear();
+      _titleError = null;
+      _replaceRows(_sentences, const []);
+      _replaceRows(_words, const []);
+    });
+  }
+
+  /// Paste list: one entry per line, `target = source [context]`, appended
+  /// with fresh IDs; the lines it cannot read are named.
+  Future<void> _pasteList(List<_EntryRow> rows, {required bool word}) async {
+    final pasted = await showDialog<String>(
+      context: context,
+      builder: (_) => _PasteListDialog(word: word),
+    );
+    if (pasted == null || !mounted) return;
+    final read = GuidebookPasteList.read(pasted);
+    final added = [
+      for (final entry in read.entries)
+        _EntryRow(
+          _ids.next('entry'),
+          target: entry.target,
+          source: entry.source,
+          context: entry.context,
+        ),
+    ];
+    setState(() => rows.addAll(added));
+    if (word) {
+      for (final row in added) {
+        _prefill(row);
+      }
+    }
+    if (read.unread.isEmpty || !mounted) return;
+    await showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        key: const Key('guidebook-module-paste-unread'),
+        title: Text(
+          '${read.unread.length} '
+          '${read.unread.length == 1 ? 'line was' : 'lines were'} not added',
+        ),
+        content: SingleChildScrollView(
+          child: Text(
+            [
+              if (added.isNotEmpty)
+                '${added.length} ${added.length == 1 ? 'entry was' : 'entries were'} added.',
+              for (final line in read.unread)
+                'Line ${line.number}: ${line.reason}.\n“${line.line}”',
+            ].join('\n\n'),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// The Help control of a module field: a tooltip, and a dialog with the
+  /// field's Help in the Help Language (EN/IT/ES).
+  Widget _fieldHelp(String field, {Key? key}) => IconButton(
+    key: key ?? ValueKey('guidebook-field-help-$field'),
+    tooltip: _fieldTooltips[field],
+    onPressed: () => _showFieldHelp(field),
+    icon: const Icon(Icons.help_outline),
+  );
+
+  Future<void> _showFieldHelp(String field) async {
+    var locale = AppLocale.english;
+    try {
+      locale = await LocaleService().read();
+    } catch (_) {}
+    if (!mounted) return;
+    await showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(
+          helpText.lookup(locale, 'guidebookHelp.field.$field.title'),
+        ),
+        content: SingleChildScrollView(
+          child: Text(
+            helpText.lookup(locale, 'guidebookHelp.field.$field.body'),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  static const _fieldTooltips = {
+    'title': 'Title: the module\'s own name, one short topic.',
+    'sentences': 'Sentences: examples in use, each with its translation.',
+    'words':
+        'Words & Expressions: single words and fixed expressions, each with '
+        'its translation. Word Lookup and Review read them.',
+    'target':
+        'Target: the word or sentence in the language the Course teaches.',
+    'source': 'Source: its translation in the learners\' language.',
+    'context':
+        'Context: a short note in the learners\' language: the sense, the '
+        'subject area, formal or informal, who is speaking.',
+    'picture': 'Picture (optional): what this word looks like.',
+    'overview': 'Overview: two or three sentences about the topic.',
+    'pasteList':
+        'Paste list: add many entries at once, one per line, '
+        'target = source [context].',
+  };
+
   void _removeRow(List<_EntryRow> rows, int index) =>
       setState(() => rows.removeAt(index).dispose());
 
@@ -508,6 +862,8 @@ class _GuidebookModuleEditorScreenState
                 sharedSource: source,
                 readOnly: false,
                 compact: true,
+                help: _fieldHelp('picture'),
+                librarySearch: _librarySearch(row),
                 title: word.isEmpty ? 'Picture' : 'Picture of “$word”',
                 onChanged: (change) => setLocal(() {
                   asset = change.asset;
@@ -531,8 +887,9 @@ class _GuidebookModuleEditorScreenState
       ),
     );
     if (chosen != true || !mounted) return;
-    setState(
-      () => row.picture = asset.isEmpty
+    setState(() {
+      _authorChose(row);
+      row.picture = asset.isEmpty
           ? null
           // A replaced picture keeps the Plural mark, as an exercise
           // picture does.
@@ -540,8 +897,8 @@ class _GuidebookModuleEditorScreenState
               asset: asset,
               sharedImageSource: source,
               plural: row.picture?.plural ?? false,
-            ),
-    );
+            );
+    });
   }
 
   Widget _pictureSlot(_EntryRow row, String prefix) {
@@ -587,7 +944,10 @@ class _GuidebookModuleEditorScreenState
             key: ValueKey('$prefix-picture-remove'),
             tooltip: 'Remove picture',
             visualDensity: VisualDensity.compact,
-            onPressed: () => setState(() => row.picture = null),
+            onPressed: () => setState(() {
+              _authorChose(row);
+              row.picture = null;
+            }),
             icon: const Icon(Icons.close, size: 18),
           ),
           FilterChip(
@@ -598,10 +958,37 @@ class _GuidebookModuleEditorScreenState
                 'learners see stacked copies of the picture.',
             selected: picture.plural,
             visualDensity: VisualDensity.compact,
-            onSelected: (value) =>
-                setState(() => row.picture = picture.withPlural(value)),
+            onSelected: (value) => setState(() {
+              _authorChose(row);
+              row.picture = picture.withPlural(value);
+            }),
           ),
-        ],
+          if (row.suggested)
+            Tooltip(
+              message: picture.plural
+                  ? 'Chosen because its name matches the word\'s singular, '
+                        'and marked Plural. Change or remove it.'
+                  : 'Chosen because its name matches the word. Change or '
+                        'remove it.',
+              child: Chip(
+                key: ValueKey('$prefix-picture-suggested'),
+                avatar: const Icon(Icons.auto_awesome_outlined, size: 16),
+                label: Text(picture.plural ? 'Suggested, plural' : 'Suggested'),
+                visualDensity: VisualDensity.compact,
+              ),
+            ),
+        ] else if (!row.matches.isEmpty)
+          Tooltip(
+            message:
+                'Several QQL pictures have this name. Choose one, or leave '
+                'the word without a picture.',
+            child: TextButton.icon(
+              key: ValueKey('$prefix-picture-matches'),
+              onPressed: () => _chooseMatch(row),
+              icon: const Icon(Icons.photo_library_outlined, size: 18),
+              label: Text('${row.matches.pictures.length} matching pictures'),
+            ),
+          ),
       ],
     );
   }
@@ -611,13 +998,13 @@ class _GuidebookModuleEditorScreenState
     final prefix = word
         ? 'guidebook-module-word-$index'
         : 'guidebook-module-sentence-$index';
-    InputDecoration decoration(String label, {String? error, String? helper}) =>
+    InputDecoration decoration(String label, {String? error, Widget? help}) =>
         InputDecoration(
           border: const OutlineInputBorder(),
           isDense: true,
           labelText: label,
           errorText: error,
-          helperText: helper,
+          suffixIcon: help,
         );
     return KeyedSubtree(
       key: ObjectKey(row),
@@ -663,33 +1050,65 @@ class _GuidebookModuleEditorScreenState
                 ],
               ),
               const SizedBox(height: 6),
-              TextField(
-                key: ValueKey('$prefix-target'),
-                controller: row.target,
-                decoration: decoration('Target', error: row.targetError),
-                onChanged: (_) {
-                  if (row.targetError != null) {
-                    setState(() => row.targetError = null);
-                  }
+              Focus(
+                skipTraversal: true,
+                onFocusChange: (focused) {
+                  if (!focused && word) _prefill(row);
                 },
+                child: TextField(
+                  key: ValueKey('$prefix-target'),
+                  controller: row.target,
+                  decoration: decoration(
+                    'Target',
+                    error: row.targetError,
+                    help: _fieldHelp(
+                      'target',
+                      key: ValueKey('$prefix-target-help'),
+                    ),
+                  ),
+                  onChanged: (_) {
+                    if (row.targetError != null) {
+                      setState(() => row.targetError = null);
+                    }
+                  },
+                ),
               ),
               const SizedBox(height: 8),
-              TextField(
-                key: ValueKey('$prefix-source'),
-                controller: row.source,
-                decoration: decoration('Source', error: row.sourceError),
-                onChanged: (_) {
-                  if (row.sourceError != null) {
-                    setState(() => row.sourceError = null);
-                  }
+              Focus(
+                skipTraversal: true,
+                onFocusChange: (focused) {
+                  if (!focused && word) _prefill(row);
                 },
+                child: TextField(
+                  key: ValueKey('$prefix-source'),
+                  controller: row.source,
+                  decoration: decoration(
+                    'Source',
+                    error: row.sourceError,
+                    help: _fieldHelp(
+                      'source',
+                      key: ValueKey('$prefix-source-help'),
+                    ),
+                  ),
+                  onChanged: (_) {
+                    if (row.sourceError != null) {
+                      setState(() => row.sourceError = null);
+                    }
+                  },
+                ),
               ),
               const SizedBox(height: 8),
               TextField(
                 key: ValueKey('$prefix-context'),
                 controller: row.context,
                 maxLength: GuidebookText.maxContextLength,
-                decoration: decoration('Context (optional)'),
+                decoration: decoration(
+                  'Context (optional)',
+                  help: _fieldHelp(
+                    'context',
+                    key: ValueKey('$prefix-context-help'),
+                  ),
+                ),
               ),
               EditorInternalIdText(label: 'Entry', id: row.id),
             ],
@@ -709,13 +1128,31 @@ class _GuidebookModuleEditorScreenState
     key: ValueKey(key),
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
-      Text(
-        title,
-        style: Theme.of(
-          context,
-        ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+      Row(
+        children: [
+          Expanded(
+            child: Text(
+              title,
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+            ),
+          ),
+          _fieldHelp(word ? 'words' : 'sentences'),
+        ],
       ),
       Text(description),
+      const SizedBox(height: 4),
+      Tooltip(
+        message:
+            'Words that may be left out, like an understood subject: shown '
+            'in grey, accepted with or without.',
+        child: Text(
+          '{…} in a Target marks words that may be left out: {io} sono stanco.',
+          key: ValueKey('$key-braces'),
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
+      ),
       const SizedBox(height: 8),
       ReorderableListView(
         shrinkWrap: true,
@@ -727,18 +1164,33 @@ class _GuidebookModuleEditorScreenState
           for (var i = 0; i < rows.length; i++) _rowCard(rows, i, word: word),
         ],
       ),
-      Align(
-        alignment: AlignmentDirectional.centerStart,
-        child: TextButton.icon(
-          key: ValueKey(
-            word
-                ? 'guidebook-module-add-word'
-                : 'guidebook-module-add-sentence',
+      Wrap(
+        spacing: 8,
+        children: [
+          TextButton.icon(
+            key: ValueKey(
+              word
+                  ? 'guidebook-module-add-word'
+                  : 'guidebook-module-add-sentence',
+            ),
+            onPressed: () => _addRow(rows),
+            icon: const Icon(Icons.add),
+            label: Text(word ? 'Add word or expression' : 'Add sentence'),
           ),
-          onPressed: () => _addRow(rows),
-          icon: const Icon(Icons.add),
-          label: Text(word ? 'Add word or expression' : 'Add sentence'),
-        ),
+          Tooltip(
+            message: _fieldTooltips['pasteList']!,
+            child: TextButton.icon(
+              key: ValueKey(
+                word
+                    ? 'guidebook-module-paste-words'
+                    : 'guidebook-module-paste-sentences',
+              ),
+              onPressed: () => _pasteList(rows, word: word),
+              icon: const Icon(Icons.content_paste),
+              label: const Text('Paste list'),
+            ),
+          ),
+        ],
       ),
     ],
   );
@@ -756,7 +1208,7 @@ class _GuidebookModuleEditorScreenState
           title: const Text('Module'),
         ),
         actions: [
-          const EditorAppBarActions(helpQuestion: 'guidebook'),
+          const EditorAppBarActions(helpQuestion: 'guidebookEntries'),
           TextButton(
             key: const Key('guidebook-module-done'),
             onPressed: _done,
@@ -768,6 +1220,33 @@ class _GuidebookModuleEditorScreenState
         controller: _scroll,
         padding: const EdgeInsets.all(16),
         children: [
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              Tooltip(
+                message:
+                    'Fill every field with a complete sample module, in '
+                    'Italian and English, to see how one is written.',
+                child: OutlinedButton.icon(
+                  key: const Key('guidebook-module-fill-example'),
+                  onPressed: _fillExample,
+                  icon: const Icon(Icons.auto_fix_high_outlined),
+                  label: const Text('Fill with an example'),
+                ),
+              ),
+              Tooltip(
+                message: 'Empty every field of this module.',
+                child: OutlinedButton.icon(
+                  key: const Key('guidebook-module-clear-all'),
+                  onPressed: _clearAll,
+                  icon: const Icon(Icons.clear_all),
+                  label: const Text('Clear all'),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
           TextField(
             key: const Key('guidebook-module-title'),
             controller: _title,
@@ -776,6 +1255,7 @@ class _GuidebookModuleEditorScreenState
               labelText: 'Title',
               helperText: 'The module\'s own name, for example "Al bar".',
               errorText: _titleError,
+              suffixIcon: _fieldHelp('title'),
             ),
             onChanged: (_) {
               if (_titleError != null) setState(() => _titleError = null);
@@ -784,7 +1264,8 @@ class _GuidebookModuleEditorScreenState
           const SizedBox(height: 20),
           _list(
             'Sentences',
-            'Example sentences in use, each with its translation.',
+            'Example sentences in use, each with its translation. Example: '
+                'Lei è stanca? = Are you tired?, Context: formal, to a woman.',
             'guidebook-module-sentences',
             _sentences,
             word: false,
@@ -792,7 +1273,10 @@ class _GuidebookModuleEditorScreenState
           const SizedBox(height: 20),
           _list(
             'Words & Expressions',
-            'Single words and fixed expressions, each with its translation.',
+            'Single words and fixed expressions, each with its translation. '
+                'Examples: il conto = the bill (Context: restaurant), '
+                'il conto = the account (Context: bank), buongiorno = good '
+                'morning. A word with two meanings is two entries.',
             'guidebook-module-words',
             _words,
             word: true,
@@ -803,15 +1287,47 @@ class _GuidebookModuleEditorScreenState
             controller: _overview,
             minLines: 3,
             maxLines: 10,
-            decoration: const InputDecoration(
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              border: const OutlineInputBorder(),
               labelText: 'Overview',
               helperText:
                   'Two or three sentences. A longer topic is better split '
                   'into shorter modules.',
               helperMaxLines: 3,
+              suffixIcon: _fieldHelp('overview'),
+              counter: Tooltip(
+                message:
+                    'Characters in the Overview. From '
+                    '${GuidebookText.longOverviewLength} a hint suggests '
+                    'splitting the topic; it never blocks saving.',
+                child: Text(
+                  '$_overviewLength characters',
+                  key: const Key('guidebook-module-overview-count'),
+                ),
+              ),
             ),
           ),
+          if (_overviewLength >= GuidebookText.longOverviewLength)
+            Padding(
+              key: const Key('guidebook-module-overview-long'),
+              padding: const EdgeInsets.only(top: 6),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.info_outline,
+                    size: 18,
+                    color: Theme.of(context).colorScheme.tertiary,
+                  ),
+                  const SizedBox(width: 6),
+                  const Expanded(
+                    child: Text(
+                      'Long overview. Consider splitting this topic into '
+                      'shorter modules.',
+                    ),
+                  ),
+                ],
+              ),
+            ),
           const SizedBox(height: 16),
           Align(
             alignment: AlignmentDirectional.centerEnd,
@@ -826,5 +1342,65 @@ class _GuidebookModuleEditorScreenState
         ],
       ),
     ),
+  );
+}
+
+/// Paste list's dialog (Build 266 Revision 1). It owns its text controller,
+/// so the controller lives until the dialog's closing animation ends.
+class _PasteListDialog extends StatefulWidget {
+  const _PasteListDialog({required this.word});
+
+  final bool word;
+
+  @override
+  State<_PasteListDialog> createState() => _PasteListDialogState();
+}
+
+class _PasteListDialogState extends State<_PasteListDialog> {
+  final _text = TextEditingController();
+
+  static const _sentenceExamples = [
+    'Lei è stanca? = Are you tired? [formal, to a woman]',
+    'Il conto, per favore. = The bill, please.',
+  ];
+
+  @override
+  void dispose() {
+    _text.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+    title: Text(widget.word ? 'Paste Words & Expressions' : 'Paste Sentences'),
+    content: SizedBox(
+      width: 480,
+      child: TextField(
+        key: const Key('guidebook-module-paste-text'),
+        controller: _text,
+        autofocus: true,
+        minLines: 6,
+        maxLines: 12,
+        decoration: InputDecoration(
+          border: const OutlineInputBorder(),
+          labelText: 'One entry per line',
+          helperText:
+              'target = source [context], the Context optional. Example:\n'
+              '${(widget.word ? GuidebookPasteList.exampleLines : _sentenceExamples).join('\n')}',
+          helperMaxLines: 6,
+        ),
+      ),
+    ),
+    actions: [
+      TextButton(
+        onPressed: () => Navigator.pop(context),
+        child: const Text('Cancel'),
+      ),
+      FilledButton(
+        key: const Key('guidebook-module-paste-add'),
+        onPressed: () => Navigator.pop(context, _text.text),
+        child: const Text('Add'),
+      ),
+    ],
   );
 }

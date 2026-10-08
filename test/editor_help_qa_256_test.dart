@@ -47,8 +47,9 @@ void main() {
     // Build 259 Revision 8: What is a Private course?
     // Build 260 Revision 0: How do I choose the Course languages? Revision
     // 5: What do the difficulty bars mean? Build 265: How does Word Lookup
-    // use the GuideBook vocabulary?
-    expect(ids, hasLength(84));
+    // use the GuideBook vocabulary? Build 266 Revision 1: How do I write
+    // GuideBook entries? How long should a module be?
+    expect(ids, hasLength(86));
     expect(ids.toSet(), hasLength(ids.length));
     for (final catalog in [helpEn, helpIt, helpEs]) {
       for (final topic in editorHelpQuestionsByTopic.keys) {

@@ -58,6 +58,11 @@ class FlatImageLibraryScreen extends StatefulWidget {
   /// The person can choose another.
   final String? initialCategory;
 
+  /// The search shown first (Build 266 Revision 1: a GuideBook word's "N
+  /// matching pictures" opens the library searched for the word). The
+  /// person can change it.
+  final String? initialSearch;
+
   const FlatImageLibraryScreen({
     super.key,
     this.selectMode = true,
@@ -73,6 +78,7 @@ class FlatImageLibraryScreen extends StatefulWidget {
     this.onCourseChanged,
     this.savedCourse,
     this.initialCategory,
+    this.initialSearch,
   });
 
   @override
@@ -98,13 +104,13 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
   Set<String> _usedReferences = const {};
   Set<String> _usedSharedIds = const {};
   Set<String> _courseCopiedSharedIds = const {};
-  String _query = '';
+  late String _query = widget.initialSearch?.trim() ?? '';
   late String? _category = widget.initialCategory;
 
   /// Search all (Build 264 Revision 2, on by default): a search looks in
   /// every category, not only the one being browsed.
   bool _searchAll = true;
-  final _searchController = TextEditingController();
+  late final _searchController = TextEditingController(text: _query);
 
   /// The tag chosen in a picture's card (Build 264 Revision 5): only the
   /// pictures that carry it, in every category, until its chip is removed.

@@ -296,16 +296,26 @@ class AppResetService {
   }
 
   /// The stored custom Courses that can be read. An unreadable file names
-  /// no Maintainer and is listed by nobody anyway, so it is skipped.
+  /// no Maintainer and is listed by nobody anyway, so it is skipped; so is a
+  /// Course this version cannot open (a GuideBook in the shape before Build
+  /// 266, for example), as Course Studio lists it among the unreadable
+  /// files. Before this, one such Course made every reset button do nothing.
   Future<List<Course>> _storedCustomCourses() async {
     final records = (await CourseFileStore(
       supportDirectory: _support,
     ).readReadable(CourseStoreKind.custom)).records;
-    return [
-      for (final record in records.values)
-        if (record is Map && record['course'] is Map)
+    final courses = <Course>[];
+    for (final record in records.values) {
+      if (record is! Map || record['course'] is! Map) continue;
+      try {
+        courses.add(
           Course.fromJson(Map<String, dynamic>.from(record['course'] as Map)),
-    ];
+        );
+      } on FormatException {
+        continue;
+      }
+    }
+    return courses;
   }
 
   Future<int> _hiddenPrivateCourseCount(List<Course> courses) async {

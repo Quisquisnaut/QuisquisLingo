@@ -25,6 +25,85 @@ import 'quick_import_access.dart';
 /// record it came from when there is one. An empty asset removes the image.
 typedef ExerciseImageChange = ({String asset, SharedImageSource? source});
 
+/// Choose flat image: opens the image library and makes the chosen picture
+/// the Course's own (a device picture is copied into the Course; a QQL
+/// picture keeps its asset path). Shared with the GuideBook module page's
+/// "N matching pictures" (Build 266 Revision 1), which opens the library
+/// already searched for the word ([initialSearch]). Null when nothing is
+/// chosen or the picture could not be added (the message is shown).
+Future<ExerciseImageChange?> chooseLibraryPicture(
+  BuildContext context, {
+  required Course? course,
+  CourseMediaStore? mediaStore,
+  String? initialSearch,
+  String appliesTo = 'Exercise image',
+}) async {
+  final media = mediaStore ?? CourseMediaStore();
+  final selected = await Navigator.of(context).push<ExerciseImageMetadata>(
+    MaterialPageRoute(
+      builder: (_) => FlatImageLibraryScreen(
+        readOnly: true,
+        course: course,
+        mediaStore: media,
+        initialSearch: initialSearch,
+      ),
+    ),
+  );
+  if (selected == null || !context.mounted) return null;
+  try {
+    final reference = await _asCourseMediaOf(course, media, selected.assetPath);
+    if (!context.mounted) return null;
+    final change = (
+      asset: reference,
+      source: selected.origin.startsWith('course')
+          ? (course == null
+                ? null
+                : CourseImageUsage.sharedSourceOf(course, reference))
+          : selected.origin == 'bundled'
+          ? null
+          : SharedImageSource(
+              id: selected.id,
+              label: selected.label,
+              category: selected.category,
+              tags: selected.tags,
+              origin: selected.origin,
+              attribution: selected.attribution,
+            ),
+    );
+    // Build 255 Revision 7: a picture whose maker QQL does not know.
+    if (knownImageCredit(selected, appliesTo: appliesTo) == null) {
+      showImageCreditReminder(context);
+    }
+    return change;
+  } catch (e) {
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(duration: const Duration(seconds: 8), content: Text('$e')),
+      );
+    }
+    return null;
+  }
+}
+
+/// A picked or imported image becomes the Course's own media: its bytes are
+/// copied into the Course folder and the Exercise names them by content, so
+/// the Course never depends on the library file or the source path.
+Future<String> _asCourseMediaOf(
+  Course? course,
+  CourseMediaStore media,
+  String selected,
+) async {
+  if (selected.startsWith('assets/') ||
+      selected.startsWith('data:') ||
+      CourseMediaStore.isReference(selected)) {
+    return selected;
+  }
+  if (course == null) {
+    throw StateError('Open this Exercise from its Course to add an image.');
+  }
+  return media.addFile(course.courseId, File(selected));
+}
+
 /// The Exercise editor's image section: preview with badges, Choose flat
 /// image, Import custom image, Open image from… and Remove image.
 ///
@@ -48,7 +127,13 @@ class ExerciseImageField extends StatefulWidget {
     this.plural = false,
     this.onPluralChanged,
     this.pluralKey,
+    this.librarySearch,
   });
+
+  /// The search Choose flat image opens the library with (Build 266
+  /// Revision 1: a GuideBook word's English side, in a Course to or from
+  /// English); null opens it unsearched.
+  final String? librarySearch;
 
   /// The Course the Exercise belongs to; images become its own media.
   final Course? course;
@@ -91,73 +176,19 @@ class _ExerciseImageFieldState extends State<ExerciseImageField> {
   late final _imageService = widget.imageService ?? ExerciseImageService();
   late final _media = widget.mediaStore ?? CourseMediaStore();
 
-  /// A picked or imported image becomes the Course's own media: its bytes are
-  /// copied into the Course folder and the Exercise names them by content, so
-  /// the Course never depends on the library file or the source path.
-  Future<String> _asCourseMedia(String selected) async {
-    if (selected.startsWith('assets/') ||
-        selected.startsWith('data:') ||
-        CourseMediaStore.isReference(selected)) {
-      return selected;
-    }
-    final course = widget.course;
-    if (course == null) {
-      throw StateError('Open this Exercise from its Course to add an image.');
-    }
-    return _media.addFile(course.courseId, File(selected));
-  }
-
-  SharedImageSource? _courseImageSource(String reference) {
-    final course = widget.course;
-    return course == null
-        ? null
-        : CourseImageUsage.sharedSourceOf(course, reference);
-  }
-
   void _change(String asset, SharedImageSource? source) =>
       widget.onChanged((asset: asset, source: source));
 
   Future<void> _chooseFlatImage() async {
     if (widget.readOnly) return;
-    final selected = await Navigator.of(context).push<ExerciseImageMetadata>(
-      MaterialPageRoute(
-        builder: (_) => FlatImageLibraryScreen(
-          readOnly: true,
-          course: widget.course,
-          mediaStore: _media,
-        ),
-      ),
+    final change = await chooseLibraryPicture(
+      context,
+      course: widget.course,
+      mediaStore: _media,
+      initialSearch: widget.librarySearch,
     );
-    if (selected == null || !mounted) return;
-    try {
-      final reference = await _asCourseMedia(selected.assetPath);
-      if (!mounted) return;
-      _change(
-        reference,
-        selected.origin.startsWith('course')
-            ? _courseImageSource(reference)
-            : selected.origin == 'bundled'
-            ? null
-            : SharedImageSource(
-                id: selected.id,
-                label: selected.label,
-                category: selected.category,
-                tags: selected.tags,
-                origin: selected.origin,
-                attribution: selected.attribution,
-              ),
-      );
-      // Build 255 Revision 7: a picture whose maker QQL does not know.
-      if (knownImageCredit(selected, appliesTo: 'Exercise image') == null) {
-        showImageCreditReminder(context);
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(duration: const Duration(seconds: 8), content: Text('$e')),
-        );
-      }
-    }
+    if (change == null || !mounted) return;
+    widget.onChanged(change);
   }
 
   /// Crop square (Build 263 Revision 2, owner decisions of 4 October 2026):

@@ -779,7 +779,10 @@ updates CHANGELOG, the AGENTS.md release boundary, `docs/266_HANDOFF.md` and
 
 Owner decision of 8 October 2026: the plan's Revision 0 is split in two
 (266000 and 266001), so the Round Wizard is Revision 2 and the content
-Revision 3. The complete suite runs once, at the end of Revision 1; Revision
+Revision 3. Later the same day the owner inserted a resilience revision
+(266002: the reset bug's class fixed everywhere, the logs, Open folder,
+the Inventory's Delete / Forget / Open folder), so the Round Wizard is
+Revision 3 (266003) and the content Revision 4 (266004). The complete suite runs once, at the end of Revision 1; Revision
 0 is checked with the analyzer and focused tests.
 
 - **Revision 0: modules.**

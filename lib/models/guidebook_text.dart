@@ -12,6 +12,11 @@ abstract final class GuidebookText {
   /// short note, never a sentence.
   static const maxContextLength = 40;
 
+  /// From this many characters an Overview is long: the module page shows a
+  /// hint and the Audit an Info (`GUIDEBOOK_MODULE_OVERVIEW_LONG`), never
+  /// blocking. A longer topic is better split into shorter modules.
+  static const longOverviewLength = 500;
+
   /// What is wrong with [target]'s optional words, or null when it is fine.
   static String? targetProblem(String target) {
     if (target.contains('[') || target.contains(']') || target.contains('|')) {

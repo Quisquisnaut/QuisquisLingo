@@ -215,6 +215,39 @@ const Map<String, String> helpEn = <String, String>{
   'editorHelp.qa.guidebook.q': r'''What goes into a Lesson GuideBook?''',
   'editorHelp.qa.guidebook.a':
       r'''A GuideBook is a list of modules, in teaching order. A module is one short topic with a Title (its own name, for example Al bar), Sentences (example sentences, each with its translation), Words & Expressions (single words and fixed expressions such as good morning, each with its translation) and a short Overview. Each entry has a Target (the language being learned), a Source (its translation in the learners' language) and an optional Context of at most 40 characters (the sense, the subject area, formal or informal, who is speaking: restaurant or bank for il conto). A word may have a picture, chosen like an exercise picture and marked Plural when it means several things (i gatti, the cats); {io} marks words that may be left out, such as an understood subject. Learners see the GuideBook once it is saved as normal content and Use GuideBook is on; Save Guidebook as draft keeps it hidden. Its Words & Expressions feed Review and Word Lookup, and the Round Wizard builds Rounds from its modules. A Round can name its Focus module in the Round editor; Open GuideBook on its Before you start card then opens at that module.''',
+  'editorHelp.qa.guidebookEntries.q': r'''How do I write GuideBook entries?''',
+  'editorHelp.qa.guidebookEntries.a':
+      r'''Open a module from the GuideBook page. Every row of Sentences and of Words & Expressions has a Target (the language being learned), a Source (its translation in the learners' language) and an optional Context of up to 40 characters. The Context tells meanings apart: in a Course of English for Italian speakers, string = stringa [informatica] and string = laccio [scarpe] are two entries, and learners see the Context in grey after the translation. A word with several meanings is several entries. Write {…} around words that may be left out, such as an understood subject: {io} sono stanco shows (io) sono stanco, and Word Lookup finds both forms; no other answer syntax is allowed. A Words & Expressions entry may have a picture, chosen as an exercise picture is; Plural marks a word that means several things (i gatti, the cats), and learners see stacked copies. In a Course to or from English, the English side of a word suggests a QQL picture when you leave the box: when exactly one picture has the word's name (capitals and a leading a, an or the ignored) it fills the row marked Suggested; when none does, the singular is tried (cats finds Cat, filled marked Plural and Suggested, plural), then the name before a bracket (baker finds Baker (man) and Baker (woman)). When several pictures match, N matching pictures opens the library searched for the word. Nothing is suggested over a picture you chose, a picture you remove stays removed until the word changes, and letters, digits, Lesson icons and one-letter names are never suggested. Paste list adds many entries at once, one per line as target = source [context]; the lines it cannot read are listed and not added. Fill with an example fills the page with a complete sample module (in Italian and English), and Clear all empties it; both ask first. Done keeps the module; a row with a Target and no Source, or the reverse, is pointed out, and an empty row is dropped. The GuideBook is stored with Save Guidebook.''',
+  'editorHelp.qa.moduleLength.q': r'''How long should a module be?''',
+  'editorHelp.qa.moduleLength.a':
+      r'''Short: one coherent topic a learner can take in at once, such as greetings or ordering at the bar, with a few Sentences, the Words & Expressions they use and an Overview of two or three sentences. The module page counts the Overview's characters; from 500 it suggests splitting the topic, and the Audit reports GUIDEBOOK_MODULE_OVERVIEW_LONG (Info). Neither blocks saving. A longer topic reads better as two modules in teaching order: each Round can name its Focus module, and Open GuideBook opens at it. A module without entries gets the Warning GUIDEBOOK_MODULE_EMPTY.''',
+  'guidebookHelp.field.title.title': r'''Title''',
+  'guidebookHelp.field.title.body':
+      r'''The module's own name: one short topic, for example Al bar or Saluti. Learners see it as the module's heading in the GuideBook, and the Round editor's Focus module menu lists it. Required: Done refuses a module without a title.''',
+  'guidebookHelp.field.sentences.title': r'''Sentences''',
+  'guidebookHelp.field.sentences.body':
+      r'''Example sentences in use, each with its translation: Lei è stanca? = Are you tired?, with the Context formal, to a woman. Each row has a Target, a Source and an optional Context. Learners read them in the GuideBook and the Round Wizard builds exercises from them; Review and Word Lookup read Words & Expressions only, and a Sentence has no picture.''',
+  'guidebookHelp.field.words.title': r'''Words & Expressions''',
+  'guidebookHelp.field.words.body':
+      r'''Single words and fixed expressions (buongiorno, in the long run), each with its translation. A word with two meanings is two entries, told apart by their Context: il conto = the bill [restaurant] and il conto = the account [bank]. An entry may have a picture. Review vocabulary and Word Lookup read these entries, and the Round Wizard builds exercises from them.''',
+  'guidebookHelp.field.target.title': r'''Target''',
+  'guidebookHelp.field.target.body':
+      r'''The word, expression or sentence in the language the Course teaches, as learners should learn it: il caffè, buongiorno. Write {…} around words that may be left out, such as an understood subject: {io} sono stanco shows (io) sono stanco with io in grey, and Word Lookup finds both forms. Only {…} is allowed, not nested and never empty; [, ], | and <> are refused. Required when the row has a Source.''',
+  'guidebookHelp.field.source.title': r'''Source''',
+  'guidebookHelp.field.source.body':
+      r'''Its translation in the learners' language: coffee, good morning. Write the translation of this meaning; another meaning is another entry, with its own Context. Required when the row has a Target.''',
+  'guidebookHelp.field.context.title': r'''Context (optional)''',
+  'guidebookHelp.field.context.body':
+      r'''A short note in the learners' language, at most 40 characters: the sense, the subject area, formal or informal, who is speaking. Examples: restaurant and bank for il conto; formal, to a woman for Lei è stanca?. Learners see it in grey after the translation, in the GuideBook, on Review cards and in Word Lookup. Leave it empty when the entry needs no note.''',
+  'guidebookHelp.field.picture.title': r'''Picture (optional)''',
+  'guidebookHelp.field.picture.body':
+      r'''What a Words & Expressions entry looks like, chosen as an exercise picture is: the image library, the Course's own pictures or a file. Plural marks a word that means several things (i gatti, the cats): learners see stacked copies. Learners see the picture in the GuideBook, on Review cards after the answer and in Word Lookup. In a Course whose Target or Source is English, leaving a word's box suggests the QQL picture that has the word's name (capitals and a leading a, an or the ignored), marked Suggested; then its singular (cats finds Cat, marked Suggested, plural); then the name before a bracket (baker finds Baker (man) and Baker (woman)). When several pictures match, N matching pictures opens the library searched for the word. Nothing is suggested over a picture you chose; a picture you remove stays removed until the word changes; letters, digits, Lesson icons and one-letter names are never suggested.''',
+  'guidebookHelp.field.overview.title': r'''Overview''',
+  'guidebookHelp.field.overview.body':
+      r'''Two or three sentences about the topic: what it is about, a rule, a note on use. Learners read it after the entries. The counter shows its length; from 500 characters a hint, and an Info in the Audit, suggest splitting the topic into shorter modules. Neither blocks saving.''',
+  'guidebookHelp.field.pasteList.title': r'''Paste list''',
+  'guidebookHelp.field.pasteList.body':
+      r'''Adds many entries at once, one per line: target = source [context], the Context in square brackets at the end and optional. Besides = the separators →, - (with spaces) and : are read. Example lines: il conto = the bill [restaurant]; buongiorno = good morning. Every entry gets its own ID; the lines that cannot be read are listed with the reason and not added. Pasted Words & Expressions get their suggested pictures.''',
   'editorHelp.qa.wordLookup.q':
       r'''How does Word Lookup use the GuideBook vocabulary?''',
   'editorHelp.qa.wordLookup.a':
@@ -675,16 +708,13 @@ If the Crash Log file is deleted, QuisquisLingo recreates it automatically at th
   'debugHelp.privacy.title': r'''Privacy''',
   'debugHelp.privacy.body':
       r'''Learner audio diagnostics are designed to avoid recording spoken text, answers, course content, or full personal file paths.''',
-  'imageLibraryHelp.title':
-      r'''Image Library Help''',
-  'imageLibraryHelp.saving.title':
-      r'''Saving your changes''',
+  'imageLibraryHelp.title': r'''Image Library Help''',
+  'imageLibraryHelp.saving.title': r'''Saving your changes''',
   'imageLibraryHelp.saving.paragraph1':
       r'''In a Course's Image Library, changes are kept as you make them and are applied when you leave the screen, so there is no Save button. They are written to the Course only when you confirm the Course changes on leaving the Course Editor. Cancelling the Course discards them, and any images added in that session are removed again.''',
   'imageLibraryHelp.saving.paragraph2':
       r'''Shared Images, the library of this device that Admins manage, saves each change at once.''',
-  'imageLibraryHelp.finding.title':
-      r'''Finding a picture''',
+  'imageLibraryHelp.finding.title': r'''Finding a picture''',
   'imageLibraryHelp.finding.paragraph1':
       r'''Type in Search: it looks in names, tags, Local words and categories, and finds every word that contains what you type. Singular and plural count as one, so “dogs” also finds the dog pictures. With Search all ticked (the default) it searches every category; untick it to search only the category you are browsing.''',
   'imageLibraryHelp.finding.paragraph2':
@@ -693,14 +723,12 @@ If the Crash Log file is deleted, QuisquisLingo recreates it automatically at th
       r'''In a picture's full view the category and each tag are links. A tag shows only the pictures that carry it, in singular or plural, or are named so, in every category, under a Tag chip; the category of the same name counts as that tag. Remove the chip or choose a category to go back.''',
   'imageLibraryHelp.finding.paragraph4':
       r'''The number at the right of the badge row says how many pictures are shown, following the category, tag, search and badge you chose.''',
-  'imageLibraryHelp.badges.title':
-      r'''Badges''',
+  'imageLibraryHelp.badges.title': r'''Badges''',
   'imageLibraryHelp.badges.paragraph1':
       r'''QQL marks the pictures supplied by the app; DEVICE the pictures an Admin added to this device; COURSE a picture stored in this Course; IN USE a picture the Course uses. The badge row filters by them.''',
   'imageLibraryHelp.badges.paragraph2':
       r'''A DEVICE picture used in a Course is copied into the Course and travels in its ZIP; QQL pictures are part of the app on every device and are not included in the ZIP.''',
-  'imageLibraryHelp.details.title':
-      r'''A picture's details''',
+  'imageLibraryHelp.details.title': r'''A picture's details''',
   'imageLibraryHelp.details.paragraph1':
       r'''Open a picture full size and hover over it on a computer, or long-press it on a phone, to see its file name, size, dimensions, format, added date, Image Bank and attribution.''',
   'deviceAdminHelp.title': r'''Advanced (Admin) Help''',

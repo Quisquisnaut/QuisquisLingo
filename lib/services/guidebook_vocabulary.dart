@@ -8,9 +8,10 @@ class GuidebookVocabularyPair {
   final String source;
 }
 
-/// The one reader of a GuideBook vocabulary line, shared by Review
-/// vocabulary, the Round Wizard and Word Lookup. It only parses: each caller
-/// still chooses which entries it reads (Published only, Drafts included).
+/// The one reader of a `target = source` line. Since Build 266 a GuideBook
+/// stores its entries with both sides apart, so this reads only lines typed
+/// as text: the module page's Paste list (`GuidebookPasteList`) and a v11
+/// GuideBook's vocabulary in the converter.
 abstract final class GuidebookVocabulary {
   /// Tried in this order; the first one found with text on both sides wins.
   static const List<String> separators = [' = ', ' → ', ' - ', ':'];

@@ -93,8 +93,9 @@ void main() {
         // Build 259 Revision 6 removed the Temporary Sample question.
         // Revision 8 added What is a Private course?
         // Build 260 Revisions 0 and 5 added the Course languages and
-        // difficulty questions. Build 265 adds Word Lookup.
-        expect(ids(english), hasLength(84));
+        // difficulty questions. Build 265 adds Word Lookup, Build 266
+        // Revision 1 the GuideBook entries and module length.
+        expect(ids(english), hasLength(86));
         expect(ids(italian), ids(english));
         expect(ids(spanish), ids(english));
         // Build 262 Revision 2 adds Export as Publisher Course.
