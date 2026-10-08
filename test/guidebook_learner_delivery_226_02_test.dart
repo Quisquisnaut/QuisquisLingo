@@ -16,9 +16,12 @@ import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:quisquislingo_app/services/round_playability_service.dart';
 import 'package:quisquislingo_app/services/settings_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'support/guidebook_fixtures.dart';
 
 const _overview = 'Published Guidebook overview.';
-const _draftVocabulary = 'Never deliver this Draft vocabulary.';
+// Build 266: a GuideBook is Draft or Published as a whole; its entries are
+// delivered with it, never without it.
+const _wordLine = 'buongiorno — good morning';
 const _intro = 'Published Round introduction.';
 const _exercisePrompt = 'Choose the matching answer.';
 const _exerciseQuestion = 'uno';
@@ -83,8 +86,8 @@ void main() {
             inspect || state.isPublished ? findsOneWidget : findsNothing,
           );
           expect(
-            find.text('• $_draftVocabulary'),
-            inspect ? findsOneWidget : findsNothing,
+            find.text(_wordLine),
+            inspect || state.isPublished ? findsOneWidget : findsNothing,
           );
           expect(
             find.text('This Lesson Guidebook is not available.'),
@@ -119,10 +122,7 @@ void main() {
               inspect,
             );
             expect(find.text(_overview), findsOneWidget);
-            expect(
-              find.text('• $_draftVocabulary'),
-              inspect ? findsOneWidget : findsNothing,
-            );
+            expect(find.text(_wordLine), findsOneWidget);
             await tester.pageBack();
             await tester.pumpAndSettle();
           }
@@ -191,7 +191,10 @@ void main() {
           find.byType(GuidebookScreen),
           state.isPublished ? findsOneWidget : findsNothing,
         );
-        expect(find.text('• $_draftVocabulary'), findsNothing);
+        expect(
+          find.text(_wordLine),
+          state.isPublished ? findsOneWidget : findsNothing,
+        );
         expect(tester.takeException(), isNull);
       },
     );
@@ -259,23 +262,10 @@ Course _course({
     Lesson(
       lessonId: 'delivery-lesson',
       title: 'Lesson identity remains visible',
-      guidebook: Guidebook(
+      guidebook: testGuidebook(
         publicationState: guidebookState,
-        content: const [
-          LearningContent(
-            id: 'published-overview',
-            kind: 'explanation',
-            role: 'overview',
-            text: _overview,
-          ),
-          LearningContent(
-            id: 'draft-vocabulary',
-            publicationState: PublicationState.draft,
-            kind: 'vocabulary',
-            role: 'vocabulary',
-            text: _draftVocabulary,
-          ),
-        ],
+        overview: _overview,
+        words: [testEntry('delivery-word', 'buongiorno = good morning')],
       ),
       rounds: [
         LearningRound(

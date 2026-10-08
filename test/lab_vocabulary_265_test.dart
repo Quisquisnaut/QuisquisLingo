@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/services/guidebook_round_generator.dart';
-import 'package:quisquislingo_app/services/guidebook_vocabulary.dart';
 import 'package:quisquislingo_app/services/vocabulary_review_service.dart';
 import 'package:quisquislingo_app/services/word_lookup/word_lookup.dart';
 import 'package:quisquislingo_app/services/word_lookup/word_lookup_sources.dart';
@@ -53,11 +52,10 @@ void main() {
       'Page',
     ]);
     for (final lesson in lab.lessons) {
-      final words = lesson.guidebook.vocabulary;
+      // Build 266: one module per Lesson, its vocabulary as entries.
+      final words = lesson.guidebook.words.toList();
+      expect(lesson.guidebook.modules, hasLength(1), reason: lesson.title);
       expect(words.length, inInclusiveRange(10, 15), reason: lesson.title);
-      for (final word in words) {
-        expect(GuidebookVocabulary.parse(word), isNotNull, reason: word);
-      }
       final review = VocabularyReviewService().resolveEntries(lab, lesson);
       expect(review, hasLength(words.length), reason: lesson.title);
     }
@@ -128,7 +126,10 @@ void main() {
 
   test('English from Italian: mass nouns without "the"', () {
     final english = load('english_from_italian_it_en.json');
-    final words = english.lessons.single.guidebook.vocabulary;
+    final words = [
+      for (final word in english.lessons.single.guidebook.words)
+        '${word.target} = ${word.source}',
+    ];
     expect(
       words,
       containsAll([

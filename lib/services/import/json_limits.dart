@@ -106,6 +106,10 @@ abstract final class CourseShapeLimits {
   static const maxContentPerRound = 1000;
   static const maxAudioClips = 20000;
 
+  /// Build 266: a GuideBook holds at most this many modules, and its
+  /// modules together at most [maxContentPerRound] entries.
+  static const maxGuidebookModules = 100;
+
   /// Throws [FormatException] when [json] (a Course) has too many elements,
   /// or a NUL character in an identity or name field.
   static void check(Map json) {
@@ -125,11 +129,19 @@ abstract final class CourseShapeLimits {
       _count(rounds, maxRoundsPerLesson, 'Rounds in one Lesson');
       final guidebook = lesson['guidebook'];
       if (guidebook is Map) {
-        _count(
-          _list(guidebook['content']),
-          maxContentPerRound,
-          'GuideBook items in one Lesson',
-        );
+        final modules = _list(guidebook['modules']);
+        _count(modules, maxGuidebookModules, 'GuideBook modules in one Lesson');
+        var entries = 0;
+        for (final module in modules.whereType<Map>()) {
+          entries +=
+              _list(module['sentences']).length + _list(module['words']).length;
+        }
+        if (entries > maxContentPerRound) {
+          throw const FormatException(
+            'The Course has more than $maxContentPerRound GuideBook entries '
+            'in one Lesson.',
+          );
+        }
       }
       for (final round in rounds.whereType<Map>()) {
         noNul(round, const ['id', 'title'], what: 'A Round');

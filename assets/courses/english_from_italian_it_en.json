@@ -55,334 +55,194 @@
       "title": "Primi passi",
       "themeIconAsset": "assets/lesson_icons/speech_bubbles.png",
       "guidebook": {
-        "content": [
+        "modules": [
           {
-            "id": "enit_65dce83b_l01_g01",
-            "publicationState": "published",
-            "kind": "explanation",
-            "required": false,
-            "role": "overview",
-            "text": "Primi passi in inglese: saluti e parole di cortesia, cibo e bevande, animali, colori e il verbo to be. Sei Round mescolano tipi di esercizi diversi; dopo il terzo una Story ti porta al bar, alla fine una seconda Story alla stazione. L'audio usa la sintesi vocale del dispositivo con en-GB: gli esercizi di ascolto richiedono una voce inglese sul dispositivo."
-          },
-          {
-            "id": "enit_65dce83b_l01_g02",
-            "publicationState": "published",
-            "kind": "explanation",
-            "required": false,
-            "role": "grammar",
-            "text": "A o an. Si usa a davanti a un suono consonantico (a cat, a dog) e an davanti a un suono vocalico (an apple, an orange). The vale per tutto: the cat, the apple."
-          },
-          {
-            "id": "enit_65dce83b_l01_g03",
-            "publicationState": "published",
-            "kind": "explanation",
-            "required": false,
-            "role": "grammar",
-            "text": "Il verbo to be. I am, you are, he, she, it is: I am a student, you are Tom, it is a cat. Nel parlato si accorcia: I'm, you're, it's."
-          },
-          {
-            "id": "enit_65dce83b_l01_g04",
-            "publicationState": "published",
-            "kind": "explanation",
-            "required": false,
-            "role": "grammar",
-            "text": "L'aggettivo prima del nome. In inglese l'aggettivo precede il nome e non cambia: the red book, the white cat, two red books."
-          },
-          {
-            "id": "enit_65dce83b_l01_g05",
-            "publicationState": "published",
-            "kind": "explanation",
-            "required": false,
-            "role": "grammar",
-            "text": "Saluti. Good morning si dice fino a mezzogiorno, good night prima di andare a dormire; hello e hi per salutare, goodbye e bye per congedarsi."
-          },
-          {
-            "id": "enit_65dce83b_l01_g06",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "hello, hi = ciao"
-          },
-          {
-            "id": "enit_65dce83b_l01_g07",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "good morning = buongiorno"
-          },
-          {
-            "id": "enit_65dce83b_l01_g08",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "good night = buonanotte"
-          },
-          {
-            "id": "enit_65dce83b_l01_g09",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "goodbye = arrivederci"
-          },
-          {
-            "id": "enit_65dce83b_l01_g10",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "see you tomorrow = a domani"
-          },
-          {
-            "id": "enit_65dce83b_l01_g11",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "how are you? = come stai?"
-          },
-          {
-            "id": "enit_65dce83b_l01_g12",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "fine, thanks = bene, grazie"
-          },
-          {
-            "id": "enit_65dce83b_l01_g13",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "thank you = grazie"
-          },
-          {
-            "id": "enit_65dce83b_l01_g14",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "you're welcome = prego"
-          },
-          {
-            "id": "enit_65dce83b_l01_g15",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "please = per favore"
-          },
-          {
-            "id": "enit_65dce83b_l01_g16",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "my name is Anna = mi chiamo Anna"
-          },
-          {
-            "id": "enit_65dce83b_l01_g17",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "bread = il pane"
-          },
-          {
-            "id": "enit_65dce83b_l01_g18",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "water = l'acqua"
-          },
-          {
-            "id": "enit_65dce83b_l01_g19",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "milk = il latte"
-          },
-          {
-            "id": "enit_65dce83b_l01_g20",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "coffee = il caffè"
-          },
-          {
-            "id": "enit_65dce83b_l01_g21",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "tea = il tè"
-          },
-          {
-            "id": "enit_65dce83b_l01_g22",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "the apple = la mela"
-          },
-          {
-            "id": "enit_65dce83b_l01_g23",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "the orange = l'arancia"
-          },
-          {
-            "id": "enit_65dce83b_l01_g24",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "the cat = il gatto"
-          },
-          {
-            "id": "enit_65dce83b_l01_g25",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "the dog = il cane"
-          },
-          {
-            "id": "enit_65dce83b_l01_g26",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "the horse = il cavallo"
-          },
-          {
-            "id": "enit_65dce83b_l01_g27",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "the cow = la mucca"
-          },
-          {
-            "id": "enit_65dce83b_l01_g28",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "the pig = il maiale"
-          },
-          {
-            "id": "enit_65dce83b_l01_g29",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "the sheep = la pecora"
-          },
-          {
-            "id": "enit_65dce83b_l01_g30",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "the book = il libro"
-          },
-          {
-            "id": "enit_65dce83b_l01_g31",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "red = rosso"
-          },
-          {
-            "id": "enit_65dce83b_l01_g32",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "white = bianco"
-          },
-          {
-            "id": "enit_65dce83b_l01_g33",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "black = nero"
-          },
-          {
-            "id": "enit_65dce83b_l01_g34",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "hot = caldo"
-          },
-          {
-            "id": "enit_65dce83b_l01_g35",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "cold = freddo"
-          },
-          {
-            "id": "enit_65dce83b_l01_g36",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "big = grande"
-          },
-          {
-            "id": "enit_65dce83b_l01_g37",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "small = piccolo"
-          },
-          {
-            "id": "enit_65dce83b_l01_g38",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "the egg = l'uovo"
-          },
-          {
-            "id": "enit_65dce83b_l01_g39",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "the train = il treno"
-          },
-          {
-            "id": "enit_65dce83b_l01_g40",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "the platform = il binario"
-          },
-          {
-            "id": "enit_65dce83b_l01_g41",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "what time is it? = che ore sono?"
+            "id": "enit_65dce83b_l01_module",
+            "title": "Le prime parole",
+            "sentences": [],
+            "words": [
+              {
+                "id": "enit_65dce83b_l01_g06",
+                "target": "hello, hi",
+                "source": "ciao"
+              },
+              {
+                "id": "enit_65dce83b_l01_g07",
+                "target": "good morning",
+                "source": "buongiorno"
+              },
+              {
+                "id": "enit_65dce83b_l01_g08",
+                "target": "good night",
+                "source": "buonanotte"
+              },
+              {
+                "id": "enit_65dce83b_l01_g09",
+                "target": "goodbye",
+                "source": "arrivederci"
+              },
+              {
+                "id": "enit_65dce83b_l01_g10",
+                "target": "see you tomorrow",
+                "source": "a domani"
+              },
+              {
+                "id": "enit_65dce83b_l01_g11",
+                "target": "how are you?",
+                "source": "come stai?"
+              },
+              {
+                "id": "enit_65dce83b_l01_g12",
+                "target": "fine, thanks",
+                "source": "bene, grazie"
+              },
+              {
+                "id": "enit_65dce83b_l01_g13",
+                "target": "thank you",
+                "source": "grazie"
+              },
+              {
+                "id": "enit_65dce83b_l01_g14",
+                "target": "you're welcome",
+                "source": "prego"
+              },
+              {
+                "id": "enit_65dce83b_l01_g15",
+                "target": "please",
+                "source": "per favore"
+              },
+              {
+                "id": "enit_65dce83b_l01_g16",
+                "target": "my name is Anna",
+                "source": "mi chiamo Anna"
+              },
+              {
+                "id": "enit_65dce83b_l01_g17",
+                "target": "bread",
+                "source": "il pane"
+              },
+              {
+                "id": "enit_65dce83b_l01_g18",
+                "target": "water",
+                "source": "l'acqua"
+              },
+              {
+                "id": "enit_65dce83b_l01_g19",
+                "target": "milk",
+                "source": "il latte"
+              },
+              {
+                "id": "enit_65dce83b_l01_g20",
+                "target": "coffee",
+                "source": "il caffè"
+              },
+              {
+                "id": "enit_65dce83b_l01_g21",
+                "target": "tea",
+                "source": "il tè"
+              },
+              {
+                "id": "enit_65dce83b_l01_g22",
+                "target": "the apple",
+                "source": "la mela"
+              },
+              {
+                "id": "enit_65dce83b_l01_g23",
+                "target": "the orange",
+                "source": "l'arancia"
+              },
+              {
+                "id": "enit_65dce83b_l01_g24",
+                "target": "the cat",
+                "source": "il gatto"
+              },
+              {
+                "id": "enit_65dce83b_l01_g25",
+                "target": "the dog",
+                "source": "il cane"
+              },
+              {
+                "id": "enit_65dce83b_l01_g26",
+                "target": "the horse",
+                "source": "il cavallo"
+              },
+              {
+                "id": "enit_65dce83b_l01_g27",
+                "target": "the cow",
+                "source": "la mucca"
+              },
+              {
+                "id": "enit_65dce83b_l01_g28",
+                "target": "the pig",
+                "source": "il maiale"
+              },
+              {
+                "id": "enit_65dce83b_l01_g29",
+                "target": "the sheep",
+                "source": "la pecora"
+              },
+              {
+                "id": "enit_65dce83b_l01_g30",
+                "target": "the book",
+                "source": "il libro"
+              },
+              {
+                "id": "enit_65dce83b_l01_g31",
+                "target": "red",
+                "source": "rosso"
+              },
+              {
+                "id": "enit_65dce83b_l01_g32",
+                "target": "white",
+                "source": "bianco"
+              },
+              {
+                "id": "enit_65dce83b_l01_g33",
+                "target": "black",
+                "source": "nero"
+              },
+              {
+                "id": "enit_65dce83b_l01_g34",
+                "target": "hot",
+                "source": "caldo"
+              },
+              {
+                "id": "enit_65dce83b_l01_g35",
+                "target": "cold",
+                "source": "freddo"
+              },
+              {
+                "id": "enit_65dce83b_l01_g36",
+                "target": "big",
+                "source": "grande"
+              },
+              {
+                "id": "enit_65dce83b_l01_g37",
+                "target": "small",
+                "source": "piccolo"
+              },
+              {
+                "id": "enit_65dce83b_l01_g38",
+                "target": "the egg",
+                "source": "l'uovo"
+              },
+              {
+                "id": "enit_65dce83b_l01_g39",
+                "target": "the train",
+                "source": "il treno"
+              },
+              {
+                "id": "enit_65dce83b_l01_g40",
+                "target": "the platform",
+                "source": "il binario"
+              },
+              {
+                "id": "enit_65dce83b_l01_g41",
+                "target": "what time is it?",
+                "source": "che ore sono?"
+              }
+            ],
+            "overview": "Primi passi in inglese: saluti e parole di cortesia, cibo e bevande, animali, colori e il verbo to be. Sei Round mescolano tipi di esercizi diversi; dopo il terzo una Story ti porta al bar, alla fine una seconda Story alla stazione. L'audio usa la sintesi vocale del dispositivo con en-GB: gli esercizi di ascolto richiedono una voce inglese sul dispositivo.\n\nA o an. Si usa a davanti a un suono consonantico (a cat, a dog) e an davanti a un suono vocalico (an apple, an orange). The vale per tutto: the cat, the apple.\n\nIl verbo to be. I am, you are, he, she, it is: I am a student, you are Tom, it is a cat. Nel parlato si accorcia: I'm, you're, it's.\n\nL'aggettivo prima del nome. In inglese l'aggettivo precede il nome e non cambia: the red book, the white cat, two red books.\n\nSaluti. Good morning si dice fino a mezzogiorno, good night prima di andare a dormire; hello e hi per salutare, goodbye e bye per congedarsi."
           }
         ]
       },
@@ -3790,5 +3650,5 @@
       "voice": "male"
     }
   ],
-  "officialChecksum": "79b829eee6702462a0bdc3fcf837630f30891a79b0287ffd425bb26d33793925"
+  "officialChecksum": "cdc73a67542f00b77daca648d666ab04f32c95817661bf4ef137ee89efe6336f"
 }

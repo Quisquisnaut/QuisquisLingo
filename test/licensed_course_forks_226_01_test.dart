@@ -11,6 +11,7 @@ import 'package:quisquislingo_app/services/course_editor_service.dart';
 import 'package:quisquislingo_app/services/course_editor_transaction.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'support/guidebook_fixtures.dart';
 
 const _profileId = '12345678-1234-4234-9234-123456789abc';
 const _otherProfileId = '87654321-4321-4321-8321-cba987654321';
@@ -188,7 +189,7 @@ void main() {
 
       final lesson = first.lessons.single;
       final content = lesson.rounds.single.content.single;
-      expect(content.sourceRefs.single, lesson.guidebook.content.single.id);
+      expect(content.sourceRefs.single, lesson.guidebook.words.single.id);
       expect(
         content.exercise!.evaluation.correctItemIds.single,
         content.exercise!.interaction.items.first.id,
@@ -639,15 +640,9 @@ Course _official({
         lessonId: 'source-lesson',
         title: 'Original lesson',
         updatedAt: DateTime.utc(2026, 9, 4, 10),
-        guidebook: Guidebook(
-          content: const [
-            LearningContent(
-              id: 'source-guide',
-              kind: 'vocabulary',
-              role: 'vocabulary',
-              text: 'casa = house',
-            ),
-          ],
+        guidebook: testGuidebook(
+          moduleId: 'source-module',
+          words: [testEntry('source-guide', 'casa = house')],
         ),
         duel: Duel(id: 'source-duel', title: 'Duel'),
         rounds: [
@@ -706,7 +701,7 @@ Set<String> _ownedIds(Course course) => {
   for (final lesson in course.lessons) ...{
     lesson.lessonId,
     lesson.duel.id,
-    for (final content in lesson.guidebook.content) content.id,
+    ...lesson.guidebook.ids,
     for (final round in lesson.rounds) ...{
       round.id,
       for (final content in round.content) ...{

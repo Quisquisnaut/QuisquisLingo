@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:quisquislingo_app/services/guidebook_vocabulary.dart';
 import 'package:quisquislingo_app/services/word_lookup/word_lookup.dart';
 import 'package:quisquislingo_app/services/word_lookup/word_lookup_articles.dart';
 import 'package:quisquislingo_app/services/word_lookup/word_lookup_text.dart';
@@ -9,12 +10,16 @@ import 'package:quisquislingo_app/services/word_lookup/word_lookup_text.dart';
 void main() {
   WordLookupIndex index(List<(String, int)> lines, {String? language = 'it'}) =>
       WordLookupIndex.build([
+        // Build 266: entries have their own fields; a line without two
+        // sides is no entry, as Paste list reads it.
         for (var i = 0; i < lines.length; i++)
-          WordLookupSourceEntry(
-            id: 'entry-$i',
-            text: lines[i].$1,
-            lessonIndex: lines[i].$2,
-          ),
+          if (GuidebookVocabulary.parse(lines[i].$1) case final pair?)
+            WordLookupSourceEntry(
+              id: 'entry-$i',
+              target: pair.target,
+              source: pair.source,
+              lessonIndex: lines[i].$2,
+            ),
       ], articles: WordLookupArticles.forLanguage(language));
 
   int offsetOf(String text, String word, int occurrence) {

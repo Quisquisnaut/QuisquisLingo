@@ -14,13 +14,11 @@ abstract final class CourseDraftStatus {
       lessonHasRoundDraft(lesson);
 
   /// A turned-off GuideBook never shows a Draft badge and never counts in the
-  /// Lesson or Course badge, whatever its stored state.
+  /// Lesson or Course badge, whatever its stored state. Since Build 266 the
+  /// whole GuideBook is Draft or Published: its modules and entries have no
+  /// state of their own.
   static bool lessonGuidebookHasDraft(Course course, Lesson lesson) =>
-      course.useGuidebook &&
-      (!lesson.guidebook.publicationState.isPublished ||
-          lesson.guidebook.content.any(
-            (content) => !content.publicationState.isPublished,
-          ));
+      course.useGuidebook && !lesson.guidebook.publicationState.isPublished;
 
   static bool lessonHasRoundDraft(Lesson lesson) =>
       lesson.rounds.any(roundHasDraft);

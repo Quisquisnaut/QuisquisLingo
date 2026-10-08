@@ -6,34 +6,32 @@ import 'package:quisquislingo_app/services/authoring_duplication_service.dart';
 import 'package:quisquislingo_app/services/course_audit_service.dart';
 import 'package:quisquislingo_app/services/publication_service.dart';
 
-void main() {
-  test(
-    'existing v6 Guidebook JSON remains implicitly Published and unchanged',
-    () {
-      final json = <String, dynamic>{
-        'content': [_content('existing').toJson()],
-      };
-      final encoded = jsonEncode(json);
-      final guidebook = Guidebook.fromJson(json);
+import 'support/guidebook_fixtures.dart';
 
-      expect(guidebook.publicationState, PublicationState.published);
-      expect(jsonEncode(guidebook.toJson()), encoded);
-      expect(Guidebook.empty().toJson(), {'content': <Object>[]});
-      expect(
-        Guidebook.fromJson({...json, 'publicationState': 'published'}).toJson(),
-        json,
-      );
-    },
-  );
+/// GuideBook publication (Build 226.02 revision 4), in the module shape of
+/// Build 266: the whole GuideBook is Draft or Published.
+void main() {
+  test('a GuideBook without publicationState is Published and unchanged', () {
+    final json = <String, dynamic>{
+      'modules': [_module('existing').toJson()],
+    };
+    final encoded = jsonEncode(json);
+    final guidebook = Guidebook.fromJson(json);
+
+    expect(guidebook.publicationState, PublicationState.published);
+    expect(jsonEncode(guidebook.toJson()), encoded);
+    expect(Guidebook.empty().toJson(), {'modules': <Object>[]});
+    expect(
+      Guidebook.fromJson({...json, 'publicationState': 'published'}).toJson(),
+      json,
+    );
+  });
 
   test('explicit empty Draft Guidebook survives Course JSON round-trip', () {
-    final guidebook = Guidebook(
-      publicationState: PublicationState.draft,
-      content: const [],
-    );
+    final guidebook = Guidebook(publicationState: PublicationState.draft);
     expect(guidebook.toJson(), {
       'publicationState': 'draft',
-      'content': <Object>[],
+      'modules': <Object>[],
     });
     final original = _course(guidebook);
     final restored = Course.fromJson(
@@ -46,7 +44,7 @@ void main() {
       restored.lessons.single.guidebook.publicationState,
       PublicationState.draft,
     );
-    expect(restored.lessons.single.guidebook.content, isEmpty);
+    expect(restored.lessons.single.guidebook.modules, isEmpty);
     expect(restored.toJson(), original.toJson());
   });
 
@@ -55,7 +53,7 @@ void main() {
       expect(
         () => Guidebook.fromJson({
           'publicationState': invalid,
-          'content': <Object>[],
+          'modules': <Object>[],
         }),
         throwsA(
           isA<FormatException>().having(
@@ -73,7 +71,7 @@ void main() {
     () {
       final guidebook = Guidebook(
         publicationState: PublicationState.draft,
-        content: [_content('reviewed'), _content('unfinished', draft: true)],
+        modules: [_module('reviewed'), _module('unfinished')],
       );
       final original = _course(guidebook);
       final before = jsonEncode(original.toJson());
@@ -84,65 +82,51 @@ void main() {
       expect(lesson.rounds.map((round) => round.id), ['round']);
       expect(lesson.rounds.single.exercises.single.id, 'exercise');
       expect(lesson.guidebook.publicationState, PublicationState.draft);
-      expect(lesson.guidebook.content, isEmpty);
+      expect(lesson.guidebook.modules, isEmpty);
       expect(lesson.guidebook.toJson(), {
         'publicationState': 'draft',
-        'content': <Object>[],
+        'modules': <Object>[],
       });
       expect(jsonEncode(original.toJson()), before);
     },
   );
 
-  test(
-    'publishing the Guidebook restores Published content and still filters Draft children',
-    () {
-      final content = [
-        _content('reviewed'),
-        _content('unfinished', draft: true),
-      ];
-      final original = _course(
-        Guidebook(publicationState: PublicationState.draft, content: content),
-      );
-      final published = _course(Guidebook(content: content));
-      final service = const PublicationService();
+  test('a Published Guidebook is delivered whole', () {
+    final modules = [_module('reviewed'), _module('second')];
+    final original = _course(
+      Guidebook(publicationState: PublicationState.draft, modules: modules),
+    );
+    final published = _course(Guidebook(modules: modules));
+    final service = const PublicationService();
 
-      expect(
-        service.learnerCourse(original)!.lessons.single.guidebook.content,
-        isEmpty,
-      );
-      final visible = service
-          .learnerCourse(published)!
-          .lessons
-          .single
-          .guidebook;
-      expect(visible.publicationState, PublicationState.published);
-      expect(visible.content.map((item) => item.id), ['reviewed']);
-      expect(visible.content.single.toJson(), content.first.toJson());
-      expect(
-        published.lessons.single.guidebook.content.map((item) => item.id),
-        ['reviewed', 'unfinished'],
-      );
-    },
-  );
+    expect(
+      service.learnerCourse(original)!.lessons.single.guidebook.modules,
+      isEmpty,
+    );
+    final visible = service.learnerCourse(published)!.lessons.single.guidebook;
+    expect(visible.publicationState, PublicationState.published);
+    expect(visible.modules.map((module) => module.id), ['reviewed', 'second']);
+    expect(visible.toJson(), published.lessons.single.guidebook.toJson());
+  });
 
   test(
-    'publication Audit resolves provenance against hidden authored Guidebook IDs',
+    'publication Audit resolves provenance against hidden authored GuideBook entries',
     () {
       final authoredJson = _course(
         Guidebook(
           publicationState: PublicationState.draft,
-          content: [_content('guide')],
+          modules: [_module('guide')],
         ),
       ).toJson();
       final lessonJson = (authoredJson['lessons'] as List).single as Map;
       final roundJson = (lessonJson['rounds'] as List).single as Map;
       final exerciseJson = (roundJson['content'] as List).single as Map;
-      exerciseJson['sourceRefs'] = ['guide', 'deleted-guide-content'];
+      exerciseJson['sourceRefs'] = ['guide_w1', 'deleted-guide-entry'];
       final authored = Course.fromJson(authoredJson);
       final learner = const PublicationService().learnerCourse(authored)!;
       final audit = CourseAuditService();
 
-      expect(learner.lessons.single.guidebook.content, isEmpty);
+      expect(learner.lessons.single.guidebook.modules, isEmpty);
       expect(
         audit
             .auditLesson(learner, 'lesson')
@@ -158,7 +142,7 @@ void main() {
       expect(publicationReferenceIssues, hasLength(1));
       expect(
         publicationReferenceIssues.single.message,
-        contains('deleted-guide-content'),
+        contains('deleted-guide-entry'),
       );
     },
   );
@@ -168,7 +152,7 @@ void main() {
       'import-as-Draft includes ${empty ? 'empty' : 'populated'} Guidebook state',
       () {
         final source = _course(
-          Guidebook(content: empty ? [] : [_content('guide')]),
+          Guidebook(modules: empty ? [] : [_module('guide')]),
         );
         final imported = const PublicationService().asDraftAuthoringTree(
           source,
@@ -177,14 +161,8 @@ void main() {
 
         expect(guidebook.publicationState, PublicationState.draft);
         expect(
-          guidebook.content.map((item) => item.id),
+          guidebook.modules.map((module) => module.id),
           empty ? [] : ['guide'],
-        );
-        expect(
-          guidebook.content.every(
-            (item) => item.publicationState == PublicationState.draft,
-          ),
-          isTrue,
         );
         expect(imported.courseId, source.courseId);
         expect(
@@ -194,12 +172,6 @@ void main() {
         expect(
           source.lessons.single.guidebook.publicationState,
           PublicationState.published,
-        );
-        expect(
-          source.lessons.single.guidebook.content.every(
-            (item) => item.publicationState.isPublished,
-          ),
-          isTrue,
         );
       },
     );
@@ -213,7 +185,7 @@ void main() {
           final original = _course(
             Guidebook(
               publicationState: sourceState,
-              content: empty ? [] : [_content('guide')],
+              modules: empty ? [] : [_module('guide')],
             ),
           );
           final service = AuthoringDuplicationService(
@@ -234,12 +206,13 @@ void main() {
           for (final lesson in [lessonCopy, courseCopy.lessons.single]) {
             expect(lesson.publicationState, PublicationState.draft);
             expect(lesson.guidebook.publicationState, PublicationState.draft);
-            expect(lesson.guidebook.content, hasLength(empty ? 0 : 1));
+            expect(lesson.guidebook.modules, hasLength(empty ? 0 : 1));
             if (!empty) {
-              final content = lesson.guidebook.content.single;
-              expect(content.id, isNot('guide'));
-              expect(content.text, 'Reviewed overview for guide.');
-              expect(content.publicationState, PublicationState.draft);
+              final module = lesson.guidebook.modules.single;
+              expect(module.id, isNot('guide'));
+              expect(module.words.single.id, isNot('guide_w1'));
+              expect(module.overview, 'Reviewed overview for guide.');
+              expect(module.words.single.target, 'casa');
             }
             expect(
               Guidebook.fromJson(lesson.guidebook.toJson()).publicationState,
@@ -256,16 +229,13 @@ void main() {
   }
 }
 
-LearningContent _content(String id, {bool draft = false}) =>
-    LearningContent.textual(
-      id: id,
-      publicationState: draft
-          ? PublicationState.draft
-          : PublicationState.published,
-      kind: 'explanation',
-      role: 'overview',
-      text: 'Reviewed overview for $id.',
-    );
+GuidebookModule _module(String id) =>
+    testGuidebook(
+      moduleId: id,
+      title: 'Module $id',
+      overview: 'Reviewed overview for $id.',
+      wordLines: const ['casa = house'],
+    ).modules.single;
 
 Course _course(Guidebook guidebook) => Course(
   courseId: 'guidebook-publication-course',

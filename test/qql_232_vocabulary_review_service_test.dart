@@ -7,6 +7,7 @@ import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:quisquislingo_app/services/progress_service.dart';
 import 'package:quisquislingo_app/services/vocabulary_review_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'support/guidebook_fixtures.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -16,78 +17,71 @@ void main() {
     await ProfileService().addProfile('Vocabulary learner');
   });
 
+  // Build 266: Words & Expressions only, never Sentences; the Context and
+  // the picture come with the entry, optional words show as "(io)".
   test(
-    'resolves published vocabulary pairs in authored order without fabrication',
+    'resolves published Words & Expressions in authored order without fabrication',
     () {
       final service = VocabularyReviewService();
+      final picture = GuidebookPicture(
+        asset: 'assets/exercise_images/cat.webp',
+        plural: true,
+      );
       final course = _course(
-        vocabulary: const [
-          LearningContent(
-            id: 'equals',
-            kind: 'vocabulary',
-            role: 'vocabulary',
-            text: 'casa = house',
-          ),
-          LearningContent(
-            id: 'arrow',
-            kind: 'vocabulary',
-            role: 'vocabulary',
-            text: 'pane → bread',
-          ),
-          LearningContent(
-            id: 'dash',
-            kind: 'vocabulary',
-            role: 'vocabulary',
-            text: 'acqua - water',
-          ),
-          LearningContent(
-            id: 'colon',
-            kind: 'vocabulary',
-            role: 'vocabulary',
-            text: 'grazie:thank you',
-          ),
-          LearningContent(
-            id: 'draft',
-            publicationState: PublicationState.draft,
-            kind: 'vocabulary',
-            role: 'vocabulary',
-            text: 'bozza = draft',
-          ),
-          LearningContent(
-            id: 'malformed',
-            kind: 'vocabulary',
-            role: 'vocabulary',
-            text: 'no answer here',
-          ),
-          LearningContent(
-            id: 'other-kind',
-            kind: 'text',
-            text: 'ignored = ignored',
-          ),
+        vocabulary: [
+          testEntry('equals', 'casa = house'),
+          testEntry('bakery', 'pane = bread', context: 'bakery'),
+          testEntry('subject', '{io} sono stanco = I am tired'),
+          testEntry('cats', 'i gatti = the cats', picture: picture),
         ],
+        sentences: [testEntry('sentence', 'La casa è grande. = The house is big.')],
       );
 
       final entries = service.resolveEntries(course, course.lessons.single);
       expect(entries.map((entry) => entry.prompt), [
         'casa',
         'pane',
-        'acqua',
-        'grazie',
+        '(io) sono stanco',
+        'i gatti',
       ]);
       expect(entries.map((entry) => entry.answer), [
         'house',
         'bread',
-        'water',
-        'thank you',
+        'I am tired',
+        'the cats',
       ]);
+      expect(entries.map((entry) => entry.context), ['', 'bakery', '', '']);
+      expect(entries.last.picture, picture);
       expect(entries.every((entry) => entry.supplementary.isEmpty), isTrue);
     },
   );
 
+  test('the Context joins the fingerprint, the picture does not', () {
+    final service = VocabularyReviewService();
+    String fingerprint(GuidebookEntry entry) => service
+        .resolveEntries(
+          _course(vocabulary: [entry]),
+          _course(vocabulary: [entry]).lessons.single,
+        )
+        .single
+        .fingerprint;
+    final plain = testEntry('conto', 'il conto = the bill');
+    final withContext = testEntry(
+      'conto',
+      'il conto = the bill',
+      context: 'restaurant',
+    );
+    final withPicture = testEntry(
+      'conto',
+      'il conto = the bill',
+      picture: const GuidebookPicture(asset: 'assets/exercise_images/bill.webp'),
+    );
+    expect(fingerprint(withContext), isNot(fingerprint(plain)));
+    expect(fingerprint(withPicture), fingerprint(plain));
+  });
+
   test('disabled and Draft GuideBooks expose no vocabulary', () {
-    const vocabulary = [
-      LearningContent(id: 'word', kind: 'vocabulary', text: 'casa = house'),
-    ];
+    final vocabulary = [testEntry('word', 'casa = house')];
     final disabled = _course(vocabulary: vocabulary, useGuidebook: false);
     final draft = _course(
       vocabulary: vocabulary,
@@ -187,14 +181,7 @@ void main() {
       final changed = _course(
         title: 'Renamed course',
         lessonTitle: 'Renamed lesson',
-        vocabulary: const [
-          LearningContent(
-            id: 'casa-home',
-            kind: 'vocabulary',
-            role: 'vocabulary',
-            text: 'casa = home',
-          ),
-        ],
+        vocabulary: [testEntry('casa-home', 'casa = home')],
       );
       expect(
         await service.eligibleEntries(changed, changed.lessons.single),
@@ -214,19 +201,11 @@ void main() {
   test(
     'duplicate authored occurrences have independent deterministic identities',
     () async {
-      const duplicates = [
-        LearningContent(
-          id: 'duplicate',
-          kind: 'vocabulary',
-          text: 'casa = house',
-        ),
-        LearningContent(
-          id: 'duplicate',
-          kind: 'vocabulary',
-          text: 'casa = house',
-        ),
-        LearningContent(id: '', kind: 'vocabulary', text: 'casa = house'),
-        LearningContent(id: '', kind: 'vocabulary', text: 'casa = house'),
+      final duplicates = [
+        testEntry('duplicate', 'casa = house'),
+        testEntry('duplicate', 'casa = house'),
+        testEntry('', 'casa = house'),
+        testEntry('', 'casa = house'),
       ];
       final course = _course(vocabulary: duplicates);
       final service = VocabularyReviewService();
@@ -431,7 +410,8 @@ Course _course({
   String lessonTitle = 'Vocabulary lesson',
   bool useGuidebook = true,
   PublicationState guidebookState = PublicationState.published,
-  List<LearningContent>? vocabulary,
+  List<GuidebookEntry>? vocabulary,
+  List<GuidebookEntry> sentences = const [],
 }) => Course(
   courseId: courseId,
   learningLanguage: 'Italian',
@@ -445,23 +425,14 @@ Course _course({
     Lesson(
       lessonId: lessonId,
       title: lessonTitle,
-      guidebook: Guidebook(
+      guidebook: testGuidebook(
         publicationState: guidebookState,
-        content:
+        sentences: sentences,
+        words:
             vocabulary ??
-            const [
-              LearningContent(
-                id: 'casa-home',
-                kind: 'vocabulary',
-                role: 'vocabulary',
-                text: 'casa = house',
-              ),
-              LearningContent(
-                id: 'pane-bread',
-                kind: 'vocabulary',
-                role: 'vocabulary',
-                text: 'pane = bread',
-              ),
+            [
+              testEntry('casa-home', 'casa = house'),
+              testEntry('pane-bread', 'pane = bread'),
             ],
       ),
       rounds: [LearningRound(id: 'round', title: 'Round', exercises: const [])],

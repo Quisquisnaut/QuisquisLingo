@@ -6,6 +6,7 @@ import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/services/course_editor_service.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'support/guidebook_fixtures.dart';
 
 Course _metadataCourse() => Course(
   courseId: 'course_metadata',
@@ -39,16 +40,9 @@ Course _metadataCourse() => Course(
     Lesson(
       lessonId: 't1',
       title: 'Lesson',
-      guidebook: Guidebook(
-        content: const [
-          LearningContent(
-            id: 'g1',
-            kind: 'explanation',
-            required: false,
-            role: 'overview',
-            text: 'Learner text',
-          ),
-        ],
+      guidebook: testGuidebook(
+        overview: 'Learner text',
+        words: [testEntry('g1', 'casa = house')],
       ),
       rounds: const [],
       duel: Duel(id: 'd1', title: 'Duel'),
@@ -86,7 +80,10 @@ void main() {
     expect(decoded.authors.single.roles, ['Author']);
     expect(decoded.rightsHolders.single.name, 'Rights Holder');
     expect(decoded.rightsHolders.single.type, CourseRightsHolderType.person);
-    expect(decoded.lessons.single.guidebook.overview, 'Learner text');
+    expect(
+      decoded.lessons.single.guidebook.modules.single.overview,
+      'Learner text',
+    );
     expect(decoded.lessons.single.duel.id, 'd1');
     expect(json.containsKey('chapters'), isFalse);
   });

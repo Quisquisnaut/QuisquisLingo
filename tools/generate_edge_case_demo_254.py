@@ -146,6 +146,27 @@ def round_case(case: str, title: str, contents: list, *, visual: str = "generic"
     return value
 
 
+# Build 266 (GuideBook Modules): each Lesson's GuideBook is one module for
+# now (the converter writes "Module 1"; this names it). Revision 3 of Build
+# 266 adds the module cases (two modules, an empty one, a long Overview).
+MODULE_TITLES = {
+    "l01": "Sì, colori e saluti",
+    "l02": "Al tè",
+    "l03": "Animali e cose",
+    "l04": "Pronto, tardi, presto",
+    "l05_draft": "Parole da copiare",
+    "l06": "Al bar",
+}
+
+
+def name_modules(course: dict) -> None:
+    for lesson in course["lessons"]:
+        case = lesson["lessonId"].removeprefix(PREFIX)
+        for module in lesson["guidebook"]["modules"]:
+            module["id"] = lesson["lessonId"] + "_module"
+            module["title"] = MODULE_TITLES[case]
+
+
 def lesson(case: str, title: str, rounds: list, vocabulary: list[str], *,
            overview: str, draft: bool = False, draft_guidebook: bool = False,
            section: str | None = None, icon: str | None = None,
@@ -392,6 +413,7 @@ def build_course() -> dict:
         "lessons": [l1, l2, l3, l4, l5, l6],
     }
     course = convert_course_v11_to_v12(course)
+    name_modules(course)
     canonical = {key: value for key, value in course.items()
                  if key not in {"officialChecksum", "publisherVerificationStatus", "publisherSignature"}}
     course["officialChecksum"] = hashlib.sha256(json.dumps(

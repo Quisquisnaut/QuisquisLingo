@@ -22,6 +22,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from qql_course_v12 import _ordered_evaluation, _ordered_options, assign_exercise, becomes_exercise, before_you_start, complete_text_exercise, page_exercise, convert_course_v11_to_v12, story_cover, story_flow, story_line  # noqa: E402
+from qql_course_v12 import guidebook, guidebook_entry, guidebook_module, vocabulary_pair  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 ASSET = ROOT / "assets/courses/exercise_laboratory_en_it.json"
@@ -225,6 +226,36 @@ VOCABULARY: dict[str, list[str]] = {
         "grazie = thank you",
     ],
 }
+
+
+# Build 266 (GuideBook Modules): each Lesson's GuideBook is one module for
+# now, its vocabulary as Words & Expressions and its description as the
+# Overview; the module's own name, never the Lesson title.
+MODULE_TITLES: dict[str, str] = {
+    "Select": "Everyday words",
+    "Input": "Greetings and food",
+    "Arrange": "Daily actions",
+    "Match": "Greetings and opposites",
+    "Presentation": "Words on the flashcards",
+    "Story": "At the café",
+    "Assign": "Animals, plants and things",
+    "Page": "At the bar",
+}
+
+
+def lab_guidebook(lesson: dict) -> dict:
+    """The Lesson's v12 GuideBook: one module from its v11 content."""
+    prefix = lesson["lessonId"]
+    content = lesson["guidebook"]["content"]
+    overview = next(item["text"] for item in content if item["kind"] == "explanation")
+    words = []
+    for item in content:
+        if item["kind"] != "vocabulary":
+            continue
+        target, source = vocabulary_pair(item["text"])
+        words.append(guidebook_entry(item["id"], target, source))
+    return guidebook([guidebook_module(f"{prefix}_module", MODULE_TITLES[lesson["title"]],
+                                       words=words, overview=overview)])
 
 
 class Laboratory:
@@ -824,6 +855,8 @@ def course(lab: Laboratory) -> dict:
         assert placed, after
     v11["lessons"] = [*lessons, *lab.story_lessons]
     value = convert_course_v11_to_v12(v11)
+    for lesson, source in zip(value["lessons"], v11["lessons"]):
+        lesson["guidebook"] = lab_guidebook(source)
     value["roundNumberingMode"] = "off"
     for lesson in value["lessons"]:
         for round_data in lesson["rounds"]:
@@ -957,11 +990,10 @@ def future(root: dict) -> dict:
     lesson = {
         "lessonId": "qql_labfuture_lesson", "publicationState": "published", "updatedAt": STAMP,
         "title": "Future", "section": False,
-        "guidebook": {"content": [{
-            "id": "qql_labfuture_guide", "publicationState": "published",
-            "kind": "explanation", "required": False, "role": "overview",
-            "text": "What QuisquisLingo stores but cannot play yet: Speak, Ink and Submit exercises, a Story ending on speech and a Story whose flow branches. Kept, editable and exported unchanged; skipped by learners.",
-        }]},
+        "guidebook": guidebook([guidebook_module(
+            "qql_labfuture_module", "What waits for a later build",
+            overview="What QuisquisLingo stores but cannot play yet: Speak, Ink and Submit exercises, a Story ending on speech and a Story whose flow branches. Kept, editable and exported unchanged; skipped by learners.",
+        )]),
         "rounds": [speak, ink, ends_story, branching],
         "duel": {"id": "qql_labfuture_duel", "title": "Future Duel"},
     }

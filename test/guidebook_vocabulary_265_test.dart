@@ -52,11 +52,9 @@ void main() {
     final lesson = course.lessons.single;
 
     test('its 36 entries put English, the learning language, first', () {
-      final words = lesson.guidebook.vocabulary;
-      expect(words, hasLength(36));
-      final pairs = [
-        for (final word in words) GuidebookVocabulary.parse(word)!,
-      ];
+      // Build 266: the entries' own fields.
+      final pairs = lesson.guidebook.words.toList();
+      expect(pairs, hasLength(36));
       expect(pairs.first.target, 'hello, hi');
       expect(pairs.first.source, 'ciao');
       expect(

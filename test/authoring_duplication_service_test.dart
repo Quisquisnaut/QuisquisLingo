@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/services/authoring_duplication_service.dart';
+import 'support/guidebook_fixtures.dart';
 
 void main() {
   test('Exercise duplication remaps owned items and evaluation references', () {
@@ -71,20 +72,16 @@ void main() {
         section: true,
         sectionName: 'Section',
         themeIconAsset: 'assets/lesson_icons/home.png',
-        guidebook: Guidebook(
-          content: const [
-            LearningContent(
-              id: 'guide_source',
-              kind: 'vocabulary',
-              role: 'vocabulary',
-              text: 'casa = house',
-            ),
-          ],
+        guidebook: testGuidebook(
+          moduleId: 'module_source',
+          words: [testEntry('guide_source', 'casa = house')],
         ),
         rounds: [
           LearningRound(
             id: 'round_source',
             title: 'Round',
+            // Build 266: a copied Lesson's Rounds follow its modules.
+            focusModuleId: 'module_source',
             content: [
               LearningContent(
                 id: 'exercise_source',
@@ -108,8 +105,14 @@ void main() {
       expect(copyIds, hasLength(sourceIds.length));
       expect(
         copy.rounds.single.content.single.sourceRefs.single,
-        copy.guidebook.content.single.id,
+        copy.guidebook.words.single.id,
       );
+      expect(
+        copy.rounds.single.focusModuleId,
+        copy.guidebook.modules.single.id,
+      );
+      expect(copy.guidebook.modules.single.id, isNot('module_source'));
+      expect(source.rounds.single.focusModuleId, 'module_source');
       expect(copy.title, source.title);
       expect(copy.sectionName, source.sectionName);
       expect(copy.themeIconAsset, source.themeIconAsset);
@@ -128,15 +131,9 @@ void main() {
         section: true,
         sectionName: 'Section',
         themeIconAsset: 'assets/lesson_icons/home.png',
-        guidebook: Guidebook(
-          content: const [
-            LearningContent(
-              id: 'guide-source',
-              kind: 'vocabulary',
-              role: 'vocabulary',
-              text: 'casa = house',
-            ),
-          ],
+        guidebook: testGuidebook(
+          moduleId: 'module-source',
+          words: [testEntry('guide-source', 'casa = house')],
         ),
         rounds: [
           LearningRound(
@@ -237,7 +234,7 @@ void main() {
       );
       expect(
         copy.lessons.single.rounds.single.content.single.sourceRefs.single,
-        copy.lessons.single.guidebook.content.single.id,
+        copy.lessons.single.guidebook.words.single.id,
       );
     },
   );
@@ -301,7 +298,7 @@ Exercise _select(String id, {DateTime? updatedAt}) => Exercise.v2(
 Set<String> _allIds(Lesson lesson) => {
   lesson.lessonId,
   lesson.duel.id,
-  for (final content in lesson.guidebook.content) content.id,
+  ...lesson.guidebook.ids,
   for (final round in lesson.rounds) ...{
     round.id,
     for (final content in round.content) ...{

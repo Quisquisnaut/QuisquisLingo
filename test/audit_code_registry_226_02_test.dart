@@ -20,8 +20,10 @@ void main() {
       // WORD_BLOCK_DISTRACTOR_COUNT, WORD_BLOCK_LANGUAGE_MISMATCH,
       // MATCH_LEFT_DUPLICATE and MATCH_RIGHT_DUPLICATE become Info
       // recommendations; Build 265 Revision 4 adds the three Audio Match
-      // duplicates (AUDIO_MATCH_ANSWER/SOUND/TEXT_DUPLICATE).
-      expect(definitions.length, 125);
+      // duplicates (AUDIO_MATCH_ANSWER/SOUND/TEXT_DUPLICATE). Build 266:
+      // GUIDEBOOK_MODULE_EMPTY and ROUND_FOCUS_MODULE_MISSING (Warnings),
+      // GUIDEBOOK_MODULE_OVERVIEW_LONG (Info).
+      expect(definitions.length, 128);
       expect(
         definitions.map((rule) => rule.code).toSet().length,
         definitions.length,
@@ -36,11 +38,11 @@ void main() {
         definitions
             .where((rule) => rule.severity == AuditSeverity.warning)
             .length,
-        45,
+        47,
       );
       expect(
         definitions.where((rule) => rule.severity == AuditSeverity.info).length,
-        14,
+        15,
       );
       for (final rule in definitions) {
         expect(rule.code, matches(RegExp(r'^[A-Z][A-Z0-9_]+$')));

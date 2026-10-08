@@ -157,7 +157,7 @@ Official source loading and external official installation validate content inte
 
 The canonical hierarchy is:
 
-`Course > lessons[] > guidebook + rounds[] + duel > content[]`
+`Course > lessons[] > guidebook (modules[]) + rounds[] + duel > content[]`
 
 Course owns an ordered list of Lessons. Every Lesson owns its Guidebook, ordered Rounds and stable Duel identity. Chapter and assessment-Lesson fields are not part of Course Model v12.
 
@@ -189,13 +189,43 @@ The structural fields `topics`, `topicId` and Lesson `id` are invalid in v12. Op
 
 ## Lesson Guidebook
 
-A Lesson contains a Guidebook with `content[]`. Its optional `publicationState` is `draft` or `published`; absence retains the compatible Published default, and canonical serialization adds the field only for Draft. A Draft Guidebook and its content stay out of learner delivery while the Lesson and its Rounds can remain Published. Guidebook Content can include explanations, vocabulary, examples and text. It is learner-facing reference material and may also be used as authoring source material. `sourceRefs` can connect generated or derived Content to stable Guidebook Content IDs.
+Since Build 266 (GuideBook Modules, `docs/266_GUIDEBOOK_MODULES_PLAN.md`) a Lesson's Guidebook is `{publicationState?, modules[]}`, the modules in teaching order:
 
-Guidebook also accepts optional `insights`, an ordered list of objects containing non-empty string `title` and `text` fields. Absence loads as an empty list and empty lists are omitted from canonical JSON. Insights are edited in the GuideBook working copy and persist only through the existing Save or Save Draft action. Import, export, backup and fork paths carry this optional data with the owning Guidebook; the current `formatVersion` is 11.
+```json
+"guidebook": {
+  "publicationState": "draft",
+  "modules": [
+    {
+      "id": "module_…",
+      "title": "Al bar",
+      "sentences": [
+        { "id": "…", "target": "Lei è stanca?", "source": "Are you tired?", "context": "formal, to a woman" },
+        { "id": "…", "target": "{io} prendo un tè.", "source": "I'll have a tea." }
+      ],
+      "words": [
+        { "id": "…", "target": "il conto", "source": "the bill", "context": "restaurant" },
+        { "id": "…", "target": "il conto", "source": "the account", "context": "bank" },
+        { "id": "…", "target": "i gatti", "source": "the cats", "picture": { "asset": "assets/exercise_images/cat.webp", "plural": true } }
+      ],
+      "overview": "Short description and explanation."
+    }
+  ]
+}
+```
 
-The displayed GuideBook Internal ID is derived as `${lessonId}_guidebook` from the immutable owning Lesson ID. It is not a new persisted Guidebook field and does not replace stable Guidebook Content IDs. Renaming or moving the Lesson preserves it; a duplicated Lesson receives its own derived GuideBook identity.
+- `publicationState` is `draft` or `published`; absence means Published and canonical serialization adds the field only for Draft. The whole Guidebook is Draft or Published: a Draft Guidebook stays out of learner delivery (as empty `modules`) while the Lesson and its Rounds can remain Published; a Published one is delivered whole.
+- A module has a stable `id` (unique in the Course), a required `title` (the module's own name, never the Lesson title), `sentences` (example sentences in use), `words` (on screen **Words & Expressions**: single words and fixed expressions) and `overview` (a short description; 500 characters or more is an Audit Info).
+- An entry is `{id, target, source, context?, picture?}`: `target` in the language being learned and `source` its translation, both required; `context` optional, at most 40 characters, in the learners' language (the sense, subject area, formality, gender or who speaks), never matched, read aloud or part of an answer. A target may mark words that can be left out, such as an understood subject, with `{…}` (not nested); no other answer syntax (`[…|…]`, `<>`) is allowed.
+- `picture` (Words & Expressions only) is `{asset, sharedImageSource?, plural?}`: `asset` is a QQL picture, an embedded image or the Course's own `media:` picture, as for exercise pictures; `plural` (stored only when true) draws it as stacked copies. A picture on a sentence is a format error. Word pictures are Course pictures for IN USE, packages, copies and removal.
+- Unknown keys, a blank title, target or source, a Context over 40 characters or a malformed brace are format errors. At most 100 modules and 1,000 entries per Guidebook (`CourseShapeLimits`).
+- **The earlier shape is refused**: a Guidebook with `content` or `insights` (before Build 266) is not read, with the message "This Course's GuideBooks use the earlier shape. Since build 266 a GuideBook is a list of modules: regenerate the Course." `tools/convert_course_to_v12.dart` writes one module titled "Module 1" per Lesson from a v11 GuideBook (overview, goals, grammar and Insights as Overview paragraphs, vocabulary split into Words & Expressions, examples as Overview lines because a Sentence needs its translation) and notes it for renaming.
+- Review vocabulary and Word Lookup read Words & Expressions only. Round Content `sourceRefs` name entry IDs.
 
-Course `useGuidebook: false` preserves the complete Guidebook, its publication state and source references. It disables learner GuideBook interactions while retaining the Home Lesson/book presentation, and suppresses only the canonical `LESSON_GUIDEBOOK_EMPTY` Warning. Malformed-content findings remain active. Reenabling the preference restores current canonical Audit and learner access subject to the existing publication and access rules.
+A Round may store `focusModuleId` (the module of its own Lesson's Guidebook it practises) and `supportingModuleIds` (earlier modules it also reviews; unique, never the focus), each only when set. Only Open GuideBook reads them (it opens at the focus module); they change no scoring, progression, order, Review or Duel. The Audit warns about a module that is not in the Round's own Lesson (`ROUND_FOCUS_MODULE_MISSING`).
+
+The displayed GuideBook Internal ID is derived as `${lessonId}_guidebook` from the immutable owning Lesson ID. It is not a new persisted Guidebook field. Renaming or moving the Lesson preserves it; a duplicated Lesson receives its own derived GuideBook identity, and its modules and entries get fresh IDs that its Rounds follow.
+
+Course `useGuidebook: false` preserves the complete Guidebook and its publication state. It disables learner GuideBook interactions while retaining the Home Lesson/book presentation, and suppresses the GuideBook Warnings and Info (`LESSON_GUIDEBOOK_EMPTY`, `GUIDEBOOK_MODULE_EMPTY`, `GUIDEBOOK_MODULE_OVERVIEW_LONG`). ID findings remain active. Reenabling the preference restores current canonical Audit and learner access subject to the existing publication and access rules.
 
 A Round may open with a **Before you start card** (Build 257): an exercise Content whose `presentation` exercise has a text prompt element with role `intro` (the note) and, optionally, the option `guidebookButton: true` (an Open GuideBook button, shown to learners only while the Course uses GuideBooks and the Lesson's GuideBook is published). The learner reads the first published card on its own page before the Round starts; it is never one of the Round's steps and is never shown in Review. The Audit notes a Lesson whose first Round has none (`LESSON_INTRO_MISSING`), reports an empty card (`ROUND_INTRO_EMPTY`) and a second card (`ROUND_INTRO_DUPLICATE`). Text Content with role `lesson_intro` is no longer shown; `tools/convert_course_to_v12.dart` converts a v11 `lesson_intro` into a card with the GuideBook button on, and the bundled Courses open every Lesson with one.
 

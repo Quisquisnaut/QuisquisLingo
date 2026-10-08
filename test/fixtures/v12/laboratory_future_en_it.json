@@ -68,14 +68,13 @@
       "title": "Future",
       "section": false,
       "guidebook": {
-        "content": [
+        "modules": [
           {
-            "id": "qql_labfuture_guide",
-            "publicationState": "published",
-            "kind": "explanation",
-            "required": false,
-            "role": "overview",
-            "text": "What QuisquisLingo stores but cannot play yet: Speak, Ink and Submit exercises, a Story ending on speech and a Story whose flow branches. Kept, editable and exported unchanged; skipped by learners."
+            "id": "qql_labfuture_module",
+            "title": "What waits for a later build",
+            "sentences": [],
+            "words": [],
+            "overview": "What QuisquisLingo stores but cannot play yet: Speak, Ink and Submit exercises, a Story ending on speech and a Story whose flow branches. Kept, editable and exported unchanged; skipped by learners."
           }
         ]
       },
@@ -660,5 +659,5 @@
       "voice": "male"
     }
   ],
-  "officialChecksum": "6029d347a42a0415de5ce1b8087ba67ca008a8e35ddc390bc7c4787f69eea2c6"
+  "officialChecksum": "4e7e885a723efbb63c3bf1a43d91ca1cc23413cda5c583ec80d21e4290a12e6a"
 }

@@ -446,16 +446,140 @@ def convert_content(content: dict, round_updated_at: str | None = None) -> dict:
     return out
 
 
+# ---------------------------------------------------------------------------
+# Build 266 (GuideBook Modules): a GuideBook is a list of modules, each with
+# Sentences, Words & Expressions and an Overview; an entry is
+# {id, target, source, context?, picture?}. Key order as Dart's toJson.
+
+VOCABULARY_SEPARATORS = (" = ", " → ", " - ", ":")
+MAX_CONTEXT_LENGTH = 40
+
+
+def vocabulary_pair(line: str) -> tuple[str, str] | None:
+    """`GuidebookVocabulary.parse`: `target = source`, the first separator
+    found with text on both sides."""
+    line = line.strip()
+    for separator in VOCABULARY_SEPARATORS:
+        at = line.find(separator)
+        if at < 1:
+            continue
+        target, source = line[:at].strip(), line[at + len(separator):].strip()
+        if target and source:
+            return target, source
+    return None
+
+
+def target_problem(target: str) -> str | None:
+    """`GuidebookText.targetProblem`: only {…}, never nested or empty."""
+    if any(char in target for char in "[]|"):
+        return "only {…} may mark optional words; [, ] and | are not allowed"
+    if "<>" in target:
+        return "only {…} may mark optional words; <> is not allowed"
+    open_at = -1
+    for index, char in enumerate(target):
+        if char == "{":
+            if open_at >= 0:
+                return "optional words {…} cannot be nested"
+            open_at = index
+        elif char == "}":
+            if open_at < 0:
+                return "a } has no matching {"
+            if not target[open_at + 1:index].strip():
+                return "optional words {…} cannot be empty"
+            open_at = -1
+    if open_at >= 0:
+        return "a { has no matching }"
+    if not re.sub(r"\s+", " ", re.sub(r"\{[^{}]*\}", "", target)).strip():
+        return "it needs words outside the optional {…}"
+    return None
+
+
+def guidebook_entry(entry_id: str, target: str, source: str, *, context: str = "",
+                    picture: str = "", plural: bool = False) -> dict:
+    """One Sentences or Words & Expressions entry (a picture: words only)."""
+    assert target.strip() and source.strip(), entry_id
+    assert target_problem(target) is None, (entry_id, target)
+    assert len(context) <= MAX_CONTEXT_LENGTH, (entry_id, context)
+    entry = {"id": entry_id, "target": target, "source": source}
+    if context:
+        entry["context"] = context
+    if picture:
+        entry["picture"] = {"asset": picture}
+        if plural:
+            entry["picture"]["plural"] = True
+    return entry
+
+
+def guidebook_module(module_id: str, title: str, *, sentences: list[dict] = (),
+                     words: list[dict] = (), overview: str = "") -> dict:
+    assert title.strip(), module_id
+    assert all("picture" not in sentence for sentence in sentences), module_id
+    return {"id": module_id, "title": title, "sentences": list(sentences),
+            "words": list(words), "overview": overview}
+
+
+def guidebook(modules: list[dict], *, draft: bool = False) -> dict:
+    value = {"publicationState": "draft"} if draft else {}
+    value["modules"] = list(modules)
+    return value
+
+
+def convert_guidebook_v11(guidebook_v11: dict, lesson_id: str) -> dict:
+    """The Dart converter's `_convertGuidebook`: one module, "Module 1"."""
+    draft = guidebook_v11.get("publicationState") == "draft"
+    overviews, goals, explanations, lines, words, ids = [], [], [], [], [], set()
+    draft_items = 0
+    for item in guidebook_v11.get("content") or []:
+        if not isinstance(item, dict):
+            continue
+        kind, role = item.get("kind"), item.get("role")
+        text = item.get("text").strip() if isinstance(item.get("text"), str) else ""
+        if item.get("publicationState") == "draft":
+            draft_items += 1
+        if not text and kind not in ("exercise", "presentation"):
+            continue
+        if kind == "explanation" and role == "overview":
+            overviews.append(text)
+        elif kind == "text" and role == "goal":
+            goals.append(text)
+        elif kind in ("explanation", "text"):
+            explanations.append(text)
+        elif kind == "vocabulary":
+            pair = vocabulary_pair(text)
+            entry_id = str(item.get("id") or "").strip()
+            if pair is None or target_problem(pair[0]) is not None or not entry_id or entry_id in ids:
+                lines.append(text)
+            else:
+                ids.add(entry_id)
+                words.append({"id": entry_id, "target": pair[0], "source": pair[1]})
+        elif kind == "example":
+            lines.append(text)
+    insights = []
+    for insight in guidebook_v11.get("insights") or []:
+        if isinstance(insight, dict):
+            paragraph = "\n".join(part for part in (str(insight.get("title") or "").strip(),
+                                                    str(insight.get("text") or "").strip()) if part)
+            if paragraph:
+                insights.append(paragraph)
+    overview = "\n\n".join([*overviews, *goals, *explanations, *insights,
+                             *(["\n".join(lines)] if lines else [])])
+    modules = []
+    if overview or words:
+        modules.append({"id": f"{lesson_id}_module_1", "title": "Module 1", "sentences": [],
+                        "words": words, "overview": overview})
+    return guidebook(modules, draft=draft or draft_items > 0)
+
+
 def convert_course_v11_to_v12(course: dict) -> dict:
     """A v12 copy of a v11 Course dict (checksums are the caller's job)."""
     course = copy.deepcopy(course)
     if course.get("formatVersion") != 11:
         raise ValueError("only Course Model v11 converts to v12")
     course["formatVersion"] = 12
-    for lesson in course.get("lessons", []):
-        guidebook = lesson.get("guidebook")
-        if isinstance(guidebook, dict) and isinstance(guidebook.get("content"), list):
-            guidebook["content"] = [convert_content(c) for c in guidebook["content"]]
+    for number, lesson in enumerate(course.get("lessons", []), 1):
+        if isinstance(lesson.get("guidebook"), dict):
+            lesson["guidebook"] = convert_guidebook_v11(
+                lesson["guidebook"], str(lesson.get("lessonId") or f"lesson_{number}"))
         for round_ in lesson.get("rounds", []):
             round_["content"] = [convert_content(c, round_.get("updatedAt"))
                                  for c in round_.get("content", [])]

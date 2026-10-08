@@ -596,9 +596,25 @@ void main() {
         },
       };
       content.add(flashcard('manifest-round-flashcard', 33));
-      (lesson['guidebook'] as Map)['content'] = [
-        flashcard('manifest-guidebook-flashcard', 34),
-      ];
+      // Build 266: a GuideBook word's picture.
+      lesson['guidebook'] = {
+        'modules': [
+          {
+            'id': 'manifest-guidebook-module',
+            'title': 'Animals',
+            'sentences': <Object>[],
+            'words': [
+              {
+                'id': 'manifest-guidebook-word',
+                'target': 'il gatto',
+                'source': 'the cat',
+                'picture': {'asset': refs[34], 'sharedImageSource': source},
+              },
+            ],
+            'overview': '',
+          },
+        ],
+      };
       raw['imageLibrary'] = [
         {'asset': refs[35], 'sharedImageSource': source},
       ];

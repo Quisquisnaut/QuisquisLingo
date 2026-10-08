@@ -10,9 +10,14 @@ class EditorAppBarActions extends StatefulWidget {
     super.key,
     this.showInternalIdsToggle = true,
     this.helpPrimitive,
+    this.helpQuestion,
   });
 
   final bool showInternalIdsToggle;
+
+  /// An Editor Help question (`editorHelp.qa.<id>`) Help opens at, already
+  /// expanded (Build 266: the GuideBook pages open `guidebook`).
+  final String? helpQuestion;
 
   /// The primitive the canonical editor shows (Build 261 Revision 6): Help
   /// then opens the Exercise primitives reference at its section instead
@@ -42,7 +47,7 @@ class _EditorAppBarActionsState extends State<EditorAppBarActions> {
         onPressed: () => Navigator.of(context).push<void>(
           MaterialPageRoute(
             builder: (_) => widget.helpPrimitive == null
-                ? const EditorHelpScreen()
+                ? EditorHelpScreen(question: widget.helpQuestion)
                 : ExercisePrimitivesHelpScreen(focus: widget.helpPrimitive),
           ),
         ),

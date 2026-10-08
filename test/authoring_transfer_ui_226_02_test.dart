@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/screens/course_editor_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'support/guidebook_fixtures.dart';
 
 final _beforeTime = DateTime.utc(2026, 9, 4, 9);
 final _transferTime = DateTime.utc(2026, 9, 5, 12);
@@ -623,14 +624,9 @@ Course _course({bool invalidAnswer = false}) => Course(
       lessonId: 'lesson-one',
       updatedAt: _beforeTime,
       title: 'First',
-      guidebook: Guidebook(
-        content: const [
-          LearningContent(
-            id: 'guide',
-            kind: 'text',
-            text: 'Original GuideBook',
-          ),
-        ],
+      guidebook: testGuidebook(
+        overview: 'Original GuideBook',
+        words: [testEntry('guide', 'casa = house')],
       ),
       rounds: [
         LearningRound(

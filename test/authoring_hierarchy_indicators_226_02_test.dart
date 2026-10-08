@@ -9,6 +9,7 @@ import 'package:quisquislingo_app/services/course_authoring_transfer_service.dar
 import 'package:quisquislingo_app/services/course_editor_service.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'support/guidebook_fixtures.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -1231,15 +1232,10 @@ LearningRound _cleanRound(String id, {bool draftFirst = false}) =>
       ],
     );
 
-Guidebook _guidebook(String id) => Guidebook(
-  content: [
-    LearningContent.textual(
-      id: id,
-      kind: 'explanation',
-      role: 'overview',
-      text: 'Reviewed overview.',
-    ),
-  ],
+Guidebook _guidebook(String id) => testGuidebook(
+  moduleId: '${id}_module',
+  overview: 'Reviewed overview.',
+  words: [testEntry(id, 'casa = house')],
 );
 
 Exercise _choice(String id, {bool draft = false, required int correct}) =>

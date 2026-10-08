@@ -26,6 +26,13 @@ Set<String> _jsonWalkReferences(Course course) {
           CourseMediaStore.isReference(asset)) {
         out.add(asset);
       }
+      // Build 266: a GuideBook word's picture.
+      final picture = node['picture'];
+      if (picture is Map &&
+          picture['asset'] is String &&
+          CourseMediaStore.isReference(picture['asset'] as String)) {
+        out.add(picture['asset'] as String);
+      }
       node.values.forEach(visit);
     } else if (node is List) {
       node.forEach(visit);
@@ -45,6 +52,33 @@ Map<String, dynamic> _demoJson() =>
         as Map<String, dynamic>;
 
 String _media(String c) => 'media:${c * 64}.png';
+
+/// Build 266: a GuideBook whose one word has [asset] as its picture.
+Map<String, dynamic> _guidebookWithPicture(
+  String asset, {
+  Map<String, dynamic>? sharedImageSource,
+}) => {
+  'modules': [
+    {
+      'id': 'usage_gb_module',
+      'title': 'Animals',
+      'sentences': <Object>[],
+      'words': [
+        {
+          'id': 'usage_gb',
+          'target': 'il gatto',
+          'source': 'the cat',
+          'picture': {
+            'asset': asset,
+            'sharedImageSource': ?sharedImageSource,
+            'plural': true,
+          },
+        },
+      ],
+      'overview': '',
+    },
+  ],
+};
 
 Map<String, dynamic> _image(String asset) => {
   'role': 'clue',
@@ -86,10 +120,7 @@ Course _everywhere() {
     0,
     presentation('usage_intro', _media('e'), role: 'lesson_intro'),
   );
-  final guidebook = (lesson['guidebook'] ??= <String, dynamic>{}) as Map;
-  (guidebook['content'] ??= <dynamic>[]).add(
-    presentation('usage_gb', _media('f')),
-  );
+  lesson['guidebook'] = _guidebookWithPicture(_media('f'));
   json['coverImage'] = _media('0');
   return Course.fromJson(json);
 }
@@ -106,7 +137,8 @@ void main() {
     expect(cover.location, 'Course cover');
     expect(cover.element, isNull);
     final guidebook = uses.singleWhere((use) => use.asset == _media('f'));
-    expect(guidebook.location, startsWith('Lesson 1 › GuideBook › item '));
+    expect(guidebook.location, 'Lesson 1 › GuideBook › Animals › il gatto');
+    expect(guidebook.element?.isPlural, isTrue);
     final intro = uses.singleWhere((use) => use.asset == _media('e'));
     expect(intro.location, 'Lesson 1 › Round 1 › item 1');
   });
@@ -137,7 +169,6 @@ void main() {
   test('the Shared Image Library source is found wherever the image is', () {
     final json = _demoJson();
     final lesson = (json['lessons'] as List).first as Map;
-    final guidebook = (lesson['guidebook'] ??= <String, dynamic>{}) as Map;
     const source = SharedImageSource(
       id: 'cat-01',
       label: 'Cat',
@@ -145,20 +176,10 @@ void main() {
       tags: ['cat'],
       origin: 'local',
     );
-    (guidebook['content'] ??= <dynamic>[]).add({
-      'id': 'gb_source',
-      'publicationState': 'published',
-      'kind': 'exercise',
-      'required': false,
-      'exercise': {
-        'updatedAt': '2026-09-01T00:00:00.000Z',
-        'primitive': 'presentation',
-        'prompt': [
-          {..._image(_media('9')), 'sharedImageSource': source.toJson()},
-        ],
-        'evaluation': {'mode': 'none'},
-      },
-    });
+    lesson['guidebook'] = _guidebookWithPicture(
+      _media('9'),
+      sharedImageSource: source.toJson(),
+    );
     final course = Course.fromJson(json);
     expect(CourseImageUsage.sharedSourceOf(course, _media('9'))?.id, 'cat-01');
     expect(CourseImageUsage.sharedSourceOf(course, _media('8')), isNull);

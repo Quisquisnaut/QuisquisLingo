@@ -26,21 +26,13 @@ class PublicationService {
   /// Returns the learner-safe embedded Guidebook branch.
   ///
   /// A Draft Guidebook remains identifiable as Draft so learner surfaces can
-  /// disable its action, but none of its authored content is delivered.
+  /// disable its action, but none of its modules is delivered. A Published
+  /// one is delivered whole (Build 266: no module or entry is Draft).
   Guidebook learnerGuidebook(Guidebook source) {
     if (!source.publicationState.isPublished) {
-      return Guidebook(
-        publicationState: PublicationState.draft,
-        content: const [],
-      );
+      return Guidebook(publicationState: PublicationState.draft);
     }
-    return Guidebook(
-      insights: source.insights,
-      content: [
-        for (final content in source.content)
-          if (content.publicationState.isPublished) content,
-      ],
-    );
+    return source;
   }
 
   /// Imports enter ordinary untrusted authoring as Draft without changing IDs.
@@ -54,10 +46,6 @@ class PublicationService {
       final guidebook = lesson['guidebook'];
       if (guidebook is Map) {
         guidebook['publicationState'] = PublicationState.draft.name;
-        for (final rawContent
-            in (guidebook['content'] as List? ?? const []).whereType<Map>()) {
-          rawContent['publicationState'] = PublicationState.draft.name;
-        }
       }
       for (final rawRound
           in (lesson['rounds'] as List? ?? const []).whereType<Map>()) {

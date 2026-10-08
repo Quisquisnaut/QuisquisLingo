@@ -90,11 +90,20 @@ abstract final class CourseImageRemoval {
           lessonChanged = true;
         }
       }
+      // Build 266: a GuideBook word's picture is cleared; the word stays.
       final guidebook = lesson['guidebook'];
-      if (guidebook is Map && guidebook['content'] is List) {
-        for (final content
-            in (guidebook['content'] as List).cast<Map<String, dynamic>>()) {
-          if (stripContent(content)) lessonChanged = true;
+      if (guidebook is Map && guidebook['modules'] is List) {
+        for (final module in (guidebook['modules'] as List).whereType<Map>()) {
+          final words = module['words'];
+          if (words is! List) continue;
+          for (final word in words.whereType<Map>()) {
+            final picture = word['picture'];
+            if (picture is Map && assets.contains(picture['asset'])) {
+              word.remove('picture');
+              cleared++;
+              lessonChanged = true;
+            }
+          }
         }
       }
       if (lessonChanged) lesson['updatedAt'] = stamp;

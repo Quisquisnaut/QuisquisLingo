@@ -7,6 +7,7 @@ import 'package:quisquislingo_app/screens/course_editor_screen.dart';
 import 'package:quisquislingo_app/screens/round_screen.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'support/guidebook_fixtures.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -186,9 +187,13 @@ Course _course() {
     lessonId: 'responsive_lesson',
     title: 'Responsive Lesson',
     rounds: [round],
-    guidebook: Guidebook(
-      vocabulary: const ['casa = house', 'pane = bread', 'acqua = water'],
-      examples: const ['La casa è grande.', 'Il pane è fresco.', 'Bevo acqua.'],
+    guidebook: testGuidebook(
+      wordLines: const ['casa = house', 'pane = bread', 'acqua = water'],
+      sentenceLines: const [
+        'La casa è grande. = The house is big.',
+        'Il pane è fresco. = The bread is fresh.',
+        'Bevo acqua. = I drink water.',
+      ],
     ),
   );
   return Course(

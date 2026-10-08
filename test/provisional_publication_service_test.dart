@@ -7,6 +7,7 @@ import 'package:quisquislingo_app/services/course_audit_service.dart';
 import 'package:quisquislingo_app/services/course_authoring_transfer_service.dart';
 import 'package:quisquislingo_app/services/provisional_publication_service.dart';
 import 'package:quisquislingo_app/services/publication_service.dart';
+import 'support/guidebook_fixtures.dart';
 
 const _service = ProvisionalPublicationService();
 final _before = DateTime.utc(2026, 9, 7, 10);
@@ -226,26 +227,14 @@ void main() {
     );
   });
 
+  // Build 266: a GuideBook is Draft or Published as a whole; a Published
+  // one without a module keeps the Lesson Draft as an empty one does.
   for (final guidebook in [
-    Guidebook(
-      publicationState: PublicationState.draft,
-      content: _guidebook().content,
-    ),
-    Guidebook(
-      content: [
-        LearningContent.textual(
-          id: 'guide-source',
-          kind: 'text',
-          role: 'overview',
-          text: 'Required pending guide.',
-          required: true,
-          publicationState: PublicationState.draft,
-        ),
-      ],
-    ),
+    _guidebook().copyWith(publicationState: PublicationState.draft),
+    Guidebook(),
   ]) {
     test(
-      'Draft GuideBook or required content keeps provisional Lesson Draft ${guidebook.publicationState}',
+      'Draft or empty GuideBook keeps provisional Lesson Draft ${guidebook.publicationState}',
       () {
         final source = _course(guidebook: guidebook);
         final result = _service.reconcile(source, updatedAt: _saved);
@@ -376,18 +365,15 @@ void main() {
   );
 
   test(
-    'only optional Draft GuideBook Content leaves the learner GuideBook empty',
+    'a GuideBook module without entries keeps the provisional Lesson Draft',
     () {
       final source = _course(
         guidebook: Guidebook(
-          content: [
-            LearningContent.textual(
-              id: 'guide-source',
-              kind: 'text',
-              role: 'overview',
-              text: 'Not delivered yet.',
-              publicationState: PublicationState.draft,
-              required: false,
+          modules: [
+            GuidebookModule(
+              id: 'guide-module',
+              title: 'Not ready',
+              overview: 'Not delivered yet.',
             ),
           ],
         ),
@@ -631,10 +617,6 @@ Course _reviewChildren(Course source) => Course.fromJson({
         'guidebook': {
           ...lesson.guidebook.toJson(),
           'publicationState': 'published',
-          'content': [
-            for (final content in lesson.guidebook.content)
-              {...content.toJson(), 'publicationState': 'published'},
-          ],
         },
         'rounds': [
           for (final round in lesson.rounds)
@@ -713,8 +695,8 @@ Course _course({
               required: requiredExercise,
               role: 'reviewed-example',
               sourceRefs:
-                  (guidebook ?? _guidebook()).content.any(
-                    (content) => content.id == 'guide-source',
+                  (guidebook ?? _guidebook()).entries.any(
+                    (entry) => entry.id == 'guide-source',
                   )
                   ? const ['guide-source']
                   : const [],
@@ -743,16 +725,9 @@ Course _course({
   ],
 );
 
-Guidebook _guidebook() => Guidebook(
-  content: [
-    LearningContent.textual(
-      id: 'guide-source',
-      kind: 'text',
-      role: 'overview',
-      text: 'Reviewed guide content.',
-      required: true,
-    ),
-  ],
+Guidebook _guidebook() => testGuidebook(
+  overview: 'Reviewed guide content.',
+  words: [testEntry('guide-source', 'acqua = water')],
 );
 
 Course _replaceLesson(Course source, Map<String, dynamic> changes) =>

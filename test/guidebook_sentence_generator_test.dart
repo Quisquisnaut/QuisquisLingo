@@ -5,6 +5,7 @@ import 'package:quisquislingo_app/models/exercise_features.dart';
 import 'package:quisquislingo_app/screens/course_editor_screen.dart';
 import 'package:quisquislingo_app/services/round_playability_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'support/guidebook_fixtures.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -187,19 +188,19 @@ class _GeneratorFixture {
 }
 
 _GeneratorFixture _generatorFixture() {
-  final guidebook = Guidebook(
+  final guidebook = testGuidebook(
     overview: 'Common places and useful everyday objects.',
-    vocabulary: const [
+    wordLines: const [
       'casa = house',
       'pane = bread',
       'acqua = water',
       'libro = book',
     ],
-    examples: const [
-      'La casa è molto grande.',
-      'Il pane è sul tavolo.',
-      'Bevo acqua ogni mattina.',
-      'Il libro è nella borsa.',
+    sentenceLines: const [
+      'La casa è molto grande. = The house is very big.',
+      'Il pane è sul tavolo. = The bread is on the table.',
+      'Bevo acqua ogni mattina. = I drink water every morning.',
+      'Il libro è nella borsa. = The book is in the bag.',
     ],
   );
   final existingRound = LearningRound(

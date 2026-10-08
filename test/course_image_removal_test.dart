@@ -70,10 +70,25 @@ Course _course() {
   content.add(LearningContent.fromExercise(imageWord).toJson());
   content.add(_presentation('pres_b', _media('b')));
   content.add(_presentation('pres_z', _media('e')));
-  final guidebook = (lesson['guidebook'] ??= <String, dynamic>{}) as Map;
-  (guidebook['content'] ??= <dynamic>[]).add(
-    _presentation('gb_c', _media('c')),
-  );
+  // Build 266: a GuideBook's pictures are its words' pictures.
+  lesson['guidebook'] = {
+    'modules': [
+      {
+        'id': 'gb_module',
+        'title': 'Pictures',
+        'sentences': <dynamic>[],
+        'words': [
+          {
+            'id': 'gb_c',
+            'target': 'casa',
+            'source': 'house',
+            'picture': {'asset': _media('c'), 'plural': true},
+          },
+        ],
+        'overview': '',
+      },
+    ],
+  };
   json['coverImage'] = _media('0');
   return Course.fromJson(json);
 }
@@ -81,7 +96,6 @@ Course _course() {
 LearningContent _content(Course course, String id) => [
   for (final lesson in course.lessons) ...[
     for (final round in lesson.rounds) ...round.content,
-    ...lesson.guidebook.content,
   ],
 ].singleWhere((content) => content.id == id);
 
@@ -147,6 +161,10 @@ void main() {
       expect(used, isNot(contains(gone)));
     }
     expect(result.course.coverImage, isEmpty);
+    // The GuideBook word stays; only its picture (and its mark) goes.
+    final word = result.course.lessons.first.guidebook.words.single;
+    expect(word.id, 'gb_c');
+    expect(word.picture, isNull);
     // Unrelated images and content are untouched.
     expect(used, containsAll([_media('e'), _media('a'), _house]));
     expect(

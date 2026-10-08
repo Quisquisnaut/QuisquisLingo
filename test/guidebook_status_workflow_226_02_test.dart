@@ -11,6 +11,7 @@ import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'support/pump_file_io.dart';
+import 'support/guidebook_fixtures.dart';
 
 const _profileId = '12345678-1234-4234-9234-123456789abc';
 const _lessonId = 'guidebook-status-lesson';
@@ -120,7 +121,11 @@ void main() {
       (await tester.runAsync(() => service.saveUserCourse(course)));
       await _openLesson(tester, course, service);
       await _openGuidebook(tester);
-      await tester.enterText(_field('Overview'), '');
+      // Build 266: removing the only module empties the GuideBook.
+      await tester.tap(find.byKey(const ValueKey('guidebook-module-remove-0')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('guidebook-module-remove-confirm')));
+      await tester.pumpAndSettle();
       await _saveGuidebook(tester, draft: true);
       _expectBranches(tester, draft: true, guidebookConcern: true);
       await _confirmCourse(tester);
@@ -129,7 +134,7 @@ void main() {
         () => service.listUserCourses(),
       ))!).single;
       final guidebook = reloaded.lessons.single.guidebook;
-      expect(guidebook.content, isEmpty);
+      expect(guidebook.modules, isEmpty);
       expect(guidebook.publicationState, PublicationState.draft);
       expect(guidebook.toJson()['publicationState'], 'draft');
       final findings = _concerns(
@@ -143,12 +148,14 @@ void main() {
   );
 
   testWidgets(
-    'Guidebook source-reference Error reaches its ancestors without coloring the Rounds branch',
+    'Guidebook ID Error reaches its ancestors without coloring the Rounds branch',
     (tester) async {
-      final course = _course(missingGuidebookSource: true);
+      // Build 266: GuideBook entries carry no sourceRefs; a repeated entry
+      // ID is the GuideBook's own Error.
+      final course = _course(duplicateGuidebookEntry: true);
       final audit = CourseAuditService();
       final findings = _concerns(audit.auditLesson(course, _lessonId));
-      expect(findings.map((issue) => issue.code), ['SOURCE_REF_MISSING']);
+      expect(findings.map((issue) => issue.code), ['ID_DUPLICATE']);
       expect(findings.single.roundId, isNull);
       expect(
         _concerns(audit.auditRound(course, 'guidebook-status-round')),
@@ -164,7 +171,10 @@ void main() {
       final retained = tester
           .widget<GuidebookEditorScreen>(find.byType(GuidebookEditorScreen))
           .guidebook;
-      expect(retained.content.single.sourceRefs, ['missing-guidebook-source']);
+      expect(retained.words.map((word) => word.id), [
+        'guidebook-status-overview',
+        'guidebook-status-overview',
+      ]);
       expect(tester.takeException(), isNull);
     },
   );
@@ -405,10 +415,6 @@ Iterable<CourseAuditIssue> _concerns(CourseAuditResult result) =>
           issue.severity == AuditSeverity.warning,
     );
 
-Finder _field(String label) => find.byWidgetPredicate(
-  (widget) => widget is TextField && widget.decoration?.labelText == label,
-);
-
 void _viewport(WidgetTester tester, {double width = 1000}) {
   tester.view.devicePixelRatio = 1;
   tester.view.physicalSize = Size(width, 1200);
@@ -416,7 +422,7 @@ void _viewport(WidgetTester tester, {double width = 1000}) {
   addTearDown(tester.view.resetPhysicalSize);
 }
 
-Course _course({bool missingGuidebookSource = false}) => Course(
+Course _course({bool duplicateGuidebookEntry = false}) => Course(
   courseId: 'guidebook-status-course',
   publicationState: PublicationState.published,
   learningLanguage: 'Italian',
@@ -431,19 +437,12 @@ Course _course({bool missingGuidebookSource = false}) => Course(
       lessonId: _lessonId,
       publicationState: PublicationState.published,
       title: 'Guidebook status Lesson',
-      guidebook: Guidebook(
-        publicationState: PublicationState.published,
-        content: [
-          LearningContent(
-            id: 'guidebook-status-overview',
-            publicationState: PublicationState.published,
-            kind: 'explanation',
-            role: 'overview',
-            text: 'A reviewed Lesson overview.',
-            sourceRefs: [
-              if (missingGuidebookSource) 'missing-guidebook-source',
-            ],
-          ),
+      guidebook: testGuidebook(
+        overview: 'A reviewed Lesson overview.',
+        words: [
+          testEntry('guidebook-status-overview', 'casa = house'),
+          if (duplicateGuidebookEntry)
+            testEntry('guidebook-status-overview', 'pane = bread'),
         ],
       ),
       rounds: [

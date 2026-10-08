@@ -4,7 +4,7 @@ import 'package:crypto/crypto.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/course_models.dart';
-import 'guidebook_vocabulary.dart';
+import '../models/guidebook_text.dart';
 import 'profile_service.dart';
 import 'publication_service.dart';
 
@@ -16,6 +16,8 @@ class VocabularyReviewEntry {
     required this.prompt,
     required this.answer,
     this.supplementary = const [],
+    this.context = '',
+    this.picture,
   });
 
   final String identity;
@@ -24,6 +26,14 @@ class VocabularyReviewEntry {
   final String prompt;
   final String answer;
   final List<String> supplementary;
+
+  /// Build 266: the entry's Context, shown as a small grey label after the
+  /// answer; it joins the fingerprint.
+  final String context;
+
+  /// Build 266: the entry's picture, shown with the answer. It does not join
+  /// the fingerprint, so adding or changing it keeps the entry's memory.
+  final GuidebookPicture? picture;
 
   @override
   bool operator ==(Object other) =>
@@ -34,6 +44,8 @@ class VocabularyReviewEntry {
           fingerprint == other.fingerprint &&
           prompt == other.prompt &&
           answer == other.answer &&
+          context == other.context &&
+          picture == other.picture &&
           _sameStrings(supplementary, other.supplementary);
 
   @override
@@ -43,6 +55,8 @@ class VocabularyReviewEntry {
     fingerprint,
     prompt,
     answer,
+    context,
+    picture,
     Object.hashAll(supplementary),
   );
 }
@@ -83,20 +97,26 @@ class VocabularyReviewService {
     if (!course.useGuidebook) return const [];
     final guidebook = _publication.learnerGuidebook(lesson.guidebook);
     final parsed = <_ParsedVocabulary>[];
-    for (final content in guidebook.content) {
-      if (content.kind != 'vocabulary') continue;
-      final pair = GuidebookVocabulary.parse(content.text);
-      if (pair == null) continue;
-      final supplementary = const <String>[];
+    // Build 266: Words & Expressions only, never Sentences. The Context
+    // joins the fingerprint (an entry without one keeps the fingerprint it
+    // had before Build 266), so changing it restarts that entry's memory.
+    for (final word in guidebook.words) {
       final fingerprint = _digest(
-        jsonEncode(['qql232-v1', pair.target, pair.source, supplementary]),
+        jsonEncode([
+          'qql232-v1',
+          word.target,
+          word.source,
+          [if (word.context.isNotEmpty) word.context],
+        ]),
       );
       parsed.add(
         _ParsedVocabulary(
-          contentId: content.id.trim(),
+          contentId: word.id.trim(),
           fingerprint: fingerprint,
-          prompt: pair.target,
-          answer: pair.source,
+          prompt: GuidebookText.display(word.target),
+          answer: word.source,
+          context: word.context,
+          picture: word.picture,
         ),
       );
     }
@@ -124,6 +144,8 @@ class VocabularyReviewService {
           fingerprint: item.fingerprint,
           prompt: item.prompt,
           answer: item.answer,
+          context: item.context,
+          picture: item.picture,
         ),
     ];
   }
@@ -293,12 +315,16 @@ class _ParsedVocabulary {
     required this.fingerprint,
     required this.prompt,
     required this.answer,
+    required this.context,
+    required this.picture,
   });
 
   final String contentId;
   final String fingerprint;
   final String prompt;
   final String answer;
+  final String context;
+  final GuidebookPicture? picture;
 }
 
 bool _sameStrings(List<String> a, List<String> b) {

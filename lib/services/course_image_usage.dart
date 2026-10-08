@@ -22,11 +22,11 @@ class CourseImageUse {
 
 /// The single answer to "where does this Course use this image?".
 ///
-/// A Course uses an image in any image element of any Lesson content — the
-/// content of every Round and of the Lesson's GuideBook, whether that content
-/// is an exercise (prompt, answer items, layout) or a presentation such as a
-/// flashcard, explanation or Lesson introduction — as its cover and as the
-/// avatars of its Story narrator and characters (Build 256 Revision 5). Storage
+/// A Course uses an image in any image element of any Round content, whether
+/// that content is an exercise (prompt, answer items, layout) or a
+/// presentation such as a flashcard or a card; in the picture of a GuideBook
+/// Words & Expressions entry (Build 266); as its cover and as the avatars of
+/// its Story narrator and characters (Build 256 Revision 5). Storage
 /// (`CourseMediaStore.referencesOf`), the Image Library's IN USE badge and the
 /// Exercise editor all ask here, so they always agree.
 abstract final class CourseImageUsage {
@@ -46,13 +46,19 @@ abstract final class CourseImageUsage {
           );
         }
       }
-      final guidebook = lesson.guidebook.content;
-      for (var c = 0; c < guidebook.length; c++) {
-        _addContent(
-          out,
-          guidebook[c],
-          '$lessonName › GuideBook › item ${c + 1}',
-        );
+      for (final module in lesson.guidebook.modules) {
+        for (final word in module.words) {
+          final picture = word.picture;
+          if (picture == null) continue;
+          out.add(
+            CourseImageUse(
+              asset: picture.asset,
+              location:
+                  '$lessonName › GuideBook › ${module.title} › ${word.target}',
+              element: picture.asImageElement,
+            ),
+          );
+        }
       }
     }
     if (course.coverImage.isNotEmpty) {

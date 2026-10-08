@@ -146,10 +146,7 @@ class ProvisionalPublicationService {
           !source.useGuidebook ||
           (lesson.guidebook.publicationState.isPublished &&
               !lessonsWithEmptyGuidebooks.contains(lesson.lessonId) &&
-              lesson.guidebook.content.every(
-                (content) =>
-                    !content.required || content.publicationState.isPublished,
-              ));
+              !lesson.guidebook.hasNoEntries);
       final publishLesson =
           (lesson.provisionalDraft || lessonJustCompleted(lesson, rounds)) &&
           !lesson.publicationState.isPublished &&

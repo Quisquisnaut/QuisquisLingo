@@ -135,9 +135,10 @@ void main() {
   });
 
   test('the GuideBook has notes and vocabulary', () {
-    final content = lesson.guidebook.content;
-    expect(content.first.role, 'overview');
-    expect(content.where((c) => c.role == 'grammar'), hasLength(4));
+    // Build 266 Revision 0: one module whose Overview holds the overview and
+    // the four notes (Revision 3 splits it into modules).
+    final module = lesson.guidebook.modules.single;
+    expect(module.overview.split('\n\n'), hasLength(5));
     final words = VocabularyReviewService().resolveEntries(course, lesson);
     // Build 260 Revision 7 adds the egg.
     expect(words, hasLength(36));

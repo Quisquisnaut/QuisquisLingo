@@ -410,7 +410,7 @@ const _rawDraftLessonCourse = r'''
       "title": "Persisted greetings",
       "section": false,
       "guidebook": {
-        "content": []
+        "modules": []
       },
       "rounds": [
         {

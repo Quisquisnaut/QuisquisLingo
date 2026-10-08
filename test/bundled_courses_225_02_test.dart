@@ -84,9 +84,9 @@ void main() {
           if (!allIds.add(lesson.duel.id)) {
             failures.add('${entry.value} | DUPLICATE_ID | ${lesson.duel.id}');
           }
-          for (final content in lesson.guidebook.content) {
-            if (!allIds.add(content.id)) {
-              failures.add('${entry.value} | DUPLICATE_ID | ${content.id}');
+          for (final id in lesson.guidebook.ids) {
+            if (!allIds.add(id)) {
+              failures.add('${entry.value} | DUPLICATE_ID | $id');
             }
           }
           final duel = const DuelEligibilityService().evaluate(lesson);

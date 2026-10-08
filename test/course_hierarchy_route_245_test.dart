@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/screens/course_editor_screen.dart';
+import 'support/guidebook_fixtures.dart';
 
 void main() {
   testWidgets(
@@ -157,15 +158,9 @@ Course _course() {
         updatedAt: DateTime.utc(2026, 9, 22, 10),
         title: 'Lesson',
         themeIconAsset: 'assets/lesson_icons/work.png',
-        guidebook: Guidebook(
-          content: [
-            LearningContent.textual(
-              id: 'guide_source',
-              kind: 'explanation',
-              role: 'overview',
-              text: 'GuideBook source stays untouched',
-            ),
-          ],
+        guidebook: testGuidebook(
+          overview: 'GuideBook source stays untouched',
+          words: [testEntry('guide_source', 'casa = house')],
         ),
         rounds: [round],
       ),

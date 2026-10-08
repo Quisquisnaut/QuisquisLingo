@@ -11,6 +11,7 @@ import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'support/pump_file_io.dart';
+import 'support/guidebook_fixtures.dart';
 
 const _profileId = '12345678-1234-4234-9234-123456789abc';
 
@@ -615,15 +616,9 @@ Course _course() {
         title: 'Lesson',
         section: true,
         sectionName: 'Old section',
-        guidebook: Guidebook(
-          content: [
-            LearningContent.textual(
-              id: 'guide_source',
-              kind: 'explanation',
-              role: 'overview',
-              text: 'Reference text',
-            ),
-          ],
+        guidebook: testGuidebook(
+          overview: 'Reference text',
+          words: [testEntry('guide_source', 'casa = house')],
         ),
         rounds: [round],
       ),

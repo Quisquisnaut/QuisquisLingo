@@ -5,6 +5,8 @@ import 'package:quisquislingo_app/screens/course_editor_screen.dart';
 import 'package:quisquislingo_app/services/audit_code_registry.dart';
 import 'package:quisquislingo_app/services/course_audit_service.dart';
 
+import 'support/guidebook_fixtures.dart';
+
 void main() {
   test(
     'missing Exercise source reference belongs to every canonical ancestor',
@@ -113,17 +115,18 @@ void main() {
     },
   );
 
-  test('Guidebook source references remain outside the Rounds branch', () {
+  // Build 266: GuideBook entries carry no sourceRefs; a module concern is
+  // the GuideBook branch's own.
+  test('Guidebook module concerns remain outside the Rounds branch', () {
     final course = _course(
       guidebook: Guidebook(
-        content: const [
-          LearningContent(
-            id: 'guide-content',
-            kind: 'explanation',
-            role: 'overview',
-            text: 'Reviewed overview.',
-            sourceRefs: ['missing-guide-content'],
+        modules: [
+          GuidebookModule(
+            id: 'guide-module',
+            title: 'Greetings',
+            words: [testEntry('guide-content', 'ciao = hello')],
           ),
+          GuidebookModule(id: 'empty-module', title: 'Empty'),
         ],
       ),
     );
@@ -131,7 +134,7 @@ void main() {
     final issue = CourseAuditService()
         .auditLesson(course, lesson.lessonId)
         .issues
-        .singleWhere((issue) => issue.code == 'SOURCE_REF_MISSING');
+        .singleWhere((issue) => issue.code == 'GUIDEBOOK_MODULE_EMPTY');
     expect(issue.roundId, isNull);
     expect(issue.exerciseId, isNull);
     final status = AuthoringHierarchyStatus.fromCourse(course);
@@ -147,6 +150,7 @@ void main() {
         'Guidebook',
         'Guidebook practice',
         'Guidebook Content 1',
+        'Guidebook · Module 1',
       ]) {
         for (final empty in [false, true]) {
           final course = _course(
@@ -211,8 +215,9 @@ void main() {
     expect(status.hasCourseAuditConcern, isFalse);
     // Build 257: ROUND_INTRO_EMPTY and ROUND_INTRO_DUPLICATE; Build 258:
     // PAGE_EMPTY, PAGE_MARK_UNMATCHED and PAGE_LINK_INVALID; Build 261:
-    // READING_ANSWER_IN_TEXT.
-    expect(AuditCode.values, hasLength(125));
+    // READING_ANSWER_IN_TEXT; Build 266: GUIDEBOOK_MODULE_EMPTY,
+    // GUIDEBOOK_MODULE_OVERVIEW_LONG and ROUND_FOCUS_MODULE_MISSING.
+    expect(AuditCode.values, hasLength(128));
   });
 
   test(
@@ -354,15 +359,9 @@ Course _course({
       updatedAt: DateTime.utc(2026, 9, 4),
       guidebook:
           guidebook ??
-          Guidebook(
-            content: [
-              LearningContent.textual(
-                id: 'guide-content',
-                kind: 'explanation',
-                role: 'overview',
-                text: 'Reviewed overview.',
-              ),
-            ],
+          testGuidebook(
+            overview: 'Reviewed overview.',
+            words: [testEntry('guide-content', 'casa = house')],
           ),
       rounds: [
         LearningRound(

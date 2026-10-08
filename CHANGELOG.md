@@ -1,3 +1,72 @@
+# 2.0.66 (Build 266, Revision 0) - GuideBook modules - 2026-10-08
+
+The owner's plan of 5–7 October 2026 (`docs/266_GUIDEBOOK_MODULES_PLAN.md`)
+and the decisions of 8 October: Revision 0 of the plan is split in two
+(this revision and the authoring aids of Revision 1).
+
+- **A GuideBook is a list of modules.** A module is one short topic, its
+  fields in the owner's order: **Title** (its own name, never the Lesson's),
+  **Sentences** (example sentences, each with its translation), **Words &
+  Expressions** (single words and fixed expressions) and a short
+  **Overview**. Each entry has a Target, a Source and an optional
+  **Context** of at most 40 characters (the sense, subject area, formality
+  or who speaks: "il conto = the bill [restaurant]", "il conto = the
+  account [bank]"). A Target may mark words that can be left out, such as
+  an understood subject, with `{io}`: learners see "(io)" in grey and Word
+  Lookup finds both forms. A Words & Expressions entry may have a
+  **picture**, chosen like an exercise picture and marked **Plural** when
+  the word means several things ("i gatti").
+- **Format (Course Model v12, clean cut):** `guidebook` is
+  `{publicationState?, modules[]}`; a module is `{id, title, sentences[],
+  words[], overview}`, an entry `{id, target, source, context?, picture?}`,
+  a picture `{asset, sharedImageSource?, plural?}` (words only). Strict
+  parsing: unknown keys, a blank title, target or source, a Context over
+  40 characters, a malformed `{…}` or other answer syntax, a picture on a
+  sentence are format errors. A GuideBook in the earlier shape (`content`,
+  `insights`) is refused: "This Course's GuideBooks use the earlier shape.
+  Since build 266 a GuideBook is a list of modules: regenerate the Course."
+  At most 100 modules and 1,000 entries per GuideBook. A Round may store
+  `focusModuleId` and `supportingModuleIds`. **Insights, goals, grammar and
+  the GuideBook's Content items are gone**; the whole GuideBook is Draft or
+  Published.
+- **Editor:** the GuideBook page lists the modules (Add module, drag to
+  reorder, Remove asking first and saying how many Rounds focus on the
+  module, counts "4 sentences · 12 words"); the module page has the Title,
+  a row per entry with Target, Source and Context (drag, delete), a picture
+  on each word row with Plural, and the Overview. Done or leaving the page
+  keeps the module; a row with a Target and no Source (or the reverse) is
+  refused and pointed to; an empty row is dropped. The Lesson's GuideBook
+  card counts the modules. The Round editor has a **Focus module** menu
+  (and "Also reviews: …" for supporting modules); saving a GuideBook drops
+  links to removed modules and `sourceRefs` to removed entries; a Round
+  moved or copied to another Lesson loses its modules. Help in the app bar
+  opens the GuideBook question of Editor Help.
+- **Learners:** the GuideBook shows each module (title, Sentences, Words &
+  Expressions, Overview), *target — source* with the Context in grey and a
+  word's picture as a thumbnail (stacked when Plural). Open GuideBook on a
+  Before you start card opens at the Round's focus module. Review
+  vocabulary and Word Lookup read Words & Expressions only, with the
+  Context and the picture (Review shows the picture with the answer; the
+  Context joins Review's memory, the picture does not).
+- **Pictures** of words are Course pictures: IN USE, packages, Fork,
+  Copy, Merge, removal and `MEDIA_ATTRIBUTION_MISSING` count them.
+- **Audit:** `GUIDEBOOK_MODULE_EMPTY` (Warning), `GUIDEBOOK_MODULE_OVERVIEW_LONG`
+  (Info, 500 characters or more), `ROUND_FOCUS_MODULE_MISSING` (Warning);
+  module and entry IDs join the ID checks (128 rules).
+- **Converters** (`tools/convert_course_to_v12.dart`, `tools/qql_course_v12.py`):
+  a v11 GuideBook becomes one module "Module 1", noted for renaming;
+  examples, which have no translation, become lines of its Overview.
+- **Content:** the bundled Courses, the Edge Case demo and fixture, the
+  Korean and future fixtures and the Italian demo package have one module
+  per Lesson; the dummy Publisher fixtures are signed again (test key).
+  The Round Wizard still works as before, from all modules (its redesign is
+  Revision 2).
+- Help EN/IT/ES: the GuideBook, Round Wizard, structure and Word Lookup
+  answers, App Info, the technical reference.
+- Tests: `test/guidebook_modules_266_test.dart`; about 40 test files moved
+  to `test/support/guidebook_fixtures.dart`; the Insights test is removed.
+- Beta expiry `2026-11-07 23:59:59` local time.
+
 # 2.0.65 (Build 265, Revision 11) - Plural pictures; family scenes; spelling blocks - 2026-10-07
 
 The owner's decision of 7 October 2026 (look A of the mock-up, with a

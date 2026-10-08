@@ -426,6 +426,13 @@ def build_course_v11() -> dict:
 
 def build_course() -> dict:
     course = convert_course_v11_to_v12(build_course_v11())
+    # Build 266 (GuideBook Modules): the converter makes one module, "Module
+    # 1", from the overview, the notes and the vocabulary; Revision 3 of
+    # Build 266 splits it into modules that match the Rounds.
+    for lesson in course["lessons"]:
+        module = lesson["guidebook"]["modules"][0]
+        module["id"] = lesson["lessonId"] + "_module"
+        module["title"] = "Le prime parole"
     course["roundNumberingMode"] = "off"
     for lesson in course["lessons"]:
         for round_data in lesson["rounds"]:

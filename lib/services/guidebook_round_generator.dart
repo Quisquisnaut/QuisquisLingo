@@ -2,6 +2,7 @@ import 'dart:math';
 
 import '../models/course_models.dart';
 import '../models/exercise_authoring.dart';
+import '../models/guidebook_text.dart';
 import 'authoring_duplication_service.dart';
 import 'guidebook_vocabulary.dart';
 import 'round_type_compatibility.dart';
@@ -139,7 +140,7 @@ class GuidebookRoundGenerator {
     final material = _GuidebookMaterial.from(guidebook);
     if (material.pairs.length < 3) {
       throw const GuidebookGenerationException(
-        'Add at least three target/source vocabulary pairs to this Lesson Guidebook first. Example: casa = house.',
+        'Add at least three Words & Expressions entries to this Lesson GuideBook first. Example: casa = house.',
       );
     }
     final random = Random(_randomSeed);
@@ -190,8 +191,11 @@ class GuidebookRoundGenerator {
     }
     final random = Random(_randomSeed);
     final duplication = AuthoringDuplicationService(ids: _draftIds);
-    final sourceRefs = guidebook.content
-        .map((content) => content.id)
+    // Build 266 Revision 0 keeps the earlier stamp, over entry IDs: the
+    // first six entries. The Round Wizard's revision records the entries
+    // each exercise uses.
+    final sourceRefs = guidebook.entries
+        .map((entry) => entry.id)
         .take(6)
         .toList(growable: false);
     return [
@@ -526,24 +530,31 @@ class _GuidebookMaterial {
     required this.examples,
   });
 
+  /// Build 266: the Words & Expressions of every module are the pairs and
+  /// its Sentences the examples, in the form without optional words `{…}`
+  /// (the form word blocks use); the first Overview opens the first Round.
   factory _GuidebookMaterial.from(Guidebook guidebook) {
     final pairs = <GuidebookVocabularyPair>[];
     final seen = <String>{};
-    for (final raw in guidebook.vocabulary) {
-      final parsed = GuidebookVocabulary.parse(raw);
-      if (parsed != null &&
-          seen.add(
-            '${GuidebookRoundGenerator._normalize(parsed.target)}|${GuidebookRoundGenerator._normalize(parsed.source)}',
-          )) {
-        pairs.add(parsed);
+    for (final word in guidebook.words) {
+      final pair = GuidebookVocabularyPair(
+        GuidebookText.withoutOptionalWords(word.target),
+        word.source,
+      );
+      if (seen.add(
+        '${GuidebookRoundGenerator._normalize(pair.target)}|${GuidebookRoundGenerator._normalize(pair.source)}',
+      )) {
+        pairs.add(pair);
       }
     }
     final examples = {
-      ...guidebook.examples.map((value) => value.trim()),
-      ...guidebook.expressions.map((value) => value.trim()),
+      for (final sentence in guidebook.sentences)
+        GuidebookText.withoutOptionalWords(sentence.target),
     }.where((value) => value.isNotEmpty).toList(growable: false);
     return _GuidebookMaterial(
-      overview: guidebook.overview.trim(),
+      overview: guidebook.modules
+          .map((module) => module.overview.trim())
+          .firstWhere((overview) => overview.isNotEmpty, orElse: () => ''),
       pairs: pairs,
       examples: examples,
     );

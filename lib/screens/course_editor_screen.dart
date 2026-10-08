@@ -50,6 +50,8 @@ import 'editor_help_screen.dart';
 import 'course_version_history_screen.dart';
 import 'course_info_screen.dart';
 import 'guidebook_screen.dart';
+import 'guidebook_editor_screen.dart';
+import '../services/guidebook_round_links.dart';
 import 'course_editor_search_screen.dart';
 import '../services/course_authoring_transfer_service.dart';
 import '../services/translation_choice_service.dart';
@@ -93,6 +95,9 @@ import '../widgets/lesson_fallback_icon.dart';
 import '../widgets/import_summary.dart';
 import '../services/storage/qql_storage.dart';
 import '../widgets/quick_import_access.dart';
+
+export 'guidebook_editor_screen.dart'
+    show GuidebookEditorScreen, GuidebookModuleEditorScreen;
 
 String _exerciseCountLabel(int count) =>
     '$count ${count == 1 ? 'Exercise' : 'Exercises'}';
@@ -151,8 +156,9 @@ class AuthoringHierarchyStatus {
                 issue.exerciseId == null &&
                 (issue.location ==
                         'Lesson ${index + 1} · ${course.lessons[index].title} · Guidebook' ||
+                    // Build 266: a module's location (and its entries').
                     issue.location.startsWith(
-                      'Lesson ${index + 1} · ${course.lessons[index].title} · Guidebook Content ',
+                      'Lesson ${index + 1} · ${course.lessons[index].title} · Guidebook · ',
                     )),
           ))
             course.lessons[index].lessonId,
@@ -3228,6 +3234,8 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                 timedLimitsSeconds: currentRound.timedLimitsSeconds,
                 content: content,
                 flow: currentRound.flow,
+                focusModuleId: currentRound.focusModuleId,
+                supportingModuleIds: currentRound.supportingModuleIds,
               );
             }
           }
@@ -4116,457 +4124,6 @@ class LessonAuthoringPreviewScreen extends StatelessWidget {
   );
 }
 
-class GuidebookEditorScreen extends StatefulWidget {
-  final Guidebook guidebook;
-  final String guidebookId;
-
-  /// The working copy, for the Course preview flag (Build 261 Revision 2).
-  final Course? course;
-  const GuidebookEditorScreen({
-    super.key,
-    required this.guidebook,
-    this.guidebookId = '',
-    this.course,
-  });
-  @override
-  State<GuidebookEditorScreen> createState() => _GuidebookEditorScreenState();
-}
-
-class _GuidebookEditorScreenState extends State<GuidebookEditorScreen> {
-  late final TextEditingController _overview,
-      _usageExamples,
-      _vocabulary,
-      _grammar;
-  late List<GuidebookInsight> _insights;
-  @override
-  void initState() {
-    super.initState();
-    final g = widget.guidebook;
-    _overview = TextEditingController(text: g.overview);
-    _usageExamples = TextEditingController(
-      text: g.content
-          .where((content) => content.kind == 'example')
-          .map((content) => content.text)
-          .join('\n'),
-    );
-    _vocabulary = TextEditingController(text: g.vocabulary.join('\n'));
-    _grammar = TextEditingController(text: g.grammar.join('\n'));
-    _insights = [...g.insights];
-  }
-
-  @override
-  void dispose() {
-    for (final c in [_overview, _usageExamples, _vocabulary, _grammar]) {
-      c.dispose();
-    }
-    super.dispose();
-  }
-
-  List<String> _lines(TextEditingController c) => c.text
-      .split('\n')
-      .map((e) => e.trim())
-      .where((e) => e.isNotEmpty)
-      .toList();
-  Widget _field(
-    TextEditingController c,
-    String label, {
-    int lines = 4,
-    String? helper,
-  }) => Padding(
-    padding: const EdgeInsets.only(bottom: 12),
-    child: TextField(
-      controller: c,
-      minLines: lines,
-      maxLines: lines + 5,
-      decoration: InputDecoration(
-        border: const OutlineInputBorder(),
-        labelText: label,
-        helperText:
-            helper ?? (label == 'Overview' ? null : 'One item per line'),
-        helperMaxLines: 3,
-      ),
-    ),
-  );
-  List<LearningContent> _editedItems(
-    String kind,
-    String role,
-    List<String> texts,
-    String Function() newId,
-    PublicationState publicationState, {
-    Iterable<LearningContent>? existingItems,
-  }) {
-    final existing =
-        (existingItems ??
-                widget.guidebook.content.where(
-                  (content) => content.kind == kind && content.role == role,
-                ))
-            .toList();
-    final usedIds = <String>{};
-    LearningContent? matchFor(String text) {
-      for (final content in existing) {
-        if (!usedIds.contains(content.id) &&
-            content.text.trim() == text.trim()) {
-          usedIds.add(content.id);
-          return content;
-        }
-      }
-      return null;
-    }
-
-    return [
-      for (final text in texts)
-        (() {
-          final matched = matchFor(text);
-          return LearningContent(
-            id: matched?.id ?? newId(),
-            publicationState: publicationState,
-            kind: matched?.kind ?? kind,
-            required: matched?.required ?? false,
-            editorTemplate: matched?.editorTemplate ?? '',
-            role: matched?.role ?? role,
-            text: text,
-            sourceRefs: matched?.sourceRefs ?? const [],
-          );
-        })(),
-    ];
-  }
-
-  LearningContent _withPublicationState(
-    LearningContent content,
-    PublicationState publicationState,
-  ) => LearningContent.fromJson({
-    ...content.toJson(),
-    'publicationState': publicationState.name,
-  });
-
-  bool _isPrimaryFieldContent(LearningContent content) =>
-      (content.kind == 'explanation' && content.role == 'overview') ||
-      content.kind == 'vocabulary' ||
-      (content.kind == 'explanation' && content.role == 'grammar') ||
-      content.kind == 'example';
-
-  Future<void> _openInsights() async {
-    await Navigator.of(context).push<void>(
-      MaterialPageRoute(
-        builder: (_) => GuidebookInsightsEditorScreen(
-          initialSections: _insights,
-          onChanged: (sections) => _insights = [...sections],
-          course: widget.course,
-        ),
-      ),
-    );
-    if (mounted) setState(() {});
-  }
-
-  void _save(PublicationState publicationState) {
-    final stamp = DateTime.now().microsecondsSinceEpoch;
-    var sequence = 0;
-    String newId() => 'guide_${stamp}_${sequence++}';
-    final overview = _overview.text.trim();
-    final content = <LearningContent>[
-      ..._editedItems(
-        'explanation',
-        'overview',
-        [if (overview.isNotEmpty) overview],
-        newId,
-        publicationState,
-      ),
-      ..._editedItems(
-        'example',
-        'example',
-        _lines(_usageExamples),
-        newId,
-        publicationState,
-        existingItems: widget.guidebook.content.where(
-          (content) => content.kind == 'example',
-        ),
-      ),
-      ..._editedItems(
-        'vocabulary',
-        'vocabulary',
-        _lines(_vocabulary),
-        newId,
-        publicationState,
-      ),
-      ..._editedItems(
-        'explanation',
-        'grammar',
-        _lines(_grammar),
-        newId,
-        publicationState,
-      ),
-      for (final existing in widget.guidebook.content)
-        if (!_isPrimaryFieldContent(existing))
-          _withPublicationState(existing, publicationState),
-    ];
-    Navigator.pop(
-      context,
-      Guidebook(
-        publicationState: publicationState,
-        content: content,
-        insights: _insights,
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(
-      title: CoursePreviewTitle(
-        course: widget.course,
-        title: const Text('Guidebook'),
-      ),
-      actions: [
-        TextButton(
-          key: const Key('guidebook-save-appbar'),
-          onPressed: () => _save(PublicationState.published),
-          child: const Text('Save'),
-        ),
-      ],
-    ),
-    body: ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        _field(_overview, 'Overview', lines: 5),
-        _field(
-          _usageExamples,
-          'Usage examples',
-          helper:
-              'One learner-facing example per line. These examples can support draft Round generation and must be reviewed before use.',
-        ),
-        _field(
-          _vocabulary,
-          'Vocabulary',
-          lines: 4,
-          helper:
-              'One target/source pair per line. Example: casa = house. This learner-facing Lesson Guidebook can also be used to automatically generate new exercises, which must be reviewed and approved before creation.',
-        ),
-        _field(_grammar, 'Grammar'),
-        ListTile(
-          key: const Key('guidebook-insights-link'),
-          leading: const Icon(Icons.lightbulb_outline),
-          title: const Text('Insights'),
-          subtitle: Text(
-            '${_insights.length} ${_insights.length == 1 ? 'section' : 'sections'}',
-          ),
-          trailing: const Icon(Icons.chevron_right),
-          onTap: _openInsights,
-        ),
-        Wrap(
-          alignment: WrapAlignment.end,
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            OutlinedButton.icon(
-              key: const Key('guidebook-save-draft'),
-              onPressed: () => _save(PublicationState.draft),
-              icon: const Icon(Icons.edit_note_outlined),
-              label: const Text('Save Guidebook as draft'),
-            ),
-            FilledButton.icon(
-              key: const Key('guidebook-save'),
-              onPressed: () => _save(PublicationState.published),
-              icon: const Icon(Icons.save_outlined),
-              label: const Text('Save Guidebook'),
-            ),
-          ],
-        ),
-        if (widget.guidebookId.isNotEmpty)
-          EditorInternalIdText(label: 'GuideBook', id: widget.guidebookId),
-      ],
-    ),
-  );
-}
-
-class GuidebookInsightsEditorScreen extends StatefulWidget {
-  final List<GuidebookInsight> initialSections;
-  final ValueChanged<List<GuidebookInsight>> onChanged;
-
-  /// The working copy, for the Course preview flag (Build 261 Revision 2).
-  final Course? course;
-
-  const GuidebookInsightsEditorScreen({
-    super.key,
-    required this.initialSections,
-    required this.onChanged,
-    this.course,
-  });
-
-  @override
-  State<GuidebookInsightsEditorScreen> createState() =>
-      _GuidebookInsightsEditorScreenState();
-}
-
-class _GuidebookInsightsEditorScreenState
-    extends State<GuidebookInsightsEditorScreen> {
-  late final List<GuidebookInsight> _sections = [...widget.initialSections];
-
-  void _notify() => widget.onChanged(List.unmodifiable(_sections));
-
-  Future<void> _edit({int? index}) async {
-    final existing = index == null ? null : _sections[index];
-    final title = TextEditingController(text: existing?.title ?? '');
-    final text = TextEditingController(text: existing?.text ?? '');
-    final formKey = GlobalKey<FormState>();
-    final result = await showDialog<GuidebookInsight>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(
-          index == null ? 'Add Insight section' : 'Edit Insight section',
-        ),
-        content: SingleChildScrollView(
-          child: Form(
-            key: formKey,
-            child: SizedBox(
-              width: 520,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextFormField(
-                    key: const Key('guidebook-insight-title'),
-                    controller: title,
-                    decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                      labelText: 'Title',
-                    ),
-                    validator: (value) => value == null || value.trim().isEmpty
-                        ? 'Enter a Title.'
-                        : null,
-                  ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    key: const Key('guidebook-insight-text'),
-                    controller: text,
-                    minLines: 4,
-                    maxLines: 10,
-                    decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                      labelText: 'Text',
-                    ),
-                    validator: (value) => value == null || value.trim().isEmpty
-                        ? 'Enter Text.'
-                        : null,
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            key: const Key('guidebook-insight-confirm'),
-            onPressed: () {
-              if (!formKey.currentState!.validate()) return;
-              Navigator.pop(
-                context,
-                GuidebookInsight(
-                  title: title.text.trim(),
-                  text: text.text.trim(),
-                ),
-              );
-            },
-            child: Text(index == null ? 'Add' : 'Apply'),
-          ),
-        ],
-      ),
-    );
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      title.dispose();
-      text.dispose();
-    });
-    if (result == null || !mounted) return;
-    setState(() {
-      if (index == null) {
-        _sections.add(result);
-      } else {
-        _sections[index] = result;
-      }
-    });
-    _notify();
-  }
-
-  Future<void> _remove(int index) async {
-    final remove =
-        await showDialog<bool>(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('Remove Insight section?'),
-            content: Text(
-              'Remove “${_sections[index].title}”? This takes effect when the Guidebook is saved.',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: const Text('Keep'),
-              ),
-              FilledButton(
-                key: const Key('guidebook-insight-remove-confirm'),
-                onPressed: () => Navigator.pop(context, true),
-                child: const Text('Remove'),
-              ),
-            ],
-          ),
-        ) ??
-        false;
-    if (!remove || !mounted) return;
-    setState(() => _sections.removeAt(index));
-    _notify();
-  }
-
-  @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(
-      title: CoursePreviewTitle(
-        course: widget.course,
-        title: const Text('Insights'),
-      ),
-    ),
-    body: _sections.isEmpty
-        ? const Center(child: Text('No Insight sections yet.'))
-        : ReorderableListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: _sections.length,
-            onReorderItem: (oldIndex, newIndex) {
-              setState(() {
-                final section = _sections.removeAt(oldIndex);
-                _sections.insert(newIndex, section);
-              });
-              _notify();
-            },
-            itemBuilder: (context, index) {
-              final section = _sections[index];
-              return Card(
-                key: ValueKey('guidebook-insight-section-$index'),
-                child: ListTile(
-                  title: Text(section.title),
-                  subtitle: Text(
-                    section.text,
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  onTap: () => _edit(index: index),
-                  trailing: IconButton(
-                    tooltip: 'Remove Insight section',
-                    onPressed: () => _remove(index),
-                    icon: const Icon(Icons.delete_outline),
-                  ),
-                ),
-              );
-            },
-          ),
-    floatingActionButton: FloatingActionButton.extended(
-      key: const Key('guidebook-add-insight'),
-      onPressed: _edit,
-      icon: const Icon(Icons.add),
-      label: const Text('Add section'),
-    ),
-  );
-}
-
 class LessonEditorScreen extends StatefulWidget {
   final Course course;
   final ValueChanged<Course>? onCourseChanged;
@@ -4940,57 +4497,24 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
       );
       return;
     }
-    final oldGuideIds = _lesson.guidebook.content
-        .map((content) => content.id)
-        .toSet();
     final g = await Navigator.of(context).push<Guidebook>(
       MaterialPageRoute(
         builder: (_) => GuidebookEditorScreen(
           guidebook: _lesson.guidebook,
           guidebookId: _lesson.guidebookId,
           course: _courseWithIcons,
+          rounds: _lesson.rounds,
         ),
       ),
     );
     if (g == null || !mounted) return;
-    final newGuideIds = g.content.map((content) => content.id).toSet();
-    final rounds = [
-      for (final round in _lesson.rounds)
-        LearningRound(
-          id: round.id,
-          publicationState: round.publicationState,
-          provisionalDraft: round.provisionalDraft,
-          updatedAt: round.updatedAt,
-          title: round.title,
-          visualType: round.visualType,
-          roundType: round.roundType,
-          testFixedOrder: round.testFixedOrder,
-          testPassingPercent: round.testPassingPercent,
-          timedLimitsSeconds: round.timedLimitsSeconds,
-          flow: round.flow,
-          content: [
-            for (final content in round.content)
-              LearningContent(
-                id: content.id,
-                publicationState: content.publicationState,
-                kind: content.kind,
-                required: content.required,
-                editorTemplate: content.editorTemplate,
-                role: content.role,
-                exercise: content.exercise,
-                presentation: content.presentation,
-                text: content.text,
-                sourceRefs: content.sourceRefs
-                    .where(
-                      (ref) =>
-                          !oldGuideIds.contains(ref) ||
-                          newGuideIds.contains(ref),
-                    )
-                    .toList(),
-              ),
-          ],
-        ),
-    ];
+    // Build 266: Rounds lose their links to removed modules, and their
+    // content the sourceRefs to removed entries.
+    final rounds = GuidebookRoundLinks.afterGuidebookSave(
+      _lesson.guidebook,
+      g,
+      _lesson.rounds,
+    );
     _publishLesson(_copy(guidebook: g, rounds: rounds));
   }
 
@@ -5621,8 +5145,14 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
                 key: const Key('lesson-guidebook-navigation'),
                 leading: const Icon(Icons.menu_book_outlined),
                 title: const Text('Lesson Guidebook'),
-                subtitle: const Text(
-                  'Learner reference for this Lesson. Its vocabulary and examples can propose progressively harder draft Rounds for review.',
+                // Build 266: the GuideBook is a list of modules.
+                subtitle: Text(
+                  '${switch (_lesson.guidebook.modules.length) {
+                    0 => 'No modules yet',
+                    1 => '1 module',
+                    final n => '$n modules',
+                  }}. Learner reference for this Lesson. The Round Wizard turns its modules into draft Rounds for review.',
+                  key: const Key('lesson-guidebook-modules-count'),
                 ),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: _editGuidebook,
@@ -7238,6 +6768,8 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
       timedLimitsSeconds: source.timedLimitsSeconds,
       content: source.content,
       flow: source.flow,
+      focusModuleId: source.focusModuleId,
+      supportingModuleIds: source.supportingModuleIds,
     );
     _updateRounds(rounds);
   }
@@ -7669,6 +7201,11 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
   /// flow follows the edited content order (`RoundFlowAuthoring`).
   ContentFlow? _flow;
 
+  /// Build 266: the GuideBook module this Round practises, and the earlier
+  /// modules it also reviews (the Round Wizard records them).
+  String? _focusModuleId;
+  late List<String> _supportingModuleIds;
+
   /// The Story title field (Build 256 Revision 5): the flow carries the
   /// title and the Round is called `Story: <title>`. In a sequence it is the
   /// optional sequence title (`Sequence: <title>`).
@@ -7701,6 +7238,8 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
     _testPassingPercent = widget.round.testPassingPercent;
     _timedLimitsSeconds = [...widget.round.timedLimitsSeconds];
     _flow = widget.round.flow;
+    _focusModuleId = widget.round.focusModuleId;
+    _supportingModuleIds = [...widget.round.supportingModuleIds];
   }
 
   @override
@@ -7727,6 +7266,82 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
       timedLimitsSeconds: _timedLimitsSeconds,
       content: content,
       flow: RoundFlowAuthoring.forContent(_flow, content),
+      focusModuleId: _focusModuleId,
+      supportingModuleIds: _supportingModuleIds,
+    );
+  }
+
+  /// Changing the focus keeps the supporting modules, minus the new focus.
+  void _setFocusModule(String? id) => _mutateRound(() {
+    _focusModuleId = id;
+    _supportingModuleIds = [
+      for (final supporting in _supportingModuleIds)
+        if (supporting != id) supporting,
+    ];
+  });
+
+  Widget _focusModuleMenu() {
+    final modules = _lesson.guidebook.modules;
+    final known = {for (final module in modules) module.id};
+    final focus = _focusModuleId;
+    String titleOf(String id) {
+      for (final module in modules) {
+        if (module.id == id) return module.title;
+      }
+      return 'Missing module';
+    }
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Tooltip(
+            message:
+                'The GuideBook module this Round practises. Open GuideBook on '
+                'its Before you start card opens the GuideBook at this module.',
+            child: DropdownButtonFormField<String>(
+              key: const Key('round-focus-module'),
+              initialValue: focus ?? '',
+              isExpanded: true,
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                labelText: 'Focus module',
+              ),
+              items: [
+                const DropdownMenuItem(value: '', child: Text('None')),
+                for (final module in modules)
+                  DropdownMenuItem(
+                    value: module.id,
+                    child: Text(
+                      module.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                if (focus != null && !known.contains(focus))
+                  DropdownMenuItem(
+                    value: focus,
+                    child: const Text('Missing module (not in the GuideBook)'),
+                  ),
+              ],
+              onChanged: widget.readOnly
+                  ? null
+                  : (value) => _setFocusModule(
+                      value == null || value.isEmpty ? null : value,
+                    ),
+            ),
+          ),
+          if (_supportingModuleIds.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: Text(
+                'Also reviews: ${_supportingModuleIds.map(titleOf).join(', ')}',
+                key: const Key('round-supporting-modules'),
+              ),
+            ),
+        ],
+      ),
     );
   }
 
@@ -8940,6 +8555,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
                   id: widget.round.id,
                 ),
               ),
+              if (_course.useGuidebook) _focusModuleMenu(),
               if (widget.round.roundType == RoundType.test) ...[
                 SwitchListTile(
                   key: const Key('test-fixed-order'),

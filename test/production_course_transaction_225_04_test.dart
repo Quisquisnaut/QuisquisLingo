@@ -10,6 +10,8 @@ import 'package:quisquislingo_app/services/course_editor_service.dart';
 import 'package:quisquislingo_app/services/course_service.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'support/guidebook_fixtures.dart';
+import 'support/guidebook_editor_driver.dart';
 
 const _profileId = '12345678-1234-4234-9234-123456789abc';
 
@@ -416,10 +418,17 @@ void main() {
       await _settle(tester);
       await tester.tap(find.text('Lesson Guidebook'));
       await _settle(tester);
-      await tester.enterText(_field('Overview'), 'Working-copy guidebook');
-      await tester.enterText(
-        _field('Vocabulary'),
-        'uno = one\ndue = two\ntre = three\nquattro = four',
+      await addGuidebookModule(
+        tester,
+        title: 'Numbers',
+        overview: 'Working-copy guidebook',
+        words: const [
+          ('uno', 'one'),
+          ('due', 'two'),
+          ('tre', 'three'),
+          ('quattro', 'four'),
+        ],
+        settle: () => _settle(tester),
       );
       await tester.tap(find.text('Save Guidebook'));
       await _settle(tester);
@@ -591,7 +600,10 @@ void main() {
         (item) => item.lessonId == 'lesson',
       );
       expect(editedLesson.title, 'Renamed lesson');
-      expect(editedLesson.guidebook.overview, 'Working-copy guidebook');
+      expect(
+        editedLesson.guidebook.modules.single.overview,
+        'Working-copy guidebook',
+      );
       expect(editedLesson.rounds.any((item) => item.id == 'round_b'), isFalse);
       expect(editedLesson.rounds, hasLength(3));
       final editedRound = editedLesson.rounds.singleWhere(
@@ -938,15 +950,9 @@ Course _withUntouchedMetadata(Course base) {
   });
   final updatedLesson = Lesson.fromJson({
     ...lesson.toJson(),
-    'guidebook': Guidebook(
-      content: [
-        LearningContent.textual(
-          id: 'guide_source',
-          kind: 'explanation',
-          role: 'overview',
-          text: 'Unedited guidebook source',
-        ),
-      ],
+    'guidebook': testGuidebook(
+      overview: 'Unedited guidebook source',
+      words: [testEntry('guide_source', 'casa = house')],
     ).toJson(),
     'rounds': [
       updatedRound.toJson(),

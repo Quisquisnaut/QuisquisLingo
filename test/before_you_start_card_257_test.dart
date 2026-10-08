@@ -19,6 +19,7 @@ import 'package:quisquislingo_app/widgets/exercise_image_field.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'support/test_directories.dart';
+import 'support/guidebook_fixtures.dart';
 
 /// Build 257: the note shown before a Round starts is a Before you start
 /// card, an ordinary presentation card of the Round (text element with role
@@ -88,8 +89,9 @@ Course _course(
       lessonId: 'lesson',
       title: 'Lesson',
       rounds: rounds,
-      guidebook: Guidebook(
+      guidebook: testGuidebook(
         overview: 'Greetings.',
+        wordLines: const ['ciao = hello'],
         publicationState: guidebookState,
       ),
     ),
@@ -273,15 +275,18 @@ void main() {
     });
 
     test('the Round Wizard opens its first Round with a Draft card', () {
-      final guidebook = Guidebook(
+      final guidebook = testGuidebook(
         overview: 'Everyday food and drinks.',
-        vocabulary: const [
+        wordLines: const [
           'cappuccino = cappuccino',
           'pane = bread',
           'acqua = water',
           'tavolo = table',
         ],
-        examples: const ['Vorrei un cappuccino oggi.', 'Il pane è sul tavolo.'],
+        sentenceLines: const [
+          'Vorrei un cappuccino oggi. = I would like a cappuccino today.',
+          'Il pane è sul tavolo. = The bread is on the table.',
+        ],
       );
       final generator = GuidebookRoundGenerator(randomSeed: 3);
       final drafts = generator.createDrafts(

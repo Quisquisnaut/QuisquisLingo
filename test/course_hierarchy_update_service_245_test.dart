@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/services/course_hierarchy_update_service.dart';
+import 'support/guidebook_fixtures.dart';
 
 const _updates = CourseHierarchyUpdateService();
 
@@ -416,17 +417,9 @@ Course _course() {
         ],
       ),
     ],
-    guidebook: Guidebook(
-      content: const [
-        LearningContent(
-          id: 'guide-1',
-          kind: 'text',
-          role: 'goal',
-          required: false,
-          text: 'Goal',
-          sourceRefs: ['guide-source'],
-        ),
-      ],
+    guidebook: testGuidebook(
+      overview: 'Goal',
+      words: [testEntry('guide-1', 'casa = house')],
     ),
   );
   final second = Lesson(

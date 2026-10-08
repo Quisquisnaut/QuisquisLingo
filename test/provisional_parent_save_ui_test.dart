@@ -8,6 +8,7 @@ import 'package:quisquislingo_app/services/editor_display_preferences.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'exercise_workflow_226_02_test.dart' as workflow;
+import 'support/guidebook_editor_driver.dart';
 
 void main() {
   setUp(() {
@@ -173,13 +174,14 @@ void main() {
           if (explicitOwner == 'Lesson' && level == 1) {
             // A later Guidebook save keeps the Lesson Published.
             await workflow.tapKey(tester, 'lesson-guidebook-navigation');
-            await tester.enterText(
-              workflow.field('Overview'),
-              'Useful greetings.',
+            await addGuidebookModule(
+              tester,
+              overview: 'Useful greetings.',
+              words: const [('ciao', 'hello')],
             );
             await workflow.tapKey(tester, 'guidebook-save-appbar');
             expect(
-              changes.last.lessons.single.guidebook.overview,
+              changes.last.lessons.single.guidebook.modules.single.overview,
               'Useful greetings.',
             );
             expect(

@@ -19,6 +19,7 @@ import 'package:quisquislingo_app/widgets/word_lookup_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'support/test_directories.dart';
+import 'support/guidebook_fixtures.dart';
 
 /// Build 265 Revision 1: the Word Lookup card on the learner's text, the
 /// Course switch, the one-time notice, and where lookup never appears.
@@ -26,8 +27,7 @@ const _learnerId = '00000000-0000-4000-8000-000000000265';
 const _created = '2026-10-06T00:00:00.000Z';
 final _stamp = DateTime.utc(2026, 10, 6);
 
-LearningContent _word(String id, String text) =>
-    LearningContent(id: id, kind: 'vocabulary', role: 'vocabulary', text: text);
+GuidebookEntry _word(String id, String text) => testEntry(id, text);
 
 Exercise _choose(String id, String question, {TextLanguage? language}) =>
     Exercise.canonical(
@@ -104,8 +104,9 @@ Course _course(
     Lesson(
       lessonId: 'animals',
       title: 'Animali',
-      guidebook: Guidebook(
-        content: [
+      guidebook: testGuidebook(
+        moduleId: 'animals-module',
+        words: [
           _word('w1', 'il gatto = the cat'),
           _word('w2', 'il pane = the bread'),
           _word('w3', 'dorme = sleeps'),
@@ -116,7 +117,10 @@ Course _course(
     Lesson(
       lessonId: 'more',
       title: 'Altro',
-      guidebook: Guidebook(content: [_word('w4', 'il cane = the dog')]),
+      guidebook: testGuidebook(
+        moduleId: 'more-module',
+        words: [_word('w4', 'il cane = the dog')],
+      ),
       rounds: [
         LearningRound(
           id: 'other-round',
@@ -409,7 +413,8 @@ void main() {
                 for (var i = 0; i < 15; i++)
                   WordLookupSourceEntry(
                     id: 'e$i',
-                    text: 'gatto = cat number $i',
+                    target: 'gatto',
+                    source: 'cat number $i',
                     lessonIndex: 0,
                   ),
               ]),

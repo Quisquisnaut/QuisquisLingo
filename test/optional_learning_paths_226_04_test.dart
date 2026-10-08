@@ -19,6 +19,7 @@ import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:quisquislingo_app/services/progress_service.dart';
 import 'package:quisquislingo_app/services/settings_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'support/guidebook_fixtures.dart';
 
 const _optionalPathsProfileId = '00000000-0000-4000-8000-000000000001';
 const _optionalPathsCreatedAtUtc = '2026-01-01T00:00:00.000Z';
@@ -218,10 +219,7 @@ void main() {
       final enabled = _course(malformedGuidebook: true, draftGuidebook: true);
       final disabled = _preferences(enabled, useGuidebook: false);
       final findings = CourseAuditService().auditCourse(disabled).issues;
-      expect(
-        findings.any((issue) => issue.code == 'SOURCE_REF_MISSING'),
-        isTrue,
-      );
+      expect(findings.any((issue) => issue.code == 'ID_DUPLICATE'), isTrue);
       final status = AuthoringHierarchyStatus.fromCourse(disabled);
       expect(
         status.lessonGuidebookHasAuditConcern(disabled.lessons.single),
@@ -623,17 +621,19 @@ Course _course({
         publicationState: draftGuidebook
             ? PublicationState.draft
             : PublicationState.published,
-        content: emptyGuidebook
-            ? []
+        // Build 266: a malformed GuideBook repeats an entry ID.
+        modules: emptyGuidebook
+            ? const []
             : [
-                LearningContent(
-                  id: 'optional-guide-content',
-                  kind: 'explanation',
-                  role: 'overview',
-                  text: 'Learner-facing explanation.',
-                  sourceRefs: malformedGuidebook
-                      ? const ['missing-source']
-                      : const [],
+                GuidebookModule(
+                  id: 'optional-guide-module',
+                  title: 'Optional paths',
+                  overview: 'Learner-facing explanation.',
+                  words: [
+                    testEntry('optional-guide-content', 'casa = house'),
+                    if (malformedGuidebook)
+                      testEntry('optional-guide-content', 'pane = bread'),
+                  ],
                 ),
               ],
       ),

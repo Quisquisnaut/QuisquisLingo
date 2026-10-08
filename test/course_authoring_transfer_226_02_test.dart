@@ -11,6 +11,7 @@ import 'package:quisquislingo_app/services/course_file_store.dart';
 import 'package:quisquislingo_app/services/course_editor_transaction.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'support/guidebook_fixtures.dart';
 
 final _originalTime = DateTime.utc(2026, 9, 4, 10);
 final _editTime = DateTime.utc(2026, 9, 5, 11);
@@ -729,7 +730,6 @@ LearningRound _round(Course course, String id) => course.lessons
 
 Iterable<LearningContent> _allContent(Course course) => [
   for (final lesson in course.lessons) ...[
-    ...lesson.guidebook.content,
     for (final round in lesson.rounds) ...round.content,
   ],
 ];
@@ -812,15 +812,9 @@ Course _course({PublicationState state = PublicationState.published}) => Course(
       section: true,
       sectionName: 'Section A',
       themeIconAsset: 'assets/lesson_icons/home.png',
-      guidebook: Guidebook(
-        content: const [
-          LearningContent(
-            id: 'guide',
-            kind: 'text',
-            role: 'lesson_intro',
-            text: 'GuideBook',
-          ),
-        ],
+      guidebook: testGuidebook(
+        overview: 'GuideBook',
+        words: [testEntry('guide', 'casa = house')],
       ),
       duel: Duel(id: 'source-duel', title: 'Original Duel'),
       rounds: [

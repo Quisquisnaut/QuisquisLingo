@@ -10,6 +10,7 @@ import 'package:quisquislingo_app/services/progress_service.dart';
 import 'package:quisquislingo_app/services/vocabulary_review_service.dart';
 import 'package:quisquislingo_app/widgets/learner_status_bar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'support/guidebook_fixtures.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -340,7 +341,10 @@ void main() {
       await tester.tap(find.byKey(const Key('review-help')));
       await tester.pumpAndSettle();
       expect(find.text('Review Help'), findsOneWidget);
-      expect(find.textContaining('GuideBook Vocabulary'), findsOneWidget);
+      expect(
+        find.textContaining('GuideBook Words & Expressions'),
+        findsOneWidget,
+      );
       expect(find.textContaining('separate XP'), findsOneWidget);
       await _tap(tester, 'Close');
 
@@ -541,7 +545,7 @@ Future<void> _pumpUntil(
 }
 
 Course _course({
-  List<LearningContent>? vocabulary,
+  List<GuidebookEntry>? vocabulary,
   bool includeLowRound = true,
   String courseTitle = 'QQL 232 full Review Course title',
   String lessonTitle = 'Full Review Lesson title',
@@ -563,22 +567,12 @@ Course _course({
       Lesson(
         lessonId: 'review-lesson',
         title: lessonTitle,
-        guidebook: Guidebook(
-          content:
+        guidebook: testGuidebook(
+          words:
               vocabulary ??
-              const [
-                LearningContent(
-                  id: 'casa',
-                  kind: 'vocabulary',
-                  role: 'vocabulary',
-                  text: 'casa = house',
-                ),
-                LearningContent(
-                  id: 'pane',
-                  kind: 'vocabulary',
-                  role: 'vocabulary',
-                  text: 'pane = bread',
-                ),
+              [
+                testEntry('casa', 'casa = house'),
+                testEntry('pane', 'pane = bread'),
               ],
         ),
         rounds: rounds,
@@ -605,32 +599,13 @@ Course _courseAcrossLessons() => Course(
     Lesson(
       lessonId: 'next-lesson',
       title: 'Next Lesson',
-      guidebook: Guidebook(
-        content: const [
-          LearningContent(
-            id: 'sole',
-            kind: 'vocabulary',
-            role: 'vocabulary',
-            text: 'sole = sun',
-          ),
-          LearningContent(
-            id: 'luna',
-            kind: 'vocabulary',
-            role: 'vocabulary',
-            text: 'luna = moon',
-          ),
-          LearningContent(
-            id: 'stella',
-            kind: 'vocabulary',
-            role: 'vocabulary',
-            text: 'stella = star',
-          ),
-          LearningContent(
-            id: 'cielo',
-            kind: 'vocabulary',
-            role: 'vocabulary',
-            text: 'cielo = sky',
-          ),
+      guidebook: testGuidebook(
+        moduleId: 'next-module',
+        words: [
+          testEntry('sole', 'sole = sun'),
+          testEntry('luna', 'luna = moon'),
+          testEntry('stella', 'stella = star'),
+          testEntry('cielo', 'cielo = sky'),
         ],
       ),
       rounds: [_round('round-low', 'Lower priority Round')],

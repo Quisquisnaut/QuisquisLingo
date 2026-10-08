@@ -2,6 +2,7 @@
   "formatVersion": 12,
   "publicationState": "published",
   "lessonNumberingMode": "lesson",
+  "roundNumberingMode": "off",
   "defaultLessonIconStyle": "monochrome",
   "courseId": "qql-dummy-signature-course",
   "originType": "externalOfficial",
@@ -9,11 +10,11 @@
   "publisherName": "Dummy Publisher — TEST ONLY",
   "officialCourseVersion": "1",
   "officialReleaseDateUtc": "2026-09-06T00:00:00.000Z",
-  "officialChecksum": "129243cba72ebfc6fb11681c8b0b9bd69dd9442e2ffe6ee6f9d8514ad93f0233",
+  "officialChecksum": "8e4b4ca5dcb1d8905d888b66e0482ece822d8ac7c33d4ed7fc901c816a96382a",
   "officialReleaseNotes": "Build 226.02 revision 3 AI-generated sample label update.",
   "distributionChannel": "test-fixture",
   "publisherVerificationStatus": "unverified",
-  "publisherSignature": "qql-ed25519-v1:dummy-1:YGsE3TsdrcKz6IYvuIs8V+tI5RRR3t9p1rE+AeeGPp0nW02c2TfPQAg5T2USBtsE5h+wIYtDu8k/6ZnTcBpbCg==",
+  "publisherSignature": "qql-ed25519-v1:dummy-1:vKqjdXQmYGn6ky45leddK3muKUQXTqxj/6Wg/Po+hnXejolQXukia8/eVQdn2WWsvKHpkJZErvbjLjbeIB5kAg==",
   "originalCourseCreator": {
     "type": "publisher",
     "id": "org.quisquislingo.test.dummy",
@@ -64,70 +65,45 @@
       "sectionName": "Foundations",
       "themeIconAsset": "assets/lesson_icons/speech_bubbles.png",
       "guidebook": {
-        "content": [
+        "modules": [
           {
-            "id": "qql_it_l01_g01",
-            "publicationState": "published",
-            "kind": "explanation",
-            "required": false,
-            "role": "overview",
-            "text": "Hello and thanks: practise ciao, grazie, sì, no."
-          },
-          {
-            "id": "qql_it_l01_g02",
-            "publicationState": "published",
-            "kind": "text",
-            "required": false,
-            "role": "goal",
-            "text": "Recognise and use the main vocabulary in this Lesson."
-          },
-          {
-            "id": "qql_it_l01_g03",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "ciao = hello"
-          },
-          {
-            "id": "qql_it_l01_g04",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "grazie = thank you"
-          },
-          {
-            "id": "qql_it_l01_g05",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "sì = yes"
-          },
-          {
-            "id": "qql_it_l01_g06",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "no = no"
-          },
-          {
-            "id": "qql_it_l01_g07",
-            "publicationState": "published",
-            "kind": "example",
-            "required": false,
-            "role": "example",
-            "text": "Ciao!"
-          },
-          {
-            "id": "qql_it_l01_g08",
-            "publicationState": "published",
-            "kind": "example",
-            "required": false,
-            "role": "example",
-            "text": "Grazie mille."
+            "id": "qql_it_l01_module",
+            "title": "Hello and thanks",
+            "sentences": [
+              {
+                "id": "qql_it_l01_g07",
+                "target": "Ciao!",
+                "source": "Hi!"
+              },
+              {
+                "id": "qql_it_l01_g08",
+                "target": "Grazie mille.",
+                "source": "Thanks a lot."
+              }
+            ],
+            "words": [
+              {
+                "id": "qql_it_l01_g03",
+                "target": "ciao",
+                "source": "hello"
+              },
+              {
+                "id": "qql_it_l01_g04",
+                "target": "grazie",
+                "source": "thank you"
+              },
+              {
+                "id": "qql_it_l01_g05",
+                "target": "sì",
+                "source": "yes"
+              },
+              {
+                "id": "qql_it_l01_g06",
+                "target": "no",
+                "source": "no"
+              }
+            ],
+            "overview": "Hello and thanks: practise ciao, grazie, sì, no.\n\nRecognise and use the main vocabulary in this Lesson."
           }
         ]
       },
@@ -138,6 +114,7 @@
           "updatedAt": "2026-09-04T08:00:00.000Z",
           "title": "First steps",
           "visualType": "generic",
+          "roundType": "practice",
           "content": [
             {
               "id": "qql_it_l01_r01_intro",
@@ -577,6 +554,7 @@
           "publicationState": "published",
           "updatedAt": "2026-09-04T08:12:00.000Z",
           "visualType": "listening",
+          "roundType": "practice",
           "content": [
             {
               "id": "qql_it_l01_r02_e01",
@@ -1067,6 +1045,7 @@
           "updatedAt": "2026-09-04T08:24:00.000Z",
           "title": "Comprehension",
           "visualType": "story",
+          "roundType": "practice",
           "content": [
             {
               "id": "qql_it_l01_r03_e01",
@@ -1556,6 +1535,7 @@
           "publicationState": "published",
           "updatedAt": "2026-09-04T08:36:00.000Z",
           "visualType": "test",
+          "roundType": "practice",
           "content": [
             {
               "id": "qql_it_l01_r04_e01",

@@ -4,6 +4,7 @@ import 'dart:math';
 import 'canonical/canonical.dart';
 import 'exercise_canonical.dart';
 import 'exercise_image_metadata.dart';
+import 'guidebook_text.dart';
 import 'picture_answer_style.dart';
 import 'preset_successors.dart';
 import '../services/app_metadata.dart';
@@ -1882,143 +1883,361 @@ List<Lesson> _parseLessons(Map<String, dynamic> j) {
   ];
 }
 
-class GuidebookInsight {
-  final String title;
-  final String text;
+/// The picture a Words & Expressions entry stands for (Build 266): stored
+/// like an exercise picture, a QQL picture (`assets/…`) or the Course's own
+/// (`media:…`), with the Shared Image Library record it was copied from.
+/// [plural] (Build 266, as exercise pictures since Build 265 Revision 11)
+/// draws it as stacked copies: "i gatti = the cats".
+class GuidebookPicture {
+  final String asset;
+  final SharedImageSource? sharedImageSource;
+  final bool plural;
 
-  const GuidebookInsight({required this.title, required this.text});
+  const GuidebookPicture({
+    required this.asset,
+    this.sharedImageSource,
+    this.plural = false,
+  });
 
-  Map<String, dynamic> toJson() => {'title': title, 'text': text};
-
-  factory GuidebookInsight.fromJson(Map<String, dynamic> j) => GuidebookInsight(
-    title: _requiredString(j, 'title', 'guidebook insight'),
-    text: _requiredString(j, 'text', 'guidebook insight'),
+  /// The picture as an image element, as exercise pictures are: what the
+  /// image walkers (`CourseImageUsage`) report.
+  PromptElement get asImageElement => PromptElement(
+    role: 'picture',
+    type: 'image',
+    asset: asset,
+    sharedImageSource: sharedImageSource,
+    plural: plural ? true : null,
   );
+
+  GuidebookPicture withPlural(bool value) => GuidebookPicture(
+    asset: asset,
+    sharedImageSource: sharedImageSource,
+    plural: value,
+  );
+
+  Map<String, dynamic> toJson() => {
+    'asset': asset,
+    if (sharedImageSource != null)
+      'sharedImageSource': sharedImageSource!.toJson(),
+    if (plural) 'plural': true,
+  };
+
+  static const _keys = {'asset', 'sharedImageSource', 'plural'};
+
+  factory GuidebookPicture.fromJson(Map<String, dynamic> j, String where) {
+    final unknown = j.keys.toSet().difference(_keys);
+    if (unknown.isNotEmpty) {
+      throw FormatException(
+        '$where.picture has unknown keys: ${unknown.join(', ')}.',
+      );
+    }
+    final asset = j['asset'];
+    if (asset is! String ||
+        asset.trim().isEmpty ||
+        !Course.isValidImageReference(asset.trim())) {
+      throw FormatException(
+        '$where.picture.asset must be a QQL picture (assets/…), an embedded '
+        'image or course media (media:<sha256>.<png|jpg|jpeg|webp>).',
+      );
+    }
+    final plural = j['plural'];
+    if (j.containsKey('plural') && plural is! bool) {
+      throw FormatException('$where.picture.plural must be true or false.');
+    }
+    final shared = j['sharedImageSource'];
+    if (j.containsKey('sharedImageSource') && shared is! Map) {
+      throw FormatException(
+        '$where.picture.sharedImageSource must be an object.',
+      );
+    }
+    return GuidebookPicture(
+      asset: asset.trim(),
+      sharedImageSource: shared is Map
+          ? SharedImageSource.fromJson(Map<String, dynamic>.from(shared))
+          : null,
+      plural: plural == true,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      other is GuidebookPicture &&
+      other.asset == asset &&
+      other.plural == plural &&
+      jsonEncode(other.sharedImageSource?.toJson()) ==
+          jsonEncode(sharedImageSource?.toJson());
+
+  @override
+  int get hashCode => Object.hash(asset, plural);
 }
 
+/// One entry of a GuideBook module (Build 266): a sentence of Sentences or a
+/// word or fixed expression of Words & Expressions.
+///
+/// [target] is in the language being learned and may mark optional words
+/// with `{…}` (`GuidebookText`); [source] is its translation in the
+/// learners' language; [context] (optional, at most 40 characters, in the
+/// learners' language) names the sense, subject area, formality or who
+/// speaks, and is never matched, read aloud or part of an answer. Only a
+/// Words & Expressions entry may have a [picture].
+class GuidebookEntry {
+  final String id;
+  final String target;
+  final String source;
+  final String context;
+  final GuidebookPicture? picture;
+
+  const GuidebookEntry({
+    required this.id,
+    required this.target,
+    required this.source,
+    this.context = '',
+    this.picture,
+  });
+
+  GuidebookEntry copyWith({
+    String? id,
+    String? target,
+    String? source,
+    String? context,
+    GuidebookPicture? picture,
+    bool clearPicture = false,
+  }) => GuidebookEntry(
+    id: id ?? this.id,
+    target: target ?? this.target,
+    source: source ?? this.source,
+    context: context ?? this.context,
+    picture: clearPicture ? null : picture ?? this.picture,
+  );
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'target': target,
+    'source': source,
+    if (context.isNotEmpty) 'context': context,
+    if (picture != null) 'picture': picture!.toJson(),
+  };
+
+  static const _keys = {'id', 'target', 'source', 'context', 'picture'};
+
+  factory GuidebookEntry.fromJson(
+    Map<String, dynamic> j,
+    String where, {
+    required bool allowPicture,
+  }) {
+    final unknown = j.keys.toSet().difference(_keys);
+    if (unknown.isNotEmpty) {
+      throw FormatException('$where has unknown keys: ${unknown.join(', ')}.');
+    }
+    final target = _requiredString(j, 'target', where);
+    final problem = GuidebookText.targetProblem(target);
+    if (problem != null) {
+      throw FormatException('$where.target “$target”: $problem.');
+    }
+    if (j.containsKey('context') && j['context'] is! String) {
+      throw FormatException('$where.context must be a string.');
+    }
+    final context = _optionalString(j, 'context', '');
+    if (context.length > GuidebookText.maxContextLength) {
+      throw FormatException(
+        '$where.context must be at most ${GuidebookText.maxContextLength} characters.',
+      );
+    }
+    final rawPicture = j['picture'];
+    if (j.containsKey('picture')) {
+      if (!allowPicture) {
+        throw FormatException(
+          '$where cannot have a picture: only Words & Expressions entries do.',
+        );
+      }
+      if (rawPicture is! Map) {
+        throw FormatException('$where.picture must be an object.');
+      }
+    }
+    return GuidebookEntry(
+      id: _requiredString(j, 'id', where),
+      target: target,
+      source: _requiredString(j, 'source', where),
+      context: context,
+      picture: rawPicture is Map
+          ? GuidebookPicture.fromJson(
+              Map<String, dynamic>.from(rawPicture),
+              where,
+            )
+          : null,
+    );
+  }
+}
+
+/// One short, coherent topic of a Lesson GuideBook (Build 266), its fields
+/// in the owner's order: Title, Sentences, Words & Expressions, Overview.
+class GuidebookModule {
+  final String id;
+  final String title;
+  final List<GuidebookEntry> sentences;
+  final List<GuidebookEntry> words;
+  final String overview;
+
+  GuidebookModule({
+    required this.id,
+    required this.title,
+    List<GuidebookEntry> sentences = const [],
+    List<GuidebookEntry> words = const [],
+    this.overview = '',
+  }) : sentences = List.unmodifiable(sentences),
+       words = List.unmodifiable(words);
+
+  /// Every entry, Sentences first, in order.
+  Iterable<GuidebookEntry> get entries sync* {
+    yield* sentences;
+    yield* words;
+  }
+
+  /// No sentence and no Words & Expressions entry.
+  bool get hasNoEntries => sentences.isEmpty && words.isEmpty;
+
+  GuidebookModule copyWith({
+    String? id,
+    String? title,
+    List<GuidebookEntry>? sentences,
+    List<GuidebookEntry>? words,
+    String? overview,
+  }) => GuidebookModule(
+    id: id ?? this.id,
+    title: title ?? this.title,
+    sentences: sentences ?? this.sentences,
+    words: words ?? this.words,
+    overview: overview ?? this.overview,
+  );
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'title': title,
+    'sentences': sentences.map((e) => e.toJson()).toList(),
+    'words': words.map((e) => e.toJson()).toList(),
+    'overview': overview,
+  };
+
+  static const _keys = {'id', 'title', 'sentences', 'words', 'overview'};
+
+  factory GuidebookModule.fromJson(Map<String, dynamic> j) {
+    final unknown = j.keys.toSet().difference(_keys);
+    if (unknown.isNotEmpty) {
+      throw FormatException(
+        'guidebook module has unknown keys: ${unknown.join(', ')}.',
+      );
+    }
+    if (j.containsKey('overview') && j['overview'] is! String) {
+      throw const FormatException(
+        'guidebook module.overview must be a string.',
+      );
+    }
+    List<GuidebookEntry> entries(String key, {required bool allowPicture}) {
+      if (!j.containsKey(key)) return const [];
+      return _mapList(
+        j,
+        key,
+        'guidebook module',
+        (value) => GuidebookEntry.fromJson(
+          value,
+          'guidebook module.$key entry',
+          allowPicture: allowPicture,
+        ),
+      );
+    }
+
+    return GuidebookModule(
+      id: _requiredString(j, 'id', 'guidebook module'),
+      title: _requiredString(j, 'title', 'guidebook module'),
+      sentences: entries('sentences', allowPicture: false),
+      words: entries('words', allowPicture: true),
+      overview: (j['overview'] as String? ?? '').trim(),
+    );
+  }
+}
+
+/// A Lesson's GuideBook (Build 266, GuideBook Modules): an ordered list of
+/// modules in teaching order. The whole GuideBook is Draft or Published;
+/// there is no module-level or entry-level Draft.
 class Guidebook {
   final PublicationState publicationState;
-  final List<LearningContent> content;
-  final List<GuidebookInsight> insights;
+  final List<GuidebookModule> modules;
+
   Guidebook({
     this.publicationState = PublicationState.published,
-    List<LearningContent>? content,
-    List<GuidebookInsight> insights = const [],
-    String overview = '',
-    List<String> goals = const [],
-    List<String> vocabulary = const [],
-    List<String> grammar = const [],
-    List<String> expressions = const [],
-    List<String> examples = const [],
-  }) : insights = List.unmodifiable(insights),
-       content =
-           content ??
-           _legacyGuidebookContent(
-             overview,
-             goals,
-             vocabulary,
-             grammar,
-             expressions,
-             examples,
-           );
-  factory Guidebook.empty() => Guidebook(content: const []);
+    List<GuidebookModule> modules = const [],
+  }) : modules = List.unmodifiable(modules);
+
+  factory Guidebook.empty() => Guidebook();
+
+  /// The message for a file in the shape before Build 266.
+  static const earlierShapeMessage =
+      'This Course\'s GuideBooks use the earlier shape. Since build 266 a '
+      'GuideBook is a list of modules: regenerate the Course.';
+
+  /// No module has an entry (or there is no module).
+  bool get hasNoEntries => modules.every((module) => module.hasNoEntries);
+
+  /// Every entry of every module, module by module.
+  Iterable<GuidebookEntry> get entries =>
+      modules.expand((module) => module.entries);
+
+  /// Every Words & Expressions entry, module by module.
+  Iterable<GuidebookEntry> get words =>
+      modules.expand((module) => module.words);
+
+  /// Every sentence, module by module.
+  Iterable<GuidebookEntry> get sentences =>
+      modules.expand((module) => module.sentences);
+
+  /// The IDs of the modules and of their entries.
+  Set<String> get ids => {
+    for (final module in modules) ...[
+      module.id,
+      for (final entry in module.entries) entry.id,
+    ],
+  };
+
+  GuidebookModule? moduleById(String id) {
+    for (final module in modules) {
+      if (module.id == id) return module;
+    }
+    return null;
+  }
+
+  Guidebook copyWith({
+    PublicationState? publicationState,
+    List<GuidebookModule>? modules,
+  }) => Guidebook(
+    publicationState: publicationState ?? this.publicationState,
+    modules: modules ?? this.modules,
+  );
+
   Map<String, dynamic> toJson() => {
     if (!publicationState.isPublished)
       'publicationState': publicationState.name,
-    'content': content.map((e) => e.toJson()).toList(),
-    if (insights.isNotEmpty)
-      'insights': insights.map((section) => section.toJson()).toList(),
+    'modules': modules.map((e) => e.toJson()).toList(),
   };
-  factory Guidebook.fromJson(Map<String, dynamic> j) => Guidebook(
-    publicationState: j.containsKey('publicationState')
-        ? PublicationState.parseRequired(j, 'guidebook')
-        : PublicationState.published,
-    content: _mapList(j, 'content', 'guidebook', LearningContent.fromJson),
-    insights: j.containsKey('insights')
-        ? _mapList(j, 'insights', 'guidebook', GuidebookInsight.fromJson)
-        : const [],
-  );
 
-  // Friendly compatibility views used by the existing authoring generator.
-  String get overview => content
-      .where((c) => c.kind == 'explanation' && c.role == 'overview')
-      .map((c) => c.text)
-      .join('\n');
-  List<String> get goals => content
-      .where((c) => c.kind == 'text' && c.role == 'goal')
-      .map((c) => c.text)
-      .toList();
-  List<String> get vocabulary =>
-      content.where((c) => c.kind == 'vocabulary').map((c) => c.text).toList();
-  List<String> get grammar => content
-      .where((c) => c.kind == 'explanation' && c.role == 'grammar')
-      .map((c) => c.text)
-      .toList();
-  List<String> get expressions => content
-      .where((c) => c.kind == 'example' && c.role == 'expression')
-      .map((c) => c.text)
-      .toList();
-  List<String> get examples => content
-      .where((c) => c.kind == 'example' && c.role != 'expression')
-      .map((c) => c.text)
-      .toList();
-}
+  static const _keys = {'publicationState', 'modules'};
 
-List<LearningContent> _legacyGuidebookContent(
-  String overview,
-  List<String> goals,
-  List<String> vocabulary,
-  List<String> grammar,
-  List<String> expressions,
-  List<String> examples,
-) {
-  final stamp = DateTime.now().microsecondsSinceEpoch;
-  var n = 0;
-  String id(String role) => 'guide_${stamp}_${role}_${n++}';
-  return [
-    if (overview.trim().isNotEmpty)
-      LearningContent.textual(
-        id: id('overview'),
-        kind: 'explanation',
-        role: 'overview',
-        text: overview,
-      ),
-    for (final v in goals)
-      LearningContent.textual(
-        id: id('goal'),
-        kind: 'text',
-        role: 'goal',
-        text: v,
-      ),
-    for (final v in vocabulary)
-      LearningContent.textual(
-        id: id('vocab'),
-        kind: 'vocabulary',
-        role: 'vocabulary',
-        text: v,
-      ),
-    for (final v in grammar)
-      LearningContent.textual(
-        id: id('grammar'),
-        kind: 'explanation',
-        role: 'grammar',
-        text: v,
-      ),
-    for (final v in expressions)
-      LearningContent.textual(
-        id: id('expression'),
-        kind: 'example',
-        role: 'expression',
-        text: v,
-      ),
-    for (final v in examples)
-      LearningContent.textual(
-        id: id('example'),
-        kind: 'example',
-        role: 'example',
-        text: v,
-      ),
-  ];
+  factory Guidebook.fromJson(Map<String, dynamic> j) {
+    if (j.containsKey('content') || j.containsKey('insights')) {
+      throw const FormatException(earlierShapeMessage);
+    }
+    final unknown = j.keys.toSet().difference(_keys);
+    if (unknown.isNotEmpty) {
+      throw FormatException(
+        'guidebook has unknown keys: ${unknown.join(', ')}.',
+      );
+    }
+    return Guidebook(
+      publicationState: j.containsKey('publicationState')
+          ? PublicationState.parseRequired(j, 'guidebook')
+          : PublicationState.published,
+      modules: _mapList(j, 'modules', 'guidebook', GuidebookModule.fromJson),
+    );
+  }
 }
 
 class Lesson {
@@ -2212,6 +2431,14 @@ class LearningRound {
   /// branched. Null means today's practice Round (lesson_intro first, then
   /// shuffled exercises, then the mistake review).
   final ContentFlow? flow;
+
+  /// Build 266 (GuideBook Modules): the module of the Lesson's GuideBook
+  /// this Round is about, and the earlier modules whose material it also
+  /// uses. Stored only when set; only Open GuideBook reads them (it scrolls
+  /// to the focus module). They change no scoring, progression, order,
+  /// Review or Duel.
+  final String? focusModuleId;
+  final List<String> supportingModuleIds;
   LearningRound({
     required this.id,
     this.publicationState = PublicationState.published,
@@ -2226,7 +2453,13 @@ class LearningRound {
     List<LearningContent>? content,
     List<Exercise>? exercises,
     this.flow,
-  }) : assert(
+    String? focusModuleId,
+    List<String> supportingModuleIds = const [],
+  }) : focusModuleId = focusModuleId?.trim().isEmpty == true
+           ? null
+           : focusModuleId?.trim(),
+       supportingModuleIds = List.unmodifiable(supportingModuleIds),
+       assert(
          testPassingPercent == null ||
              (testPassingPercent >= 0 && testPassingPercent <= 100),
        ),
@@ -2259,7 +2492,25 @@ class LearningRound {
     if (roundType == RoundType.timed) 'timedLimitsSeconds': timedLimitsSeconds,
     'content': content.map((e) => e.toJson()).toList(),
     if (flow != null) 'flow': flow!.toJson(),
+    if (focusModuleId != null) 'focusModuleId': focusModuleId,
+    if (supportingModuleIds.isNotEmpty)
+      'supportingModuleIds': supportingModuleIds,
   };
+
+  /// This Round with its module links changed (Build 266).
+  LearningRound withModules({
+    required String? focusModuleId,
+    required List<String> supportingModuleIds,
+  }) => LearningRound.fromJson({
+    ...toJson()
+      ..remove('focusModuleId')
+      ..remove('supportingModuleIds'),
+    if (focusModuleId != null && focusModuleId.trim().isNotEmpty)
+      'focusModuleId': focusModuleId.trim(),
+    if (supportingModuleIds.isNotEmpty)
+      'supportingModuleIds': supportingModuleIds,
+  });
+
   factory LearningRound.fromJson(Map<String, dynamic> j) {
     final rawFlow = j['flow'];
     if (j.containsKey('flow') && rawFlow is! Map) {
@@ -2294,6 +2545,33 @@ class LearningRound {
     if (j.containsKey('testFixedOrder') && j['testFixedOrder'] is! bool) {
       throw const FormatException('round.testFixedOrder must be a boolean.');
     }
+    final rawFocus = j['focusModuleId'];
+    if (j.containsKey('focusModuleId') &&
+        (rawFocus is! String || rawFocus.trim().isEmpty)) {
+      throw const FormatException(
+        'round.focusModuleId must be a non-empty string.',
+      );
+    }
+    final rawSupporting = j['supportingModuleIds'];
+    if (j.containsKey('supportingModuleIds')) {
+      if (rawSupporting is! List ||
+          rawSupporting.any((v) => v is! String || v.trim().isEmpty)) {
+        throw const FormatException(
+          'round.supportingModuleIds must be a list of module IDs.',
+        );
+      }
+      final ids = [for (final v in rawSupporting) (v as String).trim()];
+      if (ids.toSet().length != ids.length) {
+        throw const FormatException(
+          'round.supportingModuleIds must not repeat a module.',
+        );
+      }
+      if (rawFocus is String && ids.contains(rawFocus.trim())) {
+        throw const FormatException(
+          'round.supportingModuleIds must not contain the focus module.',
+        );
+      }
+    }
     final rawTimedLimits = j['timedLimitsSeconds'];
     if (rawTimedLimits != null &&
         (rawTimedLimits is! List ||
@@ -2319,6 +2597,10 @@ class LearningRound {
       flow: rawFlow is Map
           ? ContentFlow.fromJson(Map<String, dynamic>.from(rawFlow))
           : null,
+      focusModuleId: rawFocus as String?,
+      supportingModuleIds: rawSupporting == null
+          ? const []
+          : [for (final v in rawSupporting as List) (v as String).trim()],
     );
   }
 

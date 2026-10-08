@@ -20,6 +20,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from qql_course_v12 import CONTENT_KINDS, EVALUATION_MODES, OPTIONS, PRIMITIVES  # noqa: E402
+from qql_course_v12 import MAX_CONTEXT_LENGTH, target_problem  # noqa: E402
 from qql_capabilities import ELEMENT_ATTRIBUTES  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -540,19 +541,77 @@ def validate(path: Path, global_ids: dict[str, str]) -> list[str]:
                 and (ROOT / icon).is_file()
             ):
                 issues.append(f"{where_lesson}: invalid or missing themeIconAsset: {icon}")
+        # Build 266 (GuideBook Modules): a GuideBook is a list of modules,
+        # each with Sentences and Words & Expressions. A Course with Use
+        # GuideBook off may leave its GuideBooks empty, as the Audit allows
+        # (Build 259 Revision 6).
         guidebook = lesson.get("guidebook")
-        guide_content = guidebook.get("content") if isinstance(guidebook, dict) else None
-        # A Course with Use GuideBook off may leave its GuideBooks empty, as
-        # the Audit allows (Build 259 Revision 6).
         uses_guidebook = data.get("useGuidebook", True) is not False
-        if not isinstance(guide_content, list) or (uses_guidebook and not guide_content):
-            issues.append(f"{where_lesson}: guidebook.content must be non-empty")
+        modules = guidebook.get("modules") if isinstance(guidebook, dict) else None
+        module_ids: set[str] = set()
+        if not isinstance(guidebook, dict) or set(guidebook) - {"publicationState", "modules"}:
+            issues.append(f"{where_lesson}: guidebook must hold publicationState and modules only")
+        elif not isinstance(modules, list):
+            issues.append(f"{where_lesson}: guidebook.modules must be a list")
         else:
-            for content_index, content in enumerate(guide_content, 1):
-                if isinstance(content, dict):
-                    validate_content(content, f"{where_lesson} guidebook content {content_index}")
-                else:
-                    issues.append(f"{where_lesson} guidebook content {content_index}: must be an object")
+            if guidebook.get("publicationState", "published") not in PUBLICATION_STATES:
+                issues.append(f"{where_lesson}: invalid guidebook publicationState")
+            entry_count = 0
+            for module_index, module in enumerate(modules, 1):
+                where_module = f"{where_lesson} guidebook module {module_index}"
+                if not isinstance(module, dict):
+                    issues.append(f"{where_module}: must be an object")
+                    continue
+                if set(module) - {"id", "title", "sentences", "words", "overview"}:
+                    issues.append(f"{where_module}: unsupported fields")
+                add_id(module.get("id"), where_module)
+                if isinstance(module.get("id"), str):
+                    module_ids.add(module["id"])
+                if not isinstance(module.get("title"), str) or not module["title"].strip():
+                    issues.append(f"{where_module}: title is required")
+                if not isinstance(module.get("overview", ""), str):
+                    issues.append(f"{where_module}: overview must be a string")
+                for key in ("sentences", "words"):
+                    entries = module.get(key, [])
+                    if not isinstance(entries, list):
+                        issues.append(f"{where_module}: {key} must be a list")
+                        continue
+                    for entry_index, entry in enumerate(entries, 1):
+                        where_entry = f"{where_module} {key} {entry_index}"
+                        if not isinstance(entry, dict):
+                            issues.append(f"{where_entry}: must be an object")
+                            continue
+                        entry_count += 1
+                        if set(entry) - {"id", "target", "source", "context", "picture"}:
+                            issues.append(f"{where_entry}: unsupported fields")
+                        add_id(entry.get("id"), where_entry)
+                        target = entry.get("target")
+                        if not isinstance(target, str) or not target.strip():
+                            issues.append(f"{where_entry}: target is required")
+                        elif (problem := target_problem(target)) is not None:
+                            issues.append(f"{where_entry}: target {problem}")
+                        if not isinstance(entry.get("source"), str) or not entry["source"].strip():
+                            issues.append(f"{where_entry}: source is required")
+                        context = entry.get("context", "")
+                        if not isinstance(context, str) or len(context) > MAX_CONTEXT_LENGTH:
+                            issues.append(f"{where_entry}: context must be a string of at most {MAX_CONTEXT_LENGTH} characters")
+                        if "picture" in entry:
+                            picture = entry["picture"]
+                            if key != "words":
+                                issues.append(f"{where_entry}: only Words & Expressions entries have pictures")
+                            elif not isinstance(picture, dict) or set(picture) - {"asset", "sharedImageSource", "plural"}:
+                                issues.append(f"{where_entry}: invalid picture")
+                            else:
+                                asset = picture.get("asset")
+                                if not isinstance(asset, str) or not (
+                                    (asset.startswith("assets/") and (ROOT / asset).is_file())
+                                    or re.fullmatch(r"media:[0-9a-f]{64}\.(png|jpg|jpeg|webp)", asset)
+                                ):
+                                    issues.append(f"{where_entry}: picture asset missing or invalid: {asset}")
+                                if "plural" in picture and not isinstance(picture["plural"], bool):
+                                    issues.append(f"{where_entry}: picture.plural must be true or false")
+            if uses_guidebook and entry_count == 0:
+                issues.append(f"{where_lesson}: the GuideBook needs entries while Use GuideBook is on")
         duel = lesson.get("duel")
         if not isinstance(duel, dict):
             issues.append(f"{where_lesson}: duel must be an object")
@@ -594,6 +653,12 @@ def validate(path: Path, global_ids: dict[str, str]) -> list[str]:
                     issues.append(f"{round_where}: timedLimitsSeconds must contain distinct limits of 30–600 seconds")
             if "title" in round_data and not isinstance(round_data["title"], str):
                 issues.append(f"{round_where}: title must be a string")
+            # Build 266: a Round's modules are modules of its own Lesson.
+            linked = [round_data["focusModuleId"]] if "focusModuleId" in round_data else []
+            linked += round_data.get("supportingModuleIds", [])
+            for module_id in linked:
+                if module_id not in module_ids:
+                    issues.append(f"{round_where}: module {module_id} is not in its Lesson's GuideBook")
             content_items = round_data.get("content")
             if not isinstance(content_items, list) or not content_items:
                 issues.append(f"{round_where}: content must be non-empty")

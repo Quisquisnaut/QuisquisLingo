@@ -1,33 +1,48 @@
-import '../guidebook_vocabulary.dart';
+import '../../models/course_models.dart';
+import '../../models/guidebook_text.dart';
 import 'word_lookup_text.dart';
 
-/// A GuideBook vocabulary line handed to [WordLookupIndex.build], in Course
-/// order. [lessonIndex] is the Lesson's position in the Course the learner
-/// is shown, so the card can name the Lesson as the learner's path does.
+/// A GuideBook Words & Expressions entry handed to [WordLookupIndex.build],
+/// in Course order (Build 266: the entry's own fields; Build 265 read a
+/// `target = source` line). [lessonIndex] is the Lesson's position in the
+/// Course the learner is shown, so the card can name the Lesson as the
+/// learner's path does. [target] may mark optional words with `{…}`: both
+/// forms are found.
 class WordLookupSourceEntry {
   const WordLookupSourceEntry({
     required this.id,
-    required this.text,
-    required this.lessonIndex,
-  });
-
-  final String id;
-  final String text;
-  final int lessonIndex;
-}
-
-/// One entry a lookup shows: the GuideBook's own two sides.
-class WordLookupEntry {
-  const WordLookupEntry({
-    required this.id,
     required this.target,
     required this.source,
+    this.context = '',
+    this.picture,
     required this.lessonIndex,
   });
 
   final String id;
   final String target;
   final String source;
+  final String context;
+  final GuidebookPicture? picture;
+  final int lessonIndex;
+}
+
+/// One entry a lookup shows: the GuideBook's own two sides, its Context and
+/// its picture. [target] is as learners read it: "(io) sono stanco".
+class WordLookupEntry {
+  const WordLookupEntry({
+    required this.id,
+    required this.target,
+    required this.source,
+    this.context = '',
+    this.picture,
+    required this.lessonIndex,
+  });
+
+  final String id;
+  final String target;
+  final String source;
+  final String context;
+  final GuidebookPicture? picture;
   final int lessonIndex;
 
   @override
@@ -67,14 +82,20 @@ class _IndexedEntry {
     required this.order,
     required this.entry,
     required this.keys,
+    required this.targetKey,
     required this.sameAs,
   });
 
   final int order;
   final WordLookupEntry entry;
 
-  /// The target side's word keys.
+  /// The word keys of this form of the target side (an entry marking
+  /// optional words `{…}` is indexed once per form).
   final List<String> keys;
+
+  /// The keys of the target with its optional words, the same for every
+  /// form: what counts as one target for [WordLookupIndex.commonWordLimit].
+  final String targetKey;
 
   /// Identical entries (same target and source once normalized) share this
   /// value and are shown once.
@@ -129,8 +150,8 @@ class WordLookupIndex {
     }
     final seen = <String>{};
     for (final entry in _entries) {
-      final target = entry.keys.join(' ');
-      if (!seen.add(target)) continue;
+      // The form with the optional words comes first and holds every key.
+      if (!seen.add(entry.targetKey)) continue;
       for (final key in entry.keys.toSet()) {
         _frequency.update(key, (value) => value + 1, ifAbsent: () => 1);
       }
@@ -144,27 +165,42 @@ class WordLookupIndex {
     Set<String> articles = const {},
   }) {
     final entries = <_IndexedEntry>[];
+    var order = 0;
     for (final source in sources) {
-      final pair = GuidebookVocabulary.parse(source.text);
-      if (pair == null) continue;
-      final tokens = WordLookupText.tokenize(pair.target);
-      if (tokens.isEmpty || tokens.any((token) => token.gap)) continue;
-      final keys = [for (final token in tokens) token.key];
-      entries.add(
-        _IndexedEntry(
-          order: entries.length,
-          entry: WordLookupEntry(
-            id: source.id,
-            target: pair.target,
-            source: pair.source,
-            lessonIndex: source.lessonIndex,
-          ),
-          keys: keys,
-          sameAs:
-              '${keys.join(' ')}\u0000'
-              '${WordLookupText.keys(pair.source).join(' ')}',
-        ),
+      final target = source.target.trim();
+      if (target.isEmpty || source.source.trim().isEmpty) continue;
+      final forms = GuidebookText.forms(target);
+      final targetKey = WordLookupText.keys(forms.first).join(' ');
+      // One entry, found by each form: `{io} sono stanco` by "io sono
+      // stanco" and by "sono stanco".
+      final entry = WordLookupEntry(
+        id: source.id,
+        target: GuidebookText.display(target),
+        source: source.source.trim(),
+        context: source.context.trim(),
+        picture: source.picture,
+        lessonIndex: source.lessonIndex,
       );
+      final sameAs =
+          '$targetKey\u0000'
+          '${WordLookupText.keys(entry.source).join(' ')}\u0000'
+          '${entry.context.toLowerCase()}';
+      var indexed = false;
+      for (final form in forms) {
+        final tokens = WordLookupText.tokenize(form);
+        if (tokens.isEmpty || tokens.any((token) => token.gap)) continue;
+        entries.add(
+          _IndexedEntry(
+            order: order,
+            entry: entry,
+            keys: [for (final token in tokens) token.key],
+            targetKey: targetKey,
+            sameAs: sameAs,
+          ),
+        );
+        indexed = true;
+      }
+      if (indexed) order++;
     }
     return WordLookupIndex._(entries, articles);
   }

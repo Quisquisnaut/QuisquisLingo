@@ -8,6 +8,7 @@ import '../services/review_round_resolver.dart';
 import '../services/round_type_presentation.dart';
 import '../services/vocabulary_review_service.dart';
 import '../widgets/beta_expired_view.dart';
+import '../widgets/guidebook_picture_thumbnail.dart';
 import 'round_screen.dart';
 
 class ReviewScreen extends StatefulWidget {
@@ -268,8 +269,9 @@ class _ReviewScreenState extends State<ReviewScreen> {
         child: Text(
           'Next Review starts a completed Round chosen from this course: '
           'Rounds with more errors come first, then the oldest attempt.\n\n'
-          'Published GuideBook Vocabulary may appear before the Round. Reveal '
-          'each answer, then choose I know it or Show it to me again. Only '
+          'Published GuideBook Words & Expressions may appear before the '
+          'Round, with their pictures and notes. Reveal each answer, then '
+          'choose I know it or Show it to me again. Only '
           'words requested again return once after the Round, where you can '
           'mark them known or say you still do not know them.\n\n'
           'Known words stay skipped in later Reviews. Reset Word List makes '
@@ -382,11 +384,33 @@ class _ReviewScreenState extends State<ReviewScreen> {
                 ),
                 if (_answerRevealed) ...[
                   const SizedBox(height: 18),
+                  // Build 266: the word's picture comes with its meaning,
+                  // so the card still asks the learner to remember it.
+                  if (entry.picture case final picture?) ...[
+                    Center(
+                      child: GuidebookPictureThumbnail(
+                        key: const Key('review-vocabulary-picture'),
+                        courseId: widget.course.courseId,
+                        picture: picture,
+                        size: 96,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
                   Text(
                     entry.answer,
                     style: Theme.of(context).textTheme.titleLarge,
                     textAlign: TextAlign.center,
                   ),
+                  if (entry.context.isNotEmpty)
+                    Text(
+                      entry.context,
+                      key: const Key('review-vocabulary-context'),
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
                   for (final detail in entry.supplementary) Text(detail),
                 ],
               ],

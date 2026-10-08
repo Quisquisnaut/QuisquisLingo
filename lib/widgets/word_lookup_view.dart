@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 
 import '../models/course_models.dart';
 import '../services/word_lookup/word_lookup.dart';
+import 'guidebook_picture_thumbnail.dart';
 
 /// Build 265: Word Lookup on the learner's screen.
 ///
@@ -23,10 +24,15 @@ class WordLookupScope extends StatefulWidget {
     required this.note,
     required this.notePlural,
     required this.actionLabel,
+    this.courseId = '',
     required this.child,
   });
 
   final WordLookupIndex index;
+
+  /// The Course whose media folder holds an entry picture stored as Course
+  /// media (Build 266).
+  final String courseId;
 
   /// The position of the Round's Lesson in the Course the learner is shown.
   final int currentLessonIndex;
@@ -66,6 +72,7 @@ class WordLookupScopeData {
   String get note => _state.widget.note;
   String get notePlural => _state.widget.notePlural;
   String get actionLabel => _state.widget.actionLabel;
+  String get courseId => _state.widget.courseId;
 
   /// One card at a time: opening one closes the card open before.
   void opened(VoidCallback close) => _state._opened(close);
@@ -576,6 +583,7 @@ class _LookupTextState extends State<LookupText> {
           groupId: _tapGroup,
           child: WordLookupCard(
             entries: open.entries,
+            courseId: scope.courseId,
             lessonName: scope.lessonName,
             currentLessonIndex: scope.currentLessonIndex,
             note: open.entries.length > 1 ? scope.notePlural : scope.note,
@@ -673,18 +681,21 @@ class _CardLayout extends SingleChildLayoutDelegate {
 }
 
 /// The card a lookup opens: each entry's learning-language side, its
-/// meaning and its Lesson, then the fixed line saying it is one possible
-/// translation.
+/// meaning with its Context as a small grey label (Build 266), its picture
+/// beside the target when it has one, and its Lesson; then the fixed line
+/// saying it is one possible translation.
 class WordLookupCard extends StatelessWidget {
   const WordLookupCard({
     super.key = const Key('word-lookup-card'),
     required this.entries,
+    this.courseId = '',
     required this.lessonName,
     required this.currentLessonIndex,
     required this.note,
   });
 
   final List<WordLookupEntry> entries;
+  final String courseId;
   final String Function(int lessonIndex) lessonName;
 
   /// An entry of this Lesson shows no Lesson line; one from another Lesson
@@ -709,26 +720,20 @@ class WordLookupCard extends StatelessWidget {
             children: [
               for (var i = 0; i < entries.length; i++) ...[
                 if (i > 0) const Divider(height: 16),
-                Column(
-                  key: ValueKey('word-lookup-entry-$i'),
+                Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(
-                      entries[i].target,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
+                    if (entries[i].picture case final picture?) ...[
+                      GuidebookPictureThumbnail(
+                        key: ValueKey('word-lookup-picture-$i'),
+                        courseId: courseId,
+                        picture: picture,
+                        size: 44,
                       ),
-                    ),
-                    Text(entries[i].source, style: theme.textTheme.bodyLarge),
-                    if (entries[i].lessonIndex != currentLessonIndex &&
-                        lessonName(entries[i].lessonIndex).isNotEmpty)
-                      Text(
-                        lessonName(entries[i].lessonIndex),
-                        key: ValueKey('word-lookup-lesson-$i'),
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
+                      const SizedBox(width: 10),
+                    ],
+                    Flexible(child: _entry(theme, i)),
                   ],
                 ),
               ],
@@ -747,4 +752,41 @@ class WordLookupCard extends StatelessWidget {
       ),
     );
   }
+
+  Widget _entry(ThemeData theme, int i) => Column(
+    key: ValueKey('word-lookup-entry-$i'),
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        entries[i].target,
+        style: theme.textTheme.titleMedium?.copyWith(
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+      Text.rich(
+        TextSpan(
+          text: entries[i].source,
+          style: theme.textTheme.bodyLarge,
+          children: [
+            if (entries[i].context.isNotEmpty)
+              TextSpan(
+                text: '  ${entries[i].context}',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+          ],
+        ),
+      ),
+      if (entries[i].lessonIndex != currentLessonIndex &&
+          lessonName(entries[i].lessonIndex).isNotEmpty)
+        Text(
+          lessonName(entries[i].lessonIndex),
+          key: ValueKey('word-lookup-lesson-$i'),
+          style: theme.textTheme.labelSmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
+    ],
+  );
 }

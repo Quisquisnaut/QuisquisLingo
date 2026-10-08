@@ -5,6 +5,7 @@ import 'package:quisquislingo_app/screens/course_editor_screen.dart';
 import 'package:quisquislingo_app/services/course_audit_service.dart';
 import 'package:quisquislingo_app/services/editor_display_preferences.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'support/guidebook_fixtures.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -178,15 +179,9 @@ Course _customCourse() {
         lessonId: 'custom-lesson-with-a-long-stable-internal-identifier',
         updatedAt: updatedAt,
         title: 'A long Lesson title that wraps on narrow screens',
-        guidebook: Guidebook(
-          content: [
-            LearningContent.textual(
-              id: 'guidebook-overview',
-              kind: 'explanation',
-              role: 'overview',
-              text: 'Reviewed overview.',
-            ),
-          ],
+        guidebook: testGuidebook(
+          overview: 'Reviewed overview.',
+          words: [testEntry('guidebook-overview', 'casa = house')],
         ),
         rounds: [
           LearningRound(

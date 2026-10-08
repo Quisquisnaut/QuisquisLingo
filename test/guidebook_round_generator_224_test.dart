@@ -5,6 +5,7 @@ import 'package:quisquislingo_app/services/authoring_duplication_service.dart';
 import 'package:quisquislingo_app/services/course_audit_service.dart';
 import 'package:quisquislingo_app/services/guidebook_round_generator.dart';
 import 'package:quisquislingo_app/services/preset_recipes.dart';
+import 'support/guidebook_fixtures.dart';
 
 void main() {
   test('default plan is 6 by 8 and difficulty rises monotonically', () {
@@ -65,7 +66,7 @@ void main() {
   test('insufficient GuideBook content blocks generation', () {
     expect(
       () => GuidebookRoundGenerator().plan(
-        Guidebook(vocabulary: const ['casa = house']),
+        testGuidebook(wordLines: const ['casa = house']),
       ),
       throwsA(isA<GuidebookGenerationException>()),
     );
@@ -120,7 +121,7 @@ void main() {
         expect(ids.add(content.id), isTrue);
         expect(
           content.sourceRefs,
-          everyElement(isIn(guidebook.content.map((item) => item.id))),
+          everyElement(isIn(guidebook.entries.map((item) => item.id))),
         );
         final exercise = content.exercise;
         if (exercise == null) continue;
@@ -170,19 +171,19 @@ void main() {
   );
 }
 
-Guidebook _guidebook() => Guidebook(
+Guidebook _guidebook() => testGuidebook(
   overview: 'Everyday food and drinks.',
-  vocabulary: const [
+  wordLines: const [
     'cappuccino = cappuccino',
     'pane = bread',
     'acqua = water',
     'tavolo = table',
   ],
-  examples: const [
-    'Vorrei un cappuccino oggi.',
-    'Il pane è sul tavolo.',
-    'Bevo acqua ogni mattina.',
-    'Il tavolo è libero.',
+  sentenceLines: const [
+    'Vorrei un cappuccino oggi. = I would like a cappuccino today.',
+    'Il pane è sul tavolo. = The bread is on the table.',
+    'Bevo acqua ogni mattina. = I drink water every morning.',
+    'Il tavolo è libero. = The table is free.',
   ],
 );
 

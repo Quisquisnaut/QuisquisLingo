@@ -158,7 +158,17 @@ class CourseAuthoringTransferService {
     for (final content in source.content) {
       _checkContentIdentity(course, content);
     }
-    final transferred = copy ? _duplication.duplicateRound(source) : source;
+    var transferred = copy ? _duplication.duplicateRound(source) : source;
+    // Build 266: modules belong to their own Lesson, so a Round moved or
+    // copied to another Lesson loses its focus and supporting modules.
+    if (!identical(sourceLesson, destinationLesson) &&
+        (transferred.focusModuleId != null ||
+            transferred.supportingModuleIds.isNotEmpty)) {
+      transferred = transferred.withModules(
+        focusModuleId: null,
+        supportingModuleIds: const [],
+      );
+    }
     if (copy) {
       _requireFreshIds(
         course,
@@ -232,18 +242,28 @@ class CourseAuthoringTransferService {
 
   Iterable<LearningContent> _allContent(Course course) sync* {
     for (final lesson in course.lessons) {
-      yield* lesson.guidebook.content;
       for (final round in lesson.rounds) {
         yield* round.content;
       }
     }
   }
 
+  /// Build 266: the IDs of every GuideBook module and entry.
+  Set<String> _guidebookIds(Course course) => {
+    for (final lesson in course.lessons) ...lesson.guidebook.ids,
+  };
+
   void _checkContentIdentity(Course course, LearningContent content) {
+    final guidebookIds = _guidebookIds(course);
     for (final id in {
       content.id,
       if (content.exercise != null) content.exercise!.id,
     }) {
+      if (guidebookIds.contains(id)) {
+        throw StateError(
+          'Content ID "$id" is duplicated. Resolve the duplicate IDs in Course Audit before transferring content.',
+        );
+      }
       _unique(
         _allContent(course).where((c) => c.id == id || c.exercise?.id == id),
         'Content',
@@ -283,6 +303,7 @@ class CourseAuthoringTransferService {
         lesson.duel.id,
         for (final round in lesson.rounds) round.id,
       ],
+      ..._guidebookIds(course),
       for (final content in _allContent(course)) ..._contentIds(content),
     };
     final copied = copiedIds.toSet();
@@ -312,6 +333,8 @@ class CourseAuthoringTransferService {
     content: content,
     // A Story keeps its flow: a linear one follows the new content order.
     flow: RoundFlowAuthoring.forContent(source.flow, content),
+    focusModuleId: source.focusModuleId,
+    supportingModuleIds: source.supportingModuleIds,
   );
 
   Lesson _withRounds(Lesson source, List<LearningRound> rounds, DateTime now) =>

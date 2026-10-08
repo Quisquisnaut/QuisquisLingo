@@ -42,10 +42,7 @@ Exercise _exercise(Course course, String suffix) => _exercises(
 ).singleWhere((exercise) => exercise.id == '$_prefix$suffix');
 
 Iterable<LearningContent> _contents(Course course) => course.lessons.expand(
-  (lesson) => [
-    ...lesson.guidebook.content,
-    ...lesson.rounds.expand((round) => round.content),
-  ],
+  (lesson) => [...lesson.rounds.expand((round) => round.content)],
 );
 
 Set<String> _ownedIds(Course course) => {
@@ -54,6 +51,7 @@ Set<String> _ownedIds(Course course) => {
     lesson.lessonId,
     lesson.duel.id,
     for (final round in lesson.rounds) round.id,
+    ...lesson.guidebook.ids,
   ],
   for (final content in _contents(course)) content.id,
   for (final exercise in _exercises(course))
@@ -61,7 +59,11 @@ Set<String> _ownedIds(Course course) => {
 };
 
 void _expectReferencesResolve(Course course) {
-  final contentIds = _contents(course).map((content) => content.id).toSet();
+  // Build 266: sourceRefs name GuideBook entries (or other content).
+  final contentIds = {
+    ..._contents(course).map((content) => content.id),
+    for (final lesson in course.lessons) ...lesson.guidebook.ids,
+  };
   for (final content in _contents(course)) {
     expect(content.sourceRefs.every(contentIds.contains), isTrue);
   }
@@ -182,7 +184,7 @@ void main() {
       expect(learner.lessons[3].rounds, hasLength(1));
       expect(learner.lessons[3].rounds.single.title, isEmpty);
       expect(learner.lessons[3].rounds.single.displayTitle(0), 'Round 1');
-      expect(learner.lessons[3].guidebook.content, isEmpty);
+      expect(learner.lessons[3].guidebook.modules, isEmpty);
       expect(
         _exercises(
           learner,

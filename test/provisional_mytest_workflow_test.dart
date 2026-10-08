@@ -17,6 +17,7 @@ import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:quisquislingo_app/services/settings_service.dart';
 import 'package:quisquislingo_app/widgets/unified_learner_top_bar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'support/guidebook_editor_driver.dart';
 
 const _profileName = 'My test author';
 
@@ -258,10 +259,13 @@ void main() {
 
       await tester.tap(find.byKey(const Key('lesson-guidebook-navigation')));
       await tester.pumpAndSettle();
-      await tester.enterText(_field('Overview'), 'Learn a first greeting.');
-      await tester.enterText(_field('Usage examples'), 'Ciao, Anna!');
-      await tester.enterText(_field('Vocabulary'), 'ciao = hello');
-      await tester.enterText(_field('Grammar'), 'Ciao is a greeting.');
+      await addGuidebookModule(
+        tester,
+        title: 'First greeting',
+        overview: 'Learn a first greeting. Ciao is a greeting.',
+        sentences: const [('Ciao, Anna!', 'Hi, Anna!')],
+        words: const [('ciao', 'hello')],
+      );
       final guidebookSave = find.byKey(const Key('guidebook-save'));
       await tester.scrollUntilVisible(
         guidebookSave,
@@ -411,13 +415,9 @@ void _expectFinalAuthoringTree(
     course.lessons.first.guidebook.publicationState,
     PublicationState.published,
   );
-  expect(course.lessons.first.guidebook.content, isNotEmpty);
-  expect(
-    course.lessons.first.guidebook.content.every(
-      (content) => content.publicationState.isPublished,
-    ),
-    isTrue,
-  );
+  // Build 266: the GuideBook is published whole, its module with it.
+  expect(course.lessons.first.guidebook.modules, isNotEmpty);
+  expect(course.lessons.first.guidebook.words, isNotEmpty);
   expect(
     course.lessons.first.rounds.single.publicationState,
     PublicationState.published,

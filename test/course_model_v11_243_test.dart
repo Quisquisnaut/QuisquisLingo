@@ -459,7 +459,16 @@ void main() {
           'edge_case_it_en.json',
         ]) {
           final result = convertCourseJsonToV12(v11(file));
-          expect(result.notes, isEmpty, reason: file);
+          // Build 266: each Lesson's GuideBook becomes one module, "Module
+          // 1", which the notes ask the author to rename; nothing else.
+          expect(result.notes, isNotEmpty, reason: file);
+          expect(
+            result.notes.every(
+              (note) => note.contains('became one module titled “Module 1”'),
+            ),
+            isTrue,
+            reason: '$file: ${result.notes}',
+          );
           final converted = Course.fromJson(result.json);
           final shipped = Course.fromJson(_bundled(file));
           expect(converted.courseId, shipped.courseId, reason: file);

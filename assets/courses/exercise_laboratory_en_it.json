@@ -66,134 +66,89 @@
       "title": "Select",
       "section": false,
       "guidebook": {
-        "content": [
+        "modules": [
           {
-            "id": "qql_lab254_select_guide",
-            "publicationState": "published",
-            "kind": "explanation",
-            "required": false,
-            "role": "overview",
-            "text": "Choose an answer, select a complete set, or fill fixed gaps with reusable options. The Rounds also demonstrate images, characters, reading, dialogue, listening and both translation directions. Listening needs Enable Audio Exercises and Text-to-speech in Audio Settings; Preview ignores those learner switches."
-          },
-          {
-            "id": "qql_lab254_select_vocab_01",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "grazie = thank you"
-          },
-          {
-            "id": "qql_lab254_select_vocab_02",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "la mela = the apple"
-          },
-          {
-            "id": "qql_lab254_select_vocab_03",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "rossa = red"
-          },
-          {
-            "id": "qql_lab254_select_vocab_04",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "il gatto = the cat"
-          },
-          {
-            "id": "qql_lab254_select_vocab_05",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "dorme = sleeps"
-          },
-          {
-            "id": "qql_lab254_select_vocab_06",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "il divano = the sofa"
-          },
-          {
-            "id": "qql_lab254_select_vocab_07",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "il cane = the dog"
-          },
-          {
-            "id": "qql_lab254_select_vocab_08",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "il caffè = coffee"
-          },
-          {
-            "id": "qql_lab254_select_vocab_09",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "senza zucchero = without sugar"
-          },
-          {
-            "id": "qql_lab254_select_vocab_10",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "dolce = sweet"
-          },
-          {
-            "id": "qql_lab254_select_vocab_11",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "dov'è = where is"
-          },
-          {
-            "id": "qql_lab254_select_vocab_12",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "la stazione = the station"
-          },
-          {
-            "id": "qql_lab254_select_vocab_13",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "vicino al parco = near the park"
-          },
-          {
-            "id": "qql_lab254_select_vocab_14",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "la capitale = the capital"
-          },
-          {
-            "id": "qql_lab254_select_vocab_15",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "Italia = Italy"
+            "id": "qql_lab254_select_module",
+            "title": "Everyday words",
+            "sentences": [],
+            "words": [
+              {
+                "id": "qql_lab254_select_vocab_01",
+                "target": "grazie",
+                "source": "thank you"
+              },
+              {
+                "id": "qql_lab254_select_vocab_02",
+                "target": "la mela",
+                "source": "the apple"
+              },
+              {
+                "id": "qql_lab254_select_vocab_03",
+                "target": "rossa",
+                "source": "red"
+              },
+              {
+                "id": "qql_lab254_select_vocab_04",
+                "target": "il gatto",
+                "source": "the cat"
+              },
+              {
+                "id": "qql_lab254_select_vocab_05",
+                "target": "dorme",
+                "source": "sleeps"
+              },
+              {
+                "id": "qql_lab254_select_vocab_06",
+                "target": "il divano",
+                "source": "the sofa"
+              },
+              {
+                "id": "qql_lab254_select_vocab_07",
+                "target": "il cane",
+                "source": "the dog"
+              },
+              {
+                "id": "qql_lab254_select_vocab_08",
+                "target": "il caffè",
+                "source": "coffee"
+              },
+              {
+                "id": "qql_lab254_select_vocab_09",
+                "target": "senza zucchero",
+                "source": "without sugar"
+              },
+              {
+                "id": "qql_lab254_select_vocab_10",
+                "target": "dolce",
+                "source": "sweet"
+              },
+              {
+                "id": "qql_lab254_select_vocab_11",
+                "target": "dov'è",
+                "source": "where is"
+              },
+              {
+                "id": "qql_lab254_select_vocab_12",
+                "target": "la stazione",
+                "source": "the station"
+              },
+              {
+                "id": "qql_lab254_select_vocab_13",
+                "target": "vicino al parco",
+                "source": "near the park"
+              },
+              {
+                "id": "qql_lab254_select_vocab_14",
+                "target": "la capitale",
+                "source": "the capital"
+              },
+              {
+                "id": "qql_lab254_select_vocab_15",
+                "target": "Italia",
+                "source": "Italy"
+              }
+            ],
+            "overview": "Choose an answer, select a complete set, or fill fixed gaps with reusable options. The Rounds also demonstrate images, characters, reading, dialogue, listening and both translation directions. Listening needs Enable Audio Exercises and Text-to-speech in Audio Settings; Preview ignores those learner switches."
           }
         ]
       },
@@ -2533,134 +2488,89 @@
       "title": "Input",
       "section": false,
       "guidebook": {
-        "content": [
+        "modules": [
           {
-            "id": "qql_lab254_input_guide",
-            "publicationState": "published",
-            "kind": "explanation",
-            "required": false,
-            "role": "overview",
-            "text": "Type a translation, a missing fragment, a complete word, or a transcription. Accepted answers can include optional wording and alternatives. Accents are preserved; ordinary capitalization, punctuation and spacing are normalized. Only Type the translation and Type the missing word tolerate one omitted or duplicated repeated letter."
-          },
-          {
-            "id": "qql_lab254_input_vocab_01",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "grazie = thank you"
-          },
-          {
-            "id": "qql_lab254_input_vocab_02",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "buongiorno = good morning"
-          },
-          {
-            "id": "qql_lab254_input_vocab_03",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "buonasera = good evening"
-          },
-          {
-            "id": "qql_lab254_input_vocab_04",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "la mela = the apple"
-          },
-          {
-            "id": "qql_lab254_input_vocab_05",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "il bambino = the child"
-          },
-          {
-            "id": "qql_lab254_input_vocab_06",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "felice = happy"
-          },
-          {
-            "id": "qql_lab254_input_vocab_07",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "domani = tomorrow"
-          },
-          {
-            "id": "qql_lab254_input_vocab_08",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "a casa = at home"
-          },
-          {
-            "id": "qql_lab254_input_vocab_09",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "il pane = bread"
-          },
-          {
-            "id": "qql_lab254_input_vocab_10",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "il latte = milk"
-          },
-          {
-            "id": "qql_lab254_input_vocab_11",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "l'acqua = water"
-          },
-          {
-            "id": "qql_lab254_input_vocab_12",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "fredda = cold"
-          },
-          {
-            "id": "qql_lab254_input_vocab_13",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "vorrei = I would like"
-          },
-          {
-            "id": "qql_lab254_input_vocab_14",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "un caffè = a coffee"
-          },
-          {
-            "id": "qql_lab254_input_vocab_15",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "il treno = the train"
+            "id": "qql_lab254_input_module",
+            "title": "Greetings and food",
+            "sentences": [],
+            "words": [
+              {
+                "id": "qql_lab254_input_vocab_01",
+                "target": "grazie",
+                "source": "thank you"
+              },
+              {
+                "id": "qql_lab254_input_vocab_02",
+                "target": "buongiorno",
+                "source": "good morning"
+              },
+              {
+                "id": "qql_lab254_input_vocab_03",
+                "target": "buonasera",
+                "source": "good evening"
+              },
+              {
+                "id": "qql_lab254_input_vocab_04",
+                "target": "la mela",
+                "source": "the apple"
+              },
+              {
+                "id": "qql_lab254_input_vocab_05",
+                "target": "il bambino",
+                "source": "the child"
+              },
+              {
+                "id": "qql_lab254_input_vocab_06",
+                "target": "felice",
+                "source": "happy"
+              },
+              {
+                "id": "qql_lab254_input_vocab_07",
+                "target": "domani",
+                "source": "tomorrow"
+              },
+              {
+                "id": "qql_lab254_input_vocab_08",
+                "target": "a casa",
+                "source": "at home"
+              },
+              {
+                "id": "qql_lab254_input_vocab_09",
+                "target": "il pane",
+                "source": "bread"
+              },
+              {
+                "id": "qql_lab254_input_vocab_10",
+                "target": "il latte",
+                "source": "milk"
+              },
+              {
+                "id": "qql_lab254_input_vocab_11",
+                "target": "l'acqua",
+                "source": "water"
+              },
+              {
+                "id": "qql_lab254_input_vocab_12",
+                "target": "fredda",
+                "source": "cold"
+              },
+              {
+                "id": "qql_lab254_input_vocab_13",
+                "target": "vorrei",
+                "source": "I would like"
+              },
+              {
+                "id": "qql_lab254_input_vocab_14",
+                "target": "un caffè",
+                "source": "a coffee"
+              },
+              {
+                "id": "qql_lab254_input_vocab_15",
+                "target": "il treno",
+                "source": "the train"
+              }
+            ],
+            "overview": "Type a translation, a missing fragment, a complete word, or a transcription. Accepted answers can include optional wording and alternatives. Accents are preserved; ordinary capitalization, punctuation and spacing are normalized. Only Type the translation and Type the missing word tolerate one omitted or duplicated repeated letter."
           }
         ]
       },
@@ -4034,126 +3944,84 @@
       "title": "Arrange",
       "section": false,
       "guidebook": {
-        "content": [
+        "modules": [
           {
-            "id": "qql_lab254_arrange_guide",
-            "publicationState": "published",
-            "kind": "explanation",
-            "required": false,
-            "role": "overview",
-            "text": "Build an Italian answer from words, phrases, letters or syllables. Ordinary Arrange consumes each block once; repeated words need repeated blocks. Inline Arrange fills fixed gaps with distinct blocks. Word order and Build the translation allow zero, one or two distractors; Image-prompt ordering allows none."
-          },
-          {
-            "id": "qql_lab254_arrange_vocab_01",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "bevo = I drink"
-          },
-          {
-            "id": "qql_lab254_arrange_vocab_02",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "l'acqua = water"
-          },
-          {
-            "id": "qql_lab254_arrange_vocab_03",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "vado = I go"
-          },
-          {
-            "id": "qql_lab254_arrange_vocab_04",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "a scuola = to school"
-          },
-          {
-            "id": "qql_lab254_arrange_vocab_05",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "il treno = the train"
-          },
-          {
-            "id": "qql_lab254_arrange_vocab_06",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "parte = leaves"
-          },
-          {
-            "id": "qql_lab254_arrange_vocab_07",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "oggi = today"
-          },
-          {
-            "id": "qql_lab254_arrange_vocab_08",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "beve = drinks"
-          },
-          {
-            "id": "qql_lab254_arrange_vocab_09",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "mangia = eats"
-          },
-          {
-            "id": "qql_lab254_arrange_vocab_10",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "il riso = rice"
-          },
-          {
-            "id": "qql_lab254_arrange_vocab_11",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "il pane = bread"
-          },
-          {
-            "id": "qql_lab254_arrange_vocab_12",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "legge = reads"
-          },
-          {
-            "id": "qql_lab254_arrange_vocab_13",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "il libro = the book"
-          },
-          {
-            "id": "qql_lab254_arrange_vocab_14",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "beviamo = we drink"
+            "id": "qql_lab254_arrange_module",
+            "title": "Daily actions",
+            "sentences": [],
+            "words": [
+              {
+                "id": "qql_lab254_arrange_vocab_01",
+                "target": "bevo",
+                "source": "I drink"
+              },
+              {
+                "id": "qql_lab254_arrange_vocab_02",
+                "target": "l'acqua",
+                "source": "water"
+              },
+              {
+                "id": "qql_lab254_arrange_vocab_03",
+                "target": "vado",
+                "source": "I go"
+              },
+              {
+                "id": "qql_lab254_arrange_vocab_04",
+                "target": "a scuola",
+                "source": "to school"
+              },
+              {
+                "id": "qql_lab254_arrange_vocab_05",
+                "target": "il treno",
+                "source": "the train"
+              },
+              {
+                "id": "qql_lab254_arrange_vocab_06",
+                "target": "parte",
+                "source": "leaves"
+              },
+              {
+                "id": "qql_lab254_arrange_vocab_07",
+                "target": "oggi",
+                "source": "today"
+              },
+              {
+                "id": "qql_lab254_arrange_vocab_08",
+                "target": "beve",
+                "source": "drinks"
+              },
+              {
+                "id": "qql_lab254_arrange_vocab_09",
+                "target": "mangia",
+                "source": "eats"
+              },
+              {
+                "id": "qql_lab254_arrange_vocab_10",
+                "target": "il riso",
+                "source": "rice"
+              },
+              {
+                "id": "qql_lab254_arrange_vocab_11",
+                "target": "il pane",
+                "source": "bread"
+              },
+              {
+                "id": "qql_lab254_arrange_vocab_12",
+                "target": "legge",
+                "source": "reads"
+              },
+              {
+                "id": "qql_lab254_arrange_vocab_13",
+                "target": "il libro",
+                "source": "the book"
+              },
+              {
+                "id": "qql_lab254_arrange_vocab_14",
+                "target": "beviamo",
+                "source": "we drink"
+              }
+            ],
+            "overview": "Build an Italian answer from words, phrases, letters or syllables. Ordinary Arrange consumes each block once; repeated words need repeated blocks. Inline Arrange fills fixed gaps with distinct blocks. Word order and Build the translation allow zero, one or two distractors; Image-prompt ordering allows none."
           }
         ]
       },
@@ -6649,110 +6517,74 @@
       "title": "Match",
       "section": false,
       "guidebook": {
-        "content": [
+        "modules": [
           {
-            "id": "qql_lab254_match_guide",
-            "publicationState": "published",
-            "kind": "explanation",
-            "required": false,
-            "role": "overview",
-            "text": "Match each item on the left to its partner. The shuffled columns preserve stable pair identities. Match the pairs can use a variable number of text pairs; Match the words, Match related words and Listen and match use exactly three pairs. Listen and match needs audio enabled."
-          },
-          {
-            "id": "qql_lab254_match_vocab_01",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "ciao = hello"
-          },
-          {
-            "id": "qql_lab254_match_vocab_02",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "a domani = see you tomorrow"
-          },
-          {
-            "id": "qql_lab254_match_vocab_03",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "per favore = please"
-          },
-          {
-            "id": "qql_lab254_match_vocab_04",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "buon viaggio = have a good trip"
-          },
-          {
-            "id": "qql_lab254_match_vocab_05",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "a presto = see you soon"
-          },
-          {
-            "id": "qql_lab254_match_vocab_06",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "felice = happy"
-          },
-          {
-            "id": "qql_lab254_match_vocab_07",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "contento = glad"
-          },
-          {
-            "id": "qql_lab254_match_vocab_08",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "veloce = fast"
-          },
-          {
-            "id": "qql_lab254_match_vocab_09",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "rapido = quick"
-          },
-          {
-            "id": "qql_lab254_match_vocab_10",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "caldo = hot"
-          },
-          {
-            "id": "qql_lab254_match_vocab_11",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "freddo = cold"
-          },
-          {
-            "id": "qql_lab254_match_vocab_12",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "aperto = open"
+            "id": "qql_lab254_match_module",
+            "title": "Greetings and opposites",
+            "sentences": [],
+            "words": [
+              {
+                "id": "qql_lab254_match_vocab_01",
+                "target": "ciao",
+                "source": "hello"
+              },
+              {
+                "id": "qql_lab254_match_vocab_02",
+                "target": "a domani",
+                "source": "see you tomorrow"
+              },
+              {
+                "id": "qql_lab254_match_vocab_03",
+                "target": "per favore",
+                "source": "please"
+              },
+              {
+                "id": "qql_lab254_match_vocab_04",
+                "target": "buon viaggio",
+                "source": "have a good trip"
+              },
+              {
+                "id": "qql_lab254_match_vocab_05",
+                "target": "a presto",
+                "source": "see you soon"
+              },
+              {
+                "id": "qql_lab254_match_vocab_06",
+                "target": "felice",
+                "source": "happy"
+              },
+              {
+                "id": "qql_lab254_match_vocab_07",
+                "target": "contento",
+                "source": "glad"
+              },
+              {
+                "id": "qql_lab254_match_vocab_08",
+                "target": "veloce",
+                "source": "fast"
+              },
+              {
+                "id": "qql_lab254_match_vocab_09",
+                "target": "rapido",
+                "source": "quick"
+              },
+              {
+                "id": "qql_lab254_match_vocab_10",
+                "target": "caldo",
+                "source": "hot"
+              },
+              {
+                "id": "qql_lab254_match_vocab_11",
+                "target": "freddo",
+                "source": "cold"
+              },
+              {
+                "id": "qql_lab254_match_vocab_12",
+                "target": "aperto",
+                "source": "open"
+              }
+            ],
+            "overview": "Match each item on the left to its partner. The shuffled columns preserve stable pair identities. Match the pairs can use a variable number of text pairs; Match the words, Match related words and Listen and match use exactly three pairs. Listen and match needs audio enabled."
           }
         ]
       },
@@ -7645,94 +7477,64 @@
       "title": "Presentation",
       "section": false,
       "guidebook": {
-        "content": [
+        "modules": [
           {
-            "id": "qql_lab254_presentation_guide",
-            "publicationState": "published",
-            "kind": "explanation",
-            "required": false,
-            "role": "overview",
-            "text": "Flashcards present material without a scored answer. Got it completes a card; Review again schedules it again later in this Round. These six cards cover all meaningful combinations of optional pronunciation, usage and usage translation. A usage translation only appears with a usage sentence. Cards with pronunciation audio follow learner Audio Settings."
-          },
-          {
-            "id": "qql_lab254_presentation_vocab_01",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "ciao = hello"
-          },
-          {
-            "id": "qql_lab254_presentation_vocab_02",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "grazie = thank you"
-          },
-          {
-            "id": "qql_lab254_presentation_vocab_03",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "il pane = bread"
-          },
-          {
-            "id": "qql_lab254_presentation_vocab_04",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "compro = I buy"
-          },
-          {
-            "id": "qql_lab254_presentation_vocab_05",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "buongiorno = good morning"
-          },
-          {
-            "id": "qql_lab254_presentation_vocab_06",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "il libro = the book"
-          },
-          {
-            "id": "qql_lab254_presentation_vocab_07",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "leggo = I read"
-          },
-          {
-            "id": "qql_lab254_presentation_vocab_08",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "il bicchiere = the glass"
-          },
-          {
-            "id": "qql_lab254_presentation_vocab_09",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "la mela = the apple"
-          },
-          {
-            "id": "qql_lab254_presentation_vocab_10",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "mangio = I eat"
+            "id": "qql_lab254_presentation_module",
+            "title": "Words on the flashcards",
+            "sentences": [],
+            "words": [
+              {
+                "id": "qql_lab254_presentation_vocab_01",
+                "target": "ciao",
+                "source": "hello"
+              },
+              {
+                "id": "qql_lab254_presentation_vocab_02",
+                "target": "grazie",
+                "source": "thank you"
+              },
+              {
+                "id": "qql_lab254_presentation_vocab_03",
+                "target": "il pane",
+                "source": "bread"
+              },
+              {
+                "id": "qql_lab254_presentation_vocab_04",
+                "target": "compro",
+                "source": "I buy"
+              },
+              {
+                "id": "qql_lab254_presentation_vocab_05",
+                "target": "buongiorno",
+                "source": "good morning"
+              },
+              {
+                "id": "qql_lab254_presentation_vocab_06",
+                "target": "il libro",
+                "source": "the book"
+              },
+              {
+                "id": "qql_lab254_presentation_vocab_07",
+                "target": "leggo",
+                "source": "I read"
+              },
+              {
+                "id": "qql_lab254_presentation_vocab_08",
+                "target": "il bicchiere",
+                "source": "the glass"
+              },
+              {
+                "id": "qql_lab254_presentation_vocab_09",
+                "target": "la mela",
+                "source": "the apple"
+              },
+              {
+                "id": "qql_lab254_presentation_vocab_10",
+                "target": "mangio",
+                "source": "I eat"
+              }
+            ],
+            "overview": "Flashcards present material without a scored answer. Got it completes a card; Review again schedules it again later in this Round. These six cards cover all meaningful combinations of optional pronunciation, usage and usage translation. A usage translation only appears with a usage sentence. Cards with pronunciation audio follow learner Audio Settings."
           }
         ]
       },
@@ -8238,110 +8040,74 @@
       "title": "Story",
       "section": false,
       "guidebook": {
-        "content": [
+        "modules": [
           {
-            "id": "qql_lab254_story_guide",
-            "publicationState": "published",
-            "kind": "explanation",
-            "required": false,
-            "role": "overview",
-            "text": "A Story is a Round played in order: a cover, dialogue lines said by the narrator or by a character, and exercises about them (Build 256 Revision 5). Lines are never skipped: without audio the learner reads them. An exercise marked as needing the Story's audio is skipped, like the listening exercises, when Audio Exercises is off. Only the exercises score. The first Story alternates lines and questions; the second shows the line options one by one and has nothing to score."
-          },
-          {
-            "id": "qql_lab254_story_vocab_01",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "buongiorno = good morning"
-          },
-          {
-            "id": "qql_lab254_story_vocab_02",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "un caffè = a coffee"
-          },
-          {
-            "id": "qql_lab254_story_vocab_03",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "per favore = please"
-          },
-          {
-            "id": "qql_lab254_story_vocab_04",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "subito = right away"
-          },
-          {
-            "id": "qql_lab254_story_vocab_05",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "vuole = would you like"
-          },
-          {
-            "id": "qql_lab254_story_vocab_06",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "anche = also"
-          },
-          {
-            "id": "qql_lab254_story_vocab_07",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "il cornetto = the croissant"
-          },
-          {
-            "id": "qql_lab254_story_vocab_08",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "solo = only"
-          },
-          {
-            "id": "qql_lab254_story_vocab_09",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "ecco = here is"
-          },
-          {
-            "id": "qql_lab254_story_vocab_10",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "il suo caffè = your coffee"
-          },
-          {
-            "id": "qql_lab254_story_vocab_11",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "che cosa = what"
-          },
-          {
-            "id": "qql_lab254_story_vocab_12",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "ordina = orders"
+            "id": "qql_lab254_story_module",
+            "title": "At the café",
+            "sentences": [],
+            "words": [
+              {
+                "id": "qql_lab254_story_vocab_01",
+                "target": "buongiorno",
+                "source": "good morning"
+              },
+              {
+                "id": "qql_lab254_story_vocab_02",
+                "target": "un caffè",
+                "source": "a coffee"
+              },
+              {
+                "id": "qql_lab254_story_vocab_03",
+                "target": "per favore",
+                "source": "please"
+              },
+              {
+                "id": "qql_lab254_story_vocab_04",
+                "target": "subito",
+                "source": "right away"
+              },
+              {
+                "id": "qql_lab254_story_vocab_05",
+                "target": "vuole",
+                "source": "would you like"
+              },
+              {
+                "id": "qql_lab254_story_vocab_06",
+                "target": "anche",
+                "source": "also"
+              },
+              {
+                "id": "qql_lab254_story_vocab_07",
+                "target": "il cornetto",
+                "source": "the croissant"
+              },
+              {
+                "id": "qql_lab254_story_vocab_08",
+                "target": "solo",
+                "source": "only"
+              },
+              {
+                "id": "qql_lab254_story_vocab_09",
+                "target": "ecco",
+                "source": "here is"
+              },
+              {
+                "id": "qql_lab254_story_vocab_10",
+                "target": "il suo caffè",
+                "source": "your coffee"
+              },
+              {
+                "id": "qql_lab254_story_vocab_11",
+                "target": "che cosa",
+                "source": "what"
+              },
+              {
+                "id": "qql_lab254_story_vocab_12",
+                "target": "ordina",
+                "source": "orders"
+              }
+            ],
+            "overview": "A Story is a Round played in order: a cover, dialogue lines said by the narrator or by a character, and exercises about them (Build 256 Revision 5). Lines are never skipped: without audio the learner reads them. An exercise marked as needing the Story's audio is skipped, like the listening exercises, when Audio Exercises is off. Only the exercises score. The first Story alternates lines and questions; the second shows the line options one by one and has nothing to score."
           }
         ]
       },
@@ -9163,94 +8929,64 @@
       "title": "Assign",
       "section": false,
       "guidebook": {
-        "content": [
+        "modules": [
           {
-            "id": "qql_lab254_assign_guide",
-            "publicationState": "published",
-            "kind": "explanation",
-            "required": false,
-            "role": "overview",
-            "text": "Assign places items into destinations (Build 256 Revision 7): tap an item, then the group or slot that takes it; Check grades every destination at once. A group may take any number of items, a slot takes one; a reusable item stays in the bank. The presets Sort into groups and Fill the slots author these examples (Revision 7 follow-up). Gaps in a text are authored in the canonical editor; picture regions, grid cells and drag placement wait for a later version."
-          },
-          {
-            "id": "qql_lab254_assign_vocab_01",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "il gatto = the cat"
-          },
-          {
-            "id": "qql_lab254_assign_vocab_02",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "il cane = the dog"
-          },
-          {
-            "id": "qql_lab254_assign_vocab_03",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "la rosa = the rose"
-          },
-          {
-            "id": "qql_lab254_assign_vocab_04",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "il pino = the pine"
-          },
-          {
-            "id": "qql_lab254_assign_vocab_05",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "il tavolo = the table"
-          },
-          {
-            "id": "qql_lab254_assign_vocab_06",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "la sedia = the chair"
-          },
-          {
-            "id": "qql_lab254_assign_vocab_07",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "la casa = the house"
-          },
-          {
-            "id": "qql_lab254_assign_vocab_08",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "il libro = the book"
-          },
-          {
-            "id": "qql_lab254_assign_vocab_09",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "l'animale = the animal"
-          },
-          {
-            "id": "qql_lab254_assign_vocab_10",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "la pianta = the plant"
+            "id": "qql_lab254_assign_module",
+            "title": "Animals, plants and things",
+            "sentences": [],
+            "words": [
+              {
+                "id": "qql_lab254_assign_vocab_01",
+                "target": "il gatto",
+                "source": "the cat"
+              },
+              {
+                "id": "qql_lab254_assign_vocab_02",
+                "target": "il cane",
+                "source": "the dog"
+              },
+              {
+                "id": "qql_lab254_assign_vocab_03",
+                "target": "la rosa",
+                "source": "the rose"
+              },
+              {
+                "id": "qql_lab254_assign_vocab_04",
+                "target": "il pino",
+                "source": "the pine"
+              },
+              {
+                "id": "qql_lab254_assign_vocab_05",
+                "target": "il tavolo",
+                "source": "the table"
+              },
+              {
+                "id": "qql_lab254_assign_vocab_06",
+                "target": "la sedia",
+                "source": "the chair"
+              },
+              {
+                "id": "qql_lab254_assign_vocab_07",
+                "target": "la casa",
+                "source": "the house"
+              },
+              {
+                "id": "qql_lab254_assign_vocab_08",
+                "target": "il libro",
+                "source": "the book"
+              },
+              {
+                "id": "qql_lab254_assign_vocab_09",
+                "target": "l'animale",
+                "source": "the animal"
+              },
+              {
+                "id": "qql_lab254_assign_vocab_10",
+                "target": "la pianta",
+                "source": "the plant"
+              }
+            ],
+            "overview": "Assign places items into destinations (Build 256 Revision 7): tap an item, then the group or slot that takes it; Check grades every destination at once. A group may take any number of items, a slot takes one; a reusable item stays in the bank. The presets Sort into groups and Fill the slots author these examples (Revision 7 follow-up). Gaps in a text are authored in the canonical editor; picture regions, grid cells and drag placement wait for a later version."
           }
         ]
       },
@@ -9758,94 +9494,64 @@
       "title": "Page",
       "section": false,
       "guidebook": {
-        "content": [
+        "modules": [
           {
-            "id": "qql_lab254_page_guide",
-            "publicationState": "published",
-            "kind": "explanation",
-            "required": false,
-            "role": "overview",
-            "text": "A Page is a card the learner reads and continues (Build 258): headings, paragraphs with bold and italic, quotes, lists, pictures, audio and video links, each with its alignment and a colour from a palette that stays readable in light and dark themes. Nothing is scored. The Page preset authors these examples; a video link opens in the browser."
-          },
-          {
-            "id": "qql_lab254_page_vocab_01",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "un caffè = an espresso"
-          },
-          {
-            "id": "qql_lab254_page_vocab_02",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "il caffè = espresso"
-          },
-          {
-            "id": "qql_lab254_page_vocab_03",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "il cappuccino = coffee with foamed milk"
-          },
-          {
-            "id": "qql_lab254_page_vocab_04",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "il macchiato = espresso with a drop of milk"
-          },
-          {
-            "id": "qql_lab254_page_vocab_05",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "in piedi = standing"
-          },
-          {
-            "id": "qql_lab254_page_vocab_06",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "al bar = at the bar"
-          },
-          {
-            "id": "qql_lab254_page_vocab_07",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "il banco = the counter"
-          },
-          {
-            "id": "qql_lab254_page_vocab_08",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "la cassa = the till"
-          },
-          {
-            "id": "qql_lab254_page_vocab_09",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "buongiorno = good morning"
-          },
-          {
-            "id": "qql_lab254_page_vocab_10",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "grazie = thank you"
+            "id": "qql_lab254_page_module",
+            "title": "At the bar",
+            "sentences": [],
+            "words": [
+              {
+                "id": "qql_lab254_page_vocab_01",
+                "target": "un caffè",
+                "source": "an espresso"
+              },
+              {
+                "id": "qql_lab254_page_vocab_02",
+                "target": "il caffè",
+                "source": "espresso"
+              },
+              {
+                "id": "qql_lab254_page_vocab_03",
+                "target": "il cappuccino",
+                "source": "coffee with foamed milk"
+              },
+              {
+                "id": "qql_lab254_page_vocab_04",
+                "target": "il macchiato",
+                "source": "espresso with a drop of milk"
+              },
+              {
+                "id": "qql_lab254_page_vocab_05",
+                "target": "in piedi",
+                "source": "standing"
+              },
+              {
+                "id": "qql_lab254_page_vocab_06",
+                "target": "al bar",
+                "source": "at the bar"
+              },
+              {
+                "id": "qql_lab254_page_vocab_07",
+                "target": "il banco",
+                "source": "the counter"
+              },
+              {
+                "id": "qql_lab254_page_vocab_08",
+                "target": "la cassa",
+                "source": "the till"
+              },
+              {
+                "id": "qql_lab254_page_vocab_09",
+                "target": "buongiorno",
+                "source": "good morning"
+              },
+              {
+                "id": "qql_lab254_page_vocab_10",
+                "target": "grazie",
+                "source": "thank you"
+              }
+            ],
+            "overview": "A Page is a card the learner reads and continues (Build 258): headings, paragraphs with bold and italic, quotes, lists, pictures, audio and video links, each with its alignment and a colour from a palette that stays readable in light and dark themes. Nothing is scored. The Page preset authors these examples; a video link opens in the browser."
           }
         ]
       },
@@ -10045,5 +9751,5 @@
     }
   ],
   "minimumAppBuild": 258000,
-  "officialChecksum": "cf148e4662b5b7435d40574b790780f9b7f493c051be4059dbd9748746392d0d"
+  "officialChecksum": "2fc10664b1ace1277b87e52eb7754d038af264a62f6f9f95e719ccfa9d3ee2c9"
 }

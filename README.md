@@ -1,8 +1,27 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.65+265011 · Build 265, Revision 11 · Course Model v12 (`formatVersion: 12`).**
+**Current source version: 2.0.66+266000 · Build 266, Revision 0 · Course Model v12 (`formatVersion: 12`).**
 
-**QuisquisLingo 2.0.65 Beta — QQL 265 Word Lookup (Course Model v12)**
+**QuisquisLingo 2.0.66 Beta — QQL 266 GuideBook Modules (Course Model v12)**
+
+Build 266 makes a Lesson's GuideBook a list of short **modules**
+([plan](docs/266_GUIDEBOOK_MODULES_PLAN.md),
+[change summary](docs/266_CHANGE_SUMMARY.md)): each module has a Title,
+**Sentences** and **Words & Expressions** (each entry with its translation,
+an optional short Context such as "restaurant" or "bank", and for words an
+optional picture, marked Plural for "i gatti") and a short Overview.
+Revision 0 changes the format inside Course Model v12 (a GuideBook in the
+earlier shape is refused: regenerate the Course), the editor (a GuideBook
+page listing the modules and a page per module), the learner GuideBook
+(module by module, optional words such as an understood subject shown as
+"(io)" in grey, the pictures as thumbnails), Review vocabulary and Word
+Lookup (Words & Expressions only, with the Context and the picture), the
+Audit (an empty module, a long Overview, a Round pointing to a missing
+module) and a **Focus module** for each Round, where Open GuideBook opens.
+Insights are removed. The bundled Courses and fixtures are regenerated with
+one module per Lesson for now.
+
+**QQL 265 Word Lookup**
 
 Build 265 lets a learner tap a word of the language they are learning and
 see its translation from the Course's own GuideBook vocabulary, offline
@@ -608,7 +627,7 @@ The MPL-2.0 covers the QuisquisLingo software source. Courses, the Image Bank an
 
 ## Beta lifecycle
 
-Version 2.0.65, Build 265, Revision 11 is a time-limited Beta with an expiry of **2026-11-06 23:59:59 local time** (30 days after the 7 October 2026 release date). In its last seven days it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
+Version 2.0.66, Build 266, Revision 0 is a time-limited Beta with an expiry of **2026-11-07 23:59:59 local time** (30 days after the 8 October 2026 release date). In its last seven days it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
 
 ## Core logic
 

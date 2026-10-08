@@ -83,70 +83,49 @@
       "title": "Testi lunghi, Unicode e opzioni: café · 東京 · القاهرة · 🙂",
       "section": true,
       "guidebook": {
-        "content": [
+        "modules": [
           {
-            "id": "qql_edge_254_l01_overview",
-            "publicationState": "published",
-            "kind": "explanation",
-            "required": false,
-            "role": "overview",
-            "text": "Casi validi per testo lungo, caratteri Unicode, opzioni numerose e ripetizioni intenzionali."
-          },
-          {
-            "id": "qql_edge_254_l01_v1",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "yes = sì"
-          },
-          {
-            "id": "qql_edge_254_l01_v2",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "a window → una finestra"
-          },
-          {
-            "id": "qql_edge_254_l01_v3",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "red - rosso"
-          },
-          {
-            "id": "qql_edge_254_l01_v4",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "blue: blu"
-          },
-          {
-            "id": "qql_edge_254_l01_v5",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "hello = ciao"
-          },
-          {
-            "id": "qql_edge_254_l01_v6",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "hello = ciao"
-          },
-          {
-            "id": "qql_edge_254_v_caffè_日本語",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "café = caffè"
+            "id": "qql_edge_254_l01_module",
+            "title": "Sì, colori e saluti",
+            "sentences": [],
+            "words": [
+              {
+                "id": "qql_edge_254_l01_v1",
+                "target": "yes",
+                "source": "sì"
+              },
+              {
+                "id": "qql_edge_254_l01_v2",
+                "target": "a window",
+                "source": "una finestra"
+              },
+              {
+                "id": "qql_edge_254_l01_v3",
+                "target": "red",
+                "source": "rosso"
+              },
+              {
+                "id": "qql_edge_254_l01_v4",
+                "target": "blue",
+                "source": "blu"
+              },
+              {
+                "id": "qql_edge_254_l01_v5",
+                "target": "hello",
+                "source": "ciao"
+              },
+              {
+                "id": "qql_edge_254_l01_v6",
+                "target": "hello",
+                "source": "ciao"
+              },
+              {
+                "id": "qql_edge_254_v_caffè_日本語",
+                "target": "café",
+                "source": "caffè"
+              }
+            ],
+            "overview": "Casi validi per testo lungo, caratteri Unicode, opzioni numerose e ripetizioni intenzionali."
           }
         ]
       },
@@ -1281,46 +1260,34 @@
       "title": "Uno o più gap, blocchi e opzioni collegate",
       "section": false,
       "guidebook": {
-        "content": [
+        "modules": [
           {
-            "id": "qql_edge_254_l02_overview",
-            "publicationState": "published",
-            "kind": "explanation",
-            "required": false,
-            "role": "overview",
-            "text": "Ogni parola riempie un solo gap; una parola che serve due volte è offerta due volte."
-          },
-          {
-            "id": "qql_edge_254_l02_v1",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "tea = tè"
-          },
-          {
-            "id": "qql_edge_254_l02_v2",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "very = molto"
-          },
-          {
-            "id": "qql_edge_254_l02_v3",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "would like = vorrei"
-          },
-          {
-            "id": "qql_edge_254_l02_v4",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "a cup of tea = una tazza di tè"
+            "id": "qql_edge_254_l02_module",
+            "title": "Al tè",
+            "sentences": [],
+            "words": [
+              {
+                "id": "qql_edge_254_l02_v1",
+                "target": "tea",
+                "source": "tè"
+              },
+              {
+                "id": "qql_edge_254_l02_v2",
+                "target": "very",
+                "source": "molto"
+              },
+              {
+                "id": "qql_edge_254_l02_v3",
+                "target": "would like",
+                "source": "vorrei"
+              },
+              {
+                "id": "qql_edge_254_l02_v4",
+                "target": "a cup of tea",
+                "source": "una tazza di tè"
+              }
+            ],
+            "overview": "Ogni parola riempie un solo gap; una parola che serve due volte è offerta due volte."
           }
         ]
       },
@@ -1944,46 +1911,34 @@
       "title": "Immagini, MP3 e fallback TTS",
       "section": false,
       "guidebook": {
-        "content": [
+        "modules": [
           {
-            "id": "qql_edge_254_l03_overview",
-            "publicationState": "published",
-            "kind": "explanation",
-            "required": false,
-            "role": "overview",
-            "text": "Modalità iniziale Hybrid: i campioni MP3 verificano la riproduzione; le frasi inglesi non mappate usano TTS. Attiva Enable Audio Exercises e Text-to-speech per eseguire tutti i casi."
-          },
-          {
-            "id": "qql_edge_254_l03_v1",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "cat = gatto"
-          },
-          {
-            "id": "qql_edge_254_l03_v2",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "dog = cane"
-          },
-          {
-            "id": "qql_edge_254_l03_v3",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "ice cream = gelato"
-          },
-          {
-            "id": "qql_edge_254_l03_v4",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "window = finestra"
+            "id": "qql_edge_254_l03_module",
+            "title": "Animali e cose",
+            "sentences": [],
+            "words": [
+              {
+                "id": "qql_edge_254_l03_v1",
+                "target": "cat",
+                "source": "gatto"
+              },
+              {
+                "id": "qql_edge_254_l03_v2",
+                "target": "dog",
+                "source": "cane"
+              },
+              {
+                "id": "qql_edge_254_l03_v3",
+                "target": "ice cream",
+                "source": "gelato"
+              },
+              {
+                "id": "qql_edge_254_l03_v4",
+                "target": "window",
+                "source": "finestra"
+              }
+            ],
+            "overview": "Modalità iniziale Hybrid: i campioni MP3 verificano la riproduzione; le frasi inglesi non mappate usano TTS. Attiva Enable Audio Exercises e Text-to-speech per eseguire tutti i casi."
           }
         ]
       },
@@ -2517,41 +2472,32 @@
       "title": "Published con discendenti Draft",
       "section": false,
       "guidebook": {
-        "content": [
+        "publicationState": "draft",
+        "modules": [
           {
-            "id": "qql_edge_254_l04_overview",
-            "publicationState": "published",
-            "kind": "explanation",
-            "required": false,
-            "role": "overview",
-            "text": "Il primo Round non ha titolo personalizzato. Il GuideBook e il secondo Round sono Draft; il Learner vede soltanto il primo Exercise Published."
-          },
-          {
-            "id": "qql_edge_254_l04_v1",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "ready = pronto"
-          },
-          {
-            "id": "qql_edge_254_l04_v2",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "late = tardi"
-          },
-          {
-            "id": "qql_edge_254_l04_draft_vocab",
-            "publicationState": "draft",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "early = presto"
+            "id": "qql_edge_254_l04_module",
+            "title": "Pronto, tardi, presto",
+            "sentences": [],
+            "words": [
+              {
+                "id": "qql_edge_254_l04_v1",
+                "target": "ready",
+                "source": "pronto"
+              },
+              {
+                "id": "qql_edge_254_l04_v2",
+                "target": "late",
+                "source": "tardi"
+              },
+              {
+                "id": "qql_edge_254_l04_draft_vocab",
+                "target": "early",
+                "source": "presto"
+              }
+            ],
+            "overview": "Il primo Round non ha titolo personalizzato. Il GuideBook e il secondo Round sono Draft; il Learner vede soltanto il primo Exercise Published."
           }
-        ],
-        "publicationState": "draft"
+        ]
       },
       "rounds": [
         {
@@ -2754,22 +2700,19 @@
       "title": "Lesson Draft valida — candidato per copia e confronto",
       "section": false,
       "guidebook": {
-        "content": [
+        "modules": [
           {
-            "id": "qql_edge_254_l05_draft_overview",
-            "publicationState": "published",
-            "kind": "explanation",
-            "required": false,
-            "role": "overview",
-            "text": "Lesson intenzionalmente Draft con struttura completa. Ispezionala nell’Editor o in Preview; il Learner la omette."
-          },
-          {
-            "id": "qql_edge_254_l05_draft_v1",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "a copy = una copia"
+            "id": "qql_edge_254_l05_draft_module",
+            "title": "Parole da copiare",
+            "sentences": [],
+            "words": [
+              {
+                "id": "qql_edge_254_l05_draft_v1",
+                "target": "a copy",
+                "source": "una copia"
+              }
+            ],
+            "overview": "Lesson intenzionalmente Draft con struttura completa. Ispezionala nell’Editor o in Preview; il Learner la omette."
           }
         ]
       },
@@ -2870,22 +2813,19 @@
       "title": "Storia: al bar (a Story)",
       "section": false,
       "guidebook": {
-        "content": [
+        "modules": [
           {
-            "id": "qql_edge_254_l06_overview",
-            "publicationState": "published",
-            "kind": "explanation",
-            "required": false,
-            "role": "overview",
-            "text": "Una Story: copertina, battute (una solo audio) alternate a un esercizio che richiede l’audio della Story; il narratore parla italiano, Marta inglese. Poi una Story di sole copertine, senza nulla da valutare."
-          },
-          {
-            "id": "qql_edge_254_l06_v1",
-            "publicationState": "published",
-            "kind": "vocabulary",
-            "required": false,
-            "role": "vocabulary",
-            "text": "a coffee = un caffè"
+            "id": "qql_edge_254_l06_module",
+            "title": "Al bar",
+            "sentences": [],
+            "words": [
+              {
+                "id": "qql_edge_254_l06_v1",
+                "target": "a coffee",
+                "source": "un caffè"
+              }
+            ],
+            "overview": "Una Story: copertina, battute (una solo audio) alternate a un esercizio che richiede l’audio della Story; il narratore parla italiano, Marta inglese. Poi una Story di sole copertine, senza nulla da valutare."
           }
         ]
       },
@@ -3330,5 +3270,5 @@
       }
     }
   ],
-  "officialChecksum": "7a2cd818d53666cb9be3c757f9dacb129e631fac9a7803c5cf8a78ee4e3bba5c"
+  "officialChecksum": "e621514e43239737e690cf12c4dddc840ddc8dd4aec603813ebfa1a113765820"
 }

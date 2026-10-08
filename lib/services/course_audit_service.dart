@@ -247,8 +247,8 @@ class CourseAuditService {
     final authoredSourceIds = <String>{};
     if (sourceReferenceCourse != null) {
       for (final lesson in sourceReferenceCourse.lessons) {
-        for (final content in lesson.guidebook.content) {
-          if (content.id.trim().isNotEmpty) authoredSourceIds.add(content.id);
+        for (final entry in lesson.guidebook.entries) {
+          if (entry.id.trim().isNotEmpty) authoredSourceIds.add(entry.id);
         }
       }
     }
@@ -491,30 +491,52 @@ class CourseAuditService {
           );
         }
       }
+      // Build 266: a GuideBook is a list of modules, each with Sentences
+      // and Words & Expressions; module and entry IDs join the ID checks.
       final gb = t.guidebook;
-      for (var gi = 0; gi < gb.content.length; gi++) {
-        final content = gb.content[gi];
-        final location = '$tl · Guidebook Content ${gi + 1}';
-        idCheck(content.id, location);
-        for (final ref in content.sourceRefs) {
-          pendingSourceRefs.add((
-            ref: ref,
-            location: location,
-            roundId: null,
-            exerciseId: null,
-          ));
+      for (var mi = 0; mi < gb.modules.length; mi++) {
+        final module = gb.modules[mi];
+        final location = '$tl · Guidebook · Module ${mi + 1}';
+        idCheck(module.id, location);
+        for (var si = 0; si < module.sentences.length; si++) {
+          idCheck(module.sentences[si].id, '$location · Sentence ${si + 1}');
+        }
+        for (var wi = 0; wi < module.words.length; wi++) {
+          idCheck(module.words[wi].id, '$location · Word ${wi + 1}');
+        }
+        if (!course.useGuidebook) continue;
+        if (module.hasNoEntries) {
+          issues.add(
+            CourseAuditIssue.fromCode(
+              AuditCode.guidebookModuleEmpty,
+              message:
+                  'Module “${module.title}” has no Sentences and no Words & Expressions.',
+              location: location,
+            ),
+          );
+        }
+        if (module.overview.trim().length >= 500) {
+          issues.add(
+            CourseAuditIssue.fromCode(
+              AuditCode.guidebookModuleOverviewLong,
+              message:
+                  'Module “${module.title}” has an Overview of ${module.overview.trim().length} characters. Consider splitting this topic into shorter modules.',
+              location: location,
+            ),
+          );
         }
       }
-      if (course.useGuidebook && gb.content.isEmpty) {
+      if (course.useGuidebook && gb.hasNoEntries) {
         issues.add(
           CourseAuditIssue.fromCode(
             AuditCode.lessonGuidebookEmpty,
             message:
-                'Lesson Guidebook is empty. Add learner-facing vocabulary, examples or explanations before generating Rounds.',
+                'Lesson Guidebook is empty. Add a module with Sentences and Words & Expressions before generating Rounds.',
             location: '$tl · Guidebook',
           ),
         );
       }
+      final moduleIds = {for (final module in gb.modules) module.id};
       if (t.rounds.isEmpty) {
         issues.add(
           CourseAuditIssue.fromCode(
@@ -556,6 +578,23 @@ class CourseAuditService {
         final r = t.rounds[ri];
         final rl = '$tl · ${r.displayTitle(ri)}';
         idCheck(r.id, rl, roundId: r.id);
+        final missingModules = [
+          if (r.focusModuleId case final focus? when !moduleIds.contains(focus))
+            focus,
+          for (final id in r.supportingModuleIds)
+            if (!moduleIds.contains(id)) id,
+        ];
+        if (missingModules.isNotEmpty) {
+          issues.add(
+            CourseAuditIssue.fromCode(
+              AuditCode.roundFocusModuleMissing,
+              message:
+                  'This Round points to ${missingModules.length == 1 ? 'a module' : 'modules'} that the Lesson\'s GuideBook does not have: ${missingModules.join(', ')}.',
+              location: rl,
+              roundId: r.id,
+            ),
+          );
+        }
         if (r.content.isEmpty) {
           issues.add(
             CourseAuditIssue.fromCode(
@@ -975,6 +1014,13 @@ class CourseAuditService {
       if (isOwnMedia(clip.filePath)) return true;
     }
     for (final lesson in course.lessons) {
+      // Build 266: a GuideBook word's picture is a Course picture too.
+      for (final word in lesson.guidebook.words) {
+        if (word.picture case final picture?
+            when isOwnMedia(picture.asset)) {
+          return true;
+        }
+      }
       for (final round in lesson.rounds) {
         for (final exercise in round.exercises) {
           if (isOwnMedia(exercise.imageAsset)) return true;

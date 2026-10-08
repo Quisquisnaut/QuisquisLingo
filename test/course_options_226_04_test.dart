@@ -240,8 +240,8 @@ void main() {
         isNot(source.lessons.first.guidebookId),
       );
       expect(
-        copy.lessons.first.guidebook.content.length,
-        source.lessons.first.guidebook.content.length,
+        copy.lessons.first.guidebook.entries.length,
+        source.lessons.first.guidebook.entries.length,
       );
       expect(
         copy.authors.map((author) => author.toJson()).toList(),

@@ -4,6 +4,7 @@ import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/screens/course_editor_screen.dart';
 import 'package:quisquislingo_app/services/course_audit_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'support/guidebook_fixtures.dart';
 
 void main() {
   testWidgets(
@@ -138,15 +139,9 @@ Course _course() => Course(
     Lesson(
       lessonId: 'lesson',
       title: 'Lesson',
-      guidebook: Guidebook(
-        content: [
-          LearningContent.textual(
-            id: 'guide',
-            kind: 'explanation',
-            role: 'overview',
-            text: 'Reviewed overview.',
-          ),
-        ],
+      guidebook: testGuidebook(
+        overview: 'Reviewed overview.',
+        words: [testEntry('guide', 'casa = house')],
       ),
       rounds: [
         LearningRound(

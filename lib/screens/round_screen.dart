@@ -4669,6 +4669,7 @@ class _RoundScreenState extends State<RoundScreen> {
       note: _t('wordLookup.note'),
       notePlural: _t('wordLookup.notes'),
       actionLabel: _t('wordLookup.action'),
+      courseId: widget.course.courseId,
       child: page,
     );
   }
@@ -4736,6 +4737,8 @@ class _RoundScreenState extends State<RoundScreen> {
                           (lesson) => lesson.lessonId == widget.lesson.lessonId,
                         ),
                         includeDraftContent: widget.previewMode,
+                        // Build 266: at the Round's focus module.
+                        focusModuleId: widget.round.focusModuleId,
                       ),
                     ),
                   ),

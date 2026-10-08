@@ -1,7 +1,9 @@
 import 'dart:convert';
 
 import '../models/course_models.dart';
+import '../models/guidebook_text.dart';
 import 'course_checksums.dart';
+import 'guidebook_vocabulary.dart';
 import '../models/preset_successors.dart';
 
 /// Converts a Course Model v11 JSON object to Course Model v12 (Build 256).
@@ -53,18 +55,13 @@ CourseConversionResult convertCourseJsonToV12(Map<String, dynamic> source) {
     if (lesson is! Map) continue;
     final where = 'lesson ${lesson['lessonId'] ?? l + 1}';
     final guidebook = lesson['guidebook'];
-    if (guidebook is Map && guidebook['content'] is List) {
-      guidebook['content'] = [
-        for (final content in guidebook['content'] as List)
-          if (content is Map)
-            _convertContent(
-              Map<String, dynamic>.from(content),
-              '$where GuideBook',
-              notes,
-            )
-          else
-            content,
-      ];
+    if (guidebook is Map) {
+      lesson['guidebook'] = _convertGuidebook(
+        Map<String, dynamic>.from(guidebook),
+        '${lesson['lessonId'] ?? 'lesson_${l + 1}'}',
+        '$where GuideBook',
+        notes,
+      );
     }
     final rounds = lesson['rounds'];
     if (rounds is! List) continue;
@@ -105,6 +102,138 @@ CourseConversionResult convertCourseJsonToV12(Map<String, dynamic> source) {
   // Final proof that the result is a valid v12 Course.
   Course.fromJson(json);
   return CourseConversionResult(json: json, notes: notes);
+}
+
+/// Build 266 (GuideBook Modules): a v11 GuideBook becomes one module titled
+/// "Module 1", listed in the notes so the author renames it. The overview,
+/// then goals, grammar notes and Insights become paragraphs of its
+/// Overview; vocabulary lines are split into Words & Expressions. Examples
+/// and expressions have no translation, and a Sentence needs one, so they
+/// become lines of the Overview, as does a vocabulary line that cannot be
+/// split (owner decision of 8 October 2026: nothing is lost).
+Map<String, dynamic> _convertGuidebook(
+  Map<String, dynamic> guidebook,
+  String lessonId,
+  String where,
+  List<String> notes,
+) {
+  var draft = guidebook['publicationState'] == 'draft';
+  final overviews = <String>[];
+  final goals = <String>[];
+  final explanations = <String>[];
+  final lines = <String>[];
+  final words = <Map<String, dynamic>>[];
+  final ids = <String>{};
+  var examples = 0;
+  var unsplit = 0;
+  var dropped = 0;
+  var draftItems = 0;
+  var refs = 0;
+  final content = guidebook['content'];
+  for (final item
+      in content is List ? content.whereType<Map>() : const <Map>[]) {
+    final kind = item['kind'];
+    final role = item['role'];
+    final rawText = item['text'];
+    final text = rawText is String ? rawText.trim() : '';
+    if (item['publicationState'] == 'draft') draftItems++;
+    final sourceRefs = item['sourceRefs'];
+    if (sourceRefs is List && sourceRefs.isNotEmpty) refs++;
+    if (text.isEmpty && kind != 'exercise' && kind != 'presentation') continue;
+    switch (kind) {
+      case 'explanation' when role == 'overview':
+        overviews.add(text);
+      case 'text' when role == 'goal':
+        goals.add(text);
+      case 'explanation' || 'text':
+        explanations.add(text);
+      case 'vocabulary':
+        final pair = GuidebookVocabulary.parse(text);
+        final id = '${item['id'] ?? ''}'.trim();
+        if (pair == null ||
+            GuidebookText.targetProblem(pair.target) != null ||
+            id.isEmpty ||
+            !ids.add(id)) {
+          lines.add(text);
+          unsplit++;
+        } else {
+          words.add({'id': id, 'target': pair.target, 'source': pair.source});
+        }
+      case 'example':
+        lines.add(text);
+        examples++;
+      default:
+        dropped++;
+    }
+  }
+  final insights = guidebook['insights'];
+  final insightParagraphs = [
+    for (final insight
+        in insights is List ? insights.whereType<Map>() : const <Map>[])
+      [
+        '${insight['title'] ?? ''}'.trim(),
+        '${insight['text'] ?? ''}'.trim(),
+      ].where((part) => part.isNotEmpty).join('\n'),
+  ].where((paragraph) => paragraph.isNotEmpty);
+  final overview = [
+    ...overviews,
+    ...goals,
+    ...explanations,
+    ...insightParagraphs,
+    if (lines.isNotEmpty) lines.join('\n'),
+  ].join('\n\n');
+  final modules = <Map<String, dynamic>>[
+    if (overview.isNotEmpty || words.isNotEmpty)
+      {
+        'id': '${lessonId}_module_1',
+        'title': 'Module 1',
+        'sentences': <Map<String, dynamic>>[],
+        'words': words,
+        'overview': overview,
+      },
+  ];
+  if (modules.isNotEmpty) {
+    notes.add(
+      '$where became one module titled “Module 1”: rename it, and split it '
+      'into shorter modules if it holds several topics.',
+    );
+  }
+  if (examples > 0) {
+    notes.add(
+      '$where: $examples example ${examples == 1 ? 'sentence has' : 'sentences have'} '
+      'no translation, so ${examples == 1 ? 'it is' : 'they are'} in the '
+      'Overview of “Module 1”: move each to Sentences with its translation.',
+    );
+  }
+  if (unsplit > 0) {
+    notes.add(
+      '$where: $unsplit vocabulary ${unsplit == 1 ? 'line' : 'lines'} could '
+      'not be read as “target = source” and ${unsplit == 1 ? 'is' : 'are'} '
+      'in the Overview of “Module 1”: add ${unsplit == 1 ? 'it' : 'them'} '
+      'to Words & Expressions.',
+    );
+  }
+  if (dropped > 0) {
+    notes.add(
+      '$where: $dropped ${dropped == 1 ? 'item' : 'items'} (exercises or '
+      'cards) cannot be part of a GuideBook and ${dropped == 1 ? 'was' : 'were'} '
+      'not converted.',
+    );
+  }
+  if (refs > 0) {
+    notes.add(
+      '$where: GuideBook entries have no sourceRefs; $refs '
+      '${refs == 1 ? 'reference was' : 'references were'} dropped.',
+    );
+  }
+  if (draftItems > 0 && !draft) {
+    draft = true;
+    notes.add(
+      '$where had Draft entries; a GuideBook is Draft or Published as a '
+      'whole, so it is now a Draft: publish it once it is ready.',
+    );
+  }
+  return {if (draft) 'publicationState': 'draft', 'modules': modules};
 }
 
 Map<String, dynamic> _convertContent(

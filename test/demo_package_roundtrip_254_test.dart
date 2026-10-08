@@ -66,7 +66,6 @@ Future<Course> _load(String asset) async => Course.fromJson(
 
 List<LearningContent> _contents(Course course) => [
   for (final lesson in course.lessons) ...[
-    ...lesson.guidebook.content,
     for (final round in lesson.rounds) ...round.content,
   ],
 ];
@@ -83,6 +82,27 @@ void _expectForkContent(Course source, Course fork) {
   final after = _contents(fork);
   expect(after, hasLength(before.length));
   final identityMap = <String, String>{};
+  // Build 266: GuideBook modules and entries get fresh IDs too, and Round
+  // content's sourceRefs follow them.
+  expect(fork.lessons, hasLength(source.lessons.length));
+  for (var l = 0; l < source.lessons.length; l++) {
+    final a = source.lessons[l].guidebook.modules;
+    final b = fork.lessons[l].guidebook.modules;
+    expect(b, hasLength(a.length));
+    for (var m = 0; m < a.length; m++) {
+      identityMap[a[m].id] = b[m].id;
+      final aEntries = a[m].entries.toList();
+      final bEntries = b[m].entries.toList();
+      expect(bEntries, hasLength(aEntries.length));
+      for (var e = 0; e < aEntries.length; e++) {
+        identityMap[aEntries[e].id] = bEntries[e].id;
+        expect(
+          bEntries[e].toJson()..remove('id'),
+          aEntries[e].toJson()..remove('id'),
+        );
+      }
+    }
+  }
   for (var index = 0; index < before.length; index++) {
     identityMap[before[index].id] = after[index].id;
     // Canonical items only: the v11 `interaction` view gives a Presentation

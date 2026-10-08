@@ -4,13 +4,16 @@ import '../publication_service.dart';
 import 'word_lookup.dart';
 import 'word_lookup_articles.dart';
 
-/// Where Word Lookup reads its entries (Build 265): the GuideBook vocabulary
-/// of the whole Course, locked Lessons included, in Course order.
+/// Where Word Lookup reads its entries (Build 265): the GuideBook of the
+/// whole Course, locked Lessons included, in Course order.
+///
+/// Since Build 266 (GuideBook modules) it reads the Words & Expressions of
+/// every module, never Sentences (a sentence's translation could give
+/// answers away), with each entry's Context and picture.
 ///
 /// Nothing when the Course's Use GuideBook is off. The learner app reads
-/// Published Lessons and Published GuideBook entries only; the Course Editor
+/// Published Lessons and Published GuideBooks only; the Course Editor
 /// Preview ([includeDrafts]) reads Drafts too, as its Open GuideBook does.
-/// Build 266 (GuideBook modules) changes only this adapter.
 abstract final class WordLookupSources {
   static List<WordLookupSourceEntry> forCourse(
     Course course, {
@@ -25,12 +28,14 @@ abstract final class WordLookupSources {
       final guidebook = includeDrafts
           ? lesson.guidebook
           : publication.learnerGuidebook(lesson.guidebook);
-      for (final content in guidebook.content) {
-        if (content.kind != 'vocabulary') continue;
+      for (final word in guidebook.words) {
         entries.add(
           WordLookupSourceEntry(
-            id: content.id,
-            text: content.text,
+            id: word.id,
+            target: word.target,
+            source: word.source,
+            context: word.context,
+            picture: word.picture,
             lessonIndex: index,
           ),
         );

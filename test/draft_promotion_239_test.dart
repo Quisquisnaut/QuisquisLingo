@@ -71,7 +71,7 @@ Course _course({
         lessonId: 'lesson-1',
         title: 'Lesson',
         publicationState: lesson,
-        guidebook: Guidebook(publicationState: guidebook, content: const []),
+        guidebook: Guidebook(publicationState: guidebook),
         rounds: [
           round('round-1', firstRound, firstStates),
           round('round-2', secondRound, secondStates),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart' show ScrollCacheExtent;
 import 'package:flutter/services.dart';
 import '../localization/help/help_structure.dart';
 import '../localization/help/help_text.dart';
@@ -25,7 +26,10 @@ _HelpSection _localizedSection(AppLocale locale, String key) => _HelpSection(
 /// that filters the questions and their answers (capitals and accents
 /// ignored), then the topics, whose questions open their answers.
 class EditorHelpScreen extends StatefulWidget {
-  const EditorHelpScreen({super.key});
+  const EditorHelpScreen({super.key, this.question});
+
+  /// The question to open at, expanded (Build 266); null opens at the top.
+  final String? question;
 
   @override
   State<EditorHelpScreen> createState() => _EditorHelpScreenState();
@@ -33,7 +37,21 @@ class EditorHelpScreen extends StatefulWidget {
 
 class _EditorHelpScreenState extends State<EditorHelpScreen> {
   final _search = TextEditingController();
+  final _questionKey = GlobalKey();
   List<String> _words = const [];
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.question != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final target = _questionKey.currentContext;
+        if (target != null && mounted) {
+          Scrollable.ensureVisible(target, duration: Duration.zero);
+        }
+      });
+    }
+  }
 
   @override
   void dispose() {
@@ -74,6 +92,11 @@ class _EditorHelpScreenState extends State<EditorHelpScreen> {
           ],
         ),
         body: ListView(
+          // Opened at a question, every question is built so it can be
+          // scrolled to.
+          scrollCacheExtent: widget.question == null
+              ? null
+              : const ScrollCacheExtent.pixels(100000),
           padding: const EdgeInsets.all(16),
           children: [
             _TechnicalLinks(locale: locale),
@@ -122,8 +145,12 @@ class _EditorHelpScreenState extends State<EditorHelpScreen> {
                     for (final question in entry.questions)
                       ExpansionTile(
                         key: ValueKey('editor-help-question-${question.id}'),
+                        initiallyExpanded: question.id == widget.question,
                         title: Text(
                           question.question,
+                          key: question.id == widget.question
+                              ? _questionKey
+                              : null,
                           style: const TextStyle(fontWeight: FontWeight.w600),
                         ),
                         expandedCrossAxisAlignment: CrossAxisAlignment.start,

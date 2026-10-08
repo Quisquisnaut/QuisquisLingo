@@ -32,7 +32,7 @@ Course draftStatusCourse({
         publicationState: lesson,
         updatedAt: time,
         title: 'Lesson',
-        guidebook: Guidebook(publicationState: guidebook, content: const []),
+        guidebook: Guidebook(publicationState: guidebook),
         rounds: [
           LearningRound(
             id: 'round',

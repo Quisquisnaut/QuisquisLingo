@@ -155,9 +155,7 @@ class AuthoringDuplicationService {
     for (final lesson in source.lessons) {
       remap[lesson.lessonId] = _ids.next('lesson');
       remap[lesson.duel.id] = _ids.next('duel');
-      for (final content in lesson.guidebook.content) {
-        _allocateContent(content, remap);
-      }
+      _allocateGuidebook(lesson.guidebook, remap);
       for (final round in lesson.rounds) {
         remap[round.id] = _ids.next('round');
         for (final content in round.content) {
@@ -282,9 +280,7 @@ class AuthoringDuplicationService {
       source.lessonId: _ids.next('lesson'),
       source.duel.id: _ids.next('duel'),
     };
-    for (final content in source.guidebook.content) {
-      _allocateContent(content, remap);
-    }
+    _allocateGuidebook(source.guidebook, remap);
     for (final round in source.rounds) {
       remap.putIfAbsent(round.id, () => _ids.next('round'));
       for (final content in round.content) {
@@ -337,17 +333,36 @@ class AuthoringDuplicationService {
         publicationState: preservePublicationState
             ? source.guidebook.publicationState
             : PublicationState.draft,
-        insights: source.guidebook.insights,
-        content: [
-          for (final content in source.guidebook.content)
-            _copyContent(
-              content,
-              remap,
-              preservePublicationState: preservePublicationState,
-            ),
+        modules: [
+          for (final module in source.guidebook.modules)
+            _copyModule(module, remap),
         ],
       ),
       duel: Duel(id: remap[source.duel.id]!, title: source.duel.title),
+    );
+  }
+
+  /// Build 266: a copied GuideBook's modules and entries get fresh IDs; the
+  /// Lesson's Rounds follow them (focus, supporting, `sourceRefs`).
+  void _allocateGuidebook(Guidebook guidebook, Map<String, String> remap) {
+    for (final module in guidebook.modules) {
+      remap.putIfAbsent(module.id, () => _ids.next('module'));
+      for (final entry in module.entries) {
+        remap.putIfAbsent(entry.id, () => _ids.next('entry'));
+      }
+    }
+  }
+
+  GuidebookModule _copyModule(
+    GuidebookModule source,
+    Map<String, String> remap,
+  ) {
+    GuidebookEntry entry(GuidebookEntry value) =>
+        value.copyWith(id: remap[value.id] ?? value.id);
+    return source.copyWith(
+      id: remap[source.id] ?? source.id,
+      sentences: [for (final value in source.sentences) entry(value)],
+      words: [for (final value in source.words) entry(value)],
     );
   }
 
@@ -397,6 +412,14 @@ class AuthoringDuplicationService {
     ],
     // A copied Story keeps its flow over the copied content's fresh IDs.
     flow: RoundFlowAuthoring.remapped(source.flow, remap),
+    // A Round copied with its Lesson follows the copied modules; a Round
+    // duplicated in its own Lesson keeps its links.
+    focusModuleId: source.focusModuleId == null
+        ? null
+        : remap[source.focusModuleId] ?? source.focusModuleId,
+    supportingModuleIds: [
+      for (final id in source.supportingModuleIds) remap[id] ?? id,
+    ],
   );
 
   LearningContent _copyContent(

@@ -232,6 +232,13 @@ Set<String> _mediaReferences(Course course) {
   }
 
   visit([for (final lesson in course.lessons) lesson.toJson()]);
+  // Build 266: a GuideBook word's picture is not an image element.
+  for (final lesson in course.lessons) {
+    for (final word in lesson.guidebook.words) {
+      final asset = word.picture?.asset;
+      if (asset != null && _mediaPattern.hasMatch(asset)) found.add(asset);
+    }
+  }
   return found;
 }
 
