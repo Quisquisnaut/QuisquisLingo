@@ -31,6 +31,8 @@ import '../services/course_hierarchy_update_service.dart';
 import '../services/course_authoring_session.dart';
 import '../services/course_access_policy.dart';
 import '../services/course_service.dart';
+import '../services/course_wizard.dart';
+import '../services/course_wizard_memory.dart';
 import '../services/course_audit_service.dart';
 import '../services/audit_code_registry.dart' show AuditCode;
 import '../services/course_audit_report_service.dart';
@@ -519,6 +521,11 @@ class CourseEditorScreen extends StatelessWidget {
   final CustomCourseTransferService? transferService;
   final DateTime Function()? clock;
   final CourseAccessCapabilities? access;
+
+  /// Called just before the Editor closes for Continue Course Wizard (Build
+  /// 267): the opener then continues the paused Wizard on the stored
+  /// Course. Without it the paused line says where to continue.
+  final VoidCallback? onContinueCourseWizard;
   const CourseEditorScreen({
     super.key,
     required this.course,
@@ -528,6 +535,7 @@ class CourseEditorScreen extends StatelessWidget {
     this.transferService,
     this.clock,
     this.access,
+    this.onContinueCourseWizard,
   });
   @override
   Widget build(BuildContext context) {
@@ -549,6 +557,7 @@ class CourseEditorScreen extends StatelessWidget {
       editorService: editorService,
       transferService: transferService,
       clock: clock,
+      onContinueCourseWizard: onContinueCourseWizard,
     );
   }
 }
@@ -561,6 +570,7 @@ class _CustomCourseEditorScreen extends StatefulWidget {
     this.editorService,
     this.transferService,
     this.clock,
+    this.onContinueCourseWizard,
   });
 
   final Course course;
@@ -569,6 +579,7 @@ class _CustomCourseEditorScreen extends StatefulWidget {
   final CourseEditorService? editorService;
   final CustomCourseTransferService? transferService;
   final DateTime Function()? clock;
+  final VoidCallback? onContinueCourseWizard;
 
   @override
   State<_CustomCourseEditorScreen> createState() => _CourseEditorScreenState();
@@ -587,6 +598,9 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
   int _numberingFieldVersion = 0;
   int _roundNumberingFieldVersion = 0;
 
+  /// The Course's paused Course Wizard, if any (Build 267).
+  CourseWizardPause? _wizardPause;
+
   @override
   void initState() {
     super.initState();
@@ -597,6 +611,14 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
       isNewCourse: widget.isNewCourse,
       clock: _clock,
     );
+    if (!widget.isNewCourse && !widget.course.originType.isOfficial) {
+      CourseWizardMemory()
+          .recall(widget.course.courseId)
+          .then((pause) {
+            if (pause != null && mounted) setState(() => _wizardPause = pause);
+          })
+          .catchError((Object _) {});
+    }
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final mode = await _deviceState.openingMode(
         _course.courseId,
@@ -649,7 +671,10 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
     return _course;
   }
 
-  Future<void> _popEditor([CourseConfirmationResult? result]) async {
+  Future<void> _popEditor([
+    CourseConfirmationResult? result,
+    VoidCallback? beforePop,
+  ]) async {
     if (!mounted || _routeMayPop) return;
     setState(() => _routeMayPop = true);
     // No confirmation result means this session is leaving without saving a
@@ -658,12 +683,17 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
     // here. A confirmed Course tidies up inside its own confirmation instead.
     if (result == null) await _session.discardUnconfirmedMedia();
     await WidgetsBinding.instance.endOfFrame;
-    if (mounted) Navigator.pop(context, result);
+    if (!mounted) return;
+    beforePop?.call();
+    Navigator.pop(context, result);
   }
 
-  Future<void> _attemptLeave() async {
+  /// [beforePop] runs only when the Editor really closes: Continue Course
+  /// Wizard (Build 267) leaves through here, so unconfirmed changes are
+  /// confirmed or cancelled first.
+  Future<void> _attemptLeave({VoidCallback? beforePop}) async {
     if (!_dirty) {
-      await _popEditor();
+      await _popEditor(null, beforePop);
       return;
     }
     var versionNotes = _pendingVersionNotes;
@@ -716,7 +746,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
     );
     if (choice == 'cancel') {
       _session.cancel();
-      await _popEditor();
+      await _popEditor(null, beforePop);
       return;
     }
     if (choice != 'confirm') return;
@@ -726,7 +756,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
         versionNotes: versionNotes,
       );
       if (!mounted) return;
-      await _popEditor(result);
+      await _popEditor(result, beforePop);
     } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -2683,6 +2713,40 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
         _ => null,
       };
 
+  /// Use GuideBook off asks first (Build 267, owner decision of 6 October
+  /// 2026: explain that the GuideBook is recommended).
+  Future<bool> _confirmGuidebookOff() async =>
+      await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          key: const Key('course-use-guidebook-off-notice'),
+          title: const Text('Turn off the GuideBook?'),
+          content: const SingleChildScrollView(
+            child: Text(
+              'The GuideBook is recommended. Without it there is no Round '
+              'Wizard, no Word Lookup, no Open GuideBook on Before you start '
+              'cards and no vocabulary in Review.\n\n'
+              'The GuideBooks you have written are kept: learners do not see '
+              'them while it is off, and they come back when you turn it on '
+              'again.',
+            ),
+          ),
+          actions: [
+            TextButton(
+              key: const Key('course-use-guidebook-turn-off'),
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: const Text('Turn it off'),
+            ),
+            FilledButton(
+              key: const Key('course-use-guidebook-keep'),
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Keep it on'),
+            ),
+          ],
+        ),
+      ) ??
+      false;
+
   void _setDefaultTimedLimits(List<int> limits) {
     _updateDraft(
       Course.fromJson({
@@ -2815,9 +2879,15 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
       title: const Text('Use GuideBook'),
       value: _course.useGuidebook,
       onChanged: _canModify
-          ? (value) => _updateDraft(
-              Course.fromJson({..._course.toJson(), 'useGuidebook': value}),
-            )
+          ? (value) async {
+              // Build 267 (owner decision): turning it off says first why
+              // the GuideBook is recommended.
+              if (!value && !await _confirmGuidebookOff()) return;
+              if (!mounted) return;
+              _updateDraft(
+                Course.fromJson({..._course.toJson(), 'useGuidebook': value}),
+              );
+            }
           : null,
     ),
     // Build 265: Word Lookup reads the GuideBooks, so it exists only while
@@ -3424,6 +3494,29 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
         body: ListView(
           padding: const EdgeInsets.only(bottom: 24),
           children: [
+            if (_wizardPause case final pause?)
+              ListTile(
+                key: const Key('course-editor-wizard-paused'),
+                leading: const Icon(Icons.assistant_outlined),
+                title: Text(pause.description),
+                subtitle: widget.onContinueCourseWizard == null
+                    ? const Text(
+                        'Continue it from the Course\'s ⋮ menu in Course '
+                        'Studio.',
+                      )
+                    : null,
+                trailing:
+                    widget.onContinueCourseWizard == null ||
+                        !widget.access.canEditOriginal
+                    ? null
+                    : FilledButton(
+                        key: const Key('course-editor-continue-wizard'),
+                        onPressed: () => _attemptLeave(
+                          beforePop: widget.onContinueCourseWizard,
+                        ),
+                        child: const Text('Continue'),
+                      ),
+              ),
             if (widget.access.readOnly)
               ListTile(
                 key: const Key('course-editor-read-only-notice'),

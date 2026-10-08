@@ -22,6 +22,7 @@ class CourseLibraryRow extends StatelessWidget {
     this.onTap,
     this.hiddenInLearner = false,
     this.foreground,
+    this.note,
   });
 
   final Course course;
@@ -33,6 +34,9 @@ class CourseLibraryRow extends StatelessWidget {
   final VoidCallback? onTap;
   final bool hiddenInLearner;
   final Color? foreground;
+
+  /// A line under the details, such as a paused Course Wizard (Build 267).
+  final Widget? note;
 
   static bool isUnavailable(Course course) =>
       CourseLibraryFilter.isUnavailable(course);
@@ -116,6 +120,16 @@ class CourseLibraryRow extends StatelessWidget {
                 ],
               ),
             ),
+          if (note != null) ...[
+            const SizedBox(height: 6),
+            DefaultTextStyle.merge(
+              style: TextStyle(
+                color: foreground ?? Theme.of(context).colorScheme.primary,
+                fontWeight: FontWeight.w600,
+              ),
+              child: note!,
+            ),
+          ],
           if (narrow && supplementalAction != null) ...[
             const SizedBox(height: 4),
             Align(alignment: Alignment.centerLeft, child: supplementalAction),

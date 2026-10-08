@@ -23,6 +23,8 @@ const editorHelpQuestionsByTopic = <String, List<String>>{
     'whyNoEdit',
     'viewOnlyNotice',
     'structure',
+    // Build 267.
+    'courseWizard',
     'search',
     'internalIds',
     'findHelp',

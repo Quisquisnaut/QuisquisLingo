@@ -128,9 +128,7 @@ void main() {
       await tester.tap(cancel);
       await tester.pumpAndSettle();
       expect(find.byType(AlertDialog), findsNothing);
-      await tester.pumpUntilFileIoState(
-        () => !folder.existsSync(),
-      );
+      await tester.pumpUntilFileIoState(() => !folder.existsSync());
       expect(folder.existsSync(), isFalse);
     },
   );
@@ -441,6 +439,13 @@ Future<void> _openCreation(WidgetTester tester) async {
   await tester.runAsync(() async {
     await WorldFlagRepository().loadManifest();
     await tester.tap(find.byKey(const Key('create-course-icon-action')));
+    await Future<void>.delayed(Duration.zero);
+  });
+  await tester.pumpAndSettle();
+  // Build 267: New Course opens the Course Wizard; Create it myself goes on
+  // with New Course's form.
+  await tester.runAsync(() async {
+    await tester.tap(find.byKey(const Key('course-wizard-manual')));
     final service = CourseService();
     await Future.wait(
       CourseService.courseAssets.keys.map(service.loadBundledCourse),

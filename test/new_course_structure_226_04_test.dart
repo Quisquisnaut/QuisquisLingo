@@ -306,6 +306,9 @@ void main() {
       );
       await tester.tap(find.byKey(const Key('create-course-icon-action')));
       await tester.pumpAndSettle();
+      // Build 267: through the Course Wizard's Create it myself.
+      await tester.tap(find.byKey(const Key('course-wizard-manual')));
+      await tester.pumpAndSettle();
       expect(tester.widget<TextField>(_lessons).controller!.text, '3');
       expect(tester.widget<TextField>(_rounds).controller!.text, '1');
     },
@@ -414,6 +417,10 @@ Future<void> _open(WidgetTester tester) async {
     () => find.text('Bundled Courses').evaluate().isNotEmpty,
   );
   await tester.tap(find.byKey(const Key('create-course-icon-action')));
+  await tester.pumpAndSettle();
+  // Build 267: New Course opens the Course Wizard; Create it myself goes on
+  // with New Course's form.
+  await tester.tap(find.byKey(const Key('course-wizard-manual')));
   await tester.pumpAndSettle();
   await _enter(
     tester,

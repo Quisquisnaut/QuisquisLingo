@@ -19,23 +19,35 @@ class LessonIdentityPresentation {
 class LessonPresentationService {
   const LessonPresentationService();
 
+  /// The label and number before a Lesson's title, or null when the
+  /// numbering is off.
+  static String? prefixFor(
+    LessonNumberingMode mode,
+    int number, {
+    String customLabel = '',
+  }) => switch (mode) {
+    LessonNumberingMode.lesson => 'Lesson $number',
+    LessonNumberingMode.unit => 'Unit $number',
+    LessonNumberingMode.topic => 'Topic $number',
+    LessonNumberingMode.module => 'Module $number',
+    LessonNumberingMode.skill => 'Skill $number',
+    LessonNumberingMode.chapter => 'Chapter $number',
+    LessonNumberingMode.stage => 'Stage $number',
+    LessonNumberingMode.step => 'Step $number',
+    LessonNumberingMode.part => 'Part $number',
+    LessonNumberingMode.other => '$customLabel $number',
+    LessonNumberingMode.numberOnly => '$number',
+    LessonNumberingMode.none => null,
+  };
+
   LessonIdentityPresentation identity(Course course, int publishedLessonIndex) {
     final lesson = course.lessons[publishedLessonIndex];
     final number = publishedLessonIndex + 1;
-    final prefix = switch (course.lessonNumberingMode) {
-      LessonNumberingMode.lesson => 'Lesson $number',
-      LessonNumberingMode.unit => 'Unit $number',
-      LessonNumberingMode.topic => 'Topic $number',
-      LessonNumberingMode.module => 'Module $number',
-      LessonNumberingMode.skill => 'Skill $number',
-      LessonNumberingMode.chapter => 'Chapter $number',
-      LessonNumberingMode.stage => 'Stage $number',
-      LessonNumberingMode.step => 'Step $number',
-      LessonNumberingMode.part => 'Part $number',
-      LessonNumberingMode.other => '${course.customLessonLabel} $number',
-      LessonNumberingMode.numberOnly => '$number',
-      LessonNumberingMode.none => null,
-    };
+    final prefix = prefixFor(
+      course.lessonNumberingMode,
+      number,
+      customLabel: course.customLessonLabel,
+    );
     // A numbering choice may not hide an authored title. Avoid only the exact
     // duplicate that would show the same text twice.
     final deduplicated = prefix != null && lesson.title == prefix;

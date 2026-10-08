@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/screens/device_administration_screen.dart';
 import 'package:quisquislingo_app/screens/inventory_screen.dart';
+import 'package:quisquislingo_app/services/inventory_action_service.dart';
 import 'package:quisquislingo_app/services/inventory_service.dart';
 import 'package:quisquislingo_app/services/course_file_store.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
@@ -115,6 +116,28 @@ void main() {
     expect(received.count, 1);
     expect(received.items.single.name, 'friend/course');
     expect(received.items.single.path, isNull);
+  });
+
+  test('lists each paused Course Wizard, which can be forgotten', () async {
+    // Build 267.
+    const key = 'qql_course_wizard_friend%2Fcourse';
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(
+      key,
+      '{"step": 3, "savedAtUtc": "2026-10-08T12:00:00.000Z"}',
+    );
+
+    final all = await service.load();
+    final paused = sectionOf(all, 'Paused Course Wizards');
+    expect(paused.count, 1);
+    expect(paused.items.single.name, 'friend/course');
+    expect(
+      paused.items.single.note,
+      contains('Course Wizard paused: step 3 of 5 (Credits and rights)'),
+    );
+    expect(paused.items.single.path, isNull);
+    expect(paused.items.single.action?.target, key);
+    expect(InventoryActionService.isForgettable(key), isTrue);
   });
 
   test('lists the remembered publisher of each Course', () async {

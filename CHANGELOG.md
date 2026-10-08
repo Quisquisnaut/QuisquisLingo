@@ -1,3 +1,68 @@
+# 2.0.67 (Build 267, Revision 0) - The Course Wizard: its frame - 2026-10-08
+
+The plan `docs/267_COURSE_WIZARD_PLAN.md`, §2–§4 and §8 (owner decisions of
+6 October 2026; started on the owner's go of 8 October 2026).
+
+- **New Course opens the Course Wizard.** Its first screen, Basics, asks
+  the title, the source and target languages and the language variant, and
+  explains the two ways on. **Continue with the Course Wizard** saves the
+  Course at once (a Draft, no Lessons; the active profile as Original
+  Course Creator, Maintainer and Author; All rights reserved, derivative
+  works forbidden) and goes on to step 2. **Create it myself** opens New
+  Course's form, unchanged, with those values filled in. Cancel creates
+  nothing.
+- **Steps.** A step bar shows the steps that exist in this revision:
+  Basics, About the Course (description, levels, cover, flag, study hours,
+  minimum age, keywords), Credits and rights (credits and roles, license,
+  derivative works, Rights Holders, Buy a Coffee, publisher website and
+  email), Course options (Lesson and Round label and numbering with what
+  learners see, Word Lookup, Create Duels, Picture answers, Default Timed
+  limits; Use GuideBook stays on) and Lessons (titles, icons from the
+  preinstalled set or the image library, section names; add, move, remove).
+  Back and the step bar go to any step reached; Next saves; on the last
+  step **Finish** saves, ends the Wizard and opens the Course Editor, where
+  the GuideBooks and Rounds are written (the GuideBook, Rounds and Check and
+  publish steps follow in Revisions 1–3).
+- **On every screen:** an explanation panel (what the step does, why it
+  matters, what learners see, what is needed now and what can wait), a
+  **Can wait** label on every field that can wait with a tooltip naming
+  where to change it later (only the title, the languages and the Lesson
+  titles cannot wait), examples in the helpers, tooltips on the headings,
+  **Fill with an example** (one sample Course, "Italian at the bar") and
+  **Clear all** (this step only), both asking first when the step holds
+  something; removing a Lesson that has a GuideBook or Rounds names what
+  goes.
+- **Saving.** Every save is an ordinary confirmed Course save (version + 1,
+  a backup, Version History), its version notes naming the step ("Course
+  Wizard: Lessons"). **Save for now** saves and closes; **Continue by hand**
+  saves, ends the Wizard and opens the Course Editor; leaving with an
+  unsaved change asks first (Save for now, Leave without saving, Keep
+  working).
+- **Paused Wizards.** Where the Wizard stopped is a device-level record,
+  `qql_course_wizard_<URI-encoded Course ID>` (`CourseWizardMemory`), never
+  in the Course file. Course Studio's row reads "Course Wizard paused: step 3
+  of 5 (Credits and rights)" and **Continue Course Wizard** starts its ⋮ menu
+  (greyed, with the reason, for someone who cannot edit the Course); the
+  Course Editor page shows the same line with **Continue**, which confirms or
+  cancels the Editor's changes first. The record goes when the Wizard
+  finishes, on Continue by hand, when the Course is deleted, by the
+  custom-course reset and by Wipe everything; Inventory lists it under
+  Paused Course Wizards, with Forget.
+- **Use GuideBook off** in Lesson Options now asks first: the GuideBook is
+  recommended (no Round Wizard, Word Lookup, Open GuideBook or Review
+  vocabulary without it), the GuideBooks written are kept and come back when
+  it is turned on again; **Keep it on** or **Turn it off**.
+- **Fix.** One Course authoring session can now confirm a new Course more
+  than once: the second confirmation used to fail ("A course with this
+  identity was created while the Editor was open").
+- Help EN/IT/ES: Editor Help "How does the Course Wizard work?" (87
+  questions), Course Studio's Create a new course, the Lesson Options answer.
+- Tests: `test/course_wizard_267_test.dart`; the reset and Inventory tests
+  cover the new record; tests that open New Course go through Create it
+  myself, and those that turn the GuideBook off confirm the notice.
+- Scoring, progression, Course files and learner data are unchanged. Beta
+  expiry `2026-11-07 23:59:59` local time.
+
 # 2.0.66 (Build 266, Revision 3) - Round Wizard over modules - 2026-10-08
 
 The plan's §7 (owner decisions of 5–8 October 2026).

@@ -109,6 +109,9 @@ void main() {
 
       await tester.tap(find.byKey(const Key('create-course-icon-action')));
       await tester.pumpAndSettle();
+      // Build 267: through the Course Wizard's Create it myself.
+      await tester.tap(find.byKey(const Key('course-wizard-manual')));
+      await tester.pumpAndSettle();
       await tester.enterText(_field('Course title *'), 'MyTest');
       await tester.enterText(_field('Target language *'), 'Italian');
       expect(

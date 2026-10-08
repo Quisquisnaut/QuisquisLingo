@@ -50,7 +50,8 @@ void main() {
       'lib/screens/course_projects_screen.dart',
     ).readAsStringSync();
     final createDialog = createSource.substring(
-      createSource.indexOf('Future<Course?> _createCourse()'),
+      // Build 267: the form takes the Course Wizard's first-screen values.
+      createSource.indexOf('Future<Course?> _createCourse('),
       createSource.indexOf('Future<void> _newCourse()'),
     );
     expect(createSource, contains("labelText: 'Course Maintainer'"));
@@ -122,6 +123,12 @@ void main() {
           find.byType(CircularProgressIndicator).evaluate().isEmpty,
     );
     await tester.tap(find.byKey(const Key('create-course-icon-action')));
+    // Build 267: New Course opens the Course Wizard; Create it myself goes
+    // on with New Course's form.
+    await tester.pumpUntilFileIoState(
+      () => find.byKey(const Key('course-wizard-manual')).evaluate().isNotEmpty,
+    );
+    await tester.tap(find.byKey(const Key('course-wizard-manual')));
     await tester.pumpUntilFileIoState(
       () => find.byType(AlertDialog).evaluate().isNotEmpty,
     );
@@ -307,6 +314,12 @@ void main() {
       await tester.pumpAndSettle();
 
       await tester.tap(find.byKey(const Key('create-course-icon-action')));
+      // Build 267: through the Course Wizard's Create it myself.
+      await tester.pumpUntilFileIoState(
+        () =>
+            find.byKey(const Key('course-wizard-manual')).evaluate().isNotEmpty,
+      );
+      await tester.tap(find.byKey(const Key('course-wizard-manual')));
       await tester.pumpUntilFileIoState(
         () => find.byType(AlertDialog).evaluate().isNotEmpty,
       );

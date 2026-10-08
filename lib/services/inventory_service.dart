@@ -13,6 +13,8 @@ import 'course_media_store.dart';
 import 'course_favorite_service.dart';
 import 'course_received_service.dart';
 import 'publisher_export_memory.dart';
+import 'course_wizard.dart';
+import 'course_wizard_memory.dart';
 import 'diagnostic_log_service.dart';
 import 'exercise_image_service.dart';
 import 'image_bank_service.dart';
@@ -400,6 +402,45 @@ class InventoryService {
         items: publisherItems,
         hiddenCount: publisherKeys.length > maxListedPerSection
             ? publisherKeys.length - maxListedPerSection
+            : 0,
+      ),
+    );
+
+    // Where each paused Course Wizard stands (Build 267).
+    final wizardKeys =
+        preferences
+            .getKeys()
+            .where((key) => key.startsWith(CourseWizardMemory.keyPrefix))
+            .toList()
+          ..sort();
+    sections.add(
+      InventorySection(
+        title: 'Paused Course Wizards',
+        description:
+            'The step where the Course Wizard of each Course stopped, so it can be continued from Course Studio. They are stored inside QQL settings.',
+        items: [
+          for (final key in wizardKeys.take(maxListedPerSection))
+            InventoryItem(
+              name: CourseWizardMemory.courseIdOfKey(key),
+              note: switch (preferences.get(key)) {
+                final String raw when CourseWizardPause.decode(raw) != null =>
+                  '${CourseWizardPause.decode(raw)!.description}; in QQL settings (no file).',
+                _ =>
+                  'Unreadable paused Course Wizard in QQL settings (no file).',
+              },
+              action: InventoryAction(
+                InventoryActionKind.forget,
+                key,
+                label: 'Forget',
+                explanation:
+                    'Forget where the Course Wizard stopped. The Course '
+                    'stays as it is saved and is continued by hand in the '
+                    'Course Editor.',
+              ),
+            ),
+        ],
+        hiddenCount: wizardKeys.length > maxListedPerSection
+            ? wizardKeys.length - maxListedPerSection
             : 0,
       ),
     );

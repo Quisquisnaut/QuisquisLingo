@@ -881,6 +881,9 @@ void main() {
       await tester.ensureVisible(guidebook);
       await tester.tap(guidebook);
       await tester.pumpAndSettle();
+      // Build 267: turning the GuideBook off asks first.
+      await tester.tap(find.byKey(const Key('course-use-guidebook-turn-off')));
+      await tester.pumpAndSettle();
       expect(lookup, findsNothing);
     });
   });

@@ -15,6 +15,8 @@ import 'course_package_import.dart';
 import 'course_privacy.dart';
 import 'course_service.dart';
 import 'course_study.dart';
+import 'course_wizard.dart';
+import 'course_wizard_memory.dart';
 import 'custom_course_transfer_service.dart';
 import 'file_dialog_service.dart';
 import 'formal_name_policy.dart';
@@ -30,9 +32,12 @@ import 'stored_course_reader.dart';
 /// The Course Manager menu entries, in menu order. [study] and [review]
 /// (Build 261 Revision 1) come from [CourseManagerLibrary.studyEntriesFor],
 /// shown only where the menu can return to the learner page.
+/// [continueCourseWizard] (Build 267) starts the menu of a Course whose
+/// Course Wizard is paused.
 enum CourseManagerAction {
   study,
   review,
+  continueCourseWizard,
   removeFromMyCourses,
   removePublisherFromDevice,
   courseInfo,
@@ -79,6 +84,7 @@ class CourseManagerLibrary {
     this.isAdmin = false,
     this.importAuthoringEnabled = false,
     this.reviewableCourseIds = const {},
+    this.pausedWizards = const {},
   });
 
   /// The stored Custom and Publisher Courses in the active personal library.
@@ -100,6 +106,9 @@ class CourseManagerLibrary {
 
   /// The Courses with a completed Round for Review to offer.
   final Set<String> reviewableCourseIds;
+
+  /// The paused Course Wizards, by Course ID (Build 267).
+  final Map<String, CourseWizardPause> pausedWizards;
 
   /// Study and Review for [course], with the reason each cannot be used.
   List<CourseManagerEntry> studyEntriesFor(Course course) => [
@@ -142,6 +151,13 @@ class CourseManagerLibrary {
     final official = course.originType.isOfficial;
     const onlyInside = 'Only the Maintainer or assigned Team can';
     return [
+      if (!official && pausedWizards.containsKey(course.courseId))
+        CourseManagerEntry(
+          CourseManagerAction.continueCourseWizard,
+          access.canEditOriginal
+              ? null
+              : '$onlyInside continue its Course Wizard.',
+        ),
       const CourseManagerEntry(CourseManagerAction.removeFromMyCourses),
       if (course.originType == CourseOriginType.externalOfficial)
         CourseManagerEntry(
@@ -341,6 +357,7 @@ class CourseLibraryOperations {
     TeamService? teams,
     CourseFlagService? flags,
     PublisherExportMemory? publisherMemory,
+    CourseWizardMemory? wizardMemory,
     DateTime Function()? clock,
   }) : editor = editor ?? CourseEditorService(),
        transfer = transfer ?? CustomCourseTransferService(),
@@ -350,6 +367,7 @@ class CourseLibraryOperations {
        profiles = profiles ?? ProfileService(),
        _flags = flags ?? CourseFlagService(),
        publisherMemory = publisherMemory ?? PublisherExportMemory(),
+       wizardMemory = wizardMemory ?? CourseWizardMemory(),
        _clock = clock ?? DateTime.now {
     this.teams = teams ?? TeamService(profileService: this.profiles);
     _membership =
@@ -376,6 +394,9 @@ class CourseLibraryOperations {
   /// The publisher each Course was last exported for (owner request of
   /// 4 October 2026).
   final PublisherExportMemory publisherMemory;
+
+  /// Where each paused Course Wizard stands (Build 267).
+  final CourseWizardMemory wizardMemory;
   final DateTime Function() _clock;
 
   /// Everything Course Manager lists. With [importOnly], no Bundled Course is
@@ -415,6 +436,12 @@ class CourseLibraryOperations {
     final reviewableCourseIds = activeProfileId == null
         ? const <String>{}
         : await CourseStudy.coursesWithCompletedRounds(ProgressService());
+    final personalIds = {for (final course in personal) course.courseId};
+    final pausedWizards = {
+      for (final MapEntry(key: courseId, value: pause)
+          in (await wizardMemory.all()).entries)
+        if (personalIds.contains(courseId)) courseId: pause,
+    };
     return CourseManagerLibrary(
       personalCourses: personal,
       bundledCourses: includedBundled,
@@ -426,6 +453,7 @@ class CourseLibraryOperations {
       isAdmin: isAdmin,
       importAuthoringEnabled: importAuthoringEnabled,
       reviewableCourseIds: Set.unmodifiable(reviewableCourseIds),
+      pausedWizards: Map.unmodifiable(pausedWizards),
     );
   }
 
@@ -704,6 +732,7 @@ class CourseLibraryOperations {
   Future<void> deleteCourse(Course course) async {
     await editor.deleteUserCourse(course.courseId);
     await publisherMemory.forget(course.courseId);
+    await wizardMemory.forget(course.courseId);
   }
 
   Future<void> removePublisherCourse(Course course) =>
@@ -738,6 +767,103 @@ class CourseLibraryOperations {
     List<CourseMediaAttribution> mediaAttributions = const [],
   }) {
     final updatedAt = _clock().toUtc();
+    return _draftCourse(
+      creator: creator,
+      maintainerProfileId: maintainerProfileId,
+      title: title,
+      sourceLanguage: sourceLanguage,
+      targetLanguage: targetLanguage,
+      sourceLanguageTag: sourceLanguageTag,
+      targetLanguageTag: targetLanguageTag,
+      credits: credits,
+      license: license,
+      derivativeWorksPolicy: derivativeWorksPolicy,
+      rightsHolders: rightsHolders,
+      languageVariant: languageVariant,
+      startLevel: startLevel,
+      targetLevel: targetLevel,
+      courseDescription: courseDescription,
+      buyACoffeeUrl: buyACoffeeUrl,
+      flag: flag,
+      courseId: courseId,
+      coverImage: coverImage,
+      mediaAttributions: mediaAttributions,
+      updatedAt: updatedAt,
+      lessons: NewCourseStructure.create(
+        sourceLanguage: sourceLanguage,
+        learningLanguage: targetLanguage,
+        lessonCount: lessonCount,
+        roundsPerLesson: roundsPerLesson,
+        updatedAt: updatedAt,
+      ),
+    );
+  }
+
+  /// The Draft Course the Course Wizard saves after its first screen (Build
+  /// 267): the title, languages and variant typed there, the active profile
+  /// as Original Course Creator, Maintainer and Author, New Course's
+  /// defaults for everything else (All rights reserved, derivative works
+  /// forbidden) and no Lessons yet.
+  Course newWizardCourse({
+    required LearnerProfile creator,
+    required String title,
+    required String sourceLanguage,
+    required String targetLanguage,
+    String sourceLanguageTag = '',
+    String targetLanguageTag = '',
+    String languageVariant = '',
+  }) => _draftCourse(
+    creator: creator,
+    maintainerProfileId: creator.learnerProfileId,
+    title: title,
+    sourceLanguage: sourceLanguage,
+    targetLanguage: targetLanguage,
+    sourceLanguageTag: sourceLanguageTag,
+    targetLanguageTag: targetLanguageTag,
+    credits: [
+      (
+        name: creator.presentationName,
+        roles: const {'Author'},
+        customRoles: '',
+      ),
+    ],
+    license: CourseMetadataOptions.standardLicenses.first,
+    derivativeWorksPolicy: DerivativeWorksPolicy.forbidden,
+    rightsHolders: const [],
+    languageVariant: languageVariant,
+    startLevel: '',
+    targetLevel: '',
+    courseDescription: '',
+    buyACoffeeUrl: '',
+    flag: const CourseFlagSelection.automatic(),
+    updatedAt: _clock().toUtc(),
+    lessons: const [],
+  );
+
+  Course _draftCourse({
+    required LearnerProfile creator,
+    required String maintainerProfileId,
+    required String title,
+    required String sourceLanguage,
+    required String targetLanguage,
+    required String sourceLanguageTag,
+    required String targetLanguageTag,
+    required List<NewCourseCredit> credits,
+    required String license,
+    required DerivativeWorksPolicy derivativeWorksPolicy,
+    required List<NewCourseRightsHolder> rightsHolders,
+    required String languageVariant,
+    required String startLevel,
+    required String targetLevel,
+    required String courseDescription,
+    required String buyACoffeeUrl,
+    required CourseFlagSelection flag,
+    required DateTime updatedAt,
+    required List<Lesson> lessons,
+    String? courseId,
+    String coverImage = '',
+    List<CourseMediaAttribution> mediaAttributions = const [],
+  }) {
     final nowUtc = updatedAt.toIso8601String();
     return Course(
       // Create new course allocates the ID first when it stores a cover
@@ -788,13 +914,7 @@ class CourseLibraryOperations {
       coverImage: coverImage,
       mediaAttributions: mediaAttributions,
       temporarySample: false,
-      lessons: NewCourseStructure.create(
-        sourceLanguage: sourceLanguage,
-        learningLanguage: targetLanguage,
-        lessonCount: lessonCount,
-        roundsPerLesson: roundsPerLesson,
-        updatedAt: updatedAt,
-      ),
+      lessons: lessons,
     );
   }
 

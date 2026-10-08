@@ -381,6 +381,33 @@ void main() {
     expect(prefs.containsKey(key), isFalse);
   });
 
+  test('paused Course Wizards follow the custom-course reset', () async {
+    // Build 267: where each Course Wizard stopped.
+    const key = 'qql_course_wizard_friend%2Fcourse';
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(
+      key,
+      '{"step": 3, "savedAtUtc": "2026-10-08T12:00:00.000Z"}',
+    );
+    expect((await service.preview()).hasCustomCourses, isTrue);
+
+    for (final scope in [
+      AppResetScope.learnerProgress,
+      AppResetScope.importedMedia,
+      AppResetScope.nonAdminLearners,
+    ]) {
+      await service.reset(scope, actorProfileId: adminId, pin: '4321');
+      expect(prefs.containsKey(key), isTrue);
+    }
+
+    await service.reset(
+      AppResetScope.customCourses,
+      actorProfileId: adminId,
+      pin: '4321',
+    );
+    expect(prefs.containsKey(key), isFalse);
+  });
+
   test('custom courses removes courses and teams but keeps learners', () async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(CourseEditorStorage.userCoursesKey, '[]');

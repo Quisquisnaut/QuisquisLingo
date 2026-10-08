@@ -18,6 +18,7 @@ import 'image_bank_service.dart';
 import 'learner_status_events.dart';
 import 'profile_service.dart';
 import 'publisher_export_memory.dart';
+import 'course_wizard_memory.dart';
 import 'import/import_stager.dart';
 import 'storage/qql_earlier_private_folders.dart';
 import 'storage/qql_storage.dart';
@@ -205,7 +206,9 @@ class AppResetService {
                 prefs.getBool(key) == true,
           ) ||
           prefs.getKeys().any(
-            (key) => key.startsWith(PublisherExportMemory.keyPrefix),
+            (key) =>
+                key.startsWith(PublisherExportMemory.keyPrefix) ||
+                key.startsWith(CourseWizardMemory.keyPrefix),
           ) ||
           await _countFiles(
                 await _directories([CourseFileStore.rootDirectoryName]),
@@ -450,7 +453,8 @@ class AppResetService {
     for (final key in prefs.getKeys().where(
       (key) =>
           key.startsWith(CourseReceivedService.keyPrefix) ||
-          key.startsWith(PublisherExportMemory.keyPrefix),
+          key.startsWith(PublisherExportMemory.keyPrefix) ||
+          key.startsWith(CourseWizardMemory.keyPrefix),
     )) {
       await prefs.remove(key);
     }

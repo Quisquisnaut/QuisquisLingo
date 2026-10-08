@@ -13,6 +13,7 @@ import '../services/course_library_view_service.dart';
 import '../services/custom_course_transfer_service.dart';
 import '../services/course_service.dart';
 import '../services/course_study.dart';
+import '../services/course_wizard.dart';
 import '../services/course_language_resolver.dart';
 import '../services/course_library_operations.dart';
 import '../services/course_library_categories.dart';
@@ -36,6 +37,7 @@ import '../widgets/file_dialog_feedback.dart';
 import '../widgets/flag_art.dart';
 import 'course_editor_screen.dart';
 import 'course_info_screen.dart';
+import 'course_wizard_screen.dart';
 import 'team_manager_screen.dart';
 import 'flat_image_library_screen.dart';
 import 'publisher_course_export_screen.dart';
@@ -1124,7 +1126,9 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
     }
   }
 
-  Future<Course?> _createCourse() async {
+  /// New Course's form. [prefill] carries the title, languages and variant
+  /// of the Course Wizard's first screen (Build 267, Create it myself).
+  Future<Course?> _createCourse({CourseWizardBasics? prefill}) async {
     final activeProfile = await _ops.profiles.getActiveProfileRecord();
     if (activeProfile == null) {
       if (mounted) {
@@ -1138,11 +1142,21 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
     }
     final availableMaintainers = await _ops.profiles.getProfileRecords();
     if (!mounted) return null;
-    final title = TextEditingController();
+    final title = TextEditingController(text: prefill?.title ?? '');
     // Build 260 Revision 0: languages come from the list (English names and
     // tags) or are typed by hand.
-    final source = LanguageFieldController(name: 'English');
-    final target = LanguageFieldController();
+    final source = LanguageFieldController(
+      name: prefill == null || prefill.sourceLanguage.isEmpty
+          ? 'English'
+          : prefill.sourceLanguage,
+    );
+    final target = LanguageFieldController(name: prefill?.targetLanguage ?? '');
+    if (prefill != null && source.isHandEntered) {
+      source.tag.text = prefill.sourceLanguageTag;
+    }
+    if (prefill != null && target.isHandEntered) {
+      target.tag.text = prefill.targetLanguageTag;
+    }
     final authorNames = [
       TextEditingController(text: activeProfile.displayName),
     ];
@@ -1152,7 +1166,7 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
     final customAuthorRoles = [TextEditingController()];
     final rightsHolderNames = [TextEditingController()];
     final rightsHolderTypes = [CourseRightsHolderType.person];
-    final variant = TextEditingController();
+    final variant = TextEditingController(text: prefill?.variant ?? '');
     final startLevel = TextEditingController();
     final targetLevel = TextEditingController();
     final description = TextEditingController();
@@ -1843,8 +1857,51 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
     return result;
   }
 
+  /// New Course opens the Course Wizard's first screen (Build 267); its
+  /// Create it myself continues with New Course's form.
   Future<void> _newCourse() async {
-    final course = await _createCourse();
+    final outcome = await Navigator.of(context).push<CourseWizardOutcome>(
+      MaterialPageRoute(
+        builder: (_) => CourseWizardScreen(
+          operations: _ops,
+          titleTaken: _library.hasCourseTitled,
+        ),
+      ),
+    );
+    await _afterWizard(outcome);
+  }
+
+  /// Continue Course Wizard, on the stored [course].
+  Future<void> _continueWizard(Course course) async {
+    final outcome = await Navigator.of(context).push<CourseWizardOutcome>(
+      MaterialPageRoute(
+        builder: (_) => CourseWizardScreen(
+          course: course,
+          access: _capabilities(course),
+          pause: _library.pausedWizards[course.courseId],
+          operations: _ops,
+        ),
+      ),
+    );
+    await _afterWizard(outcome);
+  }
+
+  Future<void> _afterWizard(CourseWizardOutcome? outcome) async {
+    if (!mounted) return;
+    switch (outcome) {
+      case CourseWizardCreateManually(:final basics):
+        await _newCourseByHand(basics);
+      case CourseWizardOpenEditor(:final course):
+        await _reload();
+        if (!mounted) return;
+        await _openUser(_library.personalCourse(course.courseId) ?? course);
+      case CourseWizardPaused() || null:
+        await _reload();
+    }
+  }
+
+  Future<void> _newCourseByHand(CourseWizardBasics prefill) async {
+    final course = await _createCourse(prefill: prefill);
     if (course == null) return;
     if (!mounted) return;
     final result = await Navigator.of(context).push<CourseConfirmationResult>(
@@ -1883,14 +1940,23 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
   }
 
   Future<void> _openUser(Course course) async {
+    var continueWizard = false;
     final result = await Navigator.of(context).push<CourseConfirmationResult>(
       MaterialPageRoute(
-        builder: (_) =>
-            CourseEditorScreen(course: course, access: _capabilities(course)),
+        builder: (_) => CourseEditorScreen(
+          course: course,
+          access: _capabilities(course),
+          onContinueCourseWizard: () => continueWizard = true,
+        ),
       ),
     );
     if (result != null && mounted) _showConfirmationResult(result);
     await _reload();
+    // The Course Editor's Continue (Build 267): the Editor closed first, so
+    // the Wizard reads the Course as it is stored now.
+    if (!continueWizard || !mounted) return;
+    final stored = _library.personalCourse(course.courseId);
+    if (stored != null) await _continueWizard(stored);
   }
 
   void _showConfirmationResult(CourseConfirmationResult result) {
@@ -1987,6 +2053,8 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
       tooltip: 'Course actions',
       onSelected: (action) {
         switch (action) {
+          case CourseManagerAction.continueCourseWizard:
+            _continueWizard(course);
           case CourseManagerAction.study:
             widget.onStudy?.call(
               CourseStudyRequest(course, CourseStudyAction.study),
@@ -2025,13 +2093,21 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
             _delete(course);
         }
       },
-      itemBuilder: (_) => [
-        if (widget.onStudy != null)
-          for (final entry in _library.studyEntriesFor(course))
+      itemBuilder: (_) {
+        final entries = _library.entriesFor(course);
+        bool wizard(CourseManagerEntry entry) =>
+            entry.action == CourseManagerAction.continueCourseWizard;
+        // A paused Course Wizard starts the menu (Build 267).
+        return [
+          for (final entry in entries.where(wizard))
             _courseActionItem(entry, access, course),
-        for (final entry in _library.entriesFor(course))
-          _courseActionItem(entry, access, course),
-      ],
+          if (widget.onStudy != null)
+            for (final entry in _library.studyEntriesFor(course))
+              _courseActionItem(entry, access, course),
+          for (final entry in entries.where((entry) => !wizard(entry)))
+            _courseActionItem(entry, access, course),
+        ];
+      },
     );
   }
 
@@ -2047,6 +2123,11 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
       String title,
       String? description,
     ) = switch (entry.action) {
+      CourseManagerAction.continueCourseWizard => (
+        Icons.assistant_outlined,
+        'Continue Course Wizard',
+        'Go on from the step where the Course Wizard stopped.',
+      ),
       CourseManagerAction.study => (Icons.school_outlined, 'Study', null),
       CourseManagerAction.review => (Icons.history_outlined, 'Review', null),
       CourseManagerAction.removeFromMyCourses => (
@@ -2708,6 +2789,16 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
     return _profileNames[id] ?? 'Profile not on this device ($id)';
   }
 
+  /// "Course Wizard paused: step 3 of 5 (Credits and rights)" (Build 267).
+  Widget? _wizardNote(Course course) {
+    final pause = _library.pausedWizards[course.courseId];
+    if (pause == null) return null;
+    return Text(
+      pause.description,
+      key: ValueKey('course-wizard-paused-${course.courseId}'),
+    );
+  }
+
   Widget _courseSection(CourseLibraryCategory category) => CourseLibrarySection(
     key: ValueKey('manager-section-${category.sectionId}'),
     category: category,
@@ -2744,6 +2835,7 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
         maintainer: _managerMaintainer(course),
         mediaStore: widget.mediaStore,
         hiddenInLearner: _library.hiddenCourseIds.contains(course.courseId),
+        note: _wizardNote(course),
         onTap: () => _openUser(course),
         trailing: _courseActions(
           course,
@@ -3002,8 +3094,14 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
                               fallbackCode: CourseService.codeForCourse(course),
                             ),
                             title: Text(course.title),
-                            subtitle: Text(
-                              '${course.sourceLanguage} → ${course.targetLanguage} · ${course.originType.isOfficial ? 'Publisher Course · ${course.publisherName} ${course.officialCourseVersion} · read only${course.originType == CourseOriginType.externalOfficial && course.publisherVerificationStatus != PublisherVerificationStatus.verified ? ' · Verification required' : ''}' : 'custom version ${course.courseVersion.isEmpty ? 'unconfirmed' : course.courseVersion}'}',
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  '${course.sourceLanguage} → ${course.targetLanguage} · ${course.originType.isOfficial ? 'Publisher Course · ${course.publisherName} ${course.officialCourseVersion} · read only${course.originType == CourseOriginType.externalOfficial && course.publisherVerificationStatus != PublisherVerificationStatus.verified ? ' · Verification required' : ''}' : 'custom version ${course.courseVersion.isEmpty ? 'unconfirmed' : course.courseVersion}'}',
+                                ),
+                                ?_wizardNote(course),
+                              ],
                             ),
                             onTap: () => _openUser(course),
                             trailing: _courseActions(

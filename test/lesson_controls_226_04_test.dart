@@ -449,6 +449,13 @@ void main() {
         expect(tester.widget<SwitchListTile>(toggle).value, isTrue);
         await tester.tap(toggle);
         await tester.pumpAndSettle();
+        // Build 267: turning the GuideBook off asks first.
+        if (key == 'course-use-guidebook') {
+          await tester.tap(
+            find.byKey(const Key('course-use-guidebook-turn-off')),
+          );
+          await tester.pumpAndSettle();
+        }
         expect(tester.widget<SwitchListTile>(toggle).value, isFalse);
       }
       for (final key in ['course-use-guidebook', 'course-create-duels']) {

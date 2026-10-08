@@ -269,6 +269,9 @@ void main() {
     await tester.ensureVisible(toggle);
     await tester.tap(toggle);
     await tester.pumpAndSettle();
+    // Build 267: turning the GuideBook off asks first.
+    await tester.tap(find.byKey(const Key('course-use-guidebook-turn-off')));
+    await tester.pumpAndSettle();
     expect(
       tester.widget<AuthoringStatusCard>(indicator).hasAuditConcern,
       isFalse,
@@ -309,6 +312,9 @@ void main() {
       final toggle = find.byKey(const Key('course-use-guidebook'));
       await tester.ensureVisible(toggle);
       await tester.tap(toggle);
+      await tester.pumpAndSettle();
+      // Build 267: turning the GuideBook off asks first.
+      await tester.tap(find.byKey(const Key('course-use-guidebook-turn-off')));
       await tester.pumpAndSettle();
       await tester.drag(find.byType(ListView).first, const Offset(0, 1200));
       await tester.pumpAndSettle();

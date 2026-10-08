@@ -42,7 +42,11 @@ class CourseAuthoringSession {
 
   final CourseAccessCapabilities _access;
   final CourseEditorService _editorService;
-  final bool _isNewCourse;
+
+  /// True until the first confirmation stores the new Course; a later
+  /// confirmation in the same session (the Course Wizard saves at every
+  /// step, Build 267) updates the stored Course.
+  bool _isNewCourse;
   final DateTime Function() _clock;
   final CourseEditorTransaction _transaction;
   late final CourseAuthoringMedia _media;
@@ -140,6 +144,7 @@ class CourseAuthoringSession {
       committedAt: _clock(),
     );
     _transaction.markConfirmed(result.course);
+    _isNewCourse = false;
     _pendingVersionNotes = '';
     _governanceChangedInEditMode = false;
     _auditOutdated = true;

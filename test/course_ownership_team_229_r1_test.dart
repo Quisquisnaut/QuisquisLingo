@@ -684,6 +684,11 @@ void main() {
     await tester.tap(find.byKey(const Key('create-course-icon-action')));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
+    // Build 267: New Course opens the Course Wizard; Create it myself goes
+    // on with New Course's form.
+    await tester.tap(find.byKey(const Key('course-wizard-manual')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
 
     expect(find.byKey(const Key('new-course-license')), findsOneWidget);
     expect(find.byKey(const Key('new-course-owner')), findsOneWidget);
@@ -699,7 +704,12 @@ void main() {
     expect(find.text('Bob'), findsOneWidget);
     await tester.tap(find.text('Bob'));
     await tester.pump();
-    await tester.tap(find.text('Cancel'));
+    await tester.tap(
+      find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.text('Cancel'),
+      ),
+    );
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
   });
