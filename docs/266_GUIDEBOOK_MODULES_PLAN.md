@@ -613,8 +613,8 @@ sentences as today. No new exercise types.
 ### Pictures
 
 Owner decision of 6 October 2026: this belongs to the Round Wizard's
-revision (Revision 2 since the split of 8 October), moved here from the
-Build 267 plan.
+revision (delivered as Revision 3, §12), moved here from the Build 267
+plan.
 
 - **When:** a module with **at least three** Words & Expressions entries that
   have pictures adds three picture presets to its pool:
@@ -734,34 +734,22 @@ Build 267 plan.
 
 ## 11. Content
 
-- **QQL Demo: English from Italian**
-  (`tools/generate_english_from_italian_260.py`):
-  - its GuideBook is split into modules that match its Rounds, for example
-    Saluti, Al bar and Alla stazione;
-  - the 4 grammar notes are rewritten into short module Overviews;
-  - Sentences gain translations, and contexts are added where a word or
-    sentence needs one;
-  - its words get pictures by the same perfect-match rule (its target is
-    English);
-  - its Rounds get their `focusModuleId`.
-- **QQL Demo: Italian Exercise Lab** (`tools/generate_exercise_laboratory_254.py`):
-  - one module per Lesson holding Build 265's entries;
-  - one Lesson with two modules, so the review mix can be seen;
-  - at least one word with two senses and an understood subject `{…}`;
-  - words with QQL pictures (its source is English, so the prefill rule
-    finds them), at least three in one module so the picture exercises can be
-    seen, and so packaging and IN USE are exercised.
-- **Edge Case** (`tools/generate_edge_case_demo_254.py`, the demo and the
-  fixture):
-  - two modules;
-  - an empty module and a long Overview (the Warning and the Info, on
-    purpose);
-  - a Draft GuideBook;
-  - `sourceRefs` to entries;
-  - a Round whose focus is missing (the Warning, on purpose).
-- **Other fixtures:** Korean and Laboratory-of-the-future are rewritten; the
-  dummy Publisher fixtures are rewritten and re-signed.
-- **`tools/qql_course_v12.py`** gets module and entry helpers.
+**Status (8 October 2026):** only the part that the format change required
+was done, in Revision 0. The demo content planned here (English from Italian
+in modules, the Lab's two-module Lesson, the Edge Case module cases) was not
+done in Build 266 (owner decision of 8 October 2026). The bundled Courses
+and fixtures have one module per Lesson.
+
+Done in Revision 0:
+
+- **Every generator, the validator and every fixture write modules**, one
+  module per Lesson: the Lab (`MODULE_TITLES`, Build 265's entries), the
+  Edge Case demo and fixture, English from Italian ("Le prime parole"), the
+  Laboratory-of-the-future fixture; the Korean fixture and the Italian demo
+  package rewritten; the dummy Publisher fixtures rewritten and re-signed.
+- **`tools/qql_course_v12.py`** has the module and entry helpers
+  (`guidebook_entry`, `guidebook_module`, `guidebook`, `vocabulary_pair`,
+  `target_problem`) and `convert_guidebook_v11`.
 - **`tools/validate_courses.py`** checks:
   - the GuideBook, module and entry keys;
   - non-empty modules while Use GuideBook is on;
@@ -771,25 +759,45 @@ Build 267 plan.
   - `sourceRefs`;
   - that Round focus and supporting IDs exist in their Lesson.
 
+Planned and not done (no revision holds it now):
+
+- **QQL Demo: English from Italian**
+  (`tools/generate_english_from_italian_260.py`): its GuideBook split into
+  modules that match its topics (for example Saluti, Al bar and Alla
+  stazione); the 4 grammar notes as short module Overviews; Sentences with
+  translations and Contexts where a word or sentence needs one; word
+  pictures by the perfect-match rule (its target is English); its Rounds'
+  `focusModuleId`.
+- **QQL Demo: Italian Exercise Lab** (`tools/generate_exercise_laboratory_254.py`):
+  one Lesson with two modules, so the review mix can be seen; a word with
+  two senses and an understood subject `{…}`; at least three words with QQL
+  pictures in one module, so the picture exercises can be seen.
+- **Edge Case** (`tools/generate_edge_case_demo_254.py`, the demo and the
+  fixture): two modules; an empty module and a long Overview (the Warning
+  and the Info, on purpose); a Draft GuideBook; `sourceRefs` to entries; a
+  Round whose focus is missing (the Warning, on purpose).
+
 ## 12. Revisions (one local commit each)
 
-Every revision bumps the version (`2.0.66+266000` …) and the Beta expiry, and
-updates CHANGELOG, the AGENTS.md release boundary, `docs/266_HANDOFF.md` and
+Every revision bumps the version (`2.0.66+266000` …) and, when the release
+day changes, the Beta expiry, and updates CHANGELOG, the AGENTS.md release
+boundary, `docs/266_CHANGE_SUMMARY.md`, `docs/266_HANDOFF.md` and
 `docs/266_VALIDATION.md`.
 
-Owner decision of 8 October 2026: the plan's Revision 0 is split in two
-(266000 and 266001), so the Round Wizard is Revision 2 and the content
-Revision 3. Later the same day the owner inserted a resilience revision
-(266002: the reset bug's class fixed everywhere, the logs, Open folder,
-the Inventory's Delete / Forget / Open folder), so the Round Wizard is
-Revision 3 (266003) and the content Revision 4 (266004). Then the owner
-chose (8 October 2026, option 3) to skip Revision 4 for now: its demo
-content (English from Italian in modules, the Lab's two-module Lesson, the
-Edge Case module cases) goes to Build 267, whose plan builds a new Italian
-demo with the Course Wizard. Revision 3 is Build 266's last revision. The complete suite runs once, at the end of Revision 1; Revision
-0 is checked with the analyzer and focused tests.
+How the revisions came to be (owner decisions of 8 October 2026):
 
-- **Revision 0: modules.**
+- The plan's Revision 0 was split in two: 266000 (the core) and 266001 (the
+  authoring aids). The complete suite first ran at the end of 266001;
+  266000 was checked with the analyzer and focused tests.
+- The owner inserted a resilience revision (266002) after the reset buttons
+  of Advanced (Admin) did nothing, so the Round Wizard became Revision 3.
+- The content (planned as the last revision) was not done: Revision 4 does
+  not exist. Revision 3 is Build 266's last revision.
+
+As delivered, all committed locally on `claude/266-guidebook-modules` (from
+main `5cfb227`), not pushed:
+
+- **Revision 0 (2.0.66+266000, `50512d2`): modules.**
   - The model and its JSON (entries with context, `{…}`, the optional word
     picture), the refusal of the old shape, the converters' new output and
     the Round fields (stored, edited, pruned, remapped).
@@ -802,27 +810,42 @@ demo with the Course Wizard. Revision 3 is Build 266's last revision. The comple
     validation and the context limit.
   - The learner GuideBook screen, the Audit rules and the Round editor's
     Focus module menu; Open GuideBook at the focus module.
-  - Generators, validator and fixtures (one module per Lesson for now) and the
+  - Generators, validator and fixtures (one module per Lesson) and the
     bundled Courses regenerated.
   - Help for the GuideBook model (the rewritten keys of §10).
-- **Revision 1: authoring aids.**
+- **Revision 1 (2.0.66+266001, `f6891bf`): authoring aids; the reset
+  buttons fixed.**
   - The prefill from the English word with its Suggested mark and "N
-    matching pictures" (§5).
+    matching pictures" (§5); the library opened from a word is searched for
+    its English side, only in Courses to or from English.
   - Paste list, Fill with an example, Clear all, the Overview counter and
     hint, tooltips, examples in helpers and field Help (EN/IT/ES).
   - The two new Editor Help questions (§10).
-- **Revision 2: Round Wizard.**
-  - Focus module and All modules, Rounds per module and the per-module curve.
-  - The 70/30 mix, the context and synonym rules, and sentences in Build the
-    translation and Word order.
+  - Fix: a stored Course in the earlier GuideBook shape blocked every reset
+    button (and the reset that removes it); the reset service skips such a
+    Course and a reset that cannot start says why.
+- **Revision 2 (2.0.66+266002, `16bc9ff`): resilience.**
+  - One reader for stored Courses this version cannot open
+    (`StoredCourseReader`): never stops a feature, named by its file,
+    logged; removable in Course Studio and replaceable by import (its
+    Maintainer, Team or an admin); the Publisher update replaces such a
+    source; learner deletion and the resets read its Maintainer.
+  - No silent buttons (`runReported`); every unhandled error also in the
+    Diagnostic Log; Save&Open for both logs.
+  - The Inventory's Delete, Forget and Open folder (admin PIN, the existing
+    rules); edge-case tests over seven kinds of bad stored files.
+- **Revision 3 (2.0.66+266003, `3801369`): the Round Wizard over modules.**
+  - Focus module and All modules, Rounds per module and the per-module
+    curve, at most 24 Rounds per run.
+  - The review of earlier modules (about a third, never first), the context
+    and synonym rules, and sentences in Build the translation and Word
+    order.
   - Real `sourceRefs`, the recorded focus and supporting modules, and the
     Before you start cards per module.
   - Picture exercises from entry pictures (Select the image, Match pictures
-    to words, Picture flashcard; at least three pictured entries).
-  - The plan preview, Open GuideBook at the focus module, tooltips and Help.
-- **Revision 3: content.** English from Italian in modules with translated
-  Sentences and contexts, the Laboratory's two-module Lesson, and the Edge
-  Case module cases.
+    to words, Picture flashcard; at least three pictured entries), Plural
+    carried over.
+  - The plan preview with each Round's focus and words, tooltips and Help.
 
 ## 13. Out of scope
 

@@ -43,9 +43,8 @@ The plan's §7 (owner decisions of 5–8 October 2026).
   dialog; Editor Help EN/IT/ES) describes all of it.
 
 Build 266 ends with this revision (owner decision of 8 October 2026): the
-planned content revision (the demos in several modules) moves to Build 267,
-with the Course Wizard's new Italian demo; the bundled Courses keep one
-module per Lesson.
+planned content revision (the demos in several modules) is not part of it;
+the bundled Courses keep one module per Lesson.
 
 Version 2.0.66+266003. Scoring, progression, Course files and learner data
 are unchanged. Beta expiry unchanged: 2026-11-07 23:59:59 local time.

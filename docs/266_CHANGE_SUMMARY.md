@@ -33,10 +33,9 @@ Revisions:
   edge-case tests over stored data this version cannot open.
 - Revision 3 (266003): the Round Wizard (focus module, All modules, the
   review mix, real `sourceRefs`, picture exercises).
-- Revision 4 (content: English from Italian in modules, the Lab's
-  two-module Lesson, the Edge Case module cases) is not part of Build 266:
-  the owner moved it to Build 267 on 8 October 2026 (option 3), where the
-  Course Wizard builds a new Italian demo. The bundled Courses keep one
+- The planned content revision (English from Italian in modules, the
+  Lab's two-module Lesson, the Edge Case module cases) is not part of Build
+  266 (owner decision of 8 October 2026). The bundled Courses keep one
   module per Lesson.
 
 ## Revision 3 (2.0.66+266003, 8 October 2026): the Round Wizard over modules

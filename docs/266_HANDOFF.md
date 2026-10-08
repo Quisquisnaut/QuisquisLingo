@@ -1,28 +1,24 @@
 # Build 266 handoff
 
-Saved 8 October 2026. **Build 266 is complete and committed locally**:
-Revisions 0 (`50512d2`), 1 (`f6891bf`), 2 (`16bc9ff`) and 3 in the worktree
+Saved 8 October 2026, regenerated after Revision 4 was dropped. **Build 266
+is complete: Revisions 0–3 are committed locally** in the worktree
 `C:\QQL\QuisquisLingo\.claude\worktrees\dazzling-hawking-a3ca2e`, branch
-`claude/266-guidebook-modules` (from main `5cfb227`). Revision 4 (content)
-moved to Build 267 (owner, 8 October 2026). Never push or open a pull
-request without the owner's word. After the merge to main, the owner's
-private generators in `D:\QQL_plus\Corsi_Privati` must be run again: their
-four Course files still have the GuideBook shape before Build 266
-(`make_short_courses.py` converts through the main checkout's
-`tools/qql_course_v12.py`).
+`claude/266-guidebook-modules` (from main `5cfb227`): `50512d2`, `f6891bf`,
+`16bc9ff`, `3801369`. Nothing is pushed and no pull request is open: never
+push or open one without the owner's word. Work stopped at the owner's
+request.
 
-Plan: `docs/266_GUIDEBOOK_MODULES_PLAN.md` (copied from the main checkout,
-where it is untracked, and amended with the decisions of 8 October; it is
-committed with Revision 0). Build 267's plan (`docs/267_COURSE_WIZARD_PLAN.md`)
-is context only. Never stage `devtools_options.yaml`, `tools/cloud_setup.sh`,
+Plan: `docs/266_GUIDEBOOK_MODULES_PLAN.md` (§11 and §12 say how the build
+went). Summary: `docs/266_CHANGE_SUMMARY.md`; evidence:
+`docs/266_VALIDATION.md`. Build 267's plan (`docs/267_COURSE_WIZARD_PLAN.md`,
+untracked in the main checkout) is not part of this build. Never stage
+`devtools_options.yaml`, `tools/cloud_setup.sh`,
 `docs/COLLOCATION_PICTURES_PROPOSAL.*`, `docs/267_COURSE_WIZARD_PLAN.md`;
 after `flutter pub get` the four generated plugin registrant files (and
 `docs/254_LABORATORY_COVERAGE.md` after the Lab generator) may show as
 modified with line endings only: `git diff --quiet` proves it, restore them.
 
-Summary: `docs/266_CHANGE_SUMMARY.md`; evidence: `docs/266_VALIDATION.md`.
-
-## Owner decisions of 8 October 2026
+## How the revisions came to be (owner decisions of 8 October 2026)
 
 - Prefill (Revision 1): skip Lesson icons; skip one-letter names (Roman
   numerals I, V, X; units g, l, m); when no name equals the word, try the
@@ -33,11 +29,15 @@ Summary: `docs/266_CHANGE_SUMMARY.md`; evidence: `docs/266_VALIDATION.md`.
   with a bracket.
 - v11 converter: an example sentence (no translation) becomes a line of
   the module's Overview, with a note; Source stays required.
-- Revision 0 is split: 266000 core (done), 266001 authoring aids, 266002
-  Round Wizard, 266003 content. **The complete suite runs once, at the
-  end of 266001**; 266000 had the analyzer and focused tests.
+- The plan's Revision 0 was split: 266000 core, 266001 authoring aids. The
+  complete suite first ran at the end of 266001.
+- After the reset buttons did nothing, the owner inserted a resilience
+  revision (266002); the Round Wizard became Revision 3 (266003).
+- The content revision (the demos in several modules, plan §11) was not
+  done. Revision 4 does not exist; the bundled Courses and fixtures have one
+  module per Lesson.
 
-## Revision 0 (committed, `50512d2`)
+## Revision 0 (2.0.66+266000, `50512d2`)
 
 See the change summary. Key files: `lib/models/course_models.dart`
 (GuideBook classes, Round fields), `lib/models/guidebook_text.dart`,
@@ -59,7 +59,7 @@ test/fixtures/publishers/dummy-public.der OUT`; the media ZIP with
 `package OUT MEDIA_DIR dummy-public.der OUT.zip` (MEDIA_DIR holds the MP3
 from the old ZIP). `dummy-unsigned.json` = v1 without the signature.
 
-## Revision 1 (2.0.66+266001, committed)
+## Revision 1 (2.0.66+266001, `f6891bf`)
 
 Every file and key is in the change summary's Revision 1 section; the
 evidence in the validation's. In short: `GuidebookPictureIndex`
@@ -79,7 +79,7 @@ the two additions; 1 skipped, POSIX only), the analyzer clean. Committed
 on the owner's word ("yes to all"; "at the end, commit and start next
 revision immediately", 8 October).
 
-## Revision 2 (2.0.66+266002), resilience: committed
+## Revision 2 (2.0.66+266002, `16bc9ff`), resilience
 
 Everything planned is in (see the change summary's Revision 2 section):
 `StoredCourseReader`, removal and replacement of a Course this version cannot
@@ -96,42 +96,24 @@ Not done, noted for later: Android's public Quick folders have no Inventory
 actions (their files have no path); a Publisher update over an unopenable
 source has no test (it needs a signed package).
 
-## Revision 3 (2.0.66+266003), the Round Wizard: committed
+## Revision 3 (2.0.66+266003, `3801369`), the Round Wizard over modules
 
 See the change summary's Revision 3 section. The generator is rewritten on
 modules (`plan(focusModuleId:)`, `changeFocus`, `wordsOf`, `_Material`,
 `_Slot`), the screen has the Focus module menu and the per-Round focus and
-words, Help EN/IT/ES. Version 2.0.66+266003. Complete suite 3,939 passed,
-1 skipped (POSIX only); committed. Build 266 is complete: nothing is pushed
-and no pull request is open until the owner says so.
+words, Help EN/IT/ES. Complete suite 3,939 passed, 1 skipped (POSIX only);
+committed.
 
-## Revision 4: moved to Build 267 (owner, 8 October 2026)
+## Open
 
-The owner asked why Revision 4 was needed (it is demo and test content,
-not a feature) and chose option 3: skip it for now and do the demo content
-in Build 267, whose plan builds a new Italian demo with the Course Wizard.
-Build 266 ends with Revision 3. For Build 267, the content planned here
-(plan §11):
-
-- QQL Demo: English from Italian in modules matching its topics (for
-  example Saluti e cortesia, Al bar: cibo e bevande, Animali, Colori e
-  aggettivi, Alla stazione), the four grammar notes as short module
-  Overviews, Sentences with translations and Contexts, word pictures by the
-  prefill rule (a Python matcher mirroring `GuidebookPictureIndex` is
-  drafted in this session's scratchpad: exact name, singular marked
-  Plural, name before a bracket; never characters, Lesson icons, one-letter
-  names), each Round's `focusModuleId` (the mixed Rounds take the module
-  whose words they use most; the two Stories their topic). Its Review
-  vocabulary memory restarts when the entries change.
-- The Lab: one Lesson with two modules, a word with two senses, `{…}`, at
-  least three pictured words in one module.
-- The Edge Case: two modules, an empty module and a long Overview (the
-  Warning and the Info on purpose), a Draft GuideBook, `sourceRefs` to
-  entries, a Round whose focus is missing (the Warning on purpose).
-
-## Open, not this session's
-
+- Push and pull request: only on the owner's word.
+- After the merge to main, the owner's private generators in
+  `D:\QQL_plus\Corsi_Privati` must be run again: their four Course files
+  (Neapolitan, Piedmontese ×2, Viterbese) still have the GuideBook shape
+  before Build 266. `corsi_brevi/make_short_courses.py` converts through
+  the main checkout's `tools/qql_course_v12.py`, so it writes modules once
+  Build 266 is on main.
+- The owner's stored test Course in the earlier GuideBook shape (3.6 MB,
+  `QQL_EN_IT_897dc1b0-…`) can now be removed in the app: Course Studio's
+  Remove… or the Inventory.
 - The owner's Windows Narrator check of Word Lookup (Build 265).
-- The owner's stored test Courses with GuideBooks show as unreadable in
-  Course Studio since this revision; the private generators in
-  `D:\QQL_plus\Corsi_Privati` must write the module shape.
