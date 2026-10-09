@@ -29,10 +29,12 @@ import '../widgets/course_flag_picker.dart';
 import '../widgets/language_field.dart';
 import '../widgets/lesson_fallback_icon.dart';
 import '../widgets/reported_action.dart';
-import 'course_editor_screen.dart' show GuidebookRoundGeneratorScreen;
+import 'course_editor_screen.dart'
+    show CourseAuditScreen, GuidebookRoundGeneratorScreen;
 import 'editor_help_screen.dart';
 import 'flat_image_library_screen.dart';
 import 'guidebook_editor_screen.dart';
+import 'home_screen.dart' show openCoursePreview;
 
 /// The Course Wizard (Build 267, `docs/267_COURSE_WIZARD_PLAN.md`).
 ///
@@ -333,6 +335,8 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
                       ?.index ??
                   0;
         _generation++;
+      case CourseWizardStep.check:
+        _generation++;
     }
   }
 
@@ -517,7 +521,9 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
         return _optionsValue.problem;
       case CourseWizardStep.lessons:
         return CourseWizardLessons.problem(_lessonDrafts);
-      case CourseWizardStep.guidebook || CourseWizardStep.rounds:
+      case CourseWizardStep.guidebook ||
+          CourseWizardStep.rounds ||
+          CourseWizardStep.check:
         // Their changes go into the working copy as they are made.
         return null;
     }
@@ -537,7 +543,9 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
       now: _clock(),
       ids: _ids,
     ),
-    CourseWizardStep.guidebook || CourseWizardStep.rounds => _working,
+    CourseWizardStep.guidebook ||
+    CourseWizardStep.rounds ||
+    CourseWizardStep.check => _working,
   };
 
   /// Whether the current step holds something Fill or Clear all would
@@ -571,6 +579,7 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
     CourseWizardStep.guidebook =>
       _currentLesson?.guidebook.modules.isNotEmpty ?? false,
     CourseWizardStep.rounds => _currentLesson?.rounds.isNotEmpty ?? false,
+    CourseWizardStep.check => false,
   };
 
   /// Whether leaving now would lose something: a change not yet saved.
@@ -848,11 +857,18 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
                 'switch it to Edit mode.',
               ),
               const SizedBox(height: 12),
-              const Text(
-                'The Rounds are Drafts: save them as Published once you have '
-                'checked them. When the Course is ready for showtime, press '
-                'Publish on the Course Editor\'s main page.',
-              ),
+              if (course.publicationState.isPublished)
+                const Text(
+                  key: Key('course-wizard-finished-published'),
+                  'Your Course is published: learners can study it now.',
+                )
+              else
+                const Text(
+                  'It is not published yet: its Rounds and exercises are '
+                  'Drafts until you save them as Published. When the Course '
+                  'is ready for showtime, press Publish on the Course '
+                  'Editor\'s main page.',
+                ),
             ],
           ),
         ),
@@ -1052,7 +1068,9 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
           _setOptions(CourseWizardSample.options);
         case CourseWizardStep.lessons:
           _setLessons(CourseWizardSample.lessons);
-        case CourseWizardStep.guidebook || CourseWizardStep.rounds:
+        case CourseWizardStep.guidebook ||
+            CourseWizardStep.rounds ||
+            CourseWizardStep.check:
           break;
       }
     });
@@ -1116,6 +1134,8 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
             );
             _generation++;
           }
+        case CourseWizardStep.check:
+          break;
       }
     });
   }
@@ -1783,8 +1803,23 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
           'Make each Lesson\'s Rounds with the Round Wizard: it shows its '
           'plan before it makes anything.',
       more: const [
-        'Needed now: every Lesson needs Rounds. Finish saves the Course and '
-            'opens the Course Editor.',
+        'Needed now: every Lesson needs Rounds. Next saves them and checks '
+            'the Course before you publish it.',
+      ],
+    ),
+    CourseWizardStep.check => (
+      short:
+          'Check each Lesson, then publish it: learners see only what is '
+          'Published.',
+      more: const [
+        'Publish saves as Published every GuideBook, Round, exercise and '
+            'Lesson without an Audit error, then the Course. Anything an '
+            'error names stays Draft and is listed here: fix it in the '
+            'Course Editor and publish it there later.',
+        'Open the Audit lists every finding. Preview shows the Course as a '
+            'learner sees it, Drafts included, and records nothing.',
+        'Finish without publishing ends the Wizard and leaves everything as '
+            'it is.',
       ],
     ),
   };
@@ -2975,6 +3010,160 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
     ];
   }
 
+  /// The last Publish of this visit, with what stayed Draft.
+  CourseWizardPublishResult? _published;
+
+  /// Step 8's summary, computed once per working copy.
+  (
+    Course,
+    ({
+      List<CourseWizardLessonCheck> lessons,
+      int courseErrors,
+      int courseWarnings,
+    }),
+  )?
+  _checkCache;
+
+  ({
+    List<CourseWizardLessonCheck> lessons,
+    int courseErrors,
+    int courseWarnings,
+  })
+  get _check {
+    final cached = _checkCache;
+    if (cached != null && identical(cached.$1, _working)) return cached.$2;
+    final check = CourseWizardCheck.of(_working);
+    _checkCache = (_working, check);
+    return check;
+  }
+
+  /// Publish (plan §7): one confirmed save, what stays Draft listed.
+  Future<void> _publish() => _run(() async {
+    final result = CourseWizardPublish.publish(_working, now: _clock());
+    _session!.stageCourse(result.course);
+    if (!await _save()) return;
+    if (!mounted) return;
+    setState(() => _published = result);
+  });
+
+  Future<void> _openAudit() {
+    final course = _working;
+    return Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) => CourseAuditScreen(
+          course: course,
+          result: CourseAuditService().auditCourse(course),
+        ),
+      ),
+    );
+  }
+
+  String _many(int n, String noun) => '$n $noun${n == 1 ? '' : 's'}';
+
+  List<Widget> _checkFields() {
+    final course = _working;
+    final check = _check;
+    final scheme = Theme.of(context).colorScheme;
+    const needed = DuelEligibilityService.requiredQuestionCount;
+    final published = _published;
+    return [
+      _heading('Lessons', tooltip: 'What each Lesson holds now.'),
+      for (final (index, lesson) in check.lessons.indexed)
+        Card(
+          key: ValueKey('course-wizard-check-lesson-$index'),
+          margin: const EdgeInsets.only(bottom: 8),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(
+              color: lesson.errors + lesson.warnings > 0
+                  ? scheme.error
+                  : scheme.outlineVariant,
+            ),
+          ),
+          child: ListTile(
+            title: Text('Lesson ${index + 1}: ${lesson.lesson.title}'),
+            subtitle: Text(
+              [
+                _many(lesson.modules, 'module'),
+                _many(lesson.rounds, 'Round'),
+                _many(lesson.exercises, 'exercise'),
+                if (course.createDuels)
+                  'Duel: ${_many(lesson.duelQuestions, 'question')} '
+                      '($needed needed)',
+                if (lesson.drafts > 0) '${lesson.drafts} Draft',
+                if (lesson.errors > 0) _many(lesson.errors, 'error'),
+                if (lesson.warnings > 0) _many(lesson.warnings, 'warning'),
+                if (lesson.errors + lesson.warnings == 0) 'nothing red',
+              ].join(' · '),
+            ),
+          ),
+        ),
+      if (check.courseErrors + check.courseWarnings > 0)
+        Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Text(
+            key: const Key('course-wizard-check-course'),
+            'The Course itself: ${[if (check.courseErrors > 0) _many(check.courseErrors, 'error'), if (check.courseWarnings > 0) _many(check.courseWarnings, 'warning')].join(' and ')}.',
+            style: TextStyle(color: scheme.error),
+          ),
+        ),
+      const SizedBox(height: 4),
+      Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: [
+          OutlinedButton.icon(
+            key: const Key('course-wizard-open-audit'),
+            onPressed: _busy ? null : _openAudit,
+            icon: const Icon(Icons.fact_check_outlined),
+            label: const Text('Open the Audit'),
+          ),
+          OutlinedButton.icon(
+            key: const Key('course-wizard-preview'),
+            onPressed: _busy ? null : () => openCoursePreview(context, course),
+            icon: const Icon(Icons.visibility_outlined),
+            label: const Text('Preview'),
+          ),
+          FilledButton.icon(
+            key: const Key('course-wizard-publish'),
+            onPressed: _busy ? null : _publish,
+            icon: const Icon(Icons.publish_outlined),
+            label: Text(
+              course.publicationState.isPublished ? 'Publish again' : 'Publish',
+            ),
+          ),
+        ],
+      ),
+      if (published != null) ...[
+        const SizedBox(height: 12),
+        Text(
+          key: const Key('course-wizard-publish-result'),
+          published.published
+              ? 'Published: learners can study the Course now.'
+              : 'The Course is not published yet: an Audit error outside '
+                    'its Lessons keeps it back.',
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            color: published.published ? scheme.primary : scheme.error,
+          ),
+        ),
+        if (published.keptDraft.isNotEmpty) ...[
+          const SizedBox(height: 6),
+          Text(
+            'Still Draft, with the error that keeps it there:',
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+          for (final (index, line) in published.keptDraft.indexed)
+            Padding(
+              key: ValueKey('course-wizard-kept-draft-$index'),
+              padding: const EdgeInsets.only(top: 4),
+              child: Text('• $line', style: TextStyle(color: scheme.error)),
+            ),
+        ],
+      ],
+    ];
+  }
+
   List<Widget> _fields() => switch (_step) {
     CourseWizardStep.basics => _basicsFields(),
     CourseWizardStep.flag => _flagFields(),
@@ -2983,6 +3172,7 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
     CourseWizardStep.lessons => _lessonFields(),
     CourseWizardStep.guidebook => _guidebookFields(),
     CourseWizardStep.rounds => _roundsFields(),
+    CourseWizardStep.check => _checkFields(),
   };
 
   /// Done: the step was passed and what it needs now is there.
@@ -2996,6 +3186,7 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
       CourseWizardStep.rounds =>
         _working.lessons.isNotEmpty &&
             CourseWizardRounds.firstProblem(_working) == null,
+      CourseWizardStep.check => _working.publicationState.isPublished,
       _ => true,
     };
   }
@@ -3112,7 +3303,13 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
       FilledButton(
         key: const Key('course-wizard-next'),
         onPressed: _busy ? null : _next,
-        child: Text(_step.isLast ? 'Finish' : 'Next'),
+        child: Text(
+          !_step.isLast
+              ? 'Next'
+              : _working.publicationState.isPublished
+              ? 'Finish'
+              : 'Finish without publishing',
+        ),
       ),
     ];
   }
@@ -3190,32 +3387,34 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
                         const SizedBox(height: 10),
                         _explanation(_explanationText),
                         const SizedBox(height: 8),
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 4,
-                          children: [
-                            Tooltip(
-                              message:
-                                  'Fill this step from a built-in example '
-                                  'Course, “Italian at the bar”.',
-                              child: TextButton.icon(
-                                key: const Key('course-wizard-fill-example'),
-                                onPressed: _busy ? null : _fillExample,
-                                icon: const Icon(Icons.auto_awesome_outlined),
-                                label: const Text('Fill with an example'),
+                        // Step 8 checks and publishes: nothing to fill.
+                        if (_step != CourseWizardStep.check)
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 4,
+                            children: [
+                              Tooltip(
+                                message:
+                                    'Fill this step from a built-in example '
+                                    'Course, “Italian at the bar”.',
+                                child: TextButton.icon(
+                                  key: const Key('course-wizard-fill-example'),
+                                  onPressed: _busy ? null : _fillExample,
+                                  icon: const Icon(Icons.auto_awesome_outlined),
+                                  label: const Text('Fill with an example'),
+                                ),
                               ),
-                            ),
-                            Tooltip(
-                              message: 'Empty this step only.',
-                              child: TextButton.icon(
-                                key: const Key('course-wizard-clear-all'),
-                                onPressed: _busy ? null : _clearAll,
-                                icon: const Icon(Icons.clear_all),
-                                label: const Text('Clear all'),
+                              Tooltip(
+                                message: 'Empty this step only.',
+                                child: TextButton.icon(
+                                  key: const Key('course-wizard-clear-all'),
+                                  onPressed: _busy ? null : _clearAll,
+                                  icon: const Icon(Icons.clear_all),
+                                  label: const Text('Clear all'),
+                                ),
                               ),
-                            ),
-                          ],
-                        ),
+                            ],
+                          ),
                         ..._fields(),
                       ],
                     ),

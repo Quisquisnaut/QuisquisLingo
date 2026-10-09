@@ -41,7 +41,7 @@ void main() {
       expect(find.byKey(const Key('wizard-plan')), findsOneWidget);
       expect(find.text('2 planned Exercises'), findsOneWidget);
       expect(
-        find.text('No Exercise objects have been created yet.'),
+        find.text('Nothing is created yet: this is only the plan.'),
         findsOneWidget,
       );
       expect(results, isEmpty);

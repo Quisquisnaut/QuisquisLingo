@@ -112,15 +112,20 @@ longer duplicates for the Audit. Version 2.0.67+267003 dated 9 October (Beta exp
 suite 3,975 passed, 1 skipped (POSIX only). Committed locally on 9 October 2026 as "Build 267 Revision 3:
 picture aids; a simpler Course Wizard".
 
+## Revision 4 (2.0.67+267004), Check and publish: committed
+
+Implemented: step 8 (`CourseWizardStep.check`, `CourseWizardCheck`,
+`CourseWizardPublish`), the Lesson cards, Open the Audit, Preview, Publish
+(one confirmed save, what an Audit error names stays Draft and is listed),
+Finish / Finish without publishing, the Finish message adapted (owner), the
+plan pages' "Nothing is created yet: this is only the plan.", Help EN/IT/ES.
+Analyzer clean; `check_and_publish_267_test.dart` 2 and `course_wizard_267_test.dart` 22 passed; focused batch 112; complete suite 3,977 passed, 1 skipped. Committed locally on 9 October 2026 as
+"Build 267 Revision 4: the Course Wizard's Check and publish".
+
 ## Next
-- Revision 4: step 8 (Check and publish: per-Lesson summary, Open the
-  Audit, Preview, Publish everything without Audit errors in one confirmed
-  save and list what stays Draft, Finish / Finish without publishing). Also
-  in Revision 4 (owner, 9 October 2026): the plan pages' "The plan contains
-  no final Round or Exercise objects." (Round Wizard) and "No Exercise
-  objects have been created yet." (Exercise Wizard) become "Nothing is
-  created yet: this is only the plan." And the GuideBook advice (owner, 9
-  October 2026, not a rule): "3 to 6 modules per Lesson, each with 5 to 10
+
+- Revision 5, the GuideBook size advice (owner, 9 October 2026, not a
+  rule): "3 to 6 modules per Lesson, each with 5 to 10
   Words & Expressions and 2 to 5 Sentences that use them", in the Wizard's
   module note, the module page Help (EN/IT/ES) and a soft grey hint on the
   GuideBook step and in the Round Wizard's plan: fewer than 3 modules, or a
@@ -143,39 +148,32 @@ picture aids; a simpler Course Wizard".
   `GUIDEBOOK_MODULE_COUNT` (per Lesson: outside 3-6 modules; best 4). The
   bundled demos will show them (one module per Lesson; English from
   Italian has 36 words in one module): accepted as honest Info.
-- Deferred by the owner (later revisions): the Border option for picture
-  answers; a New Course button in the learner's Course Selector; a warning
-  when New Course starts while a Course Wizard is still paused; Create
-  Duels off by default for a new Course, in the Wizard and in New Course's
-  form (owner: a Duel adds a complication).
-- Picture answer border (owner decisions of 9 October 2026, mock-up in
+- Revision 6 (owner, 9 October 2026): Create Duels off by default for a new
+  Course, in the Wizard and in New Course's form (a Duel adds a
+  complication); New Course with paused Wizards lists the ones this learner
+  may continue (Maintainer or Team), with Continue for each, Start a new
+  Course and Cancel; a New Course button in the learner's Course Selector,
+  greyed with the profile's unlock method while Course Studio is locked.
+- Revision 7, the picture answer border (owner decisions of 9 October 2026, mock-up in
   chat): look A, a thin neutral grey line (about 1.5 px) following the
   round or square shape, distinct from selection and feedback colours;
   picture answers only (Select the image, Listen and pick the image); on
   by default for new Courses only (existing Courses keep today's look);
   a Course choice in Lesson Options that an exercise can override, like
   size, shape and per row.
-- Answers of 9 October 2026 for the next revisions:
-  - Revision 4: after Check and publish the Finish popup stays, adapted:
-    congratulations and what is red; after Publish "learners can study the
-    Course now"; after Finish without publishing, the Publish reminder.
-  - Revision 6: New Course with paused Wizards lists the ones this learner
-    may continue (Maintainer or Team), with Continue for each, Start a new
-    Course and Cancel. The learner Course Selector's New Course is greyed
-    with the profile's unlock method while Course Studio is locked.
-  - Revision 8, **Editor Notes**: an optional notes field on every item of
-    a Round (scored exercises, Before you start cards, Pages, Dialogue
-    lines, Story covers), in the preset and canonical forms; stored in the
-    Course file (export, import, Copy, Fork keep it), removed by Export as
-    Publisher Course; never shown to learners, outside semantic equality
-    and preset recognition; a note icon on the exercise's row in the Round
-    editor shows it on hover or long press; a new optional Course field, so
-    `minimumAppBuild` rises on confirmation like Page blocks or plurals.
-    JSON (told to the owner on 9 October 2026): `editorNotes`, a string on
-    the Content object beside `id`, `kind` and `authoringMetadata`; stored
-    only when not empty; not inside `exercise` (canonical, semantic
-    equality) nor inside `authoringMetadata` (cleared when the exercise
-    changes, plan A.13); proposed limit 2,000 characters.
+- Revision 8, **Editor Notes**: an optional notes field on every item of
+  a Round (scored exercises, Before you start cards, Pages, Dialogue
+  lines, Story covers), in the preset and canonical forms; stored in the
+  Course file (export, import, Copy, Fork keep it), removed by Export as
+  Publisher Course; never shown to learners, outside semantic equality
+  and preset recognition; a note icon on the exercise's row in the Round
+  editor shows it on hover or long press; a new optional Course field, so
+  `minimumAppBuild` rises on confirmation like Page blocks or plurals.
+  JSON (told to the owner on 9 October 2026): `editorNotes`, a string on
+  the Content object beside `id`, `kind` and `authoringMetadata`; stored
+  only when not empty; not inside `exercise` (canonical, semantic
+  equality) nor inside `authoringMetadata` (cleared when the exercise
+  changes, plan A.13); proposed limit 2,000 characters.
 - Then, later and not now (owner: "leave it for afterwards"): the Italian
   picture-led demo built with the Wizard (each module and Round approved
   by the owner).

@@ -5973,7 +5973,7 @@ class _GuidebookRoundGeneratorScreenState
           ),
         const SizedBox(height: 8),
         const Text(
-          'Difficulty rises from guided recognition and comprehension through construction and context to freer production. The plan contains no final Round or Exercise objects.',
+          'Difficulty rises from guided recognition and comprehension through construction and context to freer production. Nothing is created yet: this is only the plan.',
         ),
         const SizedBox(height: 12),
         for (final round in _plan!.rounds)
@@ -9926,7 +9926,7 @@ class _ExerciseCreationWizardScreenState
         style: Theme.of(context).textTheme.titleLarge,
       ),
       const SizedBox(height: 8),
-      const Text('No Exercise objects have been created yet.'),
+      const Text('Nothing is created yet: this is only the plan.'),
       const SizedBox(height: 12),
       for (var i = 0; i < _plan!.presets.length; i++)
         ListTile(

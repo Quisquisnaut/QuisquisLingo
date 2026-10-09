@@ -1,3 +1,38 @@
+# 2.0.67 (Build 267, Revision 4) - The Course Wizard's Check and publish - 2026-10-09
+
+The Wizard's last step (plan docs/267_COURSE_WIZARD_PLAN.md §7; owner
+decisions of 9 October 2026).
+
+- **Step 8, Check and publish** (`CourseWizardStep.check`): a card per
+  Lesson (`course-wizard-check-lesson-<i>`: modules, Rounds, exercises, Duel
+  questions when Create Duels is on, Drafts, Audit errors and warnings, red
+  when something is), the Course's own findings
+  (`course-wizard-check-course`), **Open the Audit**
+  (`course-wizard-open-audit`, the Course Audit) and **Preview**
+  (`course-wizard-preview`, as a learner sees it, Drafts included, nothing
+  recorded). No Fill with an example or Clear all on this step.
+- **Publish** (`course-wizard-publish`, `CourseWizardPublish`): every
+  GuideBook, Round, exercise and Lesson becomes Published, then the Course,
+  by the Course Editor's own rule (the learner projection must have no
+  Audit error); whatever an Audit error names goes back to Draft, pass after
+  pass, and is listed with the error (`course-wizard-publish-result`,
+  `course-wizard-kept-draft-<i>`); the Provisional Draft markers are
+  cleared; one confirmed save, notes "Course Wizard: Check and publish". A
+  finding outside every Lesson keeps the Course Not published.
+- **Finish** (published) or **Finish without publishing** ends the Wizard.
+  The Finish message stays (owner): after Publish it says learners can
+  study the Course now (`course-wizard-finished-published`); otherwise it
+  keeps the Publish reminder.
+- The Round Wizard's and the Exercise Wizard's plan pages say "Nothing is
+  created yet: this is only the plan." instead of "… no final Round or
+  Exercise objects" (owner).
+- Help EN/IT/ES: the Course Wizard answer (the steps, Check and publish,
+  Finish).
+- Tests: `test/check_and_publish_267_test.dart`; the Wizard tests count 8
+  steps.
+- Scoring, progression, Course files and learner data are unchanged. Beta
+  expiry `2026-11-08 23:59:59` local time.
+
 # 2.0.67 (Build 267, Revision 3) - Picture aids; a simpler Course Wizard - 2026-10-09
 
 The plan's §5 and §6 parts left after Build 266 (owner decisions of

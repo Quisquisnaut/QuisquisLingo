@@ -44,7 +44,7 @@ void main() {
       });
       expect(
         pause.description,
-        'Course Wizard paused: step 3 of 7 (About the Course)',
+        'Course Wizard paused: step 3 of 8 (About the Course)',
       );
       // Unusable records are ignored, never guessed.
       for (final raw in [
@@ -58,7 +58,7 @@ void main() {
         expect(CourseWizardPause.decode(raw), isNull, reason: raw);
       }
       // A step of a later build reads as this build's last step.
-      expect(CourseWizardStep.byNumber(8), CourseWizardStep.rounds);
+      expect(CourseWizardStep.byNumber(9), CourseWizardStep.check);
     });
 
     test('the memory keeps one record per Course ID on the device', () async {
@@ -400,9 +400,9 @@ void main() {
     );
     expect(
       pause.describe(course),
-      'Course Wizard paused: step 6 of 7 (GuideBook, Lesson 2)',
+      'Course Wizard paused: step 6 of 8 (GuideBook, Lesson 2)',
     );
-    expect(pause.description, 'Course Wizard paused: step 6 of 7 (GuideBook)');
+    expect(pause.description, 'Course Wizard paused: step 6 of 8 (GuideBook)');
   });
 
   test('the Round Wizard makes untitled Rounds on request', () {
@@ -547,7 +547,7 @@ void main() {
         find.byKey(const Key('course-wizard-explanation')),
         findsOneWidget,
       );
-      expect(find.text('Step 1 of 7: Basics'), findsOneWidget);
+      expect(find.text('Step 1 of 8: Basics'), findsOneWidget);
       expect(find.byKey(const Key('course-wizard-continue')), findsOneWidget);
       expect(find.byKey(const Key('course-wizard-manual')), findsOneWidget);
       // The variant is optional and says so; the long explanation is hidden.
@@ -611,7 +611,7 @@ void main() {
       await tester.tap(find.byKey(const Key('course-wizard-continue')));
       await tester.pumpUntilFileIoState(
         () =>
-            find.text('Step 2 of 7: Flag or cover image').evaluate().isNotEmpty,
+            find.text('Step 2 of 8: Flag or cover image').evaluate().isNotEmpty,
       );
       var stored = (await tester.runAsync(
         () => CourseEditorService().listUserCourses(),
@@ -631,7 +631,7 @@ void main() {
       // The flag step: nothing changed, Next saves nothing.
       await tester.tap(find.byKey(const Key('course-wizard-next')));
       await tester.pumpUntilFileIoState(
-        () => find.text('Step 3 of 7: About the Course').evaluate().isNotEmpty,
+        () => find.text('Step 3 of 8: About the Course').evaluate().isNotEmpty,
       );
       // Description and Authors in view; the rest behind Advanced.
       expect(_field('Course description (optional)'), findsOneWidget);
@@ -656,7 +656,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('course-wizard-next')));
       await tester.pumpUntilFileIoState(
-        () => find.text('Step 4 of 7: Course options').evaluate().isNotEmpty,
+        () => find.text('Step 4 of 8: Course options').evaluate().isNotEmpty,
       );
       stored = (await tester.runAsync(
         () => CourseEditorService().listUserCourses(),
@@ -678,7 +678,7 @@ void main() {
       await tester.pumpUntilFileIoState(() => paused.evaluate().isNotEmpty);
       expect(find.byType(CourseWizardScreen), findsNothing);
       expect(
-        find.text('Course Wizard paused: step 4 of 7 (Course options)'),
+        find.text('Course Wizard paused: step 4 of 8 (Course options)'),
         findsOneWidget,
       );
       // No change on this step: no new version.
@@ -702,7 +702,7 @@ void main() {
       );
       await tester.tap(continueItem);
       await tester.pumpAndSettle();
-      expect(find.text('Step 4 of 7: Course options'), findsOneWidget);
+      expect(find.text('Step 4 of 8: Course options'), findsOneWidget);
       expect(find.byKey(const Key('course-wizard-step-done-3')), findsOne);
     });
 
@@ -728,7 +728,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('Continue Course Wizard'));
       await tester.pumpAndSettle();
-      expect(find.text('Step 5 of 7: Lessons'), findsOneWidget);
+      expect(find.text('Step 5 of 8: Lessons'), findsOneWidget);
       expect(find.text('Next'), findsOneWidget);
 
       await tester.tap(find.byKey(const Key('course-wizard-next')));
@@ -756,7 +756,7 @@ void main() {
       await tester.enterText(_field('Lesson title *').first, 'Coffee');
       await tester.tap(find.byKey(const Key('course-wizard-next')));
       await tester.pumpUntilFileIoState(
-        () => find.text('Step 6 of 7: GuideBook').evaluate().isNotEmpty,
+        () => find.text('Step 6 of 8: GuideBook').evaluate().isNotEmpty,
       );
       var saved = (await tester.runAsync(
         () => CourseEditorService().listUserCourses(),
@@ -827,14 +827,14 @@ void main() {
 
       await tester.tap(find.byKey(const Key('course-wizard-next')));
       await tester.pumpUntilFileIoState(
-        () => find.text('Step 7 of 7: Rounds').evaluate().isNotEmpty,
+        () => find.text('Step 7 of 8: Rounds').evaluate().isNotEmpty,
       );
-      expect(find.text('Finish'), findsOneWidget);
+      expect(find.text('Next'), findsOneWidget);
       // Save for now remembers the Lesson of the Rounds step.
       await tester.tap(find.byKey(const Key('course-wizard-save-for-now')));
       await tester.pumpUntilFileIoState(
         () => find
-            .text('Course Wizard paused: step 7 of 7 (Rounds, Lesson 1)')
+            .text('Course Wizard paused: step 7 of 8 (Rounds, Lesson 1)')
             .evaluate()
             .isNotEmpty,
       );
@@ -876,7 +876,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('Continue Course Wizard'));
       await tester.pumpAndSettle();
-      expect(find.text('Step 7 of 7: Rounds'), findsOneWidget);
+      expect(find.text('Step 7 of 8: Rounds'), findsOneWidget);
       expect(find.text('No Rounds yet.'), findsOneWidget);
       expect(find.text('Duel: 0 questions (25 needed)'), findsOneWidget);
       // What the Round Wizard does stands beside Make Rounds (owner,
@@ -952,8 +952,43 @@ void main() {
       );
       expect(find.byKey(const Key('course-wizard-round-2')), findsOneWidget);
 
-      // Finish congratulates, says what is still red, where to change the
-      // Course and when to Publish (owner, 9 October 2026).
+      // Step 8 (Revision 4): Check and publish.
+      await tester.tap(find.byKey(const Key('course-wizard-next')));
+      await tester.pumpUntilFileIoState(
+        () => find.text('Step 8 of 8: Check and publish').evaluate().isNotEmpty,
+      );
+      expect(
+        find.byKey(const Key('course-wizard-check-lesson-0')),
+        findsOneWidget,
+      );
+      expect(find.byKey(const Key('course-wizard-fill-example')), findsNothing);
+      expect(find.text('Finish without publishing'), findsOneWidget);
+      final publish = find.byKey(const Key('course-wizard-publish'));
+      await tester.ensureVisible(publish);
+      await tester.tap(publish);
+      await tester.pumpUntilFileIoState(
+        () => find
+            .byKey(const Key('course-wizard-publish-result'))
+            .evaluate()
+            .isNotEmpty,
+      );
+      final published = (await tester.runAsync(
+        () => CourseEditorService().listUserCourses(),
+      ))!.single;
+      expect(published.versionNotes, 'Course Wizard: Check and publish');
+      expect(published.publicationState.isPublished, isTrue);
+      expect(published.lessons.single.publicationState.isPublished, isTrue);
+      expect(
+        published.lessons.single.rounds.any(
+          (round) => round.publicationState.isPublished,
+        ),
+        isTrue,
+      );
+      expect(find.text('Finish'), findsOneWidget);
+
+      // Finish congratulates, says what is still red and where to change
+      // the Course; published, it says learners can study it (owner,
+      // 9 October 2026).
       await tester.tap(find.byKey(const Key('course-wizard-next')));
       await tester.pumpUntilFileIoState(
         () => find
@@ -971,7 +1006,10 @@ void main() {
         1,
       );
       expect(find.textContaining('switch it to Edit mode'), findsOneWidget);
-      expect(find.textContaining('press Publish'), findsOneWidget);
+      expect(
+        find.byKey(const Key('course-wizard-finished-published')),
+        findsOneWidget,
+      );
       await tester.tap(find.byKey(const Key('course-wizard-finished-ok')));
       await tester.pumpUntilFileIoState(
         () => find.byType(CourseEditorScreen).evaluate().isNotEmpty,
@@ -1011,7 +1049,7 @@ void main() {
       await tester.pumpUntilFileIoState(
         () => find.byType(CourseWizardScreen).evaluate().isNotEmpty,
       );
-      expect(find.text('Step 4 of 7: Course options'), findsOneWidget);
+      expect(find.text('Step 4 of 8: Course options'), findsOneWidget);
       expect(find.byType(CourseEditorScreen), findsNothing);
       await tester.tap(find.byKey(const Key('course-wizard-save-for-now')));
       await tester.pumpUntilFileIoState(
@@ -1033,14 +1071,14 @@ void main() {
             .isNotEmpty,
       );
       expect(
-        find.text('Course Wizard paused: step 4 of 7 (Course options)'),
+        find.text('Course Wizard paused: step 4 of 8 (Course options)'),
         findsOneWidget,
       );
       await tester.tap(find.byKey(const Key('course-editor-continue-wizard')));
       await tester.pumpUntilFileIoState(
         () => find.byType(CourseWizardScreen).evaluate().isNotEmpty,
       );
-      expect(find.text('Step 4 of 7: Course options'), findsOneWidget);
+      expect(find.text('Step 4 of 8: Course options'), findsOneWidget);
       expect(find.byType(CourseEditorScreen), findsNothing);
 
       // Continue by hand forgets the Wizard and opens the Editor.
@@ -1170,7 +1208,7 @@ void main() {
         ('lo scontrino', 'the receipt'),
       ],
     );
-    expect(find.text('Step 6 of 7: GuideBook'), findsOneWidget);
+    expect(find.text('Step 6 of 8: GuideBook'), findsOneWidget);
     expect(find.text('Il conto'), findsOneWidget);
     expect(find.text('0 sentences · 3 words'), findsOneWidget);
     expect(find.textContaining('Not approved yet'), findsOneWidget);
@@ -1238,7 +1276,7 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(
-        find.text('Step ${step.number} of 7: ${step.title}'),
+        find.text('Step ${step.number} of 8: ${step.title}'),
         findsOneWidget,
       );
       // The step shown is in view in the step bar.

@@ -4,11 +4,13 @@ import '../models/course_flag_selection.dart';
 import '../models/course_models.dart';
 import '../models/exercise_features.dart';
 import 'authoring_duplication_service.dart';
+import 'course_audit_service.dart';
 import 'duel_eligibility_service.dart';
 import 'guidebook_module_sample.dart';
 import 'guidebook_round_generator.dart';
 import 'guidebook_round_links.dart';
 import 'lesson_icon_catalog.dart';
+import 'publication_service.dart';
 
 /// The Course Wizard (Build 267, `docs/267_COURSE_WIZARD_PLAN.md`): it guides
 /// an author through creating a whole Course, step by step, and can stop at
@@ -32,7 +34,8 @@ enum CourseWizardStep {
   options('Course options'),
   lessons('Lessons'),
   guidebook('GuideBook'),
-  rounds('Rounds');
+  rounds('Rounds'),
+  check('Check and publish');
 
   const CourseWizardStep(this.title);
 
@@ -770,6 +773,280 @@ abstract final class CourseWizardRounds {
         )
         .length;
     return (questions: candidates.length - audio, audio: audio);
+  }
+}
+
+/// What step 8 shows of one Lesson (plan §7).
+class CourseWizardLessonCheck {
+  const CourseWizardLessonCheck({
+    required this.lesson,
+    required this.modules,
+    required this.rounds,
+    required this.exercises,
+    required this.duelQuestions,
+    required this.duelAudio,
+    required this.drafts,
+    required this.errors,
+    required this.warnings,
+  });
+
+  final Lesson lesson;
+  final int modules;
+  final int rounds;
+  final int exercises;
+  final int duelQuestions;
+  final int duelAudio;
+
+  /// The Lesson, its GuideBook, Rounds and exercises still Draft.
+  final int drafts;
+  final int errors;
+  final int warnings;
+}
+
+/// Step 8, Check and publish (Build 267 Revision 4, plan §7).
+abstract final class CourseWizardCheck {
+  /// Each Lesson's summary and the Course's own findings, from one Audit
+  /// of the authoring Course (Drafts included).
+  static ({
+    List<CourseWizardLessonCheck> lessons,
+    int courseErrors,
+    int courseWarnings,
+  })
+  of(Course course) {
+    final issues = CourseAuditService().auditCourse(course).issues;
+    int count(Iterable<CourseAuditIssue> issues, AuditSeverity severity) =>
+        issues.where((issue) => issue.severity == severity).length;
+    final lessons = <CourseWizardLessonCheck>[];
+    final inLessons = <CourseAuditIssue>{};
+    for (final (index, lesson) in course.lessons.indexed) {
+      final own = [
+        for (final issue in issues)
+          if (issue.location.startsWith('Lesson ${index + 1} ·')) issue,
+      ];
+      inLessons.addAll(own);
+      final duel = CourseWizardRounds.duelCount(lesson);
+      var drafts = lesson.publicationState.isPublished ? 0 : 1;
+      if (course.useGuidebook &&
+          !lesson.guidebook.publicationState.isPublished) {
+        drafts++;
+      }
+      for (final round in lesson.rounds) {
+        if (!round.publicationState.isPublished) drafts++;
+        for (final content in round.content) {
+          if (!content.publicationState.isPublished) drafts++;
+        }
+      }
+      lessons.add(
+        CourseWizardLessonCheck(
+          lesson: lesson,
+          modules: lesson.guidebook.modules.length,
+          rounds: lesson.rounds.length,
+          exercises: lesson.rounds.fold(
+            0,
+            (sum, round) => sum + round.exercises.length,
+          ),
+          duelQuestions: duel.questions,
+          duelAudio: duel.audio,
+          drafts: drafts,
+          errors: count(own, AuditSeverity.error),
+          warnings: count(own, AuditSeverity.warning),
+        ),
+      );
+    }
+    final rest = issues.where((issue) => !inLessons.contains(issue));
+    return (
+      lessons: lessons,
+      courseErrors: count(rest, AuditSeverity.error),
+      courseWarnings: count(rest, AuditSeverity.warning),
+    );
+  }
+}
+
+/// What Publish did: the Course saved, and what stays Draft and why.
+class CourseWizardPublishResult {
+  const CourseWizardPublishResult({
+    required this.course,
+    required this.keptDraft,
+  });
+
+  final Course course;
+
+  /// One line per item left Draft: where it is and the Audit error that
+  /// keeps it there.
+  final List<String> keptDraft;
+
+  bool get published => course.publicationState.isPublished;
+}
+
+/// Publish in step 8 (plan §7): the GuideBooks, Rounds, exercises and
+/// Lessons without an Audit error become Published, then the Course, by
+/// the Course Editor's own rule: what learners would see (the learner
+/// projection) must have no Audit error. Anything an error names stays
+/// Draft and is listed; one confirmed save follows.
+abstract final class CourseWizardPublish {
+  static CourseWizardPublishResult publish(
+    Course course, {
+    required DateTime now,
+  }) {
+    final stamp = now.toUtc().toIso8601String();
+    final json =
+        jsonDecode(jsonEncode(course.toJson())) as Map<String, dynamic>;
+    final lessons = [
+      for (final lesson in json['lessons'] as List)
+        lesson as Map<String, dynamic>,
+    ];
+    void setState(Map<String, dynamic> item, String state) {
+      if (item['publicationState'] == state) return;
+      item['publicationState'] = state;
+      // Published by the author's choice now, as Save does.
+      item.remove('provisionalDraft');
+      final exercise = item['exercise'];
+      if (exercise is Map<String, dynamic>) {
+        exercise['updatedAt'] = stamp;
+      } else if (item.containsKey('updatedAt')) {
+        item['updatedAt'] = stamp;
+      }
+    }
+
+    // Everything Published first; the Audit then names what cannot be.
+    final contentById = <String, Map<String, dynamic>>{};
+    final roundById = <String, Map<String, dynamic>>{};
+    final lessonById = <String, Map<String, dynamic>>{};
+    for (final lesson in lessons) {
+      lessonById[lesson['lessonId'] as String] = lesson;
+      final guidebook = lesson['guidebook'];
+      if (course.useGuidebook &&
+          guidebook is Map<String, dynamic> &&
+          (guidebook['modules'] as List? ?? const []).isNotEmpty) {
+        setState(guidebook, 'published');
+      }
+      for (final round in lesson['rounds'] as List) {
+        final roundJson = round as Map<String, dynamic>;
+        roundById[roundJson['id'] as String] = roundJson;
+        for (final content in roundJson['content'] as List) {
+          final contentJson = content as Map<String, dynamic>;
+          contentById[contentJson['id'] as String] = contentJson;
+          setState(contentJson, 'published');
+        }
+        setState(roundJson, 'published');
+      }
+      setState(lesson, 'published');
+    }
+    final originalState = json['publicationState'];
+    json['publicationState'] = 'published';
+
+    final kept = <String>[];
+    final demoted = <String>{};
+    String where(String? lessonId, {String? roundId, String? contentId}) {
+      for (final (i, lesson) in course.lessons.indexed) {
+        if (lessonId != null && lesson.lessonId != lessonId) continue;
+        for (final (j, round) in lesson.rounds.indexed) {
+          if (roundId != null && round.id != roundId) continue;
+          final title = round.displayTitle(j);
+          if (contentId == null) return 'Lesson ${i + 1} · $title';
+          final k = round.content.indexWhere((c) => c.id == contentId);
+          if (k >= 0) return 'Lesson ${i + 1} · $title · item ${k + 1}';
+        }
+        if (roundId == null && contentId == null) {
+          return 'Lesson ${i + 1} (${lesson.title})';
+        }
+      }
+      return 'Course';
+    }
+
+    String? lessonOfRound(String roundId) {
+      for (final lesson in course.lessons) {
+        if (lesson.rounds.any((round) => round.id == roundId)) {
+          return lesson.lessonId;
+        }
+      }
+      return null;
+    }
+
+    for (var pass = 0; pass < 500; pass++) {
+      final candidate = Course.fromJson(json);
+      final visible = const PublicationService().learnerCourse(candidate);
+      if (visible == null) break;
+      final errors = CourseAuditService()
+          .auditCourse(visible, sourceReferenceCourse: candidate)
+          .issues
+          .where((issue) => issue.severity == AuditSeverity.error)
+          .toList();
+      if (errors.isEmpty) {
+        return CourseWizardPublishResult(course: candidate, keptDraft: kept);
+      }
+      var progress = false;
+      var courseError = false;
+      for (final issue in errors) {
+        final contentId = issue.exerciseId;
+        final roundId = issue.roundId;
+        if (contentId != null && contentById[contentId] != null) {
+          if (demoted.add('content:$contentId')) {
+            setState(contentById[contentId]!, 'draft');
+            kept.add(
+              '${where(lessonOfRound(roundId ?? ''), roundId: roundId, contentId: contentId)}: ${issue.message}',
+            );
+          }
+          progress = true;
+          continue;
+        }
+        if (roundId != null && roundById[roundId] != null) {
+          if (demoted.add('round:$roundId')) {
+            setState(roundById[roundId]!, 'draft');
+            kept.add(
+              '${where(lessonOfRound(roundId), roundId: roundId)}: ${issue.message}',
+            );
+          }
+          progress = true;
+          continue;
+        }
+        // A Lesson's own finding, named by its place among the Lessons
+        // learners would see.
+        final index = visible.lessons.indexed
+            .where(
+              (entry) => issue.location.startsWith('Lesson ${entry.$1 + 1} ·'),
+            )
+            .map((entry) => entry.$2)
+            .firstOrNull;
+        if (index == null) {
+          courseError = true;
+          if (demoted.add('course:${issue.code}:${issue.message}')) {
+            kept.add('Course: ${issue.message}');
+          }
+          continue;
+        }
+        final lesson = lessonById[index.lessonId]!;
+        final label =
+            'Lesson ${visible.lessons.indexOf(index) + 1} · '
+            '${index.title} · Guidebook';
+        final guidebook = lesson['guidebook'];
+        if ((issue.location == label ||
+                issue.location.startsWith('$label · ')) &&
+            guidebook is Map<String, dynamic>) {
+          if (demoted.add('guidebook:${index.lessonId}')) {
+            setState(guidebook, 'draft');
+            kept.add(
+              'Lesson ${course.lessons.indexWhere((l) => l.lessonId == index.lessonId) + 1} GuideBook: ${issue.message}',
+            );
+          }
+          progress = true;
+          continue;
+        }
+        if (demoted.add('lesson:${index.lessonId}')) {
+          setState(lesson, 'draft');
+          kept.add('${where(index.lessonId)}: ${issue.message}');
+        }
+        progress = true;
+      }
+      if (courseError || !progress) break;
+    }
+    // A finding no Lesson, Round or exercise carries keeps the Course Not
+    // published; what could be published stays so.
+    json['publicationState'] = originalState;
+    return CourseWizardPublishResult(
+      course: Course.fromJson(json),
+      keptDraft: kept,
+    );
   }
 }
 

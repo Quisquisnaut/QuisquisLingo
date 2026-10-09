@@ -217,3 +217,16 @@ decisions of 9 October 2026).
   different pairs are not duplicates.
 - Deferred by the owner: a Border option for picture answers (Wizard and
   Lesson Options).
+
+## Revision 4 (2.0.67+267004): Check and publish
+
+- Step 8 of the Course Wizard (plan §7): a card per Lesson (modules,
+  Rounds, exercises, Duel questions, Drafts, Audit errors and warnings),
+  Open the Audit, Preview, and Publish.
+- Publish: everything without an Audit error becomes Published in one
+  confirmed save, by the Course Editor's rule for a learner-visible Course;
+  what an error names stays Draft and is listed with it.
+- Finish or Finish without publishing; the Finish message says learners can
+  study the Course when it is published, else reminds of Publish.
+- "Nothing is created yet: this is only the plan." on the Round Wizard's and
+  Exercise Wizard's plan pages.

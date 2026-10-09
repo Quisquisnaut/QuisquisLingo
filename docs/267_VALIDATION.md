@@ -196,3 +196,26 @@ Run on the owner's Windows PC (4 cores, 8 GB), `TEMP`/`TMP` on
   out of 3 alone. The test now waits for the dialog
   (`pumpUntilFileIoState`), as the other file I/O tests do; no app change.
 - Second complete suite (9 October): **3,975 passed, 1 skipped (POSIX only)**, exit code 0.
+
+## Revision 4 (2.0.67+267004), 9 October 2026
+
+- `dart format` on the changed Dart files only; `flutter analyze --no-pub`:
+  **No issues found.**
+- `test/check_and_publish_267_test.dart` (new, 2 passed): a clean Course
+  (one Lesson of the Wizard's sample, its approved GuideBook, six Round
+  Wizard Rounds) is published whole: the Course, the Lesson, the GuideBook,
+  every Round and every item, the Provisional Draft markers cleared, no
+  Draft left in the check; a Before you start card with an empty note
+  (ROUND_INTRO_EMPTY, an Error) stays Draft and is the one line listed
+  ("Lesson 1 · … · item 1: …"), while its Round and the rest are published.
+- `test/course_wizard_267_test.dart` (22 passed): every step reads "of 8";
+  the Rounds step's button is Next; step 8 shows the Lesson card, no Fill
+  with an example, "Finish without publishing"; Publish saves once
+  ("Course Wizard: Check and publish"), the stored Course, its Lesson and
+  Rounds are Published, the button becomes Finish; the Finish message says
+  learners can study the Course; a pause of a later build reads as step 8.
+- `exercise_creation_wizard_test.dart` reads the new plan line; Inventory
+  reads "step 3 of 8".
+- Focused batch (the Wizard, publish, Inventory, Exercise Wizard, version
+  pins, Beta, Help, reset, the GuideBook generator): **112 passed**.
+- Complete suite (9 October): **3,977 passed, 1 skipped (POSIX only)**, exit code 0.
