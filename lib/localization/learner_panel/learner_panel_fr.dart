@@ -43,6 +43,8 @@ const learnerPanelFr = <String, String>{
   'gotIt': 'Compris',
   'cardAgainLater': 'Cette carte reviendra plus tard dans cette manche.',
   'cardReviewed': 'Carte revue.',
+  'turnOver': 'Retourner',
+  'tapToTurn': 'Touche la carte pour la retourner',
   'linkNotOpened': 'Impossible d’ouvrir le lien.',
   'empty': 'Vide',
   'nothingHereYet': 'Rien pour l’instant',

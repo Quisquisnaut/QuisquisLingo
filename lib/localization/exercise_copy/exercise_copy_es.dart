@@ -37,6 +37,10 @@ const exerciseCopyEs = <String, String>{
   'instruction.selectDialogue': 'Lee el diálogo y elige la mejor respuesta.',
   'instruction.selectImage': 'Encuentra la imagen correspondiente.',
   'instruction.presentation': 'Estudia la palabra y su uso.',
+  'instruction.flashcardWordFirst':
+      'Piensa en lo que significa y luego da la vuelta a la tarjeta.',
+  'instruction.flashcardMeaningFirst':
+      'Piensa en la palabra en {language} y luego da la vuelta a la tarjeta.',
   'instruction.dialogueLine': 'Lee o escucha, luego continúa.',
   'instruction.dialogueLineText': 'Lee, luego continúa.',
   'instruction.dialogueLineAudio': 'Escucha, luego continúa.',

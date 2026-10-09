@@ -43,6 +43,8 @@ const learnerPanelIt = <String, String>{
   'gotIt': 'Ho capito',
   'cardAgainLater': 'Questa scheda tornerà più avanti in questo round.',
   'cardReviewed': 'Scheda ripassata.',
+  'turnOver': 'Gira',
+  'tapToTurn': 'Tocca la scheda per girarla',
   'linkNotOpened': 'Impossibile aprire il link.',
   'empty': 'Vuoto',
   'nothingHereYet': 'Ancora niente',

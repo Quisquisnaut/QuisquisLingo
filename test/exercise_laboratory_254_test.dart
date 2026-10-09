@@ -891,6 +891,8 @@ void main() {
       (exercise) => exercise.id == 'qql_lab254_card_complete',
     );
     await _show(tester, course, exercise);
+    // A two-sided card offers Review again after turning (Build 268).
+    await _tap(tester, find.widgetWithText(OutlinedButton, 'Turn over'));
     await _tap(tester, find.widgetWithText(OutlinedButton, 'Review again'));
     await _tap(tester, find.widgetWithText(FilledButton, 'Continue'));
     await _tap(tester, find.widgetWithText(FilledButton, 'Got it'));

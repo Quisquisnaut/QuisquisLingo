@@ -43,6 +43,8 @@ const learnerPanelDe = <String, String>{
   'gotIt': 'Verstanden',
   'cardAgainLater': 'Diese Karte kommt später in dieser Runde noch einmal.',
   'cardReviewed': 'Karte wiederholt.',
+  'turnOver': 'Umdrehen',
+  'tapToTurn': 'Tippe auf die Karte, um sie umzudrehen',
   'linkNotOpened': 'Der Link konnte nicht geöffnet werden.',
   'empty': 'Leer',
   'nothingHereYet': 'Noch nichts hier',

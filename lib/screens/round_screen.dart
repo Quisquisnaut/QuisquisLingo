@@ -36,6 +36,7 @@ import '../services/round_type_presentation.dart';
 import '../services/sound_effect_service.dart';
 import '../services/recorded_audio_service.dart';
 import '../services/exercise_copy_service.dart';
+import '../services/flashcard_sides.dart';
 import '../services/crash_log_service.dart';
 import '../services/answer_engine.dart';
 import '../services/audio_exercise_availability_service.dart';
@@ -54,6 +55,10 @@ class RoundScreen extends StatefulWidget {
   /// tests replace it; the app never downloads or plays video itself.
   static Future<bool> Function(Uri url) openLink = (url) =>
       launchUrl(url, mode: LaunchMode.externalApplication);
+
+  /// How long a two-sided Flashcard takes to turn when it is animated
+  /// (Build 268 Revision 0).
+  static const cardTurnDuration = Duration(milliseconds: 450);
 
   final Course course;
   final Lesson lesson;
@@ -339,6 +344,15 @@ class _RoundScreenState extends State<RoundScreen> {
   /// Build 256 Revision 5: a dialogue line's audio has played once, so a
   /// text shown "after listening" may appear.
   bool _lineAudioPlayed = false;
+
+  /// Build 268 Revision 0: a two-sided Flashcard shows its back, and the
+  /// word's automatic read-aloud of a card shown meaning first has played.
+  bool _cardTurned = false;
+  bool _cardBackSpoken = false;
+
+  /// The learner's Animations setting (the Preview animates, as it bypasses
+  /// learner settings); the system's reduced motion is read when drawing.
+  bool _animationsEnabled = false;
   String _feedback = '';
   String _displayedCorrection = '';
   List<String> _translationFeedback = const [];
@@ -487,6 +501,9 @@ class _RoundScreenState extends State<RoundScreen> {
   /// automatic playback, or a dialogue line's audio when the line follows a
   /// Story whose read-aloud is automatic (Build 256 Revision 5).
   PromptElement? _automaticAudioOf(ExerciseFeatures f) {
+    // A Flashcard shown meaning first keeps the word's read-aloud for its
+    // back (Build 268 Revision 0).
+    if (FlashcardSides.isTwoSided(f) && _cardMeaningFirst) return null;
     final automatic = f.automaticAudio;
     if (automatic != null) return automatic;
     if (f.kind != LearnerExerciseKind.dialogueLine) return null;
@@ -649,6 +666,8 @@ class _RoundScreenState extends State<RoundScreen> {
                 widget.round.exercises[i].isExecutable,
           )
           .length;
+      _animationsEnabled =
+          widget.previewMode || await _settings.areAnimationsEnabled();
       _wasCompleted =
           !widget.previewMode &&
           !widget.viewOnlyMode &&
@@ -842,6 +861,8 @@ class _RoundScreenState extends State<RoundScreen> {
     _exerciseMascot = null;
     _answered = false;
     _lineAudioPlayed = false;
+    _cardTurned = false;
+    _cardBackSpoken = false;
     _lastAnswerCorrect = false;
     _feedback = '';
     _displayedCorrection = '';
@@ -1478,6 +1499,39 @@ class _RoundScreenState extends State<RoundScreen> {
     });
   }
 
+  /// Whether the active exercise is a two-sided Flashcard (Build 268
+  /// Revision 0).
+  bool get _twoSidedCard => FlashcardSides.isTwoSided(_features);
+
+  /// Whether a two-sided Flashcard shows its meaning first: on a repeat of a
+  /// completed Round and in Review, never in the Preview.
+  bool get _cardMeaningFirst =>
+      FlashcardSides.frontFor(
+        roundCompleted: _wasCompleted,
+        review: widget.reviewMode,
+        preview: widget.previewMode,
+      ) ==
+      FlashcardFront.meaning;
+
+  /// The word of a card shown meaning first stays hidden, and silent, until
+  /// the card is turned.
+  bool get _cardWordHidden =>
+      _twoSidedCard && _cardMeaningFirst && !_cardTurned;
+
+  /// Turns a two-sided Flashcard over (or back). A card shown meaning first
+  /// reads its word aloud the first time its back shows, when its read-aloud
+  /// is automatic.
+  void _turnCard() {
+    setState(() => _cardTurned = !_cardTurned);
+    if (_cardTurned &&
+        _cardMeaningFirst &&
+        !_cardBackSpoken &&
+        _features.automaticAudio != null) {
+      _cardBackSpoken = true;
+      unawaited(_speak());
+    }
+  }
+
   void _flashcardResult({required bool reviewAgain}) {
     if (_answered) return;
     setState(() {
@@ -1717,6 +1771,7 @@ class _RoundScreenState extends State<RoundScreen> {
                   : ExerciseCopyService.instructionForExercise(
                       widget.course,
                       ex,
+                      meaningFirst: _cardMeaningFirst,
                     ))
             : ExerciseCopyService.title(widget.course, ex),
         headingIsInstruction: widget.round.isStory,
@@ -3395,6 +3450,7 @@ class _RoundScreenState extends State<RoundScreen> {
   }
 
   Widget _flashcardExercise(Exercise ex) {
+    if (_twoSidedCard) return _twoSidedFlashcard(ex);
     final f = _features;
     final term = f.textOf('term');
     final meaning = f.textOf('meaning');
@@ -3419,40 +3475,14 @@ class _RoundScreenState extends State<RoundScreen> {
                 style: Theme.of(context).textTheme.headlineMedium,
               ),
               const SizedBox(height: 8),
-              IconButton.filledTonal(
-                tooltip: _t('pronounceWord'),
-                onPressed: audio.isEmpty ? null : () => _speakText(audio),
-                icon: const Icon(Icons.volume_up_outlined),
-              ),
+              _cardWordButton(audio),
               const SizedBox(height: 12),
               Text(
                 meaning,
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.titleMedium,
               ),
-              if (usage.isNotEmpty) ...[
-                const Divider(height: 28),
-                Text(
-                  _t('usage'),
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.labelLarge,
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  usage,
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                const SizedBox(height: 4),
-                if (usageTranslation.isNotEmpty)
-                  Text(usageTranslation, textAlign: TextAlign.center),
-                const SizedBox(height: 6),
-                IconButton(
-                  tooltip: _t('pronounceUsage'),
-                  onPressed: () => _speakText(usage),
-                  icon: const Icon(Icons.record_voice_over_outlined),
-                ),
-              ],
+              ..._cardUsage(usage, usageTranslation),
             ],
           ),
         ),
@@ -3471,6 +3501,216 @@ class _RoundScreenState extends State<RoundScreen> {
               ? null
               : () => _flashcardResult(reviewAgain: false),
           child: Text(reviewable ? _t('gotIt') : _t('continue')),
+        ),
+      ],
+    );
+  }
+
+  /// The button that reads a Flashcard's word aloud.
+  Widget _cardWordButton(String audio) => IconButton.filledTonal(
+    tooltip: _t('pronounceWord'),
+    onPressed: audio.isEmpty ? null : () => _speakText(audio),
+    icon: const Icon(Icons.volume_up_outlined),
+  );
+
+  /// A Flashcard's example and its translation, read aloud on request.
+  List<Widget> _cardUsage(String usage, String usageTranslation) => [
+    if (usage.isNotEmpty) ...[
+      const Divider(height: 28),
+      Text(
+        _t('usage'),
+        textAlign: TextAlign.center,
+        style: Theme.of(context).textTheme.labelLarge,
+      ),
+      const SizedBox(height: 4),
+      Text(
+        usage,
+        textAlign: TextAlign.center,
+        style: Theme.of(context).textTheme.titleMedium,
+      ),
+      const SizedBox(height: 4),
+      if (usageTranslation.isNotEmpty)
+        Text(usageTranslation, textAlign: TextAlign.center),
+      const SizedBox(height: 6),
+      IconButton(
+        tooltip: _t('pronounceUsage'),
+        onPressed: () => _speakText(usage),
+        icon: const Icon(Icons.record_voice_over_outlined),
+      ),
+    ],
+  ];
+
+  /// A two-sided Flashcard (Build 268 Revision 0, owner decisions of
+  /// 9 October 2026). The word is on the front the first time through a
+  /// Round; on a repeat of a completed Round and in Review the meaning (the
+  /// translation, with the picture of a Picture flashcard) is, and the word
+  /// with its read-aloud moves to the back ([FlashcardSides]). The back
+  /// shows the front's text small, then the answer, then the example, which
+  /// is read only on request. A tap on the card, Turn over, Enter or Space
+  /// turns it; the turn is animated only when Animations are on and the
+  /// system asks for no reduced motion. Got it on the front skips a card the
+  /// learner knows; Review again and Got it come after turning.
+  Widget _twoSidedFlashcard(Exercise ex) {
+    final f = _features;
+    final theme = Theme.of(context);
+    final term = f.textOf('term');
+    final meaning = f.textOf('meaning');
+    final audio = f.audioOf('audio').trim();
+    final meaningFirst = _cardMeaningFirst;
+    final picture = f.illustrationAsset.isNotEmpty;
+    Widget large(String text, Key key) => Text(
+      text,
+      key: key,
+      textAlign: TextAlign.center,
+      style: theme.textTheme.headlineMedium,
+    );
+    Widget cardPicture(double height) => ConstrainedBox(
+      constraints: BoxConstraints(maxHeight: height),
+      child: _exerciseImage(ex),
+    );
+    final wordFace = <Widget>[
+      large(term, const Key('flashcard-word')),
+      const SizedBox(height: 8),
+      _cardWordButton(audio),
+    ];
+    final meaningFace = <Widget>[
+      if (picture) cardPicture(200),
+      if (picture && meaning.isNotEmpty) const SizedBox(height: 12),
+      if (meaning.isNotEmpty) large(meaning, const Key('flashcard-meaning')),
+    ];
+    final shown = meaningFirst ? meaning : term;
+    final answer = meaningFirst ? term : meaning;
+    final back = <Widget>[
+      if (picture) ...[cardPicture(150), const SizedBox(height: 10)],
+      if (shown.isNotEmpty)
+        Text(
+          shown,
+          key: const Key('flashcard-back-front-text'),
+          textAlign: TextAlign.center,
+          style: theme.textTheme.titleMedium?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
+      if (shown.isNotEmpty && answer.isNotEmpty) const SizedBox(height: 6),
+      if (answer.isNotEmpty)
+        Text(
+          answer,
+          key: const Key('flashcard-back-answer'),
+          textAlign: TextAlign.center,
+          style: theme.textTheme.headlineSmall,
+        ),
+      if (meaningFirst) ...[const SizedBox(height: 8), _cardWordButton(audio)],
+      ..._cardUsage(f.textOf('usage'), f.textOf('usage_translation')),
+    ];
+    Widget face(Key key, List<Widget> children) => Container(
+      key: key,
+      constraints: const BoxConstraints(minHeight: 240),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: _exercisePanelColor,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          ...children,
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.sync,
+                size: 18,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+              const SizedBox(width: 6),
+              Flexible(
+                child: Text(
+                  _t('tapToTurn'),
+                  key: const Key('flashcard-turn-hint'),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+    final frontFace = face(
+      const Key('flashcard-front'),
+      meaningFirst ? meaningFace : wordFace,
+    );
+    final backFace = face(const Key('flashcard-back'), back);
+    final animated = ConfettiBurst.allowed(
+      context,
+      animationsEnabled: _animationsEnabled,
+    );
+    final Widget card = animated
+        ? TweenAnimationBuilder<double>(
+            // A new card starts face up, never turning back from the last.
+            key: ValueKey('flashcard-turn-$_preparedExerciseGeneration'),
+            tween: Tween(end: _cardTurned ? 1 : 0),
+            duration: RoundScreen.cardTurnDuration,
+            curve: Curves.easeInOut,
+            builder: (context, value, _) {
+              final showsBack = value >= .5;
+              return Transform(
+                alignment: Alignment.center,
+                transform: Matrix4.identity()
+                  ..setEntry(3, 2, 0.0012)
+                  ..rotateY((showsBack ? value - 1 : value) * pi),
+                child: showsBack ? backFace : frontFace,
+              );
+            },
+          )
+        : (_cardTurned ? backFace : frontFace);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Semantics(
+          button: true,
+          label: _t('turnOver'),
+          child: Material(
+            type: MaterialType.transparency,
+            child: InkWell(
+              key: const Key('flashcard-card'),
+              borderRadius: BorderRadius.circular(20),
+              onTap: _turnCard,
+              child: card,
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(
+              child: _cardTurned
+                  ? OutlinedButton(
+                      key: const Key('flashcard-review-again'),
+                      onPressed: _answered
+                          ? null
+                          : () => _flashcardResult(reviewAgain: true),
+                      child: Text(_t('reviewAgain')),
+                    )
+                  : OutlinedButton(
+                      key: const Key('flashcard-turn-over'),
+                      onPressed: _turnCard,
+                      child: Text(_t('turnOver')),
+                    ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: FilledButton(
+                key: const Key('flashcard-got-it'),
+                onPressed: _answered
+                    ? null
+                    : () => _flashcardResult(reviewAgain: false),
+                child: Text(_t('gotIt')),
+              ),
+            ),
+          ],
         ),
       ],
     );
@@ -4994,8 +5234,11 @@ class _RoundScreenState extends State<RoundScreen> {
           ],
         ),
         actions: [
-          // A Select with automatic audio has its replay control in the body.
+          // A Select with automatic audio has its replay control in the body;
+          // a Flashcard shown meaning first keeps its word quiet until it is
+          // turned (Build 268 Revision 0).
           if (_features.primaryAudioText != null &&
+              !_cardWordHidden &&
               !(ex.primitive == ExercisePrimitive.select &&
                   _features.automaticAudio != null))
             IconButton(
@@ -5089,6 +5332,7 @@ class _RoundScreenState extends State<RoundScreen> {
                         : ExerciseCopyService.instructionForExercise(
                             widget.course,
                             ex,
+                            meaningFirst: _cardMeaningFirst,
                           ),
                     key: _features.isTranslationChoice
                         ? const Key('translation-choice-instruction')
@@ -5119,10 +5363,13 @@ class _RoundScreenState extends State<RoundScreen> {
             // windows or larger system text sizes this prevents a RenderFlex
             // overflow at the bottom while preserving normal phone behavior.
             // A Story cover draws its picture on the cover card (Build 256
-            // Revision 5), so the shared illustration would show it twice.
+            // Revision 5), so the shared illustration would show it twice;
+            // a two-sided Flashcard draws it on its meaning side (Build 268
+            // Revision 0).
             if (_features.illustrationAsset.isNotEmpty &&
                 !_features.isTranslationChoice &&
-                _features.kind != LearnerExerciseKind.storyCover) ...[
+                _features.kind != LearnerExerciseKind.storyCover &&
+                !_twoSidedCard) ...[
               _exerciseImage(ex),
               const SizedBox(height: 14),
             ] else

@@ -3,6 +3,7 @@ import '../localization/exercise_copy/exercise_copy_en.dart';
 import '../models/course_models.dart';
 import '../models/exercise_features.dart';
 import 'exercise_title.dart';
+import 'flashcard_sides.dart';
 import 'language_catalog.dart';
 
 /// Learner-facing exercise labels and instructions, keyed by the
@@ -121,10 +122,27 @@ class ExerciseCopyService {
 
   /// The instruction for [exercise]: its kind's, or the "opposites" variant
   /// when the exercise's own text says so. Both come from canonical data;
-  /// nothing here reads a preset (Build 256, plan A.3).
-  static String instructionForExercise(Course course, Exercise exercise) {
+  /// nothing here reads a preset (Build 256, plan A.3). A two-sided
+  /// Flashcard asks for the meaning, or with [meaningFirst] for the word in
+  /// the learning language (Build 268 Revision 0).
+  static String instructionForExercise(
+    Course course,
+    Exercise exercise, {
+    bool meaningFirst = false,
+  }) {
     final features = ExerciseFeatures(exercise);
     final kind = features.kind;
+    if (FlashcardSides.isTwoSided(features)) {
+      final c = _copy(course);
+      return meaningFirst
+          ? (c['instruction.flashcardMeaningFirst'] ??
+                    c['instruction.default']!)
+                .replaceAll(
+                  '{language}',
+                  languageName(course, intoSource: false),
+                )
+          : c['instruction.flashcardWordFirst'] ?? c['instruction.default']!;
+    }
     final prompt = [
       features.primaryText,
       features.questionText,

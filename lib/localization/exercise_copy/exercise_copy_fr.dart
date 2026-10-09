@@ -43,6 +43,10 @@ const exerciseCopyFr = <String, String>{
       'Lis le dialogue et choisis la meilleure réponse.',
   'instruction.selectImage': 'Trouve l’image qui correspond.',
   'instruction.presentation': 'Étudie le mot et son usage.',
+  'instruction.flashcardWordFirst':
+      'Pense à ce que ça veut dire, puis retourne la carte.',
+  'instruction.flashcardMeaningFirst':
+      'Pense au mot en {language}, puis retourne la carte.',
   'instruction.dialogueLine': 'Lis ou écoute, puis continue.',
   'instruction.dialogueLineText': 'Lis, puis continue.',
   'instruction.dialogueLineAudio': 'Écoute, puis continue.',

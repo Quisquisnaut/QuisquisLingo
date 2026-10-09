@@ -43,6 +43,8 @@ const learnerPanelNl = <String, String>{
   'gotIt': 'Begrepen',
   'cardAgainLater': 'Deze kaart komt later in deze ronde terug.',
   'cardReviewed': 'Kaart herhaald.',
+  'turnOver': 'Omdraaien',
+  'tapToTurn': 'Tik op de kaart om hem om te draaien',
   'linkNotOpened': 'De link kon niet worden geopend.',
   'empty': 'Leeg',
   'nothingHereYet': 'Nog niets',

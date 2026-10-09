@@ -36,6 +36,10 @@ const exerciseCopyNl = <String, String>{
   'instruction.selectDialogue': 'Lees de dialoog en kies het beste antwoord.',
   'instruction.selectImage': 'Zoek de bijpassende afbeelding.',
   'instruction.presentation': 'Bestudeer het woord en het gebruik ervan.',
+  'instruction.flashcardWordFirst':
+      'Bedenk wat het betekent en draai dan de kaart om.',
+  'instruction.flashcardMeaningFirst':
+      'Bedenk het woord in het {language} en draai dan de kaart om.',
   'instruction.dialogueLine': 'Lees of luister, en ga dan verder.',
   'instruction.dialogueLineText': 'Lees, en ga dan verder.',
   'instruction.dialogueLineAudio': 'Luister, en ga dan verder.',

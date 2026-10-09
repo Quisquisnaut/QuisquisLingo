@@ -1,3 +1,44 @@
+# 2.0.68 (Build 268, Revision 0) - two-sided Flashcards - 2026-10-09
+
+Owner report and decisions of 9 October 2026 (the mock-up of five cards;
+Got it on the front; the word first; direction (b), automatic).
+
+- **Two sides**: a Flashcard or Picture flashcard has a front and a back.
+  The first time through a Round the front shows the word with its
+  read-aloud button; the back shows the word small, the translation and the
+  example with its translation. A Picture flashcard keeps its picture for
+  the back, with the translation. The example is read aloud only on request.
+- **Turning**: a tap on the card, **Turn over**, Enter or Space turns it,
+  and turns it back; screen readers hear the card as a "Turn over" button.
+  The turn is animated when Animations are on and the system asks for no
+  reduced motion; otherwise the sides just swap. A hint on the card says
+  "Tap the card to turn it over".
+- **Buttons**: **Got it** on the front skips a card the learner already
+  knows; after turning, **Review again** and **Got it**. After Got it the
+  learner may still turn the card.
+- **Direction (b), automatic**: when a Round the learner has already
+  completed is played again, and in Review, the meaning is in front (for a
+  Picture flashcard the picture with the translation) and the word with its
+  read-aloud moves to the back. The instruction then asks for the word in
+  the learning language ("Think of the Italian word, then turn the card.");
+  otherwise "Think of what it means, then turn the card.". A reversed card
+  plays no read-aloud and shows no Play audio until it is turned; with
+  read-aloud set to Automatically the word is read the first time the back
+  shows. The editor's Preview always shows the word first. Nothing is
+  stored.
+- **Unchanged**: a card that ends with Continue stays one page (the Note
+  card, Before you start, Page, Story steps, the Duel); no Course file
+  changes, every existing card becomes two-sided; cards still give no XP.
+- Learner texts in the seven learner languages (Turn over, the two
+  instruction lines, the hint; the six translations AI-written).
+- Help EN/IT/ES: Flashcard, Picture flashcard, the Read-aloud field, What is
+  a FlashCard Round?
+- Tests: `test/two_sided_flashcards_268_test.dart`; the Laboratory's
+  presentation baseline re-records its 8 Flashcards; its Review again test
+  turns the card first.
+- Scoring, progression, Course files and learner data are unchanged. Beta
+  expiry `2026-11-08 23:59:59` local time.
+
 # 2.0.67 (Build 267, Revision 10) - the Module Wizard - 2026-10-09
 
 Owner review and decisions of 9 October 2026.

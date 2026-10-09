@@ -34,6 +34,11 @@
 /// spelling presets form, the typed ones write).
 /// Build 263 Revision 2 follow-up re-recorded 2 records: picture answers
 /// are large squares by default, so each button holds its picture.
+/// Build 268 Revision 0 re-recorded the 8 Flashcards and Picture
+/// flashcards: a card has two sides, so before turning only the word shows,
+/// with Turn over beside Got it, and the instruction asks for the meaning;
+/// the meaning, the picture and the example are on the back. The two Note
+/// cards are unchanged.
 const laboratoryPresentation = <String, Map<String, Object?>>{
   'qql_lab254_arrange_gap_audio': {
     'before': {
@@ -2688,9 +2693,9 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
   'qql_lab254_card_audio': {
     'before': {
       'heading': 'FLASHCARD',
-      'instruction': 'Study the word and its usage.',
+      'instruction': 'Think of what it means, then turn the card.',
       'prompt': null,
-      'shown': {'question': 1, 'prompt': 1, 'context': 0, 'translationText': 0},
+      'shown': {'question': 0, 'prompt': 1, 'context': 0, 'translationText': 0},
       'panels': {
         'context': 0,
         'dialogue': 0,
@@ -2713,7 +2718,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
       },
       'controls': {
         'filled': ['Got it'],
-        'outlined': ['Review again'],
+        'outlined': ['Turn over'],
         'checkboxes': 0,
         'textFields': 0,
         'actionChips': 0,
@@ -2750,9 +2755,9 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
     },
     'after': {
       'heading': 'FLASHCARD',
-      'instruction': 'Study the word and its usage.',
+      'instruction': 'Think of what it means, then turn the card.',
       'prompt': null,
-      'shown': {'question': 1, 'prompt': 1, 'context': 0, 'translationText': 0},
+      'shown': {'question': 0, 'prompt': 1, 'context': 0, 'translationText': 0},
       'panels': {
         'context': 0,
         'dialogue': 0,
@@ -2775,7 +2780,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
       },
       'controls': {
         'filled': ['Finish round', 'Got it'],
-        'outlined': ['Review again'],
+        'outlined': ['Turn over'],
         'checkboxes': 0,
         'textFields': 0,
         'actionChips': 0,
@@ -2814,9 +2819,9 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
   'qql_lab254_card_audio_usage': {
     'before': {
       'heading': 'FLASHCARD',
-      'instruction': 'Study the word and its usage.',
+      'instruction': 'Think of what it means, then turn the card.',
       'prompt': null,
-      'shown': {'question': 1, 'prompt': 1, 'context': 0, 'translationText': 0},
+      'shown': {'question': 0, 'prompt': 1, 'context': 0, 'translationText': 0},
       'panels': {
         'context': 0,
         'dialogue': 0,
@@ -2831,7 +2836,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
         'context': 0,
         'sound': 0,
         'pronounce': 1,
-        'usage': 1,
+        'usage': 0,
         'playLabel': 0,
         'contextLabel': 0,
         'translation': 0,
@@ -2839,7 +2844,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
       },
       'controls': {
         'filled': ['Got it'],
-        'outlined': ['Review again'],
+        'outlined': ['Turn over'],
         'checkboxes': 0,
         'textFields': 0,
         'actionChips': 0,
@@ -2857,7 +2862,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
         'gapHint': null,
         'hints': <String>[],
         'translateFrom': <String>[],
-        'usage': 1,
+        'usage': 0,
         'blanks': <String>[],
       },
       'feedback': {
@@ -2876,9 +2881,9 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
     },
     'after': {
       'heading': 'FLASHCARD',
-      'instruction': 'Study the word and its usage.',
+      'instruction': 'Think of what it means, then turn the card.',
       'prompt': null,
-      'shown': {'question': 1, 'prompt': 1, 'context': 0, 'translationText': 0},
+      'shown': {'question': 0, 'prompt': 1, 'context': 0, 'translationText': 0},
       'panels': {
         'context': 0,
         'dialogue': 0,
@@ -2893,7 +2898,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
         'context': 0,
         'sound': 0,
         'pronounce': 1,
-        'usage': 1,
+        'usage': 0,
         'playLabel': 0,
         'contextLabel': 0,
         'translation': 0,
@@ -2901,7 +2906,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
       },
       'controls': {
         'filled': ['Finish round', 'Got it'],
-        'outlined': ['Review again'],
+        'outlined': ['Turn over'],
         'checkboxes': 0,
         'textFields': 0,
         'actionChips': 0,
@@ -2919,7 +2924,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
         'gapHint': null,
         'hints': <String>[],
         'translateFrom': <String>[],
-        'usage': 1,
+        'usage': 0,
         'blanks': <String>[],
       },
       'feedback': {
@@ -2940,9 +2945,9 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
   'qql_lab254_card_complete': {
     'before': {
       'heading': 'FLASHCARD',
-      'instruction': 'Study the word and its usage.',
+      'instruction': 'Think of what it means, then turn the card.',
       'prompt': null,
-      'shown': {'question': 1, 'prompt': 1, 'context': 0, 'translationText': 0},
+      'shown': {'question': 0, 'prompt': 1, 'context': 0, 'translationText': 0},
       'panels': {
         'context': 0,
         'dialogue': 0,
@@ -2957,7 +2962,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
         'context': 0,
         'sound': 0,
         'pronounce': 1,
-        'usage': 1,
+        'usage': 0,
         'playLabel': 0,
         'contextLabel': 0,
         'translation': 0,
@@ -2965,7 +2970,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
       },
       'controls': {
         'filled': ['Got it'],
-        'outlined': ['Review again'],
+        'outlined': ['Turn over'],
         'checkboxes': 0,
         'textFields': 0,
         'actionChips': 0,
@@ -2983,7 +2988,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
         'gapHint': null,
         'hints': <String>[],
         'translateFrom': <String>[],
-        'usage': 1,
+        'usage': 0,
         'blanks': <String>[],
       },
       'feedback': {
@@ -3002,9 +3007,9 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
     },
     'after': {
       'heading': 'FLASHCARD',
-      'instruction': 'Study the word and its usage.',
+      'instruction': 'Think of what it means, then turn the card.',
       'prompt': null,
-      'shown': {'question': 1, 'prompt': 1, 'context': 0, 'translationText': 0},
+      'shown': {'question': 0, 'prompt': 1, 'context': 0, 'translationText': 0},
       'panels': {
         'context': 0,
         'dialogue': 0,
@@ -3019,7 +3024,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
         'context': 0,
         'sound': 0,
         'pronounce': 1,
-        'usage': 1,
+        'usage': 0,
         'playLabel': 0,
         'contextLabel': 0,
         'translation': 0,
@@ -3027,7 +3032,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
       },
       'controls': {
         'filled': ['Finish round', 'Got it'],
-        'outlined': ['Review again'],
+        'outlined': ['Turn over'],
         'checkboxes': 0,
         'textFields': 0,
         'actionChips': 0,
@@ -3045,7 +3050,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
         'gapHint': null,
         'hints': <String>[],
         'translateFrom': <String>[],
-        'usage': 1,
+        'usage': 0,
         'blanks': <String>[],
       },
       'feedback': {
@@ -3066,9 +3071,9 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
   'qql_lab254_card_minimal': {
     'before': {
       'heading': 'FLASHCARD',
-      'instruction': 'Study the word and its usage.',
+      'instruction': 'Think of what it means, then turn the card.',
       'prompt': null,
-      'shown': {'question': 1, 'prompt': 1, 'context': 0, 'translationText': 0},
+      'shown': {'question': 0, 'prompt': 1, 'context': 0, 'translationText': 0},
       'panels': {
         'context': 0,
         'dialogue': 0,
@@ -3091,7 +3096,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
       },
       'controls': {
         'filled': ['Got it'],
-        'outlined': ['Review again'],
+        'outlined': ['Turn over'],
         'checkboxes': 0,
         'textFields': 0,
         'actionChips': 0,
@@ -3128,9 +3133,9 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
     },
     'after': {
       'heading': 'FLASHCARD',
-      'instruction': 'Study the word and its usage.',
+      'instruction': 'Think of what it means, then turn the card.',
       'prompt': null,
-      'shown': {'question': 1, 'prompt': 1, 'context': 0, 'translationText': 0},
+      'shown': {'question': 0, 'prompt': 1, 'context': 0, 'translationText': 0},
       'panels': {
         'context': 0,
         'dialogue': 0,
@@ -3153,7 +3158,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
       },
       'controls': {
         'filled': ['Finish round', 'Got it'],
-        'outlined': ['Review again'],
+        'outlined': ['Turn over'],
         'checkboxes': 0,
         'textFields': 0,
         'actionChips': 0,
@@ -3192,9 +3197,9 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
   'qql_lab254_card_usage': {
     'before': {
       'heading': 'FLASHCARD',
-      'instruction': 'Study the word and its usage.',
+      'instruction': 'Think of what it means, then turn the card.',
       'prompt': null,
-      'shown': {'question': 1, 'prompt': 1, 'context': 0, 'translationText': 0},
+      'shown': {'question': 0, 'prompt': 1, 'context': 0, 'translationText': 0},
       'panels': {
         'context': 0,
         'dialogue': 0,
@@ -3209,7 +3214,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
         'context': 0,
         'sound': 0,
         'pronounce': 1,
-        'usage': 1,
+        'usage': 0,
         'playLabel': 0,
         'contextLabel': 0,
         'translation': 0,
@@ -3217,7 +3222,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
       },
       'controls': {
         'filled': ['Got it'],
-        'outlined': ['Review again'],
+        'outlined': ['Turn over'],
         'checkboxes': 0,
         'textFields': 0,
         'actionChips': 0,
@@ -3235,7 +3240,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
         'gapHint': null,
         'hints': <String>[],
         'translateFrom': <String>[],
-        'usage': 1,
+        'usage': 0,
         'blanks': <String>[],
       },
       'feedback': {
@@ -3254,9 +3259,9 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
     },
     'after': {
       'heading': 'FLASHCARD',
-      'instruction': 'Study the word and its usage.',
+      'instruction': 'Think of what it means, then turn the card.',
       'prompt': null,
-      'shown': {'question': 1, 'prompt': 1, 'context': 0, 'translationText': 0},
+      'shown': {'question': 0, 'prompt': 1, 'context': 0, 'translationText': 0},
       'panels': {
         'context': 0,
         'dialogue': 0,
@@ -3271,7 +3276,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
         'context': 0,
         'sound': 0,
         'pronounce': 1,
-        'usage': 1,
+        'usage': 0,
         'playLabel': 0,
         'contextLabel': 0,
         'translation': 0,
@@ -3279,7 +3284,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
       },
       'controls': {
         'filled': ['Finish round', 'Got it'],
-        'outlined': ['Review again'],
+        'outlined': ['Turn over'],
         'checkboxes': 0,
         'textFields': 0,
         'actionChips': 0,
@@ -3297,7 +3302,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
         'gapHint': null,
         'hints': <String>[],
         'translateFrom': <String>[],
-        'usage': 1,
+        'usage': 0,
         'blanks': <String>[],
       },
       'feedback': {
@@ -3318,9 +3323,9 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
   'qql_lab254_card_usage_translation': {
     'before': {
       'heading': 'FLASHCARD',
-      'instruction': 'Study the word and its usage.',
+      'instruction': 'Think of what it means, then turn the card.',
       'prompt': null,
-      'shown': {'question': 1, 'prompt': 1, 'context': 0, 'translationText': 0},
+      'shown': {'question': 0, 'prompt': 1, 'context': 0, 'translationText': 0},
       'panels': {
         'context': 0,
         'dialogue': 0,
@@ -3335,7 +3340,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
         'context': 0,
         'sound': 0,
         'pronounce': 1,
-        'usage': 1,
+        'usage': 0,
         'playLabel': 0,
         'contextLabel': 0,
         'translation': 0,
@@ -3343,7 +3348,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
       },
       'controls': {
         'filled': ['Got it'],
-        'outlined': ['Review again'],
+        'outlined': ['Turn over'],
         'checkboxes': 0,
         'textFields': 0,
         'actionChips': 0,
@@ -3361,7 +3366,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
         'gapHint': null,
         'hints': <String>[],
         'translateFrom': <String>[],
-        'usage': 1,
+        'usage': 0,
         'blanks': <String>[],
       },
       'feedback': {
@@ -3380,9 +3385,9 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
     },
     'after': {
       'heading': 'FLASHCARD',
-      'instruction': 'Study the word and its usage.',
+      'instruction': 'Think of what it means, then turn the card.',
       'prompt': null,
-      'shown': {'question': 1, 'prompt': 1, 'context': 0, 'translationText': 0},
+      'shown': {'question': 0, 'prompt': 1, 'context': 0, 'translationText': 0},
       'panels': {
         'context': 0,
         'dialogue': 0,
@@ -3397,7 +3402,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
         'context': 0,
         'sound': 0,
         'pronounce': 1,
-        'usage': 1,
+        'usage': 0,
         'playLabel': 0,
         'contextLabel': 0,
         'translation': 0,
@@ -3405,7 +3410,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
       },
       'controls': {
         'filled': ['Finish round', 'Got it'],
-        'outlined': ['Review again'],
+        'outlined': ['Turn over'],
         'checkboxes': 0,
         'textFields': 0,
         'actionChips': 0,
@@ -3423,7 +3428,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
         'gapHint': null,
         'hints': <String>[],
         'translateFrom': <String>[],
-        'usage': 1,
+        'usage': 0,
         'blanks': <String>[],
       },
       'feedback': {
@@ -9794,16 +9799,16 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
   'qql_lab254_picture_card': {
     'before': {
       'heading': 'PICTURE FLASHCARD',
-      'instruction': 'Study the word and its usage.',
+      'instruction': 'Think of what it means, then turn the card.',
       'prompt': null,
-      'shown': {'question': 1, 'prompt': 1, 'context': 0, 'translationText': 0},
+      'shown': {'question': 0, 'prompt': 1, 'context': 0, 'translationText': 0},
       'panels': {
         'context': 0,
         'dialogue': 0,
         'passage': 0,
-        'image': 1,
+        'image': 0,
         'portableImages': 0,
-        'mediaImages': 1,
+        'mediaImages': 0,
       },
       'audio': {
         'again': 0,
@@ -9811,7 +9816,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
         'context': 0,
         'sound': 0,
         'pronounce': 1,
-        'usage': 1,
+        'usage': 0,
         'playLabel': 0,
         'contextLabel': 0,
         'translation': 0,
@@ -9819,7 +9824,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
       },
       'controls': {
         'filled': ['Got it'],
-        'outlined': ['Review again'],
+        'outlined': ['Turn over'],
         'checkboxes': 0,
         'textFields': 0,
         'actionChips': 0,
@@ -9837,7 +9842,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
         'gapHint': null,
         'hints': <String>[],
         'translateFrom': <String>[],
-        'usage': 1,
+        'usage': 0,
         'blanks': <String>[],
       },
       'feedback': {
@@ -9856,16 +9861,16 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
     },
     'after': {
       'heading': 'PICTURE FLASHCARD',
-      'instruction': 'Study the word and its usage.',
+      'instruction': 'Think of what it means, then turn the card.',
       'prompt': null,
-      'shown': {'question': 1, 'prompt': 1, 'context': 0, 'translationText': 0},
+      'shown': {'question': 0, 'prompt': 1, 'context': 0, 'translationText': 0},
       'panels': {
         'context': 0,
         'dialogue': 0,
         'passage': 0,
-        'image': 1,
+        'image': 0,
         'portableImages': 0,
-        'mediaImages': 1,
+        'mediaImages': 0,
       },
       'audio': {
         'again': 0,
@@ -9873,7 +9878,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
         'context': 0,
         'sound': 0,
         'pronounce': 1,
-        'usage': 1,
+        'usage': 0,
         'playLabel': 0,
         'contextLabel': 0,
         'translation': 0,
@@ -9881,7 +9886,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
       },
       'controls': {
         'filled': ['Finish round', 'Got it'],
-        'outlined': ['Review again'],
+        'outlined': ['Turn over'],
         'checkboxes': 0,
         'textFields': 0,
         'actionChips': 0,
@@ -9899,7 +9904,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
         'gapHint': null,
         'hints': <String>[],
         'translateFrom': <String>[],
-        'usage': 1,
+        'usage': 0,
         'blanks': <String>[],
       },
       'feedback': {
@@ -9920,16 +9925,16 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
   'qql_lab254_picture_card_plain': {
     'before': {
       'heading': 'PICTURE FLASHCARD',
-      'instruction': 'Study the word and its usage.',
+      'instruction': 'Think of what it means, then turn the card.',
       'prompt': null,
-      'shown': {'question': 1, 'prompt': 1, 'context': 0, 'translationText': 0},
+      'shown': {'question': 0, 'prompt': 1, 'context': 0, 'translationText': 0},
       'panels': {
         'context': 0,
         'dialogue': 0,
         'passage': 0,
-        'image': 1,
+        'image': 0,
         'portableImages': 0,
-        'mediaImages': 1,
+        'mediaImages': 0,
       },
       'audio': {
         'again': 0,
@@ -9945,7 +9950,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
       },
       'controls': {
         'filled': ['Got it'],
-        'outlined': ['Review again'],
+        'outlined': ['Turn over'],
         'checkboxes': 0,
         'textFields': 0,
         'actionChips': 0,
@@ -9982,16 +9987,16 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
     },
     'after': {
       'heading': 'PICTURE FLASHCARD',
-      'instruction': 'Study the word and its usage.',
+      'instruction': 'Think of what it means, then turn the card.',
       'prompt': null,
-      'shown': {'question': 1, 'prompt': 1, 'context': 0, 'translationText': 0},
+      'shown': {'question': 0, 'prompt': 1, 'context': 0, 'translationText': 0},
       'panels': {
         'context': 0,
         'dialogue': 0,
         'passage': 0,
-        'image': 1,
+        'image': 0,
         'portableImages': 0,
-        'mediaImages': 1,
+        'mediaImages': 0,
       },
       'audio': {
         'again': 0,
@@ -10007,7 +10012,7 @@ const laboratoryPresentation = <String, Map<String, Object?>>{
       },
       'controls': {
         'filled': ['Finish round', 'Got it'],
-        'outlined': ['Review again'],
+        'outlined': ['Turn over'],
         'checkboxes': 0,
         'textFields': 0,
         'actionChips': 0,

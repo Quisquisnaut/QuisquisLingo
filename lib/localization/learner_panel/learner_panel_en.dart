@@ -43,6 +43,8 @@ const learnerPanelEn = <String, String>{
   'gotIt': 'Got it',
   'cardAgainLater': 'This card will be shown again later in this round.',
   'cardReviewed': 'Card reviewed.',
+  'turnOver': 'Turn over',
+  'tapToTurn': 'Tap the card to turn it over',
   'linkNotOpened': 'The link could not be opened.',
   'empty': 'Empty',
   'nothingHereYet': 'Nothing here yet',

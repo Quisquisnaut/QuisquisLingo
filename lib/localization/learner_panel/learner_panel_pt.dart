@@ -43,6 +43,8 @@ const learnerPanelPt = <String, String>{
   'gotIt': 'Entendido',
   'cardAgainLater': 'Este cartão voltará mais tarde nesta ronda.',
   'cardReviewed': 'Cartão revisto.',
+  'turnOver': 'Virar',
+  'tapToTurn': 'Toque no cartão para o virar',
   'linkNotOpened': 'Não foi possível abrir o link.',
   'empty': 'Vazio',
   'nothingHereYet': 'Ainda nada aqui',
