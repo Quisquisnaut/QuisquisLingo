@@ -56,7 +56,7 @@ AGENTS release boundary, change summary, validation); version
 focused batch found the Laboratory test pressing Continue on lines being
 read (test fixed, 34 passed); formatted, analyzer clean; complete suite
 4,050 passed, 1 skipped (10 October 2026, 01:21–01:53; the owner closed
-Android Studio for memory). Committed on `build-269` and the branch pushed
+Android Studio for memory). Committed on `build-269` as `c34f14f8` and the branch pushed
 as a backup; `main` is untouched (merge and push only on the owner's go).
 
 Next: the owner reviews the Windows build; corrections are a same-version
