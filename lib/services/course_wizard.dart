@@ -21,12 +21,14 @@ import 'lesson_icon_catalog.dart';
 /// save (owner decision of 6 October 2026); nothing of the Wizard is stored
 /// in the Course file.
 
-/// The Wizard's steps, in order. Revision 2 has the first seven; Check and
-/// publish follows in Revision 3.
+/// The Wizard's steps, in order. Revision 3 (owner's simplification of
+/// 9 October 2026): the flag and cover have their own step and About the
+/// Course holds the rest of Course Info (Credits and rights is gone). Check
+/// and publish follows in a later revision.
 enum CourseWizardStep {
   basics('Basics'),
+  flag('Flag or cover image'),
   about('About the Course'),
-  credits('Credits and rights'),
   options('Course options'),
   lessons('Lessons'),
   guidebook('GuideBook'),
@@ -101,7 +103,7 @@ class CourseWizardPause {
     }
   }
 
-  /// "Course Wizard paused: step 3 of 6 (Credits and rights)".
+  /// "Course Wizard paused: step 3 of 7 (About the Course)".
   String get description => describe(null);
 
   /// [description], naming the Lesson of the GuideBook or Rounds step when
@@ -173,54 +175,85 @@ class CourseWizardBasics {
   });
 }
 
-/// Step 2: what learners read about the Course.
-class CourseWizardAbout {
-  const CourseWizardAbout({
-    this.description = '',
-    this.startLevel = '',
-    this.targetLevel = '',
+/// Step 2: the flag or the cover picture that stands for the Course.
+class CourseWizardPicture {
+  const CourseWizardPicture({
+    this.flag = const CourseFlagSelection.automatic(),
     this.coverImage = '',
     this.coverCredit,
-    this.studyHours,
-    this.minimumAge,
-    this.keywords = const [],
-    this.flag = const CourseFlagSelection.automatic(),
   });
 
-  factory CourseWizardAbout.of(Course course) => CourseWizardAbout(
-    description: course.courseDescription,
-    startLevel: course.startLevel,
-    targetLevel: course.targetLevel,
-    coverImage: course.coverImage,
-    studyHours: course.estimatedStudyHours,
-    minimumAge: course.minimumAge,
-    keywords: course.keywords,
+  factory CourseWizardPicture.of(Course course) => CourseWizardPicture(
     flag: CourseFlagSelection.fromCourse(course),
+    coverImage: course.coverImage,
   );
 
-  final String description;
-  final String startLevel;
-  final String targetLevel;
+  final CourseFlagSelection flag;
 
   /// The cover's media reference, or '' for none.
   final String coverImage;
 
   /// The credit QQL knows for a newly chosen cover, added to Media credits.
   final CourseMediaAttribution? coverCredit;
+
+  bool get isEmpty =>
+      coverImage.isEmpty && flag == const CourseFlagSelection.automatic();
+
+  Course applyTo(Course course) {
+    final json = {...course.toJson()}..remove('coverImage');
+    final credits = [...course.mediaAttributions];
+    final credit = coverCredit;
+    if (coverImage.isNotEmpty &&
+        credit != null &&
+        !credits.any(
+          (known) => jsonEncode(known.toJson()) == jsonEncode(credit.toJson()),
+        )) {
+      credits.add(credit);
+    }
+    return Course.fromJson(
+      flag.applyToJson({
+        ...json,
+        if (coverImage.isNotEmpty) 'coverImage': coverImage,
+        'mediaAttributions': [for (final known in credits) known.toJson()],
+      }),
+    );
+  }
+}
+
+/// Step 3, with [CourseWizardCredits]: what learners read about the Course.
+class CourseWizardAbout {
+  const CourseWizardAbout({
+    this.description = '',
+    this.startLevel = '',
+    this.targetLevel = '',
+    this.studyHours,
+    this.minimumAge,
+    this.keywords = const [],
+  });
+
+  factory CourseWizardAbout.of(Course course) => CourseWizardAbout(
+    description: course.courseDescription,
+    startLevel: course.startLevel,
+    targetLevel: course.targetLevel,
+    studyHours: course.estimatedStudyHours,
+    minimumAge: course.minimumAge,
+    keywords: course.keywords,
+  );
+
+  final String description;
+  final String startLevel;
+  final String targetLevel;
   final int? studyHours;
   final int? minimumAge;
   final List<String> keywords;
-  final CourseFlagSelection flag;
 
   bool get isEmpty =>
       description.trim().isEmpty &&
       startLevel.trim().isEmpty &&
       targetLevel.trim().isEmpty &&
-      coverImage.isEmpty &&
       studyHours == null &&
       minimumAge == null &&
-      keywords.isEmpty &&
-      flag == const CourseFlagSelection.automatic();
+      keywords.isEmpty;
 
   /// Why the typed study hours cannot be stored, or null.
   static String? studyHoursProblem(String text) {
@@ -258,34 +291,21 @@ class CourseWizardAbout {
     final json = {...course.toJson()}
       ..remove('estimatedStudyHours')
       ..remove('minimumAge')
-      ..remove('keywords')
-      ..remove('coverImage');
-    final credits = [...course.mediaAttributions];
-    final credit = coverCredit;
-    if (coverImage.isNotEmpty &&
-        credit != null &&
-        !credits.any(
-          (known) => jsonEncode(known.toJson()) == jsonEncode(credit.toJson()),
-        )) {
-      credits.add(credit);
-    }
-    return Course.fromJson(
-      flag.applyToJson({
-        ...json,
-        'courseDescription': description.trim(),
-        'startLevel': startLevel.trim(),
-        'targetLevel': targetLevel.trim(),
-        if (coverImage.isNotEmpty) 'coverImage': coverImage,
-        'estimatedStudyHours': ?studyHours,
-        'minimumAge': ?minimumAge,
-        if (keywords.isNotEmpty) 'keywords': keywords,
-        'mediaAttributions': [for (final known in credits) known.toJson()],
-      }),
-    );
+      ..remove('keywords');
+    return Course.fromJson({
+      ...json,
+      'courseDescription': description.trim(),
+      'startLevel': startLevel.trim(),
+      'targetLevel': targetLevel.trim(),
+      'estimatedStudyHours': ?studyHours,
+      'minimumAge': ?minimumAge,
+      if (keywords.isNotEmpty) 'keywords': keywords,
+    });
   }
 }
 
-/// Step 3: who made the Course and what others may do with it.
+/// Step 3, with [CourseWizardAbout]: who made the Course and what others may
+/// do with it.
 class CourseWizardCredits {
   const CourseWizardCredits({
     this.authors = const [],
@@ -756,14 +776,17 @@ abstract final class CourseWizardRounds {
 /// Fill with an example: one built-in Course, so filling every step gives a
 /// coherent whole (an English → Italian Course for the bar).
 abstract final class CourseWizardSample {
+  /// The variant is left empty: it is optional (owner, 9 October 2026).
   static const basics = CourseWizardBasics(
     title: 'Italian at the bar',
     sourceLanguage: 'English',
     sourceLanguageTag: 'en',
     targetLanguage: 'Italian',
     targetLanguageTag: 'it',
-    variant: 'Italian of Italy',
   );
+
+  /// The flag of the language learners learn, chosen automatically.
+  static const picture = CourseWizardPicture();
 
   static const about = CourseWizardAbout(
     description:

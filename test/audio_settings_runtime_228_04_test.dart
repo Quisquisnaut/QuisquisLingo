@@ -177,6 +177,37 @@ void main() {
   );
 
   testWidgets(
+    'Build 267: Turn on audio switches Audio Exercises on and plays the Round',
+    (tester) async {
+      // Owner decision of 9 October 2026: a learner who opens a Round of
+      // audio exercises with Audio Exercises off is asked to turn them on.
+      final recorded = _CountingRecordedAudio();
+      final settings = _AudioSettings(audioEnabled: false, ttsEnabled: false);
+      await _pumpRound(
+        tester,
+        settings: settings,
+        recorded: recorded,
+        tts: _CountingTts(),
+      );
+      expect(find.textContaining('Turn on audio to play it?'), findsOneWidget);
+      expect(recorded.playCalls, 0);
+
+      await tester.tap(find.byKey(const Key('round-turn-on-audio')));
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 150)),
+      );
+      await _pumpFrames(tester);
+
+      expect(settings.audioEnabled, isTrue);
+      // A Course of recorded MP3s needs no Text-to-speech.
+      expect(settings.ttsEnabled, isFalse);
+      expect(find.byKey(const Key('round-turn-on-audio')), findsNothing);
+      expect(find.text('What do you hear?'), findsWidgets);
+      expect(recorded.playCalls, 1);
+    },
+  );
+
+  testWidgets(
     '228 correction disabled audio excludes TTS exercises before playback',
     (tester) async {
       final recorded = _CountingRecordedAudio();
@@ -288,6 +319,30 @@ void main() {
 
       expect(find.text('Before you start'), findsNothing);
       expect(find.text('What do you hear?'), findsWidgets);
+      expect(recorded.playCalls, 1);
+    },
+  );
+
+  testWidgets(
+    'Build 267: the Preview keeps the audio silent behind Before you start',
+    (tester) async {
+      final recorded = _CountingRecordedAudio();
+      await _pumpRound(
+        tester,
+        settings: _AudioSettings(audioEnabled: false, ttsEnabled: false),
+        recorded: recorded,
+        tts: _CountingTts(),
+        fixture: _recordedIntroAudioFixture,
+        previewMode: true,
+      );
+
+      expect(find.text('Before you start'), findsOneWidget);
+      expect(recorded.playCalls, 0);
+
+      await tester.tap(find.text('Continue to Round'));
+      await _pumpFrames(tester);
+
+      expect(find.text('Before you start'), findsNothing);
       expect(recorded.playCalls, 1);
     },
   );
@@ -466,8 +521,8 @@ String _correlationId(String message) =>
     RegExp(r'correlationId=([^ ]+)').firstMatch(message)!.group(1)!;
 
 class _AudioSettings extends SettingsService {
-  final bool audioEnabled;
-  final bool ttsEnabled;
+  bool audioEnabled;
+  bool ttsEnabled;
 
   _AudioSettings({required this.audioEnabled, required this.ttsEnabled});
 
@@ -476,6 +531,13 @@ class _AudioSettings extends SettingsService {
 
   @override
   Future<bool> isTtsEnabled() async => ttsEnabled;
+
+  @override
+  Future<void> setAudioExercisesEnabled(bool value) async =>
+      audioEnabled = value;
+
+  @override
+  Future<void> setTtsEnabled(bool enabled) async => ttsEnabled = enabled;
 }
 
 class _CountingRecordedAudio extends RecordedAudioService {

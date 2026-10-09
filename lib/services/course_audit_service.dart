@@ -950,6 +950,13 @@ class CourseAuditService {
             // "What is this?" pictures are three exercises.
             for (final element in features.prompt)
               if (element.isImage) element.asset,
+            // The pairs are the content of a Match, whose instruction is
+            // the same every time (Build 267 Revision 3): two Matches of
+            // different words are two exercises.
+            if (ex.primitive == ExercisePrimitive.match)
+              ([
+                for (final item in ex.items) item.label.trim().toLowerCase(),
+              ]..sort()).join(','),
           ].map((text) => text.trim().toLowerCase()).join('|');
           if (!duplicatePrompts.add(key)) {
             issues.add(

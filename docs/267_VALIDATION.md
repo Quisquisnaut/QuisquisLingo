@@ -117,3 +117,82 @@ Run on the owner's Windows PC (4 cores, 8 GB), `TEMP`/`TMP` on
   button first (`scrollUntilVisible`). The file passes alone (4 tests).
 - Second complete suite (9 October, 00:10–00:43): **3,963 passed, 1 skipped**
   (POSIX only), exit code 0.
+
+## Revision 3 (2.0.67+267003), 9 October 2026
+
+- `dart format` on the changed Dart files only; `flutter analyze --no-pub`:
+  **No issues found.**
+- `test/picture_aids_267_test.dart` (new): **7 passed**:
+  - spelling tiles are letters, an accent kept with its letter;
+  - Prefer picture exercises makes every second focus exercise a picture
+    exercise;
+  - Review slots stay Reviews when the earlier modules have no pictures;
+  - the five new picture presets (What is in the picture, Spell the word in
+    the picture, Name what you see, Type what you see, Listen and pick the
+    image) are planned and built as their forms build them; Spell the word
+    spells the word without its article and never a word over 12 letters;
+  - the Round Wizard's Prefer picture exercises switch is on with pictured
+    words and greyed without;
+  - Suggest pictures fills the empty rows of a reopened module, never a
+    chosen picture, and is offered only in a Course to or from English.
+- `test/course_wizard_267_test.dart`: **22 passed**, updated for the
+  simpler Wizard: step 2 Flag or cover image, step 3 About the Course
+  (description and authors, the rest under Advanced), Course options with
+  only Advanced, Lessons' icons and sections under Advanced, Tell me more,
+  the step bar scrolled to the step shown, the GuideBook step's Fill with an
+  example opening the sample module on the module page, the module note
+  above the modules (`course-wizard-module-explanation`), "Source language"
+  kept (owner).
+- After the owner's last changes (the Rounds note above Make Rounds, the
+  Round Wizard titled Generate Rounds, a paused Wizard Course's row opening
+  the Wizard; the paused-line test now opens the Wizard from the row, saves
+  for now, and reaches the Course Editor's paused line through Edit):
+  `course_wizard_267_test.dart`, `qql_231_course_editor_ui_test.dart`,
+  `guidebook_sentence_generator_test.dart`,
+  `round_wizard_modules_266_test.dart`, `picture_aids_267_test.dart` and
+  `exercise_responsive_224_test.dart`: **57 passed**.
+- Then the Round types, the Listen Round switch, Turn on audio, Round
+  titles off from the Course Wizard and the Preview audio fix:
+  - `picture_aids_267_test.dart`: the default types for 1, 2, 3 and 6
+    Rounds, with and without the Listen Round, in the plan and the drafts;
+  - `audio_settings_runtime_228_04_test.dart`: the Preview keeps the audio
+    silent behind Before you start (fails without the fix: Expected 0,
+    Actual 1), and Turn on audio switches Audio Exercises on (not
+    Text-to-speech in a recorded-MP3 Course) and plays the Round;
+  - `course_wizard_267_test.dart`: from step 7 the Round Wizard starts with
+    Round titles and Listen Round off;
+  - the Round Wizard, GuideBook generator, Story Wizard, Before you start,
+    Round type, Timed and audio test files (16 files): **144 passed**.
+- Then the red exercises (owner: "I don't know why some are red, in the
+  Wizard"): a temporary probe (deleted) audited 10 Round Wizard plans of
+  the Course Wizard's sample: every red mark was `ROUND_DUPLICATE_CONTENT`
+  (180 Warnings: Pick the missing word, Word order, Build the translation,
+  two Matches); after the fresh-content choice and the Match key, 0.
+  `picture_aids_267_test.dart` (10 passed): nothing asked twice for three
+  seeds with and without pictures; an identical Match copy is still one
+  duplicate; Audit in the exercise ⋮ menu opens Exercise Audit with that
+  finding. `course_wizard_267_test.dart`: Finish shows the congratulations
+  popup (red or clean line, Edit mode, Publish) before the Course Editor.
+  Audit and bundled-Course tests (16 files): **381 passed**; Round Wizard
+  related files (11): **96 passed**.
+- Focused batch before the GuideBook explanation split (the Wizard, the
+  Round Wizard, the GuideBook editor, picture matching, reset, Inventory,
+  New Course, Use GuideBook, narrow windows): **248 passed**; after the
+  split, `course_wizard_267_test.dart` again 22 passed.
+- Focused runs found two Round Wizard regressions, fixed before the
+  complete suite: `round_wizard_modules_266_test.dart` lost its "Review:"
+  line because a picture preset took a Review slot (`reviewSafe`: Review
+  slots keep the text presets); the sentence generator tests could not
+  reach Review generation plan and the total (the button is now pinned in
+  the bottom bar while configuring, the total stands above the switches;
+  Revision 2's scroll in `exercise_responsive_224_test.dart` is no longer
+  needed and is removed).
+- Beta: the expiry stays 8 November (committed on 9 October).
+- First complete suite (9 October): 3,974 passed, 1 skipped, **1 failed**:
+  `reset_unreadable_course_266_test.dart`, "a reset button opens its
+  explanation", found no `admin-reset-continue`. The test waited a fixed
+  0.6 s of real time for the reset preview, which reads the stored
+  Courses; under the suite's load it took longer. The file passed 3 times
+  out of 3 alone. The test now waits for the dialog
+  (`pumpUntilFileIoState`), as the other file I/O tests do; no app change.
+- Second complete suite (9 October): **3,975 passed, 1 skipped (POSIX only)**, exit code 0.

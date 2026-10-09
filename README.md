@@ -1,6 +1,6 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.67+267002 · Build 267, Revision 2 · Course Model v12 (`formatVersion: 12`).**
+**Current source version: 2.0.67+267003 · Build 267, Revision 3 · Course Model v12 (`formatVersion: 12`).**
 
 **QuisquisLingo 2.0.67 Beta — QQL 267 Course Wizard (Course Model v12)**
 
@@ -28,6 +28,14 @@ on each Lesson (its plan first) and saves the Rounds it makes; Finish needs
 Rounds in every Lesson. The Round Wizard gains a **Round titles** switch
 (off: untitled Rounds) and, with Create Duels on, counts the Duel questions
 its plan will give the Lesson (25 needed).
+Revision 3 adds picture aids: **Suggest pictures** on the module page (QQL
+pictures for the words already written, never over a chosen one) and five
+more picture exercises in the Round Wizard (What is in the picture, Spell
+the word in the picture, Name what you see, Type what you see, Listen and
+pick the image) with **Prefer picture exercises**, and makes the Wizard
+simpler: a Flag or cover image step, About the Course with the description
+and authors in view, every other field and the longer explanations behind
+**Advanced** and **Tell me more**.
 
 Build 266 makes a Lesson's GuideBook a list of short **modules**
 ([plan](docs/266_GUIDEBOOK_MODULES_PLAN.md),
@@ -670,7 +678,7 @@ The MPL-2.0 covers the QuisquisLingo software source. Courses, the Image Bank an
 
 ## Beta lifecycle
 
-Version 2.0.67, Build 267, Revision 2 is a time-limited Beta with an expiry of **2026-11-08 23:59:59 local time** (30 days after the 9 October 2026 release date). In its last seven days it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
+Version 2.0.67, Build 267, Revision 3 is a time-limited Beta with an expiry of **2026-11-08 23:59:59 local time** (30 days after the 9 October 2026 release date). In its last seven days it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
 
 ## Core logic
 

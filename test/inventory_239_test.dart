@@ -133,7 +133,7 @@ void main() {
     expect(paused.items.single.name, 'friend/course');
     expect(
       paused.items.single.note,
-      contains('Course Wizard paused: step 3 of 7 (Credits and rights)'),
+      contains('Course Wizard paused: step 3 of 7 (About the Course)'),
     );
     expect(paused.items.single.path, isNull);
     expect(paused.items.single.action?.target, key);

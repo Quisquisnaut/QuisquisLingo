@@ -9,6 +9,7 @@ import '../models/course_models.dart';
 import '../models/exercise_image_metadata.dart';
 import '../services/authoring_duplication_service.dart';
 import '../services/course_access_policy.dart';
+import '../services/course_audit_service.dart';
 import '../services/course_authoring_session.dart';
 import '../services/course_language_resolver.dart';
 import '../services/course_library_operations.dart';
@@ -166,6 +167,16 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
 
   CourseAuthoringSession? _session;
   CourseWizardStep _step = CourseWizardStep.basics;
+
+  /// The long explanation and the Advanced fields of the step shown, closed
+  /// on every step (owner's simplification of 9 October 2026).
+  bool _moreExplanation = false;
+  bool _advanced = false;
+
+  /// The step bar scrolls to the step shown.
+  final _stepKeys = {
+    for (final step in CourseWizardStep.values) step: GlobalKey(),
+  };
   CourseWizardStep _furthest = CourseWizardStep.basics;
   bool _busy = false;
   bool _closing = false;
@@ -236,10 +247,11 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
       editorService: _ops.editor,
       clock: _clock,
     )..setEditorMode(CourseEditorMode.edit);
-    final step = widget.pause?.step ?? CourseWizardStep.about;
+    final step = widget.pause?.step ?? CourseWizardStep.flag;
     _step = step;
     _furthest = step;
     _load(step);
+    _showStepInBar();
     unawaited(_loadAuthorName());
   }
 
@@ -298,9 +310,10 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
             variant: course.languageVariant,
           ),
         );
+      case CourseWizardStep.flag:
+        _setPicture(CourseWizardPicture.of(course));
       case CourseWizardStep.about:
         _setAbout(CourseWizardAbout.of(course));
-      case CourseWizardStep.credits:
         _setCredits(CourseWizardCredits.of(course));
       case CourseWizardStep.options:
         _setOptions(CourseWizardOptions.of(course));
@@ -335,16 +348,20 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
     _generation++;
   }
 
+  void _setPicture(CourseWizardPicture picture) {
+    _cover = picture.coverImage;
+    _coverCredit = picture.coverCredit;
+    _flag = picture.flag;
+    _generation++;
+  }
+
   void _setAbout(CourseWizardAbout about) {
     _description.text = about.description;
     _startLevel.text = about.startLevel;
     _targetLevel.text = about.targetLevel;
     _studyHours.text = about.studyHours?.toString() ?? '';
     _keywords.text = about.keywords.join(', ');
-    _cover = about.coverImage;
-    _coverCredit = about.coverCredit;
     _minimumAge = about.minimumAge;
-    _flag = about.flag;
     _generation++;
   }
 
@@ -410,16 +427,19 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
     variant: _variant.text,
   );
 
+  CourseWizardPicture get _pictureValue => CourseWizardPicture(
+    flag: _flag,
+    coverImage: _cover,
+    coverCredit: _coverCredit,
+  );
+
   CourseWizardAbout get _aboutValue => CourseWizardAbout(
     description: _description.text,
     startLevel: _startLevel.text,
     targetLevel: _targetLevel.text,
-    coverImage: _cover,
-    coverCredit: _coverCredit,
     studyHours: int.tryParse(_studyHours.text.trim()),
     minimumAge: _minimumAge,
     keywords: CourseWizardAbout.keywordsFrom(_keywords.text),
-    flag: _flag,
   );
 
   /// Throws a [FormatException] for an address that cannot be stored.
@@ -476,10 +496,13 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
           if (_target.tagError != null) return _target.tagError;
         }
         return null;
+      case CourseWizardStep.flag:
+        return null;
       case CourseWizardStep.about:
-        return CourseWizardAbout.studyHoursProblem(_studyHours.text) ??
+        final about =
+            CourseWizardAbout.studyHoursProblem(_studyHours.text) ??
             CourseWizardAbout.keywordsProblem(_keywords.text);
-      case CourseWizardStep.credits:
+        if (about != null) return about;
         if (_licenseChoice == _customLicenseChoice &&
             _customLicense.text.trim().isEmpty) {
           return 'Type the custom license, or choose a license from the list.';
@@ -503,8 +526,10 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
   /// The working copy with the current step's values.
   Course _candidate() => switch (_step) {
     CourseWizardStep.basics => _basicsValue.applyTo(_working),
-    CourseWizardStep.about => _aboutValue.applyTo(_working),
-    CourseWizardStep.credits => _creditsValue.applyTo(_working),
+    CourseWizardStep.flag => _pictureValue.applyTo(_working),
+    CourseWizardStep.about => _creditsValue.applyTo(
+      _aboutValue.applyTo(_working),
+    ),
     CourseWizardStep.options => _optionsValue.applyTo(_working),
     CourseWizardStep.lessons => CourseWizardLessons.applyTo(
       _working,
@@ -522,6 +547,8 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
       _title.text.trim().isNotEmpty ||
           _variant.text.trim().isNotEmpty ||
           (_starting && !_target.isEmpty),
+    CourseWizardStep.flag =>
+      _cover.isNotEmpty || _flag != const CourseFlagSelection.automatic(),
     CourseWizardStep.about =>
       [
             _description,
@@ -530,11 +557,8 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
             _studyHours,
             _keywords,
           ].any((controller) => controller.text.trim().isNotEmpty) ||
-          _cover.isNotEmpty ||
           _minimumAge != null ||
-          _flag != const CourseFlagSelection.automatic(),
-    CourseWizardStep.credits =>
-      _creditRows.isNotEmpty ||
+          _creditRows.isNotEmpty ||
           _holderRows.isNotEmpty ||
           _licenseChoice != CourseWizardCredits.defaultLicense ||
           [
@@ -634,9 +658,25 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
     setState(() {
       _step = step;
       if (step.index > _furthest.index) _furthest = step;
+      _moreExplanation = false;
+      _advanced = false;
       _load(step);
     });
+    _showStepInBar();
     await _remember(step);
+  }
+
+  /// Scrolls the step bar so the step shown is in view.
+  void _showStepInBar() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final target = _stepKeys[_step]?.currentContext;
+      if (target == null || !mounted) return;
+      Scrollable.ensureVisible(
+        target,
+        alignment: .5,
+        duration: const Duration(milliseconds: 250),
+      );
+    });
   }
 
   Future<void> _run(Future<void> Function() action) async {
@@ -711,7 +751,7 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
     if (!mounted) return;
     _authorName = profile.presentationName;
     _session = session;
-    await _goTo(CourseWizardStep.about);
+    await _goTo(CourseWizardStep.flag);
   });
 
   /// Create it myself: New Course's form with what this screen holds.
@@ -751,11 +791,81 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
     if (!await _save()) return;
     final next = _step.next;
     if (next == null) {
+      await _congratulate();
       await _close(finish: true);
       return;
     }
     await _goTo(next);
   });
+
+  /// The end of the Wizard (owner request of 9 October 2026), briefly:
+  /// congratulations, what is still red, where to change the Course, and
+  /// Publish when it is ready.
+  Future<void> _congratulate() async {
+    final course = _session!.originalCourse;
+    final issues = CourseAuditService().auditCourse(course).issues;
+    int count(AuditSeverity severity) =>
+        issues.where((issue) => issue.severity == severity).length;
+    final errors = count(AuditSeverity.error);
+    final warnings = count(AuditSeverity.warning);
+    String many(int n, String noun) => '$n $noun${n == 1 ? '' : 's'}';
+    if (!mounted) return;
+    final scheme = Theme.of(context).colorScheme;
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        key: const Key('course-wizard-finished'),
+        title: const Text('Congratulations!'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'You finished the Course Wizard: “${course.title}” has its '
+                'Lessons, GuideBooks and Rounds.',
+              ),
+              const SizedBox(height: 12),
+              if (errors + warnings > 0)
+                Text(
+                  key: const Key('course-wizard-finished-red'),
+                  'Still red: ${[if (errors > 0) many(errors, 'error'), if (warnings > 0) many(warnings, 'warning')].join(' and ')} '
+                  'to fix. Run audit in the Course Editor, or Audit in a ⋮ '
+                  'menu, shows what and where.',
+                  style: TextStyle(
+                    color: scheme.error,
+                    fontWeight: FontWeight.w600,
+                  ),
+                )
+              else
+                const Text(
+                  key: Key('course-wizard-finished-clean'),
+                  'Nothing is red: the Audit finds no errors or warnings.',
+                ),
+              const SizedBox(height: 12),
+              const Text(
+                'You can still change everything in the Course Editor: '
+                'switch it to Edit mode.',
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                'The Rounds are Drafts: save them as Published once you have '
+                'checked them. When the Course is ready for showtime, press '
+                'Publish on the Course Editor\'s main page.',
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          FilledButton(
+            key: const Key('course-wizard-finished-ok'),
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('Open the Course Editor'),
+          ),
+        ],
+      ),
+    );
+  }
 
   Future<void> _back() async {
     final previous = _step.previous;
@@ -916,26 +1026,33 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
       return;
     }
     if (!mounted) return;
+    // The GuideBook's example opens on the module page, so the author sees
+    // it (owner, 9 October 2026); Done keeps it in the Lesson.
+    if (_step == CourseWizardStep.guidebook) {
+      final example = await _editModule(
+        CourseWizardSample.guidebook(_ids).single,
+      );
+      if (example == null || !mounted) return;
+      setState(() => _setModules([example]));
+      return;
+    }
     setState(() {
       switch (_step) {
         case CourseWizardStep.basics:
           _setBasics(CourseWizardSample.basics);
+        case CourseWizardStep.flag:
+          // The example has no cover of its own: a cover chosen stays.
+          _setPicture(
+            CourseWizardPicture(coverImage: _cover, coverCredit: _coverCredit),
+          );
         case CourseWizardStep.about:
-          // The cover stays: the example has no picture of its own.
-          final cover = _cover;
-          final credit = _coverCredit;
           _setAbout(CourseWizardSample.about);
-          _cover = cover;
-          _coverCredit = credit;
-        case CourseWizardStep.credits:
           _setCredits(CourseWizardSample.credits(_authorName));
         case CourseWizardStep.options:
           _setOptions(CourseWizardSample.options);
         case CourseWizardStep.lessons:
           _setLessons(CourseWizardSample.lessons);
-        case CourseWizardStep.guidebook:
-          _setModules(CourseWizardSample.guidebook(_ids));
-        case CourseWizardStep.rounds:
+        case CourseWizardStep.guidebook || CourseWizardStep.rounds:
           break;
       }
     });
@@ -974,9 +1091,10 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
       switch (_step) {
         case CourseWizardStep.basics:
           _setBasics(const CourseWizardBasics());
+        case CourseWizardStep.flag:
+          _setPicture(const CourseWizardPicture());
         case CourseWizardStep.about:
           _setAbout(const CourseWizardAbout());
-        case CourseWizardStep.credits:
           _setCredits(const CourseWizardCredits());
         case CourseWizardStep.options:
           _setOptions(CourseWizardOptions.defaults);
@@ -1205,6 +1323,7 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
           course: _working,
           lesson: lesson,
           clock: _clock,
+          roundTitles: false,
         ),
       ),
     );
@@ -1483,14 +1602,17 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
   static const _lessonOptions = 'Lesson Options in the Course Editor';
   static const _lessonPage = 'the Lesson\'s page in the Course Editor';
 
-  Widget _explanation(List<String> paragraphs) {
+  /// The step's explanation: a short line in view, the rest behind "Tell me
+  /// more" (owner, 9 October 2026: the long explanation is hidden).
+  Widget _explanation(({String short, List<String> more}) text) {
     final scheme = Theme.of(context).colorScheme;
+    final style = TextStyle(color: scheme.onSecondaryContainer);
     return Card(
       key: const Key('course-wizard-explanation'),
       color: scheme.secondaryContainer,
       margin: EdgeInsets.zero,
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.fromLTRB(12, 12, 12, 4),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -1500,12 +1622,28 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  for (final (index, paragraph) in paragraphs.indexed)
-                    Padding(
-                      padding: EdgeInsets.only(top: index == 0 ? 0 : 8),
+                  Text(
+                    text.short,
+                    key: const Key('course-wizard-explanation-short'),
+                    style: style,
+                  ),
+                  if (_moreExplanation)
+                    for (final paragraph in text.more)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: Text(paragraph, style: style),
+                      ),
+                  if (text.more.isNotEmpty)
+                    TextButton(
+                      key: const Key('course-wizard-explanation-more'),
+                      style: TextButton.styleFrom(
+                        padding: EdgeInsets.zero,
+                        visualDensity: VisualDensity.compact,
+                      ),
+                      onPressed: () =>
+                          setState(() => _moreExplanation = !_moreExplanation),
                       child: Text(
-                        paragraph,
-                        style: TextStyle(color: scheme.onSecondaryContainer),
+                        _moreExplanation ? 'Show less' : 'Tell me more',
                       ),
                     ),
                 ],
@@ -1517,132 +1655,138 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
     );
   }
 
-  List<String> get _explanationText => switch (_step) {
-    CourseWizardStep.basics when _starting => const [
-      'Every Course starts with a title and two languages.',
-      'Title: what learners see in the list of Courses, for example '
-          '“Italian at the bar”. Source language: the language your learners '
-          'already speak; QQL writes its instructions and translations in it. '
-          'Target language: the language they learn. For example English → '
-          'Italian.',
-      'Language variant: which form of the target language, for example '
-          '“Italian of Italy” or “Brazilian Portuguese”.',
-      'Needed now: the title and both languages. The languages never change '
-          'later; the title can, in Course Info. The variant can wait.',
-      'Then choose how to go on. The Course Wizard takes you through every '
-          'step and explains it: QQL saves the Course now, as a Draft with no '
-          'Lessons, and you can stop at any step and continue later. Creating '
-          'it yourself opens the New Course form and then the Course Editor '
-          'at once: quicker if you know QQL.',
-    ],
-    CourseWizardStep.basics => const [
-      'The Course\'s title and its language variant. Learners see the title '
-          'in the list of Courses, for example “Italian at the bar”.',
-      'The languages cannot change: learners\' XP and streaks belong to the '
-          'language they learn.',
-      'Needed now: the title. The variant can wait (Course Info in the '
-          'Course Editor).',
-    ],
-    CourseWizardStep.about => const [
-      'Tell learners what the Course is about. They read it in Course Info '
-          'and in the list of Courses before they start.',
-      'Description: two or three sentences, for example “Order a coffee and '
-          'a pastry in an Italian bar and ask for the bill.” Levels: where '
-          'learners start and where they arrive, for example A1 → A2.',
-      'Cover: a square picture that stands for the Course in lists, in place '
-          'of the flag. Flag: Automatic takes the flag of the language '
-          'learners learn.',
-      'Study hours, minimum age and keywords help learners choose: “about 4 '
-          'hours”, “for ages 9 and up”, “bar, food and drink, travel”.',
-      'Everything here can wait: Course Info, in the Course Editor, changes '
-          'it at any time.',
-    ],
-    CourseWizardStep.credits => const [
-      'Say who made the Course and what other people may do with it.',
-      'Credits name the people who worked on it, with their roles: Author, '
-          'Illustrator, Native Speaker… Learners see them in Course Info. A '
-          'credit never gives anyone the right to edit: you are this '
-          'Course\'s Maintainer, and you can assign a Team later in Course '
-          'Info.',
-      'The license tells others what they may do with your content. '
-          'Allowing derivative works lets other people Fork your Course: they '
-          'get their own copy to change, with your name kept as the original '
-          'creator.',
-      'Rights Holders record who owns the rights: a person or an '
-          'organization. Buy a Coffee and the publisher\'s website and email '
-          'let learners thank you or reach you.',
-      'Everything here can wait (Course Info in the Course Editor). Until '
-          'you change it, the Course is “All rights reserved” and nobody may '
-          'Fork it.',
-    ],
-    CourseWizardStep.options => const [
-      'Choose how the Course looks and works for learners. Each option shows '
-          'what learners see.',
-      'Use GuideBook stays on: the Course Wizard builds your Rounds from the '
-          'GuideBook, so it stays on. You can turn it off later in Lesson '
-          'Options, but it is recommended.',
-      'Everything here can wait: Lesson Options, on the Course Editor page.',
-    ],
-    CourseWizardStep.lessons => const [
-      'A Lesson is one topic, like “At the market”. Learners open Lessons in '
-          'order: the next one opens when they finish this one or win its '
-          'Duel. A Duel needs 25 questions, so a Lesson usually has about six '
+  /// Advanced: the fields that can wait, closed until the author asks.
+  Widget _advancedToggle(String where) => Padding(
+    padding: const EdgeInsets.only(top: 12),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        OutlinedButton.icon(
+          key: const Key('course-wizard-advanced'),
+          onPressed: () => setState(() => _advanced = !_advanced),
+          icon: Icon(_advanced ? Icons.expand_less : Icons.expand_more),
+          label: Text(_advanced ? 'Hide advanced' : 'Advanced'),
+        ),
+        if (_advanced)
+          Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 4,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                _canWait('advanced', where),
+                Text(
+                  'These can wait: fill them in now or later, in $where.',
+                  key: const Key('course-wizard-advanced-note'),
+                ),
+              ],
+            ),
+          ),
+      ],
+    ),
+  );
+
+  ({String short, List<String> more}) get _explanationText => switch (_step) {
+    CourseWizardStep.basics when _starting => (
+      short: 'Name your Course and choose its two languages.',
+      more: const [
+        'Title: what learners see in the list of Courses, for example '
+            '“Italian at the bar”. Source language: the language your '
+            'learners already speak; QQL writes its instructions and '
+            'translations in it. Target language: the language they learn. '
+            'The languages never change later.',
+        'Variant (optional): which form of the target language, for '
+            'example “American English”. You can leave it empty.',
+        'Continue with the Course Wizard saves the Course now, as a Draft '
+            'with no Lessons, and takes you through the rest step by step; '
+            'you can stop and continue later. Create it myself opens the New '
+            'Course form and then the Course Editor at once.',
+      ],
+    ),
+    CourseWizardStep.basics => (
+      short: 'The Course\'s title and its variant.',
+      more: const [
+        'Learners see the title in the list of Courses. The languages cannot '
+            'change: learners\' XP and streaks belong to the language they '
+            'learn. The variant is optional, for example “American English”.',
+      ],
+    ),
+    CourseWizardStep.flag => (
+      short:
+          'Choose the picture that stands for your Course: its flag, or a '
+          'cover picture.',
+      more: const [
+        'Flag: Automatic takes the flag of the language learners learn; you '
+            'can choose another. Cover: a square picture shown in place of '
+            'the flag in the lists of Courses, Course Info and the Course '
+            'Editor; the flag still shows in the top bar.',
+        'Both can wait: Course Info, in the Course Editor.',
+      ],
+    ),
+    CourseWizardStep.about => (
+      short: 'Tell learners what the Course is about and who made it.',
+      more: const [
+        'Description: two or three sentences, for example “Order a coffee and '
+            'a pastry in an Italian bar and ask for the bill.” Authors: the '
+            'people who made the Course. A credit never gives the right to '
+            'edit: you are the Course Maintainer.',
+        'Advanced holds the rest of Course Info: levels, study hours, minimum '
+            'age, keywords, roles, the license (whether others may Fork the '
+            'Course), Rights Holders, Buy a Coffee and the publisher\'s '
+            'contact. They can wait. Until you choose a license, the Course is '
+            '“All rights reserved” and nobody may Fork it.',
+      ],
+    ),
+    CourseWizardStep.options => (
+      short:
+          'The options keep their recommended values. Open Advanced only to '
+          'change them.',
+      more: const [
+        'They decide how learners see Lesson and Round names, Word Lookup, '
+            'Duels, picture answers and Timed limits. Use GuideBook stays on: '
+            'the Course Wizard builds your Rounds from the GuideBook. You can '
+            'change everything later in Lesson Options, in the Course Editor.',
+      ],
+    ),
+    CourseWizardStep.lessons => (
+      short:
+          'A Lesson is one topic, like “At the market”. Give each Lesson a '
+          'title.',
+      more: const [
+        'Learners open Lessons in order: the next one opens when they finish '
+            'this one or win its Duel. A Duel needs 25 questions, so a Lesson '
+            'usually has about six Rounds. Next saves the Lessons; then you '
+            'write each Lesson\'s GuideBook.',
+      ],
+    ),
+    // Owner, 9 October 2026: the module details stand above the modules,
+    // where the module page opens; this panel keeps the step's own rule.
+    CourseWizardStep.guidebook => (
+      short:
+          'Write each Lesson\'s GuideBook: short modules of words and '
+          'sentences, which learners read and the Round Wizard turns into '
           'Rounds.',
-      'Give each Lesson its title and, if you like, an icon and a section. A '
-          'section groups neighbouring Lessons under one heading, for example '
-          '“At the bar” over the first two Lessons.',
-      'Needed now: at least one Lesson, and every Lesson\'s title. Icons and '
-          'sections can wait (the Lesson\'s page in the Course Editor), and '
-          'Lessons can be added, moved and removed there later too.',
-      'Next saves the Lessons; then you write each Lesson\'s GuideBook.',
-    ],
-    CourseWizardStep.guidebook => [
-      'The GuideBook is each Lesson\'s reference: learners read it, and the '
-          'Round Wizard makes the Lesson\'s Rounds from it. It is made of '
-          'modules, one short topic each, like “Al bar: ordering and paying”.',
-      'A module has a title, Sentences (example sentences with their '
-          'translation), Words & Expressions (single words and fixed '
-          'expressions with their translation, an optional Context such as '
-          '“restaurant”, and an optional picture) and a short Overview. '
-          'Learners see the pictures in the GuideBook, on Review cards and in '
-          'Word Lookup.',
-      if (GuidebookPictureIndex.sideFor(_working) != null)
-        'In a Course to or from English, typing a word suggests its picture '
-            'from QQL\'s library when a picture has that name; you can change '
-            'or remove it.',
-      'Choose a Lesson and write its modules. Fill with an example fills the '
-          'Lesson with a sample module, in Italian and English whatever the '
-          'Course\'s languages.',
-      'Needed now: in every Lesson, a module with at least '
-          '${CourseWizardGuidebook.minimumWords} Words & Expressions, which the '
-          'Round Wizard needs. When a Lesson\'s GuideBook is ready, press '
-          '“This Lesson\'s GuideBook is ready”: it saves the GuideBook as '
-          'Published, so learners can read it. Changing it afterwards asks for '
-          'that again.',
-      'Next saves the GuideBooks; then the Round Wizard makes each Lesson\'s '
-          'Rounds from them.',
-    ],
-    CourseWizardStep.rounds => [
-      'The Round Wizard makes each Lesson\'s Rounds from its GuideBook: '
-          'Rounds that practise each module in turn, from recognizing its '
-          'words to using them, with about a third of each Round reviewing '
-          'the earlier modules.',
-      'Choose a Lesson and press Make Rounds. The Round Wizard starts with '
-          'its recommended settings (All modules with 3 Rounds each, or 6 '
-          'Rounds for a Lesson with one module; 8 exercises per Round) and '
-          'shows its plan, the Rounds with their focus module and words, '
-          'before it makes anything. The Rounds it makes are Drafts: you can '
-          'edit them in the Course Editor.',
-      'Round titles: on, each Round is titled like “Practice: Al bar”; off, '
-          'learners see only the Round type and number.',
-      if (_working.createDuels)
-        'Duel: the plan counts the Duel questions the Lesson will have. A '
-            'Duel needs 25; if there are fewer, raise Rounds per module or '
-            'exercises per Round.',
-      'Needed now: every Lesson needs Rounds. Fill with an example opens the '
-          'Round Wizard with its recommended settings.',
-      'Finish saves the Course and opens the Course Editor.',
-    ],
+      more: const [
+        'Needed now: in every Lesson, a module with at least '
+            '${CourseWizardGuidebook.minimumWords} Words & Expressions, which '
+            'the Round Wizard needs. When a Lesson\'s GuideBook is ready, '
+            'press “This Lesson\'s GuideBook is ready”: it saves the GuideBook '
+            'as Published, so learners can read it. Changing it afterwards '
+            'asks for that again.',
+      ],
+    ),
+    // Owner, 9 October 2026: what the Round Wizard does stands beside Make
+    // Rounds; its switches explain themselves on its own page.
+    CourseWizardStep.rounds => (
+      short:
+          'Make each Lesson\'s Rounds with the Round Wizard: it shows its '
+          'plan before it makes anything.',
+      more: const [
+        'Needed now: every Lesson needs Rounds. Finish saves the Course and '
+            'opens the Course Editor.',
+      ],
+    ),
   };
 
   // ---- Steps
@@ -1684,90 +1828,40 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
         key: const Key('course-wizard-languages'),
         '${_working.sourceLanguage} → ${_working.targetLanguage}',
       ),
-    _heading(
-      'Language variant',
-      tooltip: 'Which form of the target language.',
-      canWaitId: 'variant',
-      where: _courseInfo,
-    ),
+    _heading('Variant', tooltip: 'Which form of the target language.'),
     TextField(
       key: ValueKey('course-wizard-variant-$_generation'),
       controller: _variant,
       maxLength: 120,
       decoration: const InputDecoration(
         border: OutlineInputBorder(),
-        labelText: 'Language variant',
-        helperText: 'For example “Italian of Italy”.',
+        labelText: 'Language variant (optional)',
+        helperText:
+            'For example “American English”. Optional: you can leave it '
+            'empty.',
+        helperMaxLines: 2,
       ),
     ),
   ];
 
-  List<Widget> _aboutFields() {
+  /// Step 2: the flag, then the cover.
+  List<Widget> _flagFields() {
     final course = _working;
     return [
       _heading(
-        'Description',
-        tooltip: 'What learners read in Course Info.',
-        canWaitId: 'description',
-        where: _courseInfo,
+        'Flag',
+        tooltip: 'Automatic: the flag of the language learners learn.',
       ),
-      TextField(
-        key: ValueKey('course-wizard-description-$_generation'),
-        controller: _description,
-        minLines: 2,
-        maxLines: 6,
-        maxLength: 5000,
-        decoration: const InputDecoration(
-          border: OutlineInputBorder(),
-          labelText: 'Course description',
-          helperText:
-              'For example “Order a coffee and a pastry in an Italian bar '
-              'and ask for the bill.”',
-          helperMaxLines: 3,
-        ),
+      CourseFlagSelector(
+        key: ValueKey('course-wizard-flag-$_generation'),
+        selection: _flag,
+        languageName: course.targetLanguage,
+        languageTag: course.targetLanguageTag.isNotEmpty
+            ? course.targetLanguageTag
+            : CourseLanguageResolver.codeFromMetadata([course.targetLanguage]),
+        onChanged: (selection) => setState(() => _flag = selection),
       ),
-      _heading(
-        'Levels',
-        tooltip: 'Where learners start and where they arrive.',
-        canWaitId: 'levels',
-        where: _courseInfo,
-      ),
-      Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: TextField(
-              key: ValueKey('course-wizard-start-level-$_generation'),
-              controller: _startLevel,
-              maxLength: 40,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                labelText: 'Starting level',
-                helperText: 'For example A1.',
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: TextField(
-              key: ValueKey('course-wizard-target-level-$_generation'),
-              controller: _targetLevel,
-              maxLength: 40,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                labelText: 'Target level',
-                helperText: 'For example A2.',
-              ),
-            ),
-          ),
-        ],
-      ),
-      _heading(
-        'Picture',
-        tooltip: 'The cover and the flag that stand for the Course.',
-        canWaitId: 'cover',
-        where: _courseInfo,
-      ),
+      const SizedBox(height: 16),
       CourseCoverField(
         key: ValueKey('course-wizard-cover-$_generation'),
         courseId: course.courseId,
@@ -1778,81 +1872,123 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
           _coverCredit = choice.credit;
         }),
       ),
-      const SizedBox(height: 12),
-      CourseFlagSelector(
-        key: ValueKey('course-wizard-flag-$_generation'),
-        selection: _flag,
-        languageName: course.targetLanguage,
-        languageTag: course.targetLanguageTag.isNotEmpty
-            ? course.targetLanguageTag
-            : CourseLanguageResolver.codeFromMetadata([course.targetLanguage]),
-        onChanged: (selection) => setState(() => _flag = selection),
-      ),
-      _heading(
-        'Study hours, age and keywords',
-        tooltip: 'They help learners choose a Course.',
-        canWaitId: 'details',
-        where: _courseInfo,
-      ),
-      TextField(
-        key: ValueKey('course-wizard-study-hours-$_generation'),
-        controller: _studyHours,
-        keyboardType: TextInputType.number,
-        onChanged: (_) => setState(() {}),
-        decoration: InputDecoration(
-          border: const OutlineInputBorder(),
-          labelText: 'Estimated study hours',
-          helperText: 'A whole number, for example 4.',
-          errorText: CourseWizardAbout.studyHoursProblem(_studyHours.text),
-        ),
-      ),
-      const SizedBox(height: 12),
-      DropdownButtonFormField<int?>(
-        key: ValueKey('course-wizard-minimum-age-$_generation'),
-        initialValue: _minimumAge,
-        isExpanded: true,
-        decoration: const InputDecoration(
-          border: OutlineInputBorder(),
-          labelText: 'Minimum age',
-          helperText: 'The app stores\' age classes.',
-        ),
-        items: [
-          const DropdownMenuItem<int?>(
-            value: null,
-            child: Text('Not specified'),
-          ),
-          for (final age in Course.minimumAgeClasses)
-            DropdownMenuItem<int?>(value: age, child: Text('$age+')),
-        ],
-        onChanged: (value) => setState(() => _minimumAge = value),
-      ),
-      const SizedBox(height: 12),
-      TextField(
-        key: ValueKey('course-wizard-keywords-$_generation'),
-        controller: _keywords,
-        onChanged: (_) => setState(() {}),
-        decoration: InputDecoration(
-          border: const OutlineInputBorder(),
-          labelText: 'Keywords',
-          helperText:
-              'Separate them with commas, for example “bar, food and drink, '
-              'travel”. Up to 20, of up to 32 characters each.',
-          helperMaxLines: 3,
-          errorText: CourseWizardAbout.keywordsProblem(_keywords.text),
-        ),
-      ),
     ];
   }
 
-  List<Widget> _creditsFields() => [
-    _heading(
-      'Credits',
-      tooltip: 'The people who made the Course and their roles.',
-      canWaitId: 'credits',
-      where: _courseInfo,
+  /// Step 3: the description and the authors in view; the rest of Course
+  /// Info behind Advanced (owner, 9 October 2026).
+  List<Widget> _aboutFields() => [
+    _heading('Description', tooltip: 'What learners read in Course Info.'),
+    TextField(
+      key: ValueKey('course-wizard-description-$_generation'),
+      controller: _description,
+      minLines: 2,
+      maxLines: 6,
+      maxLength: 5000,
+      decoration: const InputDecoration(
+        border: OutlineInputBorder(),
+        labelText: 'Course description (optional)',
+        helperText:
+            'For example “Order a coffee and a pastry in an Italian bar '
+            'and ask for the bill.”',
+        helperMaxLines: 3,
+      ),
     ),
-    const Text(
-      'Credits are shown to learners and never give anyone the right to edit.',
+    ..._authorFields(),
+    _advancedToggle(_courseInfo),
+    if (_advanced) ...[..._aboutDetails(), ..._rightsFields()],
+  ];
+
+  /// Levels, study hours, minimum age and keywords (Advanced).
+  List<Widget> _aboutDetails() => [
+    _heading('Levels', tooltip: 'Where learners start and where they arrive.'),
+    Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: TextField(
+            key: ValueKey('course-wizard-start-level-$_generation'),
+            controller: _startLevel,
+            maxLength: 40,
+            decoration: const InputDecoration(
+              border: OutlineInputBorder(),
+              labelText: 'Starting level',
+              helperText: 'For example A1.',
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: TextField(
+            key: ValueKey('course-wizard-target-level-$_generation'),
+            controller: _targetLevel,
+            maxLength: 40,
+            decoration: const InputDecoration(
+              border: OutlineInputBorder(),
+              labelText: 'Target level',
+              helperText: 'For example A2.',
+            ),
+          ),
+        ),
+      ],
+    ),
+    _heading(
+      'Study hours, age and keywords',
+      tooltip: 'They help learners choose a Course.',
+    ),
+    TextField(
+      key: ValueKey('course-wizard-study-hours-$_generation'),
+      controller: _studyHours,
+      keyboardType: TextInputType.number,
+      onChanged: (_) => setState(() {}),
+      decoration: InputDecoration(
+        border: const OutlineInputBorder(),
+        labelText: 'Estimated study hours',
+        helperText: 'A whole number, for example 4.',
+        errorText: CourseWizardAbout.studyHoursProblem(_studyHours.text),
+      ),
+    ),
+    const SizedBox(height: 12),
+    DropdownButtonFormField<int?>(
+      key: ValueKey('course-wizard-minimum-age-$_generation'),
+      initialValue: _minimumAge,
+      isExpanded: true,
+      decoration: const InputDecoration(
+        border: OutlineInputBorder(),
+        labelText: 'Minimum age',
+        helperText: 'The app stores\' age classes.',
+      ),
+      items: [
+        const DropdownMenuItem<int?>(value: null, child: Text('Not specified')),
+        for (final age in Course.minimumAgeClasses)
+          DropdownMenuItem<int?>(value: age, child: Text('$age+')),
+      ],
+      onChanged: (value) => setState(() => _minimumAge = value),
+    ),
+    const SizedBox(height: 12),
+    TextField(
+      key: ValueKey('course-wizard-keywords-$_generation'),
+      controller: _keywords,
+      onChanged: (_) => setState(() {}),
+      decoration: InputDecoration(
+        border: const OutlineInputBorder(),
+        labelText: 'Keywords',
+        helperText:
+            'Separate them with commas, for example “bar, food and drink, '
+            'travel”. Up to 20, of up to 32 characters each.',
+        helperMaxLines: 3,
+        errorText: CourseWizardAbout.keywordsProblem(_keywords.text),
+      ),
+    ),
+  ];
+
+  /// The authors: names in view, their roles behind Advanced.
+  List<Widget> _authorFields() => [
+    _heading(
+      'Authors',
+      tooltip:
+          'The people who made the Course. Credits are shown to learners and '
+          'never give anyone the right to edit.',
     ),
     for (final (index, row) in _creditRows.indexed)
       Card(
@@ -1889,41 +2025,44 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
                   ),
                 ],
               ),
-              Wrap(
-                spacing: 6,
-                runSpacing: 6,
-                children: [
-                  for (final role in CourseMetadataOptions.standardRoles)
-                    Tooltip(
-                      message:
-                          CourseMetadataOptions.roleDescriptions[role] ?? role,
-                      child: FilterChip(
-                        label: Text(role),
-                        selected: row.roles.contains(role),
-                        onSelected: (selected) => setState(() {
-                          if (selected) {
-                            row.roles.add(role);
-                          } else {
-                            row.roles.remove(role);
-                          }
-                        }),
+              if (_advanced) ...[
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: [
+                    for (final role in CourseMetadataOptions.standardRoles)
+                      Tooltip(
+                        message:
+                            CourseMetadataOptions.roleDescriptions[role] ??
+                            role,
+                        child: FilterChip(
+                          label: Text(role),
+                          selected: row.roles.contains(role),
+                          onSelected: (selected) => setState(() {
+                            if (selected) {
+                              row.roles.add(role);
+                            } else {
+                              row.roles.remove(role);
+                            }
+                          }),
+                        ),
                       ),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                key: ValueKey(
-                  'course-wizard-credit-custom-$index-$_generation',
+                  ],
                 ),
-                controller: row.customRoles,
-                maxLength: 240,
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: 'Other roles',
-                  helperText: 'Optional; separate them with commas.',
+                const SizedBox(height: 8),
+                TextField(
+                  key: ValueKey(
+                    'course-wizard-credit-custom-$index-$_generation',
+                  ),
+                  controller: row.customRoles,
+                  maxLength: 240,
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    labelText: 'Other roles',
+                    helperText: 'Optional; separate them with commas.',
+                  ),
                 ),
-              ),
+              ],
             ],
           ),
         ),
@@ -1942,12 +2081,11 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
         label: const Text('Add a person'),
       ),
     ),
-    _heading(
-      'License',
-      tooltip: 'What others may do with your content.',
-      canWaitId: 'license',
-      where: _courseInfo,
-    ),
+  ];
+
+  /// License, Rights Holders, thanks and contact (Advanced).
+  List<Widget> _rightsFields() => [
+    _heading('License', tooltip: 'What others may do with your content.'),
     DropdownButtonFormField<String>(
       key: ValueKey('course-wizard-license-$_generation'),
       initialValue: _licenseChoice,
@@ -2029,8 +2167,6 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
     _heading(
       'Rights Holders',
       tooltip: 'Who owns the rights: a person or an organization.',
-      canWaitId: 'rights-holders',
-      where: _courseInfo,
     ),
     for (final (index, row) in _holderRows.indexed)
       Card(
@@ -2111,8 +2247,6 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
     _heading(
       'Thanks and contact',
       tooltip: 'How learners can thank you or reach you.',
-      canWaitId: 'contact',
-      where: _courseInfo,
     ),
     TextField(
       key: ValueKey('course-wizard-buy-a-coffee-$_generation'),
@@ -2161,7 +2295,13 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
     return prefix == null ? title : '$prefix: $title';
   }
 
-  List<Widget> _optionsFields() {
+  /// Step 4: nothing but Advanced; the options keep their values.
+  List<Widget> _optionsFields() => [
+    _advancedToggle(_lessonOptions),
+    if (_advanced) ..._optionFieldsAll(),
+  ];
+
+  List<Widget> _optionFieldsAll() {
     final legacy = !const [
       LessonNumberingMode.none,
       LessonNumberingMode.lesson,
@@ -2173,8 +2313,6 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
       _heading(
         'Lesson label and numbering',
         tooltip: 'What learners see before a Lesson\'s title.',
-        canWaitId: 'lesson-numbering',
-        where: _lessonOptions,
       ),
       DropdownButtonFormField<LessonNumberingMode>(
         key: ValueKey('course-wizard-lesson-numbering-$_generation'),
@@ -2235,8 +2373,6 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
       _heading(
         'Round label and numbering',
         tooltip: 'What learners see on each Round of the path.',
-        canWaitId: 'round-numbering',
-        where: _lessonOptions,
       ),
       DropdownButtonFormField<RoundNumberingMode>(
         key: ValueKey('course-wizard-round-numbering-$_generation'),
@@ -2289,8 +2425,6 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
       _heading(
         'Word Lookup and Duels',
         tooltip: 'Help while learning, and a game at the end of a Lesson.',
-        canWaitId: 'switches',
-        where: _lessonOptions,
       ),
       SwitchListTile(
         key: const Key('course-wizard-word-lookup'),
@@ -2321,8 +2455,6 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
       _heading(
         'Picture answers',
         tooltip: 'How exercises with pictures as answers show them.',
-        canWaitId: 'picture-answers',
-        where: _lessonOptions,
       ),
       const Text(
         'When learners choose a picture as their answer, as in “Select the '
@@ -2409,8 +2541,6 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
       _heading(
         'Default Timed limits',
         tooltip: 'The time limits a new Timed Round starts with.',
-        canWaitId: 'timed',
-        where: _lessonOptions,
       ),
       const Text(
         'A Timed Round asks learners to finish before a countdown ends; each '
@@ -2471,18 +2601,19 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
             children: [
               Row(
                 children: [
-                  Tooltip(
-                    message: 'Choose the Lesson icon',
-                    child: InkWell(
-                      key: ValueKey('course-wizard-lesson-icon-$index'),
-                      borderRadius: BorderRadius.circular(8),
-                      onTap: () => _chooseIcon(index),
-                      child: Padding(
-                        padding: const EdgeInsets.all(4),
-                        child: _lessonIcon(row.iconAsset, index + 1),
+                  if (_advanced)
+                    Tooltip(
+                      message: 'Choose the Lesson icon',
+                      child: InkWell(
+                        key: ValueKey('course-wizard-lesson-icon-$index'),
+                        borderRadius: BorderRadius.circular(8),
+                        onTap: () => _chooseIcon(index),
+                        child: Padding(
+                          padding: const EdgeInsets.all(4),
+                          child: _lessonIcon(row.iconAsset, index + 1),
+                        ),
                       ),
                     ),
-                  ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
@@ -2523,31 +2654,24 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
                   helperText: 'For example “At the market”.',
                 ),
               ),
-              const SizedBox(height: 4),
-              Wrap(
-                spacing: 8,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: [
-                  const Text('Icon and section'),
-                  _canWait('lesson-$index', _lessonPage),
-                ],
-              ),
-              const SizedBox(height: 6),
-              TextField(
-                key: ValueKey(
-                  'course-wizard-lesson-section-$index-$_generation',
+              if (_advanced) ...[
+                const SizedBox(height: 6),
+                TextField(
+                  key: ValueKey(
+                    'course-wizard-lesson-section-$index-$_generation',
+                  ),
+                  controller: row.section,
+                  maxLength: CourseWizardLessons.maxSectionNameLength,
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    labelText: 'Section',
+                    helperText:
+                        'Neighbouring Lessons with the same section are grouped '
+                        'under it, for example “At the bar”. Empty: no section.',
+                    helperMaxLines: 3,
+                  ),
                 ),
-                controller: row.section,
-                maxLength: CourseWizardLessons.maxSectionNameLength,
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: 'Section',
-                  helperText:
-                      'Neighbouring Lessons with the same section are grouped '
-                      'under it, for example “At the bar”. Empty: no section.',
-                  helperMaxLines: 3,
-                ),
-              ),
+              ],
             ],
           ),
         ),
@@ -2561,6 +2685,19 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
         label: const Text('Add a Lesson'),
       ),
     ),
+    _advancedToggle(_lessonPage),
+    if (_advanced)
+      const Padding(
+        key: Key('course-wizard-lessons-advanced-note'),
+        padding: EdgeInsets.only(top: 8),
+        child: Text(
+          'Icons and sections: the icon stands beside the Lesson on the '
+          'learner\'s path (tap it above to choose one); a section groups '
+          'neighbouring Lessons under one heading, for example “At the bar” '
+          'over the first two Lessons. Lessons can also be added, moved and '
+          'removed later, in the Course Editor.',
+        ),
+      ),
   ];
 
   List<Widget> _guidebookFields() {
@@ -2600,6 +2737,26 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
       _heading(
         'Modules of Lesson ${_shownLesson + 1}',
         tooltip: 'One short topic each, in the order learners read them.',
+      ),
+      Padding(
+        padding: const EdgeInsets.only(bottom: 8),
+        child: Text(
+          key: const Key('course-wizard-module-explanation'),
+          [
+            'A module is one short topic, like “Al bar: ordering and paying”: '
+                'a title, Sentences, Words & Expressions (each with its '
+                'translation, an optional Context and, for words, a picture) '
+                'and a short Overview. Tap a module to write it; Fill with an '
+                'example opens a sample one.',
+            if (GuidebookPictureIndex.sideFor(_working) != null)
+              'Typing an English word suggests its QQL picture; Suggest '
+                  'pictures, on the module page, does it for the words '
+                  'already written.',
+          ].join(' '),
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+        ),
       ),
       if (modules.isEmpty)
         const Padding(
@@ -2780,6 +2937,27 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
           ),
         ),
       const SizedBox(height: 8),
+      Padding(
+        padding: const EdgeInsets.only(bottom: 8),
+        child: Text(
+          key: const Key('course-wizard-rounds-explanation'),
+          [
+            'Make Rounds opens the Round Wizard on this Lesson, set to 3 '
+                'untitled Rounds per module (6 with one module) of 8 '
+                'exercises: each module\'s first Round is Discover, its last '
+                'a Test, the others Practice. They practise each module in '
+                'turn, from recognizing the words to using them, and review '
+                'the earlier modules; they are Drafts you can edit in the '
+                'Course Editor.',
+            if (course.createDuels)
+              'A Duel needs $needed questions: with fewer, raise Rounds per '
+                  'module or exercises per Round.',
+          ].join(' '),
+          style: Theme.of(
+            context,
+          ).textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
+        ),
+      ),
       Align(
         alignment: Alignment.centerLeft,
         child: Tooltip(
@@ -2799,8 +2977,8 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
 
   List<Widget> _fields() => switch (_step) {
     CourseWizardStep.basics => _basicsFields(),
+    CourseWizardStep.flag => _flagFields(),
     CourseWizardStep.about => _aboutFields(),
-    CourseWizardStep.credits => _creditsFields(),
     CourseWizardStep.options => _optionsFields(),
     CourseWizardStep.lessons => _lessonFields(),
     CourseWizardStep.guidebook => _guidebookFields(),
@@ -2837,6 +3015,7 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
                 message: step.index <= _furthest.index || _starting
                     ? step.title
                     : '${step.title}: reached with Next',
+                key: _stepKeys[step],
                 child: InkWell(
                   key: ValueKey('course-wizard-step-${step.number}'),
                   borderRadius: BorderRadius.circular(16),

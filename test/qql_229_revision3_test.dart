@@ -33,9 +33,9 @@ void main() {
   });
 
   test('current release metadata uses Build and revision terminology', () {
-    expect(AppMetadata.technicalVersion, '2.0.67+267002');
+    expect(AppMetadata.technicalVersion, '2.0.67+267003');
     expect(AppMetadata.build, '267');
-    expect(AppMetadata.displayLabel, 'Version 2.0.67\nBuild 267, Revision 2');
+    expect(AppMetadata.displayLabel, 'Version 2.0.67\nBuild 267, Revision 3');
   });
 
   testWidgets(

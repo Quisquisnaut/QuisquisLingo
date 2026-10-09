@@ -579,22 +579,75 @@ class _GuidebookModuleEditorScreenState
       if (row.picture != null && !row.suggested) return;
       row.picture = null;
       row.suggested = false;
-      for (final word in _wordsOf(row)) {
-        final match = pictures.find(word);
-        if (match.isEmpty) continue;
-        if (match.isSingle) {
-          row.picture = GuidebookPicture(
-            asset: match.pictures.single.assetPath,
-            plural: match.plural,
-          );
-          row.suggested = true;
-        } else {
-          row.matches = match;
-          row.matchWord = GuidebookPictureIndex.key(word);
+      _match(row, pictures);
+    });
+  }
+
+  /// The prefill's choice for [row]: one picture (Suggested), several
+  /// (offered as matches) or none. True when the row got something.
+  bool _match(_EntryRow row, GuidebookPictureIndex pictures) {
+    for (final word in _wordsOf(row)) {
+      final match = pictures.find(word);
+      if (match.isEmpty) continue;
+      if (match.isSingle) {
+        row.picture = GuidebookPicture(
+          asset: match.pictures.single.assetPath,
+          plural: match.plural,
+        );
+        row.suggested = true;
+      } else {
+        row.matches = match;
+        row.matchWord = GuidebookPictureIndex.key(word);
+      }
+      return true;
+    }
+    return false;
+  }
+
+  /// Suggest pictures (Build 267 Revision 3, owner decision of 9 October
+  /// 2026): the prefill for every Words & Expressions row without a
+  /// picture, also rows written before (the prefill alone never runs on a
+  /// reopened module). A picture already there is never replaced.
+  Future<void> _suggestPictures() async {
+    if (_pictures == null) await _loadPictures();
+    final pictures = _pictures;
+    if (pictures == null || !mounted) return;
+    var filled = 0;
+    var offered = 0;
+    setState(() {
+      for (final row in _words) {
+        if (row.picture != null || row.isEmpty) continue;
+        row.matches = GuidebookPictureMatch.none;
+        row.suggested = false;
+        if (_match(row, pictures)) {
+          if (row.picture != null) {
+            filled++;
+          } else {
+            offered++;
+          }
         }
-        return;
+        row.prefillWords = _wordsKey(row);
       }
     });
+    final parts = [
+      if (filled > 0) 'QQL suggested $filled picture${filled == 1 ? '' : 's'}',
+      if (offered > 0)
+        '$offered word${offered == 1 ? ' has' : 's have'} several matching '
+            'pictures',
+    ];
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          key: const Key('guidebook-module-suggest-pictures-result'),
+          content: Text(
+            parts.isEmpty
+                ? 'No picture of QQL\'s library has the name of a word '
+                      'without a picture.'
+                : '${parts.join('; ')}. Tap a picture to change it.',
+          ),
+        ),
+      );
   }
 
   /// The author touched the picture: it is no longer the prefill's choice.
@@ -1190,6 +1243,20 @@ class _GuidebookModuleEditorScreenState
               label: const Text('Paste list'),
             ),
           ),
+          // Build 267 Revision 3: only where the prefill works, in a Course
+          // to or from English.
+          if (word && _side != null)
+            Tooltip(
+              message:
+                  'Suggest a QQL picture for every word without one, when a '
+                  'picture has its name. Pictures already there stay.',
+              child: TextButton.icon(
+                key: const Key('guidebook-module-suggest-pictures'),
+                onPressed: _suggestPictures,
+                icon: const Icon(Icons.image_search_outlined),
+                label: const Text('Suggest pictures'),
+              ),
+            ),
         ],
       ),
     ],

@@ -1,3 +1,116 @@
+# 2.0.67 (Build 267, Revision 3) - Picture aids; a simpler Course Wizard - 2026-10-09
+
+The plan's §5 and §6 parts left after Build 266 (owner decisions of
+9 October 2026: yes to both, spelling up to 12 letters, without the article).
+
+- **Suggest pictures** on the module page (`guidebook-module-suggest-pictures`,
+  under Words & Expressions, only in a Course to or from English): the
+  prefill of Build 266 Revision 1, with its rules (the name equal to the
+  word, then its singular marked Plural, then the name before a bracket;
+  never tags, characters, Lesson icons or one-letter names), for every word
+  without a picture, also words written before (the prefill alone never runs
+  on a reopened module). A picture already there is never replaced; several
+  matches show "N matching pictures"; a SnackBar says how many were
+  suggested.
+- **Five more picture exercises** in the Round Wizard, for a module with three
+  Words & Expressions that have different pictures, built as their forms
+  build them, Plural marks carried:
+  - What is in the picture (Foundations): the picture, choose its word;
+  - Spell the word in the picture (Practice): the word without its leading
+    article ("il gatto" → g-a-t-t-o, "l'acqua" → a-c-q-u-a; the learning
+    language's articles of Word Lookup), one word of letters only, 2 to 12
+    letters, one tile per letter (an accented letter is one tile), no extra
+    tile;
+  - Name what you see (Practice): an entry of two words or more as blocks,
+    with one extra block in Practice, two later, articles first ("la" beside
+    "il pane");
+  - Type what you see (Use in context): every synonym's Target accepted;
+  - Listen and pick the image (Use in context, and Listen Rounds).
+- **Prefer picture exercises** (`generator-prefer-pictures`, on by default
+  when a module has three different pictures, greyed with the reason
+  otherwise): every second exercise of a Round is a picture exercise.
+  Review slots never take a picture exercise the earlier modules cannot fill
+  (they keep reviewing), which also applies to Build 266's three picture
+  exercises.
+- The Round Wizard's first page keeps **Review generation plan** at the
+  bottom, always in view; the exercise count stands right under the counts.
+- **A simpler Course Wizard** (owner's review of 9 October 2026, "the
+  wizard is overwhelming"):
+  - the steps are Basics, **Flag or cover image** (new), About the Course,
+    Course options, Lessons, GuideBook and Rounds; Credits and rights is gone
+    (its fields are in About the Course);
+  - Basics: title, the two languages and the variant, labelled optional,
+    with "American English" as its example; Fill with an example leaves the
+    variant empty;
+  - About the Course shows the description and the authors; the rest of
+    Course Info (levels, study hours, minimum age, keywords, roles, license,
+    Rights Holders, Buy a Coffee, publisher contact) is behind **Advanced**,
+    which says it can wait and where to change it later;
+  - Course options shows nothing but Advanced (the options keep their
+    values); Lessons shows the titles, with icons, sections and a longer
+    explanation under Advanced;
+  - every explanation is one short line, the rest behind **Tell me more**;
+  - the step bar scrolls to the step shown (Next, Back, a jump, a resumed
+    Wizard);
+  - GuideBook step: Fill with an example opens the sample module on the
+    module page; Done keeps it. What a module holds (and the picture
+    suggestions) is a short note above the modules
+    (`course-wizard-module-explanation`); the step's panel keeps only what
+    is needed now and the approval;
+  - Rounds step: likewise, what the Round Wizard does (its settings, the
+    Drafts, the Duel's 25 questions) is a short note above Make Rounds
+    (`course-wizard-rounds-explanation`); the Round Wizard's switches
+    explain themselves on its page, now titled **Generate Rounds** (was
+    "Generate Rounds from GuideBook");
+  - Course Studio: a tap on the row of a Course whose Wizard is paused
+    opens the Wizard where it stopped, when the learner may continue it;
+    Edit in the ⋮ menu still opens the Course Editor;
+  - Rounds step: the Round Wizard opened from the Course Wizard starts with
+    Round titles off (`GuidebookRoundGeneratorScreen(roundTitles:)`).
+- Round Wizard: the plan no longer makes every Round a Practice Round:
+  each module's first Round is Discover, its last a Test, the others
+  Practice (two Rounds: Discover and Practice; one: Practice;
+  `GuidebookRoundGenerator.defaultTypeFor`). A **Listen Round** switch
+  (`generator-listen-round`, off by default; `plan(listenRound:)`) makes the
+  middle Round of three or more a Listen Round. The author can still change
+  each Round's type in the plan.
+- Learner: a Round whose exercises all need audio, opened with Audio
+  Exercises off, asks "Turn on audio to play it?" with **Turn on audio**
+  (`round-turn-on-audio`): it switches on the learner's Audio Exercises,
+  and Text-to-speech unless the Course speaks only with recorded MP3s, and
+  starts the Round again. Before, the Round only said to change Audio
+  Settings, and a learner could not finish such a Round (or its Lesson).
+- Fix (owner report): in a Preview, the first exercise's audio no longer
+  plays while the Before you start card is still showing; it waits for
+  Continue, as in a learner's Round.
+- Course Wizard: Finish shows a short message (`course-wizard-finished`):
+  congratulations, what the Audit still finds red (errors and warnings,
+  `course-wizard-finished-red`, or `-clean`), that the Course can still be
+  changed in the Course Editor in Edit mode, and Publish when the Course is
+  ready; **Open the Course Editor** (`course-wizard-finished-ok`) goes on.
+- Round editor: **Audit** in each exercise's ⋮ menu shows the findings
+  that name it, the ones that make its card red.
+- Round Wizard: nothing is asked twice in a Round (owner report: generated
+  exercises were red with "Same exercise prompt/question appears more than
+  once in this round"). A slot takes entries its exercise type has not
+  used in the Round, comparing the words the learner sees (two entries "il
+  conto", restaurant and bank, ask the same gap); when none is left, the
+  plan takes another exercise type of the pool with new entries, a picture
+  one for a picture one first. In the Course Wizard's sample, 180 such
+  warnings over 10 plans became none.
+- Audit, `ROUND_DUPLICATE_CONTENT`: two Match exercises of different pairs
+  are no longer the same exercise (their instruction line is the same
+  every time; the pairs are now compared); two identical Matches still are.
+  A Wizard paused by Revisions 0–2 resumes at its step number (step 2 is now
+  the flag, step 3 About the Course).
+- Deferred by the owner: a Border option for picture answers, in the Wizard
+  and the Course Editor's Lesson Options alike.
+- Help EN/IT/ES: the GuideBook entries, Round Wizard and Course Wizard
+  answers, Create a new course, the picture field Help, the Round Wizard's
+  Help dialog, the Course Wizard's explanations.
+- Scoring, progression, Course files and learner data are unchanged. Beta
+  expiry `2026-11-08 23:59:59` local time.
+
 # 2.0.67 (Build 267, Revision 2) - The Course Wizard: the Rounds step - 2026-10-09
 
 The plan's §3 step 7 and §6 (owner decisions of 6 October 2026), without

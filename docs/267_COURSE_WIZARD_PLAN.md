@@ -41,7 +41,15 @@ Revision 0 (2.0.67+267000) shows only the steps that exist: steps 1–5, with
 **Finish** on step 5 (it saves, ends the Wizard and opens the Course
 Editor). Each later revision adds its step to the bar: Revision 1
 (2.0.67+267001) adds step 6 and Revision 2 (2.0.67+267002) step 7, with
-Finish on the last step. §4's unfinished rows never
+Finish on the last step. Revision 3 (2.0.67+267003) is the picture aids
+(Suggest pictures; the five presets and Prefer picture exercises) and a
+simpler Wizard (owner's review of 9 October 2026): steps Basics, Flag or
+cover image, About the Course (description and authors; the rest of Course
+Info behind Advanced; Credits and rights merged in), Course options (only
+Advanced), Lessons (titles; icons and sections under Advanced), GuideBook,
+Rounds; short explanations with Tell me more. Check and publish is
+Revision 4. Deferred by the owner: a Border option for picture answers,
+in the Wizard and Lesson Options. §4's unfinished rows never
 reach the Wizard: Build 266's module page refuses a half row, or offers to
 discard it, before it returns the module.
 

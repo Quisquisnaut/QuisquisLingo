@@ -11,6 +11,8 @@ import 'package:quisquislingo_app/services/course_file_store.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'support/pump_file_io.dart';
+
 /// Owner report of 8 October 2026: the reset buttons of Advanced (Admin) did
 /// nothing. Since Build 266 a stored Course whose GuideBook has the earlier
 /// shape cannot be opened (`Guidebook.earlierShapeMessage`); the reset
@@ -179,8 +181,12 @@ void main() {
       await tester.ensureVisible(button);
       await tester.pumpAndSettle();
       await tester.tap(button);
-      await settle(tester);
-      await settle(tester);
+      // The preview reads the stored Courses: wait for its dialog, not for
+      // a fixed time (it took longer under the complete suite's load).
+      await tester.pumpUntilFileIoState(
+        () =>
+            find.byKey(const Key('admin-reset-continue')).evaluate().isNotEmpty,
+      );
       expect(find.byKey(const Key('admin-reset-continue')), findsOneWidget);
     });
 

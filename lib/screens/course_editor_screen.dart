@@ -81,6 +81,7 @@ import '../services/preset_examples.dart';
 import '../services/preset_recipes.dart';
 import '../services/preset_variants.dart';
 import '../services/guidebook_round_generator.dart';
+import '../services/word_lookup/word_lookup_articles.dart';
 import '../services/publication_service.dart';
 import '../services/provisional_publication_service.dart';
 import '../services/new_course_structure.dart';
@@ -5373,11 +5374,16 @@ class GuidebookRoundGeneratorScreen extends StatefulWidget {
     required this.course,
     required this.lesson,
     this.clock,
+    this.roundTitles = true,
   });
 
   final Course course;
   final Lesson lesson;
   final DateTime Function()? clock;
+
+  /// Where Round titles starts: on, off from the Course Wizard (owner,
+  /// 9 October 2026: untitled by default there, to keep it simple).
+  final bool roundTitles;
 
   @override
   State<GuidebookRoundGeneratorScreen> createState() =>
@@ -5425,7 +5431,19 @@ class _GuidebookRoundGeneratorScreenState
 
   /// Build 267 Revision 2: "phase: module title" on each Round, or no
   /// title (learners then see the Round type and number).
-  bool _roundTitles = true;
+  late bool _roundTitles = widget.roundTitles;
+
+  /// Owner decision of 9 October 2026: the middle Round of each module a
+  /// Listen Round, off by default (a learner with Audio Exercises off is
+  /// asked to turn them on to play it).
+  bool _listenRound = false;
+
+  /// Build 267 Revision 3: every second exercise a picture exercise; on by
+  /// default when a module has three different pictures.
+  late bool _preferPictures = _hasPictures;
+
+  bool get _hasPictures =>
+      widget.lesson.guidebook.modules.any(GuidebookRoundGenerator.hasPictures);
 
   /// The Duel questions of the Lesson once the plan's Rounds are made, for
   /// the plan the count was made for.
@@ -5447,6 +5465,9 @@ class _GuidebookRoundGeneratorScreenState
     randomSeed: _seed,
     draftIds: TimestampAuthoringIdGenerator(),
     now: _clock,
+    articles: WordLookupArticles.forLanguage(
+      CourseLanguageResolver.learning(widget.course).code,
+    ),
   );
 
   void _preparePlan({bool regenerate = false}) {
@@ -5463,6 +5484,8 @@ class _GuidebookRoundGeneratorScreenState
         focusModuleId: _focusModuleId,
         roundCount: rounds,
         exercisesPerRound: exercises,
+        preferPictures: _preferPictures,
+        listenRound: _listenRound,
       );
       setState(() {
         _plan = plan;
@@ -5497,6 +5520,7 @@ class _GuidebookRoundGeneratorScreenState
         widget.lesson.guidebook,
         round,
         moduleId,
+        preferPictures: _preferPictures,
       );
       final original = _plan!;
       setState(
@@ -5522,6 +5546,7 @@ class _GuidebookRoundGeneratorScreenState
         widget.lesson.guidebook,
         round,
         type,
+        preferPictures: _preferPictures,
       );
       final original = _plan!;
       setState(
@@ -5549,6 +5574,8 @@ class _GuidebookRoundGeneratorScreenState
         focusModuleId: _plan!.focusModuleId,
         roundCount: _plan!.roundCount,
         exercisesPerRound: _plan!.exercisesPerRound,
+        preferPictures: _preferPictures,
+        listenRound: _listenRound,
       );
       // The author's focus and type for each Round stay.
       GuidebookRoundPlan kept(int i) {
@@ -5560,12 +5587,14 @@ class _GuidebookRoundGeneratorScreenState
             widget.lesson.guidebook,
             round,
             chosen.focusModuleId!,
+            preferPictures: _preferPictures,
           );
         }
         return _generator().changeType(
           widget.lesson.guidebook,
           round,
           chosen.roundType,
+          preferPictures: _preferPictures,
         );
       }
 
@@ -5764,8 +5793,8 @@ class _GuidebookRoundGeneratorScreenState
       title: const Text('GuideBook Round Generator'),
       content: const SingleChildScrollView(
         child: Text(
-          'The current Lesson GuideBook is the only source. Choose the module the Rounds practise, or All modules, in order (each module then gets its own Rounds, from Foundations through Practice to Use in context), the number of Rounds (1–12; with All modules per module, at most 24 Rounds in all) and the exercises per Round (1–15). A module needs at least three Words & Expressions entries. Round titles (on by default) titles each Round like Practice: Al bar; off, the Rounds have no title. With Create Duels on, the plan counts the Lesson\'s Duel questions once its Rounds are made (25 needed), the ones that need audio apart.\n\n'
-          'About a third of each Round reviews the earlier modules of the Lesson, nearest first, never as the first exercise. Each exercise shows an entry\'s Context with its translation, so it has one right answer; entries that differ only by their Context are offered as wrong answers, synonyms never are, and a typed answer accepts every synonym. Sentences give Build the translation and Word order. A module with at least three Words & Expressions with pictures also gets Select the image, Match pictures to words and Picture flashcard, Plural marks included.\n\n'
+          'The current Lesson GuideBook is the only source. Choose the module the Rounds practise, or All modules, in order (each module then gets its own Rounds, from Foundations through Practice to Use in context), the number of Rounds (1–12; with All modules per module, at most 24 Rounds in all) and the exercises per Round (1–15). A module needs at least three Words & Expressions entries. Round titles (on by default; off from the Course Wizard) titles each Round like Practice: Al bar; off, the Rounds have no title. Each module\'s first Round is Discover, its last a Test, the others Practice; Listen Round (off by default) makes the middle one a Listen Round, where every exercise needs audio: a learner with Audio Exercises off is asked to turn them on. Prefer picture exercises (on by default when a module has three different pictures) makes every second exercise a picture exercise. With Create Duels on, the plan counts the Lesson\'s Duel questions once its Rounds are made (25 needed), the ones that need audio apart.\n\n'
+          'About a third of each Round reviews the earlier modules of the Lesson, nearest first, never as the first exercise. Each exercise shows an entry\'s Context with its translation, so it has one right answer; entries that differ only by their Context are offered as wrong answers, synonyms never are, and a typed answer accepts every synonym. Sentences give Build the translation and Word order. A module with at least three Words & Expressions with pictures also gets Select the image, What is in the picture, Match pictures to words, Spell the word in the picture (a word of up to 12 letters, without its article), Name what you see (an entry of two words or more), Type what you see, Listen and pick the image and Picture flashcard, Plural marks included.\n\n'
           'Each Round records its focus module (Open GuideBook opens there) and the earlier modules it reviews; the first Round of each module opens with a Before you start card holding a copy of the module\'s Overview. Generated material remains draft: review, edit or delete every Round and Exercise before explicit approval. Generation can assist authoring but cannot guarantee pedagogical correctness.',
         ),
       ),
@@ -5865,6 +5894,15 @@ class _GuidebookRoundGeneratorScreenState
             helperText: 'Choose 1–15. Default: 8.',
           ),
         ),
+        const SizedBox(height: 16),
+        Text(
+          all
+              ? '$modules modules × $rounds Rounds × $exercises exercises = '
+                    '${total * exercises} exercises'
+              : '$rounds Rounds × $exercises exercises = ${rounds * exercises} exercises',
+          key: const Key('generator-total'),
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
         const SizedBox(height: 4),
         SwitchListTile(
           key: const Key('generator-round-titles'),
@@ -5878,20 +5916,35 @@ class _GuidebookRoundGeneratorScreenState
           value: _roundTitles,
           onChanged: (value) => setState(() => _roundTitles = value),
         ),
-        const SizedBox(height: 12),
-        Text(
-          all
-              ? '$modules modules × $rounds Rounds × $exercises exercises = '
-                    '${total * exercises} exercises'
-              : '$rounds Rounds × $exercises exercises = ${rounds * exercises} exercises',
-          key: const Key('generator-total'),
-          style: Theme.of(context).textTheme.titleMedium,
+        SwitchListTile(
+          key: const Key('generator-prefer-pictures'),
+          contentPadding: EdgeInsets.zero,
+          title: const Text('Prefer picture exercises'),
+          subtitle: Text(
+            _hasPictures
+                ? 'Every second exercise is a picture exercise: Select the '
+                      'image, What is in the picture, Match pictures to '
+                      'words, Spell the word in the picture, Name what you '
+                      'see, Type what you see or Listen and pick the image.'
+                : 'Needs a module with three Words & Expressions that have '
+                      'different pictures.',
+          ),
+          value: _preferPictures && _hasPictures,
+          onChanged: _hasPictures
+              ? (value) => setState(() => _preferPictures = value)
+              : null,
         ),
-        const SizedBox(height: 20),
-        FilledButton(
-          key: const Key('generator-review-plan'),
-          onPressed: _preparePlan,
-          child: const Text('Review generation plan'),
+        SwitchListTile(
+          key: const Key('generator-listen-round'),
+          contentPadding: EdgeInsets.zero,
+          title: const Text('Listen Round'),
+          subtitle: const Text(
+            'The middle Round of each module, with three Rounds or more, is '
+            'a Listen Round: every exercise needs audio. A learner with '
+            'Audio Exercises off is asked to turn them on to play it.',
+          ),
+          value: _listenRound,
+          onChanged: (value) => setState(() => _listenRound = value),
         ),
       ],
     );
@@ -6109,7 +6162,7 @@ class _GuidebookRoundGeneratorScreenState
       appBar: AppBar(
         title: CoursePreviewTitle(
           course: widget.course,
-          title: const Text('Generate Rounds from GuideBook'),
+          title: const Text('Generate Rounds'),
         ),
         actions: [
           IconButton(
@@ -6124,6 +6177,21 @@ class _GuidebookRoundGeneratorScreenState
         _GuidebookGeneratorStage.plan => _reviewPlan(),
         _GuidebookGeneratorStage.drafts => _reviewDrafts(),
       },
+      // Build 267 Revision 3: the first page's button stays in view below
+      // its options (the Round titles and Prefer picture exercises
+      // switches made the page longer than a phone's window).
+      bottomNavigationBar: _stage == _GuidebookGeneratorStage.configure
+          ? SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+                child: FilledButton(
+                  key: const Key('generator-review-plan'),
+                  onPressed: _preparePlan,
+                  child: const Text('Review generation plan'),
+                ),
+              ),
+            )
+          : null,
     ),
   );
 }
@@ -7935,6 +8003,26 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
     OverlayRoundDraft(_lesson, _editedRound()),
   );
 
+  /// The Audit of one exercise: the findings of this Round's Audit that
+  /// name it, which make its card red (owner request of 9 October 2026).
+  Future<void> _auditExercise(int index) {
+    final course = _workingCourse;
+    final exercise = _exercises[index];
+    final round = CourseAuditService().auditRound(course, _editedRound().id);
+    return Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) => CourseAuditScreen(
+          course: course,
+          result: CourseAuditResult([
+            for (final issue in round.issues)
+              if (issue.exerciseId == exercise.id) issue,
+          ]),
+          title: 'Exercise Audit',
+        ),
+      ),
+    );
+  }
+
   void _mutateRound(VoidCallback mutation) {
     if (!mounted) return;
     // The working copy before this change lets a parent Draft be promoted when
@@ -9203,6 +9291,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
                         if (v == 'delete') _delete(i);
                         if (v == 'generate') _generateFromReading(i);
                         if (v == 'preview') _previewExercise(i);
+                        if (v == 'audit') _auditExercise(i);
                         if (v == 'audio') _toggleAudioDependence(i);
                         if (v == 'copy') _transferExercise(i, copy: true);
                         if (v == 'move') _transferExercise(i, copy: false);
@@ -9230,6 +9319,10 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
                         const PopupMenuItem(
                           value: 'preview',
                           child: Text('Preview exercise'),
+                        ),
+                        const PopupMenuItem(
+                          value: 'audit',
+                          child: Text('Audit'),
                         ),
                         PopupMenuItem(
                           value: 'copy',

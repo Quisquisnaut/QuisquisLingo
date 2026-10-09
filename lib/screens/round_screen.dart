@@ -16,6 +16,7 @@ import '../widgets/page_actions.dart';
 import '../widgets/page_card.dart';
 import '../widgets/plural_picture.dart';
 import '../widgets/portable_exercise_image.dart';
+import '../widgets/reported_action.dart';
 import '../services/beta_lifecycle_service.dart';
 import '../widgets/beta_expired_view.dart';
 import '../models/course_models.dart';
@@ -756,6 +757,26 @@ class _RoundScreenState extends State<RoundScreen> {
     }
   }
 
+  /// Whether Turn on audio also switches on Text-to-speech: a Course that
+  /// speaks only with recorded MP3s does not need it.
+  bool get _turnsOnTts => widget.course.audioMode != 'recorded';
+
+  /// The answer to "Turn on audio to play it?" on a Round whose exercises
+  /// all need audio while Audio Exercises are off, such as a Listen Round
+  /// (owner decision of 9 October 2026): the learner's Audio Exercises, and
+  /// Text-to-speech when the Course speaks with it, are switched on, and
+  /// the Round starts again with its audio exercises.
+  Future<void> _turnOnAudio() async {
+    final done = await runReported(context, 'Turn on audio', () async {
+      await _settings.setAudioExercisesEnabled(true);
+      if (_turnsOnTts) await _settings.setTtsEnabled(true);
+      return true;
+    });
+    if (done != true || !mounted) return;
+    setState(() => _ready = false);
+    await _initializeRound();
+  }
+
   @override
   void dispose() {
     _timedTicker?.cancel();
@@ -966,7 +987,10 @@ class _RoundScreenState extends State<RoundScreen> {
   bool _isPreparedExerciseActive(Exercise exercise, int generation) {
     if (!mounted || generation != _preparedExerciseGeneration) return false;
     if (_exercise.id != exercise.id) return false;
-    if (widget.previewMode) return true;
+    // The Preview shows the Before you start card too (Build 257): its
+    // first exercise stays silent behind it until Continue (owner report of
+    // 9 October 2026).
+    if (widget.previewMode) return _learnerAudioUiState == 'exercise_active';
     return _ready && _learnerAudioUiState == 'exercise_active';
   }
 
@@ -4877,12 +4901,31 @@ class _RoundScreenState extends State<RoundScreen> {
                     ? 'QuisquisLingo kept the app running and wrote the error to the crash log.'
                     : (_audioWasSkipped
                           ? !_audioExercisesEnabled
-                                ? 'Turn on “Enable Audio Exercises” in Audio Settings to play this round.'
+                                ? 'Turn on audio to play it? The button below '
+                                      'switches on Enable Audio Exercises'
+                                      '${_turnsOnTts ? ' and Text-to-speech' : ''} '
+                                      'in your Audio Settings, where you can '
+                                      'switch them off again.'
                                 : 'Check Text-to-speech and available Recorded MP3 sources in Audio Settings.'
                           : _versionSkipped > 0
                           ? 'They are kept in the Course unchanged; a later version of QuisquisLingo will play them.'
                           : 'Open Course Editor > Run course audit to see the problems that need to be corrected.'),
               ),
+              if (!_initializationFailed &&
+                  _audioWasSkipped &&
+                  !_audioExercisesEnabled &&
+                  !widget.previewMode) ...[
+                const SizedBox(height: 16),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: FilledButton.icon(
+                    key: const Key('round-turn-on-audio'),
+                    onPressed: _turnOnAudio,
+                    icon: const Icon(Icons.volume_up_outlined),
+                    label: const Text('Turn on audio'),
+                  ),
+                ),
+              ],
             ],
           ),
         ),

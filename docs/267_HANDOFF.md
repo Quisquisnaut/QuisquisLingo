@@ -90,11 +90,154 @@ passed; the first complete suite failed 2 narrow-window tests (the Round
 titles switch moved Review generation plan below the fold; the test now
 scrolls), the second passed 3,963, 1 skipped. Committed on 9 October 2026.
 
-## Next
+## Revision 3 (2.0.67+267003), picture aids and a simpler Wizard: committed
 
-- If the owner says yes to question 1: the Suggest pictures button on the
-  module page (a Revision 1 follow-up).
-- If the owner says yes to question 2: the five further picture presets and
-  Prefer picture exercises in the Round Wizard (a Revision 2 follow-up or its
-  own revision).
-- Revision 3: step 8 (Check and publish, Publish, Finish).
+Implemented: Suggest pictures on the module page
+(`guidebook-module-suggest-pictures`, 266's matching rules, empty slots
+only); the Round Wizard's five further picture presets and **Prefer picture
+exercises** (`generator-prefer-pictures`; Review slots keep the text
+presets, `reviewSafe`; Spell the word in the picture: at most 12 letters,
+without the leading article); Review generation plan pinned in the Round
+Wizard's bottom bar while configuring, the total above the switches; the
+owner's simplification of the Wizard (below), with the GuideBook and
+Rounds explanations split, the Round Wizard titled Generate Rounds, and a
+tap on a paused Wizard Course's row opening the Wizard; the Round Wizard's
+default Round types (Discover, Practice, Test) with a Listen Round switch;
+Turn on audio for the learner; the Preview's audio waiting for Before you
+start's Continue (owner report); the Finish popup; Audit in the exercise
+menu; nothing asked twice in a Round, and two Matches of different pairs no
+longer duplicates for the Audit. Version 2.0.67+267003 dated 9 October (Beta expiry
+8 November). Analyzer clean; `picture_aids_267_test.dart` 7 and
+`course_wizard_267_test.dart` 22 passed; focused batch 248 passed; complete
+suite 3,975 passed, 1 skipped (POSIX only). Committed locally on 9 October 2026 as "Build 267 Revision 3:
+picture aids; a simpler Course Wizard".
+
+## Next
+- Revision 4: step 8 (Check and publish: per-Lesson summary, Open the
+  Audit, Preview, Publish everything without Audit errors in one confirmed
+  save and list what stays Draft, Finish / Finish without publishing). Also
+  in Revision 4 (owner, 9 October 2026): the plan pages' "The plan contains
+  no final Round or Exercise objects." (Round Wizard) and "No Exercise
+  objects have been created yet." (Exercise Wizard) become "Nothing is
+  created yet: this is only the plan." And the GuideBook advice (owner, 9
+  October 2026, not a rule): "3 to 6 modules per Lesson, each with 5 to 10
+  Words & Expressions and 2 to 5 Sentences that use them", in the Wizard's
+  module note, the module page Help (EN/IT/ES) and a soft grey hint on the
+  GuideBook step and in the Round Wizard's plan: fewer than 3 modules, or a
+  module under 5 words or 2 sentences ("some Rounds may repeat
+  exercises"); more than 6 modules ("consider splitting the Lesson"); a
+  module over 12 entries ("consider splitting the module: the default 3
+  Rounds reach about 14 entries, so some may not be practised");
+  the hard minimum stays 3 words per module. The best size, named in the
+  texts: 4 modules per Lesson, about 8 Words & Expressions and 3-4
+  Sentences per module (texts approved in chat on 9 October 2026: the
+  Wizard's module note, four hints, the moduleLength Help answer). Owner:
+  the same hints in the manual editor too: the Course Editor's GuideBook
+  page (Lesson: fewer than 3 or more than 6 modules; each module row: under
+  5 words or 2 sentences, over 12 entries) and the module page (a line
+  counting its words and sentences, with the hint). Owner (9 October
+  2026, "yes"): two Info Audit rules worded as Round Wizard advice, only
+  while Use GuideBook is on, never on an empty module:
+  `GUIDEBOOK_MODULE_SIZE` (per module: under 5 words or 2 Sentences, or
+  over 12 entries; best about 8 words and 3-4 Sentences) and
+  `GUIDEBOOK_MODULE_COUNT` (per Lesson: outside 3-6 modules; best 4). The
+  bundled demos will show them (one module per Lesson; English from
+  Italian has 36 words in one module): accepted as honest Info.
+- Deferred by the owner (later revisions): the Border option for picture
+  answers; a New Course button in the learner's Course Selector; a warning
+  when New Course starts while a Course Wizard is still paused; Create
+  Duels off by default for a new Course, in the Wizard and in New Course's
+  form (owner: a Duel adds a complication).
+- Picture answer border (owner decisions of 9 October 2026, mock-up in
+  chat): look A, a thin neutral grey line (about 1.5 px) following the
+  round or square shape, distinct from selection and feedback colours;
+  picture answers only (Select the image, Listen and pick the image); on
+  by default for new Courses only (existing Courses keep today's look);
+  a Course choice in Lesson Options that an exercise can override, like
+  size, shape and per row.
+- Answers of 9 October 2026 for the next revisions:
+  - Revision 4: after Check and publish the Finish popup stays, adapted:
+    congratulations and what is red; after Publish "learners can study the
+    Course now"; after Finish without publishing, the Publish reminder.
+  - Revision 6: New Course with paused Wizards lists the ones this learner
+    may continue (Maintainer or Team), with Continue for each, Start a new
+    Course and Cancel. The learner Course Selector's New Course is greyed
+    with the profile's unlock method while Course Studio is locked.
+  - Revision 8, **Editor Notes**: an optional notes field on every item of
+    a Round (scored exercises, Before you start cards, Pages, Dialogue
+    lines, Story covers), in the preset and canonical forms; stored in the
+    Course file (export, import, Copy, Fork keep it), removed by Export as
+    Publisher Course; never shown to learners, outside semantic equality
+    and preset recognition; a note icon on the exercise's row in the Round
+    editor shows it on hover or long press; a new optional Course field, so
+    `minimumAppBuild` rises on confirmation like Page blocks or plurals.
+    JSON (told to the owner on 9 October 2026): `editorNotes`, a string on
+    the Content object beside `id`, `kind` and `authoringMetadata`; stored
+    only when not empty; not inside `exercise` (canonical, semantic
+    equality) nor inside `authoringMetadata` (cleared when the exercise
+    changes, plan A.13); proposed limit 2,000 characters.
+- Then, later and not now (owner: "leave it for afterwards"): the Italian
+  picture-led demo built with the Wizard (each module and Round approved
+  by the owner).
+
+## Owner's simplification of the Wizard (9 October 2026, ~01:30)
+
+Folded into Revision 3 (with the picture aids), before its complete suite:
+- Step 1 **Basics**: Title, Source language (the owner first suggested
+  "Learner's language", then, ~01:45, kept **Source** as everywhere in the
+  app: a wording to discuss later, not to publish), Target language, Variant (optional; example "American English", never "Italian of
+  Italy" or "Brazilian Portuguese"; Fill with an example leaves it empty).
+  A shorter introduction.
+- New step 2 **Flag or cover image**: the flag and cover section only.
+- Step 3 **About the Course**: Description and Authors in view; everything
+  else of Course Info (levels, study hours, minimum age, keywords, roles,
+  license, derivative works, Rights Holders, Buy a Coffee, publisher
+  contact) behind **Advanced**, explained as fields that can wait and be
+  filled in later. The Credits and rights step is gone.
+- The long explanations are hidden: a short line in view, the rest behind a
+  "Tell me more" toggle.
+- **Course options**: nothing but Advanced (all options keep their defaults).
+- **Lessons**: titles only; icons, sections and the longer explanation under
+  Advanced.
+- The step bar scrolls to the current step on Next, Back and jumps.
+- GuideBook step: **Fill with an example** opens the example module on the
+  module page. The long GuideBook explanation is split (owner): what a
+  module holds, the picture suggestions and Fill sit in a short note above
+  the modules (`course-wizard-module-explanation`); the panel keeps what is
+  needed now and the approval.
+- Rounds step, the same split (owner): what the Round Wizard does stands
+  above Make Rounds (`course-wizard-rounds-explanation`); the Round Wizard's
+  page title "Generate Rounds from GuideBook" becomes **Generate Rounds**
+  (owner: "rename Generate rounds from generator to Generate rounds", read
+  as that title; the Make Rounds button keeps its name).
+- Course Studio: a tap on the row of a paused Wizard Course opens the
+  Wizard (`_openRow`, when Continue Course Wizard is available); Edit in the
+  ⋮ menu opens the Course Editor.
+- Later revision (owner, 9 October 2026): a **New Course** button in the
+  learner's Course Selector.
+- Round types (owner, 9 October 2026: "not Practice six times"): the plan
+  proposes Discover first, Test last, Practice between. The owner first
+  chose a Listen Round in the middle too; told that a learner with Audio
+  Exercises off (the default) could then never finish that Round nor its
+  Lesson, the owner answered "Ask", then "Both": the author is asked (the
+  Round Wizard's **Listen Round** switch, off by default) and the learner
+  is asked (**Turn on audio** on a Round of audio exercises).
+- Step 7 (owner: "make it simple"): the Round Wizard from the Course
+  Wizard starts with Round titles off.
+- Owner, 9 October 2026: "We need an Audit option for exercise 3 dots! I
+  don't know why some are red, in the Wizard". Every red generated exercise
+  was the `ROUND_DUPLICATE_CONTENT` Warning (180 in 10 sample plans): the
+  generator reused a sentence or a pair in a Round, the sample has "il
+  conto" twice, and two Matches of different words counted as one. Done:
+  Audit in the exercise ⋮ menu (`RoundEditorScreen._auditExercise`), the
+  generator's fresh-content choice (`_Material.withFreshContent`,
+  `_freshSlot`, `_contentKey` by the words shown), and the Audit's key
+  compares a Match's pairs. 0 warnings after.
+- Owner, 9 October 2026: Finish shows a short popup (congratulations,
+  what is still red, Edit mode, Publish): `_congratulate`.
+- Fix (owner report): the Preview played the first exercise's audio behind
+  Before you start (`_isPreparedExerciseActive` returned true in Preview);
+  it now waits for Continue. History is squashed, so when it began is not
+  known; the Preview has shown the card since Build 257.
+- Deferred by the owner ("can wait"): a **Border** option for picture
+  answers, in the Wizard and in the Course Editor's Lesson Options alike.

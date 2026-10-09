@@ -31,11 +31,11 @@ void main() {
   group('the paused Wizard', () {
     test('its record reads back and names the step', () {
       final pause = CourseWizardPause(
-        step: CourseWizardStep.credits,
+        step: CourseWizardStep.about,
         savedAtUtc: DateTime.utc(2026, 10, 8, 12),
       );
       final read = CourseWizardPause.fromJson(pause.toJson())!;
-      expect(read.step, CourseWizardStep.credits);
+      expect(read.step, CourseWizardStep.about);
       expect(read.savedAtUtc, pause.savedAtUtc);
       expect(read.lessonId, isNull);
       expect(pause.toJson(), {
@@ -44,7 +44,7 @@ void main() {
       });
       expect(
         pause.description,
-        'Course Wizard paused: step 3 of 7 (Credits and rights)',
+        'Course Wizard paused: step 3 of 7 (About the Course)',
       );
       // Unusable records are ignored, never guessed.
       for (final raw in [
@@ -94,42 +94,49 @@ void main() {
       expect(course.authors.single.name, 'Wizard Author');
       expect(course.authors.single.roles, ['Author']);
       expect(course.useGuidebook, isTrue);
-      expect(course.languageVariant, 'Italian of Italy');
+      expect(course.languageVariant, isEmpty);
       expect(course.targetLanguageTag, 'it');
       expect(Course.fromJson(course.toJson()).toJson(), course.toJson());
     });
 
-    test('About writes its fields and leaves out the cleared ones', () {
+    test('the flag, the cover and About write their fields', () {
       const credit = CourseMediaAttribution(
         author: 'A. Painter',
         license: 'CC BY 4.0',
       );
-      final about = CourseWizardAbout(
+      final picture = CourseWizardPicture(
+        coverImage: 'media:${'a' * 64}.png',
+        coverCredit: credit,
+        flag: CourseFlagSelection.builtIn('IT'),
+      );
+      var course = picture.applyTo(_wizardCourse());
+      expect(course.coverImage, picture.coverImage);
+      expect(course.flagCode, 'IT');
+      expect(course.mediaAttributions.single.author, 'A. Painter');
+      // The same credit is never added twice.
+      expect(picture.applyTo(course).mediaAttributions, hasLength(1));
+      final noPicture = const CourseWizardPicture().applyTo(course);
+      expect(noPicture.coverImage, isEmpty);
+      expect(noPicture.flagCode, isEmpty);
+
+      const about = CourseWizardAbout(
         description: '  Coffee and pastries.  ',
         startLevel: 'A1',
         targetLevel: 'A2',
-        coverImage: 'media:${'a' * 64}.png',
-        coverCredit: credit,
         studyHours: 4,
         minimumAge: 9,
-        keywords: const ['bar', 'travel'],
-        flag: CourseFlagSelection.builtIn('IT'),
+        keywords: ['bar', 'travel'],
       );
-      final course = about.applyTo(_wizardCourse());
+      course = about.applyTo(course);
       expect(course.courseDescription, 'Coffee and pastries.');
       expect(course.estimatedStudyHours, 4);
       expect(course.minimumAge, 9);
       expect(course.keywords, ['bar', 'travel']);
-      expect(course.coverImage, about.coverImage);
-      expect(course.flagCode, 'IT');
-      expect(course.mediaAttributions.single.author, 'A. Painter');
-      // The same credit is never added twice.
-      expect(about.applyTo(course).mediaAttributions, hasLength(1));
+      expect(course.coverImage, picture.coverImage);
       final cleared = const CourseWizardAbout().applyTo(course);
       expect(cleared.toJson().containsKey('estimatedStudyHours'), isFalse);
       expect(cleared.toJson().containsKey('keywords'), isFalse);
-      expect(cleared.coverImage, isEmpty);
-      expect(cleared.flagCode, isEmpty);
+      expect(cleared.courseDescription, isEmpty);
       expect(CourseWizardAbout.studyHoursProblem('1001'), isNotNull);
       expect(CourseWizardAbout.studyHoursProblem('4.5'), isNotNull);
       expect(CourseWizardAbout.studyHoursProblem(''), isNull);
@@ -507,7 +514,7 @@ void main() {
   test('Continue Course Wizard is greyed for someone who cannot edit', () {
     final course = _wizardCourse();
     final pause = CourseWizardPause(
-      step: CourseWizardStep.credits,
+      step: CourseWizardStep.about,
       savedAtUtc: DateTime.utc(2026, 10, 8),
     );
     final outsider = CourseManagerLibrary(
@@ -543,7 +550,22 @@ void main() {
       expect(find.text('Step 1 of 7: Basics'), findsOneWidget);
       expect(find.byKey(const Key('course-wizard-continue')), findsOneWidget);
       expect(find.byKey(const Key('course-wizard-manual')), findsOneWidget);
-      expect(find.byKey(const Key('course-wizard-can-wait-variant')), findsOne);
+      // The variant is optional and says so; the long explanation is hidden.
+      expect(_field('Language variant (optional)'), findsOneWidget);
+      expect(_field('Source language *'), findsOneWidget);
+      expect(find.textContaining('American English'), findsWidgets);
+      expect(find.textContaining('Italian of Italy'), findsNothing);
+      expect(find.text('Tell me more'), findsOneWidget);
+      expect(
+        find.textContaining('Continue with the Course Wizard saves'),
+        findsNothing,
+      );
+      await tester.tap(find.byKey(const Key('course-wizard-explanation-more')));
+      await tester.pumpAndSettle();
+      expect(
+        find.textContaining('Continue with the Course Wizard saves'),
+        findsOne,
+      );
       // Nothing to save yet: no Save for now, no Continue by hand.
       expect(find.byKey(const Key('course-wizard-save-for-now')), findsNothing);
       await tester.tap(find.byKey(const Key('course-wizard-cancel')));
@@ -573,7 +595,8 @@ void main() {
       expect(_fieldText(tester, 'Course title *'), 'Italian at the bar');
       expect(_fieldText(tester, 'Source language *'), 'English');
       expect(_fieldText(tester, 'Target language *'), 'Italian');
-      expect(_fieldText(tester, 'Language variant'), 'Italian of Italy');
+      // The example leaves the optional variant empty.
+      expect(_fieldText(tester, 'Language variant'), isEmpty);
     });
 
     testWidgets('the Wizard saves at each step, pauses and resumes', (
@@ -587,7 +610,8 @@ void main() {
       await tester.pump();
       await tester.tap(find.byKey(const Key('course-wizard-continue')));
       await tester.pumpUntilFileIoState(
-        () => find.text('Step 2 of 7: About the Course').evaluate().isNotEmpty,
+        () =>
+            find.text('Step 2 of 7: Flag or cover image').evaluate().isNotEmpty,
       );
       var stored = (await tester.runAsync(
         () => CourseEditorService().listUserCourses(),
@@ -600,21 +624,39 @@ void main() {
         (await tester.runAsync(
           () => CourseWizardMemory().recall(stored.courseId),
         ))!.step,
-        CourseWizardStep.about,
+        CourseWizardStep.flag,
       );
       expect(find.byKey(const Key('course-wizard-step-done-1')), findsOne);
 
-      // Fill with an example asks nothing on an empty step.
-      await tester.tap(find.byKey(const Key('course-wizard-fill-example')));
-      await tester.pumpAndSettle();
-      expect(
-        find.byKey(const Key('course-wizard-fill-example-confirm')),
-        findsNothing,
-      );
+      // The flag step: nothing changed, Next saves nothing.
       await tester.tap(find.byKey(const Key('course-wizard-next')));
       await tester.pumpUntilFileIoState(
-        () =>
-            find.text('Step 3 of 7: Credits and rights').evaluate().isNotEmpty,
+        () => find.text('Step 3 of 7: About the Course').evaluate().isNotEmpty,
+      );
+      // Description and Authors in view; the rest behind Advanced.
+      expect(_field('Course description (optional)'), findsOneWidget);
+      expect(find.byKey(const Key('course-wizard-credit-0')), findsOneWidget);
+      expect(_field('Starting level'), findsNothing);
+      expect(_field('Course content license'), findsNothing);
+      await tester.tap(find.byKey(const Key('course-wizard-advanced')));
+      await tester.pumpAndSettle();
+      expect(_field('Starting level'), findsOneWidget);
+      expect(
+        find.byKey(const Key('course-wizard-advanced-note')),
+        findsOneWidget,
+      );
+
+      // Fill with an example: the step holds the creator's credit, so it
+      // asks first.
+      await tester.tap(find.byKey(const Key('course-wizard-fill-example')));
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.byKey(const Key('course-wizard-fill-example-confirm')),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('course-wizard-next')));
+      await tester.pumpUntilFileIoState(
+        () => find.text('Step 4 of 7: Course options').evaluate().isNotEmpty,
       );
       stored = (await tester.runAsync(
         () => CourseEditorService().listUserCourses(),
@@ -623,6 +665,10 @@ void main() {
       expect(stored.versionNotes, 'Course Wizard: About the Course');
       expect(stored.courseDescription, CourseWizardSample.about.description);
       expect(stored.keywords, CourseWizardSample.about.keywords);
+      expect(stored.license, 'CC BY 4.0');
+      // Course options: nothing but Advanced.
+      expect(find.byKey(const Key('course-wizard-advanced')), findsOneWidget);
+      expect(find.byKey(const Key('course-wizard-create-duels')), findsNothing);
 
       // Save for now closes the Wizard; the row says where it stopped.
       await tester.tap(find.byKey(const Key('course-wizard-save-for-now')));
@@ -632,7 +678,7 @@ void main() {
       await tester.pumpUntilFileIoState(() => paused.evaluate().isNotEmpty);
       expect(find.byType(CourseWizardScreen), findsNothing);
       expect(
-        find.text('Course Wizard paused: step 3 of 7 (Credits and rights)'),
+        find.text('Course Wizard paused: step 4 of 7 (Course options)'),
         findsOneWidget,
       );
       // No change on this step: no new version.
@@ -656,8 +702,8 @@ void main() {
       );
       await tester.tap(continueItem);
       await tester.pumpAndSettle();
-      expect(find.text('Step 3 of 7: Credits and rights'), findsOneWidget);
-      expect(find.byKey(const Key('course-wizard-step-done-2')), findsOne);
+      expect(find.text('Step 4 of 7: Course options'), findsOneWidget);
+      expect(find.byKey(const Key('course-wizard-step-done-3')), findsOne);
     });
 
     testWidgets('Lessons, then each GuideBook approved, then the Rounds', (
@@ -741,6 +787,10 @@ void main() {
       );
       await tester.tap(find.byKey(const Key('course-wizard-fill-example')));
       await tester.pumpAndSettle();
+      // The example opens on the module page; Done keeps it.
+      expect(find.byKey(const Key('guidebook-module-title')), findsOneWidget);
+      await tester.tap(find.byKey(const Key('guidebook-module-done')));
+      await tester.pumpAndSettle();
       expect(find.byKey(const Key('course-wizard-module-0')), findsOneWidget);
       expect(find.textContaining('Not approved yet'), findsOneWidget);
       await tester.tap(find.byKey(const Key('course-wizard-next')));
@@ -753,6 +803,8 @@ void main() {
       for (var lesson = 1; lesson <= 3; lesson++) {
         if (lesson > 1) {
           await tester.tap(find.byKey(const Key('course-wizard-fill-example')));
+          await tester.pumpAndSettle();
+          await tester.tap(find.byKey(const Key('guidebook-module-done')));
           await tester.pumpAndSettle();
         }
         final ready = find.byKey(const Key('course-wizard-guidebook-ready'));
@@ -827,6 +879,16 @@ void main() {
       expect(find.text('Step 7 of 7: Rounds'), findsOneWidget);
       expect(find.text('No Rounds yet.'), findsOneWidget);
       expect(find.text('Duel: 0 questions (25 needed)'), findsOneWidget);
+      // What the Round Wizard does stands beside Make Rounds (owner,
+      // 9 October 2026).
+      expect(
+        tester
+            .widget<Text>(
+              find.byKey(const Key('course-wizard-rounds-explanation')),
+            )
+            .data,
+        contains('A Duel needs 25 questions'),
+      );
 
       // Finish needs Rounds in every Lesson.
       await tester.tap(find.byKey(const Key('course-wizard-next')));
@@ -841,10 +903,25 @@ void main() {
 
       await tester.tap(find.byKey(const Key('course-wizard-make-rounds')));
       await tester.pumpAndSettle();
-      expect(find.byKey(const Key('generator-round-titles')), findsOneWidget);
-      // Untitled Rounds, as the Italian demo wants them.
-      await tester.tap(find.byKey(const Key('generator-round-titles')));
-      await tester.pumpAndSettle();
+      expect(find.text('Generate Rounds'), findsOneWidget);
+      // From the Course Wizard the Rounds are untitled by default (owner,
+      // 9 October 2026: keep it simple), and no Listen Round is planned.
+      expect(
+        tester
+            .widget<SwitchListTile>(
+              find.byKey(const Key('generator-round-titles')),
+            )
+            .value,
+        isFalse,
+      );
+      expect(
+        tester
+            .widget<SwitchListTile>(
+              find.byKey(const Key('generator-listen-round')),
+            )
+            .value,
+        isFalse,
+      );
       await tester.tap(find.byKey(const Key('generator-review-plan')));
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('generator-duel-count')), findsOneWidget);
@@ -875,7 +952,27 @@ void main() {
       );
       expect(find.byKey(const Key('course-wizard-round-2')), findsOneWidget);
 
+      // Finish congratulates, says what is still red, where to change the
+      // Course and when to Publish (owner, 9 October 2026).
       await tester.tap(find.byKey(const Key('course-wizard-next')));
+      await tester.pumpUntilFileIoState(
+        () => find
+            .byKey(const Key('course-wizard-finished'))
+            .evaluate()
+            .isNotEmpty,
+      );
+      expect(find.text('Congratulations!'), findsOneWidget);
+      expect(
+        find.byKey(const Key('course-wizard-finished-red')).evaluate().length +
+            find
+                .byKey(const Key('course-wizard-finished-clean'))
+                .evaluate()
+                .length,
+        1,
+      );
+      expect(find.textContaining('switch it to Edit mode'), findsOneWidget);
+      expect(find.textContaining('press Publish'), findsOneWidget);
+      await tester.tap(find.byKey(const Key('course-wizard-finished-ok')));
       await tester.pumpUntilFileIoState(
         () => find.byType(CourseEditorScreen).evaluate().isNotEmpty,
       );
@@ -892,7 +989,7 @@ void main() {
       );
     });
 
-    testWidgets('the Course Editor shows the paused line and continues', (
+    testWidgets('a paused row opens the Wizard; the Editor continues it', (
       tester,
     ) async {
       final stored = (await tester.runAsync(() => _store(_wizardCourse())))!;
@@ -906,9 +1003,29 @@ void main() {
         ),
       );
       await _openStudio(tester);
+      // A tap on the row opens the paused Wizard where it stopped (owner,
+      // 9 October 2026).
       final row = find.widgetWithText(ListTile, 'Italian at the bar');
       await tester.ensureVisible(row);
       await tester.tap(row);
+      await tester.pumpUntilFileIoState(
+        () => find.byType(CourseWizardScreen).evaluate().isNotEmpty,
+      );
+      expect(find.text('Step 4 of 7: Course options'), findsOneWidget);
+      expect(find.byType(CourseEditorScreen), findsNothing);
+      await tester.tap(find.byKey(const Key('course-wizard-save-for-now')));
+      await tester.pumpUntilFileIoState(
+        () => find.byType(CourseWizardScreen).evaluate().isEmpty,
+      );
+
+      // The menu's Edit opens the Course Editor, with the paused line.
+      final actions = find.byKey(
+        ValueKey('course-manager-actions-${stored.courseId}'),
+      );
+      await tester.ensureVisible(actions);
+      await tester.tap(actions);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Edit'));
       await tester.pumpUntilFileIoState(
         () => find
             .byKey(const Key('course-editor-wizard-paused'))
@@ -978,7 +1095,10 @@ void main() {
     );
     await tester.tap(find.text('open'));
     await tester.pumpAndSettle();
-    await tester.enterText(_field('Course description'), 'Coffee first.');
+    await tester.enterText(
+      _field('Course description (optional)'),
+      'Coffee first.',
+    );
     await tester.pageBack();
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('course-wizard-leave')), findsOneWidget);
@@ -1036,6 +1156,11 @@ void main() {
       isTrue,
     );
     expect(find.textContaining('Needs a module'), findsOneWidget);
+    // The module details stand above the modules (owner, 9 October 2026).
+    expect(
+      find.byKey(const Key('course-wizard-module-explanation')),
+      findsOneWidget,
+    );
     await _addModule(
       tester,
       title: 'Il conto',
@@ -1055,6 +1180,8 @@ void main() {
     await tester.tap(
       find.byKey(const Key('course-wizard-fill-example-confirm')),
     );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('guidebook-module-done')));
     await tester.pumpAndSettle();
     expect(find.text('Al bar'), findsOneWidget);
     expect(find.text('Il conto'), findsNothing);
@@ -1114,9 +1241,26 @@ void main() {
         find.text('Step ${step.number} of 7: ${step.title}'),
         findsOneWidget,
       );
+      // The step shown is in view in the step bar.
+      expect(
+        tester
+            .getRect(find.byKey(ValueKey('course-wizard-step-${step.number}')))
+            .right,
+        lessThanOrEqualTo(360),
+      );
+      // The long explanation and the Advanced fields fit too.
+      await tester.tap(find.byKey(const Key('course-wizard-explanation-more')));
+      await tester.pumpAndSettle();
+      final advanced = find.byKey(const Key('course-wizard-advanced'));
+      if (advanced.evaluate().isNotEmpty) {
+        await tester.ensureVisible(advanced);
+        await tester.pumpAndSettle();
+        await tester.tap(advanced);
+        await tester.pumpAndSettle();
+      }
       await tester.drag(
         find.byKey(const Key('course-wizard-page')),
-        const Offset(0, -3000),
+        const Offset(0, -4000),
       );
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull, reason: step.title);
@@ -1192,7 +1336,6 @@ Course _wizardCourse() =>
       targetLanguage: 'Italian',
       sourceLanguageTag: 'en',
       targetLanguageTag: 'it',
-      languageVariant: 'Italian of Italy',
     );
 
 /// [course] saved as the Wizard's first step saves it.

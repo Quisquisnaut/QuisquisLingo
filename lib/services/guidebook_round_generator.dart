@@ -1,5 +1,7 @@
 import 'dart:math';
 
+import 'package:characters/characters.dart';
+
 import '../models/course_models.dart';
 import '../models/exercise_authoring.dart';
 import '../models/guidebook_text.dart';
@@ -7,6 +9,7 @@ import 'authoring_duplication_service.dart';
 import 'exercise_draft_builder.dart';
 import 'round_type_compatibility.dart';
 import 'round_flow_authoring.dart';
+import 'word_lookup/word_lookup_text.dart';
 
 class GuidebookGenerationException implements Exception {
   const GuidebookGenerationException(this.message);
@@ -104,17 +107,27 @@ class GuidebookGenerationPlan {
 ///   other, and a typed answer accepts every synonym's Target.
 /// - Sentences give Build the translation and Word order.
 /// - A module with at least three pictured Words & Expressions adds Select
-///   the image, Match pictures to words and Picture flashcard.
+///   the image, Match pictures to words and Picture flashcard; Build 267
+///   Revision 3 adds What is in the picture, Spell the word in the picture
+///   (a word of at most [maximumSpellingLetters] letters, without its
+///   leading article), Name what you see (an entry of two words or more),
+///   Type what you see and Listen and pick the image, and Prefer picture
+///   exercises makes about half of each Round picture exercises.
 /// - Each Round records its focus and the earlier modules it used; each
 ///   exercise's `sourceRefs` are the entries of its question and answer.
 class GuidebookRoundGenerator {
+  /// [articles] are the learning language's articles, as Word Lookup
+  /// compares words (`WordLookupArticles.forLanguage`): Spell the word in the
+  /// picture spells a word without its leading article.
   GuidebookRoundGenerator({
     int randomSeed = 0,
     AuthoringIdGenerator? draftIds,
     DateTime Function()? now,
+    Set<String> articles = const {},
   }) : _randomSeed = randomSeed,
        _draftIds = draftIds ?? TimestampAuthoringIdGenerator(),
-       _now = now ?? (() => DateTime.now().toUtc());
+       _now = now ?? (() => DateTime.now().toUtc()),
+       _articles = articles;
 
   static const int defaultRoundCount = 6;
 
@@ -132,9 +145,82 @@ class GuidebookRoundGenerator {
   /// The share of a Round that reviews earlier modules.
   static const double reviewShare = .3;
 
+  /// Spell the word in the picture takes words of at most this many
+  /// letters, one tile each (owner decision of 9 October 2026).
+  static const int maximumSpellingLetters = 12;
+
+  /// The Round type the plan proposes for the Round at [position] of a
+  /// module's [count] Rounds (owner decisions of 9 October 2026: not
+  /// Practice every time): the first Discover, the last Test, the others
+  /// Practice; with two Rounds Discover and Practice; one Round is Practice.
+  /// With [listenRound] the middle one of three or more is Listen: off by
+  /// default, because a learner with Audio Exercises off cannot play it.
+  /// The author can change each one in the plan.
+  static RoundType defaultTypeFor(
+    int position,
+    int count, {
+    bool listenRound = false,
+  }) {
+    if (count <= 1) return RoundType.practice;
+    if (position == 0) return RoundType.discover;
+    if (count == 2) return RoundType.practice;
+    if (position == count - 1) return RoundType.test;
+    if (listenRound && position == count ~/ 2) return RoundType.listening;
+    return RoundType.practice;
+  }
+
+  /// The picture presets: Prefer picture exercises alternates them with
+  /// the others (Build 267 Revision 3).
+  static const picturePresets = {
+    'icon_choice',
+    'picture_word_match',
+    'picture_flashcard',
+    'picture_choice',
+    'image_word',
+    'picture_blocks',
+    'picture_name',
+    'listening_image_choice',
+  };
+
   final int _randomSeed;
   final AuthoringIdGenerator _draftIds;
   final DateTime Function() _now;
+  final Set<String> _articles;
+
+  _Material _material(Guidebook guidebook) =>
+      _Material(guidebook, articles: _articles);
+
+  /// Whether [module] has the three different pictures the picture
+  /// exercises need (and Prefer picture exercises).
+  static bool hasPictures(GuidebookModule module) =>
+      _Material(Guidebook(modules: [module])).hasPictures([module]);
+
+  /// [count] presets from [pool], from [start] on; with [preferPictures]
+  /// every second one is a picture preset, when the pool has both kinds.
+  static List<String> _choose(
+    List<String> pool,
+    int count,
+    int start,
+    bool preferPictures,
+  ) {
+    final pictures = [
+      for (final preset in pool)
+        if (picturePresets.contains(preset)) preset,
+    ];
+    final others = [
+      for (final preset in pool)
+        if (!picturePresets.contains(preset)) preset,
+    ];
+    if (!preferPictures || pictures.isEmpty || others.isEmpty) {
+      return [for (var j = 0; j < count; j++) pool[(j + start) % pool.length]];
+    }
+    return [
+      for (var j = 0; j < count; j++)
+        j.isOdd
+            ? pictures[(j ~/ 2 + start) % pictures.length]
+            : others[(j ~/ 2 + start) % others.length],
+    ];
+  }
 
   static bool supportsType(RoundType type) => switch (type) {
     RoundType.discover ||
@@ -168,12 +254,13 @@ class GuidebookRoundGenerator {
   GuidebookRoundPlan changeType(
     Guidebook guidebook,
     GuidebookRoundPlan source,
-    RoundType type,
-  ) {
+    RoundType type, {
+    bool preferPictures = false,
+  }) {
     if (!supportsType(type)) {
       throw GuidebookGenerationException(unsupportedReason(type));
     }
-    final material = _Material(guidebook);
+    final material = _material(guidebook);
     final module = material.focusOf(source.focusModuleId);
     final pool = material.poolFor(module, source.difficulty, type);
     if (pool.isEmpty) {
@@ -181,10 +268,18 @@ class GuidebookRoundGenerator {
         'This GuideBook has no compatible candidates for ${type.name}.',
       );
     }
-    final presets = [
-      for (var i = 0; i < source.presetIds.length; i++)
-        pool[(source.index + i) % pool.length],
-    ];
+    final presets = material.withFreshContent(
+      module,
+      material.reviewSafe(
+        module,
+        _choose(pool, source.presetIds.length, source.index, preferPictures),
+        source.reviewPositions,
+        pool,
+      ),
+      source.reviewPositions,
+      pool,
+      source.index,
+    );
     return source.withType(type, presets);
   }
 
@@ -192,9 +287,10 @@ class GuidebookRoundGenerator {
   GuidebookRoundPlan changeFocus(
     Guidebook guidebook,
     GuidebookRoundPlan source,
-    String moduleId,
-  ) {
-    final material = _Material(guidebook);
+    String moduleId, {
+    bool preferPictures = false,
+  }) {
+    final material = _material(guidebook);
     final module = material.moduleById(moduleId);
     if (module == null || moduleProblem(module) != null) {
       throw GuidebookGenerationException(
@@ -204,10 +300,19 @@ class GuidebookRoundGenerator {
       );
     }
     final pool = material.poolFor(module, source.difficulty, source.roundType);
-    final presets = [
-      for (var i = 0; i < source.presetIds.length; i++)
-        pool[(source.index + i) % pool.length],
-    ];
+    final review = material.reviewPositions(module, source.presetIds.length);
+    final presets = material.withFreshContent(
+      module,
+      material.reviewSafe(
+        module,
+        _choose(pool, source.presetIds.length, source.index, preferPictures),
+        review,
+        pool,
+      ),
+      review,
+      pool,
+      source.index,
+    );
     return GuidebookRoundPlan(
       index: source.index,
       difficulty: source.difficulty,
@@ -215,21 +320,26 @@ class GuidebookRoundGenerator {
       presetIds: List.unmodifiable(presets),
       roundType: source.roundType,
       focusModuleId: module.id,
-      reviewPositions: material.reviewPositions(module, presets.length),
+      reviewPositions: review,
       opensModule: source.opensModule,
     );
   }
 
   /// [focusModuleId] null practises All modules, in order: [roundCount] is
-  /// then the number of Rounds per module.
+  /// then the number of Rounds per module. [preferPictures] (Build 267
+  /// Revision 3) makes every second exercise of a module with pictures a
+  /// picture exercise; [listenRound] adds a Listen Round to each module
+  /// (see [defaultTypeFor]).
   GuidebookGenerationPlan plan(
     Guidebook guidebook, {
     String? focusModuleId,
     int roundCount = defaultRoundCount,
     int exercisesPerRound = defaultExercisesPerRound,
+    bool preferPictures = false,
+    bool listenRound = false,
   }) {
     _validateCounts(roundCount, exercisesPerRound);
-    final material = _Material(guidebook);
+    final material = _material(guidebook);
     final List<GuidebookModule> focus;
     final skipped = <String>[];
     if (focusModuleId != null) {
@@ -276,21 +386,32 @@ class GuidebookRoundGenerator {
     for (final module in focus) {
       for (var i = 0; i < roundCount; i++) {
         final difficulty = roundCount == 1 ? .5 : i / (roundCount - 1);
-        final pool = material.poolFor(module, difficulty, RoundType.practice);
+        final type = defaultTypeFor(i, roundCount, listenRound: listenRound);
+        final pool = material.poolFor(module, difficulty, type);
         final offset = random.nextInt(pool.length);
         final index = rounds.length;
-        final presets = [
-          for (var j = 0; j < exercisesPerRound; j++)
-            pool[(j + offset + index) % pool.length],
-        ];
+        final review = material.reviewPositions(module, exercisesPerRound);
+        final presets = material.withFreshContent(
+          module,
+          material.reviewSafe(
+            module,
+            _choose(pool, exercisesPerRound, offset + index, preferPictures),
+            review,
+            pool,
+          ),
+          review,
+          pool,
+          index,
+        );
         rounds.add(
           GuidebookRoundPlan(
             index: index,
             difficulty: difficulty,
             title: '${_phase(difficulty)}: ${_moduleTitle(module)}',
             presetIds: List.unmodifiable(presets),
+            roundType: type,
             focusModuleId: module.id,
-            reviewPositions: material.reviewPositions(module, presets.length),
+            reviewPositions: review,
             opensModule: i == 0,
           ),
         );
@@ -308,7 +429,7 @@ class GuidebookRoundGenerator {
   /// What [round] will use, for the plan: "Focus: Al bar — il conto,
   /// buongiorno · Review: Saluti — ciao".
   String wordsOf(Guidebook guidebook, GuidebookRoundPlan round) {
-    final material = _Material(guidebook);
+    final material = _material(guidebook);
     final slots = material.resolve(round);
     String list(Iterable<_Slot> slots) {
       final byModule = <String, Set<String>>{};
@@ -339,7 +460,7 @@ class GuidebookRoundGenerator {
     GuidebookGenerationPlan plan, {
     bool roundTitles = true,
   }) {
-    final material = _Material(guidebook);
+    final material = _material(guidebook);
     if (material.allWords.length < minimumWords) {
       throw const GuidebookGenerationException(
         'GuideBook material is insufficient for generation.',
@@ -594,6 +715,67 @@ class GuidebookRoundGenerator {
           imageAsset: item.picture!.asset,
           plural: {if (item.picture!.plural) item.picture!.asset},
         );
+      // Build 267 Revision 3 (owner decision of 9 October 2026).
+      case 'picture_choice':
+        final answers = [
+          item.shown,
+          ...material
+              .wrongAnswersFor(item, distractorCount + 1)
+              .map((other) => other.shown),
+        ];
+        final shuffled = [...answers]..shuffle(random);
+        return _fromForm(
+          'picture_choice',
+          answers: shuffled.join('\n'),
+          correct: '${shuffled.indexOf(item.shown) + 1}',
+          imageAsset: item.picture!.asset,
+          plural: {if (item.picture!.plural) item.picture!.asset},
+        );
+      case 'image_word':
+        final blocks = spellingBlocks(item.spellingWith(material.articles)!);
+        return _fromForm(
+          'image_word',
+          order: blocks.join('\n'),
+          tokens: blocks.join('\n'),
+          imageAsset: item.picture!.asset,
+          plural: {if (item.picture!.plural) item.picture!.asset},
+        );
+      case 'picture_blocks':
+        final blocks = _words(item.shown);
+        final extras = material.extraBlocksFor(
+          item,
+          blocks,
+          difficulty < .67 ? 1 : 2,
+        );
+        return _fromForm(
+          'picture_blocks',
+          order: blocks.join('\n'),
+          tokens: [...blocks, ...extras].join('\n'),
+          extraWords: extras.join('\n'),
+          imageAsset: item.picture!.asset,
+          plural: {if (item.picture!.plural) item.picture!.asset},
+        );
+      case 'picture_name':
+        return _fromForm(
+          'picture_name',
+          accepted: material.synonymsOf(item).join('\n'),
+          imageAsset: item.picture!.asset,
+          plural: {if (item.picture!.plural) item.picture!.asset},
+        );
+      case 'listening_image_choice':
+        final wrong = material.wrongPicturesFor(item, distractorCount + 1);
+        final choices = [item, ...wrong]..shuffle(random);
+        return _fromForm(
+          'listening_image_choice',
+          tts: item.shown,
+          answers: choices.map((choice) => choice.shown).join('\n'),
+          icons: choices.map((choice) => choice.picture!.asset).join('\n'),
+          correct: '${choices.indexOf(item) + 1}',
+          plural: {
+            for (final choice in choices)
+              if (choice.picture!.plural) choice.picture!.asset,
+          },
+        );
       default:
         throw StateError('Unsupported generated preset: ${slot.preset}');
     }
@@ -610,6 +792,11 @@ class GuidebookRoundGenerator {
     String correct = '',
     String pairs = '',
     String imageAsset = '',
+    String tts = '',
+    String accepted = '',
+    String tokens = '',
+    String order = '',
+    String extraWords = '',
     Set<String> plural = const {},
   }) {
     final result = ExerciseDraftBuilder.build(
@@ -641,6 +828,11 @@ class GuidebookRoundGenerator {
         correct: correct,
         pairs: pairs,
         imageAsset: imageAsset,
+        tts: tts,
+        accepted: accepted,
+        tokens: tokens,
+        order: order,
+        extraWords: extraWords,
         pluralPictures: plural,
       ),
     );
@@ -684,6 +876,11 @@ class GuidebookRoundGenerator {
     icons: const [],
   );
 
+  /// The tiles of Spell the word in the picture: one per letter (a letter
+  /// with its accent marks is one tile).
+  static List<String> spellingBlocks(String word) =>
+      word.characters.toList(growable: false);
+
   static String _phase(double difficulty) => difficulty < .34
       ? 'Foundations'
       : difficulty < .67
@@ -693,7 +890,9 @@ class GuidebookRoundGenerator {
   static String _moduleTitle(GuidebookModule module) =>
       module.title.trim().isEmpty ? 'Untitled module' : module.title.trim();
 
-  List<String> _words(String value) => value
+  List<String> _words(String value) => _splitWords(value);
+
+  static List<String> _splitWords(String value) => value
       .trim()
       .split(RegExp(r'\s+'))
       .where((word) => word.isNotEmpty)
@@ -744,6 +943,38 @@ class _Item {
 
   GuidebookPicture? get picture => entry.picture;
 
+  /// The word Spell the word in the picture spells: the Target without its
+  /// leading article ("il gatto" → gatto, "l'acqua" → acqua), one word of
+  /// letters only, 2 to [GuidebookRoundGenerator.maximumSpellingLetters]
+  /// of them; null when the entry cannot be spelled.
+  String? spellingWith(Set<String> articles) {
+    var text = shown.trim();
+    final words = GuidebookRoundGenerator._splitWords(text);
+    if (words.length == 2 &&
+        articles.contains(WordLookupText.normalize(words.first))) {
+      text = words.last;
+    } else if (words.length == 1) {
+      final apostrophe = text.indexOf(RegExp("['’]"));
+      if (apostrophe > 0 &&
+          articles.contains(
+            WordLookupText.normalize(text.substring(0, apostrophe + 1)),
+          )) {
+        text = text.substring(apostrophe + 1);
+      }
+    } else {
+      return null;
+    }
+    if (!RegExp(r'^\p{L}[\p{L}\p{M}]*$', unicode: true).hasMatch(text)) {
+      return null;
+    }
+    final letters = text.characters.length;
+    if (letters < 2 ||
+        letters > GuidebookRoundGenerator.maximumSpellingLetters) {
+      return null;
+    }
+    return text;
+  }
+
   String get targetKey => GuidebookRoundGenerator._normalize(shown);
   String get sourceKey => GuidebookRoundGenerator._normalize(entry.source);
   String get meaningKey =>
@@ -762,7 +993,7 @@ class _Slot {
 }
 
 class _Material {
-  _Material(this.guidebook)
+  _Material(this.guidebook, {this.articles = const {}})
     : modules = guidebook.modules,
       _words = {
         for (final module in guidebook.modules)
@@ -781,6 +1012,9 @@ class _Material {
 
   final Guidebook guidebook;
   final List<GuidebookModule> modules;
+
+  /// The learning language's articles (Spell the word in the picture).
+  final Set<String> articles;
   final Map<String, List<_Item>> _words;
   final Map<String, List<_Item>> _sentences;
 
@@ -819,6 +1053,43 @@ class _Material {
         if (word.picture != null) word,
   ];
 
+  /// Pictured entries Spell the word in the picture can spell.
+  List<_Item> spellable(Iterable<GuidebookModule> modules) => [
+    for (final item in pictured(modules))
+      if (item.spellingWith(articles) != null) item,
+  ];
+
+  /// Pictured entries of two words or more, for Name what you see.
+  List<_Item> namedInWords(Iterable<GuidebookModule> modules) => [
+    for (final item in pictured(modules))
+      if (GuidebookRoundGenerator._splitWords(item.shown).length >= 2) item,
+  ];
+
+  /// Up to [count] extra blocks for Name what you see: words of the Lesson's
+  /// other entries that are not in [blocks], articles first ("la" beside
+  /// "il pane").
+  List<String> extraBlocksFor(_Item item, List<String> blocks, int count) {
+    final taken = {for (final block in blocks) WordLookupText.normalize(block)};
+    final words = [
+      for (final other in [...wordsOf(item.module), ...allWords])
+        if (other.id != item.id)
+          ...GuidebookRoundGenerator._splitWords(other.shown),
+    ];
+    final ordered = [
+      ...words.where(
+        (word) => articles.contains(WordLookupText.normalize(word)),
+      ),
+      ...words,
+    ];
+    final result = <String>[];
+    for (final word in ordered) {
+      if (result.length == count) break;
+      if (!taken.add(WordLookupText.normalize(word))) continue;
+      result.add(word);
+    }
+    return result;
+  }
+
   /// Words with a sentence containing them, for Pick the missing word.
   List<(_Item, _Item)> matched(Iterable<GuidebookModule> modules) => [
     for (final module in modules)
@@ -846,8 +1117,15 @@ class _Material {
       return ['flashcard', if (pictures) 'picture_flashcard'];
     }
     if (roundType == RoundType.listening) {
-      return const ['listening_choose_target'];
+      return [
+        'listening_choose_target',
+        if (pictures) 'listening_image_choice',
+      ];
     }
+    // Build 267 Revision 3: the five further picture presets join their
+    // phases (plan §6): What is in the picture in Foundations, Spell the
+    // word in the picture and Name what you see in Practice, Type what you
+    // see and Listen and pick the image in Use in context.
     final candidates = difficulty < .34
         ? [
             'choice_target',
@@ -856,6 +1134,7 @@ class _Material {
             'word_match',
             if (pictures) 'icon_choice',
             if (pictures) 'picture_word_match',
+            if (pictures) 'picture_choice',
           ]
         : difficulty < .67
         ? [
@@ -867,12 +1146,16 @@ class _Material {
             if (hasMatched) 'gap_choice',
             if (pictures) 'picture_word_match',
             if (pictures) 'icon_choice',
+            if (pictures && spellable(own).isNotEmpty) 'image_word',
+            if (pictures && namedInWords(own).isNotEmpty) 'picture_blocks',
           ]
         : [
             'type_translation_to_target',
             if (hasMatched) 'gap_choice',
             'build_translation_to_target',
             if (hasSentences) 'word_order',
+            if (pictures) 'picture_name',
+            if (pictures) 'listening_image_choice',
           ];
     for (final preset in candidates) {
       if (ExercisePresetRegistry.byId(preset) == null) {
@@ -897,20 +1180,150 @@ class _Material {
     return positions.toList()..sort();
   }
 
-  /// The slots of [round], the same for the plan and the drafts.
+  /// [presets] with every picture preset at a review position that the
+  /// earlier modules cannot fill (they have no pictures) swapped for a
+  /// preset of [pool] they can fill, so the review stays a review (Build
+  /// 267 Revision 3: Prefer picture exercises counts focus slots only).
+  List<String> reviewSafe(
+    GuidebookModule module,
+    List<String> presets,
+    List<int> reviewPositions,
+    List<String> pool,
+  ) {
+    final earlier = earlierThan(module);
+    if (earlier.isEmpty || reviewPositions.isEmpty) return presets;
+    final reviewable = [
+      for (final preset in pool)
+        if (!GuidebookRoundGenerator.picturePresets.contains(preset) &&
+            _items(preset, earlier, 0) != null)
+          preset,
+    ];
+    if (reviewable.isEmpty) return presets;
+    final result = [...presets];
+    for (final (k, position) in reviewPositions.indexed) {
+      if (position >= result.length) continue;
+      final preset = result[position];
+      if (!GuidebookRoundGenerator.picturePresets.contains(preset)) continue;
+      if (_items(preset, earlier, 0) != null) continue;
+      result[position] = reviewable[(position + k) % reviewable.length];
+    }
+    return result;
+  }
+
+  /// The slots of [round], the same for the plan and the drafts. A slot
+  /// takes entries its preset has not used yet in the Round when it can
+  /// (owner rule of 9 October 2026: nothing asked twice in a Round).
   List<_Slot> resolve(GuidebookRoundPlan round) {
     final module = focusOf(round.focusModuleId);
     final earlier = earlierThan(module);
-    return [
-      for (var i = 0; i < round.presetIds.length; i++)
-        _slot(
-          round.presetIds[i],
+    final used = <String>{};
+    final slots = <_Slot>[];
+    for (var i = 0; i < round.presetIds.length; i++) {
+      final review = round.reviewPositions.contains(i);
+      final turn = round.index * 3 + i;
+      final preset = round.presetIds[i];
+      final slot =
+          _freshSlot(
+            preset,
+            module,
+            earlier,
+            review: review,
+            turn: turn,
+            used: used,
+          ) ??
+          _slot(preset, module, earlier, review: review, turn: turn);
+      used.add(_contentKey(slot.preset, slot.items));
+      slots.add(slot);
+    }
+    return slots;
+  }
+
+  /// [presets] with each one that could only ask again what the Round
+  /// already asks swapped, where possible, for a preset of [pool] that has
+  /// new entries: a picture preset for a picture preset first, so Prefer
+  /// picture exercises keeps its rhythm. The same choice [resolve] makes.
+  List<String> withFreshContent(
+    GuidebookModule module,
+    List<String> presets,
+    List<int> reviewPositions,
+    List<String> pool,
+    int roundIndex,
+  ) {
+    bool picture(String preset) =>
+        GuidebookRoundGenerator.picturePresets.contains(preset);
+    final earlier = earlierThan(module);
+    final used = <String>{};
+    final result = <String>[];
+    for (var i = 0; i < presets.length; i++) {
+      final review = reviewPositions.contains(i);
+      final turn = roundIndex * 3 + i;
+      final preset = presets[i];
+      final candidates = [
+        preset,
+        for (final other in pool)
+          if (other != preset && picture(other) == picture(preset)) other,
+        for (final other in pool)
+          if (picture(other) != picture(preset)) other,
+      ];
+      var chosen = preset;
+      _Slot? slot;
+      for (final candidate in candidates) {
+        slot = _freshSlot(
+          candidate,
           module,
           earlier,
-          review: round.reviewPositions.contains(i),
-          turn: round.index * 3 + i,
-        ),
-    ];
+          review: review,
+          turn: turn,
+          used: used,
+        );
+        if (slot != null) {
+          chosen = candidate;
+          break;
+        }
+      }
+      slot ??= _slot(preset, module, earlier, review: review, turn: turn);
+      used.add(_contentKey(slot.preset, slot.items));
+      result.add(chosen);
+    }
+    return result;
+  }
+
+  /// How many entries further a slot looks for ones not used yet.
+  static const _freshTries = 24;
+
+  /// What a slot asks, as the learner reads it: the preset and its
+  /// entries' words (two entries with the same words, such as il conto at
+  /// the restaurant and at the bank, ask the same gap).
+  static String _contentKey(String preset, List<_Item> items) =>
+      '$preset|${([for (final item in items) item.shown.trim().toLowerCase()]..sort()).join('|')}';
+
+  /// A slot of [preset] with entries the Round has not used with it yet
+  /// ([used]); at a review position from the earlier modules first. Null
+  /// when every choice repeats one.
+  _Slot? _freshSlot(
+    String preset,
+    GuidebookModule module,
+    List<GuidebookModule> earlier, {
+    required bool review,
+    required int turn,
+    required Set<String> used,
+  }) {
+    _Slot? from(List<GuidebookModule> modules, {required bool reviewing}) {
+      for (var k = 0; k < _freshTries; k++) {
+        final items = _items(preset, modules, turn + k);
+        if (items == null) return null;
+        if (!used.contains(_contentKey(preset, items))) {
+          return _Slot(preset, items, review: reviewing);
+        }
+      }
+      return null;
+    }
+
+    if (review && earlier.isNotEmpty) {
+      final reviewed = from(earlier, reviewing: true);
+      if (reviewed != null) return reviewed;
+    }
+    return from([module], reviewing: false);
   }
 
   _Slot _slot(
@@ -968,6 +1381,17 @@ class _Material {
         return pictures.length < 3 ? null : [at(pictures)!];
       case 'picture_flashcard':
         final word = at(pictured(modules));
+        return word == null ? null : [word];
+      case 'picture_choice':
+      case 'picture_name':
+      case 'listening_image_choice':
+        final pictures = _distinctPictures(pictured(modules));
+        return pictures.length < 3 ? null : [at(pictures)!];
+      case 'image_word':
+        final word = at(spellable(modules));
+        return word == null ? null : [word];
+      case 'picture_blocks':
+        final word = at(namedInWords(modules));
         return word == null ? null : [word];
       default:
         final word = at(words);

@@ -1939,6 +1939,20 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
     await _reload();
   }
 
+  /// A tap on a Course's row: a paused Course Wizard the learner may go on
+  /// with opens where it stopped (owner, 9 October 2026); otherwise, and
+  /// from the menu's Edit, the Course Editor.
+  Future<void> _openRow(Course course) {
+    final wizard = _library
+        .entriesFor(course)
+        .any(
+          (entry) =>
+              entry.action == CourseManagerAction.continueCourseWizard &&
+              entry.available,
+        );
+    return wizard ? _continueWizard(course) : _openUser(course);
+  }
+
   Future<void> _openUser(Course course) async {
     var continueWizard = false;
     final result = await Navigator.of(context).push<CourseConfirmationResult>(
@@ -2836,7 +2850,7 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
         mediaStore: widget.mediaStore,
         hiddenInLearner: _library.hiddenCourseIds.contains(course.courseId),
         note: _wizardNote(course),
-        onTap: () => _openUser(course),
+        onTap: () => _openRow(course),
         trailing: _courseActions(
           course,
           key: ValueKey(
@@ -3057,7 +3071,7 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
                               subtitle: const Text(
                                 'Bundled Course · read only',
                               ),
-                              onTap: () => _openUser(course),
+                              onTap: () => _openRow(course),
                               trailing: _courseActions(
                                 course,
                                 key:
@@ -3103,7 +3117,7 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
                                 ?_wizardNote(course),
                               ],
                             ),
-                            onTap: () => _openUser(course),
+                            onTap: () => _openRow(course),
                             trailing: _courseActions(
                               course,
                               key: ValueKey(

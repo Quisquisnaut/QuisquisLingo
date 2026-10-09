@@ -158,3 +158,62 @@ Prefer picture exercises (they wait for the owner's answer).
 - Help EN/IT/ES: the Course Wizard and Round Wizard answers; the Round
   Wizard's Help dialog.
 - Beta expiry 8 November 2026 (release 9 October).
+
+## Revision 3 (2.0.67+267003): picture aids; a simpler Course Wizard
+
+The parts of the plan's §5 and §6 that Build 266 had not done (owner
+decisions of 9 October 2026).
+
+- **Suggest pictures** on the module page, under Words & Expressions, in a
+  Course to or from English: Build 266's suggestion for every word without a
+  picture, also words written before; a picture already there stays; several
+  matches show "N matching pictures"; a SnackBar counts what was suggested.
+- **Five more picture exercises** in the Round Wizard (a module with three
+  Words & Expressions with different pictures):
+  - What is in the picture (Foundations);
+  - Spell the word in the picture (Practice): the word without its article,
+    2 to 12 letters, one tile per letter (owner: 12, and the word without
+    its article);
+  - Name what you see (Practice): entries of two words or more, one or two
+    extra blocks, articles first;
+  - Type what you see and Listen and pick the image (Use in context; Listen
+    and pick the image also in Listen Rounds).
+- **Prefer picture exercises**, on by default with pictures: every second
+  exercise a picture exercise. Review slots keep exercises the earlier
+  modules can fill.
+- The Round Wizard's first page keeps Review generation plan in view at the
+  bottom; the exercise count stands under the counts.
+- Help EN/IT/ES; the Course Wizard's explanations.
+- **A simpler Course Wizard** (owner's review of 9 October 2026):
+  - steps Basics, Flag or cover image (new), About the Course, Course
+    options, Lessons, GuideBook, Rounds; Credits and rights merged into
+    About the Course;
+  - Basics: the variant labelled optional, example "American English";
+    Fill leaves it empty; "Source language" stays (owner);
+  - About the Course: description and authors in view, the rest of Course
+    Info behind Advanced (it can wait, and says where to change it later);
+  - Course options: only Advanced; Lessons: titles, with icons, sections
+    and a longer explanation under Advanced;
+  - explanations: one short line, the rest behind Tell me more;
+  - the step bar scrolls to the step shown;
+  - the GuideBook step's Fill with an example opens the sample module on
+    the module page; what a module holds is a short note above the modules,
+    the panel keeps what is needed now and the approval;
+  - the Rounds step: what the Round Wizard does is a short note above Make
+    Rounds; the Round Wizard's page is titled Generate Rounds;
+  - Course Studio: a tap on a paused Wizard Course's row opens the Wizard
+    (Edit in the menu opens the Course Editor);
+  - the Round Wizard opened from the Course Wizard starts with Round titles
+    off.
+- Round Wizard: default Round types per module Discover, Practice …, Test;
+  a Listen Round switch (off by default) for the middle Round.
+- Learner: Turn on audio on a Round whose exercises all need audio while
+  Audio Exercises are off.
+- Fix: the Preview's first audio waits for Before you start's Continue.
+- Course Wizard: Finish congratulates, says what is still red, points to
+  Edit mode and Publish.
+- Round editor: Audit in each exercise's ⋮ menu.
+- Round Wizard: nothing asked twice in a Round; Audit: two Matches of
+  different pairs are not duplicates.
+- Deferred by the owner: a Border option for picture answers (Wizard and
+  Lesson Options).
