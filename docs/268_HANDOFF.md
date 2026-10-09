@@ -47,8 +47,11 @@ Decisions taken in this session (told to the owner in the final report):
 
 State: done. Focused tests green (new file 16, Laboratory cards 22,
 focused batch 322), analyzer clean, complete suite 4,038 passed, 1 skipped
-(9 October 2026, 22:38–23:14). Committed on `build-268` and the branch
-pushed as a backup (commit hash in the commit log; no pull request).
+(9 October 2026, 22:38–23:14). Committed on `build-268` as `81ddd46a`
+and the branch pushed as a backup; on the owner's "commit and the rest"
+(10 October 2026) `main` was fast-forwarded to the branch and pushed (no
+pull request). The remote branch `build-268` is kept for further Build 268
+revisions.
 
 Next: the owner reviews the Windows build; corrections are a same-version
 follow-up commit.
