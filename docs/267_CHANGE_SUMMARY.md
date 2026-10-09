@@ -268,3 +268,16 @@ decisions of 9 October 2026).
 - A note icon on the exercise's row in the Round editor shows the note.
 - The field has its own Help button in the preset form.
 - A Course with notes needs this build.
+
+## Revision 9 (2.0.67+267009): Course Wizard wording
+
+- Source and Target start empty (Wizard and New Course's form); capitals
+  never matter, and a language typed by hand starts with a capital.
+- Clearer lines on steps 1, 4, 5 and 6; buttons Continue with Wizard and
+  Continue by hand.
+- "No cover: only the flag is shown."; the top bar always shows the flag.
+- Lesson icons always in view; sections under Advanced.
+- GuideBook step: module counts on the Lesson chips; an empty Lesson's chip
+  opens a new module; the module page names its Lesson.
+- The example module's words are fixed expressions, not a sentence.
+- Fix: Editor notes are read-only in Inspection mode.

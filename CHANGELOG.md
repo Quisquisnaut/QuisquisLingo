@@ -1,3 +1,46 @@
+# 2.0.67 (Build 267, Revision 9) - Course Wizard wording - 2026-10-09
+
+Owner review and decisions of 9 October 2026.
+
+- **Course languages start empty** in the Course Wizard and in New Course's
+  form; only Fill with an example puts English in Source.
+- **Capitals never matter** in a Course language: on leaving the field a
+  language from QQL's list is written as its English name ("en", "ENGLISH"
+  become English), and a language typed by hand starts with a capital
+  (`LanguageFieldController.normalize`; the stored name is capitalized
+  even when the field is never left).
+- **Step 1** says: "Set a title for your Course and insert the learner's
+  language (Source) and the language to be studied (Target). Use the full
+  language name (e.g. English) or its code (en). Capitals don't matter."
+  Its buttons are **Continue with Wizard** and **Continue by hand** (was
+  Create it myself); Continue by hand keeps its name on the later steps.
+- **Flag or cover image**: "No cover: only the flag is shown." (shared with
+  Course Info and New Course); Help says the learner page's top bar always
+  shows the flag.
+- **Course options**: "Open Advanced if you want to change some Course
+  Options."
+- **Lessons**: each Lesson's icon is always in view (only sections wait
+  under Advanced); "Give each Lesson a title and an icon. Add or remove
+  lessons. Open Advanced if you want to group the lessons in sections."
+- **GuideBook**: "…turns into Rounds of exercises you can use in your
+  Course."; each Lesson chip shows its modules ("1. At the bar · 3
+  modules"); tapping the chip of a Lesson with no modules opens a new
+  module at once.
+- **Module page**: names its Lesson under the title ("Lesson 2: At the
+  market", `guidebook-module-lesson`), from the Wizard and from the Course
+  Editor (`lessonName`, `GuidebookModuleEditorScreen.lessonNameFor`).
+- **Example module**: "{io} sono stanco" (a sentence) is no longer among
+  Words & Expressions; the fixed expressions "buongiorno" and "come stai?"
+  are, in the example and in the Paste list hint.
+- **Fix (Revision 8)**: the preset form's Editor notes are read-only in
+  Inspection mode, which saves nothing.
+- Help EN/IT/ES: Create a new course, How does the Course Wizard work?,
+  How do I give the Course a cover picture?
+- Tests: `test/wizard_wording_267_test.dart`; the New Course tests type
+  the Source language.
+- Scoring, progression, Course files and learner data are unchanged. Beta
+  expiry `2026-11-08 23:59:59` local time.
+
 # 2.0.67 (Build 267, Revision 8) - Editor Notes - 2026-10-09
 
 Owner decisions of 9 October 2026.

@@ -429,6 +429,14 @@ Future<void> _open(WidgetTester tester) async {
     ),
     'New structure',
   );
+  // Build 267 Revision 9: Source starts empty.
+  await _enter(
+    tester,
+    find.byWidgetPredicate(
+      (w) => w is TextField && w.decoration?.labelText == 'Source language *',
+    ),
+    'English',
+  );
   await _enter(
     tester,
     find.byWidgetPredicate(

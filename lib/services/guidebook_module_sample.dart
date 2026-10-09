@@ -5,7 +5,8 @@ import 'authoring_duplication_service.dart';
 /// (Build 266 Revision 1; like the exercise forms' examples, in Italian and
 /// English whatever the Course's languages). It shows every feature: a
 /// short Overview, Sentences with a Context, an understood subject `{io}`,
-/// one word with two senses (*il conto*), a fixed expression, a word with a
+/// one word with two senses (*il conto*), fixed expressions (*buongiorno*,
+/// *come stai?*; Build 267 Revision 9: a sentence is never a word), a word with a
 /// QQL picture (*il caffè*) and a plural word with its picture marked Plural
 /// (*i gatti*).
 abstract final class GuidebookModuleSample {
@@ -53,7 +54,8 @@ abstract final class GuidebookModuleSample {
         entry('il conto', 'the bill', context: 'restaurant'),
         entry('il conto', 'the account', context: 'bank'),
         entry('per favore', 'please'),
-        entry('{io} sono stanco', 'I am tired'),
+        entry('buongiorno', 'good morning'),
+        entry('come stai?', 'how are you?'),
         entry(
           'i gatti',
           'the cats',

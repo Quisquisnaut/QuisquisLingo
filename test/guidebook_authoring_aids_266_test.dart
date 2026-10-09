@@ -520,7 +520,7 @@ void main() {
         findsNothing,
       );
       expect(find.text('Al bar'), findsOneWidget);
-      expect(key('guidebook-module-word-5-picture-plural'), findsOneWidget);
+      expect(key('guidebook-module-word-6-picture-plural'), findsOneWidget);
       // A filled page asks.
       await tester.tap(find.byKey(const Key('guidebook-module-fill-example')));
       await tester.pumpAndSettle();
@@ -552,7 +552,7 @@ void main() {
       final module = result()!;
       expect(module.id, 'm');
       expect(module.title, 'Al bar');
-      expect(module.words, hasLength(6));
+      expect(module.words, hasLength(7));
       expect(module.sentences, hasLength(4));
     });
 

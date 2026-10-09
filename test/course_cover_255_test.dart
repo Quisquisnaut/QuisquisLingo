@@ -352,7 +352,7 @@ void main() {
         ),
       ),
     );
-    expect(find.text('No cover: the flag is shown.'), findsOneWidget);
+    expect(find.text('No cover: only the flag is shown.'), findsOneWidget);
     expect(find.byKey(const Key('course-cover-remove')), findsNothing);
 
     await tester.tap(find.byKey(const Key('course-cover-quick-import')));
@@ -384,7 +384,7 @@ void main() {
     await tester.tap(find.byKey(const Key('course-cover-remove')));
     await tester.pump();
     expect(cover, isEmpty);
-    expect(find.text('No cover: the flag is shown.'), findsOneWidget);
+    expect(find.text('No cover: only the flag is shown.'), findsOneWidget);
   });
 
   testWidgets('Revision 7: the crop dialog moves, resizes and resets the '

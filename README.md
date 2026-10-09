@@ -1,6 +1,6 @@
 # QuisquisLingo App
 
-**Current source version: 2.0.67+267008 · Build 267, Revision 8 · Course Model v12 (`formatVersion: 12`).**
+**Current source version: 2.0.67+267009 · Build 267, Revision 9 · Course Model v12 (`formatVersion: 12`).**
 
 **QuisquisLingo 2.0.67 Beta — QQL 267 Course Wizard (Course Model v12)**
 
@@ -49,6 +49,7 @@ has **New Course**.
 Revision 7: picture answers can have a **thin grey line** around each
 picture (Lesson Options, or per exercise); new Courses have it.
 Revision 8: **Editor notes** on every exercise, for authors only.
+Revision 9: clearer Course Wizard texts; Course languages start empty.
 
 Build 266 makes a Lesson's GuideBook a list of short **modules**
 ([plan](docs/266_GUIDEBOOK_MODULES_PLAN.md),
@@ -691,7 +692,7 @@ The MPL-2.0 covers the QuisquisLingo software source. Courses, the Image Bank an
 
 ## Beta lifecycle
 
-Version 2.0.67, Build 267, Revision 8 is a time-limited Beta with an expiry of **2026-11-08 23:59:59 local time** (30 days after the 9 October 2026 release date). In its last seven days it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
+Version 2.0.67, Build 267, Revision 9 is a time-limited Beta with an expiry of **2026-11-08 23:59:59 local time** (30 days after the 9 October 2026 release date). In its last seven days it displays reminders. After expiry, learner exercises and Review are blocked until a newer Beta is installed. QuisquisLingo does not delete learner progress, locally installed courses, local course edits or settings when a Beta expires; Course Editor remains available for recovery/export. The check intentionally trusts the device clock and is not DRM.
 
 ## Core logic
 

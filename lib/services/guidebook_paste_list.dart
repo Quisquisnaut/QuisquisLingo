@@ -17,7 +17,7 @@ abstract final class GuidebookPasteList {
     'il conto = the bill [restaurant]',
     'il conto = the account [bank]',
     'buongiorno = good morning',
-    '{io} sono stanco = I am tired',
+    'come stai? = how are you?',
   ];
 
   static final _context = RegExp(r'\s*\[([^\[\]]*)\]\s*$');

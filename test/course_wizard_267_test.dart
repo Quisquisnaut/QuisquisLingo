@@ -615,17 +615,12 @@ void main() {
       expect(find.textContaining('American English'), findsWidgets);
       expect(find.textContaining('Italian of Italy'), findsNothing);
       expect(find.text('Tell me more'), findsOneWidget);
-      expect(
-        find.textContaining('Continue with the Course Wizard saves'),
-        findsNothing,
-      );
+      expect(find.textContaining('Continue with Wizard saves'), findsNothing);
       await tester.tap(find.byKey(const Key('course-wizard-explanation-more')));
       await tester.pumpAndSettle();
-      expect(
-        find.textContaining('Continue with the Course Wizard saves'),
-        findsOne,
-      );
-      // Nothing to save yet: no Save for now, no Continue by hand.
+      expect(find.textContaining('Continue with Wizard saves'), findsOne);
+      // Nothing to save yet: no Save for now, nor the later steps'
+      // Continue by hand.
       expect(find.byKey(const Key('course-wizard-save-for-now')), findsNothing);
       await tester.tap(find.byKey(const Key('course-wizard-cancel')));
       await tester.pumpUntilFileIoState(
@@ -665,6 +660,8 @@ void main() {
       await tester.tap(find.byKey(const Key('create-course-icon-action')));
       await tester.pumpAndSettle();
       await tester.enterText(_field('Course title *'), 'Italian at the bar');
+      // Build 267 Revision 9: Source starts empty.
+      await tester.enterText(_field('Source language *'), 'English');
       await tester.enterText(_field('Target language *'), 'Italian');
       await tester.pump();
       await tester.tap(find.byKey(const Key('course-wizard-continue')));

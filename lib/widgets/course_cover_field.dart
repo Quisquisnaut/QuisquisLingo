@@ -271,7 +271,9 @@ class _CourseCoverFieldState extends State<CourseCoverField> {
         ),
         if (!hasCover) ...[
           const SizedBox(height: 6),
-          const Text('No cover: the flag is shown.'),
+          // Build 267 Revision 9 (owner): the flag also shows on the
+          // learner page when there is a cover, so "only".
+          const Text('No cover: only the flag is shown.'),
         ] else if (_creditNote case final note?) ...[
           const SizedBox(height: 6),
           Text(note, key: const Key('course-cover-credit-note')),

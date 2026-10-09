@@ -165,6 +165,20 @@ Complete suite: 4,001 passed, 1 skipped (a first run found 49 failures,
 all from the new field: field Help inventories, a read-only test and a
 test helper that tapped before a frame; fixed, see the validation).
 
+## Revision 9 (2.0.67+267009), Course Wizard wording: committed
+
+The owner's review of 9 October 2026, discussed first, then "go": Source
+empty (Wizard and New Course's form), capitals never matter (agreed after
+the discussion: no all-capitals), the new lines on steps 1, 4, 5 and 6,
+Continue with Wizard / Continue by hand on every step (step 1's Create it
+myself renamed), "No cover: only the flag is shown.", Lesson icons always
+in view, module counts and the empty-Lesson tap on step 6 (the owner meant
+step 6 when writing "step 8"), the Lesson on the module page, fixed
+expressions in the example module, and the Editor notes Inspection fix
+found after Revision 8. Not done, by the owner's choice: renaming
+"Words & Expressions" to "Words & Fixed expressions" (left for now).
+Complete suite: 4,010 passed, 1 skipped.
+
 ## Next
 
 - Then, later and not now (owner: "leave it for afterwards"): the Italian
@@ -231,4 +245,4 @@ Folded into Revision 3 (with the picture aids), before its complete suite:
   it now waits for Continue. History is squashed, so when it began is not
   known; the Preview has shown the card since Build 257.
 - Deferred by the owner ("can wait"): a **Border** option for picture
-  answers, in the Wizard and in the Course Editor's Lesson Options alike.
+  answers, in the Wizard and in the Course Editor's Lesson Options alike. (Delivered in Revision 7.)

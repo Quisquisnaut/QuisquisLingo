@@ -46,8 +46,31 @@ class LanguageFieldController {
     if (listed != null) {
       return LanguageChoice(name: listed.englishName, tag: listed.tag);
     }
-    return LanguageChoice(name: text.text.trim(), tag: tag.text.trim());
+    return LanguageChoice(
+      name: _capitalized(text.text.trim()),
+      tag: tag.text.trim(),
+    );
   }
+
+  /// Capitals never matter (Build 267 Revision 9, owner decision of
+  /// 9 October 2026): on leaving the field a listed language reads as its
+  /// English name ("en", "ENGLISH" → English), and a language entered by
+  /// hand starts with a capital ("viterbese" → Viterbese). True when the
+  /// text changed.
+  bool normalize() {
+    final typed = text.text.trim();
+    if (typed.isEmpty) return false;
+    final listed = entry;
+    final shown = listed != null ? listed.englishName : _capitalized(typed);
+    if (shown == text.text) return false;
+    text.text = shown;
+    return true;
+  }
+
+  static String _capitalized(String name) => name.isEmpty
+      ? name
+      : name.characters.first.toUpperCase() +
+            name.characters.skip(1).toString();
 
   void dispose() {
     text.dispose();
@@ -79,6 +102,25 @@ class LanguageField extends StatefulWidget {
 }
 
 class _LanguageFieldState extends State<LanguageField> {
+  final _focus = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+    _focus.addListener(_onFocusChange);
+  }
+
+  @override
+  void dispose() {
+    _focus.removeListener(_onFocusChange);
+    _focus.dispose();
+    super.dispose();
+  }
+
+  void _onFocusChange() {
+    if (!_focus.hasFocus && widget.controller.normalize()) _changed();
+  }
+
   void _changed() {
     setState(() {});
     widget.onChanged?.call();
@@ -112,6 +154,7 @@ class _LanguageFieldState extends State<LanguageField> {
         TextField(
           key: Key(widget.keyPrefix),
           controller: controller.text,
+          focusNode: _focus,
           maxLength: 80,
           onChanged: (_) => _changed(),
           decoration: InputDecoration(

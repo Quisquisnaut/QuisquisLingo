@@ -322,3 +322,34 @@ Run on the owner's Windows PC (4 cores, 8 GB), `TEMP`/`TMP` on
   editor routes, the Publisher export, Help, version pins): **472 passed**.
 - Complete suite once on the final tree (`flutter test --no-pub
   --concurrency=1`, TEMP on D:): **4,001 passed, 1 skipped**, 30 min 28 s.
+
+## Revision 9 (2.0.67+267009), 9 October 2026
+
+- `dart format` on the changed Dart files only (two reflows of untouched
+  lines it made were put back); `flutter analyze --no-pub`: **No issues
+  found.**
+- `test/wizard_wording_267_test.dart` (new, 9 passed): a listed language
+  is rewritten as its English name ("en", "ITALIAN"), a language by hand
+  gets a capital also in the stored choice, an empty field changes
+  nothing; leaving the field rewrites it on screen; the Wizard's first
+  screen has Source empty, the owner's line and the two buttons, and Fill
+  with an example writes English; Course options and Lessons show their
+  short lines, the Lesson icon without Advanced, the section only under
+  it; the GuideBook step's chips count modules ("· 2 modules", nothing
+  without) and an empty Lesson's chip opens the module page, which names
+  "Lesson 2: …"; New Course's form starts with Source empty; the Course
+  Editor's GuideBook page names the Lesson on its module page; the example
+  module's words hold buongiorno and come stai?, not {io} sono stanco (the
+  Paste list hint neither); Editor notes become read-only in Inspection.
+- Updated tests: the New Course tests type the Source language
+  (`course_creation_flags_226_04`, `new_course_structure_226_04`,
+  `provisional_mytest_workflow`, `course_editor_layout_regression`,
+  `course_wizard_267`), the button text in `course_wizard_267`, the cover
+  line in `course_cover_255`, the example module's word count and plural
+  row in `guidebook_authoring_aids_266`.
+- Affected files together (Wizard, Check and publish, picture aids, size
+  advice, authoring aids, cover, New Course, ownership, provisional
+  workflow, languages, Editor notes, GuideBook modules, field Help, version
+  pins): **269 passed**.
+- Complete suite once on the final tree (`flutter test --no-pub
+  --concurrency=1`, TEMP on D:): **4,010 passed, 1 skipped**, 34 min 4 s.

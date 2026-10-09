@@ -1139,7 +1139,7 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
   }
 
   /// New Course's form. [prefill] carries the title, languages and variant
-  /// of the Course Wizard's first screen (Build 267, Create it myself).
+  /// of the Course Wizard's first screen (Build 267, Continue by hand).
   Future<Course?> _createCourse({CourseWizardBasics? prefill}) async {
     final activeProfile = await _ops.profiles.getActiveProfileRecord();
     if (activeProfile == null) {
@@ -1157,11 +1157,9 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
     final title = TextEditingController(text: prefill?.title ?? '');
     // Build 260 Revision 0: languages come from the list (English names and
     // tags) or are typed by hand.
-    final source = LanguageFieldController(
-      name: prefill == null || prefill.sourceLanguage.isEmpty
-          ? 'English'
-          : prefill.sourceLanguage,
-    );
+    // Build 267 Revision 9 (owner decision of 9 October 2026): Source
+    // starts empty, as in the Course Wizard.
+    final source = LanguageFieldController(name: prefill?.sourceLanguage ?? '');
     final target = LanguageFieldController(name: prefill?.targetLanguage ?? '');
     if (prefill != null && source.isHandEntered) {
       source.tag.text = prefill.sourceLanguageTag;
@@ -1939,7 +1937,7 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
       );
 
   /// New Course opens the Course Wizard's first screen (Build 267); its
-  /// Create it myself continues with New Course's form. Paused Course
+  /// Continue by hand continues with New Course's form. Paused Course
   /// Wizards are named first (Revision 6).
   Future<void> _newCourse() async {
     final paused = _pausedWizardCourses;

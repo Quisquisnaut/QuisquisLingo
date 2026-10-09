@@ -39,6 +39,10 @@ class GuidebookEditorScreen extends StatefulWidget {
   /// The image catalog the picture prefill reads (a test seam).
   final ExerciseImageMetadataService? metadataService;
 
+  /// The Lesson the GuideBook belongs to, as "Lesson 2: At the market":
+  /// the module page names it (Build 267 Revision 9).
+  final String? lessonName;
+
   const GuidebookEditorScreen({
     super.key,
     required this.guidebook,
@@ -47,6 +51,7 @@ class GuidebookEditorScreen extends StatefulWidget {
     this.rounds = const [],
     this.ids,
     this.metadataService,
+    this.lessonName,
   });
 
   @override
@@ -74,6 +79,7 @@ class _GuidebookEditorScreenState extends State<GuidebookEditorScreen> {
             course: widget.course,
             ids: _ids,
             metadataService: widget.metadataService,
+            lessonName: widget.lessonName,
           ),
         ),
       );
@@ -368,9 +374,20 @@ class GuidebookModuleEditorScreen extends StatefulWidget {
     this.course,
     this.ids,
     this.metadataService,
+    this.lessonName,
   });
 
   final GuidebookModule module;
+
+  /// The Lesson the module belongs to, as "Lesson 2: At the market", shown
+  /// under the page's title (Build 267 Revision 9, owner request of
+  /// 9 October 2026).
+  final String? lessonName;
+
+  /// "Lesson 2: At the market" for the Lesson numbered [number] (from 1).
+  static String lessonNameFor(int number, String title) => title.trim().isEmpty
+      ? 'Lesson $number'
+      : 'Lesson $number: ${title.trim()}';
 
   /// The working copy: pictures become its own media.
   final Course? course;
@@ -386,6 +403,26 @@ class GuidebookModuleEditorScreen extends StatefulWidget {
 
 class _GuidebookModuleEditorScreenState
     extends State<GuidebookModuleEditorScreen> {
+  /// "Module", with the Lesson it belongs to underneath when known.
+  Widget _pageTitle() {
+    final lesson = widget.lessonName?.trim() ?? '';
+    if (lesson.isEmpty) return const Text('Module');
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Module'),
+        Text(
+          lesson,
+          key: const Key('guidebook-module-lesson'),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
+      ],
+    );
+  }
+
   /// The module's Words & Expressions and Sentences as written, with the
   /// size hint for the Round Wizard (Build 267 Revision 5); it follows the
   /// typing.
@@ -1322,10 +1359,7 @@ class _GuidebookModuleEditorScreenState
     },
     child: Scaffold(
       appBar: AppBar(
-        title: CoursePreviewTitle(
-          course: widget.course,
-          title: const Text('Module'),
-        ),
+        title: CoursePreviewTitle(course: widget.course, title: _pageTitle()),
         actions: [
           const EditorAppBarActions(helpQuestion: 'guidebookEntries'),
           TextButton(

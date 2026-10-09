@@ -343,6 +343,15 @@ void main() {
             widget.decoration?.labelText == 'Target language *',
       );
       await tester.enterText(titleField, 'Direct Lessons');
+      // Build 267 Revision 9: Source starts empty.
+      await tester.enterText(
+        find.byWidgetPredicate(
+          (widget) =>
+              widget is TextField &&
+              widget.decoration?.labelText == 'Source language *',
+        ),
+        'English',
+      );
       await tester.enterText(targetField, 'Italian');
       await tester.tap(find.widgetWithText(FilledButton, 'Continue to Editor'));
       await tester.pumpAndSettle();

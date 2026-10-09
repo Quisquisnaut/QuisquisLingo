@@ -126,7 +126,7 @@ sealed class CourseWizardOutcome {
   const CourseWizardOutcome();
 }
 
-/// Create it myself: the New Course form, with the first screen's values.
+/// Continue by hand: the New Course form, with the first screen's values.
 final class CourseWizardCreateManually extends CourseWizardOutcome {
   const CourseWizardCreateManually(this.basics);
   final CourseWizardBasics basics;

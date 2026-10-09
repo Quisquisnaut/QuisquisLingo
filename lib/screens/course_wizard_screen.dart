@@ -191,7 +191,9 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
 
   // Step 1.
   final _title = TextEditingController();
-  final _source = LanguageFieldController(name: 'English');
+  // Build 267 Revision 9: empty until the author types it or asks for an
+  // example (owner decision of 9 October 2026).
+  final _source = LanguageFieldController();
   final _target = LanguageFieldController();
   final _variant = TextEditingController();
 
@@ -555,7 +557,7 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
     CourseWizardStep.basics =>
       _title.text.trim().isNotEmpty ||
           _variant.text.trim().isNotEmpty ||
-          (_starting && !_target.isEmpty),
+          (_starting && (!_source.isEmpty || !_target.isEmpty)),
     CourseWizardStep.flag =>
       _cover.isNotEmpty || _flag != const CourseFlagSelection.automatic(),
     CourseWizardStep.about =>
@@ -699,7 +701,7 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
     }
   }
 
-  /// Continue with the Course Wizard: the Course is created and saved now,
+  /// Continue with Wizard: the Course is created and saved now,
   /// as a Draft with no Lessons.
   Future<void> _begin() => _run(() async {
     final problem = _problem;
@@ -764,7 +766,7 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
     await _goTo(CourseWizardStep.flag);
   });
 
-  /// Create it myself: New Course's form with what this screen holds.
+  /// Continue by hand: New Course's form with what this screen holds.
   void _createManually() {
     final source = _source.choice;
     final target = _target.choice;
@@ -1205,6 +1207,10 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
             module: module,
             course: _working,
             ids: _ids,
+            lessonName: GuidebookModuleEditorScreen.lessonNameFor(
+              _shownLesson + 1,
+              _currentLesson?.title ?? '',
+            ),
           ),
         ),
       );
@@ -1710,19 +1716,24 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
 
   ({String short, List<String> more}) get _explanationText => switch (_step) {
     CourseWizardStep.basics when _starting => (
-      short: 'Name your Course and choose its two languages.',
+      short:
+          'Set a title for your Course and insert the learner\'s language '
+          '(Source) and the language to be studied (Target). Use the full '
+          'language name (e.g. English) or its code (en). Capitals don\'t '
+          'matter.',
       more: const [
         'Title: what learners see in the list of Courses, for example '
             '“Italian at the bar”. Source language: the language your '
             'learners already speak; QQL writes its instructions and '
             'translations in it. Target language: the language they learn. '
-            'The languages never change later.',
+            'The list button beside each language shows every language QQL '
+            'knows. The languages never change later.',
         'Variant (optional): which form of the target language, for '
             'example “American English”. You can leave it empty.',
-        'Continue with the Course Wizard saves the Course now, as a Draft '
-            'with no Lessons, and takes you through the rest step by step; '
-            'you can stop and continue later. Create it myself opens the New '
-            'Course form and then the Course Editor at once.',
+        'Continue with Wizard saves the Course now, as a Draft with no '
+            'Lessons, and takes you through the rest step by step; you can '
+            'stop and continue later. Continue by hand opens the New Course '
+            'form and then the Course Editor at once.',
       ],
     ),
     CourseWizardStep.basics => (
@@ -1760,9 +1771,7 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
       ],
     ),
     CourseWizardStep.options => (
-      short:
-          'The options keep their recommended values. Open Advanced only to '
-          'change them.',
+      short: 'Open Advanced if you want to change some Course Options.',
       more: const [
         'They decide how learners see Lesson and Round names, Word Lookup, '
             'Duels, picture answers and Timed limits. Use GuideBook stays on: '
@@ -1772,9 +1781,12 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
     ),
     CourseWizardStep.lessons => (
       short:
-          'A Lesson is one topic, like “At the market”. Give each Lesson a '
-          'title.',
+          'Give each Lesson a title and an icon. Add or remove lessons. Open '
+          'Advanced if you want to group the lessons in sections.',
       more: const [
+        'A Lesson is one topic, like “At the market”. Its icon stands beside '
+            'it on the learner\'s path: tap the icon to choose one that suits '
+            'the topic.',
         'Learners open Lessons in order: the next one opens when they finish '
             'this one or win its Duel. A Duel needs 25 questions, so a Lesson '
             'usually has about six Rounds. Next saves the Lessons; then you '
@@ -1787,7 +1799,7 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
       short:
           'Write each Lesson\'s GuideBook: short modules of words and '
           'sentences, which learners read and the Round Wizard turns into '
-          'Rounds.',
+          'Rounds of exercises you can use in your Course.',
       more: const [
         'Needed now: in every Lesson, a module with at least '
             '${CourseWizardGuidebook.minimumWords} Words & Expressions, which '
@@ -2649,19 +2661,18 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
             children: [
               Row(
                 children: [
-                  if (_advanced)
-                    Tooltip(
-                      message: 'Choose the Lesson icon',
-                      child: InkWell(
-                        key: ValueKey('course-wizard-lesson-icon-$index'),
-                        borderRadius: BorderRadius.circular(8),
-                        onTap: () => _chooseIcon(index),
-                        child: Padding(
-                          padding: const EdgeInsets.all(4),
-                          child: _lessonIcon(row.iconAsset, index + 1),
-                        ),
+                  Tooltip(
+                    message: 'Choose the Lesson icon',
+                    child: InkWell(
+                      key: ValueKey('course-wizard-lesson-icon-$index'),
+                      borderRadius: BorderRadius.circular(8),
+                      onTap: () => _chooseIcon(index),
+                      child: Padding(
+                        padding: const EdgeInsets.all(4),
+                        child: _lessonIcon(row.iconAsset, index + 1),
                       ),
                     ),
+                  ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
@@ -2739,11 +2750,9 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
         key: Key('course-wizard-lessons-advanced-note'),
         padding: EdgeInsets.only(top: 8),
         child: Text(
-          'Icons and sections: the icon stands beside the Lesson on the '
-          'learner\'s path (tap it above to choose one); a section groups '
-          'neighbouring Lessons under one heading, for example “At the bar” '
-          'over the first two Lessons. Lessons can also be added, moved and '
-          'removed later, in the Course Editor.',
+          'Sections: a section groups neighbouring Lessons under one heading, '
+          'for example “At the bar” over the first two Lessons. Lessons can '
+          'also be added, moved and removed later, in the Course Editor.',
         ),
       ),
   ];
@@ -2772,7 +2781,12 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
               'Words & Expressions.';
     return [
       _heading('Lesson', tooltip: 'Write the GuideBook Lesson by Lesson.'),
-      _lessonChips('guidebook', CourseWizardGuidebook.isReady),
+      _lessonChips(
+        'guidebook',
+        CourseWizardGuidebook.isReady,
+        count: (each) => _moduleCount(each.guidebook.modules.length),
+        onEmpty: (each) => each.guidebook.modules.isEmpty,
+      ),
       const SizedBox(height: 8),
       Text(
         key: const Key('course-wizard-guidebook-status'),
@@ -2905,9 +2919,23 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
     ];
   }
 
+  /// " · 3 modules" after a GuideBook chip, nothing without modules.
+  static String _moduleCount(int count) => switch (count) {
+    0 => '',
+    1 => ' · 1 module',
+    _ => ' · $count modules',
+  };
+
   /// One chip per Lesson, ticked when [done]; keys
-  /// `course-wizard-<step>-lesson-<i>`.
-  Widget _lessonChips(String step, bool Function(Lesson lesson) done) {
+  /// `course-wizard-<step>-lesson-<i>`. [count] adds to a chip's label;
+  /// tapping the chip of a Lesson [onEmpty] calls empty opens a new module
+  /// at once (Build 267 Revision 9, owner decision of 9 October 2026).
+  Widget _lessonChips(
+    String step,
+    bool Function(Lesson lesson) done, {
+    String Function(Lesson lesson)? count,
+    bool Function(Lesson lesson)? onEmpty,
+  }) {
     final scheme = Theme.of(context).colorScheme;
     return Wrap(
       spacing: 6,
@@ -2920,11 +2948,14 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
                 ? Icon(Icons.check_circle, color: scheme.primary)
                 : null,
             label: Text(
-              '${index + 1}. ${each.title}',
+              '${index + 1}. ${each.title}${count?.call(each) ?? ''}',
               overflow: TextOverflow.ellipsis,
             ),
             selected: index == _shownLesson,
-            onSelected: (_) => _chooseLesson(index),
+            onSelected: (_) {
+              _chooseLesson(index);
+              if (onEmpty?.call(each) ?? false) unawaited(_addModule());
+            },
           ),
       ],
     );
@@ -3298,12 +3329,12 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
         OutlinedButton(
           key: const Key('course-wizard-manual'),
           onPressed: _busy ? null : _createManually,
-          child: const Text('Create it myself'),
+          child: const Text('Continue by hand'),
         ),
         FilledButton(
           key: const Key('course-wizard-continue'),
           onPressed: _busy ? null : _begin,
-          child: const Text('Continue with the Course Wizard'),
+          child: const Text('Continue with Wizard'),
         ),
       ];
     }

@@ -486,6 +486,11 @@ Future<void> _enterBasics(
   await tester.ensureVisible(titleField);
   await tester.pump();
   await tester.enterText(titleField, title);
+  // Build 267 Revision 9: Source starts empty.
+  final sourceField = _textField('Source language *');
+  await tester.ensureVisible(sourceField);
+  await tester.pump();
+  await tester.enterText(sourceField, 'English');
   final targetField = _textField('Target language *');
   await tester.ensureVisible(targetField);
   await tester.pump();

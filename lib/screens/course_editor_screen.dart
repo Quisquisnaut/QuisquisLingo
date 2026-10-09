@@ -4630,6 +4630,10 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
           guidebookId: _lesson.guidebookId,
           course: _courseWithIcons,
           rounds: _lesson.rounds,
+          lessonName: GuidebookModuleEditorScreen.lessonNameFor(
+            _lessonNumber,
+            _lesson.title,
+          ),
         ),
       ),
     );
@@ -13420,7 +13424,9 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
           EditorNotesField(
             key: const Key('exercise-editor-notes'),
             controller: _editorNotes,
-            readOnly: widget.readOnly,
+            // Inspection saves nothing, so its notes are read-only too
+            // (Build 267 Revision 9).
+            readOnly: widget.readOnly || _inspection,
             onChanged: (_) => _dirty = true,
             help: _helpButton('editorNotes'),
           ),

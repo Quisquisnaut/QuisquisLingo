@@ -113,6 +113,8 @@ void main() {
       await tester.tap(find.byKey(const Key('course-wizard-manual')));
       await tester.pumpAndSettle();
       await tester.enterText(_field('Course title *'), 'MyTest');
+      // Build 267 Revision 9: Source starts empty.
+      await tester.enterText(_field('Source language *'), 'English');
       await tester.enterText(_field('Target language *'), 'Italian');
       expect(
         tester
