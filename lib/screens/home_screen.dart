@@ -1644,6 +1644,7 @@ class _HomeScreenState extends State<HomeScreen> {
       BuildContext sheetContext, {
       required CoursesTab tab,
       bool editCurrent = false,
+      bool newCourse = false,
     }) async {
       final selectedCourse = _course;
       Navigator.pop(sheetContext);
@@ -1657,6 +1658,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 initialCourseIdToOpen: editCurrent
                     ? selectedCourse?.courseId
                     : null,
+                startNewCourse: newCourse,
               ),
             ),
           );
@@ -1780,6 +1782,19 @@ class _HomeScreenState extends State<HomeScreen> {
                     icon: Icons.library_books_outlined,
                     title: 'Course Studio',
                     onOpen: () => openCourses(ctx, tab: CoursesTab.manager),
+                  ),
+                  // Build 267 Revision 6 (owner, 9 October 2026): New Course
+                  // from here, greyed like Course Studio while it is locked.
+                  managerLink(
+                    ctx,
+                    key: const Key('course-selector-new-course'),
+                    icon: Icons.add_circle_outline,
+                    title: 'New Course',
+                    onOpen: () => openCourses(
+                      ctx,
+                      tab: CoursesTab.manager,
+                      newCourse: true,
+                    ),
                   ),
                   managerLink(
                     ctx,

@@ -14,6 +14,7 @@ import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/screens/course_editor_screen.dart';
 import 'package:quisquislingo_app/screens/course_info_screen.dart';
 import 'package:quisquislingo_app/screens/course_projects_screen.dart';
+import 'package:quisquislingo_app/screens/course_wizard_screen.dart';
 import 'package:quisquislingo_app/screens/courses_screen.dart';
 import 'package:quisquislingo_app/screens/guidebook_screen.dart';
 import 'package:quisquislingo_app/screens/home_screen.dart';
@@ -2933,6 +2934,37 @@ void main() {
       await tester.tap(find.byType(BackButton).last);
       await tester.pumpAndSettle();
 
+      // Build 267 Revision 6: New Course from the Selector starts New
+      // Course in Course Studio (the Course Wizard's first screen).
+      await openSelectorAndRevealActions();
+      final newCourse = find.byKey(const Key('course-selector-new-course'));
+      expect(newCourse, findsOneWidget);
+      expect(
+        tester.getRect(manager).top,
+        lessThan(tester.getRect(newCourse).top),
+      );
+      await tester.tap(newCourse);
+      await tester.pumpUntilFileIoState(
+        () => find.byType(CourseWizardScreen).evaluate().isNotEmpty,
+      );
+      // The Courses screen is under the Wizard's route.
+      expect(
+        tester
+            .widget<CoursesScreen>(
+              find.byType(CoursesScreen, skipOffstage: false),
+            )
+            .startNewCourse,
+        isTrue,
+      );
+      await tester.tap(find.byKey(const Key('course-wizard-cancel')));
+      await tester.pumpUntilFileIoState(
+        () =>
+            find.byType(CourseWizardScreen).evaluate().isEmpty &&
+            find.byType(CircularProgressIndicator).evaluate().isEmpty,
+      );
+      await tester.tap(find.byType(BackButton).last);
+      await tester.pumpAndSettle();
+
       await openSelectorAndRevealActions();
       await tester.tap(find.byKey(const Key('course-selector-all-courses')));
       await tester.pumpUntilFileIoState(
@@ -2982,6 +3014,7 @@ void main() {
       );
       for (final key in [
         const Key('course-selector-course-manager'),
+        const Key('course-selector-new-course'),
         const Key('course-selector-edit-current'),
       ]) {
         await tester.scrollUntilVisible(find.byKey(key), 350, scrollable: list);

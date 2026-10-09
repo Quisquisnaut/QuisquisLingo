@@ -1,3 +1,32 @@
+# 2.0.67 (Build 267, Revision 6) - Create Duels off for new Courses; New Course and paused Wizards - 2026-10-09
+
+Owner decisions of 9 October 2026.
+
+- **Create Duels off for a new Course**, in the Course Wizard and in New
+  Course's form alike (a Duel adds a complication): set where a Course is
+  created (`CourseLibraryOperations._draftCourse`), never as the model's
+  default, because the Course file stores the field only when it is off;
+  `CourseWizardOptions` (the defaults and Fill with an example) follow.
+  Existing Courses are unchanged. Lesson Options turns Duels on.
+- **New Course with paused Course Wizards** (`new-course-paused-wizards`):
+  Course Studio's New Course first lists the paused Wizards this learner
+  may continue (Maintainer or Team member), each with where it stopped and
+  **Continue** (`new-course-paused-continue-<i>`), then **Start a new
+  Course** (`new-course-paused-new`) or Cancel (`new-course-paused-cancel`).
+- **New Course in the learner's Course selector**
+  (`course-selector-new-course`, after Course Studio): it opens Course
+  Studio and starts New Course there (`CoursesScreen(startNewCourse:)`,
+  `CourseProjectsScreen(startNewCourse:)`), greyed with the profile's unlock
+  method while Course Studio is locked, like the Course Studio and Course
+  Editor entries.
+- Help EN/IT/ES: the Duel answer (new Courses start with Duels off) and the
+  Course Wizard answer (paused Wizards, the selector's New Course).
+- Tests: `test/course_wizard_267_test.dart` (the paused-Wizard dialog, Duels
+  off), `test/leaderboard_navigation_test.dart` (the selector's New Course,
+  unlocked and locked).
+- Scoring, progression, Course files and learner data are unchanged. Beta
+  expiry `2026-11-08 23:59:59` local time.
+
 # 2.0.67 (Build 267, Revision 5) - GuideBook size advice for the Round Wizard - 2026-10-09
 
 Owner decisions of 9 October 2026: advice, never a rule; the hard minimum

@@ -370,7 +370,7 @@ class CourseWizardOptions {
     this.roundNumbering = RoundNumberingMode.off,
     this.customRoundLabel = '',
     this.wordLookup = true,
-    this.createDuels = true,
+    this.createDuels = false,
     this.pictureAnswers = PictureAnswerStyle.standard,
     this.defaultTimedLimits = const [],
   });
@@ -1094,13 +1094,13 @@ abstract final class CourseWizardSample {
     ],
   );
 
-  /// The recommended options: Lessons numbered, Word Lookup and Duels on,
-  /// the standard picture answers.
+  /// The recommended options: Lessons numbered, Word Lookup on, Duels off
+  /// as in a new Course (owner, 9 October 2026), the standard picture
+  /// answers.
   static const options = CourseWizardOptions(
     lessonNumbering: LessonNumberingMode.lesson,
     roundNumbering: RoundNumberingMode.off,
     wordLookup: true,
-    createDuels: true,
   );
 
   /// The GuideBook step's example: Build 266's sample module, in Italian and

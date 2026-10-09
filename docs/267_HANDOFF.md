@@ -134,14 +134,17 @@ Analyzer clean; `guidebook_size_advice_267_test.dart` 5 passed; complete
 suite 3,982 passed, 1 skipped. Committed locally on 9 October 2026 as
 "Build 267 Revision 5: GuideBook size advice for the Round Wizard".
 
+## Revision 6 (2.0.67+267006), Create Duels off; New Course and paused Wizards: committed
+
+Implemented as decided: `createDuels: false` where a Course is created (not
+the model default: the JSON stores the field only when false), the
+paused-Wizard dialog on New Course, the selector's New Course through
+`startNewCourse`. Help EN/IT/ES. Analyzer clean; complete suite 3,984 passed, 1
+skipped. Committed locally on 9 October 2026 as "Build 267 Revision 6:
+Create Duels off for new Courses; New Course and paused Wizards".
+
 ## Next
 
-- Revision 6 (owner, 9 October 2026): Create Duels off by default for a new
-  Course, in the Wizard and in New Course's form (a Duel adds a
-  complication); New Course with paused Wizards lists the ones this learner
-  may continue (Maintainer or Team), with Continue for each, Start a new
-  Course and Cancel; a New Course button in the learner's Course Selector,
-  greyed with the profile's unlock method while Course Studio is locked.
 - Revision 7, the picture answer border (owner decisions of 9 October 2026, mock-up in
   chat): look A, a thin neutral grey line (about 1.5 px) following the
   round or square shape, distinct from selection and feedback colours;

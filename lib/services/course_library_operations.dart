@@ -914,6 +914,10 @@ class CourseLibraryOperations {
       coverImage: coverImage,
       mediaAttributions: mediaAttributions,
       temporarySample: false,
+      // Build 267 Revision 6 (owner, 9 October 2026): a Duel adds a
+      // complication, so a new Course starts without; Lesson Options turns
+      // it on.
+      createDuels: false,
       lessons: lessons,
     );
   }

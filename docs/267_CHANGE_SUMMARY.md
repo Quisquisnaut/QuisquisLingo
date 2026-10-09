@@ -241,3 +241,12 @@ decisions of 9 October 2026).
 - Audit Info `GUIDEBOOK_MODULE_SIZE` and `GUIDEBOOK_MODULE_COUNT`, worded as
   Round Wizard advice, only with Use GuideBook on.
 - Help EN/IT/ES: How long should a module be?
+
+## Revision 6 (2.0.67+267006): Create Duels off; New Course and paused Wizards
+
+- A new Course starts with Create Duels off, in the Wizard and in New
+  Course; existing Courses are unchanged.
+- New Course first lists the paused Course Wizards this learner may
+  continue: Continue one, Start a new Course, or Cancel.
+- The learner's Course selector has New Course, greyed while Course Studio
+  is locked.

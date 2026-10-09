@@ -799,6 +799,10 @@ class CourseProjectsScreen extends StatefulWidget {
   final Course? currentCourse;
   final bool importOnly;
   final String? initialCourseIdToOpen;
+
+  /// Start New Course once the library is read: the learner's Course
+  /// Selector's New Course (Build 267 Revision 6).
+  final bool startNewCourse;
   final CourseEditorService? editorService;
   final CustomCourseTransferService? transferService;
   final CourseMediaStore? mediaStore;
@@ -816,6 +820,7 @@ class CourseProjectsScreen extends StatefulWidget {
     required this.currentCourse,
     this.importOnly = false,
     this.initialCourseIdToOpen,
+    this.startNewCourse = false,
     this.editorService,
     this.transferService,
     this.mediaStore,
@@ -844,6 +849,7 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
   bool _loading = true;
   String? _loadError;
   bool _openedInitialCourse = false;
+  bool _startedNewCourse = false;
 
   /// Each section's view, saved per learner (Build 255 Revision 6).
   final _viewService = CourseLibraryViewService();
@@ -920,6 +926,12 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
         WidgetsBinding.instance.addPostFrameCallback(
           (_) => _openInitialCourse(),
         );
+      }
+      if (!_startedNewCourse && widget.startNewCourse) {
+        _startedNewCourse = true;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) _newCourse();
+        });
       }
     } catch (error) {
       if (!mounted) return;
@@ -1857,9 +1869,89 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
     return result;
   }
 
+  /// The Courses whose Course Wizard is paused and this learner may
+  /// continue (Maintainer or Team member).
+  List<Course> get _pausedWizardCourses => [
+    for (final course in _library.personalCourses)
+      if (_library.pausedWizards.containsKey(course.courseId) &&
+          _library
+              .entriesFor(course)
+              .any(
+                (entry) =>
+                    entry.action == CourseManagerAction.continueCourseWizard &&
+                    entry.available,
+              ))
+        course,
+  ];
+
+  /// New Course with Course Wizards still paused (owner, 9 October 2026):
+  /// each one can be continued, or a new Course started. The chosen Course,
+  /// true for a new one, null to cancel.
+  Future<Object?> _askAboutPausedWizards(List<Course> paused) =>
+      showDialog<Object>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          key: const Key('new-course-paused-wizards'),
+          title: Text(
+            paused.length == 1
+                ? 'A Course Wizard is still paused'
+                : '${paused.length} Course Wizards are still paused',
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'You started these Courses with the Course Wizard and have '
+                  'not finished them. Continue one, or start a new Course.',
+                ),
+                const SizedBox(height: 8),
+                for (final (index, course) in paused.indexed)
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(course.title),
+                    subtitle: Text(
+                      _library.pausedWizards[course.courseId]!.describe(course),
+                    ),
+                    trailing: TextButton(
+                      key: ValueKey('new-course-paused-continue-$index'),
+                      onPressed: () => Navigator.pop(dialogContext, course),
+                      child: const Text('Continue'),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              key: const Key('new-course-paused-cancel'),
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              key: const Key('new-course-paused-new'),
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: const Text('Start a new Course'),
+            ),
+          ],
+        ),
+      );
+
   /// New Course opens the Course Wizard's first screen (Build 267); its
-  /// Create it myself continues with New Course's form.
+  /// Create it myself continues with New Course's form. Paused Course
+  /// Wizards are named first (Revision 6).
   Future<void> _newCourse() async {
+    final paused = _pausedWizardCourses;
+    if (paused.isNotEmpty) {
+      final choice = await _askAboutPausedWizards(paused);
+      if (!mounted) return;
+      if (choice is Course) {
+        await _continueWizard(choice);
+        return;
+      }
+      if (choice != true) return;
+    }
     final outcome = await Navigator.of(context).push<CourseWizardOutcome>(
       MaterialPageRoute(
         builder: (_) => CourseWizardScreen(

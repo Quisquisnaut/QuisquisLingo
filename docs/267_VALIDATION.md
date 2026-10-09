@@ -244,3 +244,22 @@ Run on the owner's Windows PC (4 cores, 8 GB), `TEMP`/`TMP` on
   Wizard, Help, publish): 511 passed and the 2 registry tests above, fixed
   and rerun (27 passed); version pins and Beta (54 passed).
 - Complete suite (9 October): **3,982 passed, 1 skipped (POSIX only)**, exit code 0.
+
+## Revision 6 (2.0.67+267006), 9 October 2026
+
+- `dart format` on the changed Dart files only; `flutter analyze --no-pub`:
+  **No issues found.**
+- `test/course_wizard_267_test.dart` (24 passed): a new Wizard Course,
+  `CourseWizardOptions.defaults` and the sample options have Create Duels
+  off; New Course with a paused Wizard shows the dialog with where it
+  stopped ("step 4 of 8 (Course options)"): Cancel opens nothing, Start a
+  new Course opens step 1, Continue opens step 4; the Rounds step test
+  turns Duels on to check the Duel count line.
+- `test/leaderboard_navigation_test.dart`: the selector's New Course sits
+  after Course Studio, opens Course Studio with `startNewCourse` and the
+  Wizard's first screen; while Course Studio is locked it is greyed and
+  explains the unlock, like Course Studio and Course Editor.
+- Both files together: **75 passed**; version pins, Courses screen, New
+  Course options, library operations, Course metadata, Course Manager
+  workflow and Help: **132 passed**.
+- Complete suite (9 October): **3,984 passed, 1 skipped (POSIX only)**, exit code 0.

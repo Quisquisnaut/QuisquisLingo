@@ -536,6 +536,65 @@ void main() {
   });
 
   group('Course Studio', () {
+    testWidgets('New Course names the paused Wizards first', (tester) async {
+      // Build 267 Revision 6 (owner, 9 October 2026).
+      final stored = (await tester.runAsync(() => _store(_wizardCourse())))!;
+      await tester.runAsync(
+        () => CourseWizardMemory().remember(
+          stored.courseId,
+          CourseWizardPause(
+            step: CourseWizardStep.options,
+            savedAtUtc: DateTime.utc(2026, 10, 8),
+          ),
+        ),
+      );
+      await _openStudio(tester);
+      Future<void> pressNewCourse() async {
+        await tester.tap(find.byKey(const Key('create-course-icon-action')));
+        await tester.pumpAndSettle();
+      }
+
+      // Cancel: nothing opens.
+      await pressNewCourse();
+      expect(
+        find.byKey(const Key('new-course-paused-wizards')),
+        findsOneWidget,
+      );
+      expect(find.text('A Course Wizard is still paused'), findsOneWidget);
+      expect(
+        find.text('Course Wizard paused: step 4 of 8 (Course options)'),
+        findsWidgets,
+      );
+      await tester.tap(find.byKey(const Key('new-course-paused-cancel')));
+      await tester.pumpAndSettle();
+      expect(find.byType(CourseWizardScreen), findsNothing);
+
+      // Start a new Course: the Wizard's first screen.
+      await pressNewCourse();
+      await tester.tap(find.byKey(const Key('new-course-paused-new')));
+      await tester.pumpAndSettle();
+      expect(find.text('Step 1 of 8: Basics'), findsOneWidget);
+      await tester.tap(find.byKey(const Key('course-wizard-cancel')));
+      // Course Studio reads its library again.
+      await tester.pumpUntilFileIoState(
+        () =>
+            find.byType(CourseWizardScreen).evaluate().isEmpty &&
+            find.byType(CircularProgressIndicator).evaluate().isEmpty,
+      );
+
+      // Continue: the paused Wizard, where it stopped.
+      await pressNewCourse();
+      await tester.tap(find.byKey(const Key('new-course-paused-continue-0')));
+      await tester.pumpAndSettle();
+      expect(find.text('Step 4 of 8: Course options'), findsOneWidget);
+    });
+
+    testWidgets('a new Course starts with Create Duels off', (tester) async {
+      expect(_wizardCourse().createDuels, isFalse);
+      expect(CourseWizardOptions.defaults.createDuels, isFalse);
+      expect(CourseWizardSample.options.createDuels, isFalse);
+    });
+
     testWidgets('New Course opens the Wizard; Cancel creates nothing', (
       tester,
     ) async {
@@ -849,8 +908,11 @@ void main() {
       tester,
     ) async {
       final ids = _Ids();
+      // A new Course starts without Duels (Revision 6); this one turns them
+      // on to show the Duel count.
+      expect(_wizardCourse().createDuels, isFalse);
       var course = CourseWizardLessons.applyTo(
-        _wizardCourse(),
+        Course.fromJson({..._wizardCourse().toJson(), 'createDuels': true}),
         [CourseWizardSample.lessons.first],
         now: _now,
         ids: ids,

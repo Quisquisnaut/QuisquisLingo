@@ -70,6 +70,7 @@ class CourseStudioTab extends StatelessWidget {
     required this.screenKey,
     required this.currentCourse,
     this.initialCourseIdToOpen,
+    this.startNewCourse = false,
     this.editorService,
     this.transferService,
     this.mediaStore,
@@ -83,6 +84,7 @@ class CourseStudioTab extends StatelessWidget {
   final GlobalKey<CourseProjectsScreenState> screenKey;
   final Course? currentCourse;
   final String? initialCourseIdToOpen;
+  final bool startNewCourse;
   final CourseEditorService? editorService;
   final CustomCourseTransferService? transferService;
   final CourseMediaStore? mediaStore;
@@ -97,6 +99,7 @@ class CourseStudioTab extends StatelessWidget {
     key: screenKey,
     currentCourse: currentCourse,
     initialCourseIdToOpen: initialCourseIdToOpen,
+    startNewCourse: startNewCourse,
     editorService: editorService,
     transferService: transferService,
     mediaStore: mediaStore,
@@ -119,6 +122,7 @@ class CoursesScreen extends StatefulWidget {
     this.initialTab = CoursesTab.allCourses,
     this.currentCourse,
     this.initialCourseIdToOpen,
+    this.startNewCourse = false,
     this.editorService,
     this.transferService,
     this.mediaStore,
@@ -128,6 +132,10 @@ class CoursesScreen extends StatefulWidget {
   final CoursesTab initialTab;
   final Course? currentCourse;
   final String? initialCourseIdToOpen;
+
+  /// Course Studio starts New Course (the learner's Course Selector,
+  /// Build 267 Revision 6).
+  final bool startNewCourse;
   final CourseEditorService? editorService;
   final CustomCourseTransferService? transferService;
   final CourseMediaStore? mediaStore;
@@ -435,6 +443,7 @@ class _CoursesScreenState extends State<CoursesScreen> {
                   initialCourseIdToOpen: _managerUnlocked!
                       ? widget.initialCourseIdToOpen
                       : null,
+                  startNewCourse: _managerUnlocked! && widget.startNewCourse,
                   editorService: widget.editorService,
                   transferService: widget.transferService,
                   mediaStore: widget.mediaStore,
