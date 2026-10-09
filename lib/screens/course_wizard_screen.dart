@@ -19,6 +19,7 @@ import '../services/duel_eligibility_service.dart';
 import '../services/formal_name_policy.dart';
 import '../services/guidebook_picture_match.dart';
 import '../services/guidebook_round_links.dart';
+import '../services/guidebook_size_advice.dart';
 import '../services/lesson_icon_catalog.dart';
 import '../services/lesson_presentation_service.dart';
 import '../services/round_type_presentation.dart';
@@ -2769,6 +2770,12 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
           fontWeight: FontWeight.w600,
         ),
       ),
+      // Build 267 Revision 5: the size that suits the Round Wizard.
+      if (GuidebookSizeAdvice.lessonHint(modules) case final hint?)
+        GuidebookSizeHint(
+          hint,
+          key: const Key('course-wizard-guidebook-advice'),
+        ),
       _heading(
         'Modules of Lesson ${_shownLesson + 1}',
         tooltip: 'One short topic each, in the order learners read them.',
@@ -2781,8 +2788,8 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
             'A module is one short topic, like “Al bar: ordering and paying”: '
                 'a title, Sentences, Words & Expressions (each with its '
                 'translation, an optional Context and, for words, a picture) '
-                'and a short Overview. Tap a module to write it; Fill with an '
-                'example opens a sample one.',
+                'and a short Overview. ${GuidebookSizeAdvice.best} Tap a '
+                'module to write it; Fill with an example opens a sample one.',
             if (GuidebookPictureIndex.sideFor(_working) != null)
               'Typing an English word suggests its QQL picture; Suggest '
                   'pictures, on the module page, does it for the words '
@@ -2813,11 +2820,21 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(fontWeight: FontWeight.w700),
             ),
-            subtitle: Text(
-              '${module.sentences.length} '
-              'sentence${module.sentences.length == 1 ? '' : 's'} · '
-              '${module.words.length} '
-              'word${module.words.length == 1 ? '' : 's'}',
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${module.sentences.length} '
+                  'sentence${module.sentences.length == 1 ? '' : 's'} · '
+                  '${module.words.length} '
+                  'word${module.words.length == 1 ? '' : 's'}',
+                ),
+                if (GuidebookSizeAdvice.moduleHint(module) case final hint?)
+                  GuidebookSizeHint(
+                    hint,
+                    key: ValueKey('course-wizard-module-size-$index'),
+                  ),
+              ],
             ),
             onTap: () => _openModule(index),
             trailing: Wrap(

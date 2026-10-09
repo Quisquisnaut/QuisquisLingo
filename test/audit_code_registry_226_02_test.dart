@@ -23,7 +23,7 @@ void main() {
       // duplicates (AUDIO_MATCH_ANSWER/SOUND/TEXT_DUPLICATE). Build 266:
       // GUIDEBOOK_MODULE_EMPTY and ROUND_FOCUS_MODULE_MISSING (Warnings),
       // GUIDEBOOK_MODULE_OVERVIEW_LONG (Info).
-      expect(definitions.length, 128);
+      expect(definitions.length, 130);
       expect(
         definitions.map((rule) => rule.code).toSet().length,
         definitions.length,
@@ -42,7 +42,7 @@ void main() {
       );
       expect(
         definitions.where((rule) => rule.severity == AuditSeverity.info).length,
-        15,
+        17,
       );
       for (final rule in definitions) {
         expect(rule.code, matches(RegExp(r'^[A-Z][A-Z0-9_]+$')));

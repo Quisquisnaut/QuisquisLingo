@@ -183,6 +183,22 @@ enum AuditCode {
     'Use GuideBook is on and a module has no sentence and no Words & Expressions entry.',
     'Add Sentences or Words & Expressions to the module, or remove it.',
   ),
+  guidebookModuleSize(
+    'GUIDEBOOK_MODULE_SIZE',
+    AuditSeverity.info,
+    'Lesson Guidebook module',
+    'A GuideBook module is smaller or larger than the Round Wizard needs.',
+    'Use GuideBook is on and a module with entries has fewer than 5 Words & Expressions or 2 Sentences, or more than 12 of either.',
+    'For the Round Wizard, about 8 Words & Expressions and 3–4 Sentences that use them work best (5 to 10 words, 2 to 5 Sentences); split a module of more than 12.',
+  ),
+  guidebookModuleCount(
+    'GUIDEBOOK_MODULE_COUNT',
+    AuditSeverity.info,
+    'Lesson Guidebook',
+    'A Lesson GuideBook has fewer or more modules than the Round Wizard needs.',
+    'Use GuideBook is on and the GuideBook has 1 or 2, or more than 6, modules with entries.',
+    'For the Round Wizard, 4 modules work best (3 to 6); split a Lesson of more than 6.',
+  ),
   guidebookModuleOverviewLong(
     'GUIDEBOOK_MODULE_OVERVIEW_LONG',
     AuditSeverity.info,

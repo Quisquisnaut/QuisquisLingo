@@ -12,6 +12,7 @@ import '../services/guidebook_module_sample.dart';
 import '../services/guidebook_paste_list.dart';
 import '../services/guidebook_picture_match.dart';
 import '../services/guidebook_round_links.dart';
+import '../services/guidebook_size_advice.dart';
 import '../widgets/course_preview_flag.dart';
 import '../widgets/editor_app_bar_actions.dart';
 import '../widgets/exercise_image_field.dart';
@@ -155,15 +156,26 @@ class _GuidebookEditorScreenState extends State<GuidebookEditorScreen> {
           overflow: TextOverflow.ellipsis,
           style: const TextStyle(fontWeight: FontWeight.w700),
         ),
-        subtitle: Tooltip(
-          message:
-              'Sentences: example sentences with their translation. '
-              'Words: the Words & Expressions entries, single words and '
-              'fixed expressions with their translation.',
-          child: Text(
-            _counts(module),
-            key: ValueKey('guidebook-module-counts-$index'),
-          ),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Tooltip(
+              message:
+                  'Sentences: example sentences with their translation. '
+                  'Words: the Words & Expressions entries, single words and '
+                  'fixed expressions with their translation.',
+              child: Text(
+                _counts(module),
+                key: ValueKey('guidebook-module-counts-$index'),
+              ),
+            ),
+            // Build 267 Revision 5: the size that suits the Round Wizard.
+            if (GuidebookSizeAdvice.moduleHint(module) case final hint?)
+              GuidebookSizeHint(
+                hint,
+                key: ValueKey('guidebook-module-size-$index'),
+              ),
+          ],
         ),
         trailing: IconButton(
           key: ValueKey('guidebook-module-remove-$index'),
@@ -201,6 +213,14 @@ class _GuidebookEditorScreenState extends State<GuidebookEditorScreen> {
           'a short Overview. Learners read them in this order; the Round '
           'Wizard turns them into Rounds.',
         ),
+        if (GuidebookSizeAdvice.lessonHint(_modules) case final hint?)
+          Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: GuidebookSizeHint(
+              hint,
+              key: const Key('guidebook-size-advice'),
+            ),
+          ),
         const SizedBox(height: 12),
         if (_modules.isEmpty)
           const Card(
@@ -366,6 +386,38 @@ class GuidebookModuleEditorScreen extends StatefulWidget {
 
 class _GuidebookModuleEditorScreenState
     extends State<GuidebookModuleEditorScreen> {
+  /// The module's Words & Expressions and Sentences as written, with the
+  /// size hint for the Round Wizard (Build 267 Revision 5); it follows the
+  /// typing.
+  Widget _sizeLine() => ListenableBuilder(
+    listenable: Listenable.merge([
+      _title,
+      for (final row in [..._sentences, ..._words]) row.target,
+    ]),
+    builder: (context, _) {
+      int written(List<_EntryRow> rows) =>
+          rows.where((row) => row.target.text.trim().isNotEmpty).length;
+      final words = written(_words);
+      final sentences = written(_sentences);
+      final hint = GuidebookSizeAdvice.hintFor(
+        title: _title.text,
+        words: words,
+        sentences: sentences,
+      );
+      return Column(
+        key: const Key('guidebook-module-size'),
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            GuidebookSizeAdvice.countLine(words: words, sentences: sentences),
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+          if (hint != null) GuidebookSizeHint(hint),
+        ],
+      );
+    },
+  );
+
   late final AuthoringIdGenerator _ids =
       widget.ids ?? TimestampAuthoringIdGenerator();
   late final _title = TextEditingController(text: widget.module.title);
@@ -1348,6 +1400,8 @@ class _GuidebookModuleEditorScreenState
             _words,
             word: true,
           ),
+          const SizedBox(height: 12),
+          _sizeLine(),
           const SizedBox(height: 20),
           TextField(
             key: const Key('guidebook-module-overview'),
@@ -1470,4 +1524,37 @@ class _PasteListDialogState extends State<_PasteListDialog> {
       ),
     ],
   );
+}
+
+/// A soft grey hint on the GuideBook's size for the Round Wizard (Build 267
+/// Revision 5, owner decisions of 9 October 2026): advice, never a block.
+class GuidebookSizeHint extends StatelessWidget {
+  const GuidebookSizeHint(this.text, {super.key});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = Theme.of(context).colorScheme.onSurfaceVariant;
+    return Padding(
+      padding: const EdgeInsets.only(top: 2),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(top: 2, right: 4),
+            child: Icon(Icons.lightbulb_outline, size: 14, color: color),
+          ),
+          Expanded(
+            child: Text(
+              text,
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: color),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

@@ -206,6 +206,10 @@ void main() {
         'LESSON_ROUND_GUIDANCE',
         'LESSON_INTRO_MISSING',
         'DUEL_UNAVAILABLE',
+        // Build 267 Revision 5: the GuideBook size advice for the Round
+        // Wizard (one small module).
+        'GUIDEBOOK_MODULE_SIZE',
+        'GUIDEBOOK_MODULE_COUNT',
       ]),
     );
     final status = AuthoringHierarchyStatus.fromCourse(course);
@@ -216,8 +220,9 @@ void main() {
     // Build 257: ROUND_INTRO_EMPTY and ROUND_INTRO_DUPLICATE; Build 258:
     // PAGE_EMPTY, PAGE_MARK_UNMATCHED and PAGE_LINK_INVALID; Build 261:
     // READING_ANSWER_IN_TEXT; Build 266: GUIDEBOOK_MODULE_EMPTY,
-    // GUIDEBOOK_MODULE_OVERVIEW_LONG and ROUND_FOCUS_MODULE_MISSING.
-    expect(AuditCode.values, hasLength(128));
+    // GUIDEBOOK_MODULE_OVERVIEW_LONG and ROUND_FOCUS_MODULE_MISSING; Build
+    // 267: GUIDEBOOK_MODULE_SIZE and GUIDEBOOK_MODULE_COUNT.
+    expect(AuditCode.values, hasLength(130));
   });
 
   test(

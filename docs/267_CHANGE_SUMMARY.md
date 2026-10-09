@@ -230,3 +230,14 @@ decisions of 9 October 2026).
   study the Course when it is published, else reminds of Publish.
 - "Nothing is created yet: this is only the plan." on the Round Wizard's and
   Exercise Wizard's plan pages.
+
+## Revision 5 (2.0.67+267005): GuideBook size advice
+
+- Best: 4 modules per Lesson, each with about 8 Words & Expressions and 3–4
+  Sentences that use them; what works: 3 to 6 modules, 5 to 10 words, 2 to
+  5 Sentences.
+- Grey hints on the GuideBook page, the module page (with a live count),
+  the Course Wizard's GuideBook step and the Round Wizard's plan.
+- Audit Info `GUIDEBOOK_MODULE_SIZE` and `GUIDEBOOK_MODULE_COUNT`, worded as
+  Round Wizard advice, only with Use GuideBook on.
+- Help EN/IT/ES: How long should a module be?

@@ -122,32 +122,20 @@ plan pages' "Nothing is created yet: this is only the plan.", Help EN/IT/ES.
 Analyzer clean; `check_and_publish_267_test.dart` 2 and `course_wizard_267_test.dart` 22 passed; focused batch 112; complete suite 3,977 passed, 1 skipped. Committed locally on 9 October 2026 as
 "Build 267 Revision 4: the Course Wizard's Check and publish".
 
+## Revision 5 (2.0.67+267005), GuideBook size advice: committed
+
+Implemented as decided (the advice texts approved in chat on 9 October
+2026): `GuidebookSizeAdvice`, `GuidebookSizeHint` on the GuideBook page,
+the module page (live count), the Wizard's GuideBook step and the Round
+Wizard's plan; Audit Info `GUIDEBOOK_MODULE_SIZE` and
+`GUIDEBOOK_MODULE_COUNT`; Help EN/IT/ES. "Over 12 entries" counts each list
+(words or Sentences) on its own, as the Round Wizard cycles each list.
+Analyzer clean; `guidebook_size_advice_267_test.dart` 5 passed; complete
+suite 3,982 passed, 1 skipped. Committed locally on 9 October 2026 as
+"Build 267 Revision 5: GuideBook size advice for the Round Wizard".
+
 ## Next
 
-- Revision 5, the GuideBook size advice (owner, 9 October 2026, not a
-  rule): "3 to 6 modules per Lesson, each with 5 to 10
-  Words & Expressions and 2 to 5 Sentences that use them", in the Wizard's
-  module note, the module page Help (EN/IT/ES) and a soft grey hint on the
-  GuideBook step and in the Round Wizard's plan: fewer than 3 modules, or a
-  module under 5 words or 2 sentences ("some Rounds may repeat
-  exercises"); more than 6 modules ("consider splitting the Lesson"); a
-  module over 12 entries ("consider splitting the module: the default 3
-  Rounds reach about 14 entries, so some may not be practised");
-  the hard minimum stays 3 words per module. The best size, named in the
-  texts: 4 modules per Lesson, about 8 Words & Expressions and 3-4
-  Sentences per module (texts approved in chat on 9 October 2026: the
-  Wizard's module note, four hints, the moduleLength Help answer). Owner:
-  the same hints in the manual editor too: the Course Editor's GuideBook
-  page (Lesson: fewer than 3 or more than 6 modules; each module row: under
-  5 words or 2 sentences, over 12 entries) and the module page (a line
-  counting its words and sentences, with the hint). Owner (9 October
-  2026, "yes"): two Info Audit rules worded as Round Wizard advice, only
-  while Use GuideBook is on, never on an empty module:
-  `GUIDEBOOK_MODULE_SIZE` (per module: under 5 words or 2 Sentences, or
-  over 12 entries; best about 8 words and 3-4 Sentences) and
-  `GUIDEBOOK_MODULE_COUNT` (per Lesson: outside 3-6 modules; best 4). The
-  bundled demos will show them (one module per Lesson; English from
-  Italian has 36 words in one module): accepted as honest Info.
 - Revision 6 (owner, 9 October 2026): Create Duels off by default for a new
   Course, in the Wizard and in New Course's form (a Duel adds a
   complication); New Course with paused Wizards lists the ones this learner

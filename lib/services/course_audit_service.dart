@@ -9,6 +9,7 @@ import 'portable_exercise_image.dart';
 import 'audit_code_registry.dart';
 import 'duel_eligibility_service.dart';
 import 'inline_marks.dart';
+import 'guidebook_size_advice.dart';
 import 'lesson_icon_catalog.dart';
 import 'page_blocks.dart';
 import 'preset_recipes.dart';
@@ -516,6 +517,18 @@ class CourseAuditService {
             ),
           );
         }
+        // Build 267 Revision 5: the size that suits the Round Wizard,
+        // advice only (owner decisions of 9 October 2026).
+        final sizeHint = GuidebookSizeAdvice.moduleHint(module);
+        if (sizeHint != null) {
+          issues.add(
+            CourseAuditIssue.fromCode(
+              AuditCode.guidebookModuleSize,
+              message: 'For the Round Wizard: $sizeHint',
+              location: location,
+            ),
+          );
+        }
         if (module.overview.trim().length >= GuidebookText.longOverviewLength) {
           issues.add(
             CourseAuditIssue.fromCode(
@@ -526,6 +539,18 @@ class CourseAuditService {
             ),
           );
         }
+      }
+      final countHint = course.useGuidebook
+          ? GuidebookSizeAdvice.lessonHint(gb.modules)
+          : null;
+      if (countHint != null) {
+        issues.add(
+          CourseAuditIssue.fromCode(
+            AuditCode.guidebookModuleCount,
+            message: 'For the Round Wizard: $countHint',
+            location: '$tl · Guidebook',
+          ),
+        );
       }
       if (course.useGuidebook && gb.hasNoEntries) {
         issues.add(

@@ -219,3 +219,28 @@ Run on the owner's Windows PC (4 cores, 8 GB), `TEMP`/`TMP` on
 - Focused batch (the Wizard, publish, Inventory, Exercise Wizard, version
   pins, Beta, Help, reset, the GuideBook generator): **112 passed**.
 - Complete suite (9 October): **3,977 passed, 1 skipped (POSIX only)**, exit code 0.
+
+## Revision 5 (2.0.67+267005), 9 October 2026
+
+- `dart format` on the changed Dart files only; `flutter analyze --no-pub`:
+  **No issues found.**
+- `test/guidebook_size_advice_267_test.dart` (new, 5 passed): the Lesson
+  hint for 0, 1, 2, 3–6 and 7 modules, an empty module not counted; the
+  module hint (4 words and 1 Sentence; 5/2, 8/3, 12/5 none; 14 words or 13
+  Sentences to split; an untitled module; the count line); the Audit's
+  `GUIDEBOOK_MODULE_SIZE` and `GUIDEBOOK_MODULE_COUNT` (Info, the module's
+  location, "For the Round Wizard: …"), none with Use GuideBook off or for
+  four modules of 8 words and 3 Sentences; the GuideBook page shows the
+  Lesson hint and only the small module's hint; the module page counts as
+  the author writes (5 → 4 words, the hint appears).
+- `test/course_wizard_267_test.dart`: the GuideBook step shows
+  `course-wizard-guidebook-advice` and the Round Wizard's plan
+  `generator-size-advice` for the sample's single module.
+- The Audit registry counts: `audit_code_registry_226_02_test.dart` 17 Info
+  (130 rules); `audit_branch_ownership_226_02_revision4_test.dart` adds the
+  two Info codes to a Lesson with one small module.
+- Focused batch (Wizard, size advice, Audit and registry, bundled Courses,
+  Laboratory, English from Italian, GuideBook modules and aids, Round
+  Wizard, Help, publish): 511 passed and the 2 registry tests above, fixed
+  and rerun (27 passed); version pins and Beta (54 passed).
+- Complete suite (9 October): **3,982 passed, 1 skipped (POSIX only)**, exit code 0.

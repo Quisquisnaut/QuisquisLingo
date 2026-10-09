@@ -55,6 +55,7 @@ import 'course_info_screen.dart';
 import 'guidebook_screen.dart';
 import 'guidebook_editor_screen.dart';
 import '../services/guidebook_round_links.dart';
+import '../services/guidebook_size_advice.dart';
 import 'course_editor_search_screen.dart';
 import '../services/course_authoring_transfer_service.dart';
 import '../services/translation_choice_service.dart';
@@ -5950,6 +5951,15 @@ class _GuidebookRoundGeneratorScreenState
     );
   }
 
+  /// The Lesson's hint and each module's, for the plan.
+  List<String> get _sizeHints {
+    final modules = widget.lesson.guidebook.modules;
+    return [
+      ?GuidebookSizeAdvice.lessonHint(modules),
+      for (final module in modules) ?GuidebookSizeAdvice.moduleHint(module),
+    ];
+  }
+
   Widget _reviewPlan() {
     final distribution = _plan!.presetDistribution.entries.toList();
     return ListView(
@@ -5969,6 +5979,17 @@ class _GuidebookRoundGeneratorScreenState
               '${GuidebookRoundGenerator.minimumWords} Words & Expressions: '
               '${_plan!.skippedModules.join(', ')}.',
               key: const Key('generator-skipped-modules'),
+            ),
+          ),
+        // Build 267 Revision 5: the GuideBook size that suits the Round
+        // Wizard, advice only (owner decisions of 9 October 2026).
+        if (_sizeHints case final hints when hints.isNotEmpty)
+          Padding(
+            key: const Key('generator-size-advice'),
+            padding: const EdgeInsets.only(top: 6),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [for (final hint in hints) GuidebookSizeHint(hint)],
             ),
           ),
         const SizedBox(height: 8),

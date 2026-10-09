@@ -793,6 +793,11 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('course-wizard-module-0')), findsOneWidget);
       expect(find.textContaining('Not approved yet'), findsOneWidget);
+      // One module: the step's grey hint (Revision 5).
+      expect(
+        find.byKey(const Key('course-wizard-guidebook-advice')),
+        findsOneWidget,
+      );
       await tester.tap(find.byKey(const Key('course-wizard-next')));
       await tester.pumpAndSettle();
       expect(
@@ -925,6 +930,8 @@ void main() {
       await tester.tap(find.byKey(const Key('generator-review-plan')));
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('generator-duel-count')), findsOneWidget);
+      // One module: the plan's grey hint (Revision 5).
+      expect(find.byKey(const Key('generator-size-advice')), findsOneWidget);
       expect(find.textContaining('(25 needed)'), findsWidgets);
       final generate = find.byKey(const Key('generator-generate'));
       await tester.ensureVisible(generate);

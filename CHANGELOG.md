@@ -1,3 +1,39 @@
+# 2.0.67 (Build 267, Revision 5) - GuideBook size advice for the Round Wizard - 2026-10-09
+
+Owner decisions of 9 October 2026: advice, never a rule; the hard minimum
+stays three Words & Expressions per module.
+
+- **The best size**: 4 modules per Lesson, each with about 8 Words &
+  Expressions and 3–4 Sentences that use them; what works: 3 to 6 modules,
+  5 to 10 words and 2 to 5 Sentences per module (`GuidebookSizeAdvice`,
+  `lib/services/guidebook_size_advice.dart`). The numbers come from the
+  Round Wizard: three Rounds per module reach about 14 entries of each
+  list, review starts with a Lesson's second module, and an exercise type
+  never asks the same thing twice in a Round.
+- **Grey hints** (`GuidebookSizeHint`, never blocking): fewer than 3
+  modules ("the Rounds will have little review"), more than 6 ("consider
+  splitting it into two Lessons"), a module under 5 words or 2 Sentences
+  ("some Rounds may repeat exercises"), a module over 12 of either ("some
+  may not get an exercise; consider splitting it"). They appear on the
+  Course Editor's GuideBook page (`guidebook-size-advice`,
+  `guidebook-module-size-<i>`), on the module page under the two lists with
+  a live count (`guidebook-module-size`: "8 Words & Expressions · 3
+  Sentences"), on the Course Wizard's GuideBook step
+  (`course-wizard-guidebook-advice`, `course-wizard-module-size-<i>`; its
+  module note names the best size) and in the Round Wizard's plan
+  (`generator-size-advice`).
+- **Audit**: two Info rules worded as Round Wizard advice, only while Use
+  GuideBook is on and never on an empty module: `GUIDEBOOK_MODULE_SIZE`
+  (per module) and `GUIDEBOOK_MODULE_COUNT` (per Lesson). Registry 130 rules
+  (17 Info). The bundled demos show them (one module per Lesson; English
+  from Italian has 36 words in one module), accepted by the owner.
+- Help EN/IT/ES: "How long should a module be?" gives the best size, the
+  range, why, and where the hints appear.
+- Tests: `test/guidebook_size_advice_267_test.dart`; the Audit registry
+  counts.
+- Scoring, progression, Course files and learner data are unchanged. Beta
+  expiry `2026-11-08 23:59:59` local time.
+
 # 2.0.67 (Build 267, Revision 4) - The Course Wizard's Check and publish - 2026-10-09
 
 The Wizard's last step (plan docs/267_COURSE_WIZARD_PLAN.md §7; owner
