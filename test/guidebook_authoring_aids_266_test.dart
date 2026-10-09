@@ -226,7 +226,7 @@ void main() {
     final conto = sample.words.where((e) => e.target == 'il conto').toList();
     expect(conto.map((e) => e.context), ['restaurant', 'bank']);
     final caffe = sample.words.firstWhere((e) => e.target == 'il caffè');
-    expect(caffe.picture?.asset, GuidebookModuleSample.coffeePicture);
+    expect(caffe.picture?.asset, GuidebookModuleSample.espressoPicture);
     final gatti = sample.words.firstWhere((e) => e.target == 'i gatti');
     expect(gatti.picture?.plural, isTrue);
     expect(gatti.picture?.asset, GuidebookModuleSample.catPicture);
@@ -234,7 +234,7 @@ void main() {
     final records = {
       for (final record in readBundledImageRecords()) record['assetPath'],
     };
-    expect(records, contains(GuidebookModuleSample.coffeePicture));
+    expect(records, contains(GuidebookModuleSample.espressoPicture));
     expect(records, contains(GuidebookModuleSample.catPicture));
     final second = GuidebookModuleSample.module(id: 'm', ids: ids);
     expect(

@@ -353,3 +353,34 @@ Run on the owner's Windows PC (4 cores, 8 GB), `TEMP`/`TMP` on
   pins): **269 passed**.
 - Complete suite once on the final tree (`flutter test --no-pub
   --concurrency=1`, TEMP on D:): **4,010 passed, 1 skipped**, 34 min 4 s.
+
+## Revision 10 (2.0.67+267010), 9 October 2026
+
+- `dart format` on the changed Dart files only (a reflow of untouched
+  lines in `course_cover_255_test.dart` was put back in Revision 9);
+  `flutter analyze --no-pub`: **No issues found.**
+- `test/module_wizard_267_test.dart` (new, 11 passed): A to D with the
+  title required, the Sentences minimum (Add more stays, Continue anyway
+  goes on), a half row refused without the size question, five words
+  without a question, Back keeping what was written, the short-Overview
+  warning (Add more, Finish anyway) and the returned module; an empty
+  Overview warns and ten words finish at once; leaving blank closes at
+  once, leaving with a title asks and returns nothing; Fill and Clear all
+  on the step shown, a filled step asking before Fill; the Course Editor's
+  Module Wizard beside Add module, Add another module, Add module still
+  the whole page; the Course Wizard's GuideBook step (GuideBooks heading,
+  the new note, the Module Wizard, the module count); the chips' green and
+  red outline; the fewer-than-three-modules question (Add modules keeps the
+  Draft); the rows named Target: Italian / Source: English, bare without a
+  Course; the espresso example; the Words text without the two-meanings
+  line.
+- `test/guidebook_sentence_generator_test.dart`: generated Rounds show
+  "Round N · …", also untitled (new test).
+- Updated: `course_wizard_267` (the Module Wizard in its module helpers,
+  the fewer-than-three-modules question), `guidebook_authoring_aids_266`
+  (the espresso picture constant).
+- Affected files together (Module Wizard, Course Wizard, GuideBook modules
+  and aids, picture aids, size advice, wording, Round Wizard, Help):
+  green at every step.
+- Complete suite once on the final tree (`flutter test --no-pub
+  --concurrency=1`, TEMP on D:): **4,022 passed, 1 skipped**, 37 min 53 s.

@@ -57,6 +57,35 @@ void main() {
     },
   );
 
+  testWidgets('untitled generated Rounds still show their number and type', (
+    tester,
+  ) async {
+    final fixture = _generatorFixture();
+    await _openLessonEditor(tester, fixture, routeResults: <Lesson?>[]);
+    await _tapKeyAndSettle(tester, 'lesson-rounds-navigation');
+    await tester.tap(find.byKey(const Key('rounds-round-wizard')));
+    await tester.pumpAndSettle();
+    // Round titles off, as the Course Wizard starts it (Revision 3).
+    await _scrollToKey(tester, 'generator-round-titles');
+    await tester.tap(find.byKey(const Key('generator-round-titles')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('generator-review-plan')));
+    await tester.pumpAndSettle();
+    await _scrollToKey(tester, 'generator-generate');
+    await tester.tap(find.byKey(const Key('generator-generate')));
+    await tester.pumpAndSettle();
+    final first = tester
+        .widget<Text>(find.byKey(const ValueKey('generated-draft-title-0')))
+        .data!;
+    expect(first, matches(RegExp(r'^Round 1 · \w+$')));
+    expect(
+      tester
+          .widget<Text>(find.byKey(const ValueKey('generated-draft-title-1')))
+          .data,
+      startsWith('Round 2 · '),
+    );
+  });
+
   testWidgets(
     'approval appends six reviewed Rounds derived from the Lesson GuideBook',
     (tester) async {
@@ -81,6 +110,13 @@ void main() {
         findsOneWidget,
       );
       expect(find.byKey(const ValueKey('generated-draft-1')), findsNothing);
+      // Build 267 Revision 10: every generated Round shows its number.
+      expect(
+        tester
+            .widget<Text>(find.byKey(const ValueKey('generated-draft-title-0')))
+            .data,
+        startsWith('Round 1 · '),
+      );
       await _scrollToKey(tester, 'generator-approve');
       await tester.tap(find.byKey(const Key('generator-approve')));
       await tester.pumpAndSettle();

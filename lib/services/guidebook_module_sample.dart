@@ -10,7 +10,7 @@ import 'authoring_duplication_service.dart';
 /// QQL picture (*il caffè*) and a plural word with its picture marked Plural
 /// (*i gatti*).
 abstract final class GuidebookModuleSample {
-  static const coffeePicture = 'assets/exercise_images/coffee.webp';
+  static const espressoPicture = 'assets/exercise_images/espresso.webp';
   static const catPicture = 'assets/exercise_images/cat.webp';
 
   /// The sample as module [id], every entry with a fresh ID from [ids].
@@ -36,7 +36,7 @@ abstract final class GuidebookModuleSample {
       sentences: [
         entry(
           '{Io} vorrei un caffè, per favore.',
-          'I would like a coffee, please.',
+          'I would like an espresso, please.',
         ),
         entry('Il conto, per favore.', 'The bill, please.'),
         entry('Lei è stanca?', 'Are you tired?', context: 'formal, to a woman'),
@@ -48,8 +48,8 @@ abstract final class GuidebookModuleSample {
       words: [
         entry(
           'il caffè',
-          'coffee',
-          picture: const GuidebookPicture(asset: coffeePicture),
+          'espresso',
+          picture: const GuidebookPicture(asset: espressoPicture),
         ),
         entry('il conto', 'the bill', context: 'restaurant'),
         entry('il conto', 'the account', context: 'bank'),

@@ -6126,7 +6126,18 @@ class _GuidebookRoundGeneratorScreenState
           Card(
             key: ValueKey('generated-draft-${_drafts[index].id}'),
             child: ListTile(
-              title: Text(_drafts[index].title),
+              // Build 267 Revision 10 (owner, 9 October 2026): every Round
+              // shows its number and type, as in the plan, also untitled.
+              leading: CircleAvatar(child: Text('${index + 1}')),
+              title: Text(
+                [
+                  'Round ${index + 1} · '
+                      '${RoundTypePresentation.label(_drafts[index].roundType)}',
+                  if (_drafts[index].title.trim().isNotEmpty)
+                    _drafts[index].title.trim(),
+                ].join(' · '),
+                key: ValueKey('generated-draft-title-$index'),
+              ),
               subtitle: Text('${_drafts[index].exercises.length} exercises'),
               onTap: () => _editDraft(index),
               trailing: PopupMenuButton<String>(

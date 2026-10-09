@@ -82,6 +82,16 @@ abstract final class GuidebookSizeAdvice {
     return null;
   }
 
+  /// Fewer words than this in the Overview: the Module Wizard warns before
+  /// Finish (Build 267 Revision 10, owner decision of 9 October 2026).
+  static const minimumOverviewWords = 10;
+
+  static final _letterOrDigit = RegExp(r'[\p{L}\p{N}]', unicode: true);
+
+  /// Words in [text]: pieces between spaces with a letter or a digit.
+  static int wordCount(String text) =>
+      text.split(RegExp(r'\s+')).where(_letterOrDigit.hasMatch).length;
+
   /// "8 Words & Expressions · 3 Sentences".
   static String countLine({required int words, required int sentences}) =>
       '$words Words & Expressions · ${_many(sentences, 'Sentence')}';

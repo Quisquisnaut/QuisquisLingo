@@ -843,10 +843,10 @@ void main() {
       );
       await tester.tap(find.byKey(const Key('course-wizard-fill-example')));
       await tester.pumpAndSettle();
-      // The example opens on the module page; Done keeps it.
+      // The example opens in the Module Wizard (Revision 10); Finish keeps
+      // it.
       expect(find.byKey(const Key('guidebook-module-title')), findsOneWidget);
-      await tester.tap(find.byKey(const Key('guidebook-module-done')));
-      await tester.pumpAndSettle();
+      await _finishModuleWizard(tester);
       expect(find.byKey(const Key('course-wizard-module-0')), findsOneWidget);
       expect(find.textContaining('Not approved yet'), findsOneWidget);
       // One module: the step's grey hint (Revision 5).
@@ -865,12 +865,17 @@ void main() {
         if (lesson > 1) {
           await tester.tap(find.byKey(const Key('course-wizard-fill-example')));
           await tester.pumpAndSettle();
-          await tester.tap(find.byKey(const Key('guidebook-module-done')));
-          await tester.pumpAndSettle();
+          await _finishModuleWizard(tester);
         }
         final ready = find.byKey(const Key('course-wizard-guidebook-ready'));
         await tester.ensureVisible(ready);
         await tester.tap(ready);
+        await tester.pumpAndSettle();
+        // One module: fewer than three asks first (Revision 10).
+        expect(find.text('Fewer than 3 modules'), findsOneWidget);
+        await tester.tap(
+          find.byKey(const Key('course-wizard-guidebook-ready-anyway')),
+        );
         await tester.pumpUntilFileIoState(
           () => find
               .textContaining('Lesson $lesson\'s GuideBook is ready')
@@ -1285,8 +1290,7 @@ void main() {
       find.byKey(const Key('course-wizard-fill-example-confirm')),
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('guidebook-module-done')));
-    await tester.pumpAndSettle();
+    await _finishModuleWizard(tester);
     expect(find.text('Al bar'), findsOneWidget);
     expect(find.text('Il conto'), findsNothing);
     await _addModule(
@@ -1509,13 +1513,47 @@ Future<void> _addModule(
   }
 
   await tapKey(const Key('course-wizard-add-module'));
+  // Build 267 Revision 10: the Module Wizard, A Title, B Sentences (none
+  // here: continue anyway), C Words & Expressions, D Overview.
   await type(const Key('guidebook-module-title'), title);
+  await _moduleWizardNext(tester);
+  await _moduleWizardNext(tester);
   for (var i = 0; i < words.length; i++) {
     await tapKey(const ValueKey('guidebook-module-add-word'));
     await type(ValueKey('guidebook-module-word-$i-target'), words[i].$1);
     await type(ValueKey('guidebook-module-word-$i-source'), words[i].$2);
   }
-  await tester.tap(find.byKey(const Key('guidebook-module-done')));
+  await _moduleWizardNext(tester);
+  await _moduleWizardNext(tester);
+  await tapKey(const Key('guidebook-another-module-no'));
+}
+
+/// The Module Wizard's Next (Build 267 Revision 10), continuing anyway
+/// below the size advice.
+Future<void> _moduleWizardNext(WidgetTester tester) async {
+  final next = find.byKey(const Key('guidebook-module-wizard-next'));
+  await tester.ensureVisible(next);
+  await tester.tap(next);
+  await tester.pumpAndSettle();
+  // Below the advised sizes, or a short Overview: go on anyway.
+  for (final key in const [
+    Key('guidebook-module-wizard-continue-anyway'),
+    Key('guidebook-module-wizard-overview-anyway'),
+  ]) {
+    final anyway = find.byKey(key);
+    if (anyway.evaluate().isNotEmpty) {
+      await tester.tap(anyway);
+      await tester.pumpAndSettle();
+    }
+  }
+}
+
+/// Through a filled Module Wizard to Finish, then no other module.
+Future<void> _finishModuleWizard(WidgetTester tester) async {
+  for (var step = 0; step < 4; step++) {
+    await _moduleWizardNext(tester);
+  }
+  await tester.tap(find.byKey(const Key('guidebook-another-module-no')));
   await tester.pumpAndSettle();
 }
 

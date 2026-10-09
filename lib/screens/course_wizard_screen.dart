@@ -31,7 +31,10 @@ import '../widgets/language_field.dart';
 import '../widgets/lesson_fallback_icon.dart';
 import '../widgets/reported_action.dart';
 import 'course_editor_screen.dart'
-    show CourseAuditScreen, GuidebookRoundGeneratorScreen;
+    show
+        AuthoringHierarchyStatus,
+        CourseAuditScreen,
+        GuidebookRoundGeneratorScreen;
 import 'editor_help_screen.dart';
 import 'flat_image_library_screen.dart';
 import 'guidebook_editor_screen.dart';
@@ -1045,14 +1048,17 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
       return;
     }
     if (!mounted) return;
-    // The GuideBook's example opens on the module page, so the author sees
-    // it (owner, 9 October 2026); Done keeps it in the Lesson.
+    // The GuideBook's example opens in the Module Wizard, so the author
+    // sees it step by step (owner, 9 October 2026); Finish keeps it in the
+    // Lesson.
     if (_step == CourseWizardStep.guidebook) {
       final example = await _editModule(
         CourseWizardSample.guidebook(_ids).single,
+        guided: true,
       );
       if (example == null || !mounted) return;
       setState(() => _setModules([example]));
+      await _offerAnotherModule(example);
       return;
     }
     setState(() {
@@ -1200,28 +1206,41 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
     _generation++;
   }
 
-  Future<GuidebookModule?> _editModule(GuidebookModule module) =>
-      Navigator.of(context).push<GuidebookModule>(
-        MaterialPageRoute(
-          builder: (_) => GuidebookModuleEditorScreen(
-            module: module,
-            course: _working,
-            ids: _ids,
-            lessonName: GuidebookModuleEditorScreen.lessonNameFor(
-              _shownLesson + 1,
-              _currentLesson?.title ?? '',
-            ),
-          ),
+  Future<GuidebookModule?> _editModule(
+    GuidebookModule module, {
+    bool guided = false,
+  }) => Navigator.of(context).push<GuidebookModule>(
+    MaterialPageRoute(
+      builder: (_) => GuidebookModuleEditorScreen(
+        module: module,
+        course: _working,
+        ids: _ids,
+        guided: guided,
+        lessonName: GuidebookModuleEditorScreen.lessonNameFor(
+          _shownLesson + 1,
+          _currentLesson?.title ?? '',
         ),
-      );
+      ),
+    ),
+  );
 
+  /// Add a module: the Module Wizard (Build 267 Revision 10, owner
+  /// decisions of 9 October 2026), A Title, B Sentences, C Words &
+  /// Expressions, D Overview; after its Finish it offers another.
   Future<void> _addModule() async {
     final added = await _editModule(
       GuidebookModule(id: _ids.next('module'), title: ''),
+      guided: true,
     );
     final lesson = _currentLesson;
     if (added == null || lesson == null || !mounted) return;
     setState(() => _setModules([...lesson.guidebook.modules, added]));
+    await _offerAnotherModule(added);
+  }
+
+  Future<void> _offerAnotherModule(GuidebookModule added) async {
+    if (!mounted || !await askAnotherModule(context, added.title)) return;
+    if (mounted) await _addModule();
   }
 
   Future<void> _openModule(int index) async {
@@ -1297,6 +1316,26 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
       );
       return;
     }
+    // Build 267 Revision 10 (owner, 9 October 2026): fewer than three
+    // modules asks first; the author may mark the GuideBook ready anyway.
+    final modules = GuidebookSizeAdvice.moduleCount(lesson.guidebook.modules);
+    if (modules < GuidebookSizeAdvice.minimumModules &&
+        !await _confirm(
+          key: const Key('course-wizard-guidebook-ready-anyway'),
+          title: 'Fewer than ${GuidebookSizeAdvice.minimumModules} modules',
+          message:
+              'Lesson ${_shownLesson + 1}\'s GuideBook has $modules '
+              '${modules == 1 ? 'module' : 'modules'}. The Round Wizard makes '
+              'better Rounds, with review of earlier modules, from at least '
+              '${GuidebookSizeAdvice.minimumModules} (best '
+              '${GuidebookSizeAdvice.bestModules}). Add modules, or mark the '
+              'GuideBook ready anyway.',
+          action: 'Ready anyway',
+          cancel: 'Add modules',
+        )) {
+      return;
+    }
+    if (!mounted) return;
     final number = _shownLesson + 1;
     setState(
       () => _setModules(
@@ -1759,8 +1798,9 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
     CourseWizardStep.about => (
       short: 'Tell learners what the Course is about and who made it.',
       more: const [
-        'Description: two or three sentences, for example “Order a coffee and '
-            'a pastry in an Italian bar and ask for the bill.” Authors: the '
+        'Description: two or three sentences, for example “Order an '
+            'espresso and a pastry in an Italian bar and ask for the bill.” '
+            'Authors: the '
             'people who made the Course. A credit never gives the right to '
             'edit: you are the Course Maintainer.',
         'Advanced holds the rest of Course Info: levels, study hours, minimum '
@@ -1937,7 +1977,7 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
         border: OutlineInputBorder(),
         labelText: 'Course description (optional)',
         helperText:
-            'For example “Order a coffee and a pastry in an Italian bar '
+            'For example “Order an espresso and a pastry in an Italian bar '
             'and ask for the bill.”',
         helperMaxLines: 3,
       ),
@@ -2780,12 +2820,13 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
         : 'Needs a module with at least ${CourseWizardGuidebook.minimumWords} '
               'Words & Expressions.';
     return [
-      _heading('Lesson', tooltip: 'Write the GuideBook Lesson by Lesson.'),
+      _heading('GuideBooks', tooltip: 'Write the GuideBook Lesson by Lesson.'),
       _lessonChips(
         'guidebook',
         CourseWizardGuidebook.isReady,
         count: (each) => _moduleCount(each.guidebook.modules.length),
         onEmpty: (each) => each.guidebook.modules.isEmpty,
+        auditConcern: _hierarchy.lessonGuidebookAuditStatus,
       ),
       const SizedBox(height: 8),
       Text(
@@ -2811,11 +2852,11 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
         child: Text(
           key: const Key('course-wizard-module-explanation'),
           [
-            'A module is one short topic, like “Al bar: ordering and paying”: '
-                'a title, Sentences, Words & Expressions (each with its '
-                'translation, an optional Context and, for words, a picture) '
-                'and a short Overview. ${GuidebookSizeAdvice.best} Tap a '
-                'module to write it; Fill with an example opens a sample one.',
+            'Each module gives example sentences, words and fixed '
+                'expressions, and an Overview of short explanations: learners '
+                'can study them, and the Round Wizard uses them to generate '
+                'the exercises. ${GuidebookSizeAdvice.best} Tap a module to '
+                'write it; Fill with an example opens a sample one.',
             if (GuidebookPictureIndex.sideFor(_working) != null)
               'Typing an English word suggests its QQL picture; Suggest '
                   'pictures, on the module page, does it for the words '
@@ -2919,6 +2960,20 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
     ];
   }
 
+  Course? _hierarchyCourse;
+  AuthoringHierarchyStatus? _hierarchyStatus;
+
+  /// The Course Editor's Audit status of the working copy, worked out once
+  /// per version of it.
+  AuthoringHierarchyStatus get _hierarchy {
+    final course = _working;
+    if (!identical(course, _hierarchyCourse)) {
+      _hierarchyCourse = course;
+      _hierarchyStatus = AuthoringHierarchyStatus.fromCourse(course);
+    }
+    return _hierarchyStatus!;
+  }
+
   /// " · 3 modules" after a GuideBook chip, nothing without modules.
   static String _moduleCount(int count) => switch (count) {
     0 => '',
@@ -2935,7 +2990,9 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
     bool Function(Lesson lesson) done, {
     String Function(Lesson lesson)? count,
     bool Function(Lesson lesson)? onEmpty,
+    bool? Function(Lesson lesson)? auditConcern,
   }) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
     final scheme = Theme.of(context).colorScheme;
     return Wrap(
       spacing: 6,
@@ -2952,6 +3009,28 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
               overflow: TextOverflow.ellipsis,
             ),
             selected: index == _shownLesson,
+            // Build 267 Revision 10 (owner, 9 October 2026): the Course
+            // Editor's GuideBook border, its rule and its colours.
+            side: switch (auditConcern?.call(each)) {
+              true => BorderSide(
+                color: dark ? const Color(0xFFFF5A5F) : const Color(0xFFC90000),
+                width: 2,
+              ),
+              false => BorderSide(
+                color: dark ? const Color(0xFF5CFF85) : const Color(0xFF00A83B),
+                width: 2,
+              ),
+              null => null,
+            },
+            tooltip: switch (auditConcern?.call(each)) {
+              true =>
+                'Red outline: this GuideBook has an Audit Error or '
+                    'Warning.',
+              false =>
+                'Green outline: this GuideBook has no Audit Error or '
+                    'Warning. Info guidance may remain.',
+              null => null,
+            },
             onSelected: (_) {
               _chooseLesson(index);
               if (onEmpty?.call(each) ?? false) unawaited(_addModule());

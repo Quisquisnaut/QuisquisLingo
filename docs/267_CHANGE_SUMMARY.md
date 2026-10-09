@@ -281,3 +281,14 @@ decisions of 9 October 2026).
   opens a new module; the module page names its Lesson.
 - The example module's words are fixed expressions, not a sentence.
 - Fix: Editor notes are read-only in Inspection mode.
+
+## Revision 10 (2.0.67+267010): the Module Wizard
+
+- A new module step by step (Title, Sentences, Words & Expressions,
+  Overview), with gentle checks you can pass with Continue anyway, a
+  warning for a short Overview, and Add another module at the end; in the
+  Course Wizard and as a button on the Course Editor's GuideBook page.
+- GuideBook step: GuideBooks heading, a clearer note, the Course Editor's
+  green or red outline on each Lesson, a warning below 3 modules.
+- Row boxes name the Course's languages; examples order an espresso.
+- Generate Rounds numbers every generated Round.

@@ -1067,7 +1067,8 @@ abstract final class CourseWizardSample {
 
   static const about = CourseWizardAbout(
     description:
-        'Order a coffee and a pastry in an Italian bar, ask for the bill and '
+        'Order an espresso and a pastry in an Italian bar, ask for the bill '
+        'and '
         'find your way back to the station. Short Lessons with pictures, for '
         'a first trip to Italy.',
     startLevel: 'A1',

@@ -71,18 +71,21 @@ class _GuidebookEditorScreenState extends State<GuidebookEditorScreen> {
     ),
   );
 
-  Future<GuidebookModule?> _edit(GuidebookModule module) =>
-      Navigator.of(context).push<GuidebookModule>(
-        MaterialPageRoute(
-          builder: (_) => GuidebookModuleEditorScreen(
-            module: module,
-            course: widget.course,
-            ids: _ids,
-            metadataService: widget.metadataService,
-            lessonName: widget.lessonName,
-          ),
-        ),
-      );
+  Future<GuidebookModule?> _edit(
+    GuidebookModule module, {
+    bool guided = false,
+  }) => Navigator.of(context).push<GuidebookModule>(
+    MaterialPageRoute(
+      builder: (_) => GuidebookModuleEditorScreen(
+        module: module,
+        course: widget.course,
+        ids: _ids,
+        metadataService: widget.metadataService,
+        lessonName: widget.lessonName,
+        guided: guided,
+      ),
+    ),
+  );
 
   Future<void> _addModule() async {
     final added = await _edit(
@@ -90,6 +93,20 @@ class _GuidebookEditorScreenState extends State<GuidebookEditorScreen> {
     );
     if (added == null || !mounted) return;
     setState(() => _modules.add(added));
+  }
+
+  /// Module Wizard (Build 267 Revision 10): a new module step by step, then
+  /// the offer of another.
+  Future<void> _moduleWizard() async {
+    while (true) {
+      final added = await _edit(
+        GuidebookModule(id: _ids.next('module'), title: ''),
+        guided: true,
+      );
+      if (added == null || !mounted) return;
+      setState(() => _modules.add(added));
+      if (!await askAnotherModule(context, added.title) || !mounted) return;
+    }
   }
 
   Future<void> _openModule(int index) async {
@@ -255,14 +272,30 @@ class _GuidebookEditorScreenState extends State<GuidebookEditorScreen> {
             ],
           ),
         const SizedBox(height: 8),
-        Align(
-          alignment: AlignmentDirectional.centerStart,
-          child: OutlinedButton.icon(
-            key: const Key('guidebook-add-module'),
-            onPressed: _addModule,
-            icon: const Icon(Icons.add),
-            label: const Text('Add module'),
-          ),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            OutlinedButton.icon(
+              key: const Key('guidebook-add-module'),
+              onPressed: _addModule,
+              icon: const Icon(Icons.add),
+              label: const Text('Add module'),
+            ),
+            // Build 267 Revision 10 (owner): the same module, one step at a
+            // time, as in the Course Wizard.
+            Tooltip(
+              message:
+                  'Write a new module step by step: title, Sentences, Words '
+                  '& Expressions, Overview.',
+              child: OutlinedButton.icon(
+                key: const Key('guidebook-module-wizard'),
+                onPressed: _moduleWizard,
+                icon: const Icon(Icons.auto_awesome_outlined),
+                label: const Text('Module Wizard'),
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 16),
         Wrap(
@@ -375,9 +408,17 @@ class GuidebookModuleEditorScreen extends StatefulWidget {
     this.ids,
     this.metadataService,
     this.lessonName,
+    this.guided = false,
   });
 
   final GuidebookModule module;
+
+  /// The Module Wizard (Build 267 Revision 10, owner decisions of 9 October
+  /// 2026): the same page one part at a time, A Title, B Sentences, C Words
+  /// & Expressions, D Overview, with Back and Next. Next stops below the
+  /// size the Round Wizard needs until the author chooses Continue anyway;
+  /// leaving asks first and keeps nothing; Finish returns the module.
+  final bool guided;
 
   /// The Lesson the module belongs to, as "Lesson 2: At the market", shown
   /// under the page's title (Build 267 Revision 9, owner request of
@@ -528,6 +569,52 @@ class _GuidebookModuleEditorScreenState
 
   bool get _changed => _snapshot() != _opened;
 
+  /// Marks the half rows of [rows] and returns the first problem, named
+  /// "`<list> row <n>: …`", with its row. Call it inside setState.
+  ({String? problem, _EntryRow? row}) _checkRows(
+    List<_EntryRow> rows,
+    String list,
+  ) {
+    String? firstProblem;
+    _EntryRow? firstRow;
+    for (var i = 0; i < rows.length; i++) {
+      final row = rows[i];
+      row.targetError = null;
+      row.sourceError = null;
+      if (row.isEmpty) continue;
+      final target = row.target.text.trim();
+      final problem = target.isEmpty
+          ? 'Write the Target, or clear the row.'
+          : GuidebookText.targetProblem(target);
+      if (problem != null) {
+        row.targetError = target.isEmpty ? problem : 'Target: $problem.';
+      }
+      if (row.source.text.trim().isEmpty) {
+        row.sourceError = 'Write the Source, or clear the row.';
+      }
+      final error = row.targetError ?? row.sourceError;
+      if (error != null && firstProblem == null) {
+        firstProblem = '$list row ${i + 1}: $error';
+        firstRow = row;
+      }
+    }
+    return (problem: firstProblem, row: firstRow);
+  }
+
+  /// Shows [problem] and brings its [row] into view.
+  void _showProblem(String problem, _EntryRow? row) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(problem)));
+    final rowContext = row?.key.currentContext;
+    if (rowContext != null) {
+      Scrollable.ensureVisible(
+        rowContext,
+        duration: const Duration(milliseconds: 200),
+      );
+    }
+  }
+
   /// The module the form holds, or null with the problem shown at its field.
   GuidebookModule? _validated() {
     String? firstProblem;
@@ -537,44 +624,19 @@ class _GuidebookModuleEditorScreenState
           ? 'Give the module a title.'
           : null;
       if (_titleError != null) firstProblem = _titleError;
-      void check(List<_EntryRow> rows, String list) {
-        for (var i = 0; i < rows.length; i++) {
-          final row = rows[i];
-          row.targetError = null;
-          row.sourceError = null;
-          if (row.isEmpty) continue;
-          final target = row.target.text.trim();
-          final problem = target.isEmpty
-              ? 'Write the Target, or clear the row.'
-              : GuidebookText.targetProblem(target);
-          if (problem != null) {
-            row.targetError = target.isEmpty ? problem : 'Target: $problem.';
-          }
-          if (row.source.text.trim().isEmpty) {
-            row.sourceError = 'Write the Source, or clear the row.';
-          }
-          final error = row.targetError ?? row.sourceError;
-          if (error != null && firstProblem == null) {
-            firstProblem = '$list row ${i + 1}: $error';
-            firstRow = row;
-          }
+      for (final (rows, list) in [
+        (_sentences, 'Sentences'),
+        (_words, 'Words & Expressions'),
+      ]) {
+        final checked = _checkRows(rows, list);
+        if (checked.problem != null && firstProblem == null) {
+          firstProblem = checked.problem;
+          firstRow = checked.row;
         }
       }
-
-      check(_sentences, 'Sentences');
-      check(_words, 'Words & Expressions');
     });
     if (firstProblem != null) {
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(SnackBar(content: Text(firstProblem!)));
-      final rowContext = firstRow?.key.currentContext;
-      if (rowContext != null) {
-        Scrollable.ensureVisible(
-          rowContext,
-          duration: const Duration(milliseconds: 200),
-        );
-      }
+      _showProblem(firstProblem!, firstRow);
       return null;
     }
     return widget.module.copyWith(
@@ -601,6 +663,23 @@ class _GuidebookModuleEditorScreenState
   /// Leaving the page keeps the changes, as Done does; when the form cannot
   /// be kept the author chooses to stay or to discard.
   Future<void> _onLeave() async {
+    if (widget.guided) {
+      if (!_isBlank &&
+          !await _confirm(
+            title: 'Discard this module?',
+            message:
+                'The module is added to the Lesson only when you finish its '
+                'Overview. Leaving now discards what you wrote.',
+            action: 'Discard',
+            key: const Key('guidebook-module-wizard-discard'),
+          )) {
+        return;
+      }
+      if (!mounted) return;
+      _leaving = true;
+      Navigator.pop(context);
+      return;
+    }
     if (!_changed) {
       _leaving = true;
       Navigator.pop(context);
@@ -790,6 +869,7 @@ class _GuidebookModuleEditorScreenState
     required String message,
     required String action,
     required Key key,
+    String cancel = 'Cancel',
   }) async =>
       await showDialog<bool>(
         context: context,
@@ -799,7 +879,7 @@ class _GuidebookModuleEditorScreenState
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancel'),
+              child: Text(cancel),
             ),
             FilledButton(
               key: key,
@@ -823,6 +903,10 @@ class _GuidebookModuleEditorScreenState
   /// Fill with an example: the built-in sample module, every entry with a
   /// fresh ID; it asks first when the form holds something.
   Future<void> _fillExample() async {
+    if (widget.guided) {
+      await _fillPart();
+      return;
+    }
     if (!_isBlank &&
         !await _confirm(
           title: 'Fill with an example?',
@@ -854,6 +938,10 @@ class _GuidebookModuleEditorScreenState
   /// Clear all: an empty module, pictures included; it asks first unless
   /// the page is empty already.
   Future<void> _clearAll() async {
+    if (widget.guided) {
+      await _clearPart();
+      return;
+    }
     if (_isBlank) return;
     if (!await _confirm(
       title: 'Clear all?',
@@ -1201,7 +1289,7 @@ class _GuidebookModuleEditorScreenState
                   key: ValueKey('$prefix-target'),
                   controller: row.target,
                   decoration: decoration(
-                    'Target',
+                    _sideLabel('Target', widget.course?.targetLanguage),
                     error: row.targetError,
                     help: _fieldHelp(
                       'target',
@@ -1225,7 +1313,7 @@ class _GuidebookModuleEditorScreenState
                   key: ValueKey('$prefix-source'),
                   controller: row.source,
                   decoration: decoration(
-                    'Source',
+                    _sideLabel('Source', widget.course?.sourceLanguage),
                     error: row.sourceError,
                     help: _fieldHelp(
                       'source',
@@ -1351,6 +1439,310 @@ class _GuidebookModuleEditorScreenState
     ],
   );
 
+  /// "Target: Italian" / "Source: English": a row's side with the Course's
+  /// language (Build 267 Revision 10, owner request of 9 October 2026);
+  /// the bare side without a Course.
+  static String _sideLabel(String side, String? language) {
+    final name = language?.trim() ?? '';
+    return name.isEmpty ? side : '$side: $name';
+  }
+
+  /// The Overview is empty or shorter than
+  /// [GuidebookSizeAdvice.minimumOverviewWords]: the author adds more or
+  /// finishes anyway.
+  Future<bool> _finishWithShortOverview() {
+    final words = GuidebookSizeAdvice.wordCount(_overview.text);
+    return _confirm(
+      title: words == 0 ? 'The Overview is empty' : 'A short Overview',
+      message: words == 0
+          ? 'Learners read the Overview first: two or three sentences that '
+                'explain the topic. Write one, or finish anyway.'
+          : 'The Overview has $words '
+                '${words == 1 ? 'word' : 'words'}; at least '
+                '${GuidebookSizeAdvice.minimumOverviewWords} help learners '
+                'understand the topic. '
+                'Add more, or finish anyway.',
+      action: 'Finish anyway',
+      cancel: 'Add more',
+      key: const Key('guidebook-module-wizard-overview-anyway'),
+    );
+  }
+
+  // ---- The Module Wizard (guided mode)
+
+  static const _partNames = [
+    'Title',
+    'Sentences',
+    'Words & Expressions',
+    'Overview',
+  ];
+  static const _partLetters = ['A', 'B', 'C', 'D'];
+
+  /// The part shown: 0 Title, 1 Sentences, 2 Words & Expressions, 3
+  /// Overview.
+  int _part = 0;
+
+  int _written(List<_EntryRow> rows) =>
+      rows.where((row) => !row.isEmpty).length;
+
+  void _showPart(int part) {
+    setState(() => _part = part);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scroll.hasClients) _scroll.jumpTo(0);
+    });
+  }
+
+  /// Fewer entries than the size advice's minimum: the author adds more or
+  /// continues anyway.
+  Future<bool> _continueBelow(String what, int count, int minimum) => _confirm(
+    title: 'Fewer than $minimum $what',
+    message:
+        'This module has $count $what. The Round Wizard makes better '
+        'exercises from at least $minimum: add more, or continue anyway.',
+    action: 'Continue anyway',
+    cancel: 'Add more',
+    key: const Key('guidebook-module-wizard-continue-anyway'),
+  );
+
+  /// Next: checks the part shown, then the next part; on the Overview it
+  /// returns the module.
+  Future<void> _next() async {
+    switch (_part) {
+      case 0:
+        if (_title.text.trim().isEmpty) {
+          setState(() => _titleError = 'Give the module a title.');
+          return;
+        }
+      case 1 || 2:
+        final sentences = _part == 1;
+        final rows = sentences ? _sentences : _words;
+        final list = sentences ? 'Sentences' : 'Words & Expressions';
+        late ({String? problem, _EntryRow? row}) checked;
+        setState(() => checked = _checkRows(rows, list));
+        if (checked.problem != null) {
+          _showProblem(checked.problem!, checked.row);
+          return;
+        }
+        final count = _written(rows);
+        final minimum = sentences
+            ? GuidebookSizeAdvice.minimumSentences
+            : GuidebookSizeAdvice.minimumWords;
+        if (count < minimum &&
+            !await _continueBelow(
+              sentences ? 'sentences' : 'words and expressions',
+              count,
+              minimum,
+            )) {
+          return;
+        }
+      case _:
+        if (GuidebookSizeAdvice.wordCount(_overview.text) <
+                GuidebookSizeAdvice.minimumOverviewWords &&
+            !await _finishWithShortOverview()) {
+          return;
+        }
+        if (mounted) _done();
+        return;
+    }
+    if (mounted) _showPart(_part + 1);
+  }
+
+  /// Fill with an example in the Module Wizard: the part shown only, from
+  /// the sample module (owner decision of 9 October 2026); it asks first
+  /// when the part holds something.
+  Future<void> _fillPart() async {
+    if (!_partIsBlank &&
+        !await _confirm(
+          title: 'Fill with an example?',
+          message:
+              'The example replaces the ${_partNames[_part]} of this module.',
+          action: 'Fill',
+          key: const Key('guidebook-module-fill-example-confirm'),
+        )) {
+      return;
+    }
+    if (!mounted) return;
+    final sample = GuidebookModuleSample.module(
+      id: widget.module.id,
+      ids: _ids,
+    );
+    setState(() {
+      switch (_part) {
+        case 0:
+          _title.text = sample.title;
+          _titleError = null;
+        case 1:
+          _replaceRows(_sentences, sample.sentences);
+        case 2:
+          _replaceRows(_words, sample.words);
+        case _:
+          _overview.text = sample.overview;
+      }
+    });
+    if (_part == 2) {
+      for (final row in _words) {
+        _prefill(row);
+      }
+    }
+  }
+
+  bool get _partIsBlank => switch (_part) {
+    0 => _title.text.trim().isEmpty,
+    1 => _sentences.every((row) => row.isEmpty),
+    2 => _words.every((row) => row.isEmpty && row.picture == null),
+    _ => _overview.text.trim().isEmpty,
+  };
+
+  /// Clear all in the Module Wizard: the part shown only.
+  Future<void> _clearPart() async {
+    if (_partIsBlank) return;
+    if (!await _confirm(
+      title: 'Clear the ${_partNames[_part]}?',
+      message: 'This empties the ${_partNames[_part]} of this module.',
+      action: 'Clear',
+      key: const Key('guidebook-module-clear-all-confirm'),
+    )) {
+      return;
+    }
+    if (!mounted) return;
+    setState(() {
+      switch (_part) {
+        case 0:
+          _title.clear();
+          _titleError = null;
+        case 1:
+          _replaceRows(_sentences, const []);
+        case 2:
+          _replaceRows(_words, const []);
+        case _:
+          _overview.clear();
+      }
+    });
+  }
+
+  Widget _titleField() => TextField(
+    key: const Key('guidebook-module-title'),
+    controller: _title,
+    decoration: InputDecoration(
+      border: const OutlineInputBorder(),
+      labelText: 'Title',
+      helperText: 'The module\'s own name, for example "Al bar".',
+      errorText: _titleError,
+      suffixIcon: _fieldHelp('title'),
+    ),
+    onChanged: (_) {
+      if (_titleError != null) setState(() => _titleError = null);
+    },
+  );
+
+  Widget _sentencesList() => _list(
+    'Sentences',
+    'Example sentences in use, each with its translation. Example: '
+        'Lei è stanca? = Are you tired?, Context: formal, to a woman.',
+    'guidebook-module-sentences',
+    _sentences,
+    word: false,
+  );
+
+  Widget _wordsList() => _list(
+    'Words & Expressions',
+    'Single words and fixed expressions, each with its translation. '
+        'Examples: il conto = the bill (Context: restaurant), '
+        'il conto = the account (Context: bank), buongiorno = good '
+        'morning.',
+    'guidebook-module-words',
+    _words,
+    word: true,
+  );
+
+  List<Widget> _overviewFields() => [
+    TextField(
+      key: const Key('guidebook-module-overview'),
+      controller: _overview,
+      minLines: 3,
+      maxLines: 10,
+      decoration: InputDecoration(
+        border: const OutlineInputBorder(),
+        labelText: 'Overview',
+        helperText:
+            'Two or three sentences. A longer topic is better split '
+            'into shorter modules.',
+        helperMaxLines: 3,
+        suffixIcon: _fieldHelp('overview'),
+        counter: Tooltip(
+          message:
+              'Characters in the Overview. From '
+              '${GuidebookText.longOverviewLength} a hint suggests '
+              'splitting the topic; it never blocks saving.',
+          child: Text(
+            '$_overviewLength characters',
+            key: const Key('guidebook-module-overview-count'),
+          ),
+        ),
+      ),
+    ),
+    if (_overviewLength >= GuidebookText.longOverviewLength)
+      Padding(
+        key: const Key('guidebook-module-overview-long'),
+        padding: const EdgeInsets.only(top: 6),
+        child: Row(
+          children: [
+            Icon(
+              Icons.info_outline,
+              size: 18,
+              color: Theme.of(context).colorScheme.tertiary,
+            ),
+            const SizedBox(width: 6),
+            const Expanded(
+              child: Text(
+                'Long overview. Consider splitting this topic into '
+                'shorter modules.',
+              ),
+            ),
+          ],
+        ),
+      ),
+  ];
+
+  List<Widget> _guidedPart() => [
+    Text(
+      'Step ${_partLetters[_part]} of 4: ${_partNames[_part]}',
+      key: const Key('guidebook-module-wizard-step'),
+      style: Theme.of(
+        context,
+      ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+    ),
+    const SizedBox(height: 12),
+    ...switch (_part) {
+      0 => [_titleField()],
+      1 => [_sentencesList(), const SizedBox(height: 12), _sizeLine()],
+      2 => [_wordsList(), const SizedBox(height: 12), _sizeLine()],
+      _ => _overviewFields(),
+    },
+  ];
+
+  Widget _guidedButtons() => SafeArea(
+    child: Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          OutlinedButton(
+            key: const Key('guidebook-module-wizard-back'),
+            onPressed: _part == 0 ? null : () => _showPart(_part - 1),
+            child: const Text('Back'),
+          ),
+          const SizedBox(width: 8),
+          FilledButton(
+            key: const Key('guidebook-module-wizard-next'),
+            onPressed: _next,
+            child: Text(_part == 3 ? 'Finish' : 'Next'),
+          ),
+        ],
+      ),
+    ),
+  );
+
   @override
   Widget build(BuildContext context) => PopScope(
     canPop: false,
@@ -1362,13 +1754,15 @@ class _GuidebookModuleEditorScreenState
         title: CoursePreviewTitle(course: widget.course, title: _pageTitle()),
         actions: [
           const EditorAppBarActions(helpQuestion: 'guidebookEntries'),
-          TextButton(
-            key: const Key('guidebook-module-done'),
-            onPressed: _done,
-            child: const Text('Done'),
-          ),
+          if (!widget.guided)
+            TextButton(
+              key: const Key('guidebook-module-done'),
+              onPressed: _done,
+              child: const Text('Done'),
+            ),
         ],
       ),
+      bottomNavigationBar: widget.guided ? _guidedButtons() : null,
       body: ListView(
         controller: _scroll,
         padding: const EdgeInsets.all(16),
@@ -1378,9 +1772,11 @@ class _GuidebookModuleEditorScreenState
             runSpacing: 8,
             children: [
               Tooltip(
-                message:
-                    'Fill every field with a complete sample module, in '
-                    'Italian and English, to see how one is written.',
+                message: widget.guided
+                    ? 'Fill this step from a sample module, in Italian and '
+                          'English, to see how it is written.'
+                    : 'Fill every field with a complete sample module, in '
+                          'Italian and English, to see how one is written.',
                 child: OutlinedButton.icon(
                   key: const Key('guidebook-module-fill-example'),
                   onPressed: _fillExample,
@@ -1389,7 +1785,9 @@ class _GuidebookModuleEditorScreenState
                 ),
               ),
               Tooltip(
-                message: 'Empty every field of this module.',
+                message: widget.guided
+                    ? 'Empty this step of the module.'
+                    : 'Empty every field of this module.',
                 child: OutlinedButton.icon(
                   key: const Key('guidebook-module-clear-all'),
                   onPressed: _clearAll,
@@ -1400,105 +1798,63 @@ class _GuidebookModuleEditorScreenState
             ],
           ),
           const SizedBox(height: 16),
-          TextField(
-            key: const Key('guidebook-module-title'),
-            controller: _title,
-            decoration: InputDecoration(
-              border: const OutlineInputBorder(),
-              labelText: 'Title',
-              helperText: 'The module\'s own name, for example "Al bar".',
-              errorText: _titleError,
-              suffixIcon: _fieldHelp('title'),
-            ),
-            onChanged: (_) {
-              if (_titleError != null) setState(() => _titleError = null);
-            },
-          ),
-          const SizedBox(height: 20),
-          _list(
-            'Sentences',
-            'Example sentences in use, each with its translation. Example: '
-                'Lei è stanca? = Are you tired?, Context: formal, to a woman.',
-            'guidebook-module-sentences',
-            _sentences,
-            word: false,
-          ),
-          const SizedBox(height: 20),
-          _list(
-            'Words & Expressions',
-            'Single words and fixed expressions, each with its translation. '
-                'Examples: il conto = the bill (Context: restaurant), '
-                'il conto = the account (Context: bank), buongiorno = good '
-                'morning. A word with two meanings is two entries.',
-            'guidebook-module-words',
-            _words,
-            word: true,
-          ),
-          const SizedBox(height: 12),
-          _sizeLine(),
-          const SizedBox(height: 20),
-          TextField(
-            key: const Key('guidebook-module-overview'),
-            controller: _overview,
-            minLines: 3,
-            maxLines: 10,
-            decoration: InputDecoration(
-              border: const OutlineInputBorder(),
-              labelText: 'Overview',
-              helperText:
-                  'Two or three sentences. A longer topic is better split '
-                  'into shorter modules.',
-              helperMaxLines: 3,
-              suffixIcon: _fieldHelp('overview'),
-              counter: Tooltip(
-                message:
-                    'Characters in the Overview. From '
-                    '${GuidebookText.longOverviewLength} a hint suggests '
-                    'splitting the topic; it never blocks saving.',
-                child: Text(
-                  '$_overviewLength characters',
-                  key: const Key('guidebook-module-overview-count'),
-                ),
+          if (widget.guided)
+            ..._guidedPart()
+          else ...[
+            _titleField(),
+            const SizedBox(height: 20),
+            _sentencesList(),
+            const SizedBox(height: 20),
+            _wordsList(),
+            const SizedBox(height: 12),
+            _sizeLine(),
+            const SizedBox(height: 20),
+            ..._overviewFields(),
+            const SizedBox(height: 16),
+            Align(
+              alignment: AlignmentDirectional.centerEnd,
+              child: FilledButton.icon(
+                key: const Key('guidebook-module-done-button'),
+                onPressed: _done,
+                icon: const Icon(Icons.check),
+                label: const Text('Done'),
               ),
             ),
-          ),
-          if (_overviewLength >= GuidebookText.longOverviewLength)
-            Padding(
-              key: const Key('guidebook-module-overview-long'),
-              padding: const EdgeInsets.only(top: 6),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.info_outline,
-                    size: 18,
-                    color: Theme.of(context).colorScheme.tertiary,
-                  ),
-                  const SizedBox(width: 6),
-                  const Expanded(
-                    child: Text(
-                      'Long overview. Consider splitting this topic into '
-                      'shorter modules.',
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          const SizedBox(height: 16),
-          Align(
-            alignment: AlignmentDirectional.centerEnd,
-            child: FilledButton.icon(
-              key: const Key('guidebook-module-done-button'),
-              onPressed: _done,
-              icon: const Icon(Icons.check),
-              label: const Text('Done'),
-            ),
-          ),
-          EditorInternalIdText(label: 'Module', id: widget.module.id),
+            EditorInternalIdText(label: 'Module', id: widget.module.id),
+          ],
         ],
       ),
     ),
   );
 }
+
+/// After the Module Wizard's Finish (Build 267 Revision 10, owner decision
+/// of 9 October 2026): true when the author wants another module.
+Future<bool> askAnotherModule(BuildContext context, String added) async =>
+    await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        key: const Key('guidebook-another-module-dialog'),
+        title: const Text('Add another module?'),
+        content: Text(
+          '“${added.trim()}” is in this Lesson’s GuideBook. Write another '
+          'module now, or go back to the GuideBook.',
+        ),
+        actions: [
+          TextButton(
+            key: const Key('guidebook-another-module-no'),
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Not now'),
+          ),
+          FilledButton(
+            key: const Key('guidebook-another-module'),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Add another module'),
+          ),
+        ],
+      ),
+    ) ??
+    false;
 
 /// Paste list's dialog (Build 266 Revision 1). It owns its text controller,
 /// so the controller lives until the dialog's closing animation ends.

@@ -1,3 +1,49 @@
+# 2.0.67 (Build 267, Revision 10) - the Module Wizard - 2026-10-09
+
+Owner review and decisions of 9 October 2026.
+
+- **Module Wizard**: a new GuideBook module written step by step, A Title,
+  B Sentences, C Words & Expressions, D Overview, with Back and Next
+  (`GuidebookModuleEditorScreen(guided: true)`). The title is needed. Below
+  2 Sentences or 5 Words & Expressions, Next asks (Add more / Continue
+  anyway); a half row must still be completed or cleared. An Overview that
+  is empty or shorter than 10 words asks before Finish (Add more / Finish
+  anyway). Fill with an example and Clear all work on the step shown only.
+  Leaving before Finish asks and keeps nothing. After Finish, "Add another
+  module?" opens another Module Wizard or goes back.
+- **Where**: the Course Wizard's GuideBook step (Add a module, a tap on the
+  chip of a Lesson without modules, and Fill with an example, which opens
+  the whole sample module in the Module Wizard) and the Course Editor's
+  GuideBook page (**Module Wizard**, beside Add module, which still opens
+  the whole module page). A module already written opens on the whole
+  page.
+- **GuideBook step**: the heading reads **GuideBooks**; the module note says
+  that each module gives example sentences, words and fixed expressions,
+  and an Overview of short explanations, which learners can study and the
+  Round Wizard uses to generate the exercises. Each Lesson chip has the
+  Course Editor's GuideBook border: green without an Audit Error or Warning
+  in the GuideBook, red otherwise (an empty GuideBook is a Warning). This
+  Lesson's GuideBook is ready asks first with fewer than 3 modules (Add
+  modules / Ready anyway).
+- **Module page**: the row boxes name the Course's languages ("Target:
+  Italian", "Source: English"); the Words & Expressions text no longer says
+  "A word with two meanings is two entries" (the il conto example shows
+  it).
+- **Examples**: the coffee ordered at an Italian bar is an espresso (the
+  example module, with the Espresso picture; the Course Wizard's sample
+  description and its example line; the Source field Help).
+- **Field Help**: Target and Source no longer say they are required when
+  the other side of the row is written.
+- **Generate Rounds**: each generated Round shows its number and type
+  ("Round 1 · Practice", then its title when it has one), also when Round
+  titles are off.
+- Help EN/IT/ES: How do I write GuideBook entries?, How does the Course
+  Wizard work?, the Target and Source field Help.
+- Tests: `test/module_wizard_267_test.dart`; the Course Wizard, GuideBook
+  authoring aids and Round Wizard tests follow the new flow.
+- Scoring, progression, Course files and learner data are unchanged. Beta
+  expiry `2026-11-08 23:59:59` local time.
+
 # 2.0.67 (Build 267, Revision 9) - Course Wizard wording - 2026-10-09
 
 Owner review and decisions of 9 October 2026.

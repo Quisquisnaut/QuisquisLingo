@@ -179,6 +179,19 @@ found after Revision 8. Not done, by the owner's choice: renaming
 "Words & Expressions" to "Words & Fixed expressions" (left for now).
 Complete suite: 4,010 passed, 1 skipped.
 
+## Revision 10 (2.0.67+267010), the Module Wizard: committed
+
+The owner's review of 9 October 2026, sent in batches and implemented as
+it came, then "Go". Choices made with the owner: the Module Wizard in the
+Course Wizard's GuideBook step and as an optional button in the Course
+Editor; the minimums block but Continue anyway goes on; leaving asks and
+discards; Fill and Clear all work on the step shown (the owner first chose
+the whole module, then the step); the chip outline is the Course Editor's
+GuideBook border (option 1 of three: the colour keeps its Audit meaning).
+Step 6's own Fill with an example still opens the whole sample in the
+Module Wizard (owner: leave it so for now; the alternative was to fill only
+step A). Complete suite: 4,022 passed, 1 skipped.
+
 ## Next
 
 - Then, later and not now (owner: "leave it for afterwards"): the Italian
