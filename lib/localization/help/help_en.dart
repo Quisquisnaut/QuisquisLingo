@@ -296,6 +296,9 @@ const Map<String, String> helpEn = <String, String>{
       r'''What does the Help button beside a field explain?''',
   'editorHelp.qa.fieldHelp.a':
       r'''What the field is for, what to enter, how QQL checks it and an example. Exercise Help beside the preset explains the exercise type as a whole.''',
+  'editorHelp.qa.editorNotes.q': r'''What are Editor notes?''',
+  'editorHelp.qa.editorNotes.a':
+      r'''An optional note on an exercise for you and the other authors, at the bottom of its form (preset form or canonical editor), up to 2,000 characters: what to check, an idea, a source. Learners never see it. An exercise with a note shows a note icon on its row in the Round editor: hover over it, or press and hold, to read it. Notes are saved in the Course file, so they travel with export, import, Copy as New Course and Fork, and a Course with notes needs this version of QuisquisLingo or later to open. Export as Publisher Course leaves them out.''',
   'editorHelp.qa.manyAnswers.q': r'''How do I accept several typed answers?''',
   'editorHelp.qa.manyAnswers.a':
       r'''Write one complete answer per line. Optional words go in {…}, alternatives in [a|b] and words that may swap places in (a <> b). Answers built from blocks and the answers of listening gaps are literal: write them exactly.''',

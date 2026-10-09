@@ -301,6 +301,9 @@ const Map<String, String> helpEs = {
   'editorHelp.qa.fieldHelp.q': '¿Qué explica el botón Help junto a un campo?',
   'editorHelp.qa.fieldHelp.a':
       'Para qué sirve el campo, qué escribir, cómo lo comprueba QQL y un ejemplo. Exercise Help junto al preset explica el tipo de ejercicio en conjunto.',
+  'editorHelp.qa.editorNotes.q': '¿Qué son las Editor notes?',
+  'editorHelp.qa.editorNotes.a':
+      'Una nota opcional en un ejercicio, para ti y los demás autores, al final de su formulario (formulario del preset o editor canónico), de hasta 2.000 caracteres: qué revisar, una idea, una fuente. Los estudiantes nunca la ven. Un ejercicio con nota muestra un icono en su fila del editor del Round: pasa el ratón por encima, o mantenlo pulsado, para leerla. Las notas se guardan en el archivo del Course, así que viajan con la exportación, la importación, Copy as New Course y Fork, y un Course con notas necesita esta versión de QuisquisLingo o una posterior para abrirse. Export as Publisher Course las deja fuera.',
   'editorHelp.qa.manyAnswers.q': '¿Cómo acepto varias respuestas escritas?',
   'editorHelp.qa.manyAnswers.a':
       'Escribe una respuesta completa por línea. Las palabras opcionales van entre {…}, las alternativas en [a|b] y las palabras que pueden intercambiarse en (a <> b). Las respuestas formadas con bloques y las respuestas de los huecos de escucha son literales: escríbelas exactamente.',

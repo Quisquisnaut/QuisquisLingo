@@ -154,21 +154,19 @@ square shape and leaves the tiles untouched without it. New Courses store
 Committed locally on 9 October 2026 as "Build 267 Revision 7: a thin grey
 line around picture answers".
 
+## Revision 8 (2.0.67+267008), Editor Notes: committed
+
+Implemented as decided, with the JSON told to the owner (`editorNotes` on
+the Content, beside `authoringMetadata`; at most 2,000 characters). Notes
+live on the in-memory exercise, as `authoringMetadata` does, so every path
+that copies an exercise keeps them; the preset form applies them to its
+candidate, the canonical editor's draft carries them. The preset form's notes field has its own Help control, as every field.
+Complete suite: 4,001 passed, 1 skipped (a first run found 49 failures,
+all from the new field: field Help inventories, a read-only test and a
+test helper that tapped before a frame; fixed, see the validation).
+
 ## Next
 
-- Revision 8, **Editor Notes**: an optional notes field on every item of
-  a Round (scored exercises, Before you start cards, Pages, Dialogue
-  lines, Story covers), in the preset and canonical forms; stored in the
-  Course file (export, import, Copy, Fork keep it), removed by Export as
-  Publisher Course; never shown to learners, outside semantic equality
-  and preset recognition; a note icon on the exercise's row in the Round
-  editor shows it on hover or long press; a new optional Course field, so
-  `minimumAppBuild` rises on confirmation like Page blocks or plurals.
-  JSON (told to the owner on 9 October 2026): `editorNotes`, a string on
-  the Content object beside `id`, `kind` and `authoringMetadata`; stored
-  only when not empty; not inside `exercise` (canonical, semantic
-  equality) nor inside `authoringMetadata` (cleared when the exercise
-  changes, plan A.13); proposed limit 2,000 characters.
 - Then, later and not now (owner: "leave it for afterwards"): the Italian
   picture-led demo built with the Wizard (each module and Round approved
   by the owner).

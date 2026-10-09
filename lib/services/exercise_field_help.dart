@@ -77,6 +77,8 @@ enum ExerciseAuthoringField {
   extraSpellingBlocks,
   dialogueReadAloud,
   pictureAnswers,
+  // Build 267 Revision 8: every preset form.
+  editorNotes,
 }
 
 class ExerciseFieldHelp {
@@ -590,6 +592,7 @@ abstract final class ExerciseFieldHelpRegistry {
       _ => ExerciseAuthoringField.extraWords,
     },
     'slotReuse' => ExerciseAuthoringField.slotReuse,
+    'editorNotes' => ExerciseAuthoringField.editorNotes,
     'pictureSize' ||
     'pictureShape' ||
     'picturesPerRow' ||
@@ -1189,6 +1192,21 @@ abstract final class ExerciseFieldHelpRegistry {
           'cropped copy in the Course.',
       validation: 'None.',
       example: 'Large, Square, 2 per row',
+    ),
+    ExerciseAuthoringField.editorNotes => const ExerciseFieldHelp(
+      title: 'Editor notes',
+      purpose:
+          'Your own notes on this exercise, for you and the other authors; '
+          'learners never see them.',
+      entryRules:
+          'Optional, up to 2,000 characters: what to check, an idea, a '
+          'source. An exercise with notes shows a note icon on its row in the '
+          'Round editor. Notes travel with the Course file (export, import, '
+          'Copy as New Course, Fork); Export as Publisher Course leaves them '
+          'out.',
+      validation:
+          'None. A Course with notes needs Build 267 Revision 8 or later.',
+      example: 'Check the plural with Anna before publishing.',
     ),
     ExerciseAuthoringField.slotReuse => const ExerciseFieldHelp(
       title: 'A word may fill more than one slot',

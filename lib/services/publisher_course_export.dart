@@ -1,3 +1,4 @@
+import 'editor_notes.dart';
 import '../models/course_draft_status.dart';
 import '../models/course_models.dart';
 import 'course_audit_service.dart';
@@ -150,7 +151,8 @@ abstract final class PublisherCourseExport {
     if (checked == null) {
       throw ArgumentError('Name the publisher with a usable ID and name.');
     }
-    final json = course.toJson()
+    // Build 267 Revision 8: Editor Notes are the author's own.
+    final json = EditorNotes.withoutNotes(course).toJson()
       ..remove('maintainer')
       ..remove('assignedTeamId')
       ..remove('courseVersion')

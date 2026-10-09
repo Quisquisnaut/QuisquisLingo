@@ -235,7 +235,7 @@ A Round contains a stable `id`, required `publicationState`, required UTC `updat
 
 ## Content
 
-Every Content object has a stable `id`, canonical `publicationState`, a `kind`, and `required`; the textual kinds (`explanation`, `example`, `vocabulary`, `text`, `image`, `audio`, `dialogue`) also carry `role`, `sourceRefs` and `text` as before. Every exercise, Presentation included, is `kind: exercise` with an `exercise` object; v12 has no `kind: presentation`. Optional `authoringMetadata` is an object whose `presetId` names the preset that authored the exercise (v11's `editorTemplate`); its other keys are preserved verbatim through import, export and copy and never read (Session 4 clears them when the exercise's canonical content is edited in QQL, plan A.13).
+Every Content object has a stable `id`, canonical `publicationState`, a `kind`, and `required`; the textual kinds (`explanation`, `example`, `vocabulary`, `text`, `image`, `audio`, `dialogue`) also carry `role`, `sourceRefs` and `text` as before. Every exercise, Presentation included, is `kind: exercise` with an `exercise` object; v12 has no `kind: presentation`. Optional `authoringMetadata` is an object whose `presetId` names the preset that authored the exercise (v11's `editorTemplate`); its other keys are preserved verbatim through import, export and copy and never read (Session 4 clears them when the exercise's canonical content is edited in QQL, plan A.13). Since Build 267 Revision 8 a Content with an exercise may carry `editorNotes`, a string of at most 2,000 characters: the author's own notes on the exercise, stored only when not empty, never shown to learners, kept through every edit, import, export, Copy as New Course and Fork, and removed by Export as Publisher Course. Anything else is refused (a number, a longer text, notes on Content without an exercise). A Course with notes records `minimumAppBuild` 267008.
 
 ## Exercise
 
@@ -254,7 +254,7 @@ Exercise Content carries an `exercise` object:
 
 Executability is not stored: the capability registry's runtime-support table decides per exercise whether today's runtime can play a configuration; an exercise it cannot play is readable and kept in the Course.
 
-Semantic equality (`Exercise.semanticallyEquals`) compares the canonical JSON after filling in every default option and dropping `authoringMetadata`, `updatedAt` and `publicationState`; IDs and item order count.
+Semantic equality (`Exercise.semanticallyEquals`) compares the canonical JSON after filling in every default option and dropping `authoringMetadata`, `updatedAt` and `publicationState`; IDs and item order count. `editorNotes`, stored on the Content, is never part of it.
 
 Presets (`authoringMetadata.presetId`) are authoring metadata; several presets intentionally share one primitive, and a preset never changes grading. Translation expressions and materialized independent answers are both ordinary `evaluation.answers` strings; no expression-to-answer synchronization metadata is stored. Type the missing word (preset `type_missing_word`) is an Input exercise with `inlineGaps`, one target with `reveal: firstGrapheme` and complete accepted words in `targetAnswers`; the revealed grapheme is derived at runtime, not serialized.
 

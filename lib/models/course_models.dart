@@ -2812,6 +2812,9 @@ class LearningContent {
     'kind': kind,
     'required': required,
     if (authoringMetadata.isNotEmpty) 'authoringMetadata': authoringMetadata,
+    // Build 267 Revision 8: the author's notes, only when there are some.
+    if (exercise?.editorNotes.isNotEmpty ?? false)
+      'editorNotes': exercise!.editorNotes,
     if (role.isNotEmpty) 'role': role,
     if (sourceRefs.isNotEmpty) 'sourceRefs': sourceRefs,
     if (exercise != null) 'exercise': exercise!.toJson(),
@@ -2850,6 +2853,23 @@ class LearningContent {
     if (kind == 'exercise' && ex is! Map) {
       throw const FormatException('Exercise Content needs an exercise object.');
     }
+    final notes = j['editorNotes'];
+    if (j.containsKey('editorNotes')) {
+      if (notes is! String) {
+        throw const FormatException('content.editorNotes must be a string.');
+      }
+      if (notes.length > Exercise.maxEditorNotesLength) {
+        throw const FormatException(
+          'content.editorNotes is longer than '
+          '${Exercise.maxEditorNotesLength} characters.',
+        );
+      }
+      if (ex is! Map) {
+        throw const FormatException(
+          'content.editorNotes belongs to Content with an exercise.',
+        );
+      }
+    }
     if (kind != 'exercise' && ex != null) {
       throw FormatException('Content of kind $kind cannot carry an exercise.');
     }
@@ -2866,6 +2886,7 @@ class LearningContent {
               contentId: _requiredString(j, 'id', 'content'),
               authoringMetadata: metadata,
               publicationState: publicationState,
+              editorNotes: notes is String ? notes : '',
             )
           : null,
       text: _optionalString(j, 'text', ''),
@@ -3922,6 +3943,16 @@ class Exercise {
   /// stores). Preserved, never read by anything learners see.
   final Map<String, Object?> authoringMetadata;
 
+  /// The author's own notes on this exercise (Build 267 Revision 8, owner
+  /// decisions of 9 October 2026): stored on its Content as `editorNotes`,
+  /// never shown to learners, outside the semantic comparison and preset
+  /// recognition, kept through every edit, Copy and Fork, removed by Export
+  /// as Publisher Course.
+  final String editorNotes;
+
+  /// The longest [editorNotes] a Course may store.
+  static const maxEditorNotesLength = 2000;
+
   Exercise.canonical({
     required this.id,
     this.publicationState = PublicationState.published,
@@ -3936,6 +3967,7 @@ class Exercise {
     this.feedback = ExerciseFeedback.empty,
     this.hint = '',
     Map<String, Object?>? authoringMetadata,
+    this.editorNotes = '',
   }) : updatedAt = _canonicalUtcTimestamp(updatedAt),
        options = options ?? PrimitiveOptions.empty,
        authoringMetadata = Map.unmodifiable(
@@ -4128,6 +4160,7 @@ class Exercise {
     required String contentId,
     Map<String, Object?> authoringMetadata = const {},
     required PublicationState publicationState,
+    String editorNotes = '',
   }) {
     for (final legacy in const ['interaction', 'editorTemplate']) {
       if (j.containsKey(legacy)) {
@@ -4195,6 +4228,7 @@ class Exercise {
           : ExerciseFeedback.empty,
       hint: _optionalString(j, 'hint', ''),
       authoringMetadata: authoringMetadata,
+      editorNotes: editorNotes,
     );
   }
 
@@ -4236,6 +4270,7 @@ class Exercise {
         feedback: feedback,
         hint: hint,
         authoringMetadata: metadata,
+        editorNotes: editorNotes,
       );
 
   /// The same exercise with another publication state and, optionally,
@@ -4257,6 +4292,7 @@ class Exercise {
     feedback: feedback,
     hint: hint,
     authoringMetadata: authoringMetadata,
+    editorNotes: editorNotes,
   );
 
   /// A copy with some canonical fields replaced. Authoring code that changes
@@ -4275,6 +4311,7 @@ class Exercise {
     ExerciseFeedback? feedback,
     String? hint,
     Map<String, Object?>? authoringMetadata,
+    String? editorNotes,
   }) => Exercise.canonical(
     id: id ?? this.id,
     publicationState: publicationState ?? this.publicationState,
@@ -4289,6 +4326,7 @@ class Exercise {
     feedback: feedback ?? this.feedback,
     hint: hint ?? this.hint,
     authoringMetadata: authoringMetadata ?? this.authoringMetadata,
+    editorNotes: editorNotes ?? this.editorNotes,
   );
 
   /// The options with the registry's defaults filled in.

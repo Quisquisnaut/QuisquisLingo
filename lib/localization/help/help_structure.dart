@@ -99,6 +99,8 @@ const editorHelpQuestionsByTopic = <String, List<String>>{
     'inspection',
     'navigate',
     'fieldHelp',
+    // Build 267 Revision 8.
+    'editorNotes',
     'manyAnswers',
     'capitals',
     'distractors',

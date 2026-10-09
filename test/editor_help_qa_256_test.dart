@@ -50,7 +50,7 @@ void main() {
     // use the GuideBook vocabulary? Build 266 Revision 1: How do I write
     // GuideBook entries? How long should a module be? Build 267: How does
     // the Course Wizard work?
-    expect(ids, hasLength(87));
+    expect(ids, hasLength(88));
     expect(ids.toSet(), hasLength(ids.length));
     for (final catalog in [helpEn, helpIt, helpEs]) {
       for (final topic in editorHelpQuestionsByTopic.keys) {

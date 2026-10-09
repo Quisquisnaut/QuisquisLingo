@@ -292,3 +292,33 @@ Run on the owner's Windows PC (4 cores, 8 GB), `TEMP`/`TMP` on
   field Help, the capability description, interoperability, plural
   pictures, presets and semantic equality (608 passed).
 - Complete suite (9 October): **3,992 passed, 1 skipped (POSIX only)**, exit code 0.
+
+## Revision 8 (2.0.67+267008), 9 October 2026
+
+- `dart format` on the changed Dart files only; `flutter analyze --no-pub`:
+  **No issues found.**
+- `test/editor_notes_267_test.dart` (new, 9 passed): notes are stored on
+  the Content (not in `exercise`) only when not empty and read back; a
+  number, more than 2,000 characters or notes on text Content are refused,
+  exactly 2,000 accepted; notes change neither semantic equality nor the
+  recognized preset, and survive `withPublicationState` and
+  `withAuthoringMetadata`; the canonical draft keeps them and saves them
+  trimmed, the preset kept; a duplicate keeps them; a Course with notes
+  records `minimumAppBuild` 267008, never above this build; Export as
+  Publisher Course leaves them out; the Round editor's note icon carries
+  the note; the preset form shows the note, edits it and saves it.
+- Editor Help: 88 questions (`editor_help_qa_256_test.dart`,
+  `editor_help_translation_test.dart`).
+- A first complete suite found 49 failures in three files, all from the new
+  field: the field Help inventories (45 preset forms: the notes field had
+  no Help control), the read-only preset test (2: the form's buttons not
+  yet built below the notes field) and Recognize characters at 320 px (2:
+  `tapKey` tapped right after `ensureVisible`, at the button's earlier
+  place). Fixed with the field's Help control (`ExerciseAuthoringField.editorNotes`)
+  and a frame after `ensureVisible`; the three files and the notes tests
+  then passed (**137 passed**).
+- Broad batch (Course Models v6–v12, semantic equality, duplication and
+  provenance, presets and the Laboratory, the canonical editor, the Round
+  editor routes, the Publisher export, Help, version pins): **472 passed**.
+- Complete suite once on the final tree (`flutter test --no-pub
+  --concurrency=1`, TEMP on D:): **4,001 passed, 1 skipped**, 30 min 28 s.

@@ -20,6 +20,7 @@ class CanonicalExerciseDraft {
     required this.hint,
     required this.authoringMetadata,
     required this.original,
+    this.editorNotes = '',
   }) : options = Map.of(options),
        prompt = List.of(prompt),
        items = List.of(items),
@@ -43,6 +44,7 @@ class CanonicalExerciseDraft {
         hint: exercise.hint,
         authoringMetadata: Map.of(exercise.authoringMetadata),
         original: exercise,
+        editorNotes: exercise.editorNotes,
       );
 
   /// A new exercise of [primitive] with the registry's default evaluation
@@ -136,6 +138,10 @@ class CanonicalExerciseDraft {
   CanonicalEvaluation evaluation;
   ExerciseFeedback feedback;
   String hint;
+
+  /// The author's notes (Build 267 Revision 8): kept whatever else
+  /// changes.
+  String editorNotes;
 
   /// Carried from the original and kept as long as the content still
   /// matches its preset (see [toExercise]).
@@ -240,6 +246,7 @@ class CanonicalExerciseDraft {
       feedback: feedback,
       hint: hint,
       authoringMetadata: authoringMetadata,
+      editorNotes: editorNotes.trim(),
     );
     final source = original;
     final unchanged = source != null && built.semanticallyEquals(source);

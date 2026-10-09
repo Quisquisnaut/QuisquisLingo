@@ -154,6 +154,8 @@ void main() {
       for (final key in [
         ...preset.value,
         if (preset.key != 'script_recognition') 'image',
+        // Every preset form ends with Editor notes (Build 267 Revision 8).
+        'editorNotes',
       ]) {
         final definition = help(preset.key, key);
         expect(definition.title, isNotEmpty, reason: '${preset.key}/$key');

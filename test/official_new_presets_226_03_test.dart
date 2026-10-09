@@ -129,8 +129,16 @@ void main() {
             find.byKey(const Key('exercise-inspection-presentation')),
             findsNothing,
           );
+          // The form's buttons follow the Editor notes field (Build 267
+          // Revision 8): bring them into the lazily built list first.
+          await tester.scrollUntilVisible(
+            find.byKey(const Key('exercise-save-draft')),
+            300,
+            scrollable: find.byType(Scrollable).first,
+          );
           _expectReadOnlyExercise(tester);
           await tester.ensureVisible(find.byKey(const Key('exercise-preview')));
+          await tester.pump();
           await tester.tap(find.byKey(const Key('exercise-preview')));
           await workflow.settle(tester);
           expect(find.byType(RoundScreen), findsOneWidget);

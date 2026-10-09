@@ -252,6 +252,9 @@ const _formFields = <String, Map<String, String>>{
   'note_card': {'Title': 'prompt', 'Note': 'question'},
 };
 
+/// The fields at the bottom of every preset form (Build 267 Revision 8).
+const _everyForm = {'Editor notes (optional)': 'editorNotes'};
+
 void main() {
   test('field-control inventory covers every currently offered preset', () {
     expect(
@@ -268,10 +271,10 @@ void main() {
     ) async {
       await _mount(tester, form.key, size: const Size(900, 1600));
       expect(find.widgetWithText(TextButton, 'Exercise Help'), findsOneWidget);
-      for (final field in form.value.entries) {
+      for (final field in {...form.value, ..._everyForm}.entries) {
         final input = _field(field.key);
         await _reveal(tester, input);
-        _assertMountedFieldsHaveHelp(tester, form.value);
+        _assertMountedFieldsHaveHelp(tester, {...form.value, ..._everyForm});
         final textField = tester.widget<TextField>(input);
         final control = textField.decoration?.suffixIcon;
         expect(control, isA<IconButton>(), reason: field.key);
@@ -301,7 +304,7 @@ void main() {
         form.key,
       ).contains('image')) {
         await _reveal(tester, _help('image'));
-        _assertMountedFieldsHaveHelp(tester, form.value);
+        _assertMountedFieldsHaveHelp(tester, {...form.value, ..._everyForm});
         await _openAndCheck(tester, _help('image'), form.key, 'image');
       }
       expect(tester.takeException(), isNull);

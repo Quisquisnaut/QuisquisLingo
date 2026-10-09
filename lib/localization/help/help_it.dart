@@ -300,6 +300,9 @@ const Map<String, String> helpIt = {
       "Che cosa spiega il pulsante Help accanto a un campo?",
   "editorHelp.qa.fieldHelp.a":
       "A che cosa serve il campo, che cosa inserire, come QQL lo controlla e un esempio. Exercise Help accanto al preset spiega il tipo di esercizio nel suo insieme.",
+  "editorHelp.qa.editorNotes.q": "Che cosa sono le Editor notes?",
+  "editorHelp.qa.editorNotes.a":
+      "Una nota facoltativa su un esercizio, per te e gli altri autori, in fondo al suo modulo (modulo del preset o editor canonico), fino a 2.000 caratteri: che cosa controllare, un'idea, una fonte. Gli studenti non la vedono mai. Un esercizio con una nota mostra un'icona sulla sua riga nell'editor del Round: passaci sopra col mouse, o tienila premuta, per leggerla. Le note sono salvate nel file del Course, quindi viaggiano con export, import, Copy as New Course e Fork, e un Course con note richiede questa versione di QuisquisLingo o successiva per aprirsi. Export as Publisher Course le esclude.",
   "editorHelp.qa.manyAnswers.q": "Come accetto più risposte digitate?",
   "editorHelp.qa.manyAnswers.a":
       "Scrivi una risposta completa per riga. Le parole facoltative vanno tra {…}, le alternative in [a|b] e le parole che possono scambiarsi di posto in (a <> b). Le risposte composte con i blocchi e le risposte dei vuoti negli esercizi di ascolto sono letterali: scrivile esattamente.",

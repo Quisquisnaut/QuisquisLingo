@@ -1,3 +1,4 @@
+import 'editor_notes.dart';
 import 'dart:async';
 import 'course_library_service.dart';
 import 'dart:convert';
@@ -1049,6 +1050,8 @@ class CourseEditorService {
     workingCourse = LessonIconPictures.withMinimumAppBuild(workingCourse);
     // Build 265 Revision 11: and one that marks a picture plural.
     workingCourse = PluralPictures.withMinimumAppBuild(workingCourse);
+    // Build 267 Revision 8: and one whose exercises carry Editor Notes.
+    workingCourse = EditorNotes.withMinimumAppBuild(workingCourse);
     if (!isNewCourse) Course.fromJson(workingCourse.toJson());
     if (originalCourse.originType.isOfficial ||
         workingCourse.originType.isOfficial) {

@@ -1,3 +1,4 @@
+import '../widgets/editor_notes_field.dart';
 import 'dart:convert';
 import 'dart:io';
 
@@ -425,7 +426,12 @@ class _PrimitiveEditorScreenState extends State<PrimitiveEditorScreen> {
       publicationState: widget.exercise.publicationState,
       updatedAt: widget.exercise.updatedAt,
     );
-    if (built.semanticallyEquals(widget.exercise)) return false;
+    // Editor Notes are not part of the exercise's meaning (Build 267
+    // Revision 8), so they are compared on their own.
+    if (built.semanticallyEquals(widget.exercise) &&
+        built.editorNotes == widget.exercise.editorNotes.trim()) {
+      return false;
+    }
     // A new exercise still blank for its primitive has nothing to lose,
     // whichever primitive the creator has picked so far (owner report,
     // 27 September 2026).
@@ -1801,6 +1807,14 @@ class _PrimitiveEditorScreenState extends State<PrimitiveEditorScreen> {
           labelText: 'Hint',
         ),
         onChanged: (value) => _change(() => _draft.hint = value),
+      ),
+      const SizedBox(height: 12),
+      // Build 267 Revision 8: the author's notes.
+      EditorNotesField(
+        key: const Key('primitive-editor-notes'),
+        initialValue: _draft.editorNotes,
+        readOnly: _locked,
+        onChanged: (value) => _change(() => _draft.editorNotes = value),
       ),
     ],
   );

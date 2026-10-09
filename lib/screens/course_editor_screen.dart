@@ -1,3 +1,4 @@
+import '../widgets/editor_notes_field.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -9296,6 +9297,22 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
                             key: ValueKey('exercise-difficulty-${e.id}'),
                             level: level,
                           ),
+                        // Build 267 Revision 8: the author's notes.
+                        if (e.editorNotes.trim().isNotEmpty)
+                          Tooltip(
+                            key: ValueKey('exercise-notes-${e.id}'),
+                            message: e.editorNotes.trim(),
+                            triggerMode: TooltipTriggerMode.longPress,
+                            child: Padding(
+                              padding: const EdgeInsets.only(left: 6),
+                              child: Icon(
+                                Icons.sticky_note_2_outlined,
+                                size: 18,
+                                semanticLabel: 'Editor notes',
+                                color: Theme.of(context).colorScheme.tertiary,
+                              ),
+                            ),
+                          ),
                       ],
                     ),
                     subtitle: Text(
@@ -10386,6 +10403,9 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
   String _picturesPerRow = 'course';
   String _pictureBorder = 'course';
 
+  /// Editor Notes (Build 267 Revision 8): only authors read them.
+  final _editorNotes = TextEditingController();
+
   /// The pictures marked Plural (Build 265 Revision 11), by asset or QQL
   /// icon key.
   Set<String> _pluralPictures = {};
@@ -11040,6 +11060,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
   /// fields: the form opening, Previous and Next, Fill with an example and
   /// Clear all share it (Build 263 Revision 1).
   void _loadDraft(Exercise e, ExerciseDraftValues draft) {
+    _editorNotes.text = e.editorNotes;
     _prompt.text = draft.prompt;
     _question.text = draft.question;
     _tts.text = draft.tts;
@@ -12606,7 +12627,9 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
       _showDraftError(error);
       return null;
     }
-    return result.candidate;
+    // Build 267 Revision 8: the notes go with the exercise, whatever else
+    // the form changed.
+    return result.candidate?.copyWith(editorNotes: _editorNotes.text.trim());
   }
 
   void _showDraftError(ExerciseDraftFieldError error) {
@@ -13008,6 +13031,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     _pictureShape,
     _picturesPerRow,
     _pictureBorder,
+    _editorNotes.text.trim(),
     (_pluralPictures.toList()..sort()).join(''),
     _imageAsset,
     _selectedSharedSource?.id ?? '',
@@ -13392,6 +13416,14 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
                 }),
               ),
           ],
+          const SizedBox(height: 12),
+          EditorNotesField(
+            key: const Key('exercise-editor-notes'),
+            controller: _editorNotes,
+            readOnly: widget.readOnly,
+            onChanged: (_) => _dirty = true,
+            help: _helpButton('editorNotes'),
+          ),
           const SizedBox(height: 12),
           Wrap(
             alignment: WrapAlignment.end,

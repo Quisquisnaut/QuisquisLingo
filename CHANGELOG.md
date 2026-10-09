@@ -1,3 +1,39 @@
+# 2.0.67 (Build 267, Revision 8) - Editor Notes - 2026-10-09
+
+Owner decisions of 9 October 2026.
+
+- **Editor notes** on every exercise of a Round (scored exercises, Before
+  you start cards, Pages, Dialogue lines, Story covers): an optional field
+  at the bottom of the preset form (`exercise-editor-notes`) and of the
+  canonical editor (`primitive-editor-notes`), up to 2,000 characters
+  (`Exercise.maxEditorNotesLength`), for the authors only.
+- **Stored on the Content** as `editorNotes`, beside `authoringMetadata`,
+  only when not empty; carried in memory by the exercise
+  (`Exercise.editorNotes`, kept by `copyWith`, `withPublicationState`,
+  `withAuthoringMetadata` and duplication), so notes stay through every
+  edit, import, export, Copy as New Course and Fork. Never part of the
+  semantic comparison or preset recognition; editing only the notes still
+  counts as a change to save. A note that is not a string, longer than
+  2,000 characters or on Content without an exercise is a format error.
+- **Round editor**: an exercise with notes shows a note icon on its row
+  (`exercise-notes-<id>`); hover or press and hold to read them.
+- **Export as Publisher Course** removes the notes (`EditorNotes.withoutNotes`).
+- **Minimum build**: a Course with notes records `minimumAppBuild` 267008
+  on confirmation (`EditorNotes.withMinimumAppBuild`).
+- Help EN/IT/ES: Editor Help "What are Editor notes?" (88 questions).
+  The preset form's field has its own Help control, as every field
+  (`exercise-field-help-editorNotes`, `ExerciseAuthoringField.editorNotes`;
+  English, as the other field Help). `docs/COURSE_JSON_FORMAT.md`
+  describes the field.
+- Tests: `test/editor_notes_267_test.dart`; the Editor Help counts; the
+  field Help inventories include the notes field. The shared test helper
+  `tapKey` (`exercise_workflow_226_02_test.dart`) lays the page out after
+  `ensureVisible` before tapping, and the read-only preset test scrolls to
+  the form's buttons: the notes field moved them lower, and a tap right
+  after `ensureVisible` used their earlier place.
+- Scoring, progression and learner data are unchanged. Beta expiry
+  `2026-11-08 23:59:59` local time.
+
 # 2.0.67 (Build 267, Revision 7) - A thin grey line around picture answers - 2026-10-09
 
 Owner decisions of 9 October 2026 (mock-up in chat, look A).

@@ -258,3 +258,13 @@ decisions of 9 October 2026).
 - New Courses have it; Courses made before keep their look.
 - Picture border in Lesson Options and the Course Wizard; each exercise may
   override it. A Course that uses it needs this build.
+
+## Revision 8 (2.0.67+267008): Editor Notes
+
+- An optional Editor notes field on every exercise, in the preset form and
+  the canonical editor; learners never see it.
+- Stored on the Content as `editorNotes`; kept through edits, export,
+  import, Copy and Fork; removed by Export as Publisher Course.
+- A note icon on the exercise's row in the Round editor shows the note.
+- The field has its own Help button in the preset form.
+- A Course with notes needs this build.

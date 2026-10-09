@@ -708,6 +708,9 @@ Future<void> tapKey(WidgetTester tester, String key) async {
     );
   }
   await tester.ensureVisible(finder);
+  // ensureVisible only moves the scroll position: lay the page out again
+  // before tapping, or the tap uses the button's earlier place.
+  await tester.pump();
   await tester.tap(finder);
   await settle(tester);
 }

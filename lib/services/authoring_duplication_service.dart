@@ -518,6 +518,7 @@ class AuthoringDuplicationService {
       feedback: source.feedback,
       hint: source.hint,
       authoringMetadata: source.authoringMetadata,
+      editorNotes: source.editorNotes,
     );
   }
 
