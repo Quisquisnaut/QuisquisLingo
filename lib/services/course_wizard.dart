@@ -371,7 +371,7 @@ class CourseWizardOptions {
     this.customRoundLabel = '',
     this.wordLookup = true,
     this.createDuels = false,
-    this.pictureAnswers = PictureAnswerStyle.standard,
+    this.pictureAnswers = PictureAnswerStyle.newCourse,
     this.defaultTimedLimits = const [],
   });
 

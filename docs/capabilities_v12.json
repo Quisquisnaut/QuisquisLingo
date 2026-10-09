@@ -48,7 +48,8 @@
     "guidebookButton",
     "pictureSize",
     "pictureShape",
-    "picturesPerRow"
+    "picturesPerRow",
+    "pictureBorder"
   ],
   "primitives": [
     {
@@ -180,6 +181,18 @@
           "default": "course",
           "required": false,
           "description": "How many picture answers stand in a row; course follows the Course."
+        },
+        {
+          "key": "pictureBorder",
+          "type": "enumeration",
+          "values": [
+            "course",
+            "none",
+            "thin"
+          ],
+          "default": "course",
+          "required": false,
+          "description": "A thin grey line around each picture answer, or none; course follows the Course."
         }
       ],
       "evaluationModes": [
@@ -400,6 +413,11 @@
               "one",
               "two",
               "three"
+            ],
+            "pictureBorder": [
+              "course",
+              "none",
+              "thin"
             ]
           }
         },
@@ -441,6 +459,11 @@
               "one",
               "two",
               "three"
+            ],
+            "pictureBorder": [
+              "course",
+              "none",
+              "thin"
             ]
           }
         },
@@ -483,6 +506,11 @@
               "one",
               "two",
               "three"
+            ],
+            "pictureBorder": [
+              "course",
+              "none",
+              "thin"
             ]
           }
         }

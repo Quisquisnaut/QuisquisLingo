@@ -2494,8 +2494,9 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
       ),
       const Text(
         'When learners choose a picture as their answer, as in “Select the '
-        'image”: large squares, two per row, unless you choose otherwise. An '
-        'exercise can still choose its own look.',
+        'image”: large squares, two per row, with a thin grey line around '
+        'each, unless you choose otherwise. An exercise can still choose its '
+        'own look.',
       ),
       const SizedBox(height: 8),
       DropdownButtonFormField<PictureSize>(
@@ -2512,11 +2513,7 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
         ],
         onChanged: (value) => setState(
           () => _options = _options.copyWith(
-            pictureAnswers: PictureAnswerStyle(
-              size: value ?? style.size,
-              shape: style.shape,
-              perRow: style.perRow,
-            ),
+            pictureAnswers: style.copyWith(size: value),
           ),
         ),
       ),
@@ -2538,11 +2535,7 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
         ],
         onChanged: (value) => setState(
           () => _options = _options.copyWith(
-            pictureAnswers: PictureAnswerStyle(
-              size: style.size,
-              shape: value ?? style.shape,
-              perRow: style.perRow,
-            ),
+            pictureAnswers: style.copyWith(shape: value),
           ),
         ),
       ),
@@ -2566,11 +2559,30 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
         ],
         onChanged: (value) => setState(
           () => _options = _options.copyWith(
-            pictureAnswers: PictureAnswerStyle(
-              size: style.size,
-              shape: style.shape,
-              perRow: value ?? style.perRow,
-            ),
+            pictureAnswers: style.copyWith(perRow: value),
+          ),
+        ),
+      ),
+      const SizedBox(height: 8),
+      // Build 267 Revision 7 (owner decisions of 9 October 2026).
+      DropdownButtonFormField<PictureBorder>(
+        key: ValueKey('course-wizard-picture-border-$_generation'),
+        initialValue: style.border,
+        isExpanded: true,
+        decoration: const InputDecoration(
+          border: OutlineInputBorder(),
+          labelText: 'Picture border',
+        ),
+        items: const [
+          DropdownMenuItem(
+            value: PictureBorder.thin,
+            child: Text('Thin grey line'),
+          ),
+          DropdownMenuItem(value: PictureBorder.none, child: Text('None')),
+        ],
+        onChanged: (value) => setState(
+          () => _options = _options.copyWith(
+            pictureAnswers: style.copyWith(border: value),
           ),
         ),
       ),

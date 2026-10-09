@@ -482,6 +482,11 @@ abstract final class PresetRecipes {
               .enumValue<PicturesPerRow>(OptionKey.picturesPerRow)
               ?.serialized ??
           'course',
+      pictureBorder:
+          exercise.options
+              .enumValue<PictureBorder>(OptionKey.pictureBorder)
+              ?.serialized ??
+          'course',
       // Build 265 Revision 11: the pictures marked Plural.
       pluralPictures: PluralPictures.markedIn(exercise),
       matchSides: f.primitive != ExercisePrimitive.match || items.isEmpty

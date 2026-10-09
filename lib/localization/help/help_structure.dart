@@ -527,6 +527,7 @@ const exerciseHelpFieldKeyByPresetAndField = <String, String>{
   'icon_choice.pictureSize': 'exerciseHelp.field.picture_answers.body',
   'icon_choice.pictureShape': 'exerciseHelp.field.picture_answers.body',
   'icon_choice.picturesPerRow': 'exerciseHelp.field.picture_answers.body',
+  'icon_choice.pictureBorder': 'exerciseHelp.field.picture_answers.body',
   'script_recognition.scriptMode':
       'exerciseHelp.field.script_recognition.scriptMode.body',
   'script_recognition.scriptPrompt':
@@ -586,6 +587,8 @@ const exerciseHelpFieldKeyByPresetAndField = <String, String>{
   'listening_image_choice.pictureShape':
       'exerciseHelp.field.picture_answers.body',
   'listening_image_choice.picturesPerRow':
+      'exerciseHelp.field.picture_answers.body',
+  'listening_image_choice.pictureBorder':
       'exerciseHelp.field.picture_answers.body',
   'spell_heard.tts': 'exerciseHelp.field.spell_heard.tts.body',
   'spell_heard.order': 'exerciseHelp.field.image_word.order.body',

@@ -191,6 +191,7 @@ abstract final class ExerciseFieldHelpRegistry {
         'pictureSize',
         'pictureShape',
         'picturesPerRow',
+        'pictureBorder',
       ],
       'script_recognition': [
         'scriptMode',
@@ -229,6 +230,7 @@ abstract final class ExerciseFieldHelpRegistry {
         'pictureSize',
         'pictureShape',
         'picturesPerRow',
+        'pictureBorder',
       ],
       'spell_heard': ['tts', 'order', 'extraWords'],
       'picture_choice': ['prompt', 'answers', 'correct'],
@@ -590,7 +592,8 @@ abstract final class ExerciseFieldHelpRegistry {
     'slotReuse' => ExerciseAuthoringField.slotReuse,
     'pictureSize' ||
     'pictureShape' ||
-    'picturesPerRow' => ExerciseAuthoringField.pictureAnswers,
+    'picturesPerRow' ||
+    'pictureBorder' => ExerciseAuthoringField.pictureAnswers,
     'guidebookButton' => ExerciseAuthoringField.guidebookButton,
     'blocks' => ExerciseAuthoringField.pageBlocks,
     'textReveal' => ExerciseAuthoringField.lineTextReveal,

@@ -58,6 +58,7 @@ class ExerciseDraftValues {
     this.pictureSize = 'course',
     this.pictureShape = 'course',
     this.picturesPerRow = 'course',
+    this.pictureBorder = 'course',
     Set<String> pluralPictures = const {},
   }) : correctTranslations = List.unmodifiable(correctTranslations),
        pluralPictures = Set.unmodifiable(pluralPictures);
@@ -161,6 +162,9 @@ class ExerciseDraftValues {
   final String pictureShape;
   final String picturesPerRow;
 
+  /// The Select option `pictureBorder` (Build 267 Revision 7).
+  final String pictureBorder;
+
   /// The pictures the form marks Plural (Build 265 Revision 11): the
   /// exercise picture's or an answer picture's asset, or a QQL picture's
   /// icon key.
@@ -231,6 +235,7 @@ class ExerciseDraftValues {
     pictureSize: pictureSize,
     pictureShape: pictureShape,
     picturesPerRow: picturesPerRow,
+    pictureBorder: pictureBorder,
     pluralPictures: pluralPictures,
   );
 
@@ -470,7 +475,8 @@ abstract final class ExerciseDraftBuilder {
     final options = Map<OptionKey, OptionValue>.of(candidate.options.values)
       ..remove(OptionKey.pictureSize)
       ..remove(OptionKey.pictureShape)
-      ..remove(OptionKey.picturesPerRow);
+      ..remove(OptionKey.picturesPerRow)
+      ..remove(OptionKey.pictureBorder);
     void set<T extends OptionEnumValue>(
       OptionKey key,
       List<T> values,
@@ -486,6 +492,7 @@ abstract final class ExerciseDraftBuilder {
     set(OptionKey.pictureSize, PictureSize.values, draft.pictureSize);
     set(OptionKey.pictureShape, PictureShape.values, draft.pictureShape);
     set(OptionKey.picturesPerRow, PicturesPerRow.values, draft.picturesPerRow);
+    set(OptionKey.pictureBorder, PictureBorder.values, draft.pictureBorder);
     return candidate.copyWith(options: PrimitiveOptions(options));
   }
 

@@ -918,6 +918,9 @@ class CourseLibraryOperations {
       // complication, so a new Course starts without; Lesson Options turns
       // it on.
       createDuels: false,
+      // Build 267 Revision 7 (owner, 9 October 2026): a thin grey line
+      // around picture answers, for new Courses only.
+      pictureAnswers: PictureAnswerStyle.newCourse,
       lessons: lessons,
     );
   }

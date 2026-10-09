@@ -3866,7 +3866,12 @@ class _RoundScreenState extends State<RoundScreen> {
         runSpacing: 10,
         children: List.generate(
           _choiceOptions.length,
-          (i) => _pictureAnswer(i, width: width, shape: style.shape),
+          (i) => _pictureAnswer(
+            i,
+            width: width,
+            shape: style.shape,
+            bordered: style.bordered,
+          ),
         ),
       );
     }
@@ -3895,7 +3900,12 @@ class _RoundScreenState extends State<RoundScreen> {
                       i++
                     ) ...[
                       if (i > start) const SizedBox(width: spacing),
-                      _pictureAnswer(i, width: fitted, shape: style.shape),
+                      _pictureAnswer(
+                        i,
+                        width: fitted,
+                        shape: style.shape,
+                        bordered: style.bordered,
+                      ),
                     ],
                   ],
                 ),
@@ -3912,7 +3922,14 @@ class _RoundScreenState extends State<RoundScreen> {
     int i, {
     required double width,
     required PictureShape shape,
+    bool bordered = false,
   }) {
+    // Build 267 Revision 7 (owner decisions of 9 October 2026): a thin grey
+    // line around the tile, following its shape; without it the tile is
+    // drawn as before.
+    final side = bordered
+        ? BorderSide(color: Theme.of(context).colorScheme.outline, width: 1.5)
+        : BorderSide.none;
     final item = _choiceOptions[i].item;
     final image = item?.image ?? '';
     // Build 265 Revision 11: a picture answer marked Plural shows several.
@@ -3950,6 +3967,7 @@ class _RoundScreenState extends State<RoundScreen> {
             padding: EdgeInsets.zero,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
+              side: side,
             ),
           ),
           clipBehavior: Clip.antiAlias,
@@ -3988,6 +4006,8 @@ class _RoundScreenState extends State<RoundScreen> {
       width: width,
       height: (image.isNotEmpty ? 150 : 120) * scale,
       child: FilledButton.tonal(
+        key: bordered ? ValueKey('picture-answer-border-$i') : null,
+        style: bordered ? FilledButton.styleFrom(side: side) : null,
         onPressed: _answered ? null : () => _answerChoice(i),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

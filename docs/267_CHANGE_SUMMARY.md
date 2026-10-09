@@ -250,3 +250,11 @@ decisions of 9 October 2026).
   continue: Continue one, Start a new Course, or Cancel.
 - The learner's Course selector has New Course, greyed while Course Studio
   is locked.
+
+## Revision 7 (2.0.67+267007): a thin grey line around picture answers
+
+- A thin grey line around each picture answer (Select the image, Listen and
+  pick the image), following its round or square shape.
+- New Courses have it; Courses made before keep their look.
+- Picture border in Lesson Options and the Course Wizard; each exercise may
+  override it. A Course that uses it needs this build.

@@ -706,6 +706,7 @@ abstract final class PrimitiveCapabilityRegistry {
         OptionKey.pictureSize: PictureSize.values,
         OptionKey.pictureShape: PictureShape.values,
         OptionKey.picturesPerRow: PicturesPerRow.values,
+        OptionKey.pictureBorder: PictureBorder.values,
       },
     ),
     SupportedConfiguration(
@@ -721,6 +722,7 @@ abstract final class PrimitiveCapabilityRegistry {
         OptionKey.pictureSize: PictureSize.values,
         OptionKey.pictureShape: PictureShape.values,
         OptionKey.picturesPerRow: PicturesPerRow.values,
+        OptionKey.pictureBorder: PictureBorder.values,
       },
     ),
     SupportedConfiguration(
@@ -741,6 +743,7 @@ abstract final class PrimitiveCapabilityRegistry {
         OptionKey.pictureSize: PictureSize.values,
         OptionKey.pictureShape: PictureShape.values,
         OptionKey.picturesPerRow: PicturesPerRow.values,
+        OptionKey.pictureBorder: PictureBorder.values,
       },
     ),
     SupportedConfiguration(
@@ -1028,6 +1031,15 @@ abstract final class PrimitiveCapabilityRegistry {
         description:
             'How many picture answers stand in a row; course follows the '
             'Course.',
+      ),
+      // Build 267 Revision 7 (owner decisions of 9 October 2026).
+      OptionDefinition(
+        key: OptionKey.pictureBorder,
+        legalValues: PictureBorder.values,
+        defaultValue: EnumOptionValue(PictureBorder.course),
+        description:
+            'A thin grey line around each picture answer, or none; course '
+            'follows the Course.',
       ),
     ],
     evaluationModes: [

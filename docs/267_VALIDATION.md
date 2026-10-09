@@ -263,3 +263,32 @@ Run on the owner's Windows PC (4 cores, 8 GB), `TEMP`/`TMP` on
   Course options, library operations, Course metadata, Course Manager
   workflow and Help: **132 passed**.
 - Complete suite (9 October): **3,984 passed, 1 skipped (POSIX only)**, exit code 0.
+
+## Revision 7 (2.0.67+267007), 9 October 2026
+
+- `dart format` on the changed Dart files only; `flutter analyze --no-pub`:
+  **No issues found.** `dart run tools/export_capabilities.dart`
+  regenerated `docs/capabilities_v12.json`; `python
+  tools/validate_courses.py`: the two bundled Courses OK.
+- `test/picture_border_267_test.dart` (new, 8 passed): the Course's
+  `border` (absent none, `{"border": "thin"}` for a new Course, `course`,
+  an unknown value or a number refused), changing another choice keeps the
+  line; an exercise's `pictureBorder` overrides the Course both ways and
+  `course` follows it; the minimum build (none for the standard look,
+  263002 for another look, 267007 for the line in the Course or in an
+  exercise, never above this build); a new Course by New Course or the
+  Wizard has the line and an earlier Course none; Select the image stores
+  `pictureBorder` and reads it back, still represented by its preset; As
+  in Lesson Options stores nothing; the learner's square tiles have a
+  1.5 px side in a new Course and none in an earlier one; a round tile has
+  it too, from the exercise's option.
+- `capability_registry_256_test.dart`: Select's effective options include
+  `pictureBorder: course`.
+- The first focused runs refused the Wizard's new Courses ("requires build
+  267007, this is 267006") until the version was bumped: the line's
+  minimum build is this revision's.
+- Focused batches: the registry, version pins and the Wizard (63 passed);
+  the Build 263 picture look, the Laboratory, New Course, the forms and
+  field Help, the capability description, interoperability, plural
+  pictures, presets and semantic equality (608 passed).
+- Complete suite (9 October): **3,992 passed, 1 skipped (POSIX only)**, exit code 0.

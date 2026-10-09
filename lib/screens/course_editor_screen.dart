@@ -2992,8 +2992,9 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
       title: Text('Picture answers'),
       subtitle: Text(
         'How Select the image and Listen and pick the image show their '
-        'pictures: large squares, two per row, unless you choose otherwise '
-        'here. An exercise can choose its own look.',
+        'pictures: large squares, two per row (in a new Course with a thin '
+        'grey line around each), unless you choose otherwise here. An '
+        'exercise can choose its own look.',
       ),
     ),
     _pictureAnswerOption<PictureSize>(
@@ -3001,11 +3002,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
       label: 'Picture size',
       value: _course.pictureAnswers.size,
       choices: const {PictureSize.large: 'Large', PictureSize.normal: 'Normal'},
-      apply: (style, value) => PictureAnswerStyle(
-        size: value,
-        shape: style.shape,
-        perRow: style.perRow,
-      ),
+      apply: (style, value) => style.copyWith(size: value),
     ),
     _pictureAnswerOption<PictureShape>(
       key: 'course-picture-shape',
@@ -3015,11 +3012,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
         PictureShape.square: 'Square, cropped',
         PictureShape.round: 'Round',
       },
-      apply: (style, value) => PictureAnswerStyle(
-        size: style.size,
-        shape: value,
-        perRow: style.perRow,
-      ),
+      apply: (style, value) => style.copyWith(shape: value),
     ),
     _pictureAnswerOption<PicturesPerRow>(
       key: 'course-pictures-per-row',
@@ -3031,11 +3024,18 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
         PicturesPerRow.three: '3',
         PicturesPerRow.automatic: 'As many as fit',
       },
-      apply: (style, value) => PictureAnswerStyle(
-        size: style.size,
-        shape: style.shape,
-        perRow: value,
-      ),
+      apply: (style, value) => style.copyWith(perRow: value),
+    ),
+    // Build 267 Revision 7 (owner decisions of 9 October 2026).
+    _pictureAnswerOption<PictureBorder>(
+      key: 'course-picture-border',
+      label: 'Picture border',
+      value: _course.pictureAnswers.border,
+      choices: const {
+        PictureBorder.thin: 'Thin grey line',
+        PictureBorder.none: 'None',
+      },
+      apply: (style, value) => style.copyWith(border: value),
     ),
   ];
 
@@ -10384,6 +10384,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
   String _pictureSize = 'course';
   String _pictureShape = 'course';
   String _picturesPerRow = 'course';
+  String _pictureBorder = 'course';
 
   /// The pictures marked Plural (Build 265 Revision 11), by asset or QQL
   /// icon key.
@@ -10697,6 +10698,8 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         shape == PictureShape.square ? 'Square, cropped' : 'Round';
     String perRowName(PicturesPerRow perRow) =>
         '${PictureAnswerStyle(perRow: perRow).perRowCount ?? 'As many as fit'}';
+    String borderName(PictureBorder border) =>
+        border == PictureBorder.thin ? 'Thin grey line' : 'None';
     return [
       Text('Picture answers', style: Theme.of(context).textTheme.titleSmall),
       const SizedBox(height: 8),
@@ -10740,6 +10743,17 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
             perRow.serialized: perRowName(perRow),
         },
         onChanged: (value) => _picturesPerRow = value,
+      ),
+      _choiceField(
+        fieldKey: 'pictureBorder',
+        label: 'Picture border',
+        value: _pictureBorder,
+        choices: {
+          'course': asCourse(borderName(course.border)),
+          'thin': borderName(PictureBorder.thin),
+          'none': borderName(PictureBorder.none),
+        },
+        onChanged: (value) => _pictureBorder = value,
       ),
     ];
   }
@@ -11049,6 +11063,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     _pictureSize = draft.pictureSize;
     _pictureShape = draft.pictureShape;
     _picturesPerRow = draft.picturesPerRow;
+    _pictureBorder = draft.pictureBorder;
     _pluralPictures = {...draft.pluralPictures};
     _tokens.text = draft.tokens;
     _order.text = draft.order;
@@ -12554,6 +12569,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
         pictureSize: _pictureSize,
         pictureShape: _pictureShape,
         picturesPerRow: _picturesPerRow,
+        pictureBorder: _pictureBorder,
         pluralPictures: _pluralPictures,
         prompt: _prompt.text,
         question: _question.text,
@@ -12991,6 +13007,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     _pictureSize,
     _pictureShape,
     _picturesPerRow,
+    _pictureBorder,
     (_pluralPictures.toList()..sort()).join(''),
     _imageAsset,
     _selectedSharedSource?.id ?? '',

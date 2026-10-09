@@ -143,15 +143,19 @@ paused-Wizard dialog on New Course, the selector's New Course through
 skipped. Committed locally on 9 October 2026 as "Build 267 Revision 6:
 Create Duels off for new Courses; New Course and paused Wizards".
 
+## Revision 7 (2.0.67+267007), the picture answer border: committed
+
+Implemented as decided (look A; picture answers only; on for new Courses
+only; Course choice with a per-exercise override). The line is the
+answer tile's own outline (the button's side), so it follows the round or
+square shape and leaves the tiles untouched without it. New Courses store
+`pictureAnswers: {"border": "thin"}`, so they need build 267007
+(`minimumAppBuild` on confirmation). Analyzer clean; complete suite 3,992 passed, 1 skipped.
+Committed locally on 9 October 2026 as "Build 267 Revision 7: a thin grey
+line around picture answers".
+
 ## Next
 
-- Revision 7, the picture answer border (owner decisions of 9 October 2026, mock-up in
-  chat): look A, a thin neutral grey line (about 1.5 px) following the
-  round or square shape, distinct from selection and feedback colours;
-  picture answers only (Select the image, Listen and pick the image); on
-  by default for new Courses only (existing Courses keep today's look);
-  a Course choice in Lesson Options that an exercise can override, like
-  size, shape and per row.
 - Revision 8, **Editor Notes**: an optional notes field on every item of
   a Round (scored exercises, Before you start cards, Pages, Dialogue
   lines, Story covers), in the preset and canonical forms; stored in the

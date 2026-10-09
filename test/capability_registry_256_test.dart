@@ -363,6 +363,7 @@ void main() {
           'pictureSize': 'course',
           'pictureShape': 'course',
           'picturesPerRow': 'course',
+          'pictureBorder': 'course',
         });
       },
     );

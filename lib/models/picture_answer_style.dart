@@ -3,21 +3,28 @@ import 'canonical/canonical.dart';
 /// How a Select draws the pictures on its answers (Build 263 Revision 2,
 /// owner decisions of 4 October 2026): the Course's default, chosen in
 /// Lesson Options, which each exercise may override with its own options
-/// (`pictureSize`, `pictureShape`, `picturesPerRow`; their default `course`
-/// follows the Course).
+/// (`pictureSize`, `pictureShape`, `picturesPerRow`, and since Build 267
+/// Revision 7 `pictureBorder`; their default `course` follows the Course).
 final class PictureAnswerStyle {
   const PictureAnswerStyle({
     this.size = PictureSize.large,
     this.shape = PictureShape.square,
     this.perRow = PicturesPerRow.two,
+    this.border = PictureBorder.none,
   }) : assert(size != PictureSize.course),
        assert(shape != PictureShape.course),
-       assert(perRow != PicturesPerRow.course);
+       assert(perRow != PicturesPerRow.course),
+       assert(border != PictureBorder.course);
 
   /// The look a Course has until it chooses another (owner decision of 4
   /// October 2026, Revision 2 follow-up): large square pictures, two per
   /// row. The look before Build 263 was normal, round, as many as fit.
   static const standard = PictureAnswerStyle();
+
+  /// What a new Course has (Build 267 Revision 7, owner decision of 9
+  /// October 2026): the standard look with a thin grey line around each
+  /// picture. Courses made before keep [standard], without the line.
+  static const newCourse = PictureAnswerStyle(border: PictureBorder.thin);
 
   /// The look before Build 263 Revision 2, which a Course or an exercise
   /// may still choose.
@@ -31,9 +38,29 @@ final class PictureAnswerStyle {
   /// for itself or in an exercise, records it as its `minimumAppBuild`.
   static const minimumAppBuild = 263002;
 
+  /// The first build that draws the line around pictures: a Course that
+  /// asks for it records it as its `minimumAppBuild`.
+  static const borderMinimumAppBuild = 267007;
+
   final PictureSize size;
   final PictureShape shape;
   final PicturesPerRow perRow;
+  final PictureBorder border;
+
+  /// Whether a thin grey line goes around each picture.
+  bool get bordered => border == PictureBorder.thin;
+
+  PictureAnswerStyle copyWith({
+    PictureSize? size,
+    PictureShape? shape,
+    PicturesPerRow? perRow,
+    PictureBorder? border,
+  }) => PictureAnswerStyle(
+    size: size ?? this.size,
+    shape: shape ?? this.shape,
+    perRow: perRow ?? this.perRow,
+    border: border ?? this.border,
+  );
 
   bool get isStandard => this == standard;
 
@@ -50,6 +77,7 @@ final class PictureAnswerStyle {
     if (size != standard.size) 'size': size.serialized,
     if (shape != standard.shape) 'shape': shape.serialized,
     if (perRow != standard.perRow) 'perRow': perRow.serialized,
+    if (border != standard.border) 'border': border.serialized,
   };
 
   /// The Course's `pictureAnswers`; absent means [standard]. An unknown key
@@ -60,7 +88,10 @@ final class PictureAnswerStyle {
       throw const FormatException('course.pictureAnswers is invalid.');
     }
     for (final key in json.keys) {
-      if (key != 'size' && key != 'shape' && key != 'perRow') {
+      if (key != 'size' &&
+          key != 'shape' &&
+          key != 'perRow' &&
+          key != 'border') {
         throw FormatException('course.pictureAnswers.$key is unknown.');
       }
     }
@@ -80,6 +111,7 @@ final class PictureAnswerStyle {
       size: pick('size', PictureSize.values, standard.size),
       shape: pick('shape', PictureShape.values, standard.shape),
       perRow: pick('perRow', PicturesPerRow.values, standard.perRow),
+      border: pick('border', PictureBorder.values, standard.border),
     );
   }
 
@@ -91,6 +123,7 @@ final class PictureAnswerStyle {
     final ownPerRow = options.enumValue<PicturesPerRow>(
       OptionKey.picturesPerRow,
     );
+    final ownBorder = options.enumValue<PictureBorder>(OptionKey.pictureBorder);
     return PictureAnswerStyle(
       size: ownSize == null || ownSize == PictureSize.course ? size : ownSize,
       shape: ownShape == null || ownShape == PictureShape.course
@@ -99,7 +132,16 @@ final class PictureAnswerStyle {
       perRow: ownPerRow == null || ownPerRow == PicturesPerRow.course
           ? perRow
           : ownPerRow,
+      border: ownBorder == null || ownBorder == PictureBorder.course
+          ? border
+          : ownBorder,
     );
+  }
+
+  /// Whether [options] choose a border of their own.
+  static bool overridesBorder(PrimitiveOptions options) {
+    final own = options.enumValue<PictureBorder>(OptionKey.pictureBorder);
+    return own != null && own != PictureBorder.course;
   }
 
   /// Whether [options] choose a picture look of their own.
@@ -107,6 +149,7 @@ final class PictureAnswerStyle {
     options.enumValue<PictureSize>(OptionKey.pictureSize),
     options.enumValue<PictureShape>(OptionKey.pictureShape),
     options.enumValue<PicturesPerRow>(OptionKey.picturesPerRow),
+    options.enumValue<PictureBorder>(OptionKey.pictureBorder),
   ].any((value) => value != null && value.serialized != 'course');
 
   @override
@@ -114,8 +157,9 @@ final class PictureAnswerStyle {
       other is PictureAnswerStyle &&
       other.size == size &&
       other.shape == shape &&
-      other.perRow == perRow;
+      other.perRow == perRow &&
+      other.border == border;
 
   @override
-  int get hashCode => Object.hash(size, shape, perRow);
+  int get hashCode => Object.hash(size, shape, perRow, border);
 }

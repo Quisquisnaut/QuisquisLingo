@@ -319,7 +319,7 @@ const Map<String, String> helpEn = <String, String>{
       r'''Write the situation in Text to read, in the learners' own language; add dialogue lines in the target language, one “Speaker: text” per line, and choose whether they are read aloud automatically, on request or not at all; then write the question and the answers in the target language. The text to read is never read aloud, and the read-aloud never makes it an audio exercise.''',
   'editorHelp.qa.pictures.q': r'''Which exercises use a picture?''',
   'editorHelp.qa.pictures.a':
-      r'''What is in the picture (choose the name), Name what you see (build the name from word blocks), Type what you see (type the name), Spell the word in the picture and Picture flashcard: choose the picture under Exercise image. Match pictures to words has one picture per word instead, chosen below its words, and Select the image and Listen and pick the image one picture per answer, chosen below the answers: these three have no Exercise image. How the pictures of Select the image and Listen and pick the image look is set for the whole Course in Lesson Options › Picture answers (Picture size, Picture shape, Pictures per row; without a choice large squares, two per row), and each exercise may choose its own in its form. Square shows each picture cropped to a square: Crop square under a picture chooses the part and the zoom and keeps the cropped copy in the Course.''',
+      r'''What is in the picture (choose the name), Name what you see (build the name from word blocks), Type what you see (type the name), Spell the word in the picture and Picture flashcard: choose the picture under Exercise image. Match pictures to words has one picture per word instead, chosen below its words, and Select the image and Listen and pick the image one picture per answer, chosen below the answers: these three have no Exercise image. How the pictures of Select the image and Listen and pick the image look is set for the whole Course in Lesson Options › Picture answers (Picture size, Picture shape, Pictures per row, Picture border; without a choice large squares, two per row, with a thin grey line in a new Course), and each exercise may choose its own in its form. Square shows each picture cropped to a square: Crop square under a picture chooses the part and the zoom and keeps the cropped copy in the Course.''',
   'editorHelp.qa.allTypes.q': r'''Where is every exercise type explained?''',
   'editorHelp.qa.allTypes.a':
       r'''In Technical reference › Exercise types at the top of this page, and with Exercise Help beside each preset.''',
@@ -1417,10 +1417,10 @@ Every answer needs a picture; the Audit warns otherwise. Course pictures travel 
 Example
 1. gatto: a picture of a cat''',
   'exerciseHelp.field.picture_answers.body':
-      r'''How the pictures the learner chooses from look: their size, their shape and how many stand in a row.
+      r'''How the pictures the learner chooses from look: their size, their shape, how many stand in a row and whether a line goes around them.
 
 What to enter
-As in Lesson Options follows the Course (Course Editor › Lesson Options › Picture answers); any other value is this exercise's own. Without a choice the pictures are large squares, two per row. Picture size: Large or Normal. Picture shape: Square, cropped, or Round. Pictures per row: 1 to 3, or as many as fit. A last row that is not full stands in the middle. Crop square under a picture chooses the part of it and the zoom, and stores the cropped copy in the Course.
+As in Lesson Options follows the Course (Course Editor › Lesson Options › Picture answers); any other value is this exercise's own. Without a choice the pictures are large squares, two per row. Picture size: Large or Normal. Picture shape: Square, cropped, or Round. Pictures per row: 1 to 3, or as many as fit. Picture border: Thin grey line, which follows the round or square shape and helps a light picture stand out, or None; a new Course has the line, Courses made before have none. A last row that is not full stands in the middle. Crop square under a picture chooses the part of it and the zoom, and stores the cropped copy in the Course.
 
 Checks
 None.

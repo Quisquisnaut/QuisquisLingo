@@ -411,6 +411,19 @@ enum PicturesPerRow implements OptionEnumValue {
   final String serialized;
 }
 
+/// A thin grey line around each picture answer (Build 267 Revision 7, owner
+/// decisions of 9 October 2026), following its round or square shape.
+/// `course` follows the Course.
+enum PictureBorder implements OptionEnumValue {
+  course('course'),
+  none('none'),
+  thin('thin');
+
+  const PictureBorder(this.serialized);
+  @override
+  final String serialized;
+}
+
 enum Scoring implements OptionEnumValue {
   none('none');
 
@@ -560,6 +573,13 @@ enum OptionKey {
     'picturesPerRow',
     OptionValueKind.enumeration,
     PicturesPerRow.values,
+  ),
+
+  /// Build 267 Revision 7: a thin grey line around each picture answer.
+  pictureBorder(
+    'pictureBorder',
+    OptionValueKind.enumeration,
+    PictureBorder.values,
   );
 
   const OptionKey(this.serialized, this.kind, [this.vocabulary = const []]);

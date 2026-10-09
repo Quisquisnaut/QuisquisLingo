@@ -1,3 +1,36 @@
+# 2.0.67 (Build 267, Revision 7) - A thin grey line around picture answers - 2026-10-09
+
+Owner decisions of 9 October 2026 (mock-up in chat, look A).
+
+- **Picture border**: a thin grey line (1.5 px, the theme's outline colour)
+  around each picture answer of Select the image and Listen and pick the
+  image, following the tile's round or square shape; it helps a light
+  picture stand out. Without the line the tiles are drawn exactly as
+  before. The Duel is unchanged, as with the size, shape and per-row
+  choices.
+- **New Courses have it**: New Course's form and the Course Wizard create
+  a Course with `pictureAnswers` `{"border": "thin"}`
+  (`PictureAnswerStyle.newCourse`); Courses made before keep no line.
+- **Choices**: the Course's **Picture border** in Lesson Options
+  (`course-picture-border`: Thin grey line or None) and in the Course
+  Wizard's Advanced options (`course-wizard-picture-border-<n>`); each
+  exercise may override it in its form (**Picture border**: As in Lesson
+  Options, Thin grey line, None), stored as the Select option
+  `pictureBorder` (`PictureBorder` course | none | thin; default `course`),
+  listed in every Select configuration; `docs/capabilities_v12.json`
+  regenerated. Changing size, shape or per row keeps the line
+  (`PictureAnswerStyle.copyWith`).
+- **Minimum build**: a Course that asks for the line, for itself or in an
+  exercise, records `minimumAppBuild` 267007 on confirmation
+  (`PictureAnswers.requiredBuild`): an earlier build refuses the new field
+  and option with a clear reason.
+- Help EN/IT/ES: the Picture answers field Help and the Lesson Options
+  answer.
+- Tests: `test/picture_border_267_test.dart`; the registry's effective
+  options.
+- Scoring, progression and learner data are unchanged. Beta expiry
+  `2026-11-08 23:59:59` local time.
+
 # 2.0.67 (Build 267, Revision 6) - Create Duels off for new Courses; New Course and paused Wizards - 2026-10-09
 
 Owner decisions of 9 October 2026.
