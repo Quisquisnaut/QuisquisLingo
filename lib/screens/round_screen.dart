@@ -47,6 +47,8 @@ import '../services/learner_mascots.dart';
 import '../services/lesson_presentation_service.dart';
 import '../services/word_lookup/word_lookup.dart';
 import '../services/word_lookup/word_lookup_sources.dart';
+import '../services/spoken_line_pace.dart';
+import '../widgets/spoken_line_text.dart';
 import '../widgets/word_lookup_view.dart';
 import 'guidebook_screen.dart';
 
@@ -55,6 +57,10 @@ class RoundScreen extends StatefulWidget {
   /// tests replace it; the app never downloads or plays video itself.
   static Future<bool> Function(Uri url) openLink = (url) =>
       launchUrl(url, mode: LaunchMode.externalApplication);
+
+  /// Times a Story line's voice (Build 269 Revision 0). A test seam: widget
+  /// tests measure on the test's clock.
+  static Stopwatch Function() lineStopwatch = Stopwatch.new;
 
   /// How long a two-sided Flashcard takes to turn when it is animated
   /// (Build 268 Revision 0).
@@ -344,6 +350,27 @@ class _RoundScreenState extends State<RoundScreen> {
   /// Build 256 Revision 5: a dialogue line's audio has played once, so a
   /// text shown "after listening" may appear.
   bool _lineAudioPlayed = false;
+
+  /// Build 269 Revision 0 (owner decisions of 10 October 2026): a dialogue
+  /// line that reads itself aloud (automatic read-aloud, audio playable)
+  /// holds Continue until it has been read. Its words brighten as the time
+  /// to say them passes ([SpokenLineText]); the line is read once the voice
+  /// has finished and its time has passed. A voice that returns before
+  /// [SpokenLinePace.realEndShare] of the estimate did not report its end,
+  /// so the estimate alone decides. A tap on Play changes nothing.
+  bool _lineHeld = false;
+  bool _lineSpeaking = false;
+  bool _lineVoiceEnded = false;
+  bool _lineFinished = false;
+  Duration _lineEstimate = Duration.zero;
+  Timer? _lineTimer;
+
+  /// Releases Continue when a held line's voice never starts.
+  Timer? _lineWatchdog;
+  static const lineWatchdogDelay = Duration(seconds: 5);
+
+  /// Whether Continue waits for the active line to be read.
+  bool get _lineWaits => _lineHeld && !(_lineVoiceEnded && _lineFinished);
 
   /// Build 268 Revision 0: a two-sided Flashcard shows its back, and the
   /// word's automatic read-aloud of a card shown meaning first has played.
@@ -800,6 +827,8 @@ class _RoundScreenState extends State<RoundScreen> {
   void dispose() {
     _timedTicker?.cancel();
     _timedExpiryTimer?.cancel();
+    _lineTimer?.cancel();
+    _lineWatchdog?.cancel();
     final diagnostic = _preparedAudioDiagnostic;
     if (diagnostic != null) {
       unawaited(diagnostic.dispose(outcome: 'round_disposed'));
@@ -861,6 +890,7 @@ class _RoundScreenState extends State<RoundScreen> {
     _exerciseMascot = null;
     _answered = false;
     _lineAudioPlayed = false;
+    _prepareLineHold(f, generation);
     _cardTurned = false;
     _cardBackSpoken = false;
     _lastAnswerCorrect = false;
@@ -1080,7 +1110,7 @@ class _RoundScreenState extends State<RoundScreen> {
       active: true,
       trigger: trigger,
     );
-    final played = await _speak();
+    final played = await _speak(automatic: true);
     await _recordRoundAudioEvent(
       diagnostic,
       'playback',
@@ -1177,7 +1207,9 @@ class _RoundScreenState extends State<RoundScreen> {
     return ok;
   }
 
-  Future<bool> _speak() async {
+  /// The audio that plays when the exercise becomes active ([automatic]) or
+  /// on the learner's Play.
+  Future<bool> _speak({bool automatic = false}) async {
     // A dialogue read aloud automatically plays line by line.
     if (_features.automaticAudio?.role == 'dialogue_turn') {
       return _speakDialogue();
@@ -1185,13 +1217,35 @@ class _RoundScreenState extends State<RoundScreen> {
     final text = _features.primaryAudioText;
     if (text == null || text.isEmpty) return false;
     final line = _features.kind == LearnerExerciseKind.dialogueLine;
-    final ok = await _playCourseAudio(
-      text,
-      language: line
-          ? _lineLanguage(_features)
-          : _features.primaryAudioLanguage,
-      voice: line ? _lineSpeaker(_features).voice : null,
-    );
+    // Build 269 Revision 0: a line reading itself aloud is timed; a tap on
+    // Play is not.
+    final timed = automatic && line && _lineHeld && !_lineSpeaking;
+    final generation = _preparedExerciseGeneration;
+    final watch = RoundScreen.lineStopwatch();
+    if (timed) {
+      _lineWatchdog?.cancel();
+      if (mounted) setState(() => _lineSpeaking = true);
+      watch.start();
+    }
+    var ok = false;
+    try {
+      ok = await _playCourseAudio(
+        text,
+        language: line
+            ? _lineLanguage(_features)
+            : _features.primaryAudioLanguage,
+        voice: line ? _lineSpeaker(_features).voice : null,
+      );
+    } finally {
+      if (timed) {
+        _lineVoiceDone(
+          generation,
+          ok: ok,
+          elapsed: watch.elapsed,
+          spoken: text,
+        );
+      }
+    }
     if (ok && line && mounted) {
       setState(() => _lineAudioPlayed = true);
     }
@@ -1204,6 +1258,81 @@ class _RoundScreenState extends State<RoundScreen> {
       );
     }
     return ok;
+  }
+
+  /// Whether the dialogue line [f] reads itself aloud and so holds Continue
+  /// (Build 269 Revision 0); called for every exercise as it is prepared.
+  void _prepareLineHold(ExerciseFeatures f, int generation) {
+    _lineTimer?.cancel();
+    _lineWatchdog?.cancel();
+    _lineWatchdog = null;
+    _lineSpeaking = false;
+    _lineVoiceEnded = false;
+    _lineFinished = false;
+    final spoken =
+        f.kind == LearnerExerciseKind.dialogueLine && _optionalAudioEnabled
+        ? _automaticAudioOf(f)?.text.trim() ?? ''
+        : '';
+    _lineHeld = spoken.isNotEmpty;
+    _lineEstimate = _lineHeld
+        ? SpokenLinePace.shared.estimate(spoken)
+        : Duration.zero;
+    // Behind Before you start the line waits for its Continue.
+    if (_lineHeld && _learnerAudioUiState == 'exercise_active') {
+      _armLineWatchdog(generation);
+    }
+  }
+
+  /// Continue never stays greyed for a line whose voice does not start:
+  /// after [lineWatchdogDelay] the line no longer holds it.
+  void _armLineWatchdog(int generation) {
+    if (!_lineHeld) return;
+    _lineWatchdog?.cancel();
+    _lineWatchdog = Timer(lineWatchdogDelay, () {
+      if (!mounted ||
+          generation != _preparedExerciseGeneration ||
+          _lineSpeaking) {
+        return;
+      }
+      unawaited(
+        CrashLogService.instance.recordDebugEvent(
+          'Round: line ${_exercise.id} audio did not start; Continue released',
+        ),
+      );
+      setState(() => _lineHeld = false);
+    });
+  }
+
+  /// The voice of a held line has finished after [elapsed], or failed. A
+  /// real end, or a failure, completes the line; an end reported too early
+  /// leaves it to the estimate.
+  void _lineVoiceDone(
+    int generation, {
+    required bool ok,
+    required Duration elapsed,
+    required String spoken,
+  }) {
+    if (!mounted || generation != _preparedExerciseGeneration) return;
+    final realEnd = !ok || SpokenLinePace.isRealEnd(elapsed, _lineEstimate);
+    if (ok && realEnd) SpokenLinePace.shared.record(spoken, elapsed);
+    setState(() {
+      _lineVoiceEnded = true;
+      if (realEnd) _lineFinished = true;
+    });
+    if (!realEnd) {
+      _lineTimer?.cancel();
+      _lineTimer = Timer(_lineEstimate - elapsed, () => _lineRead(generation));
+    }
+  }
+
+  /// The held line's time has passed (its words are all bright).
+  void _lineRead(int generation) {
+    if (!mounted ||
+        generation != _preparedExerciseGeneration ||
+        _lineFinished) {
+      return;
+    }
+    setState(() => _lineFinished = true);
   }
 
   String get _audioFailureDescription => widget.course.audioMode == 'recorded'
@@ -3734,12 +3863,21 @@ class _RoundScreenState extends State<RoundScreen> {
         !_lineAudioPlayed;
     final transcript = text.isNotEmpty ? text : (audio?.text ?? '');
     final showsText = text.isNotEmpty ? !hidden : !audioPlayable;
+    // Build 269 Revision 0: a line reading itself aloud shows at once,
+    // dimmer, and brightens word by word; text shown after listening, or
+    // with Animations off or reduced motion, shows whole.
+    final spoken =
+        showsText &&
+        _lineHeld &&
+        f.textReveal != TextReveal.afterAudio &&
+        ConfettiBurst.allowed(context, animationsEnabled: _animationsEnabled);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _lineBubble(
           speaker: speaker,
           text: showsText ? transcript : null,
+          spoken: spoken,
           language: _lineLanguage(f),
           placeholder: hidden
               ? _t('listenFirst')
@@ -3765,7 +3903,8 @@ class _RoundScreenState extends State<RoundScreen> {
         const SizedBox(height: 16),
         FilledButton(
           key: const Key('story-line-continue'),
-          onPressed: _answered ? null : _continueLine,
+          // Greyed while the line reads itself aloud (Build 269 Revision 0).
+          onPressed: _answered || _lineWaits ? null : _continueLine,
           child: Text(_t('continue')),
         ),
       ],
@@ -3796,7 +3935,7 @@ class _RoundScreenState extends State<RoundScreen> {
   /// Continue on a dialogue line or a Story cover: no feedback step, the
   /// next item follows at once (a card is never scored).
   void _continueLine() {
-    if (_answered) return;
+    if (_answered || _lineWaits) return;
     setState(() {
       _answered = true;
       _lastAnswerCorrect = true;
@@ -3962,15 +4101,18 @@ class _RoundScreenState extends State<RoundScreen> {
   );
 
   /// A speaker's line as a bubble beside their avatar and name; the narrator
-  /// without an avatar speaks in a quieter, centred style.
+  /// without an avatar speaks in a quieter, centred style. A [spoken] line
+  /// is the active one reading itself aloud (Build 269 Revision 0).
   Widget _lineBubble({
     required StorySpeaker speaker,
     String? text,
+    bool spoken = false,
     String? placeholder,
     Widget? trailing,
     TextLanguage? language,
   }) {
     final theme = Theme.of(context);
+    final generation = _preparedExerciseGeneration;
     final Widget body = text == null
         ? Text(
             placeholder ?? '',
@@ -3978,6 +4120,17 @@ class _RoundScreenState extends State<RoundScreen> {
               fontStyle: FontStyle.italic,
               color: theme.colorScheme.onSurfaceVariant,
             ),
+          )
+        : spoken
+        ? SpokenLineText(
+            text,
+            key: ValueKey('story-line-spoken-$generation'),
+            duration: _lineEstimate,
+            speaking: _lineSpeaking,
+            finished: _lineFinished,
+            onDone: () => _lineRead(generation),
+            style: theme.textTheme.bodyLarge,
+            language: language,
           )
         : LookupText(
             text,
@@ -5041,6 +5194,7 @@ class _RoundScreenState extends State<RoundScreen> {
                   setState(() => _introAcknowledged = true);
                   final exercise = _exercise;
                   final generation = _preparedExerciseGeneration;
+                  _armLineWatchdog(generation);
                   WidgetsBinding.instance.addPostFrameCallback((_) {
                     if (mounted) _startTimedCountdown();
                     _activatePreparedAudio(

@@ -1111,7 +1111,7 @@ Estas builds muestran TEST ONLY. No las distribuyas como versiones públicas; co
   'exerciseHelp.preset.picture_word_match.body':
       'El estudiante relaciona cada imagen de la izquierda con una palabra de la derecha. Escribe las palabras, una por línea, y una imagen por palabra con los selectores de abajo; al menos dos pares. Cuentan las relaciones entre pares, no las posiciones.',
   'exerciseHelp.preset.dialogue_line.body':
-      'Una línea de diálogo en una Historia. Elige quién habla (el narrador o un personaje definido en Story characters del Course Editor), escribe la línea y elige si el estudiante la lee, la escucha o ambas cosas. La lectura en voz alta sigue el ajuste de la Historia salvo que la línea lo cambie; con texto y audio puedes ocultar el texto hasta que el audio se haya reproducido. Una línea nunca se salta: sin audio el estudiante la lee. No hay respuesta ni puntuación; Continue avanza.',
+      'Una línea de diálogo en una Historia. Elige quién habla (el narrador o un personaje definido en Story characters del Course Editor), escribe la línea y elige si el estudiante la lee, la escucha o ambas cosas. La lectura en voz alta sigue el ajuste de la Historia salvo que la línea lo cambie; con texto y audio puedes ocultar el texto hasta que el audio se haya reproducido. Cuando una línea se lee sola en voz alta, el texto aparece enseguida, más tenue, cada palabra se ilumina a su turno mientras se lee la línea y Continue espera a que termine la lectura. Una línea nunca se salta: sin audio el estudiante la lee. No hay respuesta ni puntuación; Continue avanza.',
   'exerciseHelp.preset.before_you_start.body':
       'La nota que el estudiante lee antes de que empiece el Round, en una página propia con Continue to Round. Escribe la nota y, si quieres, activa Open GuideBook button: la tarjeta ofrece entonces el GuideBook de la Lesson (los estudiantes ven el botón solo mientras el Curso usa GuideBooks y el GuideBook está publicado). La tarjeta va primero en el Round, nunca es uno de sus pasos y nunca se muestra en Review; no hay respuesta ni puntuación. Una tarjeta por Round: el Audit avisa de una segunda.',
   'exerciseHelp.preset.page.body':
@@ -1289,9 +1289,9 @@ Estas builds muestran TEST ONLY. No las distribuyas como versiones públicas; co
   'exerciseHelp.field.dialogue_line.lineMode.body':
       'Si el estudiante lee la línea, la escucha o ambas cosas.\n\nQué escribir\nText and audio, Text only o Audio only. Audio only convierte la línea en un paso de escucha; cuando el audio no está disponible se muestra el texto.\n\nComprobaciones\nNinguna.\n\nEjemplo\nText and audio',
   'exerciseHelp.field.dialogue_line.readAloud.body':
-      'Cuándo se reproduce el audio de la línea.\n\nQué escribir\nStory default (la opción Read-aloud del Round), Automatic (suena cuando aparece la línea) u On request (el estudiante toca).\n\nComprobaciones\nNinguna.\n\nEjemplo\nStory default',
+      'Cuándo se reproduce el audio de la línea.\n\nQué escribir\nStory default (la opción Read-aloud del Round), Automatic (suena cuando aparece la línea; Continue espera a que termine la lectura) u On request (el estudiante toca).\n\nComprobaciones\nNinguna.\n\nEjemplo\nStory default',
   'exerciseHelp.field.dialogue_line.textReveal.body':
-      'Si el texto espera al audio.\n\nQué escribir\nImmediately, o After listening: el texto aparece cuando el audio se ha reproducido (solo con texto y audio).\n\nComprobaciones\nNinguna.\n\nEjemplo\nImmediately',
+      'Si el texto espera al audio.\n\nQué escribir\nImmediately (mientras la línea se lee sola, las palabras se iluminan a su turno), o After listening: el texto aparece cuando el audio se ha reproducido (solo con texto y audio).\n\nComprobaciones\nNinguna.\n\nEjemplo\nImmediately',
   'exerciseHelp.field.dialogue_line.language.body':
       'La lengua de la línea.\n\nQué escribir\nLa lengua de quien habla (predeterminada), o Target / Source para cambiarla solo en esta línea.\n\nComprobaciones\nNinguna.\n\nEjemplo\nSpeaker’s',
   'exerciseHelp.field.before_you_start.prompt.body':

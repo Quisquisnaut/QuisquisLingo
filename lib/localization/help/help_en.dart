@@ -1231,7 +1231,7 @@ Question and Context are separate. Context can be text, audio, or both. Dialogue
   'exerciseHelp.preset.picture_word_match.body':
       r'''The learner matches each picture on the left with a word on the right. Provide the words, one per line, and one picture per word with the pickers below; at least two pairs. Pair relationships, not display positions, define correctness.''',
   'exerciseHelp.preset.dialogue_line.body':
-      r'''A line of dialogue in a Story. Choose who speaks (the narrator or a character defined in the Course Editor's Story characters), write the line, and choose whether the learner reads it, hears it, or both. Read-aloud follows the Story's setting unless the line overrides it; with text and audio you may hide the text until the audio has played. A line is never skipped: without audio the learner reads it. There is no answer and no score; Continue moves on.''',
+      r'''A line of dialogue in a Story. Choose who speaks (the narrator or a character defined in the Course Editor's Story characters), write the line, and choose whether the learner reads it, hears it, or both. Read-aloud follows the Story's setting unless the line overrides it; with text and audio you may hide the text until the audio has played. When a line reads itself aloud, its text shows at once, dimmer, each word becomes bright in turn as the line is read, and Continue waits until the line has been read. A line is never skipped: without audio the learner reads it. There is no answer and no score; Continue moves on.''',
   'exerciseHelp.preset.before_you_start.body':
       r'''The note the learner reads before the Round starts, on its own page with Continue to Round. Write the note and, if you like, turn on Open GuideBook button: the card then offers the Lesson’s GuideBook (learners see the button only while the Course uses GuideBooks and the GuideBook is published). The card is placed first in the Round, is never one of its steps and is never shown in Review; there is no answer and no score. One card per Round: the Audit warns about a second one.''',
   'exerciseHelp.preset.page.body':
@@ -1510,7 +1510,7 @@ Text and audio''',
       r'''When the line's audio plays.
 
 What to enter
-Story default (the Round's Read-aloud option), Automatic (plays when the line appears) or On request (the learner taps).
+Story default (the Round's Read-aloud option), Automatic (plays when the line appears; Continue waits until the line has been read) or On request (the learner taps).
 
 Checks
 None.
@@ -1521,7 +1521,7 @@ Story default''',
       r'''Whether the text waits for the audio.
 
 What to enter
-Immediately, or After listening: the text appears once the audio has played (only with text and audio).
+Immediately (while the line reads itself aloud, its words become bright in turn), or After listening: the text appears once the audio has played (only with text and audio).
 
 Checks
 None.

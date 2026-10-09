@@ -985,7 +985,7 @@ const Map<String, String> helpIt = {
   "exerciseHelp.preset.picture_word_match.body":
       "Lo studente abbina ogni immagine a sinistra a una parola a destra. Fornisci le parole, una per riga, e un’immagine per parola con i selettori sotto; almeno due coppie. Contano le relazioni tra le coppie, non le posizioni.",
   "exerciseHelp.preset.dialogue_line.body":
-      "Una battuta di dialogo in una Storia. Scegli chi parla (il narratore o un personaggio definito in Story characters del Course Editor), scrivi la battuta e scegli se lo studente la legge, la ascolta o entrambe le cose. La lettura ad alta voce segue l’impostazione della Storia, salvo che la battuta la sovrascriva; con testo e audio puoi nascondere il testo finché l’audio non è stato riprodotto. Una battuta non viene mai saltata: senza audio lo studente la legge. Non c’è risposta né punteggio; Continue va avanti.",
+      "Una battuta di dialogo in una Storia. Scegli chi parla (il narratore o un personaggio definito in Story characters del Course Editor), scrivi la battuta e scegli se lo studente la legge, la ascolta o entrambe le cose. La lettura ad alta voce segue l’impostazione della Storia, salvo che la battuta la sovrascriva; con testo e audio puoi nascondere il testo finché l’audio non è stato riprodotto. Quando una battuta si legge da sola ad alta voce, il testo appare subito, più tenue, ogni parola si illumina a turno mentre la battuta viene letta e Continue aspetta che la lettura sia finita. Una battuta non viene mai saltata: senza audio lo studente la legge. Non c’è risposta né punteggio; Continue va avanti.",
   "exerciseHelp.preset.before_you_start.body":
       "La nota che lo studente legge prima che il Round inizi, su una pagina a sé con Continue to Round. Scrivi la nota e, se vuoi, attiva Open GuideBook button: la scheda offre allora il GuideBook della Lesson (gli studenti vedono il pulsante solo se il Corso usa i GuideBook e il GuideBook è pubblicato). La scheda sta per prima nel Round, non è mai uno dei suoi passi e non appare mai in Review; non c’è risposta né punteggio. Una scheda per Round: l’Audit segnala la seconda.",
   "exerciseHelp.preset.page.body":
@@ -1116,9 +1116,9 @@ const Map<String, String> helpIt = {
   "exerciseHelp.field.dialogue_line.lineMode.body":
       "Se lo studente legge la battuta, la ascolta o entrambe le cose.\n\nCosa inserire\nText and audio, Text only oppure Audio only. Audio only rende la battuta un passaggio di ascolto; quando l’audio non è disponibile viene mostrato il testo.\n\nControlli\nNessuno.\n\nEsempio\nText and audio",
   "exerciseHelp.field.dialogue_line.readAloud.body":
-      "Quando viene riprodotto l’audio della battuta.\n\nCosa inserire\nStory default (l’opzione Read-aloud del Round), Automatic (parte quando appare la battuta) oppure On request (lo studente tocca).\n\nControlli\nNessuno.\n\nEsempio\nStory default",
+      "Quando viene riprodotto l’audio della battuta.\n\nCosa inserire\nStory default (l’opzione Read-aloud del Round), Automatic (parte quando appare la battuta; Continue aspetta che la lettura sia finita) oppure On request (lo studente tocca).\n\nControlli\nNessuno.\n\nEsempio\nStory default",
   "exerciseHelp.field.dialogue_line.textReveal.body":
-      "Se il testo aspetta l’audio.\n\nCosa inserire\nImmediately, oppure After listening: il testo appare dopo che l’audio è stato riprodotto (solo con testo e audio).\n\nControlli\nNessuno.\n\nEsempio\nImmediately",
+      "Se il testo aspetta l’audio.\n\nCosa inserire\nImmediately (mentre la battuta si legge da sola, le parole si illuminano a turno), oppure After listening: il testo appare dopo che l’audio è stato riprodotto (solo con testo e audio).\n\nControlli\nNessuno.\n\nEsempio\nImmediately",
   "exerciseHelp.field.dialogue_line.language.body":
       "La lingua della battuta.\n\nCosa inserire\nLa lingua di chi parla (predefinita), oppure Target / Source per cambiarla solo in questa battuta.\n\nControlli\nNessuno.\n\nEsempio\nSpeaker’s",
   "exerciseHelp.field.before_you_start.prompt.body":

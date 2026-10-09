@@ -1,3 +1,36 @@
+# 2.0.69 (Build 269, Revision 0) - Story lines read aloud word by word - 2026-10-10
+
+Owner request and decisions of 10 October 2026.
+
+- **Word by word**: when a Story dialogue line reads itself aloud
+  (Automatic read-aloud, the learner's audio on), the whole line shows at
+  once, dimmer, and each word becomes bright in turn as the line is read.
+  Once every word is bright the line is ordinary text again (Word Lookup
+  works on it).
+- **Continue waits**: a line reading itself aloud greys out Continue until
+  it has been read, also an audio-only line and a line whose text shows
+  after listening.
+- **The pace**: no voice tells QQL which word it is saying, so the words
+  follow a pace set by the line's length (the owner's idea). It starts at a
+  usual speaking speed and follows the voices of the device: each line
+  whose voice reports its end is measured, for as long as the app runs;
+  nothing is stored. When the voice ends, the words still dim brighten at
+  once and Continue is usable; if the words are all bright first, Continue
+  waits for the voice. A voice that returns at once (some systems do not
+  wait for speech) leaves the line to the estimated time.
+- **Unchanged**: lines that are not spoken (text only, or the learner's
+  audio off) show at once with Continue usable; a tap on Play (read-aloud
+  On request, or a replay) changes nothing; with Animations off or reduced
+  motion the line shows whole, and Continue still waits for the voice; a
+  voice that fails shows the line and frees Continue, with the usual
+  message. Continue is never held for more than five seconds by a voice
+  that does not start.
+- Help EN/IT/ES: Dialogue line, its Read-aloud and Text reveal fields.
+- Tests: `test/spoken_lines_269_test.dart`; `test/story_runtime_256_test.dart`
+  waits for Continue on lines that read themselves aloud.
+- Scoring, progression, Course files and learner data are unchanged. Beta
+  expiry `2026-11-09 23:59:59` local time.
+
 # 2.0.68 (Build 268, Revision 0) - two-sided Flashcards - 2026-10-09
 
 Owner report and decisions of 9 October 2026 (the mock-up of five cards;

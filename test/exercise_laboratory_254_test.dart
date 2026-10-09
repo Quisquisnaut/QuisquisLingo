@@ -472,6 +472,18 @@ Future<void> _answer(
       kind == LearnerExerciseKind.storyCover) {
     // A line or a cover is read (or heard) and continued (Build 256
     // Revision 5); it is never skipped and never scored.
+    if (kind == LearnerExerciseKind.dialogueLine) {
+      // A line reading itself aloud holds Continue until it has been read
+      // (Build 269 Revision 0): its time passes on the test's clock.
+      final line = find.byKey(const Key('story-line-continue'));
+      for (
+        var i = 0;
+        i < 300 && tester.widget<FilledButton>(line).onPressed == null;
+        i++
+      ) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+    }
     await _tap(
       tester,
       find.byKey(

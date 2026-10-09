@@ -216,6 +216,20 @@ Future<void> _tap(WidgetTester tester, Finder finder) async {
   await tester.pumpAndSettle();
 }
 
+/// A line's Continue that can be pressed: a line reading itself aloud holds
+/// it until the line has been read (Build 269 Revision 0).
+final _lineContinueEnabled = find.byWidgetPredicate(
+  (widget) =>
+      widget is FilledButton &&
+      widget.key == const Key('story-line-continue') &&
+      widget.onPressed != null,
+);
+
+Future<void> _continueLine(WidgetTester tester) async {
+  await _until(tester, _lineContinueEnabled);
+  await _tap(tester, find.byKey(const Key('story-line-continue')));
+}
+
 Future<_Speech> _pump(
   WidgetTester tester,
   LearningRound round, {
@@ -284,7 +298,7 @@ void main() {
     expect(speech.spoken.single.text, 'Anna walks into the café.');
     expect(speech.spoken.single.language.toLowerCase(), startsWith('en'));
     expect(speech.spoken.single.voice, isNull);
-    await _tap(tester, find.byKey(const Key('story-line-continue')));
+    await _continueLine(tester);
 
     // Anna's line waits for the audio: on request, then the text appears,
     // spoken in the target language with the female voice.
@@ -321,9 +335,17 @@ void main() {
 
     // The audio-only line shows no text while it is active; the log shows
     // its transcript afterwards. The cover and every line are in the log.
+    // It reads itself aloud, so Continue waits until it has been read
+    // (Build 269 Revision 0).
     await _until(tester, find.text('Listen…'));
     expect(find.text('Grazie.'), findsNothing);
-    await _tap(tester, find.byKey(const Key('story-line-continue')));
+    expect(
+      tester
+          .widget<FilledButton>(find.byKey(const Key('story-line-continue')))
+          .onPressed,
+      isNull,
+    );
+    await _continueLine(tester);
     await _until(tester, find.text('What did Anna order?'));
     expect(find.text('Grazie.'), findsOneWidget);
     expect(find.text('Story · 6 steps'), findsOneWidget);
@@ -348,12 +370,9 @@ void main() {
   testWidgets('the full log keeps the exercises too', (tester) async {
     await _pump(tester, _story(log: FlowLog.all), preview: true);
     await _tap(tester, find.byKey(const Key('story-cover-continue')));
-    await _until(tester, find.byKey(const Key('story-line-continue')));
-    await _tap(tester, find.byKey(const Key('story-line-continue')));
-    await _until(tester, find.byKey(const Key('story-line-continue')));
-    await _tap(tester, find.byKey(const Key('story-line-continue')));
-    await _until(tester, find.byKey(const Key('story-line-continue')));
-    await _tap(tester, find.byKey(const Key('story-line-continue')));
+    await _continueLine(tester);
+    await _continueLine(tester);
+    await _continueLine(tester);
     await _until(tester, find.text('What did Anna order?'));
     await _tap(tester, find.widgetWithText(FilledButton, 'Right q1'));
     await _tap(tester, find.widgetWithText(FilledButton, 'Continue'));
