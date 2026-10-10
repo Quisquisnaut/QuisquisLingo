@@ -46,6 +46,11 @@ const learnerPanelPt = <String, String>{
   'turnOver': 'Virar',
   'tapToTurn': 'Toque no cartão para o virar',
   'linkNotOpened': 'Não foi possível abrir o link.',
+  'linkAskTitle': 'Abrir este link?',
+  'linkAskBody':
+      'Esta página leva a {site}. Abre-se no navegador, fora do QuisquisLingo:',
+  'linkAskOpen': 'Abrir link',
+  'linkAskCancel': 'Cancelar',
   'empty': 'Vazio',
   'nothingHereYet': 'Ainda nada aqui',
   'slotNumber': 'Espaço {n}',

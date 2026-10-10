@@ -62,6 +62,7 @@ import '../widgets/learner_theme_mode_scope.dart';
 import '../widgets/welcome_wizard_dialog.dart';
 import '../localization/locale_service.dart';
 import '../widgets/reported_action.dart';
+import '../services/update_reminder.dart';
 
 part 'course_preview_screen.dart';
 
@@ -432,6 +433,22 @@ class _HomeScreenState extends State<HomeScreen> {
     if (mounted) await _showBetaLifecycleNotice();
     // The start-up dialogs come first; the update notice follows them.
     if (mounted) _scheduleUpdateNotice();
+    if (mounted) await _maybeShowUpdateReminder();
+  }
+
+  /// Android (Build 270 Revision 10): every two weeks, check for a newer
+  /// QuisquisLingo, since QQL does not go online there.
+  Future<void> _maybeShowUpdateReminder() async {
+    try {
+      final reminder = UpdateReminder(profiles: _profiles);
+      if (!await reminder.dueForActiveLearner() || !mounted) return;
+      // Recorded first so an outside tap never repeats it at once.
+      await reminder.markShown();
+      if (!mounted) return;
+      await UpdateReminder.show(context);
+    } catch (_) {
+      // The reminder is optional and must never disturb the Home screen.
+    }
   }
 
   Future<void> _showWelcomeWizard() async {

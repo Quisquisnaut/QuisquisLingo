@@ -344,3 +344,28 @@ Owner decisions of 10 October 2026 (see the handoff).
 - Test fixture: `move_private_storage_255_test` builds its earlier layout
   with the shared folder refused, so the backups keep their own folders as
   earlier builds wrote them.
+
+## Revision 10 (2.0.70+270010): the Course Wizard names unsaved steps; Android update reminders; Page links ask first
+
+Owner decisions of 10 October 2026 (see the handoff).
+
+- Course Wizard (`course_wizard_screen.dart`): the five staging sites call
+  `_stageChange`, which records the step shown in `_changedSteps` (cleared
+  by the first change after a save, since a save confirms the whole working
+  copy); `_unsavedSteps` adds the step shown when its fields differ from the
+  working copy or cannot be staged, or when nothing else is listed; the
+  leave dialog lists them in step order (`course-wizard-leave-step-<n>`).
+- `UpdateReminder` (`lib/services/update_reminder.dart`): `applies` (Android;
+  a test seam), `interval` 14 days, learner key `update_reminder_last_shown`
+  (the first call records the date and shows nothing), `markShown`, `show`
+  (`update-reminder`). `main.dart`'s startup check returns at once where it
+  applies (the release manifest has no INTERNET permission, so it always
+  failed); Home's `_showStartupNotices` ends with `_maybeShowUpdateReminder`;
+  the Update page (`_android`) retitles the switch (`update-automatic`) and
+  hides Last checked and Check for updates.
+- `RoundScreen._openPageLink` asks first (`_confirmPageLink`,
+  `page-link-confirm`); learner panel keys `linkAskTitle`, `linkAskBody`,
+  `linkAskOpen`, `linkAskCancel` in seven languages.
+- Help EN/IT/ES: `deviceAdminHelp.updates.paragraph2`,
+  `editorHelp.qa.pageCards.a`. `docs/239_RESET_STORAGE_INVENTORY.md`: the
+  learner key.

@@ -46,6 +46,11 @@ const learnerPanelFr = <String, String>{
   'turnOver': 'Retourner',
   'tapToTurn': 'Touche la carte pour la retourner',
   'linkNotOpened': 'Impossible d’ouvrir le lien.',
+  'linkAskTitle': 'Ouvrir ce lien ?',
+  'linkAskBody':
+      'Cette page renvoie vers {site}. Le lien s’ouvre dans ton navigateur, hors de QuisquisLingo :',
+  'linkAskOpen': 'Ouvrir le lien',
+  'linkAskCancel': 'Annuler',
   'empty': 'Vide',
   'nothingHereYet': 'Rien pour l’instant',
   'slotNumber': 'Case {n}',

@@ -46,6 +46,11 @@ const learnerPanelNl = <String, String>{
   'turnOver': 'Omdraaien',
   'tapToTurn': 'Tik op de kaart om hem om te draaien',
   'linkNotOpened': 'De link kon niet worden geopend.',
+  'linkAskTitle': 'Deze link openen?',
+  'linkAskBody':
+      'Deze pagina verwijst naar {site}. De link opent in je browser, buiten QuisquisLingo:',
+  'linkAskOpen': 'Link openen',
+  'linkAskCancel': 'Annuleren',
   'empty': 'Leeg',
   'nothingHereYet': 'Nog niets',
   'slotNumber': 'Vak {n}',

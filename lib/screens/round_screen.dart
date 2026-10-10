@@ -4103,6 +4103,9 @@ class _RoundScreenState extends State<RoundScreen> {
     final uri = Uri.tryParse(url);
     var opened = false;
     if (uri != null && PageBlocks.isAcceptableLink(url)) {
+      // Build 270 Revision 10 (owner decision): ask first, showing the site
+      // and the whole address, since a Course's author chose the link.
+      if (!await _confirmPageLink(uri, url)) return;
       try {
         opened = await RoundScreen.openLink(uri);
       } catch (_) {
@@ -4117,6 +4120,42 @@ class _RoundScreenState extends State<RoundScreen> {
         ),
       );
     }
+  }
+
+  Future<bool> _confirmPageLink(Uri uri, String url) async {
+    final open = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        key: const Key('page-link-confirm'),
+        title: Text(_t('linkAskTitle')),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(_t('linkAskBody', {'site': uri.host})),
+            const SizedBox(height: 8),
+            SelectableText(
+              url,
+              key: const Key('page-link-confirm-address'),
+              style: Theme.of(dialogContext).textTheme.bodySmall,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            key: const Key('page-link-confirm-cancel'),
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: Text(_t('linkAskCancel')),
+          ),
+          FilledButton(
+            key: const Key('page-link-confirm-open'),
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: Text(_t('linkAskOpen')),
+          ),
+        ],
+      ),
+    );
+    return open == true && mounted;
   }
 
   /// A Story cover (Build 256 Revision 5): the Story's title, the cover

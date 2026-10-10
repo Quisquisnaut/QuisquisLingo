@@ -28,6 +28,7 @@ import 'services/storage/atomic_preferences_store.dart';
 import 'widgets/learner_data_notices.dart';
 import 'widgets/course_backup_notice.dart';
 import 'services/course_editor_service.dart';
+import 'services/update_reminder.dart';
 
 Future<void> main() async {
   StartupDiagnosticService.checkpoint('DART_MAIN_ENTER');
@@ -617,6 +618,9 @@ class _StartupUpdateCheckState extends State<_StartupUpdateCheck> {
   }
 
   Future<void> _checkForUpdateAtStartup() async {
+    // Android has no internet permission: its learners are reminded to
+    // check instead (Build 270 Revision 10, UpdateReminder).
+    if (UpdateReminder.applies()) return;
     final settings = SettingsService();
     if (!await settings.isAutomaticUpdateCheckEnabled()) return;
     final updates = UpdateService();

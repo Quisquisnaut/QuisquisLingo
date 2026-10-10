@@ -238,3 +238,22 @@ Not tried by hand: stopping speech on leaving a Round on Windows and Linux.
 - `flutter analyze`: no issues.
 - Complete suite: **4,134 passed, 1 skipped**, 36:58 (10 October 2026,
   11:30–12:07).
+
+## Revision 10 (2.0.70+270010), the Course Wizard names unsaved steps; Android update reminders; Page links ask first
+
+- New test: `test/update_reminder_270_test.dart` (4: nothing right after
+  install, then every two weeks per learner; never on other systems or with
+  the setting off; the reminder dialog; on Android the Update page has the
+  reminder and no check, elsewhere the check).
+- New cases: `course_wizard_267_test` (the leave dialog names Step 1 and
+  Step 3 after a change on each, not Step 2; the earlier leave case names
+  Step 3), `page_card_258_test` (the link asks first, naming example.org and
+  showing the address; Cancel opens nothing, Open opens it).
+- Related files (the Course Wizard, the learner panel catalogs, Page cards
+  and sharing, settings corrections, start-up logging, update notices,
+  leaderboard navigation, Course trust, the Welcome Wizard): all passed
+  (44, 100 and 4 in three runs; the new Wizard case first tapped the step
+  bar's Step 1 while it was scrolled out of view, fixed in the test).
+- `flutter analyze`: no issues.
+- Complete suite: **4,139 passed, 1 skipped**, 35:26 (10 October 2026,
+  12:15–12:50).

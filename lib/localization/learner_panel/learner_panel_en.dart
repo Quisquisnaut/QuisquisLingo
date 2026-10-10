@@ -46,6 +46,11 @@ const learnerPanelEn = <String, String>{
   'turnOver': 'Turn over',
   'tapToTurn': 'Tap the card to turn it over',
   'linkNotOpened': 'The link could not be opened.',
+  'linkAskTitle': 'Open this link?',
+  'linkAskBody':
+      'This page links to {site}. It opens in your browser, outside QuisquisLingo:',
+  'linkAskOpen': 'Open link',
+  'linkAskCancel': 'Cancel',
   'empty': 'Empty',
   'nothingHereYet': 'Nothing here yet',
   'slotNumber': 'Slot {n}',

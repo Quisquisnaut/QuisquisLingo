@@ -1,3 +1,25 @@
+# 2.0.70 (Build 270, Revision 10) - the Course Wizard names unsaved steps; Android update reminders; Page links ask first - 2026-10-10
+
+Owner decisions of 10 October 2026; the last revision of the audit's fix
+plan.
+
+- **Leaving the Course Wizard names the steps**: the dialog lists every
+  step whose changes Leave without saving would lose ("• Step 3: About the
+  Course"). Before, it said "This step has changes" even when changes made
+  on earlier steps, left with the step bar, would be lost too.
+- **Android: a reminder instead of an update check**: Android builds have no
+  internet permission, so the automatic update check always failed in
+  silence. QQL no longer tries there: every two weeks each learner is
+  reminded to check for a newer QuisquisLingo where they got it (the first
+  time two weeks after their first start). On Android the Update page's
+  switch reads "Remind me to check for a newer version" and turns the
+  reminder off for the device; the check button is gone there.
+- **Page links ask first**: a link on a Page opens a dialog naming the site
+  and showing the whole address; Cancel opens nothing. Before, a tap opened
+  the browser at once on an address the Course's author chose. The dialog
+  is in the learner panel's seven languages (six AI-written).
+- Help EN/IT/ES.
+
 # 2.0.70 (Build 270, Revision 9) - Course Backups share their media; older backups deleted on request - 2026-10-10
 
 Owner decisions of 10 October 2026 on the audit's backup findings.

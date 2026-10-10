@@ -46,6 +46,11 @@ const learnerPanelIt = <String, String>{
   'turnOver': 'Gira',
   'tapToTurn': 'Tocca la scheda per girarla',
   'linkNotOpened': 'Impossibile aprire il link.',
+  'linkAskTitle': 'Aprire questo link?',
+  'linkAskBody':
+      'Questa pagina rimanda a {site}. Si apre nel browser, fuori da QuisquisLingo:',
+  'linkAskOpen': 'Apri il link',
+  'linkAskCancel': 'Annulla',
   'empty': 'Vuoto',
   'nothingHereYet': 'Ancora niente',
   'slotNumber': 'Casella {n}',

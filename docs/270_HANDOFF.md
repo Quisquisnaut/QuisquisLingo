@@ -206,7 +206,7 @@ a message, a Diagnostic Log entry). Draft in the scratchpad:
 
 State: done. Tests 11 new, 3 new cases, 1 fixture updated; related 215
 passed; analyzer clean; complete suite 4,134 passed, 1 skipped (11:30–12:07). Committed on
-`build-270` and the branch pushed.
+`build-270` as `3424a1b5` and the branch pushed.
 
 Owner decisions the same morning (after Revision 8's commit `797a80e7`):
 an optional purge of older backups, keeping the newest N (5, 10, 20, 50),
@@ -222,3 +222,19 @@ reminder at most every 14 days, "Check for a newer QuisquisLingo"; Page
 links ask first, showing the site and the address). Then the read-only
 modularization audit (rule: no physical file split unless an extracted,
 testable owner comes first).
+
+## Revision 10 (2.0.70+270010), the Course Wizard names unsaved steps; Android update reminders; Page links ask first
+
+State: done. Tests 4 new, 3 new cases; analyzer clean; complete suite
+4,139 passed, 1 skipped (12:15–12:50). Committed on `build-270` and the branch pushed. The audit's
+fix plan is complete (`docs/270_AUDIT.md`, Fix progress).
+
+Found while preparing it: the release Android manifest already had no
+INTERNET permission (only the debug and profile manifests have it, for
+Flutter's tooling), so the Android update check had always failed in
+silence; now it is not attempted there.
+
+Next (agreed with the owner): a read-only modularization audit, report
+only, with the owner's rule that no file is split physically unless an
+extracted, testable owner comes first. Merging `build-270` into `main` and
+pushing `main` wait for the owner's go.

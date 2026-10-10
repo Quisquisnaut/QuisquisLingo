@@ -592,6 +592,40 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
     CourseWizardStep.check => false,
   };
 
+  /// The steps whose changes were staged since the last save (Build 270
+  /// Revision 10): the leave dialog names them.
+  final _changedSteps = <CourseWizardStep>{};
+
+  /// Stages [course] in the working copy as a change of the step shown. A
+  /// save confirms the whole working copy, so the first change after one
+  /// starts a new list.
+  void _stageChange(Course course) {
+    final session = _session!;
+    if (!session.hasChanges) _changedSteps.clear();
+    session.stageCourse(course);
+    _changedSteps.add(_step);
+  }
+
+  /// The steps whose changes Leave without saving would lose, in order: the
+  /// staged ones, and the step shown when it holds a change of its own.
+  List<CourseWizardStep> get _unsavedSteps {
+    final session = _session;
+    if (session == null) return const [];
+    final steps = <CourseWizardStep>{if (session.hasChanges) ..._changedSteps};
+    var shownChanged = _problem != null;
+    if (!shownChanged) {
+      try {
+        shownChanged =
+            jsonEncode(_candidate().toJson()) != jsonEncode(_working.toJson());
+      } catch (_) {
+        shownChanged = true;
+      }
+    }
+    // A change this list did not see is still named by the step shown.
+    if (shownChanged || steps.isEmpty) steps.add(_step);
+    return steps.toList()..sort((a, b) => a.index.compareTo(b.index));
+  }
+
   /// Whether leaving now would lose something: a change not yet saved.
   bool get _unsaved {
     final session = _session;
@@ -629,7 +663,7 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
       return false;
     }
     if (jsonEncode(candidate.toJson()) != jsonEncode(_working.toJson())) {
-      _session!.stageCourse(candidate);
+      _stageChange(candidate);
     }
     return true;
   }
@@ -983,15 +1017,38 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
       await _run(() => _close(finish: false));
       return;
     }
+    final steps = _unsavedSteps;
     final choice = await showDialog<String>(
       context: context,
       builder: (dialogContext) => AlertDialog(
         key: const Key('course-wizard-leave'),
         title: const Text('Leave the Course Wizard?'),
-        content: const Text(
-          'This step has changes that are not saved yet. Save for now keeps '
-          'them; you can continue the Wizard later from the Course\'s ⋮ menu '
-          'in Course Studio.',
+        // Build 270 Revision 10 (owner decision): the steps whose changes
+        // would be lost.
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                steps.length == 1
+                    ? 'This step has changes that are not saved yet:'
+                    : 'These steps have changes that are not saved yet:',
+              ),
+              const SizedBox(height: 4),
+              for (final step in steps)
+                Text(
+                  '• Step ${step.number}: ${step.title}',
+                  key: Key('course-wizard-leave-step-${step.number}'),
+                ),
+              const SizedBox(height: 8),
+              const Text(
+                'Leave without saving loses them. Save for now keeps them; '
+                'you can continue the Wizard later from the Course\'s ⋮ menu '
+                'in Course Studio.',
+              ),
+            ],
+          ),
         ),
         actions: [
           TextButton(
@@ -1159,7 +1216,7 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
         case CourseWizardStep.rounds:
           final lesson = _currentLesson;
           if (lesson != null) {
-            _session!.stageCourse(
+            _stageChange(
               CourseWizardRounds.withRounds(
                 _working,
                 lesson.lessonId,
@@ -1221,7 +1278,7 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
   }) {
     final lesson = _currentLesson;
     if (lesson == null) return;
-    _session!.stageCourse(
+    _stageChange(
       CourseWizardGuidebook.withModules(
         _working,
         lesson.lessonId,
@@ -1425,7 +1482,7 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
     if (generated == null || generated.isEmpty || !mounted) return;
     final number = _shownLesson + 1;
     setState(() {
-      _session!.stageCourse(
+      _stageChange(
         CourseWizardRounds.withRounds(
           _working,
           lesson.lessonId,
@@ -3210,7 +3267,7 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
   /// Publish (plan §7): one confirmed save, what stays Draft listed.
   Future<void> _publish() => _run(() async {
     final result = CourseWizardPublish.publish(_working, now: _clock());
-    _session!.stageCourse(result.course);
+    _stageChange(result.course);
     if (!await _save()) return;
     if (!mounted) return;
     setState(() => _published = result);

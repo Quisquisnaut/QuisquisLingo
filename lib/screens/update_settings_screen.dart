@@ -5,6 +5,7 @@ import '../services/diagnostic_log_service.dart';
 import '../services/profile_service.dart';
 import '../services/settings_service.dart';
 import '../services/update_service.dart';
+import '../services/update_reminder.dart';
 
 class UpdateSettingsScreen extends StatefulWidget {
   final UpdateService? updateService;
@@ -28,6 +29,10 @@ class _UpdateSettingsScreenState extends State<UpdateSettingsScreen> {
   String _currentVersion = AppMetadata.technicalVersion;
   bool _automatic = true;
   bool _isAdmin = false;
+
+  /// Android has no internet permission: reminders instead of the check
+  /// (Build 270 Revision 10).
+  bool get _android => UpdateReminder.applies();
   DateTime? _lastChecked;
   bool _checking = false;
   UpdateCheckResult? _result;
@@ -166,33 +171,40 @@ class _UpdateSettingsScreenState extends State<UpdateSettingsScreen> {
           ),
           const Divider(),
           SwitchListTile(
-            title: const Text('Check automatically at startup'),
+            key: const Key('update-automatic'),
+            title: Text(
+              _android
+                  ? 'Remind me to check for a newer version'
+                  : 'Check automatically at startup',
+            ),
             subtitle: Text(
-              'When enabled, QuisquisLingo contacts only the official GitHub Releases API at startup. '
-              'No learner data, course data, credentials or analytics are sent. '
-              'Each learner is reminded about a new version at most once a day.'
+              '${_android ? 'On Android QuisquisLingo does not use the internet, so it cannot look for updates itself. When enabled, each learner is reminded every two weeks to check for a newer QuisquisLingo where they got it.' : 'When enabled, QuisquisLingo contacts only the official GitHub Releases API at startup. '
+                        'No learner data, course data, credentials or analytics are sent. '
+                        'Each learner is reminded about a new version at most once a day.'}'
               '${_isAdmin ? '' : '\n\nThis setting applies to the whole device and can be changed only by an admin (Settings > Advanced (Admin)).'}',
             ),
             value: _automatic,
             onChanged: _isAdmin ? _setAutomatic : null,
           ),
-          ListTile(
-            leading: const Icon(Icons.schedule_outlined),
-            title: const Text('Last checked'),
-            subtitle: Text(_formatLastChecked()),
-          ),
-          const SizedBox(height: 8),
-          FilledButton.icon(
-            onPressed: _checking ? null : _check,
-            icon: _checking
-                ? const SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(Icons.refresh),
-            label: Text(_checking ? 'Checking...' : 'Check for updates'),
-          ),
+          if (!_android) ...[
+            ListTile(
+              leading: const Icon(Icons.schedule_outlined),
+              title: const Text('Last checked'),
+              subtitle: Text(_formatLastChecked()),
+            ),
+            const SizedBox(height: 8),
+            FilledButton.icon(
+              onPressed: _checking ? null : _check,
+              icon: _checking
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.refresh),
+              label: Text(_checking ? 'Checking...' : 'Check for updates'),
+            ),
+          ],
           if (_error != null) ...[
             const SizedBox(height: 12),
             _StatusCard(

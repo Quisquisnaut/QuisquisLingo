@@ -373,6 +373,24 @@ void main() {
       await tester.ensureVisible(find.byKey(const ValueKey('page-link-4')));
       await tester.tap(find.byKey(const ValueKey('page-link-4')));
       await _frames(tester);
+      // Build 270 Revision 10: the link asks first, naming the site and the
+      // whole address; Cancel opens nothing.
+      expect(find.byKey(const Key('page-link-confirm')), findsOneWidget);
+      expect(
+        find.text(
+          'This page links to example.org. It opens in your browser, '
+          'outside QuisquisLingo:',
+        ),
+        findsOneWidget,
+      );
+      expect(find.text('https://example.org/v'), findsOneWidget);
+      await tester.tap(find.byKey(const Key('page-link-confirm-cancel')));
+      await _frames(tester);
+      expect(opened, isEmpty);
+      await tester.tap(find.byKey(const ValueKey('page-link-4')));
+      await _frames(tester);
+      await tester.tap(find.byKey(const Key('page-link-confirm-open')));
+      await _frames(tester);
       expect(opened, [Uri.parse('https://example.org/v')]);
       await tester.ensureVisible(find.byKey(const Key('page-continue')));
       await tester.tap(find.byKey(const Key('page-continue')));

@@ -46,6 +46,11 @@ const learnerPanelDe = <String, String>{
   'turnOver': 'Umdrehen',
   'tapToTurn': 'Tippe auf die Karte, um sie umzudrehen',
   'linkNotOpened': 'Der Link konnte nicht geöffnet werden.',
+  'linkAskTitle': 'Diesen Link öffnen?',
+  'linkAskBody':
+      'Diese Seite verweist auf {site}. Der Link öffnet sich in deinem Browser, außerhalb von QuisquisLingo:',
+  'linkAskOpen': 'Link öffnen',
+  'linkAskCancel': 'Abbrechen',
   'empty': 'Leer',
   'nothingHereYet': 'Noch nichts hier',
   'slotNumber': 'Feld {n}',

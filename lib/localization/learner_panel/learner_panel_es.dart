@@ -46,6 +46,11 @@ const learnerPanelEs = <String, String>{
   'turnOver': 'Dar la vuelta',
   'tapToTurn': 'Toca la tarjeta para darle la vuelta',
   'linkNotOpened': 'No se pudo abrir el enlace.',
+  'linkAskTitle': '¿Abrir este enlace?',
+  'linkAskBody':
+      'Esta página enlaza con {site}. Se abre en tu navegador, fuera de QuisquisLingo:',
+  'linkAskOpen': 'Abrir enlace',
+  'linkAskCancel': 'Cancelar',
   'empty': 'Vacío',
   'nothingHereYet': 'Aún no hay nada',
   'slotNumber': 'Hueco {n}',

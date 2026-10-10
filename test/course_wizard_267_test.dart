@@ -1211,6 +1211,8 @@ void main() {
     await tester.pageBack();
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('course-wizard-leave')), findsOneWidget);
+    // Build 270 Revision 10: the dialog names the step.
+    expect(find.text('• Step 3: About the Course'), findsOneWidget);
     await tester.tap(find.byKey(const Key('course-wizard-leave-discard')));
     await tester.pumpUntilFileIoState(
       () => find.byType(CourseWizardScreen).evaluate().isEmpty,
@@ -1228,6 +1230,67 @@ void main() {
       ))!.step,
       CourseWizardStep.about,
     );
+  });
+
+  testWidgets('the leave dialog names every step whose changes would be '
+      'lost (Build 270 Revision 10)', (tester) async {
+    tester.view.physicalSize = const Size(1000, 1600);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final stored = (await tester.runAsync(() => _store(_wizardCourse())))!;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Builder(
+            builder: (context) => TextButton(
+              onPressed: () => Navigator.of(context).push<CourseWizardOutcome>(
+                MaterialPageRoute(
+                  builder: (_) => CourseWizardScreen(
+                    course: stored,
+                    access: CourseAccessPolicy.evaluate(
+                      stored,
+                      profileId: _profileId,
+                    ),
+                    pause: CourseWizardPause(
+                      step: CourseWizardStep.about,
+                      savedAtUtc: DateTime.utc(2026, 10, 8),
+                    ),
+                  ),
+                ),
+              ),
+              child: const Text('open'),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      _field('Course description (optional)'),
+      'Coffee first.',
+    );
+    // The step bar moves without saving: About keeps its change staged.
+    final basics = find.byKey(const ValueKey('course-wizard-step-1'));
+    await tester.ensureVisible(basics);
+    await tester.pumpAndSettle();
+    await tester.tap(basics);
+    await tester.pumpAndSettle();
+    await tester.enterText(_field('Course title *'), 'Coffee Italian');
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('course-wizard-leave')), findsOneWidget);
+    expect(
+      find.text('These steps have changes that are not saved yet:'),
+      findsOneWidget,
+    );
+    expect(find.text('• Step 1: Basics'), findsOneWidget);
+    expect(find.text('• Step 3: About the Course'), findsOneWidget);
+    expect(find.textContaining('• Step 2'), findsNothing);
+    await tester.tap(find.text('Keep working'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('course-wizard-leave')), findsNothing);
   });
 
   testWidgets('the GuideBook step adds, moves and removes modules', (
