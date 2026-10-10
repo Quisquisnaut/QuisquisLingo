@@ -186,6 +186,14 @@ class ProfileService {
 
   static void beginAccessSession() => _sessionUnlockedProfileIds.clear();
 
+  /// Build 270 Revision 1: only the active learner is unlocked. A learner
+  /// left with a switch must give their Access PIN again, so nothing that
+  /// sets the active learner afterwards (a restore) can bring them back
+  /// without it.
+  static void _unlockOnly(String learnerProfileId) => _sessionUnlockedProfileIds
+    ..clear()
+    ..add(learnerProfileId);
+
   /// Per-learner credentials that are never carried in a backup file: they are
   /// excluded from export, refused on import, and preserved across a restore
   /// that replaces the rest of the learner's namespace.
@@ -448,7 +456,7 @@ class ProfileService {
       [...profiles, profile].map((value) => value.encode()).toList(),
     );
     await prefs.setString(activeProfileIdKey, id);
-    _sessionUnlockedProfileIds.add(id);
+    _unlockOnly(id);
     final admins = await getAdminProfileIds();
     if (admins.isEmpty) {
       await prefs.setStringList(adminProfileIdsKey, [id]);
@@ -549,7 +557,7 @@ class ProfileService {
       activeProfileIdKey,
       learnerProfileId,
     );
-    _sessionUnlockedProfileIds.add(learnerProfileId);
+    _unlockOnly(learnerProfileId);
     LearnerStatusEvents.publish(LearnerStatusInvalidation.activeProfile);
   }
 
@@ -630,7 +638,7 @@ class ProfileService {
           activeProfileIdKey,
           remaining.first.learnerProfileId,
         );
-        _sessionUnlockedProfileIds.add(remaining.first.learnerProfileId);
+        _unlockOnly(remaining.first.learnerProfileId);
       }
     }
     LearnerStatusEvents.publish(LearnerStatusInvalidation.activeProfile);

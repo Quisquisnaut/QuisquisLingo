@@ -1,3 +1,27 @@
+# 2.0.70 (Build 270, Revision 1) - a PIN that is set stays a PIN - 2026-10-10
+
+Audit item 2, within the owner's threat model (10 October 2026): QQL's PINs
+stop easy unauthorized access in the app; they are not meant to resist
+someone with the device's files or hand-crafted files.
+
+- **Switching learners locks the learner left**: before, a learner who had
+  given their Access PIN stayed unlocked for the rest of the session after a
+  switch, so anything that later made them the active learner skipped the
+  PIN. Now only the active learner is unlocked.
+- **Replace existing asks for the PIN**: restoring a learner backup over
+  another learner who has an Access PIN (Profile › User Data › Restore ›
+  Replace existing) asks for that learner's PIN; without it nothing is
+  replaced. Replacing your own data, a learner without a PIN, or restoring a
+  learner new to the device works as before.
+- **A restore no longer makes a learner active behind the PIN**: the
+  restored learner becomes active the way a switch does.
+- Deliberately unchanged (owner): the Access PIN stays optional, there is no
+  attempt limit, and backups or Recovery Keys may still bring a learner
+  identity onto the device.
+- Tests: `test/learner_separation_270_test.dart`.
+- Scoring, progression, Course files and learner data are unchanged. Beta
+  expiry `2026-11-09 23:59:59` local time.
+
 # 2.0.70 (Build 270, Revision 0) - learner data that survives a bad write - 2026-10-10
 
 Audit of 10 October 2026 (`docs/270_AUDIT.md`), first of the fixes in the

@@ -38,3 +38,24 @@
 
 Not checked: the Linux runner (no Linux build on this PC); Android, iOS and
 macOS are unchanged (their preference stores already write atomically).
+
+## Revision 1 (2.0.70+270001), a PIN that is set stays a PIN
+
+- New tests: `test/learner_separation_270_test.dart` (4: a learner left with
+  a switch is locked again; Replace existing over another learner with a PIN
+  refuses no PIN and a wrong PIN and changes nothing, then works with the
+  PIN and makes that learner active; your own data without your PIN; a
+  learner without a PIN and one new to the device).
+- Related files: `learner_profile_identity_test`,
+  `qql_233_revision_profile_security_test`, `qql_233_user_recovery_key_test`,
+  `qql_229_revision2_test`, `file_dialogs_240_features_test` (80 passed with
+  the new file); `profile_navigation_test`, `device_administration_239_test`,
+  `startup_profile_gate_test`, `learner_status_controller_test`,
+  `app_reset_service_239_test`, `learner_organization_229_test` (86 passed).
+- `flutter analyze`: no issues.
+- Complete suite: **4,075 passed, 1 skipped**, 33:33 (10 October 2026,
+  03:58–04:32).
+
+Not covered by a widget test: the PIN dialog in Profile › User Data (the
+restore flow reads files through Quick Import or the system dialog); the
+service refuses the replacement without the PIN whatever the screen does.

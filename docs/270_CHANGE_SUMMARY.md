@@ -66,3 +66,29 @@ Known limits: the Linux runner change could not be built on this Windows
 PC. A learner deleted after the last start-up stays in the last good copy
 until the next start-up refreshes it (only Wipe everything removes the
 copies at once).
+
+## Revision 1 (2.0.70+270001): a PIN that is set stays a PIN
+
+Audit item 2 (High), fixed within the owner's threat model. A learner who
+gave their Access PIN stayed unlocked for the whole session even after a
+switch (`ProfileService._sessionUnlockedProfileIds` was only cleared by Log
+out), and Restore › Replace existing wrote the active learner directly. So a
+child could restore a backup naming the parent after the parent had switched
+to the child: the parent's data was replaced and the child was the parent,
+without the PIN.
+
+- `ProfileService._unlockOnly`: creating a learner, switching
+  (`setActiveProfileById`) and the fallback after deleting the active
+  learner unlock only the new active learner.
+- `LearnerBackupService.replacingNeedsPin` (on the device, has a PIN, not
+  active) and `restorePreservingIdentity(accessPin:)`: replacing such a
+  learner needs their PIN (`ProfilePinException` otherwise, before anything
+  is written); the restored learner becomes active through
+  `setActiveProfileById`, never by writing the active-learner key.
+- Profile › User Data asks for the PIN (`learner-import-replace-pin`) before
+  Replace existing over another learner with a PIN; Cancel replaces nothing.
+
+Deliberately unchanged (owner, 10 October 2026): the PIN stays optional for
+every learner, admins included; no attempt limit; backups and Recovery Keys
+may still bring a learner identity onto the device; admin actions keep their
+current confirmations.

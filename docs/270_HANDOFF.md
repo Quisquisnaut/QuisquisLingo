@@ -43,7 +43,7 @@ against the owner's learner data (one instance, the Diagnostic Log moved,
 the last good copy written, an emptied and a cut off file recovered with the
 dialog alone, test files removed; the owner's earlier file is in the session
 scratchpad `appdata_before_270`); complete suite 4,071 passed, 1 skipped
-(03:18–03:52). Committed on `build-270` (hash in the next handoff update) and
+(03:18–03:52). Committed on `build-270` as `ae49bd5e` and
 the branch pushed.
 
 Gotchas:
@@ -55,3 +55,23 @@ Gotchas:
   still a preference would loop; `LearnerDataNotices` checks
   `DiagnosticLogService.logFile` first.
 - D: has about 2.6 GB free (test temp); C: about 25 GB.
+
+## Revision 1 (2.0.70+270001), a PIN that is set stays a PIN
+
+State: done. `ProfileService._unlockOnly`; `LearnerBackupService`
+`replacingNeedsPin` / `restorePreservingIdentity(accessPin:)`; the PIN
+dialog in User Data. Tests 4 new; related 166 passed; analyzer clean;
+complete suite 4,075 passed, 1 skipped (03:58–04:32). Committed on
+`build-270` and the branch pushed.
+
+Next: Revision 2. Drafts ready in the session scratchpad
+(`patch_270002_xp.py`, `patch_270002_audio.py`,
+`patch_270002_backends.py`, `week_xp_270_test.dart`,
+`spoken_lines_270_group.dart` + `_helpers.dart` to append to
+`test/spoken_lines_269_test.dart`): calendar week keys and a crash- and
+race-safe rollover and `addXp` in `XpService`; the line ceiling
+(`RoundScreen._lineCeiling`, twice the estimate + 5 s), Play disabled while
+a line reads itself aloud or a tap plays, no reveal or SnackBar for a line
+already left, audio stopped on leaving a Round
+(`RecordedAudioService.stopAll`, `stopWindowsTts`, `stopLinuxTts` with time
+limits and absolute PATH entries).

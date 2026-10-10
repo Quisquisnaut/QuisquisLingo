@@ -355,9 +355,19 @@ class _UserDataSettingsScreenState extends State<UserDataSettingsScreen> {
         );
         name = profile.displayName;
       } else {
+        // Build 270 Revision 1: another learner's data, protected by their
+        // Access PIN, is replaced only with that PIN.
+        String? pin;
+        if (action == _LearnerImportAction.replace &&
+            await _backup.replacingNeedsPin(document.learnerProfileId)) {
+          if (!mounted) return;
+          pin = await _askAccessPin(document.displayName);
+          if (pin == null || !mounted) return;
+        }
         final profile = await _backup.restorePreservingIdentity(
           document,
           replaceExisting: action == _LearnerImportAction.replace,
+          accessPin: pin,
         );
         name = profile.displayName;
       }
@@ -381,6 +391,49 @@ class _UserDataSettingsScreenState extends State<UserDataSettingsScreen> {
 
   Future<bool> _profileIdExists(String learnerProfileId) async =>
       await _backup.profileExists(learnerProfileId);
+
+  Future<String?> _askAccessPin(String displayName) {
+    var entered = '';
+    return showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        key: const Key('learner-import-replace-pin'),
+        title: const Text('Enter Access PIN'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '$displayName has an Access PIN. Enter it to replace their '
+              'learner data on this device.',
+            ),
+            TextFormField(
+              key: const Key('learner-import-replace-pin-field'),
+              onChanged: (value) => entered = value,
+              autofocus: true,
+              obscureText: true,
+              keyboardType: TextInputType.number,
+              maxLength: 4,
+              decoration: const InputDecoration(
+                labelText: '4-digit Access PIN',
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            key: const Key('learner-import-replace-pin-ok'),
+            onPressed: () => Navigator.pop(ctx, entered),
+            child: const Text('Replace'),
+          ),
+        ],
+      ),
+    );
+  }
 
   Future<_LearnerImportAction?> _chooseImportAction(
     String displayName,

@@ -317,13 +317,36 @@ class LearnerBackupService {
   Future<bool> profileExists(String learnerProfileId) async =>
       await _profiles.getProfileById(learnerProfileId) != null;
 
+  /// Whether replacing the learner [learnerProfileId] needs their Access PIN:
+  /// they are on this device, have a PIN and are not the active learner.
+  Future<bool> replacingNeedsPin(String learnerProfileId) async =>
+      await _profiles.getProfileById(learnerProfileId) != null &&
+      await _profiles.getActiveProfileId() != learnerProfileId &&
+      await _profiles.hasAccessPin(learnerProfileId);
+
+  /// Build 270 Revision 1: replacing another learner who has an Access PIN
+  /// needs that PIN ([accessPin]), and the restored learner becomes active
+  /// only as a switch would make them (with the PIN), never by writing the
+  /// active learner directly.
   Future<LearnerProfile> restorePreservingIdentity(
     LearnerBackupDocument document, {
     bool replaceExisting = false,
+    String? accessPin,
   }) async {
     final existing = await _profiles.getProfileById(document.learnerProfileId);
     if (existing != null && !replaceExisting) {
       throw LearnerBackupIdentityCollision(document.learnerProfileId);
+    }
+    final activeBefore = await _profiles.getActiveProfileId();
+    if (await replacingNeedsPin(document.learnerProfileId) &&
+        !await _profiles.verifyAccessPin(
+          document.learnerProfileId,
+          accessPin ?? '',
+        )) {
+      throw ProfilePinException(
+        'The Access PIN of ${existing!.displayName} is needed to replace '
+        'their learner data.',
+      );
     }
     final profile = LearnerProfile(
       learnerProfileId: document.learnerProfileId,
@@ -340,11 +363,12 @@ class LearnerBackupService {
         profile.learnerProfileId,
         document.data,
       );
-      await _writeVerified(
-        preferences,
-        ProfileService.activeProfileIdKey,
-        profile.learnerProfileId,
-      );
+      if (activeBefore != profile.learnerProfileId) {
+        await _profiles.setActiveProfileById(
+          profile.learnerProfileId,
+          accessPin: accessPin,
+        );
+      }
       LearnerStatusEvents.publish(LearnerStatusInvalidation.activeProfile);
       return profile;
     } catch (error, stackTrace) {
