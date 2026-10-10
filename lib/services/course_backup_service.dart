@@ -72,6 +72,12 @@ class CourseBackupService {
   static const backupFormat = 'QuisquisLingo Course Backup v12';
   static const earlierBackupFormat = 'QuisquisLingo Course Backup v11';
 
+  /// Build 270 Revision 9 (owner decision of 10 October 2026): the folder,
+  /// beside a Course's backups, holding each picture and recording once for
+  /// all its saved versions. Earlier backups keep their own `…_assets`
+  /// folders, which stay as they are.
+  static const sharedMediaFolderName = 'QQL_media';
+
   /// Build 270 Revision 3: a manifest holds one Course (at most 10 MB) with
   /// its indented copy and a few fields; anything larger is not a backup.
   static const maxManifestBytes = 16 * 1024 * 1024;
@@ -210,6 +216,17 @@ class CourseBackupService {
     }
   }
 
+  /// Whether [file] exists and holds the bytes of [digest]; false when it
+  /// cannot be read.
+  static Future<bool> _holds(File file, String digest) async {
+    try {
+      return await file.exists() &&
+          sha256.convert(await file.readAsBytes()).toString() == digest;
+    } on FileSystemException {
+      return false;
+    }
+  }
+
   Future<void> _write(File file, List<int> bytes) async {
     final writer = _fileWriter;
     if (writer != null) {
@@ -255,7 +272,7 @@ class CourseBackupService {
     final references = CourseMediaStore.referencesOf(course).toList()..sort();
     if (references.isNotEmpty) {
       final assetsDirectory = Directory(
-        '${directory.path}${Platform.pathSeparator}${manifest.uri.pathSegments.last.replaceAll('.json', '')}_assets',
+        '${directory.path}${Platform.pathSeparator}$sharedMediaFolderName',
       );
       await assetsDirectory.create(recursive: true);
       for (final reference in references) {
@@ -282,16 +299,33 @@ class CourseBackupService {
         final target = File(
           '${assetsDirectory.path}${Platform.pathSeparator}$backupName',
         );
-        await _write(target, bytes);
-        if (sha256.convert(await target.readAsBytes()).toString() != digest) {
-          throw StateError(
-            'A course-owned backup asset could not be verified.',
-          );
+        // Kept once: an earlier version already holds the same bytes. A file
+        // this installation may not read or replace (Android keeps a file
+        // with the installation that wrote it) goes to a folder of this
+        // version's own, as before Build 270 Revision 9.
+        var folder = assetsDirectory;
+        var copy = target;
+        if (!await _holds(target, digest)) {
+          try {
+            await _write(target, bytes);
+          } on FileSystemException {
+            folder = Directory(
+              '${directory.path}${Platform.pathSeparator}${manifest.uri.pathSegments.last.replaceAll('.json', '')}_assets',
+            );
+            await folder.create(recursive: true);
+            copy = File('${folder.path}${Platform.pathSeparator}$backupName');
+            await _write(copy, bytes);
+          }
+          if (!await _holds(copy, digest)) {
+            throw StateError(
+              'A course-owned backup asset could not be verified.',
+            );
+          }
         }
         assetRecords.add({
           'reference': reference,
           'backupRelativePath':
-              '${assetsDirectory.path.substring(directory.path.length + 1)}/$backupName',
+              '${folder.path.substring(directory.path.length + 1)}/$backupName',
           'sha256': digest,
         });
       }
@@ -433,6 +467,89 @@ class CourseBackupService {
       reason: '${manifest['reason'] ?? ''}',
       assets: assets,
     );
+  }
+
+  /// The readable backups of [courseId] beyond the newest [keep], oldest
+  /// last (Build 270 Revision 9). Files QQL cannot read are never counted,
+  /// so they are never offered for deletion.
+  Future<List<CourseBackupRecord>> olderThanNewest(
+    String courseId,
+    int keep,
+  ) async {
+    final records = await listBackups(courseId, skipped: <String>[]);
+    return records.length <= keep ? const [] : records.sublist(keep);
+  }
+
+  /// Deletes [records] (backups of [courseId] the learner agreed to delete,
+  /// Build 270 Revision 9): each manifest and the media folder of its own
+  /// that earlier builds wrote beside it, then the shared media no backup
+  /// left names ([removeOrphanMedia]). Returns how many backups went.
+  Future<int> deleteBackups(
+    String courseId,
+    List<CourseBackupRecord> records,
+  ) async {
+    final directory = await courseBackupDirectory(courseId);
+    var deleted = 0;
+    for (final record in records) {
+      final manifest = record.manifestFile;
+      _requireChildPath(directory, manifest);
+      final name = manifest.uri.pathSegments.last;
+      final own = Directory(
+        '${directory.path}${Platform.pathSeparator}'
+        '${name.substring(0, name.length - '.json'.length)}_assets',
+      );
+      if (await manifest.exists()) await manifest.delete();
+      if (await own.exists()) await own.delete(recursive: true);
+      deleted++;
+    }
+    await removeOrphanMedia(directory);
+    return deleted;
+  }
+
+  /// Removes the files of [directory]'s shared media folder that no backup
+  /// manifest there names any more (Build 270 Revision 9, owner decision:
+  /// only after older backups are deleted, the one time QQL leaves media
+  /// unused; files left by a manifest deleted by hand or a backup that
+  /// failed halfway go too). Nothing is removed when a manifest cannot be
+  /// read: its media might be among them. Never throws: the backups the
+  /// learner deleted stay deleted.
+  Future<int> removeOrphanMedia(Directory directory) async {
+    try {
+      final shared = Directory(
+        '${directory.path}${Platform.pathSeparator}$sharedMediaFolderName',
+      );
+      if (!await shared.exists()) return 0;
+      final named = <String>{};
+      await for (final entity in directory.list(followLinks: false)) {
+        if (entity is! File || !entity.path.toLowerCase().endsWith('.json')) {
+          continue;
+        }
+        if (await entity.length() > maxManifestBytes) return 0;
+        final decoded = jsonDecode(await entity.readAsString());
+        if (decoded is! Map) return 0;
+        final assets = decoded['assets'];
+        if (assets is List) {
+          for (final asset in assets.whereType<Map>()) {
+            final relative = asset['backupRelativePath'];
+            if (relative is String &&
+                relative.startsWith('$sharedMediaFolderName/')) {
+              named.add(relative.substring(sharedMediaFolderName.length + 1));
+            }
+          }
+        }
+      }
+      var removed = 0;
+      await for (final entity in shared.list(followLinks: false)) {
+        if (entity is! File) continue;
+        final name = entity.uri.pathSegments.last;
+        if (named.contains(name)) continue;
+        await entity.delete();
+        removed++;
+      }
+      return removed;
+    } catch (_) {
+      return 0;
+    }
   }
 
   /// Puts every media file [record] saved back into its Course's folder, so a

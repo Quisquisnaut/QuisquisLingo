@@ -102,6 +102,8 @@ import '../widgets/import_summary.dart';
 import '../services/storage/qql_storage.dart';
 import '../widgets/quick_import_access.dart';
 import '../widgets/reported_action.dart';
+import '../services/course_backup_retention.dart';
+import '../widgets/course_backup_purge.dart';
 
 export 'guidebook_editor_screen.dart'
     show GuidebookEditorScreen, GuidebookModuleEditorScreen;
@@ -760,6 +762,12 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
         versionNotes: versionNotes,
       );
       if (!mounted) return;
+      await CourseBackupPurge.offer(
+        context,
+        result.course,
+        backups: _service.backupService,
+      );
+      if (!mounted) return;
       await _popEditor(result, beforePop);
     } catch (error) {
       if (!mounted) return;
@@ -838,6 +846,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
         profiles: await _profiles.getProfileRecords(),
         teams: await _teams.listTeams(),
         activeProfileId: await _profiles.getActiveProfileId(),
+        backupsKept: await CourseBackupRetention().keepFor(_course.courseId),
       ),
     );
     if (loaded == null || !mounted) return;
@@ -1001,6 +1010,9 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
     var derivativePolicy = _course.derivativeWorksPolicy;
     var allowPageSharing = _course.allowPageSharing;
     var privateCourse = _course.temporarySample;
+    // Build 270 Revision 9: a setting of this device, saved with Save.
+    final initialBackupsKept = loaded.backupsKept;
+    var backupsKept = initialBackupsKept;
     // Build 260 Revision 0: an earlier Course may gain the tags of its own
     // languages, and its learners' name of the learning language.
     var sourceTag = _course.sourceLanguageTag;
@@ -1776,6 +1788,40 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                     onChanged: (value) =>
                         setLocalState(() => privateCourse = value),
                   ),
+                  // Build 270 Revision 9 (owner decisions of 10 October
+                  // 2026): kept on this device, never in the Course file.
+                  const SizedBox(height: 8),
+                  DropdownButtonFormField<int?>(
+                    key: const Key('course-info-backups-kept'),
+                    initialValue: backupsKept,
+                    isExpanded: true,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: 'Backups kept on this device',
+                      helperText:
+                          'After a save that leaves more backups, QQL asks before deleting the older ones; nothing is deleted without your yes. A setting of this device, not of the Course file.',
+                      helperMaxLines: 4,
+                    ),
+                    items: [
+                      const DropdownMenuItem<int?>(
+                        value: null,
+                        child: Text(
+                          'All (never ask)',
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      for (final keep in CourseBackupRetention.choices)
+                        DropdownMenuItem<int?>(
+                          value: keep,
+                          child: Text(
+                            'The newest $keep',
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                    ],
+                    onChanged: (value) =>
+                        setLocalState(() => backupsKept = value),
+                  ),
                   const SizedBox(height: 12),
                   const Text(
                     'Rights Holder records rights ownership information. It does not control QQL permissions.',
@@ -2274,6 +2320,14 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
       customLicense.dispose();
     });
     if (result == null || !mounted) return;
+    if (backupsKept != initialBackupsKept) {
+      await runReported(
+        context,
+        'Saving the backups kept on this device',
+        () => CourseBackupRetention().setKeep(_course.courseId, backupsKept),
+      );
+      if (!mounted) return;
+    }
     final update = await runReported(
       context,
       'Course Info changes',
@@ -2443,9 +2497,17 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
       return true;
     }
     try {
-      await _session.confirm(languageCode: _code, versionNotes: versionNotes);
+      final result = await _session.confirm(
+        languageCode: _code,
+        versionNotes: versionNotes,
+      );
       if (!mounted) return false;
       setState(() {});
+      await CourseBackupPurge.offer(
+        context,
+        result.course,
+        backups: _service.backupService,
+      );
       return true;
     } catch (error) {
       if (!mounted) return false;

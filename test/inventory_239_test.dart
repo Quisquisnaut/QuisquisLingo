@@ -158,6 +158,27 @@ void main() {
     expect(remembered.items.single.path, isNull);
   });
 
+  test(
+    'lists how many backups each Course keeps; Forget may remove it',
+    () async {
+      // Build 270 Revision 9.
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt('qql_course_backups_keep_friend%2Fcourse', 20);
+
+      final all = await service.load();
+      final kept = sectionOf(all, 'Backups kept per Course');
+      expect(kept.count, 1);
+      expect(kept.items.single.name, 'friend/course');
+      expect(kept.items.single.note, contains('newest 20 backups'));
+      expect(
+        InventoryActionService.isForgettable(
+          'qql_course_backups_keep_friend%2Fcourse',
+        ),
+        isTrue,
+      );
+    },
+  );
+
   test('lists active learner Course Favorite flags with their owner', () async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(

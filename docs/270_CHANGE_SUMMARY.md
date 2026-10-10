@@ -311,3 +311,36 @@ Owner decisions of 10 October 2026 (see the handoff).
 
 Unchanged: scoring, progression, learner data; Course files keep their
 format (a published Course is a new Course ID, not a new field).
+
+## Revision 9 (2.0.70+270009): Course Backups share their media; older backups deleted on request
+
+Owner decisions of 10 October 2026 (see the handoff).
+
+- `CourseBackupService`: `sharedMediaFolderName` (`QQL_media`) beside a
+  Course's manifests; `createBackup` writes a file there only when the
+  stored bytes differ (`_holds`), and a file it may not write goes to the
+  version's own `…_assets` folder, the earlier layout, which `loadBackup`
+  and `reinstateMedia` read unchanged. `olderThanNewest(courseId, keep)`
+  (readable backups beyond the newest, unreadable files never offered),
+  `deleteBackups` (each manifest and its own `…_assets` folder, then the
+  sweep), `removeOrphanMedia` (shared files no manifest names; nothing while
+  a manifest cannot be read; never throws). No sweep after a backup: owner
+  decision, media are orphaned only when backups are deleted.
+- `CourseBackupRetention` (device key `qql_course_backups_keep_<Course ID>`,
+  5/10/20/50): Course Info's `course-info-backups-kept`, saved with Course
+  Info's Save. `CourseBackupPurge.offer` after the Course Editor's two
+  confirmations and the Course Wizard's step, GuideBook and Rounds saves
+  (`_offerBackupPurge`); custom Courses only.
+- `CourseEditorService._backupOrSkip` for the pre-change, received-update
+  and official-update backups: `CourseBackupsAccessDenied` saves without
+  the backup, `CourseConfirmationResult.backupSkippedFolder`, the static
+  `backupSkipped` hook (`CourseBackupNotice.report`, set in `main()`).
+- Forgotten by `CourseLibraryOperations.deleteCourse`, `AppResetService`
+  (custom-course reset, Wipe everything), `InventoryActionService` Forget;
+  Inventory section "Backups kept per Course";
+  `docs/239_RESET_STORAGE_INVENTORY.md`, `docs/COURSE_EDITOR.md`.
+- Help EN/IT/ES: `editorHelp.localCourseEditsAndBackups.body`,
+  `editorHelp.qa.backups.a`.
+- Test fixture: `move_private_storage_255_test` builds its earlier layout
+  with the shared folder refused, so the backups keep their own folders as
+  earlier builds wrote them.

@@ -1,3 +1,29 @@
+# 2.0.70 (Build 270, Revision 9) - Course Backups share their media; older backups deleted on request - 2026-10-10
+
+Owner decisions of 10 October 2026 on the audit's backup findings.
+
+- **Backups share their pictures and recordings**: every backup of a Course
+  used to copy all its media into a folder of its own, so 50 saves of a
+  Course with 100 MB of media took about 5 GB. Now the backups of a Course
+  keep each picture and recording once, in a shared `QQL_media` folder, and
+  a save writes only what is new. Earlier backups keep their own folders.
+- **Older backups deleted only when you say so**: Course Info has **Backups
+  kept on this device** (All, or the newest 5, 10, 20 or 50), a setting of
+  this device that is not stored in the Course file. After every save that
+  leaves the Course with more backups, QQL asks whether to delete the older
+  ones; Not now asks again after the next save, and nothing is ever deleted
+  without a yes. To stop the question, choose All.
+- **Media no backup uses go with them**: after older backups are deleted,
+  the pictures and recordings no remaining backup names are removed too
+  (also those left by a backup file deleted by hand). Nothing is removed
+  while a backup file cannot be read.
+- **Android 7–10 without the storage permission**: a Course change used to
+  fail for good when the permission was refused; now it is saved without
+  its backup, with a message saying how to allow it, and the Diagnostic Log
+  records it.
+- Inventory lists the per-Course setting with Forget; deleting the Course,
+  the custom-course reset and Wipe everything remove it. Help EN/IT/ES.
+
 # 2.0.70 (Build 270, Revision 8) - received and published Courses; a shared device - 2026-10-10
 
 Owner decisions of 10 October 2026 on the audit's trust findings.

@@ -24,16 +24,23 @@ import 'course_package_service.dart';
 import 'course_received_service.dart';
 import 'team_service.dart';
 import 'publisher_course_ids.dart';
+import 'storage/qql_storage.dart';
 
 class CourseConfirmationResult {
   final Course course;
   final String? backupPath;
   final bool hadPreviousVersion;
 
+  /// The Backups folder QQL may not use, when the change was saved without
+  /// its backup (Build 270 Revision 9: Android 7-10 without the storage
+  /// permission).
+  final String? backupSkippedFolder;
+
   const CourseConfirmationResult({
     required this.course,
     required this.backupPath,
     required this.hadPreviousVersion,
+    this.backupSkippedFolder,
   });
 }
 
@@ -116,6 +123,33 @@ class CourseEditorService {
   final CourseAccessPolicy _access;
   final DateTime Function() _clock;
   final CourseReceivedService _receivedCourses;
+
+  /// Build 270 Revision 9 (owner decision of 10 October 2026): when QQL may
+  /// not use the Backups folder (Android 7-10 with the storage permission
+  /// refused), the change is saved without its backup, and the learner is
+  /// told ([backupSkipped]) instead of the save failing for good.
+  Future<CourseBackupRecord?> _backupOrSkip(
+    Course course, {
+    required DateTime when,
+    required String reason,
+    void Function(String folder)? onSkipped,
+  }) async {
+    try {
+      return await backupService.createBackup(
+        course,
+        backedUpAt: when,
+        reason: reason,
+      );
+    } on CourseBackupsAccessDenied catch (denied) {
+      onSkipped?.call(denied.folder);
+      backupSkipped(denied.folder);
+      return null;
+    }
+  }
+
+  /// Told when a change was saved without its backup; the app shows a
+  /// message (set in `main`).
+  static void Function(String folder) backupSkipped = (_) {};
 
   /// The device-local received-Course status used by import review.
   CourseReceivedService get receivedCourses => _receivedCourses;
@@ -540,9 +574,9 @@ class CourseEditorService {
     await CourseFlagService().validateWorldFlag(incoming);
     _requirePreservedProvenance(current, incoming);
     final when = _clock().toUtc();
-    await backupService.createBackup(
+    await _backupOrSkip(
       current,
-      backedUpAt: when,
+      when: when,
       reason: 'Received Custom Course update archived previous version',
     );
     await _store.replaceIfUnchanged(
@@ -1153,10 +1187,12 @@ class CourseEditorService {
     }
 
     CourseBackupRecord? backup;
+    String? backupSkippedFolder;
     if (current != null) {
-      backup = await backupService.createBackup(
+      backup = await _backupOrSkip(
         current,
-        backedUpAt: when,
+        when: when,
+        onSkipped: (folder) => backupSkippedFolder = folder,
         reason: 'Pre-change Course Editor transaction backup',
       );
     }
@@ -1207,6 +1243,7 @@ class CourseEditorService {
       course: verified,
       backupPath: backup?.manifestFile.path,
       hadPreviousVersion: current != null,
+      backupSkippedFolder: backupSkippedFolder,
     );
   }
 
@@ -1451,9 +1488,9 @@ class CourseEditorService {
     final active = Course.fromJson(
       Map<String, dynamic>.from(record['source'] as Map),
     );
-    final backup = await backupService.createBackup(
+    final backup = await _backupOrSkip(
       active,
-      backedUpAt: _clock(),
+      when: _clock(),
       reason: 'External official update archived previous official source',
     );
     final entry = {
@@ -1476,7 +1513,7 @@ class CourseEditorService {
     LearnerStatusEvents.publish(LearnerStatusInvalidation.courseMetadata);
     return OfficialCourseUpdateResult(
       officialCourse: normalizedUpdate,
-      backupPath: backup.manifestFile.path,
+      backupPath: backup?.manifestFile.path,
     );
   }
 

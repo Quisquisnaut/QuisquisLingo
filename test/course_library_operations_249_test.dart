@@ -18,6 +18,7 @@ import 'package:quisquislingo_app/services/custom_course_transfer_service.dart';
 import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:quisquislingo_app/services/publisher_course_export.dart';
 import 'package:quisquislingo_app/services/publisher_export_memory.dart';
+import 'package:quisquislingo_app/services/course_backup_retention.dart';
 import 'package:quisquislingo_app/services/settings_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -698,11 +699,15 @@ void main() {
         ),
       );
 
+      await CourseBackupRetention().setKeep(mine.courseId, 5);
+
       await ops.deleteCourse(mine);
 
       expect(await stored(), isEmpty);
       // Build 262 Revision 3 follow-up: its remembered publisher goes too.
       expect(await PublisherExportMemory().recall(mine.courseId), isNull);
+      // Build 270 Revision 9: so does how many backups it keeps.
+      expect(await CourseBackupRetention().keepFor(mine.courseId), isNull);
     });
 
     test(

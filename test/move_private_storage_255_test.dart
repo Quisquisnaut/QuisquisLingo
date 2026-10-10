@@ -72,9 +72,18 @@ void main() {
     final course = _course([
       CourseAudioClip(id: 'a', text: 'uno', filePath: reference),
     ]);
+    // Earlier builds kept each version's media in a folder of its own,
+    // which is what the service still writes when it may not use the
+    // shared media folder (Build 270 Revision 9).
     final backups = CourseBackupService(
       backupsDirectoryProvider: () async => staging,
       mediaStore: media,
+      fileWriter: (file, bytes) async {
+        if (file.path.contains(CourseBackupService.sharedMediaFolderName)) {
+          throw FileSystemException('Earlier layout', file.path);
+        }
+        await file.writeAsBytes(bytes, flush: true);
+      },
     );
     final first = await backups.createBackup(
       course,

@@ -41,6 +41,8 @@ import 'guidebook_editor_screen.dart';
 import 'home_screen.dart' show openCoursePreview;
 import '../services/app_errors.dart';
 import '../services/diagnostic_log_service.dart';
+import '../widgets/course_backup_purge.dart';
+import '../services/course_editor_service.dart';
 
 /// The Course Wizard (Build 267, `docs/267_COURSE_WIZARD_PLAN.md`).
 ///
@@ -646,7 +648,18 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
         versionNotes: 'Course Wizard: ${_step.title}',
       ),
     );
+    if (result != null) await _offerBackupPurge(result);
     return result != null;
+  }
+
+  /// Build 270 Revision 9: after a save, the question about older backups.
+  Future<void> _offerBackupPurge(CourseConfirmationResult saved) async {
+    if (!mounted) return;
+    await CourseBackupPurge.offer(
+      context,
+      saved.course,
+      backups: _ops.editor.backupService,
+    );
   }
 
   Future<void> _remember(CourseWizardStep step) async {
@@ -1367,6 +1380,8 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
       ),
     );
     if (saved == null || !mounted) return;
+    await _offerBackupPurge(saved);
+    if (!mounted) return;
     final next = CourseWizardGuidebook.firstProblem(_working);
     setState(() {
       if (next != null) _shownLesson = next.index;
@@ -1430,6 +1445,8 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
       ),
     );
     if (saved == null || !mounted) return;
+    await _offerBackupPurge(saved);
+    if (!mounted) return;
     final next = CourseWizardRounds.firstProblem(_working);
     setState(() {
       if (next != null) _shownLesson = next.index;

@@ -25,6 +25,7 @@ import 'storage/course_storage_names.dart';
 import 'storage/qql_earlier_private_folders.dart';
 import 'storage/qql_storage.dart';
 import 'publisher_course_ids.dart';
+import 'course_backup_retention.dart';
 
 /// What Delete or Forget does to an Inventory item (Build 266 Revision 2,
 /// owner decisions of 8 October 2026). `InventoryActionService` runs it,
@@ -404,6 +405,56 @@ class InventoryService {
         items: publisherItems,
         hiddenCount: publisherKeys.length > maxListedPerSection
             ? publisherKeys.length - maxListedPerSection
+            : 0,
+      ),
+    );
+
+    // How many backups each Course keeps (Build 270 Revision 9).
+    final retention = CourseBackupRetention();
+    final keepKeys =
+        preferences
+            .getKeys()
+            .where((key) => key.startsWith(CourseBackupRetention.keyPrefix))
+            .toList()
+          ..sort();
+    final keepItems = <InventoryItem>[];
+    for (final key in keepKeys.take(maxListedPerSection)) {
+      final encoded = key.substring(CourseBackupRetention.keyPrefix.length);
+      String courseId;
+      try {
+        courseId = Uri.decodeComponent(encoded);
+      } on FormatException {
+        courseId = encoded;
+      }
+      final keep = await retention.keepFor(courseId);
+      keepItems.add(
+        InventoryItem(
+          name: courseId,
+          action: InventoryAction(
+            InventoryActionKind.forget,
+            key,
+            label: 'Forget',
+            explanation:
+                'Forget how many backups this Course keeps. Its backups stay; '
+                'QQL keeps them all and no longer asks after a save.',
+          ),
+          note: keep == null
+              ? 'Unreadable backup setting in QQL settings (no file).'
+              : 'Keeps the newest $keep backups; QQL asks before deleting '
+                    'older ones. In QQL settings (no file).',
+        ),
+      );
+    }
+    sections.add(
+      InventorySection(
+        title: 'Backups kept per Course',
+        description:
+            'How many backups of each Course this device keeps, set in Course '
+            'Info; after a save that leaves more, QQL asks before deleting the '
+            'older ones. They are stored inside QQL settings.',
+        items: keepItems,
+        hiddenCount: keepKeys.length > maxListedPerSection
+            ? keepKeys.length - maxListedPerSection
             : 0,
       ),
     );

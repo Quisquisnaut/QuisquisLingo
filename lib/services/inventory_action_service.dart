@@ -14,6 +14,7 @@ import 'inventory_service.dart';
 import 'profile_service.dart';
 import 'publisher_export_memory.dart';
 import 'course_wizard_memory.dart';
+import 'course_backup_retention.dart';
 
 /// Refused, with the reason people read; nothing was changed.
 class InventoryActionException implements Exception {
@@ -66,6 +67,7 @@ class InventoryActionService {
       key.startsWith(CourseReceivedService.keyPrefix) ||
       key.startsWith(PublisherExportMemory.keyPrefix) ||
       key.startsWith(CourseWizardMemory.keyPrefix) ||
+      key.startsWith(CourseBackupRetention.keyPrefix) ||
       (key.startsWith('learner_') &&
           key.contains('_${CourseFavoriteService.keyPrefix}'));
 

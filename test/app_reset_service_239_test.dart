@@ -408,6 +408,30 @@ void main() {
     expect(prefs.containsKey(key), isFalse);
   });
 
+  test('backups kept per Course follow the custom-course reset', () async {
+    // Build 270 Revision 9: how many backups each Course keeps.
+    const key = 'qql_course_backups_keep_friend%2Fcourse';
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(key, 10);
+    expect((await service.preview()).hasCustomCourses, isTrue);
+
+    for (final scope in [
+      AppResetScope.learnerProgress,
+      AppResetScope.importedMedia,
+      AppResetScope.nonAdminLearners,
+    ]) {
+      await service.reset(scope, actorProfileId: adminId, pin: '4321');
+      expect(prefs.containsKey(key), isTrue);
+    }
+
+    await service.reset(
+      AppResetScope.customCourses,
+      actorProfileId: adminId,
+      pin: '4321',
+    );
+    expect(prefs.containsKey(key), isFalse);
+  });
+
   test('custom courses removes courses and teams but keeps learners', () async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(CourseEditorStorage.userCoursesKey, '[]');

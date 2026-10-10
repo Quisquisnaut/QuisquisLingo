@@ -207,3 +207,34 @@ Not tried by hand: stopping speech on leaving a Round on Windows and Linux.
   distributable signing guide worded differently from the in-app Help this
   revision changed; the guide (`docs/PUBLISHER_SIGNING_GUIDE.md`, a docs file
   only) now carries the Help's sentence, and the test passes alone (5 passed).
+
+## Revision 9 (2.0.70+270009), Course Backups share their media; older backups deleted on request
+
+- New test: `test/course_backups_270_test.dart` (11: two versions keep a
+  shared recording once and both load, and a restore reads it; a shared file
+  QQL may not write goes to the version's own folder; a backup removes
+  nothing; a purge keeps the newest backups, removes the media only the
+  older ones held and their own folders; nothing shared is removed while a
+  manifest cannot be read, a later purge removes what nothing names; the
+  device setting per Course, an unusable value ignored; nothing asked while
+  every backup is kept; Not now deletes nothing and asks again, Delete
+  deletes the older ones; Course Info sets the number and the Course
+  Editor's save asks (5 earlier backups + the save's own: Delete 1 backup,
+  5 left); Android 7–10 saves without the backup and tells the app, and
+  backs up again once allowed).
+- New cases: the custom-course reset removes the setting
+  (`app_reset_service_239_test`), Inventory lists it and Forget may remove
+  it (`inventory_239_test`), deleting the Course forgets it
+  (`course_library_operations_249_test`).
+- Updated: `move_private_storage_255_test` builds its earlier layout with
+  the shared media folder refused, so its backups keep their own folders as
+  earlier builds wrote them (4 cases had failed renaming a folder that no
+  longer exists).
+- Related files (20: resets, backups folder, missing assets, v9 clean cut,
+  Course Info, Version History, Course Wizard, Module Wizard, Check and
+  publish, Inventory, received Courses, library operations, stored-Course
+  edge cases, Android folders, the storage move, the editor transaction,
+  Publisher packages, Course metadata UI): 215 passed.
+- `flutter analyze`: no issues.
+- Complete suite: **4,134 passed, 1 skipped**, 36:58 (10 October 2026,
+  11:30–12:07).

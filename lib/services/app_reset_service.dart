@@ -23,6 +23,7 @@ import 'import/import_stager.dart';
 import 'storage/atomic_preferences_store.dart';
 import 'storage/qql_earlier_private_folders.dart';
 import 'storage/qql_storage.dart';
+import 'course_backup_retention.dart';
 
 /// The ways an admin can reset this device. See
 /// docs/239_RESET_STORAGE_INVENTORY.md for what each scope removes.
@@ -209,7 +210,8 @@ class AppResetService {
           prefs.getKeys().any(
             (key) =>
                 key.startsWith(PublisherExportMemory.keyPrefix) ||
-                key.startsWith(CourseWizardMemory.keyPrefix),
+                key.startsWith(CourseWizardMemory.keyPrefix) ||
+                key.startsWith(CourseBackupRetention.keyPrefix),
           ) ||
           await _countFiles(
                 await _directories([CourseFileStore.rootDirectoryName]),
@@ -455,7 +457,8 @@ class AppResetService {
       (key) =>
           key.startsWith(CourseReceivedService.keyPrefix) ||
           key.startsWith(PublisherExportMemory.keyPrefix) ||
-          key.startsWith(CourseWizardMemory.keyPrefix),
+          key.startsWith(CourseWizardMemory.keyPrefix) ||
+          key.startsWith(CourseBackupRetention.keyPrefix),
     )) {
       await prefs.remove(key);
     }

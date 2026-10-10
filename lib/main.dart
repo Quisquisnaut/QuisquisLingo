@@ -26,6 +26,8 @@ import 'widgets/learner_theme_mode_scope.dart';
 import 'services/import/import_stager.dart';
 import 'services/storage/atomic_preferences_store.dart';
 import 'widgets/learner_data_notices.dart';
+import 'widgets/course_backup_notice.dart';
+import 'services/course_editor_service.dart';
 
 Future<void> main() async {
   StartupDiagnosticService.checkpoint('DART_MAIN_ENTER');
@@ -44,6 +46,9 @@ Future<void> main() async {
         onProblem: LearnerDataNotices.report,
       );
       ProfileService.beginAccessSession();
+      // A Course change saved without its backup is told (Build 270
+      // Revision 9).
+      CourseEditorService.backupSkipped = CourseBackupNotice.report;
       StartupDiagnosticService.checkpoint('DART_BINDING_OK');
       StartupDiagnosticService.verboseCheckpoint('DART_CRASH_LOG_INIT_BEGIN');
       await CrashLogService.instance.initialise();

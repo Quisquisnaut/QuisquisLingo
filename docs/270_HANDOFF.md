@@ -201,3 +201,24 @@ manifest cannot be read; earlier `…_assets` folders untouched) and Android
 7–10 without the storage permission (the change saved without its backup,
 a message, a Diagnostic Log entry). Draft in the scratchpad:
 `patch_270009.py`, `course_backup_notice.dart`.
+
+## Revision 9 (2.0.70+270009), Course Backups share their media; older backups deleted on request
+
+State: done. Tests 11 new, 3 new cases, 1 fixture updated; related 215
+passed; analyzer clean; complete suite 4,134 passed, 1 skipped (11:30–12:07). Committed on
+`build-270` and the branch pushed.
+
+Owner decisions the same morning (after Revision 8's commit `797a80e7`):
+an optional purge of older backups, keeping the newest N (5, 10, 20, 50),
+set per Course and stored on this device (Course Info), custom Courses
+only; nothing automatic: after every save that leaves more, QQL asks, and
+No (Not now) asks again at the next save; a permanent No means changing the
+setting. Orphaned media are removed only after a confirmed purge (owner:
+the one time QQL orphans media), not after every backup as first drafted.
+
+Next: Revision 10 (the Course Wizard's leave dialog names the steps whose
+changes would be lost; Android: no INTERNET permission and a start-up
+reminder at most every 14 days, "Check for a newer QuisquisLingo"; Page
+links ask first, showing the site and the address). Then the read-only
+modularization audit (rule: no physical file split unless an extracted,
+testable owner comes first).

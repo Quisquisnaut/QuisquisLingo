@@ -28,6 +28,7 @@ import 'publisher_export_memory.dart';
 import 'settings_service.dart';
 import 'team_service.dart';
 import 'stored_course_reader.dart';
+import 'course_backup_retention.dart';
 
 /// The Course Manager menu entries, in menu order. [study] and [review]
 /// (Build 261 Revision 1) come from [CourseManagerLibrary.studyEntriesFor],
@@ -748,6 +749,7 @@ class CourseLibraryOperations {
     await editor.deleteUserCourse(course.courseId);
     await publisherMemory.forget(course.courseId);
     await wizardMemory.forget(course.courseId);
+    await CourseBackupRetention().forget(course.courseId);
   }
 
   Future<void> removePublisherCourse(Course course) =>
