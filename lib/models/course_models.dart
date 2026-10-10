@@ -10,6 +10,7 @@ import 'preset_successors.dart';
 import '../services/app_metadata.dart';
 import '../services/lesson_icon_catalog.dart';
 import '../services/round_type_compatibility.dart';
+import 'bundled_asset.dart';
 
 export 'canonical/canonical.dart';
 export 'exercise_canonical.dart';
@@ -1284,18 +1285,21 @@ class Course {
   /// author's device. Bundled `assets/` media and embedded `data:image/`
   /// images remain valid.
   static final RegExp _audioReference = RegExp(r'^media:[0-9a-f]{64}\.mp3$');
+
+  /// A file in QQL's own bundle (Build 270 Revision 3, [bundledAsset]).
+  static bool isBundledAssetReference(String value) => isBundledAsset(value);
   static final RegExp _imageReference = RegExp(
     r'^media:[0-9a-f]{64}\.(png|jpg|jpeg|webp)$',
   );
 
   static bool isValidAudioReference(String value) =>
       value.isEmpty ||
-      value.startsWith('assets/') ||
+      isBundledAssetReference(value) ||
       _audioReference.hasMatch(value);
 
   static bool isValidImageReference(String value) =>
       value.isEmpty ||
-      value.startsWith('assets/') ||
+      isBundledAssetReference(value) ||
       value.startsWith('data:image/') ||
       _imageReference.hasMatch(value);
 
@@ -1324,6 +1328,18 @@ class Course {
             'is not supported. Images must be bundled assets, embedded images '
             'or course media (media:<sha256>.<png|jpg|jpeg|webp>), never a '
             'path on one device.',
+          );
+        }
+        // A picture answer named by its QQL picture (an icon key) is drawn
+        // from the bundle too.
+        final text = node['text'];
+        if (node['role'] == 'icon' &&
+            text is String &&
+            text.startsWith('assets/') &&
+            !isBundledAssetReference(text)) {
+          throw FormatException(
+            'Picture key "${text.length > 120 ? '${text.substring(0, 120)}…' : text}" '
+            'is not a QQL picture.',
           );
         }
         node.values.forEach(visit);

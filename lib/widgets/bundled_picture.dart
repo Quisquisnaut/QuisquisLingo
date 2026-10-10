@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import '../models/bundled_asset.dart';
 
 /// Whether a picture is an SVG drawing: the World Flags the image library
 /// offers (Build 264 Revision 1).
@@ -37,6 +38,10 @@ class BundledPicture extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final onError = errorBuilder;
+    // Build 270 Revision 3: never a path outside the bundle.
+    if (!isBundledAsset(asset)) {
+      return onError?.call(context) ?? SizedBox(width: width, height: height);
+    }
     if (isSvgPicture(asset)) {
       return SvgPicture.asset(
         asset,

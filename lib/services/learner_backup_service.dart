@@ -294,6 +294,12 @@ class LearnerBackupService {
         );
       }
       final value = entry.value;
+      final expected = expectedValueKind(suffix);
+      if (expected != null && !_hasKind(value, expected)) {
+        throw FormatException(
+          'Learner backup value for $suffix must be ${expected.description}.',
+        );
+      }
       if (value is String || value is bool || value is int || value is double) {
         data[suffix] = value;
       } else if (value is List && value.every((element) => element is String)) {
@@ -313,6 +319,50 @@ class LearnerBackupService {
       data: data,
     );
   }
+
+  /// Build 270 Revision 3: the learner values QQL reads with a fixed type
+  /// (progress, XP, streaks, appearance, theme). A backup that gives one of
+  /// them another type is refused: reading it would fail every time (the
+  /// status bar, Home, every Round completion) until the learner was
+  /// deleted. Other values are kept as they are.
+  static LearnerValueKind? expectedValueKind(String suffix) {
+    const wholeNumbers = {'week_xp', 'last_week_xp'};
+    const texts = {
+      'week_xp_week',
+      'last_week_xp_week',
+      'week_xp_by_course',
+      'last_week_xp_by_course',
+      'week_goal_celebrated_week',
+      'skin_tone',
+      'hair_tone',
+      'theme_mode',
+    };
+    const flags = {
+      'local_leaderboard_participation',
+      'guidebook_availability_notice_seen',
+    };
+    if (wholeNumbers.contains(suffix) ||
+        suffix.startsWith('xp_') ||
+        suffix.startsWith('streak_')) {
+      return LearnerValueKind.wholeNumber;
+    }
+    if (texts.contains(suffix) || suffix.startsWith('last_active_')) {
+      return LearnerValueKind.text;
+    }
+    if (flags.contains(suffix)) return LearnerValueKind.flag;
+    if (suffix.startsWith('v4_') || suffix.startsWith('study_days')) {
+      return LearnerValueKind.textList;
+    }
+    return null;
+  }
+
+  static bool _hasKind(Object? value, LearnerValueKind kind) => switch (kind) {
+    LearnerValueKind.wholeNumber => value is int,
+    LearnerValueKind.text => value is String,
+    LearnerValueKind.flag => value is bool,
+    LearnerValueKind.textList =>
+      value is List && value.every((element) => element is String),
+  };
 
   Future<bool> profileExists(String learnerProfileId) async =>
       await _profiles.getProfileById(learnerProfileId) != null;
@@ -676,4 +726,15 @@ class _LearnerRestoreSnapshot {
     required this.activeProfileId,
     required this.namespace,
   });
+}
+
+/// The type a learner value must have in a backup.
+enum LearnerValueKind {
+  wholeNumber('a whole number'),
+  text('text'),
+  flag('true or false'),
+  textList('a list of texts');
+
+  const LearnerValueKind(this.description);
+  final String description;
 }

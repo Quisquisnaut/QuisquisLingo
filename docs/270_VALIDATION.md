@@ -87,3 +87,22 @@ service refuses the replacement without the PIN whatever the screen does.
   04:40–05:13).
 
 Not tried by hand: stopping speech on leaving a Round on Windows and Linux.
+
+## Revision 3 (2.0.70+270003), no way around the import checks
+
+- New tests: `test/import_side_doors_270_test.dart` (9: bundle paths accepted
+  and refused; every file QQL ships matches; a Course naming a picture or a
+  picture key outside the bundle refused; `BundledPicture` draws no such
+  file; a backup asset path leaving its folder refused; a manifest larger
+  than any Course not read and listed as skipped; a restore puts back only
+  media passing the import checks; learner backup values of the wrong type
+  refused, naming the value; one unreadable learner value keeps the status
+  bar and reaches the Diagnostic Log).
+- Updated: `course_backup_missing_asset_test` and `course_media_243_test`
+  restore real MP3s (`syntheticMp3`) instead of three bytes.
+- Related files (25: backups, Version History, Course packages and models,
+  bundled Courses, Lesson icons, World Flags, recorded audio, learner status,
+  GuideBook pictures, the demo package round trip): 252 passed.
+- `flutter analyze`: no issues.
+- Complete suite: **4,092 passed, 1 skipped**, 33:42 (10 October 2026,
+  05:20–05:54).

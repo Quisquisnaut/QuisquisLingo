@@ -246,6 +246,22 @@ class CustomCourseTransferService {
     CourseShapeLimits.check(decoded);
 
     final course = Course.fromJson(Map<String, dynamic>.from(decoded));
+    await validateEmbeddedContent(course);
+    if (course.originType == CourseOriginType.bundledOfficial) {
+      throw const FormatException(
+        'Bundled official courses are installed only with QuisquisLingo application builds.',
+      );
+    }
+    if (course.originType == CourseOriginType.externalOfficial) {
+      return _publisherVerification.requireVerified(course);
+    }
+    return course;
+  }
+
+  /// The checks of what a Course file carries inside it: its World Flag,
+  /// custom flag, custom Lesson icons and embedded pictures. Shared by every
+  /// import and, since Build 270 Revision 3, by Course Backup restores.
+  static Future<void> validateEmbeddedContent(Course course) async {
     await CourseFlagService().validateWorldFlag(course);
 
     if (course.flagImageBase64.length > 1024 * 1024) {
@@ -277,15 +293,6 @@ class CustomCourseTransferService {
       final bytes = PortableExerciseImageService.decode(asset)!;
       await ImageValidator.validate(bytes, ImageProfile.portableImage);
     }
-    if (course.originType == CourseOriginType.bundledOfficial) {
-      throw const FormatException(
-        'Bundled official courses are installed only with QuisquisLingo application builds.',
-      );
-    }
-    if (course.originType == CourseOriginType.externalOfficial) {
-      return _publisherVerification.requireVerified(course);
-    }
-    return course;
   }
 
   /// Builds the export bytes and base name. Shared by [exportCourse] and

@@ -13,6 +13,8 @@ import '../services/profile_service.dart';
 import '../services/progress_service.dart';
 import '../services/round_playability_service.dart';
 import '../services/settings_service.dart';
+import '../services/app_errors.dart';
+import '../services/diagnostic_log_service.dart';
 
 typedef LearnerStatusTimerFactory =
     Timer Function(Duration duration, void Function() callback);
@@ -145,6 +147,15 @@ class LearnerStatusController extends ChangeNotifier
         return;
       }
       rethrow;
+    } catch (error) {
+      // Build 270 Revision 3: one learner value that cannot be read (written
+      // by another version, or by hand) keeps the bar as it was instead of
+      // failing every refresh, and is reported.
+      await DiagnosticLogService().log(
+        AppErrorCode.localStorageError,
+        context: 'The learner status could not be read.',
+        exception: error,
+      );
     }
   }
 

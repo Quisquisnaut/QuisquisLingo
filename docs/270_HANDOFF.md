@@ -81,7 +81,7 @@ limits and absolute PATH entries).
 State: done (the drafts above applied; `_endless` test voice extends the
 test's `_Speech`). Tests 5 + 3 new; related 353 passed; analyzer clean;
 complete suite 4,083 passed, 1 skipped (04:40–05:13). Committed on
-`build-270` and the branch pushed.
+`build-270` as `6e4a3175` and the branch pushed.
 
 Next: Revision 3, the import side doors. Drafts in the scratchpad:
 `patch_270003.py` (bundled-asset pattern in `lib/models/bundled_asset.dart`
@@ -95,3 +95,28 @@ catch-all). Still to write by hand: `maxManifestBytes`, `_assetPath`, the
 imports, `expectedValueKind`/`_hasKind`; update the three tests that restore
 fake MP3 bytes (`course_backup_missing_asset_test`, `course_media_243_test`,
 `move_private_storage_255_test`) to `syntheticMp3`.
+
+## Revision 3 (2.0.70+270003), no way around the import checks
+
+State: done. Tests 9 new, 2 updated; related 252 passed; analyzer clean;
+complete suite 4,092 passed, 1 skipped (05:20–05:54). Committed on
+`build-270` and the branch pushed.
+
+Next, remaining findings by severity (owner: continue, one revision each,
+ask only where a design choice is needed). Drafts in the scratchpad:
+- Revision 4, ZIP directory: `patch_270004_zip.py` (end record checked
+  before the library parses, 512 directory bytes per entry, overlap check,
+  local/central compression), `zip_directory_270_test.dart`.
+- Revision 5, learner-data groups and streaks: `patch_270005.py`
+  (`AtomicPreferencesStore.hold`/`group`, Round completion and Duel victory
+  grouped, `getStreak` pure, `registerLearningActivity` in one step; add the
+  store import to `learning_completion_service.dart` and
+  `progress_service.dart`), `learner_data_groups_270_test.dart`.
+- Revision 6 (planned): Course ID length at import, Image Bank device
+  names, Page link user part, Recovery Key scan skipping bad files, Print
+  temp folders, home folder redacted in logs.
+- Then ask the owner: forged received updates, Publisher ID squatting,
+  backup pruning/dedupe, Android 7–10 backups when the permission is
+  refused, the Course Wizard's leave dialog, the INTERNET permission, a
+  confirmation before opening Page links. Course store scan speed: deferred
+  (small with few Courses).

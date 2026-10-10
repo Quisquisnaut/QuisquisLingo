@@ -7,6 +7,8 @@ import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/services/course_backup_service.dart';
 import 'package:quisquislingo_app/services/course_media_store.dart';
 
+import 'support/synthetic_mp3.dart';
+
 const _profileId = '12345678-1234-4234-9234-123456789abc';
 const _courseId = 'backup-missing-asset';
 
@@ -81,7 +83,9 @@ void main() {
   );
 
   test('restore puts the copied clip back and leaves the gap alone', () async {
-    final present = await stored(const [4, 5, 6]);
+    // A real MP3: a restore checks what it puts back (Build 270 Revision 3).
+    final clip = syntheticMp3(seed: 4);
+    final present = await stored(clip);
     final created = await backups.createBackup(
       _course([
         CourseAudioClip(id: 'a', text: 'uno', filePath: present),
@@ -106,7 +110,7 @@ void main() {
 
     await backups.reinstateMedia(loaded);
     final restored = await media.existingFile(_courseId, present);
-    expect(await restored!.readAsBytes(), const [4, 5, 6]);
+    expect(await restored!.readAsBytes(), clip);
     expect(await media.existingFile(_courseId, absent), isNull);
   });
 

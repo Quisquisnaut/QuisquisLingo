@@ -10,6 +10,10 @@ import '../models/course_models.dart';
 import 'course_media_store.dart';
 import 'storage/course_storage_names.dart';
 import 'storage/qql_storage.dart';
+import 'custom_course_transfer_service.dart';
+import 'import/image_validator.dart';
+import 'import/json_limits.dart';
+import 'import/mp3_validator.dart';
 
 class CourseBackupRecord {
   final File manifestFile;
@@ -67,6 +71,17 @@ class CourseBackupService {
   // unreadable (Build 256 Revision 1), so an old backup cannot block it.
   static const backupFormat = 'QuisquisLingo Course Backup v12';
   static const earlierBackupFormat = 'QuisquisLingo Course Backup v11';
+
+  /// Build 270 Revision 3: a manifest holds one Course (at most 10 MB) with
+  /// its indented copy and a few fields; anything larger is not a backup.
+  static const maxManifestBytes = 16 * 1024 * 1024;
+
+  /// An asset's place beside its manifest: one folder and one file, neither
+  /// starting with a dot (Build 270 Revision 3: `../x.png` was accepted and
+  /// read from the folder above).
+  static final RegExp _assetPath = RegExp(
+    r'^[A-Za-z0-9_-][A-Za-z0-9._-]*/[A-Za-z0-9_-][A-Za-z0-9._-]*$',
+  );
 
   /// Build 255 Revision 5 moved the backups here from QQL's private storage
   /// (`QQL_CourseBackups`, and `qql_course_backups_v11` before Revision 4),
@@ -317,7 +332,18 @@ class CourseBackupService {
     if (!await manifestFile.exists()) {
       throw const FormatException('The selected course backup is missing.');
     }
-    final decoded = jsonDecode(await manifestFile.readAsString());
+    // Build 270 Revision 3: the Backups folder is one people can reach, so a
+    // backup is read with the limits of a Course import.
+    if (await manifestFile.length() > maxManifestBytes) {
+      throw const FormatException(
+        'The course backup is larger than a Course can be.',
+      );
+    }
+    final decoded = JsonLimits.imports.decode(
+      utf8.decode(await manifestFile.readAsBytes(), allowMalformed: true),
+      what: 'Course backup',
+      invalidMessage: 'The selected file is not a supported course backup.',
+    );
     if (decoded is Map && decoded['format'] == earlierBackupFormat) {
       // Build 256 Revision 1: Build 255's v11 backups stay in the same
       // folder, unread; Version History names them as unreadable.
@@ -342,6 +368,7 @@ class CourseBackupService {
         'The course backup has no canonical course content.',
       );
     }
+    CourseShapeLimits.check(courseJson);
     final course = Course.fromJson(Map<String, dynamic>.from(courseJson));
     if (course.courseId != expectedCourseId) {
       throw const FormatException(
@@ -379,7 +406,7 @@ class CourseBackupService {
             reference == null ||
             !CourseMediaStore.isReference(reference) ||
             CourseMediaStore.digestOf(reference) != expected ||
-            !RegExp(r'^[A-Za-z0-9._-]+/[A-Za-z0-9._-]+$').hasMatch(relative)) {
+            !_assetPath.hasMatch(relative)) {
           throw const FormatException(
             'The course backup asset path is unsafe.',
           );
@@ -412,6 +439,9 @@ class CourseBackupService {
   /// restored version shows its images and plays its recordings. Each copy is
   /// verified against its reference. Recorded gaps have nothing to restore.
   Future<void> reinstateMedia(CourseBackupRecord record) async {
+    // Build 270 Revision 3: what a restore brings back passes the checks of
+    // a Course import (a backup can be put in the Backups folder by hand).
+    await CustomCourseTransferService.validateEmbeddedContent(record.course);
     for (final asset in record.assets) {
       final relative = asset['backupRelativePath'];
       final reference = asset['reference'];
@@ -423,11 +453,21 @@ class CourseBackupService {
       final source = File(
         '${record.manifestFile.parent.path}${Platform.pathSeparator}${relative.replaceAll('/', Platform.pathSeparator)}',
       );
+      final bytes = await source.readAsBytes();
+      final cover = reference == record.course.coverImage;
+      if (CourseMediaStore.isAudioReference(reference)) {
+        await Mp3Validator.validate(bytes);
+      } else {
+        await ImageValidator.validate(
+          bytes,
+          cover ? ImageProfile.courseCover : ImageProfile.exerciseImage,
+        );
+      }
       final stored = await _media.addBytes(
         record.course.courseId,
-        await source.readAsBytes(),
+        bytes,
         CourseMediaStore.extensionOf(reference),
-        cover: reference == record.course.coverImage,
+        cover: cover,
       );
       if (stored != reference) {
         throw StateError('Restored course media does not match its reference.');

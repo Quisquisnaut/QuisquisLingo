@@ -12,6 +12,7 @@ import 'import/import_stager.dart';
 import 'import/mp3_validator.dart';
 import 'import/selected_external_file.dart';
 import 'storage/qql_storage.dart';
+import '../models/bundled_asset.dart';
 
 /// Manages creator-supplied recorded speech. Imported MP3 files are copied into
 /// the Course's own media folder and named by content (`media:<sha256>.mp3`,
@@ -338,6 +339,8 @@ class RecordedAudioService {
     // Bundled course recordings are Flutter assets, not normal filesystem
     // files on Android/iOS. AssetSource expects the path below assets/.
     if (path.startsWith('assets/')) {
+      // Build 270 Revision 3: never a path outside the bundle.
+      if (!isBundledAsset(path)) return null;
       try {
         await rootBundle.load(path);
         return AssetSource(path.substring('assets/'.length));

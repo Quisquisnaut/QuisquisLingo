@@ -204,5 +204,5 @@ grading.
 | 0 | This report; learner-data store: atomic writes, a last-good copy and recovery at start-up, reported write failures, the Diagnostic Log in its own file, one QQL window at a time | done |
 | 1 | Learner separation (item 2, within the owner's threat model): only the active learner is unlocked; Replace existing over another learner with a PIN needs that PIN; a restore activates as a switch does | done |
 | 2 | Build 269 audio hold (item 3: the line ceiling, Play while speaking, a line already left, audio stopped on leaving a Round, Linux time limits) and weekly XP (item 4 and the rollover order and race) | done |
-| 3 | Import side doors: the Backups folder (item 5), `assets/` references (item 6), learner backup types and size | planned |
+| 3 | Import side doors: Course Backups checked like an import (item 5), only bundle paths for `assets/` (item 6), learner backup value types, the status bar's catch-all | done |
 | 4+ | Remaining findings by severity | planned |

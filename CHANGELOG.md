@@ -1,3 +1,31 @@
+# 2.0.70 (Build 270, Revision 3) - no way around the import checks - 2026-10-10
+
+Audit items 5 and 6, and learner backup values.
+
+- **Course Backups are checked like an import**: the Backups folder is one
+  people can reach, and Version History read every file in it without the
+  import's limits, and a restore put pictures and recordings back without
+  the checks every import runs. Now a backup larger than any Course is not
+  read, its JSON is read with the import's limits, an asset's path can no
+  longer step out of its folder (`../`), and a restore checks the Course's
+  embedded pictures, flag and Lesson icons and every picture and recording it
+  puts back.
+- **A Course names only files in QQL's bundle**: a picture or recording named
+  `assets/…` was accepted whatever followed, so `assets/../…` could reach a
+  file outside QQL. Course files, picture keys, the picture drawer and the
+  recording player now accept only paths inside the bundle (every file QQL
+  ships matches).
+- **Learner backups**: a value QQL reads with a fixed type (XP, streaks,
+  study days, progress, appearance, theme) must have that type, or the
+  backup is refused; before, one wrong value failed the status bar, Home and
+  every Round completion until the learner was deleted. If such a value is
+  stored anyway, the status bar keeps going and the problem reaches the
+  Diagnostic Log.
+- Tests: `test/import_side_doors_270_test.dart`; three tests that restored
+  fake MP3 bytes now use real ones.
+- Scoring, progression and learner data are unchanged. Beta expiry
+  `2026-11-09 23:59:59` local time.
+
 # 2.0.70 (Build 270, Revision 2) - Story lines never stuck, weekly XP across the clock change - 2026-10-10
 
 Audit items 3 and 4.

@@ -200,7 +200,12 @@ void main() {
       final service = CourseEditorService(clock: () => _when);
       final store = service.mediaStore;
       final kept = await store.addBytes('course-a', bytes([1]), 'mp3');
-      final dropped = await store.addBytes('course-a', bytes([2]), 'mp3');
+      // A real MP3: a restore checks what it puts back (Build 270 Revision 3).
+      final dropped = await store.addBytes(
+        'course-a',
+        syntheticMp3(seed: 2),
+        'mp3',
+      );
       final unsaved = await store.addBytes('course-a', bytes([3]), 'png');
       final created = await _create(
         service,
@@ -289,7 +294,6 @@ void main() {
       await service.deleteUserCourse(source.courseId);
       expect(await store.existingFile(copy.courseId, clip), isNotNull);
     });
-
   });
 
   test(

@@ -131,3 +131,41 @@ Unchanged: scoring, progression, Course files and learner data.
 
 Known limit: stopping speech when a Round is left was not tried by hand on
 Windows or Linux in this session.
+
+## Revision 3 (2.0.70+270003): no way around the import checks
+
+Audit items 5 and 6 (Medium) and the learner backup value finding.
+
+- `lib/models/bundled_asset.dart` (`bundledAsset`, `isBundledAsset`):
+  `assets/` and segments of letters, digits, `_`, `-`, `.`, none starting
+  with a dot. `Course.isValidImageReference`/`isValidAudioReference`
+  (images, GuideBook pictures, the Audio Library) use it, `Course.fromJson`
+  checks picture keys (role `icon` texts starting `assets/`), and
+  `BundledPicture` and `RecordedAudioService.resolveSourceForClip` refuse
+  anything else at run time. Every bundled file matches (tested).
+- `CustomCourseTransferService.validateEmbeddedContent` (the World Flag,
+  custom flag, Lesson icons and embedded pictures check of every import)
+  is shared with `CourseBackupService.reinstateMedia`, which also checks
+  each picture with `ImageValidator` (the cover with its own profile) and
+  each recording with `Mp3Validator` before putting it back.
+- `CourseBackupService.loadBackup`: a manifest over `maxManifestBytes`
+  (16 MB) is refused before it is read; the JSON goes through
+  `JsonLimits.imports` and the Course through `CourseShapeLimits`; an asset
+  path must be one folder and one file, neither starting with a dot
+  (`_assetPath`; `../x.png` was accepted).
+- `LearnerBackupService.expectedValueKind` (`LearnerValueKind`): whole
+  numbers `xp_*`, `week_xp`, `last_week_xp`, `streak_*`; texts the week keys,
+  `week_xp_by_course`, `last_week_xp_by_course`, `week_goal_celebrated_week`,
+  `last_active_*`, `skin_tone`, `hair_tone`, `theme_mode`; true or false
+  `local_leaderboard_participation`, `guidebook_availability_notice_seen`;
+  lists of texts `v4_*`, `study_days*`. Other values are kept as they are.
+- `LearnerStatusController.refresh` reports any other error to the
+  Diagnostic Log and keeps the bar instead of failing every refresh.
+
+Owner threat model: the backup checks protect against files people put in
+the Backups folder or receive, not against someone editing QQL's private
+files.
+
+Unchanged: scoring, progression and learner data. A stored Course that named
+an `assets/` path outside the bundle (none of QQL's tools ever wrote one)
+would now be listed as unreadable.
