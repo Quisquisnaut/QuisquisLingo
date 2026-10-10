@@ -10,6 +10,28 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
                       _In_ wchar_t *command_line, _In_ int show_command) {
   startup_diagnostics::Checkpoint("NATIVE_WWINMAIN_ENTER");
 
+  // Build 270 Revision 0: one QuisquisLingo at a time. Two windows would each
+  // rewrite the learner-data file from their own copy (the last one wins),
+  // and the second start-up would remove the first one's import files. A
+  // second start brings the open window forward instead.
+  HANDLE single_instance = ::CreateMutexW(
+      nullptr, FALSE, L"Local\\org.quisquislingo.app.SingleInstance");
+  if (single_instance != nullptr && ::GetLastError() == ERROR_ALREADY_EXISTS) {
+    // The class name of Win32Window (win32_window.cpp) and the window title.
+    HWND existing =
+        ::FindWindowW(L"FLUTTER_RUNNER_WIN32_WINDOW", L"QuisquisLingo");
+    if (existing != nullptr) {
+      if (::IsIconic(existing)) {
+        ::ShowWindow(existing, SW_RESTORE);
+      }
+      ::SetForegroundWindow(existing);
+    }
+    ::CloseHandle(single_instance);
+    startup_diagnostics::Checkpoint("NATIVE_PROCESS_EXIT",
+                                    "exit_code=0; reason=already_running");
+    return EXIT_SUCCESS;
+  }
+
   // Attach to console when present (e.g., 'flutter run') or create a
   // new console when running with a debugger.
   if (!::AttachConsole(ATTACH_PARENT_PROCESS) && ::IsDebuggerPresent()) {

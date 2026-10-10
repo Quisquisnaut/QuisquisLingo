@@ -22,7 +22,67 @@ class DiagnosticLogService {
   static const _maximumLogCharacters = 256 * 1024;
   Future<void> _pendingLogWrite = Future<void>.value();
 
+  /// Build 270 Revision 0: the log lives in its own file in [logsDirectory].
+  /// In the learner-data file every entry rewrote all learner data, about
+  /// seven times for each line read aloud. Until [initialise] has run (and in
+  /// tests, which do not call it) entries stay in the earlier preference.
+  static const logFileName = 'QQL_diagnostic.log';
+  static const _maximumLogBytes = 256 * 1024;
+  static File? _logFile;
+
+  /// Moves the entries earlier versions kept in the learner-data file into
+  /// [logFileName] and writes there from now on. Never throws: if the file
+  /// cannot be used, the log stays where it was.
+  static Future<void> initialise() async {
+    if (kIsWeb || _logFile != null) return;
+    try {
+      final directory = await logsDirectory(create: true);
+      if (directory == null) return;
+      final file = File(
+        '${directory.path}${Platform.pathSeparator}$logFileName',
+      );
+      final prefs = await SharedPreferences.getInstance();
+      final earlier = prefs.getString(_logKey) ?? '';
+      if (earlier.trim().isNotEmpty) {
+        await BoundedLogWriter.appendFile(
+          file,
+          earlier,
+          maximumBytes: _maximumLogBytes,
+        );
+      }
+      _logFile = file;
+      if (prefs.containsKey(_logKey)) await prefs.remove(_logKey);
+    } catch (_) {
+      // Logging must never stop the app from starting.
+    }
+  }
+
+  /// The file the log is written to, or null while it is a preference.
+  static File? get logFile => _logFile;
+
+  @visibleForTesting
+  static void debugUseFile(File? file) => _logFile = file;
+
+  Future<String> _read() async {
+    final file = _logFile;
+    if (file == null) {
+      final prefs = await SharedPreferences.getInstance();
+      return prefs.getString(_logKey) ?? '';
+    }
+    await BoundedLogWriter.whenWritten(file);
+    if (!await file.exists()) return '';
+    return utf8.decode(await file.readAsBytes(), allowMalformed: true);
+  }
+
   Future<void> _append(String entry) {
+    final file = _logFile;
+    if (file != null) {
+      return BoundedLogWriter.appendFile(
+        file,
+        entry,
+        maximumBytes: _maximumLogBytes,
+      );
+    }
     final ready = _pendingLogWrite.then<void>(
       (_) {},
       onError: (Object _, StackTrace __) {},
@@ -101,8 +161,7 @@ class DiagnosticLogService {
 
   Future<bool> hasEntries() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      return (prefs.getString(_logKey) ?? '').trim().isNotEmpty;
+      return (await _read()).trim().isNotEmpty;
     } catch (_) {
       return false;
     }
@@ -127,8 +186,7 @@ class DiagnosticLogService {
   /// A snapshot of the log text as UTF-8 bytes, or null when the log is empty.
   /// The internal log is untouched. Used by Save log copy as….
   Future<Uint8List?> exportBytes() async {
-    final prefs = await SharedPreferences.getInstance();
-    final log = prefs.getString(_logKey) ?? '';
+    final log = await _read();
     if (log.trim().isEmpty) return null;
     return Uint8List.fromList(utf8.encode(log));
   }
@@ -139,8 +197,7 @@ class DiagnosticLogService {
   Future<String?> exportToFile() async {
     if (kIsWeb) return null;
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final log = prefs.getString(_logKey) ?? '';
+      final log = await _read();
       if (log.trim().isEmpty) return null;
       final folder = await _storage.exportFolder(
         QqlStorageRole.diagnosticLogExports,
@@ -159,6 +216,11 @@ class DiagnosticLogService {
 
   Future<void> clear() async {
     try {
+      final file = _logFile;
+      if (file != null) {
+        await BoundedLogWriter.whenWritten(file);
+        if (await file.exists()) await file.delete();
+      }
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove(_logKey);
     } catch (_) {}

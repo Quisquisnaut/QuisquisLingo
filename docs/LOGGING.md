@@ -38,6 +38,8 @@ The startup Beta testing popup refers to this Crash Log.
 
 The Diagnostic Log is a separate internal event log for problems that do not necessarily crash QuisquisLingo, including audio, TTS, recorded MP3, unexpected playback, source-resolution problems and other runtime anomalies. It records application troubleshooting events such as coded application errors and relevant platform decisions. It is not automatically created as a user-visible file.
 
+Since Build 270 Revision 0 it is kept in its own private file, `QQL_Logs/QQL_diagnostic.log` beside the Crash Log (at most 256 KB; when full the oldest quarter is dropped), instead of in application preferences, where every entry rewrote all learner data. The first start of Revision 0 moves the earlier entries into the file. Wipe everything keeps it with the Logs choice.
+
 **Settings > Debug** shows the fixed export destination and provides **Export Diagnostic Log**. Export writes the current snapshot to:
 
 `Documents/QuisquisLingo/Logs/quisquislingo_diagnostic_log.txt`

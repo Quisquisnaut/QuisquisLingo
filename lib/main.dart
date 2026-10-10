@@ -5,6 +5,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
+import 'package:path_provider/path_provider.dart';
 import 'services/app_metadata.dart';
 import 'services/window_setup.dart';
 import 'services/crash_log_service.dart';
@@ -23,6 +24,8 @@ import 'widgets/learner_shell.dart';
 import 'widgets/learner_navigation.dart';
 import 'widgets/learner_theme_mode_scope.dart';
 import 'services/import/import_stager.dart';
+import 'services/storage/atomic_preferences_store.dart';
+import 'widgets/learner_data_notices.dart';
 
 Future<void> main() async {
   StartupDiagnosticService.checkpoint('DART_MAIN_ENTER');
@@ -34,11 +37,18 @@ Future<void> main() async {
       StartupDiagnosticService.verboseCheckpoint('DART_ZONE_ENTER');
       StartupDiagnosticService.verboseCheckpoint('DART_BINDING_BEGIN');
       WidgetsFlutterBinding.ensureInitialized();
+      // Before anything reads a preference: learner data written so that an
+      // interrupted write cannot destroy it (Build 270 Revision 0).
+      AtomicPreferencesStore.installIfNeeded(
+        directory: getApplicationSupportDirectory,
+        onProblem: LearnerDataNotices.report,
+      );
       ProfileService.beginAccessSession();
       StartupDiagnosticService.checkpoint('DART_BINDING_OK');
       StartupDiagnosticService.verboseCheckpoint('DART_CRASH_LOG_INIT_BEGIN');
       await CrashLogService.instance.initialise();
       StartupDiagnosticService.checkpoint('DART_CRASH_LOG_INIT_RETURNED');
+      await DiagnosticLogService.initialise();
       try {
         await ProfileService().applyStartupProfilePolicy();
       } catch (_) {
@@ -138,6 +148,9 @@ class _QuisquisLingoAppState extends State<QuisquisLingoApp>
       }
     });
     _loadAppearance();
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => unawaited(LearnerDataNotices.showPendingRecovery()),
+    );
   }
 
   Future<void> _loadAppearance() async {

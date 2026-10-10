@@ -1,3 +1,40 @@
+# 2.0.70 (Build 270, Revision 0) - learner data that survives a bad write - 2026-10-10
+
+Audit of 10 October 2026 (`docs/270_AUDIT.md`), first of the fixes in the
+owner's order.
+
+- **Crash-safe learner data (Windows, Linux)**: every save of profiles,
+  progress and settings goes to a temporary file that replaces the
+  learner-data file only once it is complete. Before, the file was rewritten
+  in place: a crash, a power cut or a full disk in the middle of a save left
+  a file nobody could read, and QQL stopped at "Unable to load learner
+  profiles." with a Retry that could never work. The file keeps its place and
+  its format; nothing is converted.
+- **A safety copy**: at every start-up QQL keeps a copy of the learner data
+  that loaded fine. If the file is ever damaged, QQL keeps the damaged file,
+  uses the copy and tells the learner what happened and from when the copy
+  is; without a copy it starts without learner data (Courses are separate
+  files and are not affected) and says how to restore a learner backup.
+- **No silent failed saves**: a save that fails is no longer lost in silence;
+  QQL shows a message (at most once a minute) and writes it to the Crash Log,
+  and the next change saves everything again.
+- **The Diagnostic Log has its own file** (`QQL_Logs/QQL_diagnostic.log`, at
+  most 256 KB) instead of living inside the learner data, where every log
+  line, about seven per line read aloud, rewrote all learner data. Its
+  entries move over at the first start. Wipe everything now keeps it with
+  the Logs choice. A full log drops its oldest quarter, so the Crash Log no
+  longer rewrites 2 MB for each new entry.
+- **One QuisquisLingo at a time (Windows, Linux)**: a second start brings the
+  open window forward. Two windows each saved their own copy of the learner
+  data over the other's, and the second start removed the first one's
+  import files.
+- Inventory lists the learner-data safety copies; Wipe everything removes
+  them.
+- Tests: `test/learner_data_store_270_test.dart`,
+  `test/learner_data_270_test.dart`.
+- Scoring, progression, Course files and the learner-data format are
+  unchanged. Beta expiry `2026-11-09 23:59:59` local time.
+
 # 2.0.69 (Build 269, Revision 0) - Story lines read aloud word by word - 2026-10-10
 
 Owner request and decisions of 10 October 2026.

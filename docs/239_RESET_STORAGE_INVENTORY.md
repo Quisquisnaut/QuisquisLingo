@@ -14,7 +14,7 @@ Where QuisquisLingo keeps data, and which reset scope removes it.
 | `qql_course_wizard_<URI-encoded trimmed Course ID>` (Build 267) | device-local JSON `{step, lessonId?, savedAtUtc}`: where the Course Wizard of that Course stopped, so Course Studio can continue it; never in Course JSON or packages; listed in Inventory as Paused Course Wizards (Forget) | custom courses, everything; also cleared when the Wizard finishes, on Continue by hand and when Course Studio deletes that Course |
 | `quisquislingo_imported_image_banks_v2`, `quisquislingo_exercise_image_metadata_v2` | imported image bank index and image metadata | imported media (images), custom courses, everything |
 | `audio_orphan_check_last_<COURSECODE>` | device-level date the Audio Library orphan check last ran for that Course code | imported media (audio), custom courses, everything |
-| `quisquislingo_diagnostic_log` | diagnostic log text | everything |
+| `quisquislingo_diagnostic_log` | diagnostic log text until Build 270 Revision 0, which moves it once into `<AppSupport>/QQL_Logs/QQL_diagnostic.log` and removes the key | everything |
 | `qql_file_dialog_downloads_offered_v1` (QQL 240) | flag: the first Save to… / Open from… dialog already started in Downloads | everything |
 | `flag_game_best_*`, `editor_show_internal_ids_v1`, welcome/one-time notice keys, update-check keys | device settings and notices | everything |
 
@@ -36,7 +36,9 @@ Everything else under the prefix (identity, avatar, theme, PIN verifier, recover
 | `<QQL>/Backups` (Build 255 Revision 5) | `Courses`: the Course Backups Version History lists, one folder per Course, `QQL_bkp_<pair>_<ID>`, holding `QQL_bkp_<pair>_<ID>_v<version>_<date-time>.json` and its `…_assets` folder. Android: ordinary files QQL wrote itself (Android 7–10 with the storage permission) | everything, only when the admin unticks "Keep the Backups folder" |
 | `<QQL>/Imports`, `<QQL>/Exports`, `<QQL>/Merges` (earlier versions; `Exports` also holds Course Backups made before Revision 3) | never read since Build 255 Revision 3; Inventory lists them as "Folders from earlier versions" | everything, with the tick of `Import`, `Export` and `ToBeMerged` respectively |
 | other files in `<QQL>` | anything people added there themselves | everything |
-| `<AppSupport>/QQL_Logs` (Build 255 Revision 4; Revision 3 named it `qql_logs`) | the live Crash Log `QQL_crash.log` and the Windows/Linux session marker `QQL_session.marker`, private on every system | everything, only when the admin unticks "Keep the Logs folder" |
+| `<AppSupport>/QQL_Logs` (Build 255 Revision 4; Revision 3 named it `qql_logs`) | the live Crash Log `QQL_crash.log`, the Diagnostic Log `QQL_diagnostic.log` (Build 270 Revision 0; a preference before) and the Windows/Linux session marker `QQL_session.marker`, private on every system | everything, only when the admin unticks "Keep the Logs folder" |
+| `<AppSupport>/shared_preferences.json` (Windows, Linux) | all SharedPreferences above; since Build 270 Revision 0 written through `shared_preferences.json.tmp` and a rename (`AtomicPreferencesStore`), same place and format as the plugin's | its keys as listed above |
+| `<AppSupport>/QQL_learner_data_last_good.json`, `<AppSupport>/QQL_learner_data_damaged_<time>.json` (Windows, Linux; Build 270 Revision 0) | the learner-data file as it was at the last start-up that read it, and any learner-data file QQL could not read, kept for a rescue; listed in Inventory as Learner-data safety copies | everything (whatever is kept); the last good copy is also refreshed at every start-up |
 
 `<QQL>` is `Documents/QuisquisLingo` on Windows, Linux and macOS and the
 public `Download/QuisquisLingo` on Android. On Android 10 and later, Export

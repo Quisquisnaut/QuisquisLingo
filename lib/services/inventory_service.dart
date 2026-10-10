@@ -16,6 +16,7 @@ import 'publisher_export_memory.dart';
 import 'course_wizard.dart';
 import 'course_wizard_memory.dart';
 import 'diagnostic_log_service.dart';
+import 'storage/atomic_preferences_store.dart';
 import 'exercise_image_service.dart';
 import 'image_bank_service.dart';
 import 'team_service.dart';
@@ -691,7 +692,7 @@ class InventoryService {
       await folder(
         title: 'Crash Log',
         description:
-            'The live Crash Log and the session marker QQL uses to detect an abnormal shutdown. They are private to QQL; Settings › Debug saves copies in the Logs folder.',
+            'The live Crash Log, the Diagnostic Log and the session marker QQL uses to detect an abnormal shutdown. They are private to QQL; Settings › Debug saves copies in the Logs folder.',
         directory: Directory(
           '$supportRoot$sep${DiagnosticLogService.logsDirectoryName}',
         ),
@@ -701,6 +702,44 @@ class InventoryService {
             plain(file, root, note: 'Written by QQL.', deletable: false),
       ),
     );
+
+    // ---- Learner-data safety copies (Build 270 Revision 0)
+    final supportDirectory = Directory(supportRoot);
+    final safetyCopies = await AtomicPreferencesStore.safetyCopiesIn(
+      supportDirectory,
+    );
+    if (safetyCopies.isNotEmpty) {
+      final items = <InventoryItem>[];
+      var total = 0;
+      for (final file in safetyCopies) {
+        total += (await file.stat()).size;
+        final name = file.uri.pathSegments.last;
+        items.add(
+          await plain(
+            file,
+            supportDirectory,
+            note: name == AtomicPreferencesStore.lastGoodFileName
+                ? 'The learner data as it was at the last start-up.'
+                : 'A learner-data file QQL could not read, kept for a rescue.',
+            deletable: false,
+          ),
+        );
+      }
+      sections.add(
+        InventorySection(
+          title: 'Learner-data safety copies',
+          description:
+              'QQL keeps its learner data (profiles, progress, settings) in '
+              'one file. It also keeps the copy that loaded fine at the last '
+              'start-up, used if that file is ever damaged, and any damaged '
+              'file it found. Wipe everything removes them.',
+          location: supportRoot,
+          items: items,
+          hiddenCount: 0,
+          totalBytes: total,
+        ),
+      );
+    }
 
     // ---- The QuisquisLingo folder: Export, Import, ToBeMerged, Logs and
     // Backups

@@ -48,6 +48,7 @@ import 'new_learner_flow_screen.dart';
 import 'profile_screen.dart';
 import 'round_screen.dart';
 import '../widgets/flag_art.dart';
+import '../widgets/learner_data_notices.dart';
 import '../widgets/course_artwork.dart';
 import '../widgets/course_entry_animation.dart';
 import '../widgets/flag_inspired_background.dart';
@@ -417,6 +418,9 @@ class _HomeScreenState extends State<HomeScreen> {
   /// A new learner's Welcome Wizard; then, once per session, this version's
   /// Welcome, the Beta notice and the update notice.
   Future<void> _showStartupNotices() async {
+    // A damaged learner-data file is told first (Build 270 Revision 0).
+    await LearnerDataNotices.showPendingRecovery();
+    if (!mounted) return;
     await _showWelcomeWizard();
     if (!mounted || _startupNoticesShown) return;
     _startupNoticesShown = true;

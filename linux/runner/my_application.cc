@@ -10,12 +10,27 @@ struct _MyApplication {
 
 G_DEFINE_TYPE(MyApplication, my_application, GTK_TYPE_APPLICATION)
 
+// Build 270 Revision 0: one QuisquisLingo at a time. Two windows would each
+// rewrite the learner-data file from their own copy (the last one wins). A
+// unique GApplication passes a second start to the running one, which brings
+// its window forward.
+#if GLIB_CHECK_VERSION(2, 74, 0)
+#define QQL_APPLICATION_FLAGS G_APPLICATION_DEFAULT_FLAGS
+#else
+#define QQL_APPLICATION_FLAGS G_APPLICATION_FLAGS_NONE
+#endif
+
 static void first_frame_cb(MyApplication* self, FlView* view) {
   gtk_widget_show(gtk_widget_get_toplevel(GTK_WIDGET(view)));
 }
 
 static void my_application_activate(GApplication* application) {
   MyApplication* self = MY_APPLICATION(application);
+  GList* windows = gtk_application_get_windows(GTK_APPLICATION(application));
+  if (windows != nullptr) {
+    gtk_window_present(GTK_WINDOW(windows->data));
+    return;
+  }
   GtkWindow* window = GTK_WINDOW(gtk_application_window_new(GTK_APPLICATION(application)));
   gtk_window_set_default_size(window, 1280, 720);
   gtk_window_set_title(window, "QuisquisLingo");
@@ -76,5 +91,5 @@ MyApplication* my_application_new() {
   g_set_prgname(APPLICATION_ID);
   return MY_APPLICATION(g_object_new(my_application_get_type(),
                                      "application-id", APPLICATION_ID,
-                                     "flags", G_APPLICATION_NON_UNIQUE, nullptr));
+                                     "flags", QQL_APPLICATION_FLAGS, nullptr));
 }

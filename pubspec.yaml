@@ -1,7 +1,7 @@
 name: quisquislingo_app
 description: Offline-first language learning prototype with lessons, rounds, exercises, streaks, duels, profiles, and optional cross-platform TTS.
 publish_to: "none"
-version: 2.0.69+269000
+version: 2.0.70+270000
 environment:
   sdk: ">=3.9.0 <4.0.0"
 
@@ -15,6 +15,7 @@ dependencies:
     path: packages/quisquislingo_flutter_tts_windows
   audioplayers: ^6.8.1
   shared_preferences: ^2.5.5
+  shared_preferences_platform_interface: ^2.4.2
   window_manager: ^0.5.2
   path_provider: ^2.1.5
   package_info_plus: ^8.3.0

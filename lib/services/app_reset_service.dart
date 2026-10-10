@@ -20,6 +20,7 @@ import 'profile_service.dart';
 import 'publisher_export_memory.dart';
 import 'course_wizard_memory.dart';
 import 'import/import_stager.dart';
+import 'storage/atomic_preferences_store.dart';
 import 'storage/qql_earlier_private_folders.dart';
 import 'storage/qql_storage.dart';
 
@@ -532,6 +533,11 @@ class AppResetService {
       }
       if (!keepBackups) await public.delete(QqlTopFolder.backups);
       await public.releaseImportAccess();
+    }
+    // The learner-data safety copies (Build 270 Revision 0) hold learner
+    // data too: a damaged file must never bring wiped data back.
+    for (final copy in await AtomicPreferencesStore.safetyCopiesIn(support)) {
+      await copy.delete();
     }
     await (await SharedPreferences.getInstance()).clear();
   }

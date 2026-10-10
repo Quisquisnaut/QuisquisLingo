@@ -47,6 +47,13 @@ abstract final class BoundedLogWriter {
     return guarded;
   }
 
+  /// Completes when the appends already started on [target] are written.
+  static Future<void> whenWritten(File target) {
+    final pending = _fileWrites[target.absolute.path];
+    if (pending == null) return Future<void>.value();
+    return pending.then<void>((_) {}, onError: (Object _, StackTrace __) {});
+  }
+
   static Future<void> _appendFileOnce(
     File target,
     String entry, {
@@ -72,7 +79,12 @@ abstract final class BoundedLogWriter {
       return;
     }
 
-    final keep = maximumBytes - marker.length - incoming.length;
+    // Trim to three quarters of the limit, so the next entries are plain
+    // appends again instead of a rewrite of the whole file each time
+    // (Build 270 Revision 0).
+    final keep = (maximumBytes * 3 ~/ 4 - marker.length - incoming.length)
+        .clamp(0, maximumBytes - marker.length - incoming.length)
+        .toInt();
     final file = await target.open(mode: FileMode.read);
     List<int> tail;
     try {
