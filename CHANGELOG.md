@@ -19,6 +19,13 @@ plan.
   the browser at once on an address the Course's author chose. The dialog
   is in the learner panel's seven languages (six AI-written).
 - Help EN/IT/ES.
+- Follow-up in the same version (owner decision after the modularization
+  audit): the Course Editor's **Story characters** stores the narrator with
+  the Story Wizard's rule, only when the Course already has one or it differs
+  from the default. Before, opening the default narrator and pressing Save
+  unchanged wrote it into the Course and counted as an unsaved change.
+  Learners see the same narrator either way. The read-only modularization
+  audit is saved as `docs/270_MODULARIZATION_AUDIT.md`.
 
 # 2.0.70 (Build 270, Revision 9) - Course Backups share their media; older backups deleted on request - 2026-10-10
 

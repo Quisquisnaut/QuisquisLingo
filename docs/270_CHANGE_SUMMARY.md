@@ -369,3 +369,13 @@ Owner decisions of 10 October 2026 (see the handoff).
 - Help EN/IT/ES: `deviceAdminHelp.updates.paragraph2`,
   `editorHelp.qa.pageCards.a`. `docs/239_RESET_STORAGE_INVENTORY.md`: the
   learner key.
+
+### Revision 10 follow-up: one narrator rule
+
+Owner decision after the modularization audit
+(`docs/270_MODULARIZATION_AUDIT.md`): the Course Editor's Story characters
+(`_withSpeakers`) now builds through the Story Wizard's
+`_courseWithSpeakers`, so `storyNarrator` is written only when the Course has
+one or the narrator differs from `StorySpeaker.defaultNarrator`. Saving the
+default narrator unchanged no longer creates a working-copy change. Same
+version (2.0.70+270010).

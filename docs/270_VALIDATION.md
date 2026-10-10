@@ -257,3 +257,15 @@ Not tried by hand: stopping speech on leaving a Round on Windows and Linux.
 - `flutter analyze`: no issues.
 - Complete suite: **4,139 passed, 1 skipped**, 35:26 (10 October 2026,
   12:15–12:50).
+
+### Revision 10 follow-up: one narrator rule
+
+- New case in `test/story_editor_256_test.dart`: a Course without a stored
+  narrator; saving the default narrator unchanged leaves Edit without the
+  Unapplied course changes dialog; a renamed narrator brings it. On the
+  earlier code the first part fails (the dialog appeared), checked by
+  putting the earlier file back for one run.
+- Story editor tests: 12 passed.
+- `flutter analyze`: no issues.
+- Complete suite: **4,140 passed, 1 skipped**, 42:59 (10 October 2026,
+  14:40–15:23).

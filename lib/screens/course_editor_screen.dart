@@ -2611,34 +2611,20 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
 
   /// The working copy with [narrator] and [characters] and, when a library
   /// picture with a known credit became an avatar, that credit among the
-  /// Media credits (once).
+  /// Media credits (once). One rule with the Story Wizard (Build 270
+  /// Revision 10 follow-up, owner decision): a narrator is stored only when
+  /// the Course has one or it differs from the default, so saving the
+  /// default narrator unchanged changes nothing.
   Course _withSpeakers({
     StorySpeaker? narrator,
     List<StorySpeaker>? characters,
     CourseMediaAttribution? credit,
-  }) {
-    final credits = [..._course.mediaAttributions];
-    if (credit != null &&
-        !credits.any(
-          (known) => jsonEncode(known.toJson()) == jsonEncode(credit.toJson()),
-        )) {
-      credits.add(credit);
-    }
-    final json = {..._course.toJson()}
-      ..remove('storyNarrator')
-      ..remove('storyCharacters')
-      ..remove('mediaAttributions');
-    final speaker = narrator ?? _course.storyNarrator;
-    final list = characters ?? _course.storyCharacters;
-    return Course.fromJson({
-      ...json,
-      if (speaker != null) 'storyNarrator': speaker.toJson(),
-      if (list.isNotEmpty)
-        'storyCharacters': [for (final character in list) character.toJson()],
-      if (credits.isNotEmpty)
-        'mediaAttributions': [for (final known in credits) known.toJson()],
-    });
-  }
+  }) => _courseWithSpeakers(
+    _course,
+    narrator: narrator ?? _course.narrator,
+    characters: characters ?? _course.storyCharacters,
+    credits: [if (credit != null) credit],
+  );
 
   Future<void> _editSpeaker(
     StorySpeaker speaker, {

@@ -238,3 +238,20 @@ Next (agreed with the owner): a read-only modularization audit, report
 only, with the owner's rule that no file is split physically unless an
 extracted, testable owner comes first. Merging `build-270` into `main` and
 pushing `main` wait for the owner's go.
+
+### Revision 10 follow-up: one narrator rule; the modularization audit
+
+The read-only modularization audit is saved as
+`docs/270_MODULARIZATION_AUDIT.md` (ranked owners; owner rule: an extracted,
+testable owner before any file split). The owner chose to land the narrator
+rule now: the Course Editor's Story characters follows the Story Wizard's
+rule (stored only when the Course has one or it differs from the default).
+Same version. Complete suite 4,140 passed, 1 skipped (14:40–15:23).
+Committed on `build-270` with the
+audit document.
+
+The owner asked which model and effort to use for the modularization
+build: recommended Opus 5.5 at high effort (xhigh or max for grading, the
+Story line hold, the Round attempt, the v11 layer and the Audit split), with
+characterization tests first, one owner per revision without behaviour
+change, the full gate each revision and an independent diff review.

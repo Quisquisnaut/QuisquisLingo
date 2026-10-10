@@ -663,5 +663,65 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Narrator: The storyteller'), findsOneWidget);
     });
+
+    testWidgets('saving the default narrator unchanged changes nothing; a '
+        'renamed one is a change (Build 270 Revision 10 follow-up)', (
+      tester,
+    ) async {
+      // One rule with the Story Wizard (owner decision of 10 October 2026):
+      // a narrator is stored only when the Course has one or it differs
+      // from the default.
+      _bigWindow(tester);
+      final withoutNarrator = Course.fromJson(
+        {..._course().toJson()}..remove('storyNarrator'),
+      );
+      expect(withoutNarrator.storyNarrator, isNull);
+      await tester.pumpWidget(
+        MaterialApp(
+          home: CourseEditorScreen(course: withoutNarrator, userCourse: true),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await expand(tester);
+
+      Future<void> saveNarrator([String? name]) async {
+        await tester.tap(find.byKey(const Key('story-narrator')));
+        await tester.pumpAndSettle();
+        if (name != null) {
+          await tester.enterText(
+            find.byKey(const Key('story-speaker-name')),
+            name,
+          );
+          await tester.pumpAndSettle();
+        }
+        await tester.tap(find.byKey(const Key('story-speaker-save')));
+        await tester.pumpAndSettle();
+      }
+
+      Future<void> chooseMode(String mode) async {
+        await tester.tap(find.byKey(const Key('course-editor-lock')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text(mode).last);
+        await tester.pumpAndSettle();
+      }
+
+      // Unchanged: leaving Edit asks nothing, since nothing changed.
+      await saveNarrator();
+      await chooseMode('View only');
+      expect(
+        find.byKey(const Key('course-transaction-confirmation')),
+        findsNothing,
+      );
+
+      // Renamed: leaving Edit asks about the change.
+      await chooseMode('Edit');
+      await saveNarrator('The storyteller');
+      expect(find.text('Narrator: The storyteller'), findsOneWidget);
+      await chooseMode('View only');
+      expect(
+        find.byKey(const Key('course-transaction-confirmation')),
+        findsOneWidget,
+      );
+    });
   });
 }
