@@ -59,6 +59,15 @@ class CourseReceivedService {
     }
   }
 
+  /// Build 270 Revision 8 (owner decision of 10 October 2026): any learner
+  /// may remove a received Course from the device. Its updates are not
+  /// signed, so a fake "newer version" could replace it; removing it is the
+  /// way back.
+  Future<bool> mayRemove(Course course) async =>
+      course.originType == CourseOriginType.custom &&
+      await isReceived(course.courseId) &&
+      !await _hasLocalAuthor(course);
+
   /// Checks the exceptional update path; ordinary Maintainer/Team replacement
   /// is decided by [CourseAccessPolicy] outside this service.
   Future<ReceivedCourseUpdateDecision> reviewUpdate({

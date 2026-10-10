@@ -7,6 +7,7 @@ import 'package:quisquislingo_app/services/beta_lifecycle_service.dart';
 import 'package:quisquislingo_app/widgets/exercise_editor_intro.dart';
 import 'package:quisquislingo_app/widgets/exercise_mascot.dart';
 import 'package:quisquislingo_app/widgets/primitive_intro.dart';
+import 'package:quisquislingo_app/widgets/shared_device_notice.dart';
 import 'package:quisquislingo_app/widgets/word_lookup_view.dart';
 import 'support/test_directories.dart';
 
@@ -46,6 +47,7 @@ Future<void> testExecutable(FutureOr<void> Function() testMain) async {
   // Word Lookup's one-time notice (Build 265) is a dialog over the first
   // Round of a Course with GuideBook vocabulary; its test turns it on.
   WordLookupNotice.enabled = false;
+  SharedDeviceNotice.enabled = false;
   const pathProvider = MethodChannel('plugins.flutter.io/path_provider');
   late Directory root;
   var installedHandler = false;

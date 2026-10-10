@@ -23,6 +23,7 @@ import 'plural_pictures.dart';
 import 'course_package_service.dart';
 import 'course_received_service.dart';
 import 'team_service.dart';
+import 'publisher_course_ids.dart';
 
 class CourseConfirmationResult {
   final Course course;
@@ -118,6 +119,17 @@ class CourseEditorService {
 
   /// The device-local received-Course status used by import review.
   CourseReceivedService get receivedCourses => _receivedCourses;
+
+  /// The Publisher Course IDs this device has installed (Build 270
+  /// Revision 8).
+  final PublisherCourseIds publisherCourseIds = PublisherCourseIds();
+
+  /// Why a custom Course cannot use the ID of a Publisher Course this device
+  /// installed (Build 270 Revision 8).
+  static const publisherIdTakenMessage =
+      'This Course uses the ID of a Publisher Course installed on this device '
+      'before, so it cannot be imported as a custom Course. Ask its author '
+      'for a copy with its own ID.';
 
   /// Stored Course files the last [listUserCourses] could not load. They are
   /// kept on disk untouched; the readable Courses are listed regardless.
@@ -378,6 +390,9 @@ class CourseEditorService {
       throw const FormatException(
         'A custom course cannot replace an official course identity. Import it as a separate copy.',
       );
+    }
+    if (await publisherCourseIds.contains(course.courseId)) {
+      throw const FormatException(publisherIdTakenMessage);
     }
     final stored = await _customRecord(course.courseId);
     if (stored != null) {
@@ -731,7 +746,8 @@ class CourseEditorService {
       return;
     }
     final course = opened.course!;
-    if (!(await _access.forCurrentProfile(course)).canDelete) {
+    if (!(await _access.forCurrentProfile(course)).canDelete &&
+        !await _receivedCourses.mayRemove(course)) {
       throw StateError(
         'Only the Course Maintainer or a member of the assigned Team can delete this Course.',
       );
@@ -1257,14 +1273,20 @@ class CourseEditorService {
     Course update, {
     bool confirmUnverifiedAssociation = false,
     CoursePackage? package,
-  }) => _store.withCourseLock(
-    update.courseId,
-    () => _installExternalOfficialUpdateLocked(
-      update,
-      confirmUnverifiedAssociation: confirmUnverifiedAssociation,
-      package: package,
-    ),
-  );
+  }) async {
+    final result = await _store.withCourseLock(
+      update.courseId,
+      () => _installExternalOfficialUpdateLocked(
+        update,
+        confirmUnverifiedAssociation: confirmUnverifiedAssociation,
+        package: package,
+      ),
+    );
+    // Build 270 Revision 8: kept after the Course is removed, so a custom
+    // Course can never take this ID.
+    await publisherCourseIds.remember(update.courseId);
+    return result;
+  }
 
   Future<OfficialCourseUpdateResult> _installExternalOfficialUpdateLocked(
     Course update, {

@@ -21,8 +21,13 @@ class AdminPinGate {
     if (!await _profiles.hasAccessPin(actorProfileId)) {
       return 'Set a PIN before using reset options.';
     }
-    if (!await _profiles.verifyAccessPin(actorProfileId, pin)) {
-      return 'Incorrect PIN. Nothing was changed.';
+    try {
+      if (!await _profiles.verifyAccessPin(actorProfileId, pin)) {
+        return 'Incorrect PIN. Nothing was changed.';
+      }
+    } on ProfilePinException catch (error) {
+      // Too many wrong PINs (Build 270 Revision 8).
+      return '${error.message} Nothing was changed.';
     }
     return null;
   }

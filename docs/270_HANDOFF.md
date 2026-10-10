@@ -153,15 +153,51 @@ ask the owner the decisions listed under Revision 3.
 ## Revision 7 (2.0.70+270007), release tooling
 
 State: done. Test 1 new; analyzer clean; complete suite 4,113 passed, 1
-skipped (08:15–08:48). Committed on `build-270` and the branch pushed.
+skipped (08:15–08:48). Committed on `build-270` as `649054db` and the branch
+pushed.
 
-Owner answers (10 October 2026, morning) to the decision questions:
-- Received custom Course updates: **no updates for received Courses**; a
-  newer copy is imported as a separate Course.
-- Publisher IDs: the owner asked what happens to the ID when a custom Course
-  is later published (answer: Export as Publisher Course keeps every ID, so
-  the signed Course has the custom original's ID) — to be asked again.
-- Course Backups: **share media between versions, and remove media no
-  version uses any more**.
-- Android 7–10 storage permission: the owner asked why a learner would
-  refuse it — to be explained and asked again.
+Owner decisions (10 October 2026, morning; question 1 asked twice, the
+second answer stands):
+- Received custom Course updates: keep updating in place, but any learner
+  can remove a received Course (one whose Maintainer is not on this device)
+  and the update prompt says the update is not verified.
+- Publisher IDs: Export as Publisher Course gives the Course a new ID,
+  derived from the custom Course's ID and the publisher ID (the same on every
+  export and device, so updates replace earlier installs); QQL remembers
+  every Publisher Course ID it installed, even after removal, and refuses a
+  custom import with one of them.
+- Course Backups: media shared between a Course's versions; media no
+  version uses any more removed.
+- Android 7–10 storage permission refused: warn and save without a backup.
+- Course Wizard "Leave without saving": the dialog lists every step whose
+  changes would be lost.
+- Android: no INTERNET permission; instead a start-up reminder at most every
+  14 days, "Check for a newer QuisquisLingo" (the app is not in a store yet).
+- Page links: ask before opening, showing the site and the address.
+
+Plan: Revision 8 (received and published Courses), Revision 9 (Course
+Backups; Android 7–10), Revision 10 (Wizard leave dialog, Android reminder,
+Page link confirmation).
+
+## Revision 8 (2.0.70+270008), received and published Courses; a shared device
+
+State: done. Test 8 new, 1 updated; related 319 passed; analyzer clean;
+complete suite 4,120 passed, 1 skipped, 1 failed (10:40–11:17): the signing
+guide differed from the Help; aligned (docs only), that test passes. Committed on `build-270` and the branch pushed.
+
+Further owner requests the same morning, delivered here: a one-time notice
+per learner on a device with two or more learners (a shared device cannot
+guarantee safety from other users; the PIN stops mistakes, not determined
+people; never shown with one learner), and a short wait after 10 wrong PINs
+in a row (one minute, per learner, `access_pin_lock_v1`, never in backups).
+
+The owner agreed a read-only modularization audit after Revisions 9–10,
+with the rule: no physical file split unless ownership separation (an
+extracted, testable owner) comes first.
+
+Next: Revision 9, Course Backups (media shared between a Course's versions
+in `QQL_media`, media no version names removed, nothing removed while a
+manifest cannot be read; earlier `…_assets` folders untouched) and Android
+7–10 without the storage permission (the change saved without its backup,
+a message, a Diagnostic Log entry). Draft in the scratchpad:
+`patch_270009.py`, `course_backup_notice.dart`.

@@ -49,6 +49,7 @@ import 'profile_screen.dart';
 import 'round_screen.dart';
 import '../widgets/flag_art.dart';
 import '../widgets/learner_data_notices.dart';
+import '../widgets/shared_device_notice.dart';
 import '../widgets/course_artwork.dart';
 import '../widgets/course_entry_animation.dart';
 import '../widgets/flag_inspired_background.dart';
@@ -420,6 +421,9 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _showStartupNotices() async {
     // A damaged learner-data file is told first (Build 270 Revision 0).
     await LearnerDataNotices.showPendingRecovery();
+    if (!mounted) return;
+    // What the Access PIN can do on a shared device (Build 270 Revision 8).
+    await SharedDeviceNotice.showIfNeeded(context, profiles: _profiles);
     if (!mounted) return;
     await _showWelcomeWizard();
     if (!mounted || _startupNoticesShown) return;

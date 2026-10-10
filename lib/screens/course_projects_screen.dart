@@ -2510,6 +2510,18 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
                           ? 'A newer version of the received Custom Course “${existing.title}” is available. Update to version ${course.courseVersion}, create an available Copy as New Course or Fork, or cancel?'
                           : 'A custom Course with ID “${course.courseId}” already exists. Replace “${existing.title}”, create an available Copy as New Course or Fork, or cancel?',
                     ),
+                    if (review.receivedUpdate) ...[
+                      const SizedBox(height: 12),
+                      // Build 270 Revision 8 (owner decision): received
+                      // Courses are not signed.
+                      const Text(
+                        'QuisquisLingo cannot check who made this update: '
+                        'Course files are not signed. Update only if it '
+                        'comes from the Course\'s author. If it does not, you '
+                        'can delete the Course in Course Studio (⋮ › Delete).',
+                        key: Key('import-received-update-warning'),
+                      ),
+                    ],
                     if (review.notExecutableCount > 0) ...[
                       const SizedBox(height: 12),
                       Text(

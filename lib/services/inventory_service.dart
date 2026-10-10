@@ -24,6 +24,7 @@ import 'import/import_stager.dart';
 import 'storage/course_storage_names.dart';
 import 'storage/qql_earlier_private_folders.dart';
 import 'storage/qql_storage.dart';
+import 'publisher_course_ids.dart';
 
 /// What Delete or Forget does to an Inventory item (Build 266 Revision 2,
 /// owner decisions of 8 October 2026). `InventoryActionService` runs it,
@@ -403,6 +404,27 @@ class InventoryService {
         items: publisherItems,
         hiddenCount: publisherKeys.length > maxListedPerSection
             ? publisherKeys.length - maxListedPerSection
+            : 0,
+      ),
+    );
+
+    // Publisher Course IDs this device installed (Build 270 Revision 8).
+    final publisherCourseIds = [
+      ...?preferences.getStringList(PublisherCourseIds.key),
+    ]..sort();
+    sections.add(
+      InventorySection(
+        title: 'Publisher Course IDs',
+        description:
+            'The ID of every Publisher Course this device has installed, kept '
+            'after the Course is removed so that a custom Course can never take '
+            'it. They are stored inside QQL settings.',
+        items: [
+          for (final id in publisherCourseIds.take(maxListedPerSection))
+            InventoryItem(name: id, note: 'In QQL settings (no file).'),
+        ],
+        hiddenCount: publisherCourseIds.length > maxListedPerSection
+            ? publisherCourseIds.length - maxListedPerSection
             : 0,
       ),
     );

@@ -85,6 +85,7 @@ class CourseManagerLibrary {
     this.importAuthoringEnabled = false,
     this.reviewableCourseIds = const {},
     this.pausedWizards = const {},
+    this.removableReceivedIds = const {},
   });
 
   /// The stored Custom and Publisher Courses in the active personal library.
@@ -109,6 +110,9 @@ class CourseManagerLibrary {
 
   /// The paused Course Wizards, by Course ID (Build 267).
   final Map<String, CourseWizardPause> pausedWizards;
+
+  /// Received Courses any learner may delete (Build 270 Revision 8).
+  final Set<String> removableReceivedIds;
 
   /// Study and Review for [course], with the reason each cannot be used.
   List<CourseManagerEntry> studyEntriesFor(Course course) => [
@@ -202,7 +206,9 @@ class CourseManagerLibrary {
       if (!official)
         CourseManagerEntry(
           CourseManagerAction.delete,
-          access.canDelete ? null : '$onlyInside delete this Course.',
+          access.canDelete || removableReceivedIds.contains(course.courseId)
+              ? null
+              : '$onlyInside delete this Course.',
         ),
     ];
   }
@@ -442,7 +448,12 @@ class CourseLibraryOperations {
           in (await wizardMemory.all()).entries)
         if (personalIds.contains(courseId)) courseId: pause,
     };
+    final removableReceivedIds = <String>{
+      for (final course in personal)
+        if (await editor.receivedCourses.mayRemove(course)) course.courseId,
+    };
     return CourseManagerLibrary(
+      removableReceivedIds: Set.unmodifiable(removableReceivedIds),
       personalCourses: personal,
       bundledCourses: includedBundled,
       unreadable: editor.unreadableCourseFiles,
@@ -566,6 +577,10 @@ class CourseLibraryOperations {
       );
     }
     await _refuseHiddenPrivate(course);
+    if (course.originType == CourseOriginType.custom &&
+        await editor.publisherCourseIds.contains(course.courseId)) {
+      throw const FormatException(CourseEditorService.publisherIdTakenMessage);
+    }
     final installed = await editor.listUserCourses();
     final audit = CourseAuditService().auditCourse(course);
     final existing = installed

@@ -269,3 +269,45 @@ Not done here: release signing of the Android APK and the Windows
 executable, SHA-256 sums for releases, a pinned Gradle distribution checksum
 (each needs the owner's keys, accounts or a network download); see the
 decisions below.
+
+## Revision 8 (2.0.70+270008): received and published Courses; a shared device
+
+Owner decisions of 10 October 2026 (see the handoff).
+
+- `CourseReceivedService.mayRemove`: a custom Course flagged received with no
+  local Maintainer or Team member. `CourseEditorService.deleteUserCourse`
+  allows it for any learner; `CourseManagerLibrary.removableReceivedIds`
+  (filled by `load`) makes Course Studio's Delete available. The received
+  update dialog shows `import-received-update-warning`.
+- `PublisherCourseExport.publishedCourseId(customId, publisherId)`:
+  `course_` and a version-5-style UUID from SHA-256 of both IDs; `build`
+  uses it as the Course ID (all other IDs kept). The export page's notes say
+  so.
+- `PublisherCourseIds` (`lib/services/publisher_course_ids.dart`, device key
+  `qql_publisher_course_ids_v1`): `CourseEditorService.
+  installExternalOfficialUpdate` remembers each installed ID; a custom
+  import with one is refused in `CourseLibraryOperations.reviewImport` and
+  `_installImportedCustomCourse` (`publisherIdTakenMessage`). Removing the
+  Publisher Course keeps it; Wipe everything removes it. Inventory section
+  "Publisher Course IDs"; `docs/239_RESET_STORAGE_INVENTORY.md`.
+- `SharedDeviceNotice` (`lib/widgets/shared_device_notice.dart`): a learner
+  one-time notice (`shared_device`, so "Show one-time notices again" brings
+  it back), shown by the learner page's start-up notices after the
+  learner-data recovery dialog, only while the device has two or more
+  learners (owner, three requests the same morning: warn on a shared device,
+  once per learner, never with one learner). Help EN/IT/ES: Advanced
+  (Admin) › Ask who is learning at startup.
+- Help EN/IT/ES and `docs/PUBLISHER_SIGNING_GUIDE.md`: the published
+  Course's own ID.
+- The Access PIN wait (owner request, the same morning, after the owner
+  had first declined attempt limits): `ProfileService.verifyAccessPin`
+  counts wrong PINs per learner (`learner_<id>_access_pin_lock_v1`, JSON
+  `failures`, `lockedUntil`, a credential suffix: never exported, kept on a
+  restore); the tenth in a row locks the PIN for
+  `accessPinLockDuration` (1 minute) and every check meanwhile throws a
+  `ProfilePinException` naming the seconds left; a right PIN clears the
+  count. `AdminPinGate` returns that message. `ProfileService(now:)` for
+  tests. Help EN/IT/ES.
+
+Unchanged: scoring, progression, learner data; Course files keep their
+format (a published Course is a new Course ID, not a new field).

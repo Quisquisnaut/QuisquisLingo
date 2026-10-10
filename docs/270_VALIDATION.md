@@ -183,3 +183,27 @@ Not tried by hand: stopping speech on leaving a Round on Windows and Linux.
 - `flutter analyze`: no issues.
 - Complete suite: **4,113 passed, 1 skipped**, 32:58 (10 October 2026,
   08:15–08:48).
+
+## Revision 8 (2.0.70+270008), received and published Courses; a shared device
+
+- New test: `test/course_trust_270_test.dart` (8: any learner may delete a
+  received Course while an authored one keeps its rule; Course Studio offers
+  Delete for a received Course; a published Course has an ID of its own, the
+  same at every export; an installed Publisher Course keeps its ID from
+  custom Courses after removal, in import review and installation; ten wrong
+  PINs make the PIN wait a minute and a right PIN clears the count; the
+  admin PIN gate names the wait and learner backups never carry it; with two
+  learners each is told once about a shared device; one learner sees
+  nothing).
+- Updated: `test/publisher_course_export_262_test.dart` expects the derived
+  Course ID; `test/flutter_test_config.dart` turns the shared-device notice
+  off like the other one-time notices.
+- Related files (Course Studio, Course import and review, Publisher export
+  and signing, profiles and PINs, Inventory and resets, Help): 105 + 105 +
+  83 + 26 passed.
+- `flutter analyze`: no issues.
+- Complete suite: **4,120 passed, 1 skipped, 1 failed**, 37:04 (10 October 2026,
+  10:40–11:17). The failure, `publisher_signing_help_test`, found the
+  distributable signing guide worded differently from the in-app Help this
+  revision changed; the guide (`docs/PUBLISHER_SIGNING_GUIDE.md`, a docs file
+  only) now carries the Help's sentence, and the test passes alone (5 passed).

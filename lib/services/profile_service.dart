@@ -173,7 +173,9 @@ class ProfileService {
     int Function()? numericSuffixGenerator,
     List<int> Function(int length)? secureBytes,
     String Function()? systemDeviceName,
-  }) : _idGenerator = idGenerator ?? _generateUuidV4,
+    DateTime Function()? now,
+  }) : _now = now ?? DateTime.now,
+       _idGenerator = idGenerator ?? _generateUuidV4,
        _randomIndex = randomIndex ?? Random.secure().nextInt,
        _numericSuffixGenerator =
            numericSuffixGenerator ??
@@ -185,6 +187,19 @@ class ProfileService {
        _systemDeviceName = systemDeviceName ?? (() => Platform.localHostname);
 
   static void beginAccessSession() => _sessionUnlockedProfileIds.clear();
+
+  final DateTime Function() _now;
+
+  /// Build 270 Revision 8 (owner request of 10 October 2026): after this
+  /// many wrong Access PINs in a row, a learner's PIN is not checked for
+  /// [accessPinLockDuration], so trying every code by hand stops being easy.
+  /// The count is kept per learner (under their prefix), so restarting QQL
+  /// does not skip the wait; a right PIN clears it. Like the PIN itself, it
+  /// prevents casual access, not a determined person with the device's
+  /// files.
+  static const maxAccessPinFailures = 10;
+  static const accessPinLockDuration = Duration(minutes: 1);
+  static const accessPinLockKeyBase = 'access_pin_lock_v1';
 
   /// Build 270 Revision 1: only the active learner is unlocked. A learner
   /// left with a switch must give their Access PIN again, so nothing that
@@ -200,6 +215,7 @@ class ProfileService {
   static const List<String> sensitiveCredentialPreferenceSuffixes = [
     _accessPinKeyBase,
     recoveryCredentialKeyBase,
+    accessPinLockKeyBase,
   ];
 
   static bool isSensitiveCredentialPreferenceSuffix(String suffix) =>
@@ -748,18 +764,54 @@ class ProfileService {
         keyForProfileId(learnerProfileId, _accessPinKeyBase),
       );
 
+  /// Whether [pin] is [learnerProfileId]'s Access PIN. Throws a
+  /// [ProfilePinException] while too many wrong PINs keep it locked
+  /// ([maxAccessPinFailures]), and when the wrong PIN that locks it is given.
   Future<bool> verifyAccessPin(String learnerProfileId, String pin) async {
-    final value = (await SharedPreferences.getInstance()).getString(
+    final prefs = await SharedPreferences.getInstance();
+    final value = prefs.getString(
       keyForProfileId(learnerProfileId, _accessPinKeyBase),
     );
     if (value == null) return true;
+    final lockKey = keyForProfileId(learnerProfileId, accessPinLockKeyBase);
+    final lock = _AccessPinLock.decode(prefs.getString(lockKey));
+    final now = _now().toUtc();
+    final lockedUntil = lock.lockedUntil;
+    if (lockedUntil != null && now.isBefore(lockedUntil)) {
+      throw ProfilePinException(_pinLockedMessage(lockedUntil.difference(now)));
+    }
     final parts = value.split(':');
-    if (parts.length != 3 || parts.first != 'v1') return false;
-    final candidate = sha256.convert([
-      ...base64Url.decode(base64Url.normalize(parts[1])),
-      ...utf8.encode(pin),
-    ]).toString();
-    return candidate == parts[2];
+    final right =
+        parts.length == 3 &&
+        parts.first == 'v1' &&
+        sha256.convert([
+              ...base64Url.decode(base64Url.normalize(parts[1])),
+              ...utf8.encode(pin),
+            ]).toString() ==
+            parts[2];
+    if (right) {
+      if (prefs.containsKey(lockKey)) await prefs.remove(lockKey);
+      return true;
+    }
+    // A wait that has passed starts the count again.
+    final failures = (lockedUntil == null ? lock.failures : 0) + 1;
+    if (failures >= maxAccessPinFailures) {
+      await prefs.setString(
+        lockKey,
+        _AccessPinLock(
+          failures: 0,
+          lockedUntil: now.add(accessPinLockDuration),
+        ).encode(),
+      );
+      throw ProfilePinException(_pinLockedMessage(accessPinLockDuration));
+    }
+    await prefs.setString(lockKey, _AccessPinLock(failures: failures).encode());
+    return false;
+  }
+
+  static String _pinLockedMessage(Duration wait) {
+    final seconds = (wait.inMilliseconds / 1000).ceil();
+    return 'Too many wrong PINs. Wait $seconds seconds, then try again.';
   }
 
   Future<void> setOwnAccessPin({
@@ -1009,4 +1061,34 @@ class ProfileService {
     );
     LearnerStatusEvents.publish(LearnerStatusInvalidation.avatar);
   }
+}
+
+/// The wrong Access PINs given in a row, and the end of the wait they
+/// started (Build 270 Revision 8).
+class _AccessPinLock {
+  const _AccessPinLock({this.failures = 0, this.lockedUntil});
+
+  final int failures;
+  final DateTime? lockedUntil;
+
+  static _AccessPinLock decode(String? raw) {
+    if (raw == null) return const _AccessPinLock();
+    try {
+      final json = jsonDecode(raw);
+      if (json is! Map) return const _AccessPinLock();
+      final failures = json['failures'];
+      final until = json['lockedUntil'];
+      return _AccessPinLock(
+        failures: failures is int && failures > 0 ? failures : 0,
+        lockedUntil: until is String ? DateTime.tryParse(until)?.toUtc() : null,
+      );
+    } catch (_) {
+      return const _AccessPinLock();
+    }
+  }
+
+  String encode() => jsonEncode({
+    'failures': failures,
+    if (lockedUntil != null) 'lockedUntil': lockedUntil!.toIso8601String(),
+  });
 }

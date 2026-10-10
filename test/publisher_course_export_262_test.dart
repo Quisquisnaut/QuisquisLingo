@@ -184,7 +184,17 @@ void main() {
         now: _when,
       );
       expect(exported.originType, CourseOriginType.externalOfficial);
-      expect(exported.courseId, _courseId);
+      // Build 270 Revision 8 (owner decision): a Course ID of its own,
+      // derived from the custom Course's and the publisher's; every other
+      // ID kept.
+      expect(
+        exported.courseId,
+        PublisherCourseExport.publishedCourseId(
+          _courseId,
+          'org.example.courses',
+        ),
+      );
+      expect(exported.courseId, isNot(_courseId));
       expect(_ids(exported), _ids(source));
       expect(exported.publisherId, 'org.example.courses');
       expect(exported.publisherName, 'Example Courses');

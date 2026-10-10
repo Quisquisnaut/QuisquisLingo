@@ -4,6 +4,8 @@ import '../models/course_models.dart';
 import 'course_audit_service.dart';
 import 'course_checksums.dart';
 import 'trusted_publishers.dart';
+import 'dart:convert';
+import 'package:crypto/crypto.dart';
 
 /// The publisher a Course is exported for: the publisher ID and name the
 /// QQL owner gave it when approving its signing key
@@ -136,6 +138,27 @@ abstract final class PublisherCourseExport {
   /// [now]. Throws [ArgumentError] when [refusals] would refuse it for a
   /// reason of its own (access is the caller's) or [identity] would not
   /// accept the publisher.
+  /// The Course ID of [customCourseId] published by [publisherId]: derived
+  /// from both, so every export of a later version, on any device, gives
+  /// the same ID and updates replace earlier installs, and it differs from
+  /// the custom Course's (Build 270 Revision 8, owner decision of 10
+  /// October 2026). Shaped like the IDs QQL makes: `course_` and a
+  /// name-based (version 5 style) UUID.
+  static String publishedCourseId(String customCourseId, String publisherId) {
+    final hex = sha256
+        .convert(
+          utf8.encode(
+            'QQL published Course\n${publisherId.trim()}\n'
+            '${customCourseId.trim()}',
+          ),
+        )
+        .toString();
+    final variant = '89ab'[int.parse(hex[16], radix: 16) % 4];
+    return 'course_${hex.substring(0, 8)}-${hex.substring(8, 12)}-'
+        '5${hex.substring(13, 16)}-$variant${hex.substring(17, 20)}-'
+        '${hex.substring(20, 32)}';
+  }
+
   static Course build(
     Course course,
     PublisherIdentity publisher, {
@@ -162,6 +185,10 @@ abstract final class PublisherCourseExport {
       ..remove('lastVersionEditorDisplayName');
     final unsigned = Course.fromJson({
       ...json,
+      // Build 270 Revision 8 (owner decision): a published Course has its
+      // own ID, so it never shares progress or a place with the custom
+      // Course it comes from.
+      'courseId': publishedCourseId(course.courseId, checked.publisherId),
       'originType': CourseOriginType.externalOfficial.name,
       'publisherId': checked.publisherId,
       'publisherName': checked.publisherName,

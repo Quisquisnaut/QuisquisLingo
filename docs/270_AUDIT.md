@@ -209,4 +209,6 @@ grading.
 | 5 | A Round's or Duel's completion written as one group; streak reads write nothing; activity registered in one step | done |
 | 6 | The Low findings without a decision: Course ID and Image Bank names at import, Page link user part, Recovery Key scan, Print folders, the home folder in logs, silent buttons, double taps | done |
 | 7 | Release tooling: the packager refuses a Dummy-publisher build; `sign_course` uses the app's media rule and limits; key files ignored | done |
-| 8+ | Findings that need the owner's decision (see the handoff) | asked |
+| 8 | Received Courses deletable with an update warning; a published Course's own derived ID; Publisher Course IDs reserved; the shared-device notice | done |
+| 9 | Course Backups share media and drop orphans; Android 7–10 saves without a backup when the permission is refused | planned |
+| 10 | The Course Wizard's leave dialog names the steps; Android update reminder instead of the network check; Page links ask first | planned |

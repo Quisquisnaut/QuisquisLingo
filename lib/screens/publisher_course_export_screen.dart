@@ -84,9 +84,9 @@ class _PublisherCourseExportScreenState
           const SizedBox(height: 8),
           const Text(
             'Writes this Course as a Publisher Course: the same Lessons, '
-            'Rounds and exercises with the same IDs, published by the '
-            'publisher you name, ready to be signed. Your Course stays as '
-            'it is.',
+            'Rounds and exercises, under a Course ID of its own, published '
+            'by the publisher you name, ready to be signed. Your Course '
+            'stays as it is.',
           ),
           if (widget.refusals.isNotEmpty) ...[
             const SizedBox(height: 12),
@@ -228,8 +228,10 @@ class _PublisherCourseExportScreenState
             '3. For an update, edit this Course, confirm it and export it '
             'again with the same publisher ID and name: the official '
             'version is then higher, and learners keep their progress.\n'
-            '4. The Publisher Course has the same Course ID as this Course, '
-            'so this device cannot install it beside this Course.',
+            '4. The Publisher Course has a Course ID of its own, made from '
+            "this Course's ID and the publisher ID, the same at every "
+            'export: learners start it with new progress, and it can be '
+            'installed beside this Course.',
           ),
         ],
       ),

@@ -1,3 +1,38 @@
+# 2.0.70 (Build 270, Revision 8) - received and published Courses; a shared device - 2026-10-10
+
+Owner decisions of 10 October 2026 on the audit's trust findings.
+
+- **Received Courses can be deleted**: a custom Course imported from someone
+  else (its Maintainer is not on this device) can be deleted by any learner
+  in Course Studio. Its updates still replace it in place, but the update
+  prompt now says QQL cannot check who made the update (Course files are not
+  signed) and how to delete the Course if it was not from the author. Before,
+  a fake "newer version" could replace it and could not be removed.
+- **A published Course has an ID of its own**: Export as Publisher Course
+  gives the Course a new Course ID, made from the custom Course's ID and the
+  publisher ID, the same at every export on any device, so its updates
+  replace earlier installs. Learners start it with new progress, and it can
+  be installed beside the custom Course. Before, it kept the custom Course's
+  ID, so a device holding the custom Course could never install it.
+- **A Publisher Course's ID stays reserved**: QQL remembers every Publisher
+  Course ID it installed, also after the Course is removed, and refuses a
+  custom Course that uses one (it could have taken the signed Course's place
+  and its learners' progress). Inventory lists them.
+- **A shared device**: when the device has more than one learner, each
+  learner is told once that a shared device cannot fully protect each
+  learner from the others: the Access PIN prevents mistakes and casual
+  access but cannot stop someone determined to get around it. Advanced
+  (Admin) Help says the same. A device with one learner shows nothing.
+- **A wait after wrong PINs** (owner request): after 10 wrong Access PINs in
+  a row for a learner, that learner's PIN is not checked for a minute (the
+  learner switch, the admin PIN of the resets, the restore). The count is
+  kept per learner, so restarting QQL does not skip the wait; a right PIN
+  clears it. It is never in a learner backup.
+- Tests: `test/course_trust_270_test.dart`; the Export as Publisher Course
+  test expects the derived ID.
+- Scoring, progression and learner data are unchanged. Beta expiry
+  `2026-11-09 23:59:59` local time.
+
 # 2.0.70 (Build 270, Revision 7) - release tooling - 2026-10-10
 
 The audit's release and repository findings that need no decision.
