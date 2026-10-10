@@ -615,13 +615,14 @@ void main() {
       expect(find.textContaining('American English'), findsWidgets);
       expect(find.textContaining('Italian of Italy'), findsNothing);
       expect(find.text('Tell me more'), findsOneWidget);
-      expect(find.textContaining('Continue with Wizard saves'), findsNothing);
+      const nothingSaved = 'Nothing is saved until you press Save now';
+      expect(find.textContaining(nothingSaved), findsNothing);
       await tester.tap(find.byKey(const Key('course-wizard-explanation-more')));
       await tester.pumpAndSettle();
-      expect(find.textContaining('Continue with Wizard saves'), findsOne);
-      // Nothing to save yet: no Save for now, nor the later steps'
-      // Continue by hand.
-      expect(find.byKey(const Key('course-wizard-save-for-now')), findsNothing);
+      expect(find.textContaining(nothingSaved), findsOne);
+      // Nothing to save yet: no Save now, nor the later steps' Continue by
+      // hand.
+      expect(find.byKey(const Key('course-wizard-save-now')), findsNothing);
       await tester.tap(find.byKey(const Key('course-wizard-cancel')));
       await tester.pumpUntilFileIoState(
         () =>
@@ -653,9 +654,8 @@ void main() {
       expect(_fieldText(tester, 'Language variant'), isEmpty);
     });
 
-    testWidgets('the Wizard saves at each step, pauses and resumes', (
-      tester,
-    ) async {
+    testWidgets('the Wizard saves only with Save now, pauses and resumes '
+        '(Build 270 Revision 11)', (tester) async {
       await _openStudio(tester);
       await tester.tap(find.byKey(const Key('create-course-icon-action')));
       await tester.pumpAndSettle();
@@ -669,22 +669,14 @@ void main() {
         () =>
             find.text('Step 2 of 8: Flag or cover image').evaluate().isNotEmpty,
       );
-      var stored = (await tester.runAsync(
-        () => CourseEditorService().listUserCourses(),
-      ))!.single;
-      expect(stored.courseVersion, '1');
-      expect(stored.versionNotes, 'Course Wizard: Basics');
-      expect(stored.lessons, isEmpty);
-      expect(stored.publicationState, PublicationState.draft);
+      // Continue with Wizard saves nothing: the Course is only in the Wizard.
       expect(
-        (await tester.runAsync(
-          () => CourseWizardMemory().recall(stored.courseId),
-        ))!.step,
-        CourseWizardStep.flag,
+        (await tester.runAsync(() => CourseEditorService().listUserCourses()))!,
+        isEmpty,
       );
       expect(find.byKey(const Key('course-wizard-step-done-1')), findsOne);
 
-      // The flag step: nothing changed, Next saves nothing.
+      // The flag step: Next only moves on.
       await tester.tap(find.byKey(const Key('course-wizard-next')));
       await tester.pumpUntilFileIoState(
         () => find.text('Step 3 of 8: About the Course').evaluate().isNotEmpty,
@@ -714,20 +706,41 @@ void main() {
       await tester.pumpUntilFileIoState(
         () => find.text('Step 4 of 8: Course options').evaluate().isNotEmpty,
       );
-      stored = (await tester.runAsync(
-        () => CourseEditorService().listUserCourses(),
-      ))!.single;
-      expect(stored.courseVersion, '2');
-      expect(stored.versionNotes, 'Course Wizard: About the Course');
-      expect(stored.courseDescription, CourseWizardSample.about.description);
-      expect(stored.keywords, CourseWizardSample.about.keywords);
-      expect(stored.license, 'CC BY 4.0');
+      // Next saves nothing either.
+      expect(
+        (await tester.runAsync(() => CourseEditorService().listUserCourses()))!,
+        isEmpty,
+      );
       // Course options: nothing but Advanced.
       expect(find.byKey(const Key('course-wizard-advanced')), findsOneWidget);
       expect(find.byKey(const Key('course-wizard-create-duels')), findsNothing);
 
-      // Save for now closes the Wizard; the row says where it stopped.
-      await tester.tap(find.byKey(const Key('course-wizard-save-for-now')));
+      // Save now saves everything so far, and the Wizard stays open.
+      await tester.tap(find.byKey(const Key('course-wizard-save-now')));
+      await tester.pumpUntilFileIoState(
+        () => find.text('Saved.').evaluate().isNotEmpty,
+      );
+      expect(find.text('Step 4 of 8: Course options'), findsOneWidget);
+      var stored = (await tester.runAsync(
+        () => CourseEditorService().listUserCourses(),
+      ))!.single;
+      expect(stored.courseVersion, '1');
+      expect(stored.versionNotes, 'Course Wizard: Course options');
+      expect(stored.lessons, isEmpty);
+      expect(stored.publicationState, PublicationState.draft);
+      expect(stored.courseDescription, CourseWizardSample.about.description);
+      expect(stored.keywords, CourseWizardSample.about.keywords);
+      expect(stored.license, 'CC BY 4.0');
+      expect(
+        (await tester.runAsync(
+          () => CourseWizardMemory().recall(stored.courseId),
+        ))!.step,
+        CourseWizardStep.options,
+      );
+
+      // Nothing unsaved: leaving pauses without asking; the row says where
+      // it stopped.
+      await tester.pageBack();
       final paused = find.byKey(
         ValueKey('course-wizard-paused-${stored.courseId}'),
       );
@@ -737,11 +750,10 @@ void main() {
         find.text('Course Wizard paused: step 4 of 8 (Course options)'),
         findsOneWidget,
       );
-      // No change on this step: no new version.
       stored = (await tester.runAsync(
         () => CourseEditorService().listUserCourses(),
       ))!.single;
-      expect(stored.courseVersion, '2');
+      expect(stored.courseVersion, '1');
 
       // Continue Course Wizard starts the Course's menu.
       final actions = find.byKey(
@@ -814,21 +826,11 @@ void main() {
       await tester.pumpUntilFileIoState(
         () => find.text('Step 6 of 8: GuideBook').evaluate().isNotEmpty,
       );
+      // Next keeps the Lessons in the Wizard; nothing is saved yet.
       var saved = (await tester.runAsync(
         () => CourseEditorService().listUserCourses(),
       ))!.single;
-      expect(saved.lessons.map((lesson) => lesson.title), [
-        'Coffee',
-        'Paying the bill',
-        'Back to the station',
-      ]);
-      expect(saved.versionNotes, 'Course Wizard: Lessons');
-      expect(
-        (await tester.runAsync(
-          () => CourseWizardMemory().recall(stored.courseId),
-        ))!.lessonId,
-        saved.lessons.first.lessonId,
-      );
+      expect(saved.lessons, isEmpty);
       expect(find.text('Next'), findsOneWidget);
 
       // Next needs every Lesson's GuideBook.
@@ -882,22 +884,44 @@ void main() {
               .evaluate()
               .isNotEmpty,
         );
-        saved = (await tester.runAsync(
-          () => CourseEditorService().listUserCourses(),
-        ))!.single;
-        expect(saved.versionNotes, 'Course Wizard: GuideBook, Lesson $lesson');
-        final guidebook = saved.lessons[lesson - 1].guidebook;
-        expect(guidebook.publicationState, PublicationState.published);
-        expect(guidebook.modules.single.title, 'Al bar');
       }
+      // Marking a GuideBook ready saves nothing either.
+      saved = (await tester.runAsync(
+        () => CourseEditorService().listUserCourses(),
+      ))!.single;
+      expect(saved.lessons, isEmpty);
 
       await tester.tap(find.byKey(const Key('course-wizard-next')));
       await tester.pumpUntilFileIoState(
         () => find.text('Step 7 of 8: Rounds').evaluate().isNotEmpty,
       );
       expect(find.text('Next'), findsOneWidget);
-      // Save for now remembers the Lesson of the Rounds step.
-      await tester.tap(find.byKey(const Key('course-wizard-save-for-now')));
+      // Save now saves the Lessons and their published GuideBooks, and
+      // remembers the Lesson of the Rounds step.
+      await tester.tap(find.byKey(const Key('course-wizard-save-now')));
+      await tester.pumpUntilFileIoState(
+        () => find.text('Saved.').evaluate().isNotEmpty,
+      );
+      saved = (await tester.runAsync(
+        () => CourseEditorService().listUserCourses(),
+      ))!.single;
+      expect(saved.versionNotes, 'Course Wizard: Rounds');
+      expect(saved.lessons.map((lesson) => lesson.title), [
+        'Coffee',
+        'Paying the bill',
+        'Back to the station',
+      ]);
+      for (final lesson in saved.lessons) {
+        expect(lesson.guidebook.publicationState, PublicationState.published);
+        expect(lesson.guidebook.modules.single.title, 'Al bar');
+      }
+      expect(
+        (await tester.runAsync(
+          () => CourseWizardMemory().recall(stored.courseId),
+        ))!.lessonId,
+        saved.lessons.first.lessonId,
+      );
+      await tester.pageBack();
       await tester.pumpUntilFileIoState(
         () => find
             .text('Course Wizard paused: step 7 of 8 (Rounds, Lesson 1)')
@@ -1010,17 +1034,11 @@ void main() {
             .evaluate()
             .isNotEmpty,
       );
+      // The Rounds are in the Wizard, not saved (Build 270 Revision 11).
       final saved = (await tester.runAsync(
         () => CourseEditorService().listUserCourses(),
       ))!.single;
-      expect(saved.versionNotes, 'Course Wizard: Rounds, Lesson 1');
-      final rounds = saved.lessons.single.rounds;
-      expect(rounds, isNotEmpty);
-      expect(rounds.every((round) => round.title.isEmpty), isTrue);
-      expect(
-        rounds.every((round) => round.publicationState.isPublished),
-        isFalse,
-      );
+      expect(saved.lessons.single.rounds, isEmpty);
       expect(find.byKey(const Key('course-wizard-round-2')), findsOneWidget);
 
       // Step 8 (Revision 4): Check and publish.
@@ -1043,17 +1061,12 @@ void main() {
             .evaluate()
             .isNotEmpty,
       );
-      final published = (await tester.runAsync(
-        () => CourseEditorService().listUserCourses(),
-      ))!.single;
-      expect(published.versionNotes, 'Course Wizard: Check and publish');
-      expect(published.publicationState.isPublished, isTrue);
-      expect(published.lessons.single.publicationState.isPublished, isTrue);
+      // Publish marks the Course in the Wizard; Finish saves it.
       expect(
-        published.lessons.single.rounds.any(
-          (round) => round.publicationState.isPublished,
-        ),
-        isTrue,
+        ((await tester.runAsync(
+          () => CourseEditorService().listUserCourses(),
+        ))!.single).publicationState.isPublished,
+        isFalse,
       );
       expect(find.text('Finish'), findsOneWidget);
 
@@ -1096,6 +1109,47 @@ void main() {
         find.byKey(const Key('course-editor-wizard-paused')),
         findsNothing,
       );
+      final published = (await tester.runAsync(
+        () => CourseEditorService().listUserCourses(),
+      ))!.single;
+      expect(published.versionNotes, 'Course Wizard: Check and publish');
+      expect(published.publicationState.isPublished, isTrue);
+      expect(published.lessons.single.publicationState.isPublished, isTrue);
+      final rounds = published.lessons.single.rounds;
+      expect(rounds, isNotEmpty);
+      expect(rounds.every((round) => round.title.isEmpty), isTrue);
+      expect(rounds.any((round) => round.publicationState.isPublished), isTrue);
+    });
+
+    testWidgets('a Course never saved is not created when left without '
+        'saving (Build 270 Revision 11)', (tester) async {
+      await _openStudio(tester);
+      await tester.tap(find.byKey(const Key('create-course-icon-action')));
+      await tester.pumpAndSettle();
+      await tester.enterText(_field('Course title *'), 'Italian at the bar');
+      await tester.enterText(_field('Source language *'), 'English');
+      await tester.enterText(_field('Target language *'), 'Italian');
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('course-wizard-continue')));
+      await tester.pumpUntilFileIoState(
+        () =>
+            find.text('Step 2 of 8: Flag or cover image').evaluate().isNotEmpty,
+      );
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const Key('course-wizard-leave-never-saved')),
+        findsOneWidget,
+      );
+      await tester.tap(find.byKey(const Key('course-wizard-leave-discard')));
+      await tester.pumpUntilFileIoState(
+        () => find.byType(CourseWizardScreen).evaluate().isEmpty,
+      );
+      expect(find.byKey(const Key('course-wizard-not-created')), findsOne);
+      expect(
+        (await tester.runAsync(() => CourseEditorService().listUserCourses()))!,
+        isEmpty,
+      );
     });
 
     testWidgets('a paused row opens the Wizard; the Editor continues it', (
@@ -1122,7 +1176,7 @@ void main() {
       );
       expect(find.text('Step 4 of 8: Course options'), findsOneWidget);
       expect(find.byType(CourseEditorScreen), findsNothing);
-      await tester.tap(find.byKey(const Key('course-wizard-save-for-now')));
+      await tester.pageBack();
       await tester.pumpUntilFileIoState(
         () => find.byType(CourseWizardScreen).evaluate().isEmpty,
       );
@@ -1173,6 +1227,17 @@ void main() {
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
     final stored = (await tester.runAsync(() => _store(_wizardCourse())))!;
+    // Paused at its last save (Build 270 Revision 11: leaving without saving
+    // keeps it).
+    await tester.runAsync(
+      () => CourseWizardMemory().remember(
+        stored.courseId,
+        CourseWizardPause(
+          step: CourseWizardStep.about,
+          savedAtUtc: DateTime.utc(2026, 10, 8),
+        ),
+      ),
+    );
     CourseWizardOutcome? outcome;
     await tester.pumpWidget(
       MaterialApp(
@@ -1218,7 +1283,10 @@ void main() {
       () => find.byType(CourseWizardScreen).evaluate().isEmpty,
     );
     expect(outcome, isA<CourseWizardPaused>());
-    expect(find.textContaining('Course Wizard paused.'), findsOneWidget);
+    expect(
+      find.textContaining('Changes since the last save were discarded.'),
+      findsOneWidget,
+    );
     final kept = (await tester.runAsync(
       () => CourseEditorService().listUserCourses(),
     ))!.single;

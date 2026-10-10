@@ -60,6 +60,10 @@ class CourseAuthoringSession {
   Course get originalCourse => _transaction.originalCourse;
   Course get workingCourse => _transaction.workingCourse;
   bool get hasChanges => _transaction.hasChanges;
+
+  /// Whether the Course has never been saved: the first [confirm] creates
+  /// it.
+  bool get isNewCourse => _isNewCourse;
   bool get canModify =>
       _access.canEditOriginal && _editorMode == CourseEditorMode.edit;
   CourseEditorMode get editorMode => _editorMode;

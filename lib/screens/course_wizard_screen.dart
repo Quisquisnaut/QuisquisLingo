@@ -47,8 +47,8 @@ import '../services/course_editor_service.dart';
 /// The Course Wizard (Build 267, `docs/267_COURSE_WIZARD_PLAN.md`).
 ///
 /// Without [course] it is New Course's first screen, Basics: the author then
-/// continues with the Wizard, which saves the Course at once, or creates the
-/// Course by hand with the New Course form. With [course] it continues a
+/// continues with the Wizard, which saves nothing until Save now or Finish
+/// (Build 270 Revision 11), or creates the Course by hand with the New Course form. With [course] it continues a
 /// paused Wizard on the stored Course, re-read by the caller, so changes made
 /// by hand in the meantime are kept.
 ///
@@ -630,6 +630,8 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
   bool get _unsaved {
     final session = _session;
     if (session == null) return false;
+    // A Course never saved is all unsaved (Build 270 Revision 11).
+    if (session.isNewCourse) return true;
     if (session.hasChanges) return true;
     if (_problem != null) return true;
     try {
@@ -668,12 +670,19 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
     return true;
   }
 
-  /// Stages the current step and saves the Course when it changed: an
-  /// ordinary confirmed save, its version notes naming the step.
+  /// Stages the current step and saves the Course: an ordinary confirmed
+  /// save, its version notes naming the step. Only Save now, Save and
+  /// leave, Continue by hand and Finish save (Build 270 Revision 11, owner
+  /// decision of 10 October 2026), so everything since the last save can be
+  /// discarded; the pause follows the last save, so a Wizard left without
+  /// saving resumes where it was saved.
   Future<bool> _save() async {
     if (!_stage()) return false;
     final session = _session!;
-    if (!session.hasChanges) return true;
+    if (!session.hasChanges && !session.isNewCourse) {
+      await _remember(_step);
+      return true;
+    }
     final result = await runReported(
       context,
       'Saving the Course',
@@ -682,8 +691,10 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
         versionNotes: 'Course Wizard: ${_step.title}',
       ),
     );
-    if (result != null) await _offerBackupPurge(result);
-    return result != null;
+    if (result == null) return false;
+    await _remember(_step);
+    await _offerBackupPurge(result);
+    return true;
   }
 
   /// Build 270 Revision 9: after a save, the question about older backups.
@@ -733,7 +744,6 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
       _load(step);
     });
     _showStepInBar();
-    await _remember(step);
   }
 
   /// Scrolls the step bar so the step shown is in view.
@@ -759,8 +769,8 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
     }
   }
 
-  /// Continue with Wizard: the Course is created and saved now,
-  /// as a Draft with no Lessons.
+  /// Continue with Wizard: the Course, a Draft with no Lessons, exists only
+  /// in the Wizard until it is saved (Build 270 Revision 11).
   Future<void> _begin() => _run(() async {
     final problem = _problem;
     if (problem != null) {
@@ -806,18 +816,6 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
       isNewCourse: true,
       clock: _clock,
     )..setEditorMode(CourseEditorMode.edit);
-    final saved = await runReported(
-      context,
-      'Creating the Course',
-      () => session.confirm(
-        languageCode: CourseService.codeForCourse(course),
-        versionNotes: 'Course Wizard: ${CourseWizardStep.basics.title}',
-      ),
-    );
-    if (saved == null) {
-      await session.discardUnconfirmedMedia();
-      return;
-    }
     if (!mounted) return;
     _authorName = profile.presentationName;
     _session = session;
@@ -858,13 +856,15 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
         return;
       }
     }
-    if (!await _save()) return;
     final next = _step.next;
     if (next == null) {
+      // Finish saves (Build 270 Revision 11); Next only keeps the step.
+      if (!await _save()) return;
       await _congratulate();
       await _close(finish: true);
       return;
     }
+    if (!_stage()) return;
     await _goTo(next);
   });
 
@@ -955,27 +955,73 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
     await _goTo(step);
   }
 
-  Future<void> _saveForNow() => _run(() async {
+  /// Save now (owner decision of 10 October 2026): saves, and the Wizard
+  /// stays open.
+  Future<void> _saveNow() => _run(() async {
+    if (!await _save() || !mounted) return;
+    setState(() {});
+    _tell('Saved.');
+  });
+
+  /// Save and leave, from the leave dialog.
+  Future<void> _saveAndLeave() => _run(() async {
     if (!await _save()) return;
     await _close(finish: false, saved: true);
   });
 
-  /// Continue by hand: saves, forgets the Wizard and opens the Course Editor.
-  Future<void> _byHand() => _run(() async {
-    if (!await _save()) return;
-    await _close(finish: true);
-  });
+  /// Continue by hand: forgets the Wizard and opens the Course Editor on the
+  /// saved Course; unsaved changes are saved only when the author agrees
+  /// (Build 270 Revision 11).
+  Future<void> _byHand() async {
+    if (_busy || !_stage()) return;
+    if (_unsaved &&
+        !await _confirm(
+          key: const Key('course-wizard-by-hand-save'),
+          title: 'Save first?',
+          message: _session!.isNewCourse
+              ? 'The Course has not been saved yet, and the Course Editor '
+                    'opens a saved Course. Save it and continue by hand?'
+              : 'The Course Editor opens the saved Course. Save the changes '
+                    'made since the last save and continue by hand?',
+          action: 'Save and continue by hand',
+        )) {
+      return;
+    }
+    await _run(() async {
+      if (!await _save()) return;
+      await _close(finish: true);
+    });
+  }
 
   /// Ends the Wizard. [finish] forgets it and opens the Course Editor;
   /// otherwise it stays paused at this step, and the SnackBar says where to
-  /// continue ([saved]: after Save for now).
-  Future<void> _close({required bool finish, bool saved = false}) async {
+  /// continue ([saved]: after Save and leave; [discarded]: after Leave without
+  /// saving).
+  Future<void> _close({
+    required bool finish,
+    bool saved = false,
+    bool discarded = false,
+  }) async {
     final session = _session!;
     final course = session.originalCourse;
+    // A Course never saved leaves nothing behind (Build 270 Revision 11).
+    if (session.isNewCourse) {
+      await session.discardUnconfirmedMedia();
+      if (!mounted) return;
+      _closing = true;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          key: Key('course-wizard-not-created'),
+          content: Text('Nothing was saved: the Course was not created.'),
+        ),
+      );
+      Navigator.of(context).pop();
+      return;
+    }
     try {
       if (finish) {
         await _ops.wizardMemory.forget(course.courseId);
-      } else {
+      } else if (!discarded) {
         await _remember(_step);
       }
     } catch (error) {
@@ -993,7 +1039,11 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
         SnackBar(
           key: const Key('course-wizard-saved-for-now'),
           content: Text(
-            '${saved ? 'Saved.' : 'Course Wizard paused.'} Continue it from '
+            '${saved
+                ? 'Saved.'
+                : discarded
+                ? 'Changes since the last save were discarded.'
+                : 'Course Wizard paused.'} Continue it from '
             'the Course\'s ⋮ menu in Course Studio.',
           ),
         ),
@@ -1018,6 +1068,7 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
       return;
     }
     final steps = _unsavedSteps;
+    final neverSaved = _session!.isNewCourse;
     final choice = await showDialog<String>(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -1029,25 +1080,36 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                steps.length == 1
-                    ? 'This step has changes that are not saved yet:'
-                    : 'These steps have changes that are not saved yet:',
-              ),
-              const SizedBox(height: 4),
-              for (final step in steps)
-                Text(
-                  '• Step ${step.number}: ${step.title}',
-                  key: Key('course-wizard-leave-step-${step.number}'),
-                ),
-              const SizedBox(height: 8),
-              const Text(
-                'Leave without saving loses them. Save for now keeps them; '
-                'you can continue the Wizard later from the Course\'s ⋮ menu '
-                'in Course Studio.',
-              ),
-            ],
+            children: neverSaved
+                ? const [
+                    Text(
+                      'This Course has not been saved yet. Leave without '
+                      'saving discards it: the Course is not created. Save '
+                      'and leave creates it; you can continue the Wizard '
+                      'later from the Course\'s ⋮ menu in Course Studio.',
+                      key: Key('course-wizard-leave-never-saved'),
+                    ),
+                  ]
+                : [
+                    Text(
+                      steps.length == 1
+                          ? 'This step has changes that are not saved yet:'
+                          : 'These steps have changes that are not saved yet:',
+                    ),
+                    const SizedBox(height: 4),
+                    for (final step in steps)
+                      Text(
+                        '• Step ${step.number}: ${step.title}',
+                        key: Key('course-wizard-leave-step-${step.number}'),
+                      ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Leave without saving discards them: the Wizard goes on '
+                      'later from its last save. Save and leave keeps them; '
+                      'you can continue the Wizard later from the Course\'s ⋮ '
+                      'menu in Course Studio.',
+                    ),
+                  ],
           ),
         ),
         actions: [
@@ -1063,18 +1125,18 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
           FilledButton(
             key: const Key('course-wizard-leave-save'),
             onPressed: () => Navigator.pop(dialogContext, 'save'),
-            child: const Text('Save for now'),
+            child: const Text('Save and leave'),
           ),
         ],
       ),
     );
     if (!mounted || choice == null) return;
     if (choice == 'save') {
-      await _saveForNow();
+      await _saveAndLeave();
       return;
     }
     _session!.cancel();
-    await _run(() => _close(finish: false));
+    await _run(() => _close(finish: false, discarded: true));
   }
 
   Future<bool> _confirm({
@@ -1186,12 +1248,12 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
             CourseWizardStep.rounds =>
               'Clear all removes the ${_currentLesson?.rounds.length ?? 0} '
                   'Rounds of Lesson ${_shownLesson + 1}, with their '
-                  'exercises. Nothing is saved until you press Next or Save '
-                  'for now; Version History can bring back any earlier save.',
+                  'exercises. Nothing is saved until you press Save now or '
+                  'Finish; Version History can bring back any earlier save.',
             _ =>
-              'Clear all empties this step. Steps you have already saved '
-                  'stay as they are; Version History can bring back any '
-                  'earlier save.',
+              'Clear all empties this step. Nothing is saved until you '
+                  'press Save now or Finish; Version History can bring back '
+                  'any earlier save.',
           },
           action: 'Clear all',
         )) {
@@ -1241,7 +1303,7 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
     return [
       lead,
       ...removed,
-      'Nothing is saved until you press Next or Save for now; Version '
+      'Nothing is saved until you press Save now or Finish; Version '
           'History can bring back any earlier save.',
     ].join('\n\n');
   }
@@ -1255,9 +1317,8 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
     return [
       lead,
       ?note,
-      'Nothing is saved until you press Next, This Lesson\'s GuideBook is '
-          'ready or Save for now; Version History can bring back any earlier '
-          'save.',
+      'Nothing is saved until you press Save now or Finish; Version '
+          'History can bring back any earlier save.',
     ].join('\n\n');
   }
 
@@ -1384,11 +1445,11 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
       _shownLesson = index;
       _generation++;
     });
-    unawaited(_remember(_step));
   }
 
-  /// This Lesson's GuideBook is ready: saves it as Published, then shows
-  /// the next Lesson still to do.
+  /// This Lesson's GuideBook is ready: marks it Published in the Wizard
+  /// (saved by Save now or Finish, Build 270 Revision 11), then shows the
+  /// next Lesson still to do.
   Future<void> _guidebookReady() => _run(() async {
     final lesson = _currentLesson;
     if (lesson == null) return;
@@ -1427,24 +1488,11 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
         state: PublicationState.published,
       ),
     );
-    final session = _session!;
-    final saved = await runReported(
-      context,
-      'Saving the Course',
-      () => session.confirm(
-        languageCode: CourseService.codeForCourse(session.workingCourse),
-        versionNotes: 'Course Wizard: GuideBook, Lesson $number',
-      ),
-    );
-    if (saved == null || !mounted) return;
-    await _offerBackupPurge(saved);
-    if (!mounted) return;
     final next = CourseWizardGuidebook.firstProblem(_working);
     setState(() {
       if (next != null) _shownLesson = next.index;
       _generation++;
     });
-    await _remember(_step);
     _tell(
       next == null
           ? 'Lesson $number\'s GuideBook is ready, and so is every Lesson\'s. '
@@ -1457,7 +1505,8 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
   // ---- Rounds (step 7)
 
   /// Make Rounds: the Round Wizard on the shown Lesson, its plan before
-  /// anything; the Rounds it makes are added and saved.
+  /// anything; the Rounds it makes are added in the Wizard (saved by Save
+  /// now or Finish, Build 270 Revision 11).
   Future<void> _makeRounds() => _run(() async {
     final lesson = _currentLesson;
     if (lesson == null) return;
@@ -1492,28 +1541,15 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
       );
       _generation++;
     });
-    final session = _session!;
-    final saved = await runReported(
-      context,
-      'Saving the Course',
-      () => session.confirm(
-        languageCode: CourseService.codeForCourse(session.workingCourse),
-        versionNotes: 'Course Wizard: Rounds, Lesson $number',
-      ),
-    );
-    if (saved == null || !mounted) return;
-    await _offerBackupPurge(saved);
-    if (!mounted) return;
     final next = CourseWizardRounds.firstProblem(_working);
     setState(() {
       if (next != null) _shownLesson = next.index;
       _generation++;
     });
-    await _remember(_step);
     _tell(
       '${generated.length} Round${generated.length == 1 ? '' : 's'} added to '
       'Lesson $number. '
-      '${next == null ? 'Every Lesson has Rounds: Finish saves the Course and opens the Course Editor.' : 'Now Lesson ${next.index + 1}.'}',
+      '${next == null ? 'Every Lesson has Rounds: Next goes on to Check and publish.' : 'Now Lesson ${next.index + 1}.'}',
     );
   });
 
@@ -1857,10 +1893,10 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
             'knows. The languages never change later.',
         'Variant (optional): which form of the target language, for '
             'example “American English”. You can leave it empty.',
-        'Continue with Wizard saves the Course now, as a Draft with no '
-            'Lessons, and takes you through the rest step by step; you can '
-            'stop and continue later. Continue by hand opens the New Course '
-            'form and then the Course Editor at once.',
+        'Continue with Wizard takes you through the rest step by step. '
+            'Nothing is saved until you press Save now or Finish; you can '
+            'save, stop and continue later. Continue by hand opens the New '
+            'Course form and then the Course Editor at once.',
       ],
     ),
     CourseWizardStep.basics => (
@@ -1917,8 +1953,8 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
             'the topic.',
         'Learners open Lessons in order: the next one opens when they finish '
             'this one or win its Duel. A Duel needs 25 questions, so a Lesson '
-            'usually has about six Rounds. Next saves the Lessons; then you '
-            'write each Lesson\'s GuideBook.',
+            'usually has about six Rounds. Then you write each Lesson\'s '
+            'GuideBook.',
       ],
     ),
     // Owner, 9 October 2026: the module details stand above the modules,
@@ -1932,9 +1968,9 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
         'Needed now: in every Lesson, a module with at least '
             '${CourseWizardGuidebook.minimumWords} Words & Expressions, which '
             'the Round Wizard needs. When a Lesson\'s GuideBook is ready, '
-            'press “This Lesson\'s GuideBook is ready”: it saves the GuideBook '
-            'as Published, so learners can read it. Changing it afterwards '
-            'asks for that again.',
+            'press “This Lesson\'s GuideBook is ready”: it marks the GuideBook '
+            'Published, so learners can read it once the Course is saved. '
+            'Changing it afterwards asks for that again.',
       ],
     ),
     // Owner, 9 October 2026: what the Round Wizard does stands beside Make
@@ -1944,8 +1980,8 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
           'Make each Lesson\'s Rounds with the Round Wizard: it shows its '
           'plan before it makes anything.',
       more: const [
-        'Needed now: every Lesson needs Rounds. Next saves them and checks '
-            'the Course before you publish it.',
+        'Needed now: every Lesson needs Rounds. Next checks the Course '
+            'before you publish it.',
       ],
     ),
     CourseWizardStep.check => (
@@ -1953,14 +1989,15 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
           'Check each Lesson, then publish it: learners see only what is '
           'Published.',
       more: const [
-        'Publish saves as Published every GuideBook, Round, exercise and '
-            'Lesson without an Audit error, then the Course. Anything an '
+        'Publish marks as Published every GuideBook, Round, exercise and '
+            'Lesson without an Audit error, then the Course; Finish saves '
+            'it. Anything an '
             'error names stays Draft and is listed here: fix it in the '
             'Course Editor and publish it there later.',
         'Open the Audit lists every finding. Preview shows the Course as a '
             'learner sees it, Drafts included, and records nothing.',
-        'Finish without publishing ends the Wizard and leaves everything as '
-            'it is.',
+        'Finish without publishing saves the Course and ends the Wizard, '
+            'leaving the rest as it is.',
       ],
     ),
   };
@@ -3264,13 +3301,15 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
     return check;
   }
 
-  /// Publish (plan §7): one confirmed save, what stays Draft listed.
+  /// Publish (plan §7): everything without an Audit error marked Published
+  /// in the Wizard, what stays Draft listed; Finish saves it (Build 270
+  /// Revision 11).
   Future<void> _publish() => _run(() async {
     final result = CourseWizardPublish.publish(_working, now: _clock());
-    _stageChange(result.course);
-    if (!await _save()) return;
-    if (!mounted) return;
-    setState(() => _published = result);
+    setState(() {
+      _stageChange(result.course);
+      _published = result;
+    });
   });
 
   Future<void> _openAudit() {
@@ -3507,15 +3546,19 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
     }
     return [
       Tooltip(
-        message: 'Save and close; continue later from Course Studio.',
+        message:
+            'Save the Course now and stay in the Wizard. Nothing else saves '
+            'until Finish.',
         child: TextButton(
-          key: const Key('course-wizard-save-for-now'),
-          onPressed: _busy ? null : _saveForNow,
-          child: const Text('Save for now'),
+          key: const Key('course-wizard-save-now'),
+          onPressed: _busy ? null : _saveNow,
+          child: const Text('Save now'),
         ),
       ),
       Tooltip(
-        message: 'Save, end the Course Wizard and open the Course Editor.',
+        message:
+            'End the Course Wizard and open the Course Editor; unsaved '
+            'changes are saved only if you agree.',
         child: TextButton(
           key: const Key('course-wizard-by-hand'),
           onPressed: _busy ? null : _byHand,

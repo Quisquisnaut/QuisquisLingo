@@ -423,10 +423,12 @@ class _HomeScreenState extends State<HomeScreen> {
     // A damaged learner-data file is told first (Build 270 Revision 0).
     await LearnerDataNotices.showPendingRecovery();
     if (!mounted) return;
-    // What the Access PIN can do on a shared device (Build 270 Revision 8).
-    await SharedDeviceNotice.showIfNeeded(context, profiles: _profiles);
-    if (!mounted) return;
     await _showWelcomeWizard();
+    if (!mounted) return;
+    // What the Access PIN can do on a shared device (Build 270 Revision 8);
+    // never on a learner's first access, which shows only the Welcome Wizard
+    // (Revision 10 follow-up).
+    await SharedDeviceNotice.showIfNeeded(context, profiles: _profiles);
     if (!mounted || _startupNoticesShown) return;
     _startupNoticesShown = true;
     await _showWelcome();
@@ -454,6 +456,9 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _showWelcomeWizard() async {
     if (await _profiles.getActiveProfileId() == null || !mounted) return;
     if (await _settings.hasCompletedWelcomeWizard() || !mounted) return;
+    final learnerId = await _profiles.getActiveProfileId();
+    if (learnerId != null) SharedDeviceNotice.deferForFirstAccess(learnerId);
+    if (!mounted) return;
     // In the language chosen in Create Profile (Build 255 Revision 7).
     final locale = await LocaleService().read();
     // The Wizard stands in for this version's Welcome: a new learner never

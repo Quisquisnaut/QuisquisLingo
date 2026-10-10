@@ -18,17 +18,30 @@ abstract final class SharedDeviceNotice {
   @visibleForTesting
   static bool enabled = true;
 
+  /// Learners who met QuisquisLingo in this session (their Welcome Wizard
+  /// ran): the notice waits for their next start, so a first access shows
+  /// only the Wizard (owner decision of 10 October 2026). Kept for the app
+  /// session only.
+  static final Set<String> _firstAccess = {};
+
+  /// Called when [learnerId]'s Welcome Wizard runs.
+  static void deferForFirstAccess(String learnerId) =>
+      _firstAccess.add(learnerId);
+
+  @visibleForTesting
+  static void debugReset() => _firstAccess.clear();
+
   static const title = 'A shared device';
   static const body =
       'More than one learner uses QuisquisLingo on this device. A shared '
       'device cannot fully protect each learner from what the others do: '
       'the Access PIN prevents mistakes and casual access, but it cannot '
-      'stop someone determined to get around it, for example by changing '
-      "QuisquisLingo's files. Keep anything private off a shared device.";
+      'stop someone determined to get around it. Keep anything private off '
+      'a shared device.';
 
   /// Shows the notice to the active learner when the device has two or more
-  /// learners and this learner has not seen it. Never throws: a notice must
-  /// not stop start-up.
+  /// learners, this learner has not seen it and this is not their first
+  /// access. Never throws: a notice must not stop start-up.
   static Future<void> showIfNeeded(
     BuildContext context, {
     ProfileService? profiles,
@@ -41,7 +54,10 @@ abstract final class SharedDeviceNotice {
       if (await notices.hasSeenLearnerOneTimeNotice(noticeId) != false) {
         return;
       }
-      final learners = await (profiles ?? ProfileService()).getProfileRecords();
+      final learnerProfiles = profiles ?? ProfileService();
+      final activeId = await learnerProfiles.getActiveProfileId();
+      if (activeId == null || _firstAccess.contains(activeId)) return;
+      final learners = await learnerProfiles.getProfileRecords();
       if (learners.length < 2 || !context.mounted) return;
       await notices.markLearnerOneTimeNoticeSeen(noticeId);
       if (!context.mounted) return;

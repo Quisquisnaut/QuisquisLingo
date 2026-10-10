@@ -269,3 +269,22 @@ Not tried by hand: stopping speech on leaving a Round on Windows and Linux.
 - `flutter analyze`: no issues.
 - Complete suite: **4,140 passed, 1 skipped**, 42:59 (10 October 2026,
   14:40–15:23).
+
+## Revision 11 (2.0.70+270011), the Course Wizard saves only when asked
+
+- `course_wizard_267_test`: six cases rewritten for the new rule (Continue
+  with Wizard and Next save nothing; Save now saves, stays and records the
+  pause; leaving with nothing unsaved pauses; GuideBook ready, Make Rounds
+  and Publish save nothing, Finish saves the published Course; Leave without
+  saving keeps the last save's pause and says the changes were discarded),
+  one new case (a Course never saved is not created when left without
+  saving): 26 passed.
+- `course_trust_270_test`: a new case (never on a first access; the next
+  start shows it): 9 passed.
+- Other Course Wizard files (Module Wizard, Check and publish, Wizard
+  wording, picture aids, GuideBook size advice, picture border): passed.
+- A temporary probe (deleted) resumed the Wizard at each step, on a new and
+  on a filled Course, and left at once: no step asked.
+- `flutter analyze`: no issues.
+- Complete suite: **4,142 passed, 1 skipped**, 37:44 (10 October 2026,
+  17:35–18:12).

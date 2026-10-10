@@ -5,11 +5,10 @@ Build 270 fixes the weaknesses found by the audit of 10 October 2026
 store, learner separation, the Build 269 audio hold and the DST XP bug, the
 import side doors, then the remaining findings by severity.
 
-Owner threat model (10 October 2026): QQL's local PINs and rights stop easy
-unauthorized access in the app. They are not meant to resist someone with
-physical or filesystem access to the device, or hand-crafted files. Files
-from other people (Course packages, Image Banks) keep full import
-validation.
+Owner's view (10 October 2026): QQL's local PINs and rights prevent
+mistakes and casual access in the app; they are not a security boundary
+between learners. Files from other people (Course packages, Image Banks)
+keep full import validation.
 
 ## Revision 0 (2.0.70+270000): learner data that survives a bad write
 
@@ -379,3 +378,33 @@ Owner decision after the modularization audit
 one or the narrator differs from `StorySpeaker.defaultNarrator`. Saving the
 default narrator unchanged no longer creates a working-copy change. Same
 version (2.0.70+270010).
+
+## Revision 11 (2.0.70+270011): the Course Wizard saves only when asked
+
+Owner decisions of 10 October 2026: everything since the last deliberate
+save must be discardable.
+
+- `course_wizard_screen.dart`: `_save` is called only by Save now
+  (`_saveNow`, stays open), Save and leave (`_saveAndLeave`), Continue by
+  hand (`_byHand`, which first asks `course-wizard-by-hand-save` when
+  something is unsaved) and Finish (`_next` on the last step). Next, Back,
+  the step bar, `_guidebookReady`, `_makeRounds` and `_publish` only stage.
+  `_begin` no longer confirms; `CourseAuthoringSession.isNewCourse` (new
+  getter) marks a Course never saved, which `_unsaved` counts as unsaved and
+  `_close` discards (pop with no outcome, `course-wizard-not-created`). The
+  pause is written by `_save` and by a close with nothing unsaved; `_goTo`
+  and `_chooseLesson` no longer write it, so `_close(discarded: true)`
+  leaves the last save's pause. The leave dialog shows
+  `course-wizard-leave-never-saved` for a Course never saved, else the
+  steps; its buttons are Keep working, Leave without saving, Save and leave.
+  On-screen texts and the step explanations say "Nothing is saved until you
+  press Save now or Finish".
+- `SharedDeviceNotice`: `deferForFirstAccess` (a session-only set, called
+  by `HomeScreen._showWelcomeWizard`), `debugReset`; Home shows the Welcome
+  Wizard before the notice. The notice's text and the Help (EN/IT/ES) give
+  no example of how the PIN could be got around.
+- Developer documents (AGENTS.md, the audit, the handoff, this summary, the
+  changelog): the PIN described only as preventing mistakes and casual
+  access; the two audit findings kept open by decision summarized.
+- Help EN/IT/ES: `editorHelp.createNewCourse.body`,
+  `editorHelp.qa.courseWizard.a`.

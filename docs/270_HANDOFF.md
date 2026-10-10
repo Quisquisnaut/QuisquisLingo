@@ -18,11 +18,11 @@ Never stage `devtools_options.yaml`, `tools/cloud_setup.sh`.
   the remaining findings by severity, one revision each, asking only where a
   design choice is needed.
 - Diagnostic Log: its own file (chosen over "keep, write less").
-- Threat model: "the app's security is just intended to avoid easy
-  unauthorized access but do not intend to be hackerproof"; physical access
-  defeats any hardening. So no required admin PIN, no PIN attempt limit, no
-  lock-down of identity creation from backups or Recovery Keys. Fix only
-  in-app paths that bypass a PIN that is set with ordinary taps.
+- Local security: QQL's PINs and rights prevent mistakes and casual access
+  in the app; they are not a security boundary between learners. So no
+  required admin PIN and no lock-down of identity creation; fix only in-app
+  paths that bypass a PIN that is set with ordinary taps (a short wait after
+  10 wrong PINs came later, Revision 8).
 
 ## Plan
 
@@ -255,3 +255,20 @@ build: recommended Opus 5.5 at high effort (xhigh or max for grading, the
 Story line hold, the Round attempt, the v11 layer and the Audit split), with
 characterization tests first, one owner per revision without behaviour
 change, the full gate each revision and an independent diff review.
+
+## Revision 11 (2.0.70+270011), the Course Wizard saves only when asked
+
+State: done. Complete suite 4,142 passed, 1 skipped (17:35–18:12).
+Committed on `build-270` and the
+branch pushed.
+
+Owner decisions (10 October 2026): the shared-device notice never at a
+learner's first access; no example of how the PIN could be got around, in
+the app or the developer documents; the Course Wizard must let the author
+discard everything since the last deliberate save: only Save now (save and
+stay), Save and leave, Continue by hand (asking first) and Finish save; the
+Course is created by its first save; leaving asks only when something is
+unsaved; a Wizard left without saving resumes at its last save.
+
+Next: merging `build-270` into `main` and pushing `main` wait for the
+owner's go; then the modularization build (271) if the owner wants it.

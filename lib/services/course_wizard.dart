@@ -138,8 +138,9 @@ final class CourseWizardOpenEditor extends CourseWizardOutcome {
   final Course course;
 }
 
-/// Save for now, or the Wizard closed: the Course is stored and the Wizard
-/// can be continued from Course Studio.
+/// The Wizard closed with its Course saved (Save and leave, or leaving with
+/// nothing unsaved): it can be continued from Course Studio at its last save
+/// (Build 270 Revision 11).
 final class CourseWizardPaused extends CourseWizardOutcome {
   const CourseWizardPaused(this.course);
   final Course course;

@@ -259,8 +259,14 @@ void main() {
   });
 
   group('a shared device', () {
-    setUp(() => SharedDeviceNotice.enabled = true);
-    tearDown(() => SharedDeviceNotice.enabled = false);
+    setUp(() {
+      SharedDeviceNotice.enabled = true;
+      SharedDeviceNotice.debugReset();
+    });
+    tearDown(() {
+      SharedDeviceNotice.enabled = false;
+      SharedDeviceNotice.debugReset();
+    });
 
     Future<void> pump(WidgetTester tester) async {
       await tester.pumpWidget(
@@ -295,6 +301,27 @@ void main() {
       await seesItOnce();
       await tester.runAsync(() => profiles.setActiveProfileById(_alice));
       await seesItOnce();
+    });
+
+    testWidgets('never on a first access: the next start shows it '
+        '(Revision 10 follow-up)', (tester) async {
+      // Bob's Welcome Wizard ran in this session.
+      SharedDeviceNotice.deferForFirstAccess(_bob);
+      await pump(tester);
+      expect(find.byKey(const Key('shared-device-notice')), findsNothing);
+      // Alice, who met QQL earlier, is told in this session.
+      await tester.runAsync(() => profiles.setActiveProfileById(_alice));
+      await tester.tap(find.text('Start'));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('shared-device-notice')), findsOneWidget);
+      await tester.tap(find.text('OK'));
+      await tester.pumpAndSettle();
+      // Bob's next start: a new app session.
+      SharedDeviceNotice.debugReset();
+      await tester.runAsync(() => profiles.setActiveProfileById(_bob));
+      await tester.tap(find.text('Start'));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('shared-device-notice')), findsOneWidget);
     });
 
     testWidgets('one learner sees nothing', (tester) async {

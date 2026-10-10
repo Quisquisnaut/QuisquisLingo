@@ -1,3 +1,29 @@
+# 2.0.70 (Build 270, Revision 11) - the Course Wizard saves only when asked - 2026-10-10
+
+Owner decisions of 10 October 2026.
+
+- **The Course Wizard saves only with Save now or Finish**: Next, Back, the
+  step bar, "This Lesson's GuideBook is ready", Make Rounds and Publish keep
+  their changes in the Wizard, so everything since the last save can be
+  discarded. Before, Next and those three buttons saved at once, while Back
+  did not, and nothing said so; a change could not be taken back.
+- **Save now** (was Save for now) saves and keeps the Wizard open, with a
+  short "Saved." message. The first save creates the Course: Continue with
+  Wizard no longer saves an empty Course, and leaving a Course that was
+  never saved, without saving, creates nothing.
+- **Leaving** asks only when something is unsaved: Keep working, Leave
+  without saving (everything since the last save is discarded, and the
+  Wizard goes on later from its last save) or Save and leave. With nothing
+  unsaved it just pauses.
+- **Continue by hand** asks before saving unsaved changes ("Save and
+  continue by hand" or Cancel); the Course Editor opens the saved Course.
+- **The shared-device notice never comes at a learner's first access**,
+  which shows only the Welcome Wizard; a learner whose Wizard ran is told at
+  their next start. The notice and the Help no longer give an example of
+  how the PIN could be got around, and the developer documents describe the
+  PIN only as preventing mistakes and casual access.
+- Help EN/IT/ES (Create a new course, How does the Course Wizard work?).
+
 # 2.0.70 (Build 270, Revision 10) - the Course Wizard names unsaved steps; Android update reminders; Page links ask first - 2026-10-10
 
 Owner decisions of 10 October 2026; the last revision of the audit's fix
@@ -247,9 +273,9 @@ Audit items 3 and 4.
 
 # 2.0.70 (Build 270, Revision 1) - a PIN that is set stays a PIN - 2026-10-10
 
-Audit item 2, within the owner's threat model (10 October 2026): QQL's PINs
-stop easy unauthorized access in the app; they are not meant to resist
-someone with the device's files or hand-crafted files.
+Audit item 2, within the owner's view (10 October 2026): QQL's PINs
+prevent mistakes and casual access in the app; they are not a security
+boundary between learners.
 
 - **Switching learners locks the learner left**: before, a learner who had
   given their Access PIN stayed unlocked for the rest of the session after a

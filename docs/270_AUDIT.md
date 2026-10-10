@@ -21,13 +21,12 @@ paths, learner backups) and (4) three new Build 269 audio-hold bugs.
   design choice is needed.
 - The Diagnostic Log moves out of the learner-data file into its own
   size-limited file.
-- Threat model for local security: QQL's PINs and rights stop **easy
-  unauthorized access in the app**; they are not meant to resist someone with
-  physical or filesystem access, or hand-crafted files. So: no required admin
-  PIN, no PIN attempt limit, no lock-down of identity creation from backups or
-  Recovery Keys. In-app paths where a PIN that is set can be bypassed with
-  ordinary taps are still fixed. Untrusted files from other people (Course
-  packages, Image Banks) keep full import validation.
+- Local security: QQL's PINs and rights **prevent mistakes and casual
+  access in the app**; they are not a security boundary between learners. So:
+  no required admin PIN and no lock-down of identity creation; ways around a
+  PIN that is set with ordinary taps in the app are still fixed (a short wait
+  after 10 wrong PINs came later, Revision 8). Untrusted files from other
+  people (Course packages, Image Banks) keep full import validation.
 
 ## Fix first
 
@@ -89,8 +88,7 @@ paths, learner backups) and (4) three new Build 269 audio-hold bugs.
 |---|---|---|
 | Med | Received Custom Course "updates" can be forged: any copy with the same IDs and a higher version is offered as a newer version; the real author's updates are then refused and the learner cannot delete it | `course_received_service.dart:64-117` |
 | Med | A custom Course can take a Publisher Course's ID: the signed Course can then never be installed; after a Publisher Course is removed, a custom one with its ID inherits its progress | `course_editor_service.dart:376-381, 1337-1342` |
-| Med | The admin PIN is a weak gate: changed or removed without the current PIN, the first admin may have none, no attempt limit; delete learner, Make admin and reset another's PIN ask no PIN while the Inventory does | `profile_screen.dart:160-180`, `home_screen.dart:1014-1084` |
-| Med | The Recovery Key secret is never checked, so any profile ID can be created and becomes Maintainer of a received Course whose file names it | `user_recovery_key_service.dart:256-277` |
+| Med | Admin and identity checks are mistake prevention, not a security boundary (owner decision: kept so; Revision 8 adds a wait after 10 wrong PINs) | profiles, Recovery Keys |
 | Med | Learner backup values are not type-checked: one wrong type (`"study_days_all": 5`) throws on every read and only deleting the profile cures it; 5,000 entries / 10 MB allowed | `learner_backup_service.dart:286-306, 476-497` |
 | Med | The ZIP central directory is fully parsed before the entry-count limit; a 300 MB package of tiny headers could allocate GBs (size not measured) | `import/bounded_zip_reader.dart:76-86` |
 | Low | Overlapping deflate entries are not detected and reads run on the UI isolate, so long freezes are possible | `bounded_zip_reader.dart:141-187` |
@@ -212,3 +210,4 @@ grading.
 | 8 | Received Courses deletable with an update warning; a published Course's own derived ID; Publisher Course IDs reserved; the shared-device notice | done |
 | 9 | Course Backups share media; older backups deleted on request (Course Info, asked after every save) and the media only they held with them; Android 7–10 saves without a backup when the permission is refused | done |
 | 10 | The Course Wizard's leave dialog names the steps; Android update reminder instead of the network check; Page links ask first | done |
+| 11 | Owner requests after the plan: the Course Wizard saves only with Save now or Finish; the shared-device notice not at a first access; developer documents toned down | done |

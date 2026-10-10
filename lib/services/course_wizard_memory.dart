@@ -5,7 +5,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'course_wizard.dart';
 
 /// Where a paused Course Wizard stands (Build 267, owner decision of 6
-/// October 2026: "Save for now" pauses creation and it can be resumed). One
+/// October 2026: creation can be paused and resumed; since Build 270
+/// Revision 11 the pause follows the Wizard's last save). One
 /// device-level key per Course ID, like the publisher memory, never in the
 /// Course file: a Course exported in the middle of the Wizard is continued by
 /// hand on another device. Removed when the Wizard finishes, on Continue by
