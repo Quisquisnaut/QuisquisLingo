@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../services/crash_log_service.dart';
 import '../services/profile_service.dart';
 import '../services/settings_service.dart';
+import '../widgets/reported_action.dart';
 
 class DoNotDisturbSettingsScreen extends StatefulWidget {
   const DoNotDisturbSettingsScreen({super.key});
@@ -64,20 +65,36 @@ class _DoNotDisturbSettingsScreenState
     }
   }
 
+  // Build 270 Revision 7: a setting that cannot be saved is reported.
   Future<void> _setSoundEffects(bool value) async {
-    await _settings.setSoundEffectsEnabled(value);
-    if (mounted) setState(() => _soundEffectsEnabled = value);
+    final saved = await runReported(context, 'Sound effects', () async {
+      await _settings.setSoundEffectsEnabled(value);
+      return true;
+    });
+    if (saved == true && mounted) {
+      setState(() => _soundEffectsEnabled = value);
+    }
   }
 
   Future<void> _setAnimations(bool value) async {
-    await _settings.setAnimationsEnabled(value);
-    if (mounted) setState(() => _animationsEnabled = value);
+    final saved = await runReported(context, 'Animations', () async {
+      await _settings.setAnimationsEnabled(value);
+      return true;
+    });
+    if (saved == true && mounted) setState(() => _animationsEnabled = value);
   }
 
   Future<void> _setOpeningMode(CourseEditorMode? mode) async {
     if (mode == null) return;
-    await _settings.setCourseEditorOpeningMode(mode);
-    if (mounted) setState(() => _openingMode = mode);
+    final saved = await runReported(
+      context,
+      'Course Editor opening mode',
+      () async {
+        await _settings.setCourseEditorOpeningMode(mode);
+        return true;
+      },
+    );
+    if (saved == true && mounted) setState(() => _openingMode = mode);
   }
 
   Future<void> _showOneTimeNoticesAgain() async {

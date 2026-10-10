@@ -1551,18 +1551,24 @@ class _RoundScreenState extends State<RoundScreen> {
   }
 
   Future<void> _copyReport(ReportKind kind) async {
-    await _reports.copyExerciseReport(
-      kind: kind,
-      course: widget.course,
-      lesson: widget.lesson,
-      round: widget.round,
-      exercise: _exercise,
-      exerciseIndex: _exerciseIndex,
-      screen: _reviewPhase ? 'Round review' : 'Round',
-      answerState: _answerState(),
-    );
+    // Build 270 Revision 7: a clipboard that refuses is reported.
+    final copied = await runReported(context, 'Report a problem', () async {
+      await _reports.copyExerciseReport(
+        kind: kind,
+        course: widget.course,
+        lesson: widget.lesson,
+        round: widget.round,
+        exercise: _exercise,
+        exerciseIndex: _exerciseIndex,
+        screen: _reviewPhase ? 'Round review' : 'Round',
+        answerState: _answerState(),
+      );
+      return true;
+    });
+
     if (!mounted) return;
     Navigator.of(context).pop();
+    if (copied != true) return;
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         duration: Duration(seconds: 8),
@@ -2116,7 +2122,22 @@ class _RoundScreenState extends State<RoundScreen> {
     ),
   );
 
+  /// Build 270 Revision 7: one advance at a time. At the end of a Test the
+  /// results dialog waits for a setting before `_finishing` is set, and a
+  /// second Continue in that moment could complete the Round twice.
+  bool _advancing = false;
+
   Future<void> _next() async {
+    if (_advancing) return;
+    _advancing = true;
+    try {
+      await _advance();
+    } finally {
+      _advancing = false;
+    }
+  }
+
+  Future<void> _advance() async {
     if (_finishing || _timedOut) return;
     _logStoryItem();
     if (_position + 1 < _queue.length) {

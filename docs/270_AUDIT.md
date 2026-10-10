@@ -207,4 +207,5 @@ grading.
 | 3 | Import side doors: Course Backups checked like an import (item 5), only bundle paths for `assets/` (item 6), learner backup value types, the status bar's catch-all | done |
 | 4 | ZIP end record checked before the directory is parsed; overlapping entries and a different local compression refused; the converter's bounded reader | done |
 | 5 | A Round's or Duel's completion written as one group; streak reads write nothing; activity registered in one step | done |
-| 6+ | Remaining findings by severity | planned |
+| 6 | The Low findings without a decision: Course ID and Image Bank names at import, Page link user part, Recovery Key scan, Print folders, the home folder in logs, silent buttons, double taps | done |
+| 7+ | Findings that need the owner's decision (see the handoff) | asked |

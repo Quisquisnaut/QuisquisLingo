@@ -148,3 +148,25 @@ Not tried by hand: stopping speech on leaving a Round on Windows and Linux.
 - `flutter analyze`: no issues.
 - Complete suite: **4,104 passed, 1 skipped**, 37:10 (10 October 2026,
   06:40–07:17).
+
+## Revision 6 (2.0.70+270006), the audit's smaller findings
+
+- New tests: `test/small_items_270_test.dart` (6: Windows device names; a
+  Page link with a user part; the importable Course ID, and a 70-character
+  ID refused by `courseFromBytes`; the home folder written `~`; one bad
+  Recovery Key does not hide a good one and reaches the Diagnostic Log;
+  with none usable each file is named with its reason), a Test Round case in
+  `test/test_round_attempt_test.dart` (two presses of the last Continue show
+  one result; without the guard it showed two, checked by disabling it),
+  a Suggest pictures case in `test/picture_aids_267_test.dart`.
+- Updated: `test/page_share_258_test.dart` finds the printed PDF in its own
+  `QQL_print_` folder and one exported PDF beside it.
+- Related files (20: Course Editor modes, Course Wizard, Courses screen,
+  Debug logs, Image Banks, GuideBook modules, Module and Round Wizards,
+  Pages, profiles, the Course Editor UI, Recovery Keys, Wizard wording, the
+  import matrix, audio settings, stored-Course edge cases, folders, log
+  writer): 232 passed.
+- `flutter analyze`: no issues (a bidirectional character in a test literal
+  replaced by its escape).
+- Complete suite: **4,112 passed, 1 skipped**, 32:03 (10 October 2026,
+  07:29–08:01).

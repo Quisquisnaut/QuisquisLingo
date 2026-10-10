@@ -39,6 +39,8 @@ import 'editor_help_screen.dart';
 import 'flat_image_library_screen.dart';
 import 'guidebook_editor_screen.dart';
 import 'home_screen.dart' show openCoursePreview;
+import '../services/app_errors.dart';
+import '../services/diagnostic_log_service.dart';
 
 /// The Course Wizard (Build 267, `docs/267_COURSE_WIZARD_PLAN.md`).
 ///
@@ -664,8 +666,14 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
           lessonId: lesson?.lessonId,
         ),
       );
-    } catch (_) {
+    } catch (error) {
       // The Course is saved either way; Course Studio then shows no pause.
+      // Build 270 Revision 7: the Diagnostic Log says why.
+      await DiagnosticLogService().log(
+        AppErrorCode.localStorageError,
+        context: 'The Course Wizard pause could not be saved.',
+        exception: error,
+      );
     }
   }
 
@@ -923,7 +931,13 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
       } else {
         await _remember(_step);
       }
-    } catch (_) {}
+    } catch (error) {
+      await DiagnosticLogService().log(
+        AppErrorCode.localStorageError,
+        context: 'The Course Wizard pause could not be updated.',
+        exception: error,
+      );
+    }
     await session.discardUnconfirmedMedia();
     if (!mounted) return;
     _closing = true;

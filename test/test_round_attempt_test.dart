@@ -137,4 +137,61 @@ void main() {
     expect(find.text('Below passing threshold · 50%'), findsOneWidget);
     expect(find.textContaining('Right q1'), findsWidgets);
   });
+  // Build 270 Revision 7: a second Continue while the last answer's results
+  // are being prepared completes nothing twice.
+  testWidgets('two quick taps on the last Continue show one result', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1000, 1700);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final round = LearningRound(
+      id: 'test-round',
+      title: 'Quiz',
+      roundType: RoundType.test,
+      testFixedOrder: true,
+      exercises: [_question('q1', 'First?')],
+    );
+    final lesson = Lesson(lessonId: 'lesson', title: 'Lesson', rounds: [round]);
+    final course = Course(
+      courseId: 'test-course',
+      title: 'Course',
+      learningLanguage: 'Italian',
+      interfaceLanguage: 'English',
+      sourceLanguage: 'English',
+      targetLanguage: 'Italian',
+      ttsLanguage: 'it-IT',
+      lessons: [lesson],
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        home: RoundScreen(
+          course: course,
+          lesson: lesson,
+          round: round,
+          ttsLanguage: 'it-IT',
+          roundIndex: 0,
+          previewMode: true,
+          ttsCacheService: _Speech(),
+        ),
+      ),
+    );
+    for (var i = 0; i < 100 && find.text('First?').evaluate().isEmpty; i++) {
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 10)),
+      );
+      await tester.pump(const Duration(milliseconds: 20));
+    }
+    await tester.tap(find.text('Right q1'));
+    await tester.pumpAndSettle();
+    // Two presses before anything is drawn again.
+    final next = tester.widget<FilledButton>(
+      find.byKey(const Key('test-next')),
+    );
+    next.onPressed!();
+    next.onPressed!();
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('test-results')), findsOneWidget);
+  });
 }

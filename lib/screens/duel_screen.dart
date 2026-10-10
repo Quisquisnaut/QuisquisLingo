@@ -23,6 +23,7 @@ import '../widgets/course_media_image.dart';
 import '../widgets/exercise_prompt_panels.dart';
 import '../widgets/plural_picture.dart';
 import '../widgets/portable_exercise_image.dart';
+import '../widgets/reported_action.dart';
 
 class DuelScreen extends StatefulWidget {
   final Course course;
@@ -354,18 +355,24 @@ class _DuelScreenState extends State<DuelScreen> {
     final roundIndex = item.round.exercises.indexWhere(
       (exercise) => exercise.id == item.exercise.id,
     );
-    await _reports.copyExerciseReport(
-      kind: kind,
-      course: widget.course,
-      lesson: item.lesson,
-      round: item.round,
-      exercise: item.exercise,
-      exerciseIndex: roundIndex < 0 ? 0 : roundIndex,
-      screen: 'Language Duel (${_index + 1}/${_items.length})',
-      answerState: _answerState(item.exercise),
-    );
+    // Build 270 Revision 7: a clipboard that refuses is reported.
+    final copied = await runReported(context, 'Report a problem', () async {
+      await _reports.copyExerciseReport(
+        kind: kind,
+        course: widget.course,
+        lesson: item.lesson,
+        round: item.round,
+        exercise: item.exercise,
+        exerciseIndex: roundIndex < 0 ? 0 : roundIndex,
+        screen: 'Language Duel (${_index + 1}/${_items.length})',
+        answerState: _answerState(item.exercise),
+      );
+      return true;
+    });
+
     if (!mounted) return;
     Navigator.of(context).pop();
+    if (copied != true) return;
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         duration: Duration(seconds: 8),

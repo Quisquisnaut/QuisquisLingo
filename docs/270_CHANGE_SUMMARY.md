@@ -214,3 +214,40 @@ activity writes" (Medium).
 
 Unchanged: scoring, progression and what learners see (the stored streak
 count of a broken streak now stays until the next study day restarts it).
+
+## Revision 6 (2.0.70+270006): the audit's smaller findings
+
+The Low findings that need no decision (planned as Revisions 6 and 7,
+delivered together).
+
+- `CustomCourseTransferService.importableCourseId`
+  (`^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`) checked by `courseFromBytes` (every
+  import route) before the embedded content; stored Courses are not
+  re-checked.
+- `isReservedWindowsName` (`import/safe_file_name.dart`; device stems, a
+  trailing dot or space) refuses an Image Bank file name.
+- `PageBlocks.isAcceptableLink` refuses a user part (the Audit's
+  `PAGE_LINK_INVALID` follows).
+- `UserRecoveryKeyService.findImportableUserRecoveryKeys` skips a file that
+  is not a usable key, logs it, and names every skipped file with its reason
+  when none is usable.
+- `PageActionsBar` Print: `createTemp(printFolderPrefix)` for each print,
+  earlier `QQL_print_*` folders removed (a file still open is left).
+- `DiagnosticLogService.redact` (the home folder, both slash forms, written
+  `~`) on every Diagnostic Log entry and every Crash Log report.
+- `runReported` around Log out (`profile_screen`), the Course Editor mode,
+  New Course's profile reads, Report a problem's copy (Round and Duel; the
+  dialog closes either way, the success message only after a copy), the
+  Audio Settings and Do Not Disturb switches (the switch changes only when
+  saved). The Course Wizard's pause and the GuideBook picture catalog log
+  their failures; Suggest pictures shows
+  `guidebook-module-suggest-pictures-unavailable`.
+- `RoundScreen._next` runs one advance at a time (`_advancing`; the body is
+  `_advance`): a second Continue while the Test results waited for a setting
+  showed the results twice and could complete the Round twice. The Round
+  Wizard's `_approve` (`_approving`) and the Module Wizard's `_next` run
+  once at a time.
+
+Not done (need building or a device): the Android Save as… and MediaStore
+findings, the Windows runner's `dwmapi.dll` load flag, stale launcher
+version strings.

@@ -392,6 +392,7 @@ void main() {
       WidgetTester tester,
       GuidebookModule module, {
       Course? course,
+      ExerciseImageMetadataService? catalog,
     }) async {
       tester.view.physicalSize = const Size(1000, 2400);
       tester.view.devicePixelRatio = 1;
@@ -409,7 +410,7 @@ void main() {
                         module: module,
                         course: course ?? _course(),
                         ids: TimestampAuthoringIdGenerator(seed: 2673),
-                        metadataService: _FakeCatalog(_catalog),
+                        metadataService: catalog ?? _FakeCatalog(_catalog),
                       ),
                     ),
                   );
@@ -424,6 +425,31 @@ void main() {
       await tester.pumpAndSettle();
       return () => done;
     }
+
+    // Build 270 Revision 7: never a button that does nothing.
+    testWidgets('says so when the picture library cannot be read', (
+      tester,
+    ) async {
+      await open(
+        tester,
+        GuidebookModule(
+          id: 'm',
+          title: 'Al bar',
+          words: [_word('w0', 'il gatto', 'the cat')],
+        ),
+        catalog: _UnreadableCatalog(),
+      );
+      final suggest = find.byKey(
+        const Key('guidebook-module-suggest-pictures'),
+      );
+      await tester.ensureVisible(suggest);
+      await tester.tap(suggest);
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const Key('guidebook-module-suggest-pictures-unavailable')),
+        findsOneWidget,
+      );
+    });
 
     testWidgets('fills empty rows of a reopened module, never a chosen one', (
       tester,
@@ -588,6 +614,12 @@ class _FakeCatalog extends ExerciseImageMetadataService {
 
   @override
   Future<List<ExerciseImageMetadata>> loadCatalog() async => records;
+}
+
+class _UnreadableCatalog extends ExerciseImageMetadataService {
+  @override
+  Future<List<ExerciseImageMetadata>> loadCatalog() async =>
+      throw const FormatException('The picture library could not be read.');
 }
 
 class _Ids implements AuthoringIdGenerator {

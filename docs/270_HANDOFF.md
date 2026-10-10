@@ -135,4 +135,16 @@ Wizard's next).
 
 State: done. Tests 6 new, 2 updated; related 183 passed; analyzer clean;
 complete suite 4,104 passed, 1 skipped (06:40–07:17). Committed on
-`build-270` and the branch pushed.
+`build-270` as `0a0627bb` and the branch pushed.
+
+## Revision 6 (2.0.70+270006), the audit's smaller findings
+
+State: done (the planned Revisions 6 and 7 together). Tests 6 + 2 new, 1
+updated; related 232 passed; analyzer clean; complete suite 4,112 passed,
+1 skipped (07:29–08:01). Committed on `build-270` and the branch pushed.
+
+Next: Revision 7, release tooling (in the working tree already: the
+packager's Dummy-key guard, `.gitignore` key patterns; to do: `sign_course`
+media references from `CourseImageUsage` + the image library, image 300 KB /
+cover 1 MB; test `sign_course_media_270_test.dart` in the scratchpad). Then
+ask the owner the decisions listed under Revision 3.

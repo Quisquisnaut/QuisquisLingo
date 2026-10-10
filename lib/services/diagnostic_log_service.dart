@@ -57,6 +57,23 @@ class DiagnosticLogService {
     }
   }
 
+  /// Build 270 Revision 6: the user's own folder is written `~`, so a log
+  /// sent for help names files without naming the person's account.
+  static String redact(String text) {
+    if (kIsWeb) return text;
+    final home =
+        Platform.environment[Platform.isWindows ? 'USERPROFILE' : 'HOME'];
+    if (home == null || home.length < 4) return text;
+    var result = text;
+    for (final form in {home, home.replaceAll(r'\', '/')}) {
+      result = result.replaceAll(
+        RegExp(RegExp.escape(form), caseSensitive: !Platform.isWindows),
+        '~',
+      );
+    }
+    return result;
+  }
+
   /// The file the log is written to, or null while it is a preference.
   static File? get logFile => _logFile;
 
@@ -143,7 +160,7 @@ class DiagnosticLogService {
       if (exception != null) entry.writeln('Exception: $exception');
       if (stackTrace != null) entry.writeln('Stack trace: $stackTrace');
       entry.writeln('---');
-      await _append(entry.toString());
+      await _append(redact(entry.toString()));
     } catch (_) {
       // Logging must never crash the app.
     }
@@ -155,7 +172,7 @@ class DiagnosticLogService {
   Future<void> logInfo(String message) async {
     try {
       final timestamp = DateTime.now().toIso8601String();
-      await _append('[$timestamp] INFO\n$message\n---\n');
+      await _append(redact('[$timestamp] INFO\n$message\n---\n'));
     } catch (_) {}
   }
 

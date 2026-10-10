@@ -100,7 +100,7 @@ class CrashLogService {
         ..writeln('Stack trace:')
         ..writeln(stackTrace)
         ..writeln();
-      await _appendToLogs(buffer.toString());
+      await _appendToLogs(DiagnosticLogService.redact(buffer.toString()));
     } catch (loggingError, loggingStackTrace) {
       debugPrint('Writing crash log failed: $loggingError\n$loggingStackTrace');
     }

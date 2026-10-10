@@ -15,7 +15,12 @@ abstract final class PageBlocks {
   /// Audit.
   static bool isAcceptableLink(String url) {
     final uri = Uri.tryParse(url.trim());
-    return uri != null && uri.scheme == 'https' && uri.host.isNotEmpty;
+    // Build 270 Revision 6: no user part, which makes a link look like one
+    // site and open another.
+    return uri != null &&
+        uri.scheme == 'https' &&
+        uri.host.isNotEmpty &&
+        uri.userInfo.isEmpty;
   }
 
   /// Whether [block] shows something: text, a picture, audio or a link.

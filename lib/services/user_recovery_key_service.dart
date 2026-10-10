@@ -12,6 +12,8 @@ import 'import/json_limits.dart';
 import 'import/selected_external_file.dart';
 import 'storage/file_system_storage.dart';
 import 'storage/qql_storage.dart';
+import 'app_errors.dart';
+import 'diagnostic_log_service.dart';
 
 class UserRecoveryKeyDocument {
   final String learnerProfileId;
@@ -186,21 +188,37 @@ class UserRecoveryKeyService {
           ..sort((a, b) => a.name.compareTo(b.name));
     const tooLarge = FormatException('A User Recovery Key is too large.');
     final candidates = <UserRecoveryKeyCandidate>[];
+    // Build 270 Revision 6: a file that is not a usable key is skipped and
+    // named, instead of stopping the others from being offered.
+    final skipped = <String>[];
     for (final file in files) {
-      if ((file.reportedSize ?? 0) > _maximumKeyBytes) throw tooLarge;
-      final List<int> bytes;
       try {
-        bytes = await readQuickImportFile(file, maxBytes: _maximumKeyBytes);
-      } on ImportTooLargeException {
-        throw tooLarge;
-      } on ImportAccessException catch (error) {
-        throw FormatException(error.message);
+        if ((file.reportedSize ?? 0) > _maximumKeyBytes) throw tooLarge;
+        final List<int> bytes;
+        try {
+          bytes = await readQuickImportFile(file, maxBytes: _maximumKeyBytes);
+        } on ImportTooLargeException {
+          throw tooLarge;
+        } on ImportAccessException catch (error) {
+          throw FormatException(error.message);
+        }
+        candidates.add(
+          UserRecoveryKeyCandidate(
+            path: folder.locationOf(file.name),
+            document: decodeDocument(bytes),
+          ),
+        );
+      } on FormatException catch (error) {
+        skipped.add('${file.name} (${error.message})');
+        await DiagnosticLogService().log(
+          AppErrorCode.localStorageError,
+          context: 'User Recovery Key ${file.name} skipped: ${error.message}',
+        );
       }
-      candidates.add(
-        UserRecoveryKeyCandidate(
-          path: folder.locationOf(file.name),
-          document: decodeDocument(bytes),
-        ),
+    }
+    if (candidates.isEmpty && skipped.isNotEmpty) {
+      throw FormatException(
+        'No usable User Recovery Key: ${skipped.join('; ')}.',
       );
     }
     return candidates;

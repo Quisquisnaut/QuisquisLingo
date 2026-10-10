@@ -5,6 +5,7 @@ import '../services/crash_log_service.dart';
 import '../services/course_language_resolver.dart';
 import '../services/settings_service.dart';
 import '../services/tts_cache_service.dart';
+import '../widgets/reported_action.dart';
 
 class TtsSettingsScreen extends StatefulWidget {
   final Course? course;
@@ -66,19 +67,31 @@ class _TtsSettingsScreenState extends State<TtsSettingsScreen> {
     }
   }
 
+  // Build 270 Revision 7: a setting that cannot be saved is reported.
   Future<void> _setTts(bool value) async {
-    await _settings.setTtsEnabled(value);
-    if (mounted) setState(() => _ttsEnabled = value);
+    final saved = await runReported(context, 'Text-to-speech', () async {
+      await _settings.setTtsEnabled(value);
+      return true;
+    });
+    if (saved == true && mounted) setState(() => _ttsEnabled = value);
   }
 
   Future<void> _setAudioExercisesEnabled(bool value) async {
-    await _settings.setAudioExercisesEnabled(value);
-    if (mounted) setState(() => _audioExercisesEnabled = value);
+    final saved = await runReported(context, 'Audio Exercises', () async {
+      await _settings.setAudioExercisesEnabled(value);
+      return true;
+    });
+    if (saved == true && mounted) {
+      setState(() => _audioExercisesEnabled = value);
+    }
   }
 
   Future<void> _setVoice(String value) async {
-    await _settings.setTtsVoicePreference(value);
-    if (mounted) setState(() => _voicePreference = value);
+    final saved = await runReported(context, 'TTS voice', () async {
+      await _settings.setTtsVoicePreference(value);
+      return true;
+    });
+    if (saved == true && mounted) setState(() => _voicePreference = value);
   }
 
   Future<void> _testVoice() async {

@@ -2372,8 +2372,15 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
         !await _resolveChangesBeforeModeSwitch()) {
       return;
     }
-    await _deviceState.setMode(_course.courseId, mode);
-    if (mounted) setState(() => _session.setEditorMode(mode));
+    // Build 270 Revision 7: a mode that cannot be saved is reported.
+    if (!mounted) return;
+    final saved = await runReported(context, 'Course Editor mode', () async {
+      await _deviceState.setMode(_course.courseId, mode);
+      return true;
+    });
+    if (saved == true && mounted) {
+      setState(() => _session.setEditorMode(mode));
+    }
   }
 
   Future<bool> _resolveChangesBeforeModeSwitch() async {
@@ -5398,6 +5405,9 @@ class GuidebookRoundGeneratorScreen extends StatefulWidget {
 
 class _GuidebookRoundGeneratorScreenState
     extends State<GuidebookRoundGeneratorScreen> {
+  /// Approve has been pressed (Build 270 Revision 7).
+  bool _approving = false;
+
   /// Build 266 Revision 3: the module the Rounds practise, or null for All
   /// modules, in order (the default when more than one module can be
   /// practised).
@@ -5780,6 +5790,10 @@ class _GuidebookRoundGeneratorScreenState
       );
       return;
     }
+    // Build 270 Revision 7: a second tap before the page closes would pop
+    // the page below it too.
+    if (_approving) return;
+    _approving = true;
     final duplication = AuthoringDuplicationService(ids: _finalIds);
     final approved = [
       for (final draft in _drafts) duplication.duplicateRound(draft),

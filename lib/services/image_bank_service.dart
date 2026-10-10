@@ -19,6 +19,7 @@ import 'import/import_stager.dart';
 import 'import/media_file_kind.dart';
 import 'import/selected_external_file.dart';
 import 'storage/qql_storage.dart';
+import 'import/safe_file_name.dart';
 
 class ImportedImageBank {
   final String id;
@@ -469,7 +470,10 @@ class ImageBankService {
           filename.contains('\\') ||
           filename == '.' ||
           filename == '..' ||
-          !RegExp(r'^[A-Za-z0-9._-]+$').hasMatch(filename)) {
+          !RegExp(r'^[A-Za-z0-9._-]+$').hasMatch(filename) ||
+          // Build 270 Revision 6: `NUL.png` or `COM1.png` is a device on
+          // Windows, not a file.
+          isReservedWindowsName(filename)) {
         throw FormatException('Unsafe Image Bank filename: $filename');
       }
       if (!ids.add(id)) throw FormatException('Duplicate Image Bank ID: $id');

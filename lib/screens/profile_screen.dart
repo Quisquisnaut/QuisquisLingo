@@ -353,9 +353,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ],
       ),
     );
-    if (confirmed != true) return;
-    await _profiles.clearActiveProfile();
-    if (!mounted) return;
+    if (confirmed != true || !mounted) return;
+    // Build 270 Revision 7: a failed log out is reported, not lost.
+    final done = await runReported(context, 'Log out', () async {
+      await _profiles.clearActiveProfile();
+      return true;
+    });
+    if (done != true || !mounted) return;
     Navigator.of(context).popUntil((route) => route.isFirst);
   }
 

@@ -1141,7 +1141,17 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
   /// New Course's form. [prefill] carries the title, languages and variant
   /// of the Course Wizard's first screen (Build 267, Continue by hand).
   Future<Course?> _createCourse({CourseWizardBasics? prefill}) async {
-    final activeProfile = await _ops.profiles.getActiveProfileRecord();
+    // Build 270 Revision 7: learner data that cannot be read is reported.
+    final profiles = await runReported(
+      context,
+      'New Course',
+      () async => (
+        active: await _ops.profiles.getActiveProfileRecord(),
+        all: await _ops.profiles.getProfileRecords(),
+      ),
+    );
+    if (profiles == null) return null;
+    final activeProfile = profiles.active;
     if (activeProfile == null) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -1152,7 +1162,7 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
       }
       return null;
     }
-    final availableMaintainers = await _ops.profiles.getProfileRecords();
+    final availableMaintainers = profiles.all;
     if (!mounted) return null;
     final title = TextEditingController(text: prefill?.title ?? '');
     // Build 260 Revision 0: languages come from the list (English names and

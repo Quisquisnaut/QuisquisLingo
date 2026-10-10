@@ -208,6 +208,12 @@ void main() {
       final printed = File.fromUri(opened.single);
       expect(printed.existsSync(), isTrue);
       expect(latin1.decode(printed.readAsBytesSync().sublist(0, 5)), '%PDF-');
+      // Build 270 Revision 6: in a new folder of QQL's own.
+      expect(
+        printed.parent.uri.pathSegments.lastWhere((s) => s.isNotEmpty),
+        startsWith(PageActionsBar.printFolderPrefix),
+      );
+      expect(printed.parent.parent.path, temp.path);
 
       await tester.tap(find.byKey(const Key('page-save')));
       await tester.pumpAndSettle();
@@ -220,7 +226,7 @@ void main() {
                 .whereType<File>()
                 .where((f) => f.path.endsWith('.pdf'))
                 .length ==
-            2,
+            1,
       );
     });
 

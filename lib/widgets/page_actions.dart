@@ -50,6 +50,9 @@ class PageActionsBar extends StatefulWidget {
       !kIsWeb && (Platform.isWindows || Platform.isMacOS || Platform.isLinux);
   static bool Function() sharesTextOnly = () => !kIsWeb && Platform.isLinux;
 
+  /// The folders Print makes in the temporary folder (Build 270 Revision 6).
+  static const printFolderPrefix = 'QQL_print_';
+
   @override
   State<PageActionsBar> createState() => _PageActionsBarState();
 }
@@ -58,6 +61,24 @@ enum _Save { saveAs, quickExport }
 
 class _PageActionsBarState extends State<PageActionsBar> {
   bool _busy = false;
+
+  static const printFolderPrefix = PageActionsBar.printFolderPrefix;
+
+  /// Earlier prints' folders: their PDF viewers have read them by now. A file
+  /// still open is left for the next time.
+  static Future<void> _removeEarlierPrints(Directory temporary) async {
+    try {
+      await for (final entity in temporary.list(followLinks: false)) {
+        final name = entity.uri.pathSegments.lastWhere((s) => s.isNotEmpty);
+        if (entity is Directory && name.startsWith(printFolderPrefix)) {
+          try {
+            await entity.delete(recursive: true);
+          } catch (_) {}
+        }
+      }
+    } catch (_) {}
+  }
+
   late final FileDialogService _dialogs = PageActionsBar.fileDialogs();
 
   String get _baseName => PageExport.baseName(widget.course, widget.blocks);
@@ -175,7 +196,12 @@ class _PageActionsBarState extends State<PageActionsBar> {
 
   Future<void> _print() => _run(() async {
     final pdf = await _pdf();
-    final directory = await PageActionsBar.temporaryDirectory();
+    // Build 270 Revision 6: a new folder of QQL's own for each print (not a
+    // name another user of the computer could prepare), and the earlier
+    // prints are removed.
+    final temporary = await PageActionsBar.temporaryDirectory();
+    await _removeEarlierPrints(temporary);
+    final directory = await temporary.createTemp(printFolderPrefix);
     final file = File(
       '${directory.path}${Platform.pathSeparator}$_baseName.pdf',
     );

@@ -246,6 +246,14 @@ class CustomCourseTransferService {
     CourseShapeLimits.check(decoded);
 
     final course = Course.fromJson(Map<String, dynamic>.from(decoded));
+    // Build 270 Revision 6: the ID names the Course's files and folders; a
+    // long one made every backup name too long to save.
+    if (!importableCourseId.hasMatch(course.courseId)) {
+      throw const FormatException(
+        'The Course ID must be 1–64 letters, digits, dots, hyphens or '
+        'underscores.',
+      );
+    }
     await validateEmbeddedContent(course);
     if (course.originType == CourseOriginType.bundledOfficial) {
       throw const FormatException(
@@ -257,6 +265,12 @@ class CustomCourseTransferService {
     }
     return course;
   }
+
+  /// The Course IDs an import accepts. Every ID QQL makes (`course_` and a
+  /// UUID) fits.
+  static final RegExp importableCourseId = RegExp(
+    r'^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$',
+  );
 
   /// The checks of what a Course file carries inside it: its World Flag,
   /// custom flag, custom Lesson icons and embedded pictures. Shared by every

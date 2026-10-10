@@ -17,6 +17,8 @@ import '../widgets/course_preview_flag.dart';
 import '../widgets/editor_app_bar_actions.dart';
 import '../widgets/exercise_image_field.dart';
 import '../widgets/guidebook_picture_thumbnail.dart';
+import '../services/app_errors.dart';
+import '../services/diagnostic_log_service.dart';
 
 /// The GuideBook page of the Course Editor (Build 266, GuideBook Modules): a
 /// Lesson's modules in teaching order. Add module, open one to edit it, drag
@@ -537,8 +539,14 @@ class _GuidebookModuleEditorScreenState
           await (widget.metadataService ?? ExerciseImageMetadataService())
               .loadCatalog();
       if (mounted) _pictures = GuidebookPictureIndex(catalog);
-    } catch (_) {
+    } catch (error) {
       // Without the catalog there is no prefill; choosing still works.
+      // Build 270 Revision 7: the Diagnostic Log says why.
+      await DiagnosticLogService().log(
+        AppErrorCode.localStorageError,
+        context: 'The picture library could not be read for the GuideBook.',
+        exception: error,
+      );
     }
   }
 
@@ -779,7 +787,20 @@ class _GuidebookModuleEditorScreenState
   Future<void> _suggestPictures() async {
     if (_pictures == null) await _loadPictures();
     final pictures = _pictures;
-    if (pictures == null || !mounted) return;
+    if (!mounted) return;
+    if (pictures == null) {
+      // Build 270 Revision 7: never a button that does nothing.
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          key: Key('guidebook-module-suggest-pictures-unavailable'),
+          content: Text(
+            'The picture library could not be read, so no pictures were '
+            'suggested. You can still choose pictures one by one.',
+          ),
+        ),
+      );
+      return;
+    }
     var filled = 0;
     var offered = 0;
     setState(() {
@@ -1506,7 +1527,20 @@ class _GuidebookModuleEditorScreenState
 
   /// Next: checks the part shown, then the next part; on the Overview it
   /// returns the module.
+  /// Build 270 Revision 7: one Next at a time.
+  bool _advancing = false;
+
   Future<void> _next() async {
+    if (_advancing) return;
+    _advancing = true;
+    try {
+      await _nextPart();
+    } finally {
+      _advancing = false;
+    }
+  }
+
+  Future<void> _nextPart() async {
     switch (_part) {
       case 0:
         if (_title.text.trim().isEmpty) {

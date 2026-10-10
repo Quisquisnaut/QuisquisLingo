@@ -1,3 +1,36 @@
+# 2.0.70 (Build 270, Revision 6) - the audit's smaller findings - 2026-10-10
+
+The Low findings that need no decision, in one revision.
+
+- **Imports**: an imported Course's ID must be 1–64 letters, digits, dots,
+  hyphens or underscores (a long ID made every backup name too long to
+  save); Image Bank file names that Windows reserves for devices (`NUL.png`,
+  `COM1.png`) are refused.
+- **Page links** may not hide their site behind a user part
+  (`https://youtube.com@other.example/` opened the other site).
+- **User Recovery Keys**: one file that is not a usable key no longer stops
+  the others from being offered; each skipped file and why reaches the
+  Diagnostic Log, and with no usable key the message names them all.
+- **Print** writes its PDF in a new folder of QQL's own and removes the
+  earlier prints' folders, instead of a fixed name in the shared temporary
+  folder that was never removed.
+- **Logs** write the person's own folder as `~`, so a log sent for help names
+  files without naming the account.
+- **No silent buttons**: Log out, the Course Editor mode, New Course, Report a
+  problem's copy, and the Audio Settings and Do Not Disturb switches report
+  a failure instead of losing it; Suggest pictures says so when the picture
+  library cannot be read; the Course Wizard's pause failures reach the
+  Diagnostic Log.
+- **No double taps**: a second Continue while a Test's results are being
+  prepared could complete the Round twice; the Round Wizard's Approve and
+  the Module Wizard's Next now run once at a time.
+- Tests: `test/small_items_270_test.dart`, a Test Round case in
+  `test/test_round_attempt_test.dart`, a Suggest pictures case in
+  `test/picture_aids_267_test.dart`; the Print test looks for the PDF in its
+  own folder.
+- Scoring, progression, Course files and learner data are unchanged. Beta
+  expiry `2026-11-09 23:59:59` local time.
+
 # 2.0.70 (Build 270, Revision 5) - a completion is saved whole - 2026-10-10
 
 Audit findings "progress is marked before XP is paid" and "no lock around XP

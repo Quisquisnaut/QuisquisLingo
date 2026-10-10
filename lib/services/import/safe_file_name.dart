@@ -25,6 +25,16 @@ String safeDisplayName(String raw, {int maxLength = 120}) {
   return name;
 }
 
+/// Whether [name] is one Windows reserves for a device (`NUL.png`, `com1`),
+/// whatever its extension, or ends with a dot or a space, which Windows drops
+/// (Build 270 Revision 6).
+bool isReservedWindowsName(String name) {
+  if (name.endsWith('.') || name.endsWith(' ')) return true;
+  final dot = name.indexOf('.');
+  final stem = (dot < 0 ? name : name.substring(0, dot)).toUpperCase();
+  return _reservedWindowsNames.contains(stem);
+}
+
 const _reservedWindowsNames = {
   'CON',
   'PRN',
