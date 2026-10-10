@@ -67,7 +67,7 @@ void main() {
     await tester.tap(find.byKey(const Key('new-round-type-sequence')));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextFormField).last, 'Ordered');
-    await tester.tap(find.text('Save'));
+    await tester.tap(find.text('Apply'));
     await tester.pumpAndSettle();
     expect(changed!.lessons.first.rounds.single.roundType, RoundType.sequence);
     expect(changed!.lessons.first.rounds.single.flow?.isLinear, isTrue);
@@ -108,7 +108,7 @@ void main() {
       await tester.tap(choice);
       await tester.pumpAndSettle();
       await tester.enterText(find.byType(TextFormField).last, 'Example');
-      await tester.tap(find.text('Save'));
+      await tester.tap(find.text('Apply'));
       await tester.pumpAndSettle();
       final created = changed!.lessons.first.rounds.single;
       expect(created.roundType, type);

@@ -141,7 +141,7 @@ void main() {
         await _tap(tester, find.byType(BackButton));
         await _tap(
           tester,
-          find.text(state.isPublished ? 'Save' : 'Save as draft').last,
+          find.text(state.isPublished ? 'Apply' : 'Apply as draft').last,
         );
         await _settle(tester);
         expect(saved, isNotNull);
@@ -234,7 +234,7 @@ void main() {
       expect(await _preferences(), beforePreview);
       expect(jsonEncode(source.toV2Json()), originalJson);
       await _tap(tester, find.byType(BackButton));
-      await _tap(tester, find.text('Save').last);
+      await _tap(tester, find.text('Apply').last);
       await _settle(tester);
       expect(saved, isNotNull);
       expect(saved!.imageAsset, isEmpty);

@@ -302,7 +302,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.byType(BackButton));
       await tester.pumpAndSettle();
-      expect(find.text('Unsaved Exercise changes'), findsNothing);
+      expect(find.text('Exercise changes not applied'), findsNothing);
       expect(find.text('Open page'), findsOneWidget);
     });
 
@@ -332,7 +332,7 @@ void main() {
       // A new exercise still blank for its primitive: leaving does not ask.
       await tester.tap(find.byType(BackButton));
       await tester.pumpAndSettle();
-      expect(find.text('Unsaved Exercise changes'), findsNothing);
+      expect(find.text('Exercise changes not applied'), findsNothing);
       expect(find.text('Open page'), findsOneWidget);
       // Content added: leaving asks.
       await tester.tap(find.text('Open page'));
@@ -341,7 +341,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.byType(BackButton));
       await tester.pumpAndSettle();
-      expect(find.text('Unsaved Exercise changes'), findsOneWidget);
+      expect(find.text('Exercise changes not applied'), findsOneWidget);
       await tester.tap(find.text('Keep editing'));
       await tester.pumpAndSettle();
     });
@@ -368,7 +368,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.byType(BackButton));
       await tester.pumpAndSettle();
-      expect(find.text('Unsaved Exercise changes'), findsNothing);
+      expect(find.text('Exercise changes not applied'), findsNothing);
       expect(find.text('Open page'), findsOneWidget);
       // A real change asks.
       await tester.tap(find.text('Open page'));
@@ -380,7 +380,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.byType(BackButton));
       await tester.pumpAndSettle();
-      expect(find.text('Unsaved Exercise changes'), findsOneWidget);
+      expect(find.text('Exercise changes not applied'), findsOneWidget);
       await tester.tap(find.text('Keep editing'));
       await tester.pumpAndSettle();
     });
@@ -613,7 +613,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.byType(BackButton));
       await tester.pumpAndSettle();
-      expect(find.text('Unsaved Exercise changes'), findsNothing);
+      expect(find.text('Exercise changes not applied'), findsNothing);
       expect(find.text('Open page'), findsOneWidget);
     });
 

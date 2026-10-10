@@ -1545,7 +1545,7 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
               Text(
                 'The image is removed from all of them. $kept Exercises that '
                 'no longer work without it become Draft. Nothing is saved '
-                'until you confirm the Course.',
+                'until you save the Course.',
               ),
             ],
           ),
@@ -2140,8 +2140,8 @@ class _FlatImageLibraryScreenState extends State<FlatImageLibraryScreen> {
                         // request, Build 264 Revision 10).
                         child: Text(
                           'Changes here are kept as you make them and are '
-                          'applied when you leave this screen, so there is no '
-                          'Save button.',
+                          'applied to the Course when you leave this screen; '
+                          'Save course, in the Course Editor, writes them.',
                         ),
                       ),
                     ),

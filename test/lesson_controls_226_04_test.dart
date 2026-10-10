@@ -195,10 +195,10 @@ void main() {
       await tester.tap(find.widgetWithText(FilledButton, 'Add'));
       await tester.pumpAndSettle();
       expect(latest.sectionNames, ['Basics', 'Unused', 'Travel']);
-      await tester.tap(find.widgetWithText(OutlinedButton, 'Save as draft'));
+      await tester.tap(find.widgetWithText(OutlinedButton, 'Apply as draft'));
       await tester.pumpAndSettle();
       // Saving a published Lesson as Draft requires the existing confirmation.
-      final confirm = find.widgetWithText(TextButton, 'Save as draft');
+      final confirm = find.widgetWithText(TextButton, 'Apply as draft');
       if (confirm.evaluate().isNotEmpty) {
         await tester.tap(confirm);
         await tester.pumpAndSettle();

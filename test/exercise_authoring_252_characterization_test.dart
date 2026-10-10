@@ -493,7 +493,7 @@ void main() {
       expect(find.byType(ExerciseEditorScreen), findsOneWidget);
       await tester.tap(find.byType(BackButton).last);
       await workflow.settle(tester);
-      expect(find.text('Unsaved Exercise changes'), findsOneWidget);
+      expect(find.text('Exercise changes not applied'), findsOneWidget);
       await tester.tap(find.text('Discard changes'));
       await workflow.settle(tester);
       expect(returned, isNull);

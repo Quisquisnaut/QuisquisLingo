@@ -39,7 +39,7 @@ void main() {
       await tester.tap(
         find.descendant(
           of: dialog,
-          matching: find.widgetWithText(FilledButton, 'Save'),
+          matching: find.widgetWithText(FilledButton, 'Apply'),
         ),
       );
       await tester.pumpUntilFileIoState(() => dialog.evaluate().isEmpty);
@@ -114,8 +114,8 @@ void main() {
 
     await _tapDeliveryAction(tester, 'Unpublish');
     expect(find.text('Set Course to Not published?'), findsOneWidget);
-    expect(find.text('Save Course as draft?'), findsNothing);
-    expect(find.text('Save as draft'), findsNothing);
+    expect(find.text('Apply Course as draft?'), findsNothing);
+    expect(find.text('Apply as draft'), findsNothing);
     await tester.tap(find.widgetWithText(TextButton, 'Cancel'));
     await tester.pumpAndSettle();
     _expectDelivery(tester, 'Published', 'Unpublish');

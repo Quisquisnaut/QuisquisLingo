@@ -320,10 +320,16 @@ void main() {
         ),
         findsOneWidget,
       );
-      final heading = tester.widget<Text>(
-        find.byKey(const Key('duel-page-heading')),
+      // Build 270 Revision 12: the label line above the Lesson's title.
+      final heading = find.byKey(const Key('duel-page-heading'));
+      expect(
+        find.descendant(of: heading, matching: find.text('Lesson 1')),
+        findsOneWidget,
       );
-      expect(heading.data, 'Lesson 1: L');
+      expect(
+        find.descendant(of: heading, matching: find.text('L')),
+        findsOneWidget,
+      );
     });
 
     testWidgets('a QQL picture answer is drawn, not named', (tester) async {

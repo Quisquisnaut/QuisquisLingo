@@ -40,6 +40,7 @@ import '../services/audit_code_registry.dart' show AuditCode;
 import '../services/course_audit_report_service.dart';
 import '../services/settings_service.dart';
 import '../services/editor_display_preferences.dart';
+import '../services/audio_library_index.dart';
 import '../services/exercise_search_service.dart';
 import '../services/profile_service.dart';
 import '../services/team_service.dart';
@@ -104,6 +105,7 @@ import '../widgets/quick_import_access.dart';
 import '../widgets/reported_action.dart';
 import '../services/course_backup_retention.dart';
 import '../widgets/course_backup_purge.dart';
+import '../widgets/labelled_text.dart';
 
 export 'guidebook_editor_screen.dart'
     show GuidebookEditorScreen, GuidebookModuleEditorScreen;
@@ -317,6 +319,7 @@ Future<String?> askAuthoringName(
   String initial = '',
   String confirmLabel = 'Create',
   int? maxLength,
+  String fieldLabel = 'Title',
 }) async {
   final controller = TextEditingController(text: initial);
   final result = await showDialog<String>(
@@ -327,9 +330,9 @@ Future<String?> askAuthoringName(
         controller: controller,
         maxLength: maxLength,
         autofocus: true,
-        decoration: const InputDecoration(
-          border: OutlineInputBorder(),
-          labelText: 'Title',
+        decoration: InputDecoration(
+          border: const OutlineInputBorder(),
+          labelText: fieldLabel,
         ),
       ),
       actions: [
@@ -646,6 +649,11 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
 
   bool get _dirty => _session.hasChanges;
 
+  /// The last Save now or mode-switch save of this visit (Build 270
+  /// Revision 12): leaving with nothing unsaved still returns it, so the
+  /// caller reloads.
+  CourseConfirmationResult? _lastSaved;
+
   final _storyIds = TimestampAuthoringIdGenerator();
 
   bool get _canModify => _session.canModify;
@@ -691,7 +699,81 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
     await WidgetsBinding.instance.endOfFrame;
     if (!mounted) return;
     beforePop?.call();
-    Navigator.pop(context, result);
+    Navigator.pop(context, result ?? _lastSaved);
+  }
+
+  /// Save now (Build 270 Revision 12, owner decision of 10 October 2026):
+  /// writes the Course as a new version, with its version notes, and stays
+  /// in the Editor, as Save now does in the Course Wizard.
+  Future<void> _saveNow() async {
+    if (!_dirty) return;
+    var versionNotes = _pendingVersionNotes;
+    final save = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        key: const Key('course-save-now-dialog'),
+        title: const Text('Save the Course now?'),
+        content: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 560),
+          child: SingleChildScrollView(
+            child: TextFormField(
+              key: const Key('course-version-notes'),
+              initialValue: versionNotes,
+              onChanged: (value) => versionNotes = value,
+              minLines: 3,
+              maxLines: 8,
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                labelText: 'Version notes (optional)',
+                helperText: 'Describe the changes made in this course version.',
+              ),
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            key: const Key('course-save-now-confirm'),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Save course'),
+          ),
+        ],
+      ),
+    );
+    if (save != true || !mounted) return;
+    try {
+      final result = await _session.confirm(
+        languageCode: _code,
+        versionNotes: versionNotes,
+      );
+      if (!mounted) return;
+      setState(() => _lastSaved = result);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          key: const Key('course-editor-saved'),
+          content: Text('Saved as version ${result.course.courseVersion}.'),
+        ),
+      );
+      await CourseBackupPurge.offer(
+        context,
+        result.course,
+        backups: _service.backupService,
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          duration: const Duration(seconds: 10),
+          content: Text(
+            'The Course was not saved. Your changes are still open. $error',
+          ),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
+    }
   }
 
   /// [beforePop] runs only when the Editor really closes: Continue Course
@@ -707,7 +789,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
       context: context,
       builder: (context) => AlertDialog(
         key: const Key('course-transaction-confirmation'),
-        title: const Text('Unapplied course changes'),
+        title: const Text('Unsaved course changes'),
         content: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 560),
           child: SingleChildScrollView(
@@ -716,7 +798,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const Text(
-                  'The complete Course Editor working copy differs from the persisted course. Confirm all changes as one new course version, or cancel the complete editing session.',
+                  'The changes applied in this Course Editor are not saved yet. Save course writes them as one new course version; Discard changes drops all of them.',
                 ),
                 const SizedBox(height: 12),
                 TextFormField(
@@ -740,12 +822,12 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
           TextButton(
             key: const Key('cancel-course-changes'),
             onPressed: () => Navigator.pop(context, 'cancel'),
-            child: const Text('Cancel course changes'),
+            child: const Text('Discard changes'),
           ),
           FilledButton(
             key: const Key('confirm-course-changes'),
             onPressed: () => Navigator.pop(context, 'confirm'),
-            child: const Text('Confirm course changes'),
+            child: const Text('Save course'),
           ),
         ],
       ),
@@ -775,7 +857,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
         SnackBar(
           duration: const Duration(seconds: 10),
           content: Text(
-            'Course changes were not confirmed. The original course is unchanged and the working copy is still open. $error',
+            'The Course was not saved. The saved Course is unchanged and your changes are still open. $error',
           ),
           backgroundColor: Theme.of(context).colorScheme.error,
         ),
@@ -2279,7 +2361,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                   assignedTeamId: selectedAssignedTeamId,
                 ));
               },
-              child: const Text('Save'),
+              child: const Text('Apply'),
             ),
           ],
         ),
@@ -2444,7 +2526,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
       context: context,
       builder: (context) => AlertDialog(
         key: const Key('course-transaction-confirmation'),
-        title: const Text('Unapplied course changes'),
+        title: const Text('Unsaved course changes'),
         content: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 560),
           child: SingleChildScrollView(
@@ -2453,7 +2535,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const Text(
-                  'The complete Course Editor working copy differs from the persisted course. Confirm all changes as one new course version, cancel the complete editing session, or keep the editor in Edit.',
+                  'The changes applied in this Course Editor are not saved yet. Save course writes them as one new course version, Discard changes drops all of them, or keep editing.',
                 ),
                 const SizedBox(height: 12),
                 TextFormField(
@@ -2481,12 +2563,12 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
           TextButton(
             key: const Key('cancel-course-changes'),
             onPressed: () => Navigator.pop(context, 'cancel'),
-            child: const Text('Cancel course changes'),
+            child: const Text('Discard changes'),
           ),
           TextButton(
             key: const Key('confirm-course-changes'),
             onPressed: () => Navigator.pop(context, 'confirm'),
-            child: const Text('Confirm course changes'),
+            child: const Text('Save course'),
           ),
         ],
       ),
@@ -2502,7 +2584,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
         versionNotes: versionNotes,
       );
       if (!mounted) return false;
-      setState(() {});
+      setState(() => _lastSaved = result);
       await CourseBackupPurge.offer(
         context,
         result.course,
@@ -2515,7 +2597,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
         SnackBar(
           duration: const Duration(seconds: 10),
           content: Text(
-            'Course changes were not confirmed. The working copy remains open in Edit. $error',
+            'The Course was not saved. Your changes are still open in Edit. $error',
           ),
           backgroundColor: Theme.of(context).colorScheme.error,
         ),
@@ -2566,7 +2648,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Course cannot be saved as learner-visible content: $errors blocking error${errors == 1 ? '' : 's'}.',
+              'Course cannot be published: $errors blocking error${errors == 1 ? '' : 's'}.',
             ),
           ),
         );
@@ -2868,9 +2950,11 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
             value: LessonNumberingMode.numberOnly,
             child: Text('Number only'),
           ),
-          const DropdownMenuItem(
+          // Build 270 Revision 12 (owner report): the label chosen shows
+          // in the menu itself.
+          DropdownMenuItem(
             value: LessonNumberingMode.other,
-            child: Text('Custom + number'),
+            child: Text(_customNumberingText(_course.customLessonLabel)),
           ),
           if (_legacyLessonNumberingLabel != null)
             DropdownMenuItem(
@@ -2903,19 +2987,22 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
           border: OutlineInputBorder(),
           labelText: 'Round label and numbering',
         ),
-        items: const [
-          DropdownMenuItem(value: RoundNumberingMode.off, child: Text('Off')),
-          DropdownMenuItem(
+        items: [
+          const DropdownMenuItem(
+            value: RoundNumberingMode.off,
+            child: Text('Off'),
+          ),
+          const DropdownMenuItem(
             value: RoundNumberingMode.roundAndNumber,
             child: Text('Round + number'),
           ),
-          DropdownMenuItem(
+          const DropdownMenuItem(
             value: RoundNumberingMode.numberOnly,
             child: Text('Number only'),
           ),
           DropdownMenuItem(
             value: RoundNumberingMode.customAndNumber,
-            child: Text('Custom + number'),
+            child: Text(_customNumberingText(_course.customRoundLabel)),
           ),
         ],
         onChanged: _canModify ? _setRoundNumbering : null,
@@ -3141,8 +3228,9 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
         context,
         title: 'Custom Lesson label',
         initial: label,
-        confirmLabel: 'Save',
+        confirmLabel: 'Apply',
         maxLength: 40,
+        fieldLabel: 'Label',
       );
       if (!mounted) return;
       if (entered == null) {
@@ -3161,6 +3249,11 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
     );
   }
 
+  /// The custom numbering item: the author's label once there is one
+  /// ("Step + number"), else "Custom + number".
+  static String _customNumberingText(String label) =>
+      label.trim().isEmpty ? 'Custom + number' : '${label.trim()} + number';
+
   Future<void> _setRoundNumbering(RoundNumberingMode? mode) async {
     if (!_canModify || mode == null) return;
     var label = _course.customRoundLabel;
@@ -3169,8 +3262,9 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
         context,
         title: 'Custom Round label',
         initial: label,
-        confirmLabel: 'Save',
+        confirmLabel: 'Apply',
         maxLength: 40,
+        fieldLabel: 'Label',
       );
       if (!mounted) return;
       if (entered == null) {
@@ -3238,7 +3332,7 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Historical version ${selection.course.courseVersion} loaded into the working copy. Confirm course changes to apply it as a new version.',
+            'Historical version ${selection.course.courseVersion} loaded into the Course Editor. Save course keeps it as a new version.',
           ),
         ),
       );
@@ -3484,6 +3578,16 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
                           fontWeight: FontWeight.w700,
                         ),
                       ),
+                      // Applied but not saved yet (Build 270 Revision 12).
+                      if (_dirty)
+                        Text(
+                          'Unsaved changes',
+                          key: const Key('course-editor-unsaved'),
+                          style: Theme.of(context).textTheme.labelSmall
+                              ?.copyWith(
+                                color: Theme.of(context).colorScheme.error,
+                              ),
+                        ),
                     ],
                   ),
                 ),
@@ -3491,6 +3595,17 @@ class _CourseEditorScreenState extends State<_CustomCourseEditorScreen> {
             ),
           ),
           actions: [
+            if (_editorMode == CourseEditorMode.edit)
+              Tooltip(
+                message:
+                    'Write the changes applied so far as a new course version '
+                    'and keep editing.',
+                child: TextButton(
+                  key: const Key('course-editor-save-now'),
+                  onPressed: _dirty ? _saveNow : null,
+                  child: const Text('Save now'),
+                ),
+              ),
             PopupMenuButton<CourseEditorMode>(
               key: const Key('course-editor-lock'),
               tooltip: 'Course Editor access: ${_editorMode.label}',
@@ -3871,7 +3986,7 @@ class _LessonManagementScreenState extends State<LessonManagementScreen> {
     final title = await _askName(
       title: 'Rename lesson',
       initial: source.title,
-      confirmLabel: 'Save',
+      confirmLabel: 'Rename',
     );
     if (title == null || !mounted) return;
     final renamed = Lesson(
@@ -3939,7 +4054,7 @@ class _LessonManagementScreenState extends State<LessonManagementScreen> {
             ),
             TextButton(
               onPressed: () => Navigator.pop(context, true),
-              child: const Text('Save as draft'),
+              child: const Text('Apply as draft'),
             ),
           ],
         ),
@@ -3975,7 +4090,7 @@ class _LessonManagementScreenState extends State<LessonManagementScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Lesson cannot be saved as normal content: $errors blocking error${errors == 1 ? '' : 's'}.',
+              'Lesson cannot be applied as normal content: $errors blocking error${errors == 1 ? '' : 's'}.',
             ),
           ),
         );
@@ -4149,11 +4264,7 @@ class _LessonManagementScreenState extends State<LessonManagementScreen> {
                                   enabled: !_locked,
                                   child: const Icon(Icons.drag_handle),
                                 ),
-                                title: Text(
-                                  const LessonPresentationService()
-                                      .identity(_course, index)
-                                      .fullText,
-                                ),
+                                title: _lessonName(_course, index),
                                 subtitle: Text(
                                   '${_roundCountLabel(lesson.rounds.length)}$section',
                                 ),
@@ -4215,8 +4326,8 @@ class _LessonManagementScreenState extends State<LessonManagementScreen> {
                                       enabled: !_locked,
                                       child: Text(
                                         lesson.publicationState.isPublished
-                                            ? 'Save as draft'
-                                            : 'Save',
+                                            ? 'Apply as draft'
+                                            : 'Apply',
                                       ),
                                     ),
                                   ],
@@ -4260,9 +4371,18 @@ class LessonAuthoringPreviewScreen extends StatelessWidget {
     appBar: AppBar(
       title: CoursePreviewTitle(
         course: course,
-        title: Text(
-          'PREVIEW · ${course.lessons.any((candidate) => candidate.lessonId == lesson.lessonId) ? const LessonPresentationService().identity(course, course.lessons.indexWhere((candidate) => candidate.lessonId == lesson.lessonId)).fullText : lesson.title}',
-        ),
+        title: () {
+          final index = course.lessons.indexWhere(
+            (candidate) => candidate.lessonId == lesson.lessonId,
+          );
+          final identity = index < 0
+              ? null
+              : const LessonPresentationService().identity(course, index);
+          return LabelledText(
+            'PREVIEW · ${identity?.fullText ?? lesson.title}',
+            label: identity?.prefix,
+          );
+        }(),
       ),
     ),
     body: lesson.rounds.isEmpty
@@ -4275,9 +4395,15 @@ class LessonAuthoringPreviewScreen extends StatelessWidget {
               return Card(
                 child: ListTile(
                   leading: const Icon(Icons.play_circle_outline),
-                  title: Text(
+                  title: LabelledText(
                     RoundTypePresentation.title(
                       round,
+                      index + 1,
+                      course.roundNumberingMode,
+                      customPrefix: course.customRoundLabel,
+                    ),
+                    label: RoundTypePresentation.prefix(
+                      round.roundType,
                       index + 1,
                       course.roundNumberingMode,
                       customPrefix: course.customRoundLabel,
@@ -4353,14 +4479,12 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
     return index < 0 ? 1 : index + 1;
   }
 
-  String get _lessonLabel {
+  Widget get _lessonLabel {
     final course = _courseWithIcons;
     final index = course.lessons.indexWhere(
       (lesson) => lesson.lessonId == _lesson.lessonId,
     );
-    return index < 0
-        ? _lesson.title
-        : const LessonPresentationService().identity(course, index).fullText;
+    return index < 0 ? Text(_lesson.title) : _lessonName(course, index);
   }
 
   void _adoptCourse(Course course) {
@@ -4648,7 +4772,7 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Lesson cannot be saved as normal content: ${errors.length} blocking error${errors.length == 1 ? '' : 's'}.',
+              'Lesson cannot be applied as normal content: ${errors.length} blocking error${errors.length == 1 ? '' : 's'}.',
             ),
           ),
         );
@@ -4792,7 +4916,7 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
       builder: (dialogContext) => AlertDialog(
         title: const Text('Delete custom icon?'),
         content: const Text(
-          'The icon is removed from this Course when you save the Lesson and confirm the Course. Cancel undoes it. No Lesson uses it.',
+          'The icon is removed from this Course when you apply the Lesson and save the Course. Cancel undoes it. No Lesson uses it.',
         ),
         actions: [
           TextButton(
@@ -4817,7 +4941,7 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text(
-          'Custom icon deleted. Save the Lesson to keep the change.',
+          'Custom icon deleted. Apply the Lesson to keep the change.',
         ),
       ),
     );
@@ -5240,7 +5364,7 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
           leading: BackButton(onPressed: _returnToLessons),
           title: CoursePreviewTitle(
             course: _courseWithIcons,
-            title: Text(_lessonLabel),
+            title: _lessonLabel,
           ),
           actions: [
             IconButton(
@@ -5270,19 +5394,19 @@ class _LessonEditorScreenState extends State<LessonEditorScreen> {
                   _DraftBranchIndicator(
                     key: const Key('lesson-own-draft-indicator'),
                     message: _lesson.provisionalDraft
-                        ? 'This new Lesson is Draft until its required branch is complete and saved. It then becomes non-Draft automatically. Save as draft keeps the Lesson Draft until you explicitly Save it.'
+                        ? 'This new Lesson is Draft until its required branch is complete and applied. It then becomes non-Draft automatically. Apply as draft keeps the Lesson Draft until you explicitly Apply it.'
                         : 'This Lesson is Draft and hidden from learner delivery, even when its Rounds and Exercises are Published. Use Save to publish the Lesson.',
                   ),
                 if (!widget.readOnly) ...[
                   OutlinedButton(
                     key: const Key('save-lesson-draft'),
                     onPressed: () => _saveLesson(PublicationState.draft),
-                    child: const Text('Save as draft'),
+                    child: const Text('Apply as draft'),
                   ),
                   FilledButton(
                     key: const Key('save-lesson'),
                     onPressed: () => _saveLesson(PublicationState.published),
-                    child: const Text('Save'),
+                    child: const Text('Apply'),
                   ),
                 ],
               ],
@@ -7100,6 +7224,7 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
     String title, {
     String initial = '',
     bool allowEmpty = false,
+    String confirmLabel = 'Apply',
   }) async {
     var edited = initial;
     final value = await showDialog<String>(
@@ -7128,7 +7253,7 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, edited.trim()),
-            child: const Text('Save'),
+            child: Text(confirmLabel),
           ),
         ],
       ),
@@ -7291,6 +7416,7 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
       'Rename Round',
       initial: source.title,
       allowEmpty: true,
+      confirmLabel: 'Rename',
     );
     if (title == null || !mounted) return;
     final rounds = [..._rounds];
@@ -7365,7 +7491,7 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
             ),
             TextButton(
               onPressed: () => Navigator.pop(context, true),
-              child: const Text('Save as draft'),
+              child: const Text('Apply as draft'),
             ),
           ],
         ),
@@ -7409,7 +7535,7 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Round cannot be saved as normal content: $errors blocking error${errors == 1 ? '' : 's'}.',
+              'Round cannot be applied as normal content: $errors blocking error${errors == 1 ? '' : 's'}.',
             ),
           ),
         );
@@ -7492,11 +7618,10 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
     final lessonIndex = _course.lessons.indexWhere(
       (lesson) => lesson.lessonId == widget.lesson.lessonId,
     );
-    final lessonLabel = lessonIndex < 0
-        ? widget.lesson.title
-        : const LessonPresentationService()
-              .identity(_course, lessonIndex)
-              .fullText;
+    final lessonIdentity = lessonIndex < 0
+        ? null
+        : const LessonPresentationService().identity(_course, lessonIndex);
+    final lessonLabel = lessonIdentity?.fullText ?? widget.lesson.title;
     return PopScope<List<LearningRound>>(
       canPop: _routeMayPop,
       onPopInvokedWithResult: (didPop, _) {
@@ -7506,7 +7631,10 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
         appBar: AppBar(
           title: CoursePreviewTitle(
             course: _auditableCourse,
-            title: Text('Rounds · $lessonLabel'),
+            title: LabelledText(
+              'Rounds · $lessonLabel',
+              label: lessonIdentity?.prefix,
+            ),
           ),
           actions: [
             IconButton(
@@ -7587,21 +7715,36 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
                       enabled: !widget.readOnly,
                       child: const Icon(Icons.drag_handle),
                     ),
-                    title: Text(
-                      '${index + 1}. ${RoundTypePresentation.title(round, index + 1, RoundNumberingMode.off)}',
-                    ),
-                    // Build 260 Revision 5: the Round's average difficulty
-                    // beside its count, so a Lesson's curve shows.
-                    subtitle: Wrap(
-                      crossAxisAlignment: WrapCrossAlignment.center,
+                    // Build 270 Revision 12 (owner decisions): one small
+                    // grey line with the label (Lesson Options), the type,
+                    // the count and the average difficulty, then the Round's
+                    // own title, never the label.
+                    title: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(_exerciseCountLabel(round.exercises.length)),
-                        if (ExerciseDifficulty.averageOf(round)
-                            case final average?)
-                          DifficultyBadge.average(
-                            key: ValueKey('round-difficulty-${round.id}'),
-                            average: average,
-                          ),
+                        Wrap(
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            Text(
+                              '${RoundTypePresentation.prefix(round.roundType, index + 1, _course.roundNumberingMode, customPrefix: _course.customRoundLabel)} · ${_exerciseCountLabel(round.exercises.length)}',
+                              key: ValueKey('round-label-${round.id}'),
+                              style: numberingLabelStyle(context),
+                            ),
+                            // Build 260 Revision 5: the Round's average
+                            // difficulty, so a Lesson's curve shows.
+                            if (ExerciseDifficulty.averageOf(round)
+                                case final average?)
+                              DifficultyBadge.average(
+                                key: ValueKey('round-difficulty-${round.id}'),
+                                average: average,
+                              ),
+                          ],
+                        ),
+                        LabelledTitle(
+                          label: null,
+                          title: RoundTypePresentation.authoredTitle(round),
+                        ),
                       ],
                     ),
                     onTap: () => _open(index),
@@ -7672,8 +7815,8 @@ class _LessonRoundsScreenState extends State<LessonRoundsScreen> {
                           enabled: !widget.readOnly,
                           child: Text(
                             round.publicationState.isPublished
-                                ? 'Save as draft'
-                                : 'Save',
+                                ? 'Apply as draft'
+                                : 'Apply',
                           ),
                         ),
                       ],
@@ -8010,10 +8153,10 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
             context: context,
             builder: (context) => AlertDialog(
               key: const Key('round-draft-exercises-notice'),
-              title: const Text('Save the Draft Exercises first'),
+              title: const Text('Apply the Draft Exercises first'),
               content: Text(
                 '${drafts.length == 1 ? 'One Exercise is' : '${drafts.length} Exercises are'} still Draft: $titles$more. '
-                'A Round saved as normal content shows only its Published Exercises, so open each Draft Exercise and press Save, or save the Round as draft.',
+                'A Round applied as normal content shows only its Published Exercises, so open each Draft Exercise and press Apply, or apply the Round as draft.',
               ),
               actions: [
                 FilledButton(
@@ -8028,7 +8171,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Round cannot be saved as normal content: $errors blocking error${errors == 1 ? '' : 's'}.',
+              'Round cannot be applied as normal content: $errors blocking error${errors == 1 ? '' : 's'}.',
             ),
           ),
         );
@@ -8066,7 +8209,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
             ),
             TextButton(
               onPressed: () => Navigator.pop(context, true),
-              child: const Text('Save as draft'),
+              child: const Text('Apply as draft'),
             ),
           ],
         ),
@@ -8086,7 +8229,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-            'Exercise cannot be saved as normal content until its Errors are fixed.',
+            'Exercise cannot be applied as normal content until its Errors are fixed.',
           ),
         ),
       );
@@ -9011,13 +9154,10 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
           leading: BackButton(onPressed: _returnToRounds),
           title: CoursePreviewTitle(
             course: _workingCourse,
-            title: Text(
-              RoundTypePresentation.title(
-                _editedRound(),
-                widget.roundIndex + 1,
-                _workingCourse.roundNumberingMode,
-                customPrefix: _workingCourse.customRoundLabel,
-              ),
+            title: _roundName(
+              _workingCourse,
+              _editedRound(),
+              widget.roundIndex + 1,
             ),
           ),
           actions: [
@@ -9049,7 +9189,7 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
                   _DraftBranchIndicator(
                     key: const Key('round-own-draft-indicator'),
                     message: _provisionalDraft
-                        ? 'This new Round is Draft until its required content is complete and saved. It then becomes non-Draft automatically. Save as draft keeps the Round Draft until you explicitly Save it.'
+                        ? 'This new Round is Draft until its required content is complete and applied. It then becomes non-Draft automatically. Apply as draft keeps the Round Draft until you explicitly Apply it.'
                         : 'This Round is Draft and hidden from learner delivery, even when its Exercises are Published. Use Save to publish the Round.',
                   ),
                 if (!widget.readOnly) ...[
@@ -9057,13 +9197,13 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
                     key: const Key('round-save-draft'),
                     style: _compactButtonStyle,
                     onPressed: () => _saveRound(PublicationState.draft),
-                    child: const Text('Save as draft'),
+                    child: const Text('Apply as draft'),
                   ),
                   FilledButton(
                     key: const Key('round-save'),
                     style: _compactButtonStyle,
                     onPressed: () => _saveRound(PublicationState.published),
-                    child: const Text('Save'),
+                    child: const Text('Apply'),
                   ),
                   // A sequence is a plain Round played in order (Build 256
                   // Revision 7, third follow-up): the Round's own buttons.
@@ -9454,8 +9594,8 @@ class _RoundEditorScreenState extends State<RoundEditorScreen> {
                           enabled: !widget.readOnly,
                           child: Text(
                             e.publicationState.isPublished
-                                ? 'Save as draft'
-                                : 'Save',
+                                ? 'Apply as draft'
+                                : 'Apply',
                           ),
                         ),
                         if (_flow != null &&
@@ -10120,7 +10260,7 @@ class _ExerciseCreationWizardScreenState
             OutlinedButton(
               key: const Key('wizard-save'),
               onPressed: _saveCurrent,
-              child: const Text('Save'),
+              child: const Text('Apply'),
             ),
             OutlinedButton(
               key: const Key('wizard-preview'),
@@ -11678,7 +11818,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
             },
           ),
           Text(
-            'MP3: open Course Editor > Audio Library. Copy MP3 files to ${QqlStorageLayout.current.folderLabel(QqlStorageRole.audioImports)}, press Import MP3, then Associate recording with its Word or expression. Choose Recorded MP3 only or Hybrid. This exercise uses those text mappings.',
+            'MP3: open Course Editor > Audio Library. Copy MP3 files to ${QqlStorageLayout.current.folderLabel(QqlStorageRole.audioImports)}, press Quick Import, then Associate recording with its Word or expression. Choose Recorded MP3 only or Hybrid. This exercise uses those text mappings.',
           ),
           const SizedBox(height: 12),
           if (listeningChoose)
@@ -13158,9 +13298,9 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
     final action = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Unsaved Exercise changes'),
+        title: const Text('Exercise changes not applied'),
         content: const Text(
-          'Save these changes to the course working copy, discard this Exercise form, or keep editing. Nothing is confirmed to storage here.',
+          'Apply these changes to the Course you are editing, discard this Exercise form, or keep editing. Nothing is written to the device until Save course.',
         ),
         actions: [
           FilledButton(
@@ -13173,11 +13313,11 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, 'draft'),
-            child: const Text('Save as draft'),
+            child: const Text('Apply as draft'),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, 'save'),
-            child: const Text('Save'),
+            child: const Text('Apply'),
           ),
         ],
       ),
@@ -13281,7 +13421,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
       leading: const Icon(Icons.tune),
       title: const Text('No preset represents this exercise exactly'),
       subtitle: const Text(
-        'This form shows its closest reading and cannot save it, because a save would drop what the form does not show. Edit it in the canonical editor.',
+        'This form shows its closest reading and cannot apply it, because applying would drop what the form does not show. Edit it in the canonical editor.',
       ),
       trailing: widget.readOnly
           ? null
@@ -13528,7 +13668,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
                     ? null
                     : () => _save(PublicationState.draft),
                 icon: const Icon(Icons.save_outlined),
-                label: const Text('Save as draft'),
+                label: const Text('Apply as draft'),
               ),
               FilledButton.icon(
                 key: const Key('exercise-save'),
@@ -13536,7 +13676,7 @@ class _ExerciseEditorScreenState extends State<ExerciseEditorScreen> {
                     ? null
                     : () => _save(PublicationState.published),
                 icon: const Icon(Icons.save_outlined),
-                label: const Text('Save'),
+                label: const Text('Apply'),
               ),
             ],
           ),
@@ -13710,7 +13850,7 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
           ),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, c.text.trim()),
-            child: const Text('Save'),
+            child: const Text('Apply'),
           ),
         ],
       ),
@@ -13808,55 +13948,39 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
     );
   }
 
-  String _initial(CourseAudioClip c) {
-    final t = c.text.trim();
-    if (t.isEmpty) return '#';
-    final ch = t.characters.first.toUpperCase();
-    return RegExp(r'[A-ZÀ-ÖØ-Þ]').hasMatch(ch) ? ch : '#';
-  }
-
-  List<CourseAudioClip> get _sorted {
-    final out = [..._course.audioLibrary];
-    out.sort((a, b) {
-      final ae = a.text.trim().isEmpty, be = b.text.trim().isEmpty;
-      if (ae != be) return ae ? 1 : -1;
-      return a.text.toLowerCase().compareTo(b.text.toLowerCase());
-    });
-    return out;
-  }
-
+  /// Build 270 Revision 12 (owner report): the clips are built only near
+  /// the screen, so a letter's header is a sliver of its own that is always
+  /// built. The first move lands where the clips in between are estimated to
+  /// end; once they are laid out, the next moves put the letter in place.
   Future<void> _jump(String letter) async {
-    final ctx = _letterKeys[letter]?.currentContext;
-    if (ctx != null) {
+    for (var pass = 0; pass < 3; pass++) {
+      final ctx = _letterKeys[letter]?.currentContext;
+      if (ctx == null || !ctx.mounted) return;
       await Scrollable.ensureVisible(
         ctx,
-        duration: const Duration(milliseconds: 250),
+        duration: pass == 0 ? const Duration(milliseconds: 250) : Duration.zero,
         alignment: .08,
       );
+      await WidgetsBinding.instance.endOfFrame;
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final sorted = _sorted;
-    final letters =
-        sorted
-            .where((e) => e.text.trim().isNotEmpty)
-            .map(_initial)
-            .toSet()
-            .toList()
-          ..sort();
+    // Build 270 Revision 12 (owner decisions): # (no text), 0–9, the
+    // letters without accents, other scripts; AudioLibraryIndex owns the rule.
+    final groups = AudioLibraryIndex.groups(_course.audioLibrary);
     final children = <Widget>[
       Card(
         key: const Key('audio-library-save-notice'),
         child: const Padding(
           padding: EdgeInsets.all(12),
           child: Text(
-            'Changes here are kept as you make them and are applied when you '
-            'leave this screen, so there is no Save button. They are written '
-            'to the Course only when you confirm the Course changes on leaving '
-            'the Course Editor. Cancelling the Course discards them, and any '
-            'recordings imported in that session are removed again.',
+            'Changes here are kept as you make them and are applied to the '
+            'Course when you leave this screen. They are written to the '
+            'device only by Save now or Save course in the Course Editor. '
+            'Discard changes drops them, and any recordings imported since '
+            'the last save are removed again.',
           ),
         ),
       ),
@@ -13893,8 +14017,37 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
         Card(
           child: Padding(
             padding: const EdgeInsets.all(12),
-            child: Text(
-              'Import MP3: copy the MP3 files you want to import to ${QqlStorageLayout.current.folderLabel(QqlStorageRole.audioImports)}, then press Import MP3. All MP3 files in that folder are imported. Source files are left in place, so move or remove them after a successful import to avoid importing them again.',
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Copy the MP3 files you want to import to ${QqlStorageLayout.current.folderLabel(QqlStorageRole.audioImports)}, then press Quick Import: every MP3 file in that folder is imported. Source files are left in place, so move or remove them after a successful import to avoid importing them again.'
+                  '${_audio.fileDialogsAvailable ? ' Open from… chooses MP3 files with the system file dialog.' : ''}',
+                ),
+                const SizedBox(height: 8),
+                // Build 270 Revision 12 (owner report): the two imports side
+                // by side, as on Course Import, instead of a floating button
+                // and an app-bar icon at opposite ends of the screen.
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    FilledButton.icon(
+                      key: const Key('audio-quick-import'),
+                      onPressed: _import,
+                      icon: const Icon(Icons.library_music_outlined),
+                      label: const Text('Quick Import'),
+                    ),
+                    if (_audio.fileDialogsAvailable)
+                      OutlinedButton.icon(
+                        key: const Key('open-mp3-from'),
+                        onPressed: _importFromDialog,
+                        icon: const Icon(Icons.folder_open_outlined),
+                        label: const Text('Open from…'),
+                      ),
+                  ],
+                ),
+              ],
             ),
           ),
         ),
@@ -13907,86 +14060,56 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
           trailing: const Icon(Icons.cleaning_services_outlined),
           onTap: _orphans,
         ),
-      if (letters.isNotEmpty)
+      if (groups.isNotEmpty)
         SizedBox(
           height: 46,
           child: ListView(
             scrollDirection: Axis.horizontal,
             children: [
-              for (final l in letters)
+              for (final group in groups)
                 Padding(
                   padding: const EdgeInsets.only(right: 4),
-                  child: ActionChip(label: Text(l), onPressed: () => _jump(l)),
+                  child: ActionChip(
+                    label: Text(group.key),
+                    onPressed: () => _jump(group.key),
+                  ),
                 ),
             ],
           ),
         ),
       const Divider(),
     ];
-    String? previous;
-    for (final clip in sorted) {
-      final letter = _initial(clip);
-      if (letter != previous) {
-        previous = letter;
-        _letterKeys.putIfAbsent(letter, () => GlobalKey());
-        children.add(
-          Padding(
-            key: _letterKeys[letter],
-            padding: const EdgeInsets.fromLTRB(8, 10, 8, 4),
-            child: Text(
-              letter == '#' ? 'Unassigned' : letter,
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
-            ),
-          ),
-        );
-      }
-      children.add(
-        Card(
-          child: ListTile(
-            leading: IconButton(
-              tooltip: _playingId == clip.id ? 'Stop preview' : 'Play preview',
-              icon: Icon(
-                _playingId == clip.id
-                    ? Icons.stop_circle_outlined
-                    : Icons.play_circle_outline,
+    final slivers = <Widget>[
+      SliverPadding(
+        padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+        sliver: SliverList(delegate: SliverChildListDelegate(children)),
+      ),
+      for (final group in groups) ...[
+        SliverPadding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          sliver: SliverToBoxAdapter(
+            child: Padding(
+              key: _letterKeys.putIfAbsent(group.key, () => GlobalKey()),
+              padding: const EdgeInsets.fromLTRB(8, 10, 8, 4),
+              child: Text(
+                group.heading,
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
               ),
-              onPressed: () => _preview(clip),
-            ),
-            title: Text(
-              clip.text.trim().isEmpty ? 'Unassigned MP3' : clip.text,
-            ),
-            subtitle: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  clip.filePath,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                if (_missingClipIds.contains(clip.id))
-                  Text(
-                    'File missing. Delete this recording to remove its '
-                    'reference, then confirm the Course.',
-                    key: Key('audio-clip-missing-${clip.id}'),
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.error,
-                    ),
-                  ),
-              ],
-            ),
-            isThreeLine: _missingClipIds.contains(clip.id),
-            onTap: () => _editById(clip.id),
-            trailing: IconButton(
-              icon: const Icon(Icons.delete_outline),
-              onPressed: () => _deleteById(clip.id),
             ),
           ),
         ),
-      );
-    }
+        SliverPadding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          sliver: SliverList.builder(
+            itemCount: group.clips.length,
+            itemBuilder: (context, index) => _clipCard(group.clips[index]),
+          ),
+        ),
+      ],
+      const SliverToBoxAdapter(child: SizedBox(height: 12)),
+    ];
     return PopScope<Course>(
       canPop: _routeMayPop,
       onPopInvokedWithResult: (didPop, _) {
@@ -13998,30 +14121,46 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
             course: _course,
             title: const Text('Audio Library'),
           ),
-          actions: [
-            if (_course.audioMode != 'tts' && _audio.fileDialogsAvailable)
-              IconButton(
-                key: const Key('open-mp3-from'),
-                tooltip: 'Open MP3 from…',
-                onPressed: _importFromDialog,
-                icon: const Icon(Icons.folder_open_outlined),
-              ),
-          ],
         ),
-        floatingActionButton: _course.audioMode == 'tts'
-            ? null
-            : FloatingActionButton.extended(
-                onPressed: _import,
-                icon: const Icon(Icons.library_music_outlined),
-                label: const Text('Import MP3'),
-              ),
-        body: ListView(
-          padding: const EdgeInsets.fromLTRB(12, 12, 12, 90),
-          children: children,
-        ),
+        body: CustomScrollView(slivers: slivers),
       ),
     );
   }
+
+  Widget _clipCard(CourseAudioClip clip) => Card(
+    child: ListTile(
+      leading: IconButton(
+        tooltip: _playingId == clip.id ? 'Stop preview' : 'Play preview',
+        icon: Icon(
+          _playingId == clip.id
+              ? Icons.stop_circle_outlined
+              : Icons.play_circle_outline,
+        ),
+        onPressed: () => _preview(clip),
+      ),
+      title: Text(clip.text.trim().isEmpty ? 'Unassigned MP3' : clip.text),
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(clip.filePath, maxLines: 1, overflow: TextOverflow.ellipsis),
+          if (_missingClipIds.contains(clip.id))
+            Text(
+              'File missing. Delete this recording to remove its '
+              'reference, then confirm the Course.',
+              key: Key('audio-clip-missing-${clip.id}'),
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            ),
+        ],
+      ),
+      isThreeLine: _missingClipIds.contains(clip.id),
+      onTap: () => _editById(clip.id),
+      trailing: IconButton(
+        icon: const Icon(Icons.delete_outline),
+        onPressed: () => _deleteById(clip.id),
+      ),
+    ),
+  );
 
   /// Leaving the screen returns the draft, so there is no Save button. The
   /// Course Editor stages it in the working copy; the single top-level Course
@@ -14033,3 +14172,23 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
     if (mounted) Navigator.pop(context, _course);
   }
 }
+
+/// A Lesson's name with its label in the label style (Build 270
+/// Revision 12).
+Widget _lessonName(Course course, int index) {
+  final identity = const LessonPresentationService().identity(course, index);
+  return LabelledText(identity.fullText, label: identity.prefix);
+}
+
+/// A Round's label line, as on the learner path, above its own title
+/// (Build 270 Revision 12, owner report: the label is never the title).
+Widget _roundName(Course course, LearningRound round, int number) =>
+    LabelledTitle(
+      label: RoundTypePresentation.prefix(
+        round.roundType,
+        number,
+        course.roundNumberingMode,
+        customPrefix: course.customRoundLabel,
+      ),
+      title: RoundTypePresentation.authoredTitle(round),
+    );

@@ -322,8 +322,8 @@ void main() {
         await tester.ensureVisible(save);
         await tester.tap(save);
         await tester.pumpAndSettle();
-        if (find.text('Save Exercise as draft?').evaluate().isNotEmpty) {
-          await tester.tap(find.widgetWithText(TextButton, 'Save as draft'));
+        if (find.text('Apply Exercise as draft?').evaluate().isNotEmpty) {
+          await tester.tap(find.widgetWithText(TextButton, 'Apply as draft'));
           await tester.pumpAndSettle();
         }
         if (find.text('Use anyway').evaluate().isNotEmpty) {

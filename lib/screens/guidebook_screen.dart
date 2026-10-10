@@ -4,6 +4,7 @@ import '../models/guidebook_text.dart';
 import '../services/lesson_presentation_service.dart';
 import '../services/publication_service.dart';
 import '../widgets/guidebook_picture_thumbnail.dart';
+import '../widgets/labelled_text.dart';
 
 /// A Lesson's GuideBook as learners read it (Build 266, GuideBook Modules):
 /// the Lesson title, then each module in order with its title, Sentences,
@@ -73,11 +74,16 @@ class _GuidebookScreenState extends State<GuidebookScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(
-              identity.fullText,
-              style: Theme.of(
+            // Build 270 Revision 12: the label line above the title, as on
+            // the learner path.
+            LabelledTitle(
+              key: const Key('guidebook-heading'),
+              label: identity.prefix,
+              title: identity.title,
+              titleStyle: Theme.of(
                 context,
               ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
+              titleMaxLines: null,
             ),
             const SizedBox(height: 12),
             if (!empty)

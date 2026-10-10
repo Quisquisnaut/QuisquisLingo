@@ -24,6 +24,7 @@ import '../widgets/exercise_prompt_panels.dart';
 import '../widgets/plural_picture.dart';
 import '../widgets/portable_exercise_image.dart';
 import '../widgets/reported_action.dart';
+import '../widgets/labelled_text.dart';
 
 class DuelScreen extends StatefulWidget {
   final Course course;
@@ -136,15 +137,13 @@ class _DuelScreenState extends State<DuelScreen> {
   /// named as on the learner path (owner decision of 6 October 2026: the
   /// last Lesson's Duel read "Final Duel" both here and in the top bar; even
   /// the Final Duel asks only that Lesson's words).
-  String get _pageHeading {
+  LessonIdentityPresentation? get _pageHeading {
     final index = widget.course.lessons.indexWhere(
       (lesson) => lesson.lessonId == widget.lesson.lessonId,
     );
     return index < 0
-        ? widget.lesson.title
-        : const LessonPresentationService()
-              .identity(widget.course, index)
-              .fullText;
+        ? null
+        : const LessonPresentationService().identity(widget.course, index);
   }
 
   /// The learner panel text of [key] in the Course's instruction language
@@ -609,10 +608,14 @@ class _DuelScreenState extends State<DuelScreen> {
             child: ListView(
               padding: const EdgeInsets.all(20),
               children: [
-                Text(
-                  _pageHeading,
+                // Build 270 Revision 12: the label line above the title, as
+                // on the learner path.
+                LabelledTitle(
                   key: const Key('duel-page-heading'),
-                  style: Theme.of(context).textTheme.headlineSmall,
+                  label: _pageHeading?.prefix,
+                  title: _pageHeading?.title ?? widget.lesson.title,
+                  titleStyle: Theme.of(context).textTheme.headlineSmall,
+                  titleMaxLines: null,
                 ),
                 const SizedBox(height: 6),
                 Wrap(

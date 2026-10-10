@@ -43,6 +43,7 @@ import '../services/app_errors.dart';
 import '../services/diagnostic_log_service.dart';
 import '../widgets/course_backup_purge.dart';
 import '../services/course_editor_service.dart';
+import '../widgets/labelled_text.dart';
 
 /// The Course Wizard (Build 267, `docs/267_COURSE_WIZARD_PLAN.md`).
 ///
@@ -3071,7 +3072,7 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
           ),
           Tooltip(
             message:
-                'Save this Lesson\'s GuideBook as Published, then go on to '
+                'Mark this Lesson\'s GuideBook Published, then go on to '
                 'the next Lesson.',
             child: FilledButton.tonalIcon(
               key: const Key('course-wizard-guidebook-ready'),
@@ -3219,10 +3220,17 @@ class _CourseWizardScreenState extends State<CourseWizardScreen> {
         Padding(
           key: ValueKey('course-wizard-round-$index'),
           padding: const EdgeInsets.only(bottom: 2),
-          child: Text(
+          // Build 270 Revision 12: the label in the label style.
+          child: LabelledText(
             '${RoundTypePresentation.title(round, index + 1, course.roundNumberingMode, customPrefix: course.customRoundLabel)}'
             ' · ${round.exercises.length} exercises'
             '${round.publicationState.isPublished ? '' : ' · Draft'}',
+            label: RoundTypePresentation.prefix(
+              round.roundType,
+              index + 1,
+              course.roundNumberingMode,
+              customPrefix: course.customRoundLabel,
+            ),
           ),
         ),
       if (!usable)

@@ -57,8 +57,8 @@ void main() {
     await tester.pump();
     expect(find.text('On-Device TTS'), findsOneWidget);
     expect(find.textContaining('No MP3 files are needed'), findsOneWidget);
-    expect(find.text('Import MP3'), findsNothing);
-    expect(find.text('Check unused MP3 files'), findsNothing);
+    expect(find.text('Quick Import'), findsNothing);
+    expect(find.text('Check unused MP3 files', skipOffstage: false), findsNothing);
     expect(find.byKey(const Key('open-mp3-from')), findsNothing);
 
     await tester.tap(find.text('On-Device TTS'));
@@ -66,8 +66,8 @@ void main() {
     await tester.tap(find.text('Recorded MP3 only').last);
     await tester.pumpAndSettle();
     expect(find.textContaining('there is no TTS fallback'), findsOneWidget);
-    expect(find.text('Import MP3'), findsOneWidget);
-    expect(find.text('Check unused MP3 files'), findsOneWidget);
+    expect(find.text('Quick Import'), findsOneWidget);
+    expect(find.text('Check unused MP3 files', skipOffstage: false), findsOneWidget);
     expect(find.byKey(const Key('open-mp3-from')), findsOneWidget);
 
     await tester.tap(find.text('Recorded MP3 only'));
@@ -75,8 +75,8 @@ void main() {
     await tester.tap(find.text('Hybrid: MP3 + TTS fallback').last);
     await tester.pumpAndSettle();
     expect(find.textContaining('this device’s text-to-speech voice'), findsOneWidget);
-    expect(find.text('Import MP3'), findsOneWidget);
-    expect(find.text('Check unused MP3 files'), findsOneWidget);
+    expect(find.text('Quick Import'), findsOneWidget);
+    expect(find.text('Check unused MP3 files', skipOffstage: false), findsOneWidget);
     expect(find.byKey(const Key('open-mp3-from')), findsOneWidget);
   });
 

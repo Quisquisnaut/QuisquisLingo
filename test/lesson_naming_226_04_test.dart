@@ -125,13 +125,23 @@ void main() {
         await tester.pumpAndSettle();
         if (scenario.mode == LessonNumberingMode.other) {
           expect(find.text('Custom Lesson label'), findsOneWidget);
+          // Build 270 Revision 12 (owner report): the field is a Label.
+          expect(
+            find.descendant(
+              of: find.byType(AlertDialog),
+              matching: find.text('Label'),
+            ),
+            findsOneWidget,
+          );
           final custom = find.descendant(
             of: find.byType(AlertDialog),
             matching: find.byType(TextField),
           );
           await tester.enterText(custom, 'Level');
-          await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+          await tester.tap(find.widgetWithText(FilledButton, 'Apply'));
           await tester.pumpAndSettle();
+          // The menu names the label chosen.
+          expect(find.text('Level + number'), findsOneWidget);
         }
         expect(
           tester.state<FormFieldState<LessonNumberingMode>>(modeField).value,
@@ -288,6 +298,33 @@ void main() {
       LessonNumberingMode.unit,
     ]);
     expect(find.text('Unit + number (existing)'), findsOneWidget);
+  });
+
+  testWidgets('a custom Round label shows in its menu (Build 270 Revision '
+      '12, owner report)', (tester) async {
+    final source = Course.fromJson({
+      ..._course().toJson(),
+      'roundNumberingMode': RoundNumberingMode.customAndNumber.name,
+      'customRoundLabel': 'Step',
+    });
+    await SettingsService().setCourseEditorLocked(source.courseId, false);
+    await SettingsService().markAudioOrphanCheckRun(
+      CourseService.codeForCourse(source),
+    );
+    await tester.pumpWidget(
+      MaterialApp(home: CourseEditorScreen(course: source, userCourse: true)),
+    );
+    await tester.pumpAndSettle();
+    final options = find.byKey(const Key('course-lesson-options'));
+    await tester.ensureVisible(options);
+    await tester.tap(options);
+    await tester.pumpAndSettle();
+    final field = find.byType(DropdownButtonFormField<RoundNumberingMode>);
+    expect(
+      find.descendant(of: field, matching: find.text('Step + number')),
+      findsOneWidget,
+    );
+    expect(find.text('Custom + number'), findsNothing);
   });
 }
 

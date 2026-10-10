@@ -153,7 +153,7 @@ void main() {
         for (final required in [
           'Course Editor > Audio Library',
           'Documents/QuisquisLingo/Import/Audio',
-          'Import MP3',
+          'Quick Import',
           'Associate recording',
           'Word or expression',
           'no per-exercise file attachment',

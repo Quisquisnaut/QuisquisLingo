@@ -469,7 +469,7 @@ class _StorySpeakerDialogState extends State<_StorySpeakerDialog> {
                   credit: _credit,
                 ))
               : null,
-          child: const Text('Save'),
+          child: const Text('Apply'),
         ),
       ],
     );

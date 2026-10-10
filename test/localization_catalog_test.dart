@@ -96,12 +96,12 @@ void main() {
       // Build 256 Revision 8: Editor Help is questions and answers.
       'editorHelp.qa.accessModes.a': ['View only', 'Inspection mode', 'Edit'],
       'editorHelp.qa.workingCopy.a': [
-        'Save as draft',
-        'Confirm course changes',
+        'Apply as draft',
+        'Save course',
       ],
       'editorHelp.qa.leaveEditor.a': [
-        'Confirm course changes',
-        'Cancel course changes',
+        'Save course',
+        'Discard changes',
       ],
       'courseStudioHelp.courseOperations.body': [
         'Copy as New Course',

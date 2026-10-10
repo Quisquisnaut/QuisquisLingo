@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:quisquislingo_app/widgets/labelled_text.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/screens/official_course_inspection_screen.dart';
 import 'package:quisquislingo_app/services/course_backup_service.dart';
@@ -81,8 +82,14 @@ Future<void> _checkEntryAndFollowBothLines(
   await tester.pumpAndSettle();
 
   final tile = tester.widget<ListTile>(entry);
-  final firstLine = find.byWidget(tile.title!);
-  final secondLine = find.byWidget(tile.subtitle!);
+  // Build 270 Revision 12: a Round row has no subtitle; its two actionable
+  // lines are the grey label line and the title under it.
+  final firstLine = tile.subtitle == null
+      ? find.byKey(ValueKey('round-label-$id'))
+      : find.byWidget(tile.title!);
+  final secondLine = tile.subtitle == null
+      ? find.descendant(of: entry, matching: find.byType(LabelledTitle))
+      : find.byWidget(tile.subtitle!);
   expect(tile.onTap, isNotNull);
   expect(
     tester.getRect(secondLine).top,
@@ -117,7 +124,11 @@ Future<void> _checkEntryAndFollowBothLines(
   await tester.ensureVisible(entry);
   await tester.pumpAndSettle();
   final returnedTile = tester.widget<ListTile>(entry);
-  await tester.tap(find.byWidget(returnedTile.subtitle!));
+  await tester.tap(
+    returnedTile.subtitle == null
+        ? find.descendant(of: entry, matching: find.byType(LabelledTitle))
+        : find.byWidget(returnedTile.subtitle!),
+  );
   await tester.pumpAndSettle();
   expect(find.text(destinationText), findsOneWidget);
 }

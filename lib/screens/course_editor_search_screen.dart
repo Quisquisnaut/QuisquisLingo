@@ -7,6 +7,8 @@ import '../services/editor_display_preferences.dart';
 import '../services/lesson_presentation_service.dart';
 import '../widgets/editor_app_bar_actions.dart';
 import '../widgets/course_preview_flag.dart';
+import '../services/round_type_presentation.dart';
+import '../widgets/labelled_text.dart';
 
 class CourseEditorSearchScreen extends StatefulWidget {
   const CourseEditorSearchScreen({
@@ -132,21 +134,31 @@ class _CourseEditorSearchScreenState extends State<CourseEditorSearchScreen> {
                       final result = results[index];
                       final lesson = widget.course.lessons[result.lessonIndex];
                       final round = lesson.rounds[result.roundIndex];
-                      final roundName = round.flow != null
-                          ? round.displayTitle(result.roundIndex)
-                          : round.title.trim();
-                      final roundLabel = roundName.isEmpty
-                          ? 'Round ${result.roundIndex + 1}'
-                          : 'Round ${result.roundIndex + 1} · $roundName';
-                      final lessonLabel = const LessonPresentationService()
-                          .identity(widget.course, result.lessonIndex)
-                          .fullText;
+                      // Build 270 Revision 12 (owner decisions): Lesson and
+                      // Round named by the Course's numbering, their labels
+                      // in the label style.
+                      final roundPrefix = RoundTypePresentation.prefix(
+                        round.roundType,
+                        result.roundIndex + 1,
+                        widget.course.roundNumberingMode,
+                        customPrefix: widget.course.customRoundLabel,
+                      );
+                      final roundLabel = RoundTypePresentation.title(
+                        round,
+                        result.roundIndex + 1,
+                        widget.course.roundNumberingMode,
+                        customPrefix: widget.course.customRoundLabel,
+                      );
+                      final lessonIdentity = const LessonPresentationService()
+                          .identity(widget.course, result.lessonIndex);
+                      final lessonLabel = lessonIdentity.fullText;
                       return ListTile(
                         key: ValueKey(
                           'course-editor-search-result-${result.exerciseId}',
                         ),
-                        title: Text(
+                        title: LabelledText.all(
                           '$lessonLabel > $roundLabel > ${result.exerciseDisplayName}',
+                          labels: [lessonIdentity.prefix, roundPrefix],
                         ),
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,

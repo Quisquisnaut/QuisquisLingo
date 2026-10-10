@@ -85,7 +85,7 @@ final class QqlStorageRole {
     'folderRecoveryKeyExports',
   );
 
-  /// Import MP3 reads every MP3 here.
+  /// The Audio Library's Quick Import reads every MP3 here.
   static const audioImports = QqlStorageRole._(
     QqlTransferDirection.imports,
     QqlFileCategory.audio,

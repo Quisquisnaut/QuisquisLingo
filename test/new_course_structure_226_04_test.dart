@@ -378,7 +378,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('new-round-type-practice')));
     await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+    await tester.tap(find.widgetWithText(FilledButton, 'Apply'));
     await tester.pumpAndSettle();
     expect(course.lessons.first.rounds, hasLength(22));
     expect(course.lessons.first.rounds.last.exercises, hasLength(1));

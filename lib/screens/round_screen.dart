@@ -51,6 +51,7 @@ import '../services/spoken_line_pace.dart';
 import '../widgets/spoken_line_text.dart';
 import '../widgets/word_lookup_view.dart';
 import 'guidebook_screen.dart';
+import '../widgets/labelled_text.dart';
 
 class RoundScreen extends StatefulWidget {
   /// Opens a Page link in the browser (Build 258). A test seam: widget
@@ -182,6 +183,15 @@ class _RoundScreenState extends State<RoundScreen> {
     widget.course.roundNumberingMode,
     customPrefix: widget.course.customRoundLabel,
   );
+
+  /// The Round's label and type ("Step 2 · Practice"), drawn in the label
+  /// style (Build 270 Revision 12).
+  String get _roundPrefix => RoundTypePresentation.prefix(
+    widget.round.roundType,
+    widget.roundIndex + 1,
+    widget.course.roundNumberingMode,
+    customPrefix: widget.course.customRoundLabel,
+  );
   String get _screenTitle => widget.previewMode
       ? 'PREVIEW · $_roundTitle'
       : widget.viewOnlyMode
@@ -192,12 +202,31 @@ class _RoundScreenState extends State<RoundScreen> {
   int get _lessonIndex => widget.course.lessons.indexWhere(
     (lesson) => lesson.lessonId == widget.lesson.lessonId,
   );
+
+  /// The Lesson as the learner panel names it: its own "Lesson {n}" with
+  /// the default numbering, else the author's label as on the learner path
+  /// (Build 270 Revision 12, owner decision: the labels apply everywhere).
+  String get _lessonName =>
+      _lessonIndex < 0 ||
+          LessonPresentationService.panelNamesLessons(widget.course)
+      ? _t('review.lesson', {
+          'n': _lessonIndex + 1,
+          'title': widget.lesson.title,
+        })
+      : const LessonPresentationService()
+            .identity(widget.course, _lessonIndex)
+            .fullText;
+
   String get _reviewContext {
     final roundTitle = _roundTitle;
+    // With a Round numbering the Round's title already carries its label
+    // and number (Build 270 Revision 12).
+    final round = widget.course.roundNumberingMode == RoundNumberingMode.off
+        ? '${_t('review.round', {'n': widget.roundIndex + 1})}'
+              '${roundTitle.isEmpty ? '' : ': $roundTitle'}'
+        : roundTitle;
     return '${widget.course.title} · ${widget.course.targetLanguage} · '
-        '${_t('review.lesson', {'n': _lessonIndex + 1, 'title': widget.lesson.title})} · '
-        '${_t('review.round', {'n': widget.roundIndex + 1})}'
-        '${roundTitle.isEmpty ? '' : ': $roundTitle'}';
+        '$_lessonName · $round';
   }
 
   final _progress = ProgressService();
@@ -5140,7 +5169,7 @@ class _RoundScreenState extends State<RoundScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(_screenTitle, softWrap: true),
+              LabelledText(_screenTitle, label: _roundPrefix),
               Text(
                 _reviewContext,
                 softWrap: true,
@@ -5148,7 +5177,7 @@ class _RoundScreenState extends State<RoundScreen> {
               ),
             ],
           )
-        : Text(_screenTitle),
+        : LabelledText(_screenTitle, label: _roundPrefix),
   );
 
   /// The language the answers are in: the answer side of a translation,
@@ -5481,7 +5510,7 @@ class _RoundScreenState extends State<RoundScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             if (widget.reviewMode) ...[
-              Text(_screenTitle, softWrap: true),
+              LabelledText(_screenTitle, label: _roundPrefix),
               Text(
                 _reviewContext,
                 softWrap: true,
@@ -5493,17 +5522,23 @@ class _RoundScreenState extends State<RoundScreen> {
                   style: Theme.of(context).textTheme.labelSmall,
                 ),
             ] else ...[
-              Text(
+              LabelledText(
                 _reviewPhase
                     ? _t('roundInReview', {'round': _roundTitle})
                     : _roundTitle,
+                label: _roundPrefix,
               ),
               Text(
-                _t('lessonLine', {
-                  'language': widget.course.targetLanguage,
-                  'n': _lessonIndex + 1,
-                  'title': widget.lesson.title,
-                }),
+                _lessonIndex < 0 ||
+                        LessonPresentationService.panelNamesLessons(
+                          widget.course,
+                        )
+                    ? _t('lessonLine', {
+                        'language': widget.course.targetLanguage,
+                        'n': _lessonIndex + 1,
+                        'title': widget.lesson.title,
+                      })
+                    : '${widget.course.targetLanguage} · $_lessonName',
                 style: Theme.of(context).textTheme.labelSmall,
               ),
             ],

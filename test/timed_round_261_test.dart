@@ -227,7 +227,7 @@ void main() {
     await tester.tap(timed);
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextFormField).last, 'Sprint');
-    await tester.tap(find.text('Save'));
+    await tester.tap(find.text('Apply'));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('timed-limit-picker')), findsOneWidget);
     await tester.tap(find.byKey(const Key('timed-limit-30')));
@@ -302,7 +302,7 @@ void main() {
     await tester.tap(find.byKey(const Key('new-round-type-timed')));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextFormField).last, 'Sprint');
-    await tester.tap(find.text('Save'));
+    await tester.tap(find.text('Apply'));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('timed-limit-picker')), findsNothing);
     expect(changed!.lessons.first.rounds.single.timedLimitsSeconds, [90, 60]);

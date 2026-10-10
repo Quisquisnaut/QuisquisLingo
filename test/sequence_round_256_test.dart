@@ -252,7 +252,13 @@ void main() {
       expect(flow.readAloud, FlowReadAloud.automatic);
       expect(flow.title, isEmpty);
       expect(_roundOf(course).isSequence, isTrue);
-      expect(find.text('Sequence · Numbers'), findsOneWidget);
+      // Build 270 Revision 12: the label line above the title.
+      for (final line in ['Sequence', 'Numbers']) {
+        expect(
+          find.descendant(of: find.byType(AppBar), matching: find.text(line)),
+          findsOneWidget,
+        );
+      }
 
       expect(find.text('Optional sequence title'), findsOneWidget);
       expect(find.text('Story title'), findsNothing);

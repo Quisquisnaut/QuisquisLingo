@@ -272,3 +272,29 @@ unsaved; a Wizard left without saving resumes at its last save.
 
 Next: merging `build-270` into `main` and pushing `main` wait for the
 owner's go; then the modularization build (271) if the owner wants it.
+
+## Revision 12 (2.0.70+270012), Save means saved; labels apart from titles; the Audio Library's A–Z
+
+Owner reports and decisions of 10 October 2026 (released 11 October):
+- "Save" always writes to the device; inside the Course Editor Apply /
+  Apply as draft; leaving asks Save course / Discard changes; Save now on
+  the Course Editor's main page with an Unsaved changes mark.
+- Labels in the learner path's small grey style, never used as titles;
+  compact Round rows (grey line: label · type · count · difficulty; then the
+  title; then the ID line); breadcrumbs follow the numbering; the custom
+  label shows in Lesson Options' menus; the label dialogs say Label; the
+  learner side follows the author's numbering when it is not "Lesson".
+- Audio Library: A–Z jump fixed; # first = recordings with no text only,
+  then 0–9 (digits and symbols), letters without accents (Ñ under N, Ä
+  under A), Greek, Cyrillic, Other scripts; Quick Import and Open from…
+  side by side.
+- Check unused MP3 files: left as it was; Revision 13 makes it find the
+  recordings no exercise plays (those without text are already under #).
+
+State: see `docs/270_VALIDATION.md`. Next: Revision 13, per recording "Used
+in N exercises" (Lesson › Round › exercise, opening it; only texts the
+recordings cover completely) and Check unused MP3 files for recordings no
+exercise plays. Then the Build 271 plan is discussed (questions in the
+session: Missing letters already in Courses, the Put the sentences in order
+marker, Course deletion backup, the Lesson label wording, Android signing,
+the order).

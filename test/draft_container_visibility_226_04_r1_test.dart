@@ -249,7 +249,8 @@ void main() {
           tester,
           LessonRoundsScreen(course: course, lesson: lesson),
         );
-        expect(find.text('0 Exercises'), findsOneWidget);
+        // Build 270 Revision 12: the count is on the Round's grey label line.
+        expect(find.textContaining('0 Exercises'), findsOneWidget);
         _expectStatus(
           tester,
           'round-status-indicator-container-round',

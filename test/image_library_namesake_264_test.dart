@@ -162,7 +162,7 @@ void main() {
       await tester.tap(find.byKey(const Key('image-library-help')));
       await tester.pumpAndSettle();
       expect(find.text('Image Library Help'), findsOneWidget);
-      expect(find.textContaining('there is no Save button'), findsOneWidget);
+      expect(find.textContaining('there is no Apply button'), findsOneWidget);
     });
   });
 }

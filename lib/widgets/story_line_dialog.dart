@@ -191,7 +191,7 @@ class _StoryLineDialogState extends State<_StoryLineDialog> {
                   readAloud: _readAloud,
                   textReveal: _textReveal,
                 )),
-          child: const Text('Save'),
+          child: const Text('Apply'),
         ),
       ],
     );

@@ -30,7 +30,7 @@ void main() {
     await tester.tap(find.text('Rename'));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField), 'Renamed Lesson');
-    await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+    await tester.tap(find.widgetWithText(FilledButton, 'Rename'));
     await tester.pumpAndSettle();
     expect(find.text('Lesson 1: Renamed Lesson'), findsOneWidget);
 
@@ -76,16 +76,17 @@ void main() {
     await tester.tap(find.text('Rename'));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextFormField), '');
-    await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+    await tester.tap(find.widgetWithText(FilledButton, 'Rename'));
     await tester.pumpAndSettle();
-    expect(find.text('1. Practice'), findsOneWidget);
+    // Build 270 Revision 12: the row's grey line holds the label; the title
+    // line reads No title for an untitled Round.
+    expect(find.text('No title'), findsOneWidget);
 
     await tester.tap(find.byKey(const ValueKey('round-actions-round_a')));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Duplicate'));
     await tester.pumpAndSettle();
-    expect(find.text('1. Practice'), findsOneWidget);
-    expect(find.text('2. Practice'), findsOneWidget);
+    expect(find.text('No title'), findsNWidgets(2));
 
     await tester.pageBack();
     await tester.pumpAndSettle();

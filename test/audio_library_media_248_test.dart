@@ -137,7 +137,7 @@ void main() {
 
     await _openEditor(tester, service, stored);
     await _openAudioLibrary(tester);
-    await tester.tap(find.text('Import MP3'));
+    await tester.tap(find.byKey(const Key('audio-quick-import')));
     await tester.pumpUntilFileIoState(
       () => find.byType(SnackBar).evaluate().isNotEmpty,
     );
@@ -260,7 +260,7 @@ void main() {
     // Leaving hands the draft to the Editor, so the Course is now changed.
     await tester.pageBack();
     await tester.pumpUntilFileIoState(
-      () => find.text('Import MP3').evaluate().isEmpty,
+      () => find.byKey(const Key('audio-quick-import')).evaluate().isEmpty,
     );
     await tester.tap(find.byType(BackButton).last);
     await _settle(tester);
@@ -604,7 +604,7 @@ Future<void> _openAudioLibrary(WidgetTester tester) async {
   );
   await tester.tap(find.text('Audio Library'));
   await tester.pumpUntilFileIoState(
-    () => find.text('Import MP3').evaluate().isNotEmpty,
+    () => find.byKey(const Key('audio-quick-import')).evaluate().isNotEmpty,
   );
 }
 
@@ -612,7 +612,7 @@ Future<void> _importFromFolder(
   WidgetTester tester, {
   required int expectedClips,
 }) async {
-  await tester.tap(find.text('Import MP3'));
+  await tester.tap(find.byKey(const Key('audio-quick-import')));
   await tester.pumpUntilFileIoState(
     () => find.text('Unassigned MP3').evaluate().length == expectedClips,
   );
@@ -622,7 +622,7 @@ Future<void> _importFromFolder(
 Future<void> _saveAudioLibrary(WidgetTester tester) async {
   await tester.pageBack();
   await tester.pumpUntilFileIoState(
-    () => find.text('Import MP3').evaluate().isEmpty,
+    () => find.byKey(const Key('audio-quick-import')).evaluate().isEmpty,
   );
 }
 

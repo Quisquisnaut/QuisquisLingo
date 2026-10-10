@@ -286,8 +286,11 @@ void main() {
       // Since Build 264 the heading names the Lesson, as on the learner
       // path, not "Duello linguistico".
       expect(
-        tester.widget<Text>(find.byKey(const Key('duel-page-heading'))).data,
-        endsWith('Duel lesson'),
+        find.descendant(
+          of: find.byKey(const Key('duel-page-heading')),
+          matching: find.textContaining('Duel lesson'),
+        ),
+        findsOneWidget,
       );
       expect(find.text('Question 1/25 · 4 lives'), findsNothing);
     });

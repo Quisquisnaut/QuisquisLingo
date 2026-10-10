@@ -10,6 +10,8 @@ import '../services/vocabulary_review_service.dart';
 import '../widgets/beta_expired_view.dart';
 import '../widgets/guidebook_picture_thumbnail.dart';
 import 'round_screen.dart';
+import '../services/lesson_presentation_service.dart';
+import '../widgets/labelled_text.dart';
 
 class ReviewScreen extends StatefulWidget {
   final Course course;
@@ -329,6 +331,23 @@ class _ReviewScreenState extends State<ReviewScreen> {
     ),
   };
 
+  Widget _lessonLine(ReviewRoundLocation location) {
+    if (LessonPresentationService.panelNamesLessons(widget.course)) {
+      return Text(
+        _t('review.lesson', {
+          'n': location.lessonIndex + 1,
+          'title': location.lesson.title,
+        }),
+        softWrap: true,
+      );
+    }
+    final identity = const LessonPresentationService().identity(
+      widget.course,
+      location.lessonIndex,
+    );
+    return LabelledText(identity.fullText, label: identity.prefix);
+  }
+
   Widget _vocabularyCard({required bool afterRound}) {
     final location = _location!;
     final entries = afterRound ? _postEntries : _preEntries;
@@ -351,17 +370,21 @@ class _ReviewScreenState extends State<ReviewScreen> {
         const SizedBox(height: 12),
         Text(widget.course.title, softWrap: true),
         Text(widget.course.targetLanguage, softWrap: true),
-        Text(
-          _t('review.lesson', {
-            'n': location.lessonIndex + 1,
-            'title': location.lesson.title,
-          }),
-          softWrap: true,
-        ),
-        Text(
-          '${_t('review.round', {'n': location.roundIndex + 1})}'
-          '${roundTitle.isEmpty ? '' : ': $roundTitle'}',
-          softWrap: true,
+        // Build 270 Revision 12: the Lesson and the Round named as on the
+        // learner path when the author chose a numbering, their labels in
+        // the label style.
+        _lessonLine(location),
+        LabelledText(
+          widget.course.roundNumberingMode == RoundNumberingMode.off
+              ? '${_t('review.round', {'n': location.roundIndex + 1})}'
+                    '${roundTitle.isEmpty ? '' : ': $roundTitle'}'
+              : roundTitle,
+          label: RoundTypePresentation.prefix(
+            location.round.roundType,
+            location.roundIndex + 1,
+            widget.course.roundNumberingMode,
+            customPrefix: widget.course.customRoundLabel,
+          ),
         ),
         const SizedBox(height: 16),
         LinearProgressIndicator(value: _entryIndex / entries.length),

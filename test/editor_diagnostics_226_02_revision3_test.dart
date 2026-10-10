@@ -249,7 +249,7 @@ void main() {
     await tester.tap(
       find.descendant(
         of: find.byType(AlertDialog),
-        matching: find.widgetWithText(FilledButton, 'Save'),
+        matching: find.widgetWithText(FilledButton, 'Rename'),
       ),
     );
     await tester.pumpAndSettle();
@@ -267,13 +267,13 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(
-      find.descendant(
-        of: find.byType(AppBar),
-        matching: find.text('Practice · Renamed Round'),
-      ),
-      findsOneWidget,
-    );
+    // Build 270 Revision 12: the label line above the Round's own title.
+    for (final line in ['Practice', 'Renamed Round']) {
+      expect(
+        find.descendant(of: find.byType(AppBar), matching: find.text(line)),
+        findsOneWidget,
+      );
+    }
     expect(find.text('Round ID: round-one'), findsOneWidget);
   });
 

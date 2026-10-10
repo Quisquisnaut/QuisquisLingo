@@ -263,8 +263,8 @@ void main() {
           for (final question in topic.questions) question.answer,
       ].join('\n');
       for (final label in const [
-        'Save as draft',
-        'Confirm course changes',
+        'Apply as draft',
+        'Save course',
         'View only',
         'Inspection mode',
         'Use GuideBook',

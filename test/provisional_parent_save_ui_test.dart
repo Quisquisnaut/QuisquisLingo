@@ -83,7 +83,7 @@ void main() {
       // The route was originally opened with a Draft Round. The confirmation
       // must use its current reconciled state, not that original route argument.
       await workflow.tapKey(tester, 'round-save-draft');
-      expect(find.text('Save Round as draft?'), findsOneWidget);
+      expect(find.text('Apply Round as draft?'), findsOneWidget);
       await tester.tap(
         find.descendant(
           of: find.byType(AlertDialog),
@@ -102,7 +102,7 @@ void main() {
       await tester.tap(
         find.descendant(
           of: find.byType(AlertDialog),
-          matching: find.text('Save as draft'),
+          matching: find.text('Apply as draft'),
         ),
       );
       await tester.pumpAndSettle();

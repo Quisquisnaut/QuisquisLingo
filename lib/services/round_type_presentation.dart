@@ -68,6 +68,20 @@ abstract final class RoundTypePresentation {
     };
   }
 
+  /// The Round's label and number alone ("Round 2", "Step 2", "2"), or
+  /// null when the numbering is off (Build 270 Revision 12).
+  static String? numberLabel(
+    int oneBasedPosition,
+    RoundNumberingMode mode, {
+    String customPrefix = '',
+  }) => switch (mode) {
+    RoundNumberingMode.off => null,
+    RoundNumberingMode.roundAndNumber => 'Round $oneBasedPosition',
+    RoundNumberingMode.numberOnly => '$oneBasedPosition',
+    RoundNumberingMode.customAndNumber =>
+      '${customPrefix.trim()} $oneBasedPosition',
+  };
+
   static String title(
     LearningRound round,
     int oneBasedPosition,

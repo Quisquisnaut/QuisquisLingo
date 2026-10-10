@@ -7,7 +7,7 @@ Future<bool> confirmMoveToDraft(BuildContext context, String entity) async =>
     await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Save $entity as draft?'),
+        title: Text('Apply $entity as draft?'),
         content: Text(
           'This $entity will disappear from learner-facing content. Existing learner progress and XP will be preserved.',
         ),
@@ -18,7 +18,7 @@ Future<bool> confirmMoveToDraft(BuildContext context, String entity) async =>
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Save as draft'),
+            child: const Text('Apply as draft'),
           ),
         ],
       ),

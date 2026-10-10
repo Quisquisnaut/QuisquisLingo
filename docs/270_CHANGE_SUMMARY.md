@@ -408,3 +408,48 @@ save must be discardable.
   access; the two audit findings kept open by decision summarized.
 - Help EN/IT/ES: `editorHelp.createNewCourse.body`,
   `editorHelp.qa.courseWizard.a`.
+
+## Revision 12 (2.0.70+270012): Save means saved; labels apart from titles; the Audio Library's A–Z
+
+Owner reports and decisions of 10 October 2026; released 11 October 2026.
+
+- Wording: "Save" only where something is written to the device. Inner
+  editor buttons say Apply / Apply as draft (`course_editor_screen.dart`,
+  `primitive_editor_screen.dart`, `guidebook_editor_screen.dart`,
+  `editor_dialogs.dart` `confirmMoveToDraft`, `story_line_dialog.dart`,
+  `story_speaker_dialog.dart`); rename dialogs say Rename
+  (`_name(confirmLabel:)`); the leave and mode-switch dialogs say
+  "Unsaved course changes", Save course / Discard changes (keys unchanged);
+  the Image Library and Audio Library notices name Save now and Save course.
+  The image metadata dialogs keep Save: they write to the device.
+- Course Editor main page: `_saveNow` (`course-editor-save-now`,
+  `course-save-now-dialog`, `course-version-notes`,
+  `course-save-now-confirm`, SnackBar `course-editor-saved`, then
+  `CourseBackupPurge.offer`); `course-editor-unsaved`; `_lastSaved` returned
+  by `_popEditor` when nothing changed since.
+- `lib/widgets/labelled_text.dart`: `numberingLabelStyle`, `LabelledText`
+  (`.all` for several labels), `LabelledTitle`. Rounds page rows (grey line
+  `round-label-<id>`: `RoundTypePresentation.prefix` · count, then
+  `round-difficulty-<id>`; then the authored title or "No title"), the Round
+  editor bar (`_roundName`), Lesson names (`_lessonName`), the Lesson
+  preview, the Rounds page bar, breadcrumbs (`RoundTypePresentation.numberLabel`,
+  `editor_breadcrumbs.dart`), `course_editor_search_screen.dart`, the Course
+  Wizard's Rounds list. Lesson Options: `_customNumberingText`,
+  `askAuthoringName(fieldLabel:)`.
+- Learner side: `RoundScreen._roundPrefix`, `_lessonName`, `_reviewContext`
+  (no repeated Round number with a numbering);
+  `LessonPresentationService.panelNamesLessons`; `ReviewScreen._lessonLine`;
+  `duel-page-heading` and `guidebook-heading` as `LabelledTitle`.
+- Audio Library (`AudioLibraryScreen`): `CustomScrollView` with one header
+  sliver per group and `SliverList.builder` clips (`_clipCard`), `_jump` in
+  up to three passes; `lib/services/audio_library_index.dart`
+  (`AudioLibraryIndex.groupOf`, `groups`, `AudioLibraryGroup`); the import
+  card holds Quick Import (`audio-quick-import`) and Open from…
+  (`open-mp3-from`); the floating button and the app-bar icon are gone.
+  "Import MP3" is Quick Import in the screen, the field Help and Help
+  EN/IT/ES.
+- Beta expiry `2026-11-10 23:59:59` (`beta_lifecycle_service.dart`, its
+  test, README).
+- Tests: `save_now_270_test.dart`, `audio_library_letters_270_test.dart`;
+  finders updated for the new Round rows, breadcrumbs, labels and buttons in
+  about twenty files.

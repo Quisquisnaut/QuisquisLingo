@@ -93,14 +93,14 @@ Future<void> _navigateAndSave(
   await tester.ensureVisible(button);
   await tester.tap(button);
   await tester.pumpAndSettle();
-  expect(find.text('Unsaved Exercise changes'), findsOneWidget);
+  expect(find.text('Exercise changes not applied'), findsOneWidget);
   await tester.tap(
-    find.widgetWithText(TextButton, draft ? 'Save as draft' : 'Save'),
+    find.widgetWithText(TextButton, draft ? 'Apply as draft' : 'Apply'),
   );
   await tester.pumpAndSettle();
   if (draft) {
-    expect(find.text('Save Exercise as draft?'), findsOneWidget);
-    await tester.tap(find.widgetWithText(TextButton, 'Save as draft'));
+    expect(find.text('Apply Exercise as draft?'), findsOneWidget);
+    await tester.tap(find.widgetWithText(TextButton, 'Apply as draft'));
     await tester.pumpAndSettle();
   }
   expect(find.byType(ExerciseEditorScreen), findsOneWidget);

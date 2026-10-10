@@ -211,3 +211,4 @@ grading.
 | 9 | Course Backups share media; older backups deleted on request (Course Info, asked after every save) and the media only they held with them; Android 7–10 saves without a backup when the permission is refused | done |
 | 10 | The Course Wizard's leave dialog names the steps; Android update reminder instead of the network check; Page links ask first | done |
 | 11 | Owner requests after the plan: the Course Wizard saves only with Save now or Finish; the shared-device notice not at a first access; developer documents toned down | done |
+| 12 | Owner requests: "Save" only where something is written (Apply inside the Course Editor, Save now on its main page); labels apart from titles; the Audio Library's A–Z jump, groups and import buttons | done |

@@ -109,8 +109,14 @@ void main() {
           await tester.ensureVisible(idLine);
           await tester.pumpAndSettle();
           _expectPassiveIdLast(tester, entry, idLine, width);
-          final subtitle = tester.widget<ListTile>(entry).subtitle!;
-          await tester.tap(find.byWidget(subtitle));
+          // Build 270 Revision 12: a Round row's second actionable line is
+          // its grey label line, inside the title.
+          final subtitle = tester.widget<ListTile>(entry).subtitle;
+          await tester.tap(
+            subtitle == null
+                ? find.byKey(ValueKey('round-label-$id'))
+                : find.byWidget(subtitle),
+          );
           await tester.pumpAndSettle();
           expect(
             find.byType(destination),
@@ -142,18 +148,23 @@ void _expectPassiveIdLast(
   final tile = tester.widget<ListTile>(entry);
   expect(tile.onTap, isNotNull);
   final title = find.byWidget(tile.title!);
-  final subtitle = find.byWidget(tile.subtitle!);
   final titleRect = tester.getRect(title);
-  final subtitleRect = tester.getRect(subtitle);
+  // Build 270 Revision 12: a Round row's actionable lines are both in its
+  // title (the grey label line, then the title); the others keep a subtitle.
+  final subtitleRect = tile.subtitle == null
+      ? null
+      : tester.getRect(find.byWidget(tile.subtitle!));
   final idRect = tester.getRect(idLine);
 
-  expect(subtitleRect.top, greaterThanOrEqualTo(titleRect.bottom));
-  expect(idRect.top, greaterThanOrEqualTo(subtitleRect.bottom));
+  if (subtitleRect != null) {
+    expect(subtitleRect.top, greaterThanOrEqualTo(titleRect.bottom));
+  }
+  expect(idRect.top, greaterThanOrEqualTo((subtitleRect ?? titleRect).bottom));
   expect(idRect.top, greaterThanOrEqualTo(tester.getRect(entry).bottom));
   expect(idRect.left, greaterThanOrEqualTo(0));
   expect(idRect.right, lessThanOrEqualTo(width));
   expect(titleRect.overlaps(idRect), isFalse);
-  expect(subtitleRect.overlaps(idRect), isFalse);
+  expect(subtitleRect?.overlaps(idRect) ?? false, isFalse);
   expect(
     find.ancestor(of: idLine, matching: find.byType(ListTile)),
     findsNothing,

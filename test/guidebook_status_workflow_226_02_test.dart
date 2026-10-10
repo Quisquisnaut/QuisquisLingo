@@ -193,7 +193,7 @@ void main() {
       expect(find.byType(LessonEditorScreen), findsNothing);
       expect(find.byType(LessonManagementScreen), findsOneWidget);
       expect(
-        find.textContaining('cannot be saved as normal content'),
+        find.textContaining('cannot be applied as normal content'),
         findsNothing,
       );
       await _back(tester);

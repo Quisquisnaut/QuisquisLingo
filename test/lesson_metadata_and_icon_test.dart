@@ -516,9 +516,9 @@ void main() {
       await tester.tap(find.byKey(const Key('new-round-type-practice')));
       await tester.pumpAndSettle();
       await tester.enterText(find.byType(TextFormField), 'New draft round');
-      await tester.tap(find.text('Save').last);
+      await tester.tap(find.text('Apply').last);
       await tester.pumpAndSettle();
-      expect(find.text('3. Practice · New draft round'), findsOneWidget);
+      expect(find.text('New draft round'), findsOneWidget);
 
       final firstHandle = find.descendant(
         of: find.byKey(const ValueKey('round-a')),
@@ -532,7 +532,7 @@ void main() {
       );
 
       final newRoundCard = find.ancestor(
-        of: find.text('3. Practice · New draft round'),
+        of: find.text('New draft round'),
         matching: find.byType(Card),
       );
       await tester.tap(

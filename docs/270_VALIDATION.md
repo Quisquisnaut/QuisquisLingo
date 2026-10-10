@@ -288,3 +288,26 @@ Not tried by hand: stopping speech on leaving a Round on Windows and Linux.
 - `flutter analyze`: no issues.
 - Complete suite: **4,142 passed, 1 skipped**, 37:44 (10 October 2026,
   17:35–18:12).
+
+## Revision 12 (2.0.70+270012), Save means saved; labels apart from titles; the Audio Library's A–Z
+
+- `save_now_270_test` (new): an applied change shows Unsaved changes, Save
+  now writes version 2 with its notes and stays, leaving then asks nothing
+  and returns the save: passed.
+- `audio_library_letters_270_test` (new, 9 cases): a letter further down is
+  brought near the top, the last letter is reached, the groups come # (no
+  text), 0–9, letters, other scripts with their buttons, the filing rule
+  (punctuation skipped, accents folded, Greek and Cyrillic letters, other
+  scripts, digits and symbols, no text), the two imports share a row:
+  passed.
+- `lesson_naming_226_04_test`: the custom label's field says Label and the
+  menus show "Level + number" / "Step + number": passed.
+- Finders updated for the new Round rows, breadcrumbs, labels and buttons
+  (about twenty files), the ID-order tests (a Round row's two lines are in
+  its title), the Duel heading tests; the focused batch of the 80 files that
+  open the changed screens passed after these updates.
+- `flutter analyze`: no issues.
+- Complete suite, first run: 2 failures, both in
+  `official_hierarchy_id_order_226_02_test` (it read a Round row's second
+  line as a subtitle); fixed in the test.
+- Complete suite: **4,152 passed, 1 skipped**, 37:17 (11 October 2026).

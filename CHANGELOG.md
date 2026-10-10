@@ -1,3 +1,53 @@
+# 2.0.70 (Build 270, Revision 12) - Save means saved; labels apart from titles; the Audio Library's A–Z - 2026-10-11
+
+Owner reports and decisions of 10 October 2026.
+
+- **"Save" always writes to the device.** Inside the Course Editor the
+  buttons that keep a change in the Course being edited now say **Apply**
+  and **Apply as draft** (Course Info, Lessons, Rounds, exercises, the
+  GuideBook, the canonical editor, Story lines and characters); renaming
+  says **Rename**. Leaving with changes asks "Unsaved course changes" with
+  **Save course** or **Discard changes**. Before, the inner buttons said
+  Save although nothing was written until the Course was confirmed on
+  leaving, unlike the Course Wizard's Save now.
+- **Save now in the Course Editor**: the main page has **Save now**, which
+  writes a new version with its notes and keeps the Editor open ("Saved as
+  version N."), and an **Unsaved changes** mark under the Course title.
+  After a Save now, leaving with nothing new asks nothing.
+- **Labels apart from titles**: a Lesson's or Round's label and number
+  ("Lesson 2", "Step 3 · Practice") are drawn small and grey, as on the
+  learner path, and a Round's label is never used as its title. The Rounds
+  page shows one grey line (label, type, number of exercises, difficulty)
+  above the Round's own title, or a grey "No title". Before, it ignored the
+  Course's numbering and custom label ("1. Practice · Coffee").
+- The Round editor shows the label above the title; breadcrumbs follow the
+  numbering ("Step 2: Coffee", was always "Round 2"); search results and
+  the Course Wizard's Rounds list style their labels too.
+- **Lesson Options shows the custom label in its menus** ("Step + number"
+  instead of "Custom + number"), and the custom label's field says Label.
+- **Learners**: the Round screen draws its label in the label style; the
+  Duel and the GuideBook show the label above the Lesson's title; the
+  Round screen's and Review's Lesson line follow the author's numbering when
+  it is not the default "Lesson", and Review no longer repeats the Round's
+  number ("Round 2: Round 2 · …").
+- **The Audio Library's A–Z buttons scroll to the letter.** They did nothing
+  for a letter further down, because only the rows near the screen
+  existed. Each letter is now a header of its own, always present.
+- **Audio Library groups**: **#** first, with only the recordings that have
+  no text yet ("# (MP3s with no assigned text)"); **0–9** second, texts
+  that start with a digit or a symbol; then the letters **without accents**
+  (é under E, ñ under N, "[gatto]" under G, "¿qué?" under Q), then Greek,
+  Cyrillic and **Other scripts**. Words are in alphabetical order ignoring
+  accents, so É no longer comes after Z. Before, a text that did not start
+  with a letter and a recording without text made two # headers sharing one
+  key, a Flutter error when both were on screen.
+- **Quick Import and Open from… side by side** in the Audio Library's
+  import card, as on Course Import, instead of a floating Import MP3 button
+  and an icon at the top. Help EN/IT/ES say Quick Import.
+- Help EN/IT/ES (the working copy, Save or Draft, leaving the Editor,
+  restoring a version, Audio Library). Beta expiry `2026-11-10 23:59:59`
+  local time (release 11 October 2026).
+
 # 2.0.70 (Build 270, Revision 11) - the Course Wizard saves only when asked - 2026-10-10
 
 Owner decisions of 10 October 2026.

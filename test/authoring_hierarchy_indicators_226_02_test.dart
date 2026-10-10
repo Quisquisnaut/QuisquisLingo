@@ -573,7 +573,8 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.text('0 Exercises'), findsOneWidget);
+    // Build 270 Revision 12: the count is on the Round's grey label line.
+    expect(find.textContaining('0 Exercises'), findsOneWidget);
     expect(find.text('0 Draft Exercises'), findsNothing);
     _expectIndicator(
       tester,
@@ -799,9 +800,10 @@ void main() {
         matching: find.byType(TextFormField),
       );
       await tester.enterText(titleField, 'First valid Round');
-      await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+      await tester.tap(find.widgetWithText(FilledButton, 'Apply'));
       await tester.pumpAndSettle();
-      expect(find.text('1 Exercise'), findsOneWidget);
+      // Build 270 Revision 12: the count is on the Round's grey label line.
+      expect(find.textContaining('1 Exercise'), findsOneWidget);
       final createdRoundIndicator = find.byWidgetPredicate(
         (widget) =>
             widget.key is ValueKey<String> &&

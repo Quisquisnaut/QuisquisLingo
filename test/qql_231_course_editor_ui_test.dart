@@ -283,7 +283,7 @@ void main() {
     expect(find.byKey(const Key('rounds-round-wizard')), findsOneWidget);
     expect(find.byKey(const Key('rounds-new-story')), findsNothing);
     expect(find.byKey(const Key('rounds-new-round')), findsOneWidget);
-    await tester.tap(find.text('1. Practice · Greetings'));
+    await tester.tap(find.text('Greetings'));
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('round-search-action')), findsOneWidget);
@@ -306,7 +306,7 @@ void main() {
     expect(find.byKey(const Key('save-lesson')), findsNothing);
     await tester.tap(find.byKey(const Key('lesson-rounds-navigation')));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('1. Practice · Greetings'));
+    await tester.tap(find.text('Greetings'));
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('round-preview')), findsOneWidget);

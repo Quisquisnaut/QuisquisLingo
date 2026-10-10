@@ -127,7 +127,7 @@ class _GuidebookEditorScreenState extends State<GuidebookEditorScreen> {
             title: const Text('Remove module?'),
             content: Text(
               [
-                'Remove “${_titleOf(module)}” with its Sentences and Words & Expressions? This takes effect when the Guidebook is saved.',
+                'Remove “${_titleOf(module)}” with its Sentences and Words & Expressions? This takes effect when the GuideBook is applied.',
                 if (focusing > 0)
                   '$focusing ${focusing == 1 ? 'Round focuses' : 'Rounds focus'} on this module; '
                       '${focusing == 1 ? 'it keeps its' : 'they keep their'} exercises and '
@@ -225,7 +225,7 @@ class _GuidebookEditorScreenState extends State<GuidebookEditorScreen> {
         TextButton(
           key: const Key('guidebook-save-appbar'),
           onPressed: () => _save(PublicationState.published),
-          child: const Text('Save'),
+          child: const Text('Apply'),
         ),
       ],
     ),
@@ -309,13 +309,13 @@ class _GuidebookEditorScreenState extends State<GuidebookEditorScreen> {
               key: const Key('guidebook-save-draft'),
               onPressed: () => _save(PublicationState.draft),
               icon: const Icon(Icons.edit_note_outlined),
-              label: const Text('Save Guidebook as draft'),
+              label: const Text('Apply as draft'),
             ),
             FilledButton.icon(
               key: const Key('guidebook-save'),
               onPressed: () => _save(PublicationState.published),
               icon: const Icon(Icons.save_outlined),
-              label: const Text('Save Guidebook'),
+              label: const Text('Apply'),
             ),
           ],
         ),

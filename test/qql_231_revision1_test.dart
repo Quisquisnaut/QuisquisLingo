@@ -578,7 +578,7 @@ void main() {
 
     await tester.tap(find.byType(BackButton));
     await tester.pumpAndSettle();
-    expect(find.text('Unsaved Exercise changes'), findsNothing);
+    expect(find.text('Exercise changes not applied'), findsNothing);
   });
 
   testWidgets(
@@ -738,7 +738,7 @@ void main() {
     expect(tester.widget<TextField>(prompt).readOnly, isFalse);
     await tester.tap(find.byType(BackButton));
     await tester.pumpAndSettle();
-    expect(find.text('Unsaved Exercise changes'), findsOneWidget);
+    expect(find.text('Exercise changes not applied'), findsOneWidget);
   });
 
   testWidgets('Search opens the state-specific exercise presentation', (

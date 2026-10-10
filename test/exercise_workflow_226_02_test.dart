@@ -250,7 +250,7 @@ void main() {
         'Keep this draft',
       );
       await tapKey(tester, 'exercise-next');
-      expect(find.text('Unsaved Exercise changes'), findsOneWidget);
+      expect(find.text('Exercise changes not applied'), findsOneWidget);
       await tester.tap(find.text('Keep editing'));
       await settle(tester);
       expect(
@@ -261,7 +261,7 @@ void main() {
         'Keep this draft',
       );
       await tapKey(tester, 'exercise-next');
-      await tester.tap(find.widgetWithText(TextButton, 'Save as draft'));
+      await tester.tap(find.widgetWithText(TextButton, 'Apply as draft'));
       await settle(tester);
       expect(saves.single.id, first.id);
       expect(saves.single.prompt, 'Keep this draft');
@@ -402,6 +402,7 @@ void main() {
     );
     await tester.tap(find.text('Open rounds'));
     await tester.pumpAndSettle();
+    final untitledBefore = find.text('No title').evaluate().length;
     await tester.tap(find.text('New Round'));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('new-round-type-practice')));
@@ -411,7 +412,9 @@ void main() {
     await tester.testTextInput.receiveAction(TextInputAction.done);
     await tester.pumpAndSettle();
     expect(find.byType(AlertDialog), findsNothing);
-    expect(find.text('3. Practice'), findsOneWidget);
+    // Build 270 Revision 12: the row's grey line holds the label; the title
+    // line reads No title for an untitled Round.
+    expect(find.text('No title'), findsNWidgets(untitledBefore + 1));
     await tester.tap(find.byType(BackButton));
     await tester.pumpAndSettle();
     expect(returned, hasLength(3));
@@ -545,9 +548,9 @@ void main() {
       field('Instruction or context (optional)'),
       'Unsaved breadcrumb edit',
     );
-    await tester.tap(find.widgetWithText(TextButton, 'Round 1'));
+    await tester.tap(find.widgetWithText(TextButton, 'Practice'));
     await tester.pumpAndSettle();
-    expect(find.text('Unsaved Exercise changes'), findsOneWidget);
+    expect(find.text('Exercise changes not applied'), findsOneWidget);
     await tester.tap(find.text('Keep editing'));
     await tester.pumpAndSettle();
     expect(
@@ -557,7 +560,7 @@ void main() {
           .text,
       'Unsaved breadcrumb edit',
     );
-    await tester.tap(find.widgetWithText(TextButton, 'Round 1'));
+    await tester.tap(find.widgetWithText(TextButton, 'Practice'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Discard changes'));
     await tester.pumpAndSettle();
@@ -625,7 +628,7 @@ void main() {
       await tester.tap(
         find.descendant(
           of: find.byType(AlertDialog),
-          matching: find.widgetWithText(FilledButton, 'Save'),
+          matching: find.widgetWithText(FilledButton, 'Rename'),
         ),
       );
       await tester.pumpAndSettle();

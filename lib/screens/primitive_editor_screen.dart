@@ -596,9 +596,9 @@ class _PrimitiveEditorScreenState extends State<PrimitiveEditorScreen> {
       final discard = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('Unsaved Exercise changes'),
+          title: const Text('Exercise changes not applied'),
           content: const Text(
-            'Discard this Exercise form, or keep editing? Nothing is confirmed to storage here.',
+            'Discard this Exercise form, or keep editing? Nothing is written to the device until Save course.',
           ),
           actions: [
             FilledButton(
@@ -748,7 +748,7 @@ class _PrimitiveEditorScreenState extends State<PrimitiveEditorScreen> {
                       ? null
                       : () => _save(PublicationState.draft),
                   icon: const Icon(Icons.edit_note),
-                  label: const Text('Save as draft'),
+                  label: const Text('Apply as draft'),
                 ),
                 FilledButton.icon(
                   key: const Key('primitive-save'),
@@ -756,7 +756,7 @@ class _PrimitiveEditorScreenState extends State<PrimitiveEditorScreen> {
                       ? null
                       : () => _save(PublicationState.published),
                   icon: const Icon(Icons.save),
-                  label: const Text('Save'),
+                  label: const Text('Apply'),
                 ),
               ],
             ),

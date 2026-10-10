@@ -431,7 +431,13 @@ void main() {
         // The Round keeps its own name; the label is derived from the flow.
         expect(_roundOf(changed!).title, 'Round one');
         expect(_roundOf(changed!).displayTitle(0), 'Story: Al bar');
-        expect(find.text('Story · Al bar'), findsOneWidget);
+        // Build 270 Revision 12: the label line above the title.
+        for (final line in ['Story', 'Al bar']) {
+          expect(
+            find.descendant(of: find.byType(AppBar), matching: find.text(line)),
+            findsOneWidget,
+          );
+        }
 
         await tester.tap(find.text('On request'));
         await tester.pumpAndSettle();

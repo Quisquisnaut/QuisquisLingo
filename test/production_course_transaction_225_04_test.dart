@@ -99,8 +99,8 @@ void main() {
         find.byKey(const Key('course-transaction-confirmation')),
         findsOneWidget,
       );
-      expect(find.text('Confirm course changes'), findsOneWidget);
-      expect(find.text('Cancel course changes'), findsOneWidget);
+      expect(find.text('Save course'), findsOneWidget);
+      expect(find.text('Discard changes'), findsOneWidget);
       expect(find.byType(AlertDialog), findsOneWidget);
       await tester.enterText(
         find.byKey(const Key('course-version-notes')),
@@ -151,7 +151,7 @@ void main() {
     await tester.tap(find.text('Course Info Editor'));
     await _settle(tester);
     await tester.enterText(_field('Course name'), 'Cancelled title');
-    await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+    await tester.tap(find.widgetWithText(FilledButton, 'Apply'));
     await tester.pumpUntilFileIoState(
       () => find.byKey(const Key('course-info-save')).evaluate().isEmpty,
     );
@@ -191,7 +191,7 @@ void main() {
       );
       await tester.tap(find.byType(BackButton).last);
       await _settle(tester);
-      expect(find.text('Unsaved Exercise changes'), findsOneWidget);
+      expect(find.text('Exercise changes not applied'), findsOneWidget);
       expect(find.byType(ExerciseEditorScreen), findsOneWidget);
       await tester.tap(find.text('Discard changes'));
       await _settle(tester);
@@ -264,14 +264,14 @@ void main() {
     await tester.tap(find.text('Course Info Editor'));
     await _settle(tester);
     await tester.enterText(_field('Course name'), 'Temporary title');
-    await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+    await tester.tap(find.widgetWithText(FilledButton, 'Apply'));
     await tester.pumpUntilFileIoState(
       () => find.byKey(const Key('course-info-save')).evaluate().isEmpty,
     );
     await tester.tap(find.text('Course Info Editor'));
     await _settle(tester);
     await tester.enterText(_field('Course name'), course.title);
-    await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+    await tester.tap(find.widgetWithText(FilledButton, 'Apply'));
     await tester.pumpUntilFileIoState(
       () => find.byKey(const Key('course-info-save')).evaluate().isEmpty,
     );
@@ -305,7 +305,7 @@ void main() {
     await tester.tap(find.text('Course Info Editor'));
     await _settle(tester);
     await tester.enterText(_field('Course name'), 'Still editable');
-    await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+    await tester.tap(find.widgetWithText(FilledButton, 'Apply'));
     await tester.pumpUntilFileIoState(
       () => find.byKey(const Key('course-info-save')).evaluate().isEmpty,
     );
@@ -319,7 +319,7 @@ void main() {
     await tester.tap(find.byKey(const Key('confirm-course-changes')));
     await _settle(tester);
     expect(find.byType(CourseEditorScreen), findsOneWidget);
-    expect(find.textContaining('original course is unchanged'), findsOneWidget);
+    expect(find.textContaining('saved Course is unchanged'), findsOneWidget);
 
     await tester.tap(find.byType(BackButton).last);
     await _settle(tester);
@@ -369,7 +369,7 @@ void main() {
       await tester.tap(find.text('Course Info Editor'));
       await _settle(tester);
       await tester.enterText(_field('Course name'), 'Mixed transaction');
-      await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+      await tester.tap(find.widgetWithText(FilledButton, 'Apply'));
       await tester.pumpUntilFileIoState(
         () => find.byKey(const Key('course-info-save')).evaluate().isEmpty,
       );
@@ -393,7 +393,7 @@ void main() {
       await tester.tap(find.text('Rename'));
       await _settle(tester);
       await tester.enterText(find.byType(TextField), 'Renamed lesson');
-      await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+      await tester.tap(find.widgetWithText(FilledButton, 'Rename'));
       await tester.pumpUntilFileIoState(
         () => find.byKey(const Key('course-info-save')).evaluate().isEmpty,
       );
@@ -430,7 +430,7 @@ void main() {
         ],
         settle: () => _settle(tester),
       );
-      await tester.tap(find.text('Save Guidebook'));
+      await tester.tap(find.byKey(const Key('guidebook-save-appbar')));
       await _settle(tester);
       expect(find.byType(LessonEditorScreen), findsOneWidget);
 
@@ -464,7 +464,7 @@ void main() {
       await tester.tap(find.byKey(const Key('new-round-type-practice')));
       await _settle(tester);
       await tester.enterText(find.byType(TextFormField), 'Created round');
-      await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+      await tester.tap(find.widgetWithText(FilledButton, 'Apply'));
       await tester.pumpUntilFileIoState(
         () => find.byKey(const Key('course-info-save')).evaluate().isEmpty,
       );
@@ -474,7 +474,7 @@ void main() {
       await tester.tap(find.text('Rename'));
       await _settle(tester);
       await tester.enterText(find.byType(TextFormField), 'Renamed round');
-      await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+      await tester.tap(find.widgetWithText(FilledButton, 'Rename'));
       await tester.pumpUntilFileIoState(
         () => find.byKey(const Key('course-info-save')).evaluate().isEmpty,
       );
@@ -546,7 +546,7 @@ void main() {
       // Published, so moving it back to Draft asks for confirmation.
       final confirmDraft = find.descendant(
         of: find.byType(AlertDialog),
-        matching: find.text('Save as draft'),
+        matching: find.text('Apply as draft'),
       );
       if (confirmDraft.evaluate().isNotEmpty) {
         await tester.tap(confirmDraft);
@@ -681,7 +681,7 @@ void main() {
     await tester.tap(find.text('Course Info Editor'));
     await _settle(tester);
     await tester.enterText(_field('Course name'), 'Cancel mixed title');
-    await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+    await tester.tap(find.widgetWithText(FilledButton, 'Apply'));
     await tester.pumpUntilFileIoState(
       () => find.byKey(const Key('course-info-save')).evaluate().isEmpty,
     );
@@ -702,7 +702,7 @@ void main() {
     await tester.tap(find.text('Rename'));
     await _settle(tester);
     await tester.enterText(find.byType(TextFormField), 'Cancelled round');
-    await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+    await tester.tap(find.widgetWithText(FilledButton, 'Rename'));
     await tester.pumpUntilFileIoState(
       () => find.byKey(const Key('course-info-save')).evaluate().isEmpty,
     );
