@@ -1,3 +1,26 @@
+# 2.0.70 (Build 270, Revision 4) - ZIP files checked before they are read - 2026-10-10
+
+Audit finding "the ZIP central directory is fully parsed before the
+entry-count limit", and the related ZIP findings.
+
+- **The ZIP's own end record is read first**: the archive library reads a
+  ZIP's whole list of entries, whatever its count says, before QQL could
+  apply its entry limit, so a crafted 300 MB "Course package" of tiny entries
+  could take gigabytes of memory. Now QQL reads the count and the size of the
+  list from the ZIP's end record first and refuses too many entries, or a
+  list too large for them (512 bytes an entry on average), before anything
+  else is read.
+- **Entries may not overlap**: each entry's data must lie apart from the
+  others' and before the list; overlapping entries could make every read go
+  through hundreds of megabytes.
+- **A local header must agree** with the list on the compression method.
+- **The v11 converter** (`tools/convert_course_to_v12.dart`), where QQL's
+  message for an earlier Course file sends people, reads packages with the
+  same bounded reader.
+- Tests: `test/zip_directory_270_test.dart`.
+- Course files, scoring, progression and learner data are unchanged. Beta
+  expiry `2026-11-09 23:59:59` local time.
+
 # 2.0.70 (Build 270, Revision 3) - no way around the import checks - 2026-10-10
 
 Audit items 5 and 6, and learner backup values.

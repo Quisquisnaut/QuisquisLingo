@@ -169,3 +169,25 @@ files.
 Unchanged: scoring, progression and learner data. A stored Course that named
 an `assets/` path outside the bundle (none of QQL's tools ever wrote one)
 would now be listed as unreadable.
+
+## Revision 4 (2.0.70+270004): ZIP files checked before they are read
+
+Audit: "the ZIP central directory is fully parsed before the entry-count
+limit" (Medium), overlapping entries (Low), local/central compression
+(Info), the converter's plain decoder (Info).
+
+- `BoundedZipReader._checkEndRecord`: before `ZipDirectory.read` (which
+  parses the whole directory whatever the end record says), the end record,
+  and the ZIP64 one when present, are read from the last 64 KB: more than
+  `maxEntries` entries, or a directory larger than `maxEntries ×
+  maxDirectoryBytesPerEntry` (512), is refused as too many entries; a
+  directory outside the file as unreadable.
+- `_checkNoOverlap`: every local header must start with its signature, use
+  the central directory's compression method, and with its data lie apart
+  from the others' and before the central directory.
+- `tools/convert_course_to_v12.dart` reads packages with `BoundedZipReader`
+  (Course package limits written in the tool: it runs with `dart run`, and
+  `CoursePackageService` needs Flutter).
+
+Unchanged: every ZIP QQL or the bundled tools write passes (the import,
+package, Image Bank, Merge and Publisher tests, 219 tests in 19 files).

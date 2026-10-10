@@ -106,3 +106,26 @@ Not tried by hand: stopping speech on leaving a Round on Windows and Linux.
 - `flutter analyze`: no issues.
 - Complete suite: **4,092 passed, 1 skipped**, 33:42 (10 October 2026,
   05:20–05:54).
+
+## Revision 4 (2.0.70+270004), ZIP files checked before they are read
+
+- New tests: `test/zip_directory_270_test.dart` (6: an ordinary ZIP opens
+  and reads; too many entries by the end record; a directory claiming more
+  bytes than the file; a directory too large for its entries; overlapping
+  entries; a local header with another compression).
+- The first draft compared the local entry's compression as the library's
+  enum with the central number and refused every ZIP; it now compares the
+  raw local header field (found by the related tests at once).
+- Related files: `import_archives_tranche4_test`,
+  `course_package_import_247_test`, `import_route_matrix_revision19_test`,
+  `import_hardening_tranche0_test` (98 passed with the new file); Course
+  packages, Image Banks, covers, Merge, Publisher packages and export, the
+  demo package round trip (14 files, 121 passed); the converter tests
+  (`course_model_v12_256_test`, `course_model_v11_243_test`,
+  `negative_cases_256_test`, 47 passed).
+- `tools/convert_course_to_v12.dart` converted a v11 package built from
+  `test/fixtures/v11/italian_demo_2_pick_the_translation.json` with
+  `dart run` (after dropping an import that pulled Flutter in).
+- `flutter analyze`: no issues.
+- Complete suite: **4,098 passed, 1 skipped**, 33:09 (10 October 2026,
+  06:02–06:35).

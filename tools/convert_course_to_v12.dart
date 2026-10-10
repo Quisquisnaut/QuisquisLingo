@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'package:archive/archive.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/services/course_model_v12_converter.dart';
+import 'package:quisquislingo_app/services/import/bounded_zip_reader.dart';
 
 /// Developer tool: converts a Course Model v11 file to v12 (Build 256).
 ///
@@ -77,21 +78,27 @@ CourseConversionResult _convertRaw(String raw) {
 }
 
 /// A Course package: `qql-course-package.json`, `course.json` and the
-/// referenced media. This is a developer tool working on the developer's own
-/// files, so it reads the archive with the plain decoder; the application's
-/// import path keeps its bounded reader.
+/// referenced media. Build 270 Revision 4: read with the application's
+/// bounded reader, because the app's message for a v11 file sends people
+/// here with packages they received from others.
 Future<List<String>> _convertPackage(Uint8List bytes, File output) async {
   const manifestName = 'qql-course-package.json';
   const courseName = 'course.json';
-  final archive = ZipDecoder().decodeBytes(bytes, verify: true);
+  final archive = BoundedZipReader.open(
+    InputMemoryStream(bytes),
+    label: 'Course package',
+    // CoursePackageService's limits (that service needs Flutter, this tool
+    // runs with `dart run`).
+    maxEntries: 20000,
+    maxTotalBytes: 300 * 1024 * 1024,
+  );
   // A package keeps its manifest and course.json at the root and its media
   // under `media/`; Build 246 also accepts one enclosing folder named like
   // the ZIP. The output is always written at the root.
-  ArchiveFile? courseEntry;
+  BoundedZipEntry? courseEntry;
   var wrapper = '';
-  for (final entry in archive.files) {
-    if (!entry.isFile) continue;
-    final name = entry.name.replaceAll('\\', '/');
+  for (final entry in archive.entries) {
+    final name = entry.name;
     if (name == courseName || name.endsWith('/$courseName')) {
       courseEntry = entry;
       wrapper = name.substring(0, name.length - courseName.length);
@@ -103,10 +110,10 @@ Future<List<String>> _convertPackage(Uint8List bytes, File output) async {
       'This ZIP is not a Course package: course.json is missing.',
     );
   }
-  final others = <({String name, ArchiveFile entry})>[];
-  for (final entry in archive.files) {
-    if (!entry.isFile || identical(entry, courseEntry)) continue;
-    final name = entry.name.replaceAll('\\', '/');
+  final others = <({String name, BoundedZipEntry entry})>[];
+  for (final entry in archive.entries) {
+    if (identical(entry, courseEntry)) continue;
+    final name = entry.name;
     if (!name.startsWith(wrapper)) {
       throw FormatException(
         'Unexpected Course package entry outside its folder: ${entry.name}',
@@ -116,7 +123,7 @@ Future<List<String>> _convertPackage(Uint8List bytes, File output) async {
     if (relative == manifestName) continue;
     others.add((name: relative, entry: entry));
   }
-  final result = _convertRaw(utf8.decode(courseEntry.content as List<int>));
+  final result = _convertRaw(utf8.decode(archive.read(courseEntry)));
   final course = Course.fromJson(result.json);
   final courseBytes = utf8.encode(jsonEncode(result.json));
   // The same manifest `CoursePackageService.build` writes: the key is absent
@@ -134,12 +141,7 @@ Future<List<String>> _convertPackage(Uint8List bytes, File output) async {
     )
     ..addFile(ArchiveFile.bytes(courseName, Uint8List.fromList(courseBytes)));
   for (final other in others) {
-    out.addFile(
-      ArchiveFile.bytes(
-        other.name,
-        Uint8List.fromList(other.entry.content as List<int>),
-      ),
-    );
+    out.addFile(ArchiveFile.bytes(other.name, archive.read(other.entry)));
   }
   final encoded = ZipEncoder().encode(out);
   await output.writeAsBytes(encoded, flush: true);

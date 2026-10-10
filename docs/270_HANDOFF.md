@@ -100,7 +100,7 @@ fake MP3 bytes (`course_backup_missing_asset_test`, `course_media_243_test`,
 
 State: done. Tests 9 new, 2 updated; related 252 passed; analyzer clean;
 complete suite 4,092 passed, 1 skipped (05:20–05:54). Committed on
-`build-270` and the branch pushed.
+`build-270` as `5b8560e5` and the branch pushed.
 
 Next, remaining findings by severity (owner: continue, one revision each,
 ask only where a design choice is needed). Drafts in the scratchpad:
@@ -120,3 +120,13 @@ ask only where a design choice is needed). Drafts in the scratchpad:
   refused, the Course Wizard's leave dialog, the INTERNET permission, a
   confirmation before opening Page links. Course store scan speed: deferred
   (small with few Courses).
+
+## Revision 4 (2.0.70+270004), ZIP files checked before they are read
+
+State: done. Tests 6 new; related 266 passed; the converter tried by hand;
+analyzer clean; complete suite 4,098 passed, 1 skipped (06:02–06:35).
+Committed on `build-270` and the branch pushed. Next: Revision 5
+(`patch_270005.py`), Revision 6 (`patch_270006.py`,
+`small_items_270_test.dart`), Revision 7 (planned: silent button handlers,
+the Test Round's `_next` re-entry, the Round Wizard's approve and the Module
+Wizard's next).
