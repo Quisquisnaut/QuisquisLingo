@@ -1,3 +1,24 @@
+# 2.0.70 (Build 270, Revision 5) - a completion is saved whole - 2026-10-10
+
+Audit findings "progress is marked before XP is paid" and "no lock around XP
+and activity writes".
+
+- **A Round's or a Duel's completion is saved whole (Windows, Linux)**: the
+  Round was marked completed, its Laurel and Lesson saved, and only then its
+  XP; a crash in between kept the Round completed and lost its XP for good.
+  Now the learner data store holds its writes while a completion is saved
+  and writes everything at once, so a crash leaves all of it or none of it.
+- **Reading a streak writes nothing**: reading a broken streak wrote 0, which
+  could overwrite the 1 that a study session saved at the same moment. The
+  streak shown is unchanged; the stored count waits for the next study day,
+  which restarts it at one.
+- **Two study sessions saved at the same moment add one day**: the activity
+  is read and saved in one step (before, both could add a day).
+- Tests: `test/learner_data_groups_270_test.dart`; two streak tests in
+  `test/progress_time_test.dart` now expect the stored count to stay.
+- Scoring, progression, Course files and learner data are unchanged. Beta
+  expiry `2026-11-09 23:59:59` local time.
+
 # 2.0.70 (Build 270, Revision 4) - ZIP files checked before they are read - 2026-10-10
 
 Audit finding "the ZIP central directory is fully parsed before the

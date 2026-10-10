@@ -125,8 +125,14 @@ ask only where a design choice is needed). Drafts in the scratchpad:
 
 State: done. Tests 6 new; related 266 passed; the converter tried by hand;
 analyzer clean; complete suite 4,098 passed, 1 skipped (06:02–06:35).
-Committed on `build-270` and the branch pushed. Next: Revision 5
+Committed on `build-270` as `96cebb2c` and the branch pushed. Next: Revision 5
 (`patch_270005.py`), Revision 6 (`patch_270006.py`,
 `small_items_270_test.dart`), Revision 7 (planned: silent button handlers,
 the Test Round's `_next` re-entry, the Round Wizard's approve and the Module
 Wizard's next).
+
+## Revision 5 (2.0.70+270005), a completion is saved whole
+
+State: done. Tests 6 new, 2 updated; related 183 passed; analyzer clean;
+complete suite 4,104 passed, 1 skipped (06:40–07:17). Committed on
+`build-270` and the branch pushed.

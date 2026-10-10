@@ -184,15 +184,15 @@ class LearningActivityService {
     final today = DateTime(now.year, now.month, now.day);
     final global = await _globalStudyDays();
     // Only completed days can break a streak. Today is allowed to be unfinished.
+    // Build 270 Revision 5: reading the streak writes nothing. It wrote 0
+    // here, which could overwrite the 1 that a study session started at the
+    // same moment; the next study session counts from the gap anyway.
     for (
       var d = last.add(const Duration(days: 1));
       d.isBefore(today);
       d = d.add(const Duration(days: 1))
     ) {
-      if (!global.contains(_dayString(d))) {
-        await p.setInt(streakKey, 0);
-        return 0;
-      }
+      if (!global.contains(_dayString(d))) return 0;
     }
     return _storedStreak(p, streakKey);
   }
@@ -200,16 +200,22 @@ class LearningActivityService {
   Future<void> registerLearningActivity({required String courseCode}) async {
     final p = await _prefs;
     final code = _code(courseCode);
+    final streakKey = await _lk('streak', code);
+    final lastKey = await _lk('last_active', code);
+    final globalKey = await _k('study_days_all');
+    final languageKey = await _lk('study_days', code);
+    // Build 270 Revision 5: from here every value is read and every change
+    // made in one synchronous step, so two study sessions registered at the
+    // same moment cannot both add a day to the streak.
     final now = _now();
     final today = DateTime(now.year, now.month, now.day);
     final todayKey = _dayString(today);
-    final streakKey = await _lk('streak', code);
-    final lastKey = await _lk('last_active', code);
     final last = _parseDay(p.getString(lastKey));
-    final global = await _globalStudyDays();
+    final global = _validDayKeys(p.getStringList(globalKey) ?? const []);
+    final writes = <Future<bool>>[];
 
     if (last == null) {
-      await p.setInt(streakKey, 1);
+      writes.add(p.setInt(streakKey, 1));
     } else {
       final lastDay = DateTime(last.year, last.month, last.day);
       if (today.isAfter(lastDay)) {
@@ -224,9 +230,11 @@ class LearningActivityService {
             break;
           }
         }
-        await p.setInt(
-          streakKey,
-          uninterrupted ? _storedStreak(p, streakKey) + 1 : 1,
+        writes.add(
+          p.setInt(
+            streakKey,
+            uninterrupted ? _storedStreak(p, streakKey) + 1 : 1,
+          ),
         );
       }
     }
@@ -236,16 +244,14 @@ class LearningActivityService {
     // streak increment or make future consecutive-day checks run backward.
     if (last == null ||
         !today.isBefore(DateTime(last.year, last.month, last.day))) {
-      await p.setString(lastKey, today.toIso8601String());
+      writes.add(p.setString(lastKey, today.toIso8601String()));
     }
     global.add(todayKey);
-    await p.setStringList(await _k('study_days_all'), global.toList()..sort());
-    final languageDays = await _languageStudyDays(code);
-    languageDays.add(todayKey);
-    await p.setStringList(
-      await _lk('study_days', code),
-      languageDays.toList()..sort(),
-    );
+    writes.add(p.setStringList(globalKey, global.toList()..sort()));
+    final languageDays = _validDayKeys(p.getStringList(languageKey) ?? const [])
+      ..add(todayKey);
+    writes.add(p.setStringList(languageKey, languageDays.toList()..sort()));
+    await Future.wait(writes);
     LearnerStatusEvents.publish(LearnerStatusInvalidation.activity);
   }
 }

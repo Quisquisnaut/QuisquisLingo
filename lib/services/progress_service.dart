@@ -6,6 +6,7 @@ import 'learning_activity_service.dart';
 import 'profile_service.dart';
 import 'xp_calculator.dart';
 import 'xp_service.dart';
+import 'storage/atomic_preferences_store.dart';
 
 export 'xp_service.dart' show LocalLeaderboardEntry;
 
@@ -362,6 +363,16 @@ class ProgressService {
   }
 
   Future<int> winDuel(
+    String id, {
+    required String courseId,
+    required String courseCode,
+  }) =>
+      // Build 270 Revision 5: the victory and its XP are written together.
+      AtomicPreferencesStore.group(
+        () => _winDuel(id, courseId: courseId, courseCode: courseCode),
+      );
+
+  Future<int> _winDuel(
     String id, {
     required String courseId,
     required String courseCode,

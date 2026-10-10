@@ -251,7 +251,10 @@ void main() {
       },
     );
 
-    test('getStreak gives one-day grace then lazily persists zero', () async {
+    // Build 270 Revision 5: reading the streak writes nothing (a written 0
+    // could overwrite a study session registered at the same moment); the
+    // stored count stays until the next study day restarts it at one.
+    test('getStreak gives one-day grace then reads zero', () async {
       final clock = _MutableClock(DateTime(2026, 1, 5, 8));
       await addProfile('Tester');
       final service = ProgressService(now: clock.call);
@@ -264,7 +267,7 @@ void main() {
 
       clock.value = DateTime(2026, 1, 7, 8);
       expect(await service.getStreak(courseCode: 'IT'), 0);
-      expect(prefs.getInt('${_testerPrefix}streak_IT'), 0);
+      expect(prefs.getInt('${_testerPrefix}streak_IT'), 1);
     });
 
     test(
@@ -363,7 +366,7 @@ void main() {
       },
     );
 
-    test('blank dates reset each language lazily and independently', () async {
+    test('blank dates break each language independently', () async {
       final clock = _MutableClock(DateTime(2026, 5, 1, 8));
       await addProfile('Tester');
       final service = ProgressService(now: clock.call);
@@ -382,11 +385,15 @@ void main() {
       expect(prefs.getInt('${_testerPrefix}streak_DE'), 2);
 
       expect(await service.getStreak(courseCode: 'IT'), 0);
-      expect(prefs.getInt('${_testerPrefix}streak_IT'), 0);
+      expect(await service.getStreak(courseCode: 'DE'), 0);
+      // Reading writes nothing (Build 270 Revision 5).
+      expect(prefs.getInt('${_testerPrefix}streak_IT'), 2);
       expect(prefs.getInt('${_testerPrefix}streak_DE'), 2);
 
+      // The next study day of one language restarts only that one.
+      await service.registerLearningActivity(courseCode: 'IT');
+      expect(await service.getStreak(courseCode: 'IT'), 1);
       expect(await service.getStreak(courseCode: 'DE'), 0);
-      expect(prefs.getInt('${_testerPrefix}streak_DE'), 0);
     });
 
     test('repeated activity on one day counts once', () async {

@@ -191,3 +191,26 @@ limit" (Medium), overlapping entries (Low), local/central compression
 
 Unchanged: every ZIP QQL or the bundled tools write passes (the import,
 package, Image Bank, Merge and Publisher tests, 219 tests in 19 files).
+
+## Revision 5 (2.0.70+270005): a completion is saved whole
+
+Audit: "progress is marked before XP is paid" and "no lock around XP and
+activity writes" (Medium).
+
+- `AtomicPreferencesStore.hold(body)` and the static `group(body)`: while a
+  group runs, changes stay in memory (each `set` reports success at once)
+  and are written in one write when the outermost group ends; a write queued
+  before the group that runs during it skips (the group's write covers it),
+  and every write takes its snapshot before it waits, so no file ever holds
+  half a group. Without the store (Android, iOS, macOS, tests) a group simply
+  runs. A failure of the group's write is reported as any failed write.
+- `LearningCompletionService.completeRound` and `ProgressService.winDuel`
+  run as one group: the Round's completion, recent-round record, Laurel,
+  On Time claim, Lesson completion, XP and activity (or the Duel's victory,
+  activity and XP) reach the disk together.
+- `LearningActivityService.getStreak` only reads (it wrote 0 for a broken
+  streak); `registerLearningActivity` looks up its keys first and then reads
+  and writes everything in one synchronous step.
+
+Unchanged: scoring, progression and what learners see (the stored streak
+count of a broken streak now stays until the next study day restarts it).

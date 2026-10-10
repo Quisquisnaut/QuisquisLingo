@@ -1,5 +1,6 @@
 import 'progress_service.dart';
 import 'xp_calculator.dart';
+import 'storage/atomic_preferences_store.dart';
 
 class LearningCompletionRequest {
   final String roundId;
@@ -143,10 +144,15 @@ class LearningCompletionService {
     final existing = _inFlight[key];
     if (existing != null) return existing;
 
-    final future = _completeRoundOnce(
-      request,
-      onNewLaurel: onNewLaurel,
-      getWeeklyXpTarget: getWeeklyXpTarget,
+    // Build 270 Revision 5: the Round's markers and its XP are written
+    // together, so a crash between them can no longer keep the Round
+    // completed and lose its XP for good.
+    final future = AtomicPreferencesStore.group(
+      () => _completeRoundOnce(
+        request,
+        onNewLaurel: onNewLaurel,
+        getWeeklyXpTarget: getWeeklyXpTarget,
+      ),
     );
     late final Future<LearningCompletionResult> guarded;
     guarded = future.whenComplete(() {

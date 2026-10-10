@@ -129,3 +129,22 @@ Not tried by hand: stopping speech on leaving a Round on Windows and Linux.
 - `flutter analyze`: no issues.
 - Complete suite: **4,098 passed, 1 skipped**, 33:09 (10 October 2026,
   06:02–06:35).
+
+## Revision 5 (2.0.70+270005), a completion is saved whole
+
+- New tests: `test/learner_data_groups_270_test.dart` (6: changes made while
+  held reach the disk together, nothing before; a write queued as a hold
+  starts waits for it; nested groups write once; without the store a group
+  simply runs; reading a broken streak writes nothing and the next day
+  restarts at one; two sessions registered at the same moment add one day,
+  where the earlier code added two).
+- Updated: two characterization tests in `test/progress_time_test.dart`
+  pinned the getter's write of 0 ("lazily persists zero"); they now check
+  that the streak read is 0 and the stored count stays until the next study
+  day.
+- Related files: the store, XP, week, progress, completion, Duel and Lesson
+  regression, Test Round, learner status and Statistics tests: 98 + 85
+  passed.
+- `flutter analyze`: no issues.
+- Complete suite: **4,104 passed, 1 skipped**, 37:10 (10 October 2026,
+  06:40–07:17).

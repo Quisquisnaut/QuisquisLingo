@@ -127,6 +127,32 @@ class AtomicPreferencesStore extends SharedPreferencesStorePlatform {
   int _savedChanges = 0;
   Future<void> _writes = Future<void>.value();
 
+  // Build 270 Revision 5: while [hold] runs, changes stay in memory and are
+  // written together when it ends, so a crash leaves all of them or none.
+  int _holds = 0;
+
+  /// Runs [body] with this store's writes held, then writes once. Every
+  /// change made meanwhile (by [body] or anything else) reaches the disk in
+  /// the same write; a change made while held reports success at once, and
+  /// a failure of that write is reported through [onProblem].
+  Future<T> hold<T>(Future<T> Function() body) async {
+    _holds++;
+    try {
+      return await body();
+    } finally {
+      _holds--;
+      if (_holds == 0 && _changes > _savedChanges) await _persist();
+    }
+  }
+
+  /// Runs [body] as one group of learner-data changes: on Windows and Linux,
+  /// where [AtomicPreferencesStore] is installed, written together; on other
+  /// systems (and in tests) simply run.
+  static Future<T> group<T>(Future<T> Function() body) {
+    final store = SharedPreferencesStorePlatform.instance;
+    return store is AtomicPreferencesStore ? store.hold(body) : body();
+  }
+
   Future<Map<String, Object>> _preferences() {
     final cached = _cache;
     if (cached != null) return Future.value(cached);
@@ -255,17 +281,25 @@ class AtomicPreferencesStore extends SharedPreferencesStorePlatform {
   }
 
   Future<bool> _persist() {
+    if (_holds > 0) {
+      _changes++;
+      return Future.value(true);
+    }
     final change = ++_changes;
     final done = Completer<bool>();
     _writes = _writes.then((_) async {
-      if (_savedChanges >= change) {
+      // Saved by a later write, or held: the end of the hold writes it.
+      if (_savedChanges >= change || _holds > 0) {
         done.complete(true);
         return;
       }
       final covers = _changes;
+      // The state to save is taken now, before any wait, so a hold that
+      // starts while the file is written never has half its changes in it.
+      final text = jsonEncode(_cache!);
       var ok = false;
       try {
-        ok = await _writeFile(await _directory(), _cache!);
+        ok = await _writeText(await _directory(), text);
       } catch (error) {
         _report(
           LearnerDataProblem(LearnerDataProblemKind.writeFailed, error: error),
@@ -277,14 +311,14 @@ class AtomicPreferencesStore extends SharedPreferencesStorePlatform {
     return done.future;
   }
 
-  Future<bool> _writeFile(
-    Directory directory,
-    Map<String, Object> values,
-  ) async {
+  Future<bool> _writeFile(Directory directory, Map<String, Object> values) =>
+      _writeText(directory, jsonEncode(values));
+
+  Future<bool> _writeText(Directory directory, String text) async {
     try {
       await directory.create(recursive: true);
       final temporary = _file(directory, temporaryFileName);
-      await temporary.writeAsString(jsonEncode(values), flush: true);
+      await temporary.writeAsString(text, flush: true);
       await _rename(temporary, _file(directory, fileName));
       return true;
     } catch (error) {
