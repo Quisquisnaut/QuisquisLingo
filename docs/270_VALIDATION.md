@@ -170,3 +170,16 @@ Not tried by hand: stopping speech on leaving a Round on Windows and Linux.
   replaced by its escape).
 - Complete suite: **4,112 passed, 1 skipped**, 32:03 (10 October 2026,
   07:29–08:01).
+
+## Revision 7 (2.0.70+270007), release tooling
+
+- New test: `test/sign_course_media_270_test.dart` (a picture only in the
+  image library is packaged and the app reads the package); with the earlier
+  `tools/sign_course.dart` it fails ("Course package is missing …png").
+- `test/publisher_package_243_test.dart` passes; `dart run
+  tools/sign_course.dart` still runs (usage printed).
+- The packager's guard: this PC's normal release build does not contain the
+  Dummy key; the script parses with no errors (PowerShell parser).
+- `flutter analyze`: no issues.
+- Complete suite: **4,113 passed, 1 skipped**, 32:58 (10 October 2026,
+  08:15–08:48).

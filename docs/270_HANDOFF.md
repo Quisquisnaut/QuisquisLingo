@@ -141,10 +141,27 @@ complete suite 4,104 passed, 1 skipped (06:40–07:17). Committed on
 
 State: done (the planned Revisions 6 and 7 together). Tests 6 + 2 new, 1
 updated; related 232 passed; analyzer clean; complete suite 4,112 passed,
-1 skipped (07:29–08:01). Committed on `build-270` and the branch pushed.
+1 skipped (07:29–08:01). Committed on `build-270` as `02d9d007` and the
+branch pushed.
 
 Next: Revision 7, release tooling (in the working tree already: the
 packager's Dummy-key guard, `.gitignore` key patterns; to do: `sign_course`
 media references from `CourseImageUsage` + the image library, image 300 KB /
 cover 1 MB; test `sign_course_media_270_test.dart` in the scratchpad). Then
 ask the owner the decisions listed under Revision 3.
+
+## Revision 7 (2.0.70+270007), release tooling
+
+State: done. Test 1 new; analyzer clean; complete suite 4,113 passed, 1
+skipped (08:15–08:48). Committed on `build-270` and the branch pushed.
+
+Owner answers (10 October 2026, morning) to the decision questions:
+- Received custom Course updates: **no updates for received Courses**; a
+  newer copy is imported as a separate Course.
+- Publisher IDs: the owner asked what happens to the ID when a custom Course
+  is later published (answer: Export as Publisher Course keeps every ID, so
+  the signed Course has the custom original's ID) — to be asked again.
+- Course Backups: **share media between versions, and remove media no
+  version uses any more**.
+- Android 7–10 storage permission: the owner asked why a learner would
+  refuse it — to be explained and asked again.

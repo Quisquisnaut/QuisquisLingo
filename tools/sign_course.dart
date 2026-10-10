@@ -7,6 +7,7 @@ import 'package:crypto/crypto.dart';
 
 import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/services/course_checksums.dart';
+import 'package:quisquislingo_app/services/course_image_usage.dart';
 import 'package:quisquislingo_app/services/publisher_verification_service.dart';
 import 'package:quisquislingo_app/services/trusted_publishers.dart';
 
@@ -180,7 +181,14 @@ Future<void> packageSignedCourse(
   for (final reference in references) {
     final name = reference.substring('media:'.length);
     final file = File('$mediaPath${Platform.pathSeparator}$name');
-    final limit = reference.endsWith('.mp3') ? 50 * 1024 * 1024 : 50 * 1024;
+    // Build 270 Revision 7: the app's limits (CourseMediaStore): a
+    // recording 50 MB, a picture 300 KB, the cover 1 MB. 50 KB, the limit of
+    // embedded pictures, refused pictures the app accepts.
+    final limit = reference.endsWith('.mp3')
+        ? 50 * 1024 * 1024
+        : reference == signed.coverImage
+        ? 1024 * 1024
+        : 300 * 1024;
     if (!await file.exists() || await file.length() > limit) {
       throw FormatException(
         'Missing or oversized Publisher media: ${file.path}',
@@ -211,36 +219,20 @@ Future<void> packageSignedCourse(
 
 final _mediaPattern = RegExp(r'^media:[0-9a-f]{64}\.(mp3|png|jpg|jpeg|webp)$');
 
-Set<String> _mediaReferences(Course course) {
-  final found = <String>{};
-  for (final clip in course.audioLibrary) {
-    if (_mediaPattern.hasMatch(clip.filePath)) found.add(clip.filePath);
-  }
-  if (_mediaPattern.hasMatch(course.coverImage)) found.add(course.coverImage);
-  void visit(Object? node) {
-    if (node is Map) {
-      final asset = node['asset'];
-      if (node['type'] == 'image' &&
-          asset is String &&
-          _mediaPattern.hasMatch(asset)) {
-        found.add(asset);
-      }
-      node.values.forEach(visit);
-    } else if (node is List) {
-      node.forEach(visit);
-    }
-  }
-
-  visit([for (final lesson in course.lessons) lesson.toJson()]);
-  // Build 266: a GuideBook word's picture is not an image element.
-  for (final lesson in course.lessons) {
-    for (final word in lesson.guidebook.words) {
-      final asset = word.picture?.asset;
-      if (asset != null && _mediaPattern.hasMatch(asset)) found.add(asset);
-    }
-  }
-  return found;
-}
+/// The media a package must carry: the same as the app's
+/// `CourseMediaStore.referencesOf` (Build 270 Revision 7: this tool had its
+/// own walker, which missed the Course's image library and the Story
+/// avatars, so QQL refused the package as missing media). That service
+/// needs Flutter; [CourseImageUsage] does not, so the tool still runs with
+/// `dart run`.
+Set<String> _mediaReferences(Course course) => {
+  for (final clip in course.audioLibrary)
+    if (_mediaPattern.hasMatch(clip.filePath)) clip.filePath,
+  for (final use in CourseImageUsage.uses(course))
+    if (_mediaPattern.hasMatch(use.asset)) use.asset,
+  for (final entry in course.imageLibrary)
+    if (_mediaPattern.hasMatch(entry.asset)) entry.asset,
+};
 
 List<Map<String, dynamic>> _sharedImageSources(Course course) {
   final entries = <String, Map<String, dynamic>>{};

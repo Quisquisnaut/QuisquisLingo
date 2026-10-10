@@ -486,6 +486,21 @@ if ($childProductVersion -ne $qqlVersion) {
     throw "The internal Flutter executable reports $childProductVersion instead of pubspec version $qqlVersion."
 }
 
+# Build 270 Revision 7: never package a build that trusts the Dummy publisher.
+# Its private key is public test data (test/fixtures/publishers), and a build
+# made with --dart-define=QQL_ENABLE_DUMMY_PUBLISHER=true carries its public
+# key, which a normal build leaves out.
+$dummyPublisherKey = 'gSmelpGZaX9VzzJY6IkKGheBAtn56oVtwH7I7mwLgMs='
+$applicationLibrary = Join-Path $releaseDirectory "datapp.so"
+if (-not (Test-Path -LiteralPath $applicationLibrary -PathType Leaf)) {
+    throw "The compiled application library is missing: $applicationLibrary"
+}
+$applicationText = [System.Text.Encoding]::ASCII.GetString(
+    [System.IO.File]::ReadAllBytes($applicationLibrary))
+if ($applicationText.Contains($dummyPublisherKey)) {
+    throw "This build trusts the Dummy publisher (built with QQL_ENABLE_DUMMY_PUBLISHER). Rebuild without it: flutter build windows --release."
+}
+
 # Freeze every existing QQL/Flutter package byte before compiling the standalone
 # launcher. QuisquisLingo.exe is the only native output excluded from this map.
 $frozenApplicationManifest = Get-TreeManifest `

@@ -1,3 +1,22 @@
+# 2.0.70 (Build 270, Revision 7) - release tooling - 2026-10-10
+
+The audit's release and repository findings that need no decision.
+
+- **The Windows packager refuses a test build**: a build made with
+  `QQL_ENABLE_DUMMY_PUBLISHER` trusts the Dummy publisher, whose private key
+  is public test data; `tools/package_windows_release.ps1` now stops when the
+  build carries its key (a normal build leaves it out).
+- **The signing tool packages what the app looks for**:
+  `tools/sign_course.dart package` used its own list of a Course's media,
+  which missed the Course's image library and the Story avatars, and limited
+  pictures to 50 KB; QQL then refused such packages as missing media. It now
+  uses the app's rule and limits (a picture 300 KB, the cover 1 MB).
+- **`.gitignore`** keeps key files (`*.pem`, `*.key`, `*.p12`, `*.pfx`) and
+  terminal transcripts out of commits; the Dummy publisher's test pair stays
+  tracked.
+- Tests: `test/sign_course_media_270_test.dart`.
+- The app is unchanged. Beta expiry `2026-11-09 23:59:59` local time.
+
 # 2.0.70 (Build 270, Revision 6) - the audit's smaller findings - 2026-10-10
 
 The Low findings that need no decision, in one revision.

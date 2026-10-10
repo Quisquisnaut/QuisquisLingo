@@ -251,3 +251,21 @@ delivered together).
 Not done (need building or a device): the Android Save as… and MediaStore
 findings, the Windows runner's `dwmapi.dll` load flag, stale launcher
 version strings.
+
+## Revision 7 (2.0.70+270007): release tooling
+
+- `tools/package_windows_release.ps1`: after the version check, reads
+  `data/app.so` and stops when it contains the Dummy publisher's public key
+  (`QQL_ENABLE_DUMMY_PUBLISHER` builds); a normal build does not contain it
+  (checked on this PC's release build).
+- `tools/sign_course.dart`: `_mediaReferences` is the app's rule
+  (`CourseMediaStore.referencesOf`: Audio Library, `CourseImageUsage.uses`,
+  the image library), built from the Flutter-free `CourseImageUsage`; limits
+  a recording 50 MB, a picture 300 KB, the cover 1 MB.
+- `.gitignore`: `*.pem`, `*.key`, `*.p12`, `*.pfx` (the two Dummy fixture
+  files excepted) and `codex_session*.txt`.
+
+Not done here: release signing of the Android APK and the Windows
+executable, SHA-256 sums for releases, a pinned Gradle distribution checksum
+(each needs the owner's keys, accounts or a network download); see the
+decisions below.

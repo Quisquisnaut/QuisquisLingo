@@ -13,6 +13,18 @@ android/local.properties
 *.jks
 *.keystore
 
+# Key material (Build 270 Revision 7); the Dummy publisher's public test
+# pair is the one tracked exception
+*.pem
+*.key
+*.p12
+*.pfx
+!test/fixtures/publishers/dummy-private.pem
+!test/fixtures/publishers/dummy-public.pem
+
+# Terminal transcripts (tools/snapshot_codex_transcript.ps1)
+codex_session*.txt
+
 # IDE
 .idea/
 *.iml

@@ -208,4 +208,5 @@ grading.
 | 4 | ZIP end record checked before the directory is parsed; overlapping entries and a different local compression refused; the converter's bounded reader | done |
 | 5 | A Round's or Duel's completion written as one group; streak reads write nothing; activity registered in one step | done |
 | 6 | The Low findings without a decision: Course ID and Image Bank names at import, Page link user part, Recovery Key scan, Print folders, the home folder in logs, silent buttons, double taps | done |
-| 7+ | Findings that need the owner's decision (see the handoff) | asked |
+| 7 | Release tooling: the packager refuses a Dummy-publisher build; `sign_course` uses the app's media rule and limits; key files ignored | done |
+| 8+ | Findings that need the owner's decision (see the handoff) | asked |
