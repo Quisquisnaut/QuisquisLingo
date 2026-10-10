@@ -346,10 +346,13 @@ class TtsCacheService {
   }
 
   Future<void> stop() async {
-    if (!kIsWeb &&
-        (defaultTargetPlatform == TargetPlatform.linux ||
-            defaultTargetPlatform == TargetPlatform.windows)) {
-      return;
+    // Build 270 Revision 2: Windows and Linux speak through their own
+    // backends, which can now be stopped.
+    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.windows) {
+      return stopWindowsTts();
+    }
+    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.linux) {
+      return stopLinuxTts();
     }
     try {
       final tts = _ttsInstance;

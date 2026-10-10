@@ -23,6 +23,20 @@ List<String> windowsPowerShellCandidates({String? systemRoot}) {
   ];
 }
 
+/// The PowerShell speaking now, and a count that [stopWindowsTts] raises so
+/// a speech it stopped tries no other PowerShell (Build 270 Revision 2:
+/// before, stop() did nothing on Windows and voices overlapped for up to
+/// 30 seconds after leaving a Round).
+Process? _speaking;
+int _stops = 0;
+
+/// Stops the speech playing now, if any.
+Future<void> stopWindowsTts() async {
+  _stops++;
+  _speaking?.kill();
+  _speaking = null;
+}
+
 /// Windows TTS backend based on System.Speech.
 ///
 /// QuisquisLingo intentionally bypasses flutter_tts on Windows because recent
@@ -77,7 +91,9 @@ exit 0
 ''';
 
   final candidates = windowsPowerShellCandidates();
+  final stops = _stops;
   for (final executable in candidates) {
+    if (stops != _stops) return false;
     Process? process;
     try {
       process = await Process.start(
@@ -92,6 +108,7 @@ exit 0
           'QUISQUISLINGO_TTS_TEXT_B64': base64Encode(utf8.encode(text)),
         },
       );
+      _speaking = process;
       // Drain both streams while synthesis runs, and retain enumeration
       // diagnostics even when there is no compatible installed voice.
       final output = process.stdout.transform(utf8.decoder).join();
@@ -103,6 +120,8 @@ exit 0
           return 124;
         },
       );
+      if (identical(_speaking, process)) _speaking = null;
+      if (stops != _stops) return false;
       await onDiagnostic?.call(
         'exit=$exitCode ${(await output).trim()} ${(await errors).trim()}',
       );

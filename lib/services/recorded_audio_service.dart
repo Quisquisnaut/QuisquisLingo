@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 import 'package:audioplayers/audioplayers.dart';
@@ -17,6 +18,23 @@ import 'storage/qql_storage.dart';
 /// see [CourseMediaStore]), so moving or deleting the creator's original file
 /// does not break the Course and the reference is the same on every device.
 class RecordedAudioService {
+  /// Build 270 Revision 2: the players playing now, so leaving a Round can
+  /// stop them ([stopAll]); before, a clip played on, up to five minutes.
+  static final Set<AudioPlayer> _playing = {};
+  static Completer<void> _stopSignal = Completer<void>();
+
+  /// Stops every recording playing now. Their playback reports false.
+  static Future<void> stopAll() async {
+    final signal = _stopSignal;
+    _stopSignal = Completer<void>();
+    signal.complete();
+    for (final player in _playing.toList()) {
+      try {
+        await player.stop();
+      } catch (_) {}
+    }
+  }
+
   RecordedAudioService({
     FileDialogService? fileDialogs,
     Future<Directory> Function()? supportDirectory,
@@ -77,7 +95,9 @@ class RecordedAudioService {
         } on ImportTooLargeException {
           throw StateError(_tooLarge);
         } on ImportEmptyException {
-          throw StateError('${selected.displayName} is empty. Choose a recording that plays normally and try again.');
+          throw StateError(
+            '${selected.displayName} is empty. Choose a recording that plays normally and try again.',
+          );
         } on ImportAccessException catch (error) {
           throw StateError(error.message);
         }
@@ -130,7 +150,9 @@ class RecordedAudioService {
     }
     final name = picked.displayName!;
     if (!name.toLowerCase().endsWith('.mp3')) {
-      throw StateError('The selected file name is not .mp3. Export a real MP3 recording and select it again.');
+      throw StateError(
+        'The selected file name is not .mp3. Export a real MP3 recording and select it again.',
+      );
     }
     final bytes = picked.bytes!;
     if (bytes.length > maxMp3Bytes) throw StateError(_tooLarge);
@@ -201,7 +223,8 @@ class RecordedAudioService {
             ImportItemResult(
               item.displayName,
               ImportItemOutcome.invalidType,
-              message: 'The selected file name is not .mp3. Export a real MP3 recording and select it again.',
+              message:
+                  'The selected file name is not .mp3. Export a real MP3 recording and select it again.',
             ),
           );
           continue;
@@ -367,6 +390,8 @@ class RecordedAudioService {
         backend: 'audioplayers',
       );
       player = AudioPlayer();
+      _playing.add(player);
+      final stopped = _stopSignal.future;
       disposalOutcome = 'pending';
       await lifecycle.event(
         'initialization',
@@ -379,10 +404,26 @@ class RecordedAudioService {
         backend: 'audioplayers',
         count: sources.length,
       );
+      var wasStopped = false;
+      unawaited(stopped.then((_) => wasStopped = true));
       for (final source in sources) {
+        if (wasStopped) break;
         await player.play(source);
-        await player.onPlayerComplete.first.timeout(const Duration(minutes: 5));
+        await Future.any([
+          player.onPlayerComplete.first,
+          stopped,
+        ]).timeout(const Duration(minutes: 5));
+        if (wasStopped) break;
         await Future<void>.delayed(gap);
+      }
+      if (wasStopped) {
+        await lifecycle.event(
+          'playback',
+          outcome: 'stopped',
+          backend: 'audioplayers',
+          count: sources.length,
+        );
+        return false;
       }
       await lifecycle.event(
         'playback',
@@ -401,6 +442,7 @@ class RecordedAudioService {
       return false;
     } finally {
       if (player != null) {
+        _playing.remove(player);
         try {
           await player.dispose();
           disposalOutcome = 'completed';

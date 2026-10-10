@@ -1,3 +1,36 @@
+# 2.0.70 (Build 270, Revision 2) - Story lines never stuck, weekly XP across the clock change - 2026-10-10
+
+Audit items 3 and 4.
+
+- **Continue is never stuck on a Story line**: on Android the speech engine
+  never reports the end of a line it could not finish (an error, another app
+  taking the sound), and a recording or a Linux player that hangs did the
+  same; Continue then stayed greyed out for good. Now a line whose voice
+  started is released after twice its estimated time plus five seconds, and
+  that time is not learned as the voice's pace.
+- **Play waits** while a line reads itself aloud, or while a tap on Play is
+  still playing: the voice refused the second request and QQL said the audio
+  was unavailable.
+- **A line already left changes nothing**: audio that ends after the learner
+  pressed Continue no longer reveals the next line's text shown after
+  listening, nor shows a failure message on it.
+- **Leaving a Round silences it**: speech and recordings stop. On Windows and
+  Linux, where stopping did nothing, the voice can now be stopped; Linux
+  speech also has time limits, and QQL looks for eSpeak and aplay only in
+  absolute PATH folders.
+- **Weekly XP across the clock change**: the week was found by going back in
+  24-hour steps, so in the week the clocks go forward Monday to Saturday
+  belonged to another week than Sunday: last week's XP was set to 0 (twice).
+  Weeks are now counted in calendar days.
+- **The weekly rollover cannot lose XP**: it checks and changes everything in
+  one step, so an award at the same moment, or a second rollover, cannot
+  undo it, and in an order that a crash leaves right (last week is copied
+  once). Two XP awards at the same time both count.
+- Tests: `test/week_xp_270_test.dart`; three new cases in
+  `test/spoken_lines_269_test.dart`.
+- Scoring, progression, Course files and learner data are unchanged. Beta
+  expiry `2026-11-09 23:59:59` local time.
+
 # 2.0.70 (Build 270, Revision 1) - a PIN that is set stays a PIN - 2026-10-10
 
 Audit item 2, within the owner's threat model (10 October 2026): QQL's PINs

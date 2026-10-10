@@ -7,6 +7,8 @@ List<String> windowsPowerShellCandidates({String? systemRoot}) {
   ];
 }
 
+Future<void> stopWindowsTts() async {}
+
 Future<bool> speakWithWindowsTts({
   required String text,
   required String language,

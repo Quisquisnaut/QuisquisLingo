@@ -59,3 +59,31 @@ macOS are unchanged (their preference stores already write atomically).
 Not covered by a widget test: the PIN dialog in Profile › User Data (the
 restore flow reads files through Quick Import or the system dialog); the
 service refuses the replacement without the PIN whatever the screen does.
+
+## Revision 2 (2.0.70+270002), Story lines never stuck, weekly XP across the clock change
+
+- The bug reproduced on this PC (Europe/Rome): the earlier week key of
+  Monday 30 March 2026 was `03-28`, Sunday's `03-29`; the new key is `03-29`
+  for both (a scratch Dart script).
+- New tests: `test/week_xp_270_test.dart` (5: every day of 2026 at four hours
+  keyed to its Sunday; XP of the week the clocks go forward stays one week and
+  becomes last week; a rollover cut short after last week was copied, and
+  after the totals were zeroed, keeps last week; twenty awards at the same
+  time across a rollover all count) and three cases in
+  `test/spoken_lines_269_test.dart` (a voice that never reports its end frees
+  Continue at twice the estimate + 5 s and teaches no pace; Play waits while
+  the line reads itself aloud; audio still playing when the learner goes on
+  reveals nothing on the next line): 27 passed with `xp_service_test`.
+- Related files: `audio_settings_runtime_228_04_test`,
+  `recorded_audio_service_test`, `story_runtime_256_test`,
+  `tts_process_arguments_test`, `tts_language_resolution_226_03_test`,
+  `learner_round_audio_indicator_230_test`, `two_sided_flashcards_268_test`,
+  `sequence_round_256_test`, `exercise_laboratory_254_test`,
+  `runtime_canonical_256_test`, `tts_voice_test_dialog_228_test`,
+  `revision7_fourth_followup_256_test`: 353 passed.
+- `flutter analyze`: no issues (one `use_build_context_synchronously` from
+  the first draft fixed by returning early).
+- Complete suite: **4,083 passed, 1 skipped**, 33:03 (10 October 2026,
+  04:40–05:13).
+
+Not tried by hand: stopping speech on leaving a Round on Windows and Linux.

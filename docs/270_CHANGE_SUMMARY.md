@@ -92,3 +92,42 @@ Deliberately unchanged (owner, 10 October 2026): the PIN stays optional for
 every learner, admins included; no attempt limit; backups and Recovery Keys
 may still bring a learner identity onto the device; admin actions keep their
 current confirmations.
+
+## Revision 2 (2.0.70+270002): Story lines never stuck, weekly XP across the clock change
+
+Audit items 3 (High) and 4 (Medium), with the audio findings around them.
+
+- `RoundScreen._lineCeiling` (`_armLineCeiling`, `lineCeilingSlack` 5 s):
+  once a held line's voice has started, Continue is released after twice the
+  line's estimate plus 5 s if the voice has not reported its end. flutter_tts
+  4.2.5 on Android never completes `speak` after `onError` or an interrupting
+  `onStop` (`awaitSpeakCompletion` is on there); a recording waits up to five
+  minutes per clip; Linux `aplay` had no time limit. A line released this way
+  teaches `SpokenLinePace` nothing (`_lineCeilingReached`).
+- Play on a line (`story-line-play`) is disabled while the line reads itself
+  aloud (`_lineSpeaking && !_lineVoiceEnded`) or a tap is playing
+  (`_linePlaying`): Android's engine answers 0 while it speaks and QQL
+  reported "audio unavailable".
+- `_speak` and `_playLine` act only while their exercise is still the one
+  shown (`_preparedExerciseGeneration`): a line already left no longer sets
+  the next line's `_lineAudioPlayed` (which revealed text "after listening")
+  or shows its failure SnackBar.
+- `RoundScreen.dispose` stops speech and recordings:
+  `TtsCacheService.stop` now calls `stopWindowsTts` (kills the PowerShell
+  speaking; a stopped speech tries no other PowerShell) and `stopLinuxTts`;
+  `RecordedAudioService.stopAll` stops the players playing. Linux speech
+  runs eSpeak (30 s) and aplay (30 s + text length / 5) with time limits,
+  and `_findExecutable` skips relative PATH entries.
+- `XpService`: `_weekKey` and `_previousWeekKey` count calendar days
+  (`DateTime(y, m, d - weekday % 7)`); `weekKeyFor` for tests. The rollover
+  (`_rolloverWrites`, shared by the active learner and the per-profile
+  rollover) checks the stored week and makes every change in one synchronous
+  step, last week first (copied only once: `last_week_xp_week` already the
+  previous week means it was), then the totals, the week marker last.
+  `addXp` rolls over first and then reads and writes the language total, the
+  week total and the per-Course week in one step.
+
+Unchanged: scoring, progression, Course files and learner data.
+
+Known limit: stopping speech when a Round is left was not tried by hand on
+Windows or Linux in this session.

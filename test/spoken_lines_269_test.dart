@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -482,4 +484,102 @@ void main() {
       expect(_continueEnabled(tester), isTrue);
     });
   });
+  // Build 270 Revision 2 (audit item 3).
+  group('a voice that misbehaves', () {
+    testWidgets('one that never reports its end frees Continue after twice '
+        'the estimate and the slack, and teaches no pace', (tester) async {
+      useTestClock(tester);
+      final speech = _Endless();
+      await _pump(tester, _story(_line('l1', _sentence)), speech: speech);
+      expect(_continueEnabled(tester), isFalse);
+      // 33 characters at 12 a second: 2.75 s; released at 5.5 s + 5 s.
+      await tester.pump(const Duration(seconds: 10));
+      expect(_continueEnabled(tester), isFalse);
+      await tester.pump(const Duration(seconds: 1));
+      expect(_continueEnabled(tester), isTrue);
+      speech.finish();
+      await tester.pump();
+      expect(SpokenLinePace.shared.charactersPerSecond, 12);
+      expect(_continueEnabled(tester), isTrue);
+    });
+
+    testWidgets('Play waits while the line reads itself aloud', (tester) async {
+      useTestClock(tester);
+      await _pump(
+        tester,
+        _story(_line('l1', _sentence)),
+        speech: _Speech(duration: const Duration(seconds: 3)),
+      );
+      final play = find.byKey(const Key('story-line-play'));
+      expect(tester.widget<IconButton>(play).onPressed, isNull);
+      await tester.pump(const Duration(milliseconds: 3100));
+      expect(tester.widget<IconButton>(play).onPressed, isNotNull);
+    });
+
+    testWidgets('audio still playing when the learner goes on reveals nothing '
+        'on the next line', (tester) async {
+      useTestClock(tester);
+      const second = 'Ecco il suo caffè.';
+      final speech = await _pump(
+        tester,
+        _twoLines(
+          _line('l1', _sentence),
+          _line('l2', second, reveal: 'afterAudio'),
+        ),
+        speech: _Speech(duration: const Duration(seconds: 3)),
+      );
+      await tester.tap(find.byKey(const Key('story-line-play')));
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(speech.spoken, [_sentence]);
+      await tester.tap(_continue);
+      await tester.pump();
+      await tester.pump();
+      expect(find.text(second), findsNothing);
+      // The first line's audio ends now.
+      await tester.pump(const Duration(seconds: 3));
+      await tester.pump();
+      expect(find.text(second), findsNothing);
+    });
+  });
+}
+
+/// A voice that starts and never reports its end until [finish].
+class _Endless extends _Speech {
+  final _end = Completer<bool>();
+
+  void finish() => _end.complete(true);
+
+  @override
+  Future<bool> speak({
+    required String text,
+    required String language,
+    String? learningLanguage,
+    String? targetLanguage,
+    double rate = 0.5,
+    bool applyLearnerSettings = true,
+    String? voicePreference,
+  }) => _end.future;
+
+  @override
+  Future<void> stop() async {}
+}
+
+/// Two lines read on request, the second shown after listening.
+LearningRound _twoLines(Exercise first, Exercise second) {
+  final content = [
+    for (final exercise in [first, second, _question()])
+      LearningContent.fromExercise(exercise),
+  ];
+  return LearningRound(
+    id: 'story',
+    title: 'Story: Al bar',
+    visualType: 'story',
+    updatedAt: _stamp,
+    content: content,
+    flow: RoundFlowAuthoring.linearFor(
+      content,
+      title: 'Al bar',
+      readAloud: FlowReadAloud.manual,
+    ),
+  );
 }

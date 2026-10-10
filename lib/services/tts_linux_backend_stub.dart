@@ -14,6 +14,8 @@ List<String> espeakArguments({
   required String text,
 }) => ['-v', voice, '-s', '$wordsPerMinute', '-w', wavPath, '--', text];
 
+Future<void> stopLinuxTts() async {}
+
 Future<bool> speakWithLinuxTts({
   required String text,
   required String language,

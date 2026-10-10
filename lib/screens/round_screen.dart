@@ -369,6 +369,17 @@ class _RoundScreenState extends State<RoundScreen> {
   Timer? _lineWatchdog;
   static const lineWatchdogDelay = Duration(seconds: 5);
 
+  /// Build 270 Revision 2: releases Continue when a held line's voice started
+  /// but never reports its end (Android's speech engine after an error or an
+  /// interruption, a recording that does not finish, a stuck Linux player),
+  /// after twice the line's estimate and [lineCeilingSlack].
+  Timer? _lineCeiling;
+  bool _lineCeilingReached = false;
+  static const lineCeilingSlack = Duration(seconds: 5);
+
+  /// A tap on a line's Play is playing; Play waits for it.
+  bool _linePlaying = false;
+
   /// Whether Continue waits for the active line to be read.
   bool get _lineWaits => _lineHeld && !(_lineVoiceEnded && _lineFinished);
 
@@ -829,6 +840,10 @@ class _RoundScreenState extends State<RoundScreen> {
     _timedExpiryTimer?.cancel();
     _lineTimer?.cancel();
     _lineWatchdog?.cancel();
+    _lineCeiling?.cancel();
+    // Build 270 Revision 2: leaving the Round silences it.
+    unawaited(_ttsCache.stop());
+    unawaited(RecordedAudioService.stopAll());
     final diagnostic = _preparedAudioDiagnostic;
     if (diagnostic != null) {
       unawaited(diagnostic.dispose(outcome: 'round_disposed'));
@@ -1226,6 +1241,7 @@ class _RoundScreenState extends State<RoundScreen> {
       _lineWatchdog?.cancel();
       if (mounted) setState(() => _lineSpeaking = true);
       watch.start();
+      _armLineCeiling(generation);
     }
     var ok = false;
     try {
@@ -1246,10 +1262,13 @@ class _RoundScreenState extends State<RoundScreen> {
         );
       }
     }
-    if (ok && line && mounted) {
+    // Build 270 Revision 2: audio that ends after the learner went on
+    // reveals nothing and reports nothing on the next exercise.
+    if (!mounted || generation != _preparedExerciseGeneration) return ok;
+    if (ok && line) {
       setState(() => _lineAudioPlayed = true);
     }
-    if (!ok && mounted) {
+    if (!ok) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           duration: const Duration(seconds: 8),
@@ -1266,6 +1285,10 @@ class _RoundScreenState extends State<RoundScreen> {
     _lineTimer?.cancel();
     _lineWatchdog?.cancel();
     _lineWatchdog = null;
+    _lineCeiling?.cancel();
+    _lineCeiling = null;
+    _lineCeilingReached = false;
+    _linePlaying = false;
     _lineSpeaking = false;
     _lineVoiceEnded = false;
     _lineFinished = false;
@@ -1303,6 +1326,29 @@ class _RoundScreenState extends State<RoundScreen> {
     });
   }
 
+  void _armLineCeiling(int generation) {
+    _lineCeiling?.cancel();
+    _lineCeilingReached = false;
+    _lineCeiling = Timer(_lineEstimate * 2 + lineCeilingSlack, () {
+      if (!mounted ||
+          generation != _preparedExerciseGeneration ||
+          _lineVoiceEnded) {
+        return;
+      }
+      unawaited(
+        CrashLogService.instance.recordDebugEvent(
+          'Round: line ${_exercise.id} audio did not report its end; '
+          'Continue released',
+        ),
+      );
+      _lineCeilingReached = true;
+      setState(() {
+        _lineVoiceEnded = true;
+        _lineFinished = true;
+      });
+    });
+  }
+
   /// The voice of a held line has finished after [elapsed], or failed. A
   /// real end, or a failure, completes the line; an end reported too early
   /// leaves it to the estimate.
@@ -1313,6 +1359,9 @@ class _RoundScreenState extends State<RoundScreen> {
     required String spoken,
   }) {
     if (!mounted || generation != _preparedExerciseGeneration) return;
+    _lineCeiling?.cancel();
+    // Released by the ceiling: the time is not this voice's pace.
+    if (_lineCeilingReached) return;
     final realEnd = !ok || SpokenLinePace.isRealEnd(elapsed, _lineEstimate);
     if (ok && realEnd) SpokenLinePace.shared.record(spoken, elapsed);
     setState(() {
@@ -3887,7 +3936,15 @@ class _RoundScreenState extends State<RoundScreen> {
               : IconButton.filledTonal(
                   key: const Key('story-line-play'),
                   tooltip: audioPlayable ? _t('play') : _t('audioUnavailable'),
-                  onPressed: audioPlayable ? () => _playLine(f) : null,
+                  // Build 270 Revision 2: not while the line reads
+                  // itself aloud or a tap is playing (the voice would
+                  // refuse and report a failure).
+                  onPressed:
+                      audioPlayable &&
+                          !_linePlaying &&
+                          !(_lineSpeaking && !_lineVoiceEnded)
+                      ? () => _playLine(f)
+                      : null,
                   icon: const Icon(Icons.volume_up_outlined),
                 ),
         ),
@@ -3914,15 +3971,20 @@ class _RoundScreenState extends State<RoundScreen> {
   Future<void> _playLine(ExerciseFeatures f) async {
     final audio = f.lineAudio;
     if (audio == null) return;
+    final generation = _preparedExerciseGeneration;
+    setState(() => _linePlaying = true);
     final ok = await _playCourseAudio(
       audio.text,
       language: _lineLanguage(f),
       voice: _lineSpeaker(f).voice,
     );
-    if (!mounted) return;
-    if (ok) {
-      setState(() => _lineAudioPlayed = true);
-    } else {
+    // Build 270 Revision 2: a line already left reveals nothing.
+    if (!mounted || generation != _preparedExerciseGeneration) return;
+    setState(() {
+      _linePlaying = false;
+      if (ok) _lineAudioPlayed = true;
+    });
+    if (!ok) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           duration: const Duration(seconds: 8),

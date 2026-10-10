@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'profile_service.dart';
@@ -36,14 +37,19 @@ class XpService {
     return '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
   }
 
-  String _weekKey(DateTime now) {
-    final sunday = DateTime(
-      now.year,
-      now.month,
-      now.day,
-    ).subtract(Duration(days: now.weekday % 7));
-    return _dayString(sunday);
-  }
+  /// The Sunday that starts [now]'s week. Build 270 Revision 2: counted in
+  /// calendar days. Subtracting 24-hour days from local midnight lands on
+  /// Saturday in the week the clocks go forward, so Monday to Saturday got
+  /// another week key than Sunday and last week's XP was zeroed.
+  String _weekKey(DateTime now) =>
+      _dayString(DateTime(now.year, now.month, now.day - now.weekday % 7));
+
+  /// The week before [now]'s, in calendar days for the same reason.
+  String _previousWeekKey(DateTime now) =>
+      _weekKey(DateTime(now.year, now.month, now.day - 7));
+
+  @visibleForTesting
+  String weekKeyFor(DateTime now) => _weekKey(now);
 
   Map<String, int> _decodeXpByCourse(String? raw) {
     if (raw == null || raw.trim().isEmpty) return <String, int>{};
@@ -68,33 +74,64 @@ class XpService {
 
   Future<void> _ensureWeeklyRollover() async {
     final p = await _prefs;
-    final now = _now();
-    final currentWeek = _weekKey(now);
-    final previousWeek = _weekKey(now.subtract(const Duration(days: 7)));
     final weekKey = await _k('week_xp_week');
     final totalKey = await _k('week_xp');
     final byCourseKey = await _k('week_xp_by_course');
-    final storedWeek = p.getString(weekKey);
-    if (storedWeek == currentWeek) return;
-
     final lastWeekKey = await _k('last_week_xp_week');
     final lastTotalKey = await _k('last_week_xp');
     final lastByCourseKey = await _k('last_week_xp_by_course');
-    if (storedWeek == previousWeek) {
-      await p.setString(lastWeekKey, previousWeek);
-      await p.setInt(lastTotalKey, _storedXp(p, totalKey));
-      await p.setString(lastByCourseKey, p.getString(byCourseKey) ?? '{}');
-    } else {
-      // If the app was not used during the immediately preceding week, that
-      // completed week has no XP. Older activity must not be presented as last week.
-      await p.setString(lastWeekKey, previousWeek);
-      await p.setInt(lastTotalKey, 0);
-      await p.setString(lastByCourseKey, '{}');
-    }
+    await Future.wait(
+      _rolloverWrites(
+        p,
+        weekKey: weekKey,
+        totalKey: totalKey,
+        byCourseKey: byCourseKey,
+        lastWeekKey: lastWeekKey,
+        lastTotalKey: lastTotalKey,
+        lastByCourseKey: lastByCourseKey,
+      ),
+    );
+  }
 
-    await p.setString(weekKey, currentWeek);
-    await p.setInt(totalKey, 0);
-    await p.setString(byCourseKey, '{}');
+  /// Build 270 Revision 2: the week is checked and every value changed in one
+  /// synchronous step (no await in between), so an award or a second
+  /// rollover running at the same time cannot interleave; and in an order
+  /// that a crash at any point leaves right: last week first, then the
+  /// totals, the new week's marker last. Last week is copied only once, so
+  /// a rollover cut short and run again never copies zeroed totals over it.
+  List<Future<bool>> _rolloverWrites(
+    SharedPreferences p, {
+    required String weekKey,
+    required String totalKey,
+    required String byCourseKey,
+    required String lastWeekKey,
+    required String lastTotalKey,
+    required String lastByCourseKey,
+  }) {
+    final now = _now();
+    final currentWeek = _weekKey(now);
+    final previousWeek = _previousWeekKey(now);
+    final storedWeek = p.getString(weekKey);
+    if (storedWeek == currentWeek) return const [];
+    final writes = <Future<bool>>[];
+    if (p.getString(lastWeekKey) != previousWeek) {
+      if (storedWeek == previousWeek) {
+        writes.add(p.setInt(lastTotalKey, _storedXp(p, totalKey)));
+        writes.add(
+          p.setString(lastByCourseKey, p.getString(byCourseKey) ?? '{}'),
+        );
+      } else {
+        // If the app was not used during the immediately preceding week, that
+        // completed week has no XP. Older activity must not be presented as last week.
+        writes.add(p.setInt(lastTotalKey, 0));
+        writes.add(p.setString(lastByCourseKey, '{}'));
+      }
+      writes.add(p.setString(lastWeekKey, previousWeek));
+    }
+    writes.add(p.setInt(totalKey, 0));
+    writes.add(p.setString(byCourseKey, '{}'));
+    writes.add(p.setString(weekKey, currentWeek));
+    return writes;
   }
 
   Future<void> _ensureWeeklyRolloverForProfile(
@@ -102,26 +139,17 @@ class XpService {
     String learnerProfileId,
   ) async {
     final prefix = ProfileService.prefixForProfileId(learnerProfileId);
-    final now = _now();
-    final currentWeek = _weekKey(now);
-    final previousWeek = _weekKey(now.subtract(const Duration(days: 7)));
-    final storedWeek = p.getString('${prefix}week_xp_week');
-    if (storedWeek == currentWeek) return;
-    if (storedWeek == previousWeek) {
-      await p.setString('${prefix}last_week_xp_week', previousWeek);
-      await p.setInt('${prefix}last_week_xp', _storedXp(p, '${prefix}week_xp'));
-      await p.setString(
-        '${prefix}last_week_xp_by_course',
-        p.getString('${prefix}week_xp_by_course') ?? '{}',
-      );
-    } else {
-      await p.setString('${prefix}last_week_xp_week', previousWeek);
-      await p.setInt('${prefix}last_week_xp', 0);
-      await p.setString('${prefix}last_week_xp_by_course', '{}');
-    }
-    await p.setString('${prefix}week_xp_week', currentWeek);
-    await p.setInt('${prefix}week_xp', 0);
-    await p.setString('${prefix}week_xp_by_course', '{}');
+    await Future.wait(
+      _rolloverWrites(
+        p,
+        weekKey: '${prefix}week_xp_week',
+        totalKey: '${prefix}week_xp',
+        byCourseKey: '${prefix}week_xp_by_course',
+        lastWeekKey: '${prefix}last_week_xp_week',
+        lastTotalKey: '${prefix}last_week_xp',
+        lastByCourseKey: '${prefix}last_week_xp_by_course',
+      ),
+    );
   }
 
   Future<int> getXp({required String courseCode}) async {
@@ -200,23 +228,23 @@ class XpService {
       throw ArgumentError.value(amount, 'amount', 'XP cannot be negative');
     }
     final p = await _prefs;
+    await _ensureWeeklyRollover();
     final k = await _lk('xp', courseCode);
-    final current = _storedXp(p, k);
-    // Keep the value inside a predictable range even if an editor/test produces
-    // an unexpectedly large reward.
-    await p.setInt(k, (current + amount).clamp(0, _maximumXp).toInt());
-    final weekCurrent = await getWeeklyXp();
-    await p.setInt(
-      await _k('week_xp'),
-      (weekCurrent + amount).clamp(0, _maximumXp).toInt(),
-    );
-
-    final stableCourseId = courseId.trim();
+    final weekKey = await _k('week_xp');
     final byCourseKey = await _k('week_xp_by_course');
+    // Build 270 Revision 2: read and change in one synchronous step, so two
+    // awards at the same time cannot overwrite each other. Keep the values
+    // inside a predictable range even if an editor/test produces an
+    // unexpectedly large reward.
+    int plus(int value) => (value + amount).clamp(0, _maximumXp).toInt();
+    final stableCourseId = courseId.trim();
     final byCourse = _decodeXpByCourse(p.getString(byCourseKey));
-    final old = byCourse[stableCourseId] ?? 0;
-    byCourse[stableCourseId] = (old + amount).clamp(0, _maximumXp).toInt();
-    await p.setString(byCourseKey, jsonEncode(byCourse));
+    byCourse[stableCourseId] = plus(byCourse[stableCourseId] ?? 0);
+    await Future.wait([
+      p.setInt(k, plus(_storedXp(p, k))),
+      p.setInt(weekKey, plus(_storedXp(p, weekKey))),
+      p.setString(byCourseKey, jsonEncode(byCourse)),
+    ]);
     LearnerStatusEvents.publish(LearnerStatusInvalidation.xp);
   }
 }

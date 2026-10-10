@@ -62,7 +62,7 @@ State: done. `ProfileService._unlockOnly`; `LearnerBackupService`
 `replacingNeedsPin` / `restorePreservingIdentity(accessPin:)`; the PIN
 dialog in User Data. Tests 4 new; related 166 passed; analyzer clean;
 complete suite 4,075 passed, 1 skipped (03:58–04:32). Committed on
-`build-270` and the branch pushed.
+`build-270` as `af5a7433` and the branch pushed.
 
 Next: Revision 2. Drafts ready in the session scratchpad
 (`patch_270002_xp.py`, `patch_270002_audio.py`,
@@ -75,3 +75,23 @@ a line reads itself aloud or a tap plays, no reveal or SnackBar for a line
 already left, audio stopped on leaving a Round
 (`RecordedAudioService.stopAll`, `stopWindowsTts`, `stopLinuxTts` with time
 limits and absolute PATH entries).
+
+## Revision 2 (2.0.70+270002), Story lines never stuck, weekly XP
+
+State: done (the drafts above applied; `_endless` test voice extends the
+test's `_Speech`). Tests 5 + 3 new; related 353 passed; analyzer clean;
+complete suite 4,083 passed, 1 skipped (04:40–05:13). Committed on
+`build-270` and the branch pushed.
+
+Next: Revision 3, the import side doors. Drafts in the scratchpad:
+`patch_270003.py` (bundled-asset pattern in `lib/models/bundled_asset.dart`
+from `bundled_asset.dart`, used by `Course.isValid*Reference`, icon keys,
+`BundledPicture`, `RecordedAudioService`; `CustomCourseTransferService.
+validateEmbeddedContent` shared with `CourseBackupService.reinstateMedia`;
+backup manifests read with a size cap, `JsonLimits`, `CourseShapeLimits`,
+asset paths without dot segments, restored media through `ImageValidator` /
+`Mp3Validator`; learner backup `expectedValueKind`; `LearnerStatusController`
+catch-all). Still to write by hand: `maxManifestBytes`, `_assetPath`, the
+imports, `expectedValueKind`/`_hasKind`; update the three tests that restore
+fake MP3 bytes (`course_backup_missing_asset_test`, `course_media_243_test`,
+`move_private_storage_255_test`) to `syntheticMp3`.
