@@ -161,13 +161,13 @@ puts back everything else.
 
 ### A Publisher update over a copy this version cannot open
 
-Since Build 266 Revision 2 the publisher's signed update may replace a
-stored source this version cannot open. It did so without keeping anything.
-The stored record is now kept first, as it is, in the Course's backup
-folder (`CourseBackupService.keepUnreadableCopy`, a file named like a
-version with `unreadable`). Version History names it among the files it
-cannot read. Its media is not copied: QQL cannot tell which files an
-unreadable Course uses.
+Dropped in the same version (owner decision of 11 October 2026). Revision 1
+first kept the stored record in the Course's backup folder before the
+publisher's update replaced it. That file could not be used inside QQL
+(Version History only named it as unreadable), came without its media and
+held nothing of the user's, because a Publisher Course cannot be edited: its
+own package is its copy. The update again replaces the stored copy without
+keeping it, as since Build 266 Revision 2.
 
 ### Inventory: Delete all
 
@@ -185,9 +185,44 @@ Examined on 11 October 2026 and closed (owner decision): the plan of
 before Build 243. Its header now says what handles each case. The owner's PC
 had no orphan Course media.
 
+### Follow-up in the same version (owner decisions of 11 October 2026)
+
+**Inventory, Delete on a Course.** The dialog now shows, above the PIN:
+
+- who has the Course in their courses ("Anna, Marco and you have this
+  Course in your courses.");
+- who removed it from their courses but kept their progress ("Carla removed
+  it from their courses but kept their progress on it.");
+- **Also reset everyone's progress on this Course**, off: every learner on
+  this device, also those who removed the Course and kept their progress.
+  XP, Weekly XP, study days and streaks are kept. Ticked, it is confirmed
+  once more ("Confirm progress reset") before anything happens;
+- **Also delete all its backups**, off, with their count and size.
+
+The Delete comes first: when it is refused (a wrong PIN, no rights),
+nothing is reset and no backup is deleted.
+
+**Remove Publisher Course from device** (Inventory) has the same two
+extras. Unticked it keeps progress, media and backups for a reinstallation,
+as before, and the texts say that learners may want their progress back
+when the Course is installed again. It is still refused while another
+learner has the Course in their courses; that rule was not changed.
+
+**A Course this version cannot open.** Its removal in Course Studio offers
+**Also delete all its backups**, off, with a caution: its backups may be the
+last copies that can still be read. The Inventory's Delete of such a Course
+shows the same caution, and knows its learners by the Course ID alone.
+
+Code: `ProgressService.resetCourseForProfile` and `hasCourseProgress`,
+`CourseLearnersService` (`lib/services/course_learners.dart`),
+`InventoryActionService.previewCourse` and `run(resetEveryonesProgress:,
+deleteBackups:)`, `InventoryCoursePreview`, the Inventory screen's
+`_CourseExtras` and `_confirmReset`, `CourseLibraryOperations.backupsOf`
+and `removeUnopenableCourse`.
+
 ### Not changed
 
 Scoring, progression, Course files and the learner-data format. No new
-preference key and no new folder. The Inventory's own Delete of a Course and
-the removal of a Course this version cannot open keep their behaviour (no
-extras).
+preference key and no new folder. Course Studio's Delete resets only the
+deleting learner's progress: resetting other learners' progress needs the
+admin's PIN, in the Inventory.

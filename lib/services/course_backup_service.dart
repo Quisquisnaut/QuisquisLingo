@@ -600,57 +600,6 @@ class CourseBackupService {
     }
   }
 
-  /// Keeps [record], a stored Course record this version cannot open, in the
-  /// Course's backup folder before it is replaced (Build 271 Revision 1): the
-  /// record as stored, in a file named like a saved version with
-  /// `unreadable` for its version. Version History names it among the files
-  /// it cannot read. Its media is not copied: QQL cannot tell which files an
-  /// unreadable Course uses.
-  Future<File> keepUnreadableCopy(
-    String courseId,
-    Object? record, {
-    required DateTime when,
-    required String pair,
-    required String reason,
-  }) async {
-    final directory = await courseBackupDirectory(
-      courseId,
-      create: true,
-      pair: pair,
-    );
-    final base = CourseStorageNames.backupVersionName(
-      courseId,
-      pair,
-      version: 'unreadable',
-      stamp: _filenameStamp(when),
-    );
-    var file = File('${directory.path}${Platform.pathSeparator}$base.json');
-    var suffix = 2;
-    while (await file.exists()) {
-      file = File(
-        '${directory.path}${Platform.pathSeparator}${base}_$suffix.json',
-      );
-      suffix += 1;
-    }
-    _requireChildPath(directory, file);
-    await _write(
-      file,
-      utf8.encode(
-        jsonEncode({
-          'format': unreadableCopyFormat,
-          'courseId': courseId,
-          'keptAtUtc': when.toUtc().toIso8601String(),
-          'reason': reason,
-          'record': record,
-        }),
-      ),
-    );
-    return file;
-  }
-
-  /// The `format` of a stored Course record kept by [keepUnreadableCopy].
-  static const unreadableCopyFormat = 'QuisquisLingo unreadable Course copy';
-
   /// Removes the files of [directory]'s shared media folder that no backup
   /// manifest there names any more (Build 270 Revision 9, owner decision:
   /// only after older backups are deleted, the one time QQL leaves media

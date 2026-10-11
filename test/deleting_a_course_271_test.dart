@@ -2,11 +2,14 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quisquislingo_app/models/course_models.dart';
 import 'package:quisquislingo_app/services/course_backup_service.dart';
 import 'package:quisquislingo_app/services/course_editor_service.dart';
+import 'package:quisquislingo_app/screens/inventory_screen.dart';
 import 'package:quisquislingo_app/services/course_file_store.dart';
+import 'package:quisquislingo_app/services/course_learners.dart';
 import 'package:quisquislingo_app/services/course_library_operations.dart';
 import 'package:quisquislingo_app/services/course_library_service.dart';
 import 'package:quisquislingo_app/services/course_media_store.dart';
@@ -16,9 +19,11 @@ import 'package:quisquislingo_app/services/profile_service.dart';
 import 'package:quisquislingo_app/services/progress_service.dart';
 import 'package:quisquislingo_app/services/storage/course_storage_names.dart';
 import 'package:quisquislingo_app/services/xp_service.dart';
+import 'package:quisquislingo_app/widgets/folder_opener.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'support/publisher_fixtures.dart';
+import 'support/pump_file_io.dart';
 import 'support/test_directories.dart';
 import 'support/unique_png.dart';
 
@@ -77,7 +82,11 @@ void main() {
 
   late ProfileService profiles;
 
+  /// Alice's Access PIN once a test has set it.
+  String? alicePin;
+
   setUp(() async {
+    alicePin = null;
     SharedPreferences.setMockInitialValues({});
     profiles = ProfileService();
     for (final (id, name) in [
@@ -97,7 +106,7 @@ void main() {
   Future<void> as(String profileId, Future<void> Function() action) async {
     await profiles.setActiveProfileById(profileId);
     await action();
-    await profiles.setActiveProfileById(_alice);
+    await profiles.setActiveProfileById(_alice, accessPin: alicePin);
   }
 
   group('A backup never blocks a save', () {
@@ -216,41 +225,6 @@ void main() {
       expect((await backups.summaryOf('kept')).isEmpty, isTrue);
       expect(await backups.listBackups('other'), hasLength(1));
     });
-
-    test('keep a stored copy this version cannot open', () async {
-      final record = {
-        'source': {'courseId': 'official', 'guidebook': 'an earlier shape'},
-        'savedAt': '2026-09-01T00:00:00.000Z',
-      };
-      final kept = await backups.keepUnreadableCopy(
-        'official',
-        record,
-        when: DateTime.utc(2026, 10, 11, 14),
-        pair: 'EN_IT',
-        reason: 'Replaced by an update',
-      );
-      final folder = await backups.courseBackupDirectory('official');
-      expect(kept.parent.path, folder.path);
-      expect(kept.uri.pathSegments.last, contains('_vunreadable_'));
-      final decoded = jsonDecode(kept.readAsStringSync()) as Map;
-      expect(decoded['format'], CourseBackupService.unreadableCopyFormat);
-      expect(decoded['courseId'], 'official');
-      expect(decoded['record'], record);
-      // A second copy at the same moment gets a name of its own.
-      final again = await backups.keepUnreadableCopy(
-        'official',
-        record,
-        when: DateTime.utc(2026, 10, 11, 14),
-        pair: 'EN_IT',
-        reason: 'Replaced by an update',
-      );
-      expect(again.path, isNot(kept.path));
-      // Version History names both among the files it cannot read.
-      final skipped = <String>[];
-      expect(await backups.listBackups('official', skipped: skipped), isEmpty);
-      expect(skipped, hasLength(2));
-      expect((await backups.summaryOf('official')).versions, 2);
-    });
   });
 
   group('The Course store', () {
@@ -331,7 +305,7 @@ void main() {
   });
 
   group('A Publisher update over a copy this version cannot open', () {
-    test('keeps that copy in the Course\'s backup folder', () async {
+    test('replaces it and keeps no copy', () async {
       final publisher = Course.fromJson(
         jsonDecode(
               File(
@@ -366,26 +340,96 @@ void main() {
 
       final result = await editor.installExternalOfficialUpdate(publisher);
 
-      expect(result.backupPath, isNotNull);
-      final kept = File(result.backupPath!);
-      expect(kept.existsSync(), isTrue);
-      final decoded = jsonDecode(kept.readAsStringSync()) as Map;
-      expect(decoded['format'], CourseBackupService.unreadableCopyFormat);
-      expect(decoded['courseId'], publisher.courseId);
+      // Owner decision of 11 October 2026: the publisher's package is the
+      // copy of a Publisher Course, so nothing QQL cannot open is kept.
+      expect(result.backupPath, isNull);
       expect(
-        ((decoded['record'] as Map)['source']
-            as Map)['lessons'][0]['guidebook'],
-        {'content': []},
+        (await editor.backupService.summaryOf(publisher.courseId)).isEmpty,
+        isTrue,
       );
-      expect(
-        kept.parent.path,
-        (await editor.backupService.courseBackupDirectory(
-          publisher.courseId,
-        )).path,
-      );
-      // The update itself is installed and opens.
       final installed = (await editor.listUserCourses()).single;
       expect(installed.courseId, publisher.courseId);
+    });
+  });
+
+  group('The learners of a Course', () {
+    test('progress is found and reset learner by learner', () async {
+      await as(
+        _bob,
+        () => ProgressService().completeRound(
+          'round-1',
+          courseId: 'shared',
+          courseCode: 'IT',
+        ),
+      );
+      await as(_carla, () async {
+        // A recent Round alone is progress too.
+        await ProgressService().recordRecentRound(
+          'shared',
+          'lesson-1',
+          'round-2',
+          errors: 1,
+        );
+        await ProgressService().completeRound(
+          'round-9',
+          courseId: 'other',
+          courseCode: 'IT',
+        );
+      });
+      final progress = ProgressService();
+      expect(await progress.hasCourseProgress(_alice, 'shared'), isFalse);
+      expect(await progress.hasCourseProgress(_bob, 'shared'), isTrue);
+      expect(await progress.hasCourseProgress(_carla, 'shared'), isTrue);
+
+      await progress.resetCourseForProfile(_bob, 'shared');
+      expect(await progress.hasCourseProgress(_bob, 'shared'), isFalse);
+      expect(await progress.hasCourseProgress(_carla, 'shared'), isTrue);
+
+      await CourseLearnersService(profiles: profiles).resetEveryone('shared');
+      expect(await progress.hasCourseProgress(_carla, 'shared'), isFalse);
+      // Another Course's progress stays.
+      expect(await progress.hasCourseProgress(_carla, 'other'), isTrue);
+    });
+
+    test('who has it, and who removed it but kept their progress', () async {
+      final course = _course('shared');
+      await CourseEditorService().installImportedCustomCourse(course);
+      await as(_bob, () async {
+        await CourseLibraryService().add(course);
+        await ProgressService().completeRound(
+          'round-1',
+          courseId: 'shared',
+          courseCode: 'IT',
+        );
+        // Bob removes it from his courses and keeps his progress.
+        await CourseLibraryService().remove(course);
+      });
+      await as(_carla, () => CourseLibraryService().add(course));
+      final service = CourseLearnersService(profiles: profiles);
+      List<String> names(List<LearnerProfile> learners) => [
+        for (final learner in learners) learner.displayName,
+      ];
+
+      final learners = await service.of('shared', course: course);
+      expect(names(learners.inCourses), ['Alice', 'Carla']);
+      expect(names(learners.keptProgress), ['Bob']);
+
+      // A Course this version cannot open is known by its ID alone.
+      final byId = await service.of('shared');
+      expect(names(byId.inCourses), ['Alice', 'Carla']);
+      expect(names(byId.keptProgress), ['Bob']);
+      // A learner with progress who never removed it has it.
+      await as(
+        _bob,
+        () => ProgressService().completeRound(
+          'round-1',
+          courseId: 'unlisted',
+          courseCode: 'IT',
+        ),
+      );
+      final unlisted = await service.of('unlisted');
+      expect(names(unlisted.inCourses), ['Bob']);
+      expect(unlisted.keptProgress, isEmpty);
     });
   });
 
@@ -575,6 +619,71 @@ void main() {
       expect((await ops.editor.backupService.summaryOf('bobs')).versions, 1);
     });
 
+    /// Stores a Course with one backup, then gives its stored copy a shape
+    /// this version refuses.
+    Future<void> storeUnopenable(String courseId) async {
+      final course = _course(courseId);
+      await ops.editor.installImportedCustomCourse(course);
+      await ops.editor.backupService.createBackup(
+        course,
+        backedUpAt: DateTime.utc(2026, 10, 11, 10),
+        reason: 'Pre-change Course Editor transaction backup',
+      );
+      final store = CourseFileStore();
+      final stored = await store.snapshot(CourseStoreKind.custom, courseId);
+      final entry = Map<String, dynamic>.from(stored!.entry as Map);
+      final json = Map<String, dynamic>.from(entry['course'] as Map);
+      (json['lessons'] as List).first['guidebook'] = {'content': []};
+      entry['course'] = json;
+      await store.replaceIfUnchanged(
+        CourseStoreKind.custom,
+        courseId,
+        entry,
+        expectedToken: stored.token,
+      );
+      expect(await ops.editor.unopenableCourse(courseId), isNotNull);
+    }
+
+    test('a Course this version cannot open goes with its backups', () async {
+      await storeUnopenable('earlier');
+      // Its backups are found by its ID.
+      expect((await ops.backupsOf('earlier')).versions, 1);
+
+      final result = await ops.removeUnopenableCourse(
+        'earlier',
+        deleteBackups: true,
+      );
+
+      expect(result.backupsDeleted, 1);
+      expect(result.backupsLeft, isFalse);
+      expect(await ops.editor.unopenableCourse('earlier'), isNull);
+      expect((await ops.backupsOf('earlier')).isEmpty, isTrue);
+      expect(
+        CourseLibraryReports.unopenableRemoved(
+          'QQL_EN_IT_earlier.json',
+          result,
+        ),
+        'Removed QQL_EN_IT_earlier.json and its 1 backup.',
+      );
+    });
+
+    test('removing it without the option keeps its backups', () async {
+      await storeUnopenable('earlier');
+
+      final result = await ops.removeUnopenableCourse('earlier');
+
+      expect(result.backupsDeleted, 0);
+      expect(await ops.editor.unopenableCourse('earlier'), isNull);
+      expect((await ops.backupsOf('earlier')).versions, 1);
+      expect(
+        CourseLibraryReports.unopenableRemoved(
+          'QQL_EN_IT_earlier.json',
+          result,
+        ),
+        'Removed QQL_EN_IT_earlier.json.',
+      );
+    });
+
     test('says what it could not do', () {
       final course = _course('report');
       expect(
@@ -599,8 +708,12 @@ void main() {
   });
 
   group('The Inventory', () {
-    // Its actions need the admin's PIN.
-    setUp(() => profiles.setOwnAccessPin(actorProfileId: _alice, pin: _pin));
+    // Its actions need the admin's PIN. With a PIN, Alice is made active
+    // again only with it, so each test sets it once its learners are ready.
+    Future<void> setPin() async {
+      await profiles.setOwnAccessPin(actorProfileId: _alice, pin: _pin);
+      alicePin = _pin;
+    }
 
     Future<Directory> mediaFolderOf(String courseId) async {
       final media = CourseMediaStore();
@@ -616,7 +729,432 @@ void main() {
     InventorySection courseMedia(List<InventorySection> sections) =>
         sections.firstWhere((section) => section.title == 'Course media');
 
+    InventoryAction deleteCourse(String courseId) => InventoryAction(
+      InventoryActionKind.deleteCourse,
+      courseId,
+      label: 'Delete',
+      explanation: '',
+    );
+
+    Future<void> backUp(CourseEditorService editor, Course course) =>
+        editor.backupService.createBackup(
+          course,
+          backedUpAt: DateTime.utc(2026, 10, 11, 10),
+          reason: 'Pre-change Course Editor transaction backup',
+        );
+
+    Future<void> complete(String courseId) => ProgressService().completeRound(
+      'round-1',
+      courseId: courseId,
+      courseCode: 'IT',
+    );
+
+    test('says who has a Course and who kept progress on it', () async {
+      final editor = CourseEditorService();
+      final course = _course('shared');
+      await editor.installImportedCustomCourse(course);
+      await backUp(editor, course);
+      await as(_bob, () => CourseLibraryService().add(course));
+      await as(_carla, () async {
+        await CourseLibraryService().add(course);
+        await complete('shared');
+        await CourseLibraryService().remove(course);
+      });
+      await setPin();
+      final actions = InventoryActionService(profiles: profiles);
+
+      final preview = (await actions.previewCourse(
+        deleteCourse('shared'),
+        actorProfileId: _alice,
+      ))!;
+
+      expect(preview.haveIt, 'Bob and you have this Course in your courses.');
+      expect(
+        preview.keptIt,
+        'Carla removed it from their courses but kept their progress on it.',
+      );
+      expect(preview.backups.versions, 1);
+      expect(preview.publisher, isFalse);
+      expect(preview.unopenable, isFalse);
+      // Only a Course has this preview.
+      expect(
+        await actions.previewCourse(
+          const InventoryAction(
+            InventoryActionKind.deleteFile,
+            'anything',
+            label: 'Delete',
+            explanation: '',
+          ),
+          actorProfileId: _alice,
+        ),
+        isNull,
+      );
+
+      InventoryCoursePreview with_(
+        List<String> others, {
+        bool you = false,
+        List<String> kept = const [],
+      }) => InventoryCoursePreview(
+        courseId: 'x',
+        publisher: false,
+        unopenable: false,
+        inCourses: others,
+        includesYou: you,
+        keptProgress: kept,
+        backups: CourseBackupsSummary.none,
+      );
+      expect(with_(const []).haveIt, isNull);
+      expect(with_(const []).keptIt, isNull);
+      expect(
+        with_(const [], you: true).haveIt,
+        'You have this Course in your courses.',
+      );
+      expect(
+        with_(const ['Anna']).haveIt,
+        'Anna has this Course in their courses.',
+      );
+      expect(
+        with_(const ['Anna', 'Marco']).haveIt,
+        'Anna and Marco have this Course in their courses.',
+      );
+      expect(
+        with_(const ['Anna', 'Marco'], you: true).haveIt,
+        'Anna, Marco and you have this Course in your courses.',
+      );
+      expect(
+        with_(const [], kept: const ['Carla', 'Dino']).keptIt,
+        'Carla and Dino removed it from their courses but kept their '
+        'progress on it.',
+      );
+    });
+
+    test(
+      'Delete resets everyone\'s progress and the backups when asked',
+      () async {
+        final editor = CourseEditorService();
+        final course = _course('shared');
+        final other = _course('other', title: 'Another course');
+        await editor.installImportedCustomCourse(course);
+        await editor.installImportedCustomCourse(other);
+        await backUp(editor, course);
+        await backUp(editor, other);
+        await complete('shared');
+        await XpService().addXp(40, courseCode: 'IT', courseId: 'shared');
+        await as(_bob, () async {
+          await CourseLibraryService().add(course);
+          await complete('shared');
+          await complete('other');
+        });
+        await as(_carla, () async {
+          await CourseLibraryService().add(course);
+          await complete('shared');
+          // Carla removed it from her courses and kept her progress.
+          await CourseLibraryService().remove(course);
+        });
+        await setPin();
+        final actions = InventoryActionService(profiles: profiles);
+        final progress = ProgressService();
+        Future<String?> run({String pin = _pin}) => actions.run(
+          deleteCourse('shared'),
+          actorProfileId: _alice,
+          pin: pin,
+          resetEveryonesProgress: true,
+          deleteBackups: true,
+        );
+
+        // A wrong PIN changes nothing.
+        await expectLater(
+          run(pin: '0000'),
+          throwsA(isA<InventoryActionException>()),
+        );
+        expect((await editor.listUserCourses()).length, 2);
+        expect(await progress.hasCourseProgress(_bob, 'shared'), isTrue);
+        expect((await editor.backupService.summaryOf('shared')).versions, 1);
+
+        expect(await run(), isNull);
+
+        expect((await editor.listUserCourses()).map((c) => c.courseId), [
+          'other',
+        ]);
+        for (final learner in [_alice, _bob, _carla]) {
+          expect(
+            await progress.hasCourseProgress(learner, 'shared'),
+            isFalse,
+            reason: learner,
+          );
+        }
+        // The other Course, XP and its backups stay.
+        expect(await progress.hasCourseProgress(_bob, 'other'), isTrue);
+        expect(await XpService().getXp(courseCode: 'IT'), 40);
+        expect(
+          (await editor.backupService.summaryOf('shared')).isEmpty,
+          isTrue,
+        );
+        expect((await editor.backupService.summaryOf('other')).versions, 1);
+      },
+    );
+
+    test('without the options progress and backups stay', () async {
+      final editor = CourseEditorService();
+      final course = _course('shared');
+      await editor.installImportedCustomCourse(course);
+      await backUp(editor, course);
+      await complete('shared');
+      await setPin();
+
+      await InventoryActionService(
+        profiles: profiles,
+      ).run(deleteCourse('shared'), actorProfileId: _alice, pin: _pin);
+
+      expect(await editor.listUserCourses(), isEmpty);
+      expect(
+        await ProgressService().hasCourseProgress(_alice, 'shared'),
+        isTrue,
+      );
+      expect((await editor.backupService.summaryOf('shared')).versions, 1);
+    });
+
+    test('a refused Delete resets nothing', () async {
+      final editor = CourseEditorService();
+      // Bob's Course: the admin is neither its Maintainer nor in its Team.
+      final course = _course('bobs', maintainer: _bob);
+      await as(_bob, () async {
+        await editor.installImportedCustomCourse(course);
+        await complete('bobs');
+      });
+      await backUp(editor, course);
+      await setPin();
+
+      await expectLater(
+        InventoryActionService(profiles: profiles).run(
+          deleteCourse('bobs'),
+          actorProfileId: _alice,
+          pin: _pin,
+          resetEveryonesProgress: true,
+          deleteBackups: true,
+        ),
+        throwsA(isA<InventoryActionException>()),
+      );
+
+      expect((await editor.listUserCourses()).single.courseId, 'bobs');
+      expect(await ProgressService().hasCourseProgress(_bob, 'bobs'), isTrue);
+      expect((await editor.backupService.summaryOf('bobs')).versions, 1);
+    });
+
+    test('the options go with a Course only', () async {
+      await setPin();
+      final file = File(
+        '${testSupportDirectory.path}${Platform.pathSeparator}stray.txt',
+      )..writeAsStringSync('x');
+
+      await expectLater(
+        InventoryActionService(profiles: profiles).run(
+          InventoryAction(
+            InventoryActionKind.deleteFile,
+            file.path,
+            label: 'Delete',
+            explanation: '',
+          ),
+          actorProfileId: _alice,
+          pin: _pin,
+          deleteBackups: true,
+        ),
+        throwsA(
+          isA<InventoryActionException>().having(
+            (e) => e.message,
+            'message',
+            'Progress and backups go with a Course only.',
+          ),
+        ),
+      );
+      expect(file.existsSync(), isTrue);
+    });
+
+    test(
+      'a Publisher Course keeps everything unless the admin says so',
+      () async {
+        final publisher = Course.fromJson(
+          jsonDecode(
+                File(
+                  'test/fixtures/publishers/dummy-signed-v1.json',
+                ).readAsStringSync(),
+              )
+              as Map<String, dynamic>,
+        );
+        final id = publisher.courseId;
+        final editor = CourseEditorService(
+          publisherVerification: fixtureVerifier(
+            publisher.publisherId,
+            publisher.publisherName,
+          ),
+        );
+        await editor.installExternalOfficialUpdate(publisher);
+        await backUp(editor, publisher);
+        await as(_bob, () async {
+          await CourseLibraryService().add(publisher);
+          await complete(id);
+          // Bob removed it and kept his progress for a reinstallation.
+          await CourseLibraryService().remove(publisher);
+        });
+        await setPin();
+        final prefs = await SharedPreferences.getInstance();
+        final carlaHasIt = profiles.keyForProfileId(
+          _carla,
+          '${CourseLibraryService.keyPrefix}${Uri.encodeComponent(id)}',
+        );
+        final actions = InventoryActionService(
+          profiles: profiles,
+          courses: editor,
+        );
+        final remove = InventoryAction(
+          InventoryActionKind.deletePublisherCourse,
+          id,
+          label: 'Delete',
+          explanation: '',
+        );
+        Future<String?> run() => actions.run(
+          remove,
+          actorProfileId: _alice,
+          pin: _pin,
+          resetEveryonesProgress: true,
+          deleteBackups: true,
+        );
+
+        final preview = (await actions.previewCourse(
+          remove,
+          actorProfileId: _alice,
+        ))!;
+        expect(preview.publisher, isTrue);
+        expect(preview.haveIt, 'You have this Course in your courses.');
+        expect(
+          preview.keptIt,
+          'Bob removed it from their courses but kept their progress on it.',
+        );
+
+        // While another learner has it in their courses the removal is
+        // refused, and then nothing is reset or deleted.
+        await prefs.setBool(carlaHasIt, true);
+        await expectLater(run(), throwsA(isA<InventoryActionException>()));
+        expect((await editor.listUserCourses()).single.courseId, id);
+        expect(await ProgressService().hasCourseProgress(_bob, id), isTrue);
+        expect((await editor.backupService.summaryOf(id)).versions, 1);
+
+        await prefs.setBool(carlaHasIt, false);
+        expect(await run(), isNull);
+        expect(await editor.listUserCourses(), isEmpty);
+        expect(await ProgressService().hasCourseProgress(_bob, id), isFalse);
+        expect((await editor.backupService.summaryOf(id)).isEmpty, isTrue);
+      },
+    );
+
+    testWidgets('the dialog names the learners and asks again before a reset', (
+      tester,
+    ) async {
+      final editor = CourseEditorService();
+      final course = _course('shared');
+      await tester.runAsync(() async {
+        await editor.installImportedCustomCourse(course);
+        await backUp(editor, course);
+        await as(_bob, () async {
+          await CourseLibraryService().add(course);
+          await complete('shared');
+        });
+        await setPin();
+      });
+      FolderOpener.available = () => false;
+      addTearDown(() => FolderOpener.available = () => true);
+      tester.view.physicalSize = const Size(900, 6000);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        MaterialApp(home: InventoryScreen(profileService: profiles)),
+      );
+      final delete = find.byKey(
+        const Key('inventory-Custom and installed courses-0-action'),
+      );
+      await tester.pumpUntilFileIoState(() => delete.evaluate().isNotEmpty);
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(delete);
+      await tester.tap(delete);
+      await tester.pumpUntilFileIoState(
+        () => find
+            .byKey(const Key('inventory-course-learners'))
+            .evaluate()
+            .isNotEmpty,
+      );
+
+      expect(
+        find.text('Bob and you have this Course in your courses.'),
+        findsOneWidget,
+      );
+      expect(
+        find.textContaining('1 saved version in Backups/Courses ('),
+        findsOneWidget,
+      );
+      CheckboxListTile box(String key) =>
+          tester.widget<CheckboxListTile>(find.byKey(Key(key)));
+      expect(box('inventory-course-reset-progress').value, isFalse);
+      expect(box('inventory-course-delete-backups').value, isFalse);
+      await tester.tap(
+        find.byKey(const Key('inventory-course-reset-progress')),
+      );
+      await tester.tap(
+        find.byKey(const Key('inventory-course-delete-backups')),
+      );
+      await tester.pump();
+      await tester.enterText(
+        find.byKey(const Key('inventory-action-pin')),
+        _pin,
+      );
+
+      // Resetting everyone's progress is confirmed once more.
+      await tester.tap(find.byKey(const Key('inventory-action-run')));
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const Key('inventory-course-reset-confirm')),
+        findsOneWidget,
+      );
+      await tester.tap(find.text('Keep their progress'));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('inventory-action-dialog')), findsOneWidget);
+      expect(
+        (await tester.runAsync(editor.listUserCourses))!.single.courseId,
+        'shared',
+      );
+
+      await tester.tap(find.byKey(const Key('inventory-action-run')));
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.byKey(const Key('inventory-course-reset-confirm-run')),
+      );
+      // The message stays a few seconds, so it is looked for while the
+      // files are being written and the list read again.
+      final message = find.textContaining(
+        'Everyone\'s progress on it was reset. Its backups were deleted.',
+      );
+      for (var i = 0; i < 300 && message.evaluate().isEmpty; i++) {
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 1)),
+        );
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      expect(message, findsOneWidget);
+      expect(find.byKey(const Key('inventory-action-dialog')), findsNothing);
+      await tester.runAsync(() async {
+        expect(await editor.listUserCourses(), isEmpty);
+        expect(
+          await ProgressService().hasCourseProgress(_bob, 'shared'),
+          isFalse,
+        );
+        expect(
+          (await editor.backupService.summaryOf('shared')).isEmpty,
+          isTrue,
+        );
+      });
+    });
+
     test('offers the whole folder of a Course no longer here', () async {
+      await setPin();
       final editor = CourseEditorService();
       await editor.installImportedCustomCourse(_course('here'));
       final owned = await mediaFolderOf('here');
@@ -639,6 +1177,7 @@ void main() {
     });
 
     test('deletes it with the admin PIN and nothing else', () async {
+      await setPin();
       final editor = CourseEditorService();
       await editor.installImportedCustomCourse(_course('here'));
       final owned = await mediaFolderOf('here');

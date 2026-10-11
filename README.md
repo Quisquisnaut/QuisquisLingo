@@ -15,9 +15,10 @@ copies a Round whole instead of rebuilding it field by field. Revision 1:
 Delete course names the other learners who have the Course in their courses
 and can also reset your own progress on it and delete all its backups; a
 damaged picture or recording no longer stops every later save of its Course;
-temporary files of an interrupted Course save are removed at start-up; a
-Publisher update keeps the stored copy it could not open; and the Inventory
-deletes the media of a Course no longer on the device with one action.
+temporary files of an interrupted Course save are removed at start-up; and
+the Inventory deletes the media of a Course no longer on the device with one
+action, and when it deletes a Course it names the learners who have it and
+can also reset everyone's progress on it and delete its backups.
 
 Build 270 fixes the weaknesses found by the audit of 10 October 2026
 ([audit](docs/270_AUDIT.md), [change summary](docs/270_CHANGE_SUMMARY.md)).

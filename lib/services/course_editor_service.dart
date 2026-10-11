@@ -25,7 +25,6 @@ import 'course_received_service.dart';
 import 'team_service.dart';
 import 'publisher_course_ids.dart';
 import 'storage/qql_storage.dart';
-import 'storage/course_storage_names.dart';
 
 class CourseConfirmationResult {
   final Course course;
@@ -143,30 +142,6 @@ class CourseEditorService {
       );
     } on CourseBackupsAccessDenied catch (denied) {
       onSkipped?.call(denied.folder);
-      backupSkipped(denied.folder);
-      return null;
-    }
-  }
-
-  /// [_backupOrSkip] for a stored record this version cannot open, kept as
-  /// it is before [replacement] takes its place (Build 271 Revision 1).
-  /// Returns the kept file's path.
-  Future<String?> _keepUnreadableOrSkip(
-    Course replacement,
-    Object? record,
-  ) async {
-    try {
-      final kept = await backupService.keepUnreadableCopy(
-        replacement.courseId,
-        record,
-        when: _clock(),
-        pair: CourseStorageNames.pairOfCourse(replacement),
-        reason:
-            'External official update replaced a stored source this version '
-            'could not open',
-      );
-      return kept.path;
-    } on CourseBackupsAccessDenied catch (denied) {
       backupSkipped(denied.folder);
       return null;
     }
@@ -1461,9 +1436,6 @@ class CourseEditorService {
           'A different publisher cannot replace this official course identity.',
         );
       }
-      // Build 271 Revision 1: the copy this version cannot open is kept in
-      // the Course's backup folder before the update replaces it.
-      final kept = await _keepUnreadableOrSkip(normalizedUpdate, record);
       await _store.replaceIfUnchanged(
         CourseStoreKind.externalOfficial,
         normalizedUpdate.courseId,
@@ -1483,7 +1455,7 @@ class CourseEditorService {
       LearnerStatusEvents.publish(LearnerStatusInvalidation.courseMetadata);
       return OfficialCourseUpdateResult(
         officialCourse: normalizedUpdate,
-        backupPath: kept,
+        backupPath: null,
       );
     }
     final assessedPrevious = await _publisherVerification.assessStored(

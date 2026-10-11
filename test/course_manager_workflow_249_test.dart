@@ -688,6 +688,81 @@ void main() {
       expect(find.text('Deleted “Mine”.'), findsOneWidget);
     });
 
+    // Build 271 Revision 1 follow-up (owner decisions of 11 October 2026).
+    testWidgets(
+      'a Course this version cannot open offers its backups, with a caution',
+      (tester) async {
+        await setUpDevice(tester);
+        final course = _course('mine', title: 'Mine');
+        await install(tester, course);
+        await tester.runAsync(() async {
+          await editor.backupService.createBackup(
+            course,
+            backedUpAt: DateTime.utc(2026, 10, 11, 10),
+            reason: 'Pre-change Course Editor transaction backup',
+          );
+          // The stored copy takes a shape this version refuses.
+          final stored = await store.snapshot(CourseStoreKind.custom, 'mine');
+          final entry = Map<String, dynamic>.from(stored!.entry as Map);
+          final json = Map<String, dynamic>.from(entry['course'] as Map);
+          (json['lessons'] as List).first['guidebook'] = {'content': []};
+          entry['course'] = json;
+          await store.replaceIfUnchanged(
+            CourseStoreKind.custom,
+            'mine',
+            entry,
+            expectedToken: stored.token,
+          );
+        });
+        await pumpManager(tester);
+
+        final remove = find.byKey(
+          const Key('course-manager-unreadable-remove-0'),
+        );
+        await tester.ensureVisible(remove);
+        await tester.tap(remove);
+        await tester.pumpUntilFileIoState(
+          () => find
+              .textContaining('1 saved version in Backups/Courses (')
+              .evaluate()
+              .isNotEmpty,
+        );
+        expect(
+          find.textContaining(
+            'its backups may be the last copies that can still be read',
+          ),
+          findsOneWidget,
+        );
+        const backupsBox = Key('course-manager-unreadable-remove-backups');
+        expect(
+          tester.widget<CheckboxListTile>(find.byKey(backupsBox)).value,
+          isFalse,
+        );
+        await tester.tap(find.byKey(backupsBox));
+        await tester.pump();
+        const confirm = Key('course-manager-unreadable-remove-confirm');
+        await tester.tap(find.byKey(confirm));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 400));
+        expect(find.textContaining('and its 1 backup ('), findsOneWidget);
+        await tester.tap(find.byKey(confirm));
+        await tester.pumpUntilFileIoState(
+          () => find
+              .byKey(const Key('course-manager-unreadable-removed'))
+              .evaluate()
+              .isNotEmpty,
+        );
+
+        await tester.runAsync(() async {
+          expect(await editor.unopenableCourse('mine'), isNull);
+          expect(
+            (await editor.backupService.summaryOf('mine')).isEmpty,
+            isTrue,
+          );
+        });
+      },
+    );
+
     testWidgets(
       'a storage failure is reported and keeps the Course listed',
       (tester) async {

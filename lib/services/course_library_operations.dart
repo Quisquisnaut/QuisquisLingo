@@ -791,24 +791,49 @@ class CourseLibraryOperations {
         // Reported by the result: the Course is already deleted.
       }
     }
-    var backupsDeleted = 0;
-    var backupsLeft = false;
-    if (deleteBackups) {
-      final before = await editor.backupService.summaryOf(course.courseId);
-      backupsLeft = !await editor.backupService.deleteAllBackups(
-        course.courseId,
-      );
-      final after = backupsLeft
-          ? await editor.backupService.summaryOf(course.courseId)
-          : CourseBackupsSummary.none;
-      backupsDeleted = before.versions - after.versions;
-    }
+    final backups = deleteBackups
+        ? await _deleteBackups(course.courseId)
+        : (deleted: 0, left: false);
     return CourseDeleteResult(
       progressResetAsked: resetMyProgress,
       progressReset: progressReset,
       backupsAsked: deleteBackups,
-      backupsDeleted: backupsDeleted,
-      backupsLeft: backupsLeft,
+      backupsDeleted: backups.deleted,
+      backupsLeft: backups.left,
+    );
+  }
+
+  /// Deletes the backup folder of [courseId]: how many saved versions went
+  /// and whether something stayed.
+  Future<({int deleted, bool left})> _deleteBackups(String courseId) async {
+    final before = await editor.backupService.summaryOf(courseId);
+    final left = !await editor.backupService.deleteAllBackups(courseId);
+    final after = left
+        ? await editor.backupService.summaryOf(courseId)
+        : CourseBackupsSummary.none;
+    return (deleted: before.versions - after.versions, left: left);
+  }
+
+  /// What the backup folder of [courseId] holds, also for a Course this
+  /// version cannot open (the folder is found by the ID).
+  Future<CourseBackupsSummary> backupsOf(String courseId) =>
+      editor.backupService.summaryOf(courseId);
+
+  /// Removes a stored Course this version cannot open, under the rules its
+  /// JSON names, and when asked its backup folder (Build 271 Revision 1
+  /// follow-up). A refused removal throws and the backups stay.
+  Future<CourseDeleteResult> removeUnopenableCourse(
+    String courseId, {
+    bool deleteBackups = false,
+  }) async {
+    await editor.deleteUserCourse(courseId);
+    final backups = deleteBackups
+        ? await _deleteBackups(courseId)
+        : (deleted: 0, left: false);
+    return CourseDeleteResult(
+      backupsAsked: deleteBackups,
+      backupsDeleted: backups.deleted,
+      backupsLeft: backups.left,
     );
   }
 
@@ -1139,6 +1164,18 @@ abstract final class CourseLibraryReports {
     final mb = bytes / (1024 * 1024);
     return '${mb < 10 ? mb.toStringAsFixed(1) : mb.round()} MB';
   }
+
+  /// Why the backups of a Course this version cannot open deserve a second
+  /// thought (Build 271 Revision 1 follow-up).
+  static const unopenableBackupsCaution =
+      'This version cannot open the Course: its backups may be the last '
+      'copies that can still be read.';
+
+  /// What removing a Course this version cannot open did to its backups.
+  static String unopenableRemoved(String fileName, CourseDeleteResult result) =>
+      'Removed $fileName'
+      '${result.backupsDeleted > 0 ? ' and its ${result.backupsDeleted} backup${result.backupsDeleted == 1 ? '' : 's'}' : ''}.'
+      '${result.backupsLeft ? ' Some of its backup files could not be deleted; they are still in Backups/Courses.' : ''}';
 
   /// What a Delete removed, and what it could not.
   static String deleted(Course course, CourseDeleteResult result) {

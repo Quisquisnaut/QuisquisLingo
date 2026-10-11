@@ -103,9 +103,9 @@ Gotchas:
 State: done. Version 2.0.71+271001 (Beta expiry 2026-11-10 23:59:59,
 unchanged: same release day). New tests 17 passed plus two Course Studio
 cases; related files 274 passed; analyzer clean; complete suite 4,194 passed,
-1 skipped (12:17–13:07, 11 October 2026). Committed on `build-271` and the
-branch pushed. Next: Revision 2 (the Audio Library like the Image Library;
-the Course Editor's top bar), which starts with mock-ups for the owner.
+1 skipped (12:17–13:07, 11 October 2026). Committed on `build-271` as
+`6e54e7ff` and the branch pushed. A follow-up in the same version came
+next (see below).
 
 What was done (details in `docs/271_CHANGE_SUMMARY.md`):
 
@@ -113,9 +113,7 @@ What was done (details in `docs/271_CHANGE_SUMMARY.md`):
   deleteBackups:)`, `CourseDeletePreview`, `CourseDeleteResult`, texts in
   `CourseLibraryReports`; Course Studio's `_delete` and `_deletePreview`.
 - `CourseBackupService`: a damaged stored file is a gap (logged through the
-  `log` seam); `summaryOf`, `deleteAllBackups`, `keepUnreadableCopy`.
-- `CourseEditorService._keepUnreadableOrSkip` in the Publisher update over a
-  source this version cannot open.
+  `log` seam); `summaryOf`, `deleteAllBackups`.
 - `CourseFileStore.removeLeftoverTemporaryFiles` (called in `main()`),
   `syncDirectory` / `flushDirectory`.
 - Inventory: `InventorySection.groups`, `deleteCourseMediaFolder`.
@@ -127,9 +125,9 @@ What was done (details in `docs/271_CHANGE_SUMMARY.md`):
 Decisions taken while working (say so in the report):
 
 - "Also delete all its backups" deletes the Course's whole backup folder,
-  also files this version cannot read (earlier formats, a kept unreadable
-  copy): they are its backups too, and a folder left with only those would
-  have no Course to belong to.
+  also files this version cannot read (earlier formats): they are its
+  backups too, and a folder left with only those would have no Course to
+  belong to.
 - The warning about other learners uses the theme's error container (red
   tint); the mock-up showed amber, which the app's theme has no colour for.
 - The first dialog opens at once and fills in the learners and backups when
@@ -138,9 +136,6 @@ Decisions taken while working (say so in the report):
   folder. Dart cannot flush a folder itself; calling the system library
   directly could not be tried on this PC and a mistake there would crash the
   app, so the safer route was taken. Not run on Linux or macOS.
-- A kept unreadable Publisher copy does not include its media.
-- The Inventory's own Delete of a Course and the removal of a Course this
-  version cannot open were left as they are (no extras there).
 
 Gotchas:
 
@@ -150,3 +145,54 @@ Gotchas:
   EOF"): write the script and any Dart text with the Write tool.
 - `test/flutter_test_config.dart` turns `CourseFileStore.syncDirectory` off
   for the whole suite; on Linux no test starts `sync`.
+
+## Revision 1 follow-up (same version 2.0.71+271001)
+
+Owner decisions of 11 October 2026, after the Revision 1 report:
+
+- The Inventory's Delete on a Course and the removal of a Course this
+  version cannot open offer to delete the backups too.
+- The Inventory's Delete on a Course lists the learners who have it, says
+  who removed it but kept their progress, and can reset everyone's progress.
+- Remove Publisher Course from device (Inventory): warn that learners may
+  want their progress for a reinstallation, but allow the reset when the
+  admin confirms.
+- The kept unreadable Publisher copy is removed.
+
+State: done. Related files 243 passed; analyzer clean; complete suite
+4,205 passed, 1 skipped (14:32–15:31, 11 October 2026). Committed on
+`build-271` and the branch pushed. Revision 1's first commit is `6e54e7ff`.
+Next: Revision 2 (the Audio Library like the Image Library; the Course
+Editor's top bar), which starts with mock-ups for the owner.
+
+What was done (details in `docs/271_CHANGE_SUMMARY.md`, "Follow-up"):
+
+- `ProgressService.resetCourseForProfile`, `hasCourseProgress`.
+- `lib/services/course_learners.dart` (`CourseLearnersService`).
+- `InventoryActionService.previewCourse`, `run(resetEveryonesProgress:,
+  deleteBackups:)`, `InventoryCoursePreview`; the Inventory screen's Course
+  dialog (`_CourseExtras`, `_confirmReset`).
+- `CourseLibraryOperations.backupsOf`, `removeUnopenableCourse`; Course
+  Studio's `_removeUnopenable`.
+- Removed: `CourseBackupService.keepUnreadableCopy`,
+  `CourseEditorService._keepUnreadableOrSkip`.
+- Help EN/IT/ES, CHANGELOG, README, AGENTS, the plan, the storage inventory
+  document.
+
+Decisions taken while working (say so in the report):
+
+- Remove Publisher Course from device is still refused while another
+  learner has the Course in their courses. The owner asked for the reset to
+  be allowed with a warning, not for that rule to go, so it stays; ask if it
+  should be lifted for the Inventory.
+- Ticking "reset everyone's progress" is confirmed in a second dialog
+  ("Confirm progress reset"), as Remove from my courses does for its reset.
+- Course Studio's Delete still resets only the deleting learner's progress.
+
+Gotchas:
+
+- `pumpUntilFileIoState` keeps pumping while frames are scheduled; a
+  SnackBar shown after a dialog can be gone (4 seconds of test time) before
+  it returns. Look for the message in a loop of your own.
+- A Bash heredoc drops the backslash of `\'` in Dart text: use the Write
+  or Edit tool for Dart strings with an apostrophe.

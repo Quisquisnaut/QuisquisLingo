@@ -429,12 +429,34 @@ class ProgressService {
   /// because those days really did contain study and can legitimately freeze
   /// streaks in the learner's other languages.
   Future<void> resetCourse(String courseId) async {
+    final activeId = await _profiles.getActiveProfileId();
+    if (activeId == null) throw StateError('No active learner profile');
+    await resetCourseForProfile(activeId, courseId);
+  }
+
+  String _courseKeyFor(String learnerProfileId, String base, String courseId) =>
+      _profiles.keyForProfileId(
+        learnerProfileId,
+        '${base}_course_${Uri.encodeComponent(courseId.trim())}',
+      );
+
+  /// [resetCourse] for any learner on this device (Build 271 Revision 1
+  /// follow-up, owner decision of 11 October 2026): the Inventory's Delete
+  /// of a Course may reset everyone's progress on it, with the admin's PIN.
+  /// The same records go and the same ones stay.
+  Future<void> resetCourseForProfile(
+    String learnerProfileId,
+    String courseId,
+  ) async {
     final p = await _prefs;
     for (final base in _courseProgressKeyBases) {
-      await p.remove(await _ck(base, courseId));
+      await p.remove(_courseKeyFor(learnerProfileId, base, courseId));
     }
 
-    final recentKey = await _k(_recentRoundsKey);
+    final recentKey = _profiles.keyForProfileId(
+      learnerProfileId,
+      _recentRoundsKey,
+    );
     final recent = (p.getStringList(recentKey) ?? [])
         .map(RecentRoundEntry.decode)
         .whereType<RecentRoundEntry>()
@@ -442,5 +464,27 @@ class ProgressService {
         .map((e) => e.encode())
         .toList();
     await p.setStringList(recentKey, recent);
+  }
+
+  /// Whether [learnerProfileId] has progress on [courseId] that
+  /// [resetCourseForProfile] would remove: a completion record of any kind,
+  /// or a recent Round.
+  Future<bool> hasCourseProgress(
+    String learnerProfileId,
+    String courseId,
+  ) async {
+    final p = await _prefs;
+    for (final base in _courseProgressKeyBases) {
+      if (p.containsKey(_courseKeyFor(learnerProfileId, base, courseId))) {
+        return true;
+      }
+    }
+    return (p.getStringList(
+              _profiles.keyForProfileId(learnerProfileId, _recentRoundsKey),
+            ) ??
+            const [])
+        .map(RecentRoundEntry.decode)
+        .whereType<RecentRoundEntry>()
+        .any((entry) => entry.courseId == courseId);
   }
 }

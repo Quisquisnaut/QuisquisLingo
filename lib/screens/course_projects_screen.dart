@@ -2791,13 +2791,90 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
   /// Removes a stored Course this version cannot open (Build 266 Revision
   /// 2), with the same two confirmations as Delete; the service allows it to
   /// its Maintainer, a member of its Team or an admin, as its JSON names them.
+  /// Since the Build 271 Revision 1 follow-up the first confirmation offers,
+  /// off, to delete all its backups too.
   Future<void> _removeUnopenable(SkippedCourseFile file) async {
-    Future<bool> confirm(String title, String message, String action) async =>
+    final courseId = file.courseId!;
+    final held = _unopenableBackups(courseId);
+    var deleteBackups = false;
+    var backups = CourseBackupsSummary.none;
+    final first =
+        await showDialog<bool>(
+          context: context,
+          builder: (ctx) => StatefulBuilder(
+            builder: (ctx, update) => AlertDialog(
+              title: const Text('Remove the stored Course?'),
+              content: SingleChildScrollView(
+                child: FutureBuilder<CourseBackupsSummary>(
+                  future: held,
+                  builder: (ctx, snapshot) {
+                    final data = snapshot.data;
+                    if (data != null) backups = data;
+                    return Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Remove ${file.fileName} (Course ID $courseId) '
+                          'from this device? This version cannot open it.',
+                        ),
+                        const SizedBox(height: 8),
+                        CheckboxListTile(
+                          key: const Key(
+                            'course-manager-unreadable-remove-backups',
+                          ),
+                          contentPadding: EdgeInsets.zero,
+                          controlAffinity: ListTileControlAffinity.leading,
+                          value: deleteBackups,
+                          onChanged: data == null || data.isEmpty
+                              ? null
+                              : (value) => update(
+                                  () => deleteBackups = value ?? false,
+                                ),
+                          title: const Text('Also delete all its backups'),
+                          subtitle: Text(
+                            data == null
+                                ? 'Looking for its backups…'
+                                : data.isEmpty
+                                ? 'It has no backups.'
+                                : '${CourseLibraryReports.backupsHeld(data)}, '
+                                      'with the pictures and recordings only '
+                                      'they hold. '
+                                      '${CourseLibraryReports.unopenableBackupsCaution}',
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx, false),
+                  child: const Text('Cancel'),
+                ),
+                FilledButton(
+                  key: const Key('course-manager-unreadable-remove-confirm'),
+                  onPressed: () => Navigator.pop(ctx, true),
+                  child: const Text('Continue'),
+                ),
+              ],
+            ),
+          ),
+        ) ??
+        false;
+    if (!first || !mounted) return;
+    final second =
         await showDialog<bool>(
           context: context,
           builder: (ctx) => AlertDialog(
-            title: Text(title),
-            content: Text(message),
+            title: const Text('Confirm permanent deletion'),
+            content: Text(
+              'This will permanently delete ${file.fileName} and the Course '
+              'media stored for it'
+              '${deleteBackups ? ', and its ${backups.versions} backup${backups.versions == 1 ? '' : 's'} (${CourseLibraryReports.sizeText(backups.bytes)}),' : ''}'
+              ' from this device. This action cannot be undone.',
+            ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx, false),
@@ -2806,31 +2883,29 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
               FilledButton(
                 key: const Key('course-manager-unreadable-remove-confirm'),
                 onPressed: () => Navigator.pop(ctx, true),
-                child: Text(action),
+                child: const Text('Delete permanently'),
               ),
             ],
           ),
         ) ??
         false;
-    if (!await confirm(
-          'Remove the stored Course?',
-          'Remove ${file.fileName} (Course ID ${file.courseId}) from this '
-              'device? This version cannot open it.',
-          'Continue',
-        ) ||
-        !mounted) {
-      return;
-    }
-    if (!await confirm(
-      'Confirm permanent deletion',
-      'This will permanently delete ${file.fileName} and the Course media '
-          'stored for it from this device. This action cannot be undone.',
-      'Delete permanently',
-    )) {
-      return;
-    }
+    if (!second) return;
     try {
-      await _ops.editor.deleteUserCourse(file.courseId!);
+      final result = await _ops.removeUnopenableCourse(
+        courseId,
+        deleteBackups: deleteBackups,
+      );
+      if (mounted && (result.backupsDeleted > 0 || result.backupsLeft)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            key: const Key('course-manager-unreadable-removed'),
+            duration: const Duration(seconds: 6),
+            content: Text(
+              CourseLibraryReports.unopenableRemoved(file.fileName, result),
+            ),
+          ),
+        );
+      }
     } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -2846,6 +2921,16 @@ class CourseProjectsScreenState extends State<CourseProjectsScreen> {
       }
     }
     await _reload();
+  }
+
+  /// The backups of a Course this version cannot open; a check that fails
+  /// offers none.
+  Future<CourseBackupsSummary> _unopenableBackups(String courseId) async {
+    try {
+      return await _ops.backupsOf(courseId);
+    } catch (_) {
+      return CourseBackupsSummary.none;
+    }
   }
 
   /// Delete (Build 271 Revision 1, owner decisions of 10 and 11 October

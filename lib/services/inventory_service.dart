@@ -704,10 +704,11 @@ class InventoryService {
                     explanation: course.originType == CourseOriginType.custom
                         ? 'Delete the Course “$title” and its Course media '
                               'from this device. Only its Maintainer or a '
-                              'member of its Team may. Its backups stay.'
+                              'member of its Team may.'
                         : 'Remove the Publisher Course “$title” from this '
-                              'device. Its progress and media stay for a '
-                              'reinstallation.',
+                              'device. Its progress, media and backups stay '
+                              'for a reinstallation unless you choose '
+                              'otherwise below.',
                   )
                 : rawId != null
                 ? InventoryAction(

@@ -4,7 +4,9 @@ import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'admin_pin_gate.dart';
+import 'course_backup_service.dart';
 import 'course_editor_service.dart';
+import 'course_learners.dart';
 import 'course_media_store.dart';
 import 'storage/course_storage_names.dart';
 import 'course_favorite_service.dart';
@@ -26,6 +28,63 @@ class InventoryActionException implements Exception {
 
   @override
   String toString() => message;
+}
+
+/// What the Inventory shows before it deletes a Course (Build 271 Revision 1
+/// follow-up, owner decisions of 11 October 2026): who has it, who kept
+/// progress on it after removing it, and what its backup folder holds.
+class InventoryCoursePreview {
+  const InventoryCoursePreview({
+    required this.courseId,
+    required this.publisher,
+    required this.unopenable,
+    required this.inCourses,
+    required this.includesYou,
+    required this.keptProgress,
+    required this.backups,
+  });
+
+  final String courseId;
+
+  /// Remove Publisher Course from device: its progress, media and backups
+  /// stay for a reinstallation unless the admin chooses otherwise.
+  final bool publisher;
+
+  /// A stored Course this version cannot open.
+  final bool unopenable;
+
+  /// The other learners whose Course list shows the Course, by name.
+  final List<String> inCourses;
+
+  /// Whether the admin's own Course list shows it.
+  final bool includesYou;
+
+  /// The learners who removed it from their courses and kept their
+  /// progress on it, by name.
+  final List<String> keptProgress;
+
+  final CourseBackupsSummary backups;
+
+  static String _joined(List<String> names) => names.length == 1
+      ? names.single
+      : '${names.sublist(0, names.length - 1).join(', ')} and ${names.last}';
+
+  /// "Anna, Marco and you have this Course in your courses.", or null when
+  /// nobody has it.
+  String? get haveIt {
+    final names = [...inCourses, if (includesYou) 'you'];
+    if (names.isEmpty) return null;
+    if (inCourses.isEmpty) return 'You have this Course in your courses.';
+    return '${_joined(names)} ${names.length == 1 ? 'has' : 'have'} this '
+        'Course in ${includesYou ? 'your' : 'their'} courses.';
+  }
+
+  /// "Carla removed it from their courses but kept their progress on it.",
+  /// or null when nobody did.
+  String? get keptIt => keptProgress.isEmpty
+      ? null
+      : '${_joined(keptProgress)} removed it from their courses but kept '
+            'their progress on it.';
 }
 
 /// Runs an Inventory item's Delete or Forget (Build 266 Revision 2, owner
@@ -73,15 +132,67 @@ class InventoryActionService {
       (key.startsWith('learner_') &&
           key.contains('_${CourseFavoriteService.keyPrefix}'));
 
-  Future<void> run(
+  /// Whether [action] deletes a stored Course (custom, Publisher, or one
+  /// this version cannot open): its target is the Course ID.
+  static bool isCourseAction(InventoryAction action) =>
+      action.kind == InventoryActionKind.deleteCourse ||
+      action.kind == InventoryActionKind.deletePublisherCourse;
+
+  /// What the dialog shows before a Course goes (Build 271 Revision 1
+  /// follow-up); null for any other action.
+  Future<InventoryCoursePreview?> previewCourse(
+    InventoryAction action, {
+    required String actorProfileId,
+  }) async {
+    if (!isCourseAction(action)) return null;
+    final courseId = action.target;
+    final courses = _courses;
+    final course = (await courses.listUserCourses())
+        .where((candidate) => candidate.courseId == courseId)
+        .firstOrNull;
+    final learners = await CourseLearnersService(
+      profiles: _profiles,
+    ).of(courseId, course: course);
+    return InventoryCoursePreview(
+      courseId: courseId,
+      publisher: action.kind == InventoryActionKind.deletePublisherCourse,
+      unopenable: course == null,
+      inCourses: [
+        for (final learner in learners.inCourses)
+          if (learner.learnerProfileId != actorProfileId) learner.displayName,
+      ],
+      includesYou: learners.inCourses.any(
+        (learner) => learner.learnerProfileId == actorProfileId,
+      ),
+      keptProgress: [
+        for (final learner in learners.keptProgress) learner.displayName,
+      ],
+      backups: await courses.backupService.summaryOf(courseId),
+    );
+  }
+
+  /// Runs [action]. For a Course, once it is gone, [resetEveryonesProgress]
+  /// resets every learner's progress on it and [deleteBackups] deletes its
+  /// backup folder (Build 271 Revision 1 follow-up); a refused Delete throws
+  /// and neither happens. Returns what could not be done, or null.
+  Future<String?> run(
     InventoryAction action, {
     required String actorProfileId,
     required String pin,
+    bool resetEveryonesProgress = false,
+    bool deleteBackups = false,
   }) async {
     final problem = await AdminPinGate(
       _profiles,
     ).problem(actorProfileId, pin, what: 'delete what the Inventory lists');
     if (problem != null) throw InventoryActionException(problem);
+    final course = isCourseAction(action);
+    if (!course && (resetEveryonesProgress || deleteBackups)) {
+      throw const InventoryActionException(
+        'Progress and backups go with a Course only.',
+      );
+    }
+    final courses = _courses;
     try {
       await _run(action, actorProfileId);
     } on InventoryActionException {
@@ -89,9 +200,29 @@ class InventoryActionService {
     } catch (error) {
       throw InventoryActionException(_readable(error));
     }
+    final notes = <String>[];
+    if (resetEveryonesProgress) {
+      try {
+        await CourseLearnersService(
+          profiles: _profiles,
+        ).resetEveryone(action.target);
+      } catch (_) {
+        notes.add('The progress on it could not be reset.');
+      }
+    }
+    if (deleteBackups &&
+        !await courses.backupService.deleteAllBackups(action.target)) {
+      notes.add(
+        'Some of its backup files could not be deleted; they are still in '
+        'Backups/Courses.',
+      );
+    }
     await DiagnosticLogService().logInfo(
-      'Inventory: ${action.label} ${action.kind.name} ${action.target}',
+      'Inventory: ${action.label} ${action.kind.name} ${action.target}'
+      '${resetEveryonesProgress ? ', everyone\'s progress on it reset' : ''}'
+      '${deleteBackups ? ', its backups deleted' : ''}',
     );
+    return notes.isEmpty ? null : notes.join(' ');
   }
 
   Future<void> _run(InventoryAction action, String actor) async {

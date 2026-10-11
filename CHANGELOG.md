@@ -22,9 +22,6 @@ Owner decisions of 10 and 11 October 2026 (`docs/271_PLAN.md`).
 - **Temporary files of an interrupted Course save are removed at start-up.**
   On Linux and macOS the Course folder is flushed after a save, so a power
   cut right after it cannot bring the earlier version back.
-- **A Publisher update over a stored copy this version cannot open keeps
-  that copy** in the Course's backup folder (Version History names it among
-  the files it cannot read). Before, the update replaced it without a copy.
 - **Inventory: Delete all** for the media of a Course no longer on this
   device: its whole folder with one admin PIN. Before, each file needed its
   own Delete and PIN.
@@ -35,6 +32,29 @@ Owner decisions of 10 and 11 October 2026 (`docs/271_PLAN.md`).
 - Help EN/IT/ES (Course Studio Help, Advanced (Admin) Help).
 - Scoring, progression, Course files and the learner-data format are
   unchanged.
+
+Follow-up in the same version (owner decisions of 11 October 2026):
+
+- **Inventory, Delete on a Course** names the learners who have the Course
+  in their courses and those who removed it but kept their progress, and
+  offers two extras, both off: **Also reset everyone's progress on this
+  Course** (every learner on the device, confirmed once more; XP, Weekly XP,
+  study days and streaks are kept) and **Also delete all its backups**.
+  Before, the Inventory's Delete said nothing about learners and always kept
+  the backups.
+- **Remove Publisher Course from device** in the Inventory has the same two
+  extras. By default it still keeps progress, media and backups for a
+  reinstallation, and the dialog says that learners may want their progress
+  back. It is still refused while another learner has the Course in their
+  courses.
+- **Removing a stored Course this version cannot open** (Course Studio)
+  offers **Also delete all its backups**, off, with the caution that its
+  backups may be the last copies that can still be read. The Inventory's
+  Delete of such a Course shows the same caution.
+- **The Publisher update no longer keeps the stored copy it could not
+  open.** The file added earlier in this revision could not be used inside
+  QQL and held nothing of the user's: a Publisher Course's own package is
+  its copy.
 
 # 2.0.71 (Build 271, Revision 0) - content that plays wrong - 2026-10-11
 

@@ -47,7 +47,14 @@ EN/IT/ES wherever a screen changes.
 - Leftover `*.tmp` files in the Course store are cleaned up at start-up; on
   Linux and macOS the folder is flushed after a rename.
 - A Publisher update over an unreadable stored copy keeps a backup of that
-  copy.
+  copy. (Dropped on 11 October 2026, owner decision: the copy could not be
+  used inside QQL and held nothing of the user's.)
+- Added on 11 October 2026 (owner decisions): the Inventory deletes the
+  media folder of a Course no longer on the device with one action; its
+  Delete on a Course names the learners who have it and those who kept
+  progress on it, and can reset everyone's progress on it and delete its
+  backups (also for a Publisher Course, which keeps everything by default);
+  removing a Course this version cannot open can delete its backups too.
 
 ## Revision 2: the Audio Library like the Image Library; the Course Editor's top bar
 

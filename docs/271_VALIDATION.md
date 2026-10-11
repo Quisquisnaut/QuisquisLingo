@@ -105,3 +105,42 @@ Not checked:
   system may refuse; the message then says some files stayed).
 - A Windows release build was not made for this revision; the dialogs were
   exercised by widget tests, not by hand.
+
+## Revision 1 follow-up (2.0.71+271001, same version)
+
+11 October 2026, owner's Windows 10 PC, `build-271`. Owner decisions of the
+same day: the Inventory's Delete on a Course, the backups option for a
+Course this version cannot open, and no kept Publisher copy.
+
+- `test/deleting_a_course_271_test.dart`, now **27 passed**. Two cases of
+  the first commit went with the kept Publisher copy (the copy itself, and
+  the update keeping it). New or changed:
+  - A Publisher update over a copy this version cannot open replaces it and
+    keeps no copy (1).
+  - The learners of a Course (2): progress found and reset learner by
+    learner, a recent Round alone counting, another Course untouched; who
+    has a Course and who removed it but kept their progress, with the
+    Course and by its ID alone.
+  - Deleting a Course (2 more): a Course this version cannot open goes with
+    its backups when asked, and keeps them otherwise.
+  - The Inventory (7 more): the preview and its sentences; Delete with both
+    extras resets all three learners' progress (also the one who removed
+    the Course) and deletes its backups, keeps the other Course, XP and the
+    other Course's backups, and changes nothing with a wrong PIN; without
+    the extras progress and backups stay; a refused Delete resets nothing;
+    the extras are refused for anything but a Course; a Publisher Course is
+    refused while another learner has it (nothing reset, nothing deleted)
+    and then goes with both extras; the dialog (widget test) names the
+    learners, has both boxes off, asks again before the reset, keeps
+    everything on "Keep their progress", and afterwards says what was done.
+- `test/course_manager_workflow_249_test.dart`: one more Delete case (a
+  Course this version cannot open: its backups counted, the caution, the
+  box off, the second confirmation naming the backup, both gone); its five
+  Delete cases pass.
+- Related files (17 files): **243 passed**.
+- `flutter analyze --no-pub`: no issues.
+- Complete suite (`flutter test --no-pub --concurrency=1`, kept awake, TEMP
+  on D:): **4,205 passed, 1 skipped**, 58:24 (11 October 2026,
+  14:32–15:31; slow, with little memory free).
+
+Not checked: the dialogs by hand (no Windows release build was made).

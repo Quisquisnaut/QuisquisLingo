@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../services/course_library_operations.dart' show CourseLibraryReports;
 import '../services/inventory_action_service.dart';
 import '../services/inventory_service.dart';
 import '../services/profile_service.dart';
@@ -57,14 +58,25 @@ class _InventoryScreenState extends State<InventoryScreen> {
 
   /// Delete or Forget: what it removes, then the admin's PIN. The service
   /// applies the same rules as the rest of QQL and says why it refuses.
+  ///
+  /// For a Course (Build 271 Revision 1 follow-up, owner decisions of
+  /// 11 October 2026) the dialog also names the learners who have it and
+  /// those who kept progress on it, and offers, both off, to reset
+  /// everyone's progress on it and to delete all its backups; resetting
+  /// progress is confirmed once more.
   Future<void> _runAction(InventoryItem item) async {
     final action = item.action;
     if (action == null) return;
     final actor = await _profiles.getActiveProfileId();
     if (actor == null || !mounted) return;
+    final isCourse = InventoryActionService.isCourseAction(action);
+    final preview = isCourse ? _coursePreview(action, actor) : null;
     final pin = TextEditingController();
     String? error;
+    String? note;
     var running = false;
+    var resetProgress = false;
+    var deleteBackups = false;
     final done =
         await showDialog<bool>(
           context: context,
@@ -78,6 +90,23 @@ class _InventoryScreenState extends State<InventoryScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(action.explanation),
+                    if (preview != null)
+                      FutureBuilder<InventoryCoursePreview?>(
+                        future: preview,
+                        builder: (context, snapshot) => _CourseExtras(
+                          preview: snapshot.data,
+                          resetProgress: resetProgress,
+                          deleteBackups: deleteBackups,
+                          onResetProgress: running
+                              ? null
+                              : (value) =>
+                                    setLocal(() => resetProgress = value),
+                          onDeleteBackups: running
+                              ? null
+                              : (value) =>
+                                    setLocal(() => deleteBackups = value),
+                        ),
+                      ),
                     const SizedBox(height: 8),
                     const Text('This cannot be undone. Enter your admin PIN.'),
                     const SizedBox(height: 8),
@@ -115,15 +144,27 @@ class _InventoryScreenState extends State<InventoryScreen> {
                   onPressed: running
                       ? null
                       : () async {
+                          if (resetProgress &&
+                              !await _confirmReset(
+                                dialogContext,
+                                item,
+                                publisher:
+                                    action.kind ==
+                                    InventoryActionKind.deletePublisherCourse,
+                              )) {
+                            return;
+                          }
                           setLocal(() {
                             running = true;
                             error = null;
                           });
                           try {
-                            await _actions.run(
+                            note = await _actions.run(
                               action,
                               actorProfileId: actor,
                               pin: pin.text,
+                              resetEveryonesProgress: resetProgress,
+                              deleteBackups: deleteBackups,
                             );
                             if (dialogContext.mounted) {
                               Navigator.pop(dialogContext, true);
@@ -149,9 +190,65 @@ class _InventoryScreenState extends State<InventoryScreen> {
       _future = _service.load();
     });
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('${action.label}: “${item.name}” done.')),
+      SnackBar(
+        duration: Duration(seconds: note == null ? 4 : 8),
+        content: Text(
+          '${action.label}: “${item.name}” done.'
+          '${resetProgress ? ' Everyone\'s progress on it was reset.' : ''}'
+          '${deleteBackups ? ' Its backups were deleted.' : ''}'
+          '${note == null ? '' : ' $note'}',
+        ),
+      ),
     );
   }
+
+  /// What the Course dialog shows; a check that fails shows nothing extra
+  /// and never stops the Delete.
+  Future<InventoryCoursePreview?> _coursePreview(
+    InventoryAction action,
+    String actor,
+  ) async {
+    try {
+      return await _actions.previewCourse(action, actorProfileId: actor);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// The second confirmation before every learner's progress on a Course is
+  /// reset. Learners may want it back when a Publisher Course is installed
+  /// again, so that case says so.
+  Future<bool> _confirmReset(
+    BuildContext context,
+    InventoryItem item, {
+    required bool publisher,
+  }) async =>
+      await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          key: const Key('inventory-course-reset-confirm'),
+          title: const Text('Confirm progress reset'),
+          content: Text(
+            '${publisher ? 'Learners may want their progress back when this Course is installed again. ' : ''}'
+            'Reset the progress of every learner on “${item.name}”: completed '
+            'Rounds and Lessons, Laurels, Duels, GuideBooks read and recent '
+            'Rounds? XP, Weekly XP, study days and streaks are kept. The '
+            'reset cannot be undone.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Keep their progress'),
+            ),
+            FilledButton(
+              key: const Key('inventory-course-reset-confirm-run'),
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('Reset everyone\'s progress'),
+            ),
+          ],
+        ),
+      ) ??
+      false;
 
   static String formatBytes(int bytes) {
     if (bytes < 1024) return '$bytes B';
@@ -325,6 +422,115 @@ class _SectionCard extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// The Course part of the Inventory's Delete dialog (Build 271 Revision 1
+/// follow-up): who has the Course, who kept progress on it, and the two
+/// options, both off. Until [preview] is read only the options show, the
+/// backups one greyed.
+class _CourseExtras extends StatelessWidget {
+  const _CourseExtras({
+    required this.preview,
+    required this.resetProgress,
+    required this.deleteBackups,
+    required this.onResetProgress,
+    required this.onDeleteBackups,
+  });
+
+  final InventoryCoursePreview? preview;
+  final bool resetProgress;
+  final bool deleteBackups;
+  final ValueChanged<bool>? onResetProgress;
+  final ValueChanged<bool>? onDeleteBackups;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final data = preview;
+    final haveIt = data?.haveIt;
+    final keptIt = data?.keptIt;
+    final held = data?.backups;
+    final publisher = data?.publisher ?? false;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (haveIt != null || keptIt != null) ...[
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: scheme.errorContainer,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(Icons.group_outlined, color: scheme.onErrorContainer),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (haveIt != null)
+                        Text(
+                          haveIt,
+                          key: const Key('inventory-course-learners'),
+                          style: TextStyle(color: scheme.onErrorContainer),
+                        ),
+                      if (keptIt != null)
+                        Text(
+                          keptIt,
+                          key: const Key('inventory-course-kept-progress'),
+                          style: TextStyle(color: scheme.onErrorContainer),
+                        ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+        const SizedBox(height: 8),
+        CheckboxListTile(
+          key: const Key('inventory-course-reset-progress'),
+          contentPadding: EdgeInsets.zero,
+          controlAffinity: ListTileControlAffinity.leading,
+          value: resetProgress,
+          onChanged: onResetProgress == null
+              ? null
+              : (value) => onResetProgress!(value ?? false),
+          title: const Text('Also reset everyone\'s progress on this Course'),
+          subtitle: Text(
+            '${publisher ? 'Learners may want to keep their progress for when the Course is installed again. ' : ''}'
+            'Completed Rounds and Lessons, Laurels, Duels, GuideBooks read '
+            'and recent Rounds, for every learner on this device, also those '
+            'who removed the Course from their courses and kept their '
+            'progress. XP, Weekly XP, study days and streaks are kept.',
+          ),
+        ),
+        CheckboxListTile(
+          key: const Key('inventory-course-delete-backups'),
+          contentPadding: EdgeInsets.zero,
+          controlAffinity: ListTileControlAffinity.leading,
+          value: deleteBackups,
+          onChanged: onDeleteBackups == null || held == null || held.isEmpty
+              ? null
+              : (value) => onDeleteBackups!(value ?? false),
+          title: const Text('Also delete all its backups'),
+          subtitle: Text(
+            held == null
+                ? 'Looking for its backups…'
+                : held.isEmpty
+                ? 'It has no backups.'
+                : '${CourseLibraryReports.backupsHeld(held)}, with the '
+                      'pictures and recordings only they hold.'
+                      '${data!.unopenable ? ' ${CourseLibraryReports.unopenableBackupsCaution}' : ''}',
+          ),
+        ),
+      ],
     );
   }
 }

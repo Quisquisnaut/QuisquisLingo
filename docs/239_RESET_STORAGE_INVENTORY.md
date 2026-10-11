@@ -104,10 +104,11 @@ A Course's cover is ordinary Course media in `QQL_CourseMedia`, so the scopes th
 - No new key or folder.
 - Delete course in Course Studio can also delete the Course's backup folder
   (`Backups/Courses/QQL_bkp_<pair>_<id>`), on request.
-- A stored Course record a Publisher update replaced because this version
-  could not open it is kept in that same backup folder
-  (`…_vunreadable_<stamp>.json`); the scopes and Inventory section that
-  cover Course Backups cover it.
+- Inventory, Delete on a Course (custom, Publisher, or one this version
+  cannot open): on request it also resets every learner's progress on that
+  Course (the keys `ProgressService.resetCourse` removes, for each learner)
+  and deletes the Course's backup folder. Removing a Course this version
+  cannot open in Course Studio can delete its backup folder too.
 - Temporary files of an interrupted Course save (`*.json.<pid>.<time>.<n>.tmp`
   in `QQL_Courses_v12/Custom|Publisher`) are removed at start-up.
 - Inventory, Course media: one row per folder of a Course no longer on this
