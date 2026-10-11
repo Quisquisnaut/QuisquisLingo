@@ -372,7 +372,7 @@ Owner decisions of 10 October 2026 (see the handoff).
 ### Revision 10 follow-up: one narrator rule
 
 Owner decision after the modularization audit
-(`docs/270_MODULARIZATION_AUDIT.md`): the Course Editor's Story characters
+(`docs/272_MODULARIZATION_PLAN.md`): the Course Editor's Story characters
 (`_withSpeakers`) now builds through the Story Wizard's
 `_courseWithSpeakers`, so `storyNarrator` is written only when the Course has
 one or the narrator differs from `StorySpeaker.defaultNarrator`. Saving the

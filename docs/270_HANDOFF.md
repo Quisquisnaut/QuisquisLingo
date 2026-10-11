@@ -242,7 +242,7 @@ pushing `main` wait for the owner's go.
 ### Revision 10 follow-up: one narrator rule; the modularization audit
 
 The read-only modularization audit is saved as
-`docs/270_MODULARIZATION_AUDIT.md` (ranked owners; owner rule: an extracted,
+`docs/272_MODULARIZATION_PLAN.md` (ranked owners; owner rule: an extracted,
 testable owner before any file split). The owner chose to land the narrator
 rule now: the Course Editor's Story characters follows the Story Wizard's
 rule (stored only when the Course has one or it differs from the default).

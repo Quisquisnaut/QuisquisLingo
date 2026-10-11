@@ -1,8 +1,11 @@
-# Build 270 modularization audit
+# Build 272 modularization plan
 
-Read-only audit of 10 October 2026, after Revision 10 (`db60d474`). Four
-agents mapped the largest files; the claims that matter most were checked
-against the code. Line numbers refer to that commit. Nothing was changed.
+The modularization is planned for Build 272 (owner decision of 11 October
+2026); this plan is the read-only audit of 10 October 2026, made after
+Build 270 Revision 10 (`db60d474`) and first saved as
+`docs/270_MODULARIZATION_AUDIT.md`. Four agents mapped the largest files;
+the claims that matter most were checked against the code. Line numbers
+refer to that commit. Nothing was changed.
 
 ## The rule applied
 

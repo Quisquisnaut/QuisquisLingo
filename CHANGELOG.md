@@ -126,7 +126,7 @@ plan.
   from the default. Before, opening the default narrator and pressing Save
   unchanged wrote it into the Course and counted as an unsaved change.
   Learners see the same narrator either way. The read-only modularization
-  audit is saved as `docs/270_MODULARIZATION_AUDIT.md`.
+  audit is saved as `docs/272_MODULARIZATION_PLAN.md`.
 
 # 2.0.70 (Build 270, Revision 9) - Course Backups share their media; older backups deleted on request - 2026-10-10
 
